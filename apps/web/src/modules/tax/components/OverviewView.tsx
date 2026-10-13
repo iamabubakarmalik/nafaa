@@ -89,10 +89,10 @@ export function OverviewView({ data, loading, failed, onRetryLoad, money, onInvo
         <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 lg:col-span-2">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="font-semibold text-slate-900">{data.bucket === 'month' ? 'Har mahine ka tax' : 'Roz ka tax'}</h3>
-            <span className="text-[0.75rem] text-slate-500">{dayShort(data.period.from)} – {dayShort(data.period.to)} · wapsi minus</span>
+            <span className="text-[0.75rem] text-slate-500">{dayShort(data.period.from)} – {dayShort(data.period.to)} · return minus</span>
           </div>
           {data.totals.bills === 0 && data.totals.returns === 0 ? (
-            <p className="py-16 text-center text-[0.8125rem] text-slate-500">Is muddat me authority ne koi bill nahi liya.</p>
+            <p className="py-16 text-center text-[0.8125rem] text-slate-500">Is period me authority ne koi bill nahi liya.</p>
           ) : (
             <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">

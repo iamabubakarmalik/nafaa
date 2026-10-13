@@ -150,7 +150,7 @@ function RowMenu({ o, couriers, onAction, onCancel, onOpen }: {
           {opt.book && !couriers.length && <button type="button" role="menuitem" className={item} onClick={pick(onOpen)}><Truck className="h-4 w-4 text-sky-600" />Courier ko dein</button>}
           {opt.label && <button type="button" role="menuitem" className={item} onClick={pick(() => onAction({ kind: 'label' }))}><Tag className="h-4 w-4 text-slate-500" />Courier label print</button>}
           {opt.invoice && <button type="button" role="menuitem" className={item} onClick={pick(() => openInvoices([o.id]))}><FileText className="h-4 w-4 text-slate-500" />Invoice / packing slip</button>}
-          <button type="button" role="menuitem" className={item} onClick={pick(onOpen)}><Package className="h-4 w-4 text-slate-500" />Poori tafseel</button>
+          <button type="button" role="menuitem" className={item} onClick={pick(onOpen)}><Package className="h-4 w-4 text-slate-500" />Poori details</button>
           {opt.cancel && (
             <button type="button" role="menuitem" className={cn(item, 'text-rose-700 hover:bg-rose-50')} onClick={pick(onCancel)}>
               <Ban className="h-4 w-4" />{o.orderStatus === 'PENDING' ? 'Reject' : 'Cancel'}

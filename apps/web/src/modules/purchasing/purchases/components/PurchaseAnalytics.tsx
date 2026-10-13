@@ -40,15 +40,15 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={Truck} label="Maal aaya" value={money(t.value)} sub={
           <span className={cn('inline-flex items-center gap-0.5', up ? 'text-rose-600' : 'text-emerald-600')}>
-            {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{Math.abs(t.growth).toFixed(0)}% pichli muddat se ({money(t.prevValue)})
+            {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{Math.abs(t.growth).toFixed(0)}% pichli period se ({money(t.prevValue)})
           </span>} />
         <Kpi icon={Wallet} label="Diye" value={money(t.paid)} sub={`Udhaar par ${money(t.credit)}`} tone={t.credit > 0 ? 'amber' : 'emerald'} />
         <Kpi icon={ClipboardList} label="Bill" value={String(t.bills)} sub={`Ausat bill ${money(t.avgBill)}`} />
-        <Kpi icon={Boxes} label="Suppliers / cheezein" value={`${t.suppliers} / ${t.items}`} sub={t.returned > 0 ? `Wapas ${money(t.returned)}` : 'Koi wapsi nahi'} />
+        <Kpi icon={Boxes} label="Suppliers / cheezein" value={`${t.suppliers} / ${t.items}`} sub={t.returned > 0 ? `Wapas ${money(t.returned)}` : 'Koi return nahi'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Kharidari ka rujhan</span>}
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Purchase ka rujhan</span>}
           description={d.range.byMonth ? 'Mahine war' : 'Din war'}
           actions={<Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'value', label: 'Maal' }, { value: 'paid', label: 'Diye' }, { value: 'bills', label: 'Bill' }]} />}>
           <div className="h-[260px]">
@@ -69,8 +69,8 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
           </div>
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Adaigi kaise hui</span>}>
-          {!d.payments.length ? <Empty text="Koi adaigi nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Payment kaise hui</span>}>
+          {!d.payments.length ? <Empty text="Koi payment nahi" /> : (
             <>
               <div className="h-[170px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -98,7 +98,7 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Suppliers</span>} description="Kis se kitna maal aaya">
-          {!d.suppliers.length ? <Empty text="Koi kharidari nahi" /> : (
+          {!d.suppliers.length ? <Empty text="Koi purchase nahi" /> : (
             <ul className="space-y-2.5">
               {d.suppliers.map((s, i) => (
                 <li key={s.id}>
@@ -118,8 +118,8 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Categories</span>} description="Paisa kis qism ke maal par laga">
-          {!d.categories.length ? <Empty text="Koi kharidari nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Categories</span>} description="Paisa kis type ke maal par laga">
+          {!d.categories.length ? <Empty text="Koi purchase nahi" /> : (
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={d.categories} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
@@ -137,12 +137,12 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada khareeda maal</span>} description="Raqam, miqdar aur ausat cost (fi base unit)">
-        {!d.items.length ? <Empty text="Koi kharidari nahi" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada khareeda maal</span>} description="Amount, quantity aur ausat cost (fi base unit)">
+        {!d.items.length ? <Empty text="Koi purchase nahi" /> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[34rem] text-sm">
               <thead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-                <tr><th className="py-2">#</th><th className="py-2">Cheez</th><th className="py-2 text-right">Miqdar</th><th className="py-2 text-right">Ausat cost</th><th className="py-2 text-right">Bill</th><th className="py-2 text-right">Raqam</th></tr>
+                <tr><th className="py-2">#</th><th className="py-2">Cheez</th><th className="py-2 text-right">Quantity</th><th className="py-2 text-right">Ausat cost</th><th className="py-2 text-right">Bill</th><th className="py-2 text-right">Amount</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {d.items.map((i, n) => (
@@ -162,7 +162,7 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />Mehngi hoti cheezein</span>} description="Is muddat me cost kitni barhi">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />Mehngi hoti cheezein</span>} description="Is period me cost kitni barhi">
           {!d.costRises.length ? <Empty text="Kisi cheez ki cost nahi barhi" /> : (
             <ul className="divide-y divide-slate-100">
               {d.costRises.map((c) => (
@@ -176,7 +176,7 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
         </Card>
 
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Boxes className="h-4 w-4 text-brand-600" />Kis unit me khareeda</span>} description="Pcs, carton, box, bori…">
-          {!d.units.length ? <Empty text="Koi kharidari nahi" /> : (
+          {!d.units.length ? <Empty text="Koi purchase nahi" /> : (
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={d.units} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -221,11 +221,11 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
             </ul>
           )}
         </Card>
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" />Wapsi</span>} description="Supplier ko lautaya maal">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" />Return</span>} description="Supplier ko lautaya maal">
           <div className="flex items-end gap-6 py-4">
-            <div><p className="text-3xl font-bold tabular-nums text-slate-900">{d.returns.count}</p><p className="text-[0.75rem] text-slate-500">wapsi</p></div>
-            <div><p className="text-3xl font-bold tabular-nums text-amber-700">{money(d.returns.total)}</p><p className="text-[0.75rem] text-slate-500">raqam (khate se kam hui)</p></div>
-            {t.value > 0 && <div><p className="text-3xl font-bold tabular-nums text-slate-900">{((d.returns.total / t.value) * 100).toFixed(1)}%</p><p className="text-[0.75rem] text-slate-500">kharidari ka</p></div>}
+            <div><p className="text-3xl font-bold tabular-nums text-slate-900">{d.returns.count}</p><p className="text-[0.75rem] text-slate-500">return</p></div>
+            <div><p className="text-3xl font-bold tabular-nums text-amber-700">{money(d.returns.total)}</p><p className="text-[0.75rem] text-slate-500">amount (khate se kam hui)</p></div>
+            {t.value > 0 && <div><p className="text-3xl font-bold tabular-nums text-slate-900">{((d.returns.total / t.value) * 100).toFixed(1)}%</p><p className="text-[0.75rem] text-slate-500">purchase ka</p></div>}
           </div>
         </Card>
       </div>

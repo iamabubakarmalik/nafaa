@@ -64,7 +64,7 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
       description={`${formatPKR(price)} / ${unit.unitName}${Number.isFinite(available) ? ` · stock ${fmtQty(available)} ${unit.unitName}` : ''}`}
       footer={
         <Button fullWidth size="lg" onClick={submit} disabled={!canAdd}>
-          {qty > 0 ? `${fmtQty(qty)} ${unit.unitName} · ${formatPKR(amount)} — bill mein daalein` : 'Wazan ya raqam likhein'}
+          {qty > 0 ? `${fmtQty(qty)} ${unit.unitName} · ${formatPKR(amount)} — bill mein daalein` : 'Wazan ya amount likhein'}
         </Button>
       }>
       <div className="space-y-4">
@@ -76,7 +76,7 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
           }} />
         )}
         <Segmented label="Kaise" value={mode} onChange={setMode} className="w-full [&>button]:flex-1"
-          items={[{ value: 'weight', label: 'Wazan se' }, { value: 'money', label: 'Raqam se' }]} />
+          items={[{ value: 'weight', label: 'Wazan se' }, { value: 'money', label: 'Amount se' }]} />
 
         {mode === 'weight' ? (
           <div className="space-y-2">
@@ -100,7 +100,7 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
         ) : (
           <div className="space-y-2">
             <input autoFocus inputMode="decimal" value={money} onChange={(e) => setMoney(e.target.value.replace(/[^\d.]/g, ''))}
-              placeholder="Rs 0" aria-label="Raqam"
+              placeholder="Rs 0" aria-label="Amount"
               className="h-14 w-full rounded-xl border border-slate-300 px-4 text-right text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
             <div className="grid grid-cols-3 gap-1.5">
               {moneyPresets.map((m) => (

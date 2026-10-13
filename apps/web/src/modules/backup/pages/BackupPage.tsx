@@ -23,13 +23,13 @@ import { backupApi, type BackupSummary } from '../api/backup.api';
 
 type CountKey = keyof BackupSummary['counts'];
 const TABLES: Array<{ key: CountKey; label: string; icon: LucideIcon; color: string }> = [
-  { key: 'sales', label: 'Bikri ke bill', icon: ShoppingCart, color: '#16a34a' },
+  { key: 'sales', label: 'Sale ke bill', icon: ShoppingCart, color: '#16a34a' },
   { key: 'products', label: 'Products', icon: Package, color: '#2563eb' },
   { key: 'customers', label: 'Customers', icon: Users, color: '#db2777' },
   { key: 'khataEntries', label: 'Khata entries', icon: BookOpen, color: '#7c3aed' },
-  { key: 'purchases', label: 'Kharidari', icon: Receipt, color: '#d97706' },
+  { key: 'purchases', label: 'Purchase', icon: Receipt, color: '#d97706' },
   { key: 'suppliers', label: 'Suppliers', icon: Truck, color: '#ea580c' },
-  { key: 'expenses', label: 'Kharche', icon: Wallet, color: '#e11d48' },
+  { key: 'expenses', label: 'Expenses', icon: Wallet, color: '#e11d48' },
   { key: 'stockMovements', label: 'Stock entries', icon: ArrowLeftRight, color: '#0891b2' },
   { key: 'categories', label: 'Categories', icon: FolderTree, color: '#65a30d' },
   { key: 'cashRegisters', label: 'Drawer ke din', icon: Wallet, color: '#0d9488' },
@@ -109,7 +109,7 @@ export default function BackupPage() {
         stats={[
           { label: 'Kul records', value: n(total) },
           { label: 'Aakhri backup', value: last ? when(last.at) : 'Kabhi nahi', hint: last?.by ?? undefined },
-          { label: 'Bikri ke bill', value: n(s?.counts.sales) },
+          { label: 'Sale ke bill', value: n(s?.counts.sales) },
         ]}
       />
 
@@ -145,7 +145,7 @@ export default function BackupPage() {
                   ))}
                 </ul>
               )}
-              <p className="mt-3 text-[0.75rem] text-slate-500">Saath me: dukaan ki settings, bill ki cheezein, kharidari ki cheezein, drawer ki entries aur stock adjustments.</p>
+              <p className="mt-3 text-[0.75rem] text-slate-500">Saath me: dukaan ki settings, bill ki cheezein, purchase ki cheezein, drawer ki entries aur stock adjustments.</p>
             </Card>
           </div>
 
@@ -155,7 +155,7 @@ export default function BackupPage() {
                 {[
                   [Cloud, 'File Google Drive ya email par bhi rakhein, sirf is computer par nahi.'],
                   [CheckCircle2, 'Har hafte naya backup — purane bhi rakh sakte hain.'],
-                  [Lock, 'File me customers, udhaar aur munafa hai — kisi anjaan ko na dein. Malik ka PIN file me nahi jata.'],
+                  [Lock, 'File me customers, udhaar aur profit hai — kisi anjaan ko na dein. Malik ka PIN file me nahi jata.'],
                   [Database, 'Is file se data khud wapas nahi dala jata — zaroorat ho to support se baat karein.'],
                 ].map(([Icon, text]) => {
                   const I = Icon as LucideIcon;
@@ -167,7 +167,7 @@ export default function BackupPage() {
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><FileSpreadsheet className="h-5 w-5" /></span>
               <span className="flex-1">
                 <span className="block text-[0.875rem] font-semibold text-slate-900">Excel files chahiye?</span>
-                <span className="block text-[0.75rem] text-slate-500">Bikri, khata, stock — muddat ke hisaab se, Exports page par</span>
+                <span className="block text-[0.75rem] text-slate-500">Sale, khata, stock — period ke hisaab se, Exports page par</span>
               </span>
             </Link>
           </div>

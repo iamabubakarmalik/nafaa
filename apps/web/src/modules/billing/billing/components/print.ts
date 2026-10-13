@@ -13,19 +13,19 @@ export function invoiceDoc(inv: Invoice): PrintDoc {
     subtitle: inv.invoiceNumber,
     meta: [
       ['Haal', st.label],
-      ['Tareekh', formatDate(inv.createdAt)],
+      ['Date', formatDate(inv.createdAt)],
       ['Due', formatDate(inv.dueDate)],
       ...(inv.paidAt ? [['Ada hua', formatDate(inv.paidAt)] as [string, string]] : []),
     ],
     sections: [
       {
         kind: 'rows',
-        title: 'Tafseel',
+        title: 'Details',
         rows: [
           { label: 'Plan', value: inv.subscription?.plan?.name || inv.description || 'Subscription' },
-          ...(inv.subscription?.interval ? [{ label: 'Muddat', value: INTERVAL[inv.subscription.interval].label }] : []),
+          ...(inv.subscription?.interval ? [{ label: 'Period', value: INTERVAL[inv.subscription.interval].label }] : []),
           ...(inv.periodStart && inv.periodEnd ? [{ label: 'Kab se kab tak', value: `${formatDate(inv.periodStart)} – ${formatDate(inv.periodEnd)}` }] : []),
-          { label: 'Raqam', value: formatPKR(inv.subtotal ?? inv.total) },
+          { label: 'Amount', value: formatPKR(inv.subtotal ?? inv.total) },
           ...(inv.tax ? [{ label: 'Tax', value: formatPKR(inv.tax) }] : []),
           { label: 'Kul', value: formatPKR(inv.total), strong: true },
           { label: 'Ada kiya', value: formatPKR(inv.amountPaid) },
@@ -35,7 +35,7 @@ export function invoiceDoc(inv: Invoice): PrintDoc {
       ...(inv.payments?.length ? [{
         kind: 'table' as const,
         title: 'Payments',
-        columns: [{ label: 'Tareekh' }, { label: 'Tareeqa' }, { label: 'Ref', wideOnly: true }, { label: 'Haal' }, { label: 'Raqam', align: 'right' as const }],
+        columns: [{ label: 'Date' }, { label: 'Tareeqa' }, { label: 'Ref', wideOnly: true }, { label: 'Haal' }, { label: 'Amount', align: 'right' as const }],
         rows: inv.payments.map((p) => [formatDate(p.createdAt), PROVIDER[p.provider]?.label ?? p.provider, p.transactionId ?? '—', PAYMENT_STATUS[p.status].label, formatPKR(p.amount)]),
       }] : []),
     ],
@@ -52,13 +52,13 @@ export function billingDoc(invoices: Invoice[], payments: Payment[], totals: { p
       {
         kind: 'table',
         title: 'Bill',
-        columns: [{ label: 'Bill #' }, { label: 'Tareekh' }, { label: 'Plan', wideOnly: true }, { label: 'Haal' }, { label: 'Kul', align: 'right' }, { label: 'Baqi', align: 'right' }],
+        columns: [{ label: 'Bill #' }, { label: 'Date' }, { label: 'Plan', wideOnly: true }, { label: 'Haal' }, { label: 'Kul', align: 'right' }, { label: 'Baqi', align: 'right' }],
         rows: invoices.map((i) => [i.invoiceNumber, formatDate(i.createdAt), i.subscription?.plan?.name || i.description || '—', INVOICE_STATUS[i.status].label, formatPKR(i.total), i.status === 'PAID' ? '—' : formatPKR(i.amountDue)]),
       },
       ...(payments.length ? [{
         kind: 'table' as const,
         title: 'Payments',
-        columns: [{ label: 'Tareekh' }, { label: 'Tareeqa' }, { label: 'Bill #', wideOnly: true }, { label: 'Haal' }, { label: 'Raqam', align: 'right' as const }],
+        columns: [{ label: 'Date' }, { label: 'Tareeqa' }, { label: 'Bill #', wideOnly: true }, { label: 'Haal' }, { label: 'Amount', align: 'right' as const }],
         rows: payments.map((p) => [formatDateTime(p.createdAt), PROVIDER[p.provider]?.label ?? p.provider, p.invoice?.invoiceNumber ?? '—', PAYMENT_STATUS[p.status].label, formatPKR(p.amount)]),
       }] : []),
     ],

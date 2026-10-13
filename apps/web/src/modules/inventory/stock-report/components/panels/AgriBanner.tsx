@@ -19,7 +19,7 @@ export function AgriBanner({ list, setStatus }: StockBannerProps) {
       <ShieldAlert className="h-4 w-4 shrink-0 text-rose-600" />
       <span>
         {b.count > 0 && <><b>{b.count} cheezon</b> ki registration khatam — {cost(b.cost)} ka maal ({money(b.retail)} bechne par) abhi bik nahi sakta. </>}
-        {soon > 0 && <><b>{soon}</b> ki registration 60 din me khatam ya tareekh likhi nahi.</>}
+        {soon > 0 && <><b>{soon}</b> ki registration 60 din me khatam ya date likhi nahi.</>}
         <span className="ml-1 font-semibold underline">Dekhein</span>
       </span>
     </button>

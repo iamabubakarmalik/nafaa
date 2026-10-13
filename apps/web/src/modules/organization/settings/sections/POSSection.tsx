@@ -40,19 +40,19 @@ export function POSSection({ settings, onOpenSecurity }: { settings: TenantSetti
           desc="Bagair customer chune bill nahi banega. Walk-in ke liye ek 'Walk-in' customer bana lein." />
       </SectionCard>
 
-      <SectionCard title="Chhoot" desc="Cashier haath se kitni chhoot de sakta hai (codes aur points ke apne usool hain)" icon={Percent} color="amber"
+      <SectionCard title="Discount" desc="Cashier haath se kitni discount de sakta hai (codes aur points ke apne usool hain)" icon={Percent} color="amber"
         badge={<StatPill label="Had" value={draft.allowDiscount ? `${max}%` : 'Band'} tone={draft.allowDiscount ? 'amber' : 'slate'} />}>
         <Toggle checked={draft.allowDiscount} onChange={(v) => set('allowDiscount', v)} icon={Tag}
-          label="Haath se chhoot"
-          desc={draft.allowDiscount ? 'Cashier bill par chhoot de sakta hai' : 'Band — counter par chhoot ka button kaam nahi karega'} />
+          label="Haath se discount"
+          desc={draft.allowDiscount ? 'Cashier bill par discount de sakta hai' : 'Band — counter par discount ka button kaam nahi karega'} />
         {draft.allowDiscount && (
           <>
             <Divider />
-            <Field label="Zyada se zyada chhoot" hint={hasPin ? 'Is se zyada sirf malik ke PIN se' : 'Is se zyada bilkul nahi (malik ka PIN lagayein to PIN se ho sakegi)'}>
+            <Field label="Zyada se zyada discount" hint={hasPin ? 'Is se zyada sirf malik ke PIN se' : 'Is se zyada bilkul nahi (malik ka PIN lagayein to PIN se ho sakegi)'}>
               <NumberInput value={draft.maxDiscountPercent} onChange={(v) => set('maxDiscountPercent', v)} min={0} max={100} suffix="%" />
             </Field>
             <p className="mt-2 text-xs text-slate-500">
-              Misaal: {formatPKR(1000)} ke bill par {formatPKR((1000 * max) / 100)} tak chhoot.
+              Misaal: {formatPKR(1000)} ke bill par {formatPKR((1000 * max) / 100)} tak discount.
             </p>
           </>
         )}
@@ -62,7 +62,7 @@ export function POSSection({ settings, onOpenSecurity }: { settings: TenantSetti
         badge={<StatPill label="PIN" value={hasPin ? 'Laga hua' : 'Nahi laga'} tone={hasPin ? 'emerald' : 'rose'} />}>
         {!hasPin && (
           <Alert tone="amber" icon={KeyRound} title="Abhi PIN nahi laga">
-            PIN ke bagair yeh usool kaam nahi karte (sirf chhoot ki had band rehti hai).{' '}
+            PIN ke bagair yeh usool kaam nahi karte (sirf discount ki had band rehti hai).{' '}
             <button type="button" onClick={onOpenSecurity} className="font-semibold underline underline-offset-2">PIN lagayein</button>
           </Alert>
         )}
@@ -70,9 +70,9 @@ export function POSSection({ settings, onOpenSecurity }: { settings: TenantSetti
           <Toggle checked={draft.requirePinForVoid} onChange={(v) => set('requirePinForVoid', v)} icon={Ban}
             label="Bill cancel par PIN" desc="Bana hua bill cancel karne se pehle" />
           <Toggle checked={draft.requirePinForRefund} onChange={(v) => set('requirePinForRefund', v)} icon={RotateCcw}
-            label="Wapsi par PIN" desc="Maal wapas le kar paise lautane se pehle" />
+            label="Return par PIN" desc="Maal wapas le kar paise lautane se pehle" />
           <Toggle checked={draft.requirePinForDiscount} onChange={(v) => set('requirePinForDiscount', v)} icon={Percent}
-            label="Har chhoot par PIN" desc="Had ke andar bhi, har haath ki chhoot par" />
+            label="Har discount par PIN" desc="Had ke andar bhi, har haath ki discount par" />
         </div>
         <p className="mt-2 text-xs text-slate-500">Customer ki credit limit se zyada udhaar par bhi PIN maanga jata hai.</p>
       </SectionCard>

@@ -13,39 +13,39 @@ export function ExpensesSection({ data: d, f, compare }: { data: ExpensesReport;
   return (
     <div className="space-y-4">
       <KpiRow cols={4}>
-        <KpiCard icon={Receipt} color="#e11d48" label="Kul kharche" value={f.money(t.amount)} hint={compare && d.previous ? <Delta now={t.amount} before={d.previous.amount} up="bad" /> : `${t.count} kharche`} />
+        <KpiCard icon={Receipt} color="#e11d48" label="Total expenses" value={f.money(t.amount)} hint={compare && d.previous ? <Delta now={t.amount} before={d.previous.amount} up="bad" /> : `${t.count} expenses`} />
         <KpiCard icon={CalendarClock} color="#2563eb" label="Roz ka ausat" value={f.money(t.perDay)} />
-        <KpiCard icon={Percent} color="#7c3aed" label="Bikri ka hissa" value={`${t.ofSales.toFixed(1)}%`} hint="har 100 ki bikri par" />
-        <KpiCard icon={Hourglass} color="#d97706" label="Abhi dena hai" value={f.money(t.pending)} hint="pending kharche" />
+        <KpiCard icon={Percent} color="#7c3aed" label="Sale ka hissa" value={`${t.ofSales.toFixed(1)}%`} hint="har 100 ki sale par" />
+        <KpiCard icon={Hourglass} color="#d97706" label="Abhi dena hai" value={f.money(t.pending)} hint="pending expenses" />
       </KpiRow>
 
       <Panel icon={TrendingUp} title="Kharchon ka rujhan" hint={d.grouping === 'month' ? 'Mahine war' : 'Din war'}
-        actions={<Link to="/expenses" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Kharche →</Link>}>
-        {!t.count ? <Empty text="Is muddat me koi kharcha nahi" /> : (
-          <TrendChart id="rc-exp" f={f} data={d.trend} series={[{ key: 'amount', label: 'Kharcha', color: '#e11d48', fmt: 'money' }]} />
+        actions={<Link to="/expenses" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Expenses →</Link>}>
+        {!t.count ? <Empty text="Is period me koi expense nahi" /> : (
+          <TrendChart id="rc-exp" f={f} data={d.trend} series={[{ key: 'amount', label: 'Expense', color: '#e11d48', fmt: 'money' }]} />
         )}
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel icon={Layers} title="Category war">
-          {!d.categories.length ? <Empty text="Koi kharcha nahi" /> : (
+          {!d.categories.length ? <Empty text="Koi expense nahi" /> : (
             <Donut f={f} fmt="money" data={d.categories.map((c) => ({ name: `${c.name} (${c.count})`, value: c.amount, color: c.color ?? undefined }))} />
           )}
         </Panel>
         <Panel icon={Wallet} title="Kaise diye">
-          {!d.methods.length ? <Empty text="Koi kharcha nahi" /> : (
+          {!d.methods.length ? <Empty text="Koi expense nahi" /> : (
             <Donut f={f} fmt="money" colors={[theme.primary]} data={d.methods.map((m) => ({ name: PAYMENT_LABELS[m.method] ?? m.method, value: m.amount, color: PAYMENT_COLORS[m.method] }))} />
           )}
         </Panel>
       </div>
 
-      <Panel icon={Receipt} title="Sab se bare kharche">
-        <DataTable rows={d.biggest} rowKey={(e) => e.id} empty="Koi kharcha nahi" columns={[
-          { label: 'Tareekh', render: (e) => f.date(e.date) },
-          { label: 'Kharcha', render: (e) => <span className="font-medium text-slate-900">{e.title}</span> },
+      <Panel icon={Receipt} title="Sab se bare expenses">
+        <DataTable rows={d.biggest} rowKey={(e) => e.id} empty="Koi expense nahi" columns={[
+          { label: 'Date', render: (e) => f.date(e.date) },
+          { label: 'Expense', render: (e) => <span className="font-medium text-slate-900">{e.title}</span> },
           { label: 'Category', render: (e) => e.category ?? '—' },
           { label: 'Halat', render: (e) => (e.status === 'PENDING' ? <span className="text-amber-700">Dena hai</span> : 'Diya') },
-          { label: 'Raqam', align: 'right', render: (e) => <span className="font-semibold">{f.money(e.amount)}</span> },
+          { label: 'Amount', align: 'right', render: (e) => <span className="font-semibold">{f.money(e.amount)}</span> },
         ]} />
       </Panel>
     </div>

@@ -34,7 +34,7 @@ export function OrderDrawer({ orderId, onClose, onStep }: {
   return createPortal(
     <div className="fixed inset-0 z-[90] flex justify-end print:hidden">
       <div className="absolute inset-0 bg-slate-950/40 animate-in fade-in" onClick={onClose} aria-hidden />
-      <aside role="dialog" aria-modal="true" data-drawer aria-label="Order ki tafseel"
+      <aside role="dialog" aria-modal="true" data-drawer aria-label="Order ki details"
         className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
         {onStep && (
           <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[0.75rem] text-slate-500">

@@ -74,7 +74,7 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
               <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-800">⚠ Is customer ka RTO khatra — bhejne se pehle advance le lein</p>
             )}
             <div className="flex flex-wrap gap-1.5">
-              {([['full', `Poori · ${rs(due)}`], ...(o.deliveryFee > 0 ? [['delivery', `Delivery · ${rs(Math.min(due, o.deliveryFee))}`]] : []), ['custom', 'Apni raqam']] as [typeof mode, string][]).map(([k, label]) => (
+              {([['full', `Poori · ${rs(due)}`], ...(o.deliveryFee > 0 ? [['delivery', `Delivery · ${rs(Math.min(due, o.deliveryFee))}`]] : []), ['custom', 'Apni amount']] as [typeof mode, string][]).map(([k, label]) => (
                 <button key={k} onClick={() => setMode(k)}
                   className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold', mode === k ? 'border-slate-900 bg-slate-900 text-white dark:border-ink-white dark:bg-ink-white dark:text-ink-900' : 'border-slate-200 text-slate-700 dark:border-ink-700 dark:text-ink-200')}>
                   {label}

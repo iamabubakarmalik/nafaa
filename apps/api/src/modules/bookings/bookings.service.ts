@@ -525,13 +525,13 @@ export class BookingsService {
       lineDiscountTotal += item.lineDiscount ?? 0;
     }
     subtotal = r2(subtotal);
-    if ((dto.discount ?? 0) > subtotal - lineDiscountTotal + 0.01) throw new BadRequestException('Discount kul raqam se zyada hai');
+    if ((dto.discount ?? 0) > subtotal - lineDiscountTotal + 0.01) throw new BadRequestException('Discount kul amount se zyada hai');
     const discount = r2((dto.discount ?? 0) + lineDiscountTotal);
     const serviceChargesArr = dto.serviceCharges ?? [];
     const serviceChargesTotal = r2(serviceChargesArr.reduce((s, sc) => s + Number(sc.amount || 0), 0));
     const total = r2(Math.max(subtotal - discount + serviceChargesTotal, 0));
     const initialAdvance = r2(dto.initialAdvance ?? 0);
-    if (initialAdvance > total + 0.01) throw new BadRequestException('Advance kul raqam se zyada nahi ho sakta');
+    if (initialAdvance > total + 0.01) throw new BadRequestException('Advance kul amount se zyada nahi ho sakta');
     const balanceDue = r2(Math.max(total - initialAdvance, 0));
 
     // A double click sends the same booking twice; hand back the first one.
@@ -708,7 +708,7 @@ export class BookingsService {
     if (refundAmount > 0) {
       // Giving money back is a refund: it needs the returns permission on top of bookings.
       if (!hasPermission(user.role, user.permissions, PERMISSIONS.RETURNS_CREATE)) {
-        throw new ForbiddenException('Advance wapas karne ke liye "Returns banana" ki ijazat chahiye');
+        throw new ForbiddenException('Advance wapas karne ke liye "Returns banana" ki permission chahiye');
       }
       const rules = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForRefund: true } });
       if (rules?.requirePinForRefund) await requireManagerPin(this.prisma, user, dto.managerPin, 'Advance wapsi', false, PIN_NEEDS.refund);
@@ -765,8 +765,8 @@ export class BookingsService {
   async convertToSale(user: AuthenticatedUser, id: string, dto: ConvertBookingDto) {
     const booking = await this.load(user, id);
     if (booking.status === 'CONVERTED') throw new BadRequestException('Yeh booking pehle hi bik chuki hai');
-    if (!ACTIVE.includes(booking.status)) throw new BadRequestException('Band booking ki bikri nahi ho sakti');
-    if (!booking.shopId) throw new BadRequestException('Booking ki branch nahi hai, bikri nahi ho sakti');
+    if (!ACTIVE.includes(booking.status)) throw new BadRequestException('Band booking ki sale nahi ho sakti');
+    if (!booking.shopId) throw new BadRequestException('Booking ki branch nahi hai, sale nahi ho sakti');
     const shopId = booking.shopId;
 
     const additionalPayment = r2(dto.additionalPayment ?? 0);

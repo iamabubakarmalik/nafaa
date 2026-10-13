@@ -38,7 +38,7 @@ export class DiscountsService {
 
   private check(dto: Partial<CreateDiscountDto>) {
     if (dto.type === 'PERCENTAGE' && (dto.value ?? 0) > 100) throw new BadRequestException('Percentage 100 se zyada nahi ho sakta');
-    if (dto.validFrom && dto.validUntil && dto.validFrom > dto.validUntil) throw new BadRequestException('Shuru ki tareekh khatam se pehle honi chahiye');
+    if (dto.validFrom && dto.validUntil && dto.validFrom > dto.validUntil) throw new BadRequestException('Shuru ki date khatam se pehle honi chahiye');
   }
 
   async create(user: AuthenticatedUser, dto: CreateDiscountDto) {
@@ -173,7 +173,7 @@ export class DiscountsService {
 
     const now = new Date();
     if (dc.validFrom && now < dc.validFrom) throw new BadRequestException('Yeh code abhi shuru nahi hua');
-    if (dc.validUntil && now > dc.validUntil) throw new BadRequestException('Is code ki muddat khatam ho gayi');
+    if (dc.validUntil && now > dc.validUntil) throw new BadRequestException('Is code ki period khatam ho gayi');
     if (dc.usageLimit && dc.usageCount >= dc.usageLimit) throw new BadRequestException('Is code ki had poori ho chuki hai');
     if (dc.shopIds.length && opts.shopId && !dc.shopIds.includes(opts.shopId)) throw new BadRequestException('Yeh code is branch par nahi chalta');
     if (dc.perCustomerLimit) {

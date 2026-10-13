@@ -110,23 +110,23 @@ export default function ShopsOverviewPage() {
     s.name, s.bills, s.net, s.refunds, s.discount, s.cashIn, s.credit, s.avgBill,
     hidden ? '' : s.grossProfit ?? '', s.expenses, hidden ? '' : s.writeOff, hidden ? '' : s.netProfit ?? '', `${s.share}%`, `${s.growth.toFixed(1)}%`,
   ]);
-  const HEAD = ['Branch', 'Bill', 'Bikri', 'Wapsi', 'Discount', 'Haath aaya', 'Udhaar', 'Ausat bill', 'Munafa', 'Kharche', 'Nuqsan', 'Net munafa', 'Hissa', 'Pichhli se'];
-  const exportCsv = () => downloadCsv(`branches-${from}-${to}.csv`, [[`Branch analytics — ${tenantName ?? ''}`], [`Muddat: ${label}`], [], HEAD, ...rows()]);
+  const HEAD = ['Branch', 'Bill', 'Sale', 'Return', 'Discount', 'Haath aaya', 'Udhaar', 'Ausat bill', 'Profit', 'Expenses', 'Nuqsan', 'Net profit', 'Hissa', 'Pichhli se'];
+  const exportCsv = () => downloadCsv(`branches-${from}-${to}.csv`, [[`Branch analytics — ${tenantName ?? ''}`], [`Period: ${label}`], [], HEAD, ...rows()]);
   const printDoc = (): PrintDoc => ({
     title: 'Branch analytics',
     subtitle: label,
     meta: [
       ['Branches', String(data?.shops.length ?? 0)],
-      ['Kul bikri', money(t?.net ?? 0)],
-      ...(!hidden ? [['Net munafa', costOf(t?.netProfit)] as [string, string]] : []),
-      ['Pichhli muddat', `${data ? rangeLabel(data.previous.from, data.previous.to) : ''} · ${money(t?.prevNet ?? 0)}`],
+      ['Total sale', money(t?.net ?? 0)],
+      ...(!hidden ? [['Net profit', costOf(t?.netProfit)] as [string, string]] : []),
+      ['Pichhli period', `${data ? rangeLabel(data.previous.from, data.previous.to) : ''} · ${money(t?.prevNet ?? 0)}`],
     ],
     sections: [{
       kind: 'table',
       columns: [
-        { label: 'Branch' }, { label: 'Bill', align: 'right' }, { label: 'Bikri', align: 'right' }, { label: 'Wapsi', align: 'right', wideOnly: true },
-        { label: 'Haath aaya', align: 'right', wideOnly: true }, { label: 'Udhaar', align: 'right', wideOnly: true }, { label: 'Kharche', align: 'right', wideOnly: true },
-        ...(!hidden ? [{ label: 'Net munafa', align: 'right' as const }] : []), { label: 'Hissa', align: 'right', wideOnly: true },
+        { label: 'Branch' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }, { label: 'Return', align: 'right', wideOnly: true },
+        { label: 'Haath aaya', align: 'right', wideOnly: true }, { label: 'Udhaar', align: 'right', wideOnly: true }, { label: 'Expenses', align: 'right', wideOnly: true },
+        ...(!hidden ? [{ label: 'Net profit', align: 'right' as const }] : []), { label: 'Hissa', align: 'right', wideOnly: true },
       ],
       rows: (data?.shops ?? []).map((s) => [
         s.name, String(s.bills), money(s.net), money(s.refunds), money(s.cashIn), money(s.credit), money(s.expenses),
@@ -134,7 +134,7 @@ export default function ShopsOverviewPage() {
       ]),
       footer: t ? ['Kul', String(t.bills), money(t.net), money(t.refunds), money(t.cashIn), money(t.credit), money(t.expenses), ...(!hidden ? [costOf(t.netProfit)] : []), '100%'] : undefined,
     }],
-    footer: 'Bikri = bill − wapsi · Net munafa = bikri − lagat − kharche − nuqsan',
+    footer: 'Sale = bill − return · Net profit = sale − cost − expenses − nuqsan',
   });
 
   if (!canMoney) {
@@ -142,7 +142,7 @@ export default function ShopsOverviewPage() {
       <PageShell>
         <PageHero title="Branch analytics" />
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Branches ka hisaab dekhne ke liye "Reports dekhna" ki ijazat chahiye</p>
+          <p className="font-semibold text-slate-900">Branches ka hisaab dekhne ke liye "Reports dekhna" ki permission chahiye</p>
           <Link to="/shops" className="mt-3 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">Branches ki list →</Link>
         </div>
       </PageShell>
@@ -166,9 +166,9 @@ export default function ShopsOverviewPage() {
           <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: `Kul bikri · ${t?.bills ?? 0} bill`, value: money(t?.net ?? 0), hint: t ? <Growth v={growth} /> : undefined },
-          { label: 'Net munafa', value: costOf(t?.netProfit), hint: hidden ? 'Lagat lock' : undefined },
-          { label: 'Pichhli muddat', value: money(t?.prevNet ?? 0), hint: data ? rangeLabel(data.previous.from, data.previous.to) : undefined },
+          { label: `Total sale · ${t?.bills ?? 0} bill`, value: money(t?.net ?? 0), hint: t ? <Growth v={growth} /> : undefined },
+          { label: 'Net profit', value: costOf(t?.netProfit), hint: hidden ? 'Cost lock' : undefined },
+          { label: 'Pichhli period', value: money(t?.prevNet ?? 0), hint: data ? rangeLabel(data.previous.from, data.previous.to) : undefined },
           { label: 'Ausat bill', value: money(t && t.bills ? t.net / t.bills : 0) },
         ]}
       />
@@ -177,8 +177,8 @@ export default function ShopsOverviewPage() {
         {loading || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
             <KpiCard icon={Wallet} color="#16a34a" label="Haath aaya" value={money(t.cashIn)} hint={`Udhaar ${money(t.credit)}`} />
-            <KpiCard icon={RotateCcw} color="#ea580c" label="Wapsi" value={money(t.refunds)} hint={t.net + t.refunds > 0 ? `${((t.refunds / (t.net + t.refunds)) * 100).toFixed(1)}% bikri ka` : undefined} />
-            <KpiCard icon={Receipt} color="#e11d48" label="Kharche" value={money(t.expenses)} hint="Paid kharche" />
+            <KpiCard icon={RotateCcw} color="#ea580c" label="Return" value={money(t.refunds)} hint={t.net + t.refunds > 0 ? `${((t.refunds / (t.net + t.refunds)) * 100).toFixed(1)}% sale ka` : undefined} />
+            <KpiCard icon={Receipt} color="#e11d48" label="Expenses" value={money(t.expenses)} hint="Paid expenses" />
             <KpiCard icon={Scale} color="#a16207" label="Nuqsan" value={costOf(t.writeOff)} hint="Kharab, gum, ginti me kam" />
             <KpiCard icon={ShoppingBag} color="#2563eb" label="Bill" value={String(t.bills)} hint={`Pehle ${t.prevBills}`} />
           </>
@@ -228,11 +228,11 @@ export default function ShopsOverviewPage() {
       {guide.isOpen && (
         <PageGuide title="Branch analytics — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: 'Aaj, 7 din, is mahine ya apni tareekh. Har number usi muddat ka hai, aur pichhli barabar muddat se muqabla hota hai.' },
-            { icon: BarChart3, color: '#16a34a', title: 'Muqabla', text: 'Har branch ki bikri, net munafa ya bill — rangeen bar is muddat ke, halke bar pichhli muddat ke.' },
-            { icon: LineIcon, color: '#7c3aed', title: 'Trend', text: 'Roz ki bikri har branch ki alag line me. Kaunsi branch upar ja rahi hai, kaunsi neeche.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: 'Aaj, 7 din, is mahine ya apni date. Har number usi period ka hai, aur pichhli barabar period se muqabla hota hai.' },
+            { icon: BarChart3, color: '#16a34a', title: 'Muqabla', text: 'Har branch ki sale, net profit ya bill — rangeen bar is period ke, halke bar pichhli period ke.' },
+            { icon: LineIcon, color: '#7c3aed', title: 'Trend', text: 'Roz ki sale har branch ki alag line me. Kaunsi branch upar ja rahi hai, kaunsi neeche.' },
             { icon: Clock, color: '#d97706', title: 'Rush time', text: 'Kis ghante sab se zyada bill bante hain — staff ki shift isi hisaab se lagayein.' },
-            { icon: Table2, color: '#0891b2', title: 'Table', text: 'Sab number ek jagah: wapsi, discount, udhaar, kharche, nuqsan aur net munafa. CSV ya print nikaal lein.' },
+            { icon: Table2, color: '#0891b2', title: 'Table', text: 'Sab number ek jagah: return, discount, udhaar, expenses, nuqsan aur net profit. CSV ya print nikaal lein.' },
             { icon: Building2, color: '#db2777', title: 'Ek branch', text: '"Branch" filter se sirf ek branch dekhein. Branch ke card par "Analytics" dabane se bhi yahi hota hai.' },
           ]}
           tips={[

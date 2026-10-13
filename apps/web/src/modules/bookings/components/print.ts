@@ -33,7 +33,7 @@ export function bookingsDoc(list: BookingRecords, title: string, period: string,
         kind: 'rows',
         title: 'Khulasa',
         rows: [
-          { label: 'Kul raqam', value: formatPKR(t.value) },
+          { label: 'Kul amount', value: formatPKR(t.value) },
           { label: 'Mil chuka', value: formatPKR(t.paid) },
           { label: 'Baqi', value: formatPKR(t.balance), strong: true },
         ],

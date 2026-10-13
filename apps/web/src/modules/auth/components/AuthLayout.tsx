@@ -19,11 +19,11 @@ type Side = 'signin' | 'signup';
 const POINTS: Record<Side, { title: ReactNode; text: string; items: Array<{ icon: typeof Lock; label: string; text: string }> }> = {
   signin: {
     title: <>Aap ki dukaan,<br />aap ke haath me.</>,
-    text: 'Bikri, stock, khata aur munafa — sab ek jagah, har din ka pura hisaab.',
+    text: 'Sale, stock, khata aur profit — sab ek jagah, har din ka pura hisaab.',
     items: [
-      { icon: WifiOff, label: 'Net ke bina bhi chalta hai', text: 'Bikri ruk-ti nahi, net aate hi sab sync.' },
+      { icon: WifiOff, label: 'Net ke bina bhi chalta hai', text: 'Sale ruk-ti nahi, net aate hi sab sync.' },
       { icon: BookOpenCheck, label: 'Khata aur udhaar', text: 'Har customer ka hisaab saaf.' },
-      { icon: BarChart3, label: 'Asal munafa', text: 'Cost, kharche aur wapsi ke baad.' },
+      { icon: BarChart3, label: 'Net profit', text: 'Cost, expenses aur return ke baad.' },
       { icon: Building2, label: 'Har branch alag', text: 'Ek account, kai dukaanen.' },
     ],
   },
@@ -32,7 +32,7 @@ const POINTS: Record<Side, { title: ReactNode; text: string; items: Array<{ icon
     text: 'Apna kaam chunein — Nafaa usi hisaab se screens, bill aur reports set kar deta hai.',
     items: [
       { icon: CheckCircle2, label: 'Aap ke kaam ke hisaab se', text: 'Pharmacy, kiryana, mobile, restaurant aur bohat kuch.' },
-      { icon: WifiOff, label: 'Net ke bina bhi', text: 'Bikri chalti rahe, baad me sync.' },
+      { icon: WifiOff, label: 'Net ke bina bhi', text: 'Sale chalti rahe, baad me sync.' },
       { icon: Lock, label: 'Data mehfooz', text: 'Har login aur device ka record.' },
     ],
   },

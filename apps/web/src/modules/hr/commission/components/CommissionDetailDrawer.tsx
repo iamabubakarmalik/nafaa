@@ -85,7 +85,7 @@ export function CommissionDetailDrawer({ userId, name, period, canManage, costHi
             <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => setSlip(true)}>Slip</Button>
             {d.paidInSalary && <span className="text-[0.75rem] text-slate-500">Tankhwah ke saath ada hui</span>}
             {canManage && d.paidAmount != null && !d.paidInSalary && (
-              <Button size="sm" variant="ghost" leftIcon={<Undo2 className="h-4 w-4" />} disabled={busy} onClick={() => onUndo(d)}>Adaigi wapas</Button>
+              <Button size="sm" variant="ghost" leftIcon={<Undo2 className="h-4 w-4" />} disabled={busy} onClick={() => onUndo(d)}>Payment wapas</Button>
             )}
             {canManage && d.enrolled && d.due > 0 && !d.paidInSalary && (
               <Button size="sm" leftIcon={<HandCoins className="h-4 w-4" />} disabled={busy} onClick={() => onPay(d)}>Ada karein</Button>
@@ -96,7 +96,7 @@ export function CommissionDetailDrawer({ userId, name, period, canManage, costHi
             <Segmented label="Hissa" value={tab} onChange={(v) => setTab(v as Tab)} className="max-w-full overflow-x-auto"
               items={[
                 { value: 'hisab', label: 'Hisab' }, { value: 'goods', label: 'Cheezein' }, { value: 'bills', label: `Bill (${d.billCount})` },
-                { value: 'returns', label: `Wapsi (${d.returnList.length})` }, { value: 'months', label: 'Mahine' },
+                { value: 'returns', label: `Return (${d.returnList.length})` }, { value: 'months', label: 'Mahine' },
               ]} />
           </div>
 
@@ -128,10 +128,10 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
   return (<>
     <section className="rounded-2xl ring-1 ring-slate-200">
       <dl className="divide-y divide-slate-100 text-sm">
-        <Row k="Bikri (chhoot ke baad)" v={formatPKR(d.grossSale)} hint={`${d.bills} bill${d.reassigned ? ` · ${d.reassigned} counter par kisi aur ne banaye` : ''}`} />
-        {d.returnSale > 0 && <Row k="Is mahine wapas aaya maal" v={`−${formatPKR(d.returnSale)}`} hint="Wapsi us mahine me katti hai jis me maal wapas aaya" tone="text-rose-700" />}
-        <Row k="Asal bikri" v={formatPKR(d.sale)} strong />
-        {showCost && <Row k="Munafa" v={formatPKR(d.profit ?? 0)} hint={d.noCost ? `${d.noCost} line par cost nahi thi — aaj ki cost lagi` : undefined} />}
+        <Row k="Sale (discount ke baad)" v={formatPKR(d.grossSale)} hint={`${d.bills} bill${d.reassigned ? ` · ${d.reassigned} counter par kisi aur ne banaye` : ''}`} />
+        {d.returnSale > 0 && <Row k="Is mahine wapas aaya maal" v={`−${formatPKR(d.returnSale)}`} hint="Return us mahine me katti hai jis me maal wapas aaya" tone="text-rose-700" />}
+        <Row k="Asal sale" v={formatPKR(d.sale)} strong />
+        {showCost && <Row k="Profit" v={formatPKR(d.profit ?? 0)} hint={d.noCost ? `${d.noCost} line par cost nahi thi — aaj ki cost lagi` : undefined} />}
       </dl>
     </section>
 
@@ -141,7 +141,7 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
         <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 ring-1 ring-slate-200">Is bande par commission chaalu nahi — Team tab se chaalu karein.</p>
       ) : !d.lines.length ? (
         <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 ring-1 ring-slate-200">
-          {d.blockedByMin ? `Abhi ${formatPKR(d.blockedByMin.short)} aur bikri chahiye — tab commission shuru hogi (hadd ${formatPKR(d.blockedByMin.need)})` : 'Is mahine koi commission nahi bani'}
+          {d.blockedByMin ? `Abhi ${formatPKR(d.blockedByMin.short)} aur sale chahiye — tab commission shuru hogi (hadd ${formatPKR(d.blockedByMin.need)})` : 'Is mahine koi commission nahi bani'}
         </p>
       ) : (
         <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
@@ -157,8 +157,8 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
           <li className="flex justify-between bg-slate-50 px-4 py-2.5 font-bold text-slate-900"><span>Kul</span><span className="tabular-nums">{signed(d.earned)}</span></li>
         </ul>
       )}
-      {d.earned < 0 && <p className="mt-2 text-xs text-rose-700">Is mahine wapsi bikri se zyada thi, is liye commission minus me hai. Agle mahine ki adaigi me hisab kar lein.</p>}
-      {d.blockedByMin && d.lines.length > 0 && <p className="mt-2 text-xs text-slate-500">Agla slab: {formatPKR(d.blockedByMin.short)} aur bikri par (hadd {formatPKR(d.blockedByMin.need)})</p>}
+      {d.earned < 0 && <p className="mt-2 text-xs text-rose-700">Is mahine return sale se zyada thi, is liye commission minus me hai. Agle mahine ki payment me hisab kar lein.</p>}
+      {d.blockedByMin && d.lines.length > 0 && <p className="mt-2 text-xs text-slate-500">Agla slab: {formatPKR(d.blockedByMin.short)} aur sale par (hadd {formatPKR(d.blockedByMin.need)})</p>}
     </section>
 
     {d.targets.length > 0 && (
@@ -171,7 +171,7 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
               <span className={cn('font-semibold tabular-nums', t.reached ? 'text-emerald-700' : 'text-slate-900')}>{Math.round(t.pct)}%</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', t.reached ? 'bg-emerald-500' : 'bg-brand-500')} style={{ width: `${Math.min(100, t.pct)}%` }} /></div>
-            {!t.reached && <p className="mt-1 text-[0.6875rem] text-slate-500">{formatPKR(Math.max(0, t.amount - d.sale))} aur bikri chahiye</p>}
+            {!t.reached && <p className="mt-1 text-[0.6875rem] text-slate-500">{formatPKR(Math.max(0, t.amount - d.sale))} aur sale chahiye</p>}
           </div>
         ))}
       </section>
@@ -191,7 +191,7 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
         </ul>
       )}
       {d.rules.some((r) => r.own) && <p className="mt-1.5 text-[0.6875rem] text-slate-500">Is bande ka apna rule hai, is liye "sab ke liye" wale rule is par nahi lagte.</p>}
-      <p className="mt-1.5 text-[0.6875rem] text-slate-500">Bikri yaani chhoot ke baad maal ki qeemat; service charge shamil nahi. Void bill shamil nahi.</p>
+      <p className="mt-1.5 text-[0.6875rem] text-slate-500">Sale yaani discount ke baad maal ki qeemat; service charge shamil nahi. Void bill shamil nahi.</p>
     </section>
   </>);
 }
@@ -214,8 +214,8 @@ function Goods({ d }: { d: CommissionDetail }) {
       <table className="w-full min-w-[32rem] text-[0.8125rem]">
         <thead><tr className="border-b border-slate-100 text-left text-[0.75rem] text-slate-500">
           <th className="px-3 py-2 font-medium">{view === 'product' ? 'Cheez' : 'Category'}</th>
-          <th className="px-3 py-2 text-right font-medium">Miqdar</th>
-          <th className="px-3 py-2 text-right font-medium">Bikri</th>
+          <th className="px-3 py-2 text-right font-medium">Quantity</th>
+          <th className="px-3 py-2 text-right font-medium">Sale</th>
           <th className="px-3 py-2 text-right font-medium">Wapas</th>
           <th className="px-3 py-2 text-right font-medium">Commission</th>
         </tr></thead>
@@ -240,7 +240,7 @@ function Goods({ d }: { d: CommissionDetail }) {
         </tbody>
       </table>
     </div>
-    <p className="text-[0.6875rem] text-slate-500">Har bill aur target wali raqam kisi ek cheez par nahi lagti, is liye yahan shamil nahi.</p>
+    <p className="text-[0.6875rem] text-slate-500">Har bill aur target wali amount kisi ek cheez par nahi lagti, is liye yahan shamil nahi.</p>
   </>);
 }
 
@@ -260,7 +260,7 @@ function Bills({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
           </div>
           <div className="shrink-0 text-right">
             <p className="font-semibold tabular-nums text-slate-900">{formatPKR(b.goods)}</p>
-            {showCost && b.profit != null && <p className="text-[0.6875rem] tabular-nums text-slate-500">munafa {formatPKR(b.profit)}</p>}
+            {showCost && b.profit != null && <p className="text-[0.6875rem] tabular-nums text-slate-500">profit {formatPKR(b.profit)}</p>}
           </div>
         </li>
       ))}
@@ -270,7 +270,7 @@ function Bills({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
 }
 
 function Returns({ d }: { d: CommissionDetail }) {
-  if (!d.returnList.length) return <Empty text="Is mahine is bande ke beche maal ki koi wapsi nahi" />;
+  if (!d.returnList.length) return <Empty text="Is mahine is bande ke beche maal ki koi return nahi" />;
   return (
     <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
       {d.returnList.map((r) => (

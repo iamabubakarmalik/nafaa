@@ -54,7 +54,7 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
               </span>
               <span className="mt-2 font-semibold text-slate-900">{meta.label}</span>
               <span className="text-[0.75rem] text-slate-500">{meta.hint}</span>
-              {r !== 'OWNER' && r !== 'NO_LOGIN' && <span className="mt-1 text-[0.6875rem] font-medium text-brand-700">{(defaults[r] ?? []).length} ijazatein shuru me</span>}
+              {r !== 'OWNER' && r !== 'NO_LOGIN' && <span className="mt-1 text-[0.6875rem] font-medium text-brand-700">{(defaults[r] ?? []).length} permissions shuru me</span>}
             </button>
           );
         })}
@@ -62,18 +62,18 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
 
       <Card className="rounded-2xl" flush
         title={<span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brand-600" />Har role ko shuru me kya milta hai</span>}
-        description="Naya login banate waqt role yeh nishan laga deta hai. Baad me har bande ki apni list hoti hai — role badalne se ijazat khud nahi badalti."
+        description="Naya login banate waqt role yeh nishan laga deta hai. Baad me har bande ki apni list hoti hai — role badalne se permission khud nahi badalti."
         actions={
           <label className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein…" className="h-9 w-44 rounded-xl border border-slate-200 bg-white pl-8 pr-2 text-sm outline-none focus:border-brand-500" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-44 rounded-xl border border-slate-200 bg-white pl-8 pr-2 text-sm outline-none focus:border-brand-500" />
           </label>
         }>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[34rem] text-[0.8125rem]">
             <thead>
               <tr className="border-b border-slate-200 text-left text-[0.75rem] text-slate-500">
-                <th className="px-4 py-2 font-medium">Ijazat</th>
+                <th className="px-4 py-2 font-medium">Permission</th>
                 {ASSIGNABLE.map((r) => <th key={r} className="w-24 px-2 py-2 text-center font-semibold" style={{ color: ROLES[r].color }}>{ROLES[r].label}</th>)}
                 <th className="w-20 px-2 py-2 text-center font-semibold" style={{ color: ROLES.OWNER.color }}>Malik</th>
               </tr>
@@ -107,13 +107,13 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
         </div>
       </Card>
 
-      <Card className="rounded-2xl" title="Role se alag ijazat wale log" description="In logon ki apni list un ke role se mukhtalif hai. Theek hai to rehne dein; ghalti se hai to profile kholein.">
+      <Card className="rounded-2xl" title="Role se alag permission wale log" description="In logon ki apni list un ke role se mukhtalif hai. Theek hai to rehne dein; ghalti se hai to profile kholein.">
         {!canSeeLogins ? (
-          <p className="text-sm text-slate-500">Yeh dekhne ke liye "Team dekhna" ki ijazat chahiye.</p>
+          <p className="text-sm text-slate-500">Yeh dekhne ke liye "Team dekhna" ki permission chahiye.</p>
         ) : teamQ.isLoading ? (
           <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
         ) : !differs.length ? (
-          <p className="text-sm text-emerald-700">Sab ki ijazat bilkul un ke role jaisi hai.</p>
+          <p className="text-sm text-emerald-700">Sab ki permission bilkul un ke role jaisi hai.</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {differs.map(({ m, extra, missing, person }) => (

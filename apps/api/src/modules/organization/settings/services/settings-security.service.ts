@@ -201,7 +201,7 @@ export class SettingsSecurityService {
       const staff = await matchStaffPin(this.prisma, user.tenantId, pin);
       if (staff) {
         if (!hasPermission(staff.role, staff.permissions, PIN_NEEDS[kind] as never)) {
-          return { valid: false, message: `${staff.fullName} ke paas is kaam ki ijazat nahi` };
+          return { valid: false, message: `${staff.fullName} ke paas is kaam ki permission nahi` };
         }
         ok = true;
       }
@@ -414,7 +414,7 @@ export class SettingsSecurityService {
 
     const checks = [
       { key: 'managerPin', label: 'Malik ka PIN laga hai', done: !!settings?.managerPin, weight: 30 },
-      { key: 'refundPin', label: 'Wapsi par PIN', done: !!settings?.requirePinForRefund, weight: 15 },
+      { key: 'refundPin', label: 'Return par PIN', done: !!settings?.requirePinForRefund, weight: 15 },
       { key: 'voidPin', label: 'Bill cancel par PIN', done: !!settings?.requirePinForVoid, weight: 15 },
       { key: 'emailVerified', label: 'Malik ka email tasdeeq shuda', done: !!ownerUser?.emailVerified, weight: 20 },
       { key: 'passwordSet', label: 'Password laga hai', done: !!ownerUser?.passwordHash, weight: 20 },

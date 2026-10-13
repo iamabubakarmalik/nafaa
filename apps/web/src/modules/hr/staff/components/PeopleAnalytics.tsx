@@ -40,21 +40,21 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={Users} label="Log (kaam par ya chhutti)" value={String(d.headcount.total)} sub={d.headcount.byStatus.map((s) => `${STATUS[s.key as keyof typeof STATUS]?.label ?? s.key} ${s.count}`).join(' · ')} />
-        <Kpi icon={Trophy} label="Sab se zyada bikri" value={top ? top.name : '—'} sub={d.sellers ? (top ? `${formatPKR(top.sales)} · ${top.bills} bill` : 'Is muddat me koi bikri nahi') : 'Bikri dekhne ki ijazat nahi'} tone="emerald" />
-        <Kpi icon={CalendarCheck} label="Haazri" value={rate == null ? '—' : `${rate}%`} sub={rate == null ? 'Is muddat me haazri nahi lagi' : `${att.present} din haazir · ${att.absent} ghair haazir`} tone={rate != null && rate < 85 ? 'amber' : 'brand'} />
-        <Kpi icon={ShieldAlert} label="Ghalat login" value={d.logins ? String(d.logins.failed) : '—'} sub={d.logins ? (d.logins.failed ? 'Ghalat password ki koshishein' : 'Koi ghalat koshish nahi') : 'Team dekhne ki ijazat nahi'} tone={d.logins?.failed ? 'rose' : 'brand'} />
+        <Kpi icon={Trophy} label="Sab se zyada sale" value={top ? top.name : '—'} sub={d.sellers ? (top ? `${formatPKR(top.sales)} · ${top.bills} bill` : 'Is period me koi sale nahi') : 'Sale dekhne ki permission nahi'} tone="emerald" />
+        <Kpi icon={CalendarCheck} label="Haazri" value={rate == null ? '—' : `${rate}%`} sub={rate == null ? 'Is period me haazri nahi lagi' : `${att.present} din haazir · ${att.absent} ghair haazir`} tone={rate != null && rate < 85 ? 'amber' : 'brand'} />
+        <Kpi icon={ShieldAlert} label="Ghalat login" value={d.logins ? String(d.logins.failed) : '—'} sub={d.logins ? (d.logins.failed ? 'Ghalat password ki koshishein' : 'Koi ghalat koshish nahi') : 'Team dekhne ki permission nahi'} tone={d.logins?.failed ? 'rose' : 'brand'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<Title icon={ShoppingBag}>Kis ne kitna becha</Title>} description="Counter par jis ka naam chuna gaya, warna jis ne bill banaya — wapsi ghata kar">
-          {!d.sellers ? <Note text='Yeh dekhne ke liye "Bikri dekhna" ki ijazat chahiye.' /> : !sellers.length ? <Empty /> : (
+        <Card className="rounded-2xl" title={<Title icon={ShoppingBag}>Kis ne kitna becha</Title>} description="Counter par jis ka naam chuna gaya, warna jis ne bill banaya — return ghata kar">
+          {!d.sellers ? <Note text='Yeh dekhne ke liye "Sale dekhna" ki permission chahiye.' /> : !sellers.length ? <Empty /> : (
             <div style={{ height: Math.max(180, sellers.length * 34) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={sellers} layout="vertical" margin={{ left: 0, right: 12 }}>
                   <CartesianGrid horizontal={false} stroke={theme.grid} />
                   <XAxis type="number" tickFormatter={axisMoney} tick={theme.axis} axisLine={false} tickLine={false} />
                   <YAxis type="category" dataKey="name" width={96} tick={theme.axis} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(v, _n, item) => [`${formatPKR(Number(v))} · ${(item?.payload as { bills: number }).bills} bill`, 'Bikri']} {...theme.tooltip} />
+                  <Tooltip formatter={(v, _n, item) => [`${formatPKR(Number(v))} · ${(item?.payload as { bills: number }).bills} bill`, 'Sale']} {...theme.tooltip} />
                   <Bar dataKey="sales" fill={theme.primary} radius={[0, 6, 6, 0]} maxBarSize={22} />
                 </BarChart>
               </ResponsiveContainer>
@@ -63,7 +63,7 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
         </Card>
 
         <Card className="rounded-2xl" title={<Title icon={CalendarCheck}>Haazri</Title>} description="Har bande ke din: haazir, ghair haazir aur chhutti">
-          {!attRows.length ? <Note text="Is muddat me haazri nahi lagi. Haazri ka safha: Staff → Haazri." /> : (
+          {!attRows.length ? <Note text="Is period me haazri nahi lagi. Haazri ka safha: Staff → Haazri." /> : (
             <div style={{ height: Math.max(180, attRows.length * 34) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={attRows} layout="vertical" margin={{ left: 0, right: 12 }}>
@@ -146,7 +146,7 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
       </div>
 
       <Card className="rounded-2xl" title={<Title icon={LogIn}>Login</Title>} description="Roz kitni dafa login hua, aur ghalat password ki koshishein">
-        {!d.logins ? <Note text='Yeh dekhne ke liye "Team dekhna" ki ijazat chahiye.' /> : (
+        {!d.logins ? <Note text='Yeh dekhne ke liye "Team dekhna" ki permission chahiye.' /> : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             {!d.logins.daily.length ? <Empty /> : (
               <div className="h-52">
@@ -188,5 +188,5 @@ function Kpi({ icon: Icon, label, value, sub, tone = 'brand' }: { icon: LucideIc
   );
 }
 const Title = ({ icon: Icon, children }: { icon: LucideIcon; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
-const Empty = () => <p className="py-10 text-center text-sm text-slate-500">Is muddat me kuch nahi</p>;
+const Empty = () => <p className="py-10 text-center text-sm text-slate-500">Is period me kuch nahi</p>;
 const Note = ({ text }: { text: string }) => <p className="py-10 text-center text-sm text-slate-500">{text}</p>;

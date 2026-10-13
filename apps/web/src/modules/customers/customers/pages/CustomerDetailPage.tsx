@@ -476,7 +476,7 @@ export default function CustomerDetailPage() {
                     </button>
                   )}
                   <Link to="/khata" className="text-xs text-blue-600 dark:text-blue-400 font-extrabold hover:underline">
-                    Payment Wusool →
+                    Payment Receive →
                   </Link>
                 </div>
               </div>
@@ -655,7 +655,7 @@ function DeleteConfirmModal({ customer, loading, onClose, onConfirm }: any) {
           </h3>
           <p className="mt-1 text-xs text-slate-500 dark:text-ink-400 font-semibold">
             {customer.balance > 0
-              ? `⚠️ Is ka ${formatPKR(customer.balance)} udhaar baqi hai! Pehle wusooli karo.`
+              ? `⚠️ Is ka ${formatPKR(customer.balance)} udhaar baqi hai! Pehle receiving karo.`
               : 'Ye action undo nahi ho sakta. Sales history mehfooz rahegi.'}
           </p>
           {customer.stats?.totalSales > 0 && (
@@ -700,7 +700,7 @@ function CustomerDetailTeacher({ onClose }: { onClose: () => void }) {
 
         <div className="p-5 space-y-4">
           <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            Ye page customer ki <strong>poori kahani</strong> batata hai — kitna kharcha, kitna udhaar, kab aakhri dafa aya:
+            Ye page customer ki <strong>poori kahani</strong> batata hai — kitna expense, kitna udhaar, kab aakhri dafa aya:
           </p>
 
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">

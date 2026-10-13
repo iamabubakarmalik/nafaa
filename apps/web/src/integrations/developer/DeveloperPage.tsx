@@ -290,7 +290,7 @@ if (expected !== v1 || Date.now() / 1000 - t > 300) return res.status(401).end()
         <Code title="Webhook signature check" text={verify} />
         <p className="text-[0.78125rem] text-slate-500">
           Har webhook: <code>{'{ id, type, createdAt, data }'}</code> · headers <code>X-Nafaa-Event</code>, <code>X-Nafaa-Delivery</code>, <code>X-Nafaa-Signature</code>.
-          2xx jawab = pohanch gaya. 410 = Zapier/Make subscription khud hat jati hai. Cost price aur munafa API se kabhi bahar nahi jata.
+          2xx jawab = pohanch gaya. 410 = Zapier/Make subscription khud hat jati hai. Cost price aur profit API se kabhi bahar nahi jata.
         </p>
       </div>
     </Card>

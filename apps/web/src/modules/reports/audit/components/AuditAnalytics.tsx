@@ -29,11 +29,11 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
   const types = data.byType.map((x) => ({ ...x, label: TYPE_META[x.type].label, color: TYPE_META[x.type].color })).sort((a, b) => b[typeMetric] - a[typeMetric]);
   const money: Array<{ label: string; value: number; text: string; color: string; type: AuditType }> = [
     { label: 'Void bill', value: t.voidValue, text: fmt.money(t.voidValue), color: TYPE_META.void.color, type: 'void' as const },
-    { label: 'Wapsi', value: t.refundValue, text: fmt.money(t.refundValue), color: TYPE_META.refund.color, type: 'refund' as const },
-    { label: 'Bari chhoot', value: t.discountValue, text: fmt.money(t.discountValue), color: TYPE_META.discount.color, type: 'discount' as const },
+    { label: 'Return', value: t.refundValue, text: fmt.money(t.refundValue), color: TYPE_META.refund.color, type: 'refund' as const },
+    { label: 'Bari discount', value: t.discountValue, text: fmt.money(t.discountValue), color: TYPE_META.discount.color, type: 'discount' as const },
     { label: 'Drawer kam', value: t.drawerShort, text: fmt.money(t.drawerShort), color: TYPE_META.drawer.color, type: 'drawer' as const },
     { label: 'Galle se nikale', value: t.cashOutValue, text: fmt.money(t.cashOutValue), color: TYPE_META.cash_out.color, type: 'cash_out' as const },
-    ...(fmt.costHidden ? [] : [{ label: 'Stock nuqsan (lagat)', value: t.cost ?? 0, text: fmt.cost(t.cost ?? 0), color: TYPE_META.stock_loss.color, type: 'stock_loss' as const }]),
+    ...(fmt.costHidden ? [] : [{ label: 'Stock nuqsan (cost)', value: t.cost ?? 0, text: fmt.cost(t.cost ?? 0), color: TYPE_META.stock_loss.color, type: 'stock_loss' as const }]),
   ].filter((m) => m.value > 0);
   const maxMoney = Math.max(...money.map((m) => m.value), 1);
   const trend = data.trend.map((x) => ({ ...x, label: keyLabel(x.key) }));
@@ -42,7 +42,7 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
   return (
     <div className="space-y-4">
       <Panel icon={BarChart3} title="Waqiye waqt ke saath" hint={`${data.range.grouping === 'month' ? 'Mahine' : 'Din'} war, darje ke hisaab se. Kisi din achanak uchaal ho to us din ka record dekhein.`}>
-        {!anyTrend ? <Empty text="Is muddat me koi waqiya nahi" /> : (
+        {!anyTrend ? <Empty text="Is period me koi waqiya nahi" /> : (
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
@@ -59,7 +59,7 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel icon={Layers} title="Qism war" hint="Kis qism ke waqiye zyada hain. Bar dabayein to wohi record khulta hai."
+        <Panel icon={Layers} title="Type war" hint="Kis type ke waqiye zyada hain. Bar dabayein to wohi record khulta hai."
           actions={<Segmented label="Kya dikhayein" value={typeMetric} onChange={setTypeMetric} items={[{ value: 'count', label: 'Sab' }, { value: 'high', label: 'Zaroori' }]} />}>
           {!types.length ? <Empty text="Koi waqiya nahi" /> : (
             <div style={{ height: Math.max(160, types.length * 30) }}>
@@ -78,8 +78,8 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
           )}
         </Panel>
 
-        <Panel icon={Coins} title="Paisa jo khatre me tha" hint="In waqiyat me kitni raqam shamil thi. Ye nuqsan zaroori nahi — har ek ko dekh kar tay karein.">
-          {!money.length ? <Empty text="Koi raqam shamil nahi" /> : (
+        <Panel icon={Coins} title="Paisa jo khatre me tha" hint="In waqiyat me kitni amount shamil thi. Ye nuqsan zaroori nahi — har ek ko dekh kar tay karein.">
+          {!money.length ? <Empty text="Koi amount shamil nahi" /> : (
             <ul className="space-y-3">
               {money.map((m) => (
                 <li key={m.label}>
@@ -116,7 +116,7 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
           <div className="overflow-x-auto">
             <table className="w-full min-w-[34rem] text-[0.8125rem]">
               <thead className="border-y border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <tr><th className="px-5 py-2">Branch</th><th className="px-2 py-2 text-right">Waqiye</th><th className="px-2 py-2 text-right">Zaroori</th><th className="px-2 py-2 text-right">Void</th><th className="px-2 py-2 text-right">Wapsi</th><th className="px-5 py-2 text-right">Drawer kam</th></tr>
+                <tr><th className="px-5 py-2">Branch</th><th className="px-2 py-2 text-right">Waqiye</th><th className="px-2 py-2 text-right">Zaroori</th><th className="px-2 py-2 text-right">Void</th><th className="px-2 py-2 text-right">Return</th><th className="px-5 py-2 text-right">Drawer kam</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {data.shops.map((s) => (

@@ -47,10 +47,10 @@ export function PaymentModal({ payment: p, onClose }: { payment: Payment; onClos
     ...(p.transactionId ? [['Ref / TID', p.transactionId] as [string, string]] : []),
     ...(p.payerName ? [['Bhejne wala', p.payerName] as [string, string]] : []),
     ...(p.bankName ? [['Bank', p.bankName] as [string, string]] : []),
-    ...(p.approvedAt ? [['Manzoor hui', formatDateTime(p.approvedAt)] as [string, string]] : []),
+    ...(p.approvedAt ? [['Approve hui', formatDateTime(p.approvedAt)] as [string, string]] : []),
   ];
   return (
-    <Modal open onClose={onClose} size="md" title="Payment ki tafseel" description={st.hint}
+    <Modal open onClose={onClose} size="md" title="Payment ki details" description={st.hint}
       footer={<>
         {p.transactionId && <Button variant="ghost" onClick={() => { void navigator.clipboard?.writeText(p.transactionId!); toast.success('Ref copy ho gaya'); }}><Copy className="h-4 w-4" /> Ref copy</Button>}
         {p.upload?.url && <a href={p.upload.url} target="_blank" rel="noreferrer"><Button variant="secondary"><ExternalLink className="h-4 w-4" /> Receipt dekhein</Button></a>}

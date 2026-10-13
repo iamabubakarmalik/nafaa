@@ -97,7 +97,7 @@ function NumbersTab({ config, layout, costHidden }: Pick<Props, 'config' | 'layo
   return (
     <div>
       <p className="mb-3 text-[0.8125rem] text-slate-600">
-        Upar wale cards me kya dikhe — {MAX_KPIS} tak chunein. Jis tarteeb se chunenge, usi tarteeb se nazar aayenge.
+        Upar wale cards me kya dikhe — {MAX_KPIS} tak chunein. Jis sort se chunenge, usi sort se nazar aayenge.
       </p>
       <div className="grid gap-2 sm:grid-cols-2">
         {config.kpis.map((k) => {
@@ -142,7 +142,7 @@ function TargetTab({ layout }: Pick<Props, 'layout'>) {
   return (
     <div className="space-y-4">
       <p className="text-[0.8125rem] text-slate-600">
-        Rozana kitni bikri ka irada hai? Dashboard ke upar ring dikhayegi ke aaj kitna poora hua. Ye sirf aap ke liye hai.
+        Rozana kitni sale ka irada hai? Dashboard ke upar ring dikhayegi ke aaj kitna poora hua. Ye sirf aap ke liye hai.
       </p>
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); save(Number(value) || 0); }}>
         <Input type="number" inputMode="numeric" min={0} step={500} value={value} onChange={(e) => setValue(e.target.value)}
@@ -195,7 +195,7 @@ export function CustomizeDialog({ open, tab, onTab, onClose, config, layout, cos
       />
       {tab === 'widgets' && (
         <>
-          <p className="mb-2 hidden text-[0.75rem] text-slate-500 sm:block">Ghaseet kar tarteeb badlein · S M L Full se chaurai chunein</p>
+          <p className="mb-2 hidden text-[0.75rem] text-slate-500 sm:block">Ghaseet kar sort badlein · S M L Full se chaurai chunein</p>
           <WidgetsTab layout={layout} costHidden={costHidden} />
         </>
       )}

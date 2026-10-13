@@ -32,14 +32,14 @@ export function StaffView({ d, m, q, onStaff }: { d: DayBook; m: Money; q: strin
   return (
     <div className="space-y-4">
       {d.staff.length > 1 && (
-        <Panel icon={UserRound} title="Bikri ka hissa" hint="Har bande ki bikri (void ke bagair)">
+        <Panel icon={UserRound} title="Sale ka hissa" hint="Har bande ki sale (void ke bagair)">
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={d.staff.map((s) => ({ name: s.name, total: s.total }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} tickFormatter={(v: string) => (v.length > 10 ? `${v.slice(0, 9)}…` : v)} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), 'Bikri']} />
+                <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), 'Sale']} />
                 <Bar dataKey="total" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={36} />
               </BarChart>
             </ResponsiveContainer>
@@ -47,13 +47,13 @@ export function StaffView({ d, m, q, onStaff }: { d: DayBook; m: Money; q: strin
         </Panel>
       )}
 
-      <Panel icon={UserRound} title="Staff war bikri" hint="Bill us ke naam jis ne becha; khali ho to jis ne counter par banaya. Row par dabayein: us ke bill." flush>
+      <Panel icon={UserRound} title="Staff war sale" hint="Bill us ke naam jis ne becha; khali ho to jis ne counter par banaya. Row par dabayein: us ke bill." flush>
         <div className="px-4 pb-4 sm:px-5">
           {!staff.length ? <Empty icon={UserRound} text={q ? 'Koi naam nahi mila' : 'Is din koi bill nahi bana'} /> : (
             <TableWrap minWidth="46rem">
               <thead><tr>
-                <th className={th}>Naam</th><th className={thR}>Bill</th><th className={thR}>Bikri</th><th className={thR}>Hissa</th><th className={thR}>Ausat bill</th>
-                <th className={thR}>Discount</th><th className={thR}>Udhaar</th>{!m.costHidden && <th className={thR}>Munafa</th>}<th className={thR}>Void</th><th className={thR}>Wapsi</th>
+                <th className={th}>Naam</th><th className={thR}>Bill</th><th className={thR}>Sale</th><th className={thR}>Hissa</th><th className={thR}>Ausat bill</th>
+                <th className={thR}>Discount</th><th className={thR}>Udhaar</th>{!m.costHidden && <th className={thR}>Profit</th>}<th className={thR}>Void</th><th className={thR}>Return</th>
               </tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {staff.map((s) => (

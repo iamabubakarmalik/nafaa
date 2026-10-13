@@ -38,19 +38,19 @@ const CONFIGS: Record<string, ProfitReportConfig> = {
   mobile: {
     label: 'Mobile',
     itemWord: 'Model',
-    extraTab: { id: 'imei', label: 'IMEI war munafa', icon: Smartphone, Component: MobilePanel },
-    guide: [{ icon: Smartphone, color: '#2563eb', title: 'Har phone ka munafa', text: '"IMEI war munafa" tab me har bika hua phone (naya ya used) us ki apni lagat ke saath. Upar naye phone, used phone, accessories aur repair ki kamai alag alag.' }],
+    extraTab: { id: 'imei', label: 'IMEI war profit', icon: Smartphone, Component: MobilePanel },
+    guide: [{ icon: Smartphone, color: '#2563eb', title: 'Har phone ka profit', text: '"IMEI war profit" tab me har bika hua phone (naya ya used) us ki apni cost ke saath. Upar naye phone, used phone, accessories aur repair ki kamai alag alag.' }],
   },
   electronics: {
     label: 'Electronics',
-    extraTab: { id: 'serial', label: 'Qism aur serial', icon: Barcode, Component: ElectronicsPanel },
-    guide: [{ icon: Barcode, color: '#7c3aed', title: 'Serial wale maal', text: '"Qism aur serial" tab me laptop, camera jaise serial wale har unit ka munafa, aur qism (charger, speaker…) aur halat (naya, open box, used) ke hisaab se kamai.' }],
+    extraTab: { id: 'serial', label: 'Type aur serial', icon: Barcode, Component: ElectronicsPanel },
+    guide: [{ icon: Barcode, color: '#7c3aed', title: 'Serial wale maal', text: '"Type aur serial" tab me laptop, camera jaise serial wale har unit ka profit, aur type (charger, speaker…) aur halat (naya, open box, used) ke hisaab se kamai.' }],
   },
   bakery: {
     label: 'Bakery',
     extraTab: { id: 'recipe', label: 'Recipe cost', icon: Croissant, Component: BakeryPanel },
-    guide: [{ icon: Wheat, color: '#d97706', title: 'Recipe se milan', text: 'Jo cheez dukaan me banti hai us ki asal lagat recipe se nikalti hai. "Recipe cost" tab batata hai kahan bill wali cost aur recipe ki cost me farq hai — aksar maida ya makkhan mehnga ho gaya aur rate purana hai.' }],
-    tips: ['Recipe me saamaan ka rate taaza rakhein, warna munafa ghalat aayega.'],
+    guide: [{ icon: Wheat, color: '#d97706', title: 'Recipe se milan', text: 'Jo cheez dukaan me banti hai us ki asal cost recipe se nikalti hai. "Recipe cost" tab batata hai kahan bill wali cost aur recipe ki cost me farq hai — aksar maida ya makkhan mehnga ho gaya aur rate purana hai.' }],
+    tips: ['Recipe me saamaan ka rate taaza rakhein, warna profit ghalat aayega.'],
   },
   restaurant: {
     label: 'Restaurant',
@@ -60,8 +60,8 @@ const CONFIGS: Record<string, ProfitReportConfig> = {
   },
   agri: {
     label: 'Agri',
-    extraTab: { id: 'agri', label: 'Qism, bori aur mausam', icon: Leaf, Component: AgriPanel },
-    guide: [{ icon: Leaf, color: '#16a34a', title: 'Bori aur thok', text: 'Bori ka munafa per kilo bhi dekhein, aur thok rate par kitna bachta hai. Rabi aur Kharif ka munafa alag dikhta hai.' }],
+    extraTab: { id: 'agri', label: 'Type, bori aur mausam', icon: Leaf, Component: AgriPanel },
+    guide: [{ icon: Leaf, color: '#16a34a', title: 'Bori aur thok', text: 'Bori ka profit per kilo bhi dekhein, aur thok rate par kitna bachta hai. Rabi aur Kharif ka profit alag dikhta hai.' }],
   },
 };
 

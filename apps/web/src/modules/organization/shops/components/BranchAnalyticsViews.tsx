@@ -20,8 +20,8 @@ import { SHOP_TYPES, dayShort } from './meta';
 export type Metric = 'net' | 'netProfit' | 'bills';
 
 export const METRICS: Record<Metric, { label: string; money: boolean }> = {
-  net: { label: 'Bikri', money: true },
-  netProfit: { label: 'Net munafa', money: true },
+  net: { label: 'Sale', money: true },
+  netProfit: { label: 'Net profit', money: true },
   bills: { label: 'Bill', money: false },
 };
 
@@ -47,8 +47,8 @@ export function CompareView({ data, metric, hue, fmt, live }: {
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl" title={`${METRICS[metric].label} — branch war`} description={`Is muddat ka pichhli barabar muddat (${dayShort(data.previous.from)} — ${dayShort(data.previous.to)}) se muqabla`}>
-        {hidden ? <Note text='Munafa dekhne ke liye "Lagat dekhna" ki ijazat chahiye.' /> : (
+      <Card className="rounded-2xl" title={`${METRICS[metric].label} — branch war`} description={`Is period ka pichhli barabar period (${dayShort(data.previous.from)} — ${dayShort(data.previous.to)}) se muqabla`}>
+        {hidden ? <Note text='Profit dekhne ke liye "Cost dekhna" ki permission chahiye.' /> : (
           <div className="overflow-x-auto">
             <div style={{ minWidth: Math.max(rows.length * 120, 480), height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -56,7 +56,7 @@ export function CompareView({ data, metric, hue, fmt, live }: {
                   <CartesianGrid vertical={false} stroke={theme.grid} />
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                   <YAxis tickFormatter={metric === 'bills' ? undefined : axisMoney} allowDecimals={false} width={48} tick={theme.axis} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(v, n) => [show(Number(v)), n === 'now' ? 'Is muddat' : 'Pichhli muddat']} {...theme.tooltip} />
+                  <Tooltip formatter={(v, n) => [show(Number(v)), n === 'now' ? 'Is period' : 'Pichhli period']} {...theme.tooltip} />
                   <Bar dataKey="before" name="before" fill={theme.isDark ? '#334155' : '#cbd5e1'} radius={[4, 4, 0, 0]} maxBarSize={28} />
                   <Bar dataKey="now" name="now" radius={[4, 4, 0, 0]} maxBarSize={28}>
                     {rows.map((r) => <Cell key={r.id} fill={hue(r.id)} />)}
@@ -68,14 +68,14 @@ export function CompareView({ data, metric, hue, fmt, live }: {
           </div>
         )}
         <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-[0.75rem] text-slate-500">
-          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-brand-600" />Is muddat (branch ka rang)</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-300" />Pichhli muddat</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-brand-600" />Is period (branch ka rang)</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-300" />Pichhli period</span>
         </div>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Card className="rounded-2xl" title="Bikri me hissa" description="Kul bikri me har branch kitna la rahi hai">
-          {!share.some((s) => s.net) ? <Note text="Is muddat me koi bikri nahi" /> : (
+        <Card className="rounded-2xl" title="Sale me hissa" description="Total sale me har branch kitna la rahi hai">
+          {!share.some((s) => s.net) ? <Note text="Is period me koi sale nahi" /> : (
             <div style={{ height: Math.max(share.length * 40 + 20, 120) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={share} layout="vertical" margin={{ top: 0, right: 56, left: 0, bottom: 0 }}>
@@ -98,9 +98,9 @@ export function CompareView({ data, metric, hue, fmt, live }: {
               <p className="flex items-center gap-2 text-[0.75rem] font-semibold text-amber-800"><Crown className="h-4 w-4" />Sab se aage</p>
               <p className="mt-1 truncate text-lg font-bold text-slate-900">{best.name}</p>
               <dl className="mt-2 grid grid-cols-3 gap-2 text-[0.75rem]">
-                <div><dt className="text-slate-500">Bikri</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.money(best.net)}</dd></div>
+                <div><dt className="text-slate-500">Sale</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.money(best.net)}</dd></div>
                 <div><dt className="text-slate-500">Hissa</dt><dd className="font-semibold tabular-nums text-slate-900">{best.share.toFixed(0)}%</dd></div>
-                <div><dt className="text-slate-500">Net munafa</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.cost(best.netProfit)}</dd></div>
+                <div><dt className="text-slate-500">Net profit</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.cost(best.netProfit)}</dd></div>
               </dl>
             </div>
           )}
@@ -128,7 +128,7 @@ export function TrendView({ data, hue, fmt }: { data: BranchComparison; hue: (id
   const theme = useChartTheme();
   const rows = data.trend.map((r) => ({ ...r, label: dayShort(String(r.day)) }));
   return (
-    <Card className="rounded-2xl" title="Roz ki bikri — har branch" description="Wapsi ghata kar, karobari din ke hisaab se">
+    <Card className="rounded-2xl" title="Roz ki sale — har branch" description="Return ghata kar, karobari din ke hisaab se">
       {data.range.days < 2 ? <Note text="Trend ke liye kam se kam 2 din chunein" /> : (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -185,7 +185,7 @@ export function HoursView({ data, hue }: { data: BranchComparison; hue: (id: str
 
 export function FiguresTable({ data, hue, fmt }: { data: BranchComparison; hue: (id: string) => string; fmt: Fmt }) {
   const t = data.totals;
-  const head = ['Branch', 'Bill', 'Bikri', 'Wapsi', 'Discount', 'Haath aaya', 'Udhaar', 'Ausat bill', 'Munafa', 'Kharche', 'Nuqsan', 'Net munafa', 'Hissa', 'Pichhli se'];
+  const head = ['Branch', 'Bill', 'Sale', 'Return', 'Discount', 'Haath aaya', 'Udhaar', 'Ausat bill', 'Profit', 'Expenses', 'Nuqsan', 'Net profit', 'Hissa', 'Pichhli se'];
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="overflow-x-auto">
@@ -225,7 +225,7 @@ export function FiguresTable({ data, hue, fmt }: { data: BranchComparison; hue: 
         </table>
       </div>
       <p className="border-t border-slate-100 px-5 py-2.5 text-[0.75rem] text-slate-500">
-        Bikri = bill − wapsi. Net munafa = bikri − lagat − kharche − nuqsan (kharab/gum maal). Wohi hisaab jo <Link to="/reports" className="font-semibold text-brand-700 hover:underline">Reports</Link> me hai.
+        Sale = bill − return. Net profit = sale − cost − expenses − nuqsan (kharab/gum maal). Wohi hisaab jo <Link to="/reports" className="font-semibold text-brand-700 hover:underline">Reports</Link> me hai.
       </p>
     </div>
   );

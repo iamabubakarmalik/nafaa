@@ -69,7 +69,7 @@ export function LineRow({ r, selected, onToggle, money, cost, showShop, groupLab
           )}
           {r.agri?.reg && (
             <p className="mt-0.5 text-[0.75rem] text-rose-700">
-              {r.agri.reg.state === 'none' ? 'Registration ki tareekh nahi likhi' : r.agri.reg.state === 'expired' ? `Registration ${Math.abs(r.agri.reg.days ?? 0)} din pehle khatam — bechna mana hai` : `Registration ${r.agri.reg.days} din me khatam`}
+              {r.agri.reg.state === 'none' ? 'Registration ki date nahi likhi' : r.agri.reg.state === 'expired' ? `Registration ${Math.abs(r.agri.reg.days ?? 0)} din pehle khatam — bechna mana hai` : `Registration ${r.agri.reg.days} din me khatam`}
             </p>
           )}
         </div>
@@ -85,11 +85,11 @@ export function LineRow({ r, selected, onToggle, money, cost, showShop, groupLab
 
       {/* Selling rate */}
       <div className="col-start-2 text-[0.8125rem] lg:col-start-auto">
-        <p className="tabular-nums text-slate-900">{r.perDay > 0 ? `${qty(r.perDay)} / din` : 'Bikri nahi'}</p>
+        <p className="tabular-nums text-slate-900">{r.perDay > 0 ? `${qty(r.perDay)} / din` : 'Sale nahi'}</p>
         <p className={cn('text-[0.75rem]', r.daysLeft !== null && r.daysLeft <= 3 ? 'font-semibold text-rose-700' : 'text-slate-500')}>
           {r.stock <= 0 ? (r.outDays !== null ? `${r.outDays} din se khatam (andaza)` : 'Khatam') : r.daysLeft !== null ? `${daysText(r.daysLeft)} ka maal` : '—'}
         </p>
-        {r.lostPerDay > 0 && <p className="text-[0.75rem] text-rose-700">Roz {money(r.lostPerDay)} ki bikri ruki</p>}
+        {r.lostPerDay > 0 && <p className="text-[0.75rem] text-rose-700">Roz {money(r.lostPerDay)} ki sale ruki</p>}
       </div>
 
       {/* Order */}

@@ -152,7 +152,7 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
               ✅ {result.imported} naye · {result.updated} update · {result.failed} fail
             </div>
             <div className="mt-1 text-xs text-emerald-800 dark:text-emerald-300">
-              Cost price file me nahi tha to 0 rakha hai — Products me ja kar daal dein taake munafa sahi aaye.
+              Cost price file me nahi tha to 0 rakha hai — Products me ja kar daal dein taake profit sahi aaye.
             </div>
             {result.errors.length > 0 && (
               <ul className="mt-2 space-y-0.5 text-xs text-rose-700 dark:text-rose-300">

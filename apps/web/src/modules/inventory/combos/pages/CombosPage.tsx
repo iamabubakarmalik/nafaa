@@ -39,12 +39,12 @@ const SORTS: Array<{ value: Sort; label: string }> = [
   { value: 'sold', label: 'Sab se zyada bike' },
   { value: 'revenue', label: 'Sab se zyada kamai' },
   { value: 'saving', label: 'Sab se zyada bachat' },
-  { value: 'profit', label: 'Sab se zyada munafa' },
+  { value: 'profit', label: 'Sab se zyada profit' },
   { value: 'name', label: 'Naam A-Z' },
   { value: 'newest', label: 'Naye pehle' },
 ];
 
-const QUICK_LABEL: Record<Exclude<Quick, ''>, string> = { low: 'Khatam hone wale', expired: 'Muddat khatam', featured: 'Featured', loss: 'Nuqsan wale' };
+const QUICK_LABEL: Record<Exclude<Quick, ''>, string> = { low: 'Khatam hone wale', expired: 'Period khatam', featured: 'Featured', loss: 'Nuqsan wale' };
 
 export default function CombosPage() {
   const navigate = useNavigate();
@@ -146,9 +146,9 @@ export default function CombosPage() {
         </>}
         stats={[
           { label: 'Chalu combos', value: counts.live, hint: `kul ${all.length}` },
-          { label: 'Is muddat me bike', value: st ? qtyText(st.sold) : '—', hint: st ? `${st.bills} bill` : undefined },
+          { label: 'Is period me bike', value: st ? qtyText(st.sold) : '—', hint: st ? `${st.bills} bill` : undefined },
           { label: 'Combo se kamai', value: st ? money(st.revenue) : '—' },
-          { label: 'Munafa', value: st ? cost(st.profit) : '—', hint: st && st.revenue > 0 && !costHidden ? `${Math.round(st.margin)}%` : undefined },
+          { label: 'Profit', value: st ? cost(st.profit) : '—', hint: st && st.revenue > 0 && !costHidden ? `${Math.round(st.margin)}%` : undefined },
         ]}
       />
 
@@ -157,28 +157,28 @@ export default function CombosPage() {
           <KpiCard icon={Power} color="#16a34a" label="Chalu" value={counts.status.ACTIVE} hint={status === 'ACTIVE' ? 'Filter laga · dobara dabayein' : 'POS par dikhte hain'}
             onClick={() => setStatus((s) => (s === 'ACTIVE' ? 'all' : 'ACTIVE'))} active={status === 'ACTIVE'} />
           <KpiCard icon={AlertTriangle} color="#d97706" label="Khatam hone wale" value={counts.low} hint="3 ya kam ban sakte" onClick={() => setQuick((v) => (v === 'low' ? '' : 'low'))} active={quick === 'low'} />
-          <KpiCard icon={CalendarClock} color="#e11d48" label="Muddat khatam" value={counts.expired} hint="Tareekh guzar gayi" onClick={() => setQuick((v) => (v === 'expired' ? '' : 'expired'))} active={quick === 'expired'} />
+          <KpiCard icon={CalendarClock} color="#e11d48" label="Period khatam" value={counts.expired} hint="Date guzar gayi" onClick={() => setQuick((v) => (v === 'expired' ? '' : 'expired'))} active={quick === 'expired'} />
           <KpiCard icon={Star} color="#f59e0b" label="Featured" value={counts.featured} hint="POS par sab se upar" onClick={() => setQuick((v) => (v === 'featured' ? '' : 'featured'))} active={quick === 'featured'} />
-          {!costHidden && <KpiCard icon={TrendingDown} color="#be123c" label="Nuqsan wale" value={counts.loss} hint="Qeemat lagat se kam" onClick={() => setQuick((v) => (v === 'loss' ? '' : 'loss'))} active={quick === 'loss'} />}
+          {!costHidden && <KpiCard icon={TrendingDown} color="#be123c" label="Nuqsan wale" value={counts.loss} hint="Qeemat cost se kam" onClick={() => setQuick((v) => (v === 'loss' ? '' : 'loss'))} active={quick === 'loss'} />}
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Combo, barcode ya andar ki cheez…" label="Dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Combo, barcode ya andar ki cheez…" label="Search" />}
         chips={filtered ? <>
           {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{STATUS[status].label}</FilterChip>}
           {quick && <FilterChip onRemove={() => setQuick('')}>{QUICK_LABEL[quick]}</FilterChip>}
           {q && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
-        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} label="Bikri ki muddat" />
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} label="Sale ki period" />
         <FilterMenu icon={Filter} label="Haal" value={status} active={status !== 'all'} onChange={setStatus}
           options={[{ value: 'all', label: 'Sab', hint: String(all.length) }, ...STATUS_ORDER.map((s) => ({ value: s, label: STATUS[s].label, icon: STATUS[s].icon, color: STATUS[s].color, hint: String(counts.status[s]) }))]} />
-        <FilterMenu icon={ArrowUpDown} label="Tarteeb" value={sort} active={sort !== 'featured'} onChange={setSort} align="right"
+        <FilterMenu icon={ArrowUpDown} label="Sort" value={sort} active={sort !== 'featured'} onChange={setSort} align="right"
           options={SORTS.filter((s) => !(costHidden && s.value === 'profit'))} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> dhoondein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> search</>}
         tabs={[{ id: 'list', label: 'Combos', icon: LayoutGrid, count: listQ.data ? list.length : null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <ComboAnalytics range={period ?? {}} money={money} cost={cost} /> : listQ.isLoading ? (
@@ -187,7 +187,7 @@ export default function CombosPage() {
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <Gift className="mx-auto h-10 w-10 text-slate-300" />
           <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi combo nahi' : 'Abhi koi combo nahi'}</p>
-          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Do ya zyada cheezein mila kar ek qeemat par bechein — customer ko bachat, aap ki bikri zyada. POS par "Combos" tab me dikhte hain.</p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Do ya zyada cheezein mila kar ek qeemat par bechein — customer ko bachat, aap ki sale zyada. POS par "Combos" tab me dikhte hain.</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             <Button onClick={() => navigate('/combos/new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla combo banayein</Button>
             {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
@@ -220,17 +220,17 @@ export default function CombosPage() {
       {guide.isOpen && (
         <PageGuide title="Combos — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#16a34a', title: 'Combo banayein', text: '"Naya combo" dabayein, naam likhein, phir cheezein dhoondein ya scan karein. Har cheez ki miqdar likhein — pack (dozen, carton) bhi chun sakte hain.' },
-            { icon: Percent, color: '#2563eb', title: 'Qeemat aur bachat', text: 'Combo ki qeemat likhein. Form khud dikhata hai alag alag lene par kitna banta, customer ki bachat aur aap ka munafa.' },
+            { icon: Plus, color: '#16a34a', title: 'Combo banayein', text: '"Naya combo" dabayein, naam likhein, phir cheezein search ya scan karein. Har cheez ki quantity likhein — pack (dozen, carton) bhi chun sakte hain.' },
+            { icon: Percent, color: '#2563eb', title: 'Qeemat aur bachat', text: 'Combo ki qeemat likhein. Form khud dikhata hai alag alag lene par kitna banta, customer ki bachat aur aap ka profit.' },
             { icon: Boxes, color: '#d97706', title: 'Stock se kitne ban sakte', text: 'Har combo par "ban sakte" likha hota hai — jo cheez sab se kam hai wohi had banati hai. Ye khuli branch ka stock hai.' },
             { icon: ShoppingBag, color: '#7c3aed', title: 'POS par bechna', text: 'Chalu combo POS ke "Combos" tab (F8) me aata hai. Bill me har cheez alag line banti hai aur stock har cheez ka apna ghatta hai.' },
-            { icon: CalendarClock, color: '#e11d48', title: 'Muddat aur band', text: 'Eid ya sale ka combo? Shuru aur khatam ki tareekh daalein — muddat ke bahar POS par nahi dikhta. Rokna ho to Band kar dein.' },
-            { icon: BarChart3, color: '#0891b2', title: 'Analytics', text: 'Kaunsa combo zyada bikta hai, kitna munafa, kis din, aur kaun se combos bilkul nahi bike — sab Analytics tab me.' },
+            { icon: CalendarClock, color: '#e11d48', title: 'Period aur band', text: 'Eid ya sale ka combo? Shuru aur khatam ki date daalein — period ke bahar POS par nahi dikhta. Rokna ho to Band kar dein.' },
+            { icon: BarChart3, color: '#0891b2', title: 'Analytics', text: 'Kaunsa combo zyada bikta hai, kitna profit, kis din, aur kaun se combos bilkul nahi bike — sab Analytics tab me.' },
           ]}
           tips={[
             'Barcode laga dein to POS par combo scan ho jata hai.',
             'Featured combo POS par sab se upar dikhta hai.',
-            'Lal "nuqsan" ka matlab: combo ki qeemat cheezon ki lagat se kam hai.',
+            'Lal "nuqsan" ka matlab: combo ki qeemat cheezon ki cost se kam hai.',
             'Print se combos ki list ya ek combo ki sheet A4, PDF ya thermal par nikaalein.',
           ]}
           shortcuts={[['N', 'naya combo'], ['A', 'analytics'], ['/', 'dhoondein'], ['G', 'guide']]}
@@ -271,7 +271,7 @@ function ComboCard({ c, sold, money, cost, costHidden, busy, onFeature, onStatus
             </button>
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-            <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', c.expired ? STATUS.EXPIRED.tone : s.tone)}>{c.expired ? 'Muddat khatam' : c.upcoming ? 'Abhi shuru nahi' : s.label}</span>
+            <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', c.expired ? STATUS.EXPIRED.tone : s.tone)}>{c.expired ? 'Period khatam' : c.upcoming ? 'Abhi shuru nahi' : s.label}</span>
             {c.tagLine && <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[0.6875rem] font-medium text-brand-800"><Sparkles className="h-3 w-3" />{c.tagLine}</span>}
             {c.barcode && <span className="inline-flex items-center gap-1 font-mono text-[0.6875rem] text-slate-400"><ScanLine className="h-3 w-3" />{c.barcode}</span>}
           </div>
@@ -298,8 +298,8 @@ function ComboCard({ c, sold, money, cost, costHidden, busy, onFeature, onStatus
       <dl className="grid grid-cols-3 gap-2 px-4 py-3 text-center">
         <Stat label="Ban sakte" value={c.sellable || c.status === 'ACTIVE' ? String(avail) : '—'} tone={avail === 0 ? 'rose' : avail <= 3 ? 'amber' : undefined}
           title={c.limitedBy === 'limit' ? 'Combo ki apni had' : c.limitedBy ? `${c.limitedBy} ki wajah se` : undefined} />
-        <Stat label="Munafa" value={costHidden ? '••••' : `${cost(c.profit ?? 0)}`} tone={loss ? 'rose' : 'emerald'} title={!costHidden && c.margin !== undefined ? `Margin ${Math.round(c.margin)}%` : undefined} />
-        <Stat label="Is muddat bike" value={sold ? qtyText(sold.count) : '0'} title={sold ? money(sold.revenue) : undefined} />
+        <Stat label="Profit" value={costHidden ? '••••' : `${cost(c.profit ?? 0)}`} tone={loss ? 'rose' : 'emerald'} title={!costHidden && c.margin !== undefined ? `Margin ${Math.round(c.margin)}%` : undefined} />
+        <Stat label="Is period bike" value={sold ? qtyText(sold.count) : '0'} title={sold ? money(sold.revenue) : undefined} />
       </dl>
 
       {(c.validFrom || c.validTo) && (

@@ -22,7 +22,7 @@ function useLast7(key: 'sales' | 'profit' | 'orders') {
 
 export const commonKpis: Record<string, KpiDef> = {
   sales: {
-    id: 'sales', label: 'Aaj ki bikri', icon: TrendingUp, tone: 'brand',
+    id: 'sales', label: 'Aaj ki sale', icon: TrendingUp, tone: 'brand',
     useValue: () => {
       const { data, isLoading } = useOverview();
       const { sales, salesHidden } = useMasked();
@@ -58,12 +58,12 @@ export const commonKpis: Record<string, KpiDef> = {
     },
   },
   profit: {
-    id: 'profit', label: 'Aaj ka munafa', icon: Target, tone: 'success', sensitive: true,
+    id: 'profit', label: 'Aaj ka profit', icon: Target, tone: 'success', sensitive: true,
     useValue: () => {
       const { data, isLoading } = useOverview();
       const trend = useLast7('profit');
       const s = data?.stats;
-      return { loading: isLoading, value: formatPKR(s?.netProfitToday ?? 0), hint: 'lagat aur kharcha nikal kar', trend, to: '/profit-report' };
+      return { loading: isLoading, value: formatPKR(s?.netProfitToday ?? 0), hint: 'cost aur expense nikal kar', trend, to: '/profit-report' };
     },
   },
   items: {
@@ -94,7 +94,7 @@ export const commonKpis: Record<string, KpiDef> = {
     },
   },
   expenses: {
-    id: 'expenses', label: 'Aaj ka kharcha', icon: Wallet, tone: 'warning', sensitive: true,
+    id: 'expenses', label: 'Aaj ka expense', icon: Wallet, tone: 'warning', sensitive: true,
     useValue: () => {
       const { data, isLoading } = useOverview();
       const s = data?.stats;
@@ -110,7 +110,7 @@ export const commonKpis: Record<string, KpiDef> = {
     },
   },
   month: {
-    id: 'month', label: 'Mahine ki bikri', icon: CalendarRange, tone: 'brand',
+    id: 'month', label: 'Mahine ki sale', icon: CalendarRange, tone: 'brand',
     useValue: () => {
       const { data, isLoading } = useOverview();
       const { sales, salesHidden } = useMasked();

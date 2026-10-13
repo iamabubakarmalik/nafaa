@@ -21,7 +21,7 @@ const STATUSES: Array<{ value: AttendanceStatus; label: string }> = [
   { value: 'HOLIDAY', label: 'Tehwar / dukaan band' },
 ];
 
-const REASONS = ['Check-in bhool gaye', 'Check-out bhool gaye', 'Ghalat waqt laga', 'Bahar kaam par the', 'Malik ki ijazat se'];
+const REASONS = ['Check-in bhool gaye', 'Check-out bhool gaye', 'Ghalat waqt laga', 'Bahar kaam par the', 'Malik ki permission se'];
 
 const toStatus = (c?: DayCell): AttendanceStatus =>
   !c ? 'PRESENT' : c.code === 'A' ? 'ABSENT' : c.code === 'LV' ? 'ON_LEAVE' : c.code === 'HO' ? 'HOLIDAY' : c.code === 'H' ? 'HALF_DAY' : 'PRESENT';
@@ -76,7 +76,7 @@ export function CorrectModal({ staff, date: initialDate, cell, clock, today, onC
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (valid && !save.isPending) save.mutate(); }}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Tareekh" type="date" max={today} required value={date} onChange={(e) => setDate(e.target.value)}
+          <Input label="Date" type="date" max={today} required value={date} onChange={(e) => setDate(e.target.value)}
             hint="Karobari din; aane wala din nahi chun sakte" />
           <Select label="Haal" value={status} onChange={(e) => setStatus(e.target.value as AttendanceStatus)} options={STATUSES}
             hint="Late khud ginta hai — check-in ke waqt se" />

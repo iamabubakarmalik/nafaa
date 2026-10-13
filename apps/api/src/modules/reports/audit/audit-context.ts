@@ -94,7 +94,7 @@ export async function auditContext(
   const today = businessDayKey(new Date(), tz, start);
   const fromKey = q.from === 'all' ? null : q.from && KEY.test(q.from) ? q.from : today;
   const toKey = q.to && KEY.test(q.to) ? q.to : today;
-  if (fromKey && fromKey > toKey) throw new BadRequestException('Shuru ki tareekh aakhri tareekh ke baad hai');
+  if (fromKey && fromKey > toKey) throw new BadRequestException('Shuru ki date aakhri date ke baad hai');
   const at = (key: string) => { const [y, m, d] = key.split('-').map(Number); return zonedToUtc(y, m, d, start, 0, 0, tz); };
   const gte = fromKey ? at(fromKey) : null;
   const lt = new Date(at(toKey).getTime() + DAY);

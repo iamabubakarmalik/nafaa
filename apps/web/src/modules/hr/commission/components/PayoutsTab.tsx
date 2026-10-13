@@ -21,7 +21,7 @@ export function PayoutsTab({ period, search }: { period: string; search: string 
   if (q.isError) {
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-        <p className="font-semibold text-slate-900">Adaigi ka record load nahi hua</p>
+        <p className="font-semibold text-slate-900">Payment ka record load nahi hua</p>
         <Button className="mt-3" variant="secondary" onClick={() => q.refetch()}>Dobara koshish</Button>
       </div>
     );
@@ -30,14 +30,14 @@ export function PayoutsTab({ period, search }: { period: string; search: string 
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Wallet className="mx-auto h-10 w-10 text-slate-300" />
-        <p className="mt-3 font-semibold text-slate-900">{needle ? 'Is naam ki koi adaigi nahi' : 'Pichle 12 mahine me koi adaigi nahi likhi'}</p>
+        <p className="mt-3 font-semibold text-slate-900">{needle ? 'Is naam ki koi payment nahi' : 'Pichle 12 mahine me koi payment nahi likhi'}</p>
         <p className="mt-1 text-sm text-slate-500">Hisab tab me kisi bande par "Ada karein" dabayein — yahan record ban jata hai.</p>
       </div>
     );
   }
 
-  const csv = () => downloadCsv(`commission-adaigi-${from}-${period}.csv`, [
-    ['Banda', 'Mahina', 'Raqam', 'Kab', 'Kis ne likha', 'Note'],
+  const csv = () => downloadCsv(`commission-payment-${from}-${period}.csv`, [
+    ['Banda', 'Mahina', 'Amount', 'Kab', 'Kis ne likha', 'Note'],
     ...rows.map((p) => [p.name, p.period, p.amount.toFixed(2), dayTime(p.paidAt), p.paidBy ?? '', p.note ?? '']),
   ]);
 

@@ -81,7 +81,7 @@ export function EventsView({ pages, loading, loadingMore, hasMore, onMore, type,
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg"><ShieldCheck className="h-7 w-7" /></span>
           <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi mila' : 'Sab theek — koi shak wali baat nahi'}</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein' : 'Is muddat me koi void, wapsi, bari chhoot ya drawer farq nahi aaya.'}</p>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein' : 'Is period me koi void, return, bari discount ya drawer farq nahi aaya.'}</p>
           {filtered && <div className="mt-4"><Button variant="secondary" onClick={onClear}>Filter hatayein</Button></div>}
         </div>
       ) : (
@@ -104,7 +104,7 @@ export function EventsView({ pages, loading, loadingMore, hasMore, onMore, type,
           {loadingMore ? 'Aa rahe hain…' : `Aur dikhayein (${items.length} / ${first?.total ?? 0})`}
         </button>
       )}
-      {first?.capped && <p className="text-center text-[0.75rem] text-slate-500"><ListChecks className="mr-1 inline h-3.5 w-3.5" />Bohat zyada record — har qism ke sab se naye 4,000 dikhaye ja rahe hain. Muddat chhoti karein.</p>}
+      {first?.capped && <p className="text-center text-[0.75rem] text-slate-500"><ListChecks className="mr-1 inline h-3.5 w-3.5" />Bohat zyada record — har type ke sab se naye 4,000 dikhaye ja rahe hain. Period chhoti karein.</p>}
     </div>
   );
 }

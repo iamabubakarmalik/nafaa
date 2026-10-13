@@ -32,7 +32,7 @@ export function PosShopGuard({
             Abhi "All Shops" View Hai
           </h2>
           <p className="mt-2 text-sm text-violet-800 font-semibold">
-            {action} ke liye ek shop chunni paregi — bikri kisi ek counter se hoti
+            {action} ke liye ek shop chunni paregi — sale kisi ek counter se hoti
             hai, sab branches se ek saath nahi.
           </p>
           <p className="mt-4 text-xs text-violet-700">

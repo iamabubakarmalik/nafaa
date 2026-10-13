@@ -8,7 +8,7 @@ import { Button, Field, Modal } from '@/design-system/components';
 import type { LowSettings } from '../api';
 
 const FIELDS: Array<{ key: keyof LowSettings; label: string; hint: string; min: number; max: number }> = [
-  { key: 'days', label: 'Bikri ka hisaab kitne din se', hint: 'Pichhle itne din ki bikri se roz ki ausat nikalti hai. 30 aam hai; mausami maal ho to 14.', min: 7, max: 90 },
+  { key: 'days', label: 'Sale ka hisaab kitne din se', hint: 'Pichhle itne din ki bikri se roz ki ausat nikalti hai. 30 aam hai; mausami maal ho to 14.', min: 7, max: 90 },
   { key: 'targetDays', label: 'Order kitne din ka', hint: 'Order itna banta hai ke maal itne din chale. Supplier jaldi deta ho to kam rakhein.', min: 1, max: 180 },
   { key: 'soonDays', label: '"Jaldi khatam" kab kahein', hint: 'Jo maal itne din ya kam me khatam ho jayega, woh "Jaldi khatam" me aata hai — supplier ko jitne din lagte hain utna rakhein.', min: 1, max: 60 },
   { key: 'expiryDays', label: 'Expiry kitne din pehle dikhayein', hint: 'Jis batch ki expiry itne din me hai, woh "Expiry" me dikhta hai.', min: 1, max: 180 },

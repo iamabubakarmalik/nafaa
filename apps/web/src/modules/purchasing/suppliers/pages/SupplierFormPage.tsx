@@ -82,7 +82,7 @@ export default function SupplierFormPage() {
         <PageGuide title="Supplier kaise jorein" onClose={guide.close}
           steps={[
             { icon: User, color: '#16a34a', title: 'Naam aur phone', text: 'Sirf naam zaroori hai. Phone daal dein to WhatsApp par order aur hisaab bhej sakenge.' },
-            { icon: Landmark, color: '#2563eb', title: 'Bank', text: 'Bank aur IBAN likh dein — adaigi karte waqt yahin se nikal lein.' },
+            { icon: Landmark, color: '#2563eb', title: 'Bank', text: 'Bank aur IBAN likh dein — payment karte waqt yahin se nikal lein.' },
             { icon: BookOpen, color: '#d97706', title: 'Purana hisaab', text: 'Nafaa se pehle ka baqi ho to "Purana hisaab" me likhein — khata wahin se shuru hoga.' },
             { icon: Building2, color: '#7c3aed', title: 'Band karna', text: 'Jis se ab maal nahi lete use mitane ki bajaye "Chalu supplier" ka nishan hata dein — purana hisaab mehfooz rehta hai.' },
           ]}
@@ -112,11 +112,11 @@ export default function SupplierFormPage() {
         <Field label="NTN" hint="Tax wala supplier ho to — tax invoice ke liye"><input value={f.ntn} onChange={(e) => set('ntn', e.target.value)} className={input} /></Field>
       </Section>
 
-      <Section icon={<Landmark className="h-4 w-4" />} title="Bank aur adaigi">
+      <Section icon={<Landmark className="h-4 w-4" />} title="Bank aur payment">
         <Field label="Bank" hint="Jis bank me aap paisa bhejte hain"><input value={f.bankName} onChange={(e) => set('bankName', e.target.value)} placeholder="Meezan, HBL…" className={input} /></Field>
         <Field label="Account #" hint="Supplier ka account number"><input value={f.accountNumber} onChange={(e) => set('accountNumber', e.target.value)} className={cn(input, 'font-mono')} /></Field>
         <Field label="IBAN" hint="PK se shuru hone wala 24 harf ka number — online transfer ke liye" span><input value={f.iban} onChange={(e) => set('iban', e.target.value.toUpperCase().replace(/\s/g, ''))} placeholder="PK36MEZN…" className={cn(input, 'font-mono')} /></Field>
-        <Field label="Adaigi ki shart" hint="Kitne din me paisa dena hota hai — neeche se jaldi chunein" span>
+        <Field label="Payment ki shart" hint="Kitne din me paisa dena hota hai — neeche se jaldi chunein" span>
           <input value={f.paymentTerms} onChange={(e) => set('paymentTerms', e.target.value)} className={input} />
           <div className="mt-1.5 flex flex-wrap gap-1">
             {TERMS.map((t) => <button key={t} type="button" onClick={() => set('paymentTerms', t)} className={cn('rounded-full px-2.5 py-0.5 text-[0.75rem] ring-1', f.paymentTerms === t ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-600 ring-slate-200')}>{t}</button>)}
@@ -135,7 +135,7 @@ export default function SupplierFormPage() {
       <Section title="Aur">
         <Field label="Note" hint="Kuch bhi yaad rakhna ho — misaal: har mangal ko maal deta hai" span><textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" /></Field>
         <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
-          <input type="checkbox" checked={f.isActive !== false} onChange={(e) => set('isActive', e.target.checked)} className="h-4 w-4 accent-brand-600" /> Chalu supplier (band ho to kharidari me nahi dikhta)
+          <input type="checkbox" checked={f.isActive !== false} onChange={(e) => set('isActive', e.target.checked)} className="h-4 w-4 accent-brand-600" /> Chalu supplier (band ho to purchase me nahi dikhta)
         </label>
       </Section>
 

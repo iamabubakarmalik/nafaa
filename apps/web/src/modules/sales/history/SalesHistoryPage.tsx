@@ -55,12 +55,12 @@ const STATUSES: Array<FilterOption<HistoryStatus>> = [
   { value: 'all', label: 'Sab bill', icon: ListChecks, color: '#475569' },
   { value: 'active', label: 'Chalu bill', hint: 'Void ke bagair', icon: CheckCircle2, color: '#16a34a' },
   { value: 'credit', label: 'Udhaar wale', hint: 'Jin par paise baqi hain', icon: BookOpen, color: '#d97706' },
-  { value: 'returned', label: 'Wapsi wale', hint: 'Jin ka maal wapas aaya', icon: RotateCcw, color: '#ea580c' },
+  { value: 'returned', label: 'Return wale', hint: 'Jin ka maal wapas aaya', icon: RotateCcw, color: '#ea580c' },
   { value: 'voided', label: 'Void', hint: 'Cancel kiye gaye bill', icon: Ban, color: '#e11d48' },
 ];
 const SORTS: Array<FilterOption<HistorySort>> = [
   { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' },
-  { value: 'high', label: 'Bari raqam pehle' }, { value: 'low', label: 'Chhoti raqam pehle' },
+  { value: 'high', label: 'Bari amount pehle' }, { value: 'low', label: 'Chhoti amount pehle' },
 ];
 
 const noExtras = () => () => null;
@@ -127,7 +127,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
       const { sales, stats } = await fetchAllSales(h.filters);
       if (!sales.length) { toast.error('Is filter mein koi bill nahi'); return; }
       if (kind === 'csv') salesCsv(sales, [
-        `Bikri ka record — ${tenantName ?? ''}${shopName ? ` · ${shopName}` : ''}`, `Muddat: ${label}`,
+        `Sale ka record — ${tenantName ?? ''}${shopName ? ` · ${shopName}` : ''}`, `Period: ${label}`,
         `Bill: ${stats?.bills ?? 0} · Kul: ${stats?.total.toFixed(2)} · Mila: ${stats?.paid.toFixed(2)} · Udhaar: ${stats?.credit.toFixed(2)}`,
       ]);
       toast.success(`${sales.length} bill CSV mein`);
@@ -187,7 +187,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
 
       {/* Header */}
       <PageHero
-        title="Bikri ka record"
+        title="Sale ka record"
         chip={<><CalendarRange />{label}</>}
         busy={h.fetching && !h.loading}
         meta={`${config.label} · ${shopName ?? tenantName ?? ''}`}
@@ -205,11 +205,11 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
           <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={st ? [
-          { label: `Kul bikri · ${st.bills} bill`, value: money(st.total) },
-          { label: 'Haath mein aaya', value: money(st.paid), hint: st.change ? `wapsi ${money(st.change)}` : 'cash + online' },
-          { label: 'Munafa', value: cost(st.profit), hint: costHidden ? 'Cost lock' : `${st.margin.toFixed(1)}% margin` },
+          { label: `Total sale · ${st.bills} bill`, value: money(st.total) },
+          { label: 'Haath mein aaya', value: money(st.paid), hint: st.change ? `return ${money(st.change)}` : 'cash + online' },
+          { label: 'Profit', value: cost(st.profit), hint: costHidden ? 'Cost lock' : `${st.margin.toFixed(1)}% margin` },
           { label: 'Ausat bill', value: money(st.average), hint: `${Number(st.qty.toFixed(2))} cheezein` },
-        ] : [{ label: 'Kul bikri', value: '' }, { label: 'Haath mein aaya', value: '' }, { label: 'Munafa', value: '' }, { label: 'Ausat bill', value: '' }]}
+        ] : [{ label: 'Total sale', value: '' }, { label: 'Haath mein aaya', value: '' }, { label: 'Profit', value: '' }, { label: 'Ausat bill', value: '' }]}
       />
 
       {/* Secondary numbers */}
@@ -218,7 +218,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
           <>
             <KpiCard icon={BookOpen} color="#d97706" label="Udhaar" value={money(st.credit)} hint={`${st.creditCount} bill · dabayein`}
               onClick={() => h.setStatus(h.status === 'credit' ? 'all' : 'credit')} active={h.status === 'credit'} />
-            <KpiCard icon={Sparkles} color="#db2777" label="Discount" value={money(st.discount)} hint={st.total ? `${((st.discount / (st.total + st.discount)) * 100).toFixed(1)}% bikri ka` : undefined} />
+            <KpiCard icon={Sparkles} color="#db2777" label="Discount" value={money(st.discount)} hint={st.total ? `${((st.discount / (st.total + st.discount)) * 100).toFixed(1)}% sale ka` : undefined} />
             <KpiCard icon={RotateCcw} color="#ea580c" label="Maal wapas" value={money(st.refunded)} hint={`${st.voided} void bill`}
               onClick={() => h.setStatus(h.status === 'returned' ? 'all' : 'returned')} active={h.status === 'returned'} />
             <KpiCard icon={Package} color="#0891b2" label="Cheezein biki" value={String(Number(st.qty.toFixed(2)))} hint={`${st.lines} lines`} />
@@ -232,7 +232,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
       <FilterBar
         search={<SearchField ref={searchRef} value={h.search} onChange={h.setSearch}
           onEnter={() => { if (/^[A-Z]{2}-\d+$/i.test(h.search.trim())) void openBill(h.search); }}
-          placeholder="Bill number, customer, phone, product ya barcode…" label="Bikri dhoondein" />}
+          placeholder="Bill number, customer, phone, product ya barcode…" label="Sale search" />}
         chips={h.hasFilters ? <>
           {h.method && <FilterChip onRemove={() => h.setMethod(undefined)}>{POS_PAYMENT_METHODS.find((m) => m.id === h.method)?.label ?? h.method}</FilterChip>}
           {h.status !== 'all' && <FilterChip onRemove={() => h.setStatus('all')}>{STATUSES.find((x) => x.value === h.status)?.label}</FilterChip>}
@@ -240,8 +240,8 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
           {h.search.trim() && <FilterChip onRemove={() => h.setSearch('')}>"{h.search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={h.clear}>
-          <FilterMenu icon={CalendarRange} label="Tareekh" value={h.preset} active={h.preset !== 'today'} width="w-72"
-            options={[...DATE_PRESETS.map((p) => ({ value: p.id, label: p.label })), { value: 'custom' as const, label: 'Apni tareekh', hint: 'Neeche se chunein' }]}
+          <FilterMenu icon={CalendarRange} label="Date" value={h.preset} active={h.preset !== 'today'} width="w-72"
+            options={[...DATE_PRESETS.map((p) => ({ value: p.id, label: p.label })), { value: 'custom' as const, label: 'Apni date', hint: 'Neeche se chunein' }]}
             onChange={(v) => h.setPreset(v)}
             footer={() => (
               <div className="mt-1 grid grid-cols-2 gap-2 border-t border-slate-100 p-2 pt-3">
@@ -264,7 +264,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
               options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
               onChange={(v) => h.setStaffId(v === 'all' ? undefined : v)} />
           )}
-          <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={h.sort} options={SORTS} onChange={h.setSort} align="right" width="w-56" />
+          <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={h.sort} options={SORTS} onChange={h.setSort} align="right" width="w-56" />
       </FilterBar>
 
       {/* Tabs */}
@@ -285,8 +285,8 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
           ) : h.sales.length === 0 ? (
             <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><ShoppingCart className="h-7 w-7" /></span>
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">{h.hasFilters ? 'Is filter mein koi bill nahi' : 'Is muddat mein koi bikri nahi'}</h3>
-              <p className="mt-1 text-[0.875rem] text-slate-500">{h.hasFilters ? 'Filter badal kar dekhein' : 'POS se pehli bikri karein, ya muddat badlein'}</p>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{h.hasFilters ? 'Is filter mein koi bill nahi' : 'Is period mein koi sale nahi'}</h3>
+              <p className="mt-1 text-[0.875rem] text-slate-500">{h.hasFilters ? 'Filter badal kar dekhein' : 'POS se pehli sale karein, ya period badlein'}</p>
               <div className="mt-4">{h.hasFilters ? <Button variant="secondary" onClick={h.clear}>Filter hatayein</Button> : <Button onClick={() => navigate('/pos')}>POS kholein</Button>}</div>
             </div>
           ) : (
@@ -297,7 +297,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
                   <span className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(d.total)}</span>
                 </header>
                 <div className={cn('hidden border-b border-slate-100 px-5 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 lg:grid', ROW_GRID)}>
-                  <span>Bill</span><span>Customer</span><span>Cheezein</span><span>Payment</span><span>Staff</span><span className="text-right">Raqam</span><span />
+                  <span>Bill</span><span>Customer</span><span>Cheezein</span><span>Payment</span><span>Staff</span><span className="text-right">Amount</span><span />
                 </div>
                 <ul className="divide-y divide-slate-100">
                   {d.sales.map((s) => (
@@ -322,15 +322,15 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
 
 function SalesGuide({ onClose }: { onClose: () => void }) {
   const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
-    { icon: CalendarRange, color: '#2563eb', title: 'Din chunein', text: '"Tareekh" se Aaj, Kal, 7 din ya apni tareekh. Upar ke saare number isi muddat ke hain.' },
-    { icon: Search, color: '#7c3aed', title: 'Bill dhoondein', text: 'Bill number, customer ka naam, phone ya product likhein. Purana bill ho to "Bill scan" se barcode scan karein.' },
-    { icon: ListFilter, color: '#d97706', title: 'Filter lagayein', text: 'Payment, udhaar wale, wapsi wale ya staff. Lage filter neeche dikhte hain, X se hat jate hain.' },
-    { icon: MousePointerClick, color: '#16a34a', title: 'Bill kholein', text: 'Kisi bhi bill par click karein: poori cheezein, munafa, print, WhatsApp, maal wapas aur void.' },
+    { icon: CalendarRange, color: '#2563eb', title: 'Din chunein', text: '"Date" se Aaj, Kal, 7 din ya apni date. Upar ke saare number isi period ke hain.' },
+    { icon: Search, color: '#7c3aed', title: 'Bill search', text: 'Bill number, customer ka naam, phone ya product likhein. Purana bill ho to "Bill scan" se barcode scan karein.' },
+    { icon: ListFilter, color: '#d97706', title: 'Filter lagayein', text: 'Payment, udhaar wale, return wale ya staff. Lage filter neeche dikhte hain, X se hat jate hain.' },
+    { icon: MousePointerClick, color: '#16a34a', title: 'Bill kholein', text: 'Kisi bhi bill par click karein: poori cheezein, profit, print, WhatsApp, maal wapas aur void.' },
     { icon: BarChart3, color: '#db2777', title: 'Analytics dekhein', text: 'Kab rush hota hai, kya zyada bikta hai, kaun se customer aate hain, aur pichli dafa se muqabla.' },
     { icon: FileDown, color: '#0891b2', title: 'Report nikaalein', text: 'CSV ya Print/PDF. Is filter ke saare bill aa jate hain, accountant ko bhej dein.' },
   ];
   return (
-    <Modal open onClose={onClose} size="lg" title="Bikri ka record — aasaan tareeqa" description="6 cheezein, bas itna yaad rakhein">
+    <Modal open onClose={onClose} size="lg" title="Sale ka record — aasaan tareeqa" description="6 cheezein, bas itna yaad rakhein">
       <ol className="grid gap-3 sm:grid-cols-2">
         {steps.map((st, i) => (
           <li key={st.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
@@ -348,7 +348,7 @@ function SalesGuide({ onClose }: { onClose: () => void }) {
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
         <div className="flex flex-wrap items-center gap-3 text-[0.75rem] text-slate-600">
           <span className="font-semibold text-slate-900">Jaldi ke liye:</span>
-          <span className="inline-flex items-center gap-1"><Kbd>/</Kbd> dhoondein</span>
+          <span className="inline-flex items-center gap-1"><Kbd>/</Kbd> search</span>
           <span className="inline-flex items-center gap-1"><Kbd>B</Kbd> scan</span>
           <span className="inline-flex items-center gap-1"><Kbd>A</Kbd> analytics</span>
           <span className="inline-flex items-center gap-1"><Kbd>G</Kbd> guide</span>

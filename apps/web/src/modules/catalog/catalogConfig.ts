@@ -139,7 +139,7 @@ const CONFIGS: Record<string, CatalogConfig> = {
       { id: 'classes', label: 'Classes', icon: CalendarDays, source: gymClassesSource },
     ],
     modes: ['grid', 'list'], stock: false,
-    facets: [{ key: 'plan', label: 'Muddat', icon: CalendarDays, labels: PLAN_LABELS }],
+    facets: [{ key: 'plan', label: 'Period', icon: CalendarDays, labels: PLAN_LABELS }],
   },
   'services-biz': {
     label: 'Services', title: 'Services aur rates', noun: 'services', listLabel: 'Meri list',

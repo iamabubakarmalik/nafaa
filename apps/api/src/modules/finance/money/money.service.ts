@@ -240,7 +240,7 @@ export class MoneyService {
 
   private async period(tenantId: string, q: { from?: string; to?: string }): Promise<Range> {
     const r = await periodRange(this.tz, tenantId, q.from, q.to);
-    if (r.gte >= r.lt) throw new BadRequestException('"Se" ki tareekh "Tak" se pehle honi chahiye');
+    if (r.gte >= r.lt) throw new BadRequestException('"Se" ki date "Tak" se pehle honi chahiye');
     return r;
   }
 
@@ -310,7 +310,7 @@ export class MoneyService {
     const page = q.page ?? 1;
     const limit = q.limit ?? 50;
     const depth = page * limit;
-    if (depth > MAX_DEPTH) throw new BadRequestException('Itna peeche jane ke liye muddat chhoti karein ya filter lagayein');
+    if (depth > MAX_DEPTH) throw new BadRequestException('Itna peeche jane ke liye period chhoti karein ya filter lagayein');
 
     const c: Ctx = { tenantId, shop, range, account: q.account, search: q.search?.trim() || undefined };
     const sources = this.sourcesFor(q.account, q.source, q.direction);
@@ -439,7 +439,7 @@ export class MoneyService {
   async analytics(user: AuthenticatedUser, shop: ShopScope, q: MoneyPeriodDto) {
     const tenantId = user.tenantId;
     const range = await this.period(tenantId, q);
-    if (range.lt.getTime() - range.gte.getTime() > 366 * DAY) throw new BadRequestException('Analytics ek saal tak ki muddat ke liye hai');
+    if (range.lt.getTime() - range.gte.getTime() > 366 * DAY) throw new BadRequestException('Analytics ek saal tak ki period ke liye hai');
     const { tz, dayStartHour } = await this.tz.clock(tenantId);
     const monthly = range.lt.getTime() - range.gte.getTime() > 92 * DAY;
     const keyOf = (d: Date) => {

@@ -35,14 +35,14 @@ export function ItemsView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
 
   return (
     <div className="space-y-4">
-      <Panel icon={Layers} title="Category war bikri" hint="Bar par dabayein: sirf us category ka maal">
+      <Panel icon={Layers} title="Category war sale" hint="Bar par dabayein: sirf us category ka maal">
         <div style={{ height: Math.max(chart.length * 34, 120) }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chart} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={theme.grid} horizontal={false} />
               <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} />
               <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={120} />
-              <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), 'Bikri']} />
+              <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), 'Sale']} />
               <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16} cursor="pointer"
                 onClick={(e) => { const id = (e as { payload?: { id: string | null } }).payload?.id; if (id !== undefined) setCat(id === cat ? 'all' : id); }}>
                 {chart.map((c) => <Cell key={c.name} fill={c.color} fillOpacity={cat === 'all' || cat === c.id ? 1 : 0.35} />)}
@@ -53,9 +53,9 @@ export function ItemsView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
       </Panel>
 
       <Panel icon={Package} title="Item war hisaab" flush
-        hint={`${items.length} item · ${qty(sum.qty)} cheezein · ${m.sales(sum.revenue)}${m.costHidden ? '' : ` · munafa ${m.cost(sum.profit)}`}. Raqam bill ke discount ke baad, wapsi nikal kar.`}
-        actions={<Segmented label="Tarteeb" value={sort} onChange={setSort} items={[
-          { value: 'revenue', label: 'Raqam' }, { value: 'qty', label: 'Qty' }, ...(m.costHidden ? [] : [{ value: 'profit' as const, label: 'Munafa' }]), { value: 'name', label: 'Naam' },
+        hint={`${items.length} item · ${qty(sum.qty)} cheezein · ${m.sales(sum.revenue)}${m.costHidden ? '' : ` · profit ${m.cost(sum.profit)}`}. Amount bill ke discount ke baad, return nikal kar.`}
+        actions={<Segmented label="Sort" value={sort} onChange={setSort} items={[
+          { value: 'revenue', label: 'Amount' }, { value: 'qty', label: 'Qty' }, ...(m.costHidden ? [] : [{ value: 'profit' as const, label: 'Profit' }]), { value: 'name', label: 'Naam' },
         ]} />}>
         <div className="flex flex-wrap gap-1.5 px-4 pb-3 sm:px-5">
           <Chip active={cat === 'all'} onClick={() => setCat('all')}>Sab</Chip>
@@ -67,8 +67,8 @@ export function ItemsView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
           {!items.length ? <Empty icon={Package} text="Koi item nahi mila" hint="Search ya category badlein" /> : (
             <TableWrap minWidth="40rem">
               <thead><tr>
-                <th className={th}>Cheez</th><th className={thR}>Bika</th><th className={thR}>Wapas</th><th className={thR}>Net qty</th><th className={thR}>Bill</th><th className={thR}>Raqam</th>
-                {!m.costHidden && <><th className={thR}>Lagat</th><th className={thR}>Munafa</th></>}
+                <th className={th}>Cheez</th><th className={thR}>Bika</th><th className={thR}>Wapas</th><th className={thR}>Net qty</th><th className={thR}>Bill</th><th className={thR}>Amount</th>
+                {!m.costHidden && <><th className={thR}>Cost</th><th className={thR}>Profit</th></>}
               </tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {items.map((i) => {

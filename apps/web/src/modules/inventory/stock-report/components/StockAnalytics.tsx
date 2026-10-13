@@ -49,7 +49,7 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
     { value: 'category', label: 'Category', rows: data.byCategory },
     { value: 'brand', label: 'Brand', rows: data.byBrand },
     { value: 'supplier', label: 'Supplier', rows: data.bySupplier },
-    ...(data.byGroup.length ? [{ value: 'group' as const, label: groupTitle ?? 'Qism', rows: data.byGroup, name: (id: string, n: string) => (groupLabel ? groupLabel(id) : n) }] : []),
+    ...(data.byGroup.length ? [{ value: 'group' as const, label: groupTitle ?? 'Type', rows: data.byGroup, name: (id: string, n: string) => (groupLabel ? groupLabel(id) : n) }] : []),
     ...(data.bySeason.length ? [{ value: 'season' as const, label: 'Mausam', rows: data.bySeason, name: (id: string, n: string) => (seasonLabel ? seasonLabel(id) : n) }] : []),
   ];
   const current = breakdowns.find((b) => b.value === by) ?? breakdowns[0];
@@ -60,23 +60,23 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={TrendingUp} label="Muddat ki bikri" value={money(t.sold.revenue)} sub={<Delta value={sales} prev={money(t.prevSold.revenue)} />} />
-        <Kpi icon={PiggyBank} label="Bikri ka munafa" value={cost(t.sold.profit)} sub={costHidden ? 'Cost lock' : <Delta value={profit} prev={cost(t.prevSold.profit)} />} />
-        <Kpi icon={Timer} label="Maal kitne din chalega" value={t.coverDays === null ? '—' : `${t.coverDays} din`} sub="Is muddat ki bikri ki raftaar se" />
+        <Kpi icon={TrendingUp} label="Period ki sale" value={money(t.sold.revenue)} sub={<Delta value={sales} prev={money(t.prevSold.revenue)} />} />
+        <Kpi icon={PiggyBank} label="Sale ka profit" value={cost(t.sold.profit)} sub={costHidden ? 'Cost lock' : <Delta value={profit} prev={cost(t.prevSold.profit)} />} />
+        <Kpi icon={Timer} label="Maal kitne din chalega" value={t.coverDays === null ? '—' : `${t.coverDays} din`} sub="Is period ki sale ki raftaar se" />
         <Kpi icon={Hourglass} label="Dead stock" value={fmt(costHidden ? t.dead.retail : t.dead.cost)} sub={`${t.dead.count} cheezein · ${data.period.deadDays}+ din se nahi biki`} tone="rose" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="rounded-2xl lg:col-span-2" title={<Title icon={Hourglass}>Maal kitna purana hai</Title>}
-          description={age === 'saleAge' ? 'Aakhri bikri ko kitne din hue' : 'Maal aaye kitne din hue'}
-          actions={<Segmented label="Umar" value={age} onChange={setAge} items={[{ value: 'saleAge', label: 'Bikri se' }, { value: 'stockAge', label: 'Aane se' }]} />}>
+          description={age === 'saleAge' ? 'Aakhri sale ko kitne din hue' : 'Maal aaye kitne din hue'}
+          actions={<Segmented label="Umar" value={age} onChange={setAge} items={[{ value: 'saleAge', label: 'Sale se' }, { value: 'stockAge', label: 'Aane se' }]} />}>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageRows} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${(p as { payload?: { lines?: number } }).payload?.lines ?? 0} cheezein`, costHidden ? 'Bechne par' : 'Lagat']} {...theme.tooltip} />
+                <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${(p as { payload?: { lines?: number } }).payload?.lines ?? 0} cheezein`, costHidden ? 'Bechne par' : 'Cost']} {...theme.tooltip} />
                 <Bar dataKey={metric} radius={[6, 6, 0, 0]} barSize={30}>
                   {ageRows.map((b, i) => <Cell key={b.key} fill={AGE_COLORS[i % AGE_COLORS.length]} />)}
                 </Bar>
@@ -107,7 +107,7 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<Title icon={Layers}>Paisa kahan laga hai</Title>} description={costHidden ? 'Bechne ki qeemat par' : 'Lagat par — bar par tooltip me bechne ki qeemat aur bikri'}
+      <Card className="rounded-2xl" title={<Title icon={Layers}>Paisa kahan laga hai</Title>} description={costHidden ? 'Bechne ki qeemat par' : 'Cost par — bar par tooltip me bechne ki qeemat aur sale'}
         actions={<Segmented label="Kis hisaab se" value={current.value} onChange={setBy} items={breakdowns.map((b) => ({ value: b.value, label: b.label }))} />}>
         {!breakRows.length ? <Empty text="Kuch nahi" /> : (
           <div style={{ height: Math.max(200, breakRows.length * 30) }}>
@@ -118,7 +118,7 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
                 <YAxis type="category" dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} width={120} />
                 <Tooltip formatter={(v, _n, p) => {
                   const r = (p as { payload?: { retail: number; revenue: number; lines: number } }).payload;
-                  return [`${formatPKR(Number(v))} · ${r?.lines ?? 0} cheezein · bikri ${formatPKR(r?.revenue ?? 0)}`, costHidden ? 'Bechne par' : 'Lagat'];
+                  return [`${formatPKR(Number(v))} · ${r?.lines ?? 0} cheezein · sale ${formatPKR(r?.revenue ?? 0)}`, costHidden ? 'Bechne par' : 'Cost'];
                 }} {...theme.tooltip} />
                 <Bar dataKey={metric} radius={[0, 6, 6, 0]} barSize={16}>
                   {breakRows.map((c, i) => <Cell key={c.id} fill={c.color || PALETTE[i % PALETTE.length]} />)}
@@ -130,11 +130,11 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Movers icon={Zap} color="text-orange-600" title="Tez bikne wala" description="Muddat me sab se zyada bika" rows={data.fast} empty="Is muddat me kuch nahi bika" onOpen={onOpen}
+        <Movers icon={Zap} color="text-orange-600" title="Tez bikne wala" description="Period me sab se zyada bika" rows={data.fast} empty="Is period me kuch nahi bika" onOpen={onOpen}
           right={(r) => <><span className="block font-semibold">{qty(r.sold)} {r.unit}</span><span className="text-[0.6875rem] text-slate-500">{coverText(r.cover)} ka maal</span></>} />
         <Movers icon={Snail} color="text-cyan-600" title="Dheere bikne wala" description={`${data.period.slowCover}+ din ka maal para hai`} rows={data.slow} empty="Koi nahi" onOpen={onOpen}
           right={(r) => <><span className="block font-semibold">{fmt(costHidden ? r.retail : r.valueAtCost)}</span><span className="text-[0.6875rem] text-slate-500">{coverText(r.cover)}</span></>} />
-        <Movers icon={Hourglass} color="text-violet-600" title="Dead stock" description={`${data.period.deadDays}+ din se nahi bika — discount ya wapsi sochein`} rows={data.dead} empty="Koi dead stock nahi" onOpen={onOpen}
+        <Movers icon={Hourglass} color="text-violet-600" title="Dead stock" description={`${data.period.deadDays}+ din se nahi bika — discount ya return sochein`} rows={data.dead} empty="Koi dead stock nahi" onOpen={onOpen}
           right={(r) => <><span className="block font-semibold">{fmt(costHidden ? r.retail : r.valueAtCost)}</span><span className="text-[0.6875rem] text-slate-500">{ageText(r.saleAge)} se</span></>} />
       </div>
 
@@ -181,11 +181,11 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
 
       <Card className="rounded-2xl" title={<Title icon={Calculator}>Value kaise nikali</Title>}>
         <div className="grid gap-3 text-[0.8125rem] leading-relaxed text-slate-600 md:grid-cols-2">
-          <p><b className="text-slate-900">Ausat cost (average).</b> Har kharidari par cost purane aur naye maal ka ausat ban jati hai. Branch ki apni cost likhi ho to woh. Variant ki apni cost. IMEI aur serial wale maal ki lagat har unit ki apni kharid se, carpet ki har roll ke rate se.</p>
-          <p><b className="text-slate-900">Bikri aur munafa.</b> Wapas aaya maal minus, void bill shamil nahi. Munafa us cost se jo bechte waqt bill par likhi gayi thi. Pichli muddat utne hi din ki hai jitni chuni hui.</p>
+          <p><b className="text-slate-900">Ausat cost (average).</b> Har purchase par cost purane aur naye maal ka ausat ban jati hai. Branch ki apni cost likhi ho to woh. Variant ki apni cost. IMEI aur serial wale maal ki cost har unit ki apni kharid se, carpet ki har roll ke rate se.</p>
+          <p><b className="text-slate-900">Sale aur profit.</b> Wapas aaya maal minus, void bill shamil nahi. Profit us cost se jo bechte waqt bill par likhi gayi thi. Pichli period utne hi din ki hai jitni chuni hui.</p>
           {(data.quality.noCost > 0 || data.quality.negative > 0 || data.quality.inactive > 0) && (
             <ul className="space-y-1 rounded-xl bg-amber-50 p-3 text-amber-900 md:col-span-2">
-              {data.quality.noCost > 0 && <li>• {data.quality.noCost} cheezon ki cost nahi likhi — un ki lagat 0 gini gayi.</li>}
+              {data.quality.noCost > 0 && <li>• {data.quality.noCost} cheezon ki cost nahi likhi — un ki cost 0 gini gayi.</li>}
               {data.quality.negative > 0 && <li>• {data.quality.negative} cheezon ka stock minus me hai — ginti kar ke theek karein.</li>}
               {data.quality.inactive > 0 && <li>• {data.quality.inactive} band products me abhi maal para hai.</li>}
             </ul>
@@ -224,11 +224,11 @@ function Title({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode
 }
 
 function Delta({ value, prev }: { value: number | null; prev: string }) {
-  if (value === null) return <span>Pichli muddat me kuch nahi</span>;
+  if (value === null) return <span>Pichli period me kuch nahi</span>;
   const up = value >= 0;
   return (
     <span className={cn('inline-flex items-center gap-0.5', up ? 'text-emerald-600' : 'text-rose-600')}>
-      {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{Math.abs(value).toFixed(0)}% pichli muddat se ({prev})
+      {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{Math.abs(value).toFixed(0)}% pichli period se ({prev})
     </span>
   );
 }

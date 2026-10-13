@@ -232,7 +232,7 @@ export class ReturnsService {
     }
     const shopId = sale.shopId;
     assertShopAccess(user, shopId, 'Wapsi');
-    if (sale.status === 'VOIDED') throw new BadRequestException('Yeh bill void ho chuka hai — wapsi nahi ho sakti');
+    if (sale.status === 'VOIDED') throw new BadRequestException('Yeh bill void ho chuka hai — return nahi ho sakti');
     if (sale.status === 'FULLY_RETURNED') throw new BadRequestException('Is bill ka saara maal pehle hi wapas ho chuka');
 
     const rules = await this.prisma.tenantSettings.findUnique({
@@ -250,7 +250,7 @@ export class ReturnsService {
       const si = itemMap.get(it.saleItemId);
       if (!si) throw new NotFoundException('Yeh cheez is bill ki nahi');
       if (!si.productId || !si.product) {
-        throw new BadRequestException('Purane (used) phone ki wapsi Used phones ke page se karein');
+        throw new BadRequestException('Purane (used) phone ki return Used phones ke page se karein');
       }
     }
 

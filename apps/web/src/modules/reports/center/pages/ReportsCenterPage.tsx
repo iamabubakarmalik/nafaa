@@ -45,14 +45,14 @@ import { useReportCompare, useReportRange } from '../../prefs';
 
 const COMPARE_KEY = 'nafaa-reports-compare';
 const BASE_TABS: Array<{ id: Exclude<SectionId, 'industry'>; label: string; icon: LucideIcon }> = [
-  { id: 'sales', label: 'Bikri', icon: TrendingUp },
+  { id: 'sales', label: 'Sale', icon: TrendingUp },
   { id: 'items', label: 'Maal', icon: Package },
   { id: 'customers', label: 'Customers', icon: Users },
-  { id: 'purchases', label: 'Kharidari', icon: Truck },
-  { id: 'expenses', label: 'Kharche', icon: Receipt },
-  { id: 'profit', label: 'Munafa', icon: PiggyBank },
+  { id: 'purchases', label: 'Purchase', icon: Truck },
+  { id: 'expenses', label: 'Expenses', icon: Receipt },
+  { id: 'profit', label: 'Profit', icon: PiggyBank },
   { id: 'tax', label: 'Tax', icon: Landmark },
-  { id: 'returns', label: 'Wapsi', icon: RotateCcw },
+  { id: 'returns', label: 'Return', icon: RotateCcw },
 ];
 
 function useSection<K extends SectionId>(id: K, period: Period, shop: string | undefined, enabled: boolean, industry?: string) {
@@ -144,21 +144,21 @@ export default function ReportsCenterPage() {
           <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={s ? [
-          { label: 'Asal bikri', value: f.money(s.net), hint: 'wapsi ke baad' },
-          { label: 'Munafa', value: f.cost(s.profit), hint: showCost ? `${(s.margin ?? 0).toFixed(1)}% margin` : 'Cost lock' },
+          { label: 'Asal sale', value: f.money(s.net), hint: 'return ke baad' },
+          { label: 'Profit', value: f.cost(s.profit), hint: showCost ? `${(s.margin ?? 0).toFixed(1)}% margin` : 'Cost lock' },
           { label: 'Bill', value: String(s.bills), hint: `${s.customers} customer` },
           { label: 'Ausat bill', value: f.money(s.average) },
-        ] : [{ label: 'Asal bikri', value: '' }, { label: 'Munafa', value: '' }, { label: 'Bill', value: '' }, { label: 'Ausat bill', value: '' }]}
+        ] : [{ label: 'Asal sale', value: '' }, { label: 'Profit', value: '' }, { label: 'Bill', value: '' }, { label: 'Ausat bill', value: '' }]}
       />
 
       <KpiRow>
         {!s || !p ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={TrendingUp} color="#2563eb" label="Bikri" value={f.money(s.net)} hint={hint(s.net, sp?.net, `${s.bills} bill`)} onClick={() => setTab('sales')} active={tab === 'sales'} />
+            <KpiCard icon={TrendingUp} color="#2563eb" label="Sale" value={f.money(s.net)} hint={hint(s.net, sp?.net, `${s.bills} bill`)} onClick={() => setTab('sales')} active={tab === 'sales'} />
             <KpiCard icon={Wallet} color="#16a34a" label="Haath me aaya" value={f.money(s.cashIn)} hint={hint(s.cashIn, sp?.cashIn, 'cash + online')} />
-            <KpiCard icon={BookOpen} color="#d97706" label="Udhaar par" value={f.money(s.credit)} hint={hint(s.credit, sp?.credit, 'is muddat me', 'bad')} onClick={() => setTab('customers')} active={tab === 'customers'} />
-            <KpiCard icon={Receipt} color="#e11d48" label="Kharche" value={f.money(p.expenses)} hint={hint(p.expenses, pp?.expenses, `${p.sales ? ((p.expenses / p.sales) * 100).toFixed(0) : 0}% bikri ka`, 'bad')} onClick={() => setTab('expenses')} active={tab === 'expenses'} />
-            <KpiCard icon={HandCoins} color="#059669" label="Asal munafa" value={f.cost(p.netProfit)} hint={showCost ? hint(p.netProfit ?? 0, pp?.netProfit, 'kharchon ke baad') : 'Cost lock'} onClick={() => setTab('profit')} active={tab === 'profit'} />
+            <KpiCard icon={BookOpen} color="#d97706" label="Udhaar par" value={f.money(s.credit)} hint={hint(s.credit, sp?.credit, 'is period me', 'bad')} onClick={() => setTab('customers')} active={tab === 'customers'} />
+            <KpiCard icon={Receipt} color="#e11d48" label="Expenses" value={f.money(p.expenses)} hint={hint(p.expenses, pp?.expenses, `${p.sales ? ((p.expenses / p.sales) * 100).toFixed(0) : 0}% sale ka`, 'bad')} onClick={() => setTab('expenses')} active={tab === 'expenses'} />
+            <KpiCard icon={HandCoins} color="#059669" label="Net profit" value={f.cost(p.netProfit)} hint={showCost ? hint(p.netProfit ?? 0, pp?.netProfit, 'kharchon ke baad') : 'Cost lock'} onClick={() => setTab('profit')} active={tab === 'profit'} />
           </>
         )}
       </KpiRow>
@@ -169,7 +169,7 @@ export default function ReportsCenterPage() {
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
         <FilterMenu icon={GitCompareArrows} label="Muqabla" value={compare ? 'on' : 'off'} active={compare} width="w-72"
           options={[
-            { value: 'on', label: 'Pichli muddat se muqabla', hint: 'Itne hi din pehle ke saath — har number ke neeche %' },
+            { value: 'on', label: 'Pichli period se muqabla', hint: 'Itne hi din pehle ke saath — har number ke neeche %' },
             { value: 'off', label: 'Muqabla band' },
           ]}
           onChange={(v) => { if ((v === 'on') !== compare) toggleCompare(); }} />
@@ -194,21 +194,21 @@ export default function ReportsCenterPage() {
       {guide.isOpen && (
         <PageGuide title="Reports — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: '"Muddat" se Aaj, 7 din, 30 din, is mahine, ya apni tareekh. Har tab ke number isi muddat ke hain, dukaan ke din ke hisaab se.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: '"Period" se Aaj, 7 din, 30 din, is mahine, ya apni date. Har tab ke number isi period ke hain, dukaan ke din ke hisaab se.' },
             { icon: GitCompareArrows, color: '#7c3aed', title: 'Pichli dafa se muqabla', text: 'Muqabla chalu ho to har bare number ke neeche likha hota hai ke itne hi din pehle se kitna upar ya neeche gaya.' },
-            { icon: TrendingUp, color: '#16a34a', title: 'Bikri', text: 'Roz ki bikri aur munafa, kis ghante aur din rush hota hai, payment tareeqe, staff, website/Daraz aur branch war bikri.' },
-            { icon: Package, color: '#0891b2', title: config.labels?.items ?? 'Maal', text: 'Sab se zyada bikri, munafa aur miqdar wali cheezein, category, brand, aur woh maal jo stock me para hai magar bika nahi.' },
+            { icon: TrendingUp, color: '#16a34a', title: 'Sale', text: 'Roz ki sale aur profit, kis ghante aur din rush hota hai, payment tareeqe, staff, website/Daraz aur branch war sale.' },
+            { icon: Package, color: '#0891b2', title: config.labels?.items ?? 'Maal', text: 'Sab se zyada sale, profit aur quantity wali cheezein, category, brand, aur woh maal jo stock me para hai magar bika nahi.' },
             { icon: Users, color: '#d97706', title: 'Customers aur udhaar', text: 'Naye aur purane customer, sab se bare customer, udhaar diya aur wapas mila, aur kis ka udhaar kitna purana hai.' },
-            { icon: ShoppingCart, color: '#ea580c', title: 'Kharidari aur kharche', text: 'Kis supplier se kitna maal aaya, kis ko kitna dena hai, aur kharche kis category me gaye.' },
-            { icon: PiggyBank, color: '#059669', title: 'Munafa', text: 'Bikri se wapsi, lagat, kharche aur kharab maal nikaal kar asal munafa. Cheez war munafa "Cheez war munafa" link par.' },
+            { icon: ShoppingCart, color: '#ea580c', title: 'Purchase aur expenses', text: 'Kis supplier se kitna maal aaya, kis ko kitna dena hai, aur expenses kis category me gaye.' },
+            { icon: PiggyBank, color: '#059669', title: 'Profit', text: 'Sale se return, cost, expenses aur kharab maal nikaal kar net profit. Cheez war profit "Cheez war profit" link par.' },
             { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal bikri = bill − wapsi (void bill nahi gine jate). Lagat = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net munafa = munafa − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Munafa report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain. Sirf "Wapsi" tab aur Din ka hisaab me wapsi us din dikhti hai jis din hui.' },
-            { icon: BadgePercent, color: '#db2777', title: 'Tax aur wapsi', text: 'Tax authority ne kitne bill maane aur kitna tax bana; wapsi kis wajah se aur kis maal ki, aur void bill.' },
+            { icon: BadgePercent, color: '#db2777', title: 'Tax aur return', text: 'Tax authority ne kitne bill maane aur kitna tax bana; wapsi kis wajah se aur kis maal ki, aur void bill.' },
             ...(config.industry ? [config.industry.guide] : []),
             { icon: FileDown, color: '#475569', title: 'Print aur CSV', text: 'Upar Print se A4, PDF ya thermal slip; CSV se Excel file. Jo tab khula hai wohi report banti hai.' },
           ]}
           tips={[
-            'Lagat aur munafa sirf unhe dikhta hai jin ke paas cost dekhne ki ijazat hai. Aankh wale button se screen par chhupa bhi sakte hain.',
-            'Munafa bikri ke waqt ki lagat se hai — baad me cost badle to purani bikri ka munafa nahi badalta.',
+            'Cost aur profit sirf unhe dikhta hai jin ke paas cost dekhne ki permission hai. Aankh wale button se screen par chhupa bhi sakte hain.',
+            'Profit sale ke waqt ki cost se hai — baad me cost badle to purani sale ka profit nahi badalta.',
             'Upar se branch badlein to sari report usi branch ki ho jati hai. Supplier ka baqi aur kuch industry hisaab sab branches ka mila kar hota hai.',
             ...(config.tips ?? []),
           ]}
@@ -242,15 +242,15 @@ function Insights({ sales, profit, f }: { sales?: SalesReport; profit?: ProfitRe
   const s = sales.totals;
   const p = profit.totals;
   const list: Array<{ tone: 'good' | 'warn' | 'bad'; text: string }> = [];
-  if (!f.costHidden && s.margin != null && s.net > 0 && s.margin < 10) list.push({ tone: 'bad', text: `Munafa sirf ${s.margin.toFixed(1)}% hai — rate ya lagat dobara dekhein.` });
-  if (s.net > 0 && s.credit / s.net > 0.3) list.push({ tone: 'warn', text: `Bikri ka ${Math.round((s.credit / s.net) * 100)}% udhaar par gaya — wasooli par dhyan dein.` });
-  if (p.sales > 0 && p.expenses / p.sales > 0.25) list.push({ tone: 'warn', text: `Kharche bikri ka ${Math.round((p.expenses / p.sales) * 100)}% hain.` });
-  if (s.gross > 0 && s.refunds / s.gross > 0.05) list.push({ tone: 'warn', text: `${((s.refunds / s.gross) * 100).toFixed(1)}% maal wapas aaya — "Wapsi" tab me wajah dekhein.` });
+  if (!f.costHidden && s.margin != null && s.net > 0 && s.margin < 10) list.push({ tone: 'bad', text: `Profit sirf ${s.margin.toFixed(1)}% hai — rate ya cost dobara dekhein.` });
+  if (s.net > 0 && s.credit / s.net > 0.3) list.push({ tone: 'warn', text: `Sale ka ${Math.round((s.credit / s.net) * 100)}% udhaar par gaya — wasooli par dhyan dein.` });
+  if (p.sales > 0 && p.expenses / p.sales > 0.25) list.push({ tone: 'warn', text: `Expenses sale ka ${Math.round((p.expenses / p.sales) * 100)}% hain.` });
+  if (s.gross > 0 && s.refunds / s.gross > 0.05) list.push({ tone: 'warn', text: `${((s.refunds / s.gross) * 100).toFixed(1)}% maal wapas aaya — "Return" tab me wajah dekhein.` });
   const prev = sales.previous;
   if (prev && prev.net > 0) {
     const ch = ((s.net - prev.net) / prev.net) * 100;
-    if (ch <= -10) list.push({ tone: 'bad', text: `Bikri pichli muddat se ${Math.abs(ch).toFixed(0)}% kam hai.` });
-    else if (ch >= 10) list.push({ tone: 'good', text: `Bikri pichli muddat se ${ch.toFixed(0)}% zyada hai.` });
+    if (ch <= -10) list.push({ tone: 'bad', text: `Sale pichli period se ${Math.abs(ch).toFixed(0)}% kam hai.` });
+    else if (ch >= 10) list.push({ tone: 'good', text: `Sale pichli period se ${ch.toFixed(0)}% zyada hai.` });
   }
   const best = [...sales.weekdays].sort((a, b) => b.net - a.net)[0];
   if (best?.net && list.length < 3) list.push({ tone: 'good', text: `${WEEKDAYS[best.day]} sab se acha din hai — us din maal aur staff poora rakhein.` });

@@ -48,14 +48,14 @@ export interface DashboardSpec {
 }
 
 const STANDARD_GUIDE: GuideItem[] = [
-  { icon: FileText, title: 'Din ka hisaab', text: 'Opening se closing tak: kaunsi cheez kitni biki, cash aur online kitna aaya, kharcha kitna. Purana din bhi khol sakte hain — WhatsApp par bhejein ya print (A4 ya thermal) karein.' },
+  { icon: FileText, title: 'Din ka hisaab', text: 'Opening se closing tak: kaunsi cheez kitni biki, cash aur online kitna aaya, expense kitna. Purana din bhi khol sakte hain — WhatsApp par bhejein ya print (A4 ya thermal) karein.' },
   { icon: Target, title: 'Aaj ka kaam', text: 'Jo abhi karna hai, sab se zaroori upar — har line par seedha button.' },
-  { icon: BarChart3, title: 'Rujhan aur muqabla', text: 'Bikri ka rujhan, hafte ke din, 6 mahine ka muqabla aur category ka hissa — har chart par muddat badal sakte hain.' },
+  { icon: BarChart3, title: 'Rujhan aur muqabla', text: 'Sale ka rujhan, hafte ke din, 6 mahine ka muqabla aur category ka hissa — har chart par period badal sakte hain.' },
   { icon: Clock, title: 'Rush ka waqt', text: 'Gehra rang sab se masroof ghanta hai. Staff aur maal us se pehle tayyar rakhein.' },
-  { icon: PiggyBank, title: 'Paisa kahan hai', text: 'Dukaan ka maal, kharidari, kharcha, logon se lena, suppliers ko dena aur galle ka cash.' },
-  { icon: Wallet, title: 'Nafa-nuqsan', text: 'Bikri → lagat → seedha munafa → kharche → haath me bacha.' },
-  { icon: Hourglass, title: 'Lists par poora control', text: 'Sab se zyada bika, atka maal, kam stock aur haaliya bikri — har list me muddat, tarteeb, kitne items aur category chun sakte hain, aur print bhi.' },
-  { icon: Users, title: 'Apni marzi ka dashboard', text: '"Customize" se hisse chhupayein, ghaseet kar tarteeb badlein, chaurai (S/M/L/Full) chunein, upar ke numbers chunein aur rozana target lagayein. Aap ke account me save hota hai — har device par wahi.' },
+  { icon: PiggyBank, title: 'Paisa kahan hai', text: 'Dukaan ka maal, purchase, expense, logon se lena, suppliers ko dena aur galle ka cash.' },
+  { icon: Wallet, title: 'Profit-loss', text: 'Sale → cost → seedha profit → expenses → haath me bacha.' },
+  { icon: Hourglass, title: 'Lists par poora control', text: 'Sab se zyada bika, atka maal, kam stock aur haaliya sale — har list me period, sort, kitne items aur category chun sakte hain, aur print bhi.' },
+  { icon: Users, title: 'Apni marzi ka dashboard', text: '"Customize" se hisse chhupayein, ghaseet kar sort badlein, chaurai (S/M/L/Full) chunein, upar ke numbers chunein aur rozana target lagayein. Aap ke account me save hota hai — har device par wahi.' },
 ];
 
 export function createDashboard(spec: DashboardSpec): DashboardConfig {

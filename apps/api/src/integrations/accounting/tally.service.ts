@@ -43,9 +43,9 @@ export class TallyService {
   }
 
   private days(from: string, to: string) {
-    if (!DAY.test(from) || !DAY.test(to)) throw new BadRequestException('Tareekh YYYY-MM-DD');
+    if (!DAY.test(from) || !DAY.test(to)) throw new BadRequestException('Date YYYY-MM-DD');
     const a = Date.parse(`${from}T00:00:00Z`), b = Date.parse(`${to}T00:00:00Z`);
-    if (b < a) throw new BadRequestException('"Tak" tareekh "Se" ke baad honi chahiye');
+    if (b < a) throw new BadRequestException('"Tak" date "Se" ke baad honi chahiye');
     const n = Math.round((b - a) / 86_400_000) + 1;
     if (n > 93) throw new BadRequestException('Ek dafa me zyada se zyada 3 mahine');
     if (to > dateKeyTz(new Date())) throw new BadRequestException('Aane wale din ka export nahi');
@@ -79,7 +79,7 @@ export class TallyService {
     const tag = `${q.from}_to_${q.to}`;
     if (q.format === 'csv') return { name: `nafaa-daybook-${tag}.csv`, type: 'text/csv; charset=utf-8', body: dayBookCsv(vouchers) };
     if (q.format === 'masters') return { name: `nafaa-tally-ledgers-${tag}.xml`, type: 'application/xml; charset=utf-8', body: mastersXml(ledgersUsed(vouchers, s), s) };
-    if (!vouchers.length) throw new BadRequestException('In dino me koi sale / kharcha nahi — export ke liye kuch nahi');
+    if (!vouchers.length) throw new BadRequestException('In dino me koi sale / expense nahi — export ke liye kuch nahi');
     return { name: `nafaa-tally-vouchers-${tag}.xml`, type: 'application/xml; charset=utf-8', body: vouchersXml(user.tenantId, vouchers, s) };
   }
 }

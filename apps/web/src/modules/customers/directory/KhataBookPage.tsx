@@ -49,7 +49,7 @@ const SORTS: Array<FilterOption<DirectoryFilters['sort']>> = [
   { value: 'lastVisit', label: 'Haal hi mein aaye' }, { value: 'name', label: 'Naam (A–Z)' },
 ];
 const LEDGER_LABEL: Record<string, string> = {
-  SALE_CREDIT: 'Udhaar bikri', PAYMENT_RECEIVED: 'Payment aayi', ADJUSTMENT: 'Udhaar / tabdeeli', OPENING_BALANCE: 'Purana khata', REFUND: 'Maal wapas', LOYALTY_REDEEMED: 'Points',
+  SALE_CREDIT: 'Udhaar sale', PAYMENT_RECEIVED: 'Payment aayi', ADJUSTMENT: 'Udhaar / tabdeeli', OPENING_BALANCE: 'Purana khata', REFUND: 'Maal wapas', LOYALTY_REDEEMED: 'Points',
 };
 
 export function KhataBookPage() {
@@ -144,7 +144,7 @@ function KhataBook() {
         stats={[
           { label: 'Kul lena hai', value: st ? money(st.receivable) : '', hint: st ? `${st.owingCount} customers` : '' },
           { label: '30 din se purana', value: st ? money(old) : '', hint: st ? `${st.aging.d30.count + st.aging.d90.count} customers` : '' },
-          { label: 'Is mahine wusool', value: month ? money(month.wasooli) : '…', hint: month ? `udhaar gaya ${money(month.udhaar)}` : '' },
+          { label: 'Is mahine receive', value: month ? money(month.wasooli) : '…', hint: month ? `udhaar gaya ${money(month.udhaar)}` : '' },
           { label: 'Advance jama', value: st ? money(st.advance) : '', hint: st ? `${st.advanceCount} customers` : '' },
         ]}
       />
@@ -158,8 +158,8 @@ function KhataBook() {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80">
           <span className="text-[0.8125rem] font-semibold text-slate-900">{rangeLabel(d.data.period.from, d.data.period.to)}</span>
           <span className="text-[0.8125rem] text-slate-600">Udhaar diya <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong></span>
-          <span className="text-[0.8125rem] text-slate-600">Wusool hua <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
-          {d.data.period.credit > 0 && <span className="text-[0.8125rem] text-slate-600">Wapsi ki sharah <strong className="tabular-nums">{Math.round((d.data.period.paid / d.data.period.credit) * 100)}%</strong></span>}
+          <span className="text-[0.8125rem] text-slate-600">Receive hua <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
+          {d.data.period.credit > 0 && <span className="text-[0.8125rem] text-slate-600">Return ki sharah <strong className="tabular-nums">{Math.round((d.data.period.paid / d.data.period.credit) * 100)}%</strong></span>}
           <span className="text-[0.8125rem] text-slate-500">{d.count} customers ka len-den</span>
         </div>
       )}
@@ -197,7 +197,7 @@ function KhataBook() {
           </div>
           <label className="group relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-            <input ref={searchRef} value={d.search} onChange={(e) => d.setSearch(e.target.value)} placeholder="Naam ya phone…" aria-label="Dhoondein"
+            <input ref={searchRef} value={d.search} onChange={(e) => d.setSearch(e.target.value)} placeholder="Naam ya phone…" aria-label="Search"
               className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-12 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
             {d.search ? <button type="button" onClick={() => d.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
               : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
@@ -210,7 +210,7 @@ function KhataBook() {
                 {d.f.scope === 'all' ? 'Saari branches' : 'Is branch ka'}
               </button>
             )}
-            <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
+            <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
           </div>
         </div>
         {(d.f.aging || d.search || d.period) && (
@@ -236,7 +236,7 @@ function KhataBook() {
           <Card className="rounded-2xl" title="Is mahine">
             {!month ? <Skeleton className="h-32 rounded-xl" /> : (
               <div className="space-y-3">
-                {[['Udhaar gaya', month.udhaar, 'bg-rose-500'], ['Wusool hua', month.wasooli, 'bg-success-500']].map(([l, v, c]) => (
+                {[['Udhaar gaya', month.udhaar, 'bg-rose-500'], ['Receive hua', month.wasooli, 'bg-success-500']].map(([l, v, c]) => (
                   <div key={l as string}>
                     <div className="flex justify-between text-[0.8125rem]"><span className="text-slate-700">{l}</span><span className="font-semibold tabular-nums">{money(v as number)}</span></div>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', c as string)} style={{ width: `${(Number(v) / Math.max(1, month.udhaar, month.wasooli)) * 100}%` }} /></div>
@@ -337,13 +337,13 @@ function KhataBook() {
 
 function KhataGuide({ onClose }: { onClose: () => void }) {
   const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
-    { icon: Wallet, color: '#16a34a', title: 'Payment lein', text: 'Customer ke saamne "Payment" dabayein, raqam likhein. Poora baqi ek click mein bhar jata hai.' },
+    { icon: Wallet, color: '#16a34a', title: 'Payment lein', text: 'Customer ke saamne "Payment" dabayein, amount likhein. Poora baqi ek click mein bhar jata hai.' },
     { icon: Plus, color: '#e11d48', title: 'Udhaar chadhayein', text: 'Bina bill ke udhaar (naqd paise diye) — upar "Udhaar" ya customer ke saamne "+".' },
     { icon: History, color: '#7c3aed', title: 'Kaapi ka purana khata', text: '"Purana khata" — register ka purana baqi. Jo udhaar pehle se hai us mein jurta hai, kuch nahi mitta.' },
     { icon: AlertTriangle, color: '#ea580c', title: 'Kitna purana', text: 'Upar ke chaar dabbe: 7 din, 30 din, 90 din se purana. Jo payment aati hai woh sab se purane udhaar mein ginti hai.' },
     { icon: MessagesSquare, color: '#0891b2', title: 'Yaad-dihani', text: '"Yaad-dihani" sab udhaar walon ko ek ek kar ke WhatsApp. Purane udhaar par lehja khud sakht ho jata hai.' },
     { icon: FileText, color: '#475569', title: 'Statement', text: 'Customer ke saamne kaghaz wala button — poora khata, print ya PDF.' },
-    { icon: Lock, color: '#db2777', title: 'Hifazat', text: 'Khata PIN ke peeche hai. Aankh wala button raqam chhupata hai — grahak saamne ho to.' },
+    { icon: Lock, color: '#db2777', title: 'Hifazat', text: 'Khata PIN ke peeche hai. Aankh wala button amount chhupata hai — grahak saamne ho to.' },
     { icon: CloudOff, color: '#0284c7', title: 'Internet ke bagair', text: 'Internet na ho to bhi payment aur udhaar likhein — internet aate hi khud server par chale jate hain.' },
   ];
   return (

@@ -160,7 +160,7 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
                 }} />
             )}
           </div>
-          <p className="-mt-2 text-[0.75rem] text-slate-500">Product dhoondein, scan karein ya poori category ek sath layein. Jo khana khali chhorein woh gina nahi jayega.</p>
+          <p className="-mt-2 text-[0.75rem] text-slate-500">Product search, scan karein ya poori category ek sath layein. Jo khana khali chhorein woh gina nahi jayega.</p>
 
           {!picked.length ? (
             <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
@@ -172,13 +172,13 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
             <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200">
               <table className="w-full min-w-[36rem] text-sm">
                 <thead className="bg-slate-50 text-left text-[0.75rem] text-slate-500">
-                  <tr><th className="px-3 py-2 font-medium">Cheez</th><th className="px-3 py-2 text-right font-medium">System</th><th className="px-3 py-2 text-right font-medium">Shelf par</th><th className="px-3 py-2 text-right font-medium">Farq</th><th className="px-3 py-2 text-right font-medium">Raqam</th><th className="w-8" /></tr>
+                  <tr><th className="px-3 py-2 font-medium">Cheez</th><th className="px-3 py-2 text-right font-medium">System</th><th className="px-3 py-2 text-right font-medium">Shelf par</th><th className="px-3 py-2 text-right font-medium">Farq</th><th className="px-3 py-2 text-right font-medium">Amount</th><th className="w-8" /></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {groups.map((g) => {
                     const remove = <button type="button" onClick={() => setPicked((prev) => prev.filter((p) => p.id !== g.source.id))} aria-label="Hatayein" className="rounded-md p-1 text-slate-400 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>;
                     if (!g.rows) return <tr key={g.source.id}><td colSpan={5} className="px-3 py-2 text-slate-500">{g.source.name} — {g.failed ? 'load nahi hua' : 'load ho raha hai…'}</td><td>{remove}</td></tr>;
-                    if (!g.rows.length) return <tr key={g.source.id}><td colSpan={5} className="px-3 py-2 text-[0.8125rem] text-slate-500"><Info className="mr-1 inline h-3.5 w-3.5" />{g.source.name} — roll ya IMEI wala maal; is ki durusti "Naya adjustment" se device / roll chun kar karein</td><td>{remove}</td></tr>;
+                    if (!g.rows.length) return <tr key={g.source.id}><td colSpan={5} className="px-3 py-2 text-[0.8125rem] text-slate-500"><Info className="mr-1 inline h-3.5 w-3.5" />{g.source.name} — roll ya IMEI wala maal; is ki correction "Naya adjustment" se device / roll chun kar karein</td><td>{remove}</td></tr>;
                     return g.rows.map((r, j) => {
                       const v = counted[r.key];
                       const diff = v !== undefined && v !== '' ? Number(v) - r.system : null;

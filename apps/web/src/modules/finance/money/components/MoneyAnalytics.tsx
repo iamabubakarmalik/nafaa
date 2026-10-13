@@ -25,7 +25,7 @@ export function MoneyAnalytics({ filters, money }: { filters: MoneyPeriod; money
   const q = useQuery({ queryKey: [MONEY_KEY, 'analytics', filters], queryFn: () => moneyApi.analytics(filters), placeholderData: (p) => p });
   const d = q.data;
 
-  if (q.isError) return <Card className="rounded-2xl"><Empty text="Analytics load nahi hui. Muddat ek saal se chhoti rakhein aur dobara koshish karein." /></Card>;
+  if (q.isError) return <Card className="rounded-2xl"><Empty text="Analytics load nahi hui. Period ek saal se chhoti rakhein aur dobara koshish karein." /></Card>;
   if (q.isLoading || !d) {
     return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[0, 1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>;
   }
@@ -47,8 +47,8 @@ export function MoneyAnalytics({ filters, money }: { filters: MoneyPeriod; money
       </div>
 
       <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{monthly ? 'Har mahine aaya aur gaya' : 'Roz aaya aur gaya'}</span>}
-        description={monthly ? 'Lambi muddat hai, is liye mahine ke hisaab se' : 'Har karobari din — line bacha hua (net) dikhati hai'}>
-        {!trend.some((t) => t.in || t.out) ? <Empty text="Is muddat me paisa na aaya na gaya" /> : (
+        description={monthly ? 'Lambi period hai, is liye mahine ke hisaab se' : 'Har karobari din — line bacha hua (net) dikhati hai'}>
+        {!trend.some((t) => t.in || t.out) ? <Empty text="Is period me paisa na aaya na gaya" /> : (
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -67,9 +67,9 @@ export function MoneyAnalytics({ filters, money }: { filters: MoneyPeriod; money
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={ArrowDownCircle} title="Paisa kahan se aaya" description="Bikri, khata wasooli aur golak me daala cash" money={money}
+        <Ranked icon={ArrowDownCircle} title="Paisa kahan se aaya" description="Sale, khata wasooli aur golak me daala cash" money={money}
           rows={ins.map((s) => ({ key: s.source, label: SOURCES[s.source].label, color: SOURCES[s.source].color, value: s.amount, sub: `${s.count} entries · ${SOURCES[s.source].hint}` }))} />
-        <Ranked icon={ArrowUpCircle} title="Paisa kahan gaya" description="Kharidari, supplier, kharch, wapsi aur nikala cash" money={money}
+        <Ranked icon={ArrowUpCircle} title="Paisa kahan gaya" description="Purchase, supplier, kharch, return aur nikala cash" money={money}
           rows={outs.map((s) => ({ key: s.source, label: SOURCES[s.source].label, color: SOURCES[s.source].color, value: s.amount, sub: `${s.count} entries · ${SOURCES[s.source].hint}` }))} />
         <Ranked icon={Landmark} title="Account ke hisaab se" description="Har account me kitna aaya — gaya neeche likha hai" money={money}
           rows={accounts.map((a) => ({ key: a.method, label: ACCOUNTS[a.method].label, color: ACCOUNTS[a.method].color, value: a.in, sub: `Gaya ${money(a.out)} · bacha ${money(a.net)}` }))} />

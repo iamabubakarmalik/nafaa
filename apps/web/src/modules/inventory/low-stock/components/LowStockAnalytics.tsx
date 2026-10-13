@@ -34,8 +34,8 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={TrendingDown} tone="rose" label="Ruki hui bikri (andaza)" value={money(t.lostSales)} sub={`Roz ${money(t.lostPerDay)} — khatam maal ki wajah se`} />
-        <Kpi icon={ShoppingCart} tone="brand" label="Order ka kharcha" value={cost(t.orderValue)} sub={`${t.lines} lines me se`} />
+        <Kpi icon={TrendingDown} tone="rose" label="Ruki hui sale (andaza)" value={money(t.lostSales)} sub={`Roz ${money(t.lostPerDay)} — khatam maal ki wajah se`} />
+        <Kpi icon={ShoppingCart} tone="brand" label="Order ka expense" value={cost(t.orderValue)} sub={`${t.lines} lines me se`} />
         <Kpi icon={Truck} tone="sky" label="Order me hai" value={cost(t.onOrderValue)} sub="Supplier se aana baqi" />
         <Kpi icon={CalendarClock} tone="violet" label="Expiry ka maal" value={cost(t.expiryValue)} sub={`${data.settings.expiryDays} din me — cost par`} />
       </div>
@@ -43,7 +43,7 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><PackageX className="h-4 w-4 text-brand-600" />Shelf kitni dafa khaali hui</span>}
           description={`Pichhle ${data.settings.days} din — har din kitni cheezein zero par pohanchin (kul ${t.stockouts})`}>
-          {!trend.some((d) => d.count > 0) ? <Empty text="Is muddat me koi shelf khaali nahi hui" /> : (
+          {!trend.some((d) => d.count > 0) ? <Empty text="Is period me koi shelf khaali nahi hui" /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
@@ -90,7 +90,7 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-brand-600" />Kitne din ka maal bacha</span>} description="Roz ki bikri ke hisaab se">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-brand-600" />Kitne din ka maal bacha</span>} description="Roz ki sale ke hisaab se">
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.cover} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
@@ -120,16 +120,16 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title="Sab se zyada ruki bikri" description="Khatam maal × roz ki bikri × rate — andaza">
+        <Card className="rounded-2xl" title="Sab se zyada ruki sale" description="Khatam maal × roz ki sale × rate — andaza">
           {!data.topLost.length ? <Empty text="Koi bikta hua maal khatam nahi" /> : (
-            <Table head={['Cheez', 'Kab se', 'Roz', 'Ruki bikri']} rows={data.topLost.map((r) => [
+            <Table head={['Cheez', 'Kab se', 'Roz', 'Ruki sale']} rows={data.topLost.map((r) => [
               <span key="n" className="font-medium text-slate-900">{r.name}</span>, r.outDays !== null ? `${r.outDays} din` : '—', money(r.lostPerDay), <b key="v">{money(r.lostSales)}</b>,
             ])} />
           )}
         </Card>
         <Card className="rounded-2xl" title="Jaldi khatam hone wale" description="Jo abhi hai, kitne din chalega">
           {!data.runningOut.length ? <Empty text="Kuch jaldi khatam nahi ho raha" /> : (
-            <Table head={['Cheez', 'Abhi', 'Roz bikri', 'Chalega']} rows={data.runningOut.map((r) => [
+            <Table head={['Cheez', 'Abhi', 'Roz sale', 'Chalega']} rows={data.runningOut.map((r) => [
               <span key="n" className="font-medium text-slate-900">{r.name}</span>, `${qty(r.stock)} ${r.unit}`, qty(r.perDay),
               <b key="d" className={cn((r.daysLeft ?? 99) <= 3 && 'text-rose-700')}>{daysText(r.daysLeft)}</b>,
             ])} />

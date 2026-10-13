@@ -62,7 +62,7 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
     <div className="space-y-4">
       <KpiRow cols={4}>
         <KpiCard icon={Smartphone} color="#2563eb" label={`${data.unitLabel} stock me`} value={String(data.totals.units)} hint={`bechne par ${money(data.totals.retail)}`} />
-        <KpiCard icon={Clock} color="#0f766e" label="Lagat" value={cost(data.totals.cost)} hint={costHidden ? 'Cost lock' : `munafa ${cost(data.totals.retail - data.totals.cost)}`} />
+        <KpiCard icon={Clock} color="#0f766e" label="Cost" value={cost(data.totals.cost)} hint={costHidden ? 'Cost lock' : `profit ${cost(data.totals.retail - data.totals.cost)}`} />
         <KpiCard icon={Hourglass} color="#7c3aed" label="Purane units" value={String(data.dead.count)} hint={`${cost(data.dead.cost)} phansa`} />
         <KpiCard icon={ShieldAlert} color="#be185d" label="Warranty khatam hone wali" value={String(data.warranty.length)} hint="jald bechein" />
       </KpiRow>
@@ -83,7 +83,7 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={costHidden ? undefined : axisMoney} width={44} />
-                <Tooltip formatter={(v, _n, p) => [`${costHidden ? '••••' : formatPKR(Number(v))} · ${(p as { payload?: { units?: number } }).payload?.units ?? 0} units`, 'Lagat']} {...theme.tooltip} />
+                <Tooltip formatter={(v, _n, p) => [`${costHidden ? '••••' : formatPKR(Number(v))} · ${(p as { payload?: { units?: number } }).payload?.units ?? 0} units`, 'Cost']} {...theme.tooltip} />
                 <Bar dataKey={costHidden ? 'units' : 'cost'} radius={[6, 6, 0, 0]} barSize={30} onClick={(b) => setBucket((x) => (x === (b as { key?: string }).key ? null : (b as { key?: string }).key ?? null))} className="cursor-pointer">
                   {data.buckets.map((b, i) => <Cell key={b.key} fill={bucket && bucket !== b.key ? theme.grid : ['#16a34a', '#65a30d', '#d97706', '#ea580c', '#e11d48', '#7c3aed'][i % 6]} />)}
                 </Bar>
@@ -112,7 +112,7 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
           <h3 className="text-[0.875rem] font-semibold text-slate-900">Har unit · {units.length}{bucket ? ` · ${data.buckets.find((b) => b.key === bucket)?.label}` : ''}</h3>
           <label className="relative w-full sm:w-72">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`${data.unitLabel}, naam ya brand…`} aria-label="Unit dhoondein"
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`${data.unitLabel}, naam ya brand…`} aria-label="Unit search"
               className="h-9 w-full rounded-xl bg-slate-100/80 pl-9 pr-3 text-[0.8125rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
           </label>
         </header>
@@ -120,7 +120,7 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
           <div className="overflow-x-auto">
             <table className="w-full min-w-[40rem] text-[0.8125rem]">
               <thead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">{data.unitLabel}</th><th className="px-2 py-2">Cheez</th><th className="px-2 py-2">Halat</th><th className="px-2 py-2 text-right">Umar</th><th className="px-2 py-2 text-right">Warranty</th><th className="px-2 py-2 text-right">Lagat</th><th className="px-4 py-2 text-right">Rate</th></tr>
+                <tr><th className="px-4 py-2">{data.unitLabel}</th><th className="px-2 py-2">Cheez</th><th className="px-2 py-2">Halat</th><th className="px-2 py-2 text-right">Umar</th><th className="px-2 py-2 text-right">Warranty</th><th className="px-2 py-2 text-right">Cost</th><th className="px-4 py-2 text-right">Rate</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {units.slice(0, more ? units.length : SHOW).map((u) => (

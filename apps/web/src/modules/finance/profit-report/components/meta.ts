@@ -24,13 +24,13 @@ export const dayLabel = (key: string) => {
 export const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
 
 export const SORTS: Array<FilterOption<ProfitSort>> = [
-  { value: 'profit', label: 'Zyada munafa pehle' },
-  { value: 'revenue', label: 'Zyada bikri pehle' },
+  { value: 'profit', label: 'Zyada profit pehle' },
+  { value: 'revenue', label: 'Zyada sale pehle' },
   { value: 'margin', label: 'Zyada margin pehle' },
-  { value: 'qty', label: 'Zyada biki (miqdar)' },
-  { value: 'loss', label: 'Sab se kam munafa pehle' },
+  { value: 'qty', label: 'Zyada biki (quantity)' },
+  { value: 'loss', label: 'Sab se kam profit pehle' },
   { value: 'discount', label: 'Zyada discount pehle' },
-  { value: 'returns', label: 'Zyada wapsi pehle' },
+  { value: 'returns', label: 'Zyada return pehle' },
   { value: 'name', label: 'Naam (A–Z)' },
 ];
 
@@ -39,11 +39,11 @@ export const COST_SORTS: ProfitSort[] = ['profit', 'margin', 'loss'];
 
 export const VIEWS: Array<FilterOption<ProfitView> & { cost?: boolean }> = [
   { value: 'all', label: 'Sab cheezein' },
-  { value: 'loss', label: 'Nuqsan wali', hint: 'Lagat se sasti biki', color: '#e11d48', cost: true },
-  { value: 'discount', label: 'Discount wali', hint: 'Jin par chhoot di', color: '#db2777' },
-  { value: 'returns', label: 'Wapsi wali', hint: 'Jo wapas aayin', color: '#ea580c' },
+  { value: 'loss', label: 'Nuqsan wali', hint: 'Cost se sasti biki', color: '#e11d48', cost: true },
+  { value: 'discount', label: 'Discount wali', hint: 'Jin par discount di', color: '#db2777' },
+  { value: 'returns', label: 'Return wali', hint: 'Jo wapas aayin', color: '#ea580c' },
   { value: 'fallback', label: 'Aaj ki cost se', hint: 'Bill par cost save nahi thi', color: '#d97706', cost: true },
-  { value: 'nocost', label: 'Bina cost', hint: 'Cost bhari hi nahi — munafa poora dikh raha hai', color: '#64748b', cost: true },
+  { value: 'nocost', label: 'Bina cost', hint: 'Cost bhari hi nahi — profit poora dikh raha hai', color: '#64748b', cost: true },
 ];
 
 export const UNIT_KIND_LABEL: Record<string, string> = {

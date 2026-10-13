@@ -29,7 +29,7 @@ export function StatementView({ report, lines, fmt, prevLabel, onDrill }: {
     <div className="space-y-4">
       {!report.costVisible && (
         <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] font-medium text-amber-900 ring-1 ring-amber-100">
-          <AlertTriangle className="h-4 w-4 shrink-0" /> Aap ko lagat dekhne ki ijazat nahi, is liye munafa aur stock nuqsan khali hain. Malik se "Cost dekhna" ki ijazat lein.
+          <AlertTriangle className="h-4 w-4 shrink-0" /> Aap ko cost dekhne ki permission nahi, is liye profit aur stock nuqsan khali hain. Malik se "Cost dekhna" ki permission lein.
         </p>
       )}
 
@@ -69,9 +69,9 @@ function StatementTable({ report, lines, fmt, prevLabel, onDrill }: { report: Pn
       <table className="w-full text-[0.875rem]">
         <thead className="border-b border-slate-100 bg-slate-50/70 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
           <tr>
-            <th className="px-4 py-2.5 text-left sm:px-5">Tafseel</th>
-            <th className="px-3 py-2.5 text-right">Is muddat</th>
-            <th className="hidden px-3 py-2.5 text-right md:table-cell" title="Net bikri ka kitna hissa">% bikri</th>
+            <th className="px-4 py-2.5 text-left sm:px-5">Details</th>
+            <th className="px-3 py-2.5 text-right">Is period</th>
+            <th className="hidden px-3 py-2.5 text-right md:table-cell" title="Net sale ka kitna hissa">% sale</th>
             <th className="hidden px-3 py-2.5 text-right sm:table-cell">{prevLabel}</th>
             <th className="px-3 py-2.5 text-right sm:pr-5">Farq</th>
           </tr>
@@ -130,8 +130,8 @@ function Bridge({ s, fmt }: { s: PnlStatement; fmt: Fmt }) {
   const theme = useChartTheme();
   if (fmt.costHidden || s.netProfit == null) return null;
   const steps = [
-    { name: 'Net bikri', delta: s.revenue.net, color: PART_COLORS.revenue, total: true },
-    { name: 'Lagat', delta: -(s.cogs?.total ?? 0), color: PART_COLORS.cogs },
+    { name: 'Net sale', delta: s.revenue.net, color: PART_COLORS.revenue, total: true },
+    { name: 'Cost', delta: -(s.cogs?.total ?? 0), color: PART_COLORS.cogs },
     { name: 'Kharchay', delta: -s.expenses.total, color: PART_COLORS.expenses },
     { name: 'Stock', delta: -(s.writeOffs?.net ?? 0), color: PART_COLORS.writeOffs },
     { name: 'Aamdani', delta: s.otherIncome.total, color: PART_COLORS.other },
@@ -145,18 +145,18 @@ function Bridge({ s, fmt }: { s: PnlStatement; fmt: Fmt }) {
     return { name: x.name, base: Math.min(start, run), value: Math.abs(x.delta), color: x.color, raw: x.delta };
   });
   const net = s.netProfit;
-  data.push({ name: 'Net munafa', base: 0, value: Math.abs(net), color: net >= 0 ? PART_COLORS.profit : PART_COLORS.loss, raw: net });
+  data.push({ name: 'Net profit', base: 0, value: Math.abs(net), color: net >= 0 ? PART_COLORS.profit : PART_COLORS.loss, raw: net });
   const chart = below ? data.map((d) => ({ ...d, base: 0, value: d.raw })) : data;
 
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Waypoints className="h-4 w-4 text-brand-600" />Bikri se munafa tak</span>} description="Har 100 rupay ki bikri me se kahan kitna gaya">
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Waypoints className="h-4 w-4 text-brand-600" />Sale se profit tak</span>} description="Har 100 rupay ki sale me se kahan kitna gaya">
       <div className="h-[240px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chart} margin={{ top: 8, right: 4, left: -12, bottom: 0 }}>
             <CartesianGrid stroke={theme.grid} vertical={false} />
             <XAxis dataKey="name" tick={{ ...theme.axis, fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
             <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-            <Tooltip formatter={(_v, _n, p) => [formatPKR((p as { payload?: { raw?: number } }).payload?.raw ?? 0), 'Raqam']} {...theme.tooltip} />
+            <Tooltip formatter={(_v, _n, p) => [formatPKR((p as { payload?: { raw?: number } }).payload?.raw ?? 0), 'Amount']} {...theme.tooltip} />
             {!below && <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />}
             <Bar dataKey="value" stackId={below ? undefined : 'w'} radius={[4, 4, 0, 0]} barSize={30}>
               {chart.map((d) => <Cell key={d.name} fill={d.color} />)}
@@ -185,8 +185,8 @@ function Bridge({ s, fmt }: { s: PnlStatement; fmt: Fmt }) {
 function Channels({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
   const total = report.channels.reduce((a, c) => a + c.net, 0);
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Route className="h-4 w-4 text-brand-600" />Bikri ke raaste</span>} description="Counter, website, Daraz, Foodpanda… har raaste ki kamai aur munafa">
-      {!report.channels.length ? <Empty text="Is muddat me koi bikri nahi" /> : (
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Route className="h-4 w-4 text-brand-600" />Sale ke raaste</span>} description="Counter, website, Daraz, Foodpanda… har raaste ki kamai aur profit">
+      {!report.channels.length ? <Empty text="Is period me koi sale nahi" /> : (
         <ul className="space-y-3">
           {report.channels.map((c) => {
             const meta = CHANNELS[c.source] ?? { label: c.source, color: '#64748b' };
@@ -199,7 +199,7 @@ function Channels({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${Math.max(share, 1)}%`, background: meta.color }} /></div>
                 <p className="mt-0.5 text-[0.6875rem] text-slate-500">
-                  {c.returns > 0 && `Wapsi ${fmt.sales(c.returns)} · `}Munafa {c.profit == null ? '—' : fmt.cost(c.profit)}{c.margin != null && !fmt.costHidden && ` (${pctText(c.margin)})`}
+                  {c.returns > 0 && `Return ${fmt.sales(c.returns)} · `}Profit {c.profit == null ? '—' : fmt.cost(c.profit)}{c.margin != null && !fmt.costHidden && ` (${pctText(c.margin)})`}
                 </p>
               </li>
             );
@@ -213,13 +213,13 @@ function Channels({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
 function Categories({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
   const top = report.categories.slice(0, 10);
   return (
-    <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war munafa</span>}
-      description="Item ki bikri (bill discount ke baad) minus wapsi">
-      {!top.length ? <div className="px-5 pb-5"><Empty text="Is muddat me koi bikri nahi" /></div> : (
+    <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war profit</span>}
+      description="Item ki sale (bill discount ke baad) minus return">
+      {!top.length ? <div className="px-5 pb-5"><Empty text="Is period me koi sale nahi" /></div> : (
         <div className="overflow-x-auto px-4 pb-4 sm:px-5">
           <table className="w-full min-w-[26rem] text-[0.8125rem]">
             <thead className="text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-              <tr><th className="py-2">Category</th><th className="py-2 text-right">Net bikri</th><th className="py-2 text-right">Munafa</th><th className="py-2 text-right">Margin</th></tr>
+              <tr><th className="py-2">Category</th><th className="py-2 text-right">Net sale</th><th className="py-2 text-right">Profit</th><th className="py-2 text-right">Margin</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {top.map((c) => (

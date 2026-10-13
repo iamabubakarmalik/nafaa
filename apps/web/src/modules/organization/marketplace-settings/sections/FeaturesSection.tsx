@@ -43,7 +43,7 @@ export default function FeaturesSection({ s, set }: Props) {
               className="w-32 h-11 px-3 rounded-xl border-2 border-purple-300 bg-white text-sm font-bold outline-none focus:border-purple-500"
             />
             <p className="text-xs text-purple-700 mt-1 font-medium">
-              Original price ka minimum {s.bargainMinPercent ?? 20}% neechay offer manzoor nahi honge
+              Original price ka minimum {s.bargainMinPercent ?? 20}% neechay offer approve nahi honge
             </p>
           </div>
         )}

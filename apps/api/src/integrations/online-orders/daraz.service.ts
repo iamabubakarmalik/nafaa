@@ -192,7 +192,7 @@ export class DarazService {
       const refresh = decrypt(c.darazRefreshToken);
       if (!refresh || Date.parse(c.darazRefreshExpiresAt ?? '') < Date.now()) {
         await this.markNeedsReconnect(i, 'Daraz ki ijazat khatam — "Dobara jorein" dabayein');
-        throw new BadRequestException('Daraz ki ijazat khatam ho gayi — channel par "Dobara jorein" dabayein');
+        throw new BadRequestException('Daraz ki permission khatam ho gayi — channel par "Dobara jorein" dabayein');
       }
       try {
         const tok = readTokenResponse(await new DarazClient(key, secret).refreshToken(refresh));

@@ -161,7 +161,7 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
           )}
           {amount > 0 && !d.byRider && (
             <div className="rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 flex items-center justify-between">
-              <span className="text-[0.6875rem] font-bold text-slate-600">Delivery ka apna munafa</span>
+              <span className="text-[0.6875rem] font-bold text-slate-600">Delivery ka apna profit</span>
               <span className={['text-xs font-semibold tabular-nums',
                 profit >= 0 ? 'text-emerald-700' : 'text-rose-600'].join(' ')}>
                 {formatPKR(profit)}

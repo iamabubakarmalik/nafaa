@@ -122,8 +122,8 @@ export function RequireAllPermissions({ need, title, children }: { need: Permiss
       <EmptyState
         className="min-h-[50vh]"
         icon={<ShieldAlert className="h-6 w-6" />}
-        title={`${title} dekhne ki ijazat nahi`}
-        description={`Is report ke liye ye sab ijazatein chahiye: ${need.map((p) => `"${permissionLabel(p)}"`).join(' aur ')}. Aap ke paas ${missing.map((p) => `"${permissionLabel(p)}"`).join(' aur ')} nahi hai. Malik se kahein ke Team me de dein.`}
+        title={`${title} dekhne ki permission nahi`}
+        description={`Is report ke liye ye sab permissions chahiye: ${need.map((p) => `"${permissionLabel(p)}"`).join(' aur ')}. Aap ke paas ${missing.map((p) => `"${permissionLabel(p)}"`).join(' aur ')} nahi hai. Malik se kahein ke Team me de dein.`}
       />
     </PageShell>
   );

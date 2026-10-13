@@ -53,7 +53,7 @@ export function InvoicesView({ q, money, showShop, branchOf, filtered, onClear, 
       {!rows.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <FileText className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi bill nahi' : 'Is muddat me koi bill authority ko nahi gaya'}</p>
+          <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi bill nahi' : 'Is period me koi bill authority ko nahi gaya'}</p>
           <p className="mt-1 text-sm text-slate-500">Tax chalu hone ke baad ka har bill yahan aata hai, us ke number ke saath.</p>
           {filtered && <Button className="mt-4" variant="ghost" onClick={onClear}>Filter saaf karein</Button>}
         </div>
@@ -88,7 +88,7 @@ function Row({ r, money, showShop, branchOf, onOpen, onRetry, busy }: {
         <span className="flex flex-wrap items-center gap-1.5">
           <span className="font-mono font-semibold text-slate-900">{r.usin}</span>
           <span className="rounded-md px-1.5 py-0.5 text-[0.6875rem] font-bold" style={{ backgroundColor: `${auth?.color ?? '#64748b'}17`, color: auth?.color }}>{r.authority}</span>
-          {r.kind === 'RETURN' && <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[0.6875rem] font-medium text-orange-700 ring-1 ring-orange-200">Wapsi</span>}
+          {r.kind === 'RETURN' && <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[0.6875rem] font-medium text-orange-700 ring-1 ring-orange-200">Return</span>}
         </span>
         <span className="mt-0.5 block truncate text-[0.75rem] text-slate-400">{meta}</span>
         {r.status === 'SUCCESS' ? (
@@ -106,7 +106,7 @@ function Row({ r, money, showShop, branchOf, onOpen, onRetry, busy }: {
       {r.status !== 'SUCCESS' && r.status !== 'SKIPPED' ? (
         <Button size="sm" variant="secondary" loading={busy} onClick={() => onRetry(r.id)} leftIcon={<RefreshCw className="h-4 w-4" />} className="hidden sm:inline-flex">Dobara</Button>
       ) : null}
-      <button type="button" onClick={() => onOpen(r.id)} aria-label="Tafseel" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronRight className="h-4 w-4" /></button>
+      <button type="button" onClick={() => onOpen(r.id)} aria-label="Details" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronRight className="h-4 w-4" /></button>
     </li>
   );
 }

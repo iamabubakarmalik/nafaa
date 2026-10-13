@@ -951,11 +951,11 @@ function DeleteConfirmModal({ name, balance, loading, onClose, onConfirm }: any)
           {hasBalance && (
             <div className="mt-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-3 text-xs font-extrabold text-rose-800 dark:text-rose-200 flex items-center justify-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" />
-              {formatPKR(balance)} udhaar baqi hai — pehle wusooli karo!
+              {formatPKR(balance)} udhaar baqi hai — pehle receiving karo!
             </div>
           )}
           <p className="mt-2 text-xs text-slate-500 dark:text-ink-400 font-semibold">
-            Jis customer ki bikri ya khata hai woh mitega nahi, sirf band hoga — purane bill aur khata salamat rahenge. Bina history wala customer poori tarah mit jayega.
+            Jis customer ki sale ya khata hai woh mitega nahi, sirf band hoga — purane bill aur khata salamat rahenge. Bina history wala customer poori tarah mit jayega.
           </p>
           <div className="mt-4 flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
@@ -1011,14 +1011,14 @@ function CustomerFormTeacher({ isEdit, onClose }: { isEdit: boolean; onClose: ()
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 mb-1">⚡ Tez Kaam</div>
             <TipRow><strong>💾 "Save + Naya"</strong> — purani copy/register se data daal rahe ho? Save hote hi form khali ho jata hai aur cursor naam pe aa jata hai. City/Area wahi rehte hain</TipRow>
-            <TipRow><strong>🛡️ Bina save kiye</strong> page chhodne ki koshish karo to warning milti hai — mehnat zaya nahi hoti</TipRow>
+            <TipRow><strong>🛡️ Bina save kiye</strong> page chhodne ki koshish karo to warning milti hai — mehnat waste nahi hoti</TipRow>
             <TipRow><strong>📊 Edit mode me</strong> sidebar pe live kharch, khata, sales aur points nazar aate hain — sath hi khata page ka link</TipRow>
             <TipRow><strong>⌨️ Ctrl+S</strong> ya <strong>Ctrl+Enter</strong> — save &nbsp;•&nbsp; <strong>Esc</strong> — wapas</TipRow>
           </div>
 
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 text-xs font-semibold text-amber-900 dark:text-amber-200 flex gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-            <span><strong>Yaad rakho:</strong> Phone ke baghair WhatsApp reminders nahi ja sakte — udhaar wusooli mushkil ho jati hai!</span>
+            <span><strong>Yaad rakho:</strong> Phone ke baghair WhatsApp reminders nahi ja sakte — udhaar receiving mushkil ho jati hai!</span>
           </div>
 
           <Button

@@ -19,11 +19,11 @@ export function ChecksView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
 
   return (
     <div className="space-y-4">
-      <Panel icon={Ban} title={`Void bill · ${d.voids.length}`} hint="Pura bill wapas liya gaya — maal stock me wapas, bikri me nahi gina. Is din bane ya is din void hue." flush>
+      <Panel icon={Ban} title={`Void bill · ${d.voids.length}`} hint="Pura bill wapas liya gaya — maal stock me wapas, sale me nahi gina. Is din bane ya is din void hue." flush>
         <div className="px-4 pb-4 sm:px-5">
           {!voids.length ? <Empty icon={Ban} text={q ? 'Koi void nahi mila' : 'Is din koi bill void nahi hua'} /> : (
             <TableWrap>
-              <thead><tr><th className={th}>Bill</th><th className={th}>Kis ka</th><th className={th}>Wajah</th><th className={thR}>Waqt</th><th className={thR}>Raqam</th></tr></thead>
+              <thead><tr><th className={th}>Bill</th><th className={th}>Kis ka</th><th className={th}>Wajah</th><th className={thR}>Waqt</th><th className={thR}>Amount</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {voids.map((v) => (
                   <tr key={v.id}>
@@ -40,11 +40,11 @@ export function ChecksView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
         </div>
       </Panel>
 
-      <Panel icon={RotateCcw} title={`Wapsi · ${d.returns.length}`} hint={`Customer ko ${m.sales(d.summary.returns)} wapas diye. Wapsi us din gini jati hai jis din maal wapas aaya.`} flush>
+      <Panel icon={RotateCcw} title={`Return · ${d.returns.length}`} hint={`Customer ko ${m.sales(d.summary.returns)} wapas diye. Return us din gini jati hai jis din maal wapas aaya.`} flush>
         <div className="px-4 pb-4 sm:px-5">
-          {!returns.length ? <Empty icon={RotateCcw} text={q ? 'Koi wapsi nahi mili' : 'Is din koi maal wapas nahi aaya'} /> : (
+          {!returns.length ? <Empty icon={RotateCcw} text={q ? 'Koi return nahi mili' : 'Is din koi maal wapas nahi aaya'} /> : (
             <TableWrap>
-              <thead><tr><th className={th}>Wapsi</th><th className={th}>Kis ne li</th><th className={th}>Wajah</th><th className={thR}>Cheezein</th><th className={thR}>Tareeqa</th><th className={thR}>Raqam</th></tr></thead>
+              <thead><tr><th className={th}>Return</th><th className={th}>Kis ne li</th><th className={th}>Wajah</th><th className={thR}>Cheezein</th><th className={thR}>Tareeqa</th><th className={thR}>Amount</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {returns.map((r) => (
                   <tr key={r.id}>

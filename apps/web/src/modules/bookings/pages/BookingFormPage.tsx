@@ -124,15 +124,15 @@ export default function BookingFormPage() {
   if (!customer) issues.push('Customer chunein');
   if (!lines.length) issues.push('Kam se kam ek cheez dalein');
   if (adv > total + 0.01) issues.push('Advance kul se zyada nahi ho sakta');
-  if (billOff > subtotal - lineOff + 0.01) issues.push('Chhoot kul se zyada hai');
-  if (lines.some((l) => !(l.quantity > 0))) issues.push('Har cheez ki miqdar likhein');
+  if (billOff > subtotal - lineOff + 0.01) issues.push('Discount kul se zyada hai');
+  if (lines.some((l) => !(l.quantity > 0))) issues.push('Har cheez ki quantity likhein');
   if (pickup && expires && new Date(expires) < new Date(pickup)) issues.push('Aakhri din pickup se pehle nahi ho sakta');
   const warnings: string[] = [];
-  if (pickup && new Date(pickup).getTime() < Date.now()) warnings.push('Pickup ki tareekh guzar chuki hai');
-  if (lines.length && !adv && !pickup) warnings.push('Advance ya pickup ki tareekh me se ek zaroor rakhein');
+  if (pickup && new Date(pickup).getTime() < Date.now()) warnings.push('Pickup ki date guzar chuki hai');
+  if (lines.length && !adv && !pickup) warnings.push('Advance ya pickup ki date me se ek zaroor rakhein');
   if (!costHidden && cost > 0 && profit < 0) warnings.push(`Ghaate ki booking: cost ${formatPKR(cost)} hai`);
   const short = lines.filter((l) => l.stock !== undefined && !l.locked && l.quantity > l.stock);
-  if (short.length) warnings.push(`${short.map((l) => l.name).join(', ')}: stock kam hai — bikri se pehle maal mangwayein`);
+  if (short.length) warnings.push(`${short.map((l) => l.name).join(', ')}: stock kam hai — sale se pehle maal mangwayein`);
 
   /* ── adding items ── */
   const addLine = (l: Omit<Line, 'key'>) => setLines((prev) => [...prev, { ...l, key: lineKey() }]);
@@ -158,7 +158,7 @@ export default function BookingFormPage() {
     if (p.hasVariants) {
       try {
         const variants = (await productVariantsApi.list(p.id)).filter((v) => v.isActive);
-        if (!variants.length) { toast.error('Is product ki koi chalu qism nahi'); return; }
+        if (!variants.length) { toast.error('Is product ki koi chalu type nahi'); return; }
         setVariantPicker({ product: p, variants });
       } catch { toast.error('Qismein load nahi hui'); }
       return;
@@ -294,12 +294,12 @@ export default function BookingFormPage() {
             <Card className="rounded-3xl" title={<Step n={2} icon={Package}>Cheezen</Step>}
               description={isCarpet ? 'Carpet ka roll ya cut piece chunein; baqi maal naam, SKU ya barcode se' : imeiOn ? 'Mobile chunne par IMEI chunein — woh is booking ke liye reserve ho jata hai' : 'Naam, SKU ya barcode likhein ya scan karein; Enter pehli cheez chun leta hai'}>
               <div ref={itemsRef}><ProductSearch sources={sellable} byCode={byCode} loading={loading} onPick={onPick} /></div>
-              <p className="mt-1 text-[0.6875rem] text-slate-500"><Kbd>/</Kbd> se yahan aayein. Stock booking par nahi ghatta, bikri par ghatta hai.</p>
+              <p className="mt-1 text-[0.6875rem] text-slate-500"><Kbd>/</Kbd> se yahan aayein. Stock booking par nahi ghatta, sale par ghatta hai.</p>
 
               {!lines.length ? (
                 <div className="mt-4 rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center">
                   <ShoppingCart className="mx-auto h-8 w-8 text-slate-300" />
-                  <p className="mt-2 text-sm text-slate-500">Abhi koi cheez nahi — upar se dhoondein</p>
+                  <p className="mt-2 text-sm text-slate-500">Abhi koi cheez nahi — upar se search</p>
                 </div>
               ) : (
                 <ul className="mt-4 divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
@@ -314,16 +314,16 @@ export default function BookingFormPage() {
                         <input value={l.note ?? ''} onChange={(e) => patch(l.key, { note: e.target.value || undefined })} placeholder="Note (slip par chhapta hai) — maslan: size, rang"
                           aria-label="Line note" className="mt-1 h-8 w-full rounded-lg border border-transparent bg-slate-50 px-2 text-[0.75rem] text-slate-700 outline-none focus:border-brand-500 focus:bg-white" />
                       </div>
-                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Miqdar
-                        <input type="number" inputMode="decimal" min={0} step="any" value={l.quantity} disabled={l.locked} aria-label="Miqdar"
+                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Quantity
+                        <input type="number" inputMode="decimal" min={0} step="any" value={l.quantity} disabled={l.locked} aria-label="Quantity"
                           onChange={(e) => patch(l.key, { quantity: Number(e.target.value) })} className={cn(cellCls, l.locked && 'bg-slate-50 text-slate-500')} />
                       </label>
                       <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Rate
                         <input type="number" inputMode="decimal" min={0} step="any" value={l.price} aria-label="Rate"
                           onChange={(e) => patch(l.key, { price: Number(e.target.value) })} className={cellCls} />
                       </label>
-                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Chhoot
-                        <input type="number" inputMode="decimal" min={0} step="any" value={l.lineDiscount || ''} placeholder="0" aria-label="Line chhoot"
+                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Discount
+                        <input type="number" inputMode="decimal" min={0} step="any" value={l.lineDiscount || ''} placeholder="0" aria-label="Line discount"
                           onChange={(e) => patch(l.key, { lineDiscount: Number(e.target.value) || 0 })} className={cellCls} />
                       </label>
                       <p className="self-end text-right font-semibold tabular-nums text-slate-900 sm:self-center">{formatPKR(l.price * l.quantity - (l.lineDiscount ?? 0))}</p>
@@ -366,9 +366,9 @@ export default function BookingFormPage() {
             <Card className="rounded-3xl" title={<Step n={4} icon={Wallet}>Paise</Step>}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="bk-discount" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Bill par chhoot</label>
+                  <label htmlFor="bk-discount" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Bill par discount</label>
                   <input id="bk-discount" type="number" inputMode="decimal" min={0} step="any" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="0" className={inputCls} />
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Rupay me. Har line ki alag chhoot upar likhein.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">Rupay me. Har line ki alag discount upar likhein.</p>
                 </div>
                 <div>
                   <label htmlFor="bk-advance" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Advance abhi</label>
@@ -377,7 +377,7 @@ export default function BookingFormPage() {
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {[0.1, 0.25, 0.5, 1].map((f) => <Chip key={f} disabled={!total} onClick={() => setAdvance(String(Math.round(total * f)))}>{f === 1 ? 'Poora' : `${f * 100}%`}</Chip>)}
                   </div>
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Customer ke khate me jama hota hai; bikri par bill me lag jata hai.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">Customer ke khate me jama hota hai; sale par bill me lag jata hai.</p>
                 </div>
                 {adv > 0 && (
                   <div>
@@ -395,12 +395,12 @@ export default function BookingFormPage() {
                 )}
                 <dl className="space-y-1 rounded-2xl bg-slate-50 p-3 text-[0.8125rem] ring-1 ring-slate-200">
                   <Row k="Cheezon ka jor" v={formatPKR(subtotal)} />
-                  {lineOff + billOff > 0 && <Row k="Chhoot" v={`−${formatPKR(lineOff + billOff)}`} />}
+                  {lineOff + billOff > 0 && <Row k="Discount" v={`−${formatPKR(lineOff + billOff)}`} />}
                   {svc > 0 && <Row k="Service charges" v={`+${formatPKR(svc)}`} />}
                   <Row k="Kul" v={formatPKR(total)} strong />
                   <Row k="Advance" v={formatPKR(adv)} />
                   <Row k="Baqi (pickup par)" v={formatPKR(balance)} />
-                  {cost > 0 && <Row k="Andaazan munafa" v={costHidden ? costText(profit) : formatPKR(profit)} />}
+                  {cost > 0 && <Row k="Andaazan profit" v={costHidden ? costText(profit) : formatPKR(profit)} />}
                 </dl>
               </div>
             </Card>
@@ -452,16 +452,16 @@ export default function BookingFormPage() {
         <PageGuide title="Nayi booking — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: UserRound, color: '#2563eb', title: '1. Customer', text: 'Naam ya phone likh kar chunein. Naya ho to "Naya customer" se wahin bana lein.' },
-            { icon: Package, color: '#7c3aed', title: '2. Cheezen', text: 'Naam, SKU ya barcode likhein ya scan karein. Qism (size/rang), IMEI aur carpet roll ke liye picker khud khulta hai.' },
+            { icon: Package, color: '#7c3aed', title: '2. Cheezen', text: 'Naam, SKU ya barcode likhein ya scan karein. Type (size/rang), IMEI aur carpet roll ke liye picker khud khulta hai.' },
             { icon: CalendarClock, color: '#d97706', title: '3. Pickup', text: 'Customer kab lega — Aaj, Kal, 3 din, hafta. Isi se yaad dihani aur calendar chalte hain.' },
             { icon: Wallet, color: '#16a34a', title: '4. Advance', text: 'Jitna advance mila likhein (10%, 25%, 50% ke buttons). Baqi pickup par.' },
           ]}
           tips={[
-            'Booking par stock nahi ghatta — bikri par ghatta hai. Stock kam ho to peela nishan aata hai.',
+            'Booking par stock nahi ghatta — sale par ghatta hai. Stock kam ho to peela nishan aata hai.',
             'IMEI aur cut piece booking ke liye reserve ho jate hain; counter par nahi bikte.',
             'Line ka note slip par chhapta hai; team note sirf staff ke liye.',
           ]}
-          shortcuts={[['/', 'cheez dhoondein'], ['Ctrl+Enter', 'save'], ['G', 'guide']]}
+          shortcuts={[['/', 'cheez search'], ['Ctrl+Enter', 'save'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -532,7 +532,7 @@ function CustomerField({ value, onChange }: { value: PickedCustomer | null; onCh
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={text} autoFocus aria-label="Customer dhoondein" placeholder="Naam ya phone…"
+          <input value={text} autoFocus aria-label="Customer search" placeholder="Naam ya phone…"
             onChange={(e) => { setText(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 150)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(h + 1, rows.length - 1)); }

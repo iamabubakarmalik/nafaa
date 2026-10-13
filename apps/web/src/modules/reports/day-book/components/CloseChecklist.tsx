@@ -24,7 +24,7 @@ function dayChecks(d: DayBook, m: Money, pending: number): Check[] {
 
   // Drawer checks only when the drawer figures are shown to this user.
   if (dr && !dr.registers.length) {
-    out.push({ id: 'reg', state: d.summary.bills ? 'warn' : 'info', title: 'Register nahi khula', text: d.summary.bills ? 'Bikri hui magar galla register nahi khula — cash ka hisaab nahi mil sakta.' : 'Is din register nahi khula.', to: '/cash-register', action: 'Register' });
+    out.push({ id: 'reg', state: d.summary.bills ? 'warn' : 'info', title: 'Register nahi khula', text: d.summary.bills ? 'Sale hui magar galla register nahi khula — cash ka hisaab nahi mil sakta.' : 'Is din register nahi khula.', to: '/cash-register', action: 'Register' });
   } else if (dr?.openNow) {
     out.push({ id: 'reg', state: d.isToday ? 'warn' : 'bad', title: `${dr.openNow} register abhi khula hai`, text: 'Cash gin kar register band karein, tab aakhri hisaab banega.', to: '/cash-register', action: 'Band karein' });
   } else if (dr) {
@@ -52,8 +52,8 @@ function dayChecks(d: DayBook, m: Money, pending: number): Check[] {
   }
 
   out.push(d.expenses.count
-    ? { id: 'exp', state: 'ok', title: `${d.expenses.count} kharche darj`, text: `Kul ${m.cost(d.expenses.total)}. Koi reh gaya ho to abhi likh dein.`, to: '/expenses', action: 'Kharcha' }
-    : { id: 'exp', state: d.summary.bills ? 'warn' : 'info', title: 'Koi kharcha nahi likha', text: 'Chai, kiraya, bijli — jo bhi kharcha hua, darj karein warna galla kam niklega.', to: '/expenses', action: 'Kharcha likhein' });
+    ? { id: 'exp', state: 'ok', title: `${d.expenses.count} expenses darj`, text: `Kul ${m.cost(d.expenses.total)}. Koi reh gaya ho to abhi likh dein.`, to: '/expenses', action: 'Expense' }
+    : { id: 'exp', state: d.summary.bills ? 'warn' : 'info', title: 'Koi expense nahi likha', text: 'Chai, kiraya, bijli — jo bhi expense hua, darj karein warna galla kam niklega.', to: '/expenses', action: 'Expense likhein' });
 
   if (d.isToday) {
     out.push(pending
@@ -62,7 +62,7 @@ function dayChecks(d: DayBook, m: Money, pending: number): Check[] {
   }
 
   if (d.voids.length || d.returns.length) {
-    out.push({ id: 'void', state: 'info', title: `${d.voids.length} void · ${d.returns.length} wapsi`, text: 'Har void aur wapsi ki wajah ek nazar dekh lein.', tab: 'checks', action: 'Jaanch' });
+    out.push({ id: 'void', state: 'info', title: `${d.voids.length} void · ${d.returns.length} return`, text: 'Har void aur return ki wajah ek nazar dekh lein.', tab: 'checks', action: 'Jaanch' });
   }
   if (d.lowStock.length) {
     out.push({ id: 'low', state: 'info', title: `${d.lowStock.length} cheezein kam reh gayin`, text: 'Kal ke liye order bana lein.', to: '/low-stock', action: 'Order' });

@@ -220,7 +220,7 @@ export const jewelrySource: CatalogSource = {
           ['Design #', j.designNumber],
           ['Hallmark', j.hallmarkNumber || j.purityHallmark],
           ['Certificate', j.isCertified ? j.certificateAuthority || 'Haan' : null],
-          ['Wapsi', j.isReturnable ? `${j.returnDays} din me` : null],
+          ['Return', j.isReturnable ? `${j.returnDays} din me` : null],
           ['Buy-back', j.isBuyBackEligible ? `${j.buyBackPct}%` : null],
         ]),
         includes: (j.gemstones ?? []).filter((g) => g.type !== 'NONE').map((g) => `${g.count} × ${pretty(g.type)}${g.caret ? ` (${g.caret} ct)` : ''}`),
@@ -324,7 +324,7 @@ export const agriSource: CatalogSource = {
           ...(pack ? [{ label: `1 ${unit} = ${pack} ${a?.packUnit || 'kg'}`, tone: 'slate' as const }] : []),
           ...(season ? [{ label: `${season.e} ${season.l}`, tone: 'amber' as const }] : []),
           ...(a?.isRestricted || a?.requiresLicense ? [{ label: 'License chahiye', tone: 'red' as const }] : []),
-          ...(a?.bulkDiscountPct && a.bulkDiscountThreshold ? [{ label: `${a.bulkDiscountThreshold}+ par ${a.bulkDiscountPct}% chhoot`, tone: 'green' as const }] : []),
+          ...(a?.bulkDiscountPct && a.bulkDiscountThreshold ? [{ label: `${a.bulkDiscountThreshold}+ par ${a.bulkDiscountPct}% discount`, tone: 'green' as const }] : []),
         ],
         specs: specs([
           ['Qisam', prettyAgriKind(kind)],

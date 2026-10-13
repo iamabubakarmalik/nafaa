@@ -18,8 +18,8 @@ export default function CategoriesPage() {
       industry: { name: presets.industryName, emoji: presets.industryEmoji },
       guide: [
         { title: 'Category kya hai', body: 'Maal ki qisam — jaise Mashroobat, Bakery, Safai. Har product ki ek category hoti hai.' },
-        { title: 'Kyun zaroori', body: 'POS par jaldi dhoondna, aur reports me pata chalta hai kaunsi qisam zyada bikti aur kitna munafa deti hai.' },
-        { title: 'Muddat badlein', body: 'Upar se muddat chunein — har category ki bikri, munafa aur stock ki qeemat usi muddat ki dikhegi.' },
+        { title: 'Kyun zaroori', body: 'POS par jaldi dhoondna, aur reports me pata chalta hai kaunsi qisam zyada bikti aur kitna profit deti hai.' },
+        { title: 'Period badlein', body: 'Upar se period chunein — har category ki sale, profit aur stock ki qeemat usi period ki dikhegi.' },
         { title: 'Milana aur band karna', body: 'Do jaisi categories hon to "Doosri me milayein". Band category naye products ke liye chunne me nahi aati; jin products par pehle se lagi hai woh wese hi rehte hain.' },
       ],
     }} />

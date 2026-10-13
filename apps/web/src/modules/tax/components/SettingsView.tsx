@@ -249,7 +249,7 @@ function Editor({ authority, data }: { authority: Authority; data: TaxSettings }
           {!p?.enabled && <Button loading={busy && save.variables === true} onClick={enable} leftIcon={<Power className="h-4 w-4" />}>Save karke chalu karein</Button>}
         </div>
       ) : (
-        <p className="mt-5 border-t border-slate-100 pt-4 text-[0.8125rem] text-slate-500">Badalne ke liye "Settings badalna" ki ijazat chahiye.</p>
+        <p className="mt-5 border-t border-slate-100 pt-4 text-[0.8125rem] text-slate-500">Badalne ke liye "Settings badalna" ki permission chahiye.</p>
       )}
     </section>
   );

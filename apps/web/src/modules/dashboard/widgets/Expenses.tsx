@@ -28,19 +28,19 @@ export function Expenses() {
   const palette = isDark ? FALLBACK_DARK : FALLBACK;
 
   return (
-    <WidgetCard title="Kharcha kahan gaya" icon={Wallet}
+    <WidgetCard title="Expense kahan gaya" icon={Wallet}
       description={m ? `Is mahine ${formatPKR(total)} · pichhla mahina ${formatPKR(m.expenses.lastMonth ?? 0)}` : 'Is mahine'} to="/expenses">
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Kharcha kahan gaya', subtitle: 'Is mahine',
-          sections: [{ kind: 'table', columns: [{ label: 'Category' }, { label: 'Entries', align: 'right' }, { label: 'Raqam', align: 'right' }],
+          title: 'Expense kahan gaya', subtitle: 'Is mahine',
+          sections: [{ kind: 'table', columns: [{ label: 'Category' }, { label: 'Entries', align: 'right' }, { label: 'Amount', align: 'right' }],
             rows: all.map((r) => [r.name, String(r.count), cost(r.amount)]), footer: ['Kul', String(all.reduce((x, r) => x + r.count, 0)), cost(total)] }],
         })}>
-        <MiniSelect label="Tarteeb" value={st.sort} onChange={(v) => set({ sort: v })} options={[{ value: 'amount', label: 'Raqam se' }, { value: 'count', label: 'Entries se' }]} />
+        <MiniSelect label="Sort" value={st.sort} onChange={(v) => set({ sort: v })} options={[{ value: 'amount', label: 'Amount se' }, { value: 'count', label: 'Entries se' }]} />
         <MiniSelect label="Kitni" value={st.show} onChange={(v) => set({ show: v })} options={[{ value: '5', label: 'Top 5' }, { value: '8', label: 'Top 8' }, { value: '50', label: 'Sab' }]} />
       </WidgetToolbar>
       {rows.length === 0 ? (
-        <EmptyHint icon={Wallet} text="Is mahine koi kharcha darj nahi" />
+        <EmptyHint icon={Wallet} text="Is mahine koi expense darj nahi" />
       ) : (
         <div className="space-y-3">
           {rows.map((r, i) => {
@@ -66,7 +66,7 @@ export function Expenses() {
             );
           })}
           <div className="flex items-baseline justify-between border-t border-slate-100 pt-2 text-[0.8125rem]">
-            <span className="font-medium text-slate-500">Kul kharcha</span>
+            <span className="font-medium text-slate-500">Kul expense</span>
             <span className="font-bold tabular-nums text-slate-900">{formatPKR(total)}</span>
           </div>
         </div>

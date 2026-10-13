@@ -248,7 +248,7 @@ export default function AttendancePage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, staff number ya ohda…" label="Staff dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, staff number ya ohda…" label="Staff search" />}
         chips={filtered ? <>
           {branch && <FilterChip onRemove={() => setBranch('')}>{branchLabel}</FilterChip>}
           {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffLabel ?? 'Staff'}</FilterChip>}
@@ -301,7 +301,7 @@ export default function AttendancePage() {
       {tab === 'leaves' && (
         leavesQ.isLoading ? listSkeleton
           : <LeavesList leaves={leaveRows} showShop={allShops} canDecide={canPunch}
-              empty={empty(filtered ? 'Is filter me koi chhutti nahi' : `${monthLabel(month)} me koi chhutti nahi`, 'Chhutti likhne ke liye upar "Chhutti likhein" dabayein. Manzoor chhutti sheet par khud lagti hai.')} />
+              empty={empty(filtered ? 'Is filter me koi chhutti nahi' : `${monthLabel(month)} me koi chhutti nahi`, 'Chhutti likhne ke liye upar "Chhutti likhein" dabayein. Approve chhutti sheet par khud lagti hai.')} />
       )}
 
       {tab === 'analytics' && (

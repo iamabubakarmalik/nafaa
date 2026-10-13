@@ -27,7 +27,7 @@ export function NotificationsSection({ settings }: { settings: TenantSettings })
         <Toggle checked={draft.notifyLowStock} onChange={(v) => set('notifyLowStock', v)} icon={Package} disabled={!email}
           label="Low Stock Alerts" desc="Subah 9 baje: kam aur khatam stock wale products ki list" />
         <Toggle checked={draft.notifyDailySummary} onChange={(v) => set('notifyDailySummary', v)} icon={Calendar} disabled={!email}
-          label="Send Daily Sales Summary" desc="Raat 9 baje: aaj ki sale, munafa aur udhaar" />
+          label="Send Daily Sales Summary" desc="Raat 9 baje: aaj ki sale, profit aur udhaar" />
         {!email && <Alert tone="amber">Email band hai — pehle upar se chalu karein.</Alert>}
       </SectionCard>
     </div>

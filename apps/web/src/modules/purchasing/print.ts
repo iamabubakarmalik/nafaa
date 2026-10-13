@@ -15,13 +15,13 @@ const STATUS: Record<string, string> = { PENDING: 'Order — maal nahi aaya', PA
 
 export function purchasesListDoc(list: PurchaseList, period: string): PrintDoc {
   return {
-    title: 'Kharidari report',
+    title: 'Purchase report',
     subtitle: period,
     meta: [['Bill', String(list.total)], ['Maal aaya', formatPKR(list.totals.value)], ['Diye', formatPKR(list.totals.paid)]],
     sections: [
       {
         kind: 'table',
-        columns: [{ label: 'Tareekh' }, { label: 'Bill #', wideOnly: true }, { label: 'Supplier' }, { label: 'Halat', wideOnly: true }, { label: 'Raqam', align: 'right' }, { label: 'Diye', align: 'right', wideOnly: true }],
+        columns: [{ label: 'Date' }, { label: 'Bill #', wideOnly: true }, { label: 'Supplier' }, { label: 'Halat', wideOnly: true }, { label: 'Amount', align: 'right' }, { label: 'Diye', align: 'right', wideOnly: true }],
         rows: list.items.map((p) => [
           day(p.purchasedAt), p.purchaseNumber, p.supplier.name, STATUS[p.status] ?? p.status,
           formatPKR(p.status === 'PENDING' ? p.total : p.receivedValue), formatPKR(p.paidAmount),
@@ -39,19 +39,19 @@ export function statementDoc(st: SupplierStatement, period: string): PrintDoc {
     title: 'Supplier khata',
     subtitle: st.supplier.name,
     meta: [
-      ['Muddat', period],
+      ['Period', period],
       ...(st.supplier.phone ? [['Phone', st.supplier.phone] as [string, string]] : []),
       ['Abhi dena hai', formatPKR(st.supplier.outstandingDue)],
     ],
     sections: [
       {
         kind: 'table',
-        columns: [{ label: 'Tareekh' }, { label: 'Tafseel' }, { label: 'Dena barha', align: 'right' }, { label: 'Diye / kam', align: 'right' }, { label: 'Baqi', align: 'right' }],
+        columns: [{ label: 'Date' }, { label: 'Details' }, { label: 'Dena barha', align: 'right' }, { label: 'Diye / kam', align: 'right' }, { label: 'Baqi', align: 'right' }],
         rows: rows.map((e) => {
           const d = entryDelta(e);
           return [day(e.entryDate), `${ledgerMeta(e.type).label}${e.reference ? ` · ${e.reference}` : ''}${e.note ? ` — ${e.note}` : ''}`, d > 0 ? formatPKR(d) : '', d < 0 ? formatPKR(-d) : '', formatPKR(e.balanceAfter)];
         }),
-        footer: ['', 'Is muddat me', formatPKR(st.totals.added), formatPKR(st.totals.paid), ''],
+        footer: ['', 'Is period me', formatPKR(st.totals.added), formatPKR(st.totals.paid), ''],
       },
       { kind: 'rows', rows: [{ label: 'Abhi dena hai', value: formatPKR(st.supplier.outstandingDue), strong: true }] },
     ],
@@ -65,7 +65,7 @@ export function suppliersDoc(items: Supplier[]): PrintDoc {
     meta: [['Suppliers', String(items.length)], ['Kul dena hai', formatPKR(due)]],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Naam' }, { label: 'Phone', wideOnly: true }, { label: 'Shehar', wideOnly: true }, { label: 'Kul kharidari', align: 'right', wideOnly: true }, { label: 'Dena hai', align: 'right' }],
+      columns: [{ label: 'Naam' }, { label: 'Phone', wideOnly: true }, { label: 'Shehar', wideOnly: true }, { label: 'Kul purchase', align: 'right', wideOnly: true }, { label: 'Dena hai', align: 'right' }],
       rows: items.map((x) => [x.name, x.phone ?? '', x.city ?? '', formatPKR(x.totalPurchased), formatPKR(x.outstandingDue)]),
       footer: ['Kul', '', '', '', formatPKR(due)],
     }],

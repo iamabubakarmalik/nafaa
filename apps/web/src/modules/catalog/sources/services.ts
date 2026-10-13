@@ -83,7 +83,7 @@ export const gymPlansSource: CatalogSource = {
           ...(p.includesPersonalTraining ? [{ label: `${p.personalTrainingSessions} PT`, tone: 'violet' as const }] : []),
         ],
         specs: specs([
-          ['Muddat', `${p.durationDays} din`],
+          ['Period', `${p.durationDays} din`],
           ['Waqt', p.accessAllHours ? '24 ghante' : p.accessTimeStart && p.accessTimeEnd ? `${p.accessTimeStart} – ${p.accessTimeEnd}` : null],
           ['Din', p.accessDays?.length && p.accessDays.length < 7 ? p.accessDays.map((d) => DAYS[d] ?? d).join(', ') : null],
           ['Admission fee', p.registrationFee > 0 ? formatPKR(p.registrationFee) : null],

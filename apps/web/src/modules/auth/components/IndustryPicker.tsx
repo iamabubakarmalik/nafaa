@@ -36,8 +36,8 @@ export function IndustryPicker({ choices, value, onChange, error, label = 'Aap k
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Dhoondein: pharmacy, kapre, mobile…"
-            aria-label="Kaam dhoondein"
+            placeholder="Search: pharmacy, kapre, mobile…"
+            aria-label="Kaam search"
             autoFocus
             className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           />

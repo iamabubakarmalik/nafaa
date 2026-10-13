@@ -143,7 +143,7 @@ export default function NotificationsPage() {
     title: 'Notifications',
     subtitle: `${GROUPS.find((g) => g.id === group)?.label} · ${label}`,
     meta: [['Kul', String(items.length)], ['Bina parhe', String(items.filter((n) => !n.isRead).length)]],
-    sections: [{ kind: 'table', columns: [{ label: 'Waqt' }, { label: 'Notification' }, { label: 'Tafseel', wideOnly: true }], rows: items.map((n) => [stamp(n.createdAt), n.title, n.message]) }],
+    sections: [{ kind: 'table', columns: [{ label: 'Waqt' }, { label: 'Notification' }, { label: 'Details', wideOnly: true }], rows: items.map((n) => [stamp(n.createdAt), n.title, n.message]) }],
   });
   const allPicked = items.length > 0 && items.every((n) => picked.has(n.id));
 
@@ -178,7 +178,7 @@ export default function NotificationsPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Notification me dhoondein…" label="Notification dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Notification me search…" label="Notification search" />}
         chips={hasFilters ? <>
           {read !== 'all' && <FilterChip onRemove={() => setRead('all')}>Bina parhe</FilterChip>}
           {range.preset !== 'all' && <FilterChip onRemove={() => setRange(ALL_TIME)}>{label}</FilterChip>}
@@ -215,7 +215,7 @@ export default function NotificationsPage() {
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><BellOff className="h-7 w-7" /></span>
           <h3 className="mt-4 text-lg font-semibold text-slate-900">{hasFilters || group !== 'all' ? 'Is filter me koi notification nahi' : 'Koi notification nahi'}</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">{read === 'unread' ? 'Sab parh li gayi hain' : 'Nayi bikri, kam stock, online order ya din ka hisaab aaye ga to yahan dikhega'}</p>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{read === 'unread' ? 'Sab parh li gayi hain' : 'Nayi sale, kam stock, online order ya din ka hisaab aaye ga to yahan dikhega'}</p>
           {(hasFilters || group !== 'all') && <Button className="mt-4" variant="secondary" onClick={() => { clear(); setGroup('all'); }}>Filter hatayein</Button>}
         </div>
       ) : (
@@ -246,7 +246,7 @@ export default function NotificationsPage() {
       {guide.isOpen && (
         <PageGuide title="Notifications — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Inbox, color: '#2563eb', title: 'Tabs', text: 'Din ka hisaab, bikri, online orders, stock aur alerts alag alag. Har tab par ginti likhi hai.' },
+            { icon: Inbox, color: '#2563eb', title: 'Tabs', text: 'Din ka hisaab, sale, online orders, stock aur alerts alag alag. Har tab par ginti likhi hai.' },
             { icon: MousePointerClick, color: '#16a34a', title: 'Kholein', text: 'Notification par click karein — us ka page khul jata hai aur woh parhi hui ho jati hai.' },
             { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp', text: 'Din ke hisaab par WhatsApp ka button hota hai — ek click me malik ya partner ko bhej dein.' },
             { icon: Eye, color: '#7c3aed', title: 'Parha / bina parha', text: 'Aankh ke button se parhi ya bina parhi karein. Upar "Sab parh liye" se sab ek saath.' },

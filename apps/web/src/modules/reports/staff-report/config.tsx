@@ -23,8 +23,8 @@ const CONFIGS: Record<string, Omit<StaffReportConfig, 'label'> & { label?: strin
   retail: { person: 'Cashier', tips: ['Rush ke ghanton me (heatmap me gehra rang) do counter chalayein — bill jaldi bante hain.'] },
   restaurant: {
     label: 'Restaurant', person: 'Waiter',
-    tips: ['POS par "kis ke naam" me waiter chunein — warna bikri cashier ke naam lagti hai.'],
-    guide: [step(ChefHat, '#ea580c', 'Waiter ki bikri', 'Har bill par waiter chuna ho to us ki bikri, ausat bill aur rush ke ghante yahan alag dikhte hain.')],
+    tips: ['POS par "kis ke naam" me waiter chunein — warna sale cashier ke naam lagti hai.'],
+    guide: [step(ChefHat, '#ea580c', 'Waiter ki sale', 'Har bill par waiter chuna ho to us ki sale, ausat bill aur rush ke ghante yahan alag dikhte hain.')],
   },
   salon: {
     label: 'Salon', person: 'Stylist',
@@ -32,7 +32,7 @@ const CONFIGS: Record<string, Omit<StaffReportConfig, 'label'> & { label?: strin
   },
   garments: {
     label: 'Garments', person: 'Salesman',
-    guide: [step(Shirt, '#7c3aed', 'Salesman ki bikri', 'Counter par bill koi bhi banaye, "kis ke naam" me salesman chunein to bikri usi ki ginti hai.')],
+    guide: [step(Shirt, '#7c3aed', 'Salesman ki sale', 'Counter par bill koi bhi banaye, "kis ke naam" me salesman chunein to sale usi ki ginti hai.')],
   },
   shoe: { label: 'Shoes', person: 'Salesman' },
   mobile: { label: 'Mobile', person: 'Salesman' },

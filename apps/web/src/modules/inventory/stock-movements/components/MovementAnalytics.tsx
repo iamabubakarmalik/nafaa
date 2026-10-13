@@ -34,7 +34,7 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
       <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
         <TrendingUp className="mx-auto h-10 w-10 text-slate-300" />
         <p className="mt-3 font-semibold text-slate-900">Is filter me stock ka koi aana jana nahi</p>
-        <p className="mt-1 text-sm text-slate-500">Muddat lambi karein ya filter hatayein</p>
+        <p className="mt-1 text-sm text-slate-500">Period lambi karein ya filter hatayein</p>
       </div>
     );
   }
@@ -47,9 +47,9 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Boxes} label="Entries" value={t.count.toLocaleString('en-PK')} sub={`${data.byType.length} qism ki`} />
-        <Kpi icon={ArrowDownRight} label="Maal aaya (cost)" value={money(t.valueIn)} tone="emerald" sub="Kharidari, wapsi, transfer aaya…" />
-        <Kpi icon={ArrowUpRight} label="Maal gaya (cost)" value={money(t.valueOut)} tone="rose" sub="Bikri, kharab, transfer gaya…" />
+        <Kpi icon={Boxes} label="Entries" value={t.count.toLocaleString('en-PK')} sub={`${data.byType.length} type ki`} />
+        <Kpi icon={ArrowDownRight} label="Maal aaya (cost)" value={money(t.valueIn)} tone="emerald" sub="Purchase, return, transfer aaya…" />
+        <Kpi icon={ArrowUpRight} label="Maal gaya (cost)" value={money(t.valueOut)} tone="rose" sub="Sale, kharab, transfer gaya…" />
         <Kpi icon={Scale} label="Farq" value={money(t.net)} tone={t.net >= 0 ? 'emerald' : 'rose'} sub={t.net >= 0 ? 'Stock ki value barhi' : 'Stock ki value ghati'} />
       </div>
 
@@ -70,7 +70,7 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-5">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Qism war</span>} description="Kis wajah se kitna maal hila">
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Type war</span>} description="Kis wajah se kitna maal hila">
           <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -94,7 +94,7 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
           </ul>
         </Card>
 
-        <Card className="rounded-2xl lg:col-span-3" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada hilne wala maal</span>} description="Miqdar aaya / gaya, aur kul cost value">
+        <Card className="rounded-2xl lg:col-span-3" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada hilne wala maal</span>} description="Quantity aaya / gaya, aur kul cost value">
           {!data.topMovers.length ? <Empty text="Koi cheez nahi" /> : (
             <ul className="space-y-3">
               {data.topMovers.map((m, i) => (

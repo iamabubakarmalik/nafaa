@@ -57,12 +57,12 @@ export function useCommission(period: string) {
   });
   const pay = useMutation({
     mutationFn: (a: { userId: string; amount: number; expectedPaid: number; note?: string }) => commissionApi.pay({ ...a, period }),
-    onSuccess: () => done('Adaigi likh di'),
-    onError: failed('Adaigi nahi likhi gayi'),
+    onSuccess: () => done('Payment likh di'),
+    onError: failed('Payment nahi likhi gayi'),
   });
   const undoPay = useMutation({
     mutationFn: (userId: string) => commissionApi.undoPay(userId, period),
-    onSuccess: () => done('Adaigi wapas le li'),
+    onSuccess: () => done('Payment wapas le li'),
     onError: failed('Nahi hua'),
   });
 

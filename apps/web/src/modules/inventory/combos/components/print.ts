@@ -22,7 +22,7 @@ export function combosDoc(list: ProductCombo[], filter: string, showCost: boolea
       kind: 'table',
       columns: [
         { label: 'Combo' }, { label: 'Cheezein', wideOnly: true }, { label: 'Qeemat', align: 'right' }, { label: 'Bachat', align: 'right', wideOnly: true },
-        ...(showCost ? [{ label: 'Munafa', align: 'right' as const, wideOnly: true }] : []),
+        ...(showCost ? [{ label: 'Profit', align: 'right' as const, wideOnly: true }] : []),
         { label: 'Ban sakte', align: 'right' }, { label: 'Haal', wideOnly: true },
       ],
       rows: list.map((c) => [
@@ -32,7 +32,7 @@ export function combosDoc(list: ProductCombo[], filter: string, showCost: boolea
         c.savingsAmount > 0 ? `${formatPKR(c.savingsAmount)} (${Math.round(c.savingsPercentage)}%)` : '—',
         ...(showCost ? [c.profit !== undefined ? formatPKR(c.profit) : '—'] : []),
         String(c.available ?? '—'),
-        c.expired ? 'Muddat khatam' : STATUS[c.status].label,
+        c.expired ? 'Period khatam' : STATUS[c.status].label,
       ]),
     }],
   };
@@ -45,14 +45,14 @@ export function comboSheet(c: ProductCombo, showCost: boolean, branch: string): 
     meta: [
       ['Qeemat', formatPKR(c.comboPrice)],
       ...(c.barcode ? [['Barcode', c.barcode] as [string, string]] : []),
-      ['Muddat', validity(c)],
+      ['Period', validity(c)],
       ['Branch', branch],
     ],
     sections: [
       {
         kind: 'table',
         title: 'Is combo me',
-        columns: [{ label: 'Cheez' }, { label: 'Miqdar', align: 'right' }, { label: 'Alag qeemat', align: 'right' }, { label: 'Stock', align: 'right', wideOnly: true }],
+        columns: [{ label: 'Cheez' }, { label: 'Quantity', align: 'right' }, { label: 'Alag qeemat', align: 'right' }, { label: 'Stock', align: 'right', wideOnly: true }],
         rows: c.items.map((i) => [
           `${i.product?.name ?? ''}${i.variant ? ` (${i.variant.name})` : ''}`,
           partQty(i),
@@ -68,13 +68,13 @@ export function comboSheet(c: ProductCombo, showCost: boolean, branch: string): 
           { label: 'Combo ki qeemat', value: formatPKR(c.comboPrice), strong: true },
           { label: 'Customer ki bachat', value: `${formatPKR(c.savingsAmount)} (${Math.round(c.savingsPercentage)}%)` },
           ...(showCost && c.cost !== undefined ? [
-            { label: 'Lagat', value: formatPKR(c.cost) },
-            { label: 'Munafa', value: `${formatPKR(c.profit ?? 0)} (${Math.round(c.margin ?? 0)}%)` },
+            { label: 'Cost', value: formatPKR(c.cost) },
+            { label: 'Profit', value: `${formatPKR(c.profit ?? 0)} (${Math.round(c.margin ?? 0)}%)` },
           ] : []),
           { label: 'Stock se ban sakte', value: String(c.available ?? '—') },
         ],
       },
-      ...(c.description ? [{ kind: 'text' as const, title: 'Tafseel', text: c.description }] : []),
+      ...(c.description ? [{ kind: 'text' as const, title: 'Details', text: c.description }] : []),
     ],
   };
 }

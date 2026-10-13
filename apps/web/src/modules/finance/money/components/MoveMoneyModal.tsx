@@ -18,7 +18,7 @@ import { KINDS, MONEY_KEY, apiError, newRequestId } from './meta';
 export const DRAWER = 'DRAWER';
 
 const REASONS = {
-  toAccount: ['Bank me jama karaya', 'Din ki bikri jama', 'Tijori me rakha'],
+  toAccount: ['Bank me jama karaya', 'Din ki sale jama', 'Tijori me rakha'],
   toDrawer: ['Khulle paise laye', 'Bank se nikal kar laye', 'Tijori se nikala'],
   between: ['Wallet se bank me', 'Bank se wallet me', 'Card machine ka paisa aaya', 'Doosri branch ko'],
 };
@@ -61,7 +61,7 @@ export function MoveMoneyModal({ accounts, drawer, allShops, canDrawer, from: in
   const errors = {
     from: !from ? 'Kahan se chunein' : undefined,
     to: !to ? 'Kahan chunein' : from === to ? 'Dono taraf alag chunein' : undefined,
-    amount: value <= 0 ? 'Raqam likhein' : short && !allowNegative ? 'Itna paisa nahi hai' : undefined,
+    amount: value <= 0 ? 'Amount likhein' : short && !allowNegative ? 'Itna paisa nahi hai' : undefined,
     reason: reason.trim().length < 2 ? 'Wajah likhein ya neeche se chunein' : undefined,
   };
   const ok = !errors.from && !errors.to && !errors.amount && !errors.reason;
@@ -115,7 +115,7 @@ export function MoveMoneyModal({ accounts, drawer, allShops, canDrawer, from: in
               error={tried ? errors.to : undefined} />
           </div>
 
-          <Input label="Raqam" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
+          <Input label="Amount" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
             onChange={(e) => setAmount(e.target.value)} placeholder="0" size="lg" error={tried ? errors.amount : undefined} />
 
           {from && to && from !== to && (

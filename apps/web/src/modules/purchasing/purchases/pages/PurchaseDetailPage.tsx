@@ -54,7 +54,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
   };
 
   if (q.isLoading) return <div className="flex justify-center py-24"><div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" /></div>;
-  if (!p) return <div className="py-20 text-center"><p className="font-semibold text-slate-900">Kharidari nahi mili</p><Button className="mt-4" variant="secondary" onClick={() => navigate('/purchases')}>Wapas</Button></div>;
+  if (!p) return <div className="py-20 text-center"><p className="font-semibold text-slate-900">Purchase nahi mili</p><Button className="mt-4" variant="secondary" onClick={() => navigate('/purchases')}>Wapas</Button></div>;
 
   const st = STATUS[p.status];
   const open = p.status === 'PENDING' || p.status === 'PARTIAL';
@@ -94,7 +94,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
         <div className="min-w-0 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
           <table className="w-full min-w-[42rem] text-sm">
             <thead className="bg-slate-50 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-              <tr><th className="px-3 py-2">Cheez</th><th className="px-3 py-2 text-right">Miqdar</th><th className="px-3 py-2 text-right">Rate</th><th className="px-3 py-2 text-right">Raqam</th><th className="px-3 py-2 text-right">Halat</th></tr>
+              <tr><th className="px-3 py-2">Cheez</th><th className="px-3 py-2 text-right">Quantity</th><th className="px-3 py-2 text-right">Rate</th><th className="px-3 py-2 text-right">Amount</th><th className="px-3 py-2 text-right">Halat</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {p.items.map((i) => {
@@ -131,7 +131,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
             <p className="font-semibold text-slate-900">{p.supplier.name}</p>
             {p.supplier.phone && <p className="mt-0.5 flex items-center gap-1 text-[0.8125rem] text-slate-600"><Phone className="h-3.5 w-3.5" /> {p.supplier.phone}</p>}
             {p.supplierInvoiceNo && <p className="mt-1 text-[0.8125rem] text-slate-600">Supplier ka bill # {p.supplierInvoiceNo}</p>}
-            <p className="mt-2 text-[0.8125rem] font-medium text-brand-700">Khata aur adaigi →</p>
+            <p className="mt-2 text-[0.8125rem] font-medium text-brand-700">Khata aur payment →</p>
           </Link>
 
           <div className="space-y-1.5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
@@ -173,7 +173,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
 
           {!!p.returns?.length && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Wapsi</p>
+              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Return</p>
               {p.returns.map((r) => (
                 <div key={r.id} className="flex justify-between border-t border-slate-100 py-1.5 text-[0.8125rem] first:border-0">
                   <span className="text-slate-600">{r.returnNumber} · {day(r.createdAt)}{r.reason ? ` · ${r.reason}` : ''}</span>
@@ -189,9 +189,9 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
         <PageGuide title="Is bill par kya kar sakte hain" onClose={guide.close}
           steps={[
             { icon: PackageCheck, color: '#16a34a', title: 'Maal aaya', text: 'Order ka maal aaye to "Maal aaya" — har cheez ki aayi hui miqdar likhein. Aadha aaye to aadha; baqi baad me, ya "order band karein".' },
-            { icon: RotateCcw, color: '#d97706', title: 'Maal wapas', text: 'Kharab ya ghalat maal supplier ko lautaayein: stock kam hoga aur supplier ka dena utni raqam se ghat jayega.' },
-            { icon: Ban, color: '#dc2626', title: 'Cancel', text: 'Ghalat bill ho to cancel karein — aaya hua maal stock se nikal jayega aur khata ulat jayega. Wapsi ho chuki ho to cancel nahi, baqi maal wapas karein.' },
-            { icon: BookOpen, color: '#2563eb', title: 'Supplier ka khata', text: 'Supplier par click karein — wahan adaigi darj karein aur poora khata dekhein.' },
+            { icon: RotateCcw, color: '#d97706', title: 'Maal wapas', text: 'Kharab ya ghalat maal supplier ko lautaayein: stock kam hoga aur supplier ka dena utni amount se ghat jayega.' },
+            { icon: Ban, color: '#dc2626', title: 'Cancel', text: 'Ghalat bill ho to cancel karein — aaya hua maal stock se nikal jayega aur khata ulat jayega. Return ho chuki ho to cancel nahi, baqi maal wapas karein.' },
+            { icon: BookOpen, color: '#2563eb', title: 'Supplier ka khata', text: 'Supplier par click karein — wahan payment darj karein aur poora khata dekhein.' },
           ]}
           tips={['"Print / invoice" me chunein: bill, order ya maal wusooli; A4 ya thermal; rates chhupayein, supplier ka bank, hamare accounts, dastkhat — saath preview.', 'Har line par likha hai kis unit me aaya aur stock me kitna gaya (misaal: 4 carton = 48 pcs).']}
           shortcuts={[['G', 'guide']]}
@@ -221,7 +221,7 @@ function QtyLines({ p, max, qty, setQty }: { p: Purchase; max: (i: PurchaseItem)
               <p className="truncate text-sm font-medium text-slate-900">{nameOf(i)}</p>
               <p className="text-[0.75rem] text-slate-500">Zyada se zyada {q3(m)} {i.unitName}</p>
             </div>
-            <input type="number" min={0} max={m} step="any" value={qty[i.id] ?? ''} placeholder="0" aria-label={`${nameOf(i)} miqdar`}
+            <input type="number" min={0} max={m} step="any" value={qty[i.id] ?? ''} placeholder="0" aria-label={`${nameOf(i)} quantity`}
               onChange={(e) => setQty({ ...qty, [i.id]: Math.min(Math.max(Number(e.target.value) || 0, 0), m) })}
               className="h-9 w-24 rounded-lg border border-slate-200 px-2 text-right text-sm font-semibold tabular-nums outline-none focus:border-brand-500" />
             <span className="w-12 text-[0.75rem] text-slate-500">{i.unitName}</span>

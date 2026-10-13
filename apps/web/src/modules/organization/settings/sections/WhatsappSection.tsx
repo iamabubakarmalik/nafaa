@@ -81,7 +81,7 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
   return (
     <SectionCard
       title="💬 WhatsApp Paighaam"
-      desc="Apne alfaaz me likhein — bhejte waqt yehi paighaam khulega"
+      desc="Apne in words likhein — bhejte waqt yehi paighaam khulega"
       icon={MessageCircle}
       color="emerald"
     >
@@ -109,7 +109,7 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Likhne ki jagah */}
         <div className="space-y-2">
-          <Field label={`${meta.emoji} ${meta.label} ka paighaam`} hint="apne alfaaz me">
+          <Field label={`${meta.emoji} ${meta.label} ka paighaam`} hint="apne in words">
             <textarea
               value={drafts[active]}
               onChange={(e) => setDrafts((d) => ({ ...d, [active]: e.target.value }))}
@@ -162,7 +162,7 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
           </div>
 
           <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-            Ye misal ke a'daad hain — asal me har customer ke apne naam aur raqam aayenge.
+            Ye misal ke a'daad hain — asal me har customer ke apne naam aur amount aayenge.
           </div>
 
           {/* Khud par test */}

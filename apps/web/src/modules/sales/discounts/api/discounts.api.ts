@@ -90,7 +90,7 @@ async function validateOffline(code: string, amount: number, shopId?: string | n
   if (!dc) throw new Error('Yeh code nahi chalta');
   const now = Date.now();
   if (dc.validFrom && now < new Date(dc.validFrom).getTime()) throw new Error('Yeh code abhi shuru nahi hua');
-  if (dc.validUntil && now > new Date(dc.validUntil).getTime()) throw new Error('Is code ki muddat khatam ho gayi');
+  if (dc.validUntil && now > new Date(dc.validUntil).getTime()) throw new Error('Is code ki period khatam ho gayi');
   if (dc.usageLimit && dc.usageCount >= dc.usageLimit) throw new Error('Is code ki had poori ho chuki hai');
   if (dc.shopIds?.length && shopId && !dc.shopIds.includes(shopId)) throw new Error('Yeh code is branch par nahi chalta');
   if (amount < dc.minPurchase) throw new Error(`Kam se kam Rs ${dc.minPurchase} ki khareedari par chalta hai`);

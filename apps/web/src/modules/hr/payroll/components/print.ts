@@ -58,7 +58,7 @@ export function runSheetDoc(sheet: RunSheet, edits: Record<string, RunEdit>, bra
           { label: 'Advance kata', value: formatPKR(t.advance) },
           { label: 'Ada ho gaya', value: formatPKR(t.paid) },
           { label: 'Abhi dena hai', value: formatPKR(t.due), strong: true },
-          ...(t.salesPct != null ? [{ label: `Bikri ${formatPKR(t.sales)} ka hissa`, value: `${t.salesPct}%` }] : []),
+          ...(t.salesPct != null ? [{ label: `Sale ${formatPKR(t.sales)} ka hissa`, value: `${t.salesPct}%` }] : []),
         ],
       },
     ],
@@ -69,7 +69,7 @@ export function runSheetDoc(sheet: RunSheet, edits: Record<string, RunEdit>, bra
 export function runSheetCsv(sheet: RunSheet, edits: Record<string, RunEdit>, branch: string) {
   const lines = sheetLines(sheet, edits);
   downloadCsv(`tankhwah-${sheet.month}.csv`, [[`Tankhwah ${sheet.label}`], [branch]],
-    ['Staff', 'Number', 'Ohda', 'Qism', 'Hazir/ghair', 'Tankhwah', 'Izafa', 'Katauti', 'Net', 'Ada', 'Baqi', 'Haal', 'Record'],
+    ['Staff', 'Number', 'Ohda', 'Type', 'Hazir/ghair', 'Tankhwah', 'Izafa', 'Katauti', 'Net', 'Ada', 'Baqi', 'Haal', 'Record'],
     lines.map((l) => [l.name, l.staffNo, l.job, l.type, l.days, l.base, l.plus, l.minus, l.net, l.paid, l.due, l.state, l.number]));
 }
 
@@ -94,7 +94,7 @@ export function historyDoc(page: HistoryPage, filter: string): PrintDoc {
 
 export function historyCsv(page: HistoryPage, filter: string) {
   downloadCsv(`tankhwah-record-${new Date().toISOString().slice(0, 10)}.csv`, [['Tankhwah ka record'], [filter || 'Sab record']],
-    ['Mahina', 'Number', 'Staff', 'Qism', 'Kul kamai', 'Katauti', 'Net', 'Ada', 'Baqi', 'Kaise', 'Haal', 'Tareekh'],
+    ['Mahina', 'Number', 'Staff', 'Type', 'Kul kamai', 'Katauti', 'Net', 'Ada', 'Baqi', 'Kaise', 'Haal', 'Date'],
     page.items.map((r) => [
       r.monthLabel, r.paymentNumber, r.staff.fullName, r.kind === 'advance' ? 'Advance' : 'Tankhwah', r.grossAmount, r.totalDeductions,
       r.kind === 'advance' ? r.paidAmount : r.netAmount, r.paidAmount, r.balanceAmount, METHOD_LABEL[r.paymentMethod] ?? r.paymentMethod,

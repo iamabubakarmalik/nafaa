@@ -38,7 +38,7 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
         )}
       </SectionCard>
 
-      <SectionCard title="Loyalty points" desc="Khareedari par points, agle bill par chhoot" icon={Award} color="rose" badge={onOff(draft.enableLoyalty)}
+      <SectionCard title="Loyalty points" desc="Khareedari par points, agle bill par discount" icon={Award} color="rose" badge={onOff(draft.enableLoyalty)}
         action={<Link to="/loyalty" className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-brand-700 hover:underline">Members <ArrowRight className="h-3.5 w-3.5" /></Link>}>
         <Toggle checked={draft.enableLoyalty} onChange={(v) => set('enableLoyalty', v)} icon={Sparkles}
           label="Loyalty points" desc="Customer wale har bill par points jurte hain" />
@@ -49,7 +49,7 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
               <Field label="Har rupay par points" hint="0.01 = har Rs 100 par 1 point">
                 <NumberInput value={draft.loyaltyPointsPerRupee} onChange={(v) => set('loyaltyPointsPerRupee', v)} min={0} step={0.01} suffix="pts" />
               </Field>
-              <Field label="1 point ki qeemat" hint="Bill par kitne rupay ki chhoot">
+              <Field label="1 point ki qeemat" hint="Bill par kitne rupay ki discount">
                 <NumberInput value={draft.loyaltyRedemptionRate} onChange={(v) => set('loyaltyRedemptionRate', v)} min={0} step={0.5} prefix="Rs" />
               </Field>
               <Field label="Kam se kam points" hint="Is se kam ek bill par istemal nahi honge (0 = koi bhi)">
@@ -59,7 +59,7 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
                 <NumberInput value={draft.loyaltyMaxRedeemPercent ?? 100} onChange={(v) => set('loyaltyMaxRedeemPercent', v)} min={1} max={100} suffix="%" />
               </Field>
             </div>
-            <Divider label="Muddat" />
+            <Divider label="Period" />
             <Field label="Points kab khatam hon" hint="Kamane ke itne din baad purane points khatam (0 = kabhi nahi)">
               <NumberInput value={draft.loyaltyExpiryDays ?? 0} onChange={(v) => set('loyaltyExpiryDays', v)} min={0} max={3650} suffix="din" />
             </Field>

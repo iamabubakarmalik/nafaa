@@ -20,7 +20,7 @@ export function StaffBills({ date, staffId, name, m, onClose }: { date: string; 
       {q.isLoading ? (
         <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
       ) : q.isError ? (
-        <Empty icon={Receipt} text="Bill load nahi hue" hint="Bikri ka record dekhne ki ijazat chahiye" />
+        <Empty icon={Receipt} text="Bill load nahi hue" hint="Sale ka record dekhne ki permission chahiye" />
       ) : !q.data?.items.length ? (
         <Empty icon={Receipt} text="Koi bill nahi" />
       ) : (
@@ -33,7 +33,7 @@ export function StaffBills({ date, staffId, name, m, onClose }: { date: string; 
                     {s.saleNumber}
                     {s.status === 'VOIDED' && <Tag tone="rose">Void</Tag>}
                     {s.creditAmount > 0 && s.status !== 'VOIDED' && <Tag tone="amber">Udhaar</Tag>}
-                    {s.refundedAmount > 0 && <Tag tone="slate">Wapsi</Tag>}
+                    {s.refundedAmount > 0 && <Tag tone="slate">Return</Tag>}
                   </span>
                   <span className="block truncate text-[0.6875rem] text-slate-500">
                     {clock(s.soldAt)} · {s.customer?.name ?? 'Walk-in'} · {s.items.length} cheezein · {method(s.paymentMethod)}

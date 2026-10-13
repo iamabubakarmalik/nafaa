@@ -49,8 +49,8 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
   const cash = kind === 'CASH';
   const errors = {
     name: name.trim().length < 2 ? 'Naam likhein' : undefined,
-    opening: opening && Number.isNaN(Number(opening)) ? 'Sahi raqam likhein' : undefined,
-    date: openingDate > today() ? 'Aage ki tareekh nahi chalti' : undefined,
+    opening: opening && Number.isNaN(Number(opening)) ? 'Sahi amount likhein' : undefined,
+    date: openingDate > today() ? 'Aage ki date nahi chalti' : undefined,
   };
   const ok = !errors.name && !errors.opening && !errors.date;
 
@@ -98,7 +98,7 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
         <Button loading={save.isPending} onClick={submit}>{editing ? 'Save karein' : 'Account banayein'}</Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <div role="radiogroup" aria-label="Qism" className="grid grid-cols-3 gap-2">
+        <div role="radiogroup" aria-label="Type" className="grid grid-cols-3 gap-2">
           {KIND_IDS.map((k) => {
             const m = KINDS[k];
             return (
@@ -119,11 +119,11 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
         {!cash && <>
           <Select label="Kaunsi payment yahan aati hai?" value={method} onChange={(e) => setMethod(e.target.value as '' | MoneyAccount)}
             placeholder="Koi nahi (sirf haath ki entries)" options={METHODS}
-            hint={method ? `${ACCOUNTS[method].label} wali bikri, kharch aur adaigi is account me gini ja sakti hai` : 'Sirf transfer aur jama/nikala se chalega'} />
+            hint={method ? `${ACCOUNTS[method].label} wali sale, kharch aur payment is account me gini ja sakti hai` : 'Sirf transfer aur jama/nikala se chalega'} />
           {method && (
             <Switch checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)}
               label={`${ACCOUNTS[method].label} ka default account`}
-              description="On ho to is tareeqe ki har bikri, wapsi, kharch aur adaigi khud is account me judti hai. Ek branch me ek hi default hota hai." />
+              description="On ho to is tareeqe ki har sale, return, kharch aur payment khud is account me judti hai. Ek branch me ek hi default hota hai." />
           )}
           <div className="grid gap-3 sm:grid-cols-2">
             <Input label={kind === 'BANK' ? 'Bank ka naam' : 'Company'} value={bankName} onChange={(e) => setBankName(e.target.value)} maxLength={60}
@@ -140,8 +140,8 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <Input label="Shuru ka balance" type="number" inputMode="decimal" step="any" value={opening} onChange={(e) => setOpening(e.target.value)}
-            placeholder="0" error={tried ? errors.opening : undefined} hint="Shuru ki tareekh par account me kitna tha" />
-          <Input label="Shuru ki tareekh" type="date" value={openingDate} max={today()} onChange={(e) => setOpeningDate(e.target.value)}
+            placeholder="0" error={tried ? errors.opening : undefined} hint="Shuru ki date par account me kitna tha" />
+          <Input label="Shuru ki date" type="date" value={openingDate} max={today()} onChange={(e) => setOpeningDate(e.target.value)}
             error={tried ? errors.date : undefined} hint="Is din se aage ka hisaab judega" />
         </div>
 

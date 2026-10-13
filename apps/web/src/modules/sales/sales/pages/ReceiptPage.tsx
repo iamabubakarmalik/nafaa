@@ -161,7 +161,7 @@ export default function ReceiptPage() {
             <dl className="mt-3 space-y-1.5 text-sm">
               <Row k="Mila" v={formatPKR(doc.paid)} />
               {due > 0 && <Row k="Udhaar" v={formatPKR(due)} tone="text-amber-700" />}
-              {doc.discount > 0 && <Row k="Chhoot" v={formatPKR(doc.discount)} />}
+              {doc.discount > 0 && <Row k="Discount" v={formatPKR(doc.discount)} />}
               <Row k="Cheezein" v={String(doc.lines.length)} />
               {doc.cashierName && <Row k="Cashier" v={doc.cashierName} />}
               {doc.branchName && <Row k="Branch" v={doc.branchName} />}
@@ -175,7 +175,7 @@ export default function ReceiptPage() {
             <Action icon={<FileDown className="h-4 w-4" />} label="PDF save karein" hint="Print me 'Save as PDF'" onClick={() => printReceipt(doc, { paper: 'A4', setup, copies: 1 })} />
             <Action icon={<Copy className="h-4 w-4" />} label="Link copy" onClick={copyLink} />
             {data.actions.map((a) => <Action key={a.key} icon={<Wrench className="h-4 w-4" />} label={a.label} onClick={a.run} />)}
-            {!isJewelry && !voided && canReturn && <Action icon={<RotateCcw className="h-4 w-4 text-amber-600" />} label="Wapsi (return)" onClick={() => setReturning(true)} disabled={offline} />}
+            {!isJewelry && !voided && canReturn && <Action icon={<RotateCcw className="h-4 w-4 text-amber-600" />} label="Return (return)" onClick={() => setReturning(true)} disabled={offline} />}
             {!isJewelry && !voided && canVoid && <Action icon={<Ban className="h-4 w-4 text-rose-600" />} label="Bill cancel karein" onClick={() => setVoiding(true)} disabled={offline} danger />}
           </div>
 

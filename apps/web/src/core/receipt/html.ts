@@ -150,7 +150,7 @@ function tMeta({ doc, setup }: Ctx) {
   const d = setup.design;
   const rows: ReceiptRowDoc[] = [
     { label: 'Bill #', value: doc.saleNumber, bold: true },
-    { label: 'Tareekh', value: when(doc.date) },
+    { label: 'Date', value: when(doc.date) },
     ...(d.showCustomer && doc.customerName ? [{ label: 'Customer', value: doc.customerPhone ? `${doc.customerName} (${doc.customerPhone})` : doc.customerName }] : []),
     ...(d.showCashier && doc.cashierName ? [{ label: 'Cashier', value: doc.cashierName }] : []),
     ...(doc.infoRows ?? []),
@@ -164,7 +164,7 @@ function tItems({ doc, setup }: Ctx) {
     <div class="item">
       <div class="iname">${d.showItemNumbers ? `${i + 1}. ` : ''}${esc(l.name)}</div>
       <div class="row"><span class="iq">${esc(l.qty)} ${esc(l.unit)}${doc.hidePrices ? '' : ` × ${money(l.price)}`}</span>${doc.hidePrices ? '' : `<span class="b">${money(l.total)}</span>`}</div>
-      ${l.discount ? `<div class="row small"><span>Chhoot</span><span>−${money(l.discount)}</span></div>` : ''}
+      ${l.discount ? `<div class="row small"><span>Discount</span><span>−${money(l.discount)}</span></div>` : ''}
       ${l.note ? `<div class="inote">↳ ${esc(l.note)}</div>` : ''}
       ${d.showItemDetails && l.details?.length ? l.details.map((x) => `<div class="idet">${esc(x)}</div>`).join('') : ''}
     </div>`).join('')}</section>`;
@@ -173,8 +173,8 @@ function tItems({ doc, setup }: Ctx) {
 function totalRows(doc: ReceiptDoc): ReceiptRowDoc[] {
   const qty = doc.lines.reduce((s, l) => s + (Number(l.qty) || 0), 0);
   return [
-    { label: `Items ${doc.lines.length}${qty !== doc.lines.length ? ` · Miqdar ${Number(qty.toFixed(2))}` : ''}`, value: money(doc.subtotal) },
-    ...(doc.discount > 0 ? [{ label: 'Chhoot', value: `−${money(doc.discount)}` }] : []),
+    { label: `Items ${doc.lines.length}${qty !== doc.lines.length ? ` · Quantity ${Number(qty.toFixed(2))}` : ''}`, value: money(doc.subtotal) },
+    ...(doc.discount > 0 ? [{ label: 'Discount', value: `−${money(doc.discount)}` }] : []),
     ...((doc.deliveryCharge ?? 0) > 0 ? [{ label: 'Delivery', value: `+${money(doc.deliveryCharge!)}` }] : []),
     ...(doc.extraRows ?? []),
   ];
@@ -207,7 +207,7 @@ function tTotals(ctx: Ctx) {
   const { doc, setup } = ctx;
   if (doc.hidePrices) {
     const qty = doc.lines.reduce((s, l) => s + (Number(l.qty) || 0), 0);
-    return `<section class="sum">${rowsHtml([{ label: 'Kul cheezein', value: String(doc.lines.length), bold: true }, { label: 'Kul miqdar', value: String(Number(qty.toFixed(2))) }])}</section>`;
+    return `<section class="sum">${rowsHtml([{ label: 'Kul cheezein', value: String(doc.lines.length), bold: true }, { label: 'Kul quantity', value: String(Number(qty.toFixed(2))) }])}</section>`;
   }
   return `
   <section class="sum">
@@ -395,8 +395,8 @@ function a4Body(ctx: Ctx) {
       ${doc.receivedByName ? `<div class="muted">Le gaya: ${esc(doc.receivedByName)}${doc.receivedByPhone ? ` (${esc(doc.receivedByPhone)})` : ''}</div>` : ''}
     </div>`;
   const facts: ReceiptRowDoc[] = [
-    { label: 'Tareekh', value: when(doc.date) },
-    ...(dueDate ? [{ label: 'Aakhri tareekh', value: dueDate, bold: true }] : []),
+    { label: 'Date', value: when(doc.date) },
+    ...(dueDate ? [{ label: 'Aakhri date', value: dueDate, bold: true }] : []),
     ...(doc.branchName ? [{ label: 'Branch', value: doc.branchName }] : []),
     ...(d.showCashier && doc.cashierName ? [{ label: 'Cashier', value: doc.cashierName }] : []),
     { label: 'Payment', value: doc.paymentLabel.replace(/^Paid \(|\)$/g, '') },
@@ -408,7 +408,7 @@ function a4Body(ctx: Ctx) {
     <table class="items">
       <thead><tr>
         ${d.showItemNumbers ? '<th class="n">#</th>' : ''}<th>Cheez</th>${d.showSku ? '<th>SKU</th>' : ''}
-        <th class="r">Miqdar</th>${doc.hidePrices ? '' : `<th class="r">Rate</th>${lineDisc ? '<th class="r">Chhoot</th>' : ''}<th class="r">Raqam</th>`}
+        <th class="r">Quantity</th>${doc.hidePrices ? '' : `<th class="r">Rate</th>${lineDisc ? '<th class="r">Discount</th>' : ''}<th class="r">Amount</th>`}
       </tr></thead>
       <tbody>${doc.lines.map((l, i) => `
         <tr>
@@ -429,14 +429,14 @@ function a4Body(ctx: Ctx) {
   const left = `
     <div class="left">
       ${(doc.boxes ?? []).map((b) => `<div class="card" style="margin-bottom:10px"><div class="card-k">${esc(b.title)}</div>${b.lines.map((x) => `<div>${esc(x)}</div>`).join('')}</div>`).join('')}
-      ${d.showAmountInWords && !doc.hidePrices ? `<div class="words"><span class="card-k">Raqam alfaaz me</span><br>${esc(amountInWords(doc.total))}</div>` : ''}
+      ${d.showAmountInWords && !doc.hidePrices ? `<div class="words"><span class="card-k">Amount in words</span><br>${esc(amountInWords(doc.total))}</div>` : ''}
       ${payBlock(ctx)}
       ${d.footer || doc.footerNote ? `<div class="note">${[doc.footerNote, d.footer].filter(Boolean).map((x) => esc(x)).join('<br>')}</div>` : ''}
       ${terms.length ? `<div class="card-k" style="margin-top:12px">Shartein</div><ul class="terms">${terms.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
     </div>`;
   const qtyAll = doc.lines.reduce((s, l) => s + (Number(l.qty) || 0), 0);
   const right = doc.hidePrices ? `
-    <div class="right">${rowsHtml([{ label: 'Kul cheezein', value: String(doc.lines.length), bold: true }, { label: 'Kul miqdar', value: String(Number(qtyAll.toFixed(2))) }])}</div>` : `
+    <div class="right">${rowsHtml([{ label: 'Kul cheezein', value: String(doc.lines.length), bold: true }, { label: 'Kul quantity', value: String(Number(qtyAll.toFixed(2))) }])}</div>` : `
     <div class="right">
       ${rowsHtml(totalRows(doc))}
       <div class="total"><span>TOTAL</span><span>${money(doc.total)}</span></div>

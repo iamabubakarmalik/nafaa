@@ -80,7 +80,7 @@ export default function DamagePage() {
   const pickable = canApprove && tab === 'pending';
   const pickedRows = rows.filter((r) => picked.has(r.id));
 
-  const filterText = [tab === 'pending' ? 'Manzoori baqi' : status !== 'all' && STATUS[status].label, reason && FILTER_REASONS.find((r) => r.code === reason)?.label, query && `"${query}"`].filter(Boolean).join(' · ');
+  const filterText = [tab === 'pending' ? 'Approval baqi' : status !== 'all' && STATUS[status].label, reason && FILTER_REASONS.find((r) => r.code === reason)?.label, query && `"${query}"`].filter(Boolean).join(' · ');
   const printDoc = async () => damageDoc(await damageApi.list({ ...filters, page: 1, limit: 200 }), tab === 'pending' || !period ? 'Sab tareekhen' : `${period.from} — ${period.to}`, filterText);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function DamagePage() {
       <PageHero
         title="Kharab maal"
         chip={<><PackageX /> Damage & wastage</>}
-        meta="Toota, expiry, kharab — report, manzoori aur nuqsan ka hisaab"
+        meta="Toota, expiry, kharab — report, approval aur nuqsan ka hisaab"
         busy={(listQ.isFetching && !listQ.isLoading) || periodQ.isFetching}
         loading={periodQ.isLoading}
         actions={<>
@@ -111,19 +111,19 @@ export default function DamagePage() {
           <button type="button" onClick={() => setForm(true)} title="Naya report (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Report karein</button>
         </>}
         stats={pt ? [
-          { label: 'Is muddat ka nuqsan', value: money(pt.lost), hint: 'manzoor' },
-          { label: 'Manzoori baqi', value: queue?.pending ?? '—', hint: queue?.pending ? money(queue.pendingValue) : undefined },
+          { label: 'Is period ka nuqsan', value: money(pt.lost), hint: 'manzoor' },
+          { label: 'Approval baqi', value: queue?.pending ?? '—', hint: queue?.pending ? money(queue.pendingValue) : undefined },
           { label: 'Reports', value: pt.reported + pt.approved + pt.rejected },
           { label: 'Rad hui', value: pt.rejected },
-        ] : [{ label: 'Is muddat ka nuqsan', value: '—' }]}
+        ] : [{ label: 'Is period ka nuqsan', value: '—' }]}
       />
 
       <KpiRow cols={4}>
         {!queue || !pt ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Clock} color="#d97706" label="Manzoori ka intezar" value={queue.pending}
+          <KpiCard icon={Clock} color="#d97706" label="Approval ka intezar" value={queue.pending}
             hint={queue.aging ? `${queue.aging} report ${queue.agingHours} ghante se purani` : queue.pending ? money(queue.pendingValue) : 'Sab faislay ho chuke'}
             onClick={() => setTab('pending')} active={tab === 'pending'} />
-          <KpiCard icon={PackageX} color="#e11d48" label="Nuqsan (is muddat)" value={money(pt.lost)} hint={`${pt.approved} manzoor report`}
+          <KpiCard icon={PackageX} color="#e11d48" label="Nuqsan (is period)" value={money(pt.lost)} hint={`${pt.approved} approve report`}
             onClick={() => { setTab('all'); setStatus('APPROVED'); }} active={tab === 'all' && status === 'APPROVED'} />
           <KpiCard icon={topMeta?.icon ?? MessageSquareText} color={topMeta?.color ?? '#64748b'} label="Sab se bari wajah" value={topMeta?.label ?? '—'}
             hint={top ? `${money(top.value + top.pending)} · ${top.count} report` : 'Abhi koi report nahi'}
@@ -134,7 +134,7 @@ export default function DamagePage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product, SKU, report number ya wajah…" label="Dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product, SKU, report number ya wajah…" label="Search" />}
         chips={filtered ? <>
           {tab === 'all' && status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{STATUS[status].label}</FilterChip>}
           {reason && <FilterChip onRemove={() => setReason('')}>{FILTER_REASONS.find((r) => r.code === reason)?.label}</FilterChip>}
@@ -151,9 +151,9 @@ export default function DamagePage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={tab === 'pending' ? <>Muddat ka filter yahan nahi lagta — har baqi report dikhti hai</> : <><Kbd>N</Kbd> report · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> dhoondein</>}
+        hint={tab === 'pending' ? <>Period ka filter yahan nahi lagta — har baqi report dikhti hai</> : <><Kbd>N</Kbd> report · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> search</>}
         tabs={[
-          { id: 'pending', label: 'Manzoori baqi', icon: Clock, count: queue?.pending ?? null },
+          { id: 'pending', label: 'Approval baqi', icon: Clock, count: queue?.pending ?? null },
           { id: 'all', label: 'Sab record', icon: ListChecks },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         ]} />
@@ -166,10 +166,10 @@ export default function DamagePage() {
                 onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} />
               Sab chunein
             </label>
-            <span className="text-[0.75rem] text-slate-500">{pickedRows.length ? `${pickedRows.length} chuni · ${money(pickedRows.reduce((s, r) => s + r.netLoss, 0))}` : 'Kai reports ek sath manzoor ya rad karein'}</span>
+            <span className="text-[0.75rem] text-slate-500">{pickedRows.length ? `${pickedRows.length} chuni · ${money(pickedRows.reduce((s, r) => s + r.netLoss, 0))}` : 'Kai reports ek sath approve ya rad karein'}</span>
             <span className="ml-auto flex gap-2">
               <Button size="sm" variant="secondary" disabled={!pickedRows.length} onClick={() => setDecide({ mode: 'reject', rows: pickedRows })} leftIcon={<XCircle className="h-4 w-4" />}>Rad</Button>
-              <Button size="sm" disabled={!pickedRows.length} onClick={() => setDecide({ mode: 'approve', rows: pickedRows })} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Manzoor</Button>
+              <Button size="sm" disabled={!pickedRows.length} onClick={() => setDecide({ mode: 'approve', rows: pickedRows })} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Approve</Button>
             </span>
           </div>
         )}
@@ -180,7 +180,7 @@ export default function DamagePage() {
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             {tab === 'pending' ? <PackageCheck className="mx-auto h-10 w-10 text-emerald-400" /> : <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />}
             <p className="mt-3 font-semibold text-slate-900">
-              {tab === 'pending' ? (filtered ? 'Is filter me koi baqi report nahi' : 'Koi report manzoori ke intezar me nahi') : filtered ? 'Is filter me koi report nahi' : 'Is muddat me koi kharab maal report nahi hua'}
+              {tab === 'pending' ? (filtered ? 'Is filter me koi baqi report nahi' : 'Koi report approval ke intezar me nahi') : filtered ? 'Is filter me koi report nahi' : 'Is period me koi kharab maal report nahi hua'}
             </p>
             <p className="mt-1 text-sm text-slate-500">Maal toota, expire hua ya chuhe ne kaata? Report karein taake stock aur nuqsan ka hisaab sahi rahe.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -212,17 +212,17 @@ export default function DamagePage() {
       {guide.isOpen && (
         <PageGuide title="Kharab maal — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#e11d48', title: 'Report karein', text: '"Report karein" dabayein, product dhoondein ya scan karein, miqdar likhein aur wajah chunein: expiry, toota, kharab, chuha/keera, wapas aaya kharab ya kuch aur.' },
+            { icon: Plus, color: '#e11d48', title: 'Report karein', text: '"Report karein" dabayein, product search ya scan karein, quantity likhein aur wajah chunein: expiry, toota, kharab, chuha/keera, wapas aaya kharab ya kuch aur.' },
             { icon: Camera, color: '#7c3aed', title: 'Photo lagayein', text: 'Phone par camera khul jata hai. Photo se manager ko yaqeen hota hai aur supplier se claim me kaam aati hai.' },
-            { icon: ShieldCheck, color: '#16a34a', title: 'Manager manzoor kare', text: 'Report se stock foran nahi ghatta. Manager "Manzoori baqi" me dekh kar manzoor ya rad karta hai. Kai reports ek sath bhi ho sakti hain.' },
-            { icon: SlidersHorizontal, color: '#2563eb', title: 'Stock aur hisaab', text: 'Manzoori par maal branch ke stock se nikal jata hai aur Stock adjustments me "Kharab" (chori ho to "Gum") ban kar dikhta hai — cost ke saath.' },
+            { icon: ShieldCheck, color: '#16a34a', title: 'Manager approve kare', text: 'Report se stock foran nahi ghatta. Manager "Approval baqi" me dekh kar approve ya rad karta hai. Kai reports ek sath bhi ho sakti hain.' },
+            { icon: SlidersHorizontal, color: '#2563eb', title: 'Stock aur hisaab', text: 'Approval par maal branch ke stock se nikal jata hai aur Stock adjustments me "Kharab" (chori ho to "Gum") ban kar dikhta hai — cost ke saath.' },
             { icon: BarChart3, color: '#d97706', title: 'Analytics dekhein', text: 'Kis wajah, kis product aur kis category me sab se zyada nuqsan hai — roz ka hisaab karobari din ke mutabiq.' },
-            { icon: Store, color: '#0891b2', title: 'Branch ka usool', text: 'Report hamesha khuli branch ki hoti hai. "Sab branches" par pehle branch chunein. Staff sirf apni branch ki report manzoor kar sakta hai.' },
+            { icon: Store, color: '#0891b2', title: 'Branch ka usool', text: 'Report hamesha khuli branch ki hoti hai. "Sab branches" par pehle branch chunein. Staff sirf apni branch ki report approve kar sakta hai.' },
           ]}
           tips={[
-            'Manzoori ke liye "Stock adjustments" ki ijazat chahiye — Team settings me de sakte hain.',
+            'Approval ke liye "Stock adjustments" ki permission chahiye — Team settings me de sakte hain.',
             `${queue?.agingHours ?? 48} ghante se purani baqi report par laal nishan aata hai — jaldi faisla karein.`,
-            'Batch wale maal me expiry wala batch chunein — manzoori par us batch ki ginti bhi kam hoti hai.',
+            'Batch wale maal me expiry wala batch chunein — approval par us batch ki ginti bhi kam hoti hai.',
             'Roll ya IMEI wala maal Stock adjustments page se likhein.',
           ]}
           shortcuts={[['N', 'naya report'], ['A', 'analytics'], ['/', 'dhoondein'], ['G', 'guide']]}
@@ -269,10 +269,10 @@ function Row({ d, money, canApprove, pickable, picked, onPick, onDecide }: {
         {pending && canApprove && (
           <div className="flex shrink-0 gap-1.5">
             <Button size="sm" variant="secondary" onClick={() => onDecide('reject')} aria-label="Rad karein"><XCircle className="h-4 w-4" /></Button>
-            <Button size="sm" onClick={() => onDecide('approve')} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Manzoor</Button>
+            <Button size="sm" onClick={() => onDecide('approve')} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Approve</Button>
           </div>
         )}
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Tafseel" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Details" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
           <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
         </button>
       </div>
@@ -283,7 +283,7 @@ function Row({ d, money, canApprove, pickable, picked, onPick, onDecide }: {
             <Fact k="Kul cost" v={money(d.costImpact)} />
             {d.salvageValue > 0 && <Fact k="Wapas mila" v={money(d.salvageValue)} />}
             {d.batch?.expiryDate && <Fact k="Expiry" v={new Date(d.batch.expiryDate).toLocaleDateString('en-PK')} />}
-            {d.decidedBy && <Fact k={d.status === 'REJECTED' ? 'Rad kiya' : 'Manzoor kiya'} v={`${d.decidedBy.fullName}${d.approvedAt || d.rejectedAt ? ` · ${when((d.approvedAt ?? d.rejectedAt)!)}` : ''}`} />}
+            {d.decidedBy && <Fact k={d.status === 'REJECTED' ? 'Rad kiya' : 'Approve kiya'} v={`${d.decidedBy.fullName}${d.approvedAt || d.rejectedAt ? ` · ${when((d.approvedAt ?? d.rejectedAt)!)}` : ''}`} />}
             {d.product.category && <Fact k="Category" v={d.product.category.name} />}
           </dl>
           {d.notes && <p className="whitespace-pre-line rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{d.notes}</p>}

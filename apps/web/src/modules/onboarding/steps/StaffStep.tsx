@@ -17,7 +17,7 @@ export interface StaffForm {
 export type StaffErrors = Record<number, Partial<Record<keyof StaffMember, string>>>;
 
 const ROLES = [
-  { value: 'CASHIER', label: 'Cashier — counter par bikri' },
+  { value: 'CASHIER', label: 'Cashier — counter par sale' },
   { value: 'MANAGER', label: 'Manager — billing ke ilawa sab' },
   { value: 'STAFF', label: 'Staff — stock ka kaam' },
 ];
@@ -79,7 +79,7 @@ export function StaffStep({ value, onChange, errors, addedCount, isOwner }: Prop
         </Alert>
       )}
       <p className="text-sm text-slate-600">
-        Har banda apne email aur password se login karega, taake pata rahe kis ne kya becha. Branch aur ijazatein baad me Staff page se set hoti hain.
+        Har banda apne email aur password se login karega, taake pata rahe kis ne kya becha. Branch aur permissions baad me Staff page se set hoti hain.
       </p>
 
       {value.members.length === 0 ? (

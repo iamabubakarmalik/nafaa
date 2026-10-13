@@ -36,14 +36,14 @@ export function DamageAnalytics({ filters, money }: { filters: Omit<DamageQuery,
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={PackageX} label="Asal nuqsan" value={money(t.lost)} sub={`${t.approved} manzoor report`} tone="rose" />
-        <Kpi icon={Clock} label="Manzoori baqi" value={money(t.pendingValue)} sub={`${t.pending} report intezar me`} tone="amber" />
+        <Kpi icon={PackageX} label="Asal nuqsan" value={money(t.lost)} sub={`${t.approved} approve report`} tone="rose" />
+        <Kpi icon={Clock} label="Approval baqi" value={money(t.pendingValue)} sub={`${t.pending} report intezar me`} tone="amber" />
         <Kpi icon={Recycle} label="Wapas mila" value={money(t.salvage)} sub="Sasta bech kar ya kabari se" tone="emerald" />
         <Kpi icon={ShieldAlert} label="Rad hui" value={String(t.rejected)} sub="In se stock nahi badla" />
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ka nuqsan</span>} description="Har karobari din kitna maal kharab hua — manzoor aur baqi alag">
-        {!trend.length ? <Empty text="Is muddat me koi report nahi — bohat khoob" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ka nuqsan</span>} description="Har karobari din kitna maal kharab hua — approve aur baqi alag">
+        {!trend.length ? <Empty text="Is period me koi report nahi — bohat khoob" /> : (
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -65,7 +65,7 @@ export function DamageAnalytics({ filters, money }: { filters: Omit<DamageQuery,
           dot={(r) => (r as typeof reasons[number]).color} sub={(r) => `${r.count} report`} />
         <Ranked icon={PackageX} title="Sab se zyada kharab maal" description="In products par nazar rakhein" rows={d.byProduct} money={money}
           sub={(r) => `${qtyText(r.qty)} ${(r as typeof d.byProduct[number]).unit} · ${r.count} report`} />
-        <Ranked icon={FolderTree} title="Category" description="Kis qism ke maal me zyada nuqsan" rows={d.byCategory} money={money} sub={(r) => `${r.count} report`} />
+        <Ranked icon={FolderTree} title="Category" description="Kis type ke maal me zyada nuqsan" rows={d.byCategory} money={money} sub={(r) => `${r.count} report`} />
         <Ranked icon={Users} title="Kis ne report kiya" description="Har bande ki reports aur un ka nuqsan" rows={d.byPerson} money={money} sub={(r) => `${r.count} report`} />
       </div>
     </div>

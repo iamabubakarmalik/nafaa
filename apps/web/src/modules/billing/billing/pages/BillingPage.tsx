@@ -161,7 +161,7 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
 
       {listTab && (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'invoices' ? 'Bill number ya plan…' : 'Ref / TID, bill number ya naam…'} label="Dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'invoices' ? 'Bill number ya plan…' : 'Ref / TID, bill number ya naam…'} label="Search" />}
           chips={filterActive || q ? <>
             {tab === 'invoices' && invoiceFilter !== 'all' && <FilterChip onRemove={() => setInvoiceFilter('all')}>{INVOICE_FILTERS.find((f) => f.value === invoiceFilter)?.label}</FilterChip>}
             {tab === 'payments' && paymentFilter !== 'all' && <FilterChip onRemove={() => setPaymentFilter('all')}>{PAYMENT_FILTERS.find((f) => f.value === paymentFilter)?.label}</FilterChip>}
@@ -229,17 +229,17 @@ function BillingGuide({ onClose }: { onClose: () => void }) {
       steps={[
         { icon: Layers, color: '#2563eb', title: 'Mera plan', text: 'Kaunsa plan chal raha hai, kab khatam hoga aur kitne ka hai. Plan band ya wapas chalu bhi yahin se.' },
         { icon: Gauge, color: '#7c3aed', title: 'Istemaal', text: 'Products, team, branches aur is mahine ke bill — plan ki had ke muqable me. 75% par peela, 90% par laal.' },
-        { icon: Sparkles, color: '#db2777', title: 'Plan chunein', text: 'Plans tab me mahana, 3 mahine ya saalana qeemat dekhein. Lambi muddat me bachat hai.' },
+        { icon: Sparkles, color: '#db2777', title: 'Plan chunein', text: 'Plans tab me mahana, 3 mahine ya saalana qeemat dekhein. Lambi period me bachat hai.' },
         { icon: Receipt, color: '#d97706', title: 'Bill ada karein', text: 'Khula bill kholein, "Payment karein" dabayein, bank ya wallet se bhej kar screenshot upload karein.' },
-        { icon: Wallet, color: '#16a34a', title: 'Payment ka haal', text: 'Payments tab me dekhein: check ho rahi, manzoor ya wapas. Wapas hui ho to wajah parh kar dobara bhejein.' },
+        { icon: Wallet, color: '#16a34a', title: 'Payment ka haal', text: 'Payments tab me dekhein: check ho rahi, approve ya wapas. Wapas hui ho to wajah parh kar dobara bhejein.' },
         { icon: CreditCard, color: '#0891b2', title: 'Print', text: 'Har bill ka A4 ya PDF print — apne record ya accountant ke liye.' },
       ]}
       tips={[
         'Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din naye period me jud jate hain.',
-        'Plan lena, badalna ya band karna sirf malik ya billing ki ijazat wala kar sakta hai.',
+        'Plan lena, badalna ya band karna sirf malik ya billing ki permission wala kar sakta hai.',
         'Ek hi bill rakhein — doosra plan chunne par wohi khula bill update ho jata hai.',
       ]}
-      shortcuts={[['1-5', 'tabs'], ['/', 'bill dhoondein'], ['M Q Y', 'muddat'], ['R', 'taaza'], ['G', 'guide']]}
+      shortcuts={[['1-5', 'tabs'], ['/', 'bill search'], ['M Q Y', 'muddat'], ['R', 'taaza'], ['G', 'guide']]}
       footer={<Link to="/help" onClick={onClose} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Madad chahiye? →</Link>}
     />
   );

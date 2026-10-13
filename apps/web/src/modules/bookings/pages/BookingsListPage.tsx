@@ -45,7 +45,7 @@ const OPEN_FILTERS: Array<FilterOption<BookingStatusFilter>> = [
 ];
 const ALL_FILTERS: Array<FilterOption<BookingStatusFilter | 'all'>> = [
   { value: 'all', label: 'Sab' },
-  { value: 'ACTIVE', label: 'Khuli', hint: 'Abhi bikri ya cancel nahi hui' },
+  { value: 'ACTIVE', label: 'Khuli', hint: 'Abhi sale ya cancel nahi hui' },
   { value: 'OVERDUE', label: 'Late', icon: AlarmClock, color: '#e11d48' },
   ...(Object.keys(STATUS) as Array<keyof typeof STATUS>).map((k) => ({ value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color })),
 ];
@@ -130,11 +130,11 @@ export default function BookingsListPage() {
           <Link to="/bookings/new" title="Nayi booking (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi booking</Link>
         </>}
         stats={o ? [
-          { label: 'Khuli bookings ki raqam', value: money(o.active.value), hint: `${o.active.count} booking` },
+          { label: 'Khuli bookings ki amount', value: money(o.active.value), hint: `${o.active.count} booking` },
           { label: 'Advance hath me', value: money(o.active.held) },
           { label: 'Baqi wasooli', value: money(o.active.balance) },
           { label: 'Agle 7 din pickup', value: o.upcoming },
-        ] : [{ label: 'Khuli bookings ki raqam', value: '—' }]}
+        ] : [{ label: 'Khuli bookings ki amount', value: '—' }]}
       />
 
       <KpiRow cols={5}>
@@ -145,7 +145,7 @@ export default function BookingsListPage() {
             hint={o.pickupToday ? `${o.pickupToday} aaj · ${money(o.active.balance)} baqi` : `${money(o.active.balance)} baqi`}
             onClick={() => showUpcoming('ACTIVE')} active={tab === 'upcoming' && openStatus === 'ACTIVE'} />
           <KpiCard icon={Wallet} color="#16a34a" label="Advance mila" value={money(o.collected.net)}
-            hint={o.collected.refunded ? `${money(o.collected.refunded)} wapas diye` : `${o.collected.payments} payment · ${period ? 'is muddat' : 'aaj'}`} />
+            hint={o.collected.refunded ? `${money(o.collected.refunded)} wapas diye` : `${o.collected.payments} payment · ${period ? 'is period' : 'aaj'}`} />
           <KpiCard icon={AlarmClock} color="#e11d48" label="Late" value={o.overdue.count} hint={o.overdue.count ? `${money(o.overdue.balance)} baqi · yaad dilayein` : 'Sab waqt par'}
             onClick={() => showUpcoming('OVERDUE')} active={tab === 'upcoming' && openStatus === 'OVERDUE'} />
           <KpiCard icon={PackageCheck} color="#7c3aed" label="Tayyar, lene nahi aaye" value={o.ready.count} hint={o.ready.count ? `${money(o.ready.balance)} baqi` : 'Koi intezar me nahi'}
@@ -154,21 +154,21 @@ export default function BookingsListPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Booking number, customer, phone ya note…" label="Dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Booking number, customer, phone ya note…" label="Search" />}
         chips={filtered ? <>
           {statusOn && <FilterChip onRemove={() => (tab === 'upcoming' ? setOpenStatus('ACTIVE') : setStatus('all'))}>{statusLabel}</FilterChip>}
           {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffName ?? 'Staff'}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
-        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" label="Booking ki muddat" />
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" label="Booking ki period" />
         {tab === 'upcoming' && <FilterMenu icon={Filter} label="Haal" value={openStatus} active={openStatus !== 'ACTIVE'} onChange={setOpenStatus} options={OPEN_FILTERS} />}
         {tab === 'all' && <FilterMenu icon={Filter} label="Haal" value={status} active={status !== 'all'} onChange={setStatus} options={ALL_FILTERS} />}
         {team.length > 1 && <FilterMenu icon={UserRound} label="Staff" value={staffId} active={!!staffId} onChange={setStaffId} align="right" options={staffOptions} />}
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={tab === 'upcoming' ? <>Muddat ka filter yahan nahi lagta — har khuli booking pickup ke din se</> : <><Kbd>N</Kbd> nayi · <Kbd>U</Kbd> upcoming · <Kbd>C</Kbd> calendar · <Kbd>A</Kbd> analytics</>}
+        hint={tab === 'upcoming' ? <>Period ka filter yahan nahi lagta — har khuli booking pickup ke din se</> : <><Kbd>N</Kbd> nayi · <Kbd>U</Kbd> upcoming · <Kbd>C</Kbd> calendar · <Kbd>A</Kbd> analytics</>}
         tabs={[
           { id: 'upcoming', label: 'Upcoming', icon: CalendarClock, count: o?.active.count ?? null },
           { id: 'all', label: 'Sab record', icon: ListChecks },
@@ -194,7 +194,7 @@ export default function BookingsListPage() {
               <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
                 {tab === 'upcoming' && !filtered ? <PackageCheck className="mx-auto h-10 w-10 text-emerald-400" /> : <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />}
                 <p className="mt-3 font-semibold text-slate-900">
-                  {filtered ? 'Is filter me koi booking nahi' : tab === 'upcoming' ? 'Koi khuli booking nahi' : 'Is muddat me koi booking nahi'}
+                  {filtered ? 'Is filter me koi booking nahi' : tab === 'upcoming' ? 'Koi khuli booking nahi' : 'Is period me koi booking nahi'}
                 </p>
                 <p className="mt-1 text-sm text-slate-500">Customer ne advance diya ya maal rakhwana hai? Booking banayein, pickup par ek click me bill ban jayega.</p>
                 <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -230,16 +230,16 @@ export default function BookingsListPage() {
       {guide.isOpen && (
         <PageGuide title="Bookings — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: BookmarkPlus, color: '#2563eb', title: 'Booking banayein', text: '"Nayi booking" dabayein, customer chunein, cheezen dalein, pickup ki tareekh aur advance likhein. IMEI ya carpet piece ho to woh reserve ho jata hai.' },
+            { icon: BookmarkPlus, color: '#2563eb', title: 'Booking banayein', text: '"Nayi booking" dabayein, customer chunein, cheezen dalein, pickup ki date aur advance likhein. IMEI ya carpet piece ho to woh reserve ho jata hai.' },
             { icon: Wallet, color: '#16a34a', title: 'Advance aur baqi', text: 'Advance customer ke khate me jama hota hai. Baad me aur paise aayein to "Payment" dabayein. Poora paisa aate hi booking "Tayyar" ho jati hai.' },
             { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp yaad dihani', text: 'Har booking par WhatsApp ka button hai: tayyar ho to "le jayein", pickup qareeb ho to yaad dihani, late ho to narmi se yaad.' },
-            { icon: ShoppingCart, color: '#7c3aed', title: 'Pickup par bikri', text: '"Bikri" dabayein: bill banta hai, stock is branch se nikalta hai, advance bill me lag jata hai aur baqi chahein to udhaar me.' },
-            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Cancel par advance wapas de sakte hain ya khate me rehne de sakte hain. Wapsi par malik ka PIN mang sakta hai (Settings).' },
+            { icon: ShoppingCart, color: '#7c3aed', title: 'Pickup par sale', text: '"Sale" dabayein: bill banta hai, stock is branch se nikalta hai, advance bill me lag jata hai aur baqi chahein to udhaar me.' },
+            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Cancel par advance wapas de sakte hain ya khate me rehne de sakte hain. Return par malik ka PIN mang sakta hai (Settings).' },
             { icon: Store, color: '#0891b2', title: 'Branch', text: 'Har booking apni branch ki hoti hai. Staff sirf apni branch ki booking badal sakta hai.' },
           ]}
           tips={[
             'Upcoming tab me late bookings sab se upar hoti hain — roz subah ek nazar dalein.',
-            'Calendar me har din ke pickup aur baqi raqam dikhti hai.',
+            'Calendar me har din ke pickup aur baqi amount dikhti hai.',
             'Booking slip 80mm ya A4 par print hoti hai; do copies: ek customer ki, ek dukaan ki.',
             'Booking ke waqt stock nahi ghatta; bikri par ghatta hai.',
           ]}
@@ -299,7 +299,7 @@ function Row({ b, money, startHour, shop, onAction, onReady, readyBusy }: {
               className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 ring-1 ring-slate-200 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" /></a>
           )}
           {active && b.balanceDue > 0 && <Button size="sm" variant="secondary" onClick={() => onAction('pay')} leftIcon={<Wallet className="h-4 w-4" />}><span className="hidden sm:inline">Payment</span></Button>}
-          {active && <Button size="sm" onClick={() => onAction('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>Bikri</Button>}
+          {active && <Button size="sm" onClick={() => onAction('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>Sale</Button>}
         </div>
         <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Aur" aria-expanded={open} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
           <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
@@ -326,9 +326,9 @@ function Row({ b, money, startHour, shop, onAction, onReady, readyBusy }: {
           <div className="flex flex-wrap gap-2">
             {active && b.status !== 'READY_FOR_PICKUP' && <Button size="sm" variant="secondary" loading={readyBusy} onClick={() => onReady(true)} leftIcon={<PackageCheck className="h-4 w-4" />}>Tayyar hai</Button>}
             {b.status === 'READY_FOR_PICKUP' && <Button size="sm" variant="ghost" loading={readyBusy} onClick={() => onReady(false)} leftIcon={<Undo2 className="h-4 w-4" />}>Abhi tayyar nahi</Button>}
-            {active && <Button size="sm" variant="secondary" onClick={() => onAction('date')} leftIcon={<CalendarClock className="h-4 w-4" />}>Tareekh badlein</Button>}
+            {active && <Button size="sm" variant="secondary" onClick={() => onAction('date')} leftIcon={<CalendarClock className="h-4 w-4" />}>Date badlein</Button>}
             <Button size="sm" variant="secondary" onClick={() => onAction('print')} leftIcon={<Printer className="h-4 w-4" />}>Slip</Button>
-            <Link to={`/bookings/${b.id}`} className="inline-flex h-8 items-center rounded-lg px-3 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">Poori tafseel</Link>
+            <Link to={`/bookings/${b.id}`} className="inline-flex h-8 items-center rounded-lg px-3 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">Poori details</Link>
             {active && <Button size="sm" variant="ghost" className="ml-auto text-rose-700" onClick={() => onAction('cancel')} leftIcon={<XCircle className="h-4 w-4" />}>Cancel</Button>}
           </div>
         </div>

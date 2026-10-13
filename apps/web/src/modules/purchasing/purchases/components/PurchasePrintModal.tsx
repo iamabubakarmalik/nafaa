@@ -79,7 +79,7 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
       infoRows: [
         ...(p.supplierInvoiceNo ? [{ label: 'Supplier bill #', value: p.supplierInvoiceNo }] : []),
         ...(o.kind === 'order' && p.expectedAt ? [{ label: 'Maal chahiye', value: day(p.expectedAt), bold: true }] : []),
-        ...(p.dueDate && o.prices ? [{ label: 'Adaigi tak', value: day(p.dueDate) }] : []),
+        ...(p.dueDate && o.prices ? [{ label: 'Payment tak', value: day(p.dueDate) }] : []),
       ],
       lines: p.items.map((i) => {
         const r = i.conversionRate ?? 1;
@@ -103,7 +103,7 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
       ],
       total: amount,
       paid: o.kind === 'order' ? amount : p.paidAmount,
-      paymentLabel: o.kind === 'order' ? 'Order ki raqam' : `Diye (${method})`,
+      paymentLabel: o.kind === 'order' ? 'Order ki amount' : `Diye (${method})`,
       hidePrices: !o.prices,
       footerNote: o.notes && p.notes ? p.notes : undefined,
       boxes: o.supplierBank && (s.bankName || s.accountNumber || s.iban)
@@ -134,12 +134,12 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
           <div>
             <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kya hai</p>
             <div className="grid grid-cols-3 gap-1">
-              {([['bill', 'Bill'], ['order', 'Order'], ['grn', 'Maal wusooli']] as const).map(([k, l]) => (
+              {([['bill', 'Bill'], ['order', 'Order'], ['grn', 'Maal receiving']] as const).map(([k, l]) => (
                 <button key={k} type="button" onClick={() => setO((x) => ({ ...x, kind: k, prices: k === 'order' ? false : x.prices }))} aria-pressed={o.kind === k}
                   className={cn('rounded-lg px-2 py-2 text-[0.8125rem] font-medium ring-1 transition', o.kind === k ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-700 ring-slate-200')}>{l}</button>
               ))}
             </div>
-            <p className="mt-1 text-[0.6875rem] text-slate-500">{o.kind === 'order' ? 'Supplier ko bhejne ke liye — kya chahiye' : o.kind === 'grn' ? 'Jo maal asal me aaya, dastkhat ke saath' : 'Poora bill raqam ke saath'}</p>
+            <p className="mt-1 text-[0.6875rem] text-slate-500">{o.kind === 'order' ? 'Supplier ko bhejne ke liye — kya chahiye' : o.kind === 'grn' ? 'Jo maal asal me aaya, dastkhat ke saath' : 'Poora bill amount ke saath'}</p>
           </div>
           <div>
             <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kaghaz</p>
@@ -147,9 +147,9 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
           </div>
           <div>
             <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Bill par</p>
-            <Toggle k="prices" label="Rates aur raqam" hint="Order bhejte waqt chhupa sakte hain" />
+            <Toggle k="prices" label="Rates aur amount" hint="Order bhejte waqt chhupa sakte hain" />
             <Toggle k="supplier" label="Supplier ka pata, phone, NTN" />
-            <Toggle k="supplierBank" label="Supplier ka bank account" hint="Adaigi karne wale ke liye" />
+            <Toggle k="supplierBank" label="Supplier ka bank account" hint="Payment karne wale ke liye" />
             <Toggle k="ourAccounts" label="Hamare payment accounts" hint="Settings → Raseed wale accounts" />
             <Toggle k="batch" label="Batch aur expiry" />
             <Toggle k="notes" label="Bill ka note" />

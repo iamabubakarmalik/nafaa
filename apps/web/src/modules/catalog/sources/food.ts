@@ -53,7 +53,7 @@ export const restaurantSource: CatalogSource = {
         specs: specs([
           ['Banne ka waqt', m.prepTimeMinutes ? `${m.prepTimeMinutes} minute` : null],
           ['Kitne log', m.servesPeople],
-          ['Miqdar', m.servingSize],
+          ['Quantity', m.servingSize],
           ['Calories', m.calories],
           ['Teekha', m.spiceLevel && m.spiceLevel !== 'NONE' ? SPICE_LABELS[m.spiceLevel] : null],
           ['Allergy', m.allergenInfo],

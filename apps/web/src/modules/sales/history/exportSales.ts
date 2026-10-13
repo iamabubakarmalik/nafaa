@@ -24,7 +24,7 @@ export async function fetchAllSales(filters: HistoryFilters, max = 5000): Promis
 }
 
 export function salesCsv(sales: HistorySale[], header: string[]) {
-  const head = ['Bill', 'Tareekh', 'Waqt', 'Customer', 'Phone', 'Cheezein', 'Qty', 'Payment', 'Subtotal', 'Discount', 'Kul', 'Mila', 'Udhaar', 'Wapsi', 'Staff', 'Halat'];
+  const head = ['Bill', 'Date', 'Waqt', 'Customer', 'Phone', 'Cheezein', 'Qty', 'Payment', 'Subtotal', 'Discount', 'Kul', 'Mila', 'Udhaar', 'Return', 'Staff', 'Halat'];
   const rows = sales.map((s) => [
     s.saleNumber, dt(s.soldAt).toLocaleDateString('en-PK'), dt(s.soldAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' }),
     s.customer?.name ?? 'Walk-in', s.customer?.phone ?? '', s.items.length, s.items.reduce((a, i) => a + Number(i.quantity), 0),
@@ -36,24 +36,24 @@ export function salesCsv(sales: HistorySale[], header: string[]) {
   const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');
   a.href = url;
-  a.download = `bikri-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `sale-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 export function salesDoc(sales: HistorySale[], stats: HistoryStats | undefined, range: string, money: (n: number) => string, showProfit: boolean): PrintDoc {
   return {
-    title: 'Bikri ka record',
+    title: 'Sale ka record',
     subtitle: range,
     meta: [['Bill', String(stats?.bills ?? sales.length)], ['Kul', money(stats?.total ?? 0)], ['Udhaar', money(stats?.credit ?? 0)]],
     sections: [
       {
         kind: 'rows', title: 'Khulasa', rows: [
-          { label: `Kul bikri (${stats?.bills ?? 0} bill)`, value: money(stats?.total ?? 0) },
+          { label: `Total sale (${stats?.bills ?? 0} bill)`, value: money(stats?.total ?? 0) },
           { label: 'Mila', value: money(stats?.paid ?? 0) },
           { label: 'Udhaar', value: money(stats?.credit ?? 0) },
           { label: 'Discount', value: money(stats?.discount ?? 0) },
-          ...(showProfit ? [{ label: `Munafa (${(stats?.margin ?? 0).toFixed(1)}%)`, value: formatPKR(stats?.profit ?? 0) }] : []),
+          ...(showProfit ? [{ label: `Profit (${(stats?.margin ?? 0).toFixed(1)}%)`, value: formatPKR(stats?.profit ?? 0) }] : []),
           { label: 'Ausat bill', value: money(stats?.average ?? 0), strong: true },
         ],
       },

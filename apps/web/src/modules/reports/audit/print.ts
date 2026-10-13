@@ -15,7 +15,7 @@ interface Head { period: string; shop: string; filters: string }
 const R = 'right' as const;
 
 function meta(h: Head): Array<[string, string]> {
-  return [['Muddat', h.period], ['Dukaan', h.shop], ...(h.filters ? [['Filter', h.filters] as [string, string]] : [])];
+  return [['Period', h.period], ['Dukaan', h.shop], ...(h.filters ? [['Filter', h.filters] as [string, string]] : [])];
 }
 
 /** Rupee value of an event: sale value, or cost when the type is valued at cost. */
@@ -35,13 +35,13 @@ export function overviewDoc(d: AuditOverview, f: Fmt, h: Head): PrintDoc {
         { label: 'Zaroor dekhein', value: String(t.high), sub: true },
         { label: 'Dhyan dein', value: String(t.medium), sub: true },
         { label: 'Void bill', value: `${t.voids} · ${f.money(t.voidValue)} (${t.voidRate}%)` },
-        { label: 'Wapsi', value: `${t.refunds} · ${f.money(t.refundValue)} (${t.refundRate}%)` },
-        { label: 'Cash wapsi', value: `${t.cashRefunds} · ${f.money(t.cashRefundValue)}`, sub: true },
-        { label: 'Bari chhoot', value: `${t.discounts} · ${f.money(t.discountValue)}` },
+        { label: 'Return', value: `${t.refunds} · ${f.money(t.refundValue)} (${t.refundRate}%)` },
+        { label: 'Cash return', value: `${t.cashRefunds} · ${f.money(t.cashRefundValue)}`, sub: true },
+        { label: 'Bari discount', value: `${t.discounts} · ${f.money(t.discountValue)}` },
         { label: 'Drawer kam', value: `${t.shortCount} · ${f.money(t.drawerShort)}` },
         { label: 'Drawer zyada', value: `${t.overCount} · ${f.money(t.drawerOver)}` },
         { label: 'Galle se nikale', value: `${t.cashOuts} · ${f.money(t.cashOutValue)}` },
-        ...(f.costHidden ? [] : [{ label: 'Stock ka nuqsan (lagat)', value: `${t.losses} · ${f.cost(t.cost ?? 0)}` }]),
+        ...(f.costHidden ? [] : [{ label: 'Stock ka nuqsan (cost)', value: `${t.losses} · ${f.cost(t.cost ?? 0)}` }]),
         { label: 'Ghalat PIN', value: String(t.pinFailed) },
         { label: 'Nakam login / naye device', value: `${t.failedLogins} / ${t.newDevices}` },
         { label: 'Dukaan ke waqt ke baad', value: String(t.afterHours) },
@@ -49,19 +49,19 @@ export function overviewDoc(d: AuditOverview, f: Fmt, h: Head): PrintDoc {
     },
   ];
   if (d.watch.length) {
-    sections.push({ kind: 'table', title: 'Kya dekhna chahiye', columns: [{ label: 'Baat' }, { label: 'Tafseel', wideOnly: true }], rows: d.watch.map((w) => [w.title, w.text]) });
+    sections.push({ kind: 'table', title: 'Kya dekhna chahiye', columns: [{ label: 'Baat' }, { label: 'Details', wideOnly: true }], rows: d.watch.map((w) => [w.title, w.text]) });
   }
   sections.push({
     kind: 'table', title: 'Staff ka risk',
-    columns: [{ label: 'Naam' }, { label: 'Score', align: R }, { label: 'Bill', align: R, wideOnly: true }, { label: 'Void', align: R }, { label: 'Wapsi', align: R, wideOnly: true }, { label: 'Chhoot', align: R, wideOnly: true }, { label: 'Drawer kam', align: R, wideOnly: true }],
+    columns: [{ label: 'Naam' }, { label: 'Score', align: R }, { label: 'Bill', align: R, wideOnly: true }, { label: 'Void', align: R }, { label: 'Return', align: R, wideOnly: true }, { label: 'Discount', align: R, wideOnly: true }, { label: 'Drawer kam', align: R, wideOnly: true }],
     rows: d.staff.filter((s) => s.events || s.bills).map((s) => [
       `${s.name}${s.role ? ` (${ROLE_LABEL[s.role] ?? s.role})` : ''}`, String(s.score), String(s.bills), String(s.voids),
       f.money(s.refundValue), f.money(s.discountValue), f.money(s.drawerShort),
     ]),
   });
   sections.push({
-    kind: 'table', title: 'Qism war',
-    columns: [{ label: 'Qism' }, { label: 'Ginti', align: R }, { label: 'Zaroori', align: R, wideOnly: true }, { label: 'Raqam', align: R }],
+    kind: 'table', title: 'Type war',
+    columns: [{ label: 'Type' }, { label: 'Ginti', align: R }, { label: 'Zaroori', align: R, wideOnly: true }, { label: 'Amount', align: R }],
     rows: d.byType.map((x) => [TYPE_META[x.type].label, String(x.count), String(x.high), TYPE_META[x.type].money === 'cost' ? (f.costHidden ? f.cost(0) : f.cost(x.cost ?? 0)) : TYPE_META[x.type].money === 'sale' ? f.money(x.amount) : '—']),
   });
   if (d.shops.length > 1) {
@@ -81,7 +81,7 @@ export function eventsDoc(items: AuditEvent[], f: Fmt, h: Head): PrintDoc {
     meta: [...meta(h), ['Waqiyat', String(items.length)]],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Waqt' }, { label: 'Qism', wideOnly: true }, { label: 'Kya hua' }, { label: 'Kis ne', wideOnly: true }, { label: 'Darja', wideOnly: true }, { label: 'Raqam', align: R }],
+      columns: [{ label: 'Waqt' }, { label: 'Type', wideOnly: true }, { label: 'Kya hua' }, { label: 'Kis ne', wideOnly: true }, { label: 'Darja', wideOnly: true }, { label: 'Amount', align: R }],
       rows: items.map((e) => [
         when(e.at), TYPE_META[e.type].label,
         `${e.title}${e.flags.length ? ` — ${e.flags.join(', ')}` : ''}${e.detail ? ` (${e.detail})` : ''}`,

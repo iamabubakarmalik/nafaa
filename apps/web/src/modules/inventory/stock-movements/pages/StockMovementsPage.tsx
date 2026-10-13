@@ -187,7 +187,7 @@ export default function StockMovementsPage() {
       {/* Filters */}
       <FilterBar
         search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (!v) setParams({ q: null }); }}
-          placeholder="Cheez, SKU, barcode, bill # ya note…" label="Dhoondein" />}
+          placeholder="Cheez, SKU, barcode, bill # ya note…" label="Search" />}
         chips={filtersOn ? <>
           {groups.map((g) => <FilterChip key={g} onRemove={() => toggleGroup(g)}>{MOVEMENT_GROUPS.find((x) => x.id === g)!.label}</FilterChip>)}
           {direction !== 'all' && <FilterChip onRemove={() => setParams({ dir: null })}>{direction === 'in' ? 'Sirf aaya' : 'Sirf gaya'}</FilterChip>}
@@ -206,13 +206,13 @@ export default function StockMovementsPage() {
 
       {/* Type groups with counts */}
       <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
-        <Chip active={!groups.length} onClick={() => setParams({ g: null })} label="Sab qism" count={allCount} icon={Layers} color="#64748b" />
+        <Chip active={!groups.length} onClick={() => setParams({ g: null })} label="Sab type" count={allCount} icon={Layers} color="#64748b" />
         {MOVEMENT_GROUPS.map((g) => <Chip key={g.id} active={groups.includes(g.id)} onClick={() => toggleGroup(g.id)} label={g.label} count={groupCount(g)} icon={g.icon} color={g.color} />)}
       </div>
 
       {/* Tabs */}
       <ViewTabs value={tab} onChange={(v) => setParams({ tab: v === 'ledger' ? null : v })}
-        hint={<><Kbd>/</Kbd> dhoondein · <Kbd>G</Kbd> guide</>}
+        hint={<><Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</>}
         tabs={[{ id: 'ledger', label: 'Ledger', icon: History, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {productId && (
@@ -221,7 +221,7 @@ export default function StockMovementsPage() {
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-slate-900">{product?.name ?? 'Ek cheez'}</p>
             <p className="text-[0.75rem] text-slate-600">
-              {product?.sku ? `${product.sku} · ` : ''}{period ? `Sirf ${periodText} — sab history ke liye muddat "Sab" karein` : 'Is cheez ki sab history, pehle din se'}
+              {product?.sku ? `${product.sku} · ` : ''}{period ? `Sirf ${periodText} — sab history ke liye period "Sab" karein` : 'Is cheez ki sab history, pehle din se'}
             </p>
             {nowStock && nowStock.length > 0 && (
               <p className="mt-1 flex flex-wrap gap-x-3 text-[0.75rem] text-slate-700">
@@ -251,11 +251,11 @@ export default function StockMovementsPage() {
           <PackageOpen className="mx-auto h-10 w-10 text-slate-300" />
           {filtersOn ? (<>
             <p className="mt-3 font-semibold text-slate-900">Is filter me koi entry nahi</p>
-            <p className="mt-1 text-sm text-slate-500">Muddat lambi karein ya filter hatayein</p>
+            <p className="mt-1 text-sm text-slate-500">Period lambi karein ya filter hatayein</p>
             <Button className="mt-4" variant="secondary" onClick={clearFilters}>Filter hatayein</Button>
           </>) : (<>
-            <p className="mt-3 font-semibold text-slate-900">Is muddat me stock nahi hila</p>
-            <p className="mt-1 text-sm text-slate-500">Bikri, kharidari, wapsi, adjustment aur transfer yahan khud darj hote hain</p>
+            <p className="mt-3 font-semibold text-slate-900">Is period me stock nahi hila</p>
+            <p className="mt-1 text-sm text-slate-500">Sale, purchase, return, adjustment aur transfer yahan khud darj hote hain</p>
             {range.preset !== 'all' && <Button className="mt-4" variant="secondary" onClick={() => setParams({ p: 'all', from: null, to: null })}>Sab tareekhen dekhein</Button>}
           </>)}
         </div>
@@ -301,7 +301,7 @@ export default function StockMovementsPage() {
             { icon: MousePointerClick, color: '#2563eb', title: 'Maal kahan gaya?', text: 'Kisi bhi cheez ke naam par click karein — us ki poori history pehle din se khul jayegi: kab aaya, kab bika, kab kharab hua.' },
             { icon: Scale, color: '#7c3aed', title: '"Baqi" ka matlab', text: 'Har entry ke baad us branch me kitna stock bacha. Do entries ke beech farq ho to wahi jagah dekhein jahan ginti ghalat hui.' },
             { icon: Hash, color: '#0891b2', title: 'Bill / reference', text: 'Reference par click karein to us bill ki sab entries aa jati hain. Teer wala nishan bill ka safha kholta hai.' },
-            { icon: CalendarRange, color: '#d97706', title: 'Filter', text: 'Muddat, qism (Bikri, Wapas, Kharab…), Aaya / Gaya aur "Kis ne" se list chhoti karein. Link copy karein to filter saath jata hai.' },
+            { icon: CalendarRange, color: '#d97706', title: 'Filter', text: 'Period, type (Sale, Wapas, Kharab…), Aaya / Gaya aur "Kis ne" se list chhoti karein. Link copy karein to filter saath jata hai.' },
             { icon: History, color: '#0d9488', title: 'Analytics', text: 'Roz ka aana jana, kis wajah se maal hila, sab se zyada hilne wali cheezein aur kis ne kitni entries kin.' },
             { icon: FileSpreadsheet, color: '#64748b', title: 'Print aur CSV', text: 'Print se A4, PDF ya thermal par is filter ki list (500 tak). CSV is safhe ki entries Excel ke liye.' },
           ]}
@@ -331,10 +331,10 @@ function Chip({ active, onClick, label, count, icon: I, color }: { active: boole
 
 /** Page a reference number opens, by its prefix. */
 const REF_PAGES: Array<{ prefix: string; to: string; title: string }> = [
-  { prefix: 'NF-', to: '/sales', title: 'Bikri ka safha' },
-  { prefix: 'RET-', to: '/returns', title: 'Wapsi ka safha' },
+  { prefix: 'NF-', to: '/sales', title: 'Sale ka safha' },
+  { prefix: 'RET-', to: '/returns', title: 'Return ka safha' },
   { prefix: 'TR-', to: '/transfers', title: 'Transfers ka safha' },
-  { prefix: 'PR-', to: '/purchases', title: 'Kharidari ka safha' },
+  { prefix: 'PR-', to: '/purchases', title: 'Purchase ka safha' },
 ];
 
 function RefChip({ reference, onFilter }: { reference: string; onFilter: (ref: string) => void }) {
@@ -353,7 +353,7 @@ function RefChip({ reference, onFilter }: { reference: string; onFilter: (ref: s
     <span className="inline-flex items-center overflow-hidden rounded-md bg-slate-100 text-[0.6875rem] font-medium text-slate-700 ring-1 ring-slate-200">
       <button type="button" onClick={() => onFilter(reference)} title="Is reference ki sab entries" className="px-1.5 py-0.5 font-mono hover:bg-slate-200">{reference}</button>
       {reference.startsWith('PO-') ? (
-        <button type="button" onClick={openPurchase} disabled={busy} title="Kharidari ka bill kholein" className="border-l border-slate-200 px-1 py-0.5 hover:bg-slate-200 disabled:opacity-50"><ExternalLink className="h-3 w-3" /></button>
+        <button type="button" onClick={openPurchase} disabled={busy} title="Purchase ka bill kholein" className="border-l border-slate-200 px-1 py-0.5 hover:bg-slate-200 disabled:opacity-50"><ExternalLink className="h-3 w-3" /></button>
       ) : page && (
         <Link to={page.to} title={page.title} className="border-l border-slate-200 px-1 py-0.5 hover:bg-slate-200"><ExternalLink className="h-3 w-3" /></Link>
       )}

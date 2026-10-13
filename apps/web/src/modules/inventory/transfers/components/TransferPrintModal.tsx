@@ -88,7 +88,7 @@ export function TransferPrintModal({ t, onClose }: { t: StockTransfer; onClose: 
         { label: 'Kahan se', value: t.fromShop.name, bold: true },
         { label: 'Kahan', value: t.toShop.name, bold: true },
         { label: 'Halat', value: STATUS[t.status].label },
-        ...(t.receivedAt ? [{ label: 'Wusool', value: `${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''}` }] : []),
+        ...(t.receivedAt ? [{ label: 'Receive', value: `${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''}` }] : []),
         ...(t.receivedAt ? [{ label: 'Waqt laga', value: duration(t.transferredAt ?? t.createdAt, t.receivedAt) }] : []),
         ...(t.cancelledAt ? [{ label: 'Cancel', value: `${dayTime(t.cancelledAt)}${t.cancelReason ? ` · ${t.cancelReason}` : ''}` }] : []),
       ],
@@ -98,7 +98,7 @@ export function TransferPrintModal({ t, onClose }: { t: StockTransfer; onClose: 
       extraRows: got && short > 0 ? [{ label: 'Kam aaya (qeemat)', value: rs(short), bold: true }] : [],
       total,
       paid: total,
-      paymentLabel: got ? 'Wusool maal ki qeemat' : 'Bheje maal ki qeemat',
+      paymentLabel: got ? 'Receive maal ki qeemat' : 'Bheje maal ki qeemat',
       hidePrices: !o.prices,
       footerNote: o.notes && t.notes ? t.notes : undefined,
       stamp: t.status === 'CANCELLED' ? 'CANCEL' : undefined,
@@ -126,14 +126,14 @@ export function TransferPrintModal({ t, onClose }: { t: StockTransfer; onClose: 
           <div>
             <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kya hai</p>
             <div className="grid grid-cols-2 gap-1">
-              {([['challan', 'Delivery challan'], ['received', 'Wusooli slip']] as const).map(([k, l]) => (
+              {([['challan', 'Delivery challan'], ['received', 'Receiving slip']] as const).map(([k, l]) => (
                 <button key={k} type="button" disabled={k === 'received' && !received} onClick={() => set('kind', k)} aria-pressed={o.kind === k}
                   className={cn('rounded-lg px-2 py-2 text-[0.8125rem] font-medium ring-1 transition disabled:opacity-40', o.kind === k ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-700 ring-slate-200')}>{l}</button>
               ))}
             </div>
             <p className="mt-1 text-[0.6875rem] text-slate-500">
               {o.kind === 'challan' ? 'Maal ke saath bhejein — lene wala gin kar dastkhat kare' : 'Jo maal asal me aaya, kami ke saath'}
-              {!received && ' · Wusooli slip maal aane ke baad'}
+              {!received && ' · Receiving slip maal aane ke baad'}
             </p>
           </div>
           <div>

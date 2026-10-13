@@ -18,7 +18,7 @@ export function useOrderHandoff() {
 
   return (g: OrderGroup, qtyOf: (r: LowRow) => number = (r) => r.suggestQty) => {
     const lines = g.rows.filter((r) => !r.made && qtyOf(r) > 0).map((r) => ({ productId: r.productId, qty: qtyOf(r) }));
-    if (!lines.length) { toast.error('Mangwane ke liye koi miqdar nahi'); return; }
+    if (!lines.length) { toast.error('Mangwane ke liye koi quantity nahi'); return; }
     if (currentShopId !== g.shopId) {
       setCurrentShop(g.shopId);
       toast.success(`${g.shopName} khul gayi — order isi branch ka banega`);

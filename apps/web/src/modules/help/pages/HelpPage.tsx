@@ -66,8 +66,8 @@ export default function HelpPage() {
       {guide.isOpen && (
         <PageGuide title="Madad — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Search, color: '#2563eb', title: 'Dhoondein', text: 'Upar likhein — sawal aur guides dono me se jawab aa jata hai.' },
-            { icon: LayoutGrid, color: '#7c3aed', title: 'Mauzoo chunein', text: 'Bikri, stock, khata, paisa, reports ya account — sirf usi ke sawal.' },
+            { icon: Search, color: '#2563eb', title: 'Search', text: 'Upar likhein — sawal aur guides dono me se jawab aa jata hai.' },
+            { icon: LayoutGrid, color: '#7c3aed', title: 'Mauzoo chunein', text: 'Sale, stock, khata, paisa, reports ya account — sirf usi ke sawal.' },
             { icon: BookOpen, color: '#16a34a', title: 'Guide kholein', text: 'Har guide 4 qadam ki hai aur "Kholein" se seedha us page par le jati hai.' },
             { icon: MessageCircle, color: '#d97706', title: 'WhatsApp karein', text: 'Jawab na mile to WhatsApp dabayein — dukaan aur naam pehle se likha hota hai.' },
           ]}
@@ -94,7 +94,7 @@ export default function HelpPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Kya poochna hai? Jaise: udhaar, return, backup…" label="Madad dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Kya poochna hai? Jaise: udhaar, return, backup…" label="Madad search" />}
         chips={filtered ? <>
           {topicMeta && <FilterChip onRemove={() => setTopic('all')}>{topicMeta.label}</FilterChip>}
           {q && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
@@ -191,7 +191,7 @@ export default function HelpPage() {
 function NoMatch({ onClear, wa }: { onClear: () => void; wa: string }) {
   return (
     <div className="rounded-3xl bg-white ring-1 ring-slate-200/80">
-      <EmptyState icon={<Search className="h-6 w-6" />} title="Is ka jawab yahan nahi mila" description="Doosre lafz se dhoondein, ya seedha support se poochein"
+      <EmptyState icon={<Search className="h-6 w-6" />} title="Is ka jawab yahan nahi mila" description="Doosre lafz se search, ya seedha support se poochein"
         action={<><Button variant="secondary" onClick={onClear}>Filter hatayein</Button><a href={wa} target="_blank" rel="noreferrer"><Button><MessageCircle className="h-4 w-4" /> WhatsApp</Button></a></>} />
     </div>
   );

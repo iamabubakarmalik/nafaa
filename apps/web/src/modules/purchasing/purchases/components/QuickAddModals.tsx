@@ -110,7 +110,7 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
         const { supplierLedgerApi } = await import('../../suppliers/api/supplier-ledger.api');
         await supplierLedgerApi.setOpeningBalance(s.id, {
           amount: open,
-          note: 'Purana hisab — kharidari ke waqt darj kiya',
+          note: 'Purana hisab — purchase ke waqt darj kiya',
         });
       }
       return s;
@@ -131,7 +131,7 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
     <Shell
       badge="Naya Supplier" icon={<Truck className="h-3 w-3" />} tone="teal"
       title="🚚 Supplier Yahin Bana Lein"
-      subtitle="Sirf naam zaroori — baqi tafseel baad me"
+      subtitle="Sirf naam zaroori — baqi details baad me"
       onClose={onClose}
       footer={
         <div className="flex gap-2">
@@ -181,7 +181,7 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
         </div>
 
         <div className="text-center text-[0.6875rem] font-bold text-slate-400">
-          Bank tafseel, NTN, payment terms waghera baad me poori form se
+          Bank details, NTN, payment terms waghera baad me poori form se
         </div>
       </div>
     </Shell>
@@ -231,7 +231,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
   };
 
   const markup = (pct: number) => {
-    if (!cost) return toast.error('Pehle lagat likhein');
+    if (!cost) return toast.error('Pehle cost likhein');
     setPrice(String(Math.round(cost * (1 + pct / 100))));
   };
 
@@ -262,7 +262,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
     <Shell
       badge="Naya Product" icon={<Package className="h-3 w-3" />} tone="blue"
       title="📦 Cheez Yahin Bana Lein"
-      subtitle="Bunyadi tafseel — baqi baad me poori wizard se"
+      subtitle="Bunyadi details — baqi baad me poori wizard se"
       onClose={onClose}
       footer={
         <div className="flex gap-2">
@@ -321,12 +321,12 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <Lbl req hint="supplier se kitne ka">Lagat</Lbl>
+            <Lbl req hint="supplier se kitne ka">Cost</Lbl>
             <input type="number" min={0} className={inp('h-12 text-base font-extrabold tabular-nums')}
               placeholder="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
           </div>
           <div>
-            <Lbl hint="khali = lagat ke barabar">Bechne ka rate</Lbl>
+            <Lbl hint="khali = cost ke barabar">Bechne ka rate</Lbl>
             <input type="number" min={0} className={inp('h-12 text-base font-extrabold tabular-nums', loss)}
               placeholder={costPrice || '0'} value={price} onChange={(e) => setPrice(e.target.value)} />
           </div>
@@ -348,7 +348,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
             loss ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300'
                  : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
           }`}>
-            <span>{loss ? '⚠️ Nuqsan par bech rahe hain' : 'Har unit par munafa'}</span>
+            <span>{loss ? '⚠️ Nuqsan par bech rahe hain' : 'Har unit par profit'}</span>
             <span className="tabular-nums">{formatPKR(sale - cost)} · {margin.toFixed(0)}%</span>
           </div>
         )}
@@ -364,7 +364,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
           <div className="text-[0.6875rem] font-bold text-blue-900 dark:text-blue-200">
             Stock <strong>0</strong> se shuru hoga — is bill se khud barh jayega.
             {wizardPath && (
-              <> Poori tafseel (warranty, specs waghera) baad me <strong>poori wizard</strong> se bhar lein.</>
+              <> Poori details (warranty, specs waghera) baad me <strong>poori wizard</strong> se bhar lein.</>
             )}
           </div>
         </div>

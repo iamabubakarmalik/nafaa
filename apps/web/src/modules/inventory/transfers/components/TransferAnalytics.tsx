@@ -34,8 +34,8 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={Truck} label="Kul maal gaya" value={money(t.value)} sub={`${t.count} transfer · ${t.cancelled} cancel`} />
-        <Kpi icon={Clock} label="Raste me" value={String(t.inTransit)} sub={t.inTransit ? 'Wusool hona baqi' : 'Sab pohanch gaya'} tone={t.inTransit ? 'amber' : 'emerald'} />
-        <Kpi icon={TrendingUp} label="Ausat wusooli waqt" value={t.avgHours == null ? '—' : `${t.avgHours} ghante`} sub={t.avgHours == null ? 'Abhi koi wusool nahi' : 'Bhejne se wusool tak'} />
+        <Kpi icon={Clock} label="Raste me" value={String(t.inTransit)} sub={t.inTransit ? 'Receive hona baqi' : 'Sab pohanch gaya'} tone={t.inTransit ? 'amber' : 'emerald'} />
+        <Kpi icon={TrendingUp} label="Ausat receiving waqt" value={t.avgHours == null ? '—' : `${t.avgHours} ghante`} sub={t.avgHours == null ? 'Abhi koi receive nahi' : 'Bhejne se receive tak'} />
         <Kpi icon={AlertTriangle} label="Kam aaya" value={money(t.shortValue)} sub={t.shortValue > 0 ? 'Raste me gum / toota' : 'Koi kami nahi'} tone={t.shortValue > 0 ? 'rose' : 'emerald'} />
       </div>
 
@@ -43,7 +43,7 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
         <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Din war</span>}
           description="Har din kitna maal bheja gaya"
           actions={<Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'value', label: 'Qeemat' }, { value: 'count', label: 'Transfers' }]} />}>
-          {!trend.length ? <Empty text="Is muddat me koi transfer nahi" /> : (
+          {!trend.length ? <Empty text="Is period me koi transfer nahi" /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -63,7 +63,7 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Halat</span>} description="Raste me, wusool aur cancel">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Halat</span>} description="Raste me, receive aur cancel">
           {!status.length ? <Empty text="Koi transfer nahi" /> : (
             <>
               <div className="h-[170px]">
@@ -109,12 +109,12 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada bheja maal</span>} description="Miqdar base unit me, qeemat cost par">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada bheja maal</span>} description="Quantity base unit me, qeemat cost par">
           {!data.topProducts.length ? <Empty text="Koi transfer nahi" /> : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[22rem] text-sm">
                 <thead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-                  <tr><th className="py-2">#</th><th className="py-2">Cheez</th><th className="py-2 text-right">Miqdar</th><th className="py-2 text-right">Qeemat</th></tr>
+                  <tr><th className="py-2">#</th><th className="py-2">Cheez</th><th className="py-2 text-right">Quantity</th><th className="py-2 text-right">Qeemat</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {data.topProducts.map((p, n) => (

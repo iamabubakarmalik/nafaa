@@ -53,12 +53,12 @@ function Compare({ icon: Icon, color, label, value, change, hint }: {
       </div>
       <div className="mt-2 truncate text-[1.375rem] font-bold tracking-tight text-slate-900 tabular-nums">{value}</div>
       <div className="mt-1 flex items-center gap-1.5 text-[0.75rem]">
-        {change === null ? <span className="text-slate-400">{hint ?? 'Pichli muddat ka data nahi'}</span> : (
+        {change === null ? <span className="text-slate-400">{hint ?? 'Pichli period ka data nahi'}</span> : (
           <>
             <span className={cn('inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold', up ? 'bg-success-50 text-success-700' : 'bg-rose-50 text-rose-700')}>
               {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}{Math.abs(change).toFixed(change !== 0 && Math.abs(change) < 10 ? 1 : 0)}%
             </span>
-            <span className="truncate text-slate-500">{hint ?? 'pichli muddat se'}</span>
+            <span className="truncate text-slate-500">{hint ?? 'pichli period se'}</span>
           </>
         )}
       </div>
@@ -124,7 +124,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
   const trendRows = trend.map((t) => ({ ...t, average: t.bills ? Math.round(t.sales / t.bills) : 0 }));
   const dayMax = Math.max(0, ...trendRows.map((t) => t.sales));
   const activeDays = trendRows.filter((t) => t.bills > 0).length;
-  const metricName = { sales: 'Bikri', bills: 'Bill', average: 'Ausat bill' }[metric];
+  const metricName = { sales: 'Sale', bills: 'Bill', average: 'Ausat bill' }[metric];
 
   // Heatmap: Monday first; only the hours the shop is actually open.
   const dayOrder = [1, 2, 3, 4, 5, 6, 0];
@@ -141,11 +141,11 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Compare icon={TrendingUp} color="#2563eb" label="Kul bikri" value={money(nowTotal)} change={prev ? growth(nowTotal, prev.total) : null}
+        <Compare icon={TrendingUp} color="#2563eb" label="Total sale" value={money(nowTotal)} change={prev ? growth(nowTotal, prev.total) : null}
           hint={prev ? `pehle ${money(prev.total)}` : 'Sab waqt ka record'} />
         <Compare icon={Receipt} color="#7c3aed" label="Bill" value={String(nowBills)} change={prev ? growth(nowBills, prev.bills) : null}
           hint={prev ? `pehle ${prev.bills}` : 'Sab waqt ka record'} />
-        <Compare icon={Target} color="#16a34a" label="Munafa" value={cost(nowProfit)} change={prev && !costHidden ? growth(nowProfit, prev.profit) : null}
+        <Compare icon={Target} color="#16a34a" label="Profit" value={cost(nowProfit)} change={prev && !costHidden ? growth(nowProfit, prev.profit) : null}
           hint={costHidden ? 'Cost lock' : prev ? `pehle ${cost(prev.profit)}` : 'Sab waqt ka record'} />
         <Compare icon={Wallet} color="#ea580c" label="Ausat bill" value={money(avgNow)} change={prev ? growth(avgNow, avgPrev) : null}
           hint={prev ? `pehle ${money(avgPrev)}` : 'Sab waqt ka record'} />
@@ -162,8 +162,8 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
         <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Rujhan</span>}
           description={data.grouping === 'month' ? 'Mahine war' : 'Din war'}
           actions={<Segmented<TrendMetric> label="Kya dikhayein" value={metric} onChange={setMetric}
-            items={[{ value: 'sales', label: 'Bikri' }, { value: 'bills', label: 'Bill' }, { value: 'average', label: 'Ausat' }]} />}>
-          {salesHidden ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Bikri chhupi hui hai</p> : (
+            items={[{ value: 'sales', label: 'Sale' }, { value: 'bills', label: 'Bill' }, { value: 'average', label: 'Ausat' }]} />}>
+          {salesHidden ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Sale chhupi hui hai</p> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendRows} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -185,7 +185,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
         </Card>
 
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Paisa kaise aaya</span>}>
-          {data.payments.length === 0 ? <p className="py-12 text-center text-[0.875rem] text-slate-500">Koi bikri nahi</p> : (
+          {data.payments.length === 0 ? <p className="py-12 text-center text-[0.875rem] text-slate-500">Koi sale nahi</p> : (
             <>
               {!salesHidden && (
                 <div className="mx-auto h-[150px] w-[150px]">
@@ -225,14 +225,14 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
           { title: 'Hafte ke din', icon: CalendarDays, rows: weekdays, key: 'label', peak: bestDay.day, id: 'day' as const },
         ].map((c) => (
           <Card key={c.title} className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><c.icon className="h-4 w-4 text-brand-600" />{c.title}</span>}>
-            {salesHidden ? <p className="py-12 text-center text-[0.875rem] text-slate-500">Bikri chhupi hui hai</p> : (
+            {salesHidden ? <p className="py-12 text-center text-[0.875rem] text-slate-500">Sale chhupi hui hai</p> : (
               <div className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={c.rows as Array<Record<string, number | string>>} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                     <CartesianGrid stroke={theme.grid} vertical={false} />
                     <XAxis dataKey={c.key} tick={theme.axis} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                     <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                    <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Bikri']} {...tip} cursor={theme.tooltip.cursor} />
+                    <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Sale']} {...tip} cursor={theme.tooltip.cursor} />
                     <Bar dataKey="sales" radius={[5, 5, 0, 0]}>
                       {(c.rows as Array<{ hour?: number; day?: number }>).map((r, i) => (
                         <Cell key={i} fill={(c.id === 'hour' ? r.hour : r.day) === c.peak ? theme.primary : theme.primarySoft} />
@@ -248,7 +248,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
 
       <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Flame className="h-4 w-4 text-brand-600" />Rush ka naqsha</span>}
         description="Hafte ke kis din, kis ghante sab se zyada bill bante hain — staff aur maal isi hisaab se rakhein">
-        {heatHours.length === 0 ? <p className="py-10 text-center text-[0.875rem] text-slate-500">Koi bikri nahi</p> : (
+        {heatHours.length === 0 ? <p className="py-10 text-center text-[0.875rem] text-slate-500">Koi sale nahi</p> : (
           <div className="overflow-x-auto pb-1">
             <div className="inline-grid min-w-full gap-1" style={{ gridTemplateColumns: `4.5rem repeat(${heatHours.length}, minmax(1.75rem, 1fr))` }}>
               <span />
@@ -278,7 +278,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war</span>} flush>
-          {cats.length === 0 ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi bikri nahi</p> : (
+          {cats.length === 0 ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi sale nahi</p> : (
             <div className="px-4 pb-4 sm:px-5">
               <div className="flex h-3 overflow-hidden rounded-full bg-slate-100">
                 {cats.map((c) => <div key={c.id ?? 'none'} title={c.name} style={{ width: `${(c.revenue / catTotal) * 100}%`, backgroundColor: c.color }} />)}
@@ -314,16 +314,16 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
               ))}
             </div>
             <ul className="space-y-1.5 text-[0.8125rem]">
-              <li className="flex justify-between"><span className="text-slate-500">Walk-in ki bikri</span><span className="font-semibold tabular-nums">{money(cm.walkInTotal)}</span></li>
-              <li className="flex justify-between"><span className="text-slate-500">Naam walon ki bikri</span><span className="font-semibold tabular-nums">{money(cm.namedTotal)}</span></li>
+              <li className="flex justify-between"><span className="text-slate-500">Walk-in ki sale</span><span className="font-semibold tabular-nums">{money(cm.walkInTotal)}</span></li>
+              <li className="flex justify-between"><span className="text-slate-500">Naam walon ki sale</span><span className="font-semibold tabular-nums">{money(cm.namedTotal)}</span></li>
               <li className="flex justify-between"><span className="text-slate-500">Wapas aane wale</span><span className="font-semibold tabular-nums">{returning}%</span></li>
             </ul>
           </div>
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Percent className="h-4 w-4 text-brand-600" />Discount aur wapsi</span>}>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Percent className="h-4 w-4 text-brand-600" />Discount aur return</span>}>
           <div className="space-y-4">
-            <Split left="Asal bikri" right="Discount" a={stats?.total ?? 0} b={stats?.discount ?? 0} colors={[theme.primary, '#db2777']} />
+            <Split left="Asal sale" right="Discount" a={stats?.total ?? 0} b={stats?.discount ?? 0} colors={[theme.primary, '#db2777']} />
             <ul className="space-y-1.5 text-[0.8125rem]">
               <li className="flex justify-between"><span className="text-slate-500">Discount se pehle</span><span className="font-semibold tabular-nums">{money(gross)}</span></li>
               <li className="flex justify-between"><span className="text-slate-500">Kul discount</span><span className="font-semibold tabular-nums text-pink-700">{money(stats?.discount ?? 0)} <span className="font-normal text-slate-400">({gross ? (((stats?.discount ?? 0) / gross) * 100).toFixed(1) : 0}%)</span></span></li>
@@ -351,7 +351,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
                 </div>
               </li>
             ))}
-            {data.topProducts.length === 0 && <li className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi bikri nahi</li>}
+            {data.topProducts.length === 0 && <li className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi sale nahi</li>}
           </ul>
         </Card>
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Users className="h-4 w-4 text-brand-600" />Behtareen customers</span>} flush>
@@ -368,7 +368,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
                 </Link>
               </li>
             ))}
-            {data.topCustomers.length === 0 && <li className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Naam wale customer ki bikri nahi</li>}
+            {data.topCustomers.length === 0 && <li className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Naam wale customer ki sale nahi</li>}
           </ul>
         </Card>
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Medal className="h-4 w-4 text-brand-600" />Staff</span>} flush>
@@ -379,27 +379,27 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
                 <div className="min-w-0 flex-1">
                   <div className="flex justify-between gap-2 text-[0.8125rem]"><span className="truncate font-medium text-slate-900">{p.name}</span><span className="font-semibold tabular-nums">{money(p.total)}</span></div>
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${(p.total / maxStaff) * 100}%` }} /></div>
-                  <div className="mt-0.5 text-[0.6875rem] text-slate-500">{p.bills} bill · ausat {money(p.bills ? p.total / p.bills : 0)}{!costHidden && ` · munafa ${cost(p.profit)}`}</div>
+                  <div className="mt-0.5 text-[0.6875rem] text-slate-500">{p.bills} bill · ausat {money(p.bills ? p.total / p.bills : 0)}{!costHidden && ` · profit ${cost(p.profit)}`}</div>
                 </div>
               </li>
             ))}
-            {data.staff.length === 0 && <li className="py-8 text-center text-[0.8125rem] text-slate-500">Koi bikri nahi</li>}
+            {data.staff.length === 0 && <li className="py-8 text-center text-[0.8125rem] text-slate-500">Koi sale nahi</li>}
           </ul>
         </Card>
       </div>
 
-      <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-brand-600" />{data.grouping === 'month' ? 'Mahine war tafseel' : 'Din war tafseel'}</span>}
-        description="Har din ki bikri, bill, ausat aur munafa — sab se acha din hara">
-        {salesHidden ? <p className="px-5 py-10 text-center text-[0.875rem] text-slate-500">Bikri chhupi hui hai</p> : (
+      <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-brand-600" />{data.grouping === 'month' ? 'Mahine war details' : 'Din war details'}</span>}
+        description="Har din ki sale, bill, ausat aur profit — sab se acha din hara">
+        {salesHidden ? <p className="px-5 py-10 text-center text-[0.875rem] text-slate-500">Sale chhupi hui hai</p> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[34rem] text-[0.8125rem]">
               <thead>
                 <tr className="border-y border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
                   <th className="px-5 py-2">{data.grouping === 'month' ? 'Mahina' : 'Din'}</th>
                   <th className="px-3 py-2 text-right">Bill</th>
-                  <th className="px-3 py-2 text-right">Bikri</th>
+                  <th className="px-3 py-2 text-right">Sale</th>
                   <th className="px-3 py-2 text-right">Ausat</th>
-                  {!costHidden && <th className="px-3 py-2 text-right">Munafa</th>}
+                  {!costHidden && <th className="px-3 py-2 text-right">Profit</th>}
                   <th className="w-[28%] px-5 py-2" />
                 </tr>
               </thead>
@@ -424,7 +424,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
                 {showAllDays ? 'Kam dikhayein' : `Sab ${activeDays} dikhayein`}
               </button>
             )}
-            {activeDays === 0 && <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi bikri nahi</p>}
+            {activeDays === 0 && <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi sale nahi</p>}
           </div>
         )}
       </Card>

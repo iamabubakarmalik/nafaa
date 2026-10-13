@@ -160,7 +160,7 @@ export default function ProductUnitsPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product ka naam, SKU ya barcode (pack ka bhi)…" label="Dhoondein"
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product ka naam, SKU ya barcode (pack ka bhi)…" label="Search"
           trailing={<Button variant="secondary" className="h-11" onClick={() => setScan(true)} leftIcon={<ScanLine className="h-4 w-4" />}><span className="hidden sm:inline">Scan</span></Button>} />}
         chips={filtered ? <>
           {filter !== 'all' && <FilterChip onRemove={() => setFilter('all')}>{FILTERS[filter]}</FilterChip>}
@@ -187,7 +187,7 @@ export default function ProductUnitsPage() {
               <Button size="sm" onClick={() => setBulk(true)} leftIcon={<Boxes className="h-4 w-4" />}>Sab me pack jorein</Button>
               <button type="button" onClick={() => setSelected(new Map())} className="text-[0.75rem] text-slate-500 hover:underline">saaf</button>
             </>}
-            <span className="hidden text-[0.75rem] text-slate-500 lg:inline"><Kbd>/</Kbd> dhoondein · <Kbd>B</Kbd> kai products · <Kbd>A</Kbd> analytics</span>
+            <span className="hidden text-[0.75rem] text-slate-500 lg:inline"><Kbd>/</Kbd> search · <Kbd>B</Kbd> kai products · <Kbd>A</Kbd> analytics</span>
           </div>
         ) : undefined} />
 
@@ -230,7 +230,7 @@ export default function ProductUnitsPage() {
       {bulk && <BulkAddModal products={[...selected.values()]} industryId={industry?.id} onClose={() => setBulk(false)} onDone={() => { setBulk(false); setSelected(new Map()); }} />}
       {confirm && (
         <Modal open onClose={() => setConfirm(null)} size="sm" title={`${confirm.unit.unitName} mitayein?`}
-          description={`${confirm.product.name} ka ye pack POS, kharidari aur labels se hat jayega. Purane bills par asar nahi.`}
+          description={`${confirm.product.name} ka ye pack POS, purchase aur labels se hat jayega. Purane bills par asar nahi.`}
           footer={<>
             <Button variant="secondary" onClick={() => setConfirm(null)}>Rehne dein</Button>
             <Button variant="danger" loading={removeM.isPending} onClick={() => removeM.mutate(confirm.unit.id)} leftIcon={<Trash2 className="h-4 w-4" />}>Mita dein</Button>
@@ -243,11 +243,11 @@ export default function ProductUnitsPage() {
         <PageGuide title="Multi-units — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Layers, color: '#2563eb', title: 'Asal unit aur pack', text: 'Har product ka ek asal unit hota hai (piece, kg, litre). Pack us ka guna hai — carton = 24 piece, bori = 50 kg. Stock hamesha asal unit me rehta hai.' },
-            { icon: PackagePlus, color: '#16a34a', title: 'Ek tap me pack', text: 'Product ke neeche wale chhote button (Dozen, Carton, Pao…) dabayein — pack ban jata hai, qeemat khule rate × miqdar se khud lagti hai.' },
+            { icon: PackagePlus, color: '#16a34a', title: 'Ek tap me pack', text: 'Product ke neeche wale chhote button (Dozen, Carton, Pao…) dabayein — pack ban jata hai, qeemat khule rate × quantity se khud lagti hai.' },
             { icon: Pencil, color: '#7c3aed', title: 'Qeemat aur barcode', text: 'Pack par dabayein to badal sakte hain: apni qeemat, "2% kam" jaise button, wholesale rate aur carton ka barcode (scan ya naya banayein).' },
             { icon: Boxes, color: '#d97706', title: 'Kai products ek sath', text: 'Products ke aage nishan lagayein aur "Kai products me pack" dabayein — sab me ek hi pack (misaal: carton = 24) jur jata hai.' },
             { icon: Star, color: '#f59e0b', title: 'POS par pehle', text: 'Star wala pack POS par product chunte hi khulta hai. Wholesale wali dukaan carton ko pehle rakh sakti hai.' },
-            { icon: Truck, color: '#0891b2', title: 'Kharidari aur analytics', text: 'Kharidari me carton chun kar likhein, stock khud piece me barhta hai. Analytics me dikhta hai kitna maal pack me aaya aur kis pack ki qeemat ghalat hai.' },
+            { icon: Truck, color: '#0891b2', title: 'Purchase aur analytics', text: 'Purchase me carton chun kar likhein, stock khud piece me barhta hai. Analytics me dikhta hai kitna maal pack me aaya aur kis pack ki qeemat ghalat hai.' },
           ]}
           tips={[
             'Lal "mehnga" ka matlab: pack khule se mehnga hai — customer khula le lega.',
@@ -318,7 +318,7 @@ function ProductRow({ p, industryId, costHidden, selected, onSelect, editing, on
               <span className="font-semibold tabular-nums text-slate-900">{formatPKR(u.price)}</span>
               {!u.isBase && u.saving > 0.5 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-emerald-700">{formatPKR(u.saving)} bachat</span>}
               {u.dearer && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800 ring-1 ring-amber-200">khule se mehnga</span>}
-              {u.loss && !costHidden && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-rose-700 ring-1 ring-rose-200">lagat se kam</span>}
+              {u.loss && !costHidden && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-rose-700 ring-1 ring-rose-200">cost se kam</span>}
               {!u.isActive && <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[0.6875rem] text-slate-600">band</span>}
               {!u.isBase && <span className="text-[0.75rem] text-slate-500">stock {qtyText(u.inStock)}</span>}
               {u.barcode

@@ -54,8 +54,8 @@ export function OverviewTab({ p }: { p: Profile }) {
   return (
     <div className="space-y-4">
       {p.sales && (
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShoppingBag className="h-4 w-4 text-brand-600" />Bikri — pichle 30 din</span>}
-          description="Is ke naam lagi bikri, wapsi ghata kar">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShoppingBag className="h-4 w-4 text-brand-600" />Sale — pichle 30 din</span>}
+          description="Is ke naam lagi sale, return ghata kar">
           <div className="mb-3 grid grid-cols-3 gap-2">
             <Tile label="Aaj" value={formatPKR(p.sales.today.sales)} hint={`${p.sales.today.bills} bill`} />
             <Tile label="Is mahine" value={formatPKR(p.sales.month.sales)} hint={`${p.sales.month.bills} bill`} />
@@ -67,7 +67,7 @@ export function OverviewTab({ p }: { p: Profile }) {
                 <CartesianGrid vertical={false} stroke={theme.grid} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                 <YAxis tickFormatter={axisMoney} width={40} tick={theme.axis} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Bikri']} {...theme.tooltip} />
+                <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Sale']} {...theme.tooltip} />
                 <Bar dataKey="sales" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={18} />
               </BarChart>
             </ResponsiveContainer>
@@ -121,13 +121,13 @@ export function PermissionsTab({ p }: { p: Profile }) {
   useEffect(() => { setPerms(savedKey ? savedKey.split(',') : []); }, [savedKey]);
   const save = useMutation({
     mutationFn: () => teamApi.updatePermissions(login!.id, perms),
-    onSuccess: () => { refresh(qc); toast.success('Ijazatein save — agli dafa app kholne par lagengi'); },
+    onSuccess: () => { refresh(qc); toast.success('Permissions save — agli dafa app kholne par lagengi'); },
     onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
   });
 
-  if (!p.person.hasLogin) return <Note text="Is bande ka login nahi, is liye ijazat ka sawal nahi. Login dene ke liye upar 'Login dein' dabayein." />;
-  if (!login) return <Note text={'Ijazat dekhne ke liye "Team dekhna" ki ijazat chahiye.'} />;
-  if (login.role === 'OWNER' || login.role === 'SUPER_ADMIN') return <Note text="Malik ko har cheez ki ijazat hai — yahan kuch badalna nahi parta." />;
+  if (!p.person.hasLogin) return <Note text="Is bande ka login nahi, is liye permission ka sawal nahi. Login dene ke liye upar 'Login dein' dabayein." />;
+  if (!login) return <Note text={'Permission dekhne ke liye "Team dekhna" ki permission chahiye.'} />;
+  if (login.role === 'OWNER' || login.role === 'SUPER_ADMIN') return <Note text="Malik ko har cheez ki permission hai — yahan kuch badalna nahi parta." />;
 
   const editable = p.viewer.owner;
   const original = login.permissions;
@@ -136,7 +136,7 @@ export function PermissionsTab({ p }: { p: Profile }) {
   return (
     <div className="space-y-4">
     <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brand-600" />Kya kya kar sakta hai</span>}
-      description={editable ? `Role: ${ROLES[role].label}. Nishan lagayein ya hatayein, phir Save.` : 'Sirf malik ijazat badal sakta hai'}
+      description={editable ? `Role: ${ROLES[role].label}. Nishan lagayein ya hatayein, phir Save.` : 'Sirf malik permission badal sakta hai'}
       actions={editable && dirty ? <>
         <Button size="sm" variant="ghost" onClick={() => setPerms(original)}>Wapas</Button>
         <Button size="sm" onClick={() => save.mutate()} loading={save.isPending}>Save karein</Button>
@@ -171,21 +171,21 @@ function ApprovalPinCard({ userId, name, has, perms }: { userId: string; name: s
     onError: (e) => toast.error(apiError(e, 'PIN nahi hata')),
   });
   const can = [
-    perms.includes('pos.discount_override') && 'bari chhoot',
+    perms.includes('pos.discount_override') && 'bari discount',
     perms.includes('khata.manage') && 'had se zyada udhaar',
     perms.includes('sales.void') && 'bill void',
-    perms.includes('returns.create') && 'wapsi / refund',
+    perms.includes('returns.create') && 'return / refund',
   ].filter(Boolean) as string[];
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-amber-600" />Manzoori PIN</span>}
-      description="Jahan malik ka PIN maanga jata hai, wahan is bande ka apna PIN bhi chal sakta hai — sirf un kaamon ke liye jin ki is ke paas ijazat hai."
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-amber-600" />Approval PIN</span>}
+      description="Jahan malik ka PIN maanga jata hai, wahan is bande ka apna PIN bhi chal sakta hai — sirf un kaamon ke liye jin ki is ke paas permission hai."
       actions={has ? <>
         <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>Badlein</Button>
         <Button size="sm" variant="ghost" onClick={() => clear.mutate()} loading={clear.isPending}>Hatayein</Button>
       </> : <Button size="sm" onClick={() => setOpen((v) => !v)}>PIN lagayein</Button>}>
       <p className="text-[0.8125rem] text-slate-600">
         {has ? 'PIN laga hua hai.' : 'Abhi koi PIN nahi.'}{' '}
-        {can.length ? <>Yeh PIN manzoor kar sakta hai: <b className="text-slate-800">{can.join(', ')}</b>.</> : 'Is ke paas abhi aisi koi ijazat nahi jo PIN se manzoor ho — upar ijazat dein.'}
+        {can.length ? <>Yeh PIN approve kar sakta hai: <b className="text-slate-800">{can.join(', ')}</b>.</> : 'Is ke paas abhi aisi koi permission nahi jo PIN se approve ho — upar permission dein.'}
       </p>
       {open && (
         <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (/^\d{4,8}$/.test(pin)) save.mutate(); }}>
@@ -196,7 +196,7 @@ function ApprovalPinCard({ userId, name, has, perms }: { userId: string; name: s
               className="mt-1 block h-10 w-40 rounded-xl border border-slate-200 bg-white px-3 text-base tracking-[0.3em] text-slate-900" />
           </label>
           <Button type="submit" size="sm" disabled={!/^\d{4,8}$/.test(pin)} loading={save.isPending}>Save karein</Button>
-          <p className="w-full text-[0.6875rem] text-slate-500">Malik ke PIN ya kisi aur ke PIN jaisa nahi ho sakta. Har manzoori ka record banta hai ke kis ke PIN se hui.</p>
+          <p className="w-full text-[0.6875rem] text-slate-500">Malik ke PIN ya kisi aur ke PIN jaisa nahi ho sakta. Har approval ka record banta hai ke kis ke PIN se hui.</p>
         </form>
       )}
     </Card>
@@ -229,11 +229,11 @@ export function BranchesTab({ p }: { p: Profile }) {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Lock className="h-4 w-4 text-brand-600" />Login ki branch</span>} description="App me kaunsi branch ka data dikhe aur bikri kahan lage">
-          {!p.person.hasLogin ? <p className="text-sm text-slate-500">Login nahi hai.</p> : !login ? <Note text={'Dekhne ke liye "Team dekhna" ki ijazat chahiye.'} /> : isOwnerLogin ? <p className="text-sm text-slate-500">Malik har branch dekh sakta hai.</p> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Lock className="h-4 w-4 text-brand-600" />Login ki branch</span>} description="App me kaunsi branch ka data dikhe aur sale kahan lage">
+          {!p.person.hasLogin ? <p className="text-sm text-slate-500">Login nahi hai.</p> : !login ? <Note text={'Dekhne ke liye "Team dekhna" ki permission chahiye.'} /> : isOwnerLogin ? <p className="text-sm text-slate-500">Malik har branch dekh sakta hai.</p> : (
             <div className="space-y-3">
               <Select value={loginShop} onChange={(e) => setLoginShop(e.target.value)} options={options} disabled={!p.viewer.owner}
-                hint={needsShop ? `${ROLES[login.role as AssignableRole].label} ko ek branch deni zaroori hai` : 'Khali = har branch (jitni ijazat hai)'} />
+                hint={needsShop ? `${ROLES[login.role as AssignableRole].label} ko ek branch deni zaroori hai` : 'Khali = har branch (jitni permission hai)'} />
               {p.viewer.owner && <Button size="sm" onClick={() => saveLogin.mutate()} loading={saveLogin.isPending} disabled={loginShop === (login.shop?.id ?? '') || (needsShop && !loginShop)}>Save karein</Button>}
             </div>
           )}
@@ -247,8 +247,8 @@ export function BranchesTab({ p }: { p: Profile }) {
           )}
         </Card>
       </div>
-      <Card className="rounded-2xl" title="Kahan bikri ki — pichle 30 din">
-        {!p.sales ? <Note text={'Dekhne ke liye "Bikri dekhna" ki ijazat chahiye.'} /> : !p.sales.branches.length ? <p className="text-sm text-slate-500">Pichle 30 din me koi bikri nahi.</p> : (
+      <Card className="rounded-2xl" title="Kahan sale ki — pichle 30 din">
+        {!p.sales ? <Note text={'Dekhne ke liye "Sale dekhna" ki permission chahiye.'} /> : !p.sales.branches.length ? <p className="text-sm text-slate-500">Pichle 30 din me koi sale nahi.</p> : (
           <ul className="space-y-2">
             {p.sales.branches.map((b) => {
               const max = p.sales!.branches[0].sales || 1;
@@ -304,7 +304,7 @@ export function AttendanceTab({ p }: { p: Profile }) {
               <li key={l.id} className="flex flex-wrap justify-between gap-2 py-2">
                 <span>{day(l.startDate)} – {day(l.endDate)} · {l.days} din{l.reason ? ` · ${l.reason}` : ''}</span>
                 <span className={cn('font-semibold', l.status === 'APPROVED' ? 'text-emerald-700' : l.status === 'REJECTED' ? 'text-rose-700' : 'text-amber-700')}>
-                  {{ APPROVED: 'Manzoor', REJECTED: 'Na-manzoor', PENDING: 'Faisla baqi', CANCELLED: 'Cancel' }[l.status] ?? l.status}
+                  {{ APPROVED: 'Approve', REJECTED: 'Na-approve', PENDING: 'Faisla baqi', CANCELLED: 'Cancel' }[l.status] ?? l.status}
                 </span>
               </li>
             ))}
@@ -327,14 +327,14 @@ export function PayTab({ p }: { p: Profile }) {
             <Tile label="Qisam" value={salaryTypeOf(s.salaryType).label} />
             <Tile label="Tankhwah" value={s.salaryType === 'COMMISSION' ? '—' : formatPKR(s.baseSalary)} hint={salaryTypeOf(s.salaryType).unit} />
             <Tile label="Baqi dena hai" value={formatPKR(s.unpaid)} tone={s.unpaid > 0 ? 'text-rose-700' : undefined} />
-            <Tile label="Aakhri adaigi" value={s.lastPaidAt ? day(s.lastPaidAt) : '—'} />
+            <Tile label="Aakhri payment" value={s.lastPaidAt ? day(s.lastPaidAt) : '—'} />
           </div>
           <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Pichli tankhwahein</span>}
             actions={<Link to="/staff/salary/new" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Tankhwah ka safha</Link>}>
             {!s.payments.length ? <p className="px-5 pb-5 text-sm text-slate-500">Abhi koi tankhwah nahi bani.</p> : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[30rem] text-[0.8125rem]">
-                  <thead><tr className="border-b border-slate-200 text-left text-[0.75rem] text-slate-500"><th className="px-4 py-2 font-medium">Muddat</th><th className="px-2 py-2 font-medium">No.</th><th className="px-2 py-2 text-right font-medium">Banti</th><th className="px-2 py-2 text-right font-medium">Di</th><th className="px-4 py-2 text-right font-medium">Haal</th></tr></thead>
+                  <thead><tr className="border-b border-slate-200 text-left text-[0.75rem] text-slate-500"><th className="px-4 py-2 font-medium">Period</th><th className="px-2 py-2 font-medium">No.</th><th className="px-2 py-2 text-right font-medium">Banti</th><th className="px-2 py-2 text-right font-medium">Di</th><th className="px-4 py-2 text-right font-medium">Haal</th></tr></thead>
                   <tbody>
                     {s.payments.map((x) => (
                       <tr key={x.id} className="border-b border-slate-100 last:border-0">
@@ -353,8 +353,8 @@ export function PayTab({ p }: { p: Profile }) {
         </>
       )}
       <Card className="rounded-2xl" title="Commission" actions={<Link to="/staff/commission" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Commission ka safha</Link>}>
-        {!p.person.hasLogin ? <p className="text-sm text-slate-500">Commission login ki bikri par banti hai — is bande ka login nahi.</p>
-          : !p.commission ? <Note text={'Dekhne ke liye "Sab ki commission" ki ijazat chahiye.'} />
+        {!p.person.hasLogin ? <p className="text-sm text-slate-500">Commission login ki sale par banti hai — is bande ka login nahi.</p>
+          : !p.commission ? <Note text={'Dekhne ke liye "Sab ki commission" ki permission chahiye.'} />
             : (
               <div className="space-y-3">
                 <p className="text-sm">{p.commission.enrolled
@@ -384,7 +384,7 @@ export function LoginsTab({ p, onResetPassword }: { p: Profile; onResetPassword:
     onError: (e) => toast.error(apiError(e, 'Logout nahi hua')),
   });
   if (!p.person.hasLogin) return <Note text="Is bande ka login nahi." />;
-  if (!login) return <Note text={'Login history dekhne ke liye "Team dekhna" ki ijazat chahiye.'} />;
+  if (!login) return <Note text={'Login history dekhne ke liye "Team dekhna" ki permission chahiye.'} />;
   const failed = p.logins.filter((l) => !l.success).length;
 
   return (
@@ -439,7 +439,7 @@ export function LoginsTab({ p, onResetPassword }: { p: Profile; onResetPassword:
 
 export function ActivityTab({ p }: { p: Profile }) {
   if (!p.person.hasLogin) return <Note text="Activity login ke kaam se banti hai — is bande ka login nahi." />;
-  if (!p.viewer.activity) return <Note text={'Dekhne ke liye "Activity log" ki ijazat chahiye.'} />;
+  if (!p.viewer.activity) return <Note text={'Dekhne ke liye "Activity log" ki permission chahiye.'} />;
   return (
     <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Activity className="h-4 w-4 text-brand-600" />Kya kiya</span>} description="Aakhri 40 kaam"
       actions={<Link to="/activity-log" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Poora log</Link>}>

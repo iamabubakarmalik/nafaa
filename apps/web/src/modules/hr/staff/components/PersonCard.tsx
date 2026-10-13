@@ -42,7 +42,7 @@ export function PersonCard({ p }: { p: DirectoryPerson }) {
         <Fact icon={Clock} v={p.onDuty ? `Duty par · ${time(p.onDuty.since)} se` : p.todayAttendance === 'ABSENT' ? 'Aaj ghair haazir' : p.todayAttendance ? 'Aaj aaya tha' : 'Abhi duty par nahi'}
           tone={p.onDuty ? 'text-emerald-700 font-semibold' : undefined} />
         {p.login ? <Fact icon={LogIn} v={p.login.isActive ? ago(p.login.lastLoginAt) : 'Login band'} /> : <Fact icon={LogIn} v={p.hasLogin ? 'Login hai' : 'Login nahi'} />}
-        {p.today && <Fact icon={ShoppingBag} v={p.today.bills ? `${formatPKR(p.today.sales)} · ${p.today.bills} bill` : 'Aaj koi bikri nahi'} tone={p.today.bills ? 'text-slate-900 font-semibold' : undefined} />}
+        {p.today && <Fact icon={ShoppingBag} v={p.today.bills ? `${formatPKR(p.today.sales)} · ${p.today.bills} bill` : 'Aaj koi sale nahi'} tone={p.today.bills ? 'text-slate-900 font-semibold' : undefined} />}
       </dl>
 
       {p.phone && p.phone !== '—' && (

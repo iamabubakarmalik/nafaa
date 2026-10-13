@@ -111,7 +111,7 @@ export class CustomerDirectoryService {
     const range = q.from && KEY.test(q.from) && q.to && KEY.test(q.to)
       ? { gte: at(q.from), lt: new Date(at(q.to).getTime() + DAY) }
       : null;
-    if (range && range.gte >= range.lt) throw new BadRequestException('Tareekh ulti hai');
+    if (range && range.gte >= range.lt) throw new BadRequestException('Date ulti hai');
 
     const [customers, saleAgg, branchLedger, debtLedger, periodSales, periodLedger] = await Promise.all([
       this.prisma.customer.findMany({

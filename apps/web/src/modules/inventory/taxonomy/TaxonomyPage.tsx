@@ -167,7 +167,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
   });
 
   const exportCsv = () => {
-    const head = ['Naam', 'Products', 'Chalu products', 'Stock units', ...(costHidden ? [] : ['Stock qeemat']), 'Bikri', 'Miqdar', ...(costHidden ? [] : ['Munafa']), 'Halat'];
+    const head = ['Naam', 'Products', 'Chalu products', 'Stock units', ...(costHidden ? [] : ['Stock qeemat']), 'Sale', 'Quantity', ...(costHidden ? [] : ['Profit']), 'Halat'];
     const rows = list.map((i) => {
       const s = i.stats;
       return [i.name, s?.products ?? 0, s?.activeProducts ?? 0, Math.round(s?.stockUnits ?? 0), ...(costHidden ? [] : [Math.round(s?.stockValue ?? 0)]),
@@ -214,7 +214,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
         </>}
         stats={totals ? [
           { label: `Kul ${config.title.toLowerCase()}`, value: totals.count, hint: config.canSwitchOff ? `${totals.active} chalu` : undefined },
-          { label: 'Bikri (is muddat)', value: money(totals.revenue) },
+          { label: 'Sale (is period)', value: money(totals.revenue) },
           { label: 'Products jure hue', value: `${linked}/${totals.totalProducts}` },
           { label: 'Stock ki qeemat', value: cost(totals.stockValue) },
         ] : undefined}
@@ -262,7 +262,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
 
       {/* Filters */}
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={`${cap(config.one)} dhoondein…`} label="Dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={`${cap(config.one)} search…`} label="Search" />}
         chips={show !== 'all' || search.trim() ? <>
           {show !== 'all' && <FilterChip onRemove={() => setShow('all')}>{SHOWS.find((o) => o.value === show)?.label}</FilterChip>}
           {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
@@ -270,9 +270,9 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
         onClear={() => { setShow('all'); setSearch(''); }}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} allowAll={false} defaultPreset="month" />
         <FilterMenu icon={Filter} label="Dikhayein" value={show} active={show !== 'all'} onChange={setShow} options={SHOWS} />
-        <FilterMenu icon={ArrowDownUp} label="Tarteeb" value={sort} active={sort !== 'sales'} onChange={setSort} align="right"
+        <FilterMenu icon={ArrowDownUp} label="Sort" value={sort} active={sort !== 'sales'} onChange={setSort} align="right"
           options={[
-            { value: 'sales', label: 'Sab se zyada bikri' }, { value: 'products', label: 'Sab se zyada products' },
+            { value: 'sales', label: 'Sab se zyada sale' }, { value: 'products', label: 'Sab se zyada products' },
             { value: 'stock', label: 'Stock ki qeemat' }, { value: 'name', label: 'Naam (A–Z)' }, { value: 'new', label: 'Naye pehle' },
           ]} />
         <div className="inline-flex rounded-2xl bg-slate-100/80 p-1" role="radiogroup" aria-label="Shakal">
@@ -323,7 +323,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
                   <RowMenu item={i} config={config} onEdit={() => setEditing(i)} onMerge={() => setMerging(i)} onDelete={() => setDeleting([i])} onToggle={() => toggle.mutate(i)} productsLink={productsLink(i)} />
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <Metric label="Bikri" value={money(s?.revenue ?? 0)} />
+                  <Metric label="Sale" value={money(s?.revenue ?? 0)} />
                   <Metric label="Becha" value={Number((s?.quantity ?? 0).toFixed(2)).toLocaleString()} />
                   <Metric label="Stock" value={cost(s?.stockValue ?? 0)} />
                 </div>
@@ -345,8 +345,8 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
             <thead className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="w-10 px-3 py-2"><span className="sr-only">Chunein</span></th>
-                <th className="px-3 py-2">Naam</th><th className="px-3 py-2 text-right">Products</th><th className="px-3 py-2 text-right">Bikri</th>
-                <th className="px-3 py-2 text-right">Munafa</th><th className="px-3 py-2 text-right">Stock</th><th className="w-10 px-3 py-2" />
+                <th className="px-3 py-2">Naam</th><th className="px-3 py-2 text-right">Products</th><th className="px-3 py-2 text-right">Sale</th>
+                <th className="px-3 py-2 text-right">Profit</th><th className="px-3 py-2 text-right">Stock</th><th className="w-10 px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -398,7 +398,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
               </li>
             ))}
           </ol>
-          <p className="mt-4 text-[0.8125rem] text-slate-500">Shortcuts: <b>/</b> dhoondein · <b>N</b> nayi {config.one}</p>
+          <p className="mt-4 text-[0.8125rem] text-slate-500">Shortcuts: <b>/</b> search · <b>N</b> nayi {config.one}</p>
         </Modal>
       )}
     </PageShell>
@@ -520,7 +520,7 @@ function MergeModal({ config, from, items, onClose, onDone }: {
     <Modal open onClose={onClose} size="md" title={`"${from.name}" ko milayein`}
       description={`Is ke ${from.stats?.products ?? 0} products chuni hui ${config.one} me chale jayenge, phir "${from.name}" mit jayegi.`}
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={mut.isPending} disabled={!into} onClick={() => mut.mutate()} leftIcon={<GitMerge className="h-4 w-4" />}>Milayein</Button></>}>
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein…" data-autofocus aria-label="Dhoondein"
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" data-autofocus aria-label="Search"
         className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-brand-500" />
       <div role="radiogroup" className="max-h-72 space-y-1 overflow-y-auto">
         {options.map((i) => (
@@ -555,8 +555,8 @@ function DeleteModal({ config, list, onClose, onDone }: { config: TaxonomyConfig
       <p className="text-sm text-slate-700">
         {products > 0
           ? config.kind === 'tag'
-            ? `${products} products se yeh tag hat jayega. Products aur un ki bikri wese hi rahegi.`
-            : `${products} products bina ${config.one} ke reh jayenge. Products aur un ki bikri wese hi rahegi.`
+            ? `${products} products se yeh tag hat jayega. Products aur un ki sale wese hi rahegi.`
+            : `${products} products bina ${config.one} ke reh jayenge. Products aur un ki sale wese hi rahegi.`
           : 'Is me koi product nahi — seedha mit jayegi.'}
       </p>
       {products > 0 && config.kind !== 'tag' && (

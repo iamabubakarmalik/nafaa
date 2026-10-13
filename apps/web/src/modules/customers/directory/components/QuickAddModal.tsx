@@ -31,7 +31,7 @@ export function QuickAddModal({ onClose, onCreated }: { onClose: () => void; onC
   });
   const ok = name.trim().length > 0 && validPhone(phone);
   return (
-    <Modal open onClose={onClose} size="sm" title="Naya customer" description="Baqi tafseel baad mein bhi bhar sakte hain"
+    <Modal open onClose={onClose} size="sm" title="Naya customer" description="Baqi details baad mein bhi bhar sakte hain"
       footer={<>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>Jor dein</Button>

@@ -84,10 +84,10 @@ export function DamageReportForm({ canApprove, onClose }: { canApprove: boolean;
   lines.forEach((l, i) => {
     const o = optionsOf(i);
     const n = l.source.name;
-    if (!o) problems.push(optionsQs[i]?.isError ? `${n}: tafseel load nahi hui` : `${n}: load ho raha hai`);
+    if (!o) problems.push(optionsQs[i]?.isError ? `${n}: details load nahi hui` : `${n}: load ho raha hai`);
     else if (o.tracked) problems.push(`${n}: ${o.tracked === 'roll' ? 'roll' : 'IMEI'} wala maal Stock adjustments se likhein`);
-    else if (o.variants.length && !l.variantId) problems.push(`${n}: qism (variant) chunein`);
-    if (!(Number(l.qty) > 0)) problems.push(`${n}: miqdar likhein`);
+    else if (o.variants.length && !l.variantId) problems.push(`${n}: type (variant) chunein`);
+    if (!(Number(l.qty) > 0)) problems.push(`${n}: quantity likhein`);
   });
   if (!reason) problems.push('Wajah chunein');
   if (reason?.id === 'OTHER' && !detail.trim()) problems.push('"Kuch aur" ke sath wajah likhein');
@@ -126,7 +126,7 @@ export function DamageReportForm({ canApprove, onClose }: { canApprove: boolean;
       return { count: done.length, approved };
     },
     onSuccess: ({ count, approved }) => {
-      toast.success(approved ? `${count} report manzoor — stock se nikal gaya` : `${count} report save — manager ki manzoori ka intezar`);
+      toast.success(approved ? `${count} report approve — stock se nikal gaya` : `${count} report save — manager ki approval ka intezar`);
       qc.invalidateQueries({ queryKey: [DAMAGE_KEY] });
       if (approved) STOCK_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
@@ -148,12 +148,12 @@ export function DamageReportForm({ canApprove, onClose }: { canApprove: boolean;
 
   return (
     <Modal open onClose={onClose} size="xl" title="Kharab maal report karein" closeOnBackdrop={false}
-      description="Toota, expiry, kharab ya chuhe ka kaata maal — manzoori ke baad stock se nikalta hai"
+      description="Toota, expiry, kharab ya chuhe ka kaata maal — approval ke baad stock se nikalta hai"
       footer={allShops ? <Button variant="secondary" onClick={onClose}>Band karein</Button> : <>
         <span className="mr-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!lines.length || uploader.uploading}>
-          {approveNow && canApprove ? 'Report aur manzoor' : 'Report karein'}{lines.length > 1 ? ` (${lines.length})` : ''}
+          {approveNow && canApprove ? 'Report aur approve' : 'Report karein'}{lines.length > 1 ? ` (${lines.length})` : ''}
         </Button>
       </>}>
       {allShops ? <BranchPicker what="Damage report" /> : (
@@ -166,8 +166,8 @@ export function DamageReportForm({ canApprove, onClose }: { canApprove: boolean;
           {!lines.length ? (
             <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
               <PackageSearch className="mx-auto h-9 w-9 text-slate-300" />
-              <p className="mt-2 text-sm font-semibold text-slate-800">Upar se kharab product dhoondein</p>
-              <p className="mt-0.5 text-[0.8125rem] text-slate-500">Har product ki miqdar, qism aur batch yahan aayega</p>
+              <p className="mt-2 text-sm font-semibold text-slate-800">Upar se kharab product search</p>
+              <p className="mt-0.5 text-[0.8125rem] text-slate-500">Har product ki quantity, type aur batch yahan aayega</p>
             </div>
           ) : (
             <ul className="space-y-2.5">
@@ -192,12 +192,12 @@ export function DamageReportForm({ canApprove, onClose }: { canApprove: boolean;
                 );
               })}
             </div>
-            <p className={hintCls}>Sahi wajah chunein — Analytics me isi se pata chalta hai sab se zyada nuqsan kahan se ho raha hai. "Chori / gum" manzoori par "Gum" me jata hai, baqi sab "Kharab" me.</p>
+            <p className={hintCls}>Sahi wajah chunein — Analytics me isi se pata chalta hai sab se zyada nuqsan kahan se ho raha hai. "Chori / gum" approval par "Gum" me jata hai, baqi sab "Kharab" me.</p>
           </div>
 
           <div className="grid gap-3 lg:grid-cols-2">
             <div>
-              <label htmlFor="dmg-detail" className={labelCls}>{reason?.id === 'OTHER' ? <>Wajah <span className="text-rose-600">*</span></> : 'Tafseel'}</label>
+              <label htmlFor="dmg-detail" className={labelCls}>{reason?.id === 'OTHER' ? <>Wajah <span className="text-rose-600">*</span></> : 'Details'}</label>
               <textarea id="dmg-detail" value={detail} onChange={(e) => setDetail(e.target.value)} maxLength={reason?.id === 'OTHER' ? 200 : 1000} rows={3}
                 placeholder={reason?.id === 'OTHER' ? 'Maslan: Garmi se pighal gaya' : 'Zaroorat ho to — kahan mila, kis ne dekha…'}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
@@ -229,10 +229,10 @@ export function DamageReportForm({ canApprove, onClose }: { canApprove: boolean;
 
           <div className="space-y-2 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
             <Switch checked={claim} onChange={(e) => setClaim(e.target.checked)} size="sm"
-              label="Supplier se claim ho sakta hai" description="Company ka nuqs ya expiry wapsi wala maal — baad me supplier se paise ya maal wapas lene ke liye nishan." />
+              label="Supplier se claim ho sakta hai" description="Company ka nuqs ya expiry return wala maal — baad me supplier se paise ya maal wapas lene ke liye nishan." />
             {canApprove && (
               <Switch checked={approveNow} onChange={(e) => setApproveNow(e.target.checked)} size="sm"
-                label="Sath hi manzoor karein" description="Aap ke paas manzoori ki ijazat hai. On karein to report save hote hi stock se nikal jayega aur Adjustments me aa jayega." />
+                label="Sath hi approve karein" description="Aap ke paas approval ki permission hai. On karein to report save hote hi stock se nikal jayega aur Adjustments me aa jayega." />
             )}
           </div>
 
@@ -274,7 +274,7 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
           <p className="truncate text-sm font-semibold text-slate-900">{l.source.name}</p>
           <p className="text-[0.75rem] text-slate-500">
             {l.source.sku ? `${l.source.sku} · ` : ''}
-            {!o ? (failed ? 'Tafseel load nahi hui' : 'Load ho raha hai…') : o.variants.length ? `${o.variants.length} qismein` : `Branch stock ${qtyText(o.product.branchStock ?? o.product.stock)} ${l.source.baseUnit}`}
+            {!o ? (failed ? 'Details load nahi hui' : 'Load ho raha hai…') : o.variants.length ? `${o.variants.length} qismein` : `Branch stock ${qtyText(o.product.branchStock ?? o.product.stock)} ${l.source.baseUnit}`}
           </p>
         </div>
         <button type="button" onClick={onRemove} aria-label="Hatayein" className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
@@ -288,7 +288,7 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
 
       {!!o?.variants.length && (
         <div className="mt-3">
-          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Qism (variant) <span className="text-rose-600">*</span></p>
+          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Type (variant) <span className="text-rose-600">*</span></p>
           <div className="flex flex-wrap gap-1.5">
             {o.variants.map((v) => (
               <button key={v.id} type="button" onClick={() => onChange({ variantId: v.id, batchId: '' })}
@@ -298,7 +298,7 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
               </button>
             ))}
           </div>
-          <p className={hintCls}>Jis qism ka maal kharab hua woh chunein — usi ka stock kam hoga.</p>
+          <p className={hintCls}>Jis type ka maal kharab hua woh chunein — usi ka stock kam hoga.</p>
         </div>
       )}
 
@@ -306,7 +306,7 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
         <div className="mt-3 grid gap-3 sm:grid-cols-[12rem_minmax(0,1fr)]">
           <div>
             <div className="flex">
-              <input inputMode="decimal" value={l.qty} onChange={(e) => onChange({ qty: e.target.value.replace(/[^\d.]/g, '') })} aria-label="Miqdar"
+              <input inputMode="decimal" value={l.qty} onChange={(e) => onChange({ qty: e.target.value.replace(/[^\d.]/g, '') })} aria-label="Quantity"
                 className={cn('h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-right text-base font-semibold tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15', l.source.units.length > 1 ? 'rounded-l-xl' : 'rounded-xl')} />
               {l.source.units.length > 1 && (
                 <select value={l.unit.name} onChange={(e) => onChange({ unit: l.source.units.find((u) => u.name === e.target.value) ?? l.unit })} aria-label="Unit"
@@ -322,12 +322,12 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
               <span className="text-[0.8125rem] text-slate-600">
                 {p.branch ? 'Branch me' : 'Stock'} <b className="tabular-nums text-slate-900">{qtyText(p.before)}</b>
                 <ArrowRight className="mx-1 inline h-3.5 w-3.5 text-slate-400" />
-                manzoori ke baad <b className={cn('tabular-nums', p.after < 0 ? 'text-rose-700' : 'text-slate-900')}>{qtyText(p.after)}</b> {l.source.baseUnit}
+                approval ke baad <b className={cn('tabular-nums', p.after < 0 ? 'text-rose-700' : 'text-slate-900')}>{qtyText(p.after)}</b> {l.source.baseUnit}
               </span>
               <span className="text-sm font-bold tabular-nums text-rose-700">−{money(p.value)}</span>
               {p.after < 0 && (
                 <span className="w-full text-[0.6875rem] text-amber-900">
-                  {allowNegative ? 'Stock minus me chala jayega — settings me ijazat hai.' : 'Branch me itna stock nahi. Report ho jayegi, magar manzoori tab hogi jab stock theek ho.'}
+                  {allowNegative ? 'Stock minus me chala jayega — settings me permission hai.' : 'Branch me itna stock nahi. Report ho jayegi, magar approval tab hogi jab stock theek ho.'}
                 </span>
               )}
             </div>
@@ -352,7 +352,7 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
               </button>
             ))}
           </div>
-          <p className={hintCls}>Expiry wala maal ho to us ka batch chunein — manzoori par usi batch ki ginti bhi kam hogi. Laal tareekh = expire ho chuka.</p>
+          <p className={hintCls}>Expiry wala maal ho to us ka batch chunein — approval par usi batch ki ginti bhi kam hogi. Laal date = expire ho chuka.</p>
         </div>
       )}
 
@@ -361,7 +361,7 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
           <label className="mb-1 block text-[0.75rem] font-medium text-slate-600" htmlFor={`salvage-${l.key}`}>Kuch paise wapas mile?</label>
           <input id={`salvage-${l.key}`} inputMode="decimal" value={l.salvage} onChange={(e) => onChange({ salvage: e.target.value.replace(/[^\d.]/g, '') })} placeholder="0"
             className={cn(inputCls, 'h-9 text-right tabular-nums')} />
-          <p className={hintCls}>Sasta bech diya ya kabari ko diya to raqam likhein — asal nuqsan us se kam ginta hai.</p>
+          <p className={hintCls}>Sasta bech diya ya kabari ko diya to amount likhein — asal nuqsan us se kam ginta hai.</p>
         </div>
       )}
     </li>

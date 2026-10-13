@@ -40,7 +40,7 @@ import { KhataActionModal, type KhataAction } from './components/KhataActionModa
 
 const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
 const LEDGER: Record<string, { label: string; tone: string }> = {
-  SALE_CREDIT: { label: 'Udhaar bikri', tone: 'text-rose-700' }, PAYMENT_RECEIVED: { label: 'Payment aayi', tone: 'text-success-700' },
+  SALE_CREDIT: { label: 'Udhaar sale', tone: 'text-rose-700' }, PAYMENT_RECEIVED: { label: 'Payment aayi', tone: 'text-success-700' },
   ADJUSTMENT: { label: 'Udhaar / tabdeeli', tone: 'text-amber-700' }, OPENING_BALANCE: { label: 'Purana khata', tone: 'text-slate-700' },
   REFUND: { label: 'Maal wapas', tone: 'text-sky-700' }, LOYALTY_REDEEMED: { label: 'Points istemal', tone: 'text-violet-700' },
 };
@@ -111,7 +111,7 @@ export function CustomerProfilePage() {
     { id: 'bills', label: 'Bills', icon: Receipt },
     { id: 'khata', label: 'Khata', icon: BookOpen },
     ...((c?.loyaltyTransactions?.length ?? 0) > 0 ? [{ id: 'loyalty', label: 'Points', icon: Gift }] : []),
-    { id: 'details', label: 'Tafseel', icon: User },
+    { id: 'details', label: 'Details', icon: User },
   ];
 
   useEffect(() => {
@@ -164,21 +164,21 @@ export function CustomerProfilePage() {
   const statement = (): PrintDoc => ({
     title: `Khata — ${c.name}`,
     subtitle: [c.phone, c.city].filter(Boolean).join(' · ') || undefined,
-    meta: [['Baqi', money(balance)], ['Tareekh', day(new Date().toISOString())]],
+    meta: [['Baqi', money(balance)], ['Date', day(new Date().toISOString())]],
     sections: [
       { kind: 'rows', title: 'Khulasa', rows: [
         { label: 'Kul udhaar liya', value: money(ins?.credit.taken ?? 0) },
         { label: 'Payment di', value: money(ins?.credit.paid ?? 0) },
-        ...(ins?.credit.reduced ? [{ label: 'Wapsi / void se kam hua', value: money(ins.credit.reduced) }] : []),
+        ...(ins?.credit.reduced ? [{ label: 'Return / void se kam hua', value: money(ins.credit.reduced) }] : []),
         { label: owes ? 'Baqi' : advance ? 'Advance' : 'Hisaab', value: owes || advance ? money(Math.abs(balance)) : 'Saaf', strong: true },
       ] },
-      { kind: 'table', title: 'Tafseel', columns: [{ label: 'Tareekh' }, { label: 'Kya' }, { label: 'Raqam', align: 'right' }, { label: 'Baqi', align: 'right' }],
+      { kind: 'table', title: 'Details', columns: [{ label: 'Date' }, { label: 'Kya' }, { label: 'Amount', align: 'right' }, { label: 'Baqi', align: 'right' }],
         rows: [...entries].reverse().map((e) => [day(e.createdAt), `${LEDGER[e.type]?.label ?? e.type}${e.reference ? ` · ${e.reference}` : ''}`, `${e.amount > 0 ? '+' : '−'}${formatPKR(Math.abs(e.amount))}`, formatPKR(e.balanceAfter)]) },
     ],
-    footer: owes ? 'Baraye meherbani baqi raqam jald ada karein. Shukriya!' : 'Shukriya!',
+    footer: owes ? 'Baraye meherbani baqi amount jald ada karein. Shukriya!' : 'Shukriya!',
   });
   const ledgerCsv = () => {
-    const rows = [['Tareekh', 'Kya', 'Reference', 'Note', 'Raqam', 'Baqi', 'Kis ne', 'Branch'], ...entries.map((e: LedgerEntry) => [
+    const rows = [['Date', 'Kya', 'Reference', 'Note', 'Amount', 'Baqi', 'Kis ne', 'Branch'], ...entries.map((e: LedgerEntry) => [
       when(e.createdAt), LEDGER[e.type]?.label ?? e.type, e.reference ?? '', e.note ?? '', e.amount.toFixed(2), e.balanceAfter.toFixed(2), e.createdBy?.fullName ?? '', e.shop?.name ?? '',
     ])];
     const url = URL.createObjectURL(new Blob(['﻿' + rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }));
@@ -190,7 +190,7 @@ export function CustomerProfilePage() {
       {action && <KhataActionModal action={action} customer={{ id, name: c.name, balance }} money={money} onClose={() => setAction(null)} onDone={reload} />}
       {confirmDelete && (
         <Modal open onClose={() => setConfirmDelete(false)} size="sm" title={`${c.name} ko mitayein?`}
-          description={c._count.sales || c._count.ledgers || Math.abs(c.balance) > 0.009 ? 'Is ki bikri ya khata hai — mitaya nahi jayega, sirf band hoga. Purane bill aur khata salamat rahenge.' : 'Is ki koi bikri ya khata nahi — poori tarah mit jayega.'}
+          description={c._count.sales || c._count.ledgers || Math.abs(c.balance) > 0.009 ? 'Is ki sale ya khata hai — mitaya nahi jayega, sirf band hoga. Purane bill aur khata salamat rahenge.' : 'Is ki koi sale ya khata nahi — poori tarah mit jayega.'}
           footer={<><Button variant="secondary" onClick={() => setConfirmDelete(false)}>Rehne dein</Button><Button variant="danger" onClick={() => void remove()}>Haan</Button></>}>
           <span />
         </Modal>
@@ -201,7 +201,7 @@ export function CustomerProfilePage() {
         <div className="flex flex-wrap items-center gap-1.5">
           <PrivacyToggle compact />
           <PrintButton doc={statement} label="Statement" />
-          <button type="button" onClick={() => void copyDetails()} title="Tafseel copy" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><Copy className="h-4 w-4" /></button>
+          <button type="button" onClick={() => void copyDetails()} title="Details copy" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><Copy className="h-4 w-4" /></button>
           {can.edit && <button type="button" onClick={() => void toggleVip()} title={c.isVip ? 'VIP hatayein' : 'VIP banayein'} className={cn('flex h-9 w-9 items-center justify-center rounded-xl ring-1 ring-slate-200 hover:bg-slate-50', c.isVip ? 'bg-amber-50 text-amber-600' : 'bg-white text-slate-500')}><Crown className="h-4 w-4" /></button>}
           {can.edit && <button type="button" onClick={() => setConfirmDelete(true)} title="Mitayein" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-rose-600 ring-1 ring-slate-200 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
           {can.edit && <Link to={`/customers/${id}/edit`} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white shadow-sm hover:bg-brand-700"><Pencil className="h-4 w-4" />Badlein</Link>}
@@ -323,7 +323,7 @@ export function CustomerProfilePage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Tile label="Kul udhaar liya" value={money(ins?.credit.taken ?? 0)} />
               <Tile label="Payment di" value={money(ins?.credit.paid ?? 0)} />
-              <Tile label="Wapsi / void" value={money(ins?.credit.reduced ?? 0)} />
+              <Tile label="Return / void" value={money(ins?.credit.reduced ?? 0)} />
               <Tile label="Sab se purana baqi" value={dueDays !== null ? `${dueDays} din` : '—'} hint={ins?.credit.oldestDueAt ? day(ins.credit.oldestDueAt) : undefined} />
             </div>
           </Card>
@@ -395,7 +395,7 @@ export function CustomerProfilePage() {
       )}
 
       {tab === 'details' && (
-        <Card className="rounded-2xl" title="Tafseel">
+        <Card className="rounded-2xl" title="Details">
           <dl className="grid gap-x-8 sm:grid-cols-2">
             {([
               ['Phone', c.phone], ['Email', c.email], ['CNIC', c.cnic], ['NTN', (c as { ntn?: string | null }).ntn],

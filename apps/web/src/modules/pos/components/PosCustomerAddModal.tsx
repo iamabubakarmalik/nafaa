@@ -11,7 +11,7 @@ export function PosCustomerAddModal({ value, onChange, onSubmit, saving, onClose
 }) {
   const submit = () => onSubmit({ name: value.name, phone: value.phone || undefined });
   return (
-    <Modal open onClose={onClose} size="sm" title="Naya customer" description="Baqi tafseel baad me Customers page se"
+    <Modal open onClose={onClose} size="sm" title="Naya customer" description="Baqi details baad me Customers page se"
       footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={saving}>Add karein</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <Input label="Naam" required autoFocus value={value.name} onChange={(e) => onChange({ ...value, name: e.target.value })} placeholder="e.g. Ahmed Ali" />

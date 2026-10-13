@@ -91,7 +91,7 @@ export function bookingMessage(b: Booking, shop: string, startHour: number) {
       ? `Aap ki booking ka pickup ${dayText(b.expectedPickupAt)} tha. Jab suhulat ho tashreef layein.`
       : state === 'today' ? 'Yaad dihani: aaj aap ki booking ka pickup hai.'
         : state === 'tomorrow' ? 'Yaad dihani: kal aap ki booking ka pickup hai.'
-          : 'Aap ki booking ki tafseel:';
+          : 'Aap ki booking ki details:';
   return fillTemplate(
     'Assalam-o-Alaikum {{customer}} 👋\n\n{{opening}}\n\n📌 Booking: {{number}}\n{{pickup}}\n{{items}}\n\n💰 Kul: {{total}}\n✅ Diya: {{paid}}\n📖 Baqi: {{baqi}}\n\n{{shop}}',
     {

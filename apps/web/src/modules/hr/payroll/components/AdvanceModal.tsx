@@ -15,7 +15,7 @@ import { payrollApi, type PayrollStaff, type Sources } from '../api/payroll.api'
 import { TOUCHED_KEYS, apiError, monthName, requestKey, shiftMonth } from './meta';
 import { SourcePicker, defaultSource, sourceReady, type SourceValue } from './SourcePicker';
 
-const REASONS = ['Ghar ka kharcha', 'Beemari / ilaaj', 'Shaadi', 'School fees', 'Qarz'];
+const REASONS = ['Ghar ka expense', 'Beemari / ilaaj', 'Shaadi', 'School fees', 'Qarz'];
 
 export function AdvanceModal({ staff, thisMonth, savedThisMonth, sources, shopId, staffId: initial, onClose }: {
   staff: PayrollStaff[]; thisMonth: string; savedThisMonth: Set<string>; sources: Sources; shopId?: string; staffId?: string; onClose: () => void;
@@ -65,8 +65,8 @@ export function AdvanceModal({ staff, thisMonth, savedThisMonth, sources, shopId
           <Select label="Kis ko" required value={staffId} onChange={(e) => { setStaffId(e.target.value); setFirst(''); }}
             placeholder="Staff chunein" options={staff.map((s) => ({ value: s.id, label: `${s.fullName} · ${s.designation}` }))}
             hint={person ? `Tankhwah ${formatPKR(person.baseSalary)}` : 'Sirf is branch ka staff'} />
-          <Input data-autofocus label="Raqam" type="number" inputMode="numeric" min={1} required value={amount} onChange={(e) => setAmount(e.target.value)}
-            placeholder="10000" error={amount && !validAmount ? 'Sahi raqam likhein' : undefined} hint="Jitna abhi de rahe hain" />
+          <Input data-autofocus label="Amount" type="number" inputMode="numeric" min={1} required value={amount} onChange={(e) => setAmount(e.target.value)}
+            placeholder="10000" error={amount && !validAmount ? 'Sahi amount likhein' : undefined} hint="Jitna abhi de rahe hain" />
         </div>
         <div>
           <p className="text-[0.8125rem] font-medium text-slate-700">Kitne mahine me katega</p>
@@ -79,7 +79,7 @@ export function AdvanceModal({ staff, thisMonth, savedThisMonth, sources, shopId
             ))}
           </div>
           <p className="mt-1 text-[0.75rem] text-slate-500">
-            {validAmount ? (parts > 1 ? `Har mahine ${formatPKR(each)} katega (aakhri qist me baqi paise)` : `Poora ${formatPKR(value)} ek tankhwah se katega`) : 'Bari raqam ko qiston me baant dein taake tankhwah khatam na ho'}
+            {validAmount ? (parts > 1 ? `Har mahine ${formatPKR(each)} katega (aakhri qist me baqi paise)` : `Poora ${formatPKR(value)} ek tankhwah se katega`) : 'Bari amount ko qiston me baant dein taake tankhwah khatam na ho'}
           </p>
           {bigShare && <p className="mt-1 text-[0.75rem] text-amber-700">Qist poori tankhwah se zyada hai — tankhwah banate waqt masla aayega. Zyada qisten chunein.</p>}
         </div>

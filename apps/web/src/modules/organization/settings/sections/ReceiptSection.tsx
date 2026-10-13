@@ -154,21 +154,21 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
             <Toggle checked={draft.showCustomer} onChange={(v) => set('showCustomer', v)} label="Customer ka naam aur phone" />
             <Toggle checked={draft.showCashier} onChange={(v) => set('showCashier', v)} label="Cashier ka naam" />
             <Toggle checked={draft.showItemNumbers} onChange={(v) => set('showItemNumbers', v)} label="Cheezon par number (1, 2, 3)" />
-            <Toggle checked={draft.showItemDetails} onChange={(v) => set('showItemDetails', v)} label="Tafseel: IMEI, serial, warranty, size" />
-            <Toggle checked={draft.showSavings} onChange={(v) => set('showSavings', v)} label="'Aap ne itne bachaye'" desc="Chhoot wale bill par" />
+            <Toggle checked={draft.showItemDetails} onChange={(v) => set('showItemDetails', v)} label="Details: IMEI, serial, warranty, size" />
+            <Toggle checked={draft.showSavings} onChange={(v) => set('showSavings', v)} label="'Aap ne itne bachaye'" desc="Discount wale bill par" />
             <Toggle checked={draft.showKhata} onChange={(v) => set('showKhata', v)} label="Khata ka hisaab" desc="Pichla udhaar + is bill ka = kul" />
-            <Toggle checked={draft.showAmountInWords} onChange={(v) => set('showAmountInWords', v)} label="Raqam alfaaz me (A4)" />
+            <Toggle checked={draft.showAmountInWords} onChange={(v) => set('showAmountInWords', v)} label="Amount in words (A4)" />
             <Toggle checked={draft.showSignature} onChange={(v) => set('showSignature', v)} label="Dastkhat ki jagah (A4)" />
           </SectionCard>
 
           <SectionCard title="Neeche ka hissa" desc="Aap ke apne alfaaz — har bill ke neeche" icon={MessageSquareText} color="amber">
             <div className="grid gap-4">
-              <Field label="Neeche apna paigham" hint="Misaal: Eid par 10% chhoot · Home delivery free">
+              <Field label="Neeche apna paigham" hint="Misaal: Eid par 10% discount · Home delivery free">
                 <TextArea value={draft.footer} onChange={(v) => set('footer', v)} rows={2} maxLength={300} />
               </Field>
-              <Field label="Wapsi ke usool" hint="Har line alag usool ban kar chhapti hai">
+              <Field label="Return ke usool" hint="Har line alag usool ban kar chhapti hai">
                 <TextArea value={draft.terms} onChange={(v) => set('terms', v)} rows={3} maxLength={600}
-                  placeholder={'3 din me wapsi, bill ke saath\nIstemal shuda maal wapas nahi'} />
+                  placeholder={'3 din me return, bill ke saath\nIstemal shuda maal wapas nahi'} />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Shukriya ki line"><TextInput value={draft.thanks} onChange={(v) => set('thanks', v)} maxLength={80} /></Field>
@@ -178,7 +178,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
               </div>
             </div>
             <div className="mt-2">
-              <Toggle checked={draft.showBarcode} onChange={(v) => set('showBarcode', v)} label="Bill ka barcode" desc="Scan karke wahi bill khulta hai (wapsi me kaam)" />
+              <Toggle checked={draft.showBarcode} onChange={(v) => set('showBarcode', v)} label="Bill ka barcode" desc="Scan karke wahi bill khulta hai (return me kaam)" />
               <Toggle checked={draft.showPayQr} onChange={(v) => set('showPayQr', v)} label="Udhaar par payment QR" desc="Settings → Payment QR laga ho to" />
               <Toggle checked={draft.showReviewQr} onChange={(v) => set('showReviewQr', v)} label="Google review QR" desc="Settings → Google me link ho to" />
             </div>
@@ -231,7 +231,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
               <Field label="Upar ka unwaan" hint="INVOICE, TAX INVOICE, BILL, CASH MEMO…">
                 <TextInput value={draft.a4Title} onChange={(v) => set('a4Title', v.toUpperCase())} maxLength={30} />
               </Field>
-              <Field label="Paise dene ki muddat" hint="Baqi wale bill par aakhri tareekh (0 = nahi)">
+              <Field label="Paise dene ki period" hint="Baqi wale bill par aakhri date (0 = nahi)">
                 <NumberInput value={draft.dueDays} onChange={(v) => set('dueDays', v)} min={0} max={365} suffix="din" />
               </Field>
             </div>

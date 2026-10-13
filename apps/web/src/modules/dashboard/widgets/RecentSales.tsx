@@ -19,14 +19,14 @@ export function RecentSales() {
   const rows = data?.items ?? [];
 
   return (
-    <WidgetCard title="Haaliya bikri" icon={Receipt} description="Aakhri bill" to="/sales" flush>
+    <WidgetCard title="Haaliya sale" icon={Receipt} description="Aakhri bill" to="/sales" flush>
       <WidgetToolbar
         print={() => ({
-          title: 'Haaliya bikri',
+          title: 'Haaliya sale',
           subtitle: s.method ? PAYMENT_LABELS[s.method] : 'Sab payments',
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Bill' }, { label: 'Waqt', wideOnly: true }, { label: 'Customer', wideOnly: true }, { label: 'Raqam', align: 'right' }],
+            columns: [{ label: 'Bill' }, { label: 'Waqt', wideOnly: true }, { label: 'Customer', wideOnly: true }, { label: 'Amount', align: 'right' }],
             rows: rows.map((r) => [r.saleNumber, fmtDateTime(r.soldAt), r.customer ?? 'Walk-in', sales(r.total)]),
             footer: ['Kul', '', '', sales(rows.reduce((x, r) => x + r.total, 0))],
           }],

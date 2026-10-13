@@ -1011,7 +1011,7 @@ export class SalesService {
       throw new BadRequestException('Har bill par customer chunna zaroori hai (Settings)');
     }
     if (bill.manualDiscount > 0) {
-      if (!s.allowDiscount) throw new BadRequestException('Is dukaan me haath se chhoot band hai (Settings)');
+      if (!s.allowDiscount) throw new BadRequestException('Is dukaan me haath se discount band hai (Settings)');
       // Staff the owner trusted with "Had se zyada chhoot" skip the limit and its PIN.
       const trusted = hasPermission(user.role, user.permissions, PERMISSIONS.POS_DISCOUNT_OVERRIDE);
       const percent = bill.subtotal > 0 ? (bill.manualDiscount / bill.subtotal) * 100 : 100;

@@ -27,7 +27,7 @@ export function movementsDoc(list: MovementList, period: string, filters: string
       {
         kind: 'table',
         columns: [
-          { label: 'Tareekh' }, { label: 'Cheez' }, { label: 'Qism', wideOnly: true }, { label: 'Miqdar', align: 'right' },
+          { label: 'Date' }, { label: 'Cheez' }, { label: 'Type', wideOnly: true }, { label: 'Quantity', align: 'right' },
           { label: 'Baqi', align: 'right', wideOnly: true }, { label: 'Value', align: 'right', wideOnly: true },
         ],
         rows: list.items.map((m) => [
@@ -47,7 +47,7 @@ const cell = (v: string | number) => {
 };
 
 export function downloadMovementsCsv(items: StockMovement[], filename: string) {
-  const head = ['Tareekh', 'Cheez', 'Variant', 'SKU', 'Branch', 'Qism', 'Miqdar', 'Unit', 'Baqi', 'Value', 'Reference', 'Note', 'Kis ne'];
+  const head = ['Date', 'Cheez', 'Variant', 'SKU', 'Branch', 'Type', 'Quantity', 'Unit', 'Baqi', 'Value', 'Reference', 'Note', 'Kis ne'];
   const rows = items.map((m) => [
     when(m.createdAt), m.product.name, m.variant?.name ?? '', m.product.sku ?? '', m.shop?.name ?? '', movementMeta(m.type).label,
     m.quantity, m.product.unit, m.balanceAfter, m.value, m.reference ?? '', m.note ?? '', m.createdBy?.fullName ?? '',

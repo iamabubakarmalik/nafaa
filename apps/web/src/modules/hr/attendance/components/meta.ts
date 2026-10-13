@@ -32,7 +32,7 @@ export const LIVE: Record<LiveState, { label: string; hint: string; icon: Lucide
   out: { label: 'Ja chuke', hint: 'Check-out ho chuka', icon: LogOut, color: '#475569', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
   notIn: { label: 'Abhi nahi aaye', hint: 'Check-in baqi', icon: Clock, color: '#e11d48', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
   absent: { label: 'Ghair hazir', hint: 'Absent lagaya gaya', icon: UserX, color: '#be123c', tone: 'bg-rose-100 text-rose-800 ring-rose-200' },
-  leave: { label: 'Chhutti par', hint: 'Manzoor chhutti', icon: Palmtree, color: '#7c3aed', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  leave: { label: 'Chhutti par', hint: 'Approve chhutti', icon: Palmtree, color: '#7c3aed', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
   off: { label: 'Aaj off', hint: 'Hafta war chhutti ya tehwar', icon: CalendarOff, color: '#64748b', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
 };
 
@@ -50,8 +50,8 @@ export const LEAVE_TYPE: Record<LeaveType, string> = {
 
 export const LEAVE_STATUS: Record<LeaveStatus, { label: string; tone: string; icon: LucideIcon }> = {
   PENDING: { label: 'Faisla baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: Clock },
-  APPROVED: { label: 'Manzoor', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
-  REJECTED: { label: 'Na-manzoor', tone: 'bg-rose-50 text-rose-700 ring-rose-200', icon: UserX },
+  APPROVED: { label: 'Approve', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
+  REJECTED: { label: 'Na-approve', tone: 'bg-rose-50 text-rose-700 ring-rose-200', icon: UserX },
   CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-600 ring-slate-200', icon: Coffee },
 };
 

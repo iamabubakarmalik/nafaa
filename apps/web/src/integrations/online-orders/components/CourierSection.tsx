@@ -269,7 +269,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
             <div className="text-xs text-rose-600">{apiErrorMessage(optsError)}</div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
-              <input value={cityQ} onChange={(e) => setCityQ(e.target.value)} placeholder="Shehar dhoondein…" className={inputCls} />
+              <input value={cityQ} onChange={(e) => setCityQ(e.target.value)} placeholder="Shehar search…" className={inputCls} />
               <select value={cityId} onChange={(e) => setCityId(e.target.value)} className={inputCls}>
                 <option value="">— chunein —</option>
                 {cityId && !cities.some((c) => c.id === cityId) && cityName && <option value={cityId}>{cityName}</option>}

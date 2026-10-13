@@ -38,8 +38,8 @@ export function reasonOf(code: DamageReasonCode, text?: string): { label: string
 export const FILTER_REASONS = REASONS.filter((r) => r.id === r.code);
 
 export const STATUS: Record<DamageStatus, { label: string; icon: LucideIcon; tone: string; color: string }> = {
-  REPORTED: { label: 'Manzoori baqi', icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706' },
-  APPROVED: { label: 'Manzoor', icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
+  REPORTED: { label: 'Approval baqi', icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706' },
+  APPROVED: { label: 'Approve', icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
   REJECTED: { label: 'Rad', icon: XCircle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
   WRITTEN_OFF: { label: 'Khaate se nikala', icon: PackageX, tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#475569' },
 };

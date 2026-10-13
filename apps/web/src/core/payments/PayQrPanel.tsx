@@ -31,7 +31,7 @@ export function PayQrPanel({ method, amount, shopName }: { method: string; amoun
         <div className="mt-1 text-2xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white">{formatPKR(amount)}</div>
         <div className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">{r.qr.merchantName}</div>
         <p className="mt-1 text-[0.71875rem] font-semibold text-slate-500">
-          Customer bank / JazzCash / Easypaisa app se scan kare{r.qr.amountInQr ? ' — raqam khud aa jayegi' : ' aur raqam likhe'}. <b>Apne phone par paisa aane ka message dekh kar</b> hi "Confirm" karein.
+          Customer bank / JazzCash / Easypaisa app se scan kare{r.qr.amountInQr ? ' — amount khud aa jayegi' : ' aur amount likhe'}. <b>Apne phone par paisa aane ka message dekh kar</b> hi "Confirm" karein.
         </p>
       </div>
     </div>

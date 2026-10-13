@@ -55,7 +55,7 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
   const on = people.filter((p) => p.enrolled).length;
   return (<>
     <p className="rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200/80">
-      <b className="text-slate-900">{on}/{people.length}</b> bandon par commission chaalu. Har bande ko alag se chaalu karna parta hai — band switch par commission nahi banti, aur POS par "bikri kis ke naam" me sirf chaalu bande aate hain.
+      <b className="text-slate-900">{on}/{people.length}</b> bandon par commission chaalu. Har bande ko alag se chaalu karna parta hai — band switch par commission nahi banti, aur POS par "sale kis ke naam" me sirf chaalu bande aate hain.
     </p>
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {people.map((p) => {
@@ -69,7 +69,7 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
                 <p className="truncate text-[0.75rem] text-slate-500">{p.staff?.designation ?? p.role ?? 'Login'}{p.staff?.staffNumber ? ` · ${p.staff.staffNumber}` : ''}</p>
               </div>
             </div>
-            <p className="mt-2 text-[0.75rem] text-slate-600">{r ? `Is mahine ${r.bills} bill · ${formatPKR(r.sale)}` : 'Is mahine koi bikri nahi'}</p>
+            <p className="mt-2 text-[0.75rem] text-slate-600">{r ? `Is mahine ${r.bills} bill · ${formatPKR(r.sale)}` : 'Is mahine koi sale nahi'}</p>
             {p.staff?.linkedByGuess && <p className="mt-1 text-[0.6875rem] text-amber-700">HR record email/phone se mila — chaalu karte hi pakka jur jayega</p>}
             <div className="mt-3 flex items-center justify-between gap-2">
               <Switch size="sm" label={p.enrolled ? 'Chaalu' : 'Band'} checked={p.enrolled} disabled={busy} onChange={(e) => onToggle(p, e.target.checked)} />
@@ -89,7 +89,7 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
               <p className="truncate text-[0.75rem] text-slate-500">{p.staff?.designation ?? 'Employee'}{p.staff?.staffNumber ? ` · ${p.staff.staffNumber}` : ''}</p>
             </div>
           </div>
-          <p className="mt-2 text-[0.75rem] text-slate-600">Is ka apna login nahi, is liye bikri is ke naam darj nahi hoti. Team me isi email ya phone se login banayein.</p>
+          <p className="mt-2 text-[0.75rem] text-slate-600">Is ka apna login nahi, is liye sale is ke naam darj nahi hoti. Team me isi email ya phone se login banayein.</p>
           <Link to="/team" className="mt-2 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><Link2 className="h-3.5 w-3.5" />Login banayein</Link>
         </div>
       ))}

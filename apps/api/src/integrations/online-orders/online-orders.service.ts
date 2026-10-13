@@ -716,7 +716,7 @@ export class OnlineOrdersService implements OnModuleInit {
     if (!order) throw new NotFoundException('Order nahi mila');
     if (CLOSED.includes(order.orderStatus)) return this.present(order);
     if (order.orderStatus === 'DELIVERED') {
-      throw new BadRequestException('Deliver ho chuka order cancel nahi hota — Returns se wapsi karein');
+      throw new BadRequestException('Deliver ho chuka order cancel nahi hota — Returns se return karein');
     }
     if (order.orderStatus === ACCEPTING && !this.isStaleLock(order.processedAt)) {
       throw new ConflictException('Bill abhi ban raha hai — 2 second baad cancel karein');
@@ -841,7 +841,7 @@ export class OnlineOrdersService implements OnModuleInit {
       throw new BadRequestException('Wapas sirf bheja hua (raste me / deliver) order aata hai — warna Cancel karein');
     }
     if (order.paymentStatus === 'PAID' && order.codSettledAt) {
-      throw new BadRequestException('Is order ka paisa settle ho chuka — Returns se wapsi karein');
+      throw new BadRequestException('Is order ka paisa settle ho chuka — Returns se return karein');
     }
     const sale = await this.prisma.sale.findFirst({
       where: { id: order.nafaaSaleId, tenantId: user.tenantId },

@@ -40,7 +40,7 @@ export function Delta({ now, before, up = 'bad' }: { now: number; before: number
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-medium', bad ? 'text-rose-600' : 'text-emerald-600')}>
       {rise ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
-      {Math.abs(ch).toFixed(0)}% pichli muddat se
+      {Math.abs(ch).toFixed(0)}% pichli period se
     </span>
   );
 }

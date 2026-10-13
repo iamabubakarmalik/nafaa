@@ -82,7 +82,7 @@ export class PermissionsGuard implements CanActivate {
         `${user.email ?? user.id} → ${request.method} ${request.url} — chahiye: ${missing.join(anyOf ? ' YA ' : ', ')}`,
       );
       throw new ForbiddenException(
-        'Is kaam ki ijazat aap ke paas nahi — dukaan ke malik se kehein ke de dein',
+        'Is kaam ki permission aap ke paas nahi — dukaan ke malik se kehein ke de dein',
       );
     }
 

@@ -65,7 +65,7 @@ export function EventDrawer({ e, fmt, onStaff, onClose }: {
             </div>
             {value !== '—' && (
               <div className="text-right">
-                <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">{t.money === 'cost' ? 'Nuqsan (lagat)' : e.type === 'drawer' ? 'Farq' : 'Raqam'}</p>
+                <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">{t.money === 'cost' ? 'Nuqsan (cost)' : e.type === 'drawer' ? 'Farq' : 'Amount'}</p>
                 <p className="text-xl font-bold tabular-nums text-slate-900">{value}</p>
               </div>
             )}
@@ -89,7 +89,7 @@ export function EventDrawer({ e, fmt, onStaff, onClose }: {
 
           {e.detail && (
             <section className="rounded-xl bg-white p-3 text-[0.875rem] text-slate-700 ring-1 ring-slate-200">
-              <p className="mb-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">Tafseel / wajah</p>
+              <p className="mb-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">Details / wajah</p>
               {e.detail}
             </section>
           )}

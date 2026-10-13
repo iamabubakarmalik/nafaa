@@ -36,7 +36,7 @@ export function ReturnSlipModal({ r, onClose }: { r: ReturnRow; onClose: () => v
     shop: base.shop,
     design: {
       ...base.design,
-      a4Title: 'WAPSI KI PARCHI', showStatus: false, showSignature: o.signature, payWhen: 'never' as const, showPayQr: false,
+      a4Title: 'RETURN KI PARCHI', showStatus: false, showSignature: o.signature, payWhen: 'never' as const, showPayQr: false,
       showKhata: false, showSavings: false, showReviewQr: false, showBarcode: false, backPrint: 'none' as const, showCustomer: true,
     },
   }), [base, o.signature]);
@@ -54,7 +54,7 @@ export function ReturnSlipModal({ r, onClose }: { r: ReturnRow; onClose: () => v
     infoRows: [
       { label: 'Asal bill', value: `${r.sale.saleNumber} · ${day(r.sale.soldAt)}`, bold: true },
       ...(o.reason && r.reason ? [{ label: 'Wajah', value: r.reason }] : []),
-      ...(r.approvedBy ? [{ label: 'Manzoori', value: r.approvedBy }] : []),
+      ...(r.approvedBy ? [{ label: 'Approval', value: r.approvedBy }] : []),
     ],
     lines: r.items.map((i) => ({
       name: i.variant ? `${i.name} · ${i.variant}` : i.name,
@@ -71,7 +71,7 @@ export function ReturnSlipModal({ r, onClose }: { r: ReturnRow; onClose: () => v
     discount: 0,
     total: r.refundAmount,
     paid: r.refundAmount,
-    paymentLabel: `Wapsi (${methodLabel(r.refundMethod)})`,
+    paymentLabel: `Return (${methodLabel(r.refundMethod)})`,
     boxes: r.khataAmount > 0 ? [{
       title: 'Paisa kaise wapas',
       lines: [`Khate se kam: ${formatPKR(r.khataAmount)}`, `Haath me diye: ${formatPKR(r.payout)}`],
@@ -82,7 +82,7 @@ export function ReturnSlipModal({ r, onClose }: { r: ReturnRow; onClose: () => v
   const go = () => { printReceipt(doc, { paper: o.paper, setup, copies: o.copies }); onClose(); };
 
   return (
-    <Modal open onClose={onClose} size="xl" title={`Wapsi ki parchi — ${r.returnNumber}`} description="Kaghaz chunein aur saath preview dekhein; pasand is device par yaad rahegi"
+    <Modal open onClose={onClose} size="xl" title={`Return ki parchi — ${r.returnNumber}`} description="Kaghaz chunein aur saath preview dekhein; pasand is device par yaad rahegi"
       footer={<>
         <span className="mr-auto text-[0.75rem] text-slate-500">PDF chahiye to print me "Save as PDF" chunein</span>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>

@@ -66,7 +66,7 @@ export function CatalogAnalytics({ data, stats, loading, money, cost, costHidden
   const marginMax = Math.max(1, ...data.margins.map((m) => m.count));
   const profit = stats.saleValue - stats.costValue;
   const fixes = [
-    { n: data.fix.noCost, text: 'ki cost nahi likhi — munafa ghalat dikhega' },
+    { n: data.fix.noCost, text: 'ki cost nahi likhi — profit ghalat dikhega' },
     { n: data.fix.belowCost, text: 'cost se sasti bik rahi hain' },
     { n: data.fix.noBarcode, text: 'ka barcode ya SKU nahi — scan se nahi milengi' },
     { n: data.fix.noCategory, text: 'kisi category mein nahi' },
@@ -77,8 +77,8 @@ export function CatalogAnalytics({ data, stats, loading, money, cost, costHidden
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Tile icon={Wallet} color="#2563eb" label="Stock ki cost" value={cost(stats.costValue)} hint={`${qty(stats.units)} units · ${stats.products} cheezein`} />
-        <Tile icon={Sparkles} color="#16a34a" label="Bechne par milega" value={money(stats.saleValue)} hint={costHidden ? 'Cost lock' : `munafa ${cost(profit)}`} />
-        <Tile icon={Flame} color="#ea580c" label={`${data.windowDays} din ki bikri`} value={money(stats.revenue30)} hint={`${qty(stats.sold30)} units biki`} />
+        <Tile icon={Sparkles} color="#16a34a" label="Bechne par milega" value={money(stats.saleValue)} hint={costHidden ? 'Cost lock' : `profit ${cost(profit)}`} />
+        <Tile icon={Flame} color="#ea580c" label={`${data.windowDays} din ki sale`} value={money(stats.revenue30)} hint={`${qty(stats.sold30)} units biki`} />
         <Tile icon={Snowflake} color="#64748b" label="Pada hua maal" value={cost(stats.deadValue)} hint={`${stats.dead} cheezein ${data.windowDays} din se nahi biki`} />
       </div>
 
@@ -131,7 +131,7 @@ export function CatalogAnalytics({ data, stats, loading, money, cost, costHidden
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="rounded-2xl" title={title(Flame, 'Sab se zyada bikne wale')} description={`Pichhle ${data.windowDays} din`} flush>
-          <List rows={data.topSellers} empty="Abhi koi bikri nahi" detail={detail}
+          <List rows={data.topSellers} empty="Abhi koi sale nahi" detail={detail}
             sub={(r) => `${qty(r.sold)} ${r.unit} bika · ${r.daysLeft ? `${r.daysLeft} din ka stock` : 'stock khatam'}`} right={(r) => money(r.revenue)} />
         </Card>
         <Card className="rounded-2xl" title={title(Hourglass, 'Jaldi khatam honge')} description="Is raftaar se 7 din ke andar" flush>
@@ -141,7 +141,7 @@ export function CatalogAnalytics({ data, stats, loading, money, cost, costHidden
         </Card>
         <Card className="rounded-2xl" title={title(Snowflake, 'Pada hua maal')} description={`${data.windowDays} din se nahi bika — paisa ruka hua`} flush>
           <List rows={data.deadStock} empty="Sab maal chal raha hai" detail={detail}
-            sub={(r) => `${qty(r.stock)} ${r.unit}${r.lastSoldAt ? ` · aakhri bikri ${new Date(r.lastSoldAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}` : ' · kabhi nahi bika'}`}
+            sub={(r) => `${qty(r.stock)} ${r.unit}${r.lastSoldAt ? ` · aakhri sale ${new Date(r.lastSoldAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}` : ' · kabhi nahi bika'}`}
             right={(r) => cost(r.costValue)} />
         </Card>
       </div>
@@ -151,7 +151,7 @@ export function CatalogAnalytics({ data, stats, loading, money, cost, costHidden
           <List rows={data.topValue} empty="Koi stock nahi" detail={detail}
             sub={(r) => `${qty(r.stock)} ${r.unit} · rate ${money(r.price)}`} right={(r) => cost(r.costValue)} />
         </Card>
-        <Card className="rounded-2xl" title={title(Percent, 'Munafa ka hissa')} description="Kitni cheezon par kitna margin">
+        <Card className="rounded-2xl" title={title(Percent, 'Profit ka hissa')} description="Kitni cheezon par kitna margin">
           {costHidden ? <p className="py-10 text-center text-[0.8125rem] text-slate-500">Cost lock hai</p> : (
             <ul className="space-y-2.5">
               {data.margins.map((m) => (

@@ -127,7 +127,7 @@ function Line({ r, sheet, edit, on, showShop, onToggle, onEdit, onPay, onOpen, o
               <Button size="sm" onClick={onPayBalance} leftIcon={<Banknote className="h-4 w-4" />}>Baqi dein</Button>
             )}
             <Button size="sm" variant="ghost" onClick={onPrint} aria-label="Payslip" leftIcon={<Printer className="h-4 w-4" />}><span className="hidden lg:inline">Payslip</span></Button>
-            <button type="button" onClick={onOpen} aria-label="Tafseel" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronRight className="h-4 w-4" /></button>
+            <button type="button" onClick={onOpen} aria-label="Details" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronRight className="h-4 w-4" /></button>
           </>}
         </div>
       </div>

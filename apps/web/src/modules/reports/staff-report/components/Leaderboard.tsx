@@ -18,8 +18,8 @@ import { Empty, Panel } from './parts';
 export type StaffSort = 'net' | 'bills' | 'average' | 'perHour' | 'itemsPerBill' | 'discountPct' | 'voided' | 'returnPct' | 'short' | 'profit';
 
 export const SORT_LABEL: Record<StaffSort, string> = {
-  net: 'Bikri', bills: 'Bill', average: 'Ausat bill', perHour: 'Fi ghanta bikri', itemsPerBill: 'Cheezein fi bill',
-  discountPct: 'Chhoot %', voided: 'Cancel bill', returnPct: 'Wapsi %', short: 'Galla kam', profit: 'Munafa',
+  net: 'Sale', bills: 'Bill', average: 'Ausat bill', perHour: 'Fi ghanta sale', itemsPerBill: 'Cheezein fi bill',
+  discountPct: 'Discount %', voided: 'Cancel bill', returnPct: 'Return %', short: 'Galla kam', profit: 'Profit',
 };
 
 const ALERT_ICON: Record<StaffAlert['kind'], LucideIcon> = {
@@ -55,7 +55,7 @@ export function Leaderboard({ data, rows, money, cost, costHidden, person, onOpe
           hint="Jo team ki ausat se kaafi upar hain — zaroori nahi ghalti ho, magar pooch lena acha hai">
           {!data.alerts.length ? (
             <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-3 text-[0.875rem] font-medium text-emerald-800 ring-1 ring-emerald-100">
-              <ShieldCheck className="h-4 w-4" />Sab theek — kisi ki chhoot, cancel, wapsi ya galla team se bahut alag nahi
+              <ShieldCheck className="h-4 w-4" />Sab theek — kisi ki discount, cancel, return ya galla team se bahut alag nahi
             </p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
@@ -85,16 +85,16 @@ export function Leaderboard({ data, rows, money, cost, costHidden, person, onOpe
           <dl className="space-y-1.5 text-[0.8125rem]">
             <Avg label="Ausat bill" value={money(team.average)} />
             <Avg label="Cheezein fi bill" value={qtyText(team.itemsPerBill)} />
-            <Avg label="Fi ghanta bikri" value={team.perHour ? money(team.perHour) : '—'} />
-            <Avg label="Fi banda bikri" value={money(team.perStaff)} />
-            <Avg label="Haath se chhoot" value={pct(team.discountPct)} hint="subtotal ka" />
+            <Avg label="Fi ghanta sale" value={team.perHour ? money(team.perHour) : '—'} />
+            <Avg label="Fi banda sale" value={money(team.perStaff)} />
+            <Avg label="Haath se discount" value={pct(team.discountPct)} hint="subtotal ka" />
             <Avg label="Cancel bill" value={pct(team.voidPct)} />
-            <Avg label="Wapsi" value={pct(team.returnPct)} hint="bikri ka" />
-            <Avg label="Udhaar" value={pct(team.creditPct)} hint="bikri ka" />
+            <Avg label="Return" value={pct(team.returnPct)} hint="sale ka" />
+            <Avg label="Udhaar" value={pct(team.creditPct)} hint="sale ka" />
           </dl>
           {!!data.idle.length && (
             <div className="mt-3 border-t border-slate-100 pt-3">
-              <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-slate-500"><UserX className="h-3.5 w-3.5" />Is muddat me koi kaam nahi</p>
+              <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-slate-500"><UserX className="h-3.5 w-3.5" />Is period me koi kaam nahi</p>
               <p className="mt-1 text-[0.8125rem] text-slate-700">{data.idle.map((u) => u.name).join(', ')}</p>
             </div>
           )}
@@ -103,11 +103,11 @@ export function Leaderboard({ data, rows, money, cost, costHidden, person, onOpe
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         <div className={cn('hidden gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', GRID)}>
-          <span>#</span><span>{person}</span><span>Bikri</span><span className="text-right">Bill</span><span className="text-right">Ausat bill</span>
+          <span>#</span><span>{person}</span><span>Sale</span><span className="text-right">Bill</span><span className="text-right">Ausat bill</span>
           <span className="text-right" title="Cheezein fi bill">Cheez/bill</span><span className="text-right">Fi ghanta</span>
-          <span className="text-right">Chhoot</span><span className="text-right">Cancel</span><span className="text-right">Wapsi</span><span className="text-right">Galla</span>
+          <span className="text-right">Discount</span><span className="text-right">Cancel</span><span className="text-right">Return</span><span className="text-right">Galla</span>
         </div>
-        {!rows.length ? <Empty text="Is muddat me kisi ne bikri nahi ki" /> : (
+        {!rows.length ? <Empty text="Is period me kisi ne sale nahi ki" /> : (
           <ul className="divide-y divide-slate-100">
             {rows.map((r) => (
               <Row key={r.id ?? 'none'} r={r} team={team} maxNet={maxNet} money={money} cost={cost} costHidden={costHidden} drawerHidden={!!data.drawerHidden} onOpen={onOpen} />
@@ -136,12 +136,12 @@ function Awards({ rows, money, onOpen }: { rows: StaffRow[]; money: (n: number) 
   };
   const enough = Math.min(10, Math.max(3, Math.round(rows.reduce((a, r) => a + r.bills, 0) / rows.length / 4)));
   const cards: Array<{ icon: LucideIcon; color: string; title: string; r: StaffRow | null; value: (r: StaffRow) => ReactNode; hint: string }> = [
-    { icon: Crown, color: '#d97706', title: 'Sab se zyada bikri', r: best((r) => r.net), value: (r) => money(r.net), hint: 'wapsi ke baad' },
+    { icon: Crown, color: '#d97706', title: 'Sab se zyada sale', r: best((r) => r.net), value: (r) => money(r.net), hint: 'return ke baad' },
     { icon: Receipt, color: '#2563eb', title: 'Sab se zyada bill', r: best((r) => r.bills), value: (r) => `${r.bills} bill`, hint: 'customer nipataye' },
     { icon: Trophy, color: '#7c3aed', title: 'Bara ausat bill', r: best((r) => r.average, enough), value: (r) => money(r.average), hint: `kam az kam ${enough} bill` },
-    { icon: Zap, color: '#16a34a', title: 'Sab se tez', r: best((r) => r.perHour, enough, (r) => r.hours > 0), value: (r) => `${money(r.perHour)}/ghanta`, hint: 'fi ghanta bikri' },
+    { icon: Zap, color: '#16a34a', title: 'Sab se tez', r: best((r) => r.perHour, enough, (r) => r.hours > 0), value: (r) => `${money(r.perHour)}/ghanta`, hint: 'fi ghanta sale' },
     { icon: Package, color: '#0891b2', title: 'Zyada cheezein fi bill', r: best((r) => r.itemsPerBill, enough), value: (r) => `${qtyText(r.itemsPerBill)} cheez`, hint: 'saath me aur bechna' },
-    { icon: Sparkles, color: '#db2777', title: 'Kam chhoot', r: best((r) => -r.discountPct, enough), value: (r) => pct(r.discountPct), hint: 'bikri par chhoot' },
+    { icon: Sparkles, color: '#db2777', title: 'Kam discount', r: best((r) => -r.discountPct, enough), value: (r) => pct(r.discountPct), hint: 'sale par discount' },
   ];
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -171,7 +171,7 @@ function Movement({ r }: { r: StaffRow }) {
   const moved = r.prevRank - r.rank;
   if (!moved) return null;
   return (
-    <span title={`Pichli muddat me #${r.prevRank}`} className={cn('inline-flex items-center text-[0.625rem] font-bold', moved > 0 ? 'text-emerald-600' : 'text-rose-600')}>
+    <span title={`Pichli period me #${r.prevRank}`} className={cn('inline-flex items-center text-[0.625rem] font-bold', moved > 0 ? 'text-emerald-600' : 'text-rose-600')}>
       {moved > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}{Math.abs(moved)}
     </span>
   );
@@ -223,7 +223,7 @@ function Row({ r, team, maxNet, money, cost, costHidden, drawerHidden, onOpen }:
           <span className="block text-[0.6875rem] text-slate-500">
             {pct(r.share)} hissa
             {delta != null && Math.abs(delta) >= 0.5 && <span className={delta > 0 ? 'text-emerald-600' : 'text-rose-600'}> · {delta > 0 ? '+' : ''}{delta.toFixed(0)}%</span>}
-            {!costHidden && r.profit != null && <span className="hidden xl:inline"> · munafa {cost(r.profit)}</span>}
+            {!costHidden && r.profit != null && <span className="hidden xl:inline"> · profit {cost(r.profit)}</span>}
           </span>
         </span>
 
@@ -231,9 +231,9 @@ function Row({ r, team, maxNet, money, cost, costHidden, drawerHidden, onOpen }:
         <span className="col-span-2 col-start-2 flex flex-wrap gap-x-3 gap-y-0.5 text-[0.75rem] text-slate-500 lg:hidden">
           <span>{r.bills} bill</span><span>ausat {money(r.average)}</span>
           {r.hours > 0 && <span>{money(r.perHour)}/ghanta</span>}
-          {r.manualDiscount > 0 && <span className={discHigh ? 'font-semibold text-rose-600' : ''}>chhoot {pct(r.discountPct)}</span>}
+          {r.manualDiscount > 0 && <span className={discHigh ? 'font-semibold text-rose-600' : ''}>discount {pct(r.discountPct)}</span>}
           {r.voided > 0 && <span className={voidHigh ? 'font-semibold text-rose-600' : ''}>{r.voided} cancel</span>}
-          {r.returnedBills > 0 && <span className={retHigh ? 'font-semibold text-rose-600' : ''}>{r.returnedBills} wapsi</span>}
+          {r.returnedBills > 0 && <span className={retHigh ? 'font-semibold text-rose-600' : ''}>{r.returnedBills} return</span>}
           {r.shifts > 0 && <span>galla {galla}</span>}
         </span>
 

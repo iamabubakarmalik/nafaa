@@ -31,7 +31,7 @@ export function unitsDoc(data: UnitsOverview, filter: string, branch: string): P
     meta: [['Products', String(data.items.length)], ...(filter ? [['Filter', filter] as [string, string]] : [])],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Cheez / pack' }, { label: 'Miqdar', align: 'right' }, { label: 'Qeemat', align: 'right' }, { label: 'Bachat', align: 'right', wideOnly: true }, { label: 'Barcode', wideOnly: true }],
+      columns: [{ label: 'Cheez / pack' }, { label: 'Quantity', align: 'right' }, { label: 'Qeemat', align: 'right' }, { label: 'Bachat', align: 'right', wideOnly: true }, { label: 'Barcode', wideOnly: true }],
       rows,
       groupRows,
     }],

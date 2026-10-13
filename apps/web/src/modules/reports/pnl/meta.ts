@@ -33,24 +33,24 @@ const head = (id: string, label: string): PnlLine => ({ id, label, kind: 'head',
 export function buildLines(cfg: PnlConfig, categories: ExpenseCategoryRef[], staff: boolean): PnlLine[] {
   const cat = (id: string) => (s: PnlStatement) => s.expenses.categories.find((c) => c.id === id)?.amount ?? 0;
   return [
-    head('h-rev', 'Bikri (revenue)'),
-    { id: 'gross', label: 'Kul bikri (list rate par)', hint: 'Har cheez ka poora rate × miqdar, discount se pehle', kind: 'item', value: (s) => s.revenue.gross, upIsGood: true },
+    head('h-rev', 'Sale (revenue)'),
+    { id: 'gross', label: 'Total sale (list rate par)', hint: 'Har cheez ka poora rate × quantity, discount se pehle', kind: 'item', value: (s) => s.revenue.gross, upIsGood: true },
     { id: 'discount', label: 'Discount', hint: 'Item, bill, code aur loyalty points ka discount', kind: 'item', minus: true, value: (s) => s.revenue.discount, upIsGood: false },
     { id: 'd-manual', label: 'Haath se diya (item + bill)', kind: 'sub', value: (s) => s.revenue.manualDiscount },
     { id: 'd-code', label: 'Discount code', kind: 'sub', value: (s) => s.revenue.codeDiscount },
     { id: 'd-loyalty', label: 'Loyalty points', kind: 'sub', value: (s) => s.revenue.loyaltyDiscount },
     { id: 'service', label: 'Service / delivery charges', hint: 'Bill par lage charges jo dukaan ke paas rahe', kind: 'item', value: (s) => s.revenue.serviceCharges, upIsGood: true },
-    { id: 'sales', label: 'Bills ki kul raqam', hint: 'Void ke ilawa saare bill', kind: 'total', value: (s) => s.revenue.sales, upIsGood: true },
-    { id: 'returns', label: 'Maal wapas (returns)', hint: 'Is muddat me wapas hua maal, chahe bill pehle ka ho', kind: 'item', minus: true, value: (s) => s.revenue.returns, upIsGood: false, to: '/returns' },
-    { id: 'net', label: 'Net bikri', hint: 'Asal kamai: bills minus wapsi', kind: 'grand', value: (s) => s.revenue.net, upIsGood: true },
+    { id: 'sales', label: 'Bills ki kul amount', hint: 'Void ke ilawa saare bill', kind: 'total', value: (s) => s.revenue.sales, upIsGood: true },
+    { id: 'returns', label: 'Maal wapas (returns)', hint: 'Is period me wapas hua maal, chahe bill pehle ka ho', kind: 'item', minus: true, value: (s) => s.revenue.returns, upIsGood: false, to: '/returns' },
+    { id: 'net', label: 'Net sale', hint: 'Asal kamai: bills minus return', kind: 'grand', value: (s) => s.revenue.net, upIsGood: true },
 
     head('h-cogs', cfg.cogs),
-    { id: 'c-saved', label: 'Bikri par likhi lagat', hint: 'Har bill par bikte waqt save hui cost', kind: 'item', cost: true, value: (s) => s.cogs?.saved ?? null, upIsGood: false },
+    { id: 'c-saved', label: 'Sale par likhi cost', hint: 'Har bill par bikte waqt save hui cost', kind: 'item', cost: true, value: (s) => s.cogs?.saved ?? null, upIsGood: false },
     { id: 'c-est', label: 'Andaza (cost nahi likhi thi)', hint: 'Jin lines par cost 0 thi, un ki product ki aaj ki cost', kind: 'item', cost: true, value: (s) => s.cogs?.estimated ?? null, upIsGood: false },
-    { id: 'c-ret', label: 'Wapas aaye maal ki lagat', hint: 'Wapsi par maal ki cost lagat se nikal jati hai', kind: 'item', cost: true, minus: true, value: (s) => s.cogs?.returned ?? null },
+    { id: 'c-ret', label: 'Wapas aaye maal ki cost', hint: 'Return par maal ki cost cost se nikal jati hai', kind: 'item', cost: true, minus: true, value: (s) => s.cogs?.returned ?? null },
     { id: 'cogs', label: cfg.cogs, hint: cfg.cogsHint, kind: 'total', cost: true, minus: true, value: (s) => s.cogs?.total ?? null, upIsGood: false },
-    { id: 'gross-profit', label: 'Gross munafa', hint: 'Net bikri minus maal ki lagat', kind: 'grand', cost: true, value: (s) => s.grossProfit, upIsGood: true },
-    { id: 'gross-margin', label: 'Gross margin', hint: 'Har 100 ki bikri me maal ke baad kitna bacha', kind: 'ratio', cost: true, value: (s) => s.grossMargin, upIsGood: true },
+    { id: 'gross-profit', label: 'Gross profit', hint: 'Net sale minus maal ki cost', kind: 'grand', cost: true, value: (s) => s.grossProfit, upIsGood: true },
+    { id: 'gross-margin', label: 'Gross margin', hint: 'Har 100 ki sale me maal ke baad kitna bacha', kind: 'ratio', cost: true, value: (s) => s.grossMargin, upIsGood: true },
 
     head('h-exp', 'Kharchay (operating)'),
     ...categories.map((c): PnlLine => ({ id: `e-${c.id}`, label: c.name, kind: 'item', value: cat(c.id), upIsGood: false, drill: { kind: 'expense', categoryId: c.id } })),
@@ -59,10 +59,10 @@ export function buildLines(cfg: PnlConfig, categories: ExpenseCategoryRef[], sta
       { id: 'commission', label: 'Commission', hint: 'Staff ko diya gaya commission', kind: 'item', value: (s) => s.expenses.commission, upIsGood: false, drill: { kind: 'staff' } },
     ] as PnlLine[] : []),
     { id: 'opex', label: 'Kul kharchay', kind: 'total', minus: true, value: (s) => s.expenses.total, upIsGood: false, to: '/expenses' },
-    { id: 'operating', label: 'Kaarobari munafa', hint: 'Gross munafa minus kharchay', kind: 'total', cost: true, value: (s) => s.operatingProfit, upIsGood: true },
+    { id: 'operating', label: 'Kaarobari profit', hint: 'Gross profit minus kharchay', kind: 'total', cost: true, value: (s) => s.operatingProfit, upIsGood: true },
 
     head('h-stock', 'Stock ka nuqsan'),
-    { id: 'w-damage', label: 'Kharab maal', hint: 'Damage likha gaya, wapsi par kharab nikla maal bhi', kind: 'item', cost: true, value: (s) => s.writeOffs?.damage ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
+    { id: 'w-damage', label: 'Kharab maal', hint: 'Damage likha gaya, return par kharab nikla maal bhi', kind: 'item', cost: true, value: (s) => s.writeOffs?.damage ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
     { id: 'w-loss', label: 'Gum / chori', kind: 'item', cost: true, value: (s) => s.writeOffs?.loss ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
     { id: 'w-short', label: 'Ginti me kam nikla', kind: 'item', cost: true, value: (s) => s.writeOffs?.countedShort ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
     { id: 'w-found', label: 'Ginti me zyada nikla', hint: 'Ye nuqsan kam karta hai', kind: 'item', cost: true, minus: true, value: (s) => s.writeOffs?.found ?? null, drill: { kind: 'writeoff' } },
@@ -71,8 +71,8 @@ export function buildLines(cfg: PnlConfig, categories: ExpenseCategoryRef[], sta
     head('h-other', 'Doosri aamdani'),
     { id: 'booking', label: 'Booking advance jo wapas nahi hua', hint: 'Cancel ya waqt guzri booking ka rakha gaya advance', kind: 'item', value: (s) => s.otherIncome.bookingKept, upIsGood: true, drill: { kind: 'booking' } },
 
-    { id: 'net-profit', label: 'Net munafa', hint: 'Sab kuch ghata kar jo bacha', kind: 'grand', cost: true, value: (s) => s.netProfit, upIsGood: true },
-    { id: 'net-margin', label: 'Net margin', hint: 'Har 100 ki bikri me aakhir me kitna bacha', kind: 'ratio', cost: true, value: (s) => s.netMargin, upIsGood: true },
+    { id: 'net-profit', label: 'Net profit', hint: 'Sab kuch ghata kar jo bacha', kind: 'grand', cost: true, value: (s) => s.netProfit, upIsGood: true },
+    { id: 'net-margin', label: 'Net margin', hint: 'Har 100 ki sale me aakhir me kitna bacha', kind: 'ratio', cost: true, value: (s) => s.netMargin, upIsGood: true },
   ];
 }
 

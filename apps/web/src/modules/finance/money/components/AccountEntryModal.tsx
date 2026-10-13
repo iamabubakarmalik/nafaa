@@ -15,9 +15,9 @@ import { MONEY_KEY, apiError, newRequestId } from './meta';
 export type EntryKind = 'DEPOSIT' | 'WITHDRAW' | 'ADJUSTMENT';
 
 const KIND_TEXT: Record<EntryKind, { label: string; reasons: string[] }> = {
-  DEPOSIT: { label: 'Jama', reasons: ['Malik ne paisa lagaya', 'Bank ka munafa', 'Udhaar liya', 'Doosri jagah se aaya'] },
+  DEPOSIT: { label: 'Jama', reasons: ['Malik ne paisa lagaya', 'Bank ka profit', 'Udhaar liya', 'Doosri jagah se aaya'] },
   WITHDRAW: { label: 'Nikala', reasons: ['Malik ne liya', 'Bank charges', 'Ghar ke kharch', 'Udhaar wapas kiya'] },
-  ADJUSTMENT: { label: 'Durusti', reasons: ['Bank statement se milaya', 'Purani ghalti theek ki', 'Gin kar milaya'] },
+  ADJUSTMENT: { label: 'Correction', reasons: ['Bank statement se milaya', 'Purani ghalti theek ki', 'Gin kar milaya'] },
 };
 
 export function AccountEntryModal({ account, kind: initial, onClose }: {
@@ -45,7 +45,7 @@ export function AccountEntryModal({ account, kind: initial, onClose }: {
   const errors = {
     amount: adjust
       ? (actual.trim() === '' || Number.isNaN(Number(actual)) ? 'Asal balance likhein' : delta === 0 ? 'Balance pehle hi barabar hai' : undefined)
-      : (Number(amount) || 0) <= 0 ? 'Raqam likhein' : short && !allowNegative ? 'Itna paisa nahi hai' : undefined,
+      : (Number(amount) || 0) <= 0 ? 'Amount likhein' : short && !allowNegative ? 'Itna paisa nahi hai' : undefined,
     reason: reason.trim().length < 2 ? 'Wajah likhein ya neeche se chunein' : undefined,
   };
   const ok = !errors.amount && !errors.reason;
@@ -92,7 +92,7 @@ export function AccountEntryModal({ account, kind: initial, onClose }: {
             error={tried ? errors.amount : undefined}
             hint="Bank app ya statement par jitna dikh raha hai — farq khud entry ban jayega" />
         ) : (
-          <Input label="Raqam" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
+          <Input label="Amount" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
             onChange={(e) => setAmount(e.target.value)} placeholder="0" size="lg" error={tried ? errors.amount : undefined} />
         )}
 

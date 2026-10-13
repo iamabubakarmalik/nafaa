@@ -53,7 +53,7 @@ export function ProfileInfo({ user, tenantName, focusKey }: { user: AuthUser; te
   const role = ROLE[user.role] ?? ROLE.STAFF;
   return (
     <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-      <Card className="rounded-3xl" title="Aap ki tafseel" description="Ye naam bill, report aur team list me nazar aata hai"
+      <Card className="rounded-3xl" title="Aap ki details" description="Ye naam bill, report aur team list me nazar aata hai"
         footer={<>
           {dirty && <Button variant="ghost" onClick={() => { setFullName(user.fullName ?? ''); setPhone(user.phone ?? ''); setAvatarUrl(user.avatarUrl ?? null); }}>Wapas</Button>}
           <Button onClick={submit} loading={save.isPending} disabled={!dirty}><Save className="h-4 w-4" /> Save karein</Button>

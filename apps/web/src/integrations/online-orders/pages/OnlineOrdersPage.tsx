@@ -188,9 +188,9 @@ export default function OnlineOrdersPage() {
       if (!items.length) { toast.error('Is list me koi order nahi'); return; }
       downloadCsv(`online-orders-${today}.csv`, [
         [`Online orders — ${tenantName ?? ''}`],
-        [`List: ${listName} · Muddat: ${dated ? periodText : 'Har tareekh'}${filterText ? ` · ${filterText}` : ''}`],
+        [`List: ${listName} · Period: ${dated ? periodText : 'Har date'}${filterText ? ` · ${filterText}` : ''}`],
         [],
-        ['Order', 'Tareekh', 'Customer', 'Phone', 'Shehar', 'Channel', 'Cheezein', 'Qty', 'Total', 'COD', 'Payment', 'Halat', 'Courier', 'CN', 'Test'],
+        ['Order', 'Date', 'Customer', 'Phone', 'Shehar', 'Channel', 'Cheezein', 'Qty', 'Total', 'COD', 'Payment', 'Halat', 'Courier', 'CN', 'Test'],
         ...items.map((o) => [
           orderNo(o), new Date(o.receivedAt).toLocaleString('en-PK'), o.customerName, o.customerPhone ?? '', o.customerCity ?? '',
           o.integration?.displayName ?? sourceOf(o).label, o.items.length, itemQty(o), Number(o.total || 0).toFixed(2),
@@ -202,7 +202,7 @@ export default function OnlineOrdersPage() {
   };
   const printDoc = async () => {
     const { items, total } = await fetchAll();
-    return ordersDoc(items, listName, dated ? periodText : 'Har tareekh', filterText, total);
+    return ordersDoc(items, listName, dated ? periodText : 'Har date', filterText, total);
   };
 
   useEffect(() => {
@@ -265,7 +265,7 @@ export default function OnlineOrdersPage() {
               onClick={() => goTab('ACTIVE')} active={view === 'ACTIVE'} />
             <KpiCard icon={Wallet} color="#ea580c" label="COD paisa baqi" value={money(codDue?.codDueValue ?? 0)} hint={`${codDue?.codDueCount ?? 0} order · dabayein`}
               onClick={() => goTab('COD_DUE')} active={view === 'COD_DUE'} />
-            <KpiCard icon={XCircle} color="#e11d48" label="Cancel / reject" value={`${t.cancelRate}%`} hint={`${t.cancelled} order is muddat me`}
+            <KpiCard icon={XCircle} color="#e11d48" label="Cancel / reject" value={`${t.cancelRate}%`} hint={`${t.cancelled} order is period me`}
               onClick={() => goTab('CLOSED')} active={view === 'CLOSED'} />
             <KpiCard icon={Trophy} color="#16a34a" label="Sab se bara order" value={r?.biggest ? money(r.biggest.total) : '—'}
               hint={r?.biggest ? `${r.biggest.customerName} · #${r.biggest.number}` : undefined}
@@ -285,7 +285,7 @@ export default function OnlineOrdersPage() {
             {alerts.cancelRequests.count > 0 && (
               <Alert tone="amber" icon={AlertTriangle}
                 title={`${alerts.cancelRequests.count} customer ne cancel maanga hai`}
-                text="Parcel bhejne se pehle dekh lein — warna courier ka kharcha aur wapsi dono."
+                text="Parcel bhejne se pehle dekh lein — warna courier ka expense aur return dono."
                 items={alerts.cancelRequests.latest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${statusShort(o.orderStatus)}` }))}
                 onPick={(id) => { goTab('ALL'); open(id); }} />
             )}
@@ -294,10 +294,10 @@ export default function OnlineOrdersPage() {
 
         <FilterBar
           search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (view === 'analytics') setView('ALL'); }}
-            placeholder="Order #, naam, phone ya CN…" label="Order dhoondein" />}
+            placeholder="Order #, naam, phone ya CN…" label="Order search" />}
           chips={hasFilters ? <>
             {pay && <FilterChip onRemove={() => setPay('')}>{pay === 'COD' ? 'Sirf COD' : 'Sirf paid'}</FilterChip>}
-            {query && <FilterChip onRemove={() => setSearch('')}>"{query}" · har tareekh</FilterChip>}
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}" · har date</FilterChip>}
           </> : undefined}
           onClear={clear}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
@@ -319,7 +319,7 @@ export default function OnlineOrdersPage() {
           ]}
           right={view !== 'analytics' ? (
             <div className="flex items-center gap-2">
-              <span className="hidden text-[0.75rem] text-slate-500 lg:inline">{queue ? 'Is list par tareekh nahi lagti' : query ? 'Talaash har tareekh me' : periodText}</span>
+              <span className="hidden text-[0.75rem] text-slate-500 lg:inline">{queue ? 'Is list par date nahi lagti' : query ? 'Talaash har date me' : periodText}</span>
               <Button size="sm" variant={selecting ? 'inverse' : 'secondary'} leftIcon={<CheckSquare className="h-4 w-4" />} onClick={() => (selecting ? stopSelecting() : setSelecting(true))}>
                 {selecting ? 'Chhoro' : 'Kai chunein'}
               </Button>
@@ -340,7 +340,7 @@ export default function OnlineOrdersPage() {
           <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShoppingBag className="h-6 w-6" /></span>
             <h3 className="mt-4 text-lg font-semibold text-slate-900">{query ? `"${query}" se koi order nahi mila` : tab === 'PENDING' ? 'Koi naya order nahi' : 'Is list me koi order nahi'}</h3>
-            <p className="mt-1 text-[0.875rem] text-slate-500">{tab === 'PENDING' ? 'Naya order aate hi ghanti bajegi aur yahan dikhega.' : 'Tareekh ya filter badal kar dekhein.'}</p>
+            <p className="mt-1 text-[0.875rem] text-slate-500">{tab === 'PENDING' ? 'Naya order aate hi ghanti bajegi aur yahan dikhega.' : 'Date ya filter badal kar dekhein.'}</p>
             {hasFilters && <Button className="mt-4" variant="secondary" onClick={clear}>Filter hatayein</Button>}
           </div>
         ) : (
@@ -367,7 +367,7 @@ export default function OnlineOrdersPage() {
             {listQ.isFetchingNextPage ? 'Aa rahe hain…' : `Aur orders dikhayein (${orders.length} / ${total})`}
           </button>
         )}
-        {salesHidden && <p className="text-center text-[0.75rem] text-slate-400">Raqam chhupi hai — upar aankh wale button se dikhayein</p>}
+        {salesHidden && <p className="text-center text-[0.75rem] text-slate-400">Amount chhupi hai — upar aankh wale button se dikhayein</p>}
       </>)}
 
       {selectedId && <OrderDrawer orderId={selectedId} onClose={() => open(null)} onStep={view !== 'analytics' && orders.length > 1 ? step : undefined} />}
@@ -390,8 +390,8 @@ export default function OnlineOrdersPage() {
             { icon: Wallet, color: '#ea580c', title: 'COD baqi', text: 'Parcel pohanch gaya magar paisa courier se nahi aaya — "COD baqi" me rehta hai. Settlement "COD & courier" safhe par.' },
           ]}
           tips={[
-            '"Naye", "Chal rahe" aur "COD baqi" par tareekh nahi lagti — koi purana ruka order chhupe na.',
-            'Talaash (search) har tareekh me dhoondti hai.',
+            '"Naye", "Chal rahe" aur "COD baqi" par date nahi lagti — koi purana ruka order chhupe na.',
+            'Talaash (search) har date me dhoondti hai.',
             'Test order analytics aur report me nahi gine jate.',
             'Laal "Customer ne cancel maanga" wala order bhejne se pehle zaroor dekhein.',
           ]}

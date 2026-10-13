@@ -25,8 +25,8 @@ import { Empty, Figure, HeatGrid } from './parts';
 
 type Tab = 'summary' | 'bills' | 'shifts' | 'record' | 'attendance';
 const BILL_KINDS: Array<{ value: BillKind; label: string }> = [
-  { value: 'all', label: 'Sab' }, { value: 'big', label: 'Bare' }, { value: 'discount', label: 'Chhoot' },
-  { value: 'credit', label: 'Udhaar' }, { value: 'returned', label: 'Wapsi' }, { value: 'voided', label: 'Cancel' },
+  { value: 'all', label: 'Sab' }, { value: 'big', label: 'Bare' }, { value: 'discount', label: 'Discount' },
+  { value: 'credit', label: 'Udhaar' }, { value: 'returned', label: 'Return' }, { value: 'voided', label: 'Cancel' },
 ];
 const STATUS_LABEL: Record<string, string> = { PRESENT: 'Hazir', LATE: 'Late', ABSENT: 'Ghair hazir', HALF_DAY: 'Aadha din', ON_LEAVE: 'Chhutti', HOLIDAY: 'Chhutti ka din' };
 
@@ -69,7 +69,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
   const tabs: Array<{ value: Tab; label: string }> = [
     { value: 'summary', label: 'Khulasa' }, { value: 'bills', label: 'Bill' },
     ...(drawerHidden ? [] : [{ value: 'shifts' as const, label: 'Galla' }]),
-    { value: 'record', label: 'Wapsi/cancel' }, { value: 'attendance', label: 'Haziri' },
+    { value: 'record', label: 'Return/cancel' }, { value: 'attendance', label: 'Haziri' },
   ];
 
   return createPortal(
@@ -102,34 +102,34 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
           {tab === 'summary' && (<>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              <Figure label="Bikri" value={money(row.net)} hint={row.prevNet != null ? `pichli muddat ${money(row.prevNet)}` : `${pct(row.share)} hissa`} />
+              <Figure label="Sale" value={money(row.net)} hint={row.prevNet != null ? `pichli period ${money(row.prevNet)}` : `${pct(row.share)} hissa`} />
               <Figure label="Bill" value={row.bills} hint={`${row.customers} customer · ${row.walkIns} walk-in`} />
               <Figure label="Ausat bill" value={money(row.average)} tone={vs(row.average, team.average)} hint={`team ${money(team.average)}`} />
               <Figure label="Cheezein fi bill" value={qtyText(row.itemsPerBill)} tone={vs(row.itemsPerBill, team.itemsPerBill)} hint={`team ${qtyText(team.itemsPerBill)}`} />
-              <Figure label="Fi ghanta bikri" value={row.hours > 0 ? money(row.perHour) : '—'} tone={row.hours > 0 ? vs(row.perHour, team.perHour) : undefined}
+              <Figure label="Fi ghanta sale" value={row.hours > 0 ? money(row.perHour) : '—'} tone={row.hours > 0 ? vs(row.perHour, team.perHour) : undefined}
                 hint={row.hoursSource ? `${hoursText(row.hours)} · ${HOURS_SOURCE[row.hoursSource]}` : 'Ghante darj nahi'} />
               <Figure label="Cheezein fi ghanta" value={row.hours > 0 ? qtyText(row.itemsPerHour) : '—'} hint={row.hours > 0 ? `${qtyText(row.billsPerHour)} bill fi ghanta` : undefined} />
-              <Figure label="Haath se chhoot" value={money(row.manualDiscount)} tone={vs(row.discountPct, team.discountPct, 'bad')}
+              <Figure label="Haath se discount" value={money(row.manualDiscount)} tone={vs(row.discountPct, team.discountPct, 'bad')}
                 hint={`${pct(row.discountPct)} · team ${pct(team.discountPct)} · ${row.discountBills} bill`} />
               <Figure label="Udhaar par" value={money(row.credit)} hint={`${row.creditBills} bill · ${pct(row.creditPct)}`} />
               <Figure label="Cancel bill" value={row.voided} tone={row.voided ? vs(row.voidPct, team.voidPct, 'bad') : undefined} hint={row.voided ? `${money(row.voidedValue)} · ${pct(row.voidPct)}` : 'Koi nahi'} />
-              <Figure label="Is ke bill par wapsi" value={money(row.refunds)} tone={row.refunds ? vs(row.returnPct, team.returnPct, 'bad') : undefined} hint={`${row.returnedBills} bill · ${pct(row.returnPct)}`} />
-              <Figure label="Wapsi ki (khud)" value={row.returnsDone} hint={row.returnsDone ? `${money(row.returnsDoneValue)}${row.returnsOthers ? ` · ${row.returnsOthers} doosron ke bill` : ''}` : 'Koi nahi'} />
+              <Figure label="Is ke bill par return" value={money(row.refunds)} tone={row.refunds ? vs(row.returnPct, team.returnPct, 'bad') : undefined} hint={`${row.returnedBills} bill · ${pct(row.returnPct)}`} />
+              <Figure label="Return ki (khud)" value={row.returnsDone} hint={row.returnsDone ? `${money(row.returnsDoneValue)}${row.returnsOthers ? ` · ${row.returnsOthers} doosron ke bill` : ''}` : 'Koi nahi'} />
               {!drawerHidden && <Figure label="Galla" value={row.shifts ? (row.short > 0.5 ? `−${money(row.short)}` : row.over > 0.5 ? `+${money(row.over)}` : 'Theek') : '—'}
                 tone={row.short > 0.5 ? 'bad' : row.over > 0.5 ? 'warn' : row.shifts ? 'good' : undefined}
                 hint={row.shifts ? `${row.shifts} shift · ${row.shortCount} kam · ${row.overCount} zyada` : 'Koi shift nahi kholi'} />}
-              {!costHidden && row.profit != null && <Figure label="Munafa" value={cost(row.profit)} hint={row.margin != null ? `${pct(row.margin)} margin` : undefined} />}
+              {!costHidden && row.profit != null && <Figure label="Profit" value={cost(row.profit)} hint={row.margin != null ? `${pct(row.margin)} margin` : undefined} />}
               {!drawerHidden && <Figure label="Cash daala / nikala" value={`${money(row.cashIn)} / ${money(row.cashOut)}`} hint={`${row.cashInCount + row.cashOutCount} entries`} />}
               <Figure label="PIN" value={`${row.pinApprovals} manzoor`} tone={row.pinFailures >= 3 ? 'bad' : undefined} hint={row.pinFailures ? `${row.pinFailures} dafa ghalat PIN` : 'Koi ghalat PIN nahi'} />
             </div>
             {row.reassigned > 0 && (
               <p className="rounded-xl bg-sky-50 px-3 py-2 text-[0.8125rem] text-sky-800 ring-1 ring-sky-100">
-                {row.reassigned} bill kisi aur ne banaye magar bikri {row.name} ke naam chuni gayi — wo bhi yahan gine gaye hain.
+                {row.reassigned} bill kisi aur ne banaye magar sale {row.name} ke naam chuni gayi — wo bhi yahan gine gaye hain.
               </p>
             )}
 
             {!d ? <Skeleton className="h-56 rounded-2xl" /> : (<>
-              <Block icon={TrendingUp} title="Bikri ka rujhan" hint={d.grouping === 'month' ? 'Mahine war' : 'Din war'}>
+              <Block icon={TrendingUp} title="Sale ka rujhan" hint={d.grouping === 'month' ? 'Mahine war' : 'Din war'}>
                 <div className="h-[180px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={d.trend.map((t) => ({ ...t, label: keyLabel(t.key) }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -137,7 +137,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
                       <CartesianGrid stroke={theme.grid} vertical={false} />
                       <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                       <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                      <Tooltip {...theme.tooltip} formatter={(v, n) => [n === 'bills' ? String(v) : formatPKR(Number(v)), n === 'bills' ? 'Bill' : 'Bikri']} />
+                      <Tooltip {...theme.tooltip} formatter={(v, n) => [n === 'bills' ? String(v) : formatPKR(Number(v)), n === 'bills' ? 'Bill' : 'Sale']} />
                       <Area type="monotone" dataKey="net" stroke={theme.primary} strokeWidth={2} fill="url(#staff-person)" />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -176,7 +176,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
               </div>
 
               {d.commission?.row?.enrolled && (
-                <Block icon={Coins} title={`Commission — ${d.commission.period}`} hint="Is mahine ka hisab, sab branches ki bikri par">
+                <Block icon={Coins} title={`Commission — ${d.commission.period}`} hint="Is mahine ka hisab, sab branches ki sale par">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-2xl font-bold tabular-nums text-slate-900">{money(d.commission.row.earned)}</p>
                     <span className="text-[0.8125rem] text-slate-500">
@@ -191,7 +191,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
 
           {tab === 'bills' && (<>
             <Segmented label="Kaun se bill" value={kind} onChange={setKind} items={BILL_KINDS} className="flex-wrap" />
-            {!billsQ.data ? <Skeleton className="h-64 rounded-2xl" /> : !billsQ.data.items.length ? <Empty text="Is qism ka koi bill nahi" /> : (
+            {!billsQ.data ? <Skeleton className="h-64 rounded-2xl" /> : !billsQ.data.items.length ? <Empty text="Is type ka koi bill nahi" /> : (
               <>
                 <p className="text-[0.75rem] text-slate-500">{billsQ.data.count} bill · bill par click se receipt khulti hai</p>
                 <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl ring-1 ring-slate-200">
@@ -203,9 +203,9 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
                             <span className="font-mono font-semibold text-slate-900">{b.number}</span>
                             <span className="text-slate-500">{b.customer ?? 'Walk-in'}</span>
                             {b.status === 'VOIDED' && <Tag tone="rose">Cancel</Tag>}
-                            {b.refunded > 0 && <Tag tone="orange">Wapsi {money(b.refunded)}</Tag>}
+                            {b.refunded > 0 && <Tag tone="orange">Return {money(b.refunded)}</Tag>}
                             {b.credit > 0 && <Tag tone="amber">Udhaar {money(b.credit)}</Tag>}
-                            {b.manualDiscount > 0 && <Tag tone="pink">Chhoot {money(b.manualDiscount)}</Tag>}
+                            {b.manualDiscount > 0 && <Tag tone="pink">Discount {money(b.manualDiscount)}</Tag>}
                           </span>
                           <span className="mt-0.5 block text-[0.75rem] text-slate-400">
                             {when(b.soldAt)} · {b.lines} cheez · {PAYMENT_LABELS[b.method] ?? b.method}{b.madeBy && ` · bill ${b.madeBy} ne banaya`}
@@ -227,7 +227,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
             )}
           </>)}
 
-          {tab === 'shifts' && (!d ? <Skeleton className="h-64 rounded-2xl" /> : !d.shifts.length ? <Empty text="Is muddat me galla nahi khola" /> : (
+          {tab === 'shifts' && (!d ? <Skeleton className="h-64 rounded-2xl" /> : !d.shifts.length ? <Empty text="Is period me galla nahi khola" /> : (
             <Block icon={Vault} title="Is ki shifts" hint="Aakhri 20 — jo is ne kholi">
               <ul className="divide-y divide-slate-100">
                 {d.shifts.map((s) => {
@@ -237,7 +237,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
                       <span className="min-w-0">
                         <span className="block font-medium text-slate-900">{when(s.openedAt)}{s.closedAt ? ` — ${timeText(s.closedAt)}` : ''}</span>
                         <span className="block text-[0.75rem] text-slate-500">
-                          <span className="font-mono">{s.number}</span>{s.hours != null && ` · ${hoursText(s.hours)}`} · cash bikri {money(s.cashSales)}{s.closedBy && ` · ${s.closedBy} ne band ki`}{s.shop && ` · ${s.shop}`}
+                          <span className="font-mono">{s.number}</span>{s.hours != null && ` · ${hoursText(s.hours)}`} · cash sale {money(s.cashSales)}{s.closedBy && ` · ${s.closedBy} ne band ki`}{s.shop && ` · ${s.shop}`}
                         </span>
                       </span>
                       <span className="shrink-0 text-right">
@@ -258,8 +258,8 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
           ))}
 
           {tab === 'record' && (!d ? <Skeleton className="h-64 rounded-2xl" /> : (<>
-            <Block icon={RotateCcw} title="Wapsi jo is ne ki" hint="Aakhri 15">
-              {!d.returns.length ? <Empty text="Koi wapsi nahi ki" /> : (
+            <Block icon={RotateCcw} title="Return jo is ne ki" hint="Aakhri 15">
+              {!d.returns.length ? <Empty text="Koi return nahi ki" /> : (
                 <ul className="divide-y divide-slate-100">
                   {d.returns.map((x) => (
                     <li key={x.id}>
@@ -292,7 +292,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
                 </ul>
               )}
             </Block>
-            <Block icon={KeyRound} title="PIN ka record" hint="Malik ke PIN se manzoor wapsi aur ghalat PIN">
+            <Block icon={KeyRound} title="PIN ka record" hint="Malik ke PIN se approve return aur ghalat PIN">
               {!d.pins.length ? <Empty text="Koi PIN record nahi" /> : (
                 <ul className="divide-y divide-slate-100">
                   {d.pins.map((p) => (
@@ -311,7 +311,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
             <div className="rounded-2xl bg-slate-50 p-5 text-center ring-1 ring-slate-100">
               <CalendarCheck className="mx-auto h-8 w-8 text-slate-300" />
               <p className="mt-2 font-semibold text-slate-900">Haziri ka record jura nahi</p>
-              <p className="mt-1 text-[0.8125rem] text-slate-500">Staff me is bande ka record bana kar login se jorein — phir haziri, ghante aur fi ghanta bikri asal ghanton par banegi.</p>
+              <p className="mt-1 text-[0.8125rem] text-slate-500">Staff me is bande ka record bana kar login se jorein — phir haziri, ghante aur fi ghanta sale asal ghanton par banegi.</p>
               <Link to="/staff" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Staff kholein →</Link>
             </div>
           ) : (<>
@@ -322,7 +322,7 @@ export function StaffDrawer({ row, team, period, money, cost, costHidden, drawer
               <Figure label="Ghair hazir / chhutti" value={`${d.attendance.summary?.absent ?? 0} / ${d.attendance.summary?.leave ?? 0}`} />
             </div>
             <Block icon={CalendarCheck} title="Din war haziri" hint="Aakhri 31 din">
-              {!d.attendance.days.length ? <Empty text="Is muddat me haziri nahi lagi" /> : (
+              {!d.attendance.days.length ? <Empty text="Is period me haziri nahi lagi" /> : (
                 <ul className="divide-y divide-slate-100">
                   {d.attendance.days.map((a) => (
                     <li key={a.date} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">

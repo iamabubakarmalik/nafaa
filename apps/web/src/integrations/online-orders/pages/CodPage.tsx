@@ -128,14 +128,14 @@ export default function CodPage() {
 
   const exportCsv = () => {
     const rows: unknown[][] = tab === 'settled'
-      ? [['Tareekh', 'Ref', 'Order', 'Customer', 'Courier', 'CN', 'Raqam'], ...batches.flatMap((b) => b.orders.map((o) => [b.day, b.ref ?? '', o.number, o.customerName, o.courier, o.trackingNumber ?? '', o.total]))]
+      ? [['Date', 'Ref', 'Order', 'Customer', 'Courier', 'CN', 'Amount'], ...batches.flatMap((b) => b.orders.map((o) => [b.day, b.ref ?? '', o.number, o.customerName, o.courier, o.trackingNumber ?? '', o.total]))]
       : tab === 'rto'
-        ? [['Order', 'Customer', 'Shehar', 'Courier', 'CN', 'Wajah', 'Wapas aaya', 'Raqam'], ...returns.map((r) => [r.number, r.customerName, r.customerCity ?? '', r.courier, r.trackingNumber ?? '', r.reason ?? '', new Date(r.returnedAt).toLocaleDateString('en-PK'), r.total])]
+        ? [['Order', 'Customer', 'Shehar', 'Courier', 'CN', 'Wajah', 'Wapas aaya', 'Amount'], ...returns.map((r) => [r.number, r.customerName, r.customerCity ?? '', r.courier, r.trackingNumber ?? '', r.reason ?? '', new Date(r.returnedAt).toLocaleDateString('en-PK'), r.total])]
         : tab === 'transit'
-          ? [['Order', 'Customer', 'Shehar', 'Courier', 'CN', 'Bheja', 'Raqam'], ...transitRows.map((o) => [orderNo(o), o.customerName, o.customerCity ?? '', o.courierLabel ?? '', o.trackingNumber ?? '', o.dispatchedAt ? new Date(o.dispatchedAt).toLocaleDateString('en-PK') : '', o.total])]
+          ? [['Order', 'Customer', 'Shehar', 'Courier', 'CN', 'Bheja', 'Amount'], ...transitRows.map((o) => [orderNo(o), o.customerName, o.customerCity ?? '', o.courierLabel ?? '', o.trackingNumber ?? '', o.dispatchedAt ? new Date(o.dispatchedAt).toLocaleDateString('en-PK') : '', o.total])]
           : tab === 'couriers'
             ? [['Courier', 'Raste me', 'Courier ke paas', 'Is mahine mila', 'Bheje (30 din)', 'Wapas (30 din)', 'RTO %'], ...(s?.couriers ?? []).map((c) => [c.name, c.inTransitValue, c.withCourierValue, c.settledMonthValue, c.dispatched30, c.returned30, c.rtoRate])]
-            : [['Order', 'Customer', 'Shehar', 'Courier', 'CN', 'Deliver hua', 'Din', 'Raqam'], ...withRows.map((o) => [o.externalOrderNumber ?? o.externalOrderId, o.customerName, o.customerCity ?? '', o.courier ?? '', o.trackingNumber ?? '', o.deliveredAt ? new Date(o.deliveredAt).toLocaleDateString('en-PK') : '', o.daysWaiting ?? '', o.total])];
+            : [['Order', 'Customer', 'Shehar', 'Courier', 'CN', 'Deliver hua', 'Din', 'Amount'], ...withRows.map((o) => [o.externalOrderNumber ?? o.externalOrderId, o.customerName, o.customerCity ?? '', o.courier ?? '', o.trackingNumber ?? '', o.deliveredAt ? new Date(o.deliveredAt).toLocaleDateString('en-PK') : '', o.daysWaiting ?? '', o.total])];
     if (rows.length < 2) { toast.error('Is list me kuch nahi'); return; }
     downloadCsv(`cod-${tab}.csv`, rows);
   };
@@ -200,7 +200,7 @@ export default function CodPage() {
         </KpiRow>
 
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Order #, CN, customer ya shehar…" label="Dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Order #, CN, customer ya shehar…" label="Search" />}
           chips={filtered ? <>
             {courier && <FilterChip onRemove={() => setCourier('')}>{courier}</FilterChip>}
             {term && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
@@ -213,7 +213,7 @@ export default function CodPage() {
           )}
         </FilterBar>
 
-        <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>5</Kbd> tabs · <Kbd>/</Kbd> dhoondein</>}
+        <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>5</Kbd> tabs · <Kbd>/</Kbd> search</>}
           tabs={[
             { id: 'with', label: 'Courier ke paas', icon: Wallet, count: s?.totals.withCourier ?? null },
             { id: 'transit', label: 'Raste me', icon: Truck, count: s?.totals.inTransit ?? null },
@@ -244,7 +244,7 @@ export default function CodPage() {
                 <li className="flex items-center gap-3 px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 sm:px-5">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chunein"
                     checked={withRows.every((r) => picked.has(r.id))} onChange={(e) => setPicked(e.target.checked ? new Set(withRows.map((r) => r.id)) : new Set())} />
-                  <span className="flex-1">Order · customer · courier</span><span className="hidden w-32 text-right sm:block">Deliver hua</span><span className="w-24 text-right">Raqam</span>
+                  <span className="flex-1">Order · customer · courier</span><span className="hidden w-32 text-right sm:block">Deliver hua</span><span className="w-24 text-right">Amount</span>
                 </li>
                 {withRows.map((o) => (
                   <li key={o.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50/80 sm:px-5">
@@ -290,7 +290,7 @@ export default function CodPage() {
         ) : tab === 'settled' ? (
           <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {historyQ.isLoading ? <div className="p-4"><Skeleton className="h-40 rounded-xl" /></div> : !batches.length ? (
-              <Empty icon={ReceiptText} title="Is muddat me koi settlement nahi" text='"Courier ke paas" se orders chun kar "Paisa mil gaya" dabayein — yahan record banega.' />
+              <Empty icon={ReceiptText} title="Is period me koi settlement nahi" text='"Courier ke paas" se orders chun kar "Paisa mil gaya" dabayein — yahan record banega.' />
             ) : (
               <ul className="divide-y divide-slate-100">
                 {batches.map((b) => {
@@ -328,12 +328,12 @@ export default function CodPage() {
         ) : tab === 'rto' ? (
           <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {historyQ.isLoading ? <div className="p-4"><Skeleton className="h-40 rounded-xl" /></div> : !returns.length ? (
-              <Empty icon={PackageX} title="Is muddat me koi parcel wapas nahi aaya" text="Wapas (RTO) par bill void hota hai aur stock khud wapas aa jata hai." />
+              <Empty icon={PackageX} title="Is period me koi parcel wapas nahi aaya" text="Wapas (RTO) par bill void hota hai aur stock khud wapas aa jata hai." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[44rem] text-[0.8125rem]">
                   <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                    <tr><th className="px-4 py-2 sm:px-5">Order</th><th className="px-3 py-2">Courier · CN</th><th className="px-3 py-2">Wajah</th><th className="px-3 py-2">Wapas aaya</th><th className="px-4 py-2 text-right sm:px-5">Raqam</th></tr>
+                    <tr><th className="px-4 py-2 sm:px-5">Order</th><th className="px-3 py-2">Courier · CN</th><th className="px-3 py-2">Wajah</th><th className="px-3 py-2">Wapas aaya</th><th className="px-4 py-2 text-right sm:px-5">Amount</th></tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {returns.map((r) => (
@@ -414,7 +414,7 @@ export default function CodPage() {
           tips={[
             'Kuch couriers (jaise PostEx) settlement khud batate hain — wahan paisa aate hi order khud "mil gaya" ho jata hai.',
             'Settlement aur RTO tab par tareekh lagti hai; baqi lists hamesha poori hain.',
-            'Rider ne delivery charge khud rakh liya ho to woh raqam yahan se minus hoti hai.',
+            'Rider ne delivery charge khud rakh liya ho to woh amount yahan se minus hoti hai.',
           ]}
           shortcuts={[['1', 'courier ke paas'], ['2', 'raste me'], ['3', 'settlements'], ['4', 'RTO'], ['5', 'courier-wise'], ['/', 'dhoondein'], ['G', 'guide']]}
         />

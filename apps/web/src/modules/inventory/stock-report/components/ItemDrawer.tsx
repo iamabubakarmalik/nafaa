@@ -57,7 +57,7 @@ export function ItemDrawer({ productId, query, money, cost, deviceLink, onClose 
   return createPortal(
     <div className="fixed inset-0 z-[90] flex justify-end">
       <div className="absolute inset-0 bg-slate-950/40" onClick={onClose} aria-hidden />
-      <aside role="dialog" aria-modal="true" data-drawer aria-label={l?.name ?? 'Stock tafseel'}
+      <aside role="dialog" aria-modal="true" data-drawer aria-label={l?.name ?? 'Stock details'}
         className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
         <header className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div className="min-w-0">
@@ -71,7 +71,7 @@ export function ItemDrawer({ productId, query, money, cost, deviceLink, onClose 
           {q.isLoading ? (
             <div className="space-y-3">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
           ) : !l ? (
-            <p className="py-10 text-center text-[0.875rem] text-slate-500">Is branch me is cheez ka koi stock ya bikri nahi</p>
+            <p className="py-10 text-center text-[0.875rem] text-slate-500">Is branch me is cheez ka koi stock ya sale nahi</p>
           ) : (
             <>
               <div className="flex flex-wrap gap-1.5">
@@ -81,18 +81,18 @@ export function ItemDrawer({ productId, query, money, cost, deviceLink, onClose 
 
               <div className="grid grid-cols-2 gap-2">
                 <Fact label="Stock" value={`${qty(l.stock)} ${l.unit}`} hint={`alert ${qty(l.alert)}${l.detail ? ` · ${l.detail}` : ''}`} />
-                <Fact label="Lagat" value={cost(l.valueAtCost)} hint={`ausat ${cost(l.cost)} / ${l.unit}`} />
+                <Fact label="Cost" value={cost(l.valueAtCost)} hint={`ausat ${cost(l.cost)} / ${l.unit}`} />
                 <Fact label="Bechne par" value={money(l.retail)} hint={`rate ${money(l.price)}`} />
-                <Fact label="Mumkin munafa" value={cost(l.profit)} hint={l.margin != null ? `${l.margin.toFixed(1)}% margin` : undefined} />
-                <Fact label="Muddat me biki" value={`${qty(l.sold.qty)} ${l.unit}`} hint={`${money(l.sold.revenue)} · pichli muddat ${qty(l.prevSold.qty)}`} />
+                <Fact label="Mumkin profit" value={cost(l.profit)} hint={l.margin != null ? `${l.margin.toFixed(1)}% margin` : undefined} />
+                <Fact label="Period me biki" value={`${qty(l.sold.qty)} ${l.unit}`} hint={`${money(l.sold.revenue)} · pichli period ${qty(l.prevSold.qty)}`} />
                 <Fact label="Kitne din chalega" value={coverText(l.cover)} hint={`roz ${qty(l.perDay)} ${l.unit}`} />
-                <Fact label="Aakhri bikri" value={ageText(l.saleAge)} hint={l.lastSoldAt ? dateText(l.lastSoldAt) : undefined} />
-                <Fact label="Maal aaya" value={ageText(l.stockAge, '—')} hint={l.lastInAt ? dateText(l.lastInAt) : 'Product banne ki tareekh se'} />
+                <Fact label="Aakhri sale" value={ageText(l.saleAge)} hint={l.lastSoldAt ? dateText(l.lastSoldAt) : undefined} />
+                <Fact label="Maal aaya" value={ageText(l.stockAge, '—')} hint={l.lastInAt ? dateText(l.lastInAt) : 'Product banne ki date se'} />
               </div>
 
               {l.agri?.reg && (
                 <p className={cn('rounded-xl px-3 py-2 text-[0.8125rem]', l.agri.reg.state === 'expired' ? 'bg-rose-50 text-rose-800' : 'bg-amber-50 text-amber-900')}>
-                  Registration: {l.agri.reg.state === 'expired' ? 'khatam — bechna mana hai' : l.agri.reg.state === 'soon' ? `${l.agri.reg.days} din me khatam` : 'tareekh likhi nahi'}
+                  Registration: {l.agri.reg.state === 'expired' ? 'khatam — bechna mana hai' : l.agri.reg.state === 'soon' ? `${l.agri.reg.days} din me khatam` : 'date likhi nahi'}
                 </p>
               )}
 
@@ -167,7 +167,7 @@ export function ItemDrawer({ productId, query, money, cost, deviceLink, onClose 
               )}
 
               {d.monthly.length > 0 && (
-                <Section title="Mahine war bikri">
+                <Section title="Mahine war sale">
                   <div className="h-32">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d.monthly} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>

@@ -56,7 +56,7 @@ export class ShopsAnalyticsService {
   /** Branch money needs reports access; branch-tied staff see their own branch only. */
   private viewer(user: AuthenticatedUser): Viewer {
     if (!hasPermission(user.role, user.permissions, PERMISSIONS.REPORTS_VIEW)) {
-      throw new ForbiddenException('Branch ka hisaab dekhne ke liye "Reports dekhna" ki ijazat chahiye');
+      throw new ForbiddenException('Branch ka hisaab dekhne ke liye "Reports dekhna" ki permission chahiye');
     }
     const owner = user.role === UserRole.OWNER || user.role === UserRole.SUPER_ADMIN;
     return {
@@ -308,7 +308,7 @@ export class ShopsAnalyticsService {
     const today = businessDayKey(new Date(), c.tz, c.h);
     const toKey = to && KEY.test(to) ? to : today;
     const fromKey = from && KEY.test(from) ? from : `${toKey.slice(0, 7)}-01`;
-    if (fromKey > toKey) throw new BadRequestException('Shuru ki tareekh aakhri tareekh ke baad hai');
+    if (fromKey > toKey) throw new BadRequestException('Shuru ki date aakhri date ke baad hai');
     const gte = this.dayStart(fromKey, c);
     const lt = new Date(this.dayStart(toKey, c).getTime() + DAY);
     const days = Math.round((lt.getTime() - gte.getTime()) / DAY);

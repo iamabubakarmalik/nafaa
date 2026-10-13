@@ -14,7 +14,7 @@ import { applyEdit } from './calc';
 import { SALARY_TYPE, qty } from './meta';
 
 const ADD_CHIPS = ['Eid bonus', 'Inaam', 'Safar / kiraya', 'Khana'];
-const CUT_CHIPS = ['Tor phor', 'Udhaar wapsi', 'Late aana', 'Maal kam'];
+const CUT_CHIPS = ['Tor phor', 'Udhaar return', 'Late aana', 'Maal kam'];
 
 const toNum = (v: string) => (v.trim() === '' ? undefined : Math.max(0, Number(v) || 0));
 
@@ -67,10 +67,10 @@ export function RowEditModal({ row, edit, canPayCommission, onSave, onClose }: {
           )}
           <Input label="Overtime (Rs)" type="number" inputMode="numeric" min={0} value={overtime} onChange={(e) => setOvertime(e.target.value)}
             placeholder={String(p0.overtimePay)}
-            hint={row.attendance.overtimeHours > 0 ? `${qty(Math.round(row.attendance.overtimeHours * 10) / 10, 'ghante')} × ${formatPKR(p0.hourRate)} — khali to yahi` : 'Hazri me overtime nahi — chahein to raqam likhein'} />
+            hint={row.attendance.overtimeHours > 0 ? `${qty(Math.round(row.attendance.overtimeHours * 10) / 10, 'ghante')} × ${formatPKR(p0.hourRate)} — khali to yahi` : 'Hazri me overtime nahi — chahein to amount likhein'} />
           <Input label="Abhi kitna dena hai (Rs)" type="number" inputMode="numeric" min={0} value={pay} onChange={(e) => setPay(e.target.value)}
             placeholder={String(p.net)} error={payTooMuch ? `Banti tankhwah ${formatPKR(p.net)} se zyada nahi` : undefined}
-            hint="Khali chhorein to poori. Kam likhein to baqi raqam baad me de sakte hain" />
+            hint="Khali chhorein to poori. Kam likhein to baqi amount baad me de sakte hain" />
         </div>
 
         {(p0.absentCut > 0 || commissionAvailable) && (
@@ -94,7 +94,7 @@ export function RowEditModal({ row, edit, canPayCommission, onSave, onClose }: {
           hint="Advance khud kat jata hai — yahan sirf koi aur katauti" />
 
         <Textarea label="Note (marzi se)" rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)}
-          placeholder="Masalan: 3 din ki chhutti manzoor thi" hint="Payslip aur record par dikhega" />
+          placeholder="Masalan: 3 din ki chhutti approve thi" hint="Payslip aur record par dikhega" />
 
         <dl className="grid grid-cols-2 gap-x-6 gap-y-1 rounded-2xl bg-white p-3 text-[0.8125rem] ring-1 ring-slate-200 sm:grid-cols-3">
           <Fact k="Asal tankhwah" v={formatPKR(p.basePay)} />
@@ -139,7 +139,7 @@ function Lines({ title, tone, icon: Icon, chips, lines, onChange, hint }: {
           {lines.map((l, i) => (
             <li key={i} className="flex items-start gap-2">
               <Input aria-label="Wajah" wrapperClassName="flex-1" value={l.label} maxLength={60} placeholder="Wajah" onChange={(e) => set(i, { label: e.target.value })} />
-              <Input aria-label="Raqam" wrapperClassName="w-32" type="number" inputMode="numeric" min={0} value={l.amount ? String(l.amount) : ''} placeholder="Raqam"
+              <Input aria-label="Amount" wrapperClassName="w-32" type="number" inputMode="numeric" min={0} value={l.amount ? String(l.amount) : ''} placeholder="Amount"
                 onChange={(e) => set(i, { amount: Number(e.target.value) || 0 })} />
               <button type="button" aria-label="Hatayein" onClick={() => onChange(lines.filter((_, j) => j !== i))} className="mt-2 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
             </li>

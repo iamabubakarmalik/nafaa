@@ -54,25 +54,25 @@ const CONFIGS: Record<string, StockReportConfig> = {
   },
   pharmacy: {
     label: 'Pharmacy',
-    guide: [{ icon: Pill, color: '#be185d', title: 'Expiry aur batch', text: '"Expiry" filter aur Analytics me har batch ki expiry aur us ki lagat. Expire dawa bechna mana hai — supplier ko wapas ya damage me daalein.' }],
+    guide: [{ icon: Pill, color: '#be185d', title: 'Expiry aur batch', text: '"Expiry" filter aur Analytics me har batch ki expiry aur us ki cost. Expire dawa bechna mana hai — supplier ko wapas ya damage me daalein.' }],
   },
   mobile: {
     label: 'Mobile',
     deviceLink: (id) => `/products/${id}/imei`,
     extraTab: { id: 'devices', label: 'Phones', icon: Smartphone, Component: MobileDevices },
-    guide: [{ icon: Smartphone, color: '#2563eb', title: 'Phone IMEI se gine jate hain', text: 'Phone ka stock aur lagat har IMEI ki apni kharid se. "Phones" tab me har phone kitne din se para hai, PTA status aur used phone alag.' }],
+    guide: [{ icon: Smartphone, color: '#2563eb', title: 'Phone IMEI se gine jate hain', text: 'Phone ka stock aur cost har IMEI ki apni kharid se. "Phones" tab me har phone kitne din se para hai, PTA status aur used phone alag.' }],
   },
   electronics: {
     label: 'Electronics',
     deviceLink: (id) => `/electronics-products/${id}`,
-    groups: { title: 'Qism', label: (id) => ELECTRONICS_TYPES[id as keyof typeof ELECTRONICS_TYPES]?.label ?? id },
+    groups: { title: 'Type', label: (id) => ELECTRONICS_TYPES[id as keyof typeof ELECTRONICS_TYPES]?.label ?? id },
     extraTab: { id: 'serials', label: 'Serial units', icon: Barcode, Component: ElectronicsSerials },
-    guide: [{ icon: Barcode, color: '#2563eb', title: 'Serial wale model', text: 'Laptop, TV jaise serial wale maal ki ginti aur lagat har serial se. "Serial units" tab me umar aur warranty kab khatam.' }],
+    guide: [{ icon: Barcode, color: '#2563eb', title: 'Serial wale model', text: 'Laptop, TV jaise serial wale maal ki ginti aur cost har serial se. "Serial units" tab me umar aur warranty kab khatam.' }],
   },
   appliances: {
     label: 'Appliances',
     deviceLink: (id) => `/appliance-products/${id}`,
-    groups: { title: 'Qism', label: (id) => catLabel(id) },
+    groups: { title: 'Type', label: (id) => catLabel(id) },
     extraTab: { id: 'serials', label: 'Serial units', icon: Snowflake, Component: AppliancesSerials },
     guide: [{ icon: Snowflake, color: '#0891b2', title: 'Serial aur warranty', text: '"Serial units" tab me har unit kitne din se para hai, compressor/motor warranty kab khatam, aur jo bik gaya magar laga nahi.' }],
   },
@@ -95,15 +95,15 @@ const CONFIGS: Record<string, StockReportConfig> = {
   agri: {
     label: 'Agri',
     statuses: ['blocked'],
-    groups: { title: 'Qism', label: (id) => prettyAgriKind(id as AgriKind) },
+    groups: { title: 'Type', label: (id) => prettyAgriKind(id as AgriKind) },
     seasonLabel: (id) => SEASONS.find((s) => s.v === id)?.l ?? (id === 'none' ? 'Likha nahi' : id),
     Banner: AgriBanner,
     guide: [{ icon: ShieldAlert, color: '#be123c', title: 'Registration', text: 'Beej, khaad aur spray ki registration khatam ho to maal hone par bhi bechna mana hai. Upar laal patti aur "Registration" filter se dekhein. Analytics me mausam ke hisaab se paisa.' }],
-    tips: ['Bori ka size product par likha ho to tafseel me poora kilo bhi dikhta hai.'],
+    tips: ['Bori ka size product par likha ho to details me poora kilo bhi dikhta hai.'],
   },
   carpet: {
     label: 'Carpet',
-    guide: [{ icon: Layers, color: '#7c3aed', title: 'Sqft aur rolls', text: 'Carpet ka stock rolls aur cut pieces ke bache sqft se. Lagat har roll ke rate se. Line kholein to har roll aur piece alag.' }],
+    guide: [{ icon: Layers, color: '#7c3aed', title: 'Sqft aur rolls', text: 'Carpet ka stock rolls aur cut pieces ke bache sqft se. Cost har roll ke rate se. Line kholein to har roll aur piece alag.' }],
   },
 };
 

@@ -189,7 +189,7 @@ export default function HardwarePage() {
                   <p className="text-[0.8125rem] text-amber-700">{st.printer.error ?? 'Pichla printer abhi nahi mila'} — tab tak bill browser print se nikalte rahenge.</p>
                 )}
 
-                <Switch label="Bill par barcode" description="Wapsi par bill scan ho sake. Purana printer barcode na chhape to band kar dein."
+                <Switch label="Bill par barcode" description="Return par bill scan ho sake. Purana printer barcode na chhape to band kar dein."
                   checked={s.printBarcode} onChange={(e) => s.set({ printBarcode: e.target.checked })} />
 
                 <Help title="USB printer list me aata hai par jurta nahi? (Windows)">
@@ -294,7 +294,7 @@ export default function HardwarePage() {
             { icon: Archive, color: '#0891b2', title: 'Cash drawer', text: 'Drawer printer se jurta hai. Printer Direct ho to cash bill par drawer khud khul sakta hai.' },
             { icon: Barcode, color: '#7c3aed', title: 'Scanner', text: 'Kuch set nahi karna. Scanner dabbe me test karein — code sahi aaye to POS par bhi chalega.' },
             { icon: Scale, color: '#d97706', title: 'Tarazu', text: 'Serial taar se jorein. POS me wazan wali cheez par live wazan aata hai.' },
-            { icon: Monitor, color: '#2563eb', title: 'Customer screen', text: 'Doosri screen par bill, QR aur wapsi. Andhere kamre ke liye "Kaala" rang chunein, apne offers bhi likhein.' },
+            { icon: Monitor, color: '#2563eb', title: 'Customer screen', text: 'Doosri screen par bill, QR aur return. Andhere kamre ke liye "Kaala" rang chunein, apne offers bhi likhein.' },
             { icon: Send, color: '#e11d48', title: 'Test', text: 'Har cheez ke saath test button hai. Pehle test karein, phir counter par lagayein.' },
           ]}
           tips={[
@@ -318,7 +318,7 @@ function DisplayCard({ shopName, onOpen }: { shopName: string; onOpen: () => voi
 
   return (
     <DeviceCard id="display" icon={Monitor} title="Customer display"
-      description="Customer ki taraf wali screen par live bill, payment QR aur wapsi ki raqam — bharosa barhta hai, jhagra kam.">
+      description="Customer ki taraf wali screen par live bill, payment QR aur return ki amount — bharosa barhta hai, jhagra kam.">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-4">
           <Steps items={[
@@ -346,7 +346,7 @@ function DisplayCard({ shopName, onOpen }: { shopName: string; onOpen: () => voi
           <Input label="Khush-amdeed line" maxLength={60} value={d.welcome} onChange={(e) => d.set({ welcome: e.target.value })}
             placeholder="Khush-amdeed" hint="Jab koi bill na chal raha ho to bara likha aata hai" />
           <Textarea label="Dukaan ke paighaam (offers)" rows={5} value={promos} onChange={(e) => setPromos(e.target.value)} onBlur={savePromos}
-            placeholder={'Har line ek paighaam, maslan:\nJumma ko har cheez par 10% chhoot\nHome delivery: 0300-1234567'}
+            placeholder={'Har line ek paighaam, maslan:\nJumma ko har cheez par 10% discount\nHome delivery: 0300-1234567'}
             hint={`Har line alag — ${MAX_PROMOS} tak, har ek ${PROMO_LENGTH} harf tak. Bari screen par baari baari aate hain.`} />
           <DisplayPreview theme={d.theme} welcome={d.welcome} promo={cleanPromos(promos.split('\n'))[0]} />
         </div>

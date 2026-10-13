@@ -39,7 +39,7 @@ export function BulkBar({ selected, onDone, onClear, onExport, can }: {
     const kept = res.filter((r) => r.status === 'fulfilled' && (r.value as { softDeleted?: boolean }).softDeleted).length;
     const gone = res.filter((r) => r.status === 'fulfilled').length - kept;
     if (gone) toast.success(`${gone} mita diye`);
-    if (kept) toast.info(`${kept} ki bikri ya khata hai — mitane ki jagah band kar diye`);
+    if (kept) toast.info(`${kept} ki sale ya khata hai — mitane ki jagah band kar diye`);
     const bad = res.length - gone - kept;
     if (bad) toast.error(`${bad} nahi hue`);
     setBusy(false); setConfirm(false); onDone();
@@ -59,7 +59,7 @@ export function BulkBar({ selected, onDone, onClear, onExport, can }: {
       </div>
       {confirm && (
         <Modal open onClose={() => setConfirm(false)} size="sm" title={`${selected.length} customer mitayein?`}
-          description="Jin ki kabhi bikri ya khata nahi hua woh mit jayenge. Baqi sirf band honge, taake purane bill aur khata salamat rahein."
+          description="Jin ki kabhi sale ya khata nahi hua woh mit jayenge. Baqi sirf band honge, taake purane bill aur khata salamat rahein."
           footer={<>
             <Button variant="secondary" onClick={() => setConfirm(false)}>Rehne dein</Button>
             <Button variant="danger" loading={busy} onClick={() => void remove()}>Haan</Button>

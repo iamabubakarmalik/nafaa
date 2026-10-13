@@ -14,7 +14,7 @@ export const ROLE_LABEL: Record<string, string> = {
 export const HOURS_SOURCE: Record<Exclude<HoursSource, null>, string> = {
   attendance: 'Haziri se',
   shift: 'Galla shift se',
-  active: 'Bikri wale ghante',
+  active: 'Sale wale ghante',
 };
 
 export const qtyText = (n: number) => Number(n.toFixed(2)).toLocaleString('en-PK');
@@ -33,9 +33,9 @@ export const keyLabel = (k: string) =>
     : new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
 export const ALERT_TITLE: Record<AlertKind, string> = {
-  discount: 'Chhoot zyada',
+  discount: 'Discount zyada',
   void: 'Bill cancel zyada',
-  return: 'Wapsi zyada',
+  return: 'Return zyada',
   credit: 'Udhaar zyada',
   short: 'Galla kam nikla',
   pin: 'Ghalat PIN',
@@ -44,10 +44,10 @@ export const ALERT_TITLE: Record<AlertKind, string> = {
 /** One line explaining an alert against the team. */
 export function alertText(a: StaffAlert, money: (n: number) => string) {
   switch (a.kind) {
-    case 'discount': return `${a.count} bill par ${pct(a.value)} chhoot di — team ki ausat ${pct(a.team)}`;
+    case 'discount': return `${a.count} bill par ${pct(a.value)} discount di — team ki ausat ${pct(a.team)}`;
     case 'void': return `${a.count} bill cancel hue (${pct(a.value)}) — team ki ausat ${pct(a.team)}`;
-    case 'return': return `${a.count} bill par maal wapas aaya, bikri ka ${pct(a.value)} — team ${pct(a.team)}`;
-    case 'credit': return `${a.count} bill udhaar par, bikri ka ${pct(a.value)} — team ${pct(a.team)}`;
+    case 'return': return `${a.count} bill par maal wapas aaya, sale ka ${pct(a.value)} — team ${pct(a.team)}`;
+    case 'credit': return `${a.count} bill udhaar par, sale ka ${pct(a.value)} — team ${pct(a.team)}`;
     case 'short': return `Galla ${a.count} dafa kam nikla, kul ${money(a.value)} kam`;
     case 'pin': return `${a.count} dafa ghalat PIN dala`;
     default: return '';

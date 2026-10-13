@@ -60,7 +60,7 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
         {c?.result === 'NO_ANSWER'
           ? `${c.attempts} dafa jawab nahi mila · aakhri ${whenText(c.at)}`
           : c?.result === 'REFUSED' ? 'Order cancel kar dein — stock wapas aa jayega'
-            : 'Fake ya ghalat number wala order yahin pakra jata hai — courier ka kharcha bachta hai'}
+            : 'Fake ya ghalat number wala order yahin pakra jata hai — courier ka expense bachta hai'}
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {wa && (

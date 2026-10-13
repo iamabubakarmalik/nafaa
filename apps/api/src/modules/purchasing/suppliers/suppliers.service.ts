@@ -370,7 +370,7 @@ export class SuppliersService {
     // jis se maal aa chuka hai wo record kharidari ki tareekh hai.
     if (supplier._count.purchases > 0) {
       throw new BadRequestException(
-        `"${supplier.name}" ki ${supplier._count.purchases} kharidari record me hain — ` +
+        `"${supplier.name}" ki ${supplier._count.purchases} purchase record me hain — ` +
         'mitaya nahi ja sakta. Iske bajaye ise "band" kar dein: ' +
         'record mehfooz rahega aur naye bill me nazar nahi aayega.',
       );

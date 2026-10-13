@@ -26,19 +26,19 @@ export function ReceiveModal({ t, money, onClose, onDone }: { t: StockTransfer; 
       items: t.items.filter((i) => got[i.id] !== i.quantity).map((i) => ({ itemId: i.id, receivedQty: got[i.id] ?? 0 })),
     }),
     onSuccess: () => {
-      toast.success(short > 0 ? `Wusool ho gaya — ${money(short)} ka maal kam aaya, darj kar liya` : `Wusool ho gaya — maal ${t.toShop.name} ke stock me`);
+      toast.success(short > 0 ? `Receive ho gaya — ${money(short)} ka maal kam aaya, darj kar liya` : `Receive ho gaya — maal ${t.toShop.name} ke stock me`);
       onDone();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Wusool nahi hua'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Receive nahi hua'),
   });
 
   return (
-    <Modal open onClose={onClose} size="lg" title={`Maal wusool karein · ${t.transferNumber}`}
+    <Modal open onClose={onClose} size="lg" title={`Maal receive karein · ${t.transferNumber}`}
       description={`${t.fromShop.name} se aaya. Gin kar dekhein — kam aaya ho to wohi likhein, baqi poora maana jayega.`}
       footer={<>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button loading={mut.isPending} onClick={() => mut.mutate()} leftIcon={<PackageCheck className="h-4 w-4" />}>
-          {shortLines ? 'Jitna aaya, wusool karein' : 'Sab aa gaya — wusool karein'}
+          {shortLines ? 'Jitna aaya, receive karein' : 'Sab aa gaya — receive karein'}
         </Button>
       </>}>
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -77,7 +77,7 @@ export function ReceiveModal({ t, money, onClose, onDone }: { t: StockTransfer; 
           );
         })}
       </ul>
-      <p className="mt-1.5 text-[0.6875rem] text-slate-400">Miqdar base unit me hai (pcs / kg / sqft). Device aur roll poora aata hai ya bilkul nahi.</p>
+      <p className="mt-1.5 text-[0.6875rem] text-slate-400">Quantity base unit me hai (pcs / kg / sqft). Device aur roll poora aata hai ya bilkul nahi.</p>
 
       {short > 0 && (
         <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
@@ -89,7 +89,7 @@ export function ReceiveModal({ t, money, onClose, onDone }: { t: StockTransfer; 
       <label className="mt-3 block text-[0.75rem] text-slate-500">Note (ikhtiyari)
         <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Misaal: 2 dabbe toote hue aaye"
           className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-brand-500" />
-        <span className="mt-1 block text-[0.6875rem] text-slate-400">Transfer ke note me "Wusooli:" ke saath jud jayega</span>
+        <span className="mt-1 block text-[0.6875rem] text-slate-400">Transfer ke note me "Receiving:" ke saath jud jayega</span>
       </label>
     </Modal>
   );

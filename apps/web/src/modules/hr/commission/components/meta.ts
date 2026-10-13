@@ -29,9 +29,9 @@ export function recentPeriods(upTo: string, n = 24) {
 }
 
 export const BASIS: Record<CommissionBasis, { label: string; hint: string }> = {
-  SALE: { label: 'Bikri par', hint: 'Jitna becha us par. Samajhne me sab se aasaan.' },
-  PROFIT: { label: 'Munafa par', hint: 'Bikri me se cost nikaal kar jo bacha us par. Banda chhoot kam deta hai.' },
-  PER_BILL: { label: 'Har bill par', hint: 'Har bill ki fixed raqam. Chhoti raqam, zyada bill.' },
+  SALE: { label: 'Sale par', hint: 'Jitna becha us par. Samajhne me sab se aasaan.' },
+  PROFIT: { label: 'Profit par', hint: 'Sale me se cost nikaal kar jo bacha us par. Banda discount kam deta hai.' },
+  PER_BILL: { label: 'Har bill par', hint: 'Har bill ki fixed amount. Chhoti amount, zyada bill.' },
 };
 
 /** "Bikri par 2.5%", "Har cheez par Rs 20", "Har bill par Rs 10". */

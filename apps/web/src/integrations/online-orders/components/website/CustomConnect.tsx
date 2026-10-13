@@ -242,7 +242,7 @@ function FormProducts({ selected, onSave, saving }: { channelId: string; selecte
           {picked.size === 0 && <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[0.78125rem] font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">Abhi koi nahi chuna — jab tak kam az kam ek na chunein, form par saare products dikhte rahenge.</p>}
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Product dhoondein…" className={cn(inputCls, 'pl-8')} />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Product search…" className={cn(inputCls, 'pl-8')} />
           </div>
           <div className="mt-2 max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200 dark:divide-ink-800 dark:border-ink-800">
             {isFetching && !items.length ? <div className="p-4 text-[0.8125rem] text-slate-500">Aa rahe hain…</div>

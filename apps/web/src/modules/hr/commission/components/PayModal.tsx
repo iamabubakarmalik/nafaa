@@ -29,7 +29,7 @@ export function PayModal({ row, period, saving, onClose, onPay }: {
   const submit = () => {
     setTried(true);
     if (error) return;
-    if (after > row.earned + 0.5 && !window.confirm(`Banti ${formatPKR(row.earned)} hai, aap kul ${formatPKR(after)} likh rahe hain.\n\nZyada raqam advance ki tarah likhi jayegi. Theek hai?`)) return;
+    if (after > row.earned + 0.5 && !window.confirm(`Banti ${formatPKR(row.earned)} hai, aap kul ${formatPKR(after)} likh rahe hain.\n\nZyada amount advance ki tarah likhi jayegi. Theek hai?`)) return;
     onPay({ amount: Math.round(after * 100) / 100, expectedPaid: paid, note: note.trim() || undefined });
   };
 
@@ -46,11 +46,11 @@ export function PayModal({ row, period, saving, onClose, onPay }: {
           <div><dt className="text-[0.6875rem] text-slate-500">Baqi</dt><dd className="font-bold tabular-nums text-amber-700">{formatPKR(row.due)}</dd></div>
         </dl>
         <Input label="Abhi kitne diye (Rs)" type="number" inputMode="decimal" min={0} value={now} onChange={(e) => setNow(e.target.value)} autoFocus
-          error={tried ? error : undefined} hint={amount > 0 ? `Is mahine ki kul adaigi ${formatPKR(after)} ho jayegi` : 'Poori ya kuch raqam — baqi baad me de sakte hain'} />
+          error={tried ? error : undefined} hint={amount > 0 ? `Is mahine ki kul payment ${formatPKR(after)} ho jayegi` : 'Poori ya kuch amount — baqi baad me de sakte hain'} />
         <Input label="Note (marzi se)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} hint='Maslan "cash diya" ya "JazzCash se bheja"' />
         <p className="flex items-start gap-2 rounded-xl bg-sky-50 px-3 py-2 text-xs text-sky-900 ring-1 ring-sky-200">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Ye sirf adaigi ka record hai — galle ka cash nahi ghatta. Jis mahine ki commission yahan ada likhi ho, Payroll use tankhwah me dobara nahi jorta.
+          Ye sirf payment ka record hai — galle ka cash nahi ghatta. Jis mahine ki commission yahan ada likhi ho, Payroll use tankhwah me dobara nahi jorta.
         </p>
       </div>
     </Modal>

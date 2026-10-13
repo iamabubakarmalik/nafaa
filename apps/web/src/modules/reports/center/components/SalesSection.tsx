@@ -15,21 +15,21 @@ export function SalesSection({ data: d, f }: { data: SalesReport; f: Formatter }
   const bestDay = [...d.weekdays].sort((a, b) => b.net - a.net)[0];
   return (
     <div className="space-y-4">
-      <Panel icon={TrendingUp} title="Bikri ka rujhan" hint={`${d.grouping === 'month' ? 'Mahine war' : 'Din war'} · wapsi ke baad`}>
-        {!t.bills ? <Empty text="Is muddat me koi bikri nahi" /> : (
+      <Panel icon={TrendingUp} title="Sale ka rujhan" hint={`${d.grouping === 'month' ? 'Mahine war' : 'Din war'} · return ke baad`}>
+        {!t.bills ? <Empty text="Is period me koi sale nahi" /> : (
           <TrendChart id="rc-sales" f={f} data={d.trend}
-            series={[{ key: 'net', label: 'Bikri', color: theme.primary, fmt: 'money' }, ...(showProfit ? [{ key: 'profit', label: 'Munafa', color: theme.profit, fmt: 'cost' as const }] : [])]} />
+            series={[{ key: 'net', label: 'Sale', color: theme.primary, fmt: 'money' }, ...(showProfit ? [{ key: 'profit', label: 'Profit', color: theme.profit, fmt: 'cost' as const }] : [])]} />
         )}
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel icon={Wallet} title="Paisa kaise aaya" hint="Bill ka payment tareeqa">
-          {!d.payments.length ? <Empty text="Koi bikri nahi" /> : (
+          {!d.payments.length ? <Empty text="Koi sale nahi" /> : (
             <Donut f={f} fmt="money" data={d.payments.map((p) => ({ name: PAYMENT_LABELS[p.method] ?? p.method, value: p.net, color: PAYMENT_COLORS[p.method] }))} />
           )}
           {t.credit > 0 && <p className="mt-3 flex justify-between border-t border-slate-100 pt-2 text-[0.8125rem] text-amber-700"><span>Is me udhaar</span><span className="tabular-nums">{f.money(t.credit)}</span></p>}
         </Panel>
-        <Panel icon={Clock} title="Kis ghante zyada bikri" hint={busiest?.bills ? `Sab se zyada ${busiest.hour % 12 || 12}${busiest.hour < 12 ? ' subah' : ' shaam'} ke ghante` : undefined}>
+        <Panel icon={Clock} title="Kis ghante zyada sale" hint={busiest?.bills ? `Sab se zyada ${busiest.hour % 12 || 12}${busiest.hour < 12 ? ' subah' : ' shaam'} ke ghante` : undefined}>
           <Bars f={f} fmt="money" data={d.hours.map((h) => ({ name: `${h.hour}`, value: h.net }))} tick={(v) => `${Number(v) % 12 || 12}${Number(v) < 12 ? 'a' : 'p'}`} />
         </Panel>
         <Panel icon={CalendarDays} title="Hafte ke din" hint={bestDay?.net ? `${WEEKDAYS[bestDay.day]} sab se acha` : undefined}>
@@ -42,26 +42,26 @@ export function SalesSection({ data: d, f }: { data: SalesReport; f: Formatter }
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel icon={UserRound} title="Staff ki bikri">
-          <DataTable rows={d.staff} rowKey={(s, i) => s.id ?? String(i)} empty="Koi bikri nahi" columns={[
+        <Panel icon={UserRound} title="Staff ki sale">
+          <DataTable rows={d.staff} rowKey={(s, i) => s.id ?? String(i)} empty="Koi sale nahi" columns={[
             { label: 'Naam', render: (s) => <span className="font-medium text-slate-900">{s.name}</span> },
             { label: 'Bill', align: 'right', render: (s) => s.bills },
             { label: 'Ausat', align: 'right', render: (s) => f.money(s.bills ? s.net / s.bills : 0) },
-            { label: 'Bikri', align: 'right', render: (s) => <span className="font-semibold">{f.money(s.net)}</span> },
-            { label: 'Munafa', align: 'right', hide: !showProfit, render: (s) => f.cost(s.profit) },
+            { label: 'Sale', align: 'right', render: (s) => <span className="font-semibold">{f.money(s.net)}</span> },
+            { label: 'Profit', align: 'right', hide: !showProfit, render: (s) => f.cost(s.profit) },
           ]} />
         </Panel>
         <div className="space-y-4">
-          <Panel icon={Globe} title="Bikri kahan se aayi" hint="Counter, website, Daraz…">
-            <BarList f={f} fmt="money" empty="Koi bikri nahi"
+          <Panel icon={Globe} title="Sale kahan se aayi" hint="Counter, website, Daraz…">
+            <BarList f={f} fmt="money" empty="Koi sale nahi"
               rows={d.channels.map((c) => ({ key: c.source, name: SOURCE_LABEL[c.source] ?? c.source, value: c.net, hint: `${c.bills} bill` }))} />
           </Panel>
           {d.shops.length > 1 && (
             <Panel icon={Building2} title="Branch war">
-              <BarList f={f} fmt="money" rows={d.shops.map((s) => ({ key: s.id ?? s.name, name: s.name, value: s.net, hint: `${s.bills} bill${showProfit ? ` · munafa ${f.cost(s.profit)}` : ''}` }))} />
+              <BarList f={f} fmt="money" rows={d.shops.map((s) => ({ key: s.id ?? s.name, name: s.name, value: s.net, hint: `${s.bills} bill${showProfit ? ` · profit ${f.cost(s.profit)}` : ''}` }))} />
             </Panel>
           )}
-          <Panel icon={Ban} title="Discount, wapsi aur void">
+          <Panel icon={Ban} title="Discount, return aur void">
             <dl className="grid grid-cols-2 gap-3 text-[0.8125rem]">
               {[
                 ['Discount diya', f.money(t.discount)],

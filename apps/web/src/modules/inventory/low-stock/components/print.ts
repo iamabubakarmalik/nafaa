@@ -21,7 +21,7 @@ export function reorderSheetDoc(groups: OrderGroup[], qtyOf: (r: LowRow) => numb
       columns: [
         { label: '#' }, { label: 'Cheez' }, { label: 'Abhi', align: 'right', wideOnly: true }, { label: 'Roz', align: 'right', wideOnly: true },
         { label: 'Mangwana', align: 'right' },
-        ...(showCost ? [{ label: 'Rate', align: 'right' as const, wideOnly: true }, { label: 'Raqam', align: 'right' as const }] : []),
+        ...(showCost ? [{ label: 'Rate', align: 'right' as const, wideOnly: true }, { label: 'Amount', align: 'right' as const }] : []),
       ],
       rows: rows.map((r, i) => [
         String(i + 1), r.name, `${qty(r.stock)} ${r.unit}`, qty(r.perDay), `${qty(qtyOf(r))} ${r.unit}`,
@@ -34,13 +34,13 @@ export function reorderSheetDoc(groups: OrderGroup[], qtyOf: (r: LowRow) => numb
     title: 'Reorder sheet',
     subtitle: shop,
     meta: [
-      ['Tareekh', new Date().toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })],
+      ['Date', new Date().toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })],
       ['Suppliers', String(groups.length)],
       ['Lines', String(groups.reduce((s, g) => s + g.rows.filter((r) => qtyOf(r) > 0).length, 0))],
-      ...(showCost ? [['Andazan kharcha', formatPKR(grand)] as [string, string]] : []),
+      ...(showCost ? [['Andazan expense', formatPKR(grand)] as [string, string]] : []),
     ],
     sections,
-    footer: 'Miqdar pichhli bikri ke hisaab se andaza hai — order se pehle shelf dekh lein.',
+    footer: 'Quantity pichhli sale ke hisaab se andaza hai — order se pehle shelf dekh lein.',
   };
 }
 
@@ -68,8 +68,8 @@ export function alertsDoc(list: LowList, filter: string, showCost: boolean): Pri
 }
 
 export function alertsCsv(items: LowRow[], header: string[], withCost: boolean) {
-  const head = ['Cheez', 'SKU', 'Branch', 'Category', 'Halat', 'Unit', 'Stock', 'Alert', 'Roz bikri', 'Kitne din', 'Order me', 'Mangwana',
-    ...(withCost ? ['Aakhri cost', 'Order ki raqam'] : []), 'Supplier', 'Supplier phone', 'Expiry'];
+  const head = ['Cheez', 'SKU', 'Branch', 'Category', 'Halat', 'Unit', 'Stock', 'Alert', 'Roz sale', 'Kitne din', 'Order me', 'Mangwana',
+    ...(withCost ? ['Aakhri cost', 'Order ki amount'] : []), 'Supplier', 'Supplier phone', 'Expiry'];
   const rows = items.map((r) => [
     r.name, r.sku ?? '', r.shopName, r.category?.name ?? '', r.flags.map((f) => STATUS[f].short).join(' + '), r.unit,
     r.stock, r.alert, r.perDay, r.daysLeft ?? '', r.onOrder, r.suggestQty,

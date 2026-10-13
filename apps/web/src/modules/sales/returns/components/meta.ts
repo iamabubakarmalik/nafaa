@@ -8,7 +8,7 @@ export const RETURNS_KEY = 'returns';
 /** Quick reasons on the return form; the filter offers the same list. */
 export const REASONS = [
   'Cheez kharab nikli', 'Ghalat cheez de di', 'Pasand nahi aayi',
-  'Naap/size theek nahi', 'Tareekh guzar chuki thi', 'Zyada de di thi',
+  'Naap/size theek nahi', 'Date guzar chuki thi', 'Zyada de di thi',
 ];
 
 export const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);

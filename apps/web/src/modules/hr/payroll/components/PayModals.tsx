@@ -37,7 +37,7 @@ export function RunPayModal({ month, monthLabel, shopId, lines, sources, onDone,
       rows: lines.map((l) => ({ staffId: l.staffId, ...(l.edit ?? {}) })),
     }),
     onSuccess: (r) => {
-      if (r.duplicate) toast.info('Ye adaigi pehle hi ho chuki thi');
+      if (r.duplicate) toast.info('Ye payment pehle hi ho chuki thi');
       else if (!r.created.length) toast.info(r.skipped.map((s) => `${s.name}: ${s.reason}`).join(' · ') || 'Kuch nahi bana');
       else {
         toast.success(`${r.created.length} tankhwah ban gayi${r.paid ? ` · ${formatPKR(r.paid)} ada (${r.source})` : ' · abhi ada nahi'}`);
@@ -99,11 +99,11 @@ export function PayBalanceModal({ record, sources, shopId, onClose }: { record: 
       amount: value, source: src.source, accountId: src.accountId, allowNegative: src.allowNegative || undefined, requestId: key, shopId,
     }),
     onSuccess: (r) => {
-      toast.success(r.duplicate ? 'Ye adaigi pehle hi ho chuki thi' : `${formatPKR(value)} ada — ${record.staff.fullName}`);
+      toast.success(r.duplicate ? 'Ye payment pehle hi ho chuki thi' : `${formatPKR(value)} ada — ${record.staff.fullName}`);
       refreshAll(qc);
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Adaigi nahi hui')),
+    onError: (e) => toast.error(apiError(e, 'Payment nahi hui')),
   });
 
   return (
@@ -114,7 +114,7 @@ export function PayBalanceModal({ record, sources, shopId, onClose }: { record: 
         <Button onClick={() => m.mutate()} loading={m.isPending} disabled={!ready} leftIcon={<Banknote className="h-4 w-4" />}>Ada karein</Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (ready && !m.isPending) m.mutate(); }}>
-        <Input data-autofocus label="Raqam" type="number" inputMode="numeric" min={1} size="lg" value={amount} onChange={(e) => setAmount(e.target.value)}
+        <Input data-autofocus label="Amount" type="number" inputMode="numeric" min={1} size="lg" value={amount} onChange={(e) => setAmount(e.target.value)}
           error={amount && !valid ? `1 se ${formatPKR(record.balanceAmount)} tak likhein` : undefined}
           hint="Poori baqi ya us ka kuch hissa — jo reh jaye baad me de sakte hain" />
         <SourcePicker sources={sources} value={src} onChange={setSrc} total={valid ? value : 0} />
@@ -151,7 +151,7 @@ export function CancelModal({ record, shopId, onClose }: { record: CancelTarget;
           {advance ? ' Advance ki saari qisten cancel hongi.' : ' Is mahine ki tankhwah dobara bana sakte hain.'}
         </p>
         <Textarea data-autofocus label="Wajah" required rows={2} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)}
-          placeholder="Masalan: ghalat raqam likhi thi" hint="Record aur activity log me rehti hai" />
+          placeholder="Masalan: ghalat amount likhi thi" hint="Record aur activity log me rehti hai" />
       </div>
     </Modal>
   );

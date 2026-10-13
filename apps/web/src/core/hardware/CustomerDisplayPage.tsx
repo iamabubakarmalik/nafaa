@@ -135,7 +135,7 @@ function CartView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'cart' }>; skin:
     <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34%)]">
       <section className="flex min-h-0 flex-col px-6 py-4 sm:px-10">
         <div className={cn('flex shrink-0 items-center justify-between pb-2 text-sm font-bold uppercase tracking-widest', skin.faint)}>
-          <span>Cheez</span><span>Raqam</span>
+          <span>Cheez</span><span>Amount</span>
         </div>
         <ul className="min-h-0 flex-1 space-y-2 overflow-hidden">
           {lines.map((it, i) => (
@@ -178,7 +178,7 @@ function QrView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'qr' }>; skin: Ski
         {m.merchantName && <div className={cn('mt-3 text-[clamp(1.125rem,1.8vw,1.625rem)] font-semibold', skin.muted)}>{m.merchantName}</div>}
         <ol className={cn('mt-6 space-y-2 text-[clamp(1rem,1.5vw,1.375rem)] font-semibold', skin.muted)}>
           <li>1. Bank, JazzCash ya Easypaisa app kholein</li>
-          <li>2. QR scan karein — raqam khud aa jayegi</li>
+          <li>2. QR scan karein — amount khud aa jayegi</li>
           <li>3. Pay karke screen cashier ko dikhayein</li>
         </ol>
       </div>
@@ -196,7 +196,7 @@ function ThanksView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'thanks' }>; s
       </div>
       {m.change > 0 && (
         <div className="rounded-[2rem] bg-brand-600 px-12 py-6 text-ink-white shadow-xl">
-          <div className="text-[clamp(1rem,1.5vw,1.375rem)] font-bold uppercase tracking-[0.2em] opacity-80">Aap ki wapsi</div>
+          <div className="text-[clamp(1rem,1.5vw,1.375rem)] font-bold uppercase tracking-[0.2em] opacity-80">Aap ki return</div>
           <div className="text-[clamp(3rem,7vw,6.5rem)] font-black leading-none tabular-nums">{formatPKR(m.change)}</div>
         </div>
       )}

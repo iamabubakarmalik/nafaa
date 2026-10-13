@@ -75,7 +75,7 @@ export function AccountSecurity({ user }: { user: AuthUser }) {
             : <Button size="sm" variant="secondary" onClick={() => { window.location.href = authApi.googleLoginUrl(); }}>Google jorein</Button>} />
 
         {canManagePin && (
-          <Row icon={KeyRound} title="Malik ka PIN" text={hasPin ? 'PIN laga hai — cost chhupi rehti hai aur band safhe isi se khulte hain. Poori dukaan ke liye ek.' : 'PIN lagayein taake counter par cost aur munafa chhupa rahe.'}
+          <Row icon={KeyRound} title="Malik ka PIN" text={hasPin ? 'PIN laga hai — cost chhupi rehti hai aur band safhe isi se khulte hain. Poori dukaan ke liye ek.' : 'PIN lagayein taake counter par cost aur profit chhupa rahe.'}
             badge={hasPin ? <Badge variant="success" size="xs">Laga hai</Badge> : <Badge variant="warning" size="xs">Nahi</Badge>}
             action={<Button size="sm" variant={hasPin ? 'secondary' : 'primary'} onClick={() => setPin(true)}>{hasPin ? 'PIN settings' : 'PIN lagayein'}</Button>} />
         )}

@@ -55,7 +55,7 @@ export function MoneyMap({ useExtraTiles = noTiles, useNotes = noNotes, products
       hint: `${m.purchases.monthCount} bill${m.purchases.monthUnpaid > 0 ? ` · ${formatPKR(m.purchases.monthUnpaid)} baqi` : ''}`,
     },
     {
-      key: 'expenses', icon: Wallet, tone: 'warning', to: '/expenses', label: 'Is mahine kharcha',
+      key: 'expenses', icon: Wallet, tone: 'warning', to: '/expenses', label: 'Is mahine expense',
       value: formatPKR(m.expenses.month),
       hint: `${m.expenses.monthCount} entries · pichhla mahina ${formatPKR(m.expenses.lastMonth ?? 0)}`,
     },
@@ -75,7 +75,7 @@ export function MoneyMap({ useExtraTiles = noTiles, useNotes = noNotes, products
   ];
 
   return (
-    <WidgetCard title="Paisa kahan hai" icon={Wallet} description="Maal, kharcha, lena aur dena — sab ek nazar me"
+    <WidgetCard title="Paisa kahan hai" icon={Wallet} description="Maal, expense, lena aur dena — sab ek nazar me"
       actions={<PrintButton size="sm" doc={() => ({
         title: 'Paisa kahan hai',
         sections: [{ kind: 'rows', rows: tiles.map((t) => ({ label: `${t.label}${typeof t.hint === 'string' ? ` (${t.hint})` : ''}`, value: String(t.value) })) },

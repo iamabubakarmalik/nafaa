@@ -53,19 +53,19 @@ export function StockRow({ l, money, cost, groupLabel, shopName, onOpen }: {
         </div>
 
         <div className="min-w-0">
-          <p className="text-[0.6875rem] text-slate-500 lg:hidden">Lagat · bechne par</p>
+          <p className="text-[0.6875rem] text-slate-500 lg:hidden">Cost · bechne par</p>
           <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{cost(l.valueAtCost)}</p>
           <p className="truncate text-[0.6875rem] tabular-nums text-slate-500">bechne par {money(l.retail)}{l.margin != null ? ` · ${l.margin.toFixed(0)}%` : ''}</p>
         </div>
 
         <div className="min-w-0">
-          <p className="text-[0.6875rem] text-slate-500 lg:hidden">Bikri</p>
+          <p className="text-[0.6875rem] text-slate-500 lg:hidden">Sale</p>
           <p className="text-[0.875rem] tabular-nums text-slate-900">{l.sold.qty ? `${qty(l.sold.qty)} ${l.unit}` : <span className="text-slate-400">nahi biki</span>}</p>
           <p className="truncate text-[0.6875rem] text-slate-500">{l.sold.qty ? `${money(l.sold.revenue)} · ${coverText(l.cover)}` : ''}</p>
         </div>
 
         <div className="min-w-0">
-          <p className="text-[0.6875rem] text-slate-500 lg:hidden">Aakhri bikri</p>
+          <p className="text-[0.6875rem] text-slate-500 lg:hidden">Aakhri sale</p>
           <p className={cn('text-[0.875rem] tabular-nums', l.flags.includes('dead') ? 'font-semibold text-violet-700' : 'text-slate-900')}>{ageText(l.saleAge)}</p>
           <p className="truncate text-[0.6875rem] text-slate-500">maal aaya {ageText(l.stockAge, '—')}</p>
         </div>

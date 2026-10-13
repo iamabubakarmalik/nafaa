@@ -393,7 +393,7 @@ export class StorefrontService {
     const expected = sign(payload);
     if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw new UnauthorizedException('Link ghalat hai');
     const [id, exp, print] = payload.split('.');
-    if (!id || Number(exp) < Date.now()) throw new UnauthorizedException('Link ki muddat khatam — dukandar se naya link maangein');
+    if (!id || Number(exp) < Date.now()) throw new UnauthorizedException('Link ki period khatam — dukandar se naya link maangein');
     const ch = await this.prisma.integration.findUnique({ where: { id } });
     if (!ch || !ch.isActive || keyPrint(ch.apiKey) !== print) throw new UnauthorizedException('Ye link band ho chuka (key badal gayi) — dukandar se naya link maangein');
     return ch;

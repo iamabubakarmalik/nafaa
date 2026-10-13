@@ -95,7 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
               <h2 className="mt-3 text-xl sm:text-2xl font-black">Ye safha khul nahi saka</h2>
               <p className="mt-1 text-sm font-bold text-white/85">
-                Aap ka koi data zaya nahi hua — bas ye safha ruk gaya hai.
+                Aap ka koi data waste nahi hua — bas ye safha ruk gaya hai.
               </p>
             </div>
           </div>
@@ -125,7 +125,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button onClick={() => this.setState({ showDetails: !showDetails })}
               className="w-full h-10 rounded-xl bg-slate-50 dark:bg-ink-800/60 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
               <ChevronDown className={`h-3.5 w-3.5 transition ${showDetails ? 'rotate-180' : ''}`} />
-              Tafseel {showDetails ? 'chhupayein' : 'dekhein'}
+              Details {showDetails ? 'chhupayein' : 'dekhein'}
             </button>
 
             {showDetails && (
@@ -140,7 +140,7 @@ export class ErrorBoundary extends Component<Props, State> {
             {showDetails && (
               <button onClick={this.copyDetails}
                 className="w-full h-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
-                <Copy className="h-3.5 w-3.5" /> Tafseel copy karein (report ke liye)
+                <Copy className="h-3.5 w-3.5" /> Details copy karein (report ke liye)
               </button>
             )}
           </div>

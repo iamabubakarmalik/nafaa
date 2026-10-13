@@ -19,7 +19,7 @@ export function AgriBanner({ data, setStatus }: LowStockBannerProps) {
         <button type="button" onClick={() => setStatus('registration')}
           className="inline-flex flex-1 items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-left text-[0.8125rem] text-rose-900 ring-1 ring-rose-200/70 hover:bg-rose-100/70">
           <ShieldAlert className="h-4 w-4 shrink-0 text-rose-600" />
-          <span><b>{reg} cheezon</b> ki registration khatam, 60 din me khatam, ya tareekh likhi nahi — registration ke baghair bechna mana hai.</span>
+          <span><b>{reg} cheezon</b> ki registration khatam, 60 din me khatam, ya date likhi nahi — registration ke baghair bechna mana hai.</span>
         </button>
       )}
       {season > 0 && (

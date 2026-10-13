@@ -11,7 +11,7 @@ export function GuideDialog({ open, onClose, items }: { open: boolean; onClose: 
       onClose={onClose}
       size="md"
       title="Ye safha kya batata hai"
-      description="Upar se neeche, isi tarteeb se parhein"
+      description="Upar se neeche, isi sort se parhein"
       footer={<Button onClick={onClose}>Samajh gaya</Button>}
     >
       <ul className="space-y-3">

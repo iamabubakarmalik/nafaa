@@ -41,8 +41,8 @@ export function LimitsModal({ value, defaults, onSave, onClose }: {
         <Button onClick={save}>Lagayein</Button>
       </>}>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input label="Bari chhoot (% bill ka)" hint={`Is se zyada haath ki chhoot list hogi. Abhi ${defaults?.discountPct ?? 10}%`} type="number" min={1} max={100} inputMode="decimal" placeholder={String(defaults?.discountPct ?? 10)} value={d.discountPct} onChange={(e) => setD({ ...d, discountPct: e.target.value })} />
-        <Input label="Bari raqam (Rs)" hint={`Void, wapsi, nikala gaya cash is se upar ho to "zaroor dekhein". Abhi ${defaults?.big ?? 5000}`} type="number" min={100} inputMode="numeric" placeholder={String(defaults?.big ?? 5000)} value={d.big} onChange={(e) => setD({ ...d, big: e.target.value })} />
+        <Input label="Bari discount (% bill ka)" hint={`Is se zyada haath ki discount list hogi. Abhi ${defaults?.discountPct ?? 10}%`} type="number" min={1} max={100} inputMode="decimal" placeholder={String(defaults?.discountPct ?? 10)} value={d.discountPct} onChange={(e) => setD({ ...d, discountPct: e.target.value })} />
+        <Input label="Bari amount (Rs)" hint={`Void, return, nikala gaya cash is se upar ho to "zaroor dekhein". Abhi ${defaults?.big ?? 5000}`} type="number" min={100} inputMode="numeric" placeholder={String(defaults?.big ?? 5000)} value={d.big} onChange={(e) => setD({ ...d, big: e.target.value })} />
         <Input label="Dukaan khulti hai" hint={`Khali chhorein to Settings wala waqt (${dOpen})`} type="time" value={d.open} onChange={(e) => setD({ ...d, open: e.target.value })} />
         <Input label="Dukaan band hoti hai" hint={`Khali chhorein to Settings wala waqt (${dClose})`} type="time" value={d.close} onChange={(e) => setD({ ...d, close: e.target.value })} />
       </div>

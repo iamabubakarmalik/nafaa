@@ -44,14 +44,14 @@ export function ComboAnalytics({ range, money, cost }: {
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={ShoppingBag} label="Combos bike" value={qtyText(t.sold)} sub={`${t.bills} bill · ${d.days} din`} />
-        <Kpi icon={Wallet} label="Combo se kamai" value={money(t.revenue)} sub={t.sold > 0 ? `ek combo ausat ${money(t.revenue / t.sold)}` : 'Abhi koi bikri nahi'} tone="emerald" />
-        <Kpi icon={TrendingUp} label="Munafa" value={cost(t.profit)} sub={`Lagat ${cost(t.cost)}`} tone={t.profit < 0 ? 'rose' : 'emerald'} />
-        <Kpi icon={Percent} label="Margin" value={t.revenue > 0 ? `${Math.round(t.margin)}%` : '—'} sub={t.savingsGiven > 0 ? `Customers ko bachat ${money(t.savingsGiven)}` : 'Bikri par munafa'} />
+        <Kpi icon={Wallet} label="Combo se kamai" value={money(t.revenue)} sub={t.sold > 0 ? `ek combo ausat ${money(t.revenue / t.sold)}` : 'Abhi koi sale nahi'} tone="emerald" />
+        <Kpi icon={TrendingUp} label="Profit" value={cost(t.profit)} sub={`Cost ${cost(t.cost)}`} tone={t.profit < 0 ? 'rose' : 'emerald'} />
+        <Kpi icon={Percent} label="Margin" value={t.revenue > 0 ? `${Math.round(t.margin)}%` : '—'} sub={t.savingsGiven > 0 ? `Customers ko bachat ${money(t.savingsGiven)}` : 'Sale par profit'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ki bikri</span>} description="Har din kitne combo bike aur kitni kamai hui">
-          {!trend.length ? <Empty text="Is muddat me koi combo nahi bika" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ki sale</span>} description="Har din kitne combo bike aur kitni kamai hui">
+          {!trend.length ? <Empty text="Is period me koi combo nahi bika" /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -85,8 +85,8 @@ export function ComboAnalytics({ range, money, cost }: {
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" />Sab se zyada bikne wale</span>} description="Kamai ke hisaab se — munafa aur margin ke sath">
-        {!top.length ? <Empty text="Is muddat me koi combo nahi bika" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" />Sab se zyada bikne wale</span>} description="Kamai ke hisaab se — profit aur margin ke sath">
+        {!top.length ? <Empty text="Is period me koi combo nahi bika" /> : (
           <ul className="space-y-3">
             {top.map((x, i) => (
               <li key={x.id ?? x.name}>
@@ -128,7 +128,7 @@ export function ComboAnalytics({ range, money, cost }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Moon className="h-4 w-4 text-slate-500" />Nahi bike</span>} description="Chalu combos jo is muddat me ek bhi nahi bike">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Moon className="h-4 w-4 text-slate-500" />Nahi bike</span>} description="Chalu combos jo is period me ek bhi nahi bike">
           {!d.notSold.length ? <Empty text="Har chalu combo bika — zabardast" /> : (
             <ul className="divide-y divide-slate-100">
               {d.notSold.slice(0, 10).map((x) => (
@@ -142,7 +142,7 @@ export function ComboAnalytics({ range, money, cost }: {
           )}
         </Card>
       </div>
-      <p className="text-[0.75rem] text-slate-500">Hisaab POS ke combo bills se banta hai. Wapas hua maal kamai aur lagat se nikal diya jata hai.</p>
+      <p className="text-[0.75rem] text-slate-500">Hisaab POS ke combo bills se banta hai. Wapas hua maal kamai aur cost se nikal diya jata hai.</p>
     </div>
   );
 }

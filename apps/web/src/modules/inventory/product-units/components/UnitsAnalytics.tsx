@@ -44,13 +44,13 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
         <Kpi icon={Layers} label="Pack wale products" value={`${t.withPacks}`} sub={`${Math.round(t.coverage)}% of ${t.products} products`} />
         <Kpi icon={Boxes} label="Kul packs" value={String(t.packs)} sub={t.inactive ? `${t.inactive} band` : 'Sab chalu'} tone="emerald" />
         <Kpi icon={Barcode} label="Barcode nahi" value={String(t.noBarcode)} sub="Pack scan nahi ho sakte" tone={t.noBarcode ? 'amber' : 'emerald'} />
-        <Kpi icon={AlertTriangle} label="Qeemat ke masle" value={String(t.priceIssues)} sub="Khule se mehnga ya lagat se kam" tone={t.priceIssues ? 'rose' : 'emerald'} />
+        <Kpi icon={AlertTriangle} label="Qeemat ke masle" value={String(t.priceIssues)} sub="Khule se mehnga ya cost se kam" tone={t.priceIssues ? 'rose' : 'emerald'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Kharidari kis unit me</span>}
-          description={t.purchaseLines ? `Is muddat ki ${t.purchaseLines} kharidari lines me se ${packShare}% pack me aayin` : 'Is muddat me koi kharidari nahi'}>
-          {!bought.length ? <Empty text="Is muddat me koi kharidari nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Purchase kis unit me</span>}
+          description={t.purchaseLines ? `Is period ki ${t.purchaseLines} purchase lines me se ${packShare}% pack me aayin` : 'Is period me koi purchase nahi'}>
+          {!bought.length ? <Empty text="Is period me koi purchase nahi" /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={bought} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -66,7 +66,7 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Pack ki qism</span>} description="Kitne pack kis qism ke">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Pack ki type</span>} description="Kitne pack kis type ke">
           {!types.length ? <Empty text="Abhi koi pack nahi" /> : (
             <>
               <div className="h-[160px]">
@@ -93,7 +93,7 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />Qeemat check karein</span>} description="Pack khule se mehnga, ya lagat se sasta">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />Qeemat check karein</span>} description="Pack khule se mehnga, ya cost se sasta">
           {!d.issues.length ? <Empty text="Sab packs ki qeemat theek hai" /> : (
             <ul className="divide-y divide-slate-100">
               {d.issues.map((x, i) => (
@@ -101,7 +101,7 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
                   <span className="min-w-0">
                     <span className="block truncate font-medium text-slate-800">{x.product} · {x.unit}</span>
                     <span className={cn('block text-[0.6875rem]', x.kind === 'loss' ? 'text-rose-700' : 'text-amber-700')}>
-                      {x.kind === 'loss' ? `Lagat ${costHidden ? '••••' : formatPKR(x.cost)} se kam` : `Khula ${formatPKR(x.loose)} — pack mehnga`}
+                      {x.kind === 'loss' ? `Cost ${costHidden ? '••••' : formatPKR(x.cost)} se kam` : `Khula ${formatPKR(x.loose)} — pack mehnga`}
                     </span>
                   </span>
                   <span className="shrink-0 font-semibold tabular-nums text-slate-900">{formatPKR(x.price)}</span>
@@ -111,7 +111,7 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-brand-600" />Zyada bikte hain, pack nahi</span>} description="Is muddat ke top products jin ka koi pack nahi — dozen ya carton jor dein">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-brand-600" />Zyada bikte hain, pack nahi</span>} description="Is period ke top products jin ka koi pack nahi — dozen ya carton jor dein">
           {!d.topWithoutPacks.length ? <Empty text="Top bikne wale sab products ke pack hain" /> : (
             <ul className="divide-y divide-slate-100">
               {d.topWithoutPacks.map((x) => (
@@ -130,7 +130,7 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Sab se zyada istemal hone wale pack</span>} description="Pack ka naam, kitne products me, aur aam miqdar">
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Sab se zyada istemal hone wale pack</span>} description="Pack ka naam, kitne products me, aur aam quantity">
         {!d.byName.length ? <Empty text="Abhi koi pack nahi" /> : (
           <div className="flex flex-wrap gap-2">
             {d.byName.map((x) => (
@@ -142,7 +142,7 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
           </div>
         )}
       </Card>
-      <p className="text-[0.75rem] text-slate-500">Bikri har bill me asal unit me likhi jati hai, is liye "kis pack me bika" ka hisaab nahi banta. Kharidari ka hisaab pack ke sath hota hai.</p>
+      <p className="text-[0.75rem] text-slate-500">Sale har bill me asal unit me likhi jati hai, is liye "kis pack me bika" ka hisaab nahi banta. Purchase ka hisaab pack ke sath hota hai.</p>
     </div>
   );
 }

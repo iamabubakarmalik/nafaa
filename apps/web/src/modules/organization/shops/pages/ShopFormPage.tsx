@@ -122,7 +122,7 @@ export default function ShopFormPage() {
   });
 
   if (!canManage) {
-    return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Branch banane ya badalne ke liye "Branches sambhalna" ki ijazat chahiye</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button></div></PageShell>;
+    return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Branch banane ya badalne ke liye "Branches sambhalna" ki permission chahiye</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button></div></PageShell>;
   }
   if (editing && shopQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-80 rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></div></PageShell>;
   if (editing && !shop) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Yeh branch nahi mili</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button></div></PageShell>;
@@ -151,11 +151,11 @@ export default function ShopFormPage() {
               ))}
             </div>
             {editing && shop && shop.type !== f.type && (
-              <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Qisam badalne se purani bikri aur stock nahi badlenge. Store me POS aur drawer nahi chalte.</p>
+              <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Qisam badalne se purani sale aur stock nahi badlenge. Store me POS aur drawer nahi chalte.</p>
             )}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={MapPin}>Tafseel</T>}>
+          <Card className="rounded-2xl" title={<T icon={MapPin}>Details</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Input label="Branch ka naam" required value={f.name} onChange={(e) => set('name', e.target.value)} maxLength={100} autoFocus={!editing}
                 placeholder={f.type === 'SHOP' ? 'Ali Store — Saddar' : 'Bara godown'} wrapperClassName="sm:col-span-2"
@@ -184,11 +184,11 @@ export default function ShopFormPage() {
           {!editing && (
             <Card className="rounded-2xl" title={<T icon={UserPlus}>Manager ka login</T>}>
               {!canTeam ? (
-                <p className="text-sm text-slate-500">Login dene ke liye "Team sambhalna" ki ijazat chahiye. Branch ban jaye to Staff ke page se login dein.</p>
+                <p className="text-sm text-slate-500">Login dene ke liye "Team sambhalna" ki permission chahiye. Branch ban jaye to Staff ke page se login dein.</p>
               ) : (
                 <div className="space-y-4">
                   <Switch checked={m.on} onChange={(e) => setM((x) => ({ ...x, on: e.target.checked, password: x.password || makePassword() }))} label="Is branch ka manager banayein"
-                    description="Manager sirf isi branch ka data dekhega: bikri, maal, kharche aur reports. Ijazatein baad me Staff → profile se badal sakte hain." />
+                    description="Manager sirf isi branch ka data dekhega: sale, maal, expenses aur reports. Permissions baad me Staff → profile se badal sakte hain." />
                   {m.on && (
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Input label="Naam" required value={m.name} onChange={(e) => setM((x) => ({ ...x, name: e.target.value }))} maxLength={100} placeholder="Bilal Ahmad" wrapperClassName="sm:col-span-2" hint="Bill aur report par yahi naam aata hai" />

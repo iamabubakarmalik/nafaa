@@ -173,7 +173,7 @@ export default function OnlineCustomersPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Customer dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Customer search" />}
         chips={segment !== 'all' || query ? <>
           {segment !== 'all' && <FilterChip onRemove={() => pickSegment('all')}>{seg.label}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
@@ -318,7 +318,7 @@ export default function OnlineCustomersPage() {
             { icon: Crown, color: '#d97706', title: 'VIP', text: 'Sab se zyada kharchne wale 10% (kam az kam 2 order deliver). Inhein khaas discount dein.' },
             { icon: UserMinus, color: '#7c3aed', title: 'Gayab customers', text: '30, 60 ya 90 din se order nahi kiya. Ek WhatsApp paigham aksar wapas le aata hai.' },
             { icon: Send, color: '#16a34a', title: 'Broadcast', text: 'Paigham likhein, phir ek ek customer ko "Bhejein" — WhatsApp khulta hai, Send dabayein. Ya sab numbers copy karke WhatsApp broadcast list banayein.' },
-            { icon: Users, color: '#2563eb', title: 'Customer kholein', text: 'Naam par click karein — us ke saare orders, kharch aur RTO ek jagah. Order par click se poori tafseel.' },
+            { icon: Users, color: '#2563eb', title: 'Customer kholein', text: 'Naam par click karein — us ke saare orders, kharch aur RTO ek jagah. Order par click se poori details.' },
             { icon: ShieldBan, color: '#e11d48', title: 'Block', text: 'Fake ya baar baar RTO wale number block karein — un ka naya order khud accept nahi hota.' },
             { icon: Download, color: '#0891b2', title: 'CSV / print', text: 'Is list ke customers Excel ya PDF me — marketing ya record ke liye.' },
           ]}

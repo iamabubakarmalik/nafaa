@@ -23,12 +23,12 @@ export const ACCOUNTS: Record<MoneyAccount, { label: string; short: string; icon
 export const ACCOUNT_IDS = Object.keys(ACCOUNTS) as MoneyAccount[];
 
 export const SOURCES: Record<MoneySource, { label: string; icon: LucideIcon; color: string; direction: MoneyDirection; hint: string }> = {
-  SALE: { label: 'Bikri', icon: ShoppingCart, color: '#16a34a', direction: 'in', hint: 'Bill par jo paisa mila (change ke baad)' },
+  SALE: { label: 'Sale', icon: ShoppingCart, color: '#16a34a', direction: 'in', hint: 'Bill par jo paisa mila (change ke baad)' },
   KHATA: { label: 'Khata wasooli', icon: BookOpen, color: '#0891b2', direction: 'in', hint: 'Customer ne purana udhaar diya' },
   CASH_IN: { label: 'Cash daala', icon: ArrowDownToLine, color: '#059669', direction: 'in', hint: 'Golak me haath se daala' },
-  REFUND: { label: 'Wapsi', icon: Undo2, color: '#f97316', direction: 'out', hint: 'Return par customer ko diya' },
-  PURCHASE: { label: 'Kharidari', icon: Truck, color: '#6366f1', direction: 'out', hint: 'Purchase ke waqt supplier ko diya' },
-  SUPPLIER: { label: 'Supplier adaigi', icon: Truck, color: '#7c3aed', direction: 'out', hint: 'Supplier ke khate me baad me diya' },
+  REFUND: { label: 'Return', icon: Undo2, color: '#f97316', direction: 'out', hint: 'Return par customer ko diya' },
+  PURCHASE: { label: 'Purchase', icon: Truck, color: '#6366f1', direction: 'out', hint: 'Purchase ke waqt supplier ko diya' },
+  SUPPLIER: { label: 'Supplier payment', icon: Truck, color: '#7c3aed', direction: 'out', hint: 'Supplier ke khate me baad me diya' },
   EXPENSE: { label: 'Kharch', icon: Receipt, color: '#d97706', direction: 'out', hint: 'Bijli, kiraya, tankhwah waghera' },
   CASH_OUT: { label: 'Cash nikala', icon: ArrowUpFromLine, color: '#e11d48', direction: 'out', hint: 'Golak se haath se nikala' },
 };
@@ -44,18 +44,18 @@ export const KIND_IDS = Object.keys(KINDS) as MoneyAccountKind[];
 
 /** Lines of an account statement: automatic sources and manual entries. */
 export const STATEMENT_KINDS: Record<AutoSource | MoneyEntryType, { label: string; icon: LucideIcon; color: string }> = {
-  SALE: { label: 'Bikri', icon: ShoppingCart, color: '#16a34a' },
+  SALE: { label: 'Sale', icon: ShoppingCart, color: '#16a34a' },
   BOOKING: { label: 'Booking', icon: CalendarCheck, color: '#0d9488' },
-  BOOKING_REFUND: { label: 'Booking wapsi', icon: Undo2, color: '#f97316' },
-  REFUND: { label: 'Wapsi', icon: Undo2, color: '#f97316' },
-  PURCHASE: { label: 'Kharidari', icon: Truck, color: '#6366f1' },
-  SUPPLIER: { label: 'Supplier adaigi', icon: Truck, color: '#7c3aed' },
+  BOOKING_REFUND: { label: 'Booking return', icon: Undo2, color: '#f97316' },
+  REFUND: { label: 'Return', icon: Undo2, color: '#f97316' },
+  PURCHASE: { label: 'Purchase', icon: Truck, color: '#6366f1' },
+  SUPPLIER: { label: 'Supplier payment', icon: Truck, color: '#7c3aed' },
   EXPENSE: { label: 'Kharch', icon: Receipt, color: '#d97706' },
   DEPOSIT: { label: 'Jama', icon: PiggyBank, color: '#059669' },
   WITHDRAW: { label: 'Nikala', icon: ArrowUpFromLine, color: '#e11d48' },
   TRANSFER_IN: { label: 'Aaya (transfer)', icon: ArrowLeftRight, color: '#0891b2' },
   TRANSFER_OUT: { label: 'Bheja (transfer)', icon: ArrowLeftRight, color: '#7c3aed' },
-  ADJUSTMENT: { label: 'Durusti', icon: Scale, color: '#64748b' },
+  ADJUSTMENT: { label: 'Correction', icon: Scale, color: '#64748b' },
 };
 
 /** Account number with all but the last 4 digits hidden. */

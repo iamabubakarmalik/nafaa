@@ -29,7 +29,7 @@ export function checkDenominations(sheet: Denominations | undefined, amount: num
     }
   }
   if (Math.abs(sum - amount) > 0.01) {
-    throw new BadRequestException(`Notes ki ginti (Rs ${sum}) aur likhi raqam (Rs ${amount}) barabar nahi`);
+    throw new BadRequestException(`Notes ki ginti (Rs ${sum}) aur likhi amount (Rs ${amount}) barabar nahi`);
   }
   return clean;
 }

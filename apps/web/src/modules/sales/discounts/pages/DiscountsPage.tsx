@@ -30,13 +30,13 @@ import { discountsApi, type CreateDiscountPayload, type DiscountCode, type Disco
 const STATUS: Record<DiscountStatus, { label: string; tone: string }> = {
   active: { label: 'Chalu', tone: 'bg-success-50 text-success-700' },
   scheduled: { label: 'Shuru hoga', tone: 'bg-sky-50 text-sky-700' },
-  expired: { label: 'Muddat khatam', tone: 'bg-slate-100 text-slate-600' },
+  expired: { label: 'Period khatam', tone: 'bg-slate-100 text-slate-600' },
   used_up: { label: 'Had poori', tone: 'bg-amber-50 text-amber-800' },
   inactive: { label: 'Band', tone: 'bg-slate-100 text-slate-500' },
 };
 const TABS: Array<{ id: 'all' | DiscountStatus; label: string }> = [
   { id: 'active', label: 'Chalu' }, { id: 'scheduled', label: 'Shuru hone wale' }, { id: 'used_up', label: 'Had poori' },
-  { id: 'expired', label: 'Muddat khatam' }, { id: 'inactive', label: 'Band' }, { id: 'all', label: 'Sab' },
+  { id: 'expired', label: 'Period khatam' }, { id: 'inactive', label: 'Band' }, { id: 'all', label: 'Sab' },
 ];
 const PRESETS: Array<{ code: string; description: string; type: DiscountType; value: number; minPurchase?: number; maxDiscount?: number }> = [
   { code: 'EID2026', description: 'Eid special', type: 'PERCENTAGE', value: 20, minPurchase: 1000, maxDiscount: 1000 },
@@ -94,7 +94,7 @@ export default function DiscountsPage() {
   }, [canManage]);
 
   const exportCsv = () => {
-    const rows = [['Code', 'Tafseel', 'Discount', 'Kam se kam', 'Had', 'Istemal', 'Har customer', 'Shuru', 'Khatam', 'Halat', 'Is muddat: bill', 'Bikri', 'Discount diya', 'Customers'],
+    const rows = [['Code', 'Details', 'Discount', 'Kam se kam', 'Had', 'Istemal', 'Har customer', 'Shuru', 'Khatam', 'Halat', 'Is period: bill', 'Sale', 'Discount diya', 'Customers'],
       ...items.map((d) => [d.code, d.description ?? '', offText(d), d.minPurchase, d.usageLimit ?? '', d.usageCount, d.perCustomerLimit ?? '', day(d.validFrom) ?? '', day(d.validUntil) ?? '', STATUS[d.status].label, d.uses, d.revenue.toFixed(2), d.discountGiven.toFixed(2), d.customers])];
     const url = URL.createObjectURL(new Blob(['﻿' + rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a'); a.href = url; a.download = `discount-codes-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000);
@@ -102,7 +102,7 @@ export default function DiscountsPage() {
   const printDoc = (): PrintDoc => ({
     title: 'Discount codes', subtitle: period ? `${period.from} — ${period.to}` : 'Sab waqt',
     meta: [['Codes', String(t?.codes ?? 0)], ['Discount diya', formatPKR(t?.discountGiven ?? 0)]],
-    sections: [{ kind: 'table', columns: [{ label: 'Code' }, { label: 'Discount' }, { label: 'Bill', align: 'right' }, { label: 'Bikri', align: 'right' }, { label: 'Discount diya', align: 'right' }],
+    sections: [{ kind: 'table', columns: [{ label: 'Code' }, { label: 'Discount' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }, { label: 'Discount diya', align: 'right' }],
       rows: items.map((d) => [d.code, offText(d), String(d.uses), formatPKR(d.revenue), formatPKR(d.discountGiven)]) }],
   });
   const share = (d: DiscountCode) => {
@@ -127,10 +127,10 @@ export default function DiscountsPage() {
           {canManage && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya code</button>}
         </>}
         stats={[
-          { label: 'Codes se bikri', value: formatPKR(t?.revenue ?? 0), hint: `${t?.uses ?? 0} bill` },
-          { label: 'Discount diya', value: formatPKR(t?.discountGiven ?? 0), hint: t?.revenue ? `bikri ka ${((t.discountGiven / t.revenue) * 100).toFixed(1)}%` : '' },
+          { label: 'Codes se sale', value: formatPKR(t?.revenue ?? 0), hint: `${t?.uses ?? 0} bill` },
+          { label: 'Discount diya', value: formatPKR(t?.discountGiven ?? 0), hint: t?.revenue ? `sale ka ${((t.discountGiven / t.revenue) * 100).toFixed(1)}%` : '' },
           { label: 'Customers', value: String(t?.customers ?? 0), hint: 'jinhon ne code lagaya' },
-          { label: 'Har Rs 1 discount par', value: t?.discountGiven ? formatPKR(t.revenue / t.discountGiven) : '—', hint: 'bikri aayi' },
+          { label: 'Har Rs 1 discount par', value: t?.discountGiven ? formatPKR(t.revenue / t.discountGiven) : '—', hint: 'sale aayi' },
         ]}
       />
 
@@ -145,7 +145,7 @@ export default function DiscountsPage() {
         </div>
         <label className="group relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-          <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Code ya tafseel…" aria-label="Code dhoondein"
+          <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Code ya details…" aria-label="Code search"
             className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-12 text-[0.9375rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
           {search ? <button type="button" onClick={() => setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
             : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
@@ -199,7 +199,7 @@ export default function DiscountsPage() {
                 )}
                 <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-center">
                   <div><dt className="text-[0.6875rem] text-slate-500">Bill</dt><dd className="font-bold tabular-nums">{d.uses}</dd></div>
-                  <div><dt className="text-[0.6875rem] text-slate-500">Bikri</dt><dd className="truncate font-bold tabular-nums">{formatPKR(d.revenue)}</dd></div>
+                  <div><dt className="text-[0.6875rem] text-slate-500">Sale</dt><dd className="truncate font-bold tabular-nums">{formatPKR(d.revenue)}</dd></div>
                   <div><dt className="text-[0.6875rem] text-slate-500">Diya</dt><dd className="truncate font-bold tabular-nums text-pink-700">{formatPKR(d.discountGiven)}</dd></div>
                 </dl>
                 {d.branches.length > 1 && <p className="mt-2 truncate text-[0.6875rem] text-slate-500">{d.branches.map((b) => `${b.name}: ${b.uses}`).join(' · ')}</p>}
@@ -222,10 +222,10 @@ export default function DiscountsPage() {
       )}
 
       {top.length > 0 && (
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-brand-600" />Kaunsa code kaam aaya</span>} description="Is muddat mein — har Rs 1 discount par kitni bikri" flush>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-brand-600" />Kaunsa code kaam aaya</span>} description="Is period mein — har Rs 1 discount par kitni sale" flush>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[36rem] text-[0.8125rem]">
-              <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-2.5">Code</th><th className="px-3 py-2.5 text-right">Bill</th><th className="px-3 py-2.5 text-right">Customers</th><th className="px-3 py-2.5 text-right">Bikri</th><th className="px-3 py-2.5 text-right">Discount</th><th className="px-5 py-2.5 text-right">Rs 1 par</th></tr></thead>
+              <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-2.5">Code</th><th className="px-3 py-2.5 text-right">Bill</th><th className="px-3 py-2.5 text-right">Customers</th><th className="px-3 py-2.5 text-right">Sale</th><th className="px-3 py-2.5 text-right">Discount</th><th className="px-5 py-2.5 text-right">Rs 1 par</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {top.map((d) => (
                   <tr key={d.id}>
@@ -287,10 +287,10 @@ function CodeEditor({ code, shops, onClose, onSaved }: { code: DiscountCode | nu
               <button type="button" onClick={() => set({ code: `NF${Math.random().toString(36).slice(2, 7).toUpperCase()}` })} title="Khud banayein" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"><Wand2 className="h-4 w-4" /></button>
             </div>
           </label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Tafseel<input value={f.description ?? ''} onChange={(e) => set({ description: e.target.value })} placeholder="Eid special" className={cn(input, 'mt-1')} /></label>
+          <label className="text-[0.8125rem] font-medium text-slate-700">Details<input value={f.description ?? ''} onChange={(e) => set({ description: e.target.value })} placeholder="Eid special" className={cn(input, 'mt-1')} /></label>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {([['PERCENTAGE', Percent, 'Percent (%)', 'Bill ka hissa'], ['FIXED_AMOUNT', Wallet, 'Seedhi raqam', 'Itne rupay kam']] as const).map(([v, Icon, l, h]) => (
+          {([['PERCENTAGE', Percent, 'Percent (%)', 'Bill ka hissa'], ['FIXED_AMOUNT', Wallet, 'Seedhi amount', 'Itne rupay kam']] as const).map(([v, Icon, l, h]) => (
             <button key={v} type="button" onClick={() => set({ type: v })} className={cn('flex items-center gap-3 rounded-xl border p-3 text-left', f.type === v ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' : 'border-slate-200 hover:bg-slate-50')}>
               <Icon className="h-5 w-5 text-brand-600" /><span><span className="block text-[0.875rem] font-semibold">{l}</span><span className="block text-[0.75rem] text-slate-500">{h}</span></span>
             </button>
@@ -332,12 +332,12 @@ function CodeEditor({ code, shops, onClose, onSaved }: { code: DiscountCode | nu
 
 function DiscountsGuide({ onClose }: { onClose: () => void }) {
   const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
-    { icon: Plus, color: '#2563eb', title: 'Code banayein', text: '"Naya code" — naam, kitna discount (% ya seedhi raqam), aur sharten. Tayyar presets bhi hain.' },
+    { icon: Plus, color: '#2563eb', title: 'Code banayein', text: '"Naya code" — naam, kitna discount (% ya seedhi amount), aur sharten. Tayyar presets bhi hain.' },
     { icon: MessageCircle, color: '#16a34a', title: 'Customers ko bhejein', text: 'Card par "Bhejein" — WhatsApp par code ka paigham tayyar.' },
     { icon: Tag, color: '#7c3aed', title: 'POS par lagayein', text: 'Bill banate waqt Discount mein code likhein — sharten khud check hoti hain.' },
     { icon: Store, color: '#0891b2', title: 'Branch aur had', text: 'Code sirf kuch branches par, kul itni dafa, ya ek customer itni dafa — sab rakh sakte hain.' },
-    { icon: CalendarClock, color: '#d97706', title: 'Muddat', text: '"Kab tak" wala din poora chalta hai — raat tak.' },
-    { icon: TrendingUp, color: '#db2777', title: 'Kaunsa kaam aaya', text: 'Har code ki bikri, discount aur customers — upar muddat badal kar dekhein.' },
+    { icon: CalendarClock, color: '#d97706', title: 'Period', text: '"Kab tak" wala din poora chalta hai — raat tak.' },
+    { icon: TrendingUp, color: '#db2777', title: 'Kaunsa kaam aaya', text: 'Har code ki sale, discount aur customers — upar period badal kar dekhein.' },
     { icon: Users, color: '#475569', title: 'Mehfooz', text: 'Jo code istemal ho chuka woh mitta nahi, band hota hai — purane bill ka hisaab bacha rehta hai.' },
   ];
   return (

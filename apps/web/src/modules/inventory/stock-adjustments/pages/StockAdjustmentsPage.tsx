@@ -81,7 +81,7 @@ export default function StockAdjustmentsPage() {
     <PageShell>
       <PageHero
         title="Stock adjustments"
-        chip={<><SlidersHorizontal /> Stock ki durusti</>}
+        chip={<><SlidersHorizontal /> Stock ki correction</>}
         meta="Kam, zyada, kharab, gum aur ginti — sab ka hisaab"
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
@@ -92,11 +92,11 @@ export default function StockAdjustmentsPage() {
           <button type="button" onClick={() => setForm('new')} title="Naya adjustment (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya adjustment</button>
         </>}
         stats={t ? [
-          { label: 'Is muddat me', value: t.count, hint: 'adjustment' },
+          { label: 'Is period me', value: t.count, hint: 'adjustment' },
           { label: 'Stock barha', value: money(t.inValue) },
           { label: 'Stock ghata', value: money(lost), hint: t.damageValue + t.lossValue > 0 ? `kharab/gum ${money(t.damageValue + t.lossValue)}` : undefined },
           { label: 'Kul farq', value: `${t.net >= 0 ? '+' : '−'}${money(Math.abs(t.net))}` },
-        ] : [{ label: 'Is muddat me', value: '—' }]}
+        ] : [{ label: 'Is period me', value: '—' }]}
       />
 
       {/* Value per type; a card toggles its type filter */}
@@ -110,7 +110,7 @@ export default function StockAdjustmentsPage() {
 
       {/* Filters */}
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product, SKU, wajah ya note…" label="Dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product, SKU, wajah ya note…" label="Search" />}
         chips={filtered ? <>
           {type !== 'all' && <FilterChip onRemove={() => setType('all')}>{TYPES[type].label}</FilterChip>}
           {reason && <FilterChip onRemove={() => setReason('')}>{reason}</FilterChip>}
@@ -118,14 +118,14 @@ export default function StockAdjustmentsPage() {
         </> : undefined}
         onClear={clear}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
-        <FilterMenu icon={Filter} label="Qism" value={type} active={type !== 'all'} onChange={setType}
+        <FilterMenu icon={Filter} label="Type" value={type} active={type !== 'all'} onChange={setType}
           options={[{ value: 'all', label: 'Sab' }, ...TYPE_ORDER.map((k) => ({ value: k, label: TYPES[k].label, icon: TYPES[k].icon, color: TYPES[k].color }))]} />
         <FilterMenu icon={MessageSquareText} label="Wajah" value={reason} active={!!reason} onChange={setReason} width="w-72" align="right"
           options={[{ value: '', label: 'Sab wajah' }, ...(reasonsQ.data ?? []).map((r) => ({ value: r, label: r }))]} />
       </FilterBar>
 
       {/* Tabs */}
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya · <Kbd>C</Kbd> ginti · <Kbd>/</Kbd> dhoondein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya · <Kbd>C</Kbd> ginti · <Kbd>/</Kbd> search</>}
         tabs={[{ id: 'record', label: 'Record', icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <AdjustmentAnalytics filters={filters} money={money} /> : (<>
@@ -134,7 +134,7 @@ export default function StockAdjustmentsPage() {
         ) : !groups.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <PackageSearch className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi adjustment nahi' : 'Is muddat me koi adjustment nahi'}</p>
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi adjustment nahi' : 'Is period me koi adjustment nahi'}</p>
             <p className="mt-1 text-sm text-slate-500">Maal toota, gum hua ya ginti me farq nikla? Yahan likhein taake stock aur hisaab sahi rahe.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya adjustment</Button>
@@ -163,17 +163,17 @@ export default function StockAdjustmentsPage() {
       {guide.isOpen && (
         <PageGuide title="Stock adjustment — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: ArrowUpCircle, color: '#16a34a', title: 'Barhayein ya kam karein', text: '"Naya adjustment" dabayein, product dhoondein ya scan karein. Shelf par zyada nikla to "Stock barhayein", kam hai ya apne kaam me liya to "Kam karein".' },
+            { icon: ArrowUpCircle, color: '#16a34a', title: 'Barhayein ya kam karein', text: '"Naya adjustment" dabayein, product search ya scan karein. Shelf par zyada nikla to "Stock barhayein", kam hai ya apne kaam me liya to "Kam karein".' },
             { icon: ShieldAlert, color: '#e11d48', title: 'Kharab aur gum', text: 'Toota, expiry ya kharab maal "Kharab" me, chori ya gum "Gum" me likhein. Dono stock kam karte hain aur nuqsan ki report me aate hain.' },
             { icon: ClipboardCheck, color: '#2563eb', title: 'Stock ginti', text: '"Stock ginti" me shelf ka maal gin kar likhein. System aur ginti ka farq khud barhaya ya kam kiya jata hai — save se pehle khulasa dikhta hai.' },
             { icon: MessageSquareText, color: '#7c3aed', title: 'Wajah zaroor likhein', text: 'Har adjustment ki wajah zaroori hai. Neeche wale chips se jaldi chunein — Analytics me dikhta hai kis wajah se kitna maal gaya.' },
-            { icon: Layers, color: '#d97706', title: 'Carton, qismein, roll, IMEI', text: 'Carton ya box chun kar likhein, stock khud pieces me badalta hai. Qismon wale product me qism, carpet me roll, mobile me device (IMEI) chunna hota hai.' },
+            { icon: Layers, color: '#d97706', title: 'Carton, qismein, roll, IMEI', text: 'Carton ya box chun kar likhein, stock khud pieces me badalta hai. Qismon wale product me type, carpet me roll, mobile me device (IMEI) chunna hota hai.' },
             { icon: Store, color: '#0891b2', title: 'Branch ka usool', text: 'Adjustment hamesha khuli branch ka hota hai. "Sab branches" par pehle branch chunein. Staff sirf apni branch ka stock badal sakta hai.' },
           ]}
           tips={[
-            'Stock minus me nahi ja sakta, jab tak Settings > Inventory me minus stock ki ijazat na ho.',
+            'Stock minus me nahi ja sakta, jab tak Settings > Inventory me minus stock ki permission na ho.',
             'Kai products ek sath save hon to un ka ek hi ref banta hai — record me woh ek sath dikhte hain.',
-            'Raqam cost price se nikalti hai, is liye nuqsan rupay me sahi pata chalta hai.',
+            'Amount cost price se nikalti hai, is liye nuqsan rupay me sahi pata chalta hai.',
             'Print button se is filter ki poori list A4, PDF ya thermal par nikaalein.',
           ]}
           shortcuts={[['N', 'naya adjustment'], ['C', 'stock ginti'], ['/', 'dhoondein'], ['G', 'guide']]}

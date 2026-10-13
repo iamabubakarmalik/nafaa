@@ -160,30 +160,30 @@ export default function DayBookPage() {
           <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={s && d ? [
-          { label: `Net bikri · ${s.bills} bill`, value: m.sales(s.net), hint: <span className="text-white/80">kal se <Delta now={s.net} before={d.compare.yesterday.net} className="!text-white" /></span> },
+          { label: `Net sale · ${s.bills} bill`, value: m.sales(s.net), hint: <span className="text-white/80">kal se <Delta now={s.net} before={d.compare.yesterday.net} className="!text-white" /></span> },
           { label: 'Paisa aaya', value: m.sales(moneyIn), hint: 'har tareeqa' },
-          { label: 'Munafa', value: m.cost(s.grossProfit), hint: costHidden ? 'Cost lock' : `${(s.margin ?? 0).toFixed(1)}%` },
+          { label: 'Profit', value: m.cost(s.grossProfit), hint: costHidden ? 'Cost lock' : `${(s.margin ?? 0).toFixed(1)}%` },
           d.drawer
             ? { label: d.drawer.counted != null ? 'Galla farq' : 'Galla hona chahiye', value: m.sales(d.drawer.counted != null ? d.drawer.difference : d.drawer.expected), hint: d.drawer.openNow ? `${d.drawer.openNow} khula` : d.drawer.registers.length ? 'sab band' : 'register nahi' }
             : { label: 'Galla', value: 'Chhupa', hint: 'malik ne staff se chhupaya' },
           { label: 'Ausat bill', value: m.sales(s.avgBill), hint: `${Number(s.itemsSold.toFixed(2))} cheezein` },
-        ] : [{ label: 'Net bikri', value: '' }, { label: 'Paisa aaya', value: '' }, { label: 'Munafa', value: '' }, { label: 'Galla', value: '' }]}
+        ] : [{ label: 'Net sale', value: '' }, { label: 'Paisa aaya', value: '' }, { label: 'Profit', value: '' }, { label: 'Galla', value: '' }]}
       />
 
       <KpiRow>
         {!s || !d ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
             <KpiCard icon={Percent} color="#db2777" label="Discount" value={m.sales(s.discount)} hint={`${d.discounts.bills} bill${s.subtotal ? ` · ${((s.discount / s.subtotal) * 100).toFixed(1)}%` : ''}`} onClick={() => setTab('checks')} />
-            <KpiCard icon={RotateCcw} color="#ea580c" label="Wapsi" value={m.sales(s.returns)} hint={`${s.returnCount} dafa · ${s.voidedBills} void`} onClick={() => setTab('checks')} />
+            <KpiCard icon={RotateCcw} color="#ea580c" label="Return" value={m.sales(s.returns)} hint={`${s.returnCount} dafa · ${s.voidedBills} void`} onClick={() => setTab('checks')} />
             <KpiCard icon={BookOpen} color="#d97706" label="Udhaar diya" value={m.sales(d.khata.given)} hint={`wasool ${m.sales(d.khata.collected)}`} onClick={() => setTab('money')} />
-            <KpiCard icon={ShoppingBag} color="#e11d48" label="Kharcha" value={m.cost(d.expenses.total)} hint={`${d.expenses.count} · kharidari ${m.cost(d.purchases.total)}`} onClick={() => setTab('money')} />
+            <KpiCard icon={ShoppingBag} color="#e11d48" label="Expense" value={m.cost(d.expenses.total)} hint={`${d.expenses.count} · purchase ${m.cost(d.purchases.total)}`} onClick={() => setTab('money')} />
             <KpiCard icon={UserRound} color="#0891b2" label="Customer" value={String(s.customers)} hint={`${s.walkIns} walk-in bill · bara bill ${m.sales(s.biggestBill)}`} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Item, bill, customer, kharcha ya staff dhoondein…" label="Din ke hisaab me dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Item, bill, customer, expense ya staff search…" label="Din ke hisaab me search" />}
         chips={shopId || term ? <>
           {shopId && <FilterChip onRemove={() => setShopId('')}>{branch}</FilterChip>}
           {term && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
@@ -194,7 +194,7 @@ export default function DayBookPage() {
           <label className="relative flex h-10 items-center gap-1.5 px-2 text-[0.8125rem] font-semibold text-slate-800">
             <CalendarDays className="h-4 w-4 text-slate-400" />
             <span className="tabular-nums">{key}</span>
-            <input type="date" value={key} max={today} aria-label="Tareekh chunein"
+            <input type="date" value={key} max={today} aria-label="Date chunein"
               onChange={(e) => e.target.value && setDate(e.target.value >= today ? undefined : e.target.value)}
               className="absolute inset-0 cursor-pointer opacity-0" />
           </label>
@@ -203,7 +203,7 @@ export default function DayBookPage() {
         <FilterMenu icon={CalendarDays} label="Jaldi" value={key === today ? 'today' : key === shiftKey(today, -1) ? 'yesterday' : key === shiftKey(today, -7) ? 'week' : 'other'}
           options={[
             { value: 'today', label: 'Aaj' }, { value: 'yesterday', label: 'Kal' },
-            { value: 'week', label: 'Pichhle hafte ka yehi din' }, { value: 'other', label: 'Koi aur din', hint: 'Tareekh par dabayein' },
+            { value: 'week', label: 'Pichhle hafte ka yehi din' }, { value: 'other', label: 'Koi aur din', hint: 'Date par dabayein' },
           ]}
           onChange={(v) => { if (v === 'today') setDate(undefined); else if (v === 'yesterday') setDate(shiftKey(today, -1)); else if (v === 'week') setDate(shiftKey(today, -7)); }} />
         {allShops && shops.length > 1 && (
@@ -235,7 +235,7 @@ export default function DayBookPage() {
         <div className={cn('transition-opacity', stale && 'pointer-events-none opacity-60')}>
           {!d.summary.bills && !d.drawer?.registers.length && !d.expenses.count && !d.purchases.count && (
             <p className="mb-4 rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] font-medium text-sky-800 ring-1 ring-sky-100">
-              Is din koi bikri, register ya kharcha nahi hua. <button type="button" onClick={() => go(-1)} className="font-semibold underline">Pichhla din dekhein</button>
+              Is din koi sale, register ya expense nahi hua. <button type="button" onClick={() => go(-1)} className="font-semibold underline">Pichhla din dekhein</button>
             </p>
           )}
           {tab === 'overview' && <OverviewView d={d} m={m} pending={pending} onTab={setTab} onStaff={(id, name) => setStaff({ id, name })} />}
@@ -254,17 +254,17 @@ function DayGuide({ onClose }: { onClose: () => void }) {
   return (
     <PageGuide title="Din ka hisaab — aasaan tareeqa" onClose={onClose}
       steps={[
-        { icon: CalendarDays, color: '#2563eb', title: 'Din chunein', text: 'Teer se pichhla ya agla din, tareekh par dabayein to koi bhi din. Owner branch bhi chun sakta hai.' },
-        { icon: BarChart3, color: '#7c3aed', title: 'Khulasa dekhein', text: 'Net bikri, ghante war rush, kal aur pichhle hafte se muqabla, aur kya sab se zyada bika.' },
+        { icon: CalendarDays, color: '#2563eb', title: 'Din chunein', text: 'Teer se pichhla ya agla din, date par dabayein to koi bhi din. Owner branch bhi chun sakta hai.' },
+        { icon: BarChart3, color: '#7c3aed', title: 'Khulasa dekhein', text: 'Net sale, ghante war rush, kal aur pichhle hafte se muqabla, aur kya sab se zyada bika.' },
         { icon: Vault, color: '#16a34a', title: 'Galla milayein', text: 'Har register: opening, kitna hona chahiye, kitna gina, aur kam ya zyada. Cash in/out bhi yahin.' },
-        { icon: Wallet, color: '#0891b2', title: 'Paisa aaya, paisa gaya', text: 'Cash, card, wallet, khata wasooli, booking advance — aur kharcha, kharidari, supplier ko adaigi.' },
-        { icon: Ban, color: '#e11d48', title: 'Jaanch karein', text: 'Void bill, wapsi aur discount — kis ne kiya aur kyun. Galti ya ghalat istemal yahin pakra jata hai.' },
+        { icon: Wallet, color: '#0891b2', title: 'Paisa aaya, paisa gaya', text: 'Cash, card, wallet, khata wasooli, booking advance — aur expense, purchase, supplier ko payment.' },
+        { icon: Ban, color: '#e11d48', title: 'Jaanch karein', text: 'Void bill, return aur discount — kis ne kiya aur kyun. Galti ya ghalat istemal yahin pakra jata hai.' },
         { icon: Printer, color: '#d97706', title: 'Din band karein', text: 'Checklist poori karein, phir Z report thermal par ya poori kitaab A4/PDF par nikaal lein.' },
       ]}
       tips={[
-        'Net bikri = bill ki raqam − us din ki wapsi. Void bill shamil nahi.',
-        'Cash bikri me se customer ko wapas di gayi rezgari pehle hi nikli hui hai.',
-        'Lagat aur munafa sirf unhein dikhte hain jin ke paas cost dekhne ki ijazat hai.',
+        'Net sale = bill ki amount − us din ki return. Void bill shamil nahi.',
+        'Cash sale me se customer ko wapas di gayi rezgari pehle hi nikli hui hai.',
+        'Cost aur profit sirf unhein dikhte hain jin ke paas cost dekhne ki permission hai.',
       ]}
       shortcuts={[['←', 'pichhla din'], ['→', 'agla din'], ['T', 'aaj'], ['1–6', 'tab'], ['/', 'dhoondein'], ['G', 'guide']]}
       footer={<span className="inline-flex items-center gap-1 text-[0.75rem] text-slate-500"><Keyboard className="h-3.5 w-3.5" />Shortcut tab chalte hain jab kuch type na ho raha ho</span>} />

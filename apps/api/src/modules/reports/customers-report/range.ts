@@ -39,7 +39,7 @@ export async function periodOf(tzs: TenantTimezoneService, tenantId: string, fro
   const today = businessDayKey(new Date(), tz, start);
   const fromKey = from === 'all' ? null : from && KEY.test(from) ? from : today;
   const toKey = to && KEY.test(to) ? to : today;
-  if (fromKey && fromKey > toKey) throw new BadRequestException('Shuru ki tareekh aakhri tareekh ke baad hai');
+  if (fromKey && fromKey > toKey) throw new BadRequestException('Shuru ki date aakhri date ke baad hai');
   const gte = fromKey ? dayStart(fromKey, tz, start) : null;
   const lt = new Date(dayStart(toKey, tz, start).getTime() + DAY);
   const span = gte ? lt.getTime() - gte.getTime() : 0;

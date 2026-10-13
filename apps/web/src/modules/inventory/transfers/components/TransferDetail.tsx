@@ -36,14 +36,14 @@ export function TransferDetail({ row, money, canReceive, canCancel, onReceive, o
       footer={<>
         <Button variant="secondary" className="mr-auto" onClick={() => onPrint(t)} leftIcon={<Printer className="h-4 w-4" />}>Print slip</Button>
         {canCancel(t) && <Button variant="secondary" onClick={() => setCancelling(true)} leftIcon={<Ban className="h-4 w-4 text-rose-600" />}>Cancel</Button>}
-        {canReceive(t) && <Button onClick={() => onReceive(t)} leftIcon={<PackageCheck className="h-4 w-4" />}>Wusool karein</Button>}
+        {canReceive(t) && <Button onClick={() => onReceive(t)} leftIcon={<PackageCheck className="h-4 w-4" />}>Receive karein</Button>}
       </>}>
       <div className="space-y-4">
         <ol className="relative space-y-3 border-l-2 border-slate-200 pl-5">
           <Step icon={Send} tone="bg-blue-600" title="Bheja" text={`${dayTime(sentAt)}${t.createdBy ? ` · ${t.createdBy.fullName}` : ''}`} sub={`${t.fromShop.name} ke stock se nikla`} />
-          {t.status === 'IN_TRANSIT' && <Step icon={Truck} tone="bg-amber-500" title="Raste me" text={`${duration(sentAt)} se`} sub={`${t.toShop.name} me wusool hone ka intezar`} />}
+          {t.status === 'IN_TRANSIT' && <Step icon={Truck} tone="bg-amber-500" title="Raste me" text={`${duration(sentAt)} se`} sub={`${t.toShop.name} me receive hone ka intezar`} />}
           {t.status === 'RECEIVED' && (
-            <Step icon={CheckCircle2} tone="bg-emerald-600" title="Wusool" text={`${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''}`}
+            <Step icon={CheckCircle2} tone="bg-emerald-600" title="Receive" text={`${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''}`}
               sub={`${duration(sentAt, t.receivedAt)} laga · ${t.toShop.name} ke stock me gaya`} />
           )}
           {t.status === 'CANCELLED' && (
@@ -114,7 +114,7 @@ function CancelModal({ t, onClose, onDone }: { t: StockTransfer; onClose: () => 
   });
   return (
     <Modal open onClose={onClose} size="sm" title="Transfer cancel karein?"
-      description={`Saara maal ${t.fromShop.name} ke stock me wapas aa jayega. Wusool ho chuka transfer cancel nahi hota.`}
+      description={`Saara maal ${t.fromShop.name} ke stock me wapas aa jayega. Receive ho chuka transfer cancel nahi hota.`}
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} disabled={!reason.trim()} onClick={() => mut.mutate()}>Cancel karein</Button></>}>
       <div className="mb-2 flex flex-wrap gap-1.5">
         {['Ghalat branch chuni', 'Ghalat maal chuna', 'Gaari nahi gayi', 'Wahan zaroorat nahi rahi'].map((r) => (

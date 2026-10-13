@@ -47,9 +47,9 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
                 {top?.id === b.id && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><Crown className="h-3 w-3" />Sab se achha margin</span>}
               </div>
               <p className="mt-2 text-xl font-bold tabular-nums text-slate-900">{fmt.sales(s.revenue.net)}</p>
-              <p className="text-[0.75rem] text-slate-500">Net bikri · kul ka {share.toFixed(0)}%</p>
+              <p className="text-[0.75rem] text-slate-500">Net sale · kul ka {share.toFixed(0)}%</p>
               <div className="mt-2 flex items-center justify-between text-[0.8125rem]">
-                <span className="text-slate-500">Net munafa</span>
+                <span className="text-slate-500">Net profit</span>
                 <span className={cn('font-semibold tabular-nums', (s.netProfit ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-700')}>{s.netProfit == null ? '—' : fmt.cost(s.netProfit)}</span>
               </div>
               <div className="flex items-center justify-between text-[0.8125rem]">
@@ -61,14 +61,14 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
         })}
       </div>
 
-      <Card className="rounded-2xl" title="Branch war bikri aur munafa" description="Ek hi paimane par, taake asal farq nazar aaye">
+      <Card className="rounded-2xl" title="Branch war sale aur profit" description="Ek hi paimane par, taake asal farq nazar aaye">
         <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chart} margin={{ top: 4, right: 4, left: -12, bottom: 0 }} barGap={2}>
               <CartesianGrid stroke={theme.grid} vertical={false} />
               <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
               <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-              <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'bikri' ? 'Net bikri' : 'Net munafa']} {...theme.tooltip} />
+              <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'bikri' ? 'Net sale' : 'Net profit']} {...theme.tooltip} />
               <Bar dataKey="bikri" fill={PART_COLORS.revenue} radius={[4, 4, 0, 0]} maxBarSize={36} />
               {showCost && (
                 <Bar dataKey="munafa" radius={[4, 4, 0, 0]} maxBarSize={36}>
@@ -79,8 +79,8 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
           </ResponsiveContainer>
         </div>
         <div className="mt-2 flex flex-wrap gap-4 text-[0.75rem] text-slate-600">
-          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: PART_COLORS.revenue }} />Net bikri</span>
-          {showCost && <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: PART_COLORS.profit }} />Net munafa (laal = nuqsan)</span>}
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: PART_COLORS.revenue }} />Net sale</span>
+          {showCost && <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: PART_COLORS.profit }} />Net profit (laal = nuqsan)</span>}
         </div>
       </Card>
 
@@ -89,7 +89,7 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
           <table className="w-full min-w-max text-[0.8125rem]">
             <thead className="bg-slate-50/70 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="sticky left-0 z-10 bg-slate-50 px-4 py-2.5 text-left sm:px-5">Tafseel</th>
+                <th className="sticky left-0 z-10 bg-slate-50 px-4 py-2.5 text-left sm:px-5">Details</th>
                 {list.map((b) => <th key={b.id} className="px-3 py-2.5 text-right">{b.name}</th>)}
                 <th className="bg-slate-100/70 px-4 py-2.5 text-right">Kul</th>
               </tr>

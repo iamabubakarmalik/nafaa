@@ -58,11 +58,11 @@ function CashColumn({ r }: { r: DayReport }) {
   return (
     <Section title="Galla (cash)" icon={Banknote}>
       <Line label="Opening balance" value={sales(c.opening)} />
-      <Line label="Cash bikri" value={sales(c.cashSales)} sign="+" />
+      <Line label="Cash sale" value={sales(c.cashSales)} sign="+" />
       {c.cashIn > 0 && <Line label="Cash in" value={sales(c.cashIn)} sign="+" />}
-      {c.expenses > 0 && <Line label="Cash kharcha" value={cost(c.expenses)} sign="−" />}
-      {c.refunds > 0 && <Line label="Wapsi" value={sales(c.refunds)} sign="−" />}
-      {c.purchases > 0 && <Line label="Maal ki adaigi" value={cost(c.purchases)} sign="−" />}
+      {c.expenses > 0 && <Line label="Cash expense" value={cost(c.expenses)} sign="−" />}
+      {c.refunds > 0 && <Line label="Return" value={sales(c.refunds)} sign="−" />}
+      {c.purchases > 0 && <Line label="Maal ki payment" value={cost(c.purchases)} sign="−" />}
       {c.supplierPaid > 0 && <Line label="Supplier ko diya" value={cost(c.supplierPaid)} sign="−" />}
       {c.cashOut > 0 && <Line label="Cash out" value={sales(c.cashOut)} sign="−" />}
       <Line label={c.countedClosing == null ? 'Closing balance' : 'Closing (gina hua)'} value={sales(closing)} strong />
@@ -110,7 +110,7 @@ function ItemsColumn({ r, full }: { r: DayReport; full: boolean }) {
       {full && r.items.length > 8 && (
         <label className="relative mb-3 block">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Item dhoondein"
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Item search"
             className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-3 text-[0.8125rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
         </label>
       )}
@@ -160,7 +160,7 @@ function MoneyColumn({ r }: { r: DayReport }) {
   return (
     <>
       <Section title="Paisa kaise aaya" icon={Wallet}>
-        <Line label={`Kul bikri · ${r.sales.bills} bill`} value={sales(r.sales.total)} />
+        <Line label={`Total sale · ${r.sales.bills} bill`} value={sales(r.sales.total)} />
         <div className="my-2 space-y-2">
           {r.payments.map((p) => (
             <div key={p.method}>
@@ -186,12 +186,12 @@ function MoneyColumn({ r }: { r: DayReport }) {
         </div>
         {r.sales.credit > 0 && <Line label="Udhaar par diya" value={sales(r.sales.credit)} />}
         {r.sales.discount > 0 && <Line label="Discount" value={sales(r.sales.discount)} />}
-        {r.sales.refunds > 0 && <Line label={`Wapsi · ${r.sales.refundCount}`} value={sales(r.sales.refunds)} />}
-        {!costHidden && <Line label="Seedha munafa" value={cost(r.sales.grossProfit)} />}
+        {r.sales.refunds > 0 && <Line label={`Return · ${r.sales.refundCount}`} value={sales(r.sales.refunds)} />}
+        {!costHidden && <Line label="Seedha profit" value={cost(r.sales.grossProfit)} />}
       </Section>
-      <Section title="Kharcha" icon={Wallet}>
+      <Section title="Expense" icon={Wallet}>
         {r.expenses.list.length === 0 ? (
-          <p className="py-2 text-[0.8125rem] text-slate-500">Is din koi kharcha nahi</p>
+          <p className="py-2 text-[0.8125rem] text-slate-500">Is din koi expense nahi</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {r.expenses.list.slice(0, 6).map((e) => (
@@ -202,7 +202,7 @@ function MoneyColumn({ r }: { r: DayReport }) {
             ))}
           </ul>
         )}
-        <Line label="Kul kharcha" value={cost(r.expenses.total)} strong />
+        <Line label="Kul expense" value={cost(r.expenses.total)} strong />
       </Section>
     </>
   );
@@ -254,7 +254,7 @@ export function DayReportView({ full = false }: { full?: boolean }) {
             <label className="relative flex h-8 items-center gap-1.5 px-2 text-[0.8125rem] font-medium text-slate-700">
               <CalendarDays className="h-4 w-4 text-slate-400" />
               <span className="tabular-nums">{key ?? '—'}</span>
-              <input type="date" value={key ?? ''} max={toKey(new Date())} aria-label="Tareekh chunein"
+              <input type="date" value={key ?? ''} max={toKey(new Date())} aria-label="Date chunein"
                 onChange={(e) => e.target.value && setDate(e.target.value)}
                 className="absolute inset-0 cursor-pointer opacity-0" />
             </label>

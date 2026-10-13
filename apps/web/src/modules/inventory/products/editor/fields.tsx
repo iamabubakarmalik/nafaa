@@ -156,7 +156,7 @@ export function CategoryField({ value, onChange, suggestions, error }: {
         <div className="space-y-2">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein ya nayi likhein…"
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search ya nayi likhein…"
               onKeyDown={(e) => { if (e.key === 'Enter' && term && !exact) { e.preventDefault(); create.mutate(q.trim()); } }}
               className={cn(inputCls, 'h-10 pl-9 text-[0.875rem]')} />
           </div>
@@ -265,7 +265,7 @@ export function ImagesField({ value, onChange, max = 10 }: { value: ImageDraft[]
         </div>
       )}
       {value.length < max && (
-        <UploadDropzone purpose="product-image" maxFiles={max - value.length} hint="Pehli tasveer main hogi — teer se tarteeb badlein"
+        <UploadDropzone purpose="product-image" maxFiles={max - value.length} hint="Pehli tasveer main hogi — teer se sort badlein"
           onUploaded={(records) => onChange([...value, ...records.map((r) => ({ url: r.url }))])} />
       )}
     </div>
@@ -294,14 +294,14 @@ export function MarginCard({ cost, price, money }: { cost: number; price: number
   const profit = price - cost;
   const margin = price > 0 ? (profit / price) * 100 : 0;
   const tone = !price || !cost ? 'slate' : profit < 0 ? 'rose' : margin >= 20 ? 'success' : 'amber';
-  const advice = !price ? 'Bechne ki qeemat likhein' : !cost ? 'Cost likhein to munafa dikhega' : profit < 0 ? 'Cost se sasta bik raha hai — ghata hoga' : margin < 10 ? 'Munafa kam hai — rate dobara dekh lein' : margin >= 20 ? 'Acha munafa' : 'Theek munafa';
+  const advice = !price ? 'Bechne ki qeemat likhein' : !cost ? 'Cost likhein to profit dikhega' : profit < 0 ? 'Cost se sasta bik raha hai — ghata hoga' : margin < 10 ? 'Profit kam hai — rate dobara dekh lein' : margin >= 20 ? 'Acha profit' : 'Theek profit';
   const cls = { slate: 'bg-slate-50 text-slate-700', rose: 'bg-rose-50 text-rose-800', success: 'bg-success-50 text-success-800', amber: 'bg-amber-50 text-amber-900' }[tone];
   const bar = { slate: 'bg-slate-300', rose: 'bg-rose-500', success: 'bg-success-500', amber: 'bg-amber-400' }[tone];
   return (
     <div className={cn('rounded-2xl p-4', cls)}>
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-[0.75rem] font-medium opacity-80">Har ek par munafa</p>
+          <p className="text-[0.75rem] font-medium opacity-80">Har ek par profit</p>
           <p className="text-[1.375rem] font-bold tabular-nums">{price && cost ? money(profit) : '—'}</p>
         </div>
         <p className="text-[1.75rem] font-bold tabular-nums">{price && cost ? `${margin.toFixed(1)}%` : ''}</p>

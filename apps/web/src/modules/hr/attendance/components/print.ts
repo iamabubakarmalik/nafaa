@@ -50,7 +50,7 @@ function personSections(s: Sheet): PrintSection[] {
   return [{
     kind: 'table',
     title: `${r.staff.fullName} — roz ka record`,
-    columns: [{ label: 'Tareekh' }, { label: 'Haal' }, { label: 'Aaye' }, { label: 'Gaye' }, { label: 'Ghante', align: 'right', wideOnly: true }, { label: 'OT', align: 'right', wideOnly: true }, { label: 'Late', align: 'right', wideOnly: true }],
+    columns: [{ label: 'Date' }, { label: 'Haal' }, { label: 'Aaye' }, { label: 'Gaye' }, { label: 'Ghante', align: 'right', wideOnly: true }, { label: 'OT', align: 'right', wideOnly: true }, { label: 'Late', align: 'right', wideOnly: true }],
     rows: s.keys.filter((k) => r.days[k].code !== 'FUT').map((k) => {
       const c = r.days[k];
       return [dayLabel(k, { weekday: 'short', day: 'numeric', month: 'short' }), CODE[c.code].label, clockOf(c.in, tz), clockOf(c.out, tz), hours(c.worked), hours(c.ot), c.late ? mins(c.late) : ''];
@@ -65,9 +65,9 @@ export function sheetDoc(s: Sheet, title: string, filter: string): PrintDoc {
     title: 'Hazri sheet',
     subtitle: title,
     meta: [
-      ['Muddat', `${dayLabel(s.from)} — ${dayLabel(s.to)}`],
+      ['Period', `${dayLabel(s.from)} — ${dayLabel(s.to)}`],
       ['Staff', String(s.rows.length)],
-      ['Dukaan khulti hai', `${s.clock.openTime} (${s.clock.graceMinutes} min ki chhoot)`],
+      ['Dukaan khulti hai', `${s.clock.openTime} (${s.clock.graceMinutes} min ki discount)`],
       ...(filter ? [['Filter', filter] as [string, string]] : []),
     ],
     sections: [

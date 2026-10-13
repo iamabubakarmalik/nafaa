@@ -41,16 +41,16 @@ export function MonthlyView({ data, lines, fmt, onPickMonth }: {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><BarChart3 className="h-4 w-4 text-brand-600" />Bikri aur kharch</span>}
-          description={showCost ? 'Kharch = maal ki lagat + kharchay + stock nuqsan. Bar dabayein to us mahine ka bayan khulega' : 'Kharch = kharchay. Bar dabayein to us mahine ka bayan khulega'}>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><BarChart3 className="h-4 w-4 text-brand-600" />Sale aur kharch</span>}
+          description={showCost ? 'Kharch = maal ki cost + kharchay + stock nuqsan. Bar dabayein to us mahine ka bayan khulega' : 'Kharch = kharchay. Bar dabayein to us mahine ka bayan khulega'}>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chart} margin={{ top: 4, right: 4, left: -12, bottom: 0 }} onClick={pick} barGap={2}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={4} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v, name) => [fmt.sales(Number(v)), name === 'bikri' ? 'Net bikri' : 'Kharch']} {...theme.tooltip} />
-                <Legend formatter={(v) => (v === 'bikri' ? 'Net bikri' : 'Kharch')} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+                <Tooltip formatter={(v, name) => [fmt.sales(Number(v)), name === 'bikri' ? 'Net sale' : 'Kharch']} {...theme.tooltip} />
+                <Legend formatter={(v) => (v === 'bikri' ? 'Net sale' : 'Kharch')} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
                 <Bar dataKey="bikri" fill={PART_COLORS.revenue} radius={[4, 4, 0, 0]} maxBarSize={18} className="cursor-pointer" />
                 <Bar dataKey="kharch" fill={PART_COLORS.expenses} radius={[4, 4, 0, 0]} maxBarSize={18} className="cursor-pointer" />
               </BarChart>
@@ -58,16 +58,16 @@ export function MonthlyView({ data, lines, fmt, onPickMonth }: {
           </div>
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Net munafa har mahine</span>}
-          description={showCost ? `${best ? `Sab se achha ${monthLabel(best.key, true)}` : 'Abhi koi munafa nahi'}${losing ? ` · ${losing} mahine nuqsan` : ''}` : 'Lagat chhupi hai'}>
-          {!showCost ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Munafa dekhne ke liye cost kholein</p> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Net profit har mahine</span>}
+          description={showCost ? `${best ? `Sab se achha ${monthLabel(best.key, true)}` : 'Abhi koi profit nahi'}${losing ? ` · ${losing} mahine nuqsan` : ''}` : 'Cost chhupi hai'}>
+          {!showCost ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Profit dekhne ke liye cost kholein</p> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chart} margin={{ top: 4, right: 4, left: -12, bottom: 0 }} onClick={pick}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={4} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Net munafa']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Net profit']} {...theme.tooltip} />
                   <Bar dataKey="munafa" radius={[4, 4, 0, 0]} maxBarSize={26} className="cursor-pointer">
                     {chart.map((d) => <Cell key={d.key} fill={d.munafa >= 0 ? PART_COLORS.profit : PART_COLORS.loss} />)}
                   </Bar>
@@ -87,7 +87,7 @@ export function MonthlyView({ data, lines, fmt, onPickMonth }: {
           <table className="w-full min-w-max text-[0.8125rem]">
             <thead className="bg-slate-50/70 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="sticky left-0 z-10 bg-slate-50 px-4 py-2.5 text-left sm:px-5">Tafseel</th>
+                <th className="sticky left-0 z-10 bg-slate-50 px-4 py-2.5 text-left sm:px-5">Details</th>
                 {data.months.map((m) => (
                   <th key={m.key} className="px-3 py-2.5 text-right">
                     <button type="button" onClick={() => onPickMonth(m.key)} className="uppercase hover:text-brand-700 hover:underline">{monthLabel(m.key)}{m.partial && ' *'}</button>

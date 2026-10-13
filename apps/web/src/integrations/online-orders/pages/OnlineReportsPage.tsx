@@ -83,7 +83,7 @@ export default function OnlineReportsPage() {
   const p = data?.previous;
   const valueChange = t && p ? change(t.netValue, p.netValue) : null;
   const ordersChange = t && p ? change(t.orders, p.orders) : null;
-  const vs = (n: number | null) => (n == null ? 'pichli muddat me kuch nahi' : `${n >= 0 ? '+' : ''}${n}% pichli muddat se`);
+  const vs = (n: number | null) => (n == null ? 'pichli period me kuch nahi' : `${n >= 0 ? '+' : ''}${n}% pichli period se`);
   const acceptText = (m: number | null) => (m == null ? '—' : m < 60 ? `${m} min` : `${Math.round(m / 60)} ghante`);
 
   return (
@@ -126,7 +126,7 @@ export default function OnlineReportsPage() {
 
       <FilterBar
         search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">
-          Saare charts isi muddat ke hain · pichli muddat {p ? rangeLabel(p.from, p.to) : ''} se muqabla
+          Saare charts isi period ke hain · pichli period {p ? rangeLabel(p.from, p.to) : ''} se muqabla
         </p>}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         {(channels?.length ?? 0) > 1 && (
@@ -149,8 +149,8 @@ export default function OnlineReportsPage() {
       ) : data.totals.orders === 0 && tab !== 'aging' ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShoppingBag className="h-6 w-6" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">Is muddat me koi online order nahi</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">Tareekh ya channel badal kar dekhein.</p>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">Is period me koi online order nahi</h3>
+          <p className="mt-1 text-[0.875rem] text-slate-500">Date ya channel badal kar dekhein.</p>
         </div>
       ) : (
         <OnlineAnalytics data={data} money={money} sections={TABS.find((x) => x.id === tab)!.sections} />
@@ -159,14 +159,14 @@ export default function OnlineReportsPage() {
       {guide.isOpen && (
         <PageGuide title="Online reports — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: BarChart3, color: '#2563eb', title: 'Muddat chunein', text: 'Aaj, 7 din, 30 din, mahina ya apni tareekh. Upar ke number pichli itni hi muddat se milaye jate hain.' },
+            { icon: BarChart3, color: '#2563eb', title: 'Period chunein', text: 'Aaj, 7 din, 30 din, mahina ya apni date. Upar ke number pichli itni hi period se milaye jate hain.' },
             { icon: ShoppingBag, color: '#16a34a', title: 'Sale ka hisaab', text: 'Sale me sirf woh orders jo cancel ya wapas nahi hue. "Orders aaye" me har order ginta hai.' },
             { icon: MapPin, color: '#7c3aed', title: 'Channel aur shehar', text: 'Kahan se zyada order aata hai, aur kis shehar me RTO zyada — wahan COD call karke confirm karein.' },
             { icon: Truck, color: '#0284c7', title: 'Courier aur RTO', text: 'Kaun sa courier zyada deliver karta hai aur kis ke parcel wapas aate hain.' },
             { icon: Package, color: '#d97706', title: 'Products aur customers', text: 'Sab se zyada bikne wali cheezein aur sab se qeemti customer.' },
             { icon: Download, color: '#0891b2', title: 'CSV aur print', text: 'CSV me har order ki line (malik ya manager). Print me khulasa, channel, shehar, courier aur products.' },
           ]}
-          tips={['Test order kisi report me nahi aata.', 'Din dukaan ke apne waqt par badalta hai (Settings → karobari din).', 'COD tab ka "kitne din se" poore account ka hai, tareekh ka nahi.']}
+          tips={['Test order kisi report me nahi aata.', 'Din dukaan ke apne waqt par badalta hai (Settings → karobari din).', 'COD tab ka "kitne din se" poore account ka hai, date ka nahi.']}
           shortcuts={[['1', 'khulasa'], ['2', 'channel'], ['3', 'courier'], ['4', 'products'], ['5', 'COD'], ['G', 'guide']]}
         />
       )}

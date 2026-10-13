@@ -45,8 +45,8 @@ export function reportText(r: DayReport, money: ReportMoney, shopName?: string) 
     .forEach((p) => lines.push(`${PAYMENT_LABELS[p.method] ?? p.method}: ${money.sales(p.collected)}`));
   if (r.onlineCollected > 0) lines.push(`Online kul: ${money.sales(r.onlineCollected)}`);
   if (r.sales.credit > 0) lines.push(`Udhaar: ${money.sales(r.sales.credit)}`);
-  if (r.sales.refunds > 0) lines.push(`Wapsi: ${money.sales(r.sales.refunds)}`);
-  lines.push(`Kharcha: ${money.cost(r.expenses.total)}`);
+  if (r.sales.refunds > 0) lines.push(`Return: ${money.sales(r.sales.refunds)}`);
+  lines.push(`Expense: ${money.cost(r.expenses.total)}`);
   r.expenses.list.forEach((e) => lines.push(`  - ${e.title}: ${money.cost(e.amount)}`));
   lines.push('');
   lines.push(`Closing balance: ${money.sales(r.cash.countedClosing ?? r.cash.expectedClosing)}${r.cash.countedClosing == null ? ' (andaza)' : ''}`);
@@ -59,12 +59,12 @@ export function dayReportDoc(r: DayReport, money: ReportMoney, branch?: string):
   const c = r.cash;
   const cashRows: PrintRow[] = [
     { label: 'Opening balance', value: money.sales(c.opening) },
-    { label: '+ Cash bikri', value: money.sales(c.cashSales) },
+    { label: '+ Cash sale', value: money.sales(c.cashSales) },
   ];
   if (c.cashIn) cashRows.push({ label: '+ Cash in', value: money.sales(c.cashIn) });
-  if (c.expenses) cashRows.push({ label: '- Cash kharcha', value: money.cost(c.expenses) });
-  if (c.refunds) cashRows.push({ label: '- Wapsi', value: money.sales(c.refunds) });
-  if (c.purchases) cashRows.push({ label: '- Maal ki adaigi', value: money.cost(c.purchases) });
+  if (c.expenses) cashRows.push({ label: '- Cash expense', value: money.cost(c.expenses) });
+  if (c.refunds) cashRows.push({ label: '- Return', value: money.sales(c.refunds) });
+  if (c.purchases) cashRows.push({ label: '- Maal ki payment', value: money.cost(c.purchases) });
   if (c.supplierPaid) cashRows.push({ label: '- Supplier ko diya', value: money.cost(c.supplierPaid) });
   if (c.cashOut) cashRows.push({ label: '- Cash out', value: money.sales(c.cashOut) });
   cashRows.push({ label: c.countedClosing == null ? 'Closing (andaza)' : 'Closing (gina hua)', value: money.sales(c.countedClosing ?? c.expectedClosing), strong: true });
@@ -77,8 +77,8 @@ export function dayReportDoc(r: DayReport, money: ReportMoney, branch?: string):
   ];
   if (r.sales.credit) salesRows.push({ label: 'Udhaar', value: money.sales(r.sales.credit) });
   if (r.sales.discount) salesRows.push({ label: 'Discount', value: money.sales(r.sales.discount) });
-  if (r.sales.refunds) salesRows.push({ label: 'Wapsi', value: money.sales(r.sales.refunds) });
-  salesRows.push({ label: `Kul bikri (${r.sales.bills} bill)`, value: money.sales(r.sales.total), strong: true });
+  if (r.sales.refunds) salesRows.push({ label: 'Return', value: money.sales(r.sales.refunds) });
+  salesRows.push({ label: `Total sale (${r.sales.bills} bill)`, value: money.sales(r.sales.total), strong: true });
 
   const itemRows: string[][] = [];
   const groupRows: number[] = [];
@@ -91,16 +91,16 @@ export function dayReportDoc(r: DayReport, money: ReportMoney, branch?: string):
 
   const sections: PrintSection[] = [
     { kind: 'rows', title: 'Galla (cash)', rows: cashRows },
-    { kind: 'rows', title: 'Bikri', rows: salesRows },
+    { kind: 'rows', title: 'Sale', rows: salesRows },
     {
       kind: 'table', title: 'Kya bika',
-      columns: [{ label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Raqam', align: 'right' }],
+      columns: [{ label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Amount', align: 'right' }],
       rows: itemRows, groupRows,
       footer: ['Kul', qty(r.sales.itemsSold), money.sales(r.items.reduce((x, i) => x + i.revenue, 0))],
     },
     {
-      kind: 'rows', title: 'Kharcha',
-      rows: [...r.expenses.list.map((e) => ({ label: e.title, value: money.cost(e.amount) })), { label: 'Kul kharcha', value: money.cost(r.expenses.total), strong: true }],
+      kind: 'rows', title: 'Expense',
+      rows: [...r.expenses.list.map((e) => ({ label: e.title, value: money.cost(e.amount) })), { label: 'Kul expense', value: money.cost(r.expenses.total), strong: true }],
     },
   ];
   if (r.staff.length) {

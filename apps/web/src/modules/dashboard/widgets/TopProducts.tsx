@@ -20,7 +20,7 @@ export function TopProducts({ productPath, hint }: { productPath: (id: string) =
   const sort = costHidden && s.sort === 'profit' ? 'revenue' : s.sort;
   const { data, isLoading } = useDashboardList<TopList>({ kind: 'top', days: s.days, sort, limit: s.limit, categoryId: s.categoryId || undefined });
   const rows = data?.items ?? [];
-  const sortOptions = [{ value: 'revenue', label: 'Raqam se' }, { value: 'qty', label: 'Ginti se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Munafe se' }])];
+  const sortOptions = [{ value: 'revenue', label: 'Amount se' }, { value: 'qty', label: 'Ginti se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Munafe se' }])];
 
   return (
     <WidgetCard title="Sab se zyada bika" icon={Crown} description={hint ?? `${PERIOD_LABEL[s.days]} · ${data?.total ?? 0} cheezein biki`} flush>
@@ -30,13 +30,13 @@ export function TopProducts({ productPath, hint }: { productPath: (id: string) =
           subtitle: `${PERIOD_LABEL[s.days]} · ${sortOptions.find((o) => o.value === sort)?.label}`,
           sections: [{
             kind: 'table',
-            columns: [{ label: '#' }, { label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Bill', align: 'right', wideOnly: true }, { label: 'Raqam', align: 'right' }],
+            columns: [{ label: '#' }, { label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Bill', align: 'right', wideOnly: true }, { label: 'Amount', align: 'right' }],
             rows: rows.map((r, i) => [String(i + 1), r.name, `${fmtQty(r.qty)} ${r.unit}`, String(r.bills), sales(r.revenue)]),
           }],
         })}
       >
-        <MiniSelect label="Muddat" value={s.days} onChange={(days) => set({ days })} options={PERIODS} />
-        <MiniSelect label="Tarteeb" value={sort} onChange={(v) => set({ sort: v })} options={sortOptions} />
+        <MiniSelect label="Period" value={s.days} onChange={(days) => set({ days })} options={PERIODS} />
+        <MiniSelect label="Sort" value={sort} onChange={(v) => set({ sort: v })} options={sortOptions} />
         <MiniSelect label="Kitne" value={s.limit} onChange={(limit) => set({ limit })} options={LIMIT_OPTIONS} />
         <CategorySelect value={s.categoryId} onChange={(categoryId) => set({ categoryId })} />
       </WidgetToolbar>
@@ -44,7 +44,7 @@ export function TopProducts({ productPath, hint }: { productPath: (id: string) =
         <div className="space-y-2 px-5 pb-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}</div>
       ) : (
         <div className="max-h-[28rem] overflow-y-auto">
-          <RowList empty="Is muddat me koi bikri nahi" emptyIcon={Crown}>
+          <RowList empty="Is period me koi sale nahi" emptyIcon={Crown}>
             {rows.map((p, i) => (
               <ListRow
                 key={p.id}

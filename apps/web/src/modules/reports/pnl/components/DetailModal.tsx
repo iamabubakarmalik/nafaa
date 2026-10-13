@@ -35,7 +35,7 @@ export function DetailModal({ query, kind, categoryId, title, period, fmt, onClo
   const day = (v: string) => new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
 
   const csv = () => d && downloadCsv(`pnl-${kind}`, [title, period], [
-    ['Tareekh', 'Tafseel', 'Qism', 'Ref', 'Branch', 'Note', 'Raqam'],
+    ['Date', 'Details', 'Type', 'Ref', 'Branch', 'Note', 'Amount'],
     ...d.rows.map((r) => [day(r.at), r.title, r.kind ?? '', r.ref ?? '', r.branch ?? '', r.note ?? '', r.amount.toFixed(2)]),
   ]);
 
@@ -52,7 +52,7 @@ export function DetailModal({ query, kind, categoryId, title, period, fmt, onClo
       ) : q.isError ? (
         <p className="py-10 text-center text-[0.875rem] text-rose-600">Record nahi aa sake</p>
       ) : !d?.rows.length ? (
-        <p className="py-10 text-center text-[0.875rem] text-slate-500">Is muddat me koi record nahi</p>
+        <p className="py-10 text-center text-[0.875rem] text-slate-500">Is period me koi record nahi</p>
       ) : (
         <>
           <ul className="divide-y divide-slate-100">
@@ -79,7 +79,7 @@ export function DetailModal({ query, kind, categoryId, title, period, fmt, onClo
               );
             })}
           </ul>
-          {d.truncated && <p className="mt-2 text-[0.75rem] text-slate-500">Sirf naye {d.count} record dikh rahe hain — baqi ke liye muddat chhoti karein</p>}
+          {d.truncated && <p className="mt-2 text-[0.75rem] text-slate-500">Sirf naye {d.count} record dikh rahe hain — baqi ke liye period chhoti karein</p>}
         </>
       )}
     </Modal>

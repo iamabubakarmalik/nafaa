@@ -38,7 +38,7 @@ import { productInsightsApi, type ProductInsights } from './api';
 const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
 const when = (v: string) => new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(v));
 const MOVE: Record<string, { label: string; tone: string }> = {
-  PURCHASE_IN: { label: 'Khareed', tone: 'text-success-700' }, SALE_OUT: { label: 'Bikri', tone: 'text-slate-700' },
+  PURCHASE_IN: { label: 'Khareed', tone: 'text-success-700' }, SALE_OUT: { label: 'Sale', tone: 'text-slate-700' },
   ADJUSTMENT_IN: { label: 'Stock daala', tone: 'text-success-700' }, ADJUSTMENT_OUT: { label: 'Stock nikala', tone: 'text-rose-700' },
   RETURN_IN: { label: 'Wapas aaya', tone: 'text-sky-700' }, OPENING_BALANCE: { label: 'Shuru ka stock', tone: 'text-slate-700' },
   DAMAGE: { label: 'Kharab', tone: 'text-rose-700' }, LOSS: { label: 'Gum', tone: 'text-rose-700' },
@@ -126,7 +126,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     if (ctx.product.variants?.length) list.push({ id: 'variants', label: 'Variants', icon: Layers, render: () => null });
     if (ctx.product.batches?.length) list.push({ id: 'batches', label: 'Batches', icon: CalendarClock, render: () => null });
     for (const t of config.tabs ?? []) if (!t.when || t.when(ctx)) list.push({ id: t.id, label: t.label, icon: t.icon, render: () => t.render(ctx) });
-    list.push({ id: 'sales', label: 'Bikri', icon: Receipt, render: () => null }, { id: 'log', label: 'Stock log', icon: Hourglass, render: () => null });
+    list.push({ id: 'sales', label: 'Sale', icon: Receipt, render: () => null }, { id: 'log', label: 'Stock log', icon: Hourglass, render: () => null });
     return list;
   }, [ctx, config.tabs]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -183,10 +183,10 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
         ...(costHidden ? [] : [{ label: 'Cost', value: formatPKR(p.costPrice) }]),
         ...(p.wholesalePrice ? [{ label: 'Wholesale', value: formatPKR(p.wholesalePrice) }] : []),
         { label: 'Stock', value: `${fmt(stock)} ${p.unit}`, strong: true },
-        ...(ins ? [{ label: `${ins.window} din ki bikri`, value: `${fmt(ins.totals.qty)} ${p.unit} · ${formatPKR(ins.totals.revenue)}` }] : []),
+        ...(ins ? [{ label: `${ins.window} din ki sale`, value: `${fmt(ins.totals.qty)} ${p.unit} · ${formatPKR(ins.totals.revenue)}` }] : []),
       ] },
       ...(ctx.units.length ? [{ kind: 'table' as const, title: 'Packing', columns: [{ label: 'Packing' }, { label: `Kitne ${p.unit}`, align: 'right' as const }, { label: 'Rate', align: 'right' as const }], rows: ctx.units.map((u) => [u.unitName, fmt(u.conversionRate), formatPKR(u.price)]) }] : []),
-      ...(ins?.movements.length ? [{ kind: 'table' as const, title: 'Stock log', columns: [{ label: 'Waqt' }, { label: 'Kya hua' }, { label: 'Miqdar', align: 'right' as const }, { label: 'Baad mein', align: 'right' as const }], rows: ins.movements.slice(0, 25).map((m) => [when(m.createdAt), MOVE[m.type]?.label ?? m.type, fmt(m.quantity), fmt(m.balanceAfter)]) }] : []),
+      ...(ins?.movements.length ? [{ kind: 'table' as const, title: 'Stock log', columns: [{ label: 'Waqt' }, { label: 'Kya hua' }, { label: 'Quantity', align: 'right' as const }, { label: 'Baad mein', align: 'right' as const }], rows: ins.movements.slice(0, 25).map((m) => [when(m.createdAt), MOVE[m.type]?.label ?? m.type, fmt(m.quantity), fmt(m.balanceAfter)]) }] : []),
     ],
   });
 
@@ -251,7 +251,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Tile label="Bechne ki qeemat" value={money(p.price)} hint={`fi ${p.unit}`} tone="bg-brand-50" />
             <Tile label="Cost" value={cost(p.costPrice)} hint={costHidden ? 'Cost lock' : margin === null ? 'Cost nahi likhi' : `${margin.toFixed(1)}% margin`} />
-            <Tile label="Munafa fi unit" value={p.costPrice ? cost(p.price - p.costPrice) : '—'} />
+            <Tile label="Profit fi unit" value={p.costPrice ? cost(p.price - p.costPrice) : '—'} />
             <Tile label="Wholesale" value={p.wholesalePrice ? money(p.wholesalePrice) : '—'} />
           </div>
           {config.facts && (
@@ -313,8 +313,8 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
           <Card className="rounded-2xl lg:col-span-2" title="Kaise bik raha hai" description="Karobari din ke hisaab se"
             actions={<div className="flex flex-wrap gap-2">
               <Segmented<'revenue' | 'qty' | 'profit'> label="Kya dikhayein" value={metric} onChange={setMetric}
-                items={[{ value: 'revenue', label: 'Raqam' }, { value: 'qty', label: 'Miqdar' }, ...(costHidden ? [] : [{ value: 'profit' as const, label: 'Munafa' }])]} />
-              <Segmented<string> label="Muddat" value={String(days)} onChange={(v) => setDays(Number(v))}
+                items={[{ value: 'revenue', label: 'Amount' }, { value: 'qty', label: 'Quantity' }, ...(costHidden ? [] : [{ value: 'profit' as const, label: 'Profit' }])]} />
+              <Segmented<string> label="Period" value={String(days)} onChange={(v) => setDays(Number(v))}
                 items={[{ value: '7', label: '7d' }, { value: '30', label: '30d' }, { value: '90', label: '90d' }, { value: '365', label: '1 saal' }]} />
             </div>}>
             {!ins ? <Skeleton className="h-64 rounded-xl" /> : ins.totals.bills === 0 ? <Empty text={`Pichhle ${days} din mein nahi bika`} /> : (
@@ -326,15 +326,15 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
                       <CartesianGrid stroke={theme.grid} vertical={false} />
                       <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                       <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={44} tickFormatter={metric === 'qty' ? undefined : axisMoney} allowDecimals={metric !== 'qty'} />
-                      <Tooltip formatter={(v) => [metric === 'qty' ? `${fmt(Number(v))} ${p.unit}` : formatPKR(Number(v)), metric === 'qty' ? 'Miqdar' : metric === 'profit' ? 'Munafa' : 'Raqam']} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} />
+                      <Tooltip formatter={(v) => [metric === 'qty' ? `${fmt(Number(v))} ${p.unit}` : formatPKR(Number(v)), metric === 'qty' ? 'Quantity' : metric === 'profit' ? 'Profit' : 'Amount']} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} />
                       <Area type="monotone" dataKey={metric} stroke={theme.primary} strokeWidth={2.25} fill="url(#pd-fill)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <Tile label="Bika" value={`${fmt(ins.totals.qty)} ${p.unit}`} hint={`roz ~${fmt(ins.totals.perDay)}`} />
-                  <Tile label="Raqam" value={money(ins.totals.revenue)} hint={`${ins.totals.bills} bill`} />
-                  <Tile label="Munafa" value={cost(ins.totals.profit)} />
+                  <Tile label="Amount" value={money(ins.totals.revenue)} hint={`${ins.totals.bills} bill`} />
+                  <Tile label="Profit" value={cost(ins.totals.profit)} />
                   <Tile label="Shuru se" value={`${fmt(ins.allTime.qty)} ${p.unit}`} hint={ins.allTime.lastSoldAt ? `aakhri ${when(ins.allTime.lastSoldAt)}` : 'kabhi nahi bika'} />
                 </div>
               </>

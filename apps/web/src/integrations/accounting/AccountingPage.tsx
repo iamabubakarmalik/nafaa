@@ -45,7 +45,7 @@ export default function AccountingPage() {
   });
 
   return (
-    <Page title="Accounting" subtitle="Har din ka hisaab khud aap ke accounting software me — sale, udhaar, refund, kharche.">
+    <Page title="Accounting" subtitle="Har din ka hisaab khud aap ke accounting software me — sale, udhaar, refund, expenses.">
       {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Accounting nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
         : !data.connected ? (
@@ -116,7 +116,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
         <div className="divide-y divide-slate-100 dark:divide-ink-800">
           <SettingRow title="Har raat khud bhejo" help="Raat ~12:40 baje kal ka journal; fail hue din 7 din tak dobara"
             control={<Toggle checked={c.autoSync} onChange={(v) => save.mutate({ autoSync: v })} />} />
-          <SettingRow title="Kharche bhi bhejo" help="Nafaa ke kharche (category ke hisaab se)"
+          <SettingRow title="Expenses bhi bhejo" help="Nafaa ke expenses (category ke hisaab se)"
             control={<Toggle checked={c.includeExpenses} onChange={(v) => save.mutate({ includeExpenses: v })} />} />
           <SettingRow title="Cost of goods (COGS) bhi" help="Bika hua maal ki cost: Dr COGS / Cr Inventory — agar accountant chahe"
             control={<Toggle checked={c.includeCogs} onChange={(v) => save.mutate({ includeCogs: v })} />} />
@@ -143,17 +143,17 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
                   <Pick key={m.key} label={m.label} hint={m.hint} value={map.methods?.[m.key]} onChange={(v) => set({ methods: { ...(map.methods ?? {}), [m.key]: v } })} options={byType(/cash|bank|asset/i)} />
                 ))}
                 <label className="block">
-                  <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">Udhaar wapsi kis tareeqe se aati hai</span>
+                  <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">Udhaar return kis tareeqe se aati hai</span>
                   <select value={map.collectionMethod ?? 'CASH'} onChange={(e) => set({ collectionMethod: e.target.value as PayMethod })} className={inputCls}>
                     {METHODS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
                   </select>
                 </label>
               </Group>
               {c.includeExpenses && (
-                <Group title="Kharche">
-                  <Pick label="Aam kharcha (jis category ka alag na chuna ho)" value={map.expenseDefault} onChange={(v) => set({ expenseDefault: v })} options={byType(/expense/i)} />
+                <Group title="Expenses">
+                  <Pick label="Aam expense (jis category ka alag na chuna ho)" value={map.expenseDefault} onChange={(v) => set({ expenseDefault: v })} options={byType(/expense/i)} />
                   {(cats ?? []).map((cat) => (
-                    <Pick key={cat.id} label={cat.name} value={map.expenseByCategory?.[cat.id]} onChange={(v) => set({ expenseByCategory: { ...(map.expenseByCategory ?? {}), [cat.id]: v } })} options={byType(/expense/i)} placeholder="Aam kharcha wala" />
+                    <Pick key={cat.id} label={cat.name} value={map.expenseByCategory?.[cat.id]} onChange={(v) => set({ expenseByCategory: { ...(map.expenseByCategory ?? {}), [cat.id]: v } })} options={byType(/expense/i)} placeholder="Aam expense wala" />
                   ))}
                 </Group>
               )}
@@ -185,7 +185,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
               <span>{preview.data.totals.bills} bill · {rs(preview.data.totals.sales)}</span>
               <span>Udhaar {rs(preview.data.totals.credit)}</span>
               <span>Refund {rs(preview.data.totals.refunds)}</span>
-              <span>Kharche {rs(preview.data.totals.expenses)}</span>
+              <span>Expenses {rs(preview.data.totals.expenses)}</span>
             </div>
             {preview.data.lines.length === 0 ? <p className="mt-3 text-[0.8125rem] text-slate-500">Is din koi entry nahi.</p> : (
               <table className="mt-3 w-full text-[0.8125rem]">

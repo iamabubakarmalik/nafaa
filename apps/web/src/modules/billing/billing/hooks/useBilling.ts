@@ -67,7 +67,7 @@ export function useBilling() {
   });
   const cancel = useMutation({
     mutationFn: subscriptionsApi.cancel,
-    onSuccess: () => { toast.success('Plan muddat ke aakhir par band ho jayega', { description: 'Tab tak sab kuch chalta rahega. Kabhi bhi wapas chalu kar sakte hain.' }); refresh(); },
+    onSuccess: () => { toast.success('Plan period ke aakhir par band ho jayega', { description: 'Tab tak sab kuch chalta rahega. Kabhi bhi wapas chalu kar sakte hain.' }); refresh(); },
     onError: (e) => toast.error(errorText(e, 'Band nahi hua')),
   });
   const reactivate = useMutation({

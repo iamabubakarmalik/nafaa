@@ -17,15 +17,15 @@ export function expensesDoc(list: ExpensePage, period: string, filter: string, s
   for (const e of list.items) if (e.status === 'PAID') byCat.set(catOf(e).name, (byCat.get(catOf(e).name) ?? 0) + e.amount);
   const cats = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
   return {
-    title: 'Kharche (Expenses)',
+    title: 'Expenses (Expenses)',
     subtitle: period,
-    meta: [['Kharche', String(list.total)], ...(filter ? [['Filter', filter] as [string, string]] : []), ['Kharch hua', formatPKR(t.paid)], ...(t.pending > 0 ? [['Baqi bill', formatPKR(t.pending)] as [string, string]] : [])],
+    meta: [['Expenses', String(list.total)], ...(filter ? [['Filter', filter] as [string, string]] : []), ['Kharch hua', formatPKR(t.paid)], ...(t.pending > 0 ? [['Baqi bill', formatPKR(t.pending)] as [string, string]] : [])],
     sections: [
       {
         kind: 'table',
         columns: [
-          { label: 'Tareekh' }, { label: 'No.', wideOnly: true }, { label: 'Kharcha' }, { label: 'Category', wideOnly: true },
-          { label: 'Kaise', wideOnly: true }, { label: 'Haal', wideOnly: true }, { label: 'Raqam', align: 'right' },
+          { label: 'Date' }, { label: 'No.', wideOnly: true }, { label: 'Expense' }, { label: 'Category', wideOnly: true },
+          { label: 'Kaise', wideOnly: true }, { label: 'Haal', wideOnly: true }, { label: 'Amount', align: 'right' },
         ],
         rows: list.items.map((e) => [
           day(e.expenseDate), e.expenseNumber, e.title, catOf(e).name, methodOf(e.paymentMethod).label, STATUS[e.status].label,
@@ -49,6 +49,6 @@ export function expensesDoc(list: ExpensePage, period: string, filter: string, s
         ],
       },
     ],
-    footer: list.total > list.items.length ? `Pehle ${list.items.length} kharche dikhaye gaye hain (kul ${list.total})` : undefined,
+    footer: list.total > list.items.length ? `Pehle ${list.items.length} expenses dikhaye gaye hain (kul ${list.total})` : undefined,
   };
 }

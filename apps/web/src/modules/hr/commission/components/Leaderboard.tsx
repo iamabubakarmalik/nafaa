@@ -12,7 +12,7 @@ import type { CommissionRow } from '../api/commission.api';
 import { signed } from './meta';
 
 type By = 'earned' | 'sale' | 'bills';
-const LABEL: Record<By, string> = { earned: 'Commission', sale: 'Bikri', bills: 'Bill' };
+const LABEL: Record<By, string> = { earned: 'Commission', sale: 'Sale', bills: 'Bill' };
 const MEDAL = ['#f59e0b', '#94a3b8', '#b45309'];
 
 export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (r: CommissionRow) => void }) {
@@ -26,7 +26,7 @@ export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Trophy className="mx-auto h-10 w-10 text-slate-300" />
         <p className="mt-3 font-semibold text-slate-900">Abhi koi muqabla nahi</p>
-        <p className="mt-1 text-sm text-slate-500">Jin bandon par commission chaalu hai woh yahan bikri ke hisaab se aate hain.</p>
+        <p className="mt-1 text-sm text-slate-500">Jin bandon par commission chaalu hai woh yahan sale ke hisaab se aate hain.</p>
       </div>
     );
   }
@@ -34,7 +34,7 @@ export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[0.8125rem] text-slate-500">Sirf chaalu bande · wapsi nikaal kar</p>
+        <p className="text-[0.8125rem] text-slate-500">Sirf chaalu bande · return nikaal kar</p>
         <Segmented label="Kis par" value={by} onChange={(v) => setBy(v as By)} items={(Object.keys(LABEL) as By[]).map((k) => ({ value: k, label: LABEL[k] }))} />
       </div>
 

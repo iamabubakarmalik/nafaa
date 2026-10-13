@@ -477,7 +477,7 @@ export class PeopleService {
     let end: Date | null = null;
     if (leaving) {
       end = endDate ? new Date(endDate) : new Date();
-      if (Number.isNaN(end.getTime())) throw new BadRequestException('Aakhri din ki tareekh theek nahi');
+      if (Number.isNaN(end.getTime())) throw new BadRequestException('Aakhri din ki date theek nahi');
     }
     const updated = await this.prisma.staff.update({
       where: { id: st.id },

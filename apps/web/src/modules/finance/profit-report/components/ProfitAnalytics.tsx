@@ -40,9 +40,9 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
       <div className="grid gap-4 lg:grid-cols-3">
         <NetCard data={data} fmt={fmt} />
 
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Munafa ka rujhan</span>}
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Profit ka rujhan</span>}
           description={data.range.byMonth ? 'Mahine war' : 'Din war'}
-          actions={fmt.costHidden ? undefined : <Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'profit', label: 'Munafa' }, { value: 'revenue', label: 'Bikri' }, { value: 'margin', label: 'Margin' }]} />}>
+          actions={fmt.costHidden ? undefined : <Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'profit', label: 'Profit' }, { value: 'revenue', label: 'Sale' }, { value: 'margin', label: 'Margin' }]} />}>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -55,7 +55,7 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={44} tickFormatter={shown === 'margin' ? (v: number) => `${v}%` : axisMoney} />
-                <Tooltip formatter={(v) => [shown === 'margin' ? `${Number(v).toFixed(1)}%` : formatPKR(Number(v)), shown === 'profit' ? 'Munafa' : shown === 'margin' ? 'Margin' : 'Bikri']} {...tip} />
+                <Tooltip formatter={(v) => [shown === 'margin' ? `${Number(v).toFixed(1)}%` : formatPKR(Number(v)), shown === 'profit' ? 'Profit' : shown === 'margin' ? 'Margin' : 'Sale']} {...tip} />
                 <Area type="monotone" dataKey={shown} stroke={shown === 'profit' ? theme.profit : theme.primary} strokeWidth={2.25} fill="url(#profit-trend)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -66,27 +66,27 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
       {/* Earners against sellers: the dish that sells most is often not the one that earns most. */}
       <div className="grid gap-4 lg:grid-cols-2">
         {!fmt.costHidden && (
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Crown className="h-4 w-4 text-amber-500" />Sab se zyada kamayi</span>} description="Munafa ke hisaab se · saath me bikri ka number">
-            <BriefList rows={data.topEarners} empty="Koi munafa nahi" value={(r) => fmt.cost(r.profit ?? 0)}
-              sub={(r) => `${fmt.money(r.revenue)} bikri · ${pct(r.margin)} · bikri me #${r.revenueRank}`} />
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Crown className="h-4 w-4 text-amber-500" />Sab se zyada kamayi</span>} description="Profit ke hisaab se · saath me sale ka number">
+            <BriefList rows={data.topEarners} empty="Koi profit nahi" value={(r) => fmt.cost(r.profit ?? 0)}
+              sub={(r) => `${fmt.money(r.revenue)} sale · ${pct(r.margin)} · sale me #${r.revenueRank}`} />
           </Card>
         )}
-        <Card className={cn('rounded-2xl', fmt.costHidden && 'lg:col-span-2')} title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-brand-600" />Sab se zyada biki</span>} description="Bikri ke hisaab se · saath me munafa ka number">
-          <BriefList rows={data.topSellers} empty="Koi bikri nahi" value={(r) => fmt.money(r.revenue)}
-            sub={(r) => fmt.costHidden ? `${qty(r.qty)} ${r.unit}` : `${fmt.cost(r.profit ?? 0)} munafa · ${pct(r.margin)} · munafe me #${r.profitRank}`} />
+        <Card className={cn('rounded-2xl', fmt.costHidden && 'lg:col-span-2')} title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-brand-600" />Sab se zyada biki</span>} description="Sale ke hisaab se · saath me profit ka number">
+          <BriefList rows={data.topSellers} empty="Koi sale nahi" value={(r) => fmt.money(r.revenue)}
+            sub={(r) => fmt.costHidden ? `${qty(r.qty)} ${r.unit}` : `${fmt.cost(r.profit ?? 0)} profit · ${pct(r.margin)} · munafe me #${r.profitRank}`} />
         </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war {fmt.costHidden ? 'bikri' : 'munafa'}</span>}>
-          {!cats.length ? <Empty text="Koi bikri nahi" /> : (
+          {!cats.length ? <Empty text="Koi sale nahi" /> : (
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={cats} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} horizontal={false} />
                   <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} />
                   <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={110} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), fmt.costHidden ? 'Bikri' : 'Munafa']} {...tip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), fmt.costHidden ? 'Sale' : 'Profit']} {...tip} />
                   <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={16}>
                     {cats.map((c, i) => <Cell key={c.name} fill={c.value < 0 ? '#e11d48' : c.color || PALETTE[i % PALETTE.length]} />)}
                   </Bar>
@@ -98,9 +98,9 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
 
         {!fmt.costHidden ? (
           <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Flame className="h-4 w-4 text-rose-600" />Nuqsan wali cheezein</span>}
-            description={data.losses.count ? `${data.losses.count} cheezein lagat se sasti biki · kul ${fmt.cost(data.losses.amount)}` : 'Koi cheez lagat se sasti nahi biki'}>
+            description={data.losses.count ? `${data.losses.count} cheezein cost se sasti biki · kul ${fmt.cost(data.losses.amount)}` : 'Koi cheez cost se sasti nahi biki'}>
             <BriefList rows={data.losses.items} empty="Shabash — sab munafe me" tone="rose" value={(r) => fmt.cost(r.profit ?? 0)}
-              sub={(r) => `${qty(r.qty)} ${r.unit} · ${fmt.money(r.revenue)} bikri${r.discount ? ` · chhoot ${fmt.money(r.discount)}` : ''}`} />
+              sub={(r) => `${qty(r.qty)} ${r.unit} · ${fmt.money(r.revenue)} sale${r.discount ? ` · discount ${fmt.money(r.discount)}` : ''}`} />
           </Card>
         ) : (
           <WeekdayCard data={data} fmt={fmt} />
@@ -109,33 +109,33 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-pink-600" />Discount ka asar</span>}
-          description={t.gross > 0 ? `${fmt.money(t.discount)} chhoot — list rate ka ${((t.discount / t.gross) * 100).toFixed(1)}%` : 'Koi chhoot nahi'}>
+          description={t.gross > 0 ? `${fmt.money(t.discount)} discount — list rate ka ${((t.discount / t.gross) * 100).toFixed(1)}%` : 'Koi discount nahi'}>
           {!fmt.costHidden && t.discount > 0 && (
             <p className="mb-3 rounded-xl bg-pink-50 px-3 py-2 text-[0.8125rem] text-pink-900">
-              Bina chhoot munafa {fmt.cost((t.profit ?? 0) + t.discount)} hota — chhoot ne munafe ka {(t.profit ?? 0) + t.discount > 0 ? ((t.discount / ((t.profit ?? 0) + t.discount)) * 100).toFixed(0) : 0}% le liya.
+              Bina discount profit {fmt.cost((t.profit ?? 0) + t.discount)} hota — discount ne munafe ka {(t.profit ?? 0) + t.discount > 0 ? ((t.discount / ((t.profit ?? 0) + t.discount)) * 100).toFixed(0) : 0}% le liya.
             </p>
           )}
-          <BriefList rows={data.discountTop} empty="Kisi cheez par chhoot nahi di" value={(r) => fmt.money(r.discount)}
-            sub={(r) => `${fmt.money(r.revenue)} bikri${fmt.costHidden ? '' : ` · ${fmt.cost(r.profit ?? 0)} munafa`}`} />
+          <BriefList rows={data.discountTop} empty="Kisi cheez par discount nahi di" value={(r) => fmt.money(r.discount)}
+            sub={(r) => `${fmt.money(r.revenue)} sale${fmt.costHidden ? '' : ` · ${fmt.cost(r.profit ?? 0)} profit`}`} />
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-orange-600" />Wapsi ka asar</span>}
-          description={t.refund > 0 ? `${fmt.money(t.refund)} wapas diye · ${qty(t.returnedQty)} cheezein` : 'Is muddat ke bill par koi wapsi nahi'}>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-orange-600" />Return ka asar</span>}
+          description={t.refund > 0 ? `${fmt.money(t.refund)} wapas diye · ${qty(t.returnedQty)} cheezein` : 'Is period ke bill par koi return nahi'}>
           {!fmt.costHidden && t.refund > 0 && (
             <p className="mb-3 rounded-xl bg-orange-50 px-3 py-2 text-[0.8125rem] text-orange-900">
-              Wapsi se munafa {fmt.cost(t.returnProfit ?? 0)} kam hua (maal wapas aaya, us ki lagat bach gayi).
+              Return se profit {fmt.cost(t.returnProfit ?? 0)} kam hua (maal wapas aaya, us ki cost bach gayi).
             </p>
           )}
-          <BriefList rows={data.returnTop} empty="Koi wapsi nahi" value={(r) => fmt.money(r.refund)}
-            sub={(r) => `${qty(r.returnedQty)} ${r.unit} wapas${fmt.costHidden ? '' : ` · munafa ${fmt.cost(r.returnProfit ?? 0)} kam`}`} />
+          <BriefList rows={data.returnTop} empty="Koi return nahi" value={(r) => fmt.money(r.refund)}
+            sub={(r) => `${qty(r.returnedQty)} ${r.unit} wapas${fmt.costHidden ? '' : ` · profit ${fmt.cost(r.returnProfit ?? 0)} kam`}`} />
         </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {!fmt.costHidden && <WeekdayCard data={data} fmt={fmt} />}
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Receipt className="h-4 w-4 text-brand-600" />Kharche</span>}
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Receipt className="h-4 w-4 text-brand-600" />Expenses</span>}
           description={`${fmt.money(data.net.expenses)} · pehle ${fmt.money(data.prevNet.expenses)}`}>
-          {!data.net.expenseCategories.length ? <Empty text="Koi kharcha nahi" /> : (
+          {!data.net.expenseCategories.length ? <Empty text="Koi expense nahi" /> : (
             <ul className="space-y-2.5">
               {data.net.expenseCategories.slice(0, 8).map((c, i) => (
                 <li key={c.id}>
@@ -150,7 +150,7 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
               ))}
             </ul>
           )}
-          <Link to="/expenses" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Kharche dekhein →</Link>
+          <Link to="/expenses" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Expenses dekhein →</Link>
         </Card>
         {!fmt.costHidden && (
           <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageX className="h-4 w-4 text-rose-600" />Kharab aur gum maal</span>}
@@ -192,21 +192,21 @@ export function NetCard({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
     );
   };
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Scale className="h-4 w-4 text-brand-600" />Bikri se asal munafa tak</span>}
-      description={`Pichhli muddat: ${dayLabel(data.range.prevFrom)} — ${dayLabel(data.range.prevTo)}`}>
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Scale className="h-4 w-4 text-brand-600" />Sale se net profit tak</span>}
+      description={`Pichhli period: ${dayLabel(data.range.prevFrom)} — ${dayLabel(data.range.prevTo)}`}>
       <ul>
-        {line('List rate par bikri', t.gross, p.gross, 'money')}
+        {line('List rate par sale', t.gross, p.gross, 'money')}
         {line('Discount', t.discount, p.discount, 'money', { minus: true, invert: true })}
-        {line('Wapsi', t.refund, p.refund, 'money', { minus: true, invert: true })}
-        {line('Asal bikri', t.revenue, p.revenue, 'money', { strong: true })}
-        {line('Maal ki lagat', t.cost ?? 0, p.cost ?? 0, 'cost', { minus: true, invert: true })}
-        {line('Gross munafa', t.profit ?? 0, p.profit ?? 0, 'cost', { strong: true })}
-        {line('Kharche', n.expenses, pn.expenses, 'money', { minus: true, invert: true })}
+        {line('Return', t.refund, p.refund, 'money', { minus: true, invert: true })}
+        {line('Asal sale', t.revenue, p.revenue, 'money', { strong: true })}
+        {line('Maal ki cost', t.cost ?? 0, p.cost ?? 0, 'cost', { minus: true, invert: true })}
+        {line('Gross profit', t.profit ?? 0, p.profit ?? 0, 'cost', { strong: true })}
+        {line('Expenses', n.expenses, pn.expenses, 'money', { minus: true, invert: true })}
         {line('Kharab / gum maal', n.writeOffCost ?? 0, pn.writeOffCost ?? 0, 'cost', { minus: true, invert: true })}
-        {line('Net munafa', n.netProfit ?? 0, pn.netProfit ?? 0, 'cost', { strong: true })}
+        {line('Net profit', n.netProfit ?? 0, pn.netProfit ?? 0, 'cost', { strong: true })}
       </ul>
       {data.filtered && (
-        <p className="mt-2 flex gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />Filter laga hai — kharche poori dukaan ke hain, is liye net munafa sirf andaza hai.</p>
+        <p className="mt-2 flex gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />Filter laga hai — expenses poori dukaan ke hain, is liye net profit sirf andaza hai.</p>
       )}
     </Card>
   );
@@ -223,7 +223,7 @@ function WeekdayCard({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
             <CartesianGrid stroke={theme.grid} vertical={false} />
             <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} tickFormatter={(v: string) => v.slice(0, 3)} />
             <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-            <Tooltip formatter={(v) => [formatPKR(Number(v)), fmt.costHidden ? 'Bikri' : 'Munafa']} {...theme.tooltip} />
+            <Tooltip formatter={(v) => [formatPKR(Number(v)), fmt.costHidden ? 'Sale' : 'Profit']} {...theme.tooltip} />
             <Bar dataKey={key} fill={theme.highlight} radius={[6, 6, 0, 0]} barSize={22} />
           </BarChart>
         </ResponsiveContainer>

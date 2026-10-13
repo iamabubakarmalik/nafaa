@@ -276,7 +276,7 @@ export class CustomersService {
         softDeleted: true,
         message: Math.abs(customer.balance) > 0.009
           ? 'Is customer ka khata baqi hai — mitaya nahi, band kar diya'
-          : 'Is customer ki purani bikri / khata hai — mitaya nahi, band kar diya taake record salamat rahe',
+          : 'Is customer ki purani sale / khata hai — mitaya nahi, band kar diya taake record salamat rahe',
       };
     }
     await this.prisma.customer.delete({ where: { id } });

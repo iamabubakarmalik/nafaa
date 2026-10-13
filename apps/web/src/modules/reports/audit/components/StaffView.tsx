@@ -26,7 +26,7 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
   const chart = rows.filter((s) => s.score > 0).slice(0, 12).map((s) => ({ name: s.name, score: s.score }));
 
   if (loading || !staff) return <div className="grid gap-4"><Skeleton className="h-64 rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></div>;
-  if (!rows.length) return <Panel icon={Users} title="Staff ka risk"><Empty icon={Users} text="Is muddat me kisi staff ka koi kaam nahi" /></Panel>;
+  if (!rows.length) return <Panel icon={Users} title="Staff ka risk"><Empty icon={Users} text="Is period me kisi staff ka koi kaam nahi" /></Panel>;
 
   return (
     <div className="space-y-4">
@@ -54,7 +54,7 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
             <thead className="border-y border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-5 py-2">Staff</th><th className="px-2 py-2 text-right">Bill</th><th className="px-2 py-2 text-right">Void</th>
-                <th className="px-2 py-2 text-right">Wapsi</th><th className="px-2 py-2 text-right">Chhoot</th><th className="px-2 py-2 text-right">Drawer kam</th>
+                <th className="px-2 py-2 text-right">Return</th><th className="px-2 py-2 text-right">Discount</th><th className="px-2 py-2 text-right">Drawer kam</th>
                 {!fmt.costHidden && <th className="px-2 py-2 text-right">Stock nuqsan</th>}
                 <th className="px-2 py-2 text-right">Waqiye</th><th className="px-5 py-2">Sab se zyada</th>
               </tr>
@@ -91,7 +91,7 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
                 <ScoreRing score={s.score} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold text-slate-900">{s.name}</span>
-                  <span className="block truncate text-[0.75rem] text-slate-500">{s.bills} bill · {s.voids} void · {fmt.money(s.refundValue)} wapsi · {fmt.money(s.drawerShort)} drawer kam</span>
+                  <span className="block truncate text-[0.75rem] text-slate-500">{s.bills} bill · {s.voids} void · {fmt.money(s.refundValue)} return · {fmt.money(s.drawerShort)} drawer kam</span>
                 </span>
                 {s.high > 0 && <span className="text-[0.75rem] font-semibold text-rose-600">{s.high}</span>}
               </button>
@@ -130,8 +130,8 @@ export function StaffDrawer({ s, all, filters, fmt, onFocus, onOpenEvent, onClos
   };
   const lines: Array<{ label: string; mine: number; shop: number; text: string }> = [
     { label: 'Void bill', mine: rate(s.voids, s.bills), shop: avg.void, text: `${s.voids} bill · ${fmt.money(s.voidValue)}` },
-    { label: 'Wapsi (bikri ka)', mine: rate(s.refundValue, s.sales), shop: avg.refund, text: `${s.refunds} · ${fmt.money(s.refundValue)} · ${s.cashRefunds} cash` },
-    { label: 'Haath ki chhoot (bikri ka)', mine: rate(s.discountValue, s.sales), shop: avg.discount, text: `${s.discounts} bill · ${fmt.money(s.discountValue)}` },
+    { label: 'Return (sale ka)', mine: rate(s.refundValue, s.sales), shop: avg.refund, text: `${s.refunds} · ${fmt.money(s.refundValue)} · ${s.cashRefunds} cash` },
+    { label: 'Haath ki discount (sale ka)', mine: rate(s.discountValue, s.sales), shop: avg.discount, text: `${s.discounts} bill · ${fmt.money(s.discountValue)}` },
   ];
 
   return createPortal(
@@ -171,8 +171,8 @@ export function StaffDrawer({ s, all, filters, fmt, onFocus, onOpenEvent, onClos
             <Fact label="Drawer kam" value={fmt.money(s.drawerShort)} hint={`${s.shortCount} dafa`} bad={s.drawerShort > 0} />
             <Fact label="Drawer zyada" value={fmt.money(s.drawerOver)} />
             <Fact label="Galle se nikale" value={fmt.money(s.cashOut)} />
-            {!fmt.costHidden && <Fact label="Stock nuqsan (lagat)" value={fmt.cost(s.cost ?? 0)} />}
-            <Fact label="Lagat se kam bechi" value={`${s.belowCost} bill`} />
+            {!fmt.costHidden && <Fact label="Stock nuqsan (cost)" value={fmt.cost(s.cost ?? 0)} />}
+            <Fact label="Cost se kam bechi" value={`${s.belowCost} bill`} />
             <Fact label="Ghalat PIN" value={String(s.pinFailed)} bad={s.pinFailed >= 3} />
             <Fact label="Dukaan ke waqt ke baad" value={String(s.afterHours)} bad={s.afterHours >= 3} />
             <Fact label="Kul waqiye" value={String(s.events)} hint={`${s.high} zaroori`} bad={s.high > 0} />

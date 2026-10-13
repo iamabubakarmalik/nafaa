@@ -23,7 +23,7 @@ export function transfersListDoc(list: TransferList, period: string, scope: stri
       {
         kind: 'table',
         columns: [
-          { label: 'Tareekh' }, { label: 'Transfer #', wideOnly: true }, { label: 'Kahan se' }, { label: 'Kahan' },
+          { label: 'Date' }, { label: 'Transfer #', wideOnly: true }, { label: 'Kahan se' }, { label: 'Kahan' },
           { label: 'Cheezein', align: 'right', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Qeemat', align: 'right' },
         ],
         rows: list.items.map((t) => [

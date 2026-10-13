@@ -50,7 +50,7 @@ export default function TaxPage() {
     return (
       <PageShell>
         <EmptyState className="min-h-[50vh]" icon={<ShieldAlert className="h-6 w-6" />} title="Tax sirf malik ya manager dekh sakte hain"
-          description="Is safhe par dukaan ki poori bikri aur tax ka hisaab hai. Malik se kahein agar aap ko dekhna hai." />
+          description="Is safhe par dukaan ki poori sale aur tax ka hisaab hai. Malik se kahein agar aap ko dekhna hai." />
       </PageShell>
     );
   }
@@ -154,7 +154,7 @@ function Tax() {
   }, [navigate, tab]);
 
   const periodText = resolved ? rangeLabel(resolved.from, resolved.to) : 'Sab tareekhen';
-  const filterText = [authority && AUTH[authority].label, shopId && branchOf(shopId), status && STATUS[status].label, kind && (kind === 'RETURN' ? 'Wapsi' : 'Bill'), query && `"${query}"`].filter(Boolean).join(' · ');
+  const filterText = [authority && AUTH[authority].label, shopId && branchOf(shopId), status && STATUS[status].label, kind && (kind === 'RETURN' ? 'Return' : 'Bill'), query && `"${query}"`].filter(Boolean).join(' · ');
   const filtered = !!authority || !!shopId || !!status || !!kind || !!query;
   const clear = () => { setAuthority(''); setShopId(''); setStatus(''); setKind(''); setSearch(''); };
 
@@ -180,7 +180,7 @@ function Tax() {
     {authority && <FilterChip onRemove={() => setAuthority('')}>{AUTH[authority].label}</FilterChip>}
     {shopId && <FilterChip onRemove={() => setShopId('')}>{branchOf(shopId)}</FilterChip>}
     {status && tab === 'invoices' && <FilterChip onRemove={() => setStatus('')}>{STATUS[status].label}</FilterChip>}
-    {kind && tab === 'invoices' && <FilterChip onRemove={() => setKind('')}>{kind === 'RETURN' ? 'Sirf wapsi' : 'Sirf bill'}</FilterChip>}
+    {kind && tab === 'invoices' && <FilterChip onRemove={() => setKind('')}>{kind === 'RETURN' ? 'Sirf return' : 'Sirf bill'}</FilterChip>}
     {query && tab === 'invoices' && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
   </> : undefined;
 
@@ -213,7 +213,7 @@ function Tax() {
         <KpiRow cols={5}>
           {!a || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
             <KpiCard icon={ReceiptText} color="#2563eb" label="Taxable sale" value={money(t.saleValue)}
-              hint={`${t.bills} bill${t.returns ? ` · ${t.returns} wapsi` : ''} · tax ke baghair`} />
+              hint={`${t.bills} bill${t.returns ? ` · ${t.returns} return` : ''} · tax ke baghair`} />
             <KpiCard icon={Percent} color="#16a34a" label="Tax jama hua" value={money(t.tax)}
               hint={`${t.saleValue ? `Ausat ${((t.tax / t.saleValue) * 100).toFixed(1)}% · ` : ''}${rangeLabel(period.from, period.to)}`} />
             <KpiCard icon={vsLast != null && vsLast < 0 ? TrendingDown : TrendingUp} color={vsLast == null ? '#64748b' : vsLast >= 0 ? '#16a34a' : '#e11d48'}
@@ -235,7 +235,7 @@ function Tax() {
           {!r ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
             <KpiCard icon={ReceiptText} color="#2563eb" label="Sale (tax ke baghair)" value={money(r.totals.grossValue)} hint={`${r.totals.bills} bill`} />
             <KpiCard icon={Percent} color="#16a34a" label="Output tax" value={money(r.totals.grossTax)} hint="Bills par laga tax" />
-            <KpiCard icon={RotateCcw} color="#d97706" label="Credit notes (wapsi)" value={money(r.totals.returnTax)} hint={`${r.totals.returns} wapsi · ${money(r.totals.returnValue)}`} />
+            <KpiCard icon={RotateCcw} color="#d97706" label="Credit notes (return)" value={money(r.totals.returnTax)} hint={`${r.totals.returns} return · ${money(r.totals.returnValue)}`} />
             <KpiCard icon={Landmark} color="#7c3aed" label="Net tax" value={money(r.totals.tax)} hint="Output tax - credit notes" />
             <KpiCard icon={Clock} color={r.notSent.bills ? '#e11d48' : '#64748b'} label="Report me nahi" value={r.notSent.bills}
               hint={r.notSent.bills ? `Tax ${money(r.notSent.tax)} · authority ne abhi nahi liya` : 'Sab bill shamil hain'}
@@ -245,7 +245,7 @@ function Tax() {
       )}
 
       {tab === 'overview' && (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare figures isi muddat ke hain. Sirf woh bill ginte hain jo authority ne qabool kiye.</p>}
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare figures isi period ke hain. Sirf woh bill ginte hain jo authority ne qabool kiye.</p>}
           chips={chips} onClear={clear}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />
           {authorityMenu}
@@ -254,7 +254,7 @@ function Tax() {
       )}
 
       {tab === 'invoices' && (
-        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill number ya authority ka number…" label="Dhoondein" />}
+        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill number ya authority ka number…" label="Search" />}
           chips={chips} onClear={clear}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" />
           {authorityMenu}
@@ -263,8 +263,8 @@ function Tax() {
               value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color,
               hint: invoicesQ.data?.counts[k] != null ? String(invoicesQ.data.counts[k]) : undefined,
             }))]} />
-          <FilterMenu icon={FileText} label={kind === 'RETURN' ? 'Sirf wapsi' : kind === 'SALE' ? 'Sirf bill' : 'Bill aur wapsi'} value={kind} active={!!kind} onChange={setKind} align="right"
-            options={[{ value: '' as const, label: 'Bill aur wapsi' }, { value: 'SALE' as const, label: 'Sirf bill' }, { value: 'RETURN' as const, label: 'Sirf wapsi (credit note)' }]} />
+          <FilterMenu icon={FileText} label={kind === 'RETURN' ? 'Sirf return' : kind === 'SALE' ? 'Sirf bill' : 'Bill aur return'} value={kind} active={!!kind} onChange={setKind} align="right"
+            options={[{ value: '' as const, label: 'Bill aur return' }, { value: 'SALE' as const, label: 'Sirf bill' }, { value: 'RETURN' as const, label: 'Sirf return (credit note)' }]} />
           {branchMenu}
         </FilterBar>
       )}
@@ -284,7 +284,7 @@ function Tax() {
       )}
 
       <ViewTabs value={tab} onChange={go}
-        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> tabs · <Kbd>/</Kbd> dhoondein · <Kbd>G</Kbd> guide</>}
+        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> tabs · <Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</>}
         tabs={[
           { id: 'overview', label: 'Overview', icon: BarChart3 },
           { id: 'invoices', label: 'Invoices', icon: FileText, count: a ? a.health.failed || null : null },

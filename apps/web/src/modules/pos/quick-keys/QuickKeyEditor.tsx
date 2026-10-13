@@ -130,7 +130,7 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
 
   return (
     <Modal open onClose={onClose} size="xl" title={editing ? 'Quick key badlein' : 'Nayi quick key'} closeOnBackdrop={false}
-      description="Counter par ek tap me bikne wali cheez — product, uski qism aur pack, ya combo"
+      description="Counter par ek tap me bikne wali cheez — product, uski type aur pack, ya combo"
       footer={<>
         {editing && (
           <Button variant="ghost" className="mr-auto text-rose-600" loading={remove.isPending}
@@ -188,7 +188,7 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
 
               {source?.hasVariants && (
                 <div>
-                  <p className={labelCls}>Qism (variant)</p>
+                  <p className={labelCls}>Type (variant)</p>
                   <div className="flex flex-wrap gap-1.5">
                     <button type="button" onClick={() => setVariantId(null)}
                       className={cn('rounded-lg px-2.5 py-1.5 text-[0.75rem] font-medium ring-1 transition', !variantId ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
@@ -201,7 +201,7 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
                       </button>
                     ))}
                   </div>
-                  <p className={hintCls}>Ek qism chunein to seedha wahi bikegi. Warna counter par qism poochi jayegi.</p>
+                  <p className={hintCls}>Ek type chunein to seedha wahi bikegi. Warna counter par type poochi jayegi.</p>
                 </div>
               )}
             </div>
@@ -209,7 +209,7 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
             <div>
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input value={comboQuery} onChange={(e) => setComboQuery(e.target.value)} placeholder="Combo dhoondein…" aria-label="Combo dhoondein" className={cn(inputCls, 'pl-9')} />
+                <input value={comboQuery} onChange={(e) => setComboQuery(e.target.value)} placeholder="Combo search…" aria-label="Combo search" className={cn(inputCls, 'pl-9')} />
               </div>
               <div className="mt-2 grid max-h-52 gap-1.5 overflow-y-auto sm:grid-cols-2">
                 {filteredCombos.map((c) => (

@@ -333,7 +333,7 @@ export class PurchasesService {
       if (baseQty > 0) rows.push({ item, baseQty, baseCost: this.baseCost(p, item) });
     }
     const value = r2(rows.reduce((s, r) => s + r.baseQty * r.baseCost, 0));
-    if (value <= 0 && !dto.close) throw new BadRequestException('Kuch bhi nahi aaya — miqdar likhein');
+    if (value <= 0 && !dto.close) throw new BadRequestException('Kuch bhi nahi aaya — quantity likhein');
     const paid = r2(Math.min(Math.max(dto.paidAmount ?? 0, 0), value));
 
     return this.prisma.$transaction(async (tx) => {
@@ -365,7 +365,7 @@ export class PurchasesService {
   /** Sends goods back; the supplier's due goes down by their landed cost. */
   async returnGoods(user: AuthenticatedUser, scope: ShopScope, id: string, dto: ReturnPurchaseDto) {
     const p = await this.own(user, scope, id);
-    if (p.status !== 'RECEIVED' && p.status !== 'PARTIAL') throw new BadRequestException('Sirf aaye hue maal ki wapsi ho sakti hai');
+    if (p.status !== 'RECEIVED' && p.status !== 'PARTIAL') throw new BadRequestException('Sirf aaye hue maal ki return ho sakti hai');
     const byId = new Map(p.items.map((i) => [i.id, i]));
     const rows = dto.items.map((q) => {
       const item = byId.get(q.itemId);
@@ -405,7 +405,7 @@ export class PurchasesService {
   async cancel(user: AuthenticatedUser, scope: ShopScope, id: string, dto: CancelPurchaseDto) {
     const p = await this.own(user, scope, id);
     if (p.status === 'CANCELLED') throw new BadRequestException('Pehle hi cancel hai');
-    if (p.returnedAmount > 0) throw new BadRequestException('Is bill ki wapsi ho chuki — cancel ki jagah baqi maal wapas karein');
+    if (p.returnedAmount > 0) throw new BadRequestException('Is bill ki return ho chuki — cancel ki jagah baqi maal wapas karein');
     const allowNegative = await this.allowNegative(user.tenantId);
     return this.prisma.$transaction(async (tx) => {
       const rows = p.items.map((item) => ({ item, baseQty: item.receivedQty }));

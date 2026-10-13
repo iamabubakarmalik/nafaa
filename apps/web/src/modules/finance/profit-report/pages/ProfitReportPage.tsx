@@ -109,7 +109,7 @@ export default function ProfitReportPage() {
     try {
       const all = await profitApi.items({ ...filters, search: query || undefined, sort: sortNow, view: viewNow, limit: 5000 });
       if (!all.items.length) { toast.error('Is filter me kuch nahi'); return; }
-      profitCsv(all.items, [`Munafa report — ${scopeText}`, `Muddat: ${label}`], !costHidden);
+      profitCsv(all.items, [`Profit report — ${scopeText}`, `Period: ${label}`], !costHidden);
       toast.success(`${all.items.length} cheezein CSV me`);
     } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
   };
@@ -139,7 +139,7 @@ export default function ProfitReportPage() {
   return (
     <PageShell>
       <PageHero
-        title="Munafa — cheez war"
+        title="Profit — cheez war"
         chip={<><CalendarRange />{label}</>}
         busy={overviewQ.isFetching && !overviewQ.isLoading}
         meta={`${config.label} · ${scopeText}`}
@@ -152,23 +152,23 @@ export default function ProfitReportPage() {
           <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={o && t ? [
-          { label: `Asal bikri · ${t.bills} bill`, value: money(t.revenue), hint: `${growth(t.revenue, o.prev.revenue)} pichhli muddat se` },
-          { label: 'Gross munafa', value: cost(t.profit), hint: costHidden ? 'Cost lock' : `${pct(t.margin)} margin · ${growth(t.profit, o.prev.profit)}` },
-          { label: 'Net munafa', value: cost(o.net.netProfit), hint: 'kharche aur kharab maal ke baad' },
+          { label: `Asal sale · ${t.bills} bill`, value: money(t.revenue), hint: `${growth(t.revenue, o.prev.revenue)} pichhli period se` },
+          { label: 'Gross profit', value: cost(t.profit), hint: costHidden ? 'Cost lock' : `${pct(t.margin)} margin · ${growth(t.profit, o.prev.profit)}` },
+          { label: 'Net profit', value: cost(o.net.netProfit), hint: 'expenses aur kharab maal ke baad' },
           { label: 'Cheezein biki', value: String(t.products), hint: `pehle ${o.prev.products}` },
-        ] : [{ label: 'Asal bikri', value: '' }, { label: 'Gross munafa', value: '' }, { label: 'Net munafa', value: '' }, { label: 'Cheezein biki', value: '' }]}
+        ] : [{ label: 'Asal sale', value: '' }, { label: 'Gross profit', value: '' }, { label: 'Net profit', value: '' }, { label: 'Cheezein biki', value: '' }]}
       />
 
       <KpiRow>
         {!o || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
             <KpiCard icon={Sparkles} color="#db2777" label="Discount" value={money(t.discount)} active={viewNow === 'discount'} onClick={() => showView('discount')}
-              hint={t.gross > 0 ? `list rate ka ${((t.discount / t.gross) * 100).toFixed(1)}% · dabayein` : 'koi chhoot nahi'} />
-            <KpiCard icon={RotateCcw} color="#ea580c" label="Wapsi" value={money(t.refund)} active={viewNow === 'returns'} onClick={() => showView('returns')}
-              hint={costHidden ? `${Number(t.returnedQty.toFixed(2))} cheezein wapas` : `munafa ${cost(t.returnProfit)} kam hua`} />
+              hint={t.gross > 0 ? `list rate ka ${((t.discount / t.gross) * 100).toFixed(1)}% · dabayein` : 'koi discount nahi'} />
+            <KpiCard icon={RotateCcw} color="#ea580c" label="Return" value={money(t.refund)} active={viewNow === 'returns'} onClick={() => showView('returns')}
+              hint={costHidden ? `${Number(t.returnedQty.toFixed(2))} cheezein wapas` : `profit ${cost(t.returnProfit)} kam hua`} />
             <KpiCard icon={Flame} color="#e11d48" label="Nuqsan wali cheezein" value={costHidden ? '••' : String(o.losses.count)} active={viewNow === 'loss'}
               onClick={costHidden ? undefined : () => showView('loss')} hint={costHidden ? 'Cost lock' : o.losses.count ? `kul ${cost(o.losses.amount)}` : 'koi nahi'} />
-            <KpiCard icon={Receipt} color="#7c3aed" label="Kharche" value={money(o.net.expenses)} hint={`pehle ${money(o.prevNet.expenses)}`} />
+            <KpiCard icon={Receipt} color="#7c3aed" label="Expenses" value={money(o.net.expenses)} hint={`pehle ${money(o.prevNet.expenses)}`} />
             <KpiCard icon={Scale} color={savedShare >= 95 ? '#16a34a' : '#d97706'} label="Bill ki cost se" value={costHidden ? '••' : `${savedShare.toFixed(0)}%`} active={viewNow === 'fallback'}
               onClick={costHidden || !cb?.fallbackLines ? undefined : () => showView('fallback')}
               hint={costHidden ? 'Cost lock' : cb?.fallbackLines ? `${cb.fallbackLines} lines aaj ki cost se` : 'har line ki apni cost'} />
@@ -180,9 +180,9 @@ export default function ProfitReportPage() {
         <div className="flex flex-wrap items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="min-w-0 flex-1">
-            Munafa har bill line par us waqt ki saved cost se nikalta hai.
-            {cb.fallbackLines > 0 && <> {cb.fallbackLines} purani lines par cost save nahi thi — wahan <b>aaj ki cost</b> lagayi ({money(cb.fallbackRevenue)} ki bikri).</>}
-            {cb.noCostLines > 0 && <> {cb.noCostLines} lines ({cb.noCostProducts} cheezein) ki cost hi nahi bhari — un ka munafa poora dikh raha hai.</>}
+            Profit har bill line par us waqt ki saved cost se nikalta hai.
+            {cb.fallbackLines > 0 && <> {cb.fallbackLines} purani lines par cost save nahi thi — wahan <b>aaj ki cost</b> lagayi ({money(cb.fallbackRevenue)} ki sale).</>}
+            {cb.noCostLines > 0 && <> {cb.noCostLines} lines ({cb.noCostProducts} cheezein) ki cost hi nahi bhari — un ka profit poora dikh raha hai.</>}
           </p>
           <span className="flex gap-1.5">
             {cb.fallbackLines > 0 && <Button size="sm" variant="secondary" onClick={() => showView('fallback')}>Dekhein</Button>}
@@ -192,7 +192,7 @@ export default function ProfitReportPage() {
       )}
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setTab('items'); }} placeholder="Naam, SKU, variant, brand ya supplier…" label="Cheez dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setTab('items'); }} placeholder="Naam, SKU, variant, brand ya supplier…" label="Cheez search" />}
         chips={filtered ? <>
           {viewNow !== 'all' && <FilterChip onRemove={() => setView('all')}>{VIEWS.find((v) => v.value === viewNow)?.label}</FilterChip>}
           {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{categories.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
@@ -219,11 +219,11 @@ export default function ProfitReportPage() {
             options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
             onChange={(v) => setStaffId(v === 'all' ? undefined : v)} />
         )}
-        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sortNow} align="right" width="w-64"
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sortNow} align="right" width="w-64"
           options={SORTS.filter((s) => !costHidden || !COST_SORTS.includes(s.value))} onChange={(v) => { setTab('items'); setSort(v); }} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>A</Kbd> analytics · <Kbd>/</Kbd> dhoondein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>A</Kbd> analytics · <Kbd>/</Kbd> search</>}
         tabs={[
           { id: 'items', label: itemWord === 'Cheez' ? 'Cheezein' : `${itemWord}`, icon: Package, count: itemsQ.data?.total ?? t?.products ?? null },
           { id: 'category', label: 'Category', icon: Layers },
@@ -262,8 +262,8 @@ export default function ProfitReportPage() {
       ) : !itemsQ.data?.items.length ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><Wallet className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi' : 'Is muddat me koi bikri nahi'}</h3>
-          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Muddat badlein — "Tareekh" se 30 din, is mahine ya apni tareekh chunein.'}</p>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi' : 'Is period me koi sale nahi'}</h3>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Period badlein — "Date" se 30 din, is mahine ya apni date chunein.'}</p>
           {filtered && <div className="mt-4"><Button variant="secondary" onClick={clear}>Filter hatayein</Button></div>}
         </div>
       ) : (
@@ -284,25 +284,25 @@ export default function ProfitReportPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Munafa report — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title="Profit report — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: '"Tareekh" se aaj, 7 din, is mahine ya apni tareekh. Har number ke saath pichhli utni hi muddat ka muqabla hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Asal bikri aur munafa', text: 'Asal bikri = list rate − discount − wapsi. Munafa = asal bikri − maal ki lagat. Lagat wohi jo bill bante waqt us cheez ki thi.' },
-            { icon: Scale, color: '#d97706', title: 'Net munafa', text: 'Gross munafa me se kharche aur kharab / gum maal (stock adjustment) nikaal kar asal bachat. "Din war" aur "Analytics" me poora hisaab.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: '"Date" se aaj, 7 din, is mahine ya apni date. Har number ke saath pichhli utni hi period ka muqabla hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Asal sale aur profit', text: 'Asal sale = list rate − discount − return. Profit = asal sale − maal ki cost. Cost wohi jo bill bante waqt us cheez ki thi.' },
+            { icon: Scale, color: '#d97706', title: 'Net profit', text: 'Gross profit me se expenses aur kharab / gum maal (stock adjustment) nikaal kar asal bachat. "Din war" aur "Analytics" me poora hisaab.' },
             { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal bikri = bill − wapsi (void bill nahi gine jate). Lagat = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net munafa = munafa − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Munafa report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain.' },
-            { icon: Flame, color: '#e11d48', title: 'Nuqsan aur chhoot', text: 'Upar ke dabbe dabayein: Discount wali, Wapsi wali, Nuqsan wali cheezein. Sirf wohi list me aa jati hain.' },
+            { icon: Flame, color: '#e11d48', title: 'Nuqsan aur discount', text: 'Upar ke dabbe dabayein: Discount wali, Return wali, Nuqsan wali cheezein. Sirf wohi list me aa jati hain.' },
             { icon: Layers, color: '#7c3aed', title: 'Kis cheez se kamai', text: 'Tabs: Category, Brand, Supplier, Staff, Din war. Category, brand ya staff par click karein to us ka filter lag jata hai.' },
-            { icon: ListChecks, color: '#0891b2', title: 'Variant aur export', text: 'Jis cheez ke variant hon us ke teer par click karein — har size / rang ka munafa. CSV aur Print/PDF me poori list.' },
+            { icon: ListChecks, color: '#0891b2', title: 'Variant aur export', text: 'Jis cheez ke variant hon us ke teer par click karein — har size / rang ka profit. CSV aur Print/PDF me poori list.' },
             ...(config.guide ?? []),
           ]}
           tips={[
             'Jin purane bills par cost save nahi thi, un par aaj ki cost lagti hai — peeli patti batati hai kitni lines aisi hain.',
-            'Jis cheez ki cost bhari hi nahi us ka munafa 100% dikhta hai. "Bina cost" list se cost bharein.',
-            'Wapsi usi bill ki muddat me ginti hai jis bill ka maal tha. Void bill shamil nahi.',
+            'Jis cheez ki cost bhari hi nahi us ka profit 100% dikhta hai. "Bina cost" list se cost bharein.',
+            'Return usi bill ki period me ginti hai jis bill ka maal tha. Void bill shamil nahi.',
             ...(config.tips ?? []),
           ]}
           shortcuts={[['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]}
-          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, variant, brand ya supplier se dhoondein</span>}
+          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, variant, brand ya supplier se search</span>}
         />
       )}
     </PageShell>

@@ -19,7 +19,7 @@ const SLOW_BUYERS = 'Is karobar me log saal me kam dafa aate hain — "Kho gaye"
 const CONFIGS: Record<string, Omit<CustomersReportConfig, 'label'>> = {
   clinic: { noun: 'Mareez', tips: ['Follow-up wale mareez "Dhyan chahiye" me nazar aate hain — unhein WhatsApp par yaad dilayein.'] },
   gym: { noun: 'Members', tips: ['Jo member 30 din se nahi aaya woh "Khatre me" ya "Kho gaye" me chala jata hai — membership khatam hone se pehle rabta karein.'] },
-  salon: { noun: 'Clients', tips: ['Har 4–6 hafte aane wale clients "Wafadar" hain — un ke liye chhoti si chhoot rakhein.'] },
+  salon: { noun: 'Clients', tips: ['Har 4–6 hafte aane wale clients "Wafadar" hain — un ke liye chhoti si discount rakhein.'] },
   hotel: { noun: 'Mehmaan' },
   agri: { noun: 'Kisan', tips: ['Kheti ka kaam mausam ke saath chalta hai — retention ko pichle saal ke isi mahine se milayein.', SLOW_BUYERS] },
   pharmacy: { noun: 'Customers', tips: ['Har mahine dawai lene wale "Wafadar" me hone chahiye — jo is mahine nahi aaye unhein yaad dilayein.'] },

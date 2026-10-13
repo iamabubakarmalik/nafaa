@@ -26,7 +26,7 @@ export const INVOICE_STATUS: Record<InvoiceStatus, StateMeta> = {
 
 export const PAYMENT_STATUS: Record<PaymentStatus, StateMeta> = {
   PENDING: { label: 'Check ho rahi hai', hint: 'Nafaa team 24 ghante me dekhegi', icon: Clock, color: '#d97706', badge: 'warning' },
-  APPROVED: { label: 'Manzoor', hint: 'Plan chalu ho gaya', icon: CheckCircle2, color: '#16a34a', badge: 'success' },
+  APPROVED: { label: 'Approve', hint: 'Plan chalu ho gaya', icon: CheckCircle2, color: '#16a34a', badge: 'success' },
   REJECTED: { label: 'Wapas ki gayi', hint: 'Wajah parh kar dobara bhejein', icon: XCircle, color: '#e11d48', badge: 'danger' },
   REFUNDED: { label: 'Wapas', hint: 'Paise wapas kiye gaye', icon: RotateCcw, color: '#2563eb', badge: 'info' },
 };
@@ -36,7 +36,7 @@ export const SUBSCRIPTION_STATUS: Record<SubscriptionStatus, StateMeta> = {
   TRIAL: { label: 'Free trial', hint: 'Trial chal raha hai, abhi payment nahi chahiye', icon: Sparkles, color: '#2563eb', badge: 'info' },
   PAST_DUE: { label: 'Payment baqi', hint: '3 din ki mohlat — jaldi renew karein', icon: Clock, color: '#d97706', badge: 'warning' },
   EXPIRED: { label: 'Khatam', hint: 'Plan khatam ho gaya — renew karein', icon: XCircle, color: '#e11d48', badge: 'danger' },
-  PENDING_PAYMENT: { label: 'Payment check ho rahi', hint: 'Payment manzoor hote hi plan chalu hoga', icon: Clock, color: '#d97706', badge: 'warning' },
+  PENDING_PAYMENT: { label: 'Payment check ho rahi', hint: 'Payment approve hote hi plan chalu hoga', icon: Clock, color: '#d97706', badge: 'warning' },
   CANCELLED: { label: 'Band', hint: 'Plan band kar diya gaya', icon: Ban, color: '#64748b', badge: 'default' },
 };
 
@@ -78,9 +78,9 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: 'barcodeScanner', planKey: 'featureBarcodeScanner', label: 'Barcode scanner', icon: ScanLine },
   { key: 'khata', planKey: 'featureKhata', label: 'Khata (udhaar)', icon: BookOpen },
   { key: 'cashRegister', planKey: 'featureCashRegister', label: 'Cash drawer', icon: Wallet },
-  { key: 'returns', planKey: 'featureReturns', label: 'Maal wapsi', icon: RotateCcw },
+  { key: 'returns', planKey: 'featureReturns', label: 'Maal return', icon: RotateCcw },
   { key: 'reports', planKey: 'featureReports', label: 'Reports', icon: BarChart3 },
-  { key: 'profitReport', planKey: 'featureProfitReport', label: 'Munafa report', icon: TrendingUp },
+  { key: 'profitReport', planKey: 'featureProfitReport', label: 'Profit report', icon: TrendingUp },
   { key: 'discounts', planKey: 'featureDiscounts', label: 'Discount codes', icon: Tag },
   { key: 'loyalty', planKey: 'featureLoyalty', label: 'Loyalty points', icon: Gift },
   { key: 'multiShop', planKey: 'featureMultiShop', label: 'Kai branches', icon: Store },

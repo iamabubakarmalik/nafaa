@@ -28,14 +28,14 @@ const KIND_META: Record<string, { label: string; icon: LucideIcon; color: string
 };
 
 export function MobilePanel(props: ProfitPanelProps) {
-  return <UnitsSection {...props} kinds={['IMEI', 'USED']} otherLabel="Accessories" title="IMEI war munafa" />;
+  return <UnitsSection {...props} kinds={['IMEI', 'USED']} otherLabel="Accessories" title="IMEI war profit" />;
 }
 
 export function ElectronicsPanel(props: ProfitPanelProps) {
   return (
     <div className="space-y-4">
       <TypeSplit {...props} />
-      <UnitsSection {...props} kinds={['SERIAL', 'IMEI']} otherLabel="Bina serial maal" title="Serial war munafa" />
+      <UnitsSection {...props} kinds={['SERIAL', 'IMEI']} otherLabel="Bina serial maal" title="Serial war profit" />
     </div>
   );
 }
@@ -64,20 +64,20 @@ function UnitsSection({ filters, fmt, kinds, otherLabel, title }: ProfitPanelPro
         })}
       </div>
 
-      <Card className="rounded-2xl" flush title={title} description="Har unit ki apni lagat se — sab se naya pehle (500 tak)"
+      <Card className="rounded-2xl" flush title={title} description="Har unit ki apni cost se — sab se naya pehle (500 tak)"
         actions={(
           <div className="flex flex-wrap items-center gap-2">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="IMEI, serial ya bill…" aria-label="Unit dhoondein"
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="IMEI, serial ya bill…" aria-label="Unit search"
               className="h-9 w-48 rounded-lg border border-slate-200 bg-white px-3 text-[0.8125rem] text-slate-900 outline-none focus:ring-2 focus:ring-brand-500" />
-            <Segmented label="Qism" value={kind} onChange={setKind} items={[{ value: 'all', label: 'Sab' }, ...kinds.map((k) => ({ value: k, label: KIND_META[k].label }))]} />
+            <Segmented label="Type" value={kind} onChange={setKind} items={[{ value: 'all', label: 'Sab' }, ...kinds.map((k) => ({ value: k, label: KIND_META[k].label }))]} />
           </div>
         )}>
         {q.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)}</div>
-          : !q.data?.items.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">Is muddat me koi IMEI ya serial wala unit nahi bika</p> : (
+          : !q.data?.items.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">Is period me koi IMEI ya serial wala unit nahi bika</p> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[44rem] text-[0.8125rem]">
               <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">Unit</th><th className="px-3 py-2">IMEI / serial</th><th className="px-3 py-2">Bill</th><th className="px-3 py-2 text-right">Bika</th><th className="px-3 py-2 text-right">Lagat</th><th className="px-3 py-2 text-right">Munafa</th><th className="px-4 py-2 text-right">Margin</th></tr>
+                <tr><th className="px-4 py-2">Unit</th><th className="px-3 py-2">IMEI / serial</th><th className="px-3 py-2">Bill</th><th className="px-3 py-2 text-right">Bika</th><th className="px-3 py-2 text-right">Cost</th><th className="px-3 py-2 text-right">Profit</th><th className="px-4 py-2 text-right">Margin</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {q.data.items.map((u) => (
@@ -111,7 +111,7 @@ function SplitCard({ label, icon: Icon, color, f, share, fmt }: { label: string;
         <span className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-3.5 w-3.5" /></span>
       </div>
       <p className="mt-1 text-[1.1875rem] font-bold tabular-nums text-slate-900">{fmt.cost(f?.profit ?? 0)}</p>
-      <p className="text-[0.75rem] text-slate-500">{fmt.money(f?.revenue ?? 0)} bikri · {share.toFixed(0)}%{fmt.costHidden ? '' : ` · ${pct(f?.margin)}`}</p>
+      <p className="text-[0.75rem] text-slate-500">{fmt.money(f?.revenue ?? 0)} sale · {share.toFixed(0)}%{fmt.costHidden ? '' : ` · ${pct(f?.margin)}`}</p>
       <p className="text-[0.6875rem] text-slate-400">{qty(f?.qty ?? 0)} units · {f?.bills ?? 0} bill</p>
     </div>
   );
@@ -141,9 +141,9 @@ function TypeSplit({ filters, fmt }: ProfitPanelProps) {
   const total = rows.reduce((s, r) => s + r.revenue, 0);
 
   return (
-    <Card className="rounded-2xl" title="Qism aur halat" description="Kis qism ya halat ke maal se kitni kamai"
-      actions={<Segmented label="Kis hisaab se" value={dim} onChange={setDim} items={[{ value: 'type', label: 'Qism' }, { value: 'condition', label: 'Halat' }]} />}>
-      {items.isLoading || profiles.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !rows.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">Koi bikri nahi</p> : (
+    <Card className="rounded-2xl" title="Type aur halat" description="Kis type ya halat ke maal se kitni kamai"
+      actions={<Segmented label="Kis hisaab se" value={dim} onChange={setDim} items={[{ value: 'type', label: 'Type' }, { value: 'condition', label: 'Halat' }]} />}>
+      {items.isLoading || profiles.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !rows.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">Koi sale nahi</p> : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
             <li key={r.id}>
@@ -156,7 +156,7 @@ function TypeSplit({ filters, fmt }: ProfitPanelProps) {
           ))}
         </ul>
       )}
-      <Link to="/products" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Product ki qism badlein →</Link>
+      <Link to="/products" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Product ki type badlein →</Link>
     </Card>
   );
 }

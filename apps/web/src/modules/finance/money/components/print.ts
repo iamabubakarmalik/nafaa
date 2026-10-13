@@ -49,7 +49,7 @@ export function statementDoc(ledger: MoneyLedger, opts: { title: string; period:
       {
         kind: 'table',
         columns: [
-          { label: 'Waqt' }, { label: 'Qism', wideOnly: true }, { label: 'Tafseel' }, { label: 'Ref', wideOnly: true },
+          { label: 'Waqt' }, { label: 'Type', wideOnly: true }, { label: 'Details' }, { label: 'Ref', wideOnly: true },
           { label: 'Account', wideOnly: true }, { label: 'Aaya', align: 'right' }, { label: 'Gaya', align: 'right' }, { label: 'Net', align: 'right', wideOnly: true },
         ],
         rows: lines,
@@ -70,7 +70,7 @@ export function statementDoc(ledger: MoneyLedger, opts: { title: string; period:
       },
     ],
     footer: ledger.total > ledger.items.length
-      ? `Pehli ${ledger.items.length} entries chhapi hain (kul ${ledger.total}). Khulasa poori muddat ka hai; source wali lines sirf chhapi hui entries ki hain.`
+      ? `Pehli ${ledger.items.length} entries chhapi hain (kul ${ledger.total}). Khulasa poori period ka hai; source wali lines sirf chhapi hui entries ki hain.`
       : undefined,
   };
 }
@@ -86,7 +86,7 @@ export function accountStatementDoc(s: AccountStatement, period: string): PrintD
     title: `${a.name} statement`,
     subtitle: period,
     meta: [
-      ['Qism', KINDS[a.kind].label],
+      ['Type', KINDS[a.kind].label],
       ...(number ? [['Account', number] as [string, string]] : []),
       ...(a.accountTitle ? [['Title', a.accountTitle] as [string, string]] : []),
       ['Branch', a.shop ?? 'Poora karobar'],
@@ -97,7 +97,7 @@ export function accountStatementDoc(s: AccountStatement, period: string): PrintD
       {
         kind: 'table',
         columns: [
-          { label: 'Waqt' }, { label: 'Qism', wideOnly: true }, { label: 'Tafseel' }, { label: 'Ref', wideOnly: true },
+          { label: 'Waqt' }, { label: 'Type', wideOnly: true }, { label: 'Details' }, { label: 'Ref', wideOnly: true },
           { label: 'Aaya', align: 'right' }, { label: 'Gaya', align: 'right' }, { label: 'Balance', align: 'right', wideOnly: true },
         ],
         rows: [
@@ -124,6 +124,6 @@ export function accountStatementDoc(s: AccountStatement, period: string): PrintD
         ],
       },
     ],
-    footer: a.auto ? 'Bikri, wapsi, kharch aur adaigi is account ke payment tareeqe se khud judti hain.' : undefined,
+    footer: a.auto ? 'Sale, return, kharch aur payment is account ke payment tareeqe se khud judti hain.' : undefined,
   };
 }

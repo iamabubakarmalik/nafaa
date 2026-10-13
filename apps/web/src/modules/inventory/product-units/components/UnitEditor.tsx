@@ -120,7 +120,7 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
         <L label={`Ek me kitne ${product.unit} *`} hint={isBase ? 'Asal unit hamesha 1 hota hai' : r > 0 ? `1 ${name || 'pack'} = ${qtyText(r)} ${product.unit}` : 'Misaal: carton me 24'}>
           <input value={isBase ? '1' : rate} onChange={(e) => setRate(e.target.value)} inputMode="decimal" disabled={isBase} className={cn(input, 'tabular-nums')} />
         </L>
-        <L label="Bechne ki qeemat" hint={loose > 0 ? `Khula lene par ${formatPKR(loose)}${saving > 0.5 ? ` — ${formatPKR(saving)} bachat` : ''}` : 'Khali = khula rate × miqdar'}>
+        <L label="Bechne ki qeemat" hint={loose > 0 ? `Khula lene par ${formatPKR(loose)}${saving > 0.5 ? ` — ${formatPKR(saving)} bachat` : ''}` : 'Khali = khula rate × quantity'}>
           <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" placeholder={loose ? String(Math.round(loose)) : '0'} className={cn(input, 'tabular-nums')} />
           {loose > 0 && !isBase && (
             <span className="mt-1 flex flex-wrap gap-1">
@@ -132,7 +132,7 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
           )}
         </L>
         {!costHidden && (
-          <L label="Lagat (cost)" hint={`Khali = ${formatPKR(baseCost * (r || 0))} (cost × miqdar)`}>
+          <L label="Cost (cost)" hint={`Khali = ${formatPKR(baseCost * (r || 0))} (cost × quantity)`}>
             <input value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" placeholder={String(Math.round(baseCost * (r || 0)))} className={cn(input, 'tabular-nums')} />
           </L>
         )}
@@ -149,7 +149,7 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
           </span>
         </L>
         {!unit && product.variants.length > 0 && (
-          <L label="Qism" hint="Sirf ek qism ka pack ho to chunein">
+          <L label="Type" hint="Sirf ek type ka pack ho to chunein">
             <select value={variantId} onChange={(e) => setVariantId(e.target.value)} className={input}>
               <option value="">Sab qismein</option>
               {product.variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
@@ -157,7 +157,7 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
           </L>
         )}
         {!isBase && (
-          <L label="Qism (type)" hint="Reports me chhantne ke liye">
+          <L label="Type (type)" hint="Reports me chhantne ke liye">
             <select value={type} onChange={(e) => setType(e.target.value as UnitConversionType)} className={input}>
               {TYPE_ORDER.map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
             </select>
@@ -167,13 +167,13 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <Switch size="sm" checked={isDefault} onChange={(e) => setDefault(e.target.checked)} label="POS par pehle ye" description="Product chunte hi yahi pack khulega" />
-        {!isBase && <Switch size="sm" checked={isActive} onChange={(e) => setActive(e.target.checked)} label="Chalu" description="Band pack POS aur kharidari me nahi aata" />}
-        {!costHidden && p > 0 && <span className={cn('text-[0.8125rem] font-semibold tabular-nums', margin < 0 ? 'text-rose-700' : 'text-emerald-700')}>Margin {Math.round(margin)}% · munafa {formatPKR(p - c)}</span>}
+        {!isBase && <Switch size="sm" checked={isActive} onChange={(e) => setActive(e.target.checked)} label="Chalu" description="Band pack POS aur purchase me nahi aata" />}
+        {!costHidden && p > 0 && <span className={cn('text-[0.8125rem] font-semibold tabular-nums', margin < 0 ? 'text-rose-700' : 'text-emerald-700')}>Margin {Math.round(margin)}% · profit {formatPKR(p - c)}</span>}
         {r > 0 && !isBase && <span className="text-[0.8125rem] text-slate-500">Stock me {qtyText(Math.floor(product.stock / r))} {name || 'pack'}</span>}
       </div>
 
       {!isBase && loose > 0 && p > loose + 0.5 && <Warn>Pack khula lene se mehnga hai ({formatPKR(p)} vs {formatPKR(loose)}) — customer khula le lega.</Warn>}
-      {!costHidden && p > 0 && p < c && <Warn>Qeemat lagat se kam hai — har pack par nuqsan.</Warn>}
+      {!costHidden && p > 0 && p < c && <Warn>Qeemat cost se kam hai — har pack par nuqsan.</Warn>}
 
       <div className="flex items-center justify-end gap-2">
         {problem && <span className="mr-auto text-[0.75rem] text-amber-700">{problem}</span>}

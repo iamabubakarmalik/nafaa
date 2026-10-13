@@ -60,7 +60,7 @@ export default function AllShopsDashboard() {
             <p className="mt-2 text-sm font-semibold text-white/80">
               {tenantName ? `${tenantName} — ` : ''}
               {totals?.shopCount ?? 0} branches · Sales{' '}
-              <strong>{formatPKR(totals?.todaySales ?? 0)}</strong> · Kharche{' '}
+              <strong>{formatPKR(totals?.todaySales ?? 0)}</strong> · Expenses{' '}
               <strong>{formatPKR(totals?.todayExpenses ?? 0)}</strong>
             </p>
           </div>
@@ -78,7 +78,7 @@ export default function AllShopsDashboard() {
       {/* ── Roll-up tiles ── */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Tile
-          label="Is mahine ki bikri"
+          label="Is mahine ki sale"
           value={formatPKR(totals?.monthSales ?? 0)}
           sub={`Net ${formatPKR(totals?.monthNetProfit ?? 0)}`}
           icon={TrendingUp}
@@ -134,7 +134,7 @@ export default function AllShopsDashboard() {
         <div className="px-5 py-4 border-b border-slate-100">
           <h2 className="font-extrabold text-slate-900">Branch Comparison</h2>
           <p className="text-xs text-slate-500 font-semibold">
-            Is mahine ki bikri ke hisab se — sab se upar wali sab se acha chal rahi hai
+            Is mahine ki sale ke hisab se — sab se upar wali sab se acha chal rahi hai
           </p>
         </div>
 

@@ -82,7 +82,7 @@ export function BulkAddModal({ products, industryId, onClose, onDone }: {
           </label>
           <label className="block text-[0.8125rem] font-medium text-slate-700">Khule rate se kitna kam (%)
             <input value={off} onChange={(e) => setOff(e.target.value)} inputMode="decimal" className={cn(input, 'mt-1 tabular-nums')} />
-            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">0 = khule ke barabar. Pack par chhoot dene ke liye 2–5%</span>
+            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">0 = khule ke barabar. Pack par discount dene ke liye 2–5%</span>
           </label>
           <label className="block text-[0.8125rem] font-medium text-slate-700">Qeemat gol karein
             <select value={roundTo} onChange={(e) => setRoundTo(Number(e.target.value) as (typeof ROUND)[number])} className={cn(input, 'mt-1')}>
@@ -90,7 +90,7 @@ export function BulkAddModal({ products, industryId, onClose, onDone }: {
             </select>
             <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">Misaal: 1,437 → 1,440 (10 ke hisaab se)</span>
           </label>
-          <label className="block text-[0.8125rem] font-medium text-slate-700">Qism (type)
+          <label className="block text-[0.8125rem] font-medium text-slate-700">Type (type)
             <select value={type} onChange={(e) => setType(e.target.value as UnitConversionType)} className={cn(input, 'mt-1')}>
               {TYPE_ORDER.map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
             </select>

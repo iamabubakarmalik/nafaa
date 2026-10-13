@@ -55,7 +55,7 @@ export function StatementPrintModal({ d, onClose }: { d: CommissionDetail; onClo
         { label: 'Mahina', value: periodLabel(d.period), bold: true },
         ...(d.staff?.designation ? [{ label: 'Kaam', value: d.staff.designation }] : []),
         { label: 'Bill', value: String(d.bills) },
-        { label: 'Asal bikri', value: formatPKR(d.sale) },
+        { label: 'Asal sale', value: formatPKR(d.sale) },
       ],
       lines: d.lines.length
         ? d.lines.map((l) => ({
@@ -65,7 +65,7 @@ export function StatementPrintModal({ d, onClose }: { d: CommissionDetail; onClo
         : [{ name: 'Is mahine koi commission nahi', qty: 1, unit: '', price: 0, total: 0 }],
       subtotal: earnedOnSales,
       discount: 0,
-      extraRows: takenBack ? [{ label: `Wapsi par wapas (${d.lines.filter((l) => l.returnAmount).map(returnText).join(', ')})`, value: `−Rs ${Math.round(takenBack).toLocaleString('en-PK')}` }] : undefined,
+      extraRows: takenBack ? [{ label: `Return par wapas (${d.lines.filter((l) => l.returnAmount).map(returnText).join(', ')})`, value: `−Rs ${Math.round(takenBack).toLocaleString('en-PK')}` }] : undefined,
       total: d.earned,
       paid,
       paymentLabel: paid ? 'Ada hua' : 'Abhi ada nahi',
@@ -97,7 +97,7 @@ export function StatementPrintModal({ d, onClose }: { d: CommissionDetail; onClo
           </div>
           <div>
             <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Slip par</p>
-            <Toggle k="working" label="Hisab kaise bana" hint="Har rule ke neeche bikri × rate" />
+            <Toggle k="working" label="Hisab kaise bana" hint="Har rule ke neeche sale × rate" />
             <Toggle k="signature" label="Dastkhat ki jagah" hint="Lene aur dene wale dono (A4)" />
             <Toggle k="logo" label="Logo" />
           </div>

@@ -56,13 +56,13 @@ const CONFIGS: Record<string, LowStockConfig> = {
   electronics: {
     label: 'Electronics',
     deviceLink: (id) => `/electronics-products/${id}`,
-    groups: { title: 'Qism', label: (id) => ELECTRONICS_TYPES[id as keyof typeof ELECTRONICS_TYPES]?.label ?? id },
+    groups: { title: 'Type', label: (id) => ELECTRONICS_TYPES[id as keyof typeof ELECTRONICS_TYPES]?.label ?? id },
     guide: [{ icon: Barcode, color: '#2563eb', title: 'Serial wale model', text: 'Laptop, camera jaise serial wale maal ki ginti serial se hoti hai. Cable, charger ka stock aam tareeqe se.' }],
   },
   appliances: {
     label: 'Appliances',
     deviceLink: (id) => `/appliance-products/${id}`,
-    groups: { title: 'Qism', label: (id) => catLabel(id) },
+    groups: { title: 'Type', label: (id) => catLabel(id) },
     defaults: { targetDays: 15 },
     guide: [{ icon: Snowflake, color: '#0891b2', title: 'Mausam ka khayal', text: 'Garmi se pehle AC aur cooler, sardi se pehle geyser aur heater. Mehenga maal hai — order kam din ka banta hai (15 din), Settings se badlein.' }],
   },
@@ -79,7 +79,7 @@ const CONFIGS: Record<string, LowStockConfig> = {
   agri: {
     label: 'Agri',
     statuses: ['registration', 'season'],
-    groups: { title: 'Qism', label: (id) => prettyAgriKind(id as AgriKind) },
+    groups: { title: 'Type', label: (id) => prettyAgriKind(id as AgriKind) },
     Banner: AgriBanner,
     guide: [
       { icon: ShieldAlert, color: '#be123c', title: 'Registration', text: 'Beej, khaad aur spray ki sarkari registration khatam ho to stock hone par bhi bechna mana hai. "Registration" filter se dekhein aur renew karwayein.' },

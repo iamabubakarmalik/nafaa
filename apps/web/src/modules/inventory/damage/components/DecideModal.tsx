@@ -14,7 +14,7 @@ import { STOCK_KEYS } from '@modules/inventory/stock-adjustments/components/meta
 import { damageApi, type DamageLog } from '../api/damage.api';
 import { DAMAGE_KEY, apiError, itemLabel, qtyLabel } from './meta';
 
-const REJECT_CHIPS = ['Maal theek hai', 'Ghalat miqdar', 'Photo saaf nahi', 'Dobara report karein'];
+const REJECT_CHIPS = ['Maal theek hai', 'Ghalat quantity', 'Photo saaf nahi', 'Dobara report karein'];
 
 export function DecideModal({ mode, rows, onClose, onDone }: {
   mode: 'approve' | 'reject';
@@ -44,25 +44,25 @@ export function DecideModal({ mode, rows, onClose, onDone }: {
       return { ok, failed };
     },
     onSuccess: ({ ok, failed }) => {
-      if (ok) toast.success(approve ? `${ok} report manzoor — stock se nikal gaya` : `${ok} report rad`);
+      if (ok) toast.success(approve ? `${ok} report approve — stock se nikal gaya` : `${ok} report rad`);
       if (failed.length) toast.error(`${failed.length} nahi hue: ${failed[0]}`);
       qc.invalidateQueries({ queryKey: [DAMAGE_KEY] });
       if (approve && ok) STOCK_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onDone?.();
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, approve ? 'Manzoor nahi hua' : 'Rad nahi hua')),
+    onError: (e) => toast.error(apiError(e, approve ? 'Approve nahi hua' : 'Rad nahi hua')),
   });
 
   return (
     <Modal open onClose={onClose} size="md"
-      title={approve ? (rows.length > 1 ? `${rows.length} report manzoor karein` : 'Report manzoor karein') : (rows.length > 1 ? `${rows.length} report rad karein` : 'Report rad karein')}
-      description={approve ? 'Manzoori par maal branch ke stock se nikal jayega aur Stock adjustments me "Kharab" ya "Gum" ban kar dikhega.' : 'Rad karne se stock nahi badalta. Report record me "Rad" likhi rahegi.'}
+      title={approve ? (rows.length > 1 ? `${rows.length} report approve karein` : 'Report approve karein') : (rows.length > 1 ? `${rows.length} report rad karein` : 'Report rad karein')}
+      description={approve ? 'Approval par maal branch ke stock se nikal jayega aur Stock adjustments me "Kharab" ya "Gum" ban kar dikhega.' : 'Rad karne se stock nahi badalta. Report record me "Rad" likhi rahegi.'}
       footer={<>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button variant={approve ? 'primary' : 'danger'} loading={run.isPending} onClick={() => run.mutate()}
           leftIcon={approve ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}>
-          {approve ? 'Manzoor karein' : 'Rad karein'}
+          {approve ? 'Approve karein' : 'Rad karein'}
         </Button>
       </>}>
       <div className="space-y-3">

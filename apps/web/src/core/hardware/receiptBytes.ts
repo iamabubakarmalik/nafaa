@@ -32,7 +32,7 @@ export function receiptBytes(
   if (d.showTaxNumber && shop.taxNumber) e.line(`${shop.taxLabel || 'NTN'}: ${shop.taxNumber}`);
   e.align('left').rule();
   e.row('Bill #', p.saleNumber);
-  e.row('Tareekh', p.date.toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' }));
+  e.row('Date', p.date.toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' }));
   if (d.showCustomer && p.customerName) e.row('Customer', p.customerName);
   if (d.showCashier && p.cashierName) e.row('Cashier', p.cashierName);
   for (const r of p.infoRows ?? []) e.row(r.label, r.value);
@@ -41,13 +41,13 @@ export function receiptBytes(
   p.lines.forEach((l, i) => {
     e.bold(true).wrap(`${d.showItemNumbers ? `${i + 1}. ` : ''}${l.name}`).bold(false);
     e.row(`   ${l.qty} ${l.unit} x ${formatPKR(l.price)}`, formatPKR(l.total));
-    if (l.discount) e.row('   Chhoot', `-${formatPKR(l.discount)}`);
+    if (l.discount) e.row('   Discount', `-${formatPKR(l.discount)}`);
     if (l.note) e.wrap(`-> ${l.note}`, '   ');
     if (d.showItemDetails) for (const x of l.details ?? []) e.wrap(x, '   ');
   });
   e.rule();
   e.row(`Items ${p.lines.length}`, formatPKR(p.subtotal));
-  if (p.discount > 0) e.row('Chhoot', `-${formatPKR(p.discount)}`);
+  if (p.discount > 0) e.row('Discount', `-${formatPKR(p.discount)}`);
   if ((p.deliveryCharge ?? 0) > 0) {
     e.row('Delivery', `+${formatPKR(p.deliveryCharge)}`);
     if (p.deliveryAddress) e.wrap(p.deliveryAddress, '  ');

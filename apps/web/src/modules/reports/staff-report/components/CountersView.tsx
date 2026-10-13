@@ -132,7 +132,7 @@ export function CountersView({ period, staff, money, multiBranch, staffId, setSt
             {d.byShop.map((b) => (
               <div key={b.key} className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-100">
                 <p className="font-semibold text-slate-900">{b.label}</p>
-                <p className="mt-0.5 text-[0.75rem] text-slate-500">{b.shifts} shift · cash bikri {money(b.cashSales)}</p>
+                <p className="mt-0.5 text-[0.75rem] text-slate-500">{b.shifts} shift · cash sale {money(b.cashSales)}</p>
                 <p className="mt-1 text-[0.8125rem]">
                   <span className="text-rose-700">−{money(b.short)}</span> · <span className="text-amber-700">+{money(b.over)}</span>
                   <span className="text-slate-500"> · {pct(b.matchedPct)} barabar</span>
@@ -148,7 +148,7 @@ export function CountersView({ period, staff, money, multiBranch, staffId, setSt
           <h2 className="flex items-center gap-2 text-[0.875rem] font-semibold text-slate-900"><Vault className="h-4 w-4 text-brand-600" />Shifts <span className="font-normal text-slate-500">· {d.count}</span></h2>
           {d.capped && <span className="text-[0.75rem] text-amber-700">Upar ke number pehli 5000 shifts ke hain</span>}
         </header>
-        {!d.items.length ? <Empty text={status || staffId ? 'Is filter me koi shift nahi' : 'Is muddat me galla nahi khula'} /> : (
+        {!d.items.length ? <Empty text={status || staffId ? 'Is filter me koi shift nahi' : 'Is period me galla nahi khula'} /> : (
           <ul className="divide-y divide-slate-100">
             {d.items.map((s) => <ShiftItem key={s.id} s={s} money={money} open={openId === s.id} onToggle={() => setOpenId(openId === s.id ? null : s.id)} />)}
           </ul>
@@ -198,11 +198,11 @@ function ShiftItem({ s, money, open, onToggle }: { s: ShiftRow; money: (n: numbe
       {open && (
         <div className="grid grid-cols-2 gap-2 bg-slate-50/60 px-4 pb-4 pt-1 sm:grid-cols-4">
           <Figure label="Shuru ka cash" value={money(s.opening)} />
-          <Figure label="Cash bikri" value={money(s.cashSales)} hint={`${s.bills} bill · kul ${money(s.billTotal)}`} />
+          <Figure label="Cash sale" value={money(s.cashSales)} hint={`${s.bills} bill · kul ${money(s.billTotal)}`} />
           <Figure label="Cash daala" value={money(s.cashIn)} hint={`${s.cashInCount} dafa`} />
           <Figure label="Cash nikala" value={money(s.cashOut)} hint={`${s.cashOutCount} dafa`} />
-          <Figure label="Kharche (galle se)" value={money(s.expenses)} />
-          <Figure label="Wapsi (galle se)" value={money(s.refunds)} />
+          <Figure label="Expenses (galle se)" value={money(s.expenses)} />
+          <Figure label="Return (galle se)" value={money(s.refunds)} />
           <Figure label={<span className="inline-flex items-center gap-1"><LogIn className="h-3 w-3" />Kholi</span>} value={s.openedBy.fullName} hint={when(s.openedAt)} />
           <Figure label={<span className="inline-flex items-center gap-1"><LogOut className="h-3 w-3" />Band ki</span>} value={s.closedBy?.fullName ?? '—'} hint={s.closedAt ? when(s.closedAt) : 'Abhi khuli hai'} />
           {s.notes && <p className="col-span-2 rounded-xl bg-white px-3 py-2 text-[0.8125rem] text-slate-600 ring-1 ring-slate-100 sm:col-span-4">Note: {s.notes}</p>}

@@ -14,20 +14,20 @@ const day = (v: string) => new Date(v).toLocaleString('en-PK', { day: 'numeric',
 export function returnsDoc(list: ReturnList, period: string, filter: string): PrintDoc {
   const t = list.totals;
   return {
-    title: 'Maal wapsi (Returns)',
+    title: 'Maal return (Returns)',
     subtitle: period,
     meta: [
-      ['Wapsi', String(t.count)],
+      ['Return', String(t.count)],
       ...(filter ? [['Filter', filter] as [string, string]] : []),
       ['Wapas kiya', formatPKR(t.refunded)],
-      ['Bikri ka', `${t.rate}%`],
+      ['Sale ka', `${t.rate}%`],
     ],
     sections: [
       {
         kind: 'table',
         columns: [
           { label: 'Waqt' }, { label: 'No.', wideOnly: true }, { label: 'Bill' }, { label: 'Customer', wideOnly: true },
-          { label: 'Cheezein' }, { label: 'Raqam', align: 'right' }, { label: 'Kaise', wideOnly: true }, { label: 'Stock', wideOnly: true },
+          { label: 'Cheezein' }, { label: 'Amount', align: 'right' }, { label: 'Kaise', wideOnly: true }, { label: 'Stock', wideOnly: true },
           { label: 'Wajah', wideOnly: true }, { label: 'Kis ne', wideOnly: true },
         ],
         rows: list.items.map((r) => [
@@ -51,6 +51,6 @@ export function returnsDoc(list: ReturnList, period: string, filter: string): Pr
         ],
       },
     ],
-    footer: list.total > list.items.length ? `Pehli ${list.items.length} wapsi dikhayi gayi hain (kul ${list.total})` : undefined,
+    footer: list.total > list.items.length ? `Pehli ${list.items.length} return dikhayi gayi hain (kul ${list.total})` : undefined,
   };
 }

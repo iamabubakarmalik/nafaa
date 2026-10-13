@@ -150,7 +150,7 @@ export default function ConnectChannelPage() {
             ) : conn.phase === 'denied' ? (
               <div className="rounded-lg border border-rose-200 bg-rose-50/60 p-4 text-center dark:border-rose-500/30 dark:bg-rose-500/5">
                 <XCircle className="mx-auto h-8 w-8 text-rose-500" />
-                <div className="mt-2 text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">Ijazat nahi di gayi</div>
+                <div className="mt-2 text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">Permission nahi di gayi</div>
                 <Btn className="mt-3" onClick={() => conn.reset()}>Dobara koshish</Btn>
               </div>
             ) : conn.phase === 'manual' && conn.channelId ? (
@@ -215,7 +215,7 @@ export default function ConnectChannelPage() {
               ))}
             </ul>
           </Card>
-          <Card title="Kaun si ijazat">
+          <Card title="Kaun si permission">
             <ul className="space-y-1.5 text-[0.78125rem] text-slate-600 dark:text-ink-300">
               <li>✓ Orders dekhna aur status badalna</li>
               <li>✓ Products aur stock</li>

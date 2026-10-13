@@ -40,14 +40,14 @@ interface FileCard {
 }
 
 const FILES: FileCard[] = [
-  { kind: 'sales', title: 'Bikri', text: 'Har bill: customer, raqam, discount, udhaar, wapsi, payment aur cashier', icon: ShoppingCart, color: '#16a34a', permission: PERMISSIONS.SALES_VIEW, dated: true, pdf: true },
-  { kind: 'purchases', title: 'Kharidari', text: 'Supplier ke bill: maal, tax, adaigi aur wapsi', icon: Truck, color: '#d97706', permission: PERMISSIONS.PURCHASES_VIEW, dated: true },
-  { kind: 'expenses', title: 'Kharche', text: 'Har kharcha: qism, raqam, tareeqa aur kis ne likha', icon: Wallet, color: '#e11d48', permission: PERMISSIONS.EXPENSES_VIEW, dated: true },
+  { kind: 'sales', title: 'Sale', text: 'Har bill: customer, amount, discount, udhaar, return, payment aur cashier', icon: ShoppingCart, color: '#16a34a', permission: PERMISSIONS.SALES_VIEW, dated: true, pdf: true },
+  { kind: 'purchases', title: 'Purchase', text: 'Supplier ke bill: maal, tax, payment aur return', icon: Truck, color: '#d97706', permission: PERMISSIONS.PURCHASES_VIEW, dated: true },
+  { kind: 'expenses', title: 'Expenses', text: 'Har expense: type, amount, tareeqa aur kis ne likha', icon: Wallet, color: '#e11d48', permission: PERMISSIONS.EXPENSES_VIEW, dated: true },
   { kind: 'ledger', title: 'Khata', text: 'Customers ka udhaar aur wasooli, har entry ke baad baqi', icon: BookOpen, color: '#7c3aed', permission: PERMISSIONS.KHATA_VIEW, dated: true },
-  { kind: 'stock-movements', title: 'Stock ka aana jana', text: 'Kharid, bikri, wapsi, kharab, transfer — har tabdeeli', icon: ArrowLeftRight, color: '#0891b2', permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW, dated: true },
+  { kind: 'stock-movements', title: 'Stock ka aana jana', text: 'Kharid, sale, return, kharab, transfer — har tabdeeli', icon: ArrowLeftRight, color: '#0891b2', permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW, dated: true },
   { kind: 'products', title: 'Maal (products)', text: 'Saare products: qeemat, stock, barcode aur category', icon: Package, color: '#2563eb', permission: PERMISSIONS.PRODUCTS_VIEW, dated: false },
   { kind: 'customers', title: 'Customers', text: 'Naam, phone, udhaar, credit limit aur loyalty points', icon: Users, color: '#db2777', permission: PERMISSIONS.CUSTOMERS_VIEW, dated: false },
-  { kind: 'suppliers', title: 'Suppliers', text: 'Rabta, bank tafseel, kul kharid aur baqi', icon: Truck, color: '#ea580c', permission: PERMISSIONS.SUPPLIERS_VIEW, dated: false },
+  { kind: 'suppliers', title: 'Suppliers', text: 'Rabta, bank details, kul kharid aur baqi', icon: Truck, color: '#ea580c', permission: PERMISSIONS.SUPPLIERS_VIEW, dated: false },
 ];
 
 const when = (v: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
@@ -104,14 +104,14 @@ export default function ExportsPage() {
       {guide.isOpen && (
         <PageGuide title="Exports — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: 'Bikri, kharidari, kharche, khata aur stock ki files isi muddat ki banti hain.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: 'Sale, purchase, expenses, khata aur stock ki files isi period ki banti hain.' },
             { icon: FileSpreadsheet, color: '#16a34a', title: 'Excel dabayein', text: 'File foran download hoti hai — Excel, Google Sheets ya phone par khulti hai.' },
-            { icon: FileText, color: '#e11d48', title: 'Bikri ka PDF', text: 'Print ke liye tayyar bikri ki list (naye 500 bill). Poori list Excel me.' },
+            { icon: FileText, color: '#e11d48', title: 'Sale ka PDF', text: 'Print ke liye tayyar sale ki list (naye 500 bill). Poori list Excel me.' },
             { icon: History, color: '#7c3aed', title: 'History', text: 'Kis ne kab kaunsi file nikaali — sab yahan likha rehta hai.' },
           ]}
           tips={[
             'Upar branch badalne se file usi branch ki banti hai. "Sab branches" par poora karobar.',
-            canCost ? 'Cost aur stock ki qeemat sirf un files me aati hai jinhein cost dekhne ki ijazat ho.' : 'Cost ke column aap ki files me nahi aate — ye ijazat malik deta hai.',
+            canCost ? 'Cost aur stock ki qeemat sirf un files me aati hai jinhein cost dekhne ki permission ho.' : 'Cost ke column aap ki files me nahi aate — ye permission malik deta hai.',
             'Files me customers ke phone aur udhaar hota hai — sirf bharose wale ko bhejein.',
           ]}
           shortcuts={[['/', 'dhoondein'], ['1-2', 'tabs'], ['G', 'guide']]} />
@@ -134,14 +134,14 @@ export default function ExportsPage() {
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={FileSpreadsheet} color="#16a34a" label="Muddat wali files" value={String(files.filter((f) => f.dated).length)} hint={label} />
+        <KpiCard icon={FileSpreadsheet} color="#16a34a" label="Period wali files" value={String(files.filter((f) => f.dated).length)} hint={label} />
         <KpiCard icon={Package} color="#2563eb" label="Poori list wali" value={String(files.filter((f) => !f.dated).length)} hint="Maal, customers, suppliers" />
         <KpiCard icon={History} color="#7c3aed" label="Aap ki downloads" value={String(mine)} hint="History · dabayein" onClick={() => setTab('history')} active={tab === 'history'} />
-        <KpiCard icon={ShieldCheck} color="#0891b2" label="Cost columns" value={canCost ? 'Shaamil' : 'Chhupe'} hint={canCost ? 'Aap cost dekh sakte hain' : 'Ijazat nahi'} />
+        <KpiCard icon={ShieldCheck} color="#0891b2" label="Cost columns" value={canCost ? 'Shaamil' : 'Chhupe'} hint={canCost ? 'Aap cost dekh sakte hain' : 'Permission nahi'} />
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="File dhoondein: bikri, khata, stock…" label="File dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="File search: sale, khata, stock…" label="File search" />}
         chips={q ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
         onClear={() => setSearch('')}>
         <DateRangeMenu value={period} onChange={setPeriod} startHour={startHour} defaultPreset="thisMonth" />
@@ -152,7 +152,7 @@ export default function ExportsPage() {
 
       {tab === 'files' && (files.length === 0 ? (
         <div className="rounded-3xl bg-white ring-1 ring-slate-200/80">
-          <EmptyState icon={<Download className="h-6 w-6" />} title={q ? 'Aisi koi file nahi' : 'Koi file aap ke liye nahi'} description={q ? 'Doosra lafz likhein' : 'Records dekhne ki ijazat malik se lein'}
+          <EmptyState icon={<Download className="h-6 w-6" />} title={q ? 'Aisi koi file nahi' : 'Koi file aap ke liye nahi'} description={q ? 'Doosra lafz likhein' : 'Records dekhne ki permission malik se lein'}
             action={q ? <Button variant="secondary" onClick={() => setSearch('')}>Search hatayein</Button> : undefined} />
         </div>
       ) : (

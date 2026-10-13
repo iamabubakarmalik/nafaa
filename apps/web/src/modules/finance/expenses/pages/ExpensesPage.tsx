@@ -129,12 +129,12 @@ export default function ExpensesPage() {
   });
   const setState = useMutation({
     mutationFn: ({ e, to }: { e: Expense; to: ExpenseStatus }) => expensesApi.update(e.id, { status: to }),
-    onSuccess: (e) => { toast.success(e.status === 'CANCELLED' ? 'Kharcha cancel — hisaab se nikal gaya' : 'Kharcha wapas hisaab me'); refresh(); },
+    onSuccess: (e) => { toast.success(e.status === 'CANCELLED' ? 'Expense cancel — hisaab se nikal gaya' : 'Expense wapas hisaab me'); refresh(); },
     onError: (err) => toast.error(apiError(err, 'Nahi hua')),
   });
   const remove = useMutation({
     mutationFn: (e: Expense) => expensesApi.remove(e.id),
-    onSuccess: () => { toast.success('Kharcha mita diya'); refresh(); },
+    onSuccess: () => { toast.success('Expense mita diya'); refresh(); },
     onError: (err) => toast.error(apiError(err, 'Nahi mita')),
   });
 
@@ -156,36 +156,36 @@ export default function ExpensesPage() {
   return (
     <PageShell>
       <PageHero
-        title="Kharche"
+        title="Expenses"
         chip={<><Wallet /> Expenses</>}
-        meta="Kiraya, bijli, salary, chai-pani — har kharcha ek jagah"
+        meta="Kiraya, bijli, salary, chai-pani — har expense ek jagah"
         busy={(listQ.isFetching && !listQ.isLoading) || overviewQ.isFetching}
         loading={overviewQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'record' || !rows.length} /></span>
           <button type="button" onClick={() => setCats(true)} className={heroButton}><Tags className="h-4 w-4" /> Categories</button>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canWrite && <button type="button" onClick={() => setForm({ mode: 'new' })} title="Naya kharcha (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya kharcha</button>}
+          {canWrite && <button type="button" onClick={() => setForm({ mode: 'new' })} title="Naya expense (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya expense</button>}
         </>}
         stats={o ? [
-          { label: 'Is mahine', value: formatPKR(o.month.amount), hint: `${o.month.count} kharche` },
+          { label: 'Is mahine', value: formatPKR(o.month.amount), hint: `${o.month.count} expenses` },
           { label: 'Aaj', value: formatPKR(o.today.amount), hint: o.today.count ? `${o.today.count}` : undefined },
           { label: 'Baqi bill', value: formatPKR(o.pending.amount), hint: o.pending.count ? `${o.pending.count}` : undefined },
-          ...(register?.open ? [{ label: 'Shift me cash kharcha', value: formatPKR(register.cashExpenses), hint: register.registerNumber }] : []),
+          ...(register?.open ? [{ label: 'Shift me cash expense', value: formatPKR(register.cashExpenses), hint: register.registerNumber }] : []),
         ] : [{ label: 'Is mahine', value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!o ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Receipt} color="#e11d48" label="Aaj" value={formatPKR(o.today.amount)} hint={o.today.count ? `${o.today.count} kharche` : 'Aaj abhi koi nahi'}
+          <KpiCard icon={Receipt} color="#e11d48" label="Aaj" value={formatPKR(o.today.amount)} hint={o.today.count ? `${o.today.count} expenses` : 'Aaj abhi koi nahi'}
             onClick={() => { setTab('record'); setRange({ preset: 'today', custom: { from: '', to: '' } }); }} active={tab === 'record' && range.preset === 'today'} />
-          <KpiCard icon={Wallet} color="#7c3aed" label="Is mahine" value={formatPKR(o.month.amount)} hint={`${o.month.count} kharche`}
+          <KpiCard icon={Wallet} color="#7c3aed" label="Is mahine" value={formatPKR(o.month.amount)} hint={`${o.month.count} expenses`}
             onClick={() => { setTab('record'); setRange({ preset: 'thisMonth', custom: { from: '', to: '' } }); }} active={tab === 'record' && range.preset === 'thisMonth' && !status} />
           <KpiCard icon={up ? TrendingUp : TrendingDown} color={o.change == null ? '#64748b' : up ? '#e11d48' : '#16a34a'} label="Pichle mahine se"
             value={o.change == null ? '—' : `${up ? '+' : ''}${o.change}%`}
             hint={`Isi din tak ${formatPKR(o.lastMonth.toDate)} · poora ${formatPKR(o.lastMonth.full)}`}
             onClick={() => { setTab('record'); setRange({ preset: 'lastMonth', custom: { from: '', to: '' } }); }} active={tab === 'record' && range.preset === 'lastMonth'} />
-          <KpiCard icon={FolderTree} color={top?.color ?? '#64748b'} label="Sab se bara kharcha" value={top ? `${top.icon ? `${top.icon} ` : ''}${top.name}` : '—'}
+          <KpiCard icon={FolderTree} color={top?.color ?? '#64748b'} label="Sab se bara expense" value={top ? `${top.icon ? `${top.icon} ` : ''}${top.name}` : '—'}
             hint={top ? `${formatPKR(top.amount)} · mahine ka ${top.share}%` : 'Is mahine abhi kuch nahi'}
             onClick={top ? () => { setTab('record'); setRange({ preset: 'thisMonth', custom: { from: '', to: '' } }); setCategoryId(top.id); } : undefined} active={!!top && categoryId === top.id} />
           <KpiCard icon={Clock} color="#d97706" label="Baqi bill" value={o.pending.count}
@@ -195,14 +195,14 @@ export default function ExpensesPage() {
       </KpiRow>
 
       {tab === 'repeating' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Pichle 3 mahine dekh kar — jo kharcha baar baar aata hai woh yahan hai</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Pichle 3 mahine dekh kar — jo expense baar baar aata hai woh yahan hai</p>}>
           {allShops && shops.length > 1 && <BranchFilter value={shopId} onChange={setShopId} shops={shops} />}
         </FilterBar>
       ) : (
         <FilterBar
           search={tab === 'record'
-            ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Kharcha, number, category ya tafseel…" label="Dhoondein" />
-            : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare charts isi muddat ke hain; pichli itni hi muddat se muqabla</p>}
+            ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Expense, number, category ya details…" label="Search" />
+            : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare charts isi period ke hain; pichli itni hi period se muqabla</p>}
           chips={filtered ? <>
             {categoryId && <FilterChip onRemove={() => setCategoryId('')}>{catLabel}</FilterChip>}
             {method && <FilterChip onRemove={() => setMethod('')}>{methodOf(method).label}</FilterChip>}
@@ -226,14 +226,14 @@ export default function ExpensesPage() {
               options={[{ value: '' as StatusFilter, label: 'Sab' }, ...(Object.keys(STATUS) as ExpenseStatus[]).map((k) => ({ value: k as StatusFilter, label: STATUS[k].label, icon: STATUS[k].icon }))]} />
           )}
           {tab === 'record' && (
-            <FilterMenu icon={ArrowDownWideNarrow} label={sort === 'amount' ? 'Bari raqam pehle' : 'Naye pehle'} value={sort} onChange={setSort} align="right"
-              options={[{ value: 'recent', label: 'Naye pehle' }, { value: 'amount', label: 'Bari raqam pehle' }]} />
+            <FilterMenu icon={ArrowDownWideNarrow} label={sort === 'amount' ? 'Bari amount pehle' : 'Naye pehle'} value={sort} onChange={setSort} align="right"
+              options={[{ value: 'recent', label: 'Naye pehle' }, { value: 'amount', label: 'Bari amount pehle' }]} />
           )}
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canWrite && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> dhoondein · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+        hint={<>{canWrite && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
         tabs={[
           { id: 'record', label: 'Record', icon: ListChecks, count: data?.total ?? null },
           { id: 'repeating', label: 'Har mahine', icon: Repeat, count: repeatQ.data?.due || null },
@@ -244,11 +244,11 @@ export default function ExpensesPage() {
         <ExpenseAnalytics filters={filters} onCategory={(id) => { setCategoryId(id); setTab('record'); }} />
       ) : tab === 'repeating' ? (
         <RepeatingList data={repeatQ.data} loading={repeatQ.isLoading} failed={repeatQ.isError}
-          onRecord={(r) => canWrite ? setForm({ mode: 'new', title: r.title, amount: r.lastAmount, categoryId: r.category?.id, paymentMethod: r.paymentMethod }) : toast.error('Kharcha likhne ki ijazat nahi')} />
+          onRecord={(r) => canWrite ? setForm({ mode: 'new', title: r.title, amount: r.lastAmount, categoryId: r.category?.id, paymentMethod: r.paymentMethod }) : toast.error('Expense likhne ki permission nahi')} />
       ) : (<>
         {data?.offline && (
           <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-            <WifiOff className="h-4 w-4" /> Internet nahi — is phone me save kharche dikh rahe hain. Naye kharche bhi likh sakte hain, internet aate hi chale jayenge.
+            <WifiOff className="h-4 w-4" /> Internet nahi — is phone me save expenses dikh rahe hain. Naye expenses bhi likh sakte hain, internet aate hi chale jayenge.
           </p>
         )}
         {data && data.total > 0 && (
@@ -264,16 +264,16 @@ export default function ExpensesPage() {
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
         ) : listQ.isError && !data ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Kharche load nahi hue</p>
+            <p className="font-semibold text-slate-900">Expenses load nahi hue</p>
             <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
           </div>
         ) : !rows.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <Wallet className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi kharcha nahi' : 'Is muddat me koi kharcha nahi likha'}</p>
-            <p className="mt-1 text-sm text-slate-500">Bijli, kiraya, salary ya chai-pani — likhte rahein taake asal munafa pata chale.</p>
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi expense nahi' : 'Is period me koi expense nahi likha'}</p>
+            <p className="mt-1 text-sm text-slate-500">Bijli, kiraya, salary ya chai-pani — likhte rahein taake net profit pata chale.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {canWrite && <Button onClick={() => setForm({ mode: 'new' })} leftIcon={<Plus className="h-4 w-4" />}>Naya kharcha</Button>}
+              {canWrite && <Button onClick={() => setForm({ mode: 'new' })} leftIcon={<Plus className="h-4 w-4" />}>Naya expense</Button>}
               {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
             </div>
           </div>
@@ -297,22 +297,22 @@ export default function ExpensesPage() {
       {voucher && <VoucherPrintModal expense={voucher} onClose={() => setVoucher(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Kharche — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title="Expenses — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#e11d48', title: 'Kharcha likhein', text: '"Naya kharcha" dabayein: kis cheez ka, raqam, category aur kahan se diye. Jaldi wale button se naam aur category khud bhar jati hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Cash aur galla', text: 'Aaj ka cash kharcha khuli shift ke galle se ghatta hai, shift band karte waqt hisaab sahi aata hai. JazzCash, bank aur card galle ko nahi chhoote.' },
-            { icon: Clock, color: '#d97706', title: 'Baqi bill', text: 'Bill aaya magar paise baad me dene hain? "Baad me dene" chunein. Dete waqt "Ada karein" dabayein — us din ki tareekh lagti hai.' },
-            { icon: Repeat, color: '#7c3aed', title: 'Har mahine wale', text: 'Kiraya, bijli, salary jaise kharche "Har mahine" tab me aate hain aur batate hain ke is mahine kaunsa abhi nahi likha.' },
-            { icon: BarChart3, color: '#2563eb', title: 'Analytics', text: 'Category ka chart, roz aur mahine ka kharcha, branch, staff aur sab se bare kharche. Category par click karein to sirf woh dikhega.' },
-            { icon: Printer, color: '#0891b2', title: 'Print', text: 'Upar Print se poori list (A4, PDF ya thermal). Kisi kharche ko khol kar "Voucher" se dastkhat wali parchi.' },
+            { icon: Plus, color: '#e11d48', title: 'Expense likhein', text: '"Naya expense" dabayein: kis cheez ka, amount, category aur kahan se diye. Jaldi wale button se naam aur category khud bhar jati hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Cash aur galla', text: 'Aaj ka cash expense khuli shift ke galle se ghatta hai, shift band karte waqt hisaab sahi aata hai. JazzCash, bank aur card galle ko nahi chhoote.' },
+            { icon: Clock, color: '#d97706', title: 'Baqi bill', text: 'Bill aaya magar paise baad me dene hain? "Baad me dene" chunein. Dete waqt "Ada karein" dabayein — us din ki date lagti hai.' },
+            { icon: Repeat, color: '#7c3aed', title: 'Har mahine wale', text: 'Kiraya, bijli, salary jaise expenses "Har mahine" tab me aate hain aur batate hain ke is mahine kaunsa abhi nahi likha.' },
+            { icon: BarChart3, color: '#2563eb', title: 'Analytics', text: 'Category ka chart, roz aur mahine ka expense, branch, staff aur sab se bare expenses. Category par click karein to sirf woh dikhega.' },
+            { icon: Printer, color: '#0891b2', title: 'Print', text: 'Upar Print se poori list (A4, PDF ya thermal). Kisi expenses ko khol kar "Voucher" se dastkhat wali parchi.' },
           ]}
           tips={[
             'Har mahine ek hi naam likhein (maslan "Dukaan ka kiraya") taake Nafaa yaad dila sake.',
-            'Ghalat kharcha mitane ke bajaye "Cancel" karein — record rehta hai, hisaab se nikal jata hai.',
+            'Ghalat expense mitane ke bajaye "Cancel" karein — record rehta hai, hisaab se nikal jata hai.',
             'Bill ki photo lagayein — baad me jhagre ya audit me kaam aati hai.',
-            'Kharcha likhne ke liye Team settings me "Expenses likhna" ki ijazat chahiye.',
+            'Expense likhne ke liye Team settings me "Expenses likhna" ki permission chahiye.',
           ]}
-          shortcuts={[['N', 'naya kharcha'], ['/', 'dhoondein'], ['1', 'record'], ['2', 'har mahine'], ['3', 'analytics'], ['G', 'guide']]}
+          shortcuts={[['N', 'naya expense'], ['/', 'dhoondein'], ['1', 'record'], ['2', 'har mahine'], ['3', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -367,7 +367,7 @@ function Row({ e, a, showShop }: { e: Expense; a: RowActions; showShop: boolean 
         {e.status === 'PENDING' && a.canWrite && (
           <Button size="sm" onClick={() => a.pay(e)} disabled={a.busy} leftIcon={<CheckCircle2 className="h-4 w-4" />} className="hidden sm:inline-flex">Ada karein</Button>
         )}
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Tafseel" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Details" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
           <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
         </button>
       </div>
@@ -375,7 +375,7 @@ function Row({ e, a, showShop }: { e: Expense; a: RowActions; showShop: boolean 
         <div className="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] text-slate-700 sm:pl-[4.25rem]">
           {e.description && <p className="whitespace-pre-line rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{e.description}</p>}
           <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-4">
-            <Fact k="Tareekh" v={day(e.expenseDate)} />
+            <Fact k="Date" v={day(e.expenseDate)} />
             <Fact k="Kaise diye" v={m.label} />
             {e.shop?.name && <Fact k="Branch" v={e.shop.name} />}
             {e.createdBy?.fullName && <Fact k="Kis ne likha" v={e.createdBy.fullName} />}
@@ -397,7 +397,7 @@ function Row({ e, a, showShop }: { e: Expense; a: RowActions; showShop: boolean 
               <Button size="sm" variant="ghost" onClick={() => a.remove(e)} disabled={a.busy} leftIcon={<Trash2 className="h-4 w-4" />} className="text-rose-700">Mitayein</Button>
             </>}
           </div>
-          {e.status === 'PENDING' && <p className="flex items-center gap-1.5 text-[0.75rem] text-amber-800"><CalendarClock className="h-3.5 w-3.5" />Yeh bill abhi dena hai. Ada karne par aaj ki tareekh lagegi.</p>}
+          {e.status === 'PENDING' && <p className="flex items-center gap-1.5 text-[0.75rem] text-amber-800"><CalendarClock className="h-3.5 w-3.5" />Yeh bill abhi dena hai. Ada karne par aaj ki date lagegi.</p>}
         </div>
       )}
     </li>

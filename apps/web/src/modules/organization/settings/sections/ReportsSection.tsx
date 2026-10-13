@@ -46,7 +46,7 @@ const PERIODS = [
   { value: 'fiscalYear', label: 'Maali saal', desc: 'Upar wale mahine se aaj tak' },
 ];
 const COMPARES = [
-  { value: 'prev', label: 'Pichli muddat', desc: 'Itne hi din, is se pehle' },
+  { value: 'prev', label: 'Pichli period', desc: 'Itne hi din, is se pehle' },
   { value: 'year', label: 'Pichla saal', desc: 'Nafa nuqsan me; baaki me pichli muddat' },
   { value: 'off', label: 'Muqabla band', desc: 'Report khud on kar sakti hai' },
 ];
@@ -55,22 +55,22 @@ const ROUNDS = [
   { value: 'rupee', label: 'Poore rupay', desc: 'Rs 1,235' },
 ];
 const FIGURES: Array<{ id: ReportFigure; label: string; desc: string; icon: typeof Bell }> = [
-  { id: 'profit', label: 'Munafa aur lagat', desc: 'Munafa, margin aur maal ki lagat. Phir bhi sirf unhe jin ke paas "Lagat aur munafa dekhein" ki ijazat hai.', icon: Landmark },
+  { id: 'profit', label: 'Profit aur cost', desc: 'Profit, margin aur maal ki cost. Phir bhi sirf unhe jin ke paas "Cost aur profit dekhein" ki permission hai.', icon: Landmark },
   { id: 'drawer', label: 'Galle ka hisaab', desc: 'Galle me kitna hona chahiye, kitna gina, kam/zyada aur cash in/out.', icon: Vault },
 ];
 const PARTS: Array<{ id: SummaryPart; label: string }> = [
-  { id: 'returns', label: 'Wapsi' },
+  { id: 'returns', label: 'Return' },
   { id: 'voids', label: 'Cancel bill' },
-  { id: 'discount', label: 'Chhoot' },
+  { id: 'discount', label: 'Discount' },
   { id: 'payments', label: 'Paisa kaise aaya' },
   { id: 'drawer', label: 'Galla abhi aur farq' },
-  { id: 'profit', label: 'Munafa' },
-  { id: 'expenses', label: 'Kharche' },
+  { id: 'profit', label: 'Profit' },
+  { id: 'expenses', label: 'Expenses' },
   { id: 'khata', label: 'Udhaar diya / wapas aaya' },
   { id: 'lowStock', label: 'Kam stock' },
   { id: 'topItems', label: 'Sab se zyada bika' },
-  { id: 'topStaff', label: 'Sab se zyada bikri wala banda' },
-  { id: 'branches', label: 'Branch war bikri' },
+  { id: 'topStaff', label: 'Sab se zyada sale wala banda' },
+  { id: 'branches', label: 'Branch war sale' },
   { id: 'trend', label: 'Is hafte / is mahine' },
 ];
 const QUICK_TIMES = ['20:00', '21:00', '22:00', '23:00'];
@@ -172,7 +172,7 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900">Din kab shuru hota hai: {hourLabel(startHour)}</p>
               <p className="text-xs text-slate-500">
-                Time zone {draft.timezone}. {startHour === 0 ? 'Din raat 12 baje badalta hai.' : `Is se pehle ki bikri pichhle din me ginti hai.`}
+                Time zone {draft.timezone}. {startHour === 0 ? 'Din raat 12 baje badalta hai.' : `Is se pehle ki sale pichhle din me ginti hai.`}
               </p>
             </div>
           </div>
@@ -184,17 +184,17 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
 
         <Divider />
 
-        <Field label="Hafta kis din shuru hota hai" hint={'Rozana report me "is hafte" ki bikri isi din se gini jaati hai.'}>
+        <Field label="Hafta kis din shuru hota hai" hint={'Rozana report me "is hafte" ki sale isi din se gini jaati hai.'}>
           <ChoiceGroup value={(draft.firstDayOfWeek || 'monday').toLowerCase()} onChange={(v) => set('firstDayOfWeek', v)} columns={3}
             options={WEEK_STARTS} />
         </Field>
       </SectionCard>
 
-      <SectionCard title="Report kaise khulein" desc="Har report pehli dafa kis muddat aur muqable ke saath khule" icon={ListChecks} color="indigo">
+      <SectionCard title="Report kaise khulein" desc="Har report pehli dafa kis period aur muqable ke saath khule" icon={ListChecks} color="indigo">
         {!cfg ? <ConfigSkeleton /> : (
           <>
             <Field label="Maali saal kis mahine se shuru hota hai"
-              hint={`Pakistan me tax ka saal July se shuru hota hai. "Maali saal" muddat isi mahine se gini jaati hai — abhi ${dayLabel(fiscalYearStart(today, cfg.fiscalYearStartMonth))} ${fiscalYearStart(today, cfg.fiscalYearStartMonth).slice(0, 4)} se.`}>
+              hint={`Pakistan me tax ka saal July se shuru hota hai. "Maali saal" period isi mahine se gini jaati hai — abhi ${dayLabel(fiscalYearStart(today, cfg.fiscalYearStartMonth))} ${fiscalYearStart(today, cfg.fiscalYearStartMonth).slice(0, 4)} se.`}>
               <div className="max-w-xs">
                 <Select value={String(cfg.fiscalYearStartMonth)} onChange={(v) => rc.save({ fiscalYearStartMonth: Number(v) })}
                   options={MONTHS.map((m, i) => ({ value: String(i + 1), label: m }))} />
@@ -202,18 +202,18 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
             </Field>
 
             <Divider />
-            <Field label="Report kis muddat se khule"
-              hint="Reports, Nafa nuqsan, Staff, Customers, Nigrani, Profit by product aur Stock report pehli dafa isi muddat ke saath khulte hain. Safhe par muddat badlein to wohi chalti hai.">
+            <Field label="Report kis period se khule"
+              hint="Reports, Profit-loss, Staff, Customers, Nigrani, Profit by product aur Stock report pehli dafa isi period ke saath khulte hain. Safhe par period badlein to wohi chalti hai.">
               <ChoiceGroup value={cfg.defaultPeriod} onChange={(v) => rc.save({ defaultPeriod: v })} columns={4} options={PERIODS} />
             </Field>
 
             <Divider />
-            <Field label="Muqabla" hint="Har number pichli muddat se milaya jaye ya nahi. Jis ne kisi report par khud muqabla badla ho, us ke browser me wohi rehta hai.">
+            <Field label="Muqabla" hint="Har number pichli period se milaya jaye ya nahi. Jis ne kisi report par khud muqabla badla ho, us ke browser me wohi rehta hai.">
               <ChoiceGroup value={cfg.compareDefault} onChange={(v) => rc.save({ compareDefault: v })} columns={3} options={COMPARES} />
             </Field>
 
             <Divider />
-            <Field label="Raqam kaise dikhe" hint="Sirf reports aur rozana report me dikhane ka tareeqa. Hisaab aur bill paise tak hi rehte hain.">
+            <Field label="Amount kaise dikhe" hint="Sirf reports aur rozana report me dikhane ka tareeqa. Hisaab aur bill paise tak hi rehte hain.">
               <ChoiceGroup value={cfg.roundOff} onChange={(v) => rc.save({ roundOff: v })} columns={2} options={ROUNDS} />
             </Field>
           </>
@@ -230,9 +230,9 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
                 onChange={(v) => rc.save({ staffFigures: toggleIn(cfg.staffFigures, f.id, v) })} />
             ))}
             <Alert tone="blue" icon={ShieldCheck}>
-              Ye sirf dikhane ka usool hai — kisi ko nayi ijazat nahi deta. Band karne par server hi ye figures nahi bhejta: reports, din ka hisaab,
+              Ye sirf dikhane ka usool hai — kisi ko nayi permission nahi deta. Band karne par server hi ye figures nahi bhejta: reports, din ka hisaab,
               rozana report aur un ke print/CSV me. Malik ko hamesha sab dikhta hai. Nigrani me galle ka farq dikhta rehta hai, wo chori pakadne ke liye hai.
-              {canTeam && <> <Link to="/team" className="font-semibold underline underline-offset-2">Ijazatein Team me</Link></>}
+              {canTeam && <> <Link to="/team" className="font-semibold underline underline-offset-2">Permissions Team me</Link></>}
             </Alert>
           </>
         )}
@@ -242,7 +242,7 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
         badge={<StatPill label="" value={on ? 'Chalu' : 'Band'} tone={on ? 'emerald' : 'slate'} />}>
         <Toggle checked={on} onChange={(v) => set('notifyDailySummary', v)} icon={Bell}
           label="Rozana report bhejein"
-          desc="Har din ek dafa, chune hue waqt par. Jis din na bikri hui na kharcha, us din nahi aati." />
+          desc="Har din ek dafa, chune hue waqt par. Jis din na sale hui na expense, us din nahi aati." />
 
         {on && (
           <>
@@ -280,18 +280,18 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
         )}
       </SectionCard>
 
-      <SectionCard title="Kis ko milti hai" desc="Malik, aur har woh banda jis ke paas 'Reports dekhna' ki ijazat hai — in me se jinhein aap chunein" icon={Users} color="violet"
+      <SectionCard title="Kis ko milti hai" desc="Malik, aur har woh banda jis ke paas 'Reports dekhna' ki permission hai — in me se jinhein aap chunein" icon={Users} color="violet"
         badge={st ? <StatPill label="Log" value={st.recipients.filter((p) => p.selected).length} tone="blue" /> : undefined}>
         {!canReports ? (
-          <p className="text-sm text-slate-500">Ye list dekhne ke liye 'Reports dekhna' ki ijazat chahiye.</p>
+          <p className="text-sm text-slate-500">Ye list dekhne ke liye 'Reports dekhna' ki permission chahiye.</p>
         ) : status.isLoading || !cfg ? (
           <div className="space-y-2">{[0, 1].map((i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-slate-100" />)}</div>
         ) : (
           <Recipients cfg={cfg} people={st?.recipients ?? []} emailOn={!!st?.emailOn && cfg.summary.channels.includes('email')} onSave={rc.save} />
         )}
         <Alert tone="blue" icon={ShieldCheck}>
-          Munafa sirf unhein dikhta hai jin ke paas 'Lagat dekhna' ki ijazat hai aur upar staff ke liye munafa chalu hai. Branch se juda manager sirf apni branch ka hisaab paata hai.
-          {canTeam && <> <Link to="/team" className="font-semibold underline underline-offset-2">Team me ijazat badlein</Link></>}
+          Profit sirf unhein dikhta hai jin ke paas 'Cost dekhna' ki permission hai aur upar staff ke liye profit chalu hai. Branch se juda manager sirf apni branch ka hisaab paata hai.
+          {canTeam && <> <Link to="/team" className="font-semibold underline underline-offset-2">Team me permission badlein</Link></>}
         </Alert>
       </SectionCard>
 
@@ -310,7 +310,7 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
             })}
           </div>
         )}
-        <p className="mt-2 text-xs text-slate-500">Munafa aur galla har bande ko apni ijazat aur staff wale usool ke mutabiq hi milta hai.</p>
+        <p className="mt-2 text-xs text-slate-500">Profit aur galla har bande ko apni permission aur staff wale usool ke mutabiq hi milta hai.</p>
       </SectionCard>
 
       {canReports && <PreviewCard settings={draft} today={st?.today} recent={st?.recent ?? []} />}
@@ -351,7 +351,7 @@ function Recipients({ cfg, people, emailOn, onSave }: {
   return (
     <>
       <Toggle icon={Users} label="Sab ko bhejein" checked={everyone}
-        desc="Chalu ho to aage jo bhi 'Reports dekhna' ki ijazat paye, usay bhi khud milne lagegi."
+        desc="Chalu ho to aage jo bhi 'Reports dekhna' ki permission paye, usay bhi khud milne lagegi."
         onChange={(v) => onSave({ summary: { recipientIds: v ? null : people.map((p) => p.id) } })} />
       <ul className="divide-y divide-slate-100">
         {people.map((p) => (
@@ -407,7 +407,7 @@ function PreviewCard({ settings, today, recent }: {
 
   const data = preview.data;
   // Profit lines stay out of the copy while cost is hidden on this screen.
-  const body = data ? (costHidden ? data.message.body.split('\n').filter((l) => !l.startsWith('Munafa')).join('\n') : data.message.body) : '';
+  const body = data ? (costHidden ? data.message.body.split('\n').filter((l) => !l.startsWith('Profit')).join('\n') : data.message.body) : '';
   const phone = waNumber(settings.shopWhatsapp || settings.shopPhone);
   const waHref = body ? (phone ? `https://wa.me/${phone}?text=${encodeURIComponent(body)}` : `https://wa.me/?text=${encodeURIComponent(body)}`) : undefined;
 
@@ -487,7 +487,7 @@ function PreviewCard({ settings, today, recent }: {
             </button>
           </div>
           <p className="mt-2 text-xs text-slate-500">
-            "Abhi sab ko bhejein" chune hue logon ko chune hue tareeqon se bhejta hai. Har banda apni ijazat ke mutabiq hisaab dekhta hai.
+            "Abhi sab ko bhejein" chune hue logon ko chune hue tareeqon se bhejta hai. Har banda apni permission ke mutabiq hisaab dekhta hai.
             {phone ? ' WhatsApp dukaan ke apne number par khulta hai.' : ' Settings me dukaan ka WhatsApp number likhein to WhatsApp seedha usi par khulega.'}
           </p>
         </>
@@ -517,12 +517,12 @@ function Figures({ s, costHidden, drawerHidden }: { s: DailySummary; costHidden:
   const profitShown = !costHidden && s.grossProfit !== undefined;
   const tiles: Array<{ label: string; value: ReactNode; hint: string; tone?: 'up' | 'down' }> = [
     {
-      label: 'Bikri',
+      label: 'Sale',
       value: formatPKR(s.sales.net),
-      hint: change === null ? `${s.sales.bills} bill, wapsi ke baad` : `${s.sales.bills} bill · kal se ${change > 0 ? '+' : ''}${change}%`,
+      hint: change === null ? `${s.sales.bills} bill, return ke baad` : `${s.sales.bills} bill · kal se ${change > 0 ? '+' : ''}${change}%`,
       tone: change === null ? undefined : change >= 0 ? 'up' : 'down',
     },
-    { label: 'Wapsi', value: formatPKR(s.sales.returns), hint: `${s.sales.returnCount} wapsi` + (s.sales.voidedCount ? `, ${s.sales.voidedCount} bill cancel` : '') },
+    { label: 'Return', value: formatPKR(s.sales.returns), hint: `${s.sales.returnCount} return` + (s.sales.voidedCount ? `, ${s.sales.voidedCount} bill cancel` : '') },
     { label: 'Cash aaya', value: formatPKR(s.money.cashSales), hint: `Online ${formatPKR(s.money.nonCash)}` },
     drawerHidden ? {
       label: 'Galla abhi',
@@ -534,11 +534,11 @@ function Figures({ s, costHidden, drawerHidden }: { s: DailySummary; costHidden:
       hint: s.money.drawerNow === null ? (s.money.closedDrawers ? `${s.money.closedDrawers} galla band hua` : 'Koi galla khula nahi') : `${s.money.openDrawers} khula galla`,
     },
     {
-      label: 'Munafa',
+      label: 'Profit',
       value: profitShown ? formatPKR(s.grossProfit) : <span className="inline-flex items-center gap-1 text-slate-400"><Lock className="h-3.5 w-3.5" /> Chhupa</span>,
-      hint: profitShown && s.netProfit !== undefined ? `Kharchon ke baad ${formatPKR(s.netProfit)}` : 'Lagat dekhne ki ijazat se',
+      hint: profitShown && s.netProfit !== undefined ? `Kharchon ke baad ${formatPKR(s.netProfit)}` : 'Cost dekhne ki permission se',
     },
-    { label: 'Kharche', value: formatPKR(s.expenses.total), hint: s.expenses.top[0] ? `Zyada: ${s.expenses.top[0].name}` : `${s.expenses.count} kharche` },
+    { label: 'Expenses', value: formatPKR(s.expenses.total), hint: s.expenses.top[0] ? `Zyada: ${s.expenses.top[0].name}` : `${s.expenses.count} expenses` },
     { label: 'Udhaar', value: formatPKR(s.sales.credit), hint: `Wapas aaya ${formatPKR(s.money.khataCollected)}` },
     { label: 'Kam stock', value: `${s.lowStock.out + s.lowStock.low}`, hint: `${s.lowStock.out} khatam, ${s.lowStock.low} kam` },
   ];

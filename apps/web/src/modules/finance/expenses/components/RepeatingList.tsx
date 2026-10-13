@@ -23,8 +23,8 @@ export function RepeatingList({ data, loading, failed, onRecord }: {
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Repeat className="mx-auto h-10 w-10 text-slate-300" />
-        <p className="mt-3 font-semibold text-slate-900">Abhi koi har mahine wala kharcha nahi mila</p>
-        <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Jo kharcha pichle 3 me se 2 mahine ek hi naam aur category se likha gaya ho (maslan "Dukaan ka kiraya"), woh yahan khud aa jata hai aur yaad dilata hai.</p>
+        <p className="mt-3 font-semibold text-slate-900">Abhi koi har mahine wala expense nahi mila</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Jo expense pichle 3 me se 2 mahine ek hi naam aur category se likha gaya ho (maslan "Dukaan ka kiraya"), woh yahan khud aa jata hai aur yaad dilata hai.</p>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export function RepeatingList({ data, loading, failed, onRecord }: {
       {due.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           <CalendarClock className="h-4 w-4" />
-          <span><b>{due.length}</b> kharche is mahine abhi nahi likhe — pichli dafa ke hisaab se takreeban <b>{formatPKR(data.dueAmount)}</b></span>
+          <span><b>{due.length}</b> expenses is mahine abhi nahi likhe — pichli dafa ke hisaab se takreeban <b>{formatPKR(data.dueAmount)}</b></span>
         </div>
       )}
       <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -61,7 +61,7 @@ function Item({ r, onRecord }: { r: RepeatingExpense; onRecord: () => void }) {
           {r.thisMonth.pending > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] text-amber-800 ring-1 ring-amber-200">Bill ada karna hai</span>}
         </p>
         <p className="mt-0.5 truncate text-[0.75rem] text-slate-500">
-          {r.category?.name ?? 'Bina category'} · {r.months} mahine · aam tor par {r.usualDay} tareekh · aakhri {day(r.lastDate)} ({methodOf(r.paymentMethod).label})
+          {r.category?.name ?? 'Bina category'} · {r.months} mahine · aam tor par {r.usualDay} date · aakhri {day(r.lastDate)} ({methodOf(r.paymentMethod).label})
         </p>
       </div>
       <div className="ml-auto text-right">

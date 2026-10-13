@@ -302,7 +302,7 @@ export default function BarcodeLabelsPage() {
       {guide.isOpen && (
         <PageGuide title="Barcode labels — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: ListPlus, color: '#16a34a', title: 'Cheezein dalain', text: 'Naam likh kar dhoondein ya scanner se scan karein. Poori category bhi ek saath aa sakti hai. Har variant aur har pack (dozen, carton) ka alag label banta hai.' },
+            { icon: ListPlus, color: '#16a34a', title: 'Cheezein dalain', text: 'Naam likh kar search ya scanner se scan karein. Poori category bhi ek saath aa sakti hai. Har variant aur har pack (dozen, carton) ka alag label banta hai.' },
             { icon: LayoutGrid, color: '#2563eb', title: 'Kaghaz chunein', text: 'Thermal roll ho to us ka naap (jaise 50×30). A4 sticker sheet ho to us ke dabbe par likhi ginti — 65, 40, 24, 21 ya 14.' },
             { icon: Settings2, color: '#7c3aed', title: 'Label par kya ho', text: 'Naam, qeemat, barcode ke number, unit, expiry — jo chahiye on karein. Design poori dukaan ke liye save hota hai.' },
             { icon: TestTube2, color: '#d97706', title: 'Pehle test print', text: '"Test print" sirf ek label chhapta hai. Sticker par naap theek baithe to poora print karein.' },

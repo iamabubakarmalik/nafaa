@@ -29,10 +29,10 @@ export function CashFlowView({ cash, report, fmt }: { cash: MoneyAnalytics; repo
 
   // Net profit to cash left over: each step is a reason the two differ.
   const steps = s.netProfit == null || fmt.costHidden ? [] : [
-    { label: 'Udhaar par biki', hint: 'Bikri me gini, paisa abhi aana hai', value: -s.revenue.credit },
-    { label: 'Khata wasooli', hint: 'Purana udhaar is muddat me aaya', value: src('KHATA') },
-    { label: 'Maal ki lagat', hint: 'Munafe se kati, magar paisa kharidari par pehle gaya', value: s.cogs?.total ?? 0 },
-    { label: 'Kharidari aur supplier ko diya', hint: 'Naya maal liya ya purana dena chukaya', value: -(src('PURCHASE') + src('SUPPLIER')) },
+    { label: 'Udhaar par biki', hint: 'Sale me gini, paisa abhi aana hai', value: -s.revenue.credit },
+    { label: 'Khata wasooli', hint: 'Purana udhaar is period me aaya', value: src('KHATA') },
+    { label: 'Maal ki cost', hint: 'Munafe se kati, magar paisa purchase par pehle gaya', value: s.cogs?.total ?? 0 },
+    { label: 'Purchase aur supplier ko diya', hint: 'Naya maal liya ya purana dena chukaya', value: -(src('PURCHASE') + src('SUPPLIER')) },
     { label: 'Stock nuqsan', hint: 'Munafe se kata, cash nahi gaya', value: s.writeOffs?.net ?? 0 },
     { label: 'Cash daala / nikala', hint: 'Malik ne golak me daala ya nikala', value: src('CASH_IN') - src('CASH_OUT') },
   ];
@@ -42,14 +42,14 @@ export function CashFlowView({ cash, report, fmt }: { cash: MoneyAnalytics; repo
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <Tile icon={ArrowDownLeft} color="#16a34a" label="Paisa aaya" value={fmt.sales(cash.totals.in)} hint="Bikri, khata wasooli, cash daala" />
-        <Tile icon={ArrowUpRight} color="#e11d48" label="Paisa gaya" value={fmt.sales(cash.totals.out)} hint="Wapsi, kharidari, supplier, kharchay" />
-        <Tile icon={Scale} color={cash.totals.net >= 0 ? '#2563eb' : '#e11d48'} label="Bacha (cash)" value={fmt.sales(cash.totals.net)} hint={`Net munafa ${s.netProfit == null ? '—' : fmt.cost(s.netProfit)}`} />
+        <Tile icon={ArrowDownLeft} color="#16a34a" label="Paisa aaya" value={fmt.sales(cash.totals.in)} hint="Sale, khata wasooli, cash daala" />
+        <Tile icon={ArrowUpRight} color="#e11d48" label="Paisa gaya" value={fmt.sales(cash.totals.out)} hint="Return, purchase, supplier, kharchay" />
+        <Tile icon={Scale} color={cash.totals.net >= 0 ? '#2563eb' : '#e11d48'} label="Bacha (cash)" value={fmt.sales(cash.totals.net)} hint={`Net profit ${s.netProfit == null ? '—' : fmt.cost(s.netProfit)}`} />
       </div>
 
       <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Waves className="h-4 w-4 text-brand-600" />Paisa aaya aur gaya</span>} description={cash.grouping === 'month' ? 'Mahine war' : 'Din war'}
         actions={<Link to="/money" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Shop accounts <ExternalLink className="h-3.5 w-3.5" /></Link>}>
-        {!cash.trend.length ? <Empty text="Is muddat me koi len den nahi" /> : (
+        {!cash.trend.length ? <Empty text="Is period me koi len den nahi" /> : (
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={cash.trend.map((t) => ({ ...t, name: label(t.key) }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -71,7 +71,7 @@ export function CashFlowView({ cash, report, fmt }: { cash: MoneyAnalytics; repo
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title="Kahan se aaya, kahan gaya" description="Har len den apne asal record se — bill, wapsi, kharidari, kharcha">
+        <Card className="rounded-2xl lg:col-span-2" title="Kahan se aaya, kahan gaya" description="Har len den apne asal record se — bill, return, purchase, expense">
           <div className="grid gap-6 sm:grid-cols-2">
             {[{ title: 'Aaya', rows: ins }, { title: 'Gaya', rows: outs }].map((g) => (
               <div key={g.title}>
@@ -115,12 +115,12 @@ export function CashFlowView({ cash, report, fmt }: { cash: MoneyAnalytics; repo
       </div>
 
       {steps.length > 0 && (
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Scale className="h-4 w-4 text-brand-600" />Munafa aur cash me farq kyun?</span>}
-          description="Munafa kamai ka hisaab hai, cash jeb ka. Ye cheezein dono ko alag karti hain">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Scale className="h-4 w-4 text-brand-600" />Profit aur cash me farq kyun?</span>}
+          description="Profit kamai ka hisaab hai, cash jeb ka. Ye cheezein dono ko alag karti hain">
           <ul className="divide-y divide-slate-100 text-[0.8125rem]">
-            <Step money={fmt.sales} label="Net munafa (bayan se)" value={s.netProfit ?? 0} strong />
+            <Step money={fmt.sales} label="Net profit (bayan se)" value={s.netProfit ?? 0} strong />
             {steps.filter((x) => Math.abs(x.value) >= 0.5).map((x) => <Step money={fmt.sales} key={x.label} label={x.label} hint={x.hint} value={x.value} />)}
-            {Math.abs(rest) >= 0.5 && <Step money={fmt.sales} label="Baqi farq" hint="Tankhwah/commission jo kharch me gini, booking advance, durusti waghera" value={rest} />}
+            {Math.abs(rest) >= 0.5 && <Step money={fmt.sales} label="Baqi farq" hint="Tankhwah/commission jo kharch me gini, booking advance, correction waghera" value={rest} />}
             <Step money={fmt.sales} label="Bacha (cash)" value={cash.totals.net} strong />
           </ul>
         </Card>

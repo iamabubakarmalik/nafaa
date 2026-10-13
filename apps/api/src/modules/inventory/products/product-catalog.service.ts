@@ -143,7 +143,7 @@ export class ProductCatalogService {
     const stock = q.stock ?? 'all';
     const sort = q.sort ?? 'name';
     if (!STOCKS.includes(stock)) throw new BadRequestException('Ghalat stock filter');
-    if (!SORTS.includes(sort)) throw new BadRequestException('Ghalat tarteeb');
+    if (!SORTS.includes(sort)) throw new BadRequestException('Ghalat sort');
     const page = Math.max(1, Number(q.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(q.limit) || 40));
     const tenantId = user.tenantId;

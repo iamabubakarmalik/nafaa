@@ -32,7 +32,7 @@ export function RulesTab({ rules, loading, categories, busy, onNew, onEdit, onTo
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Gauge className="mx-auto h-10 w-10 text-slate-300" />
         <p className="mt-3 font-semibold text-slate-900">Abhi koi rule nahi</p>
-        <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Ek rule bana dein, maslan "bikri par 2%". Phir har mahine ka hisab asli bikri se khud banta rahega.</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Ek rule bana dein, maslan "sale par 2%". Phir har mahine ka hisab asli sale se khud banta rahega.</p>
         <Button className="mt-4" onClick={onNew} leftIcon={<Plus className="h-4 w-4" />}>Naya rule</Button>
       </div>
     );

@@ -16,31 +16,31 @@ export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string
     kind: 'rows',
     title: 'Khulasa',
     rows: [
-      { label: 'List rate par bikri', value: formatPKR(t.gross) },
+      { label: 'List rate par sale', value: formatPKR(t.gross) },
       { label: 'Discount', value: `− ${formatPKR(t.discount)}`, sub: true },
-      { label: 'Wapsi', value: `− ${formatPKR(t.refund)}`, sub: true },
-      { label: 'Asal bikri', value: formatPKR(t.revenue), strong: true },
+      { label: 'Return', value: `− ${formatPKR(t.refund)}`, sub: true },
+      { label: 'Asal sale', value: formatPKR(t.revenue), strong: true },
       ...(showCost ? [
-        { label: 'Maal ki lagat', value: `− ${formatPKR(t.cost ?? 0)}`, sub: true },
-        { label: `Gross munafa (${(t.margin ?? 0).toFixed(1)}%)`, value: formatPKR(t.profit ?? 0), strong: true },
-        { label: 'Kharche', value: `− ${formatPKR(n.expenses)}`, sub: true },
+        { label: 'Maal ki cost', value: `− ${formatPKR(t.cost ?? 0)}`, sub: true },
+        { label: `Gross profit (${(t.margin ?? 0).toFixed(1)}%)`, value: formatPKR(t.profit ?? 0), strong: true },
+        { label: 'Expenses', value: `− ${formatPKR(n.expenses)}`, sub: true },
         { label: 'Kharab / gum maal', value: `− ${formatPKR(n.writeOffCost ?? 0)}`, sub: true },
-        { label: 'Net munafa', value: formatPKR(n.netProfit ?? 0), strong: true },
+        { label: 'Net profit', value: formatPKR(n.netProfit ?? 0), strong: true },
       ] : []),
     ],
   };
   const cats: PrintSection = {
     kind: 'table',
     title: 'Category war',
-    columns: [{ label: 'Category' }, { label: 'Bikri', align: 'right' }, ...(showCost ? [{ label: 'Munafa', align: 'right' as const }, { label: 'Margin', align: 'right' as const, wideOnly: true }] : [])],
+    columns: [{ label: 'Category' }, { label: 'Sale', align: 'right' }, ...(showCost ? [{ label: 'Profit', align: 'right' as const }, { label: 'Margin', align: 'right' as const, wideOnly: true }] : [])],
     rows: o.byCategory.map((c) => [c.name, formatPKR(c.revenue), ...(showCost ? [formatPKR(c.profit ?? 0), `${(c.margin ?? 0).toFixed(1)}%`] : [])]),
   };
   const table: PrintSection = {
     kind: 'table',
     title: 'Cheez war',
     columns: [
-      { label: '#', wideOnly: true }, { label: 'Cheez' }, { label: 'Biki', align: 'right', wideOnly: true }, { label: 'Bikri', align: 'right' },
-      ...(showCost ? [{ label: 'Lagat', align: 'right' as const, wideOnly: true }, { label: 'Munafa', align: 'right' as const }, { label: 'Margin', align: 'right' as const, wideOnly: true }] : []),
+      { label: '#', wideOnly: true }, { label: 'Cheez' }, { label: 'Biki', align: 'right', wideOnly: true }, { label: 'Sale', align: 'right' },
+      ...(showCost ? [{ label: 'Cost', align: 'right' as const, wideOnly: true }, { label: 'Profit', align: 'right' as const }, { label: 'Margin', align: 'right' as const, wideOnly: true }] : []),
     ],
     rows: items.map((r, i) => [
       String(i + 1), r.name, `${qty(r.qty)} ${r.unit}`, formatPKR(r.revenue),
@@ -52,7 +52,7 @@ export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string
     ? `${o.costBasis.fallbackLines} lines par bill ki cost nahi thi, aaj ki cost lagayi. ${o.costBasis.noCostLines} lines ki cost hi nahi bhari.`
     : undefined;
   return {
-    title: 'Munafa report',
+    title: 'Profit report',
     subtitle: period,
     meta: [['Dukaan', scope], ['Bill', String(t.bills)], ['Cheezein', String(t.products)]],
     sections: [summary, cats, table],
@@ -61,8 +61,8 @@ export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string
 }
 
 export function profitCsv(items: ProfitItem[], header: string[], showCost: boolean) {
-  const head = ['Cheez', 'Variant', 'SKU', 'Category', 'Brand', 'Supplier', 'Unit', 'Biki', 'Wapas', 'Bill', 'List rate bikri', 'Discount', 'Wapsi raqam', 'Asal bikri',
-    ...(showCost ? ['Lagat', 'Munafa', 'Margin %', 'Pichhla munafa', 'Cost kahan se'] : [])];
+  const head = ['Cheez', 'Variant', 'SKU', 'Category', 'Brand', 'Supplier', 'Unit', 'Biki', 'Wapas', 'Bill', 'List rate sale', 'Discount', 'Return amount', 'Asal sale',
+    ...(showCost ? ['Cost', 'Profit', 'Margin %', 'Pichhla profit', 'Cost kahan se'] : [])];
   const rows: Array<Array<string | number>> = [];
   for (const r of items) {
     const base = [r.sku ?? '', r.category?.name ?? '', r.brand?.name ?? '', r.supplier?.name ?? '', r.unit];
@@ -81,7 +81,7 @@ export function profitCsv(items: ProfitItem[], header: string[], showCost: boole
   const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');
   a.href = url;
-  a.download = `munafa-report-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `profit-report-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }

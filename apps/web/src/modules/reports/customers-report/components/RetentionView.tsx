@@ -25,7 +25,7 @@ export function RetentionView({ data: d, f, months, onMonths }: { data: Cohorts;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[0.8125rem] text-slate-600">Pichle {months} mahine ke naye customers — har mahina ek line. Muddat ka filter yahan nahi lagta.</p>
+        <p className="text-[0.8125rem] text-slate-600">Pichle {months} mahine ke naye customers — har mahina ek line. Period ka filter yahan nahi lagta.</p>
         <Segmented label="Kitne mahine" value={String(months)} onChange={(v) => onMonths(Number(v))}
           items={[{ value: '6', label: '6 mahine' }, { value: '12', label: '12 mahine' }, { value: '24', label: '24 mahine' }]} />
       </div>
@@ -40,7 +40,7 @@ export function RetentionView({ data: d, f, months, onMonths }: { data: Cohorts;
 
       <Panel icon={CalendarRange} flush title="Dobara aane ka chart (cohort)"
         hint="Har line: us mahine pehli dafa aane wale. Khane me: utne mahine baad kitne wapas aaye. Gehra rang = zyada log."
-        actions={<Segmented label="Kya dikhayein" value={show} onChange={setShow} items={[{ value: 'pct', label: '%' }, { value: 'people', label: 'Log' }, { value: 'money', label: 'Bikri' }]} />}>
+        actions={<Segmented label="Kya dikhayein" value={show} onChange={setShow} items={[{ value: 'pct', label: '%' }, { value: 'people', label: 'Log' }, { value: 'money', label: 'Sale' }]} />}>
         {d.newCustomers === 0 ? <div className="px-4 pb-4"><Empty text="In mahino me koi naya naam wala customer nahi aaya" /></div> : (
           <div className="overflow-x-auto px-4 pb-4 sm:px-5">
             <table className="w-full border-separate border-spacing-1 text-[0.75rem]">
@@ -77,7 +77,7 @@ export function RetentionView({ data: d, f, months, onMonths }: { data: Cohorts;
         )}
       </Panel>
 
-      <Panel icon={Activity} title="Ausat wapsi" hint="Sab mahino ko mila kar: pehli khareedari ke itne mahine baad kitne % customer phir aaye">
+      <Panel icon={Activity} title="Ausat return" hint="Sab mahino ko mila kar: pehli khareedari ke itne mahine baad kitne % customer phir aaye">
         {!curve.length ? <Empty text="Abhi itne mahine guzre nahi" /> : (
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">

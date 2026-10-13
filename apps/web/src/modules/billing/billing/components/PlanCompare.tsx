@@ -67,12 +67,12 @@ export function PlanCompare({ b, interval, setInterval }: { b: BillingData; inte
       {confirm && <ConfirmPlan plan={confirm} interval={interval} b={b} onConfirm={startPlan} onClose={() => setConfirm(null)} />}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Segmented value={interval} onChange={setInterval} label="Muddat"
+        <Segmented value={interval} onChange={setInterval} label="Period"
           items={(['MONTHLY', 'QUARTERLY', 'YEARLY'] as const).map((i) => ({ value: i, label: INTERVAL[i].label }))} />
-        <p className="text-[0.75rem] text-slate-500">Lambi muddat = kam qeemat. <b>M</b> / <b>Q</b> / <b>Y</b> se badlein.</p>
+        <p className="text-[0.75rem] text-slate-500">Lambi period = kam qeemat. <b>M</b> / <b>Q</b> / <b>Y</b> se badlein.</p>
       </div>
 
-      {!b.can.manage && <Alert tone="info">Plan lena ya badalna sirf malik (billing ki ijazat wala) kar sakta hai. Aap plans dekh sakte hain.</Alert>}
+      {!b.can.manage && <Alert tone="info">Plan lena ya badalna sirf malik (billing ki permission wala) kar sakta hai. Aap plans dekh sakte hain.</Alert>}
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {plans.map((plan) => {
@@ -179,9 +179,9 @@ function ConfirmPlan({ plan, interval, b, onConfirm, onClose }: { plan: Plan; in
           Khula bill {pending.invoice.invoiceNumber} ({pending.subscription.plan.name} — {formatPKR(pending.invoice.amountDue)}) ab <b>{plan.name}</b> ke hisaab se <b>{formatPKR(price)}</b> ka ho jayega. Naya bill nahi banega.
         </Alert>
       ) : renewal ? (
-        <Alert tone="info" title="Renew" icon={<Clock className="h-4 w-4" />}>Payment manzoor hote hi naya period shuru hoga. Bache hue din zaya nahi honge, naye period me jud jayenge.</Alert>
+        <Alert tone="info" title="Renew" icon={<Clock className="h-4 w-4" />}>Payment approve hote hi naya period shuru hoga. Bache hue din waste nahi honge, naye period me jud jayenge.</Alert>
       ) : (
-        <Alert tone="success" title="Bill banega" icon={<CheckCircle2 className="h-4 w-4" />}>Bill banega aur aap payment ke safhe par chale jayenge. Payment manzoor hone tak maujooda trial/plan chalta rahega.</Alert>
+        <Alert tone="success" title="Bill banega" icon={<CheckCircle2 className="h-4 w-4" />}>Bill banega aur aap payment ke safhe par chale jayenge. Payment approve hone tak maujooda trial/plan chalta rahega.</Alert>
       )}
       <ul className="mt-3 space-y-1.5 text-[0.8125rem] text-slate-700">
         {PLAN_LIMITS.map((l) => <li key={l.key} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" /><b>{limitText(plan[l.planKey], l.unlimitedAt)}</b> {l.label.toLowerCase()}</li>)}

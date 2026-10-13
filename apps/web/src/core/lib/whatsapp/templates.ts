@@ -28,7 +28,7 @@ export const TEMPLATE_META: TemplateMeta[] = [
   {
     key: 'receipt',
     label: 'Bill bhejna',
-    hint: 'Bikri ke baad customer ko bill ki tafseel',
+    hint: 'Sale ke baad customer ko bill ki details',
     emoji: '🧾',
     fields: ['customer', 'shop', 'bill', 'total', 'paid', 'baqi', 'tareekh', 'cheezein'],
   },
@@ -42,14 +42,14 @@ export const TEMPLATE_META: TemplateMeta[] = [
   {
     key: 'shukriya',
     label: 'Shukriya',
-    hint: 'Kharidari ke baad chhota sa shukriya',
+    hint: 'Purchase ke baad chhota sa shukriya',
     emoji: '🙏',
     fields: ['customer', 'shop', 'total'],
   },
   {
     key: 'yaad_dihani',
     label: 'Apna paighaam',
-    hint: 'Jo bhi aap kehna chahein — naya maal, chhoot, chhutti',
+    hint: 'Jo bhi aap kehna chahein — naya maal, discount, chhutti',
     emoji: '📣',
     fields: ['customer', 'shop', 'phone'],
   },
@@ -63,7 +63,7 @@ export const FIELD_HELP: Record<string, string> = {
   total: 'Bill ka kul',
   paid: 'Jitna diya',
   baqi: 'Jitna baqi hai',
-  tareekh: 'Bikri ki tareekh',
+  tareekh: 'Sale ki date',
   cheezein: 'Kya kya liya (chhoti list)',
   phone: 'Dukaan ka phone',
 };

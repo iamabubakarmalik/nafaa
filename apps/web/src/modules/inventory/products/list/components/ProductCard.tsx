@@ -25,7 +25,7 @@ export function Movement({ item, days }: { item: CatalogItem; days: number }) {
   if (item.sold30 <= 0) {
     return item.stock > 0
       ? <span className="text-slate-400">{days} din se nahi bika</span>
-      : <span className="text-slate-400">Abhi koi bikri nahi</span>;
+      : <span className="text-slate-400">Abhi koi sale nahi</span>;
   }
   return (
     <span className="inline-flex items-center gap-1 text-slate-600">

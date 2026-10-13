@@ -29,7 +29,7 @@ export class ShopsService {
 
   private need(user: AuthenticatedUser, key: PermissionKey, label: string) {
     if (!hasPermission(user.role, user.permissions, key)) {
-      throw new ForbiddenException(`Is kaam ke liye "${label}" ki ijazat chahiye`);
+      throw new ForbiddenException(`Is kaam ke liye "${label}" ki permission chahiye`);
     }
   }
   /**
@@ -408,7 +408,7 @@ export class ShopsService {
       throw new BadRequestException({
         message:
           `${shop.name} ka hisab mojood hai (${shop._count.sales} sales, ` +
-          `${shop._count.purchases} purchases, ${shop._count.expenses} kharche, ` +
+          `${shop._count.purchases} purchases, ${shop._count.expenses} expenses, ` +
           `${shop._count.customerLedgers} khata entries). Delete nahi kar sakte — ` +
           `deactivate karein taake record mehfooz rahe.`,
         code: 'HAS_FINANCIAL_HISTORY',

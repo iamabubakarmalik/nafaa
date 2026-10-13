@@ -49,7 +49,7 @@ export class ActivityLogService {
     const { tz, dayStartHour: h } = await this.clocks.clock(tenantId);
     const start = (key: string) => { const [y, m, d] = key.split('-').map(Number); return zonedToUtc(y, m, d, h, 0, 0, tz); };
     const toKey = to ?? businessDayKey(new Date(), tz, h);
-    if (from && from > toKey) throw new BadRequestException('Shuru ki tareekh aakhri tareekh ke baad hai');
+    if (from && from > toKey) throw new BadRequestException('Shuru ki date aakhri date ke baad hai');
     return { gte: from ? start(from) : undefined, lt: new Date(start(toKey).getTime() + DAY) };
   }
 

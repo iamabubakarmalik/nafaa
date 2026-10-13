@@ -46,7 +46,7 @@ export function VoucherPrintModal({ expense: e, onClose }: { expense: Expense; o
     return {
       saleNumber: e.expenseNumber,
       date: new Date(e.expenseDate),
-      partyLabel: 'Kharcha',
+      partyLabel: 'Expense',
       signLabels: ['Lene wale ke dastkhat', 'Dene wale ke dastkhat'],
       customerName: e.title,
       cashierName: e.createdBy?.fullName,
@@ -78,7 +78,7 @@ export function VoucherPrintModal({ expense: e, onClose }: { expense: Expense; o
   );
 
   return (
-    <Modal open onClose={onClose} size="xl" title="Voucher print" description="Kharche ki parchi — dastkhat ke saath file me rakhein"
+    <Modal open onClose={onClose} size="xl" title="Voucher print" description="Expenses ki parchi — dastkhat ke saath file me rakhein"
       footer={<>
         <span className="mr-auto hidden text-[0.75rem] text-slate-500 sm:inline">PDF chahiye to print me "Save as PDF" chunein</span>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
@@ -92,7 +92,7 @@ export function VoucherPrintModal({ expense: e, onClose }: { expense: Expense; o
           </div>
           <div>
             <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Voucher par</p>
-            <Toggle k="notes" label="Tafseel / note" hint="Kharche ke saath likhi baat" />
+            <Toggle k="notes" label="Details / note" hint="Expenses ke saath likhi baat" />
             <Toggle k="signature" label="Dastkhat ki jagah" hint="Lene aur dene wale dono ke liye (A4)" />
             <Toggle k="logo" label="Logo" />
           </div>

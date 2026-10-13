@@ -19,7 +19,7 @@ interface Fmt { money: (n: number) => string; cost: (n: number) => string; costH
 export function ProductHeader({ itemWord }: { itemWord: string }) {
   return (
     <div className={cn('hidden gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', GRID)}>
-      <span>{itemWord}</span><span className="text-right">Biki</span><span className="text-right">Bikri</span><span className="text-right">Lagat</span><span className="text-right">Munafa</span><span className="text-right">Margin</span>
+      <span>{itemWord}</span><span className="text-right">Biki</span><span className="text-right">Sale</span><span className="text-right">Cost</span><span className="text-right">Profit</span><span className="text-right">Margin</span>
     </div>
   );
 }
@@ -48,11 +48,11 @@ export function ProductRow({ r, fmt }: { r: ProfitItem; fmt: Fmt }) {
             <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.75rem] text-slate-500">
               <span className="truncate">{[r.category?.name, r.brand?.name, r.sku].filter(Boolean).join(' · ') || '—'}</span>
               {hasVariants && <Tag tone="violet">{r.variants.length} variants</Tag>}
-              {r.discount > 0 && <Tag tone="pink">Chhoot {fmt.money(r.discount)}</Tag>}
+              {r.discount > 0 && <Tag tone="pink">Discount {fmt.money(r.discount)}</Tag>}
               {r.returnedQty > 0 && <Tag tone="orange">{qty(r.returnedQty)} wapas</Tag>}
               {!fmt.costHidden && loss && <Tag tone="rose">Nuqsan</Tag>}
               {!fmt.costHidden && r.fallbackLines > 0 && <Tag tone="amber" title="Bill par cost save nahi thi — aaj ki cost lagayi">Aaj ki cost</Tag>}
-              {!fmt.costHidden && (r.noCostLines ?? 0) > 0 && <Tag tone="slate" title="Cost bhari nahi — munafa zyada dikh raha hai">Bina cost</Tag>}
+              {!fmt.costHidden && (r.noCostLines ?? 0) > 0 && <Tag tone="slate" title="Cost bhari nahi — profit zyada dikh raha hai">Bina cost</Tag>}
             </div>
           </div>
         </div>

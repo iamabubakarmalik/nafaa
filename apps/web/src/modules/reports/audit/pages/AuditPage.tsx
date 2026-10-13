@@ -52,10 +52,10 @@ type Tab = 'summary' | 'events' | 'staff' | 'analytics' | 'logins';
 const TABS: Tab[] = ['summary', 'events', 'staff', 'analytics', 'logins'];
 const COMPARE_KEY = 'nafaa-audit-compare';
 const SORTS: Array<{ value: EventSort; label: string }> = [
-  { value: 'new', label: 'Naye pehle' }, { value: 'severity', label: 'Zaroori pehle' }, { value: 'amount', label: 'Bari raqam pehle' }, { value: 'old', label: 'Purane pehle' },
+  { value: 'new', label: 'Naye pehle' }, { value: 'severity', label: 'Zaroori pehle' }, { value: 'amount', label: 'Bari amount pehle' }, { value: 'old', label: 'Purane pehle' },
 ];
 const READER_LABEL: Record<string, string> = {
-  void: 'void bill', refund: 'wapsi', discount: 'chhoot', below_cost: 'lagat se kam', drawer: 'drawer', cash_out: 'galle se nikale',
+  void: 'void bill', refund: 'wapsi', discount: 'chhoot', below_cost: 'cost se kam', drawer: 'drawer', cash_out: 'galle se nikale',
   stock_loss: 'stock', damage: 'damage', transfer_short: 'transfer', activity: 'PIN / settings', login: 'login',
 };
 
@@ -200,9 +200,9 @@ export default function AuditPage() {
         stats={t ? [
           { label: 'Kul waqiye', value: String(t.events), hint: `${t.bills} bill me se` },
           { label: 'Zaroor dekhein', value: String(t.high), hint: `${t.medium} dhyan` },
-          { label: 'Bari chhoot', value: money(t.discountValue), hint: `${t.discounts} bill` },
+          { label: 'Bari discount', value: money(t.discountValue), hint: `${t.discounts} bill` },
           { label: 'Waqt ke baad', value: String(t.afterHours), hint: d?.settings.hours },
-        ] : [{ label: 'Kul waqiye', value: '' }, { label: 'Zaroor dekhein', value: '' }, { label: 'Bari chhoot', value: '' }, { label: 'Waqt ke baad', value: '' }]}
+        ] : [{ label: 'Kul waqiye', value: '' }, { label: 'Zaroor dekhein', value: '' }, { label: 'Bari discount', value: '' }, { label: 'Waqt ke baad', value: '' }]}
       />
 
       <KpiRow>
@@ -211,11 +211,11 @@ export default function AuditPage() {
             onClick={() => { setSeverity(severity === 'high' ? '' : 'high'); setTab('events'); }} active={severity === 'high' && tab === 'events'} />
           <KpiCard icon={Ban} color={TYPE_META.void.color} label="Void bill" value={`${t.voids} · ${money(t.voidValue)}`} hint={hint(t.voidValue, prev?.voidValue, `${t.voidRate}% bill void`)}
             onClick={() => focusType('void')} active={type === 'void' && tab === 'events'} />
-          <KpiCard icon={RotateCcw} color={TYPE_META.refund.color} label="Wapsi" value={money(t.refundValue)} hint={hint(t.refundValue, prev?.refundValue, `${t.cashRefunds} cash · ${t.refundRate}% bikri ka`)}
+          <KpiCard icon={RotateCcw} color={TYPE_META.refund.color} label="Return" value={money(t.refundValue)} hint={hint(t.refundValue, prev?.refundValue, `${t.cashRefunds} cash · ${t.refundRate}% sale ka`)}
             onClick={() => focusType('refund')} active={type === 'refund' && tab === 'events'} />
           <KpiCard icon={Wallet} color={TYPE_META.drawer.color} label="Drawer kam" value={money(t.drawerShort)} hint={hint(t.drawerShort, prev?.drawerShort, `${t.shortCount} dafa · zyada ${money(t.drawerOver)}`)}
             onClick={() => focusType('drawer')} active={type === 'drawer' && tab === 'events'} />
-          <KpiCard icon={PackageMinus} color={TYPE_META.stock_loss.color} label="Stock nuqsan" value={costHidden ? `${t.losses} dafa` : cost(t.cost ?? 0)} hint={costHidden ? 'Lagat chhupi hai' : hint(t.cost ?? 0, prev?.cost, `${t.losses} dafa · lagat par`)}
+          <KpiCard icon={PackageMinus} color={TYPE_META.stock_loss.color} label="Stock nuqsan" value={costHidden ? `${t.losses} dafa` : cost(t.cost ?? 0)} hint={costHidden ? 'Cost chhupi hai' : hint(t.cost ?? 0, prev?.cost, `${t.losses} dafa · cost par`)}
             onClick={() => focusType('stock_loss')} active={type === 'stock_loss' && tab === 'events'} />
         </>}
       </KpiRow>
@@ -228,7 +228,7 @@ export default function AuditPage() {
 
       <FilterBar
         search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (v && tab !== 'events') setTab('events'); }}
-          placeholder="Bill, wapsi number, naam, wajah ya device…" label="Waqiye dhoondein" />}
+          placeholder="Bill, return number, naam, wajah ya device…" label="Waqiye search" />}
         chips={filtered ? <>
           {branch && <FilterChip onRemove={() => setBranch('')}>{branchName ?? 'Branch'}</FilterChip>}
           {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffName ?? 'Staff'}</FilterChip>}
@@ -246,18 +246,18 @@ export default function AuditPage() {
           <FilterMenu icon={UserRound} label="Staff" value={staffId} active={!!staffId} onChange={setStaffId}
             options={[{ value: '', label: 'Sab staff' }, ...people.map((p) => ({ value: p.id, label: p.name }))]} />
         )}
-        <FilterMenu icon={Layers} label="Qism" value={type} active={!!type} onChange={(v) => { setType(v); if (v) setTab('events'); }} width="w-72"
-          options={[{ value: '' as const, label: 'Har qism' }, ...TYPE_ORDER.map((tp) => ({ value: tp, label: TYPE_META[tp].label, icon: TYPE_META[tp].icon, color: TYPE_META[tp].color }))]} />
+        <FilterMenu icon={Layers} label="Type" value={type} active={!!type} onChange={(v) => { setType(v); if (v) setTab('events'); }} width="w-72"
+          options={[{ value: '' as const, label: 'Har type' }, ...TYPE_ORDER.map((tp) => ({ value: tp, label: TYPE_META[tp].label, icon: TYPE_META[tp].icon, color: TYPE_META[tp].color }))]} />
         <FilterMenu icon={Filter} label="Darja" value={severity} active={!!severity} onChange={setSeverity}
           options={[{ value: '' as const, label: 'Har darja' }, ...(['high', 'medium', 'low'] as const).map((s) => ({ value: s, label: SEVERITY_META[s].label, hint: SEVERITY_META[s].hint, color: SEVERITY_META[s].color }))]} />
         <FilterMenu icon={GitCompareArrows} label="Muqabla" value={compare ? 'on' : 'off'} active={compare} width="w-72" align="right"
-          options={[{ value: 'on', label: 'Pichli muddat se muqabla', hint: 'Itne hi din pehle ke saath' }, { value: 'off', label: 'Muqabla band' }]}
+          options={[{ value: 'on', label: 'Pichli period se muqabla', hint: 'Itne hi din pehle ke saath' }, { value: 'off', label: 'Muqabla band' }]}
           onChange={(v) => { if ((v === 'on') !== compare) toggleCompare(); }} />
-        {tab === 'events' && <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />}
+        {tab === 'events' && <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />}
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<><Kbd>1</Kbd>–<Kbd>5</Kbd> tab · <Kbd>/</Kbd> dhoondein · <Kbd>L</Kbd> hadd</>}
+        hint={<><Kbd>1</Kbd>–<Kbd>5</Kbd> tab · <Kbd>/</Kbd> search · <Kbd>L</Kbd> hadd</>}
         tabs={[
           { id: 'summary', label: 'Khulasa', icon: AlertOctagon, count: d ? d.watch.length : null },
           { id: 'events', label: 'Waqiye', icon: ListChecks, count: t ? t.events : null },
@@ -276,7 +276,7 @@ export default function AuditPage() {
         <div className="grid gap-4 lg:grid-cols-5">
           <div className="lg:col-span-3"><WatchList items={d?.watch} loading={overview.isLoading} onPick={pickInsight} /></div>
           <div className="space-y-4 lg:col-span-2">
-            <Panel icon={Users} title="Kis par nazar rakhein" hint="Sab se zyada risk score wale. Dabane se tafseel.">
+            <Panel icon={Users} title="Kis par nazar rakhein" hint="Sab se zyada risk score wale. Dabane se details.">
               {!d ? <Skeleton className="h-40 rounded-xl" /> : !d.staff.some((s) => s.score > 0) ? (
                 <p className="flex items-center gap-2 text-[0.8125rem] text-emerald-700"><ShieldCheck className="h-4 w-4" />Kisi ka score nahi bana</p>
               ) : (
@@ -295,7 +295,7 @@ export default function AuditPage() {
                 </ul>
               )}
             </Panel>
-            <Panel icon={Layers} title="Qism war" hint="Dabane se us qism ke sab waqiye.">
+            <Panel icon={Layers} title="Type war" hint="Dabane se us type ke sab waqiye.">
               {!d ? <Skeleton className="h-40 rounded-xl" /> : !d.byType.length ? <p className="text-[0.8125rem] text-slate-500">Koi waqiya nahi</p> : (
                 <div className="grid grid-cols-2 gap-2">
                   {d.byType.map((x) => {
@@ -330,7 +330,7 @@ export default function AuditPage() {
       )}
 
       {d?.capped && tab !== 'events' && (
-        <p className="text-center text-[0.75rem] text-slate-500">Bohat zyada record — har qism ke sab se naye 4,000 gine gaye. Puri tasveer ke liye muddat chhoti karein.</p>
+        <p className="text-center text-[0.75rem] text-slate-500">Bohat zyada record — har type ke sab se naye 4,000 gine gaye. Puri tasveer ke liye period chhoti karein.</p>
       )}
 
       {openEvent && <EventDrawer e={openEvent} fmt={fmt} onStaff={focusStaff} onClose={() => setOpenEvent(null)} />}
@@ -343,19 +343,19 @@ export default function AuditPage() {
       {guide.isOpen && (
         <PageGuide title="Nigrani — aasaan tareeqa" description="Dukaan me paisa ya maal kahan se nikal sakta hai, ek jagah" onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Muddat aur branch', text: '"Muddat" se Aaj, 7 din, is mahine ya apni tareekh. Malik "Branch" se ek branch chun sakta hai. Muqabla chalu ho to har number pichli muddat se milta hai.' },
-            { icon: AlertOctagon, color: '#e11d48', title: 'Kya dekhna chahiye', text: 'Khulasa me woh baatein jo aam se hat kar hain: kisi ke void ya wapsi dukaan ke ausat se zyada, drawer baar baar kam, ghalat PIN, aur bari raqam wale waqiye.' },
-            { icon: ListChecks, color: '#7c3aed', title: 'Waqiye', text: 'Void bill, wapsi, bari chhoot, lagat se kam bikri, PIN, drawer farq, galle se nikala cash, stock kam, damage, transfer, kharcha mitana, settings aur login — din war.' },
-            { icon: MousePointerClick, color: '#16a34a', title: 'Kholein aur jaanchein', text: 'Waqiye par dabayein: kyun nazar me aaya, kis ne, kab, aur asal record ka link (bill, wapsi, drawer). Bande ke naam par dabane se sirf us ki report.' },
-            { icon: Users, color: '#d97706', title: 'Staff risk', text: 'Har bande ka 0–100 score. Zaroori waqiya 8, dhyan wala 3, aam 1 point. Ausat se kahin zyada void ya wapsi par aur points. Score ilzaam nahi — sirf ishara hai.' },
-            { icon: SlidersHorizontal, color: '#0891b2', title: 'Apni hadd', text: '"Hadd" se tay karein kitni chhoot bari hai, kitni raqam bari hai, aur dukaan kab khulti/band hoti hai. Ye sirf aap ki screen par lagti hai.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Period aur branch', text: '"Period" se Aaj, 7 din, is mahine ya apni date. Malik "Branch" se ek branch chun sakta hai. Muqabla chalu ho to har number pichli period se milta hai.' },
+            { icon: AlertOctagon, color: '#e11d48', title: 'Kya dekhna chahiye', text: 'Khulasa me woh baatein jo aam se hat kar hain: kisi ke void ya return dukaan ke ausat se zyada, drawer baar baar kam, ghalat PIN, aur bari amount wale waqiye.' },
+            { icon: ListChecks, color: '#7c3aed', title: 'Waqiye', text: 'Void bill, return, bari discount, cost se kam sale, PIN, drawer farq, galle se nikala cash, stock kam, damage, transfer, expense mitana, settings aur login — din war.' },
+            { icon: MousePointerClick, color: '#16a34a', title: 'Kholein aur jaanchein', text: 'Waqiye par dabayein: kyun nazar me aaya, kis ne, kab, aur asal record ka link (bill, return, drawer). Bande ke naam par dabane se sirf us ki report.' },
+            { icon: Users, color: '#d97706', title: 'Staff risk', text: 'Har bande ka 0–100 score. Zaroori waqiya 8, dhyan wala 3, aam 1 point. Ausat se kahin zyada void ya return par aur points. Score ilzaam nahi — sirf ishara hai.' },
+            { icon: SlidersHorizontal, color: '#0891b2', title: 'Apni hadd', text: '"Hadd" se tay karein kitni discount bari hai, kitni amount bari hai, aur dukaan kab khulti/band hoti hai. Ye sirf aap ki screen par lagti hai.' },
             { icon: Clock, color: '#475569', title: 'Dukaan ke waqt ke baad', text: 'Jo kaam dukaan band hone ke baad ya khulne se pehle hua, us par nishan lagta hai. Waqt Settings → Zubaan aur waqt se aata hai.' },
             { icon: Download, color: '#db2777', title: 'Print aur CSV', text: 'Jo tab khula hai usi ki report: A4, PDF, thermal slip ya Excel (CSV).' },
           ]}
           tips={[
             'Bill cancel (void) us bande ke naam aata hai jis ne cancel kiya. Purane cancel bill (jab ye record nahi hota tha) bill wale bande ke naam.',
-            'Malik ke apne login, device, PIN aur settings ki tabdeeli sirf malik ko dikhti hai. Malik ka kiya void, wapsi ya chhoot sab ko dikhta hai.',
-            'Lagat aur stock ka nuqsan sirf unhe dikhta hai jin ke paas cost dekhne ki ijazat hai.',
+            'Malik ke apne login, device, PIN aur settings ki tabdeeli sirf malik ko dikhti hai. Malik ka kiya void, return ya discount sab ko dikhta hai.',
+            'Cost aur stock ka nuqsan sirf unhe dikhta hai jin ke paas cost dekhne ki permission hai.',
             'Rate badalna, product mitana aur cart se cheez hatana abhi record nahi hota, is liye yahan nahi aate.',
             'Login aur settings ka record kisi branch ka nahi hota — branch chunne par us branch ke bandon ka dikhta hai.',
           ]}

@@ -18,17 +18,17 @@ export function stockDoc(list: StockList, filter: string, showCost: boolean): Pr
     title: 'Stock report',
     subtitle: filter || 'Sab maal',
     meta: [
-      ['Tareekh', dateText(new Date().toISOString())],
+      ['Date', dateText(new Date().toISOString())],
       ['Cheezein', String(t.lines)],
       ['Bechne par', formatPKR(t.retail)],
-      ...(showCost ? [['Lagat', formatPKR(t.cost)] as [string, string], ['Mumkin munafa', formatPKR(t.profit)] as [string, string]] : []),
+      ...(showCost ? [['Cost', formatPKR(t.cost)] as [string, string], ['Mumkin profit', formatPKR(t.profit)] as [string, string]] : []),
     ],
     sections: [{
       kind: 'table',
       columns: [
         { label: 'Cheez' }, { label: 'Stock', align: 'right' }, { label: 'Halat', wideOnly: true },
-        { label: 'Aakhri bikri', wideOnly: true },
-        ...(showCost ? [{ label: 'Lagat', align: 'right' as const }] : []),
+        { label: 'Aakhri sale', wideOnly: true },
+        ...(showCost ? [{ label: 'Cost', align: 'right' as const }] : []),
         { label: 'Bechne par', align: 'right' },
       ],
       rows: list.items.map((l) => [
@@ -37,15 +37,15 @@ export function stockDoc(list: StockList, filter: string, showCost: boolean): Pr
       ]),
       footer: ['Kul', qty(t.units), '', '', ...(showCost ? [formatPKR(t.cost)] : []), formatPKR(t.retail)],
     }],
-    footer: list.total > list.items.length ? `Pehli ${list.items.length} cheezein (kul ${list.total})` : 'Lagat ausat cost (average) par',
+    footer: list.total > list.items.length ? `Pehli ${list.items.length} cheezein (kul ${list.total})` : 'Cost ausat cost (average) par',
   };
 }
 
 export function stockCsv(items: StockLine[], header: string[], showCost: boolean, shops: Array<{ id: string; name: string }>) {
   const head = [
     'Cheez', 'SKU', 'Barcode', 'Category', 'Brand', 'Supplier', 'Unit', 'Stock', 'Alert', 'Halat', 'Nishan',
-    ...(showCost ? ['Cost (ausat)', 'Lagat'] : []), 'Rate', 'Bechne par', ...(showCost ? ['Mumkin munafa', 'Margin %'] : []),
-    'Biki (muddat)', 'Bikri raqam', 'Kitne din chalega', 'Aakhri bikri', 'Maal aaya', 'IMEI/Serial', 'Expiry',
+    ...(showCost ? ['Cost (ausat)', 'Cost'] : []), 'Rate', 'Bechne par', ...(showCost ? ['Mumkin profit', 'Margin %'] : []),
+    'Biki (period)', 'Sale amount', 'Kitne din chalega', 'Aakhri sale', 'Maal aaya', 'IMEI/Serial', 'Expiry',
     ...shops.map((s) => `${s.name} stock`),
   ];
   const rows = items.map((l) => [
@@ -84,7 +84,7 @@ export function ledgerDoc(l: StockLedger, period: string, showCost: boolean): Pr
         columns: [
           { label: 'Cheez' }, { label: 'Shuru', align: 'right' }, { label: 'Aaya', align: 'right', wideOnly: true },
           { label: 'Gaya', align: 'right', wideOnly: true }, { label: 'Aakhir', align: 'right' },
-          ...(showCost ? [{ label: 'Lagat', align: 'right' as const, wideOnly: true }] : []),
+          ...(showCost ? [{ label: 'Cost', align: 'right' as const, wideOnly: true }] : []),
         ],
         rows: l.items.map((x) => [
           x.name, qty(x.opening), qty(x.inQty), qty(x.outQty), `${qty(x.closing)} ${x.unit}`,
@@ -98,7 +98,7 @@ export function ledgerDoc(l: StockLedger, period: string, showCost: boolean): Pr
 
 export function ledgerCsv(l: StockLedger, header: string[], showCost: boolean) {
   const head = ['Cheez', 'SKU', 'Unit', 'Shuru me', ...KINDS.map((k) => k.label), 'Aakhir me', 'Farq',
-    ...(showCost ? ['Shuru lagat', 'Aakhir lagat'] : []), 'Aakhir bechne par'];
+    ...(showCost ? ['Shuru cost', 'Aakhir cost'] : []), 'Aakhir bechne par'];
   const rows = l.items.map((x) => [
     x.name, x.sku ?? '', x.unit, x.opening, ...KINDS.map((k) => x.kinds[k.key] ?? 0), x.closing, x.change,
     ...(showCost ? [x.openingValue.cost.toFixed(2), x.closingValue.cost.toFixed(2)] : []), x.closingValue.retail.toFixed(2),
@@ -109,13 +109,13 @@ export function ledgerCsv(l: StockLedger, header: string[], showCost: boolean) {
 export function branchesDoc(b: StockBranches, showCost: boolean): PrintDoc {
   return {
     title: 'Branches ka stock',
-    meta: [['Tareekh', dateText(new Date().toISOString())], ['Branches', String(b.shops.length)]],
+    meta: [['Date', dateText(new Date().toISOString())], ['Branches', String(b.shops.length)]],
     sections: [{
       kind: 'table',
       columns: [
         { label: 'Branch' }, { label: 'Cheezein', align: 'right', wideOnly: true },
-        ...(showCost ? [{ label: 'Lagat', align: 'right' as const }] : []), { label: 'Bechne par', align: 'right' },
-        { label: 'Khatam', align: 'right', wideOnly: true }, { label: 'Bikri', align: 'right', wideOnly: true },
+        ...(showCost ? [{ label: 'Cost', align: 'right' as const }] : []), { label: 'Bechne par', align: 'right' },
+        { label: 'Khatam', align: 'right', wideOnly: true }, { label: 'Sale', align: 'right', wideOnly: true },
       ],
       rows: b.shops.map((s) => [
         s.name, String(s.lines), ...(showCost ? [formatPKR(s.cost)] : []), formatPKR(s.retail), String(s.out), formatPKR(s.sold.revenue),
@@ -123,7 +123,7 @@ export function branchesDoc(b: StockBranches, showCost: boolean): PrintDoc {
     }, ...(b.moves.length ? [{
       kind: 'table' as const,
       title: 'Branch se branch bhejne layak',
-      columns: [{ label: 'Cheez' }, { label: 'Se' }, { label: 'Ko' }, { label: 'Miqdar', align: 'right' as const }],
+      columns: [{ label: 'Cheez' }, { label: 'Se' }, { label: 'Ko' }, { label: 'Quantity', align: 'right' as const }],
       rows: b.moves.map((m) => [m.name, b.shops.find((s) => s.shopId === m.from)?.name ?? '', b.shops.find((s) => s.shopId === m.to)?.name ?? '', `${qty(m.qty)} ${m.unit}`]),
     }] : [])],
   };

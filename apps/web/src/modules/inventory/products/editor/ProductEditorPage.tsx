@@ -89,7 +89,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
   const checklist = [
     { ok: !!c.name.trim(), label: 'Naam' },
     { ok: c.price > 0, label: 'Bechne ki qeemat' },
-    { ok: c.costPrice > 0, label: 'Cost (munafa ke liye)' },
+    { ok: c.costPrice > 0, label: 'Cost (profit ke liye)' },
     { ok: !!c.categoryId, label: 'Category' },
     { ok: !!(c.barcode || c.sku), label: 'Barcode ya SKU' },
     { ok: c.images.length > 0, label: 'Tasveer' },
@@ -176,7 +176,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
                 <p className="mt-1 text-[1.25rem] font-bold tabular-nums text-slate-900">{formatPKR(c.price)}<span className="text-[0.75rem] font-medium text-slate-500"> /{c.unit}</span></p>
                 <dl className="mt-3 space-y-1.5 text-[0.8125rem]">
                   <div className="flex justify-between"><dt className="text-slate-500">Cost</dt><dd className="tabular-nums">{c.costPrice ? formatPKR(c.costPrice) : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-slate-500">Munafa</dt><dd className={cn('font-semibold tabular-nums', margin === null ? 'text-slate-400' : margin < 0 ? 'text-rose-600' : 'text-success-700')}>{margin === null ? '—' : `${formatPKR(c.price - c.costPrice)} · ${margin.toFixed(0)}%`}</dd></div>
+                  <div className="flex justify-between"><dt className="text-slate-500">Profit</dt><dd className={cn('font-semibold tabular-nums', margin === null ? 'text-slate-400' : margin < 0 ? 'text-rose-600' : 'text-success-700')}>{margin === null ? '—' : `${formatPKR(c.price - c.costPrice)} · ${margin.toFixed(0)}%`}</dd></div>
                   <div className="flex justify-between"><dt className="text-slate-500">Stock</dt><dd className="tabular-nums">{fmt(e.isEdit ? c.stock : openingStock(c))} {c.unit}</dd></div>
                   {c.variants.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">Variants</dt><dd>{c.variants.length}</dd></div>}
                   {c.units.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">Packing</dt><dd>{c.units.length}</dd></div>}

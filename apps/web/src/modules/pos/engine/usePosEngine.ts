@@ -563,10 +563,10 @@ export function usePosEngine(config: PosIndustryConfig) {
       return { ok: true, text: credit ? 'Udhaar — checkout khul gaya' : 'Checkout khul gaya' };
     }
     if (cmd.kind === 'discount') {
-      if (!rules.allowDiscount) return { ok: false, text: 'Is dukaan me chhoot band hai' };
+      if (!rules.allowDiscount) return { ok: false, text: 'Is dukaan me discount band hai' };
       if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); return { ok: true, text: `${cmd.pct}% discount laga` }; }
       if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); return { ok: true, text: `Rs ${cmd.rs} discount laga` }; }
-      return { ok: false, text: 'Discount ki raqam samajh nahi aayi' };
+      return { ok: false, text: 'Discount ki amount samajh nahi aayi' };
     }
     if (cmd.kind === 'clear') { clearCart(); return { ok: true, text: 'Bill saaf' }; }
     return { ok: false, text: `Samjha nahi: "${cmd.text}"` };
@@ -607,14 +607,14 @@ export function usePosEngine(config: PosIndustryConfig) {
     // Hand discount only; codes and points follow their own rules.
     const manual = discountAmount;
     // Staff trusted with "Had se zyada chhoot" skip the limit and its PIN; credit rules below still apply.
-    if (manual > 0 && !rules.allowDiscount) { toast.error('Is dukaan me haath se chhoot band hai (Settings)'); return false; }
+    if (manual > 0 && !rules.allowDiscount) { toast.error('Is dukaan me haath se discount band hai (Settings)'); return false; }
     if (manual > 0 && !rules.discountTrusted) {
       const pct = subtotal > 0 ? (manual / subtotal) * 100 : 100;
       if (pct > rules.maxDiscountPercent + 0.01) {
-        if (!rules.hasPin) { toast.error(`Chhoot ${rules.maxDiscountPercent}% se zyada nahi ho sakti (Settings)`); return false; }
-        return `${rules.maxDiscountPercent}% se zyada chhoot`;
+        if (!rules.hasPin) { toast.error(`Discount ${rules.maxDiscountPercent}% se zyada nahi ho sakti (Settings)`); return false; }
+        return `${rules.maxDiscountPercent}% se zyada discount`;
       }
-      if (rules.pinForDiscount && rules.hasPin) return 'Chhoot';
+      if (rules.pinForDiscount && rules.hasPin) return 'Discount';
     }
     if (credit > 0 && selectedCustomer) {
       const limit = Number(selectedCustomer.creditLimit) || 0;
@@ -750,7 +750,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     cart, customers, customerId, setCustomerId, selectedCustomer, receiver, setReceiver, soldById, setSoldById,
     delivery, setDelivery, deliveryFee, discountMode, discountPct, discountRs, discountAmount, subtotal, total, totalSavings, totalQty,
     setDiscount: (m: PosDiscountMode, p: number, r: number) => {
-      if (!rules.allowDiscount && (p > 0 || r > 0)) { toast.error('Is dukaan me haath se chhoot band hai'); return; }
+      if (!rules.allowDiscount && (p > 0 || r > 0)) { toast.error('Is dukaan me haath se discount band hai'); return; }
       setDiscountMode(m); setDiscountPct(p); setDiscountRs(r);
     },
     rules,

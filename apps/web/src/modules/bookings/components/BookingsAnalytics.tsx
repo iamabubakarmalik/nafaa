@@ -37,20 +37,20 @@ export function BookingsAnalytics({ filters, money }: { filters: Omit<BookingQue
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={BookmarkCheck} label="Bookings" value={String(t.count)} sub={`${money(t.value)} ki · ${t.open} abhi khuli`} />
-        <Kpi icon={ShoppingBag} label="Bikri bani" value={t.conversionRate == null ? '—' : `${t.conversionRate}%`}
+        <Kpi icon={ShoppingBag} label="Sale bani" value={t.conversionRate == null ? '—' : `${t.conversionRate}%`}
           sub={`${t.converted} bik gayi · ${t.cancelled} cancel`} tone="emerald" />
         <Kpi icon={Wallet} label="Paise mile" value={money(t.received)} sub="Advance aur baad ki payments" tone="emerald" />
-        <Kpi icon={RotateCcw} label="Wapas diye" value={money(t.refunded)} sub="Cancel par wapsi" tone="rose" />
+        <Kpi icon={RotateCcw} label="Wapas diye" value={money(t.refunded)} sub="Cancel par return" tone="rose" />
         <Kpi icon={Percent} label="Ausat advance" value={t.avgAdvancePct == null ? '—' : `${t.avgAdvancePct}%`} sub="Booking ke waqt kul ka kitna" tone="amber" />
-        <Kpi icon={Timer} label="Bikri tak ausat" value={t.avgDaysToSale == null ? '—' : `${t.avgDaysToSale} din`} sub="Booking se pickup tak" />
-        <Kpi icon={TrendingUp} label="Bikri ki raqam" value={money(t.convertedValue)} sub="Jo bookings bik gayi" tone="emerald" />
+        <Kpi icon={Timer} label="Sale tak ausat" value={t.avgDaysToSale == null ? '—' : `${t.avgDaysToSale} din`} sub="Booking se pickup tak" />
+        <Kpi icon={TrendingUp} label="Sale ki amount" value={money(t.convertedValue)} sub="Jo bookings bik gayi" tone="emerald" />
         <Kpi icon={CalendarClock} label="Agle 14 din" value={String(load.reduce((s, x) => s + x.count, 0))}
           sub={`pickup · ${money(load.reduce((s, x) => s + x.balance, 0))} baqi`} tone="amber" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ki bookings</span>} description="Har karobari din kitni bookings aayi, aur un ka anjaam">
-          {!trend.length ? <Empty text="Is muddat me koi booking nahi" /> : (
+          {!trend.length ? <Empty text="Is period me koi booking nahi" /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trend} margin={{ top: 4, right: 4, left: -18, bottom: 0 }}>
@@ -89,7 +89,7 @@ export function BookingsAnalytics({ filters, money }: { filters: Omit<BookingQue
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={BookmarkCheck} title="Haal" description="Is muddat ki bookings ab kis haal me hain" rows={statuses} money={money}
+        <Ranked icon={BookmarkCheck} title="Haal" description="Is period ki bookings ab kis haal me hain" rows={statuses} money={money}
           dot={(r) => (r as typeof statuses[number]).color} sub={(r) => `${r.count} booking`} />
         <Ranked icon={Package} title="Sab se zyada book hone wala maal" description="Kis cheez ki advance booking zyada hoti hai" rows={d.byProduct} money={money}
           sub={(r) => `${qtyText(r.qty)} ${(r as typeof d.byProduct[number]).unit} · ${r.count} booking`} />

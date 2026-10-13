@@ -22,9 +22,9 @@ function useGeneralActions(): QuickAction[] {
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
     { to: '/sales', icon: Receipt, label: 'Sales history', hint: 'Purane bill' },
-    { to: '/purchases', icon: ShoppingBag, label: 'Kharidari', hint: 'Maal mangwayein' },
+    { to: '/purchases', icon: ShoppingBag, label: 'Purchase', hint: 'Maal mangwayein' },
     { to: '/suppliers', icon: Building2, label: 'Suppliers', hint: `${s?.totalSuppliers ?? 0} parties` },
-    { to: '/expenses', icon: Wallet, label: 'Kharche', hint: 'Bijli, kiraya' },
+    { to: '/expenses', icon: Wallet, label: 'Expenses', hint: 'Bijli, kiraya' },
     { to: '/cash-register', icon: Banknote, label: 'Cash register', hint: 'Galle ka hisaab' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];

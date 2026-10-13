@@ -63,15 +63,15 @@ export function BakeryPanel({ filters, fmt }: ProfitPanelProps) {
   const shown = onlyProblems ? rows.filter((r) => r.noCost || r.gap > 0 || (r.profit ?? 0) < 0) : rows;
 
   if (items.isLoading || profiles.isLoading) return <Skeleton className="h-72 rounded-3xl" />;
-  if (fmt.costHidden) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-[0.875rem] text-slate-500 ring-1 ring-slate-200/80">Recipe cost dekhne ke liye cost ki ijazat chahiye</p>;
+  if (fmt.costHidden) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-[0.875rem] text-slate-500 ring-1 ring-slate-200/80">Recipe cost dekhne ke liye cost ki permission chahiye</p>;
 
   return (
     <div className="space-y-4">
       {(problems.noCost > 0 || problems.gap > 0 || problems.losing > 0) && (
         <div className="space-y-1 rounded-2xl bg-amber-50 p-4 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           <p className="flex items-center gap-2 font-semibold"><AlertTriangle className="h-4 w-4" />Ye hisaab kharab kar rahe hain</p>
-          {problems.noCost > 0 && <p>• {problems.noCost} cheezon ki cost 0 hai — un ka munafa poora dikh raha hai, jo sach nahi.</p>}
-          {problems.gap > 0 && <p>• {problems.gap} cheezon me bill wali cost aur recipe ki cost alag hai — is muddat me lagbhag <b>{fmt.cost(problems.hidden)}</b> ka chhupa nuqsan.</p>}
+          {problems.noCost > 0 && <p>• {problems.noCost} cheezon ki cost 0 hai — un ka profit poora dikh raha hai, jo sach nahi.</p>}
+          {problems.gap > 0 && <p>• {problems.gap} cheezon me bill wali cost aur recipe ki cost alag hai — is period me lagbhag <b>{fmt.cost(problems.hidden)}</b> ka chhupa nuqsan.</p>}
           {problems.losing > 0 && <p>• {problems.losing} cheezein nuqsan par bik rahi hain.</p>}
         </div>
       )}
@@ -88,11 +88,11 @@ export function BakeryPanel({ filters, fmt }: ProfitPanelProps) {
             <AlertTriangle className="h-4 w-4" />Sirf masle wali
           </button>
         )}>
-        {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi — hisaab saaf hai' : 'Is muddat me koi bikri nahi'}</p> : (
+        {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi — hisaab saaf hai' : 'Is period me koi sale nahi'}</p> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[46rem] text-[0.8125rem]">
               <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">Cheez</th><th className="px-3 py-2 text-right">Biki</th><th className="px-3 py-2 text-right">Ausat rate</th><th className="px-3 py-2 text-right">Bill ki cost</th><th className="px-3 py-2 text-right">Recipe ki cost</th><th className="px-3 py-2 text-right">Munafa</th><th className="px-4 py-2 text-right">Recipe se munafa</th></tr>
+                <tr><th className="px-4 py-2">Cheez</th><th className="px-3 py-2 text-right">Biki</th><th className="px-3 py-2 text-right">Ausat rate</th><th className="px-3 py-2 text-right">Bill ki cost</th><th className="px-3 py-2 text-right">Recipe ki cost</th><th className="px-3 py-2 text-right">Profit</th><th className="px-4 py-2 text-right">Recipe se profit</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {shown.map((r) => (
@@ -128,7 +128,7 @@ function SplitTile({ icon: Icon, color, label, n, revenue, profit }: { icon: typ
       <span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-5 w-5" /></span>
       <div className="min-w-0">
         <p className="text-[0.8125rem] font-medium text-slate-500">{label} · {n} cheezein</p>
-        <p className="text-[1.125rem] font-bold tabular-nums text-slate-900">{profit} <span className="text-[0.75rem] font-normal text-slate-500">munafa · {revenue} bikri</span></p>
+        <p className="text-[1.125rem] font-bold tabular-nums text-slate-900">{profit} <span className="text-[0.75rem] font-normal text-slate-500">profit · {revenue} sale</span></p>
       </div>
     </div>
   );

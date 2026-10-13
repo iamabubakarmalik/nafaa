@@ -237,7 +237,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
               </div>
               <div className="flex items-center gap-2">
                 <div className="hidden items-center gap-2 md:flex">
-                  <HeroStat label="Aaj ki bikri" value={today.sales} />
+                  <HeroStat label="Aaj ki sale" value={today.sales} />
                   <HeroStat label="Bill" value={today.bills} />
                 </div>
                 <div className="flex items-center gap-1 rounded-2xl bg-white/10 p-1 ring-1 ring-white/15 backdrop-blur">

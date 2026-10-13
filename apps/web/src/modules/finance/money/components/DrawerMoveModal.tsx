@@ -43,7 +43,7 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
   const out = kind === 'CASH_OUT';
   const tooMuch = out && !!drawer && value > drawer.expected;
   const errors = {
-    amount: value <= 0 ? 'Raqam likhein' : undefined,
+    amount: value <= 0 ? 'Amount likhein' : undefined,
     reason: reason.trim().length < 2 ? 'Wajah likhein ya upar se chunein' : undefined,
   };
   const ok = !errors.amount && !errors.reason;
@@ -106,7 +106,7 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
             <span>Abhi hona chahiye <b className="tabular-nums text-slate-900">{formatPKR(drawer.expected)}</b></span>
           </p>
 
-          <Input label="Raqam" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
+          <Input label="Amount" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
             onChange={(e) => setAmount(e.target.value)} placeholder="0" size="lg"
             error={tried ? errors.amount : undefined}
             hint={tooMuch ? `Golak me sirf ${formatPKR(drawer.expected)} hone chahiye. Pehle gin lein.` : out ? 'Jitna cash golak se bahar gaya' : 'Jitna cash golak me aaya'} />

@@ -28,15 +28,15 @@ function cashRows(dr: NonNullable<DayBook['drawer']>, m: Money): PrintRow[] {
   const f = dr.flow;
   const rows: PrintRow[] = [{ label: 'Opening (shuru ka cash)', value: m.sales(dr.opening) }];
   const add = (label: string, v: number, sign: '+' | '-') => { if (v) rows.push({ label: `${sign} ${label}`, value: m.sales(v), sub: true }); };
-  add('Cash bikri', f.cashSales, '+');
+  add('Cash sale', f.cashSales, '+');
   add('Booking advance', f.bookingReceived, '+');
   add('Khata wasooli', f.khataReceived, '+');
   add('Cash in', f.cashIn, '+');
   add('Cash out', f.cashOut, '-');
-  add('Wapsi', f.returns, '-');
-  add('Booking wapsi', f.bookingRefunds, '-');
-  add('Kharcha', f.expenses, '-');
-  add('Kharidari', f.purchases, '-');
+  add('Return', f.returns, '-');
+  add('Booking return', f.bookingRefunds, '-');
+  add('Expense', f.expenses, '-');
+  add('Purchase', f.purchases, '-');
   add('Supplier ko diya', f.supplierPaid, '-');
   rows.push({ label: 'Hona chahiye', value: m.sales(dr.expected), strong: true });
   if (dr.counted != null) rows.push({ label: 'Gina hua', value: m.sales(dr.counted) });
@@ -52,14 +52,14 @@ function salesRows(d: DayBook, m: Money): PrintRow[] {
     { label: '- Discount', value: m.sales(s.discount), sub: true },
   ];
   if (s.charges) rows.push({ label: '+ Service charges', value: m.sales(s.charges), sub: true });
-  rows.push({ label: `Bill ki raqam (${s.bills} bill)`, value: m.sales(s.billed) });
-  if (s.returns) rows.push({ label: `- Wapsi (${s.returnCount})`, value: m.sales(s.returns), sub: true });
-  rows.push({ label: 'Net bikri', value: m.sales(s.net), strong: true });
+  rows.push({ label: `Bill ki amount (${s.bills} bill)`, value: m.sales(s.billed) });
+  if (s.returns) rows.push({ label: `- Return (${s.returnCount})`, value: m.sales(s.returns), sub: true });
+  rows.push({ label: 'Net sale', value: m.sales(s.net), strong: true });
   rows.push({ label: 'Ausat bill', value: m.sales(s.avgBill) });
   rows.push({ label: 'Cheezein biki', value: qty(s.itemsSold) });
   if (s.voidedBills) rows.push({ label: 'Void bill', value: String(s.voidedBills) });
   if (s.credit) rows.push({ label: 'Udhaar par diya', value: m.sales(s.credit) });
-  if (!m.costHidden) rows.push({ label: `Munafa${s.margin != null ? ` (${s.margin.toFixed(1)}%)` : ''}`, value: m.cost(s.grossProfit) });
+  if (!m.costHidden) rows.push({ label: `Profit${s.margin != null ? ` (${s.margin.toFixed(1)}%)` : ''}`, value: m.cost(s.grossProfit) });
   return rows;
 }
 
@@ -79,13 +79,13 @@ function meta(d: DayBook, branch: string) {
 /** Short end-of-day slip: sales, payments, drawer, spending, staff. */
 export function zReportDoc(d: DayBook, m: Money, branch: string): PrintDoc {
   const sections: PrintSection[] = [
-    { kind: 'rows', title: 'Bikri', rows: salesRows(d, m) },
+    { kind: 'rows', title: 'Sale', rows: salesRows(d, m) },
     { kind: 'rows', title: 'Paisa kaise aaya', rows: paymentRows(d, m) },
     ...(d.drawer ? [{ kind: 'rows' as const, title: 'Galla (cash)', rows: cashRows(d.drawer, m) }] : []),
   ];
   const out: PrintRow[] = [];
-  if (d.expenses.total) out.push({ label: `Kharcha (${d.expenses.count})`, value: m.cost(d.expenses.total) });
-  if (d.purchases.count) out.push({ label: `Kharidari (${d.purchases.count})`, value: m.cost(d.purchases.total) });
+  if (d.expenses.total) out.push({ label: `Expense (${d.expenses.count})`, value: m.cost(d.expenses.total) });
+  if (d.purchases.count) out.push({ label: `Purchase (${d.purchases.count})`, value: m.cost(d.purchases.total) });
   if (d.supplierPayments.total) out.push({ label: 'Supplier ko diya', value: m.cost(d.supplierPayments.total) });
   if (d.khata.given) out.push({ label: 'Udhaar diya', value: m.sales(d.khata.given) });
   if (d.bookings.advances) out.push({ label: 'Booking advance', value: m.sales(d.bookings.advances) });
@@ -118,10 +118,10 @@ export function dayBookDoc(d: DayBook, m: Money, branch: string): PrintDoc {
     kind: 'table', title: 'Muqabla',
     columns: [{ label: '' }, { label: 'Is din', align: 'right' }, { label: 'Kal', align: 'right' }, { label: 'Pichhla hafta', align: 'right' }],
     rows: [
-      ['Net bikri', m.sales(d.summary.net), m.sales(c.yesterday.net), m.sales(c.lastWeek.net)],
+      ['Net sale', m.sales(d.summary.net), m.sales(c.yesterday.net), m.sales(c.lastWeek.net)],
       ['Bill', String(d.summary.bills), String(c.yesterday.bills), String(c.lastWeek.bills)],
       ['Ausat bill', m.sales(d.summary.avgBill), m.sales(c.yesterday.avgBill), m.sales(c.lastWeek.avgBill)],
-      ...(m.costHidden ? [] : [['Munafa', m.cost(d.summary.grossProfit), m.cost(c.yesterday.profit), m.cost(c.lastWeek.profit)]]),
+      ...(m.costHidden ? [] : [['Profit', m.cost(d.summary.grossProfit), m.cost(c.yesterday.profit), m.cost(c.lastWeek.profit)]]),
     ],
   });
 
@@ -137,33 +137,33 @@ export function dayBookDoc(d: DayBook, m: Money, branch: string): PrintDoc {
     }
     sections.push({
       kind: 'table', title: 'Kya bika',
-      columns: [{ label: 'Cheez' }, { label: 'Qty', align: 'right' }, { label: 'Raqam', align: 'right' }, { label: 'Munafa', align: 'right', wideOnly: true }],
+      columns: [{ label: 'Cheez' }, { label: 'Qty', align: 'right' }, { label: 'Amount', align: 'right' }, { label: 'Profit', align: 'right', wideOnly: true }],
       rows, groupRows,
       footer: ['Kul', qty(d.summary.itemsSold), m.sales(d.items.reduce((a, i) => a + i.revenue, 0)), m.costHidden ? '' : m.cost(d.items.reduce((a, i) => a + (i.profit ?? 0), 0))],
     });
   }
   if (d.expenses.list.length) {
     sections.push({
-      kind: 'table', title: 'Kharcha',
-      columns: [{ label: 'Kharcha' }, { label: 'Category', wideOnly: true }, { label: 'Tareeqa', wideOnly: true }, { label: 'Raqam', align: 'right' }],
+      kind: 'table', title: 'Expense',
+      columns: [{ label: 'Expense' }, { label: 'Category', wideOnly: true }, { label: 'Tareeqa', wideOnly: true }, { label: 'Amount', align: 'right' }],
       rows: d.expenses.list.map((e) => [e.title, e.category ?? '', method(e.method), m.cost(e.amount)]),
       footer: ['Kul', '', '', m.cost(d.expenses.total)],
     });
   }
   if (d.purchases.list.length || d.supplierPayments.list.length) {
     sections.push({
-      kind: 'table', title: 'Kharidari aur supplier',
-      columns: [{ label: 'Supplier' }, { label: 'Kya', wideOnly: true }, { label: 'Raqam', align: 'right' }, { label: 'Diye', align: 'right' }],
+      kind: 'table', title: 'Purchase aur supplier',
+      columns: [{ label: 'Supplier' }, { label: 'Kya', wideOnly: true }, { label: 'Amount', align: 'right' }, { label: 'Diye', align: 'right' }],
       rows: [
         ...d.purchases.list.map((p) => [p.supplier, p.number, m.cost(p.total), m.cost(p.paid)]),
-        ...d.supplierPayments.list.map((p) => [p.supplier, `Adaigi · ${method(p.method)}`, '', m.cost(p.amount)]),
+        ...d.supplierPayments.list.map((p) => [p.supplier, `Payment · ${method(p.method)}`, '', m.cost(p.amount)]),
       ],
     });
   }
   if (d.khata.list.length) {
     sections.push({
       kind: 'table', title: 'Khata',
-      columns: [{ label: 'Customer' }, { label: 'Kya' }, { label: 'Raqam', align: 'right' }],
+      columns: [{ label: 'Customer' }, { label: 'Kya' }, { label: 'Amount', align: 'right' }],
       rows: d.khata.list.map((k) => [k.customer, k.kind === 'given' ? 'Udhaar diya' : 'Wasool', m.sales(k.amount)]),
       footer: ['', `Diya ${m.sales(d.khata.given)}`, `Wasool ${m.sales(d.khata.collected)}`],
     });
@@ -171,24 +171,24 @@ export function dayBookDoc(d: DayBook, m: Money, branch: string): PrintDoc {
   if (d.bookings.list.length) {
     sections.push({
       kind: 'table', title: 'Booking',
-      columns: [{ label: 'Booking' }, { label: 'Customer', wideOnly: true }, { label: 'Kya' }, { label: 'Raqam', align: 'right' }],
-      rows: d.bookings.list.map((b) => [b.number, b.customer ?? '', b.type === 'REFUND' ? 'Wapsi' : 'Advance', m.sales(b.amount)]),
+      columns: [{ label: 'Booking' }, { label: 'Customer', wideOnly: true }, { label: 'Kya' }, { label: 'Amount', align: 'right' }],
+      rows: d.bookings.list.map((b) => [b.number, b.customer ?? '', b.type === 'REFUND' ? 'Return' : 'Advance', m.sales(b.amount)]),
     });
   }
   if (d.cashMoves.length) {
     sections.push({
       kind: 'table', title: 'Cash in / out',
-      columns: [{ label: 'Waqt' }, { label: 'Wajah' }, { label: 'Kis ne', wideOnly: true }, { label: 'Raqam', align: 'right' }],
+      columns: [{ label: 'Waqt' }, { label: 'Wajah' }, { label: 'Kis ne', wideOnly: true }, { label: 'Amount', align: 'right' }],
       rows: d.cashMoves.map((c) => [clock(c.at), `${c.type === 'CASH_IN' ? 'In' : 'Out'} · ${c.reason ?? c.note ?? ''}`, c.by ?? '', m.sales(c.amount)]),
     });
   }
   if (d.voids.length || d.returns.length) {
     sections.push({
-      kind: 'table', title: 'Void aur wapsi',
-      columns: [{ label: 'Bill' }, { label: 'Kya' }, { label: 'Wajah', wideOnly: true }, { label: 'Raqam', align: 'right' }],
+      kind: 'table', title: 'Void aur return',
+      columns: [{ label: 'Bill' }, { label: 'Kya' }, { label: 'Wajah', wideOnly: true }, { label: 'Amount', align: 'right' }],
       rows: [
         ...d.voids.map((v) => [v.saleNumber, 'Void', v.reason ?? '', m.sales(v.total)]),
-        ...d.returns.map((r) => [r.saleNumber, `Wapsi ${r.number}`, r.reason ?? '', m.sales(r.amount)]),
+        ...d.returns.map((r) => [r.saleNumber, `Return ${r.number}`, r.reason ?? '', m.sales(r.amount)]),
       ],
     });
   }
@@ -210,7 +210,7 @@ export function dayBookDoc(d: DayBook, m: Money, branch: string): PrintDoc {
   if (d.branches.length > 1) {
     sections.push({
       kind: 'table', title: 'Branch war',
-      columns: [{ label: 'Branch' }, { label: 'Bill', align: 'right' }, { label: 'Net bikri', align: 'right' }, { label: 'Kharcha', align: 'right', wideOnly: true }, { label: 'Farq', align: 'right', wideOnly: true }],
+      columns: [{ label: 'Branch' }, { label: 'Bill', align: 'right' }, { label: 'Net sale', align: 'right' }, { label: 'Expense', align: 'right', wideOnly: true }, { label: 'Farq', align: 'right', wideOnly: true }],
       rows: d.branches.map((b) => [b.name, String(b.bills), m.sales(b.net), m.cost(b.expenses), b.difference == null ? '—' : m.sales(b.difference)]),
     });
   }
@@ -222,9 +222,9 @@ export function dayText(d: DayBook, m: Money, branch: string) {
   const s = d.summary;
   const lines = [
     `*Din ka hisaab — ${prettyDay(d.date)}*`, branch, '',
-    `Net bikri: ${m.sales(s.net)} (${s.bills} bill)`,
-    `Discount: ${m.sales(s.discount)} · Wapsi: ${m.sales(s.returns)}`,
-    ...(m.costHidden ? [] : [`Munafa: ${m.cost(s.grossProfit)}`]),
+    `Net sale: ${m.sales(s.net)} (${s.bills} bill)`,
+    `Discount: ${m.sales(s.discount)} · Return: ${m.sales(s.returns)}`,
+    ...(m.costHidden ? [] : [`Profit: ${m.cost(s.grossProfit)}`]),
     '', '*Paisa*',
     ...d.payments.map((p) => `${method(p.method)}: ${m.sales(p.total)}`),
     ...(d.khata.collected ? [`Khata wasooli: ${m.sales(d.khata.collected)}`] : []),
@@ -235,8 +235,8 @@ export function dayText(d: DayBook, m: Money, branch: string) {
       `Hona chahiye: ${m.sales(d.drawer.expected)}`,
       ...(d.drawer.counted != null ? [`Gina hua: ${m.sales(d.drawer.counted)} · Farq ${m.sales(d.drawer.difference)}`] : ['Register abhi khula hai']),
     ] : []),
-    '', `Kharcha: ${m.cost(d.expenses.total)}`,
-    ...(d.purchases.count ? [`Kharidari: ${m.cost(d.purchases.total)}`] : []),
+    '', `Expense: ${m.cost(d.expenses.total)}`,
+    ...(d.purchases.count ? [`Purchase: ${m.cost(d.purchases.total)}`] : []),
   ];
   const top = d.items.filter((i) => i.qty > 0).slice(0, 10);
   if (top.length) lines.push('', '*Sab se zyada bika*', ...top.map((i) => `${qty(i.qty)} ${i.unit} ${i.name}`));
@@ -245,7 +245,7 @@ export function dayText(d: DayBook, m: Money, branch: string) {
 
 /** Item-wise CSV of the day. */
 export function itemsCsv(d: DayBook, branch: string, costHidden: boolean) {
-  const head = ['Cheez', 'SKU', 'Category', 'Unit', 'Bika', 'Wapas', 'Net qty', 'Bill', 'Raqam', ...(costHidden ? [] : ['Lagat', 'Munafa'])];
+  const head = ['Cheez', 'SKU', 'Category', 'Unit', 'Bika', 'Wapas', 'Net qty', 'Bill', 'Amount', ...(costHidden ? [] : ['Cost', 'Profit'])];
   const rows = d.items.map((i) => [
     i.name, i.sku ?? '', i.category, i.unit, i.soldQty, i.returnedQty, i.qty, i.bills, i.revenue.toFixed(2),
     ...(costHidden ? [] : [(i.cost ?? 0).toFixed(2), (i.profit ?? 0).toFixed(2)]),

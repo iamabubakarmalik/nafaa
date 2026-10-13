@@ -10,7 +10,7 @@ import type { ShopType } from '../api/shops.api';
 export const SHOP_KEYS = ['shops', 'shops-analytics', 'shops-overview', 'shops-compare', 'dashboard-overview'];
 
 export const SHOP_TYPES: Record<ShopType, { label: string; hint: string; icon: LucideIcon; color: string }> = {
-  SHOP: { label: 'Dukaan', hint: 'POS, bikri, customer aur galla', icon: Building2, color: '#2563eb' },
+  SHOP: { label: 'Dukaan', hint: 'POS, sale, customer aur galla', icon: Building2, color: '#2563eb' },
   WAREHOUSE: { label: 'Warehouse', hint: 'Bara store — sirf maal rakhna aur bhejna', icon: Warehouse, color: '#d97706' },
   GODOWN: { label: 'Godown', hint: 'Chhota store — extra maal ke liye', icon: Package, color: '#7c3aed' },
 };

@@ -83,7 +83,7 @@ export function SaleRow({ sale, money, onOpen, onReturn, waLink, extra }: {
     <>
       <span className={cn('text-[1.0625rem] font-bold tabular-nums', voided ? 'text-slate-400 line-through' : 'text-slate-900')}>{money(sale.total)}</span>
       {sale.creditAmount > 0 && !voided && <span className="text-[0.75rem] font-medium tabular-nums text-amber-700">udhaar {money(sale.creditAmount)}</span>}
-      {sale.changeAmount > 0 && !voided && <span className="text-[0.75rem] tabular-nums text-success-700">wapsi {money(sale.changeAmount)}</span>}
+      {sale.changeAmount > 0 && !voided && <span className="text-[0.75rem] tabular-nums text-success-700">return {money(sale.changeAmount)}</span>}
     </>
   );
 

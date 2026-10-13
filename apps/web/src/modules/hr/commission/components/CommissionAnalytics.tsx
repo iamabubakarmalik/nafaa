@@ -36,14 +36,14 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={HandCoins} label="12 mahine ki commission" value={signed(d.totals.earned)} sub={d.totals.best ? `Sab se zyada ${periodLabel(d.totals.best.period, true)}: ${formatPKR(d.totals.best.earned)}` : '—'} />
         <Kpi icon={Wallet} label="Ada hui" value={formatPKR(d.totals.paid)} sub={`Baqi ${formatPKR(Math.max(0, d.totals.earned - d.totals.paid))}`} tone="emerald" />
-        <Kpi icon={BarChart3} label="Chaalu bandon ki bikri" value={formatPKR(d.totals.sale)} sub="Wapsi nikaal kar" />
-        <Kpi icon={Percent} label="Bikri ka kitna hissa" value={`${d.totals.rate}%`} sub="Commission ÷ bikri" tone="amber" />
+        <Kpi icon={BarChart3} label="Chaalu bandon ki sale" value={formatPKR(d.totals.sale)} sub="Return nikaal kar" />
+        <Kpi icon={Percent} label="Sale ka kitna hissa" value={`${d.totals.rate}%`} sub="Commission ÷ sale" tone="amber" />
       </div>
 
       {empty ? (
-        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">In 12 mahine me chaalu bandon ki koi bikri nahi.</p>
+        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">In 12 mahine me chaalu bandon ki koi sale nahi.</p>
       ) : (<>
-        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Commission aur adaigi</Title>} description="Har mahine kitni bani aur kitni ada hui">
+        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Commission aur payment</Title>} description="Har mahine kitni bani aur kitni ada hui">
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -93,7 +93,7 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
             <div className="mt-3 overflow-x-auto">
               <table className="w-full min-w-[28rem] text-[0.8125rem]">
                 <thead><tr className="border-b border-slate-100 text-left text-[0.75rem] text-slate-500">
-                  <th className="px-4 py-2 font-medium">Banda</th><th className="px-2 py-2 text-right font-medium">Bikri</th>
+                  <th className="px-4 py-2 font-medium">Banda</th><th className="px-2 py-2 text-right font-medium">Sale</th>
                   <th className="px-2 py-2 text-right font-medium">Commission</th><th className="px-2 py-2 text-right font-medium">%</th><th className="px-4 py-2 text-right font-medium">Ada</th>
                 </tr></thead>
                 <tbody className="divide-y divide-slate-50">

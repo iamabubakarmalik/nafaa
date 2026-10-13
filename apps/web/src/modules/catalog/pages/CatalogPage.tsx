@@ -158,7 +158,7 @@ function Showroom({ config }: { config: CatalogConfig }) {
           </div>
         </header>
         <div className="mx-auto max-w-7xl space-y-4 p-4 pb-24">
-          <SearchField ref={searchRef} value={s.search} onChange={s.setSearch} placeholder={`${config.title} me dhoondein…`} />
+          <SearchField ref={searchRef} value={s.search} onChange={s.setSearch} placeholder={`${config.title} me search…`} />
           <CustomerFilters s={s} config={config} />
           {content}
         </div>
@@ -194,7 +194,7 @@ function Showroom({ config }: { config: CatalogConfig }) {
       />
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={s.search} onChange={s.setSearch} placeholder="Naam, code, brand ya tafseel…" label={`${config.title} dhoondein`} />}
+        search={<SearchField ref={searchRef} value={s.search} onChange={s.setSearch} placeholder="Naam, code, brand ya details…" label={`${config.title} search`} />}
         onClear={s.clear}
         chips={s.hasFilters ? <>
           {s.f.cat && <FilterChip onRemove={() => s.set('cat', '')}>{s.categories.find((c) => c.id === s.f.cat)?.name ?? 'Category'}</FilterChip>}
@@ -237,7 +237,7 @@ function Showroom({ config }: { config: CatalogConfig }) {
               ))}
             </div>
           )} />
-        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={s.sort} options={SORTS} onChange={s.setSort} align="right" width="w-56" />
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={s.sort} options={SORTS} onChange={s.setSort} align="right" width="w-56" />
         <button type="button" onClick={s.toggleFeatured} title="Sirf khaas"
           className={cn('flex h-11 w-11 items-center justify-center rounded-2xl transition', s.f.featured ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-200' : 'bg-slate-100/80 text-slate-500 hover:bg-slate-200/70')}>
           <Star className={cn('h-4 w-4', s.f.featured && 'fill-current')} />
@@ -315,7 +315,7 @@ function CustomerFilters({ s, config }: { s: Showcase; config: CatalogConfig }) 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <QuickChips s={s} config={config} />
         <div className="flex items-center gap-2">
-          <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={s.sort} options={SORTS} onChange={s.setSort} align="right" width="w-56" />
+          <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={s.sort} options={SORTS} onChange={s.setSort} align="right" width="w-56" />
           <ModeSwitch modes={config.modes} value={s.mode} onChange={s.setMode} />
         </div>
       </div>
@@ -371,8 +371,8 @@ function CatalogGuide({ config, onClose }: { config: CatalogConfig; onClose: () 
       onClose={onClose}
       steps={[
         { icon: Eye, color: '#2563eb', title: 'Customer ko dikhayein', text: '"Customer view" dabayein — poori screen par sirf cheezein aur rate, baqi app chhup jati hai. Tablet counter par rakh dein.' },
-        { icon: Search, color: '#7c3aed', title: 'Dhoondein aur chhaantein', text: 'Naam ya code likhein. Category, rate aur doosre filter upar hain. Jo filter lagayein wo link me bhi aa jata hai.' },
-        { icon: MousePointerClick, color: '#16a34a', title: 'Tafseel kholein', text: 'Kisi bhi card par dabayein: saari photos (← → se aage peeche), options, rate aur tafseel. Photo par dabane se bari ho jati hai.' },
+        { icon: Search, color: '#7c3aed', title: 'Search aur chhaantein', text: 'Naam ya code likhein. Category, rate aur doosre filter upar hain. Jo filter lagayein wo link me bhi aa jata hai.' },
+        { icon: MousePointerClick, color: '#16a34a', title: 'Details kholein', text: 'Kisi bhi card par dabayein: saari photos (← → se aage peeche), options, rate aur details. Photo par dabane se bari ho jati hai.' },
         { icon: Plus, color: '#db2777', title: `${config.listLabel ?? 'Pasand list'} banayein`, text: '+ se cheez list me daalein. Neeche kaala button list kholta hai — customer apna naam likh kar dukaan ko WhatsApp kar de.' },
         { icon: Link2, color: '#0891b2', title: 'Share karein', text: 'WhatsApp se rate list bhejein, ya link copy karein. Sirf sale rate jata hai — cost kabhi nahi.' },
         { icon: Printer, color: '#d97706', title: 'Print karein', text: '"Rate list" se seedhi list (A4, PDF ya thermal). "Photo catalog" se photos wala A4 catalog, dukaan ke naam aur logo ke saath.' },

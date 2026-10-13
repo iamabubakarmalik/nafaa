@@ -46,7 +46,7 @@ type Tab = 'overview' | 'segments' | 'retention' | 'khata' | 'loyalty';
 const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
   { id: 'overview', label: 'Khulasa', icon: LayoutDashboard },
   { id: 'segments', label: 'Groups', icon: Grid3x3 },
-  { id: 'retention', label: 'Wapsi', icon: Repeat },
+  { id: 'retention', label: 'Return', icon: Repeat },
   { id: 'khata', label: 'Udhaar', icon: BookOpen },
   { id: 'loyalty', label: 'Points', icon: Coins },
 ];
@@ -150,10 +150,10 @@ function CustomersReport() {
         </>}
         stats={t ? [
           { label: 'Naam wale customers', value: f.count(t.buyers), hint: `${t.newBuyers} naye` },
-          { label: 'Un ki bikri', value: f.money(t.named), hint: `${t.namedShare.toFixed(0)}% kul ka` },
+          { label: 'Un ki sale', value: f.money(t.named), hint: `${t.namedShare.toFixed(0)}% kul ka` },
           { label: 'Ausat kharch', value: f.money(t.avgSpend), hint: 'har customer' },
-          ...(!f.costHidden && t.profit != null ? [{ label: 'Munafa', value: f.cost(t.profit), hint: f.pct(t.margin) }] : [{ label: 'Ausat bill', value: f.money(t.avgBasket) }]),
-        ] : [{ label: 'Naam wale customers', value: '' }, { label: 'Un ki bikri', value: '' }, { label: 'Ausat kharch', value: '' }, { label: 'Ausat bill', value: '' }]}
+          ...(!f.costHidden && t.profit != null ? [{ label: 'Profit', value: f.cost(t.profit), hint: f.pct(t.margin) }] : [{ label: 'Ausat bill', value: f.money(t.avgBasket) }]),
+        ] : [{ label: 'Naam wale customers', value: '' }, { label: 'Un ki sale', value: '' }, { label: 'Ausat kharch', value: '' }, { label: 'Ausat bill', value: '' }]}
       />
 
       <KpiRow>
@@ -163,7 +163,7 @@ function CustomersReport() {
               onClick={() => setTab('overview')} active={tab === 'overview'} />
             <KpiCard icon={Repeat} color="#2563eb" label="Dobara aaye" value={f.pct(t.repeatRate)} hint={hint(t.repeatRate, pv?.repeatRate, `${t.repeat} ek se zyada din`, { points: true })}
               onClick={() => setTab('retention')} active={tab === 'retention'} />
-            <KpiCard icon={Users} color="#7c3aed" label="Naam wali bikri" value={f.pct(t.namedShare)} hint={hint(t.namedShare, pv?.namedShare, `walk-in ${f.money(t.walkIn)}`, { points: true })}
+            <KpiCard icon={Users} color="#7c3aed" label="Naam wali sale" value={f.pct(t.namedShare)} hint={hint(t.namedShare, pv?.namedShare, `walk-in ${f.money(t.walkIn)}`, { points: true })}
               onClick={() => setTab('segments')} active={tab === 'segments'} />
             <KpiCard icon={Wallet} color="#0891b2" label="Ausat bill" value={f.money(t.avgBasket)} hint={hint(t.avgBasket, pv?.avgBasket, `walk-in ${f.money(t.walkInBasket)}`)} />
             <KpiCard icon={HandCoins} color="#d97706" label="Udhaar par diya" value={f.money(t.credit)} hint={hint(t.credit, pv?.credit, 'naam wale bills par', { up: 'bad' })}
@@ -180,7 +180,7 @@ function CustomersReport() {
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
         <FilterMenu icon={GitCompareArrows} label="Muqabla" value={compare ? 'on' : 'off'} active={compare} width="w-72"
           options={[
-            { value: 'on', label: 'Pichli muddat se muqabla', hint: 'Itne hi din pehle ke saath — number ke neeche %' },
+            { value: 'on', label: 'Pichli period se muqabla', hint: 'Itne hi din pehle ke saath — number ke neeche %' },
             { value: 'off', label: 'Muqabla band' },
           ]}
           onChange={(v) => { if ((v === 'on') !== compare) toggleCompare(); }} />
@@ -204,8 +204,8 @@ function CustomersReport() {
         overview.data.totals.buyers + overview.data.totals.walkInBills === 0 ? (
           <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
             <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><Users className="h-7 w-7" /></span>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">Is muddat me koi bikri nahi</h3>
-            <p className="mt-1 text-[0.875rem] text-slate-500">Muddat badal kar dekhein, ya POS par bill ke saath customer ka naam likhein.</p>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">Is period me koi sale nahi</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">Period badal kar dekhein, ya POS par bill ke saath customer ka naam likhein.</p>
             <div className="mt-4"><Button variant="secondary" onClick={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>Shuru se dikhayein</Button></div>
           </div>
         ) : <OverviewView data={overview.data} f={f} compare={compare} noun={config.noun} />
@@ -222,22 +222,22 @@ function CustomersReport() {
       {guide.isOpen && (
         <PageGuide title={`${config.noun} report — aasaan tareeqa`} onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Muddat aur branch', text: '"Muddat" se Aaj, 30 din, is mahine ya apni tareekh. Sab branches dekh rahe hon to "Branch" se ek branch chun sakte hain.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Period aur branch', text: '"Period" se Aaj, 30 din, is mahine ya apni date. Sab branches dekh rahe hon to "Branch" se ek branch chun sakte hain.' },
             { icon: GitCompareArrows, color: '#7c3aed', title: 'Pichli dafa se muqabla', text: 'Muqabla chalu ho to number ke neeche likha hota hai ke itne hi din pehle se kitna upar ya neeche gaya.' },
-            { icon: LayoutDashboard, color: '#16a34a', title: 'Khulasa', text: 'Naye aur purane customer, naam wali vs walk-in bikri, kitne din aaye, do visits ka faasla, sab se ache customer aur kis shehar se.' },
+            { icon: LayoutDashboard, color: '#16a34a', title: 'Khulasa', text: 'Naye aur purane customer, naam wali vs walk-in sale, kitne din aaye, do visits ka faasla, sab se ache customer aur kis shehar se.' },
             { icon: Grid3x3, color: '#ea580c', title: 'Groups', text: 'Har customer ek group me: Behtareen, Wafadar, Naye, Dhyan chahiye, Khatre me, Kho gaye. Group chun kar list nikaalein aur WhatsApp bhejein.' },
-            { icon: Repeat, color: '#0891b2', title: 'Wapsi', text: 'Jo customer kisi mahine pehli dafa aaye, un me se kitne agle mahino me phir aaye. Gehra rang = zyada log wapas.' },
-            { icon: BookOpen, color: '#d97706', title: 'Udhaar', text: 'Kitna udhaar kitna purana hai, is muddat me kitna diya aur kitna wapas aaya, aur kis se pehle wasooli karni hai. Ek click me yaad dihani.' },
+            { icon: Repeat, color: '#0891b2', title: 'Return', text: 'Jo customer kisi mahine pehli dafa aaye, un me se kitne agle mahino me phir aaye. Gehra rang = zyada log wapas.' },
+            { icon: BookOpen, color: '#d97706', title: 'Udhaar', text: 'Kitna udhaar kitna purana hai, is period me kitna diya aur kitna wapas aaya, aur kis se pehle wasooli karni hai. Ek click me yaad dihani.' },
             { icon: Coins, color: '#db2777', title: 'Points', text: 'Loyalty points kitne diye aur kitne istemal hue, aur baqi points ki qeemat — yeh dukaan par qarz hai.' },
             { icon: MessageCircle, color: '#059669', title: 'WhatsApp list', text: 'Har list par WhatsApp button: paighaam pehle se likha hota hai, "Agla bhejein" se ek ek kar ke sab ko.' },
             { icon: FileDown, color: '#475569', title: 'Print aur CSV', text: 'Upar Print se A4, PDF ya thermal; CSV se Excel file. Jo tab khula hai wohi report banti hai. Group aur udhaar ki poori list bhi.' },
           ]}
           tips={[
-            'Walk-in bill par naam nahi hota, is liye woh groups aur wapsi me nahi aate. Jitne zyada bills par naam, utni sahi report.',
-            '"Naya" customer woh hai jis ne is branch par pehli dafa isi muddat me khareeda.',
+            'Walk-in bill par naam nahi hota, is liye woh groups aur return me nahi aate. Jitne zyada bills par naam, utni sahi report.',
+            '"Naya" customer woh hai jis ne is branch par pehli dafa isi period me khareeda.',
             'Udhaar ki umar: wasooli hamesha sab se purane udhaar me gini jati hai.',
-            'Munafa sirf unhe dikhta hai jin ke paas cost dekhne ki ijazat hai.',
-            'Ye report dekhne ke liye "View Reports" aur "View Customers" dono ijazatein chahiye.',
+            'Profit sirf unhe dikhta hai jin ke paas cost dekhne ki permission hai.',
+            'Ye report dekhne ke liye "View Reports" aur "View Customers" dono permissions chahiye.',
             ...(config.tips ?? []),
           ]}
           shortcuts={[['1–5', 'tab'], ['C', 'muqabla'], ['G', 'guide']]}
@@ -252,16 +252,16 @@ function CustomersReport() {
 function insights(d: Overview, money: (n: number) => string) {
   const t = d.totals;
   const list: Array<{ tone: 'good' | 'warn' | 'bad'; text: string; icon: LucideIcon }> = [];
-  if (t.named + t.walkIn > 0 && t.namedShare < 40) list.push({ tone: 'warn', icon: Users, text: `Sirf ${t.namedShare.toFixed(0)}% bikri par customer ka naam hai — POS par naam ya phone likhwayein, tabhi wapsi ka pata chalega.` });
+  if (t.named + t.walkIn > 0 && t.namedShare < 40) list.push({ tone: 'warn', icon: Users, text: `Sirf ${t.namedShare.toFixed(0)}% sale par customer ka naam hai — POS par naam ya phone likhwayein, tabhi return ka pata chalega.` });
   const top5 = d.top.spend.slice(0, 5).reduce((s, c) => s + c.net, 0);
-  if (t.named > 0 && top5 / t.named > 0.5 && t.buyers > 10) list.push({ tone: 'warn', icon: TriangleAlert, text: `Naam wali bikri ka ${Math.round((top5 / t.named) * 100)}% sirf 5 customers se hai — in ka khaas khayal rakhein.` });
+  if (t.named > 0 && top5 / t.named > 0.5 && t.buyers > 10) list.push({ tone: 'warn', icon: TriangleAlert, text: `Naam wali sale ka ${Math.round((top5 / t.named) * 100)}% sirf 5 customers se hai — in ka khaas khayal rakhein.` });
   const prev = d.previous;
   if (prev && prev.buyers > 5) {
     const ch = ((t.buyers - prev.buyers) / prev.buyers) * 100;
-    if (ch <= -10) list.push({ tone: 'bad', icon: TrendingDown, text: `Customer pichli muddat se ${Math.abs(ch).toFixed(0)}% kam aaye — "Groups" me "Khatre me" wale dekhein.` });
-    else if (ch >= 10) list.push({ tone: 'good', icon: Lightbulb, text: `Customer pichli muddat se ${ch.toFixed(0)}% zyada aaye.` });
+    if (ch <= -10) list.push({ tone: 'bad', icon: TrendingDown, text: `Customer pichli period se ${Math.abs(ch).toFixed(0)}% kam aaye — "Groups" me "Khatre me" wale dekhein.` });
+    else if (ch >= 10) list.push({ tone: 'good', icon: Lightbulb, text: `Customer pichli period se ${ch.toFixed(0)}% zyada aaye.` });
   }
-  if (t.buyers >= 10 && t.repeatRate < 20) list.push({ tone: 'warn', icon: Percent, text: `Sirf ${t.repeatRate.toFixed(0)}% customer ek se zyada din aaye — naye customers ko shukriya aur doosri khareedari ki chhoot bhejein.` });
+  if (t.buyers >= 10 && t.repeatRate < 20) list.push({ tone: 'warn', icon: Percent, text: `Sirf ${t.repeatRate.toFixed(0)}% customer ek se zyada din aaye — naye customers ko shukriya aur doosri khareedari ki discount bhejein.` });
   if (t.avgBasket > 0 && t.walkInBasket > 0 && t.avgBasket > t.walkInBasket * 1.3) list.push({ tone: 'good', icon: Lightbulb, text: `Naam wale customers ka ausat bill (${money(t.avgBasket)}) walk-in se ${Math.round((t.avgBasket / t.walkInBasket - 1) * 100)}% bara hai.` });
   return list;
 }

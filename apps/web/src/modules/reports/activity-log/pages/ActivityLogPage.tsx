@@ -129,8 +129,8 @@ export default function ActivityLogPage() {
       const rows = await fetchAll();
       if (!rows.length) return void toast.error('Is filter me kuch nahi');
       downloadCsv(`activity-log-${period?.from ?? 'all'}-${period?.to ?? ''}.csv`, [
-        [`Activity log — ${tenantName ?? ''}`], [`Muddat: ${label}`], [],
-        ['Waqt', 'Kis ne', 'Role', 'Kya kiya', 'Tafseel', 'Record', 'Record id', 'IP', 'Device'],
+        [`Activity log — ${tenantName ?? ''}`], [`Period: ${label}`], [],
+        ['Waqt', 'Kis ne', 'Role', 'Kya kiya', 'Details', 'Record', 'Record id', 'IP', 'Device'],
         ...rows.map((e) => [stamp(e.createdAt), e.user?.fullName ?? 'System', e.user ? ROLE_LABEL[e.user.role] ?? e.user.role : '', sentence(e), detailOf(e),
           e.entityType ? entityLabel(e.entityType) : '', e.entityId ?? '', e.ipAddress ?? '', deviceOf(e.userAgent) ?? '']),
       ]);
@@ -145,7 +145,7 @@ export default function ActivityLogPage() {
       meta: [['Entries', String(rows.length)], ...(userId && facets ? [['Banda', facets.users.find((u) => u.id === userId)?.name ?? ''] as [string, string]] : [])],
       sections: [{
         kind: 'table',
-        columns: [{ label: 'Waqt' }, { label: 'Kya hua' }, { label: 'Tafseel', wideOnly: true }],
+        columns: [{ label: 'Waqt' }, { label: 'Kya hua' }, { label: 'Details', wideOnly: true }],
         rows: rows.map((e) => [stamp(e.createdAt), sentence(e), detailOf(e)]),
       }],
     };
@@ -200,7 +200,7 @@ export default function ActivityLogPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Tafseel, naam ya record id…" label="Activity dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Details, naam ya record id…" label="Activity search" />}
         chips={hasFilters ? <>
           {range.preset !== 'week' && <FilterChip onRemove={() => setRange({ preset: 'week', custom: { from: '', to: '' } })}>{label}</FilterChip>}
           {userId && <FilterChip onRemove={() => setUserId('')}>{userName(userId)}</FilterChip>}
@@ -236,7 +236,7 @@ export default function ActivityLogPage() {
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><History className="h-7 w-7" /></span>
           <h3 className="mt-4 text-lg font-semibold text-slate-900">{hasFilters ? 'Is filter me kuch nahi' : 'Abhi koi activity nahi'}</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">{hasFilters ? 'Filter badal kar ya muddat barha kar dekhein' : 'Branch, staff, settings ya PIN me badlav yahan likhe jate hain'}</p>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{hasFilters ? 'Filter badal kar ya period barha kar dekhein' : 'Branch, staff, settings ya PIN me badlav yahan likhe jate hain'}</p>
           {hasFilters && <Button className="mt-4" variant="secondary" onClick={clear}>Filter hatayein</Button>}
         </div>
       ) : (
@@ -264,11 +264,11 @@ export default function ActivityLogPage() {
       {guide.isOpen && (
         <PageGuide title="Activity log — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: History, color: '#2563eb', title: 'Kya likha jata hai', text: 'Branch, login, staff, settings, PIN, tankhwah, void bill aur mitaye gaye kharche — kis ne kab kiya.' },
-            { icon: ListFilter, color: '#d97706', title: 'Filter', text: 'Muddat, banda, kaam aur record chunein. Lage filter neeche dikhte hain, X se hat jate hain.' },
-            { icon: MousePointerClick, color: '#16a34a', title: 'Tafseel', text: 'Kisi line par click karein: poori baat, IP, device, aur record kholne ka link.' },
+            { icon: History, color: '#2563eb', title: 'Kya likha jata hai', text: 'Branch, login, staff, settings, PIN, tankhwah, void bill aur mitaye gaye expenses — kis ne kab kiya.' },
+            { icon: ListFilter, color: '#d97706', title: 'Filter', text: 'Period, banda, kaam aur record chunein. Lage filter neeche dikhte hain, X se hat jate hain.' },
+            { icon: MousePointerClick, color: '#16a34a', title: 'Details', text: 'Kisi line par click karein: poori baat, IP, device, aur record kholne ka link.' },
             { icon: Users, color: '#7c3aed', title: 'Log', text: '"Log" tab me dekhein kis ne kitne kaam kiye. Naam dabane se sirf us ke kaam aa jate hain.' },
-            { icon: ShieldCheck, color: '#e11d48', title: 'Khatre ki baat', text: 'Ghalat PIN, mitaye gaye kharche aur void bill par nazar rakhein. Poori jaanch ke liye Audit report.' },
+            { icon: ShieldCheck, color: '#e11d48', title: 'Khatre ki baat', text: 'Ghalat PIN, mitaye gaye expenses aur void bill par nazar rakhein. Poori jaanch ke liye Audit report.' },
             { icon: Download, color: '#0891b2', title: 'Export', text: 'CSV ya Print/PDF — is filter ki saari entries aa jati hain.' },
           ]}
           tips={['Din dukaan ke apne waqt par badalta hai.', 'Branch filter us branch ke staff ke kaam dikhata hai.']}
@@ -320,7 +320,7 @@ function PeopleView({ feed, onPick }: { feed: ActivityFeed; onPick: (id: string)
   const actions = feed.facets.actions.slice(0, 12);
   const maxU = Math.max(1, ...users.map((u) => u.count));
   const maxA = Math.max(1, ...actions.map((a) => a.count));
-  if (!users.length) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is muddat me koi activity nahi</p>;
+  if (!users.length) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is period me koi activity nahi</p>;
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
@@ -342,7 +342,7 @@ function PeopleView({ feed, onPick }: { feed: ActivityFeed; onPick: (id: string)
       </section>
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
         <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Search className="h-4 w-4 text-brand-600" />Kaun se kaam zyada hue</h2>
-        <p className="mt-0.5 text-[0.8125rem] text-slate-500">Is muddat ke sab se aam kaam</p>
+        <p className="mt-0.5 text-[0.8125rem] text-slate-500">Is period ke sab se aam kaam</p>
         <ul className="mt-4 space-y-2">
           {actions.map((a) => {
             const { icon: Icon, color } = iconOf({ action: a.key, entityType: null });

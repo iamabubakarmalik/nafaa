@@ -55,7 +55,7 @@ export function CategoryManager({ categories, onClose }: { categories: ExpenseCa
 
   const askRemove = (c: ExpenseCategory) => {
     const n = c._count?.expenses ?? 0;
-    if (window.confirm(`"${c.name}" hatayein?${n ? `\n\nIs ke ${n} kharche mitenge nahi — "Bina category" me chale jayenge.` : ''}`)) remove.mutate(c);
+    if (window.confirm(`"${c.name}" hatayein?${n ? `\n\nIs ke ${n} expenses mitenge nahi — "Bina category" me chale jayenge.` : ''}`)) remove.mutate(c);
   };
 
   const editor = (
@@ -95,7 +95,7 @@ export function CategoryManager({ categories, onClose }: { categories: ExpenseCa
   );
 
   return (
-    <Modal open onClose={onClose} size="md" title="Kharche ki categories" description="Kiraya, bijli, salary — apne hisaab se banayein"
+    <Modal open onClose={onClose} size="md" title="Expenses ki categories" description="Kiraya, bijli, salary — apne hisaab se banayein"
       footer={<Button variant="secondary" onClick={onClose}>Band karein</Button>}>
       <div className="space-y-3">
         {editing === 'new' ? editor : (
@@ -119,7 +119,7 @@ export function CategoryManager({ categories, onClose }: { categories: ExpenseCa
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold text-slate-900">{c.name}</span>
-                      <span className="text-[0.6875rem] text-slate-500">{c._count?.expenses ?? 0} kharche</span>
+                      <span className="text-[0.6875rem] text-slate-500">{c._count?.expenses ?? 0} expenses</span>
                     </span>
                     <button type="button" onClick={() => start(c)} aria-label={`${c.name} badlein`} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="h-4 w-4" /></button>
                     <button type="button" onClick={() => askRemove(c)} aria-label={`${c.name} hatayein`} disabled={remove.isPending} className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>

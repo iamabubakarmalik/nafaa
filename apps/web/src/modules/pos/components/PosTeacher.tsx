@@ -5,10 +5,10 @@ import { Modal } from '@/design-system/components';
 
 const TIPS: Array<{ icon: LucideIcon; color: string; title: string; text: string; keys?: string[] }> = [
   { icon: ScanLine, color: '#2563eb', title: 'Scan aur F12', text: 'Barcode scan karein, F12 dabayein — cash sale aur bill print. Do second.', keys: ['F12'] },
-  { icon: Search, color: '#7c3aed', title: 'Naam se dhoondein', text: 'Search mein naam likhein, Enter se pehla result bill mein. Card par − + se ginti.', keys: ['/', 'Enter'] },
+  { icon: Search, color: '#7c3aed', title: 'Naam se search', text: 'Search mein naam likhein, Enter se pehla result bill mein. Card par − + se ginti.', keys: ['/', 'Enter'] },
   { icon: Pencil, color: '#d97706', title: 'Mol-tol', text: 'Bill ki line par rate par click karein aur naya rate likhein.' },
   { icon: Tag, color: '#db2777', title: 'Discount aur gol karna', text: 'Percent, rupay, ya bill ko 10/50/100 par gol karein.' },
-  { icon: Calculator, color: '#16a34a', title: 'Wapsi khud', text: 'Customer ne jitna diya likhein ya note dabayein — kitna wapas dena hai khud aata hai.', keys: ['F9'] },
+  { icon: Calculator, color: '#16a34a', title: 'Return khud', text: 'Customer ne jitna diya likhein ya note dabayein — kitna wapas dena hai khud aata hai.', keys: ['F9'] },
   { icon: BookOpen, color: '#ea580c', title: 'Udhaar', text: 'Customer chunein, phir Udhaar. Kuch paisa mila to baqi khud udhaar.' },
   { icon: Pause, color: '#0891b2', title: 'Hold', text: 'Customer ruk gaya? Bill hold karein, agla customer lein, baad mein wapas.' },
   { icon: Banknote, color: '#475569', title: 'Offline bhi', text: 'Internet chala jaye to bhi bechte rahein — wapas aate hi sab chala jayega.' },

@@ -16,7 +16,7 @@ function denomSection(title: string, d: Denominations | null): PrintSection[] {
   if (!d || !Object.keys(d).length) return [];
   const rows = [...NOTES, ...COINS].filter((v) => d[v]).map((v) => [`Rs ${v}`, String(d[v]), formatPKR(v * d[v])]);
   const total = Object.entries(d).reduce((s, [k, c]) => s + Number(k) * c, 0);
-  return [{ kind: 'table', title, columns: [{ label: 'Note' }, { label: 'Ginti', align: 'right' }, { label: 'Raqam', align: 'right' }], rows, footer: ['Kul', '', formatPKR(total)] }];
+  return [{ kind: 'table', title, columns: [{ label: 'Note' }, { label: 'Ginti', align: 'right' }, { label: 'Amount', align: 'right' }], rows, footer: ['Kul', '', formatPKR(total)] }];
 }
 
 /** End-of-shift report: who and when, sales by method, the drawer count and the notes counted. */
@@ -46,9 +46,9 @@ export function zReportDoc(s: ShiftDetail): PrintDoc {
     sections: [
       {
         kind: 'rows',
-        title: 'Bikri',
+        title: 'Sale',
         rows: [
-          { label: 'Kul bikri', value: `${formatPKR(c.allSalesTotal)} · ${c.billCount} bill`, strong: true },
+          { label: 'Total sale', value: `${formatPKR(c.allSalesTotal)} · ${c.billCount} bill`, strong: true },
           ...c.byMethod.map((m) => ({ label: methodLabel(m.method), value: `${formatPKR(m.paid)} · ${m.count}`, sub: true })),
           ...(c.creditGiven > 0 ? [{ label: 'Udhaar par gaya', value: formatPKR(c.creditGiven), sub: true }] : []),
         ],
@@ -57,7 +57,7 @@ export function zReportDoc(s: ShiftDetail): PrintDoc {
       ...(moves.length ? [{
         kind: 'table' as const,
         title: 'Cash in / out',
-        columns: [{ label: 'Waqt' }, { label: 'Kya' }, { label: 'Wajah', wideOnly: true }, { label: 'Raqam', align: 'right' as const }],
+        columns: [{ label: 'Waqt' }, { label: 'Kya' }, { label: 'Wajah', wideOnly: true }, { label: 'Amount', align: 'right' as const }],
         rows: moves.map((e) => [when(e.createdAt), TX[e.type].label, `${e.reason ?? ''}${e.createdBy ? ` (${e.createdBy.fullName})` : ''}`, `${TX[e.type].sign < 0 ? '−' : '+'}${formatPKR(e.amount)}`]),
       }] : []),
       ...denomSection('Kholte waqt ginti', s.openingDenominations),
@@ -81,7 +81,7 @@ export function shiftsDoc(list: ShiftList, period: string, filter: string): Prin
         kind: 'table',
         columns: [
           { label: 'Khuli' }, { label: 'Branch', wideOnly: true }, { label: 'Kis ne', wideOnly: true }, { label: 'Opening', align: 'right', wideOnly: true },
-          { label: 'Cash bikri', align: 'right', wideOnly: true }, { label: 'Hona chahiye', align: 'right' }, { label: 'Gina', align: 'right' }, { label: 'Farak', align: 'right' },
+          { label: 'Cash sale', align: 'right', wideOnly: true }, { label: 'Hona chahiye', align: 'right' }, { label: 'Gina', align: 'right' }, { label: 'Farak', align: 'right' },
         ],
         rows: list.items.map((r) => [
           when(r.openedAt), r.shop?.name ?? '', r.openedBy?.fullName ?? '', formatPKR(r.openingBalance), formatPKR(r.totalSales),

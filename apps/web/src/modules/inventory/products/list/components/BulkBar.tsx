@@ -52,7 +52,7 @@ export function BulkBar({ ids, onDone, onClear, onExport, can }: {
     setBusy('wipe');
     try {
       const r = await productsApi.bulkAction(withSales, 'delete') as { removedEmptySales?: number };
-      toast.success(`${withSales.length} cheezein bikri samet mita di${r?.removedEmptySales ? ` · ${r.removedEmptySales} khali bill bhi hate` : ''}`);
+      toast.success(`${withSales.length} cheezein sale samet mita di${r?.removedEmptySales ? ` · ${r.removedEmptySales} khali bill bhi hate` : ''}`);
     } catch (e) { toast.error((e as Error).message || 'Nahi hua'); }
     setBusy(null); setWithSales([]); onDone();
   };
@@ -77,7 +77,7 @@ export function BulkBar({ ids, onDone, onClear, onExport, can }: {
       </div>
       {confirm && (
         <Modal open onClose={() => setConfirm(false)} size="sm" title={`${ids.length} cheezein mitayein?`}
-          description="Jin ki kabhi bikri nahi hui woh mit jayengi. Jin ki bikri ho chuki hai woh sirf band hongi, taake purane bill aur hisaab salamat rahein."
+          description="Jin ki kabhi sale nahi hui woh mit jayengi. Jin ki sale ho chuki hai woh sirf band hongi, taake purane bill aur hisaab salamat rahein."
           footer={<>
             <Button variant="secondary" onClick={() => setConfirm(false)}>Rehne dein</Button>
             <Button variant="danger" loading={busy === 'delete'} onClick={() => void remove()}>Haan, mitayein</Button>
@@ -86,15 +86,15 @@ export function BulkBar({ ids, onDone, onClear, onExport, can }: {
         </Modal>
       )}
       {withSales.length > 0 && (
-        <Modal open onClose={() => { setWithSales([]); onDone(); }} size="sm" title={`${withSales.length} cheezon ki bikri ho chuki hai`}
+        <Modal open onClose={() => { setWithSales([]); onDone(); }} size="sm" title={`${withSales.length} cheezon ki sale ho chuki hai`}
           description="Hisaab bachane ke liye inhein mitaya nahi, sirf band kar diya hai. Ab yeh POS par nahi dikhengi."
           footer={<>
             <Button variant="secondary" onClick={() => { setWithSales([]); onDone(); }}>Theek hai, band hi rehne dein</Button>
-            <Button variant="danger" disabled={word.trim().toUpperCase() !== 'MITAO'} loading={busy === 'wipe'} onClick={() => void wipe()}>Bikri samet mitayein</Button>
+            <Button variant="danger" disabled={word.trim().toUpperCase() !== 'MITAO'} loading={busy === 'wipe'} onClick={() => void wipe()}>Sale samet mitayein</Button>
           </>}>
           <div className="space-y-3 text-[0.8125rem] text-slate-600">
             <p className="rounded-xl bg-amber-50 p-3 text-amber-900 ring-1 ring-amber-200">
-              Agar yeh <strong>demo ya test</strong> ki cheezein thin, to inki bikri bhi mita sakte hain. Inke bill ki lines hat jayengi, aur jo bill khali ho jayen woh bhi. Asal dukaan ka data ho to mat mitayein.
+              Agar yeh <strong>demo ya test</strong> ki cheezein thin, to inki sale bhi mita sakte hain. Inke bill ki lines hat jayengi, aur jo bill khali ho jayen woh bhi. Asal dukaan ka data ho to mat mitayein.
             </p>
             <label className="block">
               <span className="font-medium text-slate-700">Pakka karne ke liye <strong>MITAO</strong> likhein</span>

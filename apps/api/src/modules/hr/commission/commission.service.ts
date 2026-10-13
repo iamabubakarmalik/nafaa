@@ -94,7 +94,7 @@ export class CommissionService {
   async upsertRule(user: AuthenticatedUser, dto: UpsertRuleDto, id?: string) {
     const perBill = dto.basis === 'PER_BILL';
     const valueType = (perBill ? 'FIXED' : dto.valueType ?? 'PERCENT') as CommissionValueType;
-    if (!(dto.value > 0)) throw new BadRequestException('Commission ki raqam 0 se zyada honi chahiye');
+    if (!(dto.value > 0)) throw new BadRequestException('Commission ki amount 0 se zyada honi chahiye');
     if (valueType === 'PERCENT' && dto.value > 100) throw new BadRequestException('Percent 100 se zyada nahi ho sakta');
     if (dto.targetAmount && !dto.targetBonus) throw new BadRequestException('Target likha hai to bonus bhi likhein');
     if (dto.targetBonus && !dto.targetAmount) throw new BadRequestException('Bonus ke liye target bhi likhein');
@@ -262,13 +262,13 @@ export class CommissionService {
     if (!target) throw new NotFoundException('Ye banda is dukaan me nahi mila');
     const clock = await this.tzService.clock(user.tenantId);
     if (dto.period > businessDayKey(new Date(), clock.tz, clock.dayStartHour).slice(0, 7)) {
-      throw new BadRequestException('Aane wale mahine ki adaigi nahi likh sakte');
+      throw new BadRequestException('Aane wale mahine ki payment nahi likh sakte');
     }
     const amount = r2(dto.amount);
-    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada likhein — adaigi hatani ho to "Adaigi wapas" karein');
+    if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada likhein — payment hatani ho to "Payment wapas" karein');
     const note = dto.note?.trim() || null;
     if (note?.startsWith(PAYROLL_NOTE)) throw new BadRequestException('Note "Tankhwah PAY-" se shuru nahi ho sakta');
-    const changed = () => new ConflictException('Is mahine ki adaigi abhi kisi ne badli hai. Safha taaza kar ke dobara dekhein.');
+    const changed = () => new ConflictException('Is mahine ki payment abhi kisi ne badli hai. Safha taaza kar ke dobara dekhein.');
 
     const key = { tenantId_userId_period: { tenantId: user.tenantId, userId: dto.userId, period: dto.period } };
     const write = () => this.prisma.$transaction(async (tx) => {
@@ -324,12 +324,12 @@ export class CommissionService {
   async undoPay(user: AuthenticatedUser, userId: string, period: string) {
     if (!PERIOD.test(period ?? '')) throw new BadRequestException('Mahina "2026-10" ki shakal me dein');
     const row = await this.prisma.commissionPayout.findFirst({ where: { tenantId: user.tenantId, userId, period }, include: { user: { select: { fullName: true } } } });
-    if (!row) throw new NotFoundException('Is mahine ki koi adaigi nahi likhi');
-    if (row.note?.startsWith(PAYROLL_NOTE)) throw new BadRequestException('Ye adaigi tankhwah ke saath hui thi — Payroll se wapas karein');
+    if (!row) throw new NotFoundException('Is mahine ki koi payment nahi likhi');
+    if (row.note?.startsWith(PAYROLL_NOTE)) throw new BadRequestException('Ye payment tankhwah ke saath hui thi — Payroll se wapas karein');
     await this.prisma.$transaction(async (tx) => {
       /* Only the payment that was read; one changed meanwhile (here or by payroll) is left alone. */
       const { count } = await tx.commissionPayout.deleteMany({ where: { id: row.id, amount: row.amount, note: row.note } });
-      if (!count) throw new ConflictException('Is mahine ki adaigi abhi kisi ne badli hai. Safha taaza kar ke dobara dekhein.');
+      if (!count) throw new ConflictException('Is mahine ki payment abhi kisi ne badli hai. Safha taaza kar ke dobara dekhein.');
       await tx.activityLog.create({
         data: {
           tenantId: user.tenantId, userId: user.id, action: 'COMMISSION_PAY_UNDONE', entityType: 'CommissionPayout', entityId: row.id,

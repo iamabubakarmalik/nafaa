@@ -147,7 +147,7 @@ async function refunds(prisma: PrismaService, c: AuditContext): Promise<AuditEve
     if (approved.has(r.id)) { flags.push('Malik ke PIN se manzoor'); pts = Math.max(0, pts - 1); }
     return {
       id: `refund:${r.id}`, type: 'refund', at: r.returnedAt, userId: r.createdById, shopId: r.shopId,
-      title: `Wapsi ${r.returnNumber} · bill ${r.sale.saleNumber}`, detail: r.reason?.trim() || null,
+      title: `Return ${r.returnNumber} · bill ${r.sale.saleNumber}`, detail: r.reason?.trim() || null,
       amount, flags, severity: level(pts), afterHours: after,
       ref: { kind: 'return', id: r.id, code: r.returnNumber },
     } satisfies AuditEvent;
@@ -176,7 +176,7 @@ async function discounts(prisma: PrismaService, c: AuditContext): Promise<AuditE
     if (after) { flags.push('Dukaan ke waqt ke baad'); pts += 1; }
     return {
       id: `discount:${s.id}`, type: 'discount', at: s.soldAt, userId: s.uid, shopId: s.shopId,
-      title: `Bill ${s.saleNumber} par haath ki chhoot`, detail: `${money(num(s.subtotal))} me se ${money(off)} kam`,
+      title: `Bill ${s.saleNumber} par haath ki discount`, detail: `${money(num(s.subtotal))} me se ${money(off)} kam`,
       amount: r2(off), flags, severity: level(pts), afterHours: after,
       ref: { kind: 'sale', id: s.id, code: s.saleNumber },
     } satisfies AuditEvent;
@@ -206,7 +206,7 @@ async function belowCost(prisma: PrismaService, c: AuditContext): Promise<AuditE
     if (after) flags.push('Dukaan ke waqt ke baad');
     return {
       id: `below:${s.id}`, type: 'below_cost', at: s.soldAt, userId: s.uid, shopId: s.shopId,
-      title: `Bill ${s.saleNumber}: lagat se kam bechi`, detail: (s.names ?? []).join(', ') || null,
+      title: `Bill ${s.saleNumber}: cost se kam bechi`, detail: (s.names ?? []).join(', ') || null,
       amount: r2(num(s.value)), cost: r2(loss), flags, severity: level(pts + (after ? 1 : 0)), afterHours: after,
       ref: { kind: 'sale', id: s.id, code: s.saleNumber },
     } satisfies AuditEvent;

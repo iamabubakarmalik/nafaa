@@ -49,7 +49,7 @@ export function TillCard({ r, compact, keys, actions }: { r: CashRegister; compa
           <div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Mini label="Opening float" value={formatPKR(c.openingBalance)} />
-              <Mini label="Cash bikri" value={formatPKR(c.cashSales)} hint={`${c.cashSalesCount} bill`} tone="text-emerald-700" />
+              <Mini label="Cash sale" value={formatPKR(c.cashSales)} hint={`${c.cashSalesCount} bill`} tone="text-emerald-700" />
               <Mini label="Cash in" value={formatPKR(c.cashIn)} hint={`${c.cashInCount} dafa`} tone="text-emerald-700" />
               <Mini label="Cash out + kharch" value={formatPKR(c.cashOut + paidOut(c))} tone="text-rose-700" />
             </div>
@@ -69,7 +69,7 @@ export function TillCard({ r, compact, keys, actions }: { r: CashRegister; compa
                 Galle me nahi aaya: {c.nonCashCollected > 0 && <>card / wallet / bank <b className="tabular-nums text-slate-700">{formatPKR(c.nonCashCollected)}</b></>}
                 {c.nonCashCollected > 0 && c.creditGiven > 0 && ' · '}
                 {c.creditGiven > 0 && <>udhaar <b className="tabular-nums text-amber-700">{formatPKR(c.creditGiven)}</b></>}
-                {' '}— kul bikri {formatPKR(c.allSalesTotal)}
+                {' '}— total sale {formatPKR(c.allSalesTotal)}
               </p>
             )}
           </div>
@@ -121,11 +121,11 @@ export function ClosedTill({ shop, canOpen, keys, onOpen }: { shop: { id: string
       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><Store className="h-6 w-6" /></span>
       <p className="mt-3 font-semibold text-slate-900">{shop.name} — shift band hai</p>
       <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-        Din shuru karne se pehle galla gin kar shift kholein. Cash bikri, kharch aur wapsi phir khud galle ke hisaab me judte rahenge.
+        Din shuru karne se pehle galla gin kar shift kholein. Cash sale, kharch aur return phir khud galle ke hisaab me judte rahenge.
       </p>
       {canOpen
         ? <Button className="mt-4" onClick={onOpen} leftIcon={<PlayCircle className="h-4 w-4" />}>Shift kholein{keys && <Kbd className="ml-1 hidden sm:inline-flex">O</Kbd>}</Button>
-        : <p className="mt-4 text-[0.8125rem] text-amber-700">Shift kholne ki ijazat aap ke paas nahi — malik se kehein</p>}
+        : <p className="mt-4 text-[0.8125rem] text-amber-700">Shift kholne ki permission aap ke paas nahi — malik se kehein</p>}
     </section>
   );
 }

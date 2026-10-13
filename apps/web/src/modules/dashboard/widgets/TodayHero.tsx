@@ -56,7 +56,7 @@ export function TodayHero() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_auto] lg:items-center">
         <div className="min-w-0">
-          <p className="text-[0.8125rem] font-medium text-white/75">Aaj ki bikri · {dateLine}</p>
+          <p className="text-[0.8125rem] font-medium text-white/75">Aaj ki sale · {dateLine}</p>
           <div className="mt-1 truncate text-4xl font-bold tabular-nums tracking-tight sm:text-5xl">{sales(today)}</div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.8125rem]">
             {!salesHidden && change !== 0 && (
@@ -83,7 +83,7 @@ export function TodayHero() {
           <div className="h-32 sm:h-36">
             {salesHidden || curve.length < 2 ? (
               <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-white/25 text-[0.8125rem] text-white/70">
-                {salesHidden ? 'Bikri chhupi hui hai' : 'Pehli bikri ke baad yahan graph banega'}
+                {salesHidden ? 'Sale chhupi hui hai' : 'Pehli sale ke baad yahan graph banega'}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">

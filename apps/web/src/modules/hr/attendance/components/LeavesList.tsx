@@ -22,7 +22,7 @@ export function LeavesList({ leaves, showShop, canDecide, empty }: { leaves: Lea
   const m = useMutation({
     mutationFn: ({ id, decision, why }: { id: string; decision: Decision; why?: string }) => attendanceApi.decideLeave(id, decision, why),
     onSuccess: (_r, v) => {
-      toast.success({ APPROVE: 'Chhutti manzoor', REJECT: 'Chhutti na-manzoor', CANCEL: 'Chhutti cancel' }[v.decision]);
+      toast.success({ APPROVE: 'Chhutti approve', REJECT: 'Chhutti na-approve', CANCEL: 'Chhutti cancel' }[v.decision]);
       void qc.invalidateQueries({ queryKey: [ATT_KEY] });
       setAsking(null);
       setReason('');
@@ -63,7 +63,7 @@ export function LeavesList({ leaves, showShop, canDecide, empty }: { leaves: Lea
               {canDecide && (
                 <span className="ml-auto flex shrink-0 gap-1.5">
                   {l.status === 'PENDING' && <>
-                    <Button size="sm" variant="success" loading={busy && m.variables?.decision === 'APPROVE'} disabled={busy} onClick={() => m.mutate({ id: l.id, decision: 'APPROVE' })} leftIcon={<Check className="h-4 w-4" />}>Manzoor</Button>
+                    <Button size="sm" variant="success" loading={busy && m.variables?.decision === 'APPROVE'} disabled={busy} onClick={() => m.mutate({ id: l.id, decision: 'APPROVE' })} leftIcon={<Check className="h-4 w-4" />}>Approve</Button>
                     <Button size="sm" variant="secondary" disabled={busy} onClick={() => setAsking({ leave: l, decision: 'REJECT' })} leftIcon={<X className="h-4 w-4" />}>Na</Button>
                   </>}
                   {l.status === 'APPROVED' && (
@@ -77,13 +77,13 @@ export function LeavesList({ leaves, showShop, canDecide, empty }: { leaves: Lea
       </ul>
       {asking && (
         <Modal open onClose={() => setAsking(null)} size="sm"
-          title={asking.decision === 'REJECT' ? 'Chhutti na-manzoor karein' : 'Manzoor chhutti cancel karein'}
+          title={asking.decision === 'REJECT' ? 'Chhutti na-approve karein' : 'Approve chhutti cancel karein'}
           description={`${asking.leave.staff.fullName} · ${asking.leave.days} din`}
           footer={<>
             <Button variant="secondary" onClick={() => setAsking(null)}>Rehne dein</Button>
             <Button variant="danger" loading={m.isPending} disabled={asking.decision === 'REJECT' && reason.trim().length < 2}
               onClick={() => m.mutate({ id: asking.leave.id, decision: asking.decision, why: reason.trim() || undefined })} leftIcon={<Palmtree className="h-4 w-4" />}>
-              {asking.decision === 'REJECT' ? 'Na-manzoor' : 'Cancel karein'}
+              {asking.decision === 'REJECT' ? 'Na-approve' : 'Cancel karein'}
             </Button>
           </>}>
           <Input data-autofocus label="Wajah" required={asking.decision === 'REJECT'} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300}

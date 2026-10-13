@@ -47,8 +47,8 @@ export function AnalyticsView({ report, monthly, fmt }: { report: PnlReport; mon
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Kharchay kahan gaye</span>}
-          description={ratio == null ? 'Is muddat me bikri nahi' : `Kharchay net bikri ka ${pctText(ratio)} hain`}>
-          {!parts.length ? <Empty text="Is muddat me koi kharcha nahi" /> : (
+          description={ratio == null ? 'Is period me sale nahi' : `Kharchay net sale ka ${pctText(ratio)} hain`}>
+          {!parts.length ? <Empty text="Is period me koi expense nahi" /> : (
             <div className="grid items-center gap-4 sm:grid-cols-[180px_1fr]">
               <div className="relative h-[180px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -61,7 +61,7 @@ export function AnalyticsView({ report, monthly, fmt }: { report: PnlReport; mon
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-lg font-bold tabular-nums text-slate-900">{pctText(ratio)}</span>
-                  <span className="text-[0.6875rem] text-slate-500">bikri ka</span>
+                  <span className="text-[0.6875rem] text-slate-500">sale ka</span>
                 </div>
               </div>
               <ul className="space-y-1.5 text-[0.8125rem]">
@@ -77,15 +77,15 @@ export function AnalyticsView({ report, monthly, fmt }: { report: PnlReport; mon
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Percent className="h-4 w-4 text-brand-600" />Kharchay bikri ka kitna %</span>}
-          description="Har mahine kharchay ÷ net bikri. Kam ho to achha">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Percent className="h-4 w-4 text-brand-600" />Kharchay sale ka kitna %</span>}
+          description="Har mahine kharchay ÷ net sale. Kam ho to achha">
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={4} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={pctTick} width={40} />
-                <Tooltip formatter={(v) => [pctText(Number(v)), 'Kharchay / bikri']} {...theme.tooltip} />
+                <Tooltip formatter={(v) => [pctText(Number(v)), 'Kharchay / sale']} {...theme.tooltip} />
                 <Bar dataKey="expense" fill={PART_COLORS.expenses} radius={[4, 4, 0, 0]} maxBarSize={24} />
               </BarChart>
             </ResponsiveContainer>
@@ -113,16 +113,16 @@ export function AnalyticsView({ report, monthly, fmt }: { report: PnlReport; mon
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Gauge className="h-4 w-4 text-brand-600" />Discount aur wapsi ka asar</span>}
-          description="Discount: list rate ka kitna % chhora. Wapsi: bikri ka kitna % wapas aaya">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Gauge className="h-4 w-4 text-brand-600" />Discount aur return ka asar</span>}
+          description="Discount: list rate ka kitna % chhora. Return: sale ka kitna % wapas aaya">
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={4} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={pctTick} width={40} />
-                <Tooltip formatter={(v, n) => [pctText(Number(v)), n === 'discount' ? 'Discount' : 'Wapsi']} {...theme.tooltip} />
-                <Legend formatter={(v) => (v === 'discount' ? 'Discount' : 'Wapsi')} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+                <Tooltip formatter={(v, n) => [pctText(Number(v)), n === 'discount' ? 'Discount' : 'Return']} {...theme.tooltip} />
+                <Legend formatter={(v) => (v === 'discount' ? 'Discount' : 'Return')} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
                 <Line type="monotone" dataKey="discount" stroke="#db2777" strokeWidth={2} dot={{ r: 3 }} />
                 <Line type="monotone" dataKey="returns" stroke="#ea580c" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
@@ -170,17 +170,17 @@ function BreakEven({ monthly, fmt, showCost }: { monthly: PnlMonthly; fmt: Fmt; 
   const daysInMonth = new Date(Date.UTC(Number(monthly.today.slice(0, 4)), Number(monthly.today.slice(5, 7)), 0)).getUTCDate();
 
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Target className="h-4 w-4 text-brand-600" />Break-even: kitni bikri par kharcha poora?</span>}
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Target className="h-4 w-4 text-brand-600" />Break-even: kitni sale par expense poora?</span>}
       description={base.length ? `Pichle ${base.length} poore mahinon (${base.map((m) => monthLabel(m.key)).join(', ')}) ke hisaab se` : 'Kam se kam ek poora mahina chahiye'}>
       {!showCost ? <p className="py-10 text-center text-[0.875rem] text-slate-500">Break-even ke liye gross margin chahiye — cost kholein</p>
-        : !calc ? <Empty text="Abhi koi poora mahina bikri ke saath nahi" /> : (
+        : !calc ? <Empty text="Abhi koi poora mahina sale ke saath nahi" /> : (
         <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <Fact label="Fixed kharch / mahina" value={fmt.sales(calc.fixed)} hint="Neeche chuni hui cheezein" />
-              <Fact label="Gross margin" value={pctText(calc.gm)} hint="Har 100 ki bikri par" />
-              <Fact label="Break-even bikri / mahina" value={calc.needed == null ? '—' : fmt.sales(calc.needed)} hint={calc.needed ? `~${fmt.sales(calc.needed / 30)} roz` : 'Margin 0 se upar hona chahiye'} strong />
-              <Fact label="Ausat bikri / mahina" value={fmt.sales(calc.avgRevenue)}
+              <Fact label="Gross margin" value={pctText(calc.gm)} hint="Har 100 ki sale par" />
+              <Fact label="Break-even sale / mahina" value={calc.needed == null ? '—' : fmt.sales(calc.needed)} hint={calc.needed ? `~${fmt.sales(calc.needed / 30)} roz` : 'Margin 0 se upar hona chahiye'} strong />
+              <Fact label="Ausat sale / mahina" value={fmt.sales(calc.avgRevenue)}
                 hint={safety == null ? '' : safety >= 0 ? `${pctText(safety)} upar — mehfooz` : `${pctText(-safety)} neeche — nuqsan`} tone={safety == null ? undefined : safety >= 0 ? 'good' : 'bad'} />
             </div>
             {current && calc.needed != null && (
@@ -193,7 +193,7 @@ function BreakEven({ monthly, fmt, showCost }: { monthly: PnlMonthly; fmt: Fmt; 
                   <div className={cn('h-full rounded-full', progress >= 100 ? 'bg-emerald-500' : 'bg-brand-500')} style={{ width: `${progress}%` }} />
                 </div>
                 <p className="mt-1 text-[0.75rem] text-slate-500">
-                  {progress >= 100 ? 'Kharcha poora ho gaya — ab har bikri ka gross munafa asal munafa hai'
+                  {progress >= 100 ? 'Expense poora ho gaya — ab har sale ka gross profit net profit hai'
                     : `Aur ${fmt.sales(calc.needed - so)} chahiye · ${daysInMonth - today + 1} din baqi · ~${fmt.sales((calc.needed - so) / Math.max(1, daysInMonth - today + 1))} roz`}
                 </p>
               </div>
@@ -201,7 +201,7 @@ function BreakEven({ monthly, fmt, showCost }: { monthly: PnlMonthly; fmt: Fmt; 
           </div>
           <div>
             <p className="text-[0.8125rem] font-semibold text-slate-800">Kaun se kharchay har mahine lagte hi hain (fixed)?</p>
-            <p className="mb-2 text-[0.75rem] text-slate-500">Kiraya, bijli, tankhwah fixed hain. Jo bikri ke saath ghatte barhte hain (packing, delivery) un ka nishan hata dein.</p>
+            <p className="mb-2 text-[0.75rem] text-slate-500">Kiraya, bijli, tankhwah fixed hain. Jo sale ke saath ghatte barhte hain (packing, delivery) un ka nishan hata dein.</p>
             <div className="flex flex-wrap gap-1.5">
               {[...cats.map((c) => ({ id: c.id, name: c.name, color: c.color, amount: c.amount })), ...(staff > 0 ? [{ id: STAFF_ID, name: 'Tankhwah + commission', color: '#0d9488', amount: staff }] : [])].map((c) => {
                 const on = !notFixed.includes(c.id);
@@ -214,7 +214,7 @@ function BreakEven({ monthly, fmt, showCost }: { monthly: PnlMonthly; fmt: Fmt; 
                   </button>
                 );
               })}
-              {!cats.length && !staff && <p className="text-[0.8125rem] text-slate-400">In mahinon me koi kharcha nahi</p>}
+              {!cats.length && !staff && <p className="text-[0.8125rem] text-slate-400">In mahinon me koi expense nahi</p>}
             </div>
           </div>
         </div>

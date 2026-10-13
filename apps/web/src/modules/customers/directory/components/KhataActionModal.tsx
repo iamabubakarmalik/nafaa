@@ -13,7 +13,7 @@ import { runKhataAction } from '../offlineKhataActions';
 export type KhataAction = 'payment' | 'udhaar' | 'opening';
 
 const TITLES: Record<KhataAction, { title: string; hint: string; button: string }> = {
-  payment: { title: 'Payment wusool', hint: 'Customer ne kitne diye', button: 'Wusool karein' },
+  payment: { title: 'Payment receive', hint: 'Customer ne kitne diye', button: 'Receive karein' },
   udhaar: { title: 'Udhaar chadhayein', hint: 'Bina bill ke udhaar — jaise naqd paise diye', button: 'Chadhayein' },
   opening: { title: 'Purana khata', hint: 'Kaapi / register ka purana baqi — maujooda khate mein jurega', button: 'Jor dein' },
 };
@@ -63,7 +63,7 @@ export function KhataActionModal({ action, customer, money, onClose, onDone }: {
           <div><p className="text-[0.6875rem] text-slate-500">Abhi</p><p className="font-bold tabular-nums">{money(customer.balance)}</p></div>
           <div><p className="text-[0.6875rem] text-slate-500">Is ke baad</p><p className={cn('font-bold tabular-nums', after > 0 ? 'text-rose-700' : 'text-success-700')}>{money(after)}</p></div>
         </div>
-        {tooMuch && <p className="text-[0.8125rem] font-medium text-rose-700">Baqi sirf {money(customer.balance)} hai — is se zyada wusool nahi ho sakta.</p>}
+        {tooMuch && <p className="text-[0.8125rem] font-medium text-rose-700">Baqi sirf {money(customer.balance)} hai — is se zyada receive nahi ho sakta.</p>}
         <button type="submit" hidden />
       </form>
     </Modal>

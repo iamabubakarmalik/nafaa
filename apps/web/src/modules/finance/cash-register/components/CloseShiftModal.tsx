@@ -75,11 +75,11 @@ export function CloseShiftModal({ register, onClose, onClosed }: {
         </div>
 
         <Segmented label="Ginti ka tareeqa" value={mode} onChange={(v) => setMode(v as Mode)}
-          items={[{ value: 'notes', label: 'Note gin kar' }, { value: 'amount', label: 'Kul raqam' }]} />
+          items={[{ value: 'notes', label: 'Note gin kar' }, { value: 'amount', label: 'Kul amount' }]} />
         {mode === 'notes' ? <DenominationCounter value={denoms} onChange={setDenoms} /> : (
           <Input data-autofocus label="Galle me gina hua cash" type="number" inputMode="decimal" min={0} size="lg" required
             value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" leftIcon={<Calculator className="h-4 w-4" />}
-            hint="Pehle galla gin lein, phir kul raqam likhein. 'Hona chahiye' dekh kar mat likhein — asal ginti likhein." />
+            hint="Pehle galla gin lein, phir kul amount likhein. 'Hona chahiye' dekh kar mat likhein — asal ginti likhein." />
         )}
 
         <Textarea label={kind !== 'match' && hasCount ? 'Farak ki wajah' : 'Note (marzi se)'} required={kind !== 'match' && hasCount}
@@ -87,7 +87,7 @@ export function CloseShiftModal({ register, onClose, onClosed }: {
           error={needsReason ? 'Paise kam ya zyada hain — wajah likhna zaroori hai' : undefined}
           placeholder={kind === 'short' ? 'Masalan: 500 ka khula customer ko zyada diya' : 'Masalan: shaam ki shift, sab theek'}
           hint="Shift record aur Z-report me dikhega" />
-        <p className="text-[0.75rem] text-slate-500">Band karte waqt "hona chahiye" dobara taaza hisaab se banta hai — beech me koi bikri hui to woh bhi gini jayegi.</p>
+        <p className="text-[0.75rem] text-slate-500">Band karte waqt "hona chahiye" dobara taaza hisaab se banta hai — beech me koi sale hui to woh bhi gini jayegi.</p>
         <button type="submit" hidden aria-hidden />
       </form>
     </Modal>

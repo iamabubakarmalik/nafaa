@@ -55,14 +55,14 @@ export function BakeryRaw() {
           <h3 className="text-[0.875rem] font-semibold text-slate-900">Banane ka saamaan · {shown.length}</h3>
           <label className="relative w-full sm:w-64">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Maida, cheeni…" aria-label="Saamaan dhoondein"
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Maida, cheeni…" aria-label="Saamaan search"
               className="h-9 w-full rounded-xl bg-slate-100/80 pl-9 pr-3 text-[0.8125rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
           </label>
         </header>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[38rem] text-[0.8125rem]">
             <thead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-              <tr><th className="px-4 py-2">Saamaan</th><th className="px-2 py-2 text-right">Abhi hai</th><th className="px-2 py-2 text-right">Hadd</th><th className="px-2 py-2 text-right">Rate</th><th className="px-2 py-2 text-right">Qeemat</th><th className="px-4 py-2 text-right">Aakhri kharidari</th></tr>
+              <tr><th className="px-4 py-2">Saamaan</th><th className="px-2 py-2 text-right">Abhi hai</th><th className="px-2 py-2 text-right">Hadd</th><th className="px-2 py-2 text-right">Rate</th><th className="px-2 py-2 text-right">Qeemat</th><th className="px-4 py-2 text-right">Aakhri purchase</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {shown.map((r) => (

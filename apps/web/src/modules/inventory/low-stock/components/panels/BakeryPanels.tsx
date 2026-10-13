@@ -91,7 +91,7 @@ export function BakeryIngredients() {
   ].join('\n');
 
   if (isLoading) return <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>;
-  if (error) return <p className="rounded-3xl bg-white px-6 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Raw material dekhne ki ijazat nahi, ya list nahi aa saki.</p>;
+  if (error) return <p className="rounded-3xl bg-white px-6 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Raw material dekhne ki permission nahi, ya list nahi aa saki.</p>;
 
   return (
     <div className="space-y-3">

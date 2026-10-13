@@ -44,7 +44,7 @@ import { useOrderHandoff } from '../components/useOrderHandoff';
 const SETTINGS_KEY = 'nafaa-low-stock-settings';
 const SORTS: Array<FilterOption<LowSort>> = [
   { value: 'urgency', label: 'Sab se zaroori pehle', hint: 'Khatam, phir kam, phir jaldi khatam' },
-  { value: 'lost', label: 'Zyada ruki bikri pehle', hint: 'Jo khatam hai aur bikta tha' },
+  { value: 'lost', label: 'Zyada ruki sale pehle', hint: 'Jo khatam hai aur bikta tha' },
   { value: 'daysLeft', label: 'Kam din ka maal pehle' },
   { value: 'value', label: 'Bara order pehle' },
   { value: 'stock', label: 'Kam stock pehle' },
@@ -171,7 +171,7 @@ export default function LowStockPage() {
     try {
       const all = await lowStockApi.list({ ...filters, status, sort, limit: 500 });
       if (!all.items.length) { toast.error('Is filter me kuch nahi'); return; }
-      alertsCsv(all.items, [`Low stock — ${shopLabel}`, `Bikri ${settings.days} din · order ${settings.targetDays} din ka`], !costHidden);
+      alertsCsv(all.items, [`Low stock — ${shopLabel}`, `Sale ${settings.days} din · order ${settings.targetDays} din ka`], !costHidden);
       toast.success(`${all.items.length} lines CSV me`);
     } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
   };
@@ -224,17 +224,17 @@ export default function LowStockPage() {
           <button type="button" onClick={() => setTab('reorder')} title="Reorder list (R)" className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />Order banayein</button>
         </>}
         stats={totals ? [
-          { label: 'Order ka kharcha', value: cost(totals.orderValue), hint: `${totals.orderLines} cheezein · ${settings.targetDays} din ka maal` },
-          { label: 'Ruki hui bikri', value: money(totals.lostPerDay), hint: 'roz — khatam maal ki wajah se' },
+          { label: 'Order ka expense', value: cost(totals.orderValue), hint: `${totals.orderLines} cheezein · ${settings.targetDays} din ka maal` },
+          { label: 'Ruki hui sale', value: money(totals.lostPerDay), hint: 'roz — khatam maal ki wajah se' },
           { label: 'Expiry ka maal', value: cost(totals.expiryValue), hint: `${settings.expiryDays} din me` },
           { label: 'Order me', value: String(counts?.ordered ?? 0), hint: 'cheezein supplier se aani hain' },
-        ] : [{ label: 'Order ka kharcha', value: '' }, { label: 'Ruki hui bikri', value: '' }, { label: 'Expiry ka maal', value: '' }, { label: 'Order me', value: '' }]}
+        ] : [{ label: 'Order ka expense', value: '' }, { label: 'Ruki hui sale', value: '' }, { label: 'Expiry ka maal', value: '' }, { label: 'Order me', value: '' }]}
       />
 
       <KpiRow>
         {!counts || !totals ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            {kpi('out', totals.lostPerDay > 0 ? `roz ${money(totals.lostPerDay)} ki bikri ruki` : 'dabayein')}
+            {kpi('out', totals.lostPerDay > 0 ? `roz ${money(totals.lostPerDay)} ki sale ruki` : 'dabayein')}
             {kpi('low', 'alert level se neeche')}
             {kpi('soon', `${settings.soonDays} din ya kam ka maal`)}
             {kpi('expiry', `${settings.expiryDays} din me expiry`)}
@@ -247,7 +247,7 @@ export default function LowStockPage() {
       {Banner && data && <Suspense fallback={null}><Banner data={data} setStatus={(s) => { setTab('alerts'); setStatus(s); }} openTab={setTab} /></Suspense>}
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU, barcode ya supplier…" label="Low stock dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU, barcode ya supplier…" label="Low stock search" />}
         chips={filtered ? <>
           {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{statusOptions.find((o) => o.value === status)?.label}</FilterChip>}
           {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{data?.facets.categories.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
@@ -272,10 +272,10 @@ export default function LowStockPage() {
             options={[{ value: 'all', label: 'Sab' }, ...data!.facets.groups.map((g) => ({ value: g.id, label: config.groups!.label(g.id), hint: `${g.count}` }))]}
             onChange={(v) => setGroup(v === 'all' ? undefined : v)} />
         )}
-        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} options={SORTS} onChange={setSort} align="right" width="w-64" />
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-64" />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>R</Kbd> reorder · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> dhoondein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>R</Kbd> reorder · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> search</>}
         tabs={[
           { id: 'alerts', label: 'Alerts', icon: AlertTriangle, count: data?.total ?? null },
           { id: 'reorder', label: 'Reorder list', icon: ShoppingCart, count: totals?.orderLines ?? null },
@@ -312,7 +312,7 @@ export default function LowStockPage() {
           <div className={cn('hidden items-center gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', LINE_GRID)}>
             <button type="button" onClick={selectVisible} aria-label="Sab chunein"
               className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisible ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button>
-            <span>Cheez</span><span>Stock</span><span>Bikri · kitne din</span><span>Kya karna hai</span><span>Supplier</span><span />
+            <span>Cheez</span><span>Stock</span><span>Sale · kitne din</span><span>Kya karna hai</span><span>Supplier</span><span />
           </div>
           <ul className="divide-y divide-slate-100">
             {visible.map((r) => (
@@ -361,8 +361,8 @@ export default function LowStockPage() {
         <PageGuide title="Low stock aur reorder — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: AlertTriangle, color: '#e11d48', title: 'Kya khatam ho raha hai', text: 'Upar ke dabbe: Khatam, Kam, Jaldi khatam, Expiry. Dabayein to sirf wohi lines dikhti hain. Sab se zaroori line sab se upar hai.' },
-            { icon: Clock, color: '#ea580c', title: 'Kitne din ka maal', text: `Har line par roz ki bikri (pichhle ${settings.days} din ki ausat) aur bacha maal kitne din chalega. Khatam maal par andaza ke roz kitni bikri ruk rahi hai.` },
-            { icon: ShoppingCart, color: '#2563eb', title: 'Order banayein', text: '"Reorder list" me har supplier ka alag card hai — miqdar badlein, phir "Order banayein". Kharidari ka order khul jata hai, sab cheezein pehle se bhari hui.' },
+            { icon: Clock, color: '#ea580c', title: 'Kitne din ka maal', text: `Har line par roz ki sale (pichhle ${settings.days} din ki ausat) aur bacha maal kitne din chalega. Khatam maal par andaza ke roz kitni sale ruk rahi hai.` },
+            { icon: ShoppingCart, color: '#2563eb', title: 'Order banayein', text: '"Reorder list" me har supplier ka alag card hai — quantity badlein, phir "Order banayein". Purchase ka order khul jata hai, sab cheezein pehle se bhari hui.' },
             { icon: MousePointerClick, color: '#16a34a', title: 'Ek saath kaam', text: 'Lines chunein, phir neeche kaali patti: Purchase order (supplier war), WhatsApp list ya Chhupayein.' },
             { icon: MessageCircle, color: '#059669', title: 'Supplier ko WhatsApp', text: 'Har line par hara button supplier ko tayyar paighaam bhejta hai. Supplier ka number na ho to WhatsApp khud chunne deta hai.' },
             { icon: PackagePlus, color: '#7c3aed', title: 'Alert level aur stock', text: '"Alert" par click kar ke wahin had badlein (sirf is branch ki). "…" me stock daalein ya line chhupayein jab tak stock theek na ho.' },
@@ -370,12 +370,12 @@ export default function LowStockPage() {
           ]}
           tips={[
             `Order itna banta hai ke maal ${settings.targetDays} din chale; jo pehle se order me hai woh ghata diya jata hai. Settings (slider button) se din badlein.`,
-            'Supplier aur rate pichhli kharidari se aata hai. Jo kabhi nahi khareeda, us ke order me supplier khud chunein.',
+            'Supplier aur rate pichhli purchase se aata hai. Jo kabhi nahi khareeda, us ke order me supplier khud chunein.',
             'Sab branches par har branch ki line alag hai — order usi branch ka banta hai.',
             ...(config.tips ?? []),
           ]}
           shortcuts={[['/', 'dhoondein'], ['R', 'reorder list'], ['A', 'analytics'], ['G', 'guide'], ['Esc', 'chunna khatam']]}
-          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, barcode ya supplier se dhoondein</span>}
+          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, barcode ya supplier se search</span>}
         />
       )}
     </PageShell>

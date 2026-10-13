@@ -58,7 +58,7 @@ export function MoneyAccountsPanel({
   return (
     <Card className="rounded-2xl"
       title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Tijori, bank aur wallets</span>}
-      description="Asal balance — shuru ki raqam + khud judne wali bikri/adaigi + haath ki entries"
+      description="Asal balance — shuru ki amount + khud judne wali sale/payment + haath ki entries"
       actions={
         <span className="flex flex-wrap gap-1.5">
           <Button size="sm" variant="ghost" onClick={() => setShowInactive(!showInactive)}
@@ -136,7 +136,7 @@ function AccountCard({ a, money, canSetup, canMove, onStatement, onEdit, onMove,
         )}
         {a.auto && (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700"
-            title="Is tareeqe ki bikri, wapsi, kharch aur adaigi khud is account me judti hai">
+            title="Is tareeqe ki sale, return, kharch aur payment khud is account me judti hai">
             <Sparkles className="h-3 w-3" />Khud judta hai
           </span>
         )}
@@ -153,7 +153,7 @@ function AccountCard({ a, money, canSetup, canMove, onStatement, onEdit, onMove,
             <Button size="sm" variant="ghost" onClick={onMove} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>Bhejein</Button>
             <Button size="sm" variant="ghost" onClick={() => onEntry('DEPOSIT')}>Jama</Button>
             <Button size="sm" variant="ghost" onClick={() => onEntry('WITHDRAW')}>Nikala</Button>
-            <Button size="sm" variant="ghost" onClick={() => onEntry('ADJUSTMENT')}>Durusti</Button>
+            <Button size="sm" variant="ghost" onClick={() => onEntry('ADJUSTMENT')}>Correction</Button>
           </>}
           {canSetup && <>
             <Button size="sm" variant="ghost" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>
@@ -196,7 +196,7 @@ function CloseAccountModal({ account, money, onClose, onMove }: {
           : account.entryCount
             ? 'Account band ho jayega aur list se chhup jayega. Purani entries mehfooz rahengi; "Band bhi dikhayein" se dobara chalu kar sakte hain.'
             : 'Is account par koi entry nahi, is liye ye poori tarah mit jayega.'}
-        {account.auto && !hasMoney && ' Is ke tareeqe ki bikri phir kisi account me khud nahi judegi jab tak naya default na banayein.'}
+        {account.auto && !hasMoney && ' Is ke tareeqe ki sale phir kisi account me khud nahi judegi jab tak naya default na banayein.'}
       </p>
     </Modal>
   );
@@ -232,7 +232,7 @@ function StatementModal({ account, money, period, periodText, onClose }: {
             ))}
           </div>
           {!s.lines.length ? (
-            <p className="py-8 text-center text-[0.875rem] text-slate-500">Is muddat me koi entry nahi</p>
+            <p className="py-8 text-center text-[0.875rem] text-slate-500">Is period me koi entry nahi</p>
           ) : (
             <ul className="max-h-[50vh] divide-y divide-slate-100 overflow-y-auto rounded-xl ring-1 ring-slate-200">
               {s.lines.map((l) => {

@@ -32,7 +32,7 @@ export function adjustmentsDoc(list: AdjustmentList, period: string, filter: str
     sections: [
       {
         kind: 'table',
-        columns: [{ label: 'Waqt' }, { label: 'Cheez' }, { label: 'Qism', wideOnly: true }, { label: 'Miqdar', align: 'right' }, { label: 'Raqam', align: 'right' }, { label: 'Wajah', wideOnly: true }, { label: 'Kis ne', wideOnly: true }],
+        columns: [{ label: 'Waqt' }, { label: 'Cheez' }, { label: 'Type', wideOnly: true }, { label: 'Quantity', align: 'right' }, { label: 'Amount', align: 'right' }, { label: 'Wajah', wideOnly: true }, { label: 'Kis ne', wideOnly: true }],
         rows: list.items.map((a) => [
           day(a.createdAt), itemLabel(a), TYPES[a.type].label, qtyLabel(a), formatPKR(a.value),
           `${a.reason}${a.note ? ` — ${a.note}` : ''}`, a.createdBy?.fullName ?? '',

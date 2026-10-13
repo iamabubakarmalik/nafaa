@@ -59,7 +59,7 @@ export async function requireManagerPin(
 ): Promise<PinApproval> {
   const row = await prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { managerPin: true } });
   if (!row?.managerPin) {
-    if (strict) throw new ForbiddenException(`${action} ki ijazat nahi (Settings)`);
+    if (strict) throw new ForbiddenException(`${action} ki permission nahi (Settings)`);
     return { by: 'none', approverId: null };
   }
   if (!pin) throw new ForbiddenException(`${action} ke liye malik ya manager ka PIN chahiye`);
@@ -70,7 +70,7 @@ export async function requireManagerPin(
     const s = await matchStaffPin(prisma, user.tenantId, pin);
     if (s) {
       if (!hasPermission(s.role, s.permissions, approverNeeds as never)) {
-        throw new ForbiddenException(`${s.fullName} ka PIN "${action}" manzoor nahi kar sakta — un ke paas is kaam ki ijazat nahi`);
+        throw new ForbiddenException(`${s.fullName} ka PIN "${action}" approve nahi kar sakta — un ke paas is kaam ki permission nahi`);
       }
       await prisma.activityLog.create({
         data: {

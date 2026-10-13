@@ -78,7 +78,7 @@ export default function PurchasesListPage() {
 
   const statusOptions: Array<{ value: StatusFilter; label: string }> = [
     { value: 'all', label: 'Sab' }, { value: 'PENDING', label: 'Khule orders' }, { value: 'PARTIAL', label: 'Aadha aaya' },
-    { value: 'RECEIVED', label: 'Aa gaya' }, { value: 'credit', label: 'Udhaar par liya' }, { value: 'returned', label: 'Wapsi hui' }, { value: 'CANCELLED', label: 'Cancel' },
+    { value: 'RECEIVED', label: 'Aa gaya' }, { value: 'credit', label: 'Udhaar par liya' }, { value: 'returned', label: 'Return hui' }, { value: 'CANCELLED', label: 'Cancel' },
   ];
   const filtered = status !== 'all' || !!supplierId || !!query;
   const clear = () => { setStatus('all'); setSupplierId(''); setSearch(''); };
@@ -88,7 +88,7 @@ export default function PurchasesListPage() {
   return (
     <PageShell>
       <PageHero
-        title="Kharidari"
+        title="Purchase"
         chip={<><Truck /> Purchases aur orders</>}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={summaryQ.isLoading}
@@ -97,7 +97,7 @@ export default function PurchasesListPage() {
           <Link to="/suppliers" className={heroButton}><Users className="h-4 w-4" /> Suppliers</Link>
           <Link to="/purchases/new?order=1" className={heroButton}><ClipboardList className="h-4 w-4" /> Order</Link>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <Link to="/purchases/new" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi kharidari</Link>
+          <Link to="/purchases/new" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi purchase</Link>
         </>}
         stats={s ? [
           { label: 'Is mahine', value: money(s.monthPurchases), hint: `${s.monthCount} bill` },
@@ -115,7 +115,7 @@ export default function PurchasesListPage() {
             <KpiCard icon={PackageCheck} color="#16a34a" label="Maal aaya" value={money(t.value)} />
             <KpiCard icon={Banknote} color="#2563eb" label="Diye" value={money(t.paid)} hint="udhaar wale dekhein"
               onClick={() => toggleStatus('credit')} active={status === 'credit'} />
-            <KpiCard icon={RotateCcw} color="#d97706" label="Wapas" value={money(t.returned)} hint="wapsi wale dekhein"
+            <KpiCard icon={RotateCcw} color="#d97706" label="Wapas" value={money(t.returned)} hint="return wale dekhein"
               onClick={() => toggleStatus('returned')} active={status === 'returned'} />
           </>
         )}
@@ -123,12 +123,12 @@ export default function PurchasesListPage() {
 
       {/* Filters */}
       {tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare charts isi muddat ke hain; pichli itni hi muddat se muqabla</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare charts isi period ke hain; pichli itni hi period se muqabla</p>}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         </FilterBar>
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill #, supplier ya cheez…" label="Dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill #, supplier ya cheez…" label="Search" />}
           chips={filtered ? <>
             {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{statusOptions.find((o) => o.value === status)?.label}</FilterChip>}
             {supplierId && <FilterChip onRemove={() => setSupplierId('')}>{supplierOptions.find((o) => o.value === supplierId)?.label ?? 'Supplier'}</FilterChip>}
@@ -146,7 +146,7 @@ export default function PurchasesListPage() {
         right={tab === 'bills' && s && !showInsights
           ? <button type="button" onClick={() => setShowInsights(true)} className="text-[0.8125rem] font-medium text-brand-700 hover:underline">Hafte ka graph aur top suppliers dikhayein</button>
           : undefined}
-        hint={<><Kbd>N</Kbd> nayi kharidari · <Kbd>/</Kbd> dhoondein</>}
+        hint={<><Kbd>N</Kbd> nayi purchase · <Kbd>/</Kbd> search</>}
         tabs={[{ id: 'bills', label: 'Bills', icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {tab === 'analytics' ? (
@@ -159,9 +159,9 @@ export default function PurchasesListPage() {
       ) : !data?.items.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <PackageCheck className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">Is filter me koi kharidari nahi</p>
-          <p className="mt-1 text-sm text-slate-500">Muddat ya filter badlein, ya nayi kharidari karein</p>
-          <Button className="mt-4" onClick={() => navigate('/purchases/new')} leftIcon={<Plus className="h-4 w-4" />}>Nayi kharidari</Button>
+          <p className="mt-3 font-semibold text-slate-900">Is filter me koi purchase nahi</p>
+          <p className="mt-1 text-sm text-slate-500">Period ya filter badlein, ya nayi purchase karein</p>
+          <Button className="mt-4" onClick={() => navigate('/purchases/new')} leftIcon={<Plus className="h-4 w-4" />}>Nayi purchase</Button>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -172,21 +172,21 @@ export default function PurchasesListPage() {
       </>)}
 
       {guide.isOpen && (
-        <PageGuide title="Kharidari — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title="Purchase — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#16a34a', title: 'Nayi kharidari', text: '"Nayi kharidari" dabayein. Maal aa gaya ho to seedha stock me jata hai; supplier ka udhaar khud khate me likha jata hai.' },
+            { icon: Plus, color: '#16a34a', title: 'Nayi purchase', text: '"Nayi kharidari" dabayein. Maal aa gaya ho to seedha stock me jata hai; supplier ka udhaar khud khate me likha jata hai.' },
             { icon: ClipboardList, color: '#2563eb', title: 'Pehle order, maal baad me', text: '"Order" se supplier ko order banayein aur WhatsApp par bhej dein. Maal aaye to bill khol kar "Maal aaya" — aadha aaye to aadha.' },
-            { icon: CalendarRange, color: '#7c3aed', title: 'Muddat aur filter', text: 'Upar se tareekh chunein. "Halat" se khule orders, udhaar wale, wapsi wale ya cancel bill alag dekhein; "Supplier" se ek supplier ke bill.' },
+            { icon: CalendarRange, color: '#7c3aed', title: 'Period aur filter', text: 'Upar se tareekh chunein. "Halat" se khule orders, udhaar wale, wapsi wale ya cancel bill alag dekhein; "Supplier" se ek supplier ke bill.' },
             { icon: MousePointerClick, color: '#d97706', title: 'Bill kholein', text: 'Kisi bhi bill par click karein: har cheez kis unit me aayi, kitni aayi, kitni wapas gayi, print aur cancel.' },
             { icon: RotateCcw, color: '#db2777', title: 'Kharab maal wapas', text: 'Bill ke andar "Maal wapas karein" — stock kam hoga aur supplier ka dena utna ghat jayega.' },
             { icon: FileDown, color: '#0891b2', title: 'Report', text: 'Print button se A4, PDF ya thermal par is filter ki poori list nikaalein — accountant ko bhej dein.' },
           ]}
           tips={[
             'Carton, box ya bori me khareeda maal usi unit me likhein — stock khud pieces / kg me jud jata hai.',
-            'Discount, kiraya aur tax har cheez ki cost me hisse ke mutabiq judte hain, is liye munafa sahi nikalta hai.',
-            'Supplier ko baad me adaigi "Suppliers" ke page se karein — har adaigi khate me darj rehti hai.',
+            'Discount, kiraya aur tax har cheez ki cost me hisse ke mutabiq judte hain, is liye profit sahi nikalta hai.',
+            'Supplier ko baad me payment "Suppliers" ke page se karein — har payment khate me darj rehti hai.',
           ]}
-          shortcuts={[['N', 'nayi kharidari'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['N', 'nayi purchase'], ['/', 'dhoondein'], ['G', 'guide']]}
           footer={<Link to="/suppliers" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline"><Banknote className="mr-1 inline h-4 w-4" />Suppliers ka khata →</Link>}
         />
       )}
@@ -215,7 +215,7 @@ function Row({ p, money }: { p: PurchaseListRow; money: (n: number) => string })
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-slate-900">{p.supplier.name}</span>
             <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}>{st.label}</span>
-            {p.returnedAmount > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] text-amber-800 ring-1 ring-amber-200">Wapsi {money(p.returnedAmount)}</span>}
+            {p.returnedAmount > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] text-amber-800 ring-1 ring-amber-200">Return {money(p.returnedAmount)}</span>}
             {raw && <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] text-amber-800 ring-1 ring-amber-200"><Wheat className="h-3 w-3" /> Raw</span>}
           </div>
           <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{first}{p.items.length > 3 ? ` +${p.items.length - 3}` : ''}</p>
@@ -260,7 +260,7 @@ function Insights({ s, money, onClose }: { s: Summary; money: (n: number) => str
         <p className="mt-2 text-[0.75rem] text-slate-500">Is mahine {money(s.monthPurchases)} · pichle mahine {money(s.lastMonthPurchases)}</p>
       </div>
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
-        <p className="text-[0.8125rem] font-semibold text-slate-800">Sab se zyada kharidari</p>
+        <p className="text-[0.8125rem] font-semibold text-slate-800">Sab se zyada purchase</p>
         <ul className="mt-2 space-y-2">
           {topSup.map((t) => (
             <li key={t.supplierId}>

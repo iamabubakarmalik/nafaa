@@ -80,7 +80,7 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
               </span>
               <span className="mt-1.5 text-xl font-bold tabular-nums text-slate-900">{count(k)}</span>
               <span className="text-[0.6875rem] leading-snug text-slate-500">
-                {s ? <>{f.pct(s.share)} bikri · ausat {s.avgDays} din pehle</> : 'naam likha, bill nahi'}
+                {s ? <>{f.pct(s.share)} sale · ausat {s.avgDays} din pehle</> : 'naam likha, bill nahi'}
               </span>
             </button>
           );
@@ -117,7 +117,7 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
           <p className="mt-2 text-[0.6875rem] text-slate-500">Hisaab aaj tak ka hai: aakhri dafa kab aaye, aur pichle 12 mahine me kitne alag din khareeda.</p>
         </Panel>
 
-        <Panel icon={PieIcon} className="lg:col-span-2" title="Group war customers" hint="Kis group me kitne log — bar par hover karein to bikri ka hissa">
+        <Panel icon={PieIcon} className="lg:col-span-2" title="Group war customers" hint="Kis group me kitne log — bar par hover karein to sale ka hissa">
           {d.customers === 0 ? <Empty text="Abhi kisi naam wale customer ne khareeda nahi" /> : (
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -125,7 +125,7 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
                   <CartesianGrid stroke={theme.grid} horizontal={false} />
                   <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} />
                   <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={96} />
-                  <Tooltip {...theme.tooltip} formatter={(v, _n, item) => [`${v} customers · ${(item?.payload as { share: number }).share.toFixed(1)}% bikri`, '']} />
+                  <Tooltip {...theme.tooltip} formatter={(v, _n, item) => [`${v} customers · ${(item?.payload as { share: number }).share.toFixed(1)}% sale`, '']} />
                   <Bar dataKey="customers" radius={[0, 6, 6, 0]} maxBarSize={22} onClick={(x) => { const k = (x as { payload?: { key?: SegmentKey } }).payload?.key; if (k) onSelect(k); }} cursor="pointer">
                     {chart.map((c) => <Cell key={c.key} fill={SEGMENT_META[c.key].color} />)}
                   </Bar>
@@ -149,9 +149,9 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
             <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" /><span className="text-slate-800">{meta.action}</span>
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <SearchField value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Group me dhoondein" />
+            <SearchField value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Group me search" />
             {selected !== 'never' && (
-              <Segmented label="Tarteeb" value={sort} onChange={setSort} items={[
+              <Segmented label="Sort" value={sort} onChange={setSort} items={[
                 { value: 'spend', label: 'Kharch' }, { value: 'recent', label: 'Haal hi' }, { value: 'visits', label: 'Dafa' }, { value: 'owing', label: 'Udhaar' },
               ]} />
             )}
@@ -162,7 +162,7 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
                 { label: 'Customer', render: (r) => <CustomerCell id={r.id} name={r.name} phone={r.phone} isVip={r.isVip} sub={r.city} /> },
                 { label: selected === 'never' ? 'Register hue' : 'Aakhri dafa', render: (r) => (r.lastAt ? daysAgo(r.days) : f.date(r.joinedAt)) },
                 { label: 'Din (12 m)', align: 'right', hide: selected === 'never', render: (r) => r.visits },
-                { label: 'Bikri (12 m)', align: 'right', hide: selected === 'never', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
+                { label: 'Sale (12 m)', align: 'right', hide: selected === 'never', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
                 { label: 'Kul kharch', align: 'right', hide: selected === 'never', render: (r) => f.money(r.lifetime) },
                 { label: 'Udhaar', align: 'right', render: (r) => (r.balance > 0 ? <span className="text-amber-700">{f.money(r.balance)}</span> : '—') },
                 { label: 'Points', align: 'right', render: (r) => (r.points ? f.count(r.points) : '—') },

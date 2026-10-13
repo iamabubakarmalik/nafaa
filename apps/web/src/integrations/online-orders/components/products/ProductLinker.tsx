@@ -430,7 +430,7 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
       <div className="flex flex-wrap items-center gap-2 px-4 sm:px-5">
         <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nafaa product dhoondein…" className={cn(inputCls, 'pl-8')} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nafaa product search…" className={cn(inputCls, 'pl-8')} />
         </div>
         <Btn variant="success" disabled={!picked.size} loading={send.isPending} onClick={() => send.mutate()} icon={<CloudUpload className="h-4 w-4" />}>
           {picked.size ? `${picked.size} ${siteName} par bhejo` : `${siteName} par bhejo`}

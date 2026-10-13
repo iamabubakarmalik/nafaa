@@ -14,10 +14,10 @@ import type { ActivityEntry } from './api/activity-log.api';
 /** Words after "<name> ne …" for actions with their own meaning. */
 const ACTION_TEXT: Record<string, string> = {
   SALE_VOIDED: 'bill void kiya',
-  REFUND_PIN_APPROVED: 'PIN se wapsi manzoor ki',
-  EXPENSE_DELETED: 'kharcha mitaya',
+  REFUND_PIN_APPROVED: 'PIN se return approve ki',
+  EXPENSE_DELETED: 'expense mitaya',
   LEAVE_REQUESTED: 'chhutti maangi',
-  LEAVE_APPROVED: 'chhutti manzoor ki',
+  LEAVE_APPROVED: 'chhutti approve ki',
   LEAVE_REJECTED: 'chhutti radd ki',
   LEAVE_CANCELLED: 'chhutti cancel ki',
   PAYROLL_RUN: 'tankhwah banayi',
@@ -46,8 +46,8 @@ const ACTION_TEXT: Record<string, string> = {
 /** Short labels for the action filter. */
 const ACTION_LABEL: Record<string, string> = {
   CREATE: 'Banaya', UPDATE: 'Badla', DELETE: 'Mitaya', FORCE_DELETE: 'Poora mitaya', ACTIVATE: 'Chalu kiya', DEACTIVATE: 'Band kiya',
-  SALE_VOIDED: 'Bill void', REFUND_PIN_APPROVED: 'PIN se wapsi', EXPENSE_DELETED: 'Kharcha mitaya',
-  LEAVE_REQUESTED: 'Chhutti maangi', LEAVE_APPROVED: 'Chhutti manzoor', LEAVE_REJECTED: 'Chhutti radd', LEAVE_CANCELLED: 'Chhutti cancel',
+  SALE_VOIDED: 'Bill void', REFUND_PIN_APPROVED: 'PIN se return', EXPENSE_DELETED: 'Expense mitaya',
+  LEAVE_REQUESTED: 'Chhutti maangi', LEAVE_APPROVED: 'Chhutti approve', LEAVE_REJECTED: 'Chhutti radd', LEAVE_CANCELLED: 'Chhutti cancel',
   PAYROLL_RUN: 'Tankhwah', SALARY_ADVANCE: 'Advance', SALARY_CANCELLED: 'Tankhwah radd', SALARY_ADVANCE_CANCELLED: 'Advance radd',
   COMMISSION_PAID: 'Commission di', COMMISSION_PAY_UNDONE: 'Commission wapas',
   PIN_VERIFY_FAILED: 'Ghalat PIN', PIN_SET: 'PIN lagaya', PIN_RESET: 'PIN badla', PIN_RESET_FAILED: 'PIN badalna nakam', PIN_REMOVED: 'PIN hataya',
@@ -132,8 +132,8 @@ export function linkOf(e: ActivityEntry): { to: string; label: string } | null {
     case 'TeamMember':
     case 'Staff': return id && e.action !== 'DELETE' ? { to: `/staff/${id}`, label: 'Profile kholein' } : { to: '/staff', label: 'Staff' };
     case 'Sale': return id ? { to: receiptLink(id), label: 'Bill kholein' } : null;
-    case 'SaleReturn': return { to: '/returns', label: 'Wapsi dekhein' };
-    case 'Expense': return { to: '/expenses', label: 'Kharche' };
+    case 'SaleReturn': return { to: '/returns', label: 'Return dekhein' };
+    case 'Expense': return { to: '/expenses', label: 'Expenses' };
     case 'StaffLeave': return { to: '/staff/attendance', label: 'Haazri' };
     case 'CommissionPayout': return { to: '/staff/commission', label: 'Commission' };
     case 'TenantSettings':

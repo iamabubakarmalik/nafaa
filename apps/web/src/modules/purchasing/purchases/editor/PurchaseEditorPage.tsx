@@ -132,7 +132,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
     !shopId && 'Upar se branch chunein — maal kis branch me aaya',
     !bill.supplierId && 'Supplier chunein',
     !lines.length && 'Kam se kam ek cheez jorein',
-    lines.some((l) => !(l.qty > 0)) && 'Har line ki miqdar likhein',
+    lines.some((l) => !(l.qty > 0)) && 'Har line ki quantity likhein',
     bill.discount > d.subtotal && 'Discount bill se zyada hai',
   ].filter(Boolean) as string[];
 
@@ -142,7 +142,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
       return purchasesApi.create(d.payload(shopId));
     },
     onSuccess: (p) => {
-      toast.success(bill.mode === 'order' ? `Order ${p.purchaseNumber} ban gaya` : `Kharidari ${p.purchaseNumber} save — stock barh gaya`);
+      toast.success(bill.mode === 'order' ? `Order ${p.purchaseNumber} ban gaya` : `Purchase ${p.purchaseNumber} save — stock barh gaya`);
       ['purchases', 'purchase-list', 'purchases-summary', 'suppliers', 'product-catalog', 'products', 'purchase-sources', 'pos-product-units', 'dashboard-overview']
         .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       d.reset();
@@ -156,7 +156,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   return (
     <PageShell className="pb-24">
       <PageHero
-        title={order ? 'Naya order' : 'Nayi kharidari'}
+        title={order ? 'Naya order' : 'Nayi purchase'}
         chip={<><Truck /> {order ? 'Supplier ko order — maal baad me' : 'Maal aa gaya — stock abhi barhega'}</>}
         meta="Carton, box, pack ya apna unit — sab chalta hai"
         actions={<>
@@ -166,7 +166,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
               <Trash2 className="h-4 w-4" /> Saaf
             </button>
           )}
-          <button type="button" className={heroButton} onClick={() => navigate('/purchases')}><ClipboardList className="h-4 w-4" /> Sab kharidari</button>
+          <button type="button" className={heroButton} onClick={() => navigate('/purchases')}><ClipboardList className="h-4 w-4" /> Sab purchase</button>
         </>}
         stats={[
           { label: 'Cheezein', value: lines.length },
@@ -198,7 +198,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                     else if (query.trim()) setNewProduct(query.trim());
                   }}
                   placeholder={withIngredients ? 'Product ya raw material, naam ya barcode…  ( / )' : 'Product ka naam, SKU ya barcode…  ( / )'}
-                  aria-label="Cheez dhoondein"
+                  aria-label="Cheez search"
                   className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
               </div>
               <Button variant="secondary" className="h-11" onClick={() => setScanner(true)} leftIcon={<ScanLine className="h-4 w-4" />}><span className="hidden sm:inline">Scan</span></Button>
@@ -279,9 +279,9 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                 <input value={bill.invoiceNo} onChange={(e) => setBill({ ...bill, invoiceNo: e.target.value })} className={cn(field, 'mt-1')} maxLength={60} placeholder="Parchi ka #" />
                 <Hint>Supplier ki parchi par likha number — baad me milane ke liye</Hint>
               </label>
-              <label className="text-[0.75rem] text-slate-500">{order ? 'Order ki tareekh' : 'Tareekh'}
+              <label className="text-[0.75rem] text-slate-500">{order ? 'Order ki date' : 'Date'}
                 <input type="date" value={bill.date} onChange={(e) => setBill({ ...bill, date: e.target.value })} className={cn(field, 'mt-1')} />
-                <Hint>Purana bill ho to us din ki tareekh</Hint>
+                <Hint>Purana bill ho to us din ki date</Hint>
               </label>
             </div>
             {order && (
@@ -294,8 +294,8 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 
           <div className="space-y-1.5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
             <Row k={`Cheezein (${lines.length})`} v={money(d.subtotal)} />
-            <MoneyRow label="Discount" hint="Supplier ne poore bill par jo chhoot di" value={bill.discount} onChange={(v) => setBill({ ...bill, discount: v })} sign="−" />
-            <MoneyRow label="Kiraya / loading" hint="Maal laane ka kharcha — rickshaw, loader, mazdoori" value={bill.otherCharges} onChange={(v) => setBill({ ...bill, otherCharges: v })} sign="+" />
+            <MoneyRow label="Discount" hint="Supplier ne poore bill par jo discount di" value={bill.discount} onChange={(v) => setBill({ ...bill, discount: v })} sign="−" />
+            <MoneyRow label="Kiraya / loading" hint="Maal laane ka expense — rickshaw, loader, mazdoori" value={bill.otherCharges} onChange={(v) => setBill({ ...bill, otherCharges: v })} sign="+" />
             <MoneyRow label="Tax" hint="Bill par laga GST / sales tax" value={bill.taxAmount} onChange={(v) => setBill({ ...bill, taxAmount: v })} sign="+" />
             <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-900 px-3 py-2 text-white">
               <span className="font-semibold">Kul bill</span><span className="text-lg font-bold tabular-nums">{money(d.total)}</span>
@@ -307,7 +307,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 
           {!order && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Adaigi</p>
+              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Payment</p>
               <div className="grid grid-cols-5 gap-1">
                 {POS_PAYMENT_METHODS.map((m) => (
                   <button key={m.id} type="button" onClick={() => setBill({ ...bill, paymentMethod: m.id })} aria-pressed={bill.paymentMethod === m.id}
@@ -343,24 +343,24 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 
           {problems.length > 0 && lines.length > 0 && <p className="text-[0.8125rem] text-rose-700">{problems[0]}</p>}
           <Button className="h-12 w-full text-base" loading={save.isPending} disabled={problems.length > 0} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>
-            {order ? 'Order save karein' : 'Kharidari save karein'} <kbd className="ml-1 hidden rounded bg-white/20 px-1 text-[0.6875rem] sm:inline">Ctrl S</kbd>
+            {order ? 'Order save karein' : 'Purchase save karein'} <kbd className="ml-1 hidden rounded bg-white/20 px-1 text-[0.6875rem] sm:inline">Ctrl S</kbd>
           </Button>
         </aside>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title={order ? 'Order kaise banayein' : 'Kharidari kaise darj karein'} onClose={guide.close}
+        <PageGuide title={order ? 'Order kaise banayein' : 'Purchase kaise darj karein'} onClose={guide.close}
           steps={[
-            { icon: Search, color: '#7c3aed', title: 'Cheez dhoondein', text: 'Upar naam, SKU ya barcode likhein ya "Scan" dabayein. Carton ka barcode scan karein to carton hi jud jata hai. Naya maal ho to "Naya" se wahin bana lein.' },
+            { icon: Search, color: '#7c3aed', title: 'Cheez search', text: 'Upar naam, SKU ya barcode likhein ya "Scan" dabayein. Carton ka barcode scan karein to carton hi jud jata hai. Naya maal ho to "Naya" se wahin bana lein.' },
             { icon: Ruler, color: '#2563eb', title: 'Unit chunein', text: 'Har line par "Unit" me pcs, carton ya box chunein. Bori / peti jaisa unit na ho to "+ Apna unit" — misaal: 1 bori = 50 kg.' },
-            { icon: Calculator, color: '#16a34a', title: 'Miqdar aur qeemat', text: 'Kitne unit aaye aur ek unit ki qeemat likhein — jaise supplier ki parchi par hai. Neeche "= 48 pcs" bata deta hai stock me kitna jayega.' },
-            { icon: Truck, color: '#d97706', title: 'Supplier aur bill', text: 'Daayen taraf supplier chunein (naya ho to wahin jor lein), parchi ka number aur tareekh likhein. Discount, kiraya aur tax bhi wahin.' },
-            { icon: Wallet, color: '#db2777', title: 'Kitne diye', text: 'Khali chhorein to poora bill diya maana jata hai. Kuch na diya ho to "Udhaar" — baqi supplier ke khate me jata hai, chahein to aakhri tareekh bhi.' },
+            { icon: Calculator, color: '#16a34a', title: 'Quantity aur qeemat', text: 'Kitne unit aaye aur ek unit ki qeemat likhein — jaise supplier ki parchi par hai. Neeche "= 48 pcs" bata deta hai stock me kitna jayega.' },
+            { icon: Truck, color: '#d97706', title: 'Supplier aur bill', text: 'Daayen taraf supplier chunein (naya ho to wahin jor lein), parchi ka number aur date likhein. Discount, kiraya aur tax bhi wahin.' },
+            { icon: Wallet, color: '#db2777', title: 'Kitne diye', text: 'Khali chhorein to poora bill diya maana jata hai. Kuch na diya ho to "Udhaar" — baqi supplier ke khate me jata hai, chahein to aakhri date bhi.' },
             { icon: Wheat, color: '#0891b2', title: 'Raw material', text: 'Bakery ka aata, cheeni waghera bhi isi bill me — dhoondne par "Raw" nishan ke saath aate hain aur unka stock barhta hai.' },
           ]}
           tips={[
-            'Purchase ki qeemat se maal ki average cost banti hai — is liye munafa har bill par sahi nikalta hai.',
-            'Bechne ka rate yahin badal sakte hain ("Bechne ka rate, batch, expiry" khol kar) — munafa % saath dikhta hai.',
+            'Purchase ki qeemat se maal ki average cost banti hai — is liye profit har bill par sahi nikalta hai.',
+            'Bechne ka rate yahin badal sakte hain ("Bechne ka rate, batch, expiry" khol kar) — profit % saath dikhta hai.',
             'Adhoora bill is device par yaad rehta hai; page band ho jaye to wapas aa kar wahin se jari rakhein.',
             '"Order dena hai" chunein to stock abhi nahi barhega — maal aane par bill khol kar "Maal aaya".',
           ]}
@@ -451,7 +451,7 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
           <input type="number" min={0} step="any" inputMode="decimal" value={l.cost || ''} placeholder="0" className={cn(field, 'mt-0.5 text-right tabular-nums')}
             onChange={(e) => d.patch(l.key, { cost: Math.max(Number(e.target.value) || 0, 0) })} />
         </label>
-        <div className="text-[0.6875rem] text-slate-500">Raqam
+        <div className="text-[0.6875rem] text-slate-500">Amount
           <p className="mt-0.5 flex h-9 items-center justify-end rounded-lg bg-slate-50 px-2.5 text-sm font-semibold tabular-nums text-slate-900">{money(l.qty * l.cost)}</p>
         </div>
       </div>
@@ -468,7 +468,7 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
             <label className="text-[0.6875rem] text-slate-500" title="Khali chhorein to purana rate rahega">Naya bechne ka rate / {l.source.baseUnit} (ikhtiyari)
               <input type="number" min={0} step="any" value={l.salePrice ?? ''} placeholder={l.source.price ? String(l.source.price) : '—'} className={cn(field, 'mt-0.5 text-right tabular-nums')}
                 onChange={(e) => d.patch(l.key, { salePrice: e.target.value === '' ? null : Math.max(Number(e.target.value), 0) })} />
-              {l.salePrice != null && perBase > 0 && <span className={cn('mt-0.5 block', l.salePrice < perBase ? 'text-rose-600' : 'text-emerald-700')}>Munafa {(((l.salePrice - perBase) / perBase) * 100).toFixed(0)}%</span>}
+              {l.salePrice != null && perBase > 0 && <span className={cn('mt-0.5 block', l.salePrice < perBase ? 'text-rose-600' : 'text-emerald-700')}>Profit {(((l.salePrice - perBase) / perBase) * 100).toFixed(0)}%</span>}
             </label>
           )}
           <label className="text-[0.6875rem] text-slate-500">Batch #
@@ -491,7 +491,7 @@ function SupplierPicker({ suppliers, value, onChange, onNew }: { suppliers: Supp
   const list = suppliers.filter((s) => `${s.name} ${s.phone ?? ''} ${s.city ?? ''}`.toLowerCase().includes(q.toLowerCase().trim())).slice(0, 40);
   return (
     <div className="relative">
-      <input value={open ? q : current?.name ?? ''} placeholder="Supplier dhoondein…" aria-label="Supplier"
+      <input value={open ? q : current?.name ?? ''} placeholder="Supplier search…" aria-label="Supplier"
         onFocus={() => { setOpen(true); setQ(''); }} onBlur={() => window.setTimeout(() => setOpen(false), 150)} onChange={(e) => setQ(e.target.value)}
         className={cn(field, 'h-10')} />
       {open && (
@@ -529,7 +529,7 @@ function VariantModal({ target, onClose, onPick }: { target: { source: Source; u
               <span className="text-[0.75rem] text-slate-500">Stock {Number(v.stock) || 0}</span>
             </button>
           ))}
-          {!list.length && <p className="py-6 text-center text-sm text-slate-500">Koi qism nahi mili</p>}
+          {!list.length && <p className="py-6 text-center text-sm text-slate-500">Koi type nahi mili</p>}
         </div>
       )}
     </Modal>
@@ -543,7 +543,7 @@ function CustomUnitModal({ line, onClose, onSave }: { line: DraftLine; onClose: 
   const presets = line.source.baseUnit.toLowerCase() === 'kg'
     ? [['Bori', 50], ['Bori', 40], ['Bag', 25], ['Thaila', 10]] : [['Peti', 12], ['Carton', 24], ['Dozen', 12], ['Box', 10]];
   return (
-    <Modal open onClose={onClose} size="sm" title="Apna unit" description={`Is kharidari ke liye — kitne ${line.source.baseUnit} ka ek?`}
+    <Modal open onClose={onClose} size="sm" title="Apna unit" description={`Is purchase ke liye — kitne ${line.source.baseUnit} ka ek?`}
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!ok} onClick={() => onSave({ id: null, name: name.trim(), rate: Number(rate) })}>Lagayein</Button></>}>
       <div className="mb-3 flex flex-wrap gap-1.5">
         {presets.map(([n, r]) => (

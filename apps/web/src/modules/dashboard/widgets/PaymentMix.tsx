@@ -34,11 +34,11 @@ export function PaymentMix() {
           title: 'Paisa kaise aaya', subtitle: periodLabel(s.days),
           sections: [{ kind: 'rows', rows: [...rows.map((r) => ({ label: `${r.name}${r.bills ? ` (${r.bills} bill)` : ''}`, value: sales(r.value) })), { label: 'Kul', value: sales(total), strong: true }] }],
         })}>
-        <MiniSelect label="Muddat" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
+        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
         <MiniSelect label="Dikhawa" value={s.view} onChange={(v) => set({ view: v })} options={[{ value: 'donut', label: 'Gol chart' }, { value: 'bars', label: 'Patiyan' }]} />
       </WidgetToolbar>
       {isLoading ? <Skeleton className="h-48 w-full" /> : rows.length === 0 ? (
-        <EmptyHint icon={Wallet} text="Is muddat me koi bikri nahi" />
+        <EmptyHint icon={Wallet} text="Is period me koi sale nahi" />
       ) : (
         <div className="flex flex-col gap-4">
           {!salesHidden && s.view === 'donut' && (

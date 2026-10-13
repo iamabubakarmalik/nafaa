@@ -19,7 +19,7 @@ type Mode = 'add' | 'remove' | 'set';
 const WEIGHED = /^(kg|g|gram|lb|litre|liter|l|ml|meter|m|ft|sqft|yard)$/i;
 const REASONS: Record<Mode, string[]> = {
   add: ['Naya maal aaya', 'Banaya gaya', 'Wapas aaya'],
-  remove: ['Kharab / zaya', 'Apne istemal mein', 'Ginti mein kam'],
+  remove: ['Kharab / waste', 'Apne istemal mein', 'Ginti mein kam'],
   set: ['Ginti ki — asal stock'],
 };
 

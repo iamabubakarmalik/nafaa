@@ -20,7 +20,7 @@ interface Props {
 type CameraState = 'starting' | 'live' | 'denied' | 'none' | 'failed';
 
 const MESSAGES: Record<Exclude<CameraState, 'starting' | 'live'>, { title: string; body: string }> = {
-  denied: { title: 'Camera ki ijazat nahi mili', body: 'Address bar me 🔒 par tap karein, Camera ko Allow karein, phir dobara koshish karein.' },
+  denied: { title: 'Camera ki permission nahi mili', body: 'Address bar me 🔒 par tap karein, Camera ko Allow karein, phir dobara koshish karein.' },
   none: { title: 'Camera nahi mila', body: 'Is device par camera nahi hai ya browser camera nahi deta. Neeche code likh dein.' },
   failed: { title: 'Camera shuru nahi hua', body: 'Shayad koi aur app camera chala rahi hai. Use band kar ke dobara koshish karein.' },
 };

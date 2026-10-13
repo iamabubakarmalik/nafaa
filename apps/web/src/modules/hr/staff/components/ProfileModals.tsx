@@ -115,7 +115,7 @@ export function StatusModal({ p, back, onClose }: { p: Profile; back: boolean; o
 
   return (
     <Modal open onClose={onClose} size="md" title={back ? `${p.person.fullName} wapas kaam par` : `${p.person.fullName} — kaam ka haal`}
-      description="Kuch mitta nahi — bikri, tankhwah aur commission ka hisaab waisa hi rehta hai"
+      description="Kuch mitta nahi — sale, tankhwah aur commission ka hisaab waisa hi rehta hai"
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={() => save.mutate()} loading={save.isPending} disabled={nothing} variant={back ? 'primary' : 'danger'}>{back ? 'Wapas laayein' : 'Save karein'}</Button></>}>
       <div className="space-y-4">
         {p.staff && p.viewer.manage && !back && (
@@ -131,7 +131,7 @@ export function StatusModal({ p, back, onClose }: { p: Profile; back: boolean; o
         {p.staff && p.viewer.manage && leaving && !back && (
           <Input label="Aakhri din" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} hint="Tankhwah ka hisaab is din tak banega" />
         )}
-        {p.staff && !p.viewer.manage && <p className="text-[0.8125rem] text-slate-500">HR record ka haal badalne ke liye "Staff sambhalna" ki ijazat chahiye.</p>}
+        {p.staff && !p.viewer.manage && <p className="text-[0.8125rem] text-slate-500">HR record ka haal badalne ke liye "Staff sambhalna" ki permission chahiye.</p>}
         {canLogin && (
           <Switch checked={touchLogin} onChange={(e) => setTouchLogin(e.target.checked)}
             label={back ? (login!.isActive ? 'Login pehle se chalu hai' : 'Login bhi chalu karein') : (login!.isActive ? 'Login bhi band karein' : 'Login pehle se band hai')}
@@ -141,8 +141,8 @@ export function StatusModal({ p, back, onClose }: { p: Profile; back: boolean; o
         {!back && p.history?.any && (
           <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
             Is ke naam {[
-              p.history.sales && `${p.history.sales} bill`, p.history.returns && `${p.history.returns} wapsi`, p.history.shifts && `${p.history.shifts} shift`,
-              p.history.expenses && `${p.history.expenses} kharche`, p.history.purchases && `${p.history.purchases} kharidari`,
+              p.history.sales && `${p.history.sales} bill`, p.history.returns && `${p.history.returns} return`, p.history.shifts && `${p.history.shifts} shift`,
+              p.history.expenses && `${p.history.expenses} expenses`, p.history.purchases && `${p.history.purchases} purchase`,
             ].filter(Boolean).join(', ')} hain. Yeh sab waisa hi rahega — record kabhi mitaya nahi jata.
           </p>
         )}

@@ -34,8 +34,8 @@ export function priceListDoc(entries: CatalogEntry[], title: string, subtitle: s
   return {
     title,
     subtitle,
-    meta: [['Kul', String(entries.length)], ['Tareekh', new Date().toLocaleDateString('en-PK', { dateStyle: 'medium' })]],
-    sections: [{ kind: 'table', columns: [{ label: 'Naam' }, { label: 'Tafseel', wideOnly: true }, { label: 'Rate', align: 'right' }], rows, groupRows }],
+    meta: [['Kul', String(entries.length)], ['Date', new Date().toLocaleDateString('en-PK', { dateStyle: 'medium' })]],
+    sections: [{ kind: 'table', columns: [{ label: 'Naam' }, { label: 'Details', wideOnly: true }, { label: 'Rate', align: 'right' }], rows, groupRows }],
     footer: 'Rate badal sakte hain — taza rate dukaan se poochein.',
   };
 }

@@ -64,7 +64,7 @@ export function KhataView({ data: d, f, compare, period, shop }: { data: Khata; 
           value={<span className={rateTone}>{f.pct(t.collectionRate)}</span>}
           hint={prev && t.collectionRate != null ? <Delta now={t.collectionRate} before={prev.collectionRate} points /> : 'shuru ka baqi + naya udhaar me se kitna mila'} />
         <KpiCard icon={Timer} color="#2563eb" label="Paisa aane me din" value={t.daysToCollect != null ? `${t.daysToCollect} din` : '—'}
-          hint={t.daysToCollect != null ? 'baqi ÷ roz ka ausat udhaar' : 'is muddat me udhaar nahi diya'} />
+          hint={t.daysToCollect != null ? 'baqi ÷ roz ka ausat udhaar' : 'is period me udhaar nahi diya'} />
         <KpiCard icon={Hourglass} color="#e11d48" label="60 din se purana" value={f.money(t.over60)} hint={`${t.noPayment60} ne 60 din se kuch nahi diya`}
           onClick={() => { setAge(age === 'over60' ? null : 'over60'); setSort('risk'); }} active={age === 'over60'} />
         <KpiCard icon={Wallet} color="#0891b2" label="Advance" value={f.money(t.advance)} hint={`${t.advanceCount} customers ka paisa hamare paas`} />
@@ -112,9 +112,9 @@ export function KhataView({ data: d, f, compare, period, shop }: { data: Khata; 
             <Fact label="Shuru me baqi" value={f.money(t.opening)} />
             <Fact label="Udhaar diya" value={f.money(t.given)} sub={prev ? <Delta now={t.given} before={prev.given} up="bad" /> : `${t.takers} customers`} />
             <Fact label="Wasooli" value={f.money(t.received)} sub={prev ? <Delta now={t.received} before={prev.received} /> : `${t.payments} dafa · ${t.payers} log`} />
-            <Fact label="Wapsi / durusti" value={f.money(t.reduced)} />
+            <Fact label="Return / correction" value={f.money(t.reduced)} />
             <Fact label="Aakhir me baqi" value={f.money(t.closing)} strong />
-            <Fact label="Udhaar wale bill" value={`${t.creditBills}`} sub={`${f.pct(t.creditShare)} bikri udhaar par`} />
+            <Fact label="Udhaar wale bill" value={`${t.creditBills}`} sub={`${f.pct(t.creditShare)} sale udhaar par`} />
           </dl>
         </Panel>
       </div>
@@ -128,8 +128,8 @@ export function KhataView({ data: d, f, compare, period, shop }: { data: Khata; 
         </>}>
         <div className="space-y-3 px-4 pb-3 sm:px-5">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <SearchField value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Udhaar wale dhoondein" />
-            <Segmented label="Tarteeb" value={sort} onChange={setSort} items={[
+            <SearchField value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Udhaar wale search" />
+            <Segmented label="Sort" value={sort} onChange={setSort} items={[
               { value: 'risk', label: 'Khatra' }, { value: 'balance', label: 'Baqi' }, { value: 'oldest', label: 'Purana' }, { value: 'silent', label: 'Wasooli nahi' },
             ]} />
           </div>
@@ -147,7 +147,7 @@ export function KhataView({ data: d, f, compare, period, shop }: { data: Khata; 
               { label: 'Umar', render: (r) => <AgeBar ages={r.ages} total={r.balance} /> },
               { label: 'Sab se purana', align: 'right', render: (r) => (r.oldestDays != null ? `${r.oldestDays} din` : '—') },
               { label: 'Aakhri wasooli', align: 'right', render: (r) => (r.lastPaymentAt ? daysAgo(r.daysSincePayment) : <span className="text-rose-600">Kabhi nahi</span>) },
-              { label: 'Is muddat me diya', align: 'right', render: (r) => (r.paidInPeriod > 0 ? f.money(r.paidInPeriod) : '—') },
+              { label: 'Is period me diya', align: 'right', render: (r) => (r.paidInPeriod > 0 ? f.money(r.paidInPeriod) : '—') },
             ]} />
           {rows.length > 300 && <p className="text-center text-[0.75rem] text-slate-500">Pehle 300 dikh rahe hain — poori list CSV ya print me.</p>}
           <p className="text-[0.75rem] text-slate-500">

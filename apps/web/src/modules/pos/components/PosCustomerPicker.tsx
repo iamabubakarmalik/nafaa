@@ -121,7 +121,7 @@ export function PosCustomerPicker({
               <div className="relative">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
-                  placeholder="Naam ya phone likhein…" aria-label="Customer dhoondein"
+                  placeholder="Naam ya phone likhein…" aria-label="Customer search"
                   className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[0.875rem] text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
                 {q && (
                   <button type="button" onClick={() => { setQ(''); inputRef.current?.focus(); }} aria-label="Saaf"

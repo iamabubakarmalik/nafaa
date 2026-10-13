@@ -29,7 +29,7 @@ export function LoginsView({ data, loading, status, onStatus, onMore, loadingMor
         <KpiCard icon={ShieldAlert} color="#e11d48" label="Nakam login" value={t.failed} hint="Ghalat password waghera" onClick={() => onStatus('failed')} active={status === 'failed'} />
         <KpiCard icon={MonitorSmartphone} color="#7c3aed" label="Naye device" value={t.newDevices} hint="Pehli dafa is device se" onClick={() => onStatus('new')} active={status === 'new'} />
         <KpiCard icon={Clock} color="#d97706" label="Waqt ke baad" value={t.afterHours} hint={`Dukaan ka waqt ${t.hours}`} onClick={() => onStatus('after')} active={status === 'after'} />
-        <KpiCard icon={KeyRound} color="#0891b2" label="Alag device" value={t.devices} hint="Is muddat me" />
+        <KpiCard icon={KeyRound} color="#0891b2" label="Alag device" value={t.devices} hint="Is period me" />
       </KpiRow>
 
       <div className="grid gap-4 lg:grid-cols-5">

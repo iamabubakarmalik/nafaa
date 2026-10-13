@@ -17,7 +17,7 @@ export function resolveRange(v: DateRangeValue, startHour: number): { from: stri
   return presetRange(v.preset, startHour, v.custom);
 }
 
-export function DateRangeMenu({ value, onChange, startHour, label = 'Muddat', allowAll = true, defaultPreset = 'all' }: {
+export function DateRangeMenu({ value, onChange, startHour, label = 'Period', allowAll = true, defaultPreset = 'all' }: {
   value: DateRangeValue;
   onChange: (v: DateRangeValue) => void;
   startHour: number;
@@ -34,7 +34,7 @@ export function DateRangeMenu({ value, onChange, startHour, label = 'Muddat', al
     <FilterMenu icon={CalendarRange} label={label} value={value.preset} active={value.preset !== defaultPreset} width="w-72"
       options={[
         ...presets.map((p) => ({ value: p.id, label: p.label, hint: p.id === value.preset && range ? rangeLabel(range.from, range.to) : undefined })),
-        { value: 'custom' as const, label: 'Apni tareekh', hint: value.preset === 'custom' && range ? rangeLabel(range.from, range.to) : 'Neeche se chunein' },
+        { value: 'custom' as const, label: 'Apni date', hint: value.preset === 'custom' && range ? rangeLabel(range.from, range.to) : 'Neeche se chunein' },
       ]}
       onChange={(preset) => onChange({ ...value, preset })}
       footer={() => (

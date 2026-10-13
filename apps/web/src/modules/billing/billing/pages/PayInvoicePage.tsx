@@ -268,7 +268,7 @@ export default function PayInvoicePage() {
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600"><Clock className="h-7 w-7" /></span>
             <h2 className="mt-3 text-lg font-semibold text-slate-900">Payment check ho rahi hai</h2>
             <p className="max-w-md text-[0.875rem] text-slate-500">
-              Aap ne {formatPKR(pendingPayment.amount)} ki receipt {formatDate(pendingPayment.createdAt)} ko bheji thi. Nafaa team 24 ghante me dekhegi — manzoor hote hi plan chalu ho jayega.
+              Aap ne {formatPKR(pendingPayment.amount)} ki receipt {formatDate(pendingPayment.createdAt)} ko bheji thi. Nafaa team 24 ghante me dekhegi — approve hote hi plan chalu ho jayega.
             </p>
             {pendingPayment.transactionId && <p className="mt-1 font-mono text-[0.75rem] font-semibold text-amber-700">Ref: {pendingPayment.transactionId}</p>}
             <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -281,13 +281,13 @@ export default function PayInvoicePage() {
 
       {lastRejected && (
         <Alert tone="danger" title="Pichli payment wapas ki gayi thi" icon={<AlertTriangle className="h-4 w-4" />}>
-          Wajah: {lastRejected.rejectionReason || 'Tafseel check nahi ho saki.'} Sahi receipt dobara upload karein — bill abhi khula hai.
+          Wajah: {lastRejected.rejectionReason || 'Details check nahi ho saki.'} Sahi receipt dobara upload karein — bill abhi khula hai.
         </Alert>
       )}
 
       {canSubmit && !canPay && (
         <Alert tone="info" icon={<Lock className="h-4 w-4" />} title="Payment sirf malik bhej sakta hai">
-          Aap bill dekh aur print kar sakte hain. Payment bhejne ke liye billing ki ijazat chahiye.
+          Aap bill dekh aur print kar sakte hain. Payment bhejne ke liye billing ki permission chahiye.
         </Alert>
       )}
 
@@ -361,10 +361,10 @@ export default function PayInvoicePage() {
               </Card>
             </div>
 
-            <Card className="h-fit rounded-3xl" title="3. Payment ki tafseel" description="Nafaa team inhi se payment milati hai">
+            <Card className="h-fit rounded-3xl" title="3. Payment ki details" description="Nafaa team inhi se payment milati hai">
               <div className="space-y-3">
                 <Input ref={nameRef} label="Bhejne wale ka naam" required value={payerName} onChange={(e) => setPayerName(e.target.value)} placeholder="Ahmad Ali" />
-                <Input label="Phone" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} placeholder="03001234567" hint="Manzoori ki khabar isi par aayegi" inputMode="tel" />
+                <Input label="Phone" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} placeholder="03001234567" hint="Approval ki khabar isi par aayegi" inputMode="tel" />
                 <Input label="Transaction / TID number" value={transactionId} onChange={(e) => setTransactionId(e.target.value)} placeholder="TX-12345678" hint="Bank ya wallet ka reference — check karne me sab se zyada kaam aata hai" className="font-mono" />
                 {provider === 'MANUAL_BANK' && (
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -414,7 +414,7 @@ export default function PayInvoicePage() {
                 </Button>
                 <p className="flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-100">
                   <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-                  Nafaa team 24 ghante me manzoor ya wapas karegi aur notification aayegi. Receipt mehfooz rehti hai.
+                  Nafaa team 24 ghante me approve ya wapas karegi aur notification aayegi. Receipt mehfooz rehti hai.
                 </p>
               </div>
             </Card>
@@ -430,13 +430,13 @@ function PayGuide({ amount, card, onClose }: { amount: number; card: boolean; on
     <PageGuide title="Bill ki payment — aasaan tareeqa" onClose={onClose}
       steps={[
         ...(card ? [{ icon: CreditCard, color: '#2563eb', title: 'Card se foran', text: 'Visa / Mastercard se payment — plan usi waqt chalu ho jata hai, intezar nahi.' }] : []),
-        { icon: Wallet, color: '#16a34a', title: 'Tareeqa chunein', text: 'Bank transfer, JazzCash, EasyPaisa ya NayaPay. Account ki tafseel saamne aa jayegi.' },
+        { icon: Wallet, color: '#16a34a', title: 'Tareeqa chunein', text: 'Bank transfer, JazzCash, EasyPaisa ya NayaPay. Account ki details saamne aa jayegi.' },
         { icon: Copy, color: '#7c3aed', title: 'Paise bhejein', text: `Number ya IBAN copy karein aur apni app se poore ${formatPKR(amount)} bhejein.` },
-        { icon: Upload, color: '#d97706', title: 'Screenshot upload', text: 'Payment ka screenshot lein jis me TID, raqam aur tareekh nazar aaye, aur upload karein.' },
+        { icon: Upload, color: '#d97706', title: 'Screenshot upload', text: 'Payment ka screenshot lein jis me TID, amount aur date nazar aaye, aur upload karein.' },
         { icon: Send, color: '#0891b2', title: 'Bhej dein', text: 'Naam aur phone likh kar "Check ke liye bhejein" dabayein. 24 ghante me jawab.' },
       ]}
       tips={[
-        `Bilkul ${formatPKR(amount)} bhejein — kam ya zyada raqam wapas ho sakti hai.`,
+        `Bilkul ${formatPKR(amount)} bhejein — kam ya zyada amount wapas ho sakti hai.`,
         'TID zaroor likhein — payment milane me sab se zyada kaam aata hai.',
         '24 ghante se zyada ho jayein to Madad page se WhatsApp karein.',
       ]}

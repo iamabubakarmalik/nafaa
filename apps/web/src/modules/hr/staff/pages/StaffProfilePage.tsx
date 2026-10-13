@@ -36,7 +36,7 @@ function profileDoc(p: Profile): PrintDoc {
     meta: [['Role', roleOf(p.person.role).label], ['Haal', STATUS[p.person.status].label], ...(p.person.staffNumber ? [['Staff no.', p.person.staffNumber] as [string, string]] : [])],
     sections: [
       {
-        kind: 'rows', title: 'Tafseel',
+        kind: 'rows', title: 'Details',
         rows: [
           { label: 'Kaam', value: p.person.designation ?? '—' }, { label: 'Branch', value: p.person.shop?.name ?? 'Sab branches' },
           { label: 'Phone', value: p.person.phone ?? '—' }, { label: 'CNIC', value: s?.cnic ?? '—' },
@@ -51,10 +51,10 @@ function profileDoc(p: Profile): PrintDoc {
       }] : []),
       ...(p.salary?.payments.length ? [{
         kind: 'table' as const, title: 'Tankhwah',
-        columns: [{ label: 'Muddat' }, { label: 'Banti', align: 'right' as const }, { label: 'Di', align: 'right' as const }],
+        columns: [{ label: 'Period' }, { label: 'Banti', align: 'right' as const }, { label: 'Di', align: 'right' as const }],
         rows: p.salary.payments.map((x) => [`${day(x.periodStart)} – ${day(x.periodEnd)}`, formatPKR(x.netAmount), formatPKR(x.paidAmount)]),
       }] : []),
-      ...(p.sales ? [{ kind: 'rows' as const, title: 'Bikri', rows: [{ label: 'Aaj', value: formatPKR(p.sales.today.sales) }, { label: 'Is mahine', value: `${formatPKR(p.sales.month.sales)} (${p.sales.month.bills} bill)`, strong: true }] }] : []),
+      ...(p.sales ? [{ kind: 'rows' as const, title: 'Sale', rows: [{ label: 'Aaj', value: formatPKR(p.sales.today.sales) }, { label: 'Is mahine', value: `${formatPKR(p.sales.month.sales)} (${p.sales.month.bills} bill)`, strong: true }] }] : []),
     ],
   };
 }
@@ -126,7 +126,7 @@ export default function StaffProfilePage() {
           </div>
           {p.sales && (
             <div className="text-right">
-              <p className="text-[0.75rem] text-white/70">Aaj ki bikri</p>
+              <p className="text-[0.75rem] text-white/70">Aaj ki sale</p>
               <p className="text-3xl font-bold tabular-nums">{formatPKR(p.sales.today.sales)}</p>
               <p className="text-[0.75rem] text-white/70">{p.sales.today.bills} bill · mahina {formatPKR(p.sales.month.sales)}</p>
             </div>
@@ -157,7 +157,7 @@ export default function StaffProfilePage() {
       <Tabs value={tab} onChange={setTab} label="Profile"
         items={[
           { value: 'overview', label: 'Khulasa' },
-          { value: 'permissions', label: 'Ijazatein', count: p.login && !ownerTarget ? p.login.permissions.length : undefined },
+          { value: 'permissions', label: 'Permissions', count: p.login && !ownerTarget ? p.login.permissions.length : undefined },
           { value: 'branches', label: 'Branch' },
           { value: 'attendance', label: 'Haazri' },
           { value: 'pay', label: 'Tankhwah' },
@@ -180,13 +180,13 @@ export default function StaffProfilePage() {
       {guide.isOpen && (
         <PageGuide title={`${person.fullName} — profile`} onClose={guide.close}
           steps={[
-            { icon: ShieldCheck, color: '#7c3aed', title: 'Ijazatein', text: 'Har nishan ke saath likha hai ke us se kya khulta hai. "Zyada" aur "Hataya" batate hain ke role se kya farq hai. Sirf malik badal sakta hai.' },
+            { icon: ShieldCheck, color: '#7c3aed', title: 'Permissions', text: 'Har nishan ke saath likha hai ke us se kya khulta hai. "Zyada" aur "Hataya" batate hain ke role se kya farq hai. Sirf malik badal sakta hai.' },
             { icon: LogIn, color: '#0284c7', title: 'Login aur devices', text: 'Kab aur kahan se login hua, ghalat password ki koshishein, aur khule devices. Phone gum ho jaye to "Sab se logout" dabayein.' },
             { icon: KeyRound, color: '#d97706', title: 'Naya password', text: 'Banda password bhool jaye to "Naya password" — parchi chhapein ya WhatsApp par bhejein. Purana password foran band.' },
-            { icon: Wallet, color: '#16a34a', title: 'Haazri aur tankhwah', text: 'Is mahine ki haazri, pichli tankhwahein aur baqi raqam. Tafseel Haazri aur Tankhwah ke safhon par.' },
-            { icon: UserMinus, color: '#e11d48', title: 'Chhor gaya', text: 'Banda kaam chhor de to "Chhutti / chhor gaya". Kuch mitta nahi — bikri aur tankhwah ka hisaab waisa hi rehta hai. Login bhi saath band kar sakte hain.' },
+            { icon: Wallet, color: '#16a34a', title: 'Haazri aur tankhwah', text: 'Is mahine ki haazri, pichli tankhwahein aur baqi amount. Details Haazri aur Tankhwah ke safhon par.' },
+            { icon: UserMinus, color: '#e11d48', title: 'Chhor gaya', text: 'Banda kaam chhor de to "Chhutti / chhor gaya". Kuch mitta nahi — sale aur tankhwah ka hisaab waisa hi rehta hai. Login bhi saath band kar sakte hain.' },
           ]}
-          tips={['Jis ki bikri ho chuki ho us ka record kabhi mitaya nahi jata — sirf band hota hai.', 'Role badalne se ijazat khud nahi badalti; Ijazatein tab me role wali ek click se lagayein.']}
+          tips={['Jis ki sale ho chuki ho us ka record kabhi mitaya nahi jata — sirf band hota hai.', 'Role badalne se ijazat khud nahi badalti; Ijazatein tab me role wali ek click se lagayein.']}
           shortcuts={[['E', 'badlein'], ['1-7', 'tabs'], ['Esc', 'wapas'], ['G', 'guide']]}
         />
       )}

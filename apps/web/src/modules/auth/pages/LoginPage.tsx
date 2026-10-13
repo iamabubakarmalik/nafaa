@@ -156,7 +156,7 @@ export default function LoginPage() {
       }
       setSession({ accessToken: rec.accessToken, refreshToken: rec.refreshToken, user: rec.user, tenant: rec.tenant });
       toast.success(`Offline login — khush aamdeed, ${rec.user.fullName.split(' ')[0]}!`, {
-        description: 'Bikri is device par save hogi, net aate hi sync ho jayegi',
+        description: 'Sale is device par save hogi, net aate hi sync ho jayegi',
         duration: 5000,
       });
       navigate('/dashboard', { replace: true });
@@ -294,7 +294,7 @@ export default function LoginPage() {
           </>
         )}
       >
-        <p className="text-sm text-slate-600">Aap ka data aur bikri mehfooz rehti hai — sirf is device ka saved login hatega.</p>
+        <p className="text-sm text-slate-600">Aap ka data aur sale mehfooz rehti hai — sirf is device ka saved login hatega.</p>
       </Modal>
     </AuthLayout>
   );

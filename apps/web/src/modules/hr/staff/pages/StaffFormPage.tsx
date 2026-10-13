@@ -112,7 +112,7 @@ export default function StaffFormPage() {
     if (!hr.fullName.trim()) out.push('Naam likhein');
     if (!hr.phone.trim()) out.push('Phone number likhein');
     if (!hr.designation.trim()) out.push('Kaam (designation) likhein');
-    if (!hr.joinDate) out.push('Joining ki tareekh chunein');
+    if (!hr.joinDate) out.push('Joining ki date chunein');
     if (hr.email.trim() && !/^\S+@\S+\.\S+$/.test(hr.email.trim())) out.push('Email theek nahi');
     if (hr.cnic.trim() && hr.cnic.replace(/\D/g, '').length !== 13) out.push('CNIC 13 hindsay ka hota hai');
     if (!editing && giveLogin) { const lp = loginProblem(draft); if (lp) out.push(lp); }
@@ -155,7 +155,7 @@ export default function StaffFormPage() {
       AFFECTED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       if (r.kind === 'invite') {
         toast.success(r.res.linked === 'matched' ? 'Login ban gaya aur purane HR record se jur gaya' : 'Login aur HR record ban gaye');
-        if (!r.detailsSaved) toast.error('Kuch tafseel (CNIC, bank waghera) save nahi hui — profile se dobara bharein');
+        if (!r.detailsSaved) toast.error('Kuch details (CNIC, bank waghera) save nahi hui — profile se dobara bharein');
         if (draft.sendEmail && !r.res.emailSent) toast.error('Email nahi gaya — parchi ya WhatsApp se dein');
         setSlip({
           slip: { name: r.res.fullName, email: r.res.email, password: draft.password, role: ROLES[draft.role].label, branch: shops.find((s) => s.id === draft.shopId)?.name ?? null },
@@ -199,11 +199,11 @@ export default function StaffFormPage() {
         <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
       </div>
 
-      {hrLocked && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">HR record badalne ke liye "Staff sambhalna" ki ijazat chahiye. Aap sirf dekh sakte hain.</p>}
+      {hrLocked && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">HR record badalne ke liye "Staff sambhalna" ki permission chahiye. Aap sirf dekh sakte hain.</p>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Bunyadi tafseel</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>Bunyadi details</T>}>
             <fieldset disabled={hrLocked} className="space-y-4">
               <div className="flex flex-wrap items-start gap-4">
                 <AvatarUpload value={hr.avatarUrl || null} onChange={(u) => set('avatarUrl', u ?? '')} purpose="avatar" size="md" fallbackText={hr.fullName || 'N'} />
@@ -219,7 +219,7 @@ export default function StaffFormPage() {
                 <Input label="CNIC" inputMode="numeric" value={hr.cnic} onChange={(e) => set('cnic', e.target.value)} placeholder="35202-1234567-1" hint="13 hindsay. Ek CNIC do record par nahi ho sakta." />
                 <Select label="Jins" value={hr.gender} onChange={(e) => set('gender', e.target.value as Hr['gender'])}
                   options={[{ value: '', label: '—' }, { value: 'MALE', label: 'Mard' }, { value: 'FEMALE', label: 'Aurat' }, { value: 'OTHER', label: 'Doosra' }]} hint="Marzi hai" />
-                <Input label="Paidaish ki tareekh" type="date" value={hr.dateOfBirth} max={today()} onChange={(e) => set('dateOfBirth', e.target.value)} hint="Marzi hai" />
+                <Input label="Paidaish ki date" type="date" value={hr.dateOfBirth} max={today()} onChange={(e) => set('dateOfBirth', e.target.value)} hint="Marzi hai" />
                 <Input label="Pata" value={hr.address} onChange={(e) => set('address', e.target.value)} placeholder="Gali, mohalla" hint="Marzi hai" />
                 <Input label="Shehar" value={hr.city} onChange={(e) => set('city', e.target.value)} placeholder="Lahore" hint="Marzi hai" />
               </div>
@@ -246,12 +246,12 @@ export default function StaffFormPage() {
             </fieldset>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Tankhwah</T>} description="Tankhwah ka hisaab aur adaigi Tankhwah wale safhe par hoti hai">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>Tankhwah</T>} description="Tankhwah ka hisaab aur payment Tankhwah wale safhe par hoti hai">
             <fieldset disabled={hrLocked} className="grid gap-3 sm:grid-cols-2">
               <Select label="Tankhwah ki qisam" value={hr.salaryType} onChange={(e) => set('salaryType', e.target.value as SalaryType)} options={SALARY_TYPES.map((s) => ({ value: s.id, label: s.label }))}
                 hint={hr.salaryType === 'COMMISSION' ? 'Sirf commission — rules Commission ke safhe par' : hr.salaryType === 'HYBRID' ? 'Pakki tankhwah ke upar commission' : 'Haazri ke hisaab se banti hai'} />
               {hr.salaryType !== 'COMMISSION' && (
-                <Input label={`Raqam (Rs)${st.unit ? ` — ${st.unit}` : ''}`} inputMode="decimal" value={hr.baseSalary} onChange={(e) => set('baseSalary', e.target.value.replace(/[^\d.]/g, ''))} placeholder="0"
+                <Input label={`Amount (Rs)${st.unit ? ` — ${st.unit}` : ''}`} inputMode="decimal" value={hr.baseSalary} onChange={(e) => set('baseSalary', e.target.value.replace(/[^\d.]/g, ''))} placeholder="0"
                   hint={salary > 0 ? formatPKR(salary) : 'Khali chhorein to 0'} className="text-right font-semibold tabular-nums" />
               )}
               <Input label="Roz ke ghante" inputMode="decimal" value={hr.workingHoursPerDay} onChange={(e) => set('workingHoursPerDay', e.target.value.replace(/[^\d.]/g, ''))} hint="Is se zyada kaam overtime ginta hai" />
@@ -269,7 +269,7 @@ export default function StaffFormPage() {
               ) : (
                 <div className="space-y-4">
                   <Switch checked={giveLogin} onChange={(e) => setGiveLogin(e.target.checked)} label="Is bande ko login dein"
-                    description="POS chalana, bikri karna ya reports dekhna hai to on karein. Helper, driver ko login ki zaroorat nahi." />
+                    description="POS chalana, sale karna ya reports dekhna hai to on karein. Helper, driver ko login ki zaroorat nahi." />
                   {giveLogin && <LoginFields value={draft} onChange={setDraft} shops={shops} />}
                 </div>
               )}
@@ -278,24 +278,24 @@ export default function StaffFormPage() {
 
           {editing && login && (
             <Card className="rounded-2xl" title={<T icon={ShieldCheck}>Login</T>}
-              description={editsLogin ? 'Ijazatein profile ke "Ijazatein" tab me badlein' : login.role === 'OWNER' ? 'Malik ka login Profile se badalta hai' : 'Login sirf malik badal sakta hai'}>
+              description={editsLogin ? 'Permissions profile ke "Permissions" tab me badlein' : login.role === 'OWNER' ? 'Malik ka login Profile se badalta hai' : 'Login sirf malik badal sakta hai'}>
               <fieldset disabled={!editsLogin} className="space-y-3">
                 <Input label="Login email" type="email" value={loginEdit.email} onChange={(e) => setLoginEdit((l) => ({ ...l, email: e.target.value }))} hint="Isi se login karta hai" />
                 {login.role !== 'OWNER' && (
                   <>
                     <Select label="Role" value={loginEdit.role} onChange={(e) => setLoginEdit((l) => ({ ...l, role: e.target.value as AssignableRole }))}
                       options={ASSIGNABLE.map((r) => ({ value: r, label: `${ROLES[r].label} — ${ROLES[r].hint}` }))}
-                      hint={roleChanged ? 'Ijazatein wohi rahengi. Naye role ki ijazat chahiye to profile ke Ijazatein tab me "role wali" dabayein.' : 'Role badalne se banda sab devices se logout hoga'} />
+                      hint={roleChanged ? 'Permissions wohi rahengi. Naye role ki permission chahiye to profile ke Permissions tab me "role wali" dabayein.' : 'Role badalne se banda sab devices se logout hoga'} />
                     <Select label="Login ki branch" value={loginEdit.shopId} onChange={(e) => setLoginEdit((l) => ({ ...l, shopId: e.target.value }))}
                       options={[...(loginEdit.role === 'STAFF' ? [{ value: '', label: 'Sab branches' }] : [{ value: '', label: '— Chunein —' }]), ...shops.map((s) => ({ value: s.id, label: s.name }))]}
-                      hint="Sirf isi branch ka data dekhega aur isi me bikri karega" />
+                      hint="Sirf isi branch ka data dekhega aur isi me sale karega" />
                   </>
                 )}
               </fieldset>
-              {roleChanged && <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Role {ROLES[login.role as AssignableRole]?.label} se {ROLES[loginEdit.role].label} ho raha hai. Ijazatein khud nahi badlengi.</p>}
+              {roleChanged && <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Role {ROLES[login.role as AssignableRole]?.label} se {ROLES[loginEdit.role].label} ho raha hai. Permissions khud nahi badlengi.</p>}
             </Card>
           )}
-          {editing && !login && prof?.person.hasLogin && <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">Is bande ka login hai. Login ki tafseel dekhne ke liye "Team dekhna" ki ijazat chahiye.</p>}
+          {editing && !login && prof?.person.hasLogin && <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">Is bande ka login hai. Login ki details dekhne ke liye "Team dekhna" ki permission chahiye.</p>}
           {editing && !prof?.person.hasLogin && isOwner && staff && (
             <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">Login nahi hai. <Link to={`/staff/${staff.id}`} className="font-semibold text-brand-700 hover:underline">Profile se "Login dein"</Link></p>
           )}

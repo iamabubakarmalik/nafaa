@@ -20,7 +20,7 @@ export function damageDoc(list: DamageList, period: string, filter: string): Pri
     sections: [
       {
         kind: 'table',
-        columns: [{ label: 'Waqt' }, { label: 'No.', wideOnly: true }, { label: 'Cheez' }, { label: 'Miqdar', align: 'right' }, { label: 'Raqam', align: 'right' }, { label: 'Wajah', wideOnly: true }, { label: 'Haal' }, { label: 'Kis ne', wideOnly: true }],
+        columns: [{ label: 'Waqt' }, { label: 'No.', wideOnly: true }, { label: 'Cheez' }, { label: 'Quantity', align: 'right' }, { label: 'Amount', align: 'right' }, { label: 'Wajah', wideOnly: true }, { label: 'Haal' }, { label: 'Kis ne', wideOnly: true }],
         rows: list.items.map((d) => [
           day(d.createdAt), d.damageNumber, itemLabel(d), qtyLabel(d), formatPKR(d.netLoss),
           reasonOf(d.reasonCode, d.reason).label, STATUS[d.status].label, d.reportedBy?.fullName ?? '',
@@ -30,8 +30,8 @@ export function damageDoc(list: DamageList, period: string, filter: string): Pri
         kind: 'rows',
         title: 'Khulasa',
         rows: [
-          { label: 'Manzoori baqi', value: `${t.reported} · ${formatPKR(t.pendingValue)}` },
-          { label: 'Manzoor', value: String(t.approved) },
+          { label: 'Approval baqi', value: `${t.reported} · ${formatPKR(t.pendingValue)}` },
+          { label: 'Approve', value: String(t.approved) },
           { label: 'Rad', value: String(t.rejected) },
           { label: 'Asal nuqsan', value: `−${formatPKR(t.lost)}`, strong: true },
         ],

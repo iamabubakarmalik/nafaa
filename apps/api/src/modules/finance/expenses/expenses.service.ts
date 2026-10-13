@@ -92,7 +92,7 @@ export class ExpensesService {
     const { tz, dayStartHour } = await this.tz.clock(tenantId);
     const today = businessDayKey(new Date(), tz, dayStartHour);
     const key = DAY_KEY.test(raw) ? raw : businessDayKey(new Date(raw), tz, dayStartHour);
-    if (key > today) throw new BadRequestException('Aane wale din ka kharcha abhi nahi likh sakte');
+    if (key > today) throw new BadRequestException('Aane wale din ka expense abhi nahi likh sakte');
     if (!DAY_KEY.test(raw)) return new Date(raw);
     if (raw === today) return new Date();
     const [y, m, d] = raw.split('-').map(Number);
@@ -130,7 +130,7 @@ export class ExpensesService {
   /** The expense the user may change, or 404 / 403. */
   private async editable(user: AuthenticatedUser, scope: ShopScope, id: string) {
     const expense = await this.prisma.expense.findFirst({ where: { id, tenantId: user.tenantId, ...scope.where } });
-    if (!expense) throw new NotFoundException('Kharcha nahi mila');
+    if (!expense) throw new NotFoundException('Expense nahi mila');
     if (expense.shopId) assertShopAccess(user, expense.shopId, 'Kharcha badalna');
     return expense;
   }

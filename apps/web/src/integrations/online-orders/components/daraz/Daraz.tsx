@@ -94,7 +94,7 @@ export function DarazChannelCard({ id, data, onChange }: { id: string; data: Web
         </div>
       )}
       {expSoon && d.connected && !d.error && (
-        <div className="mb-3"><Banner tone="warning" title="Daraz ki ijazat jald khatam">Is hafte "Dobara jorein" dabayein — warna orders aana band ho jayenge.</Banner></div>
+        <div className="mb-3"><Banner tone="warning" title="Daraz ki permission jald khatam">Is hafte "Dobara jorein" dabayein — warna orders aana band ho jayenge.</Banner></div>
       )}
       <div className="grid gap-2 text-[0.8125rem] text-slate-600 dark:text-ink-300 sm:grid-cols-2">
         <div>Orders check: <b>{d.ordersSyncedAt ? timeAgo(d.ordersSyncedAt) : 'abhi nahi'}</b> <span className="text-slate-400">(har 5 minute)</span></div>

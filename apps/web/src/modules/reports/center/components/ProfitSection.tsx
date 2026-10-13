@@ -11,14 +11,14 @@ import { DataTable, Delta, Panel, keyLabel, type Formatter } from './parts';
 
 type Line = { label: string; key: keyof ProfitSummary; sign?: '-' | '='; cost?: boolean; up?: 'good' | 'bad' };
 const LINES: Line[] = [
-  { label: 'Kul bikri', key: 'gross' },
+  { label: 'Total sale', key: 'gross' },
   { label: 'Maal wapas', key: 'refunds', sign: '-', up: 'bad' },
-  { label: 'Asal bikri', key: 'sales', sign: '=' },
-  { label: 'Maal ki lagat', key: 'cost', sign: '-', cost: true, up: 'bad' },
-  { label: 'Kachcha munafa', key: 'grossProfit', sign: '=', cost: true },
-  { label: 'Kharche', key: 'expenses', sign: '-', up: 'bad' },
+  { label: 'Asal sale', key: 'sales', sign: '=' },
+  { label: 'Maal ki cost', key: 'cost', sign: '-', cost: true, up: 'bad' },
+  { label: 'Gross profit', key: 'grossProfit', sign: '=', cost: true },
+  { label: 'Expenses', key: 'expenses', sign: '-', up: 'bad' },
   { label: 'Kharab / gum maal', key: 'damage', sign: '-', up: 'bad' },
-  { label: 'Asal munafa', key: 'netProfit', sign: '=', cost: true },
+  { label: 'Net profit', key: 'netProfit', sign: '=', cost: true },
 ];
 
 export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: Formatter; compare: boolean }) {
@@ -30,12 +30,12 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
     <div className="space-y-4">
       {!showCost && (
         <p className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-[0.8125rem] text-slate-700">
-          <Lock className="h-4 w-4" /> Lagat aur munafa band hai — sirf bikri aur kharche dikh rahe hain.
+          <Lock className="h-4 w-4" /> Cost aur profit band hai — sirf sale aur expenses dikh rahe hain.
         </p>
       )}
       <div className="grid gap-4 lg:grid-cols-5">
-        <Panel icon={Scale} title="Nafa nuqsan" hint="Wapsi ke baad, bikri ke waqt ki lagat se" className="lg:col-span-2"
-          actions={<Link to="/profit-report" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Cheez war munafa →</Link>}>
+        <Panel icon={Scale} title="Profit-loss" hint="Return ke baad, sale ke waqt ki cost se" className="lg:col-span-2"
+          actions={<Link to="/profit-report" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Cheez war profit →</Link>}>
           <dl className="divide-y divide-slate-100 text-[0.875rem]">
             {lines.map((l) => {
               const v = Number(t[l.key] ?? 0);
@@ -75,14 +75,14 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
           </div>
         </Panel>
       </div>
-      <Panel icon={BarChart3} title="Tafseel">
-        <DataTable rows={[...d.rows].reverse().filter((r) => r.sales || r.expenses)} rowKey={(r) => r.key} empty="Is muddat me kuch nahi" columns={[
+      <Panel icon={BarChart3} title="Details">
+        <DataTable rows={[...d.rows].reverse().filter((r) => r.sales || r.expenses)} rowKey={(r) => r.key} empty="Is period me kuch nahi" columns={[
           { label: d.grouping === 'month' ? 'Mahina' : 'Din', render: (r) => keyLabel(r.key) },
-          { label: 'Bikri', align: 'right', render: (r) => f.money(r.sales) },
-          { label: 'Lagat', align: 'right', hide: !showCost, render: (r) => f.cost(r.cost) },
-          { label: 'Kachcha munafa', align: 'right', hide: !showCost, render: (r) => f.cost(r.grossProfit) },
-          { label: 'Kharche', align: 'right', render: (r) => f.money(r.expenses) },
-          { label: 'Asal munafa', align: 'right', hide: !showCost, render: (r) => <span className={cn('font-semibold', (r.netProfit ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-700')}>{f.cost(r.netProfit)}</span> },
+          { label: 'Sale', align: 'right', render: (r) => f.money(r.sales) },
+          { label: 'Cost', align: 'right', hide: !showCost, render: (r) => f.cost(r.cost) },
+          { label: 'Gross profit', align: 'right', hide: !showCost, render: (r) => f.cost(r.grossProfit) },
+          { label: 'Expenses', align: 'right', render: (r) => f.money(r.expenses) },
+          { label: 'Net profit', align: 'right', hide: !showCost, render: (r) => <span className={cn('font-semibold', (r.netProfit ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-700')}>{f.cost(r.netProfit)}</span> },
         ]} />
       </Panel>
     </div>

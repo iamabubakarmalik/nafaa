@@ -48,16 +48,16 @@ type Tab = 'docs' | 'reports';
 const SAMPLE: PrintDoc = {
   title: 'Test print',
   subtitle: 'Ye dekhne ke liye ke print kaisa nikalta hai',
-  meta: [['Tareekh', new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date())], ['Bill', '3']],
+  meta: [['Date', new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date())], ['Bill', '3']],
   sections: [
     { kind: 'rows', title: 'Galla', rows: [
       { label: 'Opening balance', value: 'Rs 5,000' },
-      { label: '+ Cash bikri', value: 'Rs 9,760' },
-      { label: '- Kharcha', value: 'Rs 2,300' },
+      { label: '+ Cash sale', value: 'Rs 9,760' },
+      { label: '- Expense', value: 'Rs 2,300' },
       { label: 'Closing balance', value: 'Rs 12,460', strong: true },
     ] },
     { kind: 'table', title: 'Kya bika',
-      columns: [{ label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Raqam', align: 'right' }],
+      columns: [{ label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Amount', align: 'right' }],
       rows: [['Cookies', '24', 'Rs 7,200'], ['  Kinder cookie', '11', 'Rs 3,300'], ['  Pistachio cookie', '13', 'Rs 3,900'], ['Tins', '4', 'Rs 5,060']],
       groupRows: [0, 3], footer: ['Kul', '28', 'Rs 12,260'] },
   ],
@@ -167,7 +167,7 @@ export default function PrintSettingsPage() {
       {tab === 'docs' ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="min-w-0 space-y-4">
-            <Card className="rounded-2xl" title={<Title icon={Receipt}>Bikri ka bill — is computer par</Title>}
+            <Card className="rounded-2xl" title={<Title icon={Receipt}>Sale ka bill — is computer par</Title>}
               description="Har counter ka printer alag ho sakta hai, is liye ye is computer par yaad rehta hai.">
               <div className="divide-y divide-slate-100">
                 <Row title="Kaghaz" help={`Dukaan ka default: ${PAPER_LABEL[setup.design.paper]}. POS par A4 nahi — wahan 80 ya 58 chalta hai.`}>
@@ -225,7 +225,7 @@ export default function PrintSettingsPage() {
             { icon: Receipt, color: '#16a34a', title: 'Bill ka kaghaz', text: 'Is computer ka printer 80mm, 58mm ya A4 — ek dafa chunein. POS aur bill dobara print dono isi par.' },
             { icon: Zap, color: '#d97706', title: 'Khud print', text: 'POS par sale hote hi bill khud chhape — ya band karke har dafa Print dabayein.' },
             { icon: Copy, color: '#7c3aed', title: 'Copies', text: 'Dukaan ka default copies (1–3) malik ya settings wala badal sakta hai. Har parchi ki apni copies bhi.' },
-            { icon: ScrollText, color: '#0891b2', title: 'Baqi parchiyan', text: 'Wapsi, khareed, challan, voucher, salary slip — har ek ka kaghaz yahan, Test se dekh lein.' },
+            { icon: ScrollText, color: '#0891b2', title: 'Baqi parchiyan', text: 'Return, khareed, challan, voucher, salary slip — har ek ka kaghaz yahan, Test se dekh lein.' },
             { icon: FileText, color: '#2563eb', title: 'Reports', text: 'Reports aur lists ka print A4, PDF ya thermal; rang aur header footer "Reports ka print" tab me.' },
             { icon: Usb, color: '#e11d48', title: 'Printer jorna', text: 'Bina print window ke seedha chhapne ke liye Hardware me printer Direct par jorein.' },
           ]}
@@ -263,7 +263,7 @@ function ShopBillCard({ design }: { design: ReceiptDesign }) {
   return (
     <Card className="rounded-2xl" title={<Title icon={Store}>Poori dukaan ka bill</Title>}
       description="Har computer aur har staff par lagta hai — jab tak koi computer apna kaghaz na chune.">
-      {!canEdit && <Alert tone="info" className="mb-3">Ye badalne ke liye "Settings badalna" ki ijazat chahiye. Aap sirf dekh sakte hain.</Alert>}
+      {!canEdit && <Alert tone="info" className="mb-3">Ye badalne ke liye "Settings badalna" ki permission chahiye. Aap sirf dekh sakte hain.</Alert>}
       <fieldset disabled={!canEdit || !!saving} className="divide-y divide-slate-100">
         <Row title="Default kaghaz" help="Naye computer par bill isi kaghaz par">
           <Segmented label="Dukaan ka kaghaz" value={design.paper} onChange={(v) => void save({ paper: v })} items={PAPER_ITEMS} />
@@ -271,7 +271,7 @@ function ShopBillCard({ design }: { design: ReceiptDesign }) {
         <Row title="Copies" help="Har bill kitni dafa chhape — maslan ek customer, ek dukaan">
           <Segmented label="Copies" value={String(design.copies)} onChange={(v) => void save({ copies: Number(v) })} items={COPY_ITEMS} />
         </Row>
-        <Row title="Bill kholte hi print" help="Bikri list se bill kholein to khud print window aaye">
+        <Row title="Bill kholte hi print" help="Sale list se bill kholein to khud print window aaye">
           <Switch size="sm" aria-label="Bill kholte hi print" checked={design.autoPrint} onChange={(e) => void save({ autoPrint: e.target.checked })} />
         </Row>
       </fieldset>

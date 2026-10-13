@@ -107,7 +107,7 @@ function slipDoc(r: RecordDetail, bank: boolean): ReceiptDoc {
     cashierName: r.paidBy ?? undefined,
     branchName: s.shop?.name,
     stamp: r.status === 'CANCELLED' ? 'CANCEL' : r.balanceAmount > 0.5 ? 'BAQI' : undefined,
-    boxes: paidOut.length ? [{ title: 'Adaigi', lines: r.money.map((m) => `${dayTime(m.at)} · ${m.from} · ${m.back ? 'wapas ' : ''}${formatPKR(m.amount)}`) }] : undefined,
+    boxes: paidOut.length ? [{ title: 'Payment', lines: r.money.map((m) => `${dayTime(m.at)} · ${m.from} · ${m.back ? 'wapas ' : ''}${formatPKR(m.amount)}`) }] : undefined,
   };
 
   if (r.kind === 'advance') {
@@ -125,7 +125,7 @@ function slipDoc(r: RecordDetail, bank: boolean): ReceiptDoc {
       total,
       paid: total,
       paymentLabel: `Diye (${method})`,
-      footerNote: 'Ye raqam upar likhe mahinon ki tankhwah se kategi.',
+      footerNote: 'Ye amount upar likhe mahinon ki tankhwah se kategi.',
     };
   }
 
@@ -154,7 +154,7 @@ function slipDoc(r: RecordDetail, bank: boolean): ReceiptDoc {
     infoRows: [
       { label: 'Mahina', value: r.monthLabel, bold: true },
       { label: 'Ohda', value: s.designation },
-      { label: 'Qism', value: type.label },
+      { label: 'Type', value: type.label },
       ...(s.salaryType === 'MONTHLY' || s.salaryType === 'HYBRID' ? [{ label: 'Kaam ke din', value: qty(r.daysWorked, 'din') }] : []),
       ...bankRow,
       ...(r.note ? [{ label: 'Note', value: r.note }] : []),

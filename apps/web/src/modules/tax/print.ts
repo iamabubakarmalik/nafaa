@@ -17,7 +17,7 @@ export function monthlyReturnDoc(r: TaxReport, money: Money): PrintDoc {
       rows: [
         { label: `Sale, tax ke baghair (${t.bills} bill)`, value: money(t.grossValue) },
         { label: 'Output tax (bills par)', value: money(t.grossTax) },
-        { label: `- Credit notes / wapsi (${t.returns})`, value: money(t.returnValue), sub: true },
+        { label: `- Credit notes / return (${t.returns})`, value: money(t.returnValue), sub: true },
         { label: '- Credit notes ka tax', value: money(t.returnTax), sub: true },
         { label: 'Net taxable sale', value: money(t.saleValue), strong: true },
         { label: 'Net tax (jama karna hai)', value: money(t.tax), strong: true },
@@ -49,7 +49,7 @@ export function monthlyReturnDoc(r: TaxReport, money: Money): PrintDoc {
   if (busy.length) {
     sections.push({
       kind: 'table', title: 'Roz ka hisaab',
-      columns: [{ label: 'Din' }, { label: 'Bill', align: 'right' }, { label: 'Wapsi', align: 'right', wideOnly: true }, { label: 'Sale', align: 'right', wideOnly: true }, { label: 'Tax', align: 'right' }, { label: 'Kul', align: 'right' }],
+      columns: [{ label: 'Din' }, { label: 'Bill', align: 'right' }, { label: 'Return', align: 'right', wideOnly: true }, { label: 'Sale', align: 'right', wideOnly: true }, { label: 'Tax', align: 'right' }, { label: 'Kul', align: 'right' }],
       rows: busy.map((d) => [dayShort(d.day), String(d.bills), String(d.returns), money(d.saleValue), money(d.tax), money(d.total)]),
       footer: ['Kul', String(r.totals.bills), String(r.totals.returns), money(r.totals.saleValue), money(r.totals.tax), money(r.totals.total)],
     });
@@ -63,7 +63,7 @@ export function monthlyReturnDoc(r: TaxReport, money: Money): PrintDoc {
     meta: [
       ['Authority', r.authority ? authLabel(r.authority) : 'Sab authorities'],
       ['Branch', r.shopName ?? 'Sab branches'],
-      ['Muddat', `${dayShort(r.period.from)} – ${dayShort(r.period.to)}`],
+      ['Period', `${dayShort(r.period.from)} – ${dayShort(r.period.to)}`],
     ],
     sections,
     footer: 'Sirf woh bill shamil hain jo authority ne qabool kiye. Qeemat tax samet maani gayi hai.',
@@ -73,7 +73,7 @@ export function monthlyReturnDoc(r: TaxReport, money: Money): PrintDoc {
 export function invoicesDoc(rows: TaxInvoiceRow[], money: Money, period: string, filters: string, branchOf: (id: string | null) => string): PrintDoc {
   return {
     title: 'Tax invoices',
-    meta: [['Muddat', period], ...(filters ? [['Filter', filters] as [string, string]] : [])],
+    meta: [['Period', period], ...(filters ? [['Filter', filters] as [string, string]] : [])],
     sections: [{
       kind: 'table',
       columns: [
@@ -81,7 +81,7 @@ export function invoicesDoc(rows: TaxInvoiceRow[], money: Money, period: string,
         { label: 'Kul', align: 'right' }, { label: 'Tax', align: 'right' }, { label: 'Haal / number' },
       ],
       rows: rows.map((r) => [
-        dayTime(r.createdAt), `${r.kind === 'RETURN' ? 'Wapsi ' : ''}${r.usin}`, r.authority, branchOf(r.shopId),
+        dayTime(r.createdAt), `${r.kind === 'RETURN' ? 'Return ' : ''}${r.usin}`, r.authority, branchOf(r.shopId),
         money(r.kind === 'RETURN' ? -r.totalAmount : r.totalAmount), money(r.taxAmount),
         r.status === 'SUCCESS' ? r.fiscalNumber ?? '' : STATUS[r.status].label,
       ]),

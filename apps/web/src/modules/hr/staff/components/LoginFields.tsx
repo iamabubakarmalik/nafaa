@@ -71,7 +71,7 @@ export function LoginFields({ value, onChange, shops }: { value: LoginDraft; onC
             );
           })}
         </div>
-        <p className="mt-1.5 text-xs text-slate-500">Role chunne se neeche ki ijazat us role ki ho jati hain. Phir jo chahein badal lein.</p>
+        <p className="mt-1.5 text-xs text-slate-500">Role chunne se neeche ki permission us role ki ho jati hain. Phir jo chahein badal lein.</p>
       </div>
 
       {shops.length > 0 && (
@@ -89,13 +89,13 @@ export function LoginFields({ value, onChange, shops }: { value: LoginDraft; onC
               </button>
             ))}
           </div>
-          <p className="mt-1.5 text-xs text-slate-500">{value.shopId ? 'Sirf isi branch ka data dekhega aur isi me bikri karega.' : needsShop ? `${ROLES[value.role].label} ko ek branch deni zaroori hai.` : 'Branch na di to har branch ka data dekh sakega (jitni ijazat hai).'}</p>
+          <p className="mt-1.5 text-xs text-slate-500">{value.shopId ? 'Sirf isi branch ka data dekhega aur isi me sale karega.' : needsShop ? `${ROLES[value.role].label} ko ek branch deni zaroori hai.` : 'Branch na di to har branch ka data dekh sakega (jitni permission hai).'}</p>
         </div>
       )}
 
       <div className="rounded-xl ring-1 ring-slate-200">
         <button type="button" onClick={() => setPerms((p) => !p)} aria-expanded={perms} className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left">
-          <span><span className="block text-sm font-semibold text-slate-900">Ijazatein ({value.permissions.length})</span><span className="block text-[0.6875rem] text-slate-500">Kya kya kar sakega — kholein aur dekhein</span></span>
+          <span><span className="block text-sm font-semibold text-slate-900">Permissions ({value.permissions.length})</span><span className="block text-[0.6875rem] text-slate-500">Kya kya kar sakega — kholein aur dekhein</span></span>
           <ChevronDown className={cn('h-4 w-4 text-slate-400 transition', perms && 'rotate-180')} />
         </button>
         {perms && <div className="border-t border-slate-100 p-3"><PermissionPicker value={value.permissions} onChange={(p) => set('permissions', p)} role={value.role} /></div>}

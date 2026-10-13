@@ -32,21 +32,21 @@ export function OverviewView({ d, m, pending, onTab, onStaff }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        <Panel icon={Receipt} title="Bikri ka hisaab" hint="Cheezon ki qeemat se net bikri tak, qadam ba qadam">
+        <Panel icon={Receipt} title="Sale ka hisaab" hint="Cheezon ki qeemat se net sale tak, qadam ba qadam">
           <Line label="Cheezon ki qeemat" value={m.sales(s.subtotal)} hint={`${qty(s.itemsSold)} cheezein`} />
           <Line sign="−" label="Discount" value={m.sales(s.discount)} hint={d.discounts.bills ? `${d.discounts.bills} bill` : undefined} />
           {s.charges > 0 && <Line sign="+" label="Service charges" value={m.sales(s.charges)} />}
-          <Line sign="=" label={`Bill ki raqam · ${s.bills} bill`} value={m.sales(s.billed)} />
-          <Line sign="−" label="Wapsi" value={m.sales(s.returns)} hint={s.returnCount ? `${s.returnCount} dafa` : undefined} />
-          <Line strong label="Net bikri" value={m.sales(s.net)} />
+          <Line sign="=" label={`Bill ki amount · ${s.bills} bill`} value={m.sales(s.billed)} />
+          <Line sign="−" label="Return" value={m.sales(s.returns)} hint={s.returnCount ? `${s.returnCount} dafa` : undefined} />
+          <Line strong label="Net sale" value={m.sales(s.net)} />
           {!m.costHidden && (
             <>
-              <Line sign="−" label="Maal ki lagat" value={m.cost(s.cogs)} />
-              <Line strong label={`Munafa${s.margin != null ? ` · ${s.margin.toFixed(1)}%` : ''}`} value={m.cost(s.grossProfit)} />
+              <Line sign="−" label="Maal ki cost" value={m.cost(s.cogs)} />
+              <Line strong label={`Profit${s.margin != null ? ` · ${s.margin.toFixed(1)}%` : ''}`} value={m.cost(s.grossProfit)} />
             </>
           )}
           <p className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] leading-relaxed text-slate-500">
-            Void bill is me shamil nahi. Wapsi us din ginti hai jis din maal wapas aaya.
+            Void bill is me shamil nahi. Return us din ginti hai jis din maal wapas aaya.
           </p>
         </Panel>
 
@@ -56,7 +56,7 @@ export function OverviewView({ d, m, pending, onTab, onStaff }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel icon={Trophy} title="Sab se zyada bika" hint="Raqam ke hisaab se" actions={<button type="button" onClick={() => onTab('items')} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">Sab maal →</button>}>
+        <Panel icon={Trophy} title="Sab se zyada bika" hint="Amount ke hisaab se" actions={<button type="button" onClick={() => onTab('items')} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">Sab maal →</button>}>
           {!d.items.length ? <Empty icon={Package} text="Is din kuch nahi bika" /> : (
             <ol className="space-y-2.5">
               {d.items.slice(0, 7).map((i, n) => (
@@ -67,7 +67,7 @@ export function OverviewView({ d, m, pending, onTab, onStaff }: {
                   </div>
                   <div className="flex items-center justify-between text-[0.6875rem] text-slate-500">
                     <span>{qty(i.qty)} {i.unit} · {i.bills} bill</span>
-                    {!m.costHidden && <span>munafa {m.cost(i.profit)}</span>}
+                    {!m.costHidden && <span>profit {m.cost(i.profit)}</span>}
                   </div>
                   <ShareBar value={i.revenue} max={d.items[0].revenue} color={i.color ?? undefined} />
                 </li>
@@ -76,8 +76,8 @@ export function OverviewView({ d, m, pending, onTab, onStaff }: {
           )}
         </Panel>
 
-        <Panel icon={BarChart3} title="Category war" hint="Har qism ke maal ki bikri">
-          {!d.categories.length ? <Empty icon={BarChart3} text="Koi bikri nahi" /> : (
+        <Panel icon={BarChart3} title="Category war" hint="Har type ke maal ki sale">
+          {!d.categories.length ? <Empty icon={BarChart3} text="Koi sale nahi" /> : (
             <ul className="space-y-2.5">
               {d.categories.slice(0, 8).map((c) => (
                 <li key={c.id ?? 'none'}>
@@ -87,7 +87,7 @@ export function OverviewView({ d, m, pending, onTab, onStaff }: {
                     </span>
                     <span className="shrink-0 tabular-nums font-medium text-slate-900">{m.sales(c.revenue)}</span>
                   </div>
-                  <p className="text-[0.6875rem] text-slate-500">{qty(c.qty)} cheezein · {c.items} item{s.net > 0 ? ` · ${((c.revenue / s.net) * 100).toFixed(0)}% bikri` : ''}</p>
+                  <p className="text-[0.6875rem] text-slate-500">{qty(c.qty)} cheezein · {c.items} item{s.net > 0 ? ` · ${((c.revenue / s.net) * 100).toFixed(0)}% sale` : ''}</p>
                   <ShareBar value={c.revenue} max={d.categories[0].revenue} color={c.color ?? undefined} />
                 </li>
               ))}
@@ -116,9 +116,9 @@ export function OverviewView({ d, m, pending, onTab, onStaff }: {
       </div>
 
       {d.branches.length > 1 && (
-        <Panel icon={Store} title="Branch war" hint="Har branch ki bikri, galla aur kharcha. Farq = gina hua − hona chahiye.">
+        <Panel icon={Store} title="Branch war" hint="Har branch ki sale, galla aur expense. Farq = gina hua − hona chahiye.">
           <TableWrap>
-            <thead><tr><th className={th}>Branch</th><th className={thR}>Bill</th><th className={thR}>Net bikri</th><th className={thR}>Cash bikri</th><th className={thR}>Kharcha</th><th className={thR}>Register</th><th className={thR}>Farq</th></tr></thead>
+            <thead><tr><th className={th}>Branch</th><th className={thR}>Bill</th><th className={thR}>Net sale</th><th className={thR}>Cash sale</th><th className={thR}>Expense</th><th className={thR}>Register</th><th className={thR}>Farq</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {d.branches.map((b) => (
                 <tr key={b.shopId}>
@@ -166,10 +166,10 @@ function HourlyCard({ d, m, className }: { d: DayBook; m: Money; className?: str
   const busiest = [...d.hourly].sort((a, b) => b.sales - a.sales)[0];
   const compareLabel = vs === 'lastWeek' ? `Pichhla ${WEEKDAY(d.compare.lastWeek.date)}` : 'Kal';
   return (
-    <Panel className={className} icon={Clock} title="Ghante war bikri"
-      hint={busiest?.sales ? <>Sab se zyada rush <b className="text-slate-700">{hourLabel(busiest.hour)}</b> par — {busiest.bills} bill, {m.sales(busiest.sales)}</> : 'Kis waqt kitni bikri hui'}
+    <Panel className={className} icon={Clock} title="Ghante war sale"
+      hint={busiest?.sales ? <>Sab se zyada rush <b className="text-slate-700">{hourLabel(busiest.hour)}</b> par — {busiest.bills} bill, {m.sales(busiest.sales)}</> : 'Kis waqt kitni sale hui'}
       actions={<Segmented label="Kis se milayein" value={vs} onChange={setVs} items={[{ value: 'lastWeek', label: 'Pichhla hafta' }, { value: 'yesterday', label: 'Kal' }]} />}>
-      {!has ? <Empty icon={Clock} text="Is din koi bikri nahi" /> : (
+      {!has ? <Empty icon={Clock} text="Is din koi sale nahi" /> : (
         <>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -200,11 +200,11 @@ function CompareCard({ d, m }: { d: DayBook; m: Money }) {
   const y = d.compare.yesterday;
   const w = d.compare.lastWeek;
   const rows: Array<{ label: string; now: number; y: number; w: number; fmt: (v: number) => string; hide?: boolean }> = [
-    { label: 'Net bikri', now: s.net, y: y.net, w: w.net, fmt: (v) => m.sales(v) },
+    { label: 'Net sale', now: s.net, y: y.net, w: w.net, fmt: (v) => m.sales(v) },
     { label: 'Bill', now: s.bills, y: y.bills, w: w.bills, fmt: (v) => String(v) },
     { label: 'Ausat bill', now: s.avgBill, y: y.avgBill, w: w.avgBill, fmt: (v) => m.sales(v) },
     { label: 'Cheezein', now: s.itemsSold, y: y.itemsSold, w: w.itemsSold, fmt: qty },
-    { label: 'Munafa', now: s.grossProfit ?? 0, y: y.profit ?? 0, w: w.profit ?? 0, fmt: (v) => m.cost(v), hide: m.costHidden },
+    { label: 'Profit', now: s.grossProfit ?? 0, y: y.profit ?? 0, w: w.profit ?? 0, fmt: (v) => m.cost(v), hide: m.costHidden },
   ];
   return (
     <Panel icon={BarChart3} title="Muqabla" hint={`Kal aur pichhle ${WEEKDAY(w.date)} se. Hara = behtar.`}>
@@ -232,8 +232,8 @@ function PaymentsCard({ d, m, onMore }: { d: DayBook; m: Money; onMore: () => vo
   const total = list.reduce((a, p) => a + p.total, 0);
   const cash = d.payments.filter((p) => p.method === 'CASH').reduce((a, p) => a + p.total, 0);
   return (
-    <Panel icon={Wallet} title="Paisa kaise aaya" hint="Bikri aur booking ka paisa, cash me se wapas di gayi rezgari nikal kar"
-      actions={<button type="button" onClick={onMore} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">Tafseel →</button>}>
+    <Panel icon={Wallet} title="Paisa kaise aaya" hint="Sale aur booking ka paisa, cash me se wapas di gayi rezgari nikal kar"
+      actions={<button type="button" onClick={onMore} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">Details →</button>}>
       {!list.length ? <Empty icon={Wallet} text="Is din koi paisa nahi aaya" /> : (
         <>
           <div className="relative h-[150px]">

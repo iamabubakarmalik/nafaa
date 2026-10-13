@@ -11,16 +11,16 @@ export interface TypeMeta { label: string; icon: LucideIcon; color: string; hint
 
 export const TYPE_META: Record<AuditType, TypeMeta> = {
   void: { label: 'Void bill', icon: Ban, color: '#e11d48', hint: 'Cancel kiye gaye bill. Bill kis ka tha, kitni der baad cancel hua, wajah likhi ya nahi.', money: 'sale' },
-  refund: { label: 'Wapsi', icon: RotateCcw, color: '#ea580c', hint: 'Maal wapsi. Cash wapsi, bina customer ka bill, purana bill aur dukaan band hone ke baad ki wapsi khaas dekhi jati hai.', money: 'sale' },
-  discount: { label: 'Bari chhoot', icon: BadgePercent, color: '#db2777', hint: 'Jin bill par haath ki chhoot aap ki had se zyada thi. Code aur points ki chhoot is me nahi.', money: 'sale' },
-  below_cost: { label: 'Lagat se kam', icon: TrendingDown, color: '#b45309', hint: 'Jin bill me koi cheez apni lagat se kam rate par biki.', money: 'cost' },
-  pin: { label: 'PIN', icon: KeyRound, color: '#7c3aed', hint: 'Malik ke PIN se manzoori, ghalat PIN, PIN badalna ya hatana.', money: 'none' },
+  refund: { label: 'Return', icon: RotateCcw, color: '#ea580c', hint: 'Maal return. Cash return, bina customer ka bill, purana bill aur dukaan band hone ke baad ki return khaas dekhi jati hai.', money: 'sale' },
+  discount: { label: 'Bari discount', icon: BadgePercent, color: '#db2777', hint: 'Jin bill par haath ki discount aap ki had se zyada thi. Code aur points ki discount is me nahi.', money: 'sale' },
+  below_cost: { label: 'Cost se kam', icon: TrendingDown, color: '#b45309', hint: 'Jin bill me koi cheez apni cost se kam rate par biki.', money: 'cost' },
+  pin: { label: 'PIN', icon: KeyRound, color: '#7c3aed', hint: 'Malik ke PIN se approval, ghalat PIN, PIN badalna ya hatana.', money: 'none' },
   drawer: { label: 'Drawer farq', icon: Wallet, color: '#0891b2', hint: 'Shift band karte waqt galle me paisa kam ya zyada nikla, ya drawer band hi nahi hua.', money: 'sale' },
-  cash_out: { label: 'Galle se nikale', icon: Banknote, color: '#0d9488', hint: 'Shift ke dauran galle se nikala gaya cash. Bari raqam aur bina wajah wale khaas.', money: 'sale' },
-  stock_loss: { label: 'Stock kam kiya', icon: PackageMinus, color: '#64748b', hint: 'Haath se stock ghataya, gum ya chori likha, ya ginti me maal kam nikla. Lagat par.', money: 'cost' },
-  damage: { label: 'Kharab maal', icon: PackageX, color: '#a16207', hint: 'Damage report. Chori, aur jo khud likh kar khud manzoor kiya gaya, khaas dekhein.', money: 'cost' },
-  transfer_short: { label: 'Transfer kam', icon: Truck, color: '#4f46e5', hint: 'Branch se branch maal bheja magar kam pohncha. Lagat par.', money: 'cost' },
-  expense_deleted: { label: 'Kharcha mitaya', icon: Trash2, color: '#be123c', hint: 'Likha hua kharcha baad me mita diya gaya.', money: 'none' },
+  cash_out: { label: 'Galle se nikale', icon: Banknote, color: '#0d9488', hint: 'Shift ke dauran galle se nikala gaya cash. Bari amount aur bina wajah wale khaas.', money: 'sale' },
+  stock_loss: { label: 'Stock kam kiya', icon: PackageMinus, color: '#64748b', hint: 'Haath se stock ghataya, gum ya chori likha, ya ginti me maal kam nikla. Cost par.', money: 'cost' },
+  damage: { label: 'Kharab maal', icon: PackageX, color: '#a16207', hint: 'Damage report. Chori, aur jo khud likh kar khud approve kiya gaya, khaas dekhein.', money: 'cost' },
+  transfer_short: { label: 'Transfer kam', icon: Truck, color: '#4f46e5', hint: 'Branch se branch maal bheja magar kam pohncha. Cost par.', money: 'cost' },
+  expense_deleted: { label: 'Expense mitaya', icon: Trash2, color: '#be123c', hint: 'Likha hua expense baad me mita diya gaya.', money: 'none' },
   settings: { label: 'Settings / team', icon: Settings2, color: '#475569', hint: 'Settings, team member, branch, integration ya data download me badlav.', money: 'none' },
   login: { label: 'Login', icon: LogIn, color: '#2563eb', hint: 'Nakam login aur naye device se login.', money: 'none' },
 };
@@ -28,7 +28,7 @@ export const TYPE_META: Record<AuditType, TypeMeta> = {
 export const TYPE_ORDER = Object.keys(TYPE_META) as AuditType[];
 
 export const SEVERITY_META: Record<Severity, { label: string; color: string; soft: string; hint: string }> = {
-  high: { label: 'Zaroor dekhein', color: '#e11d48', soft: 'bg-rose-50 text-rose-700 ring-rose-200', hint: 'Bari raqam ya kai shak wali baatein ek saath' },
+  high: { label: 'Zaroor dekhein', color: '#e11d48', soft: 'bg-rose-50 text-rose-700 ring-rose-200', hint: 'Bari amount ya kai shak wali baatein ek saath' },
   medium: { label: 'Dhyan dein', color: '#f59e0b', soft: 'bg-amber-50 text-amber-800 ring-amber-200', hint: 'Ek do baatein aam se hat kar' },
   low: { label: 'Aam', color: '#94a3b8', soft: 'bg-slate-100 text-slate-600 ring-slate-200', hint: 'Record ke liye — aksar theek hota hai' },
 };
@@ -40,12 +40,12 @@ export function eventLink(e: Pick<AuditEvent, 'ref' | 'type'>): { to: string; la
   const { kind, id, code } = e.ref;
   switch (kind) {
     case 'sale': return id ? { to: receiptLink(id), label: 'Bill kholein' } : null;
-    case 'return': return { to: code ? `/returns?q=${encodeURIComponent(code)}` : '/returns', label: 'Wapsi dekhein' };
+    case 'return': return { to: code ? `/returns?q=${encodeURIComponent(code)}` : '/returns', label: 'Return dekhein' };
     case 'register': return { to: '/cash-register', label: 'Cash register' };
     case 'adjustment': return { to: '/stock-adjustments', label: 'Stock adjustments' };
     case 'damage': return { to: '/damage', label: 'Damage report' };
     case 'transfer': return { to: '/transfers', label: 'Transfers' };
-    case 'expense': return { to: '/expenses', label: 'Kharche' };
+    case 'expense': return { to: '/expenses', label: 'Expenses' };
     case 'login': return { to: '/settings?tab=security', label: 'Security settings' };
     default: return e.type === 'settings' ? { to: '/activity-log', label: 'Activity log' } : null;
   }

@@ -352,7 +352,7 @@ function PortalParcels({ c, money, onOpen }: { c: CourierAccount; money: (n: num
 
   return (
     <>
-      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="CN ya shehar…" label="Parcel dhoondein" />}>
+      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="CN ya shehar…" label="Parcel search" />}>
         <FilterMenu icon={ListFilter} label="Parcel" value={filter} active={filter !== 'all'} onChange={(v) => { setFilter(v); setPage(0); }} options={PORTAL_FILTERS} align="right" />
       </FilterBar>
       <section className={cn('rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80', isFetching && 'opacity-80')}>
@@ -435,7 +435,7 @@ function NafaaParcels({ c, money, filter, setFilter, onOpen }: {
 
   return (
     <>
-      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="CN, order #, customer, phone…" label="Parcel dhoondein" />}>
+      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="CN, order #, customer, phone…" label="Parcel search" />}>
         <FilterMenu icon={ListFilter} label="Parcel" value={filter} active={filter !== 'active'} onChange={(v) => { setFilter(v); setPage(0); }} options={PARCEL_FILTERS} align="right" />
       </FilterBar>
       <section className={cn('rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80', isFetching && 'opacity-80')}>
@@ -446,7 +446,7 @@ function NafaaParcels({ c, money, filter, setFilter, onOpen }: {
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[46rem] text-[0.8125rem]">
                     <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                      <tr><th className="px-4 py-2 sm:px-5">Order</th><th className="px-3 py-2">CN</th><th className="px-3 py-2">Customer</th><th className="px-3 py-2">Courier status</th><th className="px-3 py-2">Order</th><th className="px-3 py-2 text-right">Raqam</th><th className="px-4 py-2 sm:px-5" /></tr>
+                      <tr><th className="px-4 py-2 sm:px-5">Order</th><th className="px-3 py-2">CN</th><th className="px-3 py-2">Customer</th><th className="px-3 py-2">Courier status</th><th className="px-3 py-2">Order</th><th className="px-3 py-2 text-right">Amount</th><th className="px-4 py-2 sm:px-5" /></tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {rows.map((o) => <ParcelRow key={o.id} o={o} c={c} money={money} onOpen={() => onOpen(o.id)} />)}

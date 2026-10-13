@@ -194,14 +194,14 @@ export default function PayrollPage() {
             onClick={() => { setTab('run'); setView('paid'); }} active={tab === 'run' && view === 'paid'} />
           <KpiCard icon={HandCoins} color="#d97706" label="Advance baqi" value={formatPKR(t.advanceOutstanding.amount)} hint={t.advanceOutstanding.staff ? `${t.advanceOutstanding.staff} staff se katna hai` : 'Koi advance baqi nahi'}
             onClick={() => setTab('advances')} active={tab === 'advances'} />
-          <KpiCard icon={Percent} color="#0891b2" label="Bikri ka hissa" value={t.salesPct == null ? '—' : `${t.salesPct}%`} hint={`${sheet!.label} bikri ${formatPKR(t.sales)}`}
+          <KpiCard icon={Percent} color="#0891b2" label="Sale ka hissa" value={t.salesPct == null ? '—' : `${t.salesPct}%`} hint={`${sheet!.label} sale ${formatPKR(t.sales)}`}
             onClick={() => setTab('analytics')} active={tab === 'analytics'} />
         </>}
       </KpiRow>
 
       <FilterBar
         search={tab === 'run' || tab === 'history'
-          ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'run' ? 'Staff ka naam, number ya ohda…' : 'Naam, staff number ya PAY- / ADV- number…'} label="Dhoondein" />
+          ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'run' ? 'Staff ka naam, number ya ohda…' : 'Naam, staff number ya PAY- / ADV- number…'} label="Search" />
           : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'analytics' ? `${monthName(month)} tak pichle 12 mahine` : 'Diye gaye advance aur qarz — har qist kis mahine kategi'}</p>}
         chips={(tab === 'run' && filteredRun) || (tab === 'history' && filteredHistory) ? <>
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
@@ -232,7 +232,7 @@ export default function PayrollPage() {
             <FilterMenu icon={UserRound} label="Staff" value={staffId} active={!!staffId} onChange={setStaffId} width="w-72"
               options={[{ value: '', label: 'Sab staff' }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: s.designation }))]} />
           )}
-          <FilterMenu icon={History} label="Qism" value={kind} active={!!kind} onChange={setKind}
+          <FilterMenu icon={History} label="Type" value={kind} active={!!kind} onChange={setKind}
             options={[{ value: '' as const, label: 'Sab' }, { value: 'salary' as const, label: 'Tankhwah' }, { value: 'advance' as const, label: 'Advance' }]} />
           <FilterMenu icon={Filter} label="Haal" value={status} active={!!status} onChange={setStatus} align="right"
             options={[{ value: '' as const, label: 'Sab' }, ...(Object.keys(STATUS) as RecordStatus[]).map((k) => ({ value: k as '' | RecordStatus, label: STATUS[k].label, icon: STATUS[k].icon }))]} />
@@ -244,7 +244,7 @@ export default function PayrollPage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> tabs · <Kbd>[</Kbd> <Kbd>]</Kbd> mahina · <Kbd>/</Kbd> dhoondein{canWrite && <> · <Kbd>A</Kbd> advance</>}</>}
+        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> tabs · <Kbd>[</Kbd> <Kbd>]</Kbd> mahina · <Kbd>/</Kbd> search{canWrite && <> · <Kbd>A</Kbd> advance</>}</>}
         tabs={[
           { id: 'run', label: 'Is mahine', icon: Users, count: t?.open || null },
           { id: 'advances', label: 'Advance', icon: HandCoins, count: advQ.data?.totals.open ?? null },
@@ -256,12 +256,12 @@ export default function PayrollPage() {
         {sheet && sheet.commission !== 'ok' && (
           <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-2.5 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
             <Info className="h-4 w-4 shrink-0" />
-            {sheet.commission === 'hidden' ? 'Commission dekhne ki ijazat nahi — tankhwah me commission shamil nahi hogi, woh Commission page se alag dein.' : 'Commission abhi load nahi hui — tankhwah bina commission ke ban rahi hai.'}
+            {sheet.commission === 'hidden' ? 'Commission dekhne ki permission nahi — tankhwah me commission shamil nahi hogi, woh Commission page se alag dein.' : 'Commission abhi load nahi hui — tankhwah bina commission ke ban rahi hai.'}
           </p>
         )}
         {sheet && sheet.commission === 'ok' && !sheet.canPayCommission && sheet.rows.some((r) => (r.commission?.earned ?? 0) > 0) && (
           <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-2.5 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
-            <Info className="h-4 w-4 shrink-0" />Commission ada karne ki ijazat (Commission manage) nahi — commission tankhwah me nahi judegi.
+            <Info className="h-4 w-4 shrink-0" />Commission ada karne ki permission (Commission manage) nahi — commission tankhwah me nahi judegi.
           </p>
         )}
         {sheet?.isFuture && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Ye mahina abhi shuru nahi hua — sirf andaza dikh raha hai.</p>}
@@ -329,19 +329,19 @@ export default function PayrollPage() {
       {guide.isOpen && (
         <PageGuide title="Tankhwah — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Users, color: '#7c3aed', title: 'Har mahine ki list', text: '"Is mahine" me branch ka har banda hai: tankhwah, hazri, overtime, commission aur advance ki qist khud jud kar net raqam banti hai.' },
-            { icon: ListChecks, color: '#2563eb', title: 'Badlein', text: 'Kisi line par "Badlein" — bonus ya katauti wajah ke saath, dihari ke din, overtime, ghair hazri ki katauti band, ya abhi kam raqam dena.' },
+            { icon: Users, color: '#7c3aed', title: 'Har mahine ki list', text: '"Is mahine" me branch ka har banda hai: tankhwah, hazri, overtime, commission aur advance ki qist khud jud kar net amount banti hai.' },
+            { icon: ListChecks, color: '#2563eb', title: 'Badlein', text: 'Kisi line par "Badlein" — bonus ya katauti wajah ke saath, dihari ke din, overtime, ghair hazri ki katauti band, ya abhi kam amount dena.' },
             { icon: Wallet, color: '#16a34a', title: 'Ada karein', text: 'Ek bande ko "Dein", ya kai chun kar ek saath. Paisa galle se ya bank / wallet account se — ya "baad me dein" chun kar sirf tankhwah bana lein.' },
             { icon: HandCoins, color: '#d97706', title: 'Advance aur qarz', text: '"Advance" se mahine ke beech paise dein. Ek dafa ya kai qiston me — har mahine ki tankhwah se khud kat jata hai.' },
             { icon: Printer, color: '#0891b2', title: 'Payslip', text: 'Bani hui tankhwah par Payslip — A4, PDF ya thermal, dastkhat ki jagah ke saath. Upar Print se poori list.' },
-            { icon: BarChart3, color: '#e11d48', title: 'Analytics', text: '12 mahine ki tankhwah, bikri ka kitna hissa, branch, ohda aur sab se zyada tankhwah wale.' },
+            { icon: BarChart3, color: '#e11d48', title: 'Analytics', text: '12 mahine ki tankhwah, sale ka kitna hissa, branch, ohda aur sab se zyada tankhwah wale.' },
           ]}
           tips={[
             'Ek bande ki ek mahine ki tankhwah ek hi dafa banti hai — dobara dabane se dobara paisa nahi jata.',
             'Ghalti ho to record khol kar "Cancel" karein — diya hua paisa wapas usi galle / account me likha jata hai.',
             'Hazri na lagi ho to mahana tankhwah poori banti hai; ghair hazri sirf tab katti hai jab hazri lagi ho.',
-            'Galle se dene ke liye "Cash register kholna" aur account se dene ke liye "Kharche likhna" ki ijazat chahiye.',
-            'Tankhwah ko Kharche me alag se "Salary" likh kar dobara na daalein — munafa do dafa kam dikhega.',
+            'Galle se dene ke liye "Cash register kholna" aur account se dene ke liye "Expenses likhna" ki permission chahiye.',
+            'Tankhwah ko Expenses me alag se "Salary" likh kar dobara na daalein — profit do dafa kam dikhega.',
           ]}
           shortcuts={[['1', 'is mahine'], ['2', 'advance'], ['3', 'record'], ['4', 'analytics'], ['[ ]', 'mahina'], ['/', 'dhoondein'], ['A', 'advance'], ['P', 'chune hue ki tankhwah'], ['G', 'guide']]}
         />

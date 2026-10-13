@@ -170,7 +170,7 @@ export function PosDiscountBar({
       {has && subtotal > 0 && (
         <div className="flex items-center justify-between px-1 text-[0.6875rem] font-extrabold tabular-nums">
           <span className="text-slate-500">
-            {m === 'pct' ? `${pctVal}% chhoot` : `${formatPKR(rsVal)} kam`}
+            {m === 'pct' ? `${pctVal}% discount` : `${formatPKR(rsVal)} kam`}
             {' '}<span className="text-slate-400">({((amount / subtotal) * 100).toFixed(1)}%)</span>
           </span>
           <span className={ICON_TONES[tone]}>−{formatPKR(amount)}</span>

@@ -27,11 +27,11 @@ export interface DocKind {
 }
 
 export const DOC_KINDS: DocKind[] = [
-  { id: 'return', label: 'Wapsi ki parchi', where: 'Bikri → Wapsi', store: 'nafaa-return-slip', copies: 1, title: 'RETURN SLIP' },
+  { id: 'return', label: 'Return ki parchi', where: 'Sale → Return', store: 'nafaa-return-slip', copies: 1, title: 'RETURN SLIP' },
   { id: 'booking', label: 'Booking / order ki raseed', where: 'Bookings', store: 'nafaa-booking-print', paper: '80', copies: 1, title: 'BOOKING' },
   { id: 'purchase', label: 'Khareed ka bill / order', where: 'Khareed', store: 'nafaa-purchase-print', paper: 'A4', copies: 1, title: 'PURCHASE BILL', seed: { kind: 'bill' } },
   { id: 'transfer', label: 'Maal bhejne ka challan', where: 'Stock → Transfer', store: 'nafaa-transfer-print', paper: 'A4', copies: 2, title: 'TRANSFER CHALLAN' },
-  { id: 'voucher', label: 'Kharche ka voucher', where: 'Kharche', store: 'nafaa-expense-voucher-print', paper: '80', copies: 1, title: 'EXPENSE VOUCHER' },
+  { id: 'voucher', label: 'Expenses ka voucher', where: 'Expenses', store: 'nafaa-expense-voucher-print', paper: '80', copies: 1, title: 'EXPENSE VOUCHER' },
   { id: 'payslip', label: 'Salary slip', where: 'Staff → Tankhwah', store: 'nafaa-payslip-print', paper: 'A4', copies: 1, title: 'PAYSLIP' },
   { id: 'commission', label: 'Commission ki parchi', where: 'Staff → Commission', store: 'nafaa-commission-slip-print', paper: '80', copies: 1, title: 'COMMISSION' },
 ];

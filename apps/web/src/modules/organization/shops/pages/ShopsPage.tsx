@@ -50,7 +50,7 @@ const STATUS_FILTERS: Array<FilterOption<StatusFilter>> = [
 const SORTS: Array<FilterOption<Sort>> = [
   { value: 'main', label: 'Main pehle' },
   { value: 'name', label: 'Naam (A–Z)' },
-  { value: 'sales', label: 'Aaj ki bikri' },
+  { value: 'sales', label: 'Aaj ki sale' },
   { value: 'stock', label: 'Stock value' },
 ];
 
@@ -158,12 +158,12 @@ export default function ShopsPage() {
   const printDoc = (): PrintDoc => ({
     title: 'Branches',
     subtitle: new Date().toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-    meta: [['Branches', String(filtered.length)], ...(t ? [['Aaj ki bikri', money(t.todaySales)] as [string, string]] : [])],
+    meta: [['Branches', String(filtered.length)], ...(t ? [['Aaj ki sale', money(t.todaySales)] as [string, string]] : [])],
     sections: [{
       kind: 'table',
       columns: [
         { label: 'Branch' }, { label: 'Qisam', wideOnly: true }, { label: 'Phone', wideOnly: true },
-        ...(fig ? [{ label: 'Aaj bikri', align: 'right' as const }, { label: 'Drawer', align: 'right' as const, wideOnly: true }, { label: 'Duty par', align: 'right' as const, wideOnly: true }] : []),
+        ...(fig ? [{ label: 'Aaj sale', align: 'right' as const }, { label: 'Drawer', align: 'right' as const, wideOnly: true }, { label: 'Duty par', align: 'right' as const, wideOnly: true }] : []),
       ],
       rows: filtered.map((s) => {
         const f = figOf.get(s.id);
@@ -192,9 +192,9 @@ export default function ShopsPage() {
           {canManage && <Link to="/shops/new" className={heroPrimaryButton} title="Nayi branch (N)"><Plus className="h-4 w-4" />Nayi branch</Link>}
         </>}
         stats={canMoney ? [
-          { label: 'Aaj ki bikri · sab branches', value: t ? money(t.todaySales) : '', hint: t ? `${t.todayOrders} bill` : undefined },
+          { label: 'Aaj ki sale · sab branches', value: t ? money(t.todaySales) : '', hint: t ? `${t.todayOrders} bill` : undefined },
           { label: 'Drawers me cash', value: t ? money(t.drawerCash) : '', hint: t ? `${t.registersOpen} khule` : undefined },
-          { label: 'Stock (lagat)', value: t ? costOf(t.stockValue) : '' },
+          { label: 'Stock (cost)', value: t ? costOf(t.stockValue) : '' },
           { label: 'Duty par', value: t ? `${t.staffOnDuty} / ${t.staffCount}` : '' },
         ] : undefined}
       />
@@ -206,7 +206,7 @@ export default function ShopsPage() {
               onClick={() => setType(type === 'SHOP' ? 'all' : 'SHOP')} active={type === 'SHOP'} />
             <KpiCard icon={Warehouse} color="#d97706" label="Store / godown" value={String(counts.stores)} hint="Sirf maal rakhne ke liye"
               onClick={() => setType(type === 'WAREHOUSE' ? 'all' : 'WAREHOUSE')} active={type === 'WAREHOUSE'} />
-            <KpiCard icon={Wallet} color="#16a34a" label="Drawer khule" value={t ? `${t.registersOpen} / ${shops.filter((s) => s.isActive && s.type === 'SHOP').length}` : '—'} hint={t ? 'Aaj kitni dukaanein chal rahi hain' : 'Reports ki ijazat chahiye'} />
+            <KpiCard icon={Wallet} color="#16a34a" label="Drawer khule" value={t ? `${t.registersOpen} / ${shops.filter((s) => s.isActive && s.type === 'SHOP').length}` : '—'} hint={t ? 'Aaj kitni dukaanein chal rahi hain' : 'Reports ki permission chahiye'} />
             <KpiCard icon={AlertTriangle} color="#ea580c" label="Stock kam" value={t ? String(t.lowStockCount) : '—'} hint="Sab branches milakar · dabayein"
               onClick={t ? () => navigate('/low-stock') : undefined} />
             <KpiCard icon={Power} color="#64748b" label="Band branches" value={String(counts.off)} hint={counts.off ? 'Dekhne ke liye dabayein' : 'Koi nahi'}
@@ -216,7 +216,7 @@ export default function ShopsPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Branch ka naam, pata ya phone…" label="Branch dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Branch ka naam, pata ya phone…" label="Branch search" />}
         chips={hasFilters ? <>
           {type !== 'all' && <FilterChip onRemove={() => setType('all')}>{SHOP_TYPES[type].label}</FilterChip>}
           {status !== 'active' && <FilterChip onRemove={() => setStatus('active')}>{STATUS_FILTERS.find((x) => x.value === status)?.label}</FilterChip>}
@@ -225,7 +225,7 @@ export default function ShopsPage() {
         onClear={clear}>
         <FilterMenu icon={Building2} label="Qisam" value={type} active={type !== 'all'} options={TYPE_FILTERS} onChange={setType} />
         <FilterMenu icon={ListFilter} label="Haal" value={status} active={status !== 'active'} options={STATUS_FILTERS} onChange={setStatus} />
-        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> <Kbd>2</Kbd> se badlein</>}
@@ -255,14 +255,14 @@ export default function ShopsPage() {
 
       {confirmOff && (
         <Modal open onClose={() => setConfirmOff(null)} size="sm" title={`${confirmOff.name} band karein?`}
-          description="Band branch me POS se bikri nahi hogi aur woh branch chunne ki list me nahi aayegi. Purana hisaab, stock aur reports waise hi rahenge. Baad me dobara chalu kar sakte hain."
+          description="Band branch me POS se sale nahi hogi aur woh branch chunne ki list me nahi aayegi. Purana hisaab, stock aur reports waise hi rahenge. Baad me dobara chalu kar sakte hain."
           footer={<><Button variant="secondary" onClick={() => setConfirmOff(null)}>Rehne dein</Button><Button variant="danger" loading={toggle.isPending} onClick={() => toggle.mutate(confirmOff)}><Power className="h-4 w-4" />Band karein</Button></>}>
           {figOf.get(confirmOff.id)?.registerOpen && <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Is branch ka drawer abhi khula hai. Pehle drawer band kar lein.</p>}
         </Modal>
       )}
       {confirmDelete && (
         <Modal open onClose={() => setConfirmDelete(null)} size="sm" title={`${confirmDelete.name} mitayein?`}
-          description="Sirf woh branch mit sakti hai jis me koi bikri, kharid, kharcha ya khata nahi. Jis ka hisaab hai use band karein — record save rehta hai."
+          description="Sirf woh branch mit sakti hai jis me koi sale, kharid, expense ya khata nahi. Jis ka hisaab hai use band karein — record save rehta hai."
           footer={<><Button variant="secondary" onClick={() => setConfirmDelete(null)}>Rehne dein</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate(confirmDelete)}><Trash2 className="h-4 w-4" />Mitayein</Button></>}>
           <p className="text-[0.8125rem] text-slate-600">Is branch ke stock ke khali record aur band drawer bhi mit jayenge. Staff ka login rahega, bas branch se hat jayega.</p>
         </Modal>
@@ -272,16 +272,16 @@ export default function ShopsPage() {
         <PageGuide title="Branches — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Plus, color: '#2563eb', title: 'Nayi branch', text: 'Dukaan, warehouse ya godown banayein. Dukaan me POS aur drawer hota hai; store me sirf maal rakha jata hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Aaj ka haal', text: 'Har card par aaj ki bikri, drawer me kitna cash hai, stock ki value aur kaun duty par hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Aaj ka haal', text: 'Har card par aaj ki sale, drawer me kitna cash hai, stock ki value aur kaun duty par hai.' },
             { icon: Boxes, color: '#d97706', title: 'Stock', text: 'Nayi branch khali shuru hoti hai. Maal Transfers se bhejein ya Kharid me is branch ko chunein.' },
             { icon: Users, color: '#7c3aed', title: 'Staff', text: 'Branch banate waqt manager ka login de sakte hain. Baqi staff Staff ke page se is branch me lagayein.' },
             { icon: Power, color: '#64748b', title: 'Band karna', text: 'Jo branch band ho gayi use mitayein nahi, band karein — purana hisaab reports me rehta hai.' },
-            { icon: BarChart3, color: '#db2777', title: 'Muqabla', text: '"Analytics" me kisi bhi muddat ke liye branches ka muqabla, trend aur rush time.' },
+            { icon: BarChart3, color: '#db2777', title: 'Muqabla', text: '"Analytics" me kisi bhi period ke liye branches ka muqabla, trend aur rush time.' },
           ]}
           tips={[
             'Card ke number har minute khud taaza hote hain.',
             'Main branch wohi hai jo naye account me pehle se chuni hoti hai. Main badalne ke liye doosri branch edit karke "Main branch" on karein.',
-            'Stock ki value lagat par hai — lagat dekhne ki ijazat na ho to chhupi rehti hai.',
+            'Stock ki value cost par hai — cost dekhne ki permission na ho to chhupi rehti hai.',
           ]}
           shortcuts={[['N', 'nayi branch'], ['/', 'dhoondein'], ['1', 'cards'], ['2', 'table'], ['A', 'analytics'], ['G', 'guide']]}
           footer={canFixStock ? (
@@ -301,7 +301,7 @@ function BranchTable({ shops, figOf, money, cost, showMoney }: {
   cost: (n: number | undefined) => string;
   showMoney: boolean;
 }) {
-  const head = ['Branch', ...(showMoney ? ['Aaj', 'Bill', 'Is mahine', 'Drawer', 'Stock (lagat)', 'Kam stock', 'Udhaar', 'Duty par'] : ['Qisam', 'Login', 'Stock records'])];
+  const head = ['Branch', ...(showMoney ? ['Aaj', 'Bill', 'Is mahine', 'Drawer', 'Stock (cost)', 'Kam stock', 'Udhaar', 'Duty par'] : ['Qisam', 'Login', 'Stock records'])];
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="overflow-x-auto">
@@ -339,7 +339,7 @@ function BranchTable({ shops, figOf, money, cost, showMoney }: {
           </tbody>
         </table>
       </div>
-      {showMoney && <p className="flex items-center gap-1.5 border-t border-slate-100 px-5 py-2.5 text-[0.75rem] text-slate-500"><CalendarClock className="h-3.5 w-3.5" />Bikri wapsi ghata kar · drawer ka cash abhi tak ka</p>}
+      {showMoney && <p className="flex items-center gap-1.5 border-t border-slate-100 px-5 py-2.5 text-[0.75rem] text-slate-500"><CalendarClock className="h-3.5 w-3.5" />Sale return ghata kar · drawer ka cash abhi tak ka</p>}
     </div>
   );
 }

@@ -42,27 +42,27 @@ export function BranchView({ data, loading, money, cost, costHidden, onOpen }: {
               <span className="text-[0.75rem] text-slate-500">{s.lines} cheezein</span>
             </div>
             <p className="mt-2 text-2xl font-bold tabular-nums text-slate-900">{costHidden ? money(s.retail) : cost(s.cost)}</p>
-            <p className="text-[0.75rem] text-slate-500">{costHidden ? 'bechne par' : `lagat · bechne par ${money(s.retail)}`}</p>
+            <p className="text-[0.75rem] text-slate-500">{costHidden ? 'bechne par' : `cost · bechne par ${money(s.retail)}`}</p>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${((costHidden ? s.retail : s.cost) / top) * 100}%` }} /></div>
             <dl className="mt-3 grid grid-cols-3 gap-2 text-[0.75rem]">
               <div><dt className="text-slate-500">Khatam</dt><dd className={cn('font-semibold tabular-nums', s.out ? 'text-rose-700' : 'text-slate-900')}>{s.out}</dd></div>
               <div><dt className="text-slate-500">Kam</dt><dd className={cn('font-semibold tabular-nums', s.low ? 'text-amber-700' : 'text-slate-900')}>{s.low}</dd></div>
               <div><dt className="text-slate-500">Dead</dt><dd className="font-semibold tabular-nums text-violet-700">{s.dead.count} · {cost(s.dead.cost)}</dd></div>
             </dl>
-            <p className="mt-2 border-t border-slate-100 pt-2 text-[0.75rem] text-slate-600">Muddat me bikri <b className="tabular-nums text-slate-900">{money(s.sold.revenue)}</b></p>
+            <p className="mt-2 border-t border-slate-100 pt-2 text-[0.75rem] text-slate-600">Period me sale <b className="tabular-nums text-slate-900">{money(s.sold.revenue)}</b></p>
           </div>
         ))}
       </div>
 
-      <Card className="rounded-2xl" title="Stock aur bikri — branch war" description={costHidden ? 'Stock bechne ki qeemat par' : 'Stock lagat par'}>
+      <Card className="rounded-2xl" title="Stock aur sale — branch war" description={costHidden ? 'Stock bechne ki qeemat par' : 'Stock cost par'}>
         <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chart} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
               <CartesianGrid stroke={theme.grid} vertical={false} />
               <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} />
               <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-              <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'value' ? 'Stock' : 'Bikri']} {...theme.tooltip} />
-              <Legend formatter={(v) => (v === 'value' ? 'Stock' : 'Bikri')} />
+              <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'value' ? 'Stock' : 'Sale']} {...theme.tooltip} />
+              <Legend formatter={(v) => (v === 'value' ? 'Stock' : 'Sale')} />
               <Bar dataKey="value" fill={theme.primary} radius={[6, 6, 0, 0]} barSize={26} />
               <Bar dataKey="sold" fill={theme.highlight} radius={[6, 6, 0, 0]} barSize={26} />
             </BarChart>

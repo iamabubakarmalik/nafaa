@@ -56,13 +56,13 @@ export function CashMoveModal({ register, kind: initial, onClose }: { register: 
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (valid && !m.isPending) m.mutate(); }}>
         <Segmented label="Kya karna hai" value={kind} onChange={(v) => { setKind(v as Kind); setReason(''); }}
           items={[{ value: 'CASH_IN', label: 'Cash in (daalna)' }, { value: 'CASH_OUT', label: 'Cash out (nikalna)' }]} />
-        <Input data-autofocus label="Raqam" type="number" inputMode="decimal" min={0} size="lg" required value={amount}
+        <Input data-autofocus label="Amount" type="number" inputMode="decimal" min={0} size="lg" required value={amount}
           onChange={(e) => setAmount(e.target.value)} placeholder="1000"
-          error={amount && !validAmount ? 'Raqam 0 se zyada likhein' : undefined}
-          hint={kind === 'CASH_IN' ? 'Jo cash bikri ke ilawa galle me aaya' : 'Jo cash bikri ki wapsi ya kharch ke ilawa galle se gaya'} />
+          error={amount && !validAmount ? 'Amount 0 se zyada likhein' : undefined}
+          hint={kind === 'CASH_IN' ? 'Jo cash sale ke ilawa galle me aaya' : 'Jo cash sale ki return ya kharch ke ilawa galle se gaya'} />
         {tooMuch && (
           <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-800 ring-1 ring-amber-200">
-            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />Ye raqam galle ke hisaab ({formatPKR(inDrawer)}) se zyada hai. Pehle gin lein, phir nikalein.
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />Ye amount galle ke hisaab ({formatPKR(inDrawer)}) se zyada hai. Pehle gin lein, phir nikalein.
           </p>
         )}
         <div>
@@ -76,7 +76,7 @@ export function CashMoveModal({ register, kind: initial, onClose }: { register: 
             ))}
           </div>
         </div>
-        <Textarea label="Tafseel (marzi se)" rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500}
+        <Textarea label="Details (marzi se)" rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500}
           placeholder="Masalan: bank slip number" hint="Sirf record ke liye" />
         <button type="submit" hidden aria-hidden />
       </form>

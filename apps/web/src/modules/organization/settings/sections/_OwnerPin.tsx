@@ -29,7 +29,7 @@ const LOCKABLE: Array<{ group: string; items: Array<{ path: string; label: strin
     group: 'Paisa',
     items: [
       { path: '/khata', label: 'Khata / Udhaar', hint: 'Kis ka kitna baqi hai' },
-      { path: '/expenses', label: 'Kharch', hint: 'Dukaan ka har kharcha' },
+      { path: '/expenses', label: 'Kharch', hint: 'Dukaan ka har expense' },
       { path: '/cash-register', label: 'Golak', hint: 'Din ka cash' },
       { path: '/suppliers', label: 'Suppliers', hint: 'Hum ne kis ko kitna dena hai' },
     ],
@@ -45,8 +45,8 @@ const LOCKABLE: Array<{ group: string; items: Array<{ path: string; label: strin
   {
     group: 'Maal',
     items: [
-      { path: '/products', label: 'Products', hint: 'Lagat aur rate' },
-      { path: '/purchases', label: 'Kharidari', hint: 'Kis se kitne ka maal aaya' },
+      { path: '/products', label: 'Products', hint: 'Cost aur rate' },
+      { path: '/purchases', label: 'Purchase', hint: 'Kis se kitne ka maal aaya' },
       { path: '/inventory', label: 'Stock', hint: 'Kitna maal para hai' },
     ],
   },
@@ -55,7 +55,7 @@ const LOCKABLE: Array<{ group: string; items: Array<{ path: string; label: strin
     items: [
       { path: '/settings', label: 'Settings', hint: 'Dukaan ki saari settings' },
       { path: '/staff', label: 'Staff', hint: 'Mulazim aur tankhwah' },
-      { path: '/sales', label: 'Bikri ka record', hint: 'Purane bill' },
+      { path: '/sales', label: 'Sale ka record', hint: 'Purane bill' },
     ],
   },
 ];
@@ -194,7 +194,7 @@ export function OwnerPinCard() {
         ) : (
           <>
             <Alert tone="amber" icon={AlertTriangle} title="PIN set karna behtar hai">
-              PIN ke baghair kharid ka bhao aur munafa har us bande ko dikhega jo app khol le.
+              PIN ke baghair kharid ka bhao aur profit har us bande ko dikhega jo app khol le.
               PIN lagate hi cost chhup jayegi — aur jo safhe aap chunenge wo bhi band ho jayenge.
             </Alert>
             <Button onClick={() => setSetupOpen(true)}
@@ -309,7 +309,7 @@ export function PageLocksCard() {
           <div className="relative">
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Safha dhoondein…"
+              placeholder="Safha search…"
               className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white pl-9 pr-9 text-sm font-bold outline-none focus:border-violet-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}

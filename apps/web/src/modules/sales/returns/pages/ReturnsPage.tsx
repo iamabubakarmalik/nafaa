@@ -94,7 +94,7 @@ export default function ReturnsPage() {
   const filterText = [method && methodLabel(method), reasonText, staffId && team.find((m) => m.id === staffId)?.fullName, query && `"${query}"`].filter(Boolean).join(' · ');
   const printDoc = async () => returnsDoc(await returnsApi.records({ ...filters, page: 1, limit: 200 }), periodText, filterText);
 
-  const startNew = (scan = false) => { if (canReturn) setFinding({ initial: '', scan }); else toast.error('Wapsi ki ijazat nahi — malik se poochein'); };
+  const startNew = (scan = false) => { if (canReturn) setFinding({ initial: '', scan }); else toast.error('Return ki permission nahi — malik se poochein'); };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -117,7 +117,7 @@ export default function ReturnsPage() {
     setReturning(null);
     setOpen(null);
     if (!created || created.repeated) return;
-    toast('Wapsi ki parchi chahiye?', {
+    toast('Return ki parchi chahiye?', {
       action: {
         label: 'Print',
         onClick: () => {
@@ -139,7 +139,7 @@ export default function ReturnsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Maal wapsi"
+        title="Maal return"
         chip={<><RotateCcw /> Returns</>}
         meta="Customer ka maal wapas — paisa, stock aur khata ek saath"
         busy={listQ.isFetching && !listQ.isLoading}
@@ -150,11 +150,11 @@ export default function ReturnsPage() {
           </button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab === 'analytics' || !rows.length} /></span>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canReturn && <button type="button" onClick={() => startNew()} title="Nayi wapsi (N)" className={heroPrimaryButton}><RotateCcw className="h-4 w-4" /> Nayi wapsi</button>}
+          {canReturn && <button type="button" onClick={() => startNew()} title="Nayi return (N)" className={heroPrimaryButton}><RotateCcw className="h-4 w-4" /> Nayi return</button>}
         </>}
         stats={t ? [
-          { label: 'Kul wapas', value: money(t.refunded), hint: `${t.count} wapsi` },
-          { label: 'Bikri ka', value: `${t.rate}%`, hint: `${money(t.salesTotal)} bikri` },
+          { label: 'Kul wapas', value: money(t.refunded), hint: `${t.count} return` },
+          { label: 'Sale ka', value: `${t.rate}%`, hint: `${money(t.salesTotal)} sale` },
           { label: 'Haath me diye', value: money(t.payout), hint: t.khata ? `${money(t.khata)} khate se` : undefined },
           { label: 'Cheezein wapas', value: qtyText(t.qty) },
         ] : [{ label: 'Kul wapas', value: '—' }]}
@@ -162,18 +162,18 @@ export default function ReturnsPage() {
 
       <KpiRow cols={4}>
         {!t ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={RotateCcw} color="#ea580c" label="Wapsi" value={t.count} hint={`${t.bills} bill se`} />
+          <KpiCard icon={RotateCcw} color="#ea580c" label="Return" value={t.count} hint={`${t.bills} bill se`} />
           <KpiCard icon={Wallet} color="#e11d48" label="Paisa wapas" value={money(t.refunded)}
             hint={t.khata ? `${money(t.payout)} haath me · ${money(t.khata)} khata` : 'Sab haath me diya'} />
           <KpiCard icon={PackageCheck} color="#16a34a" label="Stock me wapas" value={qtyText(t.restockedQty)}
             hint={t.writtenOffQty ? `${qtyText(t.writtenOffQty)} kharab — stock me nahi` : 'Sab dobara bikne layak'} />
-          <KpiCard icon={Percent} color="#d97706" label="Wapsi ki sharah" value={`${t.rate}%`} hint={`Bikri ka · ${t.billRate}% bill par wapsi`}
+          <KpiCard icon={Percent} color="#d97706" label="Return ki sharah" value={`${t.rate}%`} hint={`Sale ka · ${t.billRate}% bill par return`}
             onClick={() => setTab('analytics')} active={tab === 'analytics'} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Wapsi ya bill number, customer, phone, product ya IMEI…" label="Wapsi dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Return ya bill number, customer, phone, product ya IMEI…" label="Return search" />}
         chips={filtered ? <>
           {method && <FilterChip onRemove={() => setMethod('')}>{methodLabel(method)}</FilterChip>}
           {reason && <FilterChip onRemove={() => setReason('')}>{reasonText}</FilterChip>}
@@ -193,7 +193,7 @@ export default function ReturnsPage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<><Kbd>N</Kbd> nayi wapsi · <Kbd>B</Kbd> scan · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> dhoondein</>}
+        hint={<><Kbd>N</Kbd> nayi return · <Kbd>B</Kbd> scan · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> search</>}
         tabs={[
           { id: 'record', label: 'Record', icon: ListChecks, count: data?.total ?? null },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -205,10 +205,10 @@ export default function ReturnsPage() {
         ) : !rows.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <RotateCcw className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi wapsi nahi' : 'Is muddat me koi maal wapas nahi aaya'}</p>
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi return nahi' : 'Is period me koi maal wapas nahi aaya'}</p>
             <p className="mt-1 text-sm text-slate-500">Customer maal wapas laye to bill scan karein ya bill number likhein — stock, khata aur golak khud theek ho jate hain.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {canReturn && <Button onClick={() => startNew()} leftIcon={<RotateCcw className="h-4 w-4" />}>Nayi wapsi</Button>}
+              {canReturn && <Button onClick={() => startNew()} leftIcon={<RotateCcw className="h-4 w-4" />}>Nayi return</Button>}
               {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
             </div>
           </div>
@@ -239,22 +239,22 @@ export default function ReturnsPage() {
       {slip && <ReturnSlipModal r={slip} onClose={() => setSlip(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Maal wapsi — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title="Maal return — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: ScanLine, color: '#2563eb', title: 'Bill dhoondein', text: '"Nayi wapsi" dabayein. Bill ka barcode scan karein, ya bill number, customer ka phone ya phone ka IMEI likhein.' },
-            { icon: Package, color: '#ea580c', title: 'Kya wapas aaya', text: 'Har cheez ki miqdar chunein ya "Poora bill wapas". Rate wohi lagta hai jo customer ne diya tha — discount ke baad.' },
+            { icon: ScanLine, color: '#2563eb', title: 'Bill search', text: '"Nayi return" dabayein. Bill ka barcode scan karein, ya bill number, customer ka phone ya phone ka IMEI likhein.' },
+            { icon: Package, color: '#ea580c', title: 'Kya wapas aaya', text: 'Har cheez ki quantity chunein ya "Poora bill wapas". Rate wohi lagta hai jo customer ne diya tha — discount ke baad.' },
             { icon: PackageX, color: '#e11d48', title: 'Stock ya kharab', text: '"Stock me wapas" se maal dobara bikne ke liye shelf par aata hai. "Kharab" wala stock me nahi aata aur nuqsan me likha jata hai.' },
-            { icon: BookOpen, color: '#7c3aed', title: 'Paisa aur khata', text: 'Udhaar bill par pehle us bill ka baqi udhaar khate se kam hota hai, baqi raqam cash, wallet ya bank se wapas.' },
-            { icon: Printer, color: '#0891b2', title: 'Parchi print', text: 'Wapsi ke baad ya record me kisi wapsi ko khol kar parchi print karein — customer ko saboot, dukaan ko record.' },
-            { icon: BarChart3, color: '#d97706', title: 'Analytics dekhein', text: 'Kaunsa maal sab se zyada wapas aata hai, kis wajah se, kis staff ke paas — aur bikri ka kitna % wapas gaya.' },
+            { icon: BookOpen, color: '#7c3aed', title: 'Paisa aur khata', text: 'Udhaar bill par pehle us bill ka baqi udhaar khate se kam hota hai, baqi amount cash, wallet ya bank se wapas.' },
+            { icon: Printer, color: '#0891b2', title: 'Parchi print', text: 'Return ke baad ya record me kisi return ko khol kar parchi print karein — customer ko saboot, dukaan ko record.' },
+            { icon: BarChart3, color: '#d97706', title: 'Analytics dekhein', text: 'Kaunsa maal sab se zyada wapas aata hai, kis wajah se, kis staff ke paas — aur sale ka kitna % wapas gaya.' },
           ]}
           tips={[
-            'Settings me "Wapsi par PIN" on ho to har wapsi malik ke PIN se hoti hai — record me "Malik ka PIN se manzoor" likha aata hai.',
-            'Ek hi bill se kai dafa wapsi ho sakti hai, magar jitna bika tha us se zyada kabhi nahi.',
-            'Galti se do dafa button dab jaye to dusri wapsi nahi banti.',
-            'Wapsi hamesha usi branch me hoti hai jahan bill bana tha.',
+            'Settings me "Return par PIN" on ho to har return malik ke PIN se hoti hai — record me "Malik ka PIN se approve" likha aata hai.',
+            'Ek hi bill se kai dafa return ho sakti hai, magar jitna bika tha us se zyada kabhi nahi.',
+            'Galti se do dafa button dab jaye to dusri return nahi banti.',
+            'Return hamesha usi branch me hoti hai jahan bill bana tha.',
           ]}
-          shortcuts={[['N', 'nayi wapsi'], ['B', 'bill scan'], ['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]}
+          shortcuts={[['N', 'nayi return'], ['B', 'bill scan'], ['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -276,7 +276,7 @@ function Row({ r, money, onOpen, onPrint }: { r: ReturnRow; money: (n: number) =
           <Link to={receiptLink(r.sale.id)} title="Asal bill kholein"
             className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[0.6875rem] text-slate-600 transition hover:bg-brand-50 hover:text-brand-700"><Receipt className="h-3 w-3" />{r.sale.saleNumber}</Link>
           <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', stock.tone)}><stock.icon className="h-3 w-3" />{stock.label}</span>
-          {r.approvedBy && <span title={`${r.approvedBy} se manzoor`} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200"><ShieldCheck className="h-3 w-3" />PIN</span>}
+          {r.approvedBy && <span title={`${r.approvedBy} se approve`} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200"><ShieldCheck className="h-3 w-3" />PIN</span>}
         </span>
         <button type="button" onClick={onOpen} className="block w-full min-w-0 text-left">
           <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{items}{r.reason && <span className="text-slate-400"> · {r.reason}</span>}</span>

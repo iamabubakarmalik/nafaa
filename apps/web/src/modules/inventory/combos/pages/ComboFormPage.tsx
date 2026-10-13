@@ -180,10 +180,10 @@ export default function ComboFormPage() {
   const problems = [
     f.name.trim().length < 2 && 'Combo ka naam likhein',
     !parts.length && 'Kam az kam ek cheez daalein',
-    oneThing && 'Do cheezein daalein, ya ek cheez ki miqdar 1 se zyada rakhein',
-    badQty && 'Har cheez ki miqdar 0 se zyada honi chahiye',
+    oneThing && 'Do cheezein daalein, ya ek cheez ki quantity 1 se zyada rakhein',
+    badQty && 'Har cheez ki quantity 0 se zyada honi chahiye',
     !(price > 0) && 'Combo ki qeemat likhein',
-    datesWrong && 'Khatam ki tareekh shuru se pehle hai',
+    datesWrong && 'Khatam ki date shuru se pehle hai',
   ].filter(Boolean) as string[];
 
   const payload = (): ComboPayload => ({
@@ -311,7 +311,7 @@ export default function ComboFormPage() {
               </div>
               <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">Na lagayein to pehli cheez ki tasveer dikhegi</span>
             </div>
-            <Field label="Tafseel" hint="Andar kya hai, kab tak — print sheet par aata hai (ikhtiyari)" span>
+            <Field label="Details" hint="Andar kya hai, kab tak — print sheet par aata hai (ikhtiyari)" span>
               <textarea value={f.description} onChange={(e) => set('description', e.target.value)} rows={2} maxLength={2000} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
             </Field>
           </Section>
@@ -322,12 +322,12 @@ export default function ComboFormPage() {
               <span className="text-[0.75rem] text-slate-500">{parts.length} cheezein</span>
             </div>
             <ProductSearch sources={sources} byCode={byCode} loading={loading} onPick={add} placeholder="Cheez ka naam, SKU ya barcode — Enter ya scan…" />
-            <p className="mt-1.5 text-[0.75rem] text-slate-500">Pack ka barcode scan karein to wohi pack (dozen, carton) jur jata hai. Dobara same cheez daalein to miqdar barh jati hai.</p>
+            <p className="mt-1.5 text-[0.75rem] text-slate-500">Pack ka barcode scan karein to wohi pack (dozen, carton) jur jata hai. Dobara same cheez daalein to quantity barh jati hai.</p>
 
             {!parts.length ? (
               <div className="mt-4 rounded-2xl border-2 border-dashed border-slate-200 px-4 py-8 text-center">
                 <Boxes className="mx-auto h-8 w-8 text-slate-300" />
-                <p className="mt-2 text-sm font-medium text-slate-700">Upar se cheezein dhoondein</p>
+                <p className="mt-2 text-sm font-medium text-slate-700">Upar se cheezein search</p>
                 <p className="text-[0.75rem] text-slate-500">Misaal: 1 tel + 5 kg chawal + 1 kg cheeni</p>
               </div>
             ) : (
@@ -342,9 +342,9 @@ export default function ComboFormPage() {
                         <p className="truncate text-sm font-semibold text-slate-900">{p.name}</p>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                           {p.hasVariants && (
-                            <select value={p.variantId ?? ''} onChange={(e) => patch(p.key, { variantId: e.target.value || null })} aria-label="Qism"
+                            <select value={p.variantId ?? ''} onChange={(e) => patch(p.key, { variantId: e.target.value || null })} aria-label="Type"
                               className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem]">
-                              <option value="">Koi bhi qism</option>
+                              <option value="">Koi bhi type</option>
                               {variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                             </select>
                           )}
@@ -362,7 +362,7 @@ export default function ComboFormPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <button type="button" aria-label="Kam" onClick={() => patch(p.key, { quantity: String(Math.max(0, (Number(p.quantity) || 0) - 1)) })} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Minus className="h-3.5 w-3.5" /></button>
-                        <input value={p.quantity} onChange={(e) => patch(p.key, { quantity: e.target.value })} inputMode="decimal" aria-label="Miqdar"
+                        <input value={p.quantity} onChange={(e) => patch(p.key, { quantity: e.target.value })} inputMode="decimal" aria-label="Quantity"
                           className={cn('h-9 w-16 rounded-lg border px-2 text-center text-sm tabular-nums outline-none focus:border-brand-500', Number(p.quantity) > 0 ? 'border-slate-200' : 'border-rose-300')} />
                         <button type="button" aria-label="Zyada" onClick={() => patch(p.key, { quantity: String((Number(p.quantity) || 0) + 1) })} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Plus className="h-3.5 w-3.5" /></button>
                       </div>
@@ -425,11 +425,11 @@ export default function ComboFormPage() {
             </div>
           </Section>
 
-          <Section icon={<CalendarClock className="h-4 w-4" />} title="Muddat aur had">
+          <Section icon={<CalendarClock className="h-4 w-4" />} title="Period aur had">
             <Field label="Kab se" hint="Khali = abhi se">
               <input type="date" value={f.validFrom} onChange={(e) => set('validFrom', e.target.value)} className={input} />
             </Field>
-            <Field label="Kab tak" hint={datesWrong ? 'Ye tareekh shuru se pehle hai' : 'Khali = hamesha. Is din ke baad POS se khud hat jata hai'}>
+            <Field label="Kab tak" hint={datesWrong ? 'Ye date shuru se pehle hai' : 'Khali = hamesha. Is din ke baad POS se khud hat jata hai'}>
               <input type="date" value={f.validTo} min={f.validFrom || undefined} onChange={(e) => set('validTo', e.target.value)} className={cn(input, datesWrong && 'border-rose-400')} />
             </Field>
             <Field label="Zyada se zyada kitne bechne hain" hint="Offer sirf itne combo tak — khali = jitne stock se ban sakein">
@@ -457,15 +457,15 @@ export default function ComboFormPage() {
               <Row label="Combo ki qeemat" value={Number.isFinite(price) ? formatPKR(price) : '—'} strong />
               <Row label="Customer ki bachat" value={Number.isFinite(price) && separate > 0 ? `${formatPKR(Math.max(saving, 0))} (${Math.max(0, Math.round((saving / separate) * 100))}%)` : '—'} tone={saving > 0 ? 'emerald' : undefined} />
               <div className="my-2 border-t border-dashed border-slate-200" />
-              <Row label="Lagat" value={costMoney(cost)} />
-              <Row label="Munafa" value={Number.isFinite(price) ? costMoney(profit) : '—'} tone={profit < 0 ? 'rose' : 'emerald'} />
+              <Row label="Cost" value={costMoney(cost)} />
+              <Row label="Profit" value={Number.isFinite(price) ? costMoney(profit) : '—'} tone={profit < 0 ? 'rose' : 'emerald'} />
               <Row label="Margin" value={costHidden ? '••••' : Number.isFinite(price) && price > 0 ? `${Math.round(margin)}%` : '—'} />
               <div className="my-2 border-t border-dashed border-slate-200" />
               <Row label="Stock se ban sakte" value={parts.length ? String(Math.max(0, canMake)) : '—'} tone={parts.length && canMake <= 3 ? 'amber' : undefined} />
               {parts.length > 0 && limiting && <p className="text-right text-[0.6875rem] text-slate-500">{Number.isFinite(limit) && limit <= fromStock ? 'Aap ki had' : `${limiting} se had`}</p>}
             </dl>
             {Number.isFinite(price) && price > 0 && separate > 0 && saving <= 0 && <Warn>Combo alag alag lene se mehnga ya barabar hai — customer ko koi bachat nahi.</Warn>}
-            {!costHidden && Number.isFinite(price) && price > 0 && profit < 0 && <Warn>Qeemat lagat se kam hai — har combo par nuqsan hoga.</Warn>}
+            {!costHidden && Number.isFinite(price) && price > 0 && profit < 0 && <Warn>Qeemat cost se kam hai — har combo par nuqsan hoga.</Warn>}
             {parts.length > 0 && canMake === 0 && <Warn>Kisi cheez ka stock nahi — abhi ek bhi combo nahi ban sakta.</Warn>}
             <p className="text-[0.6875rem] text-slate-400">Stock product list se — save ke baad Combos list par {branch} ka pakka hisaab</p>
           </div>
@@ -485,15 +485,15 @@ export default function ComboFormPage() {
           steps={[
             { icon: Tag, color: '#16a34a', title: 'Naam aur tag', text: 'Aisa naam likhein jo customer foran samjhe. Tag (Best deal, Family pack) POS card par chhota label banta hai.' },
             { icon: ShoppingBag, color: '#2563eb', title: 'Cheezein daalein', text: 'Naam likh kar Enter, ya barcode scan karein. Miqdar + − se badlein. Pack wale product me dozen/carton chun sakte hain; qismon wale me qism.' },
-            { icon: Percent, color: '#7c3aed', title: 'Qeemat', text: 'Upar "alag alag" ki raqam dikhti hai. "10% kam" jaise button se jaldi qeemat lagayein. Daayein panel me bachat, munafa aur margin live dikhte hain.' },
+            { icon: Percent, color: '#7c3aed', title: 'Qeemat', text: 'Upar "alag alag" ki amount dikhti hai. "10% kam" jaise button se jaldi qeemat lagayein. Daayein panel me bachat, profit aur margin live dikhte hain.' },
             { icon: Boxes, color: '#d97706', title: 'Stock se kitne', text: 'Har cheez ke saath likha hai us ke stock se kitne combo bante hain — sab se kam wali cheez hi had hai.' },
-            { icon: CalendarClock, color: '#e11d48', title: 'Muddat', text: 'Offer ki tareekhen daalein — muddat ke bahar POS par nahi dikhta. "Zyada se zyada" se offer ko gine chune combo tak rakhein.' },
+            { icon: CalendarClock, color: '#e11d48', title: 'Period', text: 'Offer ki tareekhen daalein — period ke bahar POS par nahi dikhta. "Zyada se zyada" se offer ko gine chune combo tak rakhein.' },
             { icon: Barcode, color: '#0891b2', title: 'Barcode', text: 'Jadoo wale button se naya barcode banayein ya camera se scan karein. Label print karke combo par lagayein — POS par scan ho jayega.' },
           ]}
           tips={[
             'Bill me combo ki har cheez alag line banti hai, is liye stock aur reports sahi rehte hain.',
             'Ek hi cheez ka combo bhi ban sakta hai — misaal: 3 sabun ek qeemat par.',
-            'Lagat aur munafa sirf unhein dikhte hain jin ke paas lagat dekhne ki ijazat hai.',
+            'Cost aur profit sirf unhein dikhte hain jin ke paas cost dekhne ki permission hai.',
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['Enter', 'pehli cheez jorein'], ['G', 'guide']]}
         />

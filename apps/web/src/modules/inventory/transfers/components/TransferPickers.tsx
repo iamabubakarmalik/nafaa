@@ -52,7 +52,7 @@ export function PickListModal({ title, description, items, loading, exclude, onC
       <div className="mb-2 flex gap-2">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input data-autofocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein — number, naam, rang…" aria-label="Dhoondein"
+          <input data-autofocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search — number, naam, rang…" aria-label="Search"
             className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-brand-500" />
         </div>
         {list.length > 0 && (
@@ -116,7 +116,7 @@ export function RollPicker({ product, shopId, exclude, money, onPick, onClose }:
 
 export function VariantModal({ product, onPick, onClose }: { product: SendProduct; onPick: (v: VariantChoice) => void; onClose: () => void }) {
   return (
-    <Modal open onClose={onClose} size="sm" title={`${product.name} — kaunsi qism?`} description="Stock bhejne wali branch ka hai">
+    <Modal open onClose={onClose} size="sm" title={`${product.name} — kaunsi type?`} description="Stock bhejne wali branch ka hai">
       <div className="space-y-1">
         {product.variants.map((v) => (
           <button key={v.id} type="button" onClick={() => onPick(v)} disabled={v.stock <= 0}

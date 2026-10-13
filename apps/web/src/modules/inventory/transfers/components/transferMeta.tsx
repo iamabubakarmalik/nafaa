@@ -10,7 +10,7 @@ import type { StockTransfer, StockTransferItem, TransferStatus } from '../api/tr
 export const STATUS: Record<TransferStatus, { label: string; tone: string; color: string }> = {
   PENDING: { label: 'Bhejna baqi', tone: 'bg-slate-100 text-slate-600 ring-slate-200', color: '#64748b' },
   IN_TRANSIT: { label: 'Raste me', tone: 'bg-blue-50 text-blue-700 ring-blue-200', color: '#2563eb' },
-  RECEIVED: { label: 'Wusool', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
+  RECEIVED: { label: 'Receive', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
   CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-500 ring-slate-200', color: '#94a3b8' },
 };
 

@@ -29,14 +29,14 @@ export function SlowMovers({ productPath }: { productPath: (id: string) => strin
           subtitle: `${s.days} din se nahi bika`,
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Item' }, { label: 'Stock', align: 'right' }, { label: 'Aakhri bikri', wideOnly: true }, { label: 'Maal', align: 'right' }],
+            columns: [{ label: 'Item' }, { label: 'Stock', align: 'right' }, { label: 'Aakhri sale', wideOnly: true }, { label: 'Maal', align: 'right' }],
             rows: rows.map((r) => [r.name, `${fmtQty(r.stock)} ${r.unit}`, r.lastSoldAt ? fmtDateTime(r.lastSoldAt) : 'Kabhi nahi', cost(r.value)]),
             footer: ['Kul', '', '', cost(data?.totalValue ?? 0)],
           }],
         })}
       >
-        <MiniSelect label="Muddat" value={s.days} onChange={(days) => set({ days })} options={DAYS} />
-        <MiniSelect label="Tarteeb" value={s.sort} onChange={(sort) => set({ sort })} options={[{ value: 'value', label: 'Maal ki qeemat' }, { value: 'stock', label: 'Stock ginti' }]} />
+        <MiniSelect label="Period" value={s.days} onChange={(days) => set({ days })} options={DAYS} />
+        <MiniSelect label="Sort" value={s.sort} onChange={(sort) => set({ sort })} options={[{ value: 'value', label: 'Maal ki qeemat' }, { value: 'stock', label: 'Stock ginti' }]} />
         <MiniSelect label="Kitne" value={s.limit} onChange={(limit) => set({ limit })} options={LIMIT_OPTIONS} />
         <CategorySelect value={s.categoryId} onChange={(categoryId) => set({ categoryId })} />
       </WidgetToolbar>
@@ -51,7 +51,7 @@ export function SlowMovers({ productPath }: { productPath: (id: string) => strin
                 to={productPath(p.id)}
                 icon={Package}
                 title={p.name}
-                meta={`Stock ${fmtQty(p.stock)} ${p.unit} · ${p.lastSoldAt ? `aakhri bikri ${fmtDateTime(p.lastSoldAt)}` : 'kabhi nahi bika'}`}
+                meta={`Stock ${fmtQty(p.stock)} ${p.unit} · ${p.lastSoldAt ? `aakhri sale ${fmtDateTime(p.lastSoldAt)}` : 'kabhi nahi bika'}`}
                 value={cost(p.value)}
               />
             ))}

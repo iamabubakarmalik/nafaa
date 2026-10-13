@@ -49,7 +49,7 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
           <Section title="Aur" hint="Zaroori nahi — baad mein bhi bhar sakte hain">
             <div className="space-y-4">
               <label className="block">
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Tafseel</span>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Details</span>
                 <textarea value={c.description} onChange={(e) => ctx.setCore({ description: e.target.value })} rows={3} placeholder="Size, flavour, kis kaam aati hai…"
                   className={cn(inputClass, 'h-auto py-2.5')} />
               </label>
@@ -57,7 +57,7 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
               <div className="grid gap-2 sm:grid-cols-2">
                 <Toggle on={c.isActive} onChange={(isActive) => ctx.setCore({ isActive })} title="Chalu" hint="Band ho to POS par nahi dikhti" />
                 <Toggle on={c.isFeatured} onChange={(isFeatured) => ctx.setCore({ isFeatured })} title="Khaas" hint="POS aur store mein upar dikhti hai" />
-                <Toggle on={c.isRawMaterial} onChange={(isRawMaterial) => ctx.setCore({ isRawMaterial })} title="Raw material (kacha maal)" hint="Sirf kharidari aur banane me — POS par nahi bikti" />
+                <Toggle on={c.isRawMaterial} onChange={(isRawMaterial) => ctx.setCore({ isRawMaterial })} title="Raw material (kacha maal)" hint="Sirf purchase aur banane me — POS par nahi bikti" />
               </div>
               {opts.after?.(ctx)}
             </div>
@@ -146,7 +146,7 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
 export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZeroPrice?: boolean } = {}): StepDef<X> {
   const markups = core.markups ?? [10, 15, 20, 25, 30, 50];
   return {
-    id: 'price', title: 'Qeemat', hint: 'Cost, rate, munafa', icon: Wallet,
+    id: 'price', title: 'Qeemat', hint: 'Cost, rate, profit', icon: Wallet,
     validate: (d) => {
       const e: Errors = {};
       if (!opts.allowZeroPrice && !(d.core.price > 0)) e.price = 'Bechne ki qeemat likhein';
@@ -163,7 +163,7 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
       const c = ctx.draft.core;
       return (
         <div className="space-y-4">
-          <Section icon={Wallet} title={`Ek ${c.unit} ki qeemat`} hint="Cost likhein to munafa khud nikal aata hai">
+          <Section icon={Wallet} title={`Ek ${c.unit} ki qeemat`} hint="Cost likhein to profit khud nikal aata hai">
             <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
               <div className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -172,7 +172,7 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
                 </div>
                 {c.costPrice > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
-                    <span className="mr-1">Cost par munafa jorein:</span>
+                    <span className="mr-1">Cost par profit jorein:</span>
                     {markups.map((m) => {
                       const p = Math.round(c.costPrice * (1 + m / 100));
                       return <Chip key={m} on={c.price === p} onClick={() => ctx.setCore({ price: p })}>+{m}% · {p}</Chip>;

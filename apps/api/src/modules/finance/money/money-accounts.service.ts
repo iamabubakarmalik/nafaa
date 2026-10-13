@@ -82,7 +82,7 @@ export class MoneyAccountsService {
 
   /** Kind, method and default must fit together. */
   private checkShape(kind: MoneyAccountKind, method: PaymentMethod | null, isDefault: boolean) {
-    if (method === 'CASH') throw new BadRequestException('Cash bikri golak me jati hai. Account ke liye bank, card, JazzCash ya Easypaisa chunein.');
+    if (method === 'CASH') throw new BadRequestException('Cash sale golak me jati hai. Account ke liye bank, card, JazzCash ya Easypaisa chunein.');
     if (kind === 'CASH' && method) throw new BadRequestException('Tijori (cash) account par payment ka tareeqa nahi lagta');
     if (isDefault && !method) throw new BadRequestException('Default banane ke liye payment ka tareeqa chunein');
   }
@@ -153,7 +153,7 @@ export class MoneyAccountsService {
     const isDefault = !!dto.isDefault;
     this.checkShape(dto.kind, method, isDefault);
     const openingDate = dto.openingDate ? new Date(dto.openingDate) : new Date();
-    if (openingDate.getTime() > Date.now() + 60_000) throw new BadRequestException('Shuru ki tareekh aage ki nahi ho sakti');
+    if (openingDate.getTime() > Date.now() + 60_000) throw new BadRequestException('Shuru ki date aage ki nahi ho sakti');
     const name = dto.name.trim().replace(/\s+/g, ' ');
 
     return this.prisma.$transaction(async (tx) => {
@@ -193,9 +193,9 @@ export class MoneyAccountsService {
       let openingDate: Date | undefined;
       if (dto.openingDate) {
         openingDate = new Date(dto.openingDate);
-        if (openingDate.getTime() > Date.now() + 60_000) throw new BadRequestException('Shuru ki tareekh aage ki nahi ho sakti');
+        if (openingDate.getTime() > Date.now() + 60_000) throw new BadRequestException('Shuru ki date aage ki nahi ho sakti');
         const first = await tx.moneyAccountEntry.findFirst({ where: { tenantId, accountId: a.id }, orderBy: { entryDate: 'asc' }, select: { entryDate: true } });
-        if (first && openingDate > first.entryDate) throw new BadRequestException('Shuru ki tareekh pehli entry se pehle honi chahiye');
+        if (first && openingDate > first.entryDate) throw new BadRequestException('Shuru ki date pehli entry se pehle honi chahiye');
       }
 
       if (isDefault && method) await this.clearDefault(tx, tenantId, a.shopId, method, a.id);
@@ -300,7 +300,7 @@ export class MoneyAccountsService {
     const range = q.from && q.to
       ? await periodRange(this.tz, user.tenantId, q.from, q.to)
       : { gte: a.openingDate, lt: new Date(Date.now() + 60_000) };
-    if (range.gte >= range.lt) throw new BadRequestException('"Se" ki tareekh "Tak" se pehle honi chahiye');
+    if (range.gte >= range.lt) throw new BadRequestException('"Se" ki date "Tak" se pehle honi chahiye');
     const start = range.gte > a.openingDate ? range.gte : a.openingDate;
     const scope = await autoScopeOf(this.prisma, a);
     const opening = start > a.openingDate ? await accountBalance(this.prisma, a, start, scope) : r2(n(a.openingBalance));
@@ -396,7 +396,7 @@ export class MoneyAccountsService {
       const khataPart = await refundKhataParts(this.prisma, a.tenantId, refunds.map((r) => r.returnNumber));
       const lists = [entries, sales, bookingIn, bookingOut, refunds, purchases, suppliers, expenses];
       if (lists.some((l) => l.length > STATEMENT_LIMIT)) {
-        throw new BadRequestException('Is muddat me entries bahut zyada hain — muddat chhoti karein');
+        throw new BadRequestException('Is period me entries bahut zyada hain — period chhoti karein');
       }
       out.push(
         ...sales.map((r) => line('SALE', {
@@ -429,7 +429,7 @@ export class MoneyAccountsService {
         })),
       );
     } else if (entries.length > STATEMENT_LIMIT) {
-      throw new BadRequestException('Is muddat me entries bahut zyada hain — muddat chhoti karein');
+      throw new BadRequestException('Is period me entries bahut zyada hain — period chhoti karein');
     }
     return out;
   }
@@ -451,7 +451,7 @@ export class MoneyAccountsService {
     if (allowNegative) return;
     const balance = await accountBalance(tx, a);
     if (balance - amount < -0.005) {
-      throw new BadRequestException(`${a.name} me sirf ${rs(balance)} hain. Raqam kam karein ya "minus me jane dein" chunein.`);
+      throw new BadRequestException(`${a.name} me sirf ${rs(balance)} hain. Amount kam karein ya "minus me jane dein" chunein.`);
     }
   }
 
@@ -525,7 +525,7 @@ export class MoneyAccountsService {
         if (!dto.allowNegative) {
           const live = await computeLiveCash(tx, tenantId, register);
           if (live.expected - amount < -0.005) {
-            throw new BadRequestException(`Golak me sirf ${rs(live.expected)} hone chahiye. Pehle gin lein ya raqam kam karein.`);
+            throw new BadRequestException(`Golak me sirf ${rs(live.expected)} hone chahiye. Pehle gin lein ya amount kam karein.`);
           }
         }
       } else {
@@ -561,7 +561,7 @@ export class MoneyAccountsService {
   /** Owner capital in, drawings or bank charges out, or a correction. */
   async entry(user: AuthenticatedUser, dto: AccountEntryDto) {
     const tenantId = user.tenantId;
-    if (dto.type !== 'ADJUSTMENT' && dto.amount <= 0) throw new BadRequestException('Raqam sifr se zyada honi chahiye');
+    if (dto.type !== 'ADJUSTMENT' && dto.amount <= 0) throw new BadRequestException('Amount sifr se zyada honi chahiye');
     const amount = r2(dto.amount);
     return this.prisma.$transaction(async (tx) => {
       const a = await this.load(tx, user, dto.accountId, 'Account me entry');
@@ -571,8 +571,8 @@ export class MoneyAccountsService {
       if (again) return again;
 
       const entryDate = dto.entryDate ? new Date(dto.entryDate) : new Date();
-      if (entryDate.getTime() > Date.now() + 60_000) throw new BadRequestException('Aage ki tareekh nahi chalti');
-      if (entryDate < a.openingDate) throw new BadRequestException('Tareekh account shuru hone se pehle ki hai');
+      if (entryDate.getTime() > Date.now() + 60_000) throw new BadRequestException('Aage ki date nahi chalti');
+      if (entryDate < a.openingDate) throw new BadRequestException('Date account shuru hone se pehle ki hai');
 
       const effect = entryEffect(dto.type, amount);
       if (effect < 0) await this.ensureFunds(tx, a, -effect, dto.allowNegative);

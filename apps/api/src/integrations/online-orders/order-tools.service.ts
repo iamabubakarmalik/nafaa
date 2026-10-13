@@ -206,7 +206,7 @@ export class OrderToolsService {
     const today = businessDayKey(new Date(), tz, dayStartHour);
     const toKey = to && DAY_KEY.test(to) ? to : today;
     const fromKey = from && DAY_KEY.test(from) ? from : addDays(toKey, -29);
-    if (fromKey > toKey) throw new BadRequestException('Tareekh sahi nahi');
+    if (fromKey > toKey) throw new BadRequestException('Date sahi nahi');
     if (dayCount(fromKey, toKey) > 400) throw new BadRequestException('Zyada se zyada 1 saal ka report');
     const range = await periodRange(this.tz, tenantId, fromKey, toKey);
     return { tz, dayStartHour, fromKey, toKey, range };

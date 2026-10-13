@@ -46,7 +46,7 @@ function CommissionWidget() {
 
 export const commonWidgets = {
   hero: () => def(
-    { id: 'hero', title: 'Aaj — ek nazar me', description: 'Aaj ki bikri, din bhar ka graph, target aur cash/online', size: 'full' },
+    { id: 'hero', title: 'Aaj — ek nazar me', description: 'Aaj ki sale, din bhar ka graph, target aur cash/online', size: 'full' },
     TodayHero,
   ),
   kpis: () => def(
@@ -58,11 +58,11 @@ export const commonWidgets = {
     bind(DayReportView, {}),
   ),
   salesTrend: () => def(
-    { id: 'sales-trend', title: 'Bikri ka rujhan', description: '7 ya 30 din ki bikri aur munafa', size: 'wide', sizes: ['half', 'wide', 'full'] },
+    { id: 'sales-trend', title: 'Sale ka rujhan', description: '7 ya 30 din ki sale aur profit', size: 'wide', sizes: ['half', 'wide', 'full'] },
     SalesTrend,
   ),
   peakHours: (opts: { openFrom?: number; hint?: string } = {}) => def(
-    { id: 'peak-hours', title: 'Rush ka waqt', description: 'Kis ghante sab se zyada bikri hoti hai', size: 'third', sizes: ['third', 'half', 'wide'] },
+    { id: 'peak-hours', title: 'Rush ka waqt', description: 'Kis ghante sab se zyada sale hoti hai', size: 'third', sizes: ['third', 'half', 'wide'] },
     bind(PeakHours, opts),
   ),
   paymentMix: () => def(
@@ -70,19 +70,19 @@ export const commonWidgets = {
     PaymentMix,
   ),
   profitLoss: () => def(
-    { id: 'profit-loss', title: 'Nafa aur nuqsan', description: 'Mahine ka poora silsila, bikri se haath me bache tak', size: 'wide', sizes: ['wide', 'full'], sensitive: true },
+    { id: 'profit-loss', title: 'Nafa aur nuqsan', description: 'Mahine ka poora silsila, sale se haath me bache tak', size: 'wide', sizes: ['wide', 'full'], sensitive: true },
     ProfitLoss,
   ),
   moneyMap: (opts: MoneyMapOptions = {}) => def(
-    { id: 'money-map', title: 'Paisa kahan hai', description: 'Maal, kharcha, lena, dena aur cash', size: 'full', sensitive: true },
+    { id: 'money-map', title: 'Paisa kahan hai', description: 'Maal, expense, lena, dena aur cash', size: 'full', sensitive: true },
     bind(MoneyMap, opts),
   ),
   categoryMix: () => def(
-    { id: 'category-mix', title: 'Category ke hisaab se', description: 'Har category ki bikri, quantity aur munafa', size: 'half', sizes: ['half', 'wide', 'full'] },
+    { id: 'category-mix', title: 'Category ke hisaab se', description: 'Har category ki sale, quantity aur profit', size: 'half', sizes: ['half', 'wide', 'full'] },
     CategoryMix,
   ),
   staff: () => def(
-    { id: 'staff', title: 'Staff ki bikri', description: 'Kis ne kitna becha — ranking', size: 'half', sizes: ['third', 'half', 'wide'] },
+    { id: 'staff', title: 'Staff ki sale', description: 'Kis ne kitna becha — ranking', size: 'half', sizes: ['third', 'half', 'wide'] },
     StaffBoard,
   ),
   weekday: () => def(
@@ -94,15 +94,15 @@ export const commonWidgets = {
     TopCustomers,
   ),
   monthly: () => def(
-    { id: 'monthly', title: '6 mahine ka muqabla', description: 'Har mahine ki bikri, kharcha aur munafa', size: 'wide', sizes: ['half', 'wide', 'full'] },
+    { id: 'monthly', title: '6 mahine ka muqabla', description: 'Har mahine ki sale, expense aur profit', size: 'wide', sizes: ['half', 'wide', 'full'] },
     MonthlyTrend,
   ),
   expenses: () => def(
-    { id: 'expenses', title: 'Kharcha kahan gaya', description: 'Mahine ke kharche category ke hisaab se', size: 'half', sizes: ANY_SIZE, sensitive: true },
+    { id: 'expenses', title: 'Expense kahan gaya', description: 'Mahine ke expenses category ke hisaab se', size: 'half', sizes: ANY_SIZE, sensitive: true },
     Expenses,
   ),
   purchases: () => def(
-    { id: 'purchases', title: 'Maal ki kharidari', description: 'Haal ki kharidari aur baqi raqam', size: 'half', sizes: ANY_SIZE, sensitive: true },
+    { id: 'purchases', title: 'Maal ki purchase', description: 'Haal ki purchase aur baqi amount', size: 'half', sizes: ANY_SIZE, sensitive: true },
     Purchases,
   ),
   topProducts: (productPath: ProductPath, hint?: string) => def(
@@ -114,7 +114,7 @@ export const commonWidgets = {
     bind(SlowMovers, { productPath }),
   ),
   recentSales: () => def(
-    { id: 'recent-sales', title: 'Haaliya bikri', description: 'Aakhri bill', size: 'half', sizes: ANY_SIZE },
+    { id: 'recent-sales', title: 'Haaliya sale', description: 'Aakhri bill', size: 'half', sizes: ANY_SIZE },
     RecentSales,
   ),
   lowStock: (productPath: ProductPath, labels?: { title?: string; hint?: string }) => def(

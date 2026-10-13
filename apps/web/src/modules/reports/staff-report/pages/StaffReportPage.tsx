@@ -137,7 +137,7 @@ function StaffReport() {
   };
   const exportCsv = async () => {
     try {
-      const header = [`Staff report — ${shopLabel}`, `Muddat: ${label}`];
+      const header = [`Staff report — ${shopLabel}`, `Period: ${label}`];
       if (tab === 'counters') shiftsCsv(await staffReportApi.shifts(shiftQuery()), header, `galla-shifts-${period.from}-${period.to}.csv`);
       else if (d) staffCsv(d, header, !costHidden, `staff-report-${period.from}-${period.to}.csv`);
       else return;
@@ -167,16 +167,16 @@ function StaffReport() {
           <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={t && d ? [
-          { label: 'Staff ki bikri', value: money(t.net), hint: 'wapsi ke baad' },
+          { label: 'Staff ki sale', value: money(t.net), hint: 'return ke baad' },
           { label: 'Bill', value: String(t.bills), hint: `${t.staff} bande` },
           { label: 'Ausat bill', value: money(d.team.average) },
           { label: 'Fi banda', value: money(d.team.perStaff), hint: d.team.perHour ? `${money(d.team.perHour)}/ghanta` : undefined },
-        ] : [{ label: 'Staff ki bikri', value: '' }, { label: 'Bill', value: '' }, { label: 'Ausat bill', value: '' }, { label: 'Fi banda', value: '' }]}
+        ] : [{ label: 'Staff ki sale', value: '' }, { label: 'Bill', value: '' }, { label: 'Ausat bill', value: '' }, { label: 'Fi banda', value: '' }]}
       />
 
       <KpiRow>
         {!t || !d ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (<>
-          <KpiCard icon={BadgePercent} color="#db2777" label="Haath se chhoot" value={money(t.manualDiscount)}
+          <KpiCard icon={BadgePercent} color="#db2777" label="Haath se discount" value={money(t.manualDiscount)}
             hint={hint(t.manualDiscount, prev?.manualDiscount, `${pct(d.team.discountPct)} · ${t.discountBills} bill`, 'bad')}
             onClick={() => { setTab('staff'); setSort('discountPct'); }} active={tab === 'staff' && sort === 'discountPct'} />
           <KpiCard icon={Ban} color="#e11d48" label="Cancel bill" value={String(t.voided)}
@@ -196,17 +196,17 @@ function StaffReport() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={`${config.person} ka naam…`} label="Banda dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={`${config.person} ka naam…`} label="Banda search" />}
         chips={filtered ? <>
           {role && <FilterChip onRemove={() => setRole('')}>{ROLE_LABEL[role] ?? role}</FilterChip>}
-          {sort !== 'net' && <FilterChip onRemove={() => setSort('net')}>Tarteeb: {SORT_LABEL[sort]}</FilterChip>}
+          {sort !== 'net' && <FilterChip onRemove={() => setSort('net')}>Sort: {SORT_LABEL[sort]}</FilterChip>}
           {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={() => { setRole(''); setSort('net'); setSearch(''); }}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
         <FilterMenu icon={GitCompareArrows} label="Muqabla" value={compare ? 'on' : 'off'} active={compare} width="w-72"
           options={[
-            { value: 'on', label: 'Pichli muddat se muqabla', hint: 'Itne hi din pehle ke saath — % aur rank ka badlao' },
+            { value: 'on', label: 'Pichli period se muqabla', hint: 'Itne hi din pehle ke saath — % aur rank ka badlao' },
             { value: 'off', label: 'Muqabla band' },
           ]}
           onChange={(v) => { if ((v === 'on') !== compare) toggleCompare(); }} />
@@ -214,12 +214,12 @@ function StaffReport() {
           <FilterMenu icon={UserRound} label="Role" value={role} active={!!role} onChange={setRole}
             options={[{ value: '', label: 'Sab' }, ...roles.map((r) => ({ value: r, label: ROLE_LABEL[r] ?? r }))]} />
         )}
-        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} active={sort !== 'net'} onChange={setSort} align="right" width="w-60"
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} active={sort !== 'net'} onChange={setSort} align="right" width="w-60"
           options={(Object.keys(SORT_LABEL) as StaffSort[]).filter((k) => (k !== 'profit' || !costHidden) && (k !== 'short' || !drawerHidden)).map((k) => ({ value: k, label: SORT_LABEL[k] }))} />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab} tabs={tabs}
-        hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> tab · <Kbd>/</Kbd> dhoondein · <Kbd>C</Kbd> muqabla</>} />
+        hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> tab · <Kbd>/</Kbd> search · <Kbd>C</Kbd> muqabla</>} />
 
       {q.error && !d ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
@@ -250,21 +250,21 @@ function StaffReport() {
       {guide.isOpen && (
         <PageGuide title="Staff aur counter — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: 'Aaj, 7 din, mahina ya apni tareekh. "Muqabla" on ho to har number pichli itni hi muddat se milta hai aur rank ka upar neeche dikhta hai.' },
-            { icon: Crown, color: '#d97706', title: 'Kaun aage hai', text: 'Upar ke inaam: sab se zyada bikri, bill, bara ausat bill, sab se tez (fi ghanta) aur kam chhoot. Neeche har banda rank ke saath.' },
-            { icon: AlertTriangle, color: '#e11d48', title: 'Nazar rakhein', text: 'Jis ki chhoot, cancel bill, wapsi, udhaar ya galla ka farq team ki ausat se kaafi zyada ho, wo yahan aata hai. Pooch lein — har dafa ghalti nahi hoti.' },
-            { icon: MousePointerClick, color: '#16a34a', title: 'Bande par click', text: 'Us ke bill (chhoot, udhaar, wapsi, cancel), galla shifts, ki hui wapsi, PIN record, haziri aur commission ek jagah.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: 'Aaj, 7 din, mahina ya apni date. "Muqabla" on ho to har number pichli itni hi period se milta hai aur rank ka upar neeche dikhta hai.' },
+            { icon: Crown, color: '#d97706', title: 'Kaun aage hai', text: 'Upar ke inaam: sab se zyada sale, bill, bara ausat bill, sab se tez (fi ghanta) aur kam discount. Neeche har banda rank ke saath.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Nazar rakhein', text: 'Jis ki discount, cancel bill, return, udhaar ya galla ka farq team ki ausat se kaafi zyada ho, wo yahan aata hai. Pooch lein — har dafa ghalti nahi hoti.' },
+            { icon: MousePointerClick, color: '#16a34a', title: 'Bande par click', text: 'Us ke bill (discount, udhaar, return, cancel), galla shifts, ki hui return, PIN record, haziri aur commission ek jagah.' },
             { icon: Vault, color: '#7c3aed', title: 'Galla / counter', text: 'Har shift: kis ne kholi aur band ki, kitni der chali, hisab kitna tha aur gina kitna — kam ya zyada. Din war aur banda war farq.' },
             { icon: Trophy, color: '#0891b2', title: 'Print aur CSV', text: 'Staff ki list ya shifts A4, PDF ya thermal par print karein, ya CSV me accountant ko bhejein.' },
           ]}
           tips={[
-            'Bikri usi ke naam lagti hai jo POS par "kis ke naam" me chuna ho. Na chuna ho to jis ne bill banaya us ke naam.',
-            'Fi ghanta bikri haziri ke ghanton se banti hai. Haziri na ho to galla shift ke ghante, warna sirf wo ghante jin me bill bana.',
-            'Chhoot sirf haath se di gayi ginti hai — discount code aur points ki chhoot is me nahi.',
+            'Sale usi ke naam lagti hai jo POS par "kis ke naam" me chuna ho. Na chuna ho to jis ne bill banaya us ke naam.',
+            'Fi ghanta sale haziri ke ghanton se banti hai. Haziri na ho to galla shift ke ghante, warna sirf wo ghante jin me bill bana.',
+            'Discount sirf haath se di gayi ginti hai — discount code aur points ki discount is me nahi.',
             'Galla ka farq 50 paise tak barabar mana jata hai.',
             'Cancel bill us bande ke naam ginta hai jis ne cancel kiya. Purane cancel bill (jab ye record nahi hota tha) bill wale bande ke naam.',
-            'Ye report dekhne ke liye "View Reports" aur "View Staff" dono ijazatein chahiye.',
-            'Malik Settings → Reports se staff se munafa ya galla chhupa sakta hai. Ye sirf dikhane ka usool hai, koi ijazat nahi deta.',
+            'Ye report dekhne ke liye "View Reports" aur "View Staff" dono permissions chahiye.',
+            'Malik Settings → Reports se staff se profit ya galla chhupa sakta hai. Ye sirf dikhane ka usool hai, koi permission nahi deta.',
             ...(config.tips ?? []),
           ]}
           shortcuts={[['1–4', 'tab'], ['/', 'dhoondein'], ['C', 'muqabla'], ['G', 'guide'], ['Esc', 'band']]}
@@ -278,8 +278,8 @@ function StaffReport() {
 function Branches({ data, money, onOpen }: { data: StaffOverview; money: (n: number) => string; onOpen: (id: string) => void }) {
   const max = Math.max(1, ...data.byShop.map((b) => b.net));
   return (
-    <Panel icon={Building2} title="Branch war staff" hint="Har branch ki bikri, kitne bande bikri kar rahe hain aur wahan sab se aage kaun">
-      {!data.byShop.length ? <Empty text="Koi bikri nahi" /> : (
+    <Panel icon={Building2} title="Branch war staff" hint="Har branch ki sale, kitne bande sale kar rahe hain aur wahan sab se aage kaun">
+      {!data.byShop.length ? <Empty text="Koi sale nahi" /> : (
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {data.byShop.map((b) => (
             <li key={b.id ?? 'none'} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">

@@ -39,12 +39,12 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
     <div className="space-y-3">
       {confirmCancel && (
         <Modal open onClose={() => setConfirmCancel(false)} title="Plan band karein?" size="sm"
-          description="Plan isi muddat ke aakhir tak chalta rahega. Data mehfooz rahega, kabhi bhi wapas chalu kar sakte hain."
+          description="Plan isi period ke aakhir tak chalta rahega. Data mehfooz rahega, kabhi bhi wapas chalu kar sakte hain."
           footer={<>
             <Button variant="secondary" onClick={() => setConfirmCancel(false)}>Nahi</Button>
             <Button variant="danger" loading={b.cancel.isPending} onClick={() => b.cancel.mutate(undefined, { onSuccess: () => setConfirmCancel(false) })}>Haan, band karein</Button>
           </>}>
-          <p className="text-[0.875rem] text-slate-700">Band hone ki tareekh: <b>{formatDate(sub.currentPeriodEnd)}</b></p>
+          <p className="text-[0.875rem] text-slate-700">Band hone ki date: <b>{formatDate(sub.currentPeriodEnd)}</b></p>
         </Modal>
       )}
 
@@ -67,17 +67,17 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
         </div>
 
         <dl className="mt-4 grid gap-2 sm:grid-cols-3">
-          <Tile icon={CalendarDays} label="Muddat shuru" value={formatDate(sub.currentPeriodStart)} />
+          <Tile icon={CalendarDays} label="Period shuru" value={formatDate(sub.currentPeriodStart)} />
           <Tile icon={CalendarClock} label={trial ? 'Trial khatam' : 'Plan khatam'} value={formatDate(b.endsAt)}
             hint={daysLeft != null ? daysText(daysLeft) : undefined} tone={daysLeft != null && daysLeft <= 7 ? 'warn' : undefined} />
           <Tile icon={RefreshCw} label="Renew" value={INTERVAL[sub.interval]?.label ?? sub.interval}
-            hint={sub.cancelAtPeriodEnd ? 'Muddat ke aakhir par band hoga' : sub.autoRenew ? 'Khud renew hota hai' : 'Khud renew karna hoga'} />
+            hint={sub.cancelAtPeriodEnd ? 'Period ke aakhir par band hoga' : sub.autoRenew ? 'Khud renew hota hai' : 'Khud renew karna hoga'} />
         </dl>
 
         {canStop && (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
             <p className="text-[0.8125rem] text-slate-500">
-              {sub.cancelAtPeriodEnd ? `Ye plan ${formatDate(sub.currentPeriodEnd)} ko band ho jayega — data mehfooz rahega.` : 'Kabhi bhi band kar sakte hain — muddat ke aakhir tak sab chalta rahega.'}
+              {sub.cancelAtPeriodEnd ? `Ye plan ${formatDate(sub.currentPeriodEnd)} ko band ho jayega — data mehfooz rahega.` : 'Kabhi bhi band kar sakte hain — period ke aakhir tak sab chalta rahega.'}
             </p>
             {sub.cancelAtPeriodEnd
               ? <Button size="sm" variant="secondary" loading={b.reactivate.isPending} onClick={() => b.reactivate.mutate()}><RefreshCw className="h-4 w-4" /> Wapas chalu karein</Button>
@@ -89,14 +89,14 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
       {pending && (
         <Alert tone="warning" title={`${pending.subscription.plan.name} · ${INTERVAL[pending.subscription.interval]?.label ?? ''} — payment baqi`}
           action={<Link to={`/billing/invoice/${pending.invoice.id}/pay`}><Button size="sm"><CreditCard className="h-4 w-4" /> {formatPKR(pending.invoice.amountDue)} ada karein</Button></Link>}>
-          Bill {pending.invoice.invoiceNumber}. Payment manzoor hote hi naya plan chalu ho jayega — tab tak {trial ? 'trial' : 'purana plan'} chalta rahega.
+          Bill {pending.invoice.invoiceNumber}. Payment approve hote hi naya plan chalu ho jayega — tab tak {trial ? 'trial' : 'purana plan'} chalta rahega.
         </Alert>
       )}
 
       {needsRenewal && !trial && !pending && (
         <Alert tone="danger" title={sub.status === 'ACTIVE' ? `Renew ${daysLeft && daysLeft > 0 ? `${daysLeft} din me` : 'aaj'} karna hai` : 'Plan renew karna zaroori hai'}
           action={<Button size="sm" onClick={onPlans}><RefreshCw className="h-4 w-4" /> Renew</Button>}>
-          Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din zaya nahi honge, naye period me jud jayenge.
+          Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din waste nahi honge, naye period me jud jayenge.
         </Alert>
       )}
 

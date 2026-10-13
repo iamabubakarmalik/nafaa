@@ -71,14 +71,14 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
       )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] ring-1 ring-slate-200">
-        <span className="font-semibold text-slate-900">{value.length} ijazatein</span>
+        <span className="font-semibold text-slate-900">{value.length} permissions</span>
         {extra.length === 0 && missing.length === 0
           ? <span className="text-emerald-700">Bilkul {ROLES[role].label} jaisi</span>
           : <>
             {extra.length > 0 && <span className="inline-flex items-center gap-1 text-violet-700"><Plus className="h-3 w-3" />{ROLES[role].label} se zyada: {extra.length}</span>}
             {missing.length > 0 && <span className="inline-flex items-center gap-1 text-amber-800"><Minus className="h-3 w-3" />{ROLES[role].label} se kam: {missing.length}</span>}
           </>}
-        <span className="text-slate-500">Jo nishan laga hai sirf wohi milta hai — koi chhupi ijazat nahi.</span>
+        <span className="text-slate-500">Jo nishan laga hai sirf wohi milta hai — koi chhupi permission nahi.</span>
       </div>
 
       {posGap.length > 0 && (
@@ -86,7 +86,7 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="font-semibold">POS counter theek se nahi chalega</p>
-            <p className="text-[0.75rem]">Counter ki ijazat hai magar yeh nahi: {posGap.map((p) => permText(p)[0]).join(', ')}. In ke baghair counter par maal nazar nahi aayega aur offline sync ruk jayegi.</p>
+            <p className="text-[0.75rem]">Counter ki permission hai magar yeh nahi: {posGap.map((p) => permText(p)[0]).join(', ')}. In ke baghair counter par maal nazar nahi aayega aur offline sync ruk jayegi.</p>
           </div>
           {!readOnly && (
             <button type="button" onClick={() => onChange?.([...new Set([...value, ...posGap])])}
@@ -97,7 +97,7 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
 
       <label className="relative block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ijazat dhoondein — maslan: khata, void, kharcha"
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Permission search — maslan: khata, void, expense"
           className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
       </label>
 

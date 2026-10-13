@@ -191,7 +191,7 @@ export function jewelryToReceipt(s: any): ReceiptDoc {
     lines, subtotal: Number(s.subtotal || lines.reduce((a, l) => a + l.total, 0)), discount: Number(s.discount || 0), extraRows,
     total: Number(s.total || 0), paid: Number(s.paidAmount || 0),
     paymentLabel: `Paid (${PAYMENT_LABELS[s.paymentMethod] ?? s.paymentMethod ?? 'Cash'})`,
-    footerNote: 'Wapsi aur badalne par us din ke rate ke mutabiq hisaab hoga.',
+    footerNote: 'Return aur badalne par us din ke rate ke mutabiq hisaab hoga.',
   };
 }
 

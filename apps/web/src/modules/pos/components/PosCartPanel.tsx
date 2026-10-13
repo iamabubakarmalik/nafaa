@@ -203,7 +203,7 @@ export function PosCartPanel(props: PosCartPanelProps) {
               {deliveryFee > 0 && <div className="flex justify-between text-slate-600"><dt>Delivery</dt><dd className="tabular-nums">+{money(deliveryFee, hidePrices)}</dd></div>}
             </dl>
             <div className={cn('flex items-end justify-between', (hasDiscount || deliveryFee > 0 || totalSavings > 0) && 'mt-2 border-t border-dashed border-slate-300 pt-2')}>
-              <span className="text-[0.8125rem] font-medium text-slate-500">Kul raqam</span>
+              <span className="text-[0.8125rem] font-medium text-slate-500">Kul amount</span>
               <span className="text-[1.875rem] font-bold leading-none tabular-nums tracking-tight text-slate-900">{money(total, hidePrices)}</span>
             </div>
             <FbrModeIndicator saleTotal={total} />

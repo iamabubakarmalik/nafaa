@@ -35,7 +35,7 @@ export function Delta({ now, before, up = 'good' }: { now: number; before: numbe
   const Icon = change > 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-emerald-600' : 'text-rose-600')}>
-      <Icon className="h-3.5 w-3.5" />{Math.abs(change).toFixed(0)}% pichli muddat se
+      <Icon className="h-3.5 w-3.5" />{Math.abs(change).toFixed(0)}% pichli period se
     </span>
   );
 }

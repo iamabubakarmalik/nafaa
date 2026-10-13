@@ -77,7 +77,7 @@ function bookingReceipt(b: Booking, o: Pick<Opts, 'prices' | 'payments' | 'notes
     hidePrices: !o.prices,
     footerNote: o.notes && b.notes ? b.notes : undefined,
     boxes: o.payments && pays.length
-      ? [{ title: 'Payments', lines: pays.map((p) => `${new Date(p.paidAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · ${p.type === 'REFUND' ? 'Wapsi' : p.type === 'ADVANCE' ? 'Advance' : 'Mazeed'} · ${method(p.paymentMethod)} · ${p.type === 'REFUND' ? '−' : ''}${money(p.amount)}`) }]
+      ? [{ title: 'Payments', lines: pays.map((p) => `${new Date(p.paidAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · ${p.type === 'REFUND' ? 'Return' : p.type === 'ADVANCE' ? 'Advance' : 'Mazeed'} · ${method(p.paymentMethod)} · ${p.type === 'REFUND' ? '−' : ''}${money(p.amount)}`) }]
       : undefined,
   };
 }
@@ -123,7 +123,7 @@ export function BookingPrintModal({ booking, onClose }: { booking: Booking; onCl
           </div>
           <div>
             <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Slip par</p>
-            <Toggle k="prices" label="Rates aur raqam" hint="Karigar ki copy me chhupa sakte hain" />
+            <Toggle k="prices" label="Rates aur amount" hint="Karigar ki copy me chhupa sakte hain" />
             <Toggle k="payments" label="Payments ki list" hint="Kab kitna advance aaya" />
             <Toggle k="notes" label="Customer ka note" />
             <Toggle k="terms" label="Shartein (Settings se)" />

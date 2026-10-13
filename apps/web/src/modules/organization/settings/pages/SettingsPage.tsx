@@ -56,7 +56,7 @@ const TABS: TabDef[] = [
   { id: 'localization', label: 'Zubaan aur waqt', desc: 'Currency, time zone, din ka aaghaz', icon: Globe, group: 'shop' },
   { id: 'tax', label: 'Tax', desc: 'GST, tax number, hisaab', icon: Percent, group: 'shop' },
   { id: 'reports', label: 'Reports', desc: 'Rozana closing report, hafta', icon: BarChart3, group: 'shop' },
-  { id: 'pos', label: 'Counter ke usool', desc: 'Payment, chhoot, PIN', icon: ShoppingBag, group: 'counter' },
+  { id: 'pos', label: 'Counter ke usool', desc: 'Payment, discount, PIN', icon: ShoppingBag, group: 'counter' },
   { id: 'receipt', label: 'Raseed (bill)', desc: 'Design, kaghaz, apni likhai, live preview', icon: Receipt, group: 'counter' },
   { id: 'inventory', label: 'Stock', desc: 'Kam stock, minus stock', icon: Package, group: 'counter' },
   { id: 'customer', label: 'Udhaar aur loyalty', desc: 'Credit limit, points', icon: CreditCard, group: 'customers' },
@@ -85,12 +85,12 @@ const INDEX: Array<{ tab: TabId; find: string; words?: string }> = [
   { tab: 'reports', find: 'Preview aur abhi bhejein', words: 'whatsapp send now report bhejo' },
   { tab: 'pos', find: 'Pehle se chuna payment', words: 'cash card default payment' },
   { tab: 'pos', find: 'Har bill par customer zaroori', words: 'walk in customer' },
-  { tab: 'pos', find: 'Haath se chhoot', words: 'discount' }, { tab: 'pos', find: 'Zyada se zyada chhoot', words: 'discount max limit had' },
-  { tab: 'pos', find: 'Bill cancel par PIN', words: 'void pin' }, { tab: 'pos', find: 'Wapsi par PIN', words: 'refund return pin' },
-  { tab: 'pos', find: 'Har chhoot par PIN', words: 'discount pin' },
+  { tab: 'pos', find: 'Haath se discount', words: 'discount' }, { tab: 'pos', find: 'Zyada se zyada discount', words: 'discount max limit had' },
+  { tab: 'pos', find: 'Bill cancel par PIN', words: 'void pin' }, { tab: 'pos', find: 'Return par PIN', words: 'refund return pin' },
+  { tab: 'pos', find: 'Har discount par PIN', words: 'discount pin' },
   { tab: 'receipt', find: 'Kaghaz', words: 'receipt printer 58 80 a4 size' }, { tab: 'receipt', find: 'Andaaz', words: 'style design modern' },
   { tab: 'receipt', find: 'Naam ke neeche chhoti line', words: 'header tagline' }, { tab: 'receipt', find: 'Neeche apna paigham', words: 'footer message' },
-  { tab: 'receipt', find: 'Wapsi ke usool', words: 'terms return policy' }, { tab: 'receipt', find: 'Background par naam', words: 'watermark rang colour' },
+  { tab: 'receipt', find: 'Return ke usool', words: 'terms return policy' }, { tab: 'receipt', find: 'Background par naam', words: 'watermark rang colour' },
   { tab: 'receipt', find: 'Bill khulte hi print', words: 'auto print copies' },
   { tab: 'receipt', find: 'Paise kaise bhejein', words: 'jazzcash easypaisa bank account iban raast payment' },
   { tab: 'receipt', find: 'A4 invoice', words: 'invoice pdf tax invoice due date' },
@@ -168,7 +168,7 @@ export default function SettingsPage() {
         loading={isLoading}
         stats={settings ? [
           { label: 'Malik ka PIN', value: pinOn ? 'Laga hua' : 'Nahi laga' },
-          { label: 'Chhoot ki had', value: settings.allowDiscount ? `${settings.maxDiscountPercent}%` : 'Band' },
+          { label: 'Discount ki had', value: settings.allowDiscount ? `${settings.maxDiscountPercent}%` : 'Band' },
           { label: 'Udhaar', value: settings.allowCredit ? 'Chalu' : 'Band' },
           { label: 'Loyalty', value: settings.enableLoyalty ? 'Chalu' : 'Band' },
         ] : undefined}
@@ -180,7 +180,7 @@ export default function SettingsPage() {
         <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Setting dhoondein…" aria-label="Setting dhoondein"
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Setting search…" aria-label="Setting search"
               onKeyDown={(e) => { if (e.key === 'Enter' && results[0]) open(results[0].tab, results[0].find); if (e.key === 'Escape') setQuery(''); }}
               className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
             {query && (
@@ -273,7 +273,7 @@ export default function SettingsPage() {
 
           {!canEdit && (
             <div className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-600">
-              <Eye className="h-4 w-4 shrink-0" /> Aap settings sirf dekh sakte hain — badalne ki ijazat malik se lein.
+              <Eye className="h-4 w-4 shrink-0" /> Aap settings sirf dekh sakte hain — badalne ki permission malik se lein.
             </div>
           )}
 

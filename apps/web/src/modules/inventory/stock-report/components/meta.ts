@@ -53,11 +53,11 @@ export const LINE_STATUS: Record<StockLine['status'], { label: string; tone: str
 
 /** Stock ledger kinds, in the order they print. */
 export const KINDS: Array<{ key: string; label: string; dir: 'in' | 'out' }> = [
-  { key: 'buy', label: 'Kharidari', dir: 'in' },
-  { key: 'returnIn', label: 'Customer wapsi', dir: 'in' },
+  { key: 'buy', label: 'Purchase', dir: 'in' },
+  { key: 'returnIn', label: 'Customer return', dir: 'in' },
   { key: 'transferIn', label: 'Branch se aaya', dir: 'in' },
   { key: 'adjustIn', label: 'Ginti / opening (+)', dir: 'in' },
-  { key: 'sale', label: 'Bikri', dir: 'out' },
+  { key: 'sale', label: 'Sale', dir: 'out' },
   { key: 'transferOut', label: 'Branch ko gaya', dir: 'out' },
   { key: 'damage', label: 'Kharab / gum', dir: 'out' },
   { key: 'adjustOut', label: 'Ginti (−)', dir: 'out' },
@@ -65,7 +65,7 @@ export const KINDS: Array<{ key: string; label: string; dir: 'in' | 'out' }> = [
 ];
 
 export const MOVE_LABEL: Record<string, string> = {
-  PURCHASE_IN: 'Kharidari', SALE_OUT: 'Bikri', ADJUSTMENT_IN: 'Ginti (+)', ADJUSTMENT_OUT: 'Ginti (−)', RETURN_IN: 'Customer wapsi',
+  PURCHASE_IN: 'Purchase', SALE_OUT: 'Sale', ADJUSTMENT_IN: 'Ginti (+)', ADJUSTMENT_OUT: 'Ginti (−)', RETURN_IN: 'Customer return',
   OPENING_BALANCE: 'Opening', DAMAGE: 'Kharab', LOSS: 'Gum', TRANSFER_IN: 'Branch se aaya', TRANSFER_OUT: 'Branch ko gaya', PURCHASE_RETURN: 'Supplier ko wapas',
 };
 

@@ -21,12 +21,12 @@ export function DimTable({ rows, title, note, fmt, onPick }: {
   /** Filters the page by this row (category, brand, staff). */
   onPick?: (row: ProfitDim) => void;
 }) {
-  if (!rows.length) return <Empty text="Is muddat me kuch nahi bika" />;
+  if (!rows.length) return <Empty text="Is period me kuch nahi bika" />;
   return (
     <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       {note && <p className="border-b border-slate-100 px-4 py-2.5 text-[0.75rem] text-slate-500">{note}</p>}
       <div className={cn('hidden gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', GRID)}>
-        <span>{title}</span><span className="text-right">Bikri · hissa</span><span className="text-right">Lagat</span><span className="text-right">Munafa</span><span className="text-right">Margin</span>
+        <span>{title}</span><span className="text-right">Sale · hissa</span><span className="text-right">Cost</span><span className="text-right">Profit</span><span className="text-right">Margin</span>
       </div>
       <ul className="divide-y divide-slate-100">
         {rows.map((r) => {
@@ -72,7 +72,7 @@ export function DimTable({ rows, title, note, fmt, onPick }: {
 
 export function DayTable({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
   const rows = [...data.trend].reverse().filter((d) => d.bills > 0 || d.revenue !== 0);
-  if (!rows.length) return <Empty text="Is muddat me koi bikri nahi" />;
+  if (!rows.length) return <Empty text="Is period me koi sale nahi" />;
   return (
     <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="overflow-x-auto">
@@ -81,11 +81,11 @@ export function DayTable({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
             <tr>
               <th className="px-4 py-2.5">{data.range.byMonth ? 'Mahina' : 'Din'}</th>
               <th className="px-3 py-2.5 text-right">Bill</th>
-              <th className="px-3 py-2.5 text-right">Bikri</th>
+              <th className="px-3 py-2.5 text-right">Sale</th>
               <th className="px-3 py-2.5 text-right">Discount</th>
-              <th className="px-3 py-2.5 text-right">Wapsi</th>
-              <th className="px-3 py-2.5 text-right">Lagat</th>
-              <th className="px-3 py-2.5 text-right">Munafa</th>
+              <th className="px-3 py-2.5 text-right">Return</th>
+              <th className="px-3 py-2.5 text-right">Cost</th>
+              <th className="px-3 py-2.5 text-right">Profit</th>
               <th className="px-4 py-2.5 text-right">Margin</th>
             </tr>
           </thead>

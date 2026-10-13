@@ -86,13 +86,13 @@ export default function SuppliersListPage() {
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
             <PrintButton doc={async () => suppliersDoc((await suppliersApi.list({ ...params, page: 1, limit: 500 })).items)} disabled={!items.length} />
           </span>
-          <Link to="/purchases" className={heroButton}><ShoppingCart className="h-4 w-4" /> Kharidari</Link>
+          <Link to="/purchases" className={heroButton}><ShoppingCart className="h-4 w-4" /> Purchase</Link>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canEdit && <Link to="/suppliers/new" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya supplier</Link>}
         </>}
         stats={s ? [
           { label: 'Kul dena hai', value: formatPKR(s.totalOutstanding), hint: `${s.suppliersWithDebt} supplier` },
-          { label: 'Is mahine kharidari', value: formatPKR(s.monthPurchases), hint: `${s.monthCount} bill` },
+          { label: 'Is mahine purchase', value: formatPKR(s.monthPurchases), hint: `${s.monthCount} bill` },
           { label: 'Is mahine diye', value: formatPKR(s.monthLedgerPaid + s.monthPaid) },
           { label: 'Suppliers', value: s.activeSuppliers, hint: `${s.totalSuppliers} kul` },
         ] : undefined}
@@ -110,7 +110,7 @@ export default function SuppliersListPage() {
       {/* Filters */}
       {tab === 'list' && (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Search" />}
           chips={filtered ? <>
             {dues !== 'all' && <FilterChip onRemove={() => setDues('all')}>{DUES.find((o) => o.value === dues)?.label}</FilterChip>}
             {status !== 'active' && <FilterChip onRemove={() => setStatus('active')}>{status === 'inactive' ? 'Band' : 'Sab halat'}</FilterChip>}
@@ -121,13 +121,13 @@ export default function SuppliersListPage() {
           <FilterMenu icon={Banknote} label="Baqi" value={dues} active={dues !== 'all'} onChange={setDues} options={DUES} />
           <FilterMenu icon={Filter} label="Halat" value={status} active={status !== 'active'} onChange={setStatus} options={STATUSES} />
           {cities.length > 2 && <FilterMenu icon={MapPin} label="Shehar" value={city} active={!!city} onChange={setCity} options={cities} />}
-          <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} active={sort !== 'due'} onChange={setSort} align="right"
-            options={[{ value: 'due', label: 'Sab se zyada baqi' }, { value: 'recent', label: 'Haal hi me' }, { value: 'purchased', label: 'Sab se zyada kharidari' }, { value: 'orders', label: 'Sab se zyada bill' }, { value: 'name', label: 'Naam (A–Z)' }]} />
+          <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} active={sort !== 'due'} onChange={setSort} align="right"
+            options={[{ value: 'due', label: 'Sab se zyada baqi' }, { value: 'recent', label: 'Haal hi me' }, { value: 'purchased', label: 'Sab se zyada purchase' }, { value: 'orders', label: 'Sab se zyada bill' }, { value: 'name', label: 'Naam (A–Z)' }]} />
         </FilterBar>
       )}
 
       {/* Tabs */}
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya supplier · <Kbd>/</Kbd> dhoondein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya supplier · <Kbd>/</Kbd> search</>}
         tabs={[{ id: 'list', label: 'Suppliers', icon: Users, count: meta?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <SupplierAnalytics /> : (<>
@@ -159,13 +159,13 @@ export default function SuppliersListPage() {
                   </div>
                 </Link>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[0.75rem]">
-                  <div className="rounded-xl bg-slate-50 py-1.5"><p className="text-slate-500">Kul kharidari</p><p className="font-semibold tabular-nums text-slate-900">{formatPKR(x.totalPurchased)}</p></div>
+                  <div className="rounded-xl bg-slate-50 py-1.5"><p className="text-slate-500">Kul purchase</p><p className="font-semibold tabular-nums text-slate-900">{formatPKR(x.totalPurchased)}</p></div>
                   <div className="rounded-xl bg-slate-50 py-1.5"><p className="text-slate-500">Aakhri maal</p><p className="font-semibold text-slate-900">{last == null ? '—' : last === 0 ? 'Aaj' : `${last} din`}</p></div>
-                  <div className={cn('rounded-xl py-1.5', paid != null && paid > 60 && x.outstandingDue > 0 ? 'bg-rose-50' : 'bg-slate-50')}><p className="text-slate-500">Aakhri adaigi</p><p className="font-semibold text-slate-900">{paid == null ? '—' : paid === 0 ? 'Aaj' : `${paid} din`}</p></div>
+                  <div className={cn('rounded-xl py-1.5', paid != null && paid > 60 && x.outstandingDue > 0 ? 'bg-rose-50' : 'bg-slate-50')}><p className="text-slate-500">Aakhri payment</p><p className="font-semibold text-slate-900">{paid == null ? '—' : paid === 0 ? 'Aaj' : `${paid} din`}</p></div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {canEdit && x.outstandingDue > 0 && <Button size="sm" onClick={() => setPaying(x)} leftIcon={<Banknote className="h-3.5 w-3.5" />}>Adaigi</Button>}
-                  {canBuy && <Button size="sm" variant="secondary" onClick={() => navigate(`/purchases/new?supplier=${x.id}`)} leftIcon={<ShoppingCart className="h-3.5 w-3.5" />}>Kharidari</Button>}
+                  {canEdit && x.outstandingDue > 0 && <Button size="sm" onClick={() => setPaying(x)} leftIcon={<Banknote className="h-3.5 w-3.5" />}>Payment</Button>}
+                  {canBuy && <Button size="sm" variant="secondary" onClick={() => navigate(`/purchases/new?supplier=${x.id}`)} leftIcon={<ShoppingCart className="h-3.5 w-3.5" />}>Purchase</Button>}
                   {x.phone && <a href={`tel:${x.phone}`} className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><Phone className="h-3.5 w-3.5" /> Call</a>}
                   {x.phone && <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><MessageCircle className="h-3.5 w-3.5 text-emerald-600" /> WhatsApp</a>}
                 </div>
@@ -188,14 +188,14 @@ export default function SuppliersListPage() {
       {guide.isOpen && (
         <PageGuide title="Suppliers — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#16a34a', title: 'Supplier jorein', text: '"Naya supplier" — naam, phone aur adaigi ki shart. Pehle se kuch dena ho to "Purana hisaab" me likh dein.' },
-            { icon: Banknote, color: '#db2777', title: 'Kitna dena hai', text: 'Har card par laal raqam = abhi dena hai. Upar kul raqam, aur "kitne din purana" ke hisaab se alag alag.' },
-            { icon: Filter, color: '#7c3aed', title: 'Dhoondein aur chhantein', text: 'Naam ya phone se dhoondein. "Baqi" se sirf jinhe dena hai; "Tarteeb" se sab se zyada baqi ya haal hi wale upar.' },
-            { icon: ShoppingCart, color: '#2563eb', title: 'Ek tap me kaam', text: 'Card par "Adaigi" se paisa darj, "Kharidari" se usi supplier ka naya bill, Call aur WhatsApp seedha.' },
+            { icon: Plus, color: '#16a34a', title: 'Supplier jorein', text: '"Naya supplier" — naam, phone aur payment ki shart. Pehle se kuch dena ho to "Purana hisaab" me likh dein.' },
+            { icon: Banknote, color: '#db2777', title: 'Kitna dena hai', text: 'Har card par laal amount = abhi dena hai. Upar kul amount, aur "kitne din purana" ke hisaab se alag alag.' },
+            { icon: Filter, color: '#7c3aed', title: 'Search aur chhantein', text: 'Naam ya phone se dhoondein. "Baqi" se sirf jinhe dena hai; "Tarteeb" se sab se zyada baqi ya haal hi wale upar.' },
+            { icon: ShoppingCart, color: '#2563eb', title: 'Ek tap me kaam', text: 'Card par "Payment" se paisa darj, "Purchase" se usi supplier ka naya bill, Call aur WhatsApp seedha.' },
             { icon: BookOpen, color: '#d97706', title: 'Poora khata', text: 'Supplier par click karein: khata, sab bill, rates kaise badle, bank details aur statement print.' },
             { icon: TrendingUp, color: '#0891b2', title: 'Report', text: 'Print se is filter ke saare suppliers aur un ka baqi A4, PDF ya thermal par.' },
           ]}
-          tips={['Kharidari udhaar par ho to supplier ka dena khud barhta hai; adaigi yahan se darj karein.', '"Aakhri adaigi" laal ho to 60 din se zyada se paisa nahi diya.']}
+          tips={['Kharidari udhaar par ho to supplier ka dena khud barhta hai; adaigi yahan se darj karein.', '"Aakhri payment" laal ho to 60 din se zyada se paisa nahi diya.']}
           shortcuts={[['N', 'naya supplier'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}

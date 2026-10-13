@@ -29,7 +29,7 @@ export function LeaveModal({ staff, today, staffId: initialStaff, canApprove, on
   const m = useMutation({
     mutationFn: () => attendanceApi.createLeave({ staffId, type, startDate: start, endDate: end, reason: reason.trim() || undefined, approve: canApprove && approve }),
     onSuccess: () => {
-      toast.success(approve && canApprove ? 'Chhutti manzoor ho gayi' : 'Chhutti ki darkhwast save ho gayi', { description: `${days} din` });
+      toast.success(approve && canApprove ? 'Chhutti approve ho gayi' : 'Chhutti ki darkhwast save ho gayi', { description: `${days} din` });
       void qc.invalidateQueries({ queryKey: [ATT_KEY] });
       onClose();
     },
@@ -40,7 +40,7 @@ export function LeaveModal({ staff, today, staffId: initialStaff, canApprove, on
   });
 
   return (
-    <Modal open onClose={onClose} title="Chhutti likhein" description="Manzoor chhutti ke din sheet par khud 'Chhutti' dikhte hain"
+    <Modal open onClose={onClose} title="Chhutti likhein" description="Approve chhutti ke din sheet par khud 'Chhutti' dikhte hain"
       footer={<>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button onClick={() => m.mutate()} loading={m.isPending} disabled={!valid} leftIcon={<Palmtree className="h-4 w-4" />}>Save karein</Button>
@@ -48,7 +48,7 @@ export function LeaveModal({ staff, today, staffId: initialStaff, canApprove, on
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (valid && !m.isPending) m.mutate(); }}>
         <Select label="Kis ki chhutti" required value={staffId} onChange={(e) => setStaffId(e.target.value)} placeholder="Staff chunein"
           options={staff.map((s) => ({ value: s.id, label: `${s.fullName} · ${s.designation}` }))} hint="Sirf kaam par mojood staff" />
-        <Select label="Kis qism ki" value={type} onChange={(e) => setType(e.target.value as LeaveType)}
+        <Select label="Kis type ki" value={type} onChange={(e) => setType(e.target.value as LeaveType)}
           options={Object.entries(LEAVE_TYPE).map(([value, label]) => ({ value, label }))} hint="'Bina tankhwah' wali chhutti sheet me alag ginti hai" />
         <div className="grid gap-3 sm:grid-cols-2">
           <Input label="Pehla din" type="date" required value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} hint="Chhutti kis din se" />
@@ -58,7 +58,7 @@ export function LeaveModal({ staff, today, staffId: initialStaff, canApprove, on
         </div>
         <Textarea label="Wajah (marzi se)" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} placeholder="Masalan: shaadi, beemari" hint="Sirf record ke liye" />
         {canApprove && (
-          <Checkbox label="Abhi manzoor kar dein" checked={approve} onChange={(e) => setApprove(e.target.checked)}
+          <Checkbox label="Abhi approve kar dein" checked={approve} onChange={(e) => setApprove(e.target.checked)}
             description="Hata dein to darkhwast 'faisla baqi' me jayegi" />
         )}
         <button type="submit" hidden aria-hidden />

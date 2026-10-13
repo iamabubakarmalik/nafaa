@@ -56,7 +56,7 @@ export function Delta({ now, before, up = 'good', points }: { now: number; befor
   const Icon = diff > 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-emerald-600' : 'text-rose-600')}>
-      <Icon className="h-3.5 w-3.5" />{Math.abs(diff).toFixed(0)}{points ? ' point' : '%'} pichli muddat se
+      <Icon className="h-3.5 w-3.5" />{Math.abs(diff).toFixed(0)}{points ? ' point' : '%'} pichli period se
     </span>
   );
 }

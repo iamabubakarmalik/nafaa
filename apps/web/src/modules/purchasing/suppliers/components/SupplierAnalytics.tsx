@@ -33,12 +33,12 @@ export function SupplierAnalytics() {
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Kul dena hai" value={formatPKR(s.totalOutstanding)} sub={`${s.suppliersWithDebt} supplier`} tone="text-rose-600" />
-        <Stat label="Is mahine kharidari" value={formatPKR(s.monthPurchases)} sub={`${s.growthVsLastMonth >= 0 ? '▲' : '▼'} ${Math.abs(s.growthVsLastMonth).toFixed(0)}% pichle mahine se`} />
+        <Stat label="Is mahine purchase" value={formatPKR(s.monthPurchases)} sub={`${s.growthVsLastMonth >= 0 ? '▲' : '▼'} ${Math.abs(s.growthVsLastMonth).toFixed(0)}% pichle mahine se`} />
         <Stat label="Is mahine diye" value={formatPKR((s.monthLedgerPaid ?? 0) + (s.monthPaid ?? 0))} />
         <Stat label="Ausat bill" value={formatPKR(s.avgOrderValue)} sub={`${s.activeSuppliers} chalu supplier`} />
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />12 mahine — kharidari aur adaigi</span>}>
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />12 mahine — purchase aur payment</span>}>
         <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -55,7 +55,7 @@ export function SupplierAnalytics() {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-amber-600" />Baqi kitna purana</span>} description="Aakhri adaigi ke hisaab se">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-amber-600" />Baqi kitna purana</span>} description="Aakhri payment ke hisaab se">
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={aging} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -76,7 +76,7 @@ export function SupplierAnalytics() {
                 <li key={d.id}>
                   <Link to={`/suppliers/${d.id}`} className="flex items-center justify-between gap-2 py-2 text-[0.8125rem] hover:opacity-80">
                     <span className="min-w-0"><span className="block truncate font-medium text-slate-800">{d.name}</span>
-                      <span className="text-[0.75rem] text-slate-500">{d.daysSincePayment == null ? 'Kabhi adaigi nahi' : `Aakhri adaigi ${d.daysSincePayment} din pehle`}</span></span>
+                      <span className="text-[0.75rem] text-slate-500">{d.daysSincePayment == null ? 'Kabhi payment nahi' : `Aakhri payment ${d.daysSincePayment} din pehle`}</span></span>
                     <span className="shrink-0 font-semibold tabular-nums text-rose-600">{formatPKR(d.outstandingDue)}</span>
                   </Link>
                 </li>
@@ -87,8 +87,8 @@ export function SupplierAnalytics() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Bare suppliers</span>} description="Ab tak ki kul kharidari">
-          {!top.length ? <Empty text="Abhi koi kharidari nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Bare suppliers</span>} description="Ab tak ki kul purchase">
+          {!top.length ? <Empty text="Abhi koi purchase nahi" /> : (
             <ul className="space-y-2.5">
               {top.map((t) => (
                 <li key={t.supplierId}>

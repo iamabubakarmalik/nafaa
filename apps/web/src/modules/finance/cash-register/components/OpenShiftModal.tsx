@@ -58,7 +58,7 @@ export function OpenShiftModal({ shop, onClose }: { shop: { id: string; name: st
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (valid && !m.isPending) m.mutate(); }}>
         <Segmented label="Ginti ka tareeqa" value={mode} onChange={(v) => setMode(v as Mode)}
-          items={[{ value: 'amount', label: 'Kul raqam' }, { value: 'notes', label: 'Note gin kar' }]} />
+          items={[{ value: 'amount', label: 'Kul amount' }, { value: 'notes', label: 'Note gin kar' }]} />
 
         {mode === 'amount' ? (
           <Input data-autofocus label="Galle me cash (opening float)" type="number" inputMode="decimal" min={0} size="lg" required

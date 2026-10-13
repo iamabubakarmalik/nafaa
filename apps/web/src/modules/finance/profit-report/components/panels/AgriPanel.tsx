@@ -69,16 +69,16 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl" title={by === 'kind' ? 'Qism war' : 'Mausam war'} description={fmt.costHidden ? 'Bikri' : 'Bikri aur munafa'}
-        actions={<Segmented label="Kis hisaab se" value={by} onChange={setBy} items={[{ value: 'kind', label: 'Qism' }, { value: 'season', label: 'Mausam' }]} />}>
-        {!chart.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">Koi bikri nahi</p> : (
+      <Card className="rounded-2xl" title={by === 'kind' ? 'Type war' : 'Mausam war'} description={fmt.costHidden ? 'Sale' : 'Sale aur profit'}
+        actions={<Segmented label="Kis hisaab se" value={by} onChange={setBy} items={[{ value: 'kind', label: 'Type' }, { value: 'season', label: 'Mausam' }]} />}>
+        {!chart.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">Koi sale nahi</p> : (
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chart} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'munafa' ? 'Munafa' : 'Bikri']} {...theme.tooltip} />
+                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'munafa' ? 'Profit' : 'Sale']} {...theme.tooltip} />
                 <Bar dataKey="bikri" fill={theme.primarySoft} radius={[6, 6, 0, 0]} barSize={22} />
                 {!fmt.costHidden && <Bar dataKey="munafa" fill={theme.profit} radius={[6, 6, 0, 0]} barSize={22} />}
               </BarChart>
@@ -95,11 +95,11 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
               <AlertTriangle className="h-4 w-4" />Sirf masle wali
             </button>
           )}>
-          {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi' : 'Koi bikri nahi'}</p> : (
+          {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi' : 'Koi sale nahi'}</p> : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[46rem] text-[0.8125rem]">
                 <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <tr><th className="px-4 py-2">Cheez</th><th className="px-3 py-2 text-right">Biki</th><th className="px-3 py-2 text-right">Munafa</th><th className="px-3 py-2 text-right">Per kilo / naap</th><th className="px-3 py-2 text-right">Thok rate</th><th className="px-4 py-2 text-right">Thok margin</th></tr>
+                  <tr><th className="px-4 py-2">Cheez</th><th className="px-3 py-2 text-right">Biki</th><th className="px-3 py-2 text-right">Profit</th><th className="px-3 py-2 text-right">Per kilo / naap</th><th className="px-3 py-2 text-right">Thok rate</th><th className="px-4 py-2 text-right">Thok margin</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {shown.map((r) => (

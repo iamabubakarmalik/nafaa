@@ -54,14 +54,14 @@ export function SourcePicker({ sources, value, onChange, total, allowLater }: {
         })}
         {allowLater && (
           <Option active={value.source === 'NONE'} onClick={() => onChange({ ...value, source: 'NONE', accountId: undefined })} icon={Clock}
-            title="Abhi nahi — baad me dein" sub="Tankhwah ban jayegi, raqam baqi rahegi" />
+            title="Abhi nahi — baad me dein" sub="Tankhwah ban jayegi, amount baqi rahegi" />
         )}
       </div>
       <p className="text-[0.75rem] text-slate-500">
-        Galle se diya cash shift ke hisaab me "Cash out" likha jata hai; account se diya us account ki statement me. Dono ki ijazat Team settings me alag hai.
+        Galle se diya cash shift ke hisaab me "Cash out" likha jata hai; account se diya us account ki statement me. Dono ki permission Team settings me alag hai.
       </p>
       {!sources.canDrawer && !accounts.length && !allowLater && (
-        <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">Aap ko galle ya account se paisa dene ki ijazat nahi.</p>
+        <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">Aap ko galle ya account se paisa dene ki permission nahi.</p>
       )}
       {short && (
         <div className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">

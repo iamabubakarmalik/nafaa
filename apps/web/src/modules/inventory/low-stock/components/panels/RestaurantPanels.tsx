@@ -59,7 +59,7 @@ export function RestaurantDishes() {
   }, [rows]);
 
   if (isLoading) return <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>;
-  if (error) return <p className="rounded-3xl bg-white px-6 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Kitchen ki report dekhne ki ijazat nahi, ya report nahi aa saki.</p>;
+  if (error) return <p className="rounded-3xl bg-white px-6 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Kitchen ki report dekhne ki permission nahi, ya report nahi aa saki.</p>;
   if (!rows.length) {
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">

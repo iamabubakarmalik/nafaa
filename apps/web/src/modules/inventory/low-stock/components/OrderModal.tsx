@@ -42,7 +42,7 @@ export function OrderModal({ groups, shop, showShop, cost, onOrder, onClose }: {
           );
         })}
       </ul>
-      <p className="mt-3 text-[0.75rem] text-slate-500">Order banne ke baad wapas aa kar agle supplier ka banayein. Miqdar badalni ho to "Reorder list" tab se.</p>
+      <p className="mt-3 text-[0.75rem] text-slate-500">Order banne ke baad wapas aa kar agle supplier ka banayein. Quantity badalni ho to "Reorder list" tab se.</p>
     </Modal>
   );
 }

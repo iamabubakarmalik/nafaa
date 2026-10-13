@@ -51,7 +51,7 @@ export function InvoiceModal({ invoice: inv, onClose }: { invoice: Invoice; onCl
   const days = daysUntil(inv.dueDate);
   const rows: Array<[string, string]> = [
     ['Plan', inv.subscription?.plan?.name || inv.description || 'Subscription'],
-    ...(inv.subscription?.interval ? [['Muddat', INTERVAL[inv.subscription.interval].label] as [string, string]] : []),
+    ...(inv.subscription?.interval ? [['Period', INTERVAL[inv.subscription.interval].label] as [string, string]] : []),
     ...(inv.periodStart && inv.periodEnd ? [['Kab se kab tak', `${formatDate(inv.periodStart)} – ${formatDate(inv.periodEnd)}`] as [string, string]] : []),
     ['Bana', formatDate(inv.createdAt)],
     ['Due date', formatDate(inv.dueDate)],
@@ -66,7 +66,7 @@ export function InvoiceModal({ invoice: inv, onClose }: { invoice: Invoice; onCl
         {open && <Link to={`/billing/invoice/${inv.id}/pay`}><Button><CreditCard className="h-4 w-4" /> Payment karein</Button></Link>}
       </>}>
       <div className="rounded-2xl p-4 text-center" style={{ backgroundColor: `${st.color}12` }}>
-        <p className="text-[0.75rem] font-medium" style={{ color: st.color }}>{open ? 'Abhi dena hai' : 'Kul raqam'}</p>
+        <p className="text-[0.75rem] font-medium" style={{ color: st.color }}>{open ? 'Abhi dena hai' : 'Kul amount'}</p>
         <p className="text-3xl font-bold tabular-nums text-slate-900">{formatPKR(open ? inv.amountDue : inv.total)}</p>
         {open && <p className="mt-1 text-[0.75rem] font-semibold" style={{ color: st.color }}>{days < 0 ? `${Math.abs(days)} din der ho gayi` : `Due: ${daysText(days)}`}</p>}
       </div>
@@ -77,7 +77,7 @@ export function InvoiceModal({ invoice: inv, onClose }: { invoice: Invoice; onCl
             <dt className="text-slate-500">{k}</dt><dd className="text-right font-semibold text-slate-900">{v}</dd>
           </div>
         ))}
-        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[0.8125rem]"><dt className="text-slate-500">Raqam</dt><dd className="font-semibold tabular-nums">{formatPKR(inv.subtotal ?? inv.total)}</dd></div>
+        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[0.8125rem]"><dt className="text-slate-500">Amount</dt><dd className="font-semibold tabular-nums">{formatPKR(inv.subtotal ?? inv.total)}</dd></div>
         {!!inv.tax && <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[0.8125rem]"><dt className="text-slate-500">Tax</dt><dd className="font-semibold tabular-nums">{formatPKR(inv.tax)}</dd></div>}
         <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[0.875rem]"><dt className="font-semibold text-slate-900">Kul</dt><dd className="font-bold tabular-nums">{formatPKR(inv.total)}</dd></div>
         <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[0.8125rem]"><dt className="text-slate-500">Ada kiya</dt><dd className="font-semibold tabular-nums text-emerald-700">{formatPKR(inv.amountPaid)}</dd></div>

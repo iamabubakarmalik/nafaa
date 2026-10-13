@@ -131,7 +131,7 @@ export function receiptText(doc: ReceiptDoc, shopName: string, accounts: PayAcco
     '',
     ...doc.lines.map((l) => `${l.qty} ${l.unit} ${l.name} — ${formatPKR(l.total)}`),
     '',
-    doc.discount > 0 ? `Chhoot: −${formatPKR(doc.discount)}` : '',
+    doc.discount > 0 ? `Discount: −${formatPKR(doc.discount)}` : '',
     `*Total: ${formatPKR(doc.total)}*`,
     `${doc.paymentLabel}: ${formatPKR(doc.paid)}`,
     due > 0 ? `Udhaar: ${formatPKR(due)}` : '',

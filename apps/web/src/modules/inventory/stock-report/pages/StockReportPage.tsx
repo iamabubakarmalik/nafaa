@@ -45,13 +45,13 @@ type Tab = 'stock' | 'analytics' | 'branches' | 'period' | string;
 
 const DEAD_KEY = 'nafaa-stock-report-dead-days';
 const SORTS: Array<FilterOption<StockSort>> = [
-  { value: 'value', label: 'Zyada lagat pehle' },
+  { value: 'value', label: 'Zyada cost pehle' },
   { value: 'retail', label: 'Zyada qeemat pehle', hint: 'Bechne ki qeemat par' },
-  { value: 'profit', label: 'Zyada munafa pehle' },
+  { value: 'profit', label: 'Zyada profit pehle' },
   { value: 'margin', label: 'Zyada margin pehle' },
-  { value: 'age', label: 'Purana maal pehle', hint: 'Aakhri bikri ko zyada din' },
+  { value: 'age', label: 'Purana maal pehle', hint: 'Aakhri sale ko zyada din' },
   { value: 'sold', label: 'Zyada bika pehle' },
-  { value: 'revenue', label: 'Zyada bikri raqam pehle' },
+  { value: 'revenue', label: 'Zyada sale amount pehle' },
   { value: 'cover', label: 'Zyada din ka maal pehle' },
   { value: 'stock', label: 'Zyada stock pehle' },
   { value: 'name', label: 'Naam (A–Z)' },
@@ -144,10 +144,10 @@ export default function StockReportPage() {
   const exportCsv = async () => {
     setExporting(true);
     try {
-      const header = [`Stock report — ${shopLabel}`, `Bikri ki muddat: ${periodText}`];
+      const header = [`Stock report — ${shopLabel}`, `Sale ki period: ${periodText}`];
       if (tab === 'period') {
         const l = await stockAnalysisApi.ledger({ ...filters, show: ledgerShow, sort: ledgerSort, limit: 1000 });
-        if (!l.items.length) { toast.error('Is muddat me kuch nahi'); return; }
+        if (!l.items.length) { toast.error('Is period me kuch nahi'); return; }
         ledgerCsv(l, header, !costHidden);
         toast.success(`${l.items.length} cheezein CSV me`);
         return;
@@ -204,18 +204,18 @@ export default function StockReportPage() {
           <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={t ? [
-          { label: costHidden ? 'Stock bechne par' : 'Stock ki lagat', value: costHidden ? money(t.retail) : cost(t.cost), hint: `${t.stocked} cheezein` },
+          { label: costHidden ? 'Stock bechne par' : 'Stock ki cost', value: costHidden ? money(t.retail) : cost(t.cost), hint: `${t.stocked} cheezein` },
           { label: 'Bechne par', value: money(t.retail), hint: 'aaj ke rate' },
-          { label: 'Mumkin munafa', value: cost(t.profit), hint: costHidden ? 'Cost lock' : `${t.margin.toFixed(1)}% margin` },
-          { label: 'Kitne din chalega', value: t.coverDays === null ? '—' : `${t.coverDays} din`, hint: 'is bikri par' },
-        ] : [{ label: 'Stock ki lagat', value: '' }, { label: 'Bechne par', value: '' }, { label: 'Mumkin munafa', value: '' }, { label: 'Kitne din chalega', value: '' }]}
+          { label: 'Mumkin profit', value: cost(t.profit), hint: costHidden ? 'Cost lock' : `${t.margin.toFixed(1)}% margin` },
+          { label: 'Kitne din chalega', value: t.coverDays === null ? '—' : `${t.coverDays} din`, hint: 'is sale par' },
+        ] : [{ label: 'Stock ki cost', value: '' }, { label: 'Bechne par', value: '' }, { label: 'Mumkin profit', value: '' }, { label: 'Kitne din chalega', value: '' }]}
       />
 
       <KpiRow>
         {!counts || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={TrendingUp} color="#0f766e" label="Muddat ki bikri" value={money(t.sold.revenue)}
-              hint={salesChange === null ? `${t.sold.qty.toLocaleString('en-PK')} units biki` : `${salesChange >= 0 ? '+' : ''}${salesChange.toFixed(0)}% pichli muddat se`}
+            <KpiCard icon={TrendingUp} color="#0f766e" label="Period ki sale" value={money(t.sold.revenue)}
+              hint={salesChange === null ? `${t.sold.qty.toLocaleString('en-PK')} units biki` : `${salesChange >= 0 ? '+' : ''}${salesChange.toFixed(0)}% pichli period se`}
               onClick={() => setTab('analytics')} active={tab === 'analytics'} />
             {kpi('out', String(counts.out), 'khatam · dabayein')}
             {kpi('low', String(counts.low), 'alert se neeche')}
@@ -228,7 +228,7 @@ export default function StockReportPage() {
       {Banner && data && <Suspense fallback={null}><Banner list={data} setStatus={(s) => { setTab('stock'); setStatus(s); }} openTab={setTab} /></Suspense>}
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU, barcode, brand ya category…" label="Stock dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU, barcode, brand ya category…" label="Stock search" />}
         chips={filtered ? <>
           {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{STATUS_META[status].label}</FilterChip>}
           {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{data?.facets.categories.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
@@ -238,7 +238,7 @@ export default function StockReportPage() {
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
-        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Bikri ki muddat" allowAll={false} defaultPreset="month" />
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Sale ki period" allowAll={false} defaultPreset="month" />
         <FilterMenu icon={ListFilter} label="Halat" value={status} active={status !== 'all'} options={statusOptions} onChange={(v) => { setTab('stock'); setStatus(v); }} width="w-80" />
         {(data?.facets.categories.length ?? 0) > 1 && (
           <FilterMenu icon={Layers} label="Category" value={categoryId ?? 'all'} active={!!categoryId} width="w-72"
@@ -264,16 +264,16 @@ export default function StockReportPage() {
           options={DEAD_OPTIONS.map((d) => ({ value: String(d), label: `${d} din se nahi bika`, hint: d === 90 ? 'Aam tor par' : undefined }))}
           onChange={(v) => setDead(Number(v))} />
         {tab === 'period'
-          ? <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={ledgerSort} options={LEDGER_SORTS} onChange={setLedgerSort} align="right" width="w-56" />
-          : <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} options={costHidden ? SORTS.filter((s) => !COST_SORTS.includes(s.value)) : SORTS} onChange={setSort} align="right" width="w-64" />}
+          ? <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={ledgerSort} options={LEDGER_SORTS} onChange={setLedgerSort} align="right" width="w-56" />
+          : <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={costHidden ? SORTS.filter((s) => !COST_SORTS.includes(s.value)) : SORTS} onChange={setSort} align="right" width="w-64" />}
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>A</Kbd> analytics · <Kbd>M</Kbd> muddat · <Kbd>/</Kbd> dhoondein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>A</Kbd> analytics · <Kbd>M</Kbd> period · <Kbd>/</Kbd> search</>}
         tabs={[
           { id: 'stock', label: 'Stock', icon: Package, count: data?.total ?? null },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
           ...(multi ? [{ id: 'branches', label: 'Branches', icon: Building2 }] : []),
-          { id: 'period', label: 'Muddat ka hisaab', icon: CalendarClock },
+          { id: 'period', label: 'Period ka hisaab', icon: CalendarClock },
           ...(config.extraTab ? [{ id: config.extraTab.id, label: config.extraTab.label, icon: config.extraTab.icon }] : []),
         ]} />
 
@@ -298,13 +298,13 @@ export default function StockReportPage() {
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg"><PackageX className="h-7 w-7" /></span>
           <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi' : 'Abhi koi maal nahi'}</h3>
-          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Product banayein aur kharidari se stock daalein — report khud ban jayegi.'}</p>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Product banayein aur purchase se stock daalein — report khud ban jayegi.'}</p>
           <div className="mt-4">{filtered ? <Button variant="secondary" onClick={clear}>Filter hatayein</Button> : <Link to="/products/new" className="inline-flex h-10 items-center rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-white hover:bg-brand-700">Product banayein</Link>}</div>
         </div>
       ) : (
         <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <div className={cn('hidden items-center gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', STOCK_GRID)}>
-            <span>Cheez</span><span>Stock</span><span>{costHidden ? 'Qeemat' : 'Lagat · bechne par'}</span><span>Bikri · kitne din</span><span>Aakhri bikri</span><span />
+            <span>Cheez</span><span>Stock</span><span>{costHidden ? 'Qeemat' : 'Cost · bechne par'}</span><span>Sale · kitne din</span><span>Aakhri sale</span><span />
           </div>
           <ul className="divide-y divide-slate-100">
             {items.map((l) => (
@@ -330,22 +330,22 @@ export default function StockReportPage() {
       {guide.isOpen && (
         <PageGuide title="Stock report — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Boxes, color: '#0f766e', title: 'Kitna paisa maal me hai', text: 'Upar lagat (jitne me khareeda), bechne ki qeemat aur mumkin munafa. Branch upar se badlein — har branch ka apna stock.' },
-            { icon: CalendarRange, color: '#2563eb', title: 'Bikri ki muddat', text: '"Bikri ki muddat" se din chunein. Har cheez ki bikri, kitne din chalega aur tez/dheema isi muddat se. Pichli itni hi muddat se muqabla hota hai.' },
-            { icon: Hourglass, color: '#7c3aed', title: 'Dead aur purana maal', text: 'Jo kaafi din se nahi bika woh "Dead stock". Kitne din — filter se 30, 60, 90 ya 180 chunein. Discount ya supplier ko wapsi sochein.' },
+            { icon: Boxes, color: '#0f766e', title: 'Kitna paisa maal me hai', text: 'Upar cost (jitne me khareeda), bechne ki qeemat aur mumkin profit. Branch upar se badlein — har branch ka apna stock.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Sale ki period', text: '"Sale ki period" se din chunein. Har cheez ki sale, kitne din chalega aur tez/dheema isi period se. Pichli itni hi period se muqabla hota hai.' },
+            { icon: Hourglass, color: '#7c3aed', title: 'Dead aur purana maal', text: 'Jo kaafi din se nahi bika woh "Dead stock". Kitne din — filter se 30, 60, 90 ya 180 chunein. Discount ya supplier ko return sochein.' },
             { icon: AlertTriangle, color: '#d97706', title: 'Kam, khatam, expiry', text: 'Upar ke dabbe dabayein to list wahi dikhati hai. Order banana ho to "Reorder" button — Low stock page khulta hai.' },
-            { icon: CalendarClock, color: '#be185d', title: 'Purani tareekh ka stock', text: '"Muddat ka hisaab" tab: muddat ke pehle din kitna tha, kya aaya, kya bika, aur aakhri din kitna bacha. Kisi ek din ka stock dekhna ho to wahi din chunein.' },
-            { icon: MousePointerClick, color: '#16a34a', title: 'Cheez kholein', text: 'Kisi line par click: branch war stock, batch, IMEI/serial, mahine war bikri aur aakhri harkat.' },
+            { icon: CalendarClock, color: '#be185d', title: 'Purani date ka stock', text: '"Period ka hisaab" tab: period ke pehle din kitna tha, kya aaya, kya bika, aur aakhri din kitna bacha. Kisi ek din ka stock dekhna ho to wahi din chunein.' },
+            { icon: MousePointerClick, color: '#16a34a', title: 'Cheez kholein', text: 'Kisi line par click: branch war stock, batch, IMEI/serial, mahine war sale aur aakhri harkat.' },
             ...(config.guide ?? []),
           ]}
           tips={[
-            'Lagat ausat cost par hai — har kharidari par purane aur naye maal ka ausat.',
-            'Bikri me wapas aaya maal minus hai aur void bill shamil nahi.',
+            'Cost ausat cost par hai — har purchase par purane aur naye maal ka ausat.',
+            'Sale me wapas aaya maal minus hai aur void bill shamil nahi.',
             'CSV aur Print isi tab aur filter ka poora data dete hain.',
             ...(config.tips ?? []),
           ]}
-          shortcuts={[['/', 'dhoondein'], ['A', 'analytics'], ...(multi ? [['B', 'branches'] as [string, string]] : []), ['M', 'muddat ka hisaab'], ['G', 'guide']]}
-          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, barcode, brand se dhoondein</span>}
+          shortcuts={[['/', 'dhoondein'], ['A', 'analytics'], ...(multi ? [['B', 'branches'] as [string, string]] : []), ['M', 'period ka hisaab'], ['G', 'guide']]}
+          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, barcode, brand se search</span>}
         />
       )}
     </PageShell>

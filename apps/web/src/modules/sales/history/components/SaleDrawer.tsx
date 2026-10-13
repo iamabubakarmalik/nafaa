@@ -98,10 +98,10 @@ export function SaleDrawer({ sale, money, cost, costHidden, waLink, extra, onRet
               {sale.discount > 0 && <Row label="Discount" value={`−${money(sale.discount)}`} tone="text-amber-700" />}
               <Row label="Kul" value={money(sale.total)} strong />
               <Row label={`Mila · ${PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}`} value={money(sale.paidAmount)} />
-              {sale.changeAmount > 0 && <Row label="Wapsi di" value={money(sale.changeAmount)} tone="text-success-700" />}
+              {sale.changeAmount > 0 && <Row label="Return di" value={money(sale.changeAmount)} tone="text-success-700" />}
               {sale.creditAmount > 0 && <Row label="Udhaar" value={money(sale.creditAmount)} tone="text-amber-700" />}
               {sale.refundedAmount > 0 && <Row label="Wapas kiya" value={money(sale.refundedAmount)} tone="text-rose-700" />}
-              {!costHidden && !sale.pending && <Row label="Munafa" value={`${cost(profit)} (${sale.total > 0 ? ((profit / sale.total) * 100).toFixed(1) : 0}%)`} tone={profit >= 0 ? 'text-success-700' : 'text-rose-700'} />}
+              {!costHidden && !sale.pending && <Row label="Profit" value={`${cost(profit)} (${sale.total > 0 ? ((profit / sale.total) * 100).toFixed(1) : 0}%)`} tone={profit >= 0 ? 'text-success-700' : 'text-rose-700'} />}
             </dl>
           </section>
         </div>

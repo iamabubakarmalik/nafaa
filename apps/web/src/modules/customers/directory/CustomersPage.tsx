@@ -148,7 +148,7 @@ export function CustomersPage() {
           <Link to="/khata" className={heroButton}><BookOpen className="h-4 w-4" /><span className="hidden sm:inline">Khata</span></Link>
           <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {can.create && <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya</button>}
-          {can.create && <Link to="/customers/new" title="Poori tafseel ke saath" className={heroIconButton}><UserPlus className="h-4 w-4" /></Link>}
+          {can.create && <Link to="/customers/new" title="Poori details ke saath" className={heroIconButton}><UserPlus className="h-4 w-4" /></Link>}
         </>}
         stats={[
           { label: 'Kul udhaar baqi', value: st ? money(st.receivable) : '', hint: st ? `${st.owingCount} customers` : '' },
@@ -160,7 +160,7 @@ export function CustomersPage() {
 
       {d.offline && (
         <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] font-medium text-sky-800 ring-1 ring-sky-100">
-          <CloudOff className="h-4 w-4" />Internet nahi — computer par save customers dikh rahe hain. Aamad aur bikri ki ginti internet aane par.
+          <CloudOff className="h-4 w-4" />Internet nahi — computer par save customers dikh rahe hain. Aamad aur sale ki ginti internet aane par.
         </p>
       )}
       {d.data?.period && (
@@ -169,7 +169,7 @@ export function CustomersPage() {
           <span className="text-[0.8125rem] text-slate-600"><strong className="tabular-nums text-slate-900">{d.data.period.buyers}</strong> customers ne khareeda</span>
           <span className="text-[0.8125rem] text-slate-600">Kul <strong className="tabular-nums text-slate-900">{money(d.data.period.spent)}</strong> · {d.data.period.visits} bill</span>
           <span className="text-[0.8125rem] text-slate-600"><strong className="tabular-nums text-slate-900">{d.data.period.joined}</strong> naye jore</span>
-          <span className="text-[0.8125rem] text-slate-600">Udhaar <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong> · wusool <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
+          <span className="text-[0.8125rem] text-slate-600">Udhaar <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong> · receive <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
         </div>
       )}
 
@@ -207,7 +207,7 @@ export function CustomersPage() {
         <div className="flex flex-col gap-2 xl:flex-row">
           <label className="group relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-            <input ref={searchRef} value={d.search} onChange={(e) => d.setSearch(e.target.value)} placeholder="Naam, phone (kisi bhi tarah), CNIC, sheher…" aria-label="Customer dhoondein"
+            <input ref={searchRef} value={d.search} onChange={(e) => d.setSearch(e.target.value)} placeholder="Naam, phone (kisi bhi tarah), CNIC, sheher…" aria-label="Customer search"
               className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-16 text-[0.9375rem] outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
             {d.search ? <button type="button" onClick={() => d.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
               : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
@@ -215,8 +215,8 @@ export function CustomersPage() {
           <div className="flex flex-wrap gap-2">
             <DateRangeMenu value={d.range} onChange={d.setRange} startHour={d.startHour} />
             {d.period && (
-              <FilterMenu icon={CalendarCheck} label="Is muddat mein" value={d.f.dateOn ?? 'sales'} active
-                options={[{ value: 'sales', label: 'Khareeda', hint: 'Jinhon ne is muddat mein khareeda' }, { value: 'joined', label: 'Naye jore', hint: 'Jo is muddat mein bane' }, { value: 'khata', label: 'Khata ka len-den', hint: 'Udhaar ya payment hui' }]}
+              <FilterMenu icon={CalendarCheck} label="Is period mein" value={d.f.dateOn ?? 'sales'} active
+                options={[{ value: 'sales', label: 'Khareeda', hint: 'Jinhon ne is period mein khareeda' }, { value: 'joined', label: 'Naye jore', hint: 'Jo is period mein bane' }, { value: 'khata', label: 'Khata ka len-den', hint: 'Udhaar ya payment hui' }]}
                 onChange={(v) => d.set('dateOn', v as 'sales' | 'joined' | 'khata')} />
             )}
             <FilterMenu icon={Activity} label="Aamad" value={d.f.activity} active={d.f.activity !== 'all'} width="w-72"
@@ -227,7 +227,7 @@ export function CustomersPage() {
                 onChange={(v) => d.set('city', v === 'all' ? undefined : v)} />
             )}
             <FilterMenu icon={ToggleRight} label="Halat" value={d.f.status} active={d.f.status !== 'active'} options={STATUS} onChange={(v) => d.set('status', v)} />
-            <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-64" />
+            <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-64" />
             <button type="button" onClick={() => d.set('birthday', d.f.birthday ? undefined : 'month')} title="Is mahine salgirah"
               className={cn('flex h-11 w-11 items-center justify-center rounded-2xl transition', d.f.birthday ? 'bg-pink-100 text-pink-700 ring-1 ring-pink-200' : 'bg-slate-100/80 text-slate-500 hover:bg-slate-200/70')}><Cake className="h-4 w-4" /></button>
             {hasShop && (
@@ -417,7 +417,7 @@ function CustomersAnalytics({ stats, activity, cities, money, onFilter }: {
 
 function CustomersGuide({ onClose }: { onClose: () => void }) {
   const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
-    { icon: Search, color: '#7c3aed', title: 'Dhoondein', text: 'Naam, phone (0300…, +92… kisi bhi tarah), CNIC ya sheher likhein.' },
+    { icon: Search, color: '#7c3aed', title: 'Search', text: 'Naam, phone (0300…, +92… kisi bhi tarah), CNIC ya sheher likhein.' },
     { icon: BookOpen, color: '#e11d48', title: 'Udhaar wale', text: '"Udhaar wale" patti — kis ka kitna baqi aur kitne din se. Card par "Yaad dilayein" WhatsApp bhejta hai.' },
     { icon: Snowflake, color: '#64748b', title: 'Jo aana chhor gaye', text: '"Aamad" filter se 30/60/90 din se na aane wale — unhein WhatsApp karein.' },
     { icon: Cake, color: '#db2777', title: 'Salgirah', text: 'Is mahine ki salgirah upar dikhti hai — ek click mein mubarakbad.' },

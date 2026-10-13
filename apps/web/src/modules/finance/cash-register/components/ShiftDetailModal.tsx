@@ -36,7 +36,7 @@ export function ShiftDetailModal({ id, onClose }: { id: string; onClose: () => v
           <div className="grid gap-2 sm:grid-cols-3">
             <Fact icon={User} k="Kholi" v={r.openedBy?.fullName ?? '—'} sub={when(r.openedAt)} />
             <Fact icon={StopCircle} k="Band ki" v={r.closedBy?.fullName ?? (r.status === 'OPEN' ? 'Abhi khuli' : '—')} sub={r.closedAt ? when(r.closedAt) : undefined} />
-            <Fact icon={Receipt} k="Kul bikri" v={formatPKR(s.cash.allSalesTotal)} sub={`${s.cash.billCount} bill`} />
+            <Fact icon={Receipt} k="Total sale" v={formatPKR(s.cash.allSalesTotal)} sub={`${s.cash.billCount} bill`} />
           </div>
 
           <section className="rounded-2xl ring-1 ring-slate-200">
@@ -62,8 +62,8 @@ export function ShiftDetailModal({ id, onClose }: { id: string; onClose: () => v
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-900">Bikri payment ke hisaab se</h3>
-            {!s.cash.byMethod.length ? <p className="text-[0.8125rem] text-slate-500">Is shift me koi bikri nahi hui</p> : (
+            <h3 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-900">Sale payment ke hisaab se</h3>
+            {!s.cash.byMethod.length ? <p className="text-[0.8125rem] text-slate-500">Is shift me koi sale nahi hui</p> : (
               <div className="flex flex-wrap gap-2">
                 {s.cash.byMethod.map((m) => {
                   const pm = POS_PAYMENT_METHODS.find((p) => p.id === m.method);
@@ -108,7 +108,7 @@ export function ShiftDetailModal({ id, onClose }: { id: string; onClose: () => v
           )}
 
           {r.notes && <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">{r.notes}</p>}
-          {s.recounted && <p className="text-[0.75rem] text-slate-500">Ye purani shift hai; bikri ka hisaab aaj dobara gina gaya. "Hona chahiye" aur farak wohi hain jo band karte waqt save hue.</p>}
+          {s.recounted && <p className="text-[0.75rem] text-slate-500">Ye purani shift hai; sale ka hisaab aaj dobara gina gaya. "Hona chahiye" aur farak wohi hain jo band karte waqt save hue.</p>}
         </div>
       )}
     </Modal>

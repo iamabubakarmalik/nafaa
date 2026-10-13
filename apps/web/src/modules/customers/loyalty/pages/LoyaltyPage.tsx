@@ -105,8 +105,8 @@ export default function LoyaltyPage() {
         </>}
         stats={[
           { label: 'Points baqi (customers ke paas)', value: o ? o.outstanding.points.toLocaleString('en-PK') : '', hint: o ? `qeemat ${formatPKR(o.outstanding.value)}` : '' },
-          { label: 'Is muddat mein diye', value: o ? o.period.issued.toLocaleString('en-PK') : '', hint: o ? `${o.period.bills} bill` : '' },
-          { label: 'Istemal hue', value: o ? o.period.redeemed.toLocaleString('en-PK') : '', hint: o ? `${formatPKR(o.period.redeemedValue)} ki chhoot` : '' },
+          { label: 'Is period mein diye', value: o ? o.period.issued.toLocaleString('en-PK') : '', hint: o ? `${o.period.bills} bill` : '' },
+          { label: 'Istemal hue', value: o ? o.period.redeemed.toLocaleString('en-PK') : '', hint: o ? `${formatPKR(o.period.redeemedValue)} ki discount` : '' },
           { label: 'Khatam hue', value: o ? o.period.expired.toLocaleString('en-PK') : '', hint: s?.expiryDays ? `${s.expiryDays} din baad` : 'expiry band' },
         ]}
       />
@@ -114,14 +114,14 @@ export default function LoyaltyPage() {
       {o && !o.enabled && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200">
           <Sparkles className="h-5 w-5 text-amber-600" />
-          <p className="flex-1 text-[0.875rem] text-amber-900">Loyalty abhi band hai — bikri par points nahi mil rahe. Chalu karein to har naam wale customer ko khareedari par points milenge.</p>
+          <p className="flex-1 text-[0.875rem] text-amber-900">Loyalty abhi band hai — sale par points nahi mil rahe. Chalu karein to har naam wale customer ko khareedari par points milenge.</p>
           {canSettings && <Button size="sm" loading={enable.isPending} onClick={() => enable.mutate()}>Chalu karein</Button>}
         </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title="Points ka aana jana" actions={<DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Muddat" defaultPreset="thisMonth" />}>
-          {!o ? <Skeleton className="h-60 rounded-xl" /> : trend.length === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Is muddat mein koi points nahi</p> : (
+        <Card className="rounded-2xl lg:col-span-2" title="Points ka aana jana" actions={<DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Period" defaultPreset="thisMonth" />}>
+          {!o ? <Skeleton className="h-60 rounded-xl" /> : trend.length === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Is period mein koi points nahi</p> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -174,7 +174,7 @@ export default function LoyaltyPage() {
             </div>
           </Card>
           <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Store className="h-4 w-4 text-brand-600" />Branch war</span>}>
-            {o.branches.length === 0 ? <p className="py-8 text-center text-[0.8125rem] text-slate-500">Is muddat mein kuch nahi</p> : (
+            {o.branches.length === 0 ? <p className="py-8 text-center text-[0.8125rem] text-slate-500">Is period mein kuch nahi</p> : (
               <ul className="space-y-2 text-[0.8125rem]">
                 {o.branches.map((b) => (
                   <li key={b.shopId ?? 'none'} className="flex justify-between gap-2"><span className="truncate text-slate-700">{b.name}</span><span className="tabular-nums"><span className="text-success-700">+{b.issued}</span> · <span className="text-rose-700">−{b.redeemed}</span></span></li>
@@ -192,7 +192,7 @@ export default function LoyaltyPage() {
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam ya phone…" className="h-9 w-48 rounded-xl bg-slate-100/80 pl-9 pr-8 text-[0.8125rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 sm:w-64" />
             {search && <button type="button" onClick={() => setSearch('')} aria-label="Saaf" className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400"><X className="h-3.5 w-3.5" /></button>}
           </label>
-          <FilterMenu icon={Award} label="Tarteeb" value={sort} align="right" width="w-56" onChange={setSort}
+          <FilterMenu icon={Award} label="Sort" value={sort} align="right" width="w-56" onChange={setSort}
             options={[{ value: 'points', label: 'Zyada points' }, { value: 'spent', label: 'Zyada khareedari' }, { value: 'recent', label: 'Haal hi mein' }, { value: 'name', label: 'Naam' }]} />
         </div>}>
         {members.isLoading ? <div className="p-5"><Skeleton className="h-40 rounded-xl" /></div> : list.length === 0 ? (
@@ -203,7 +203,7 @@ export default function LoyaltyPage() {
               {list.map((m) => {
                 const t = tierOf(m.loyaltyPoints);
                 const sal = salutationFor(m.name, m.gender);
-                const wa = waLink(m.phone, `Assalam-o-Alaikum ${m.name}${sal ? ` ${sal}` : ''}! 🎁\n\n${shop} mein aap ke *${m.loyaltyPoints} points* jama hain — yani ${formatPKR(m.loyaltyPoints * (s?.redemptionRate ?? 1))} ki chhoot. Agli khareedari par istemal karein!`);
+                const wa = waLink(m.phone, `Assalam-o-Alaikum ${m.name}${sal ? ` ${sal}` : ''}! 🎁\n\n${shop} mein aap ke *${m.loyaltyPoints} points* jama hain — yani ${formatPKR(m.loyaltyPoints * (s?.redemptionRate ?? 1))} ki discount. Agli khareedari par istemal karein!`);
                 return (
                   <li key={m.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap sm:px-5">
                     <Link to={`/customers/${m.id}`} className="flex min-w-0 flex-1 items-center gap-3">
@@ -321,7 +321,7 @@ function RulesModal({ overview, onClose, onSaved }: { overview: LoyaltyOverview;
 
 function LoyaltyGuide({ onClose }: { onClose: () => void }) {
   const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
-    { icon: ShoppingCart, color: '#2563eb', title: 'Points kaise milte hain', text: 'Naam wale customer ke har bill par — usool mein likhi raqam par 1 point. Bill void ho to points wapas.' },
+    { icon: ShoppingCart, color: '#2563eb', title: 'Points kaise milte hain', text: 'Naam wale customer ke har bill par — usool mein likhi amount par 1 point. Bill void ho to points wapas.' },
     { icon: Wallet, color: '#16a34a', title: 'Istemal', text: 'POS par customer chunein, Discount mein "Points" — bill se utne rupay kam ho jate hain.' },
     { icon: Settings2, color: '#7c3aed', title: 'Usool', text: 'Kitne rupay par point, point ki qeemat, kam se kam istemal, bill ka kitna %, aur expiry — upar se badlein.' },
     { icon: Crown, color: '#ca8a04', title: 'Darje', text: 'Bronze 100+, Silver 500+, Gold 1000+ — achhe customers ko pehchanein.' },

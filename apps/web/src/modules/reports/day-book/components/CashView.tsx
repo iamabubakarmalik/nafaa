@@ -14,15 +14,15 @@ import { Empty, Line, Panel, Tag } from './parts';
 
 function FlowLines({ f, m }: { f: CashFlow; m: Money }) {
   const rows: Array<[string, number, '+' | '−', string?]> = [
-    ['Cash bikri', f.cashSales, '+', 'diya − wapas rezgari'],
+    ['Cash sale', f.cashSales, '+', 'diya − wapas rezgari'],
     ['Booking advance', f.bookingReceived, '+'],
     ['Khata wasooli', f.khataReceived, '+'],
     ['Cash in', f.cashIn, '+'],
     ['Cash out', f.cashOut, '−'],
-    ['Wapsi (cash)', f.returns, '−'],
-    ['Booking wapsi', f.bookingRefunds, '−'],
-    ['Kharcha (cash)', f.expenses, '−'],
-    ['Kharidari (cash)', f.purchases, '−'],
+    ['Return (cash)', f.returns, '−'],
+    ['Booking return', f.bookingRefunds, '−'],
+    ['Expense (cash)', f.expenses, '−'],
+    ['Purchase (cash)', f.purchases, '−'],
     ['Supplier ko diya', f.supplierPaid, '−'],
   ];
   return <>{rows.filter(([, v]) => v).map(([l, v, s, h]) => <Line key={l} sign={s} label={l} hint={h} value={m.sales(v)} />)}</>;

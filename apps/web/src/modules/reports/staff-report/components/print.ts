@@ -16,15 +16,15 @@ export function staffDoc(d: StaffOverview, period: string, shop: string, money: 
   return {
     title: 'Staff report',
     subtitle: period,
-    meta: [['Dukaan', shop], ['Bikri', money(t.net)], ['Bill', String(t.bills)], ['Staff', String(t.staff)]],
+    meta: [['Dukaan', shop], ['Sale', money(t.net)], ['Bill', String(t.bills)], ['Staff', String(t.staff)]],
     sections: [
       {
         kind: 'table',
         title: 'Har banda',
         columns: [
-          { label: '#' }, { label: 'Naam' }, { label: 'Bill', align: 'right' }, { label: 'Bikri', align: 'right' },
-          { label: 'Ausat', align: 'right', wideOnly: true }, { label: 'Chhoot', align: 'right', wideOnly: true },
-          { label: 'Cancel', align: 'right', wideOnly: true }, { label: 'Wapsi', align: 'right', wideOnly: true }, { label: 'Galla', align: 'right', wideOnly: true },
+          { label: '#' }, { label: 'Naam' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' },
+          { label: 'Ausat', align: 'right', wideOnly: true }, { label: 'Discount', align: 'right', wideOnly: true },
+          { label: 'Cancel', align: 'right', wideOnly: true }, { label: 'Return', align: 'right', wideOnly: true }, { label: 'Galla', align: 'right', wideOnly: true },
         ],
         rows: rows.map((r) => [
           r.rank ? String(r.rank) : '', r.name, String(r.bills), money(r.net), money(r.average),
@@ -37,9 +37,9 @@ export function staffDoc(d: StaffOverview, period: string, shop: string, money: 
         kind: 'rows',
         title: 'Counter ka hisab',
         rows: [
-          { label: 'Haath se chhoot', value: `${money(t.manualDiscount)} · ${pct(d.team.discountPct)}` },
+          { label: 'Haath se discount', value: `${money(t.manualDiscount)} · ${pct(d.team.discountPct)}` },
           { label: 'Cancel bill', value: `${t.voided} · ${money(t.voidedValue)}` },
-          { label: 'Wapsi ki', value: `${t.returnsDone} · ${money(t.returnsDoneValue)}` },
+          { label: 'Return ki', value: `${t.returnsDone} · ${money(t.returnsDoneValue)}` },
           { label: 'Udhaar par', value: money(t.credit) },
           { label: 'Shifts', value: String(t.shifts) },
           ...(d.drawerHidden ? [] : [
@@ -92,10 +92,10 @@ function download(lines: string[][], header: string[], file: string) {
 
 export function staffCsv(d: StaffOverview, header: string[], showCost: boolean, file: string) {
   const cols = [
-    'Rank', 'Naam', 'Role', 'Bill', 'Bikri (wapsi ke baad)', 'Hissa %', 'Ausat bill', 'Cheezein', 'Cheezein fi bill', 'Ghante', 'Ghante kahan se',
-    'Fi ghanta bikri', 'Haath se chhoot', 'Chhoot %', 'Chhoot wale bill', 'Udhaar', 'Udhaar bill', 'Cancel bill', 'Cancel raqam',
-    'Is ke bill par wapsi', 'Wapsi %', 'Wapsi ki (khud)', 'Wapsi raqam (khud)', 'PIN manzoor', 'Ghalat PIN', 'Shifts',
-    ...(d.drawerHidden ? [] : ['Galla kam', 'Galla zyada', 'Cash daala', 'Cash nikala']), 'Customer', ...(showCost ? ['Munafa', 'Margin %'] : []),
+    'Rank', 'Naam', 'Role', 'Bill', 'Sale (return ke baad)', 'Hissa %', 'Ausat bill', 'Cheezein', 'Cheezein fi bill', 'Ghante', 'Ghante kahan se',
+    'Fi ghanta sale', 'Haath se discount', 'Discount %', 'Discount wale bill', 'Udhaar', 'Udhaar bill', 'Cancel bill', 'Cancel amount',
+    'Is ke bill par return', 'Return %', 'Return ki (khud)', 'Return amount (khud)', 'PIN approve', 'Ghalat PIN', 'Shifts',
+    ...(d.drawerHidden ? [] : ['Galla kam', 'Galla zyada', 'Cash daala', 'Cash nikala']), 'Customer', ...(showCost ? ['Profit', 'Margin %'] : []),
   ];
   const lines = d.staff.map((r) => [
     String(r.rank || ''), r.name, r.role ? ROLE_LABEL[r.role] ?? r.role : '', String(r.bills), r.net.toFixed(2), r.share.toFixed(1),
@@ -110,7 +110,7 @@ export function staffCsv(d: StaffOverview, header: string[], showCost: boolean, 
 }
 
 export function shiftsCsv(d: ShiftList, header: string[], file: string) {
-  const cols = ['Shift', 'Branch', 'Kholi', 'Khuli', 'Band ki', 'Band hui', 'Ghante', 'Shuru ka cash', 'Cash bikri', 'Bill', 'Cash daala', 'Cash nikala', 'Kharche', 'Wapsi', 'Hisab', 'Gina', 'Farq', 'Note'];
+  const cols = ['Shift', 'Branch', 'Kholi', 'Khuli', 'Band ki', 'Band hui', 'Ghante', 'Shuru ka cash', 'Cash sale', 'Bill', 'Cash daala', 'Cash nikala', 'Expenses', 'Return', 'Hisab', 'Gina', 'Farq', 'Note'];
   const lines = d.items.map((s) => [
     s.number, s.shop?.name ?? '', s.openedBy.fullName, s.openedAt, s.closedBy?.fullName ?? '', s.closedAt ?? '', s.hours?.toFixed(2) ?? '',
     s.opening.toFixed(2), s.cashSales.toFixed(2), String(s.bills), s.cashIn.toFixed(2), s.cashOut.toFixed(2), s.expenses.toFixed(2), s.refunds.toFixed(2),

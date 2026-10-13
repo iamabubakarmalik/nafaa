@@ -518,7 +518,7 @@ export class LowStockService {
       { key: 'd7', label: '4–7 din', test: (r: LowStockRow) => r.daysLeft !== null && r.daysLeft > 3 && r.daysLeft <= 7 },
       { key: 'd14', label: '8–14 din', test: (r: LowStockRow) => r.daysLeft !== null && r.daysLeft > 7 && r.daysLeft <= 14 },
       { key: 'd15', label: '15+ din', test: (r: LowStockRow) => r.daysLeft !== null && r.daysLeft > 14 },
-      { key: 'none', label: 'Bikri nahi', test: (r: LowStockRow) => r.stock > 0 && r.daysLeft === null },
+      { key: 'none', label: 'Sale nahi', test: (r: LowStockRow) => r.stock > 0 && r.daysLeft === null },
     ];
     const group = (key: (r: LowStockRow) => string, label: (r: LowStockRow) => string) => {
       const m = new Map<string, { key: string; name: string; count: number; value: number; lost: number }>();

@@ -126,17 +126,17 @@ export function ReturnModal({ sale, onClose, onDone }: {
       }),
     }),
     onSuccess: (res) => {
-      if (res.repeated) toast.info('Yeh wapsi pehle hi ho chuki thi — dobara nahi ki');
+      if (res.repeated) toast.info('Yeh return pehle hi ho chuki thi — dobara nahi ki');
       else {
         const parts = [res.khataAmount > 0 && `${formatPKR(res.khataAmount)} khate se kam`, res.payout > 0 && `${formatPKR(res.payout)} wapas diye`].filter(Boolean);
-        toast.success(`Wapsi ho gayi — ${res.returnNumber}`, {
+        toast.success(`Return ho gayi — ${res.returnNumber}`, {
           description: [parts.join(' · ') || formatPKR(res.refundAmount), res.createdCutPieces?.length ? `${res.createdCutPieces.length} cut piece bana` : ''].filter(Boolean).join(' · '),
         });
       }
       refreshAfterReturn(qc);
       onDone(res);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Wapsi nahi ho saki'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Return nahi ho saki'),
   });
 
   const submit = () => { if (selected.length && !mut.isPending) mut.mutate(); };
@@ -144,7 +144,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
   return (
     <>
       <Modal open onClose={onClose} size="lg"
-        title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" /> Wapsi — {sale.saleNumber}</span>}
+        title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" /> Return — {sale.saleNumber}</span>}
         description={`${sale.customer?.name || 'Walk-in'} · ${formatPKR(sale.total)} ka bill`}
         footer={returnable.length > 0 ? (
           <div className="flex w-full flex-wrap items-center gap-3">
@@ -158,7 +158,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
             <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
             <Button onClick={submit} loading={mut.isPending} disabled={!selected.length} leftIcon={<RotateCcw className="h-4 w-4" />}
               className="bg-amber-600 hover:bg-amber-700">
-              Wapsi karein
+              Return karein
             </Button>
           </div>
         ) : <Button variant="secondary" onClick={onClose}>Band karein</Button>}>
@@ -257,7 +257,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
               {owed > 0 && sale.customer && (
                 <p className="mt-2 flex items-start gap-2 rounded-xl bg-blue-50 p-2.5 text-[0.75rem] text-blue-900">
                   <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  Is bill par {formatPKR(owed)} udhaar baqi hai. Wapsi pehle yeh udhaar khate se kam karti hai, baqi raqam haath me wapas di jati hai.
+                  Is bill par {formatPKR(owed)} udhaar baqi hai. Return pehle yeh udhaar khate se kam karti hai, baqi amount haath me wapas di jati hai.
                 </p>
               )}
             </section>
@@ -273,21 +273,21 @@ export function ReturnModal({ sale, onClose, onDone }: {
                   </button>
                 ))}
               </div>
-              <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder="Ya apne alfaaz me likhein…" aria-label="Wajah"
+              <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder="Ya apne in words likhein…" aria-label="Wajah"
                 className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15" />
               <p className="mt-1 text-[0.6875rem] text-slate-500">Wajah se Analytics me pata chalta hai ke maal kyun wapas aa raha hai.</p>
               {showNotes ? (
                 <>
                   <textarea value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={2} placeholder="Koi aur baat — jaise dabba khula tha" aria-label="Note"
                     className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15" />
-                  <p className="text-[0.6875rem] text-slate-500">Note wapsi ki parchi par bhi chhapta hai.</p>
+                  <p className="text-[0.6875rem] text-slate-500">Note return ki parchi par bhi chhapta hai.</p>
                 </>
               ) : (
                 <button type="button" onClick={() => setShowNotes(true)} className="mt-2 inline-flex items-center gap-1 text-[0.75rem] font-medium text-slate-600 hover:text-slate-900">
                   <StickyNote className="h-3.5 w-3.5" /> Note likhein
                 </button>
               )}
-              {refund > 0 && <p className="mt-2 text-[0.75rem] text-slate-500">Yeh raqam aaj ki bikri se kam hogi.</p>}
+              {refund > 0 && <p className="mt-2 text-[0.75rem] text-slate-500">Yeh amount aaj ki sale se kam hogi.</p>}
             </section>
           </div>
         )}

@@ -70,18 +70,18 @@ export function BranchCard({ shop, f, money, cost, canManage, onToggle, onDelete
 
       {f ? (
         <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
-          <Metric icon={ShoppingBag} label="Aaj ki bikri" value={money(f.todaySales)}
+          <Metric icon={ShoppingBag} label="Aaj ki sale" value={money(f.todaySales)}
             hint={<>{f.todayOrders} bill{f.yesterdaySales > 0 || f.todaySales > 0 ? <span className={growth >= 0 ? 'text-emerald-600' : 'text-rose-600'}> · kal se {growth >= 0 ? '+' : ''}{growth.toFixed(0)}%</span> : null}</>} />
           <Metric icon={Wallet} label="Drawer" value={f.registerOpen ? money(f.registerBalance) : 'Band'}
             hint={f.registerOpen ? `${f.openDrawers > 1 ? `${f.openDrawers} drawer · ` : ''}${since(f.registerOpenedAt)}` : shop.type === 'SHOP' ? 'Aaj abhi nahi khula' : 'Store — drawer nahi'} tone={f.registerOpen ? 'good' : undefined} />
-          <Metric icon={Boxes} label="Stock (lagat)" value={cost(f.stockValue)}
+          <Metric icon={Boxes} label="Stock (cost)" value={cost(f.stockValue)}
             hint={f.lowStockCount > 0 ? <span className="inline-flex items-center gap-1 text-amber-700"><AlertTriangle className="h-3 w-3" />{f.lowStockCount} cheezein kam</span> : `${Math.round(f.totalStock).toLocaleString('en-PK')} pieces`} />
           <Metric icon={Users} label="Duty par" value={`${f.staffOnDuty} / ${f.staffCount}`}
             hint={f.onDutyNames.length ? f.onDutyNames.join(', ') : 'Abhi koi nahi'} tone={f.staffOnDuty > 0 ? 'good' : undefined} />
         </dl>
       ) : (
         <p className="mt-3 border-t border-slate-100 pt-3 text-[0.75rem] text-slate-500">
-          {!shop.isActive ? 'Branch band hai — is me bikri nahi hoti. Chalu karne ke liye power ka button dabayein.' : `${shop._count?.users ?? 0} login · ${shop._count?.shopStocks ?? 0} cheezon ka stock record`}
+          {!shop.isActive ? 'Branch band hai — is me sale nahi hoti. Chalu karne ke liye power ka button dabayein.' : `${shop._count?.users ?? 0} login · ${shop._count?.shopStocks ?? 0} cheezon ka stock record`}
         </p>
       )}
 

@@ -222,7 +222,7 @@ export class TransfersService {
     for (const [itemId, q] of got) {
       const line = transfer.items.find((i) => i.id === itemId);
       if (!line) throw new BadRequestException('Line is transfer ki nahi');
-      if (q > line.quantity + 0.0001) throw new BadRequestException('Bheje gaye se zyada wusool nahi ho sakta');
+      if (q > line.quantity + 0.0001) throw new BadRequestException('Bheje gaye se zyada receive nahi ho sakta');
       if ((line.imeiId || line.serialId || line.usedPhoneId || line.carpetRollId) && q !== 0 && q !== line.quantity) {
         throw new BadRequestException('Device/roll poora aata hai ya bilkul nahi');
       }
@@ -236,7 +236,7 @@ export class TransfersService {
           ...(dto.notes?.trim() && { notes: [transfer.notes, `Wusooli: ${dto.notes.trim()}`].filter(Boolean).join('\n') }),
         },
       });
-      if (!claimed.count) throw new BadRequestException('Yeh transfer abhi kisi aur ne wusool ya cancel kar diya');
+      if (!claimed.count) throw new BadRequestException('Yeh transfer abhi kisi aur ne receive ya cancel kar diya');
       const from = transfer.fromShop.name;
       let short = 0;
 
@@ -302,7 +302,7 @@ export class TransfersService {
     const transfer = await this.prisma.stockTransfer.findFirst({ where: { id, tenantId: user.tenantId }, include: TRANSFER_INCLUDE });
     if (!transfer) throw new NotFoundException('Transfer nahi mila');
     assertShopAccess(user, transfer.fromShopId, 'Transfer cancel karna');
-    if (transfer.status === 'RECEIVED') throw new BadRequestException('Wusool ho chuka transfer cancel nahi hota — wapas bhejein');
+    if (transfer.status === 'RECEIVED') throw new BadRequestException('Receive ho chuka transfer cancel nahi hota — wapas bhejein');
     if (transfer.status === 'CANCELLED') throw new BadRequestException('Pehle hi cancel hai');
     const wasInTransit = transfer.status === 'IN_TRANSIT';
 

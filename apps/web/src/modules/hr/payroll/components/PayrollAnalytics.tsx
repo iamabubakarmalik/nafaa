@@ -33,13 +33,13 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={Wallet} label="12 mahine ki tankhwah" value={formatPKR(t.gross)} sub={`Ausat ${formatPKR(t.average)} har mahine`} tone="brand" />
-        <Kpi icon={Percent} label="Bikri ka hissa" value={t.pct == null ? '—' : `${t.pct}%`} sub={`Bikri ${formatPKR(t.sales)}`} tone={t.pct != null && t.pct > 25 ? 'rose' : 'emerald'} />
+        <Kpi icon={Percent} label="Sale ka hissa" value={t.pct == null ? '—' : `${t.pct}%`} sub={`Sale ${formatPKR(t.sales)}`} tone={t.pct != null && t.pct > 25 ? 'rose' : 'emerald'} />
         <Kpi icon={up ? TrendingUp : TrendingDown} label="Pichle mahine se" value={t.change == null ? '—' : `${up ? '+' : ''}${t.change}%`}
           sub={`Is mahine ${formatPKR(t.current)} · pehle ${formatPKR(t.previous)}`} tone={t.change == null ? 'brand' : up ? 'rose' : 'emerald'} />
         <Kpi icon={HandCoins} label="Advance ki qisten" value={formatPKR(t.advanceGiven)} sub={`Fi banda ausat ${formatPKR(t.perStaff)} (is mahine)`} tone="amber" />
       </div>
 
-      <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Har mahine ki tankhwah aur bikri ka %</Title>} description="Bar = tankhwah ka kharcha (kul kamai) aur us mahine katne wali advance · line = bikri ka kitna hissa tankhwah me gaya">
+      <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Har mahine ki tankhwah aur sale ka %</Title>} description="Bar = tankhwah ka expense (kul kamai) aur us mahine katne wali advance · line = sale ka kitna hissa tankhwah me gaya">
         <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -75,11 +75,11 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
             </ul>
           )}
         </Card>
-        <Ranked icon={Store} title="Branch" description="Har branch ki tankhwah aur us ki bikri ka %" empty={d.byBranch.length < 1}
-          rows={d.byBranch.map((b) => ({ key: b.key, label: b.label, amount: b.gross, sub: `${b.staff} staff${b.pct != null ? ` · bikri ka ${b.pct}%` : ''}` }))} />
+        <Ranked icon={Store} title="Branch" description="Har branch ki tankhwah aur us ki sale ka %" empty={d.byBranch.length < 1}
+          rows={d.byBranch.map((b) => ({ key: b.key, label: b.label, amount: b.gross, sub: `${b.staff} staff${b.pct != null ? ` · sale ka ${b.pct}%` : ''}` }))} />
         <Ranked icon={Users} title="Sab se zyada tankhwah" description="12 mahine me kis ko kitna mila (kul kamai)" empty={!d.byStaff.length}
           rows={d.byStaff.map((s) => ({ key: s.key, label: s.label, amount: s.gross, sub: `${s.designation} · ${s.months} mahine · ausat ${formatPKR(s.average)}` }))} />
-        <Ranked icon={Briefcase} title="Ohda" description="Kis kaam par kitna kharcha" empty={!d.byDesignation.length}
+        <Ranked icon={Briefcase} title="Ohda" description="Kis kaam par kitna expense" empty={!d.byDesignation.length}
           rows={d.byDesignation.map((x) => ({ key: x.key, label: x.label, amount: x.amount }))} />
       </div>
 
@@ -88,7 +88,7 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
           <table className="w-full min-w-[44rem] text-[0.75rem]">
             <thead>
               <tr className="border-b border-slate-100 text-slate-500">
-                {['Mahina', 'Staff', 'Kul kamai', 'Katauti', 'Net', 'Ada', 'Baqi', 'Bikri', '%'].map((h, i) => (
+                {['Mahina', 'Staff', 'Kul kamai', 'Katauti', 'Net', 'Ada', 'Baqi', 'Sale', '%'].map((h, i) => (
                   <th key={h} className={cn('px-3 py-2 font-medium', i === 0 ? 'sticky left-0 bg-white px-4 text-left' : 'text-right')}>{h}</th>
                 ))}
               </tr>

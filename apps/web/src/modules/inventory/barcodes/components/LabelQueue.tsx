@@ -76,7 +76,7 @@ export function LabelQueue(p: Props) {
         </div>
 
         <div className="mt-3">
-          <SearchField ref={searchRef} value={search} onChange={setSearch} onEnter={onEnter} label="Product dhoondein"
+          <SearchField ref={searchRef} value={search} onChange={setSearch} onEnter={onEnter} label="Product search"
             placeholder={p.loading ? 'Products aa rahe hain…' : 'Naam, SKU ya barcode — ya scan karein'}
             trailing={
               <button type="button" onClick={() => setScanning(true)} title="Camera se scan" aria-label="Camera se scan"
@@ -125,7 +125,7 @@ export function LabelQueue(p: Props) {
         <div className="p-8 text-center">
           <PackageSearch className="mx-auto h-10 w-10 text-slate-300" />
           <p className="mt-2 font-semibold text-slate-900">List khaali hai</p>
-          <p className="mt-1 text-[0.8125rem] text-slate-500">Upar se cheez dhoondein ya scan karein. Products ke safhe se bhi "Label" dabane par cheezein yahan aati hain.</p>
+          <p className="mt-1 text-[0.8125rem] text-slate-500">Upar se cheez search ya scan karein. Products ke safhe se bhi "Label" dabane par cheezein yahan aati hain.</p>
         </div>
       ) : (
         <>

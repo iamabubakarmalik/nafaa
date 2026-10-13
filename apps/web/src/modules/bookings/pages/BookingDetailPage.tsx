@@ -107,7 +107,7 @@ export default function BookingDetailPage() {
           {wa && <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp (W)" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
           <button type="button" onClick={() => setDialog('print')} title="Slip print (S)" className={heroButton}><Printer className="h-4 w-4" />Slip</button>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {active && <button type="button" onClick={() => setDialog('convert')} title="Bikri (C)" className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />Bikri karein</button>}
+          {active && <button type="button" onClick={() => setDialog('convert')} title="Sale (C)" className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />Sale karein</button>}
           {b.sale && <Link to={`/sales/${b.sale.id}/receipt`} className={heroPrimaryButton}><Receipt className="h-4 w-4" />Bill {b.sale.saleNumber}</Link>}
         </>}
         stats={[
@@ -119,8 +119,8 @@ export default function BookingDetailPage() {
       />
 
       {ps === 'overdue' && (
-        <Banner tone="rose" icon={AlarmClock} text={`Pickup ka din ${late} din pehle guzar gaya. Customer ko yaad dilayein ya nayi tareekh rakhein.`}
-          action={<>{wa && <a href={wa} target="_blank" rel="noreferrer" className="text-[0.8125rem] font-semibold underline">WhatsApp</a>}<button type="button" onClick={() => setDialog('date')} className="text-[0.8125rem] font-semibold underline">Tareekh badlein</button></>} />
+        <Banner tone="rose" icon={AlarmClock} text={`Pickup ka din ${late} din pehle guzar gaya. Customer ko yaad dilayein ya nayi date rakhein.`}
+          action={<>{wa && <a href={wa} target="_blank" rel="noreferrer" className="text-[0.8125rem] font-semibold underline">WhatsApp</a>}<button type="button" onClick={() => setDialog('date')} className="text-[0.8125rem] font-semibold underline">Date badlein</button></>} />
       )}
       {(ps === 'today' || ps === 'tomorrow') && <Banner tone="amber" icon={CalendarClock} text={`${PICKUP[ps].label} — maal tayyar rakhein${b.balanceDue > 0 ? `, ${formatPKR(b.balanceDue)} wasool karne hain` : ''}.`} />}
       {expired && <Banner tone="rose" icon={AlarmClock} text={`Aakhri din (${dayText(b.expiresAt)}) guzar gaya. Booking khud cancel nahi hoti — faisla karein.`} />}
@@ -137,7 +137,7 @@ export default function BookingDetailPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-slate-900">{itemLabel(i)}</p>
-                    <p className="text-[0.75rem] text-slate-500">{qtyText(i.quantity)} {i.product?.unit ?? ''} × {formatPKR(i.price)}{i.lineDiscount ? ` · chhoot ${formatPKR(i.lineDiscount)}` : ''}</p>
+                    <p className="text-[0.75rem] text-slate-500">{qtyText(i.quantity)} {i.product?.unit ?? ''} × {formatPKR(i.price)}{i.lineDiscount ? ` · discount ${formatPKR(i.lineDiscount)}` : ''}</p>
                     {(i.imei || i.cutPiece || i.roll) && (
                       <p className="mt-0.5 text-[0.75rem] text-slate-600">
                         {i.imei && <>IMEI <span className="font-mono">{i.imei.imei1}</span></>}
@@ -154,13 +154,13 @@ export default function BookingDetailPage() {
             </ul>
             <dl className="mt-2 space-y-1 border-t border-slate-100 pt-3 text-[0.875rem]">
               <Line k="Subtotal" v={formatPKR(b.subtotal)} />
-              {b.discount > 0 && <Line k="Chhoot" v={`−${formatPKR(b.discount)}`} />}
+              {b.discount > 0 && <Line k="Discount" v={`−${formatPKR(b.discount)}`} />}
               {(b.serviceChargesBreakdown ?? []).map((c, n) => <Line key={n} k={c.label} v={`+${formatPKR(Number(c.amount))}`} />)}
               <Line k="Kul" v={formatPKR(b.total)} strong />
             </dl>
           </Card>
 
-          <Card className="rounded-3xl" title="Payments" description="Har advance, baad ki payment aur wapsi"
+          <Card className="rounded-3xl" title="Payments" description="Har advance, baad ki payment aur return"
             actions={canPay ? <Button size="sm" onClick={() => setDialog('pay')} leftIcon={<Wallet className="h-4 w-4" />}>Payment (P)</Button> : undefined}>
             <div className="mb-3">
               <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
@@ -171,7 +171,7 @@ export default function BookingDetailPage() {
                 {(b.payments ?? []).map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
                     <span className="min-w-0">
-                      <span className="block font-medium text-slate-900">{p.type === 'REFUND' ? 'Wapsi' : p.type === 'ADVANCE' ? 'Advance' : 'Mazeed payment'} · {method(p.paymentMethod)}</span>
+                      <span className="block font-medium text-slate-900">{p.type === 'REFUND' ? 'Return' : p.type === 'ADVANCE' ? 'Advance' : 'Mazeed payment'} · {method(p.paymentMethod)}</span>
                       <span className="block truncate text-[0.75rem] text-slate-500">{when(p.paidAt)}{p.createdBy ? ` · ${p.createdBy.fullName}` : ''}{p.notes ? ` · ${p.notes}` : ''}{p.reference ? ` · ${p.reference}` : ''}</span>
                     </span>
                     <span className={cn('shrink-0 font-semibold tabular-nums', p.type === 'REFUND' ? 'text-rose-700' : 'text-emerald-700')}>{p.type === 'REFUND' ? '−' : '+'}{formatPKR(p.amount)}</span>
@@ -203,7 +203,7 @@ export default function BookingDetailPage() {
               <Line k="Booking" v={when(b.createdAt)} />
               <Line k="Pickup" v={b.expectedPickupAt ? dayText(b.expectedPickupAt) : 'Nahi rakhi'} />
               {b.expiresAt && <Line k="Aakhri din" v={dayText(b.expiresAt)} />}
-              {b.convertedAt && <Line k="Bikri" v={when(b.convertedAt)} />}
+              {b.convertedAt && <Line k="Sale" v={when(b.convertedAt)} />}
               {b.shop && <Line k="Branch" v={b.shop.name} />}
             </dl>
           </Card>
@@ -211,7 +211,7 @@ export default function BookingDetailPage() {
           {active && (
             <Card className="rounded-3xl" title="Kaam">
               <div className="grid gap-2">
-                <Button onClick={() => setDialog('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>Bikri karein (C)</Button>
+                <Button onClick={() => setDialog('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>Sale karein (C)</Button>
                 {canPay && <Button variant="secondary" onClick={() => setDialog('pay')} leftIcon={<Wallet className="h-4 w-4" />}>Payment lein (P)</Button>}
                 {b.status === 'READY_FOR_PICKUP'
                   ? <Button variant="ghost" loading={ready.isPending} onClick={() => ready.mutate({ id: b.id, ready: false })} leftIcon={<Undo2 className="h-4 w-4" />}>Abhi tayyar nahi (R)</Button>
@@ -255,8 +255,8 @@ export default function BookingDetailPage() {
           steps={[
             { icon: Wallet, color: '#16a34a', title: 'Payment', text: 'Customer aur paise de to "Payment lein". Poora paisa aate hi booking "Tayyar" ho jati hai.' },
             { icon: PackageCheck, color: '#7c3aed', title: 'Tayyar', text: 'Maal tayyar ho jaye to "Tayyar hai" dabayein aur WhatsApp par customer ko bata dein.' },
-            { icon: ShoppingCart, color: '#2563eb', title: 'Bikri', text: 'Customer maal le jaye to "Bikri karein": bill banta hai, stock nikalta hai, advance bill me lagta hai.' },
-            { icon: CalendarClock, color: '#d97706', title: 'Tareekh', text: 'Pickup aage peeche ho to "Badlein" se nayi tareekh rakhein.' },
+            { icon: ShoppingCart, color: '#2563eb', title: 'Sale', text: 'Customer maal le jaye to "Sale karein": bill banta hai, stock nikalta hai, advance bill me lagta hai.' },
+            { icon: CalendarClock, color: '#d97706', title: 'Date', text: 'Pickup aage peeche ho to "Badlein" se nayi date rakhein.' },
             { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Advance wapas dein ya khate me rehne dein. Reserve IMEI aur piece wapas stock me.' },
           ]}
           shortcuts={[['P', 'payment'], ['C', 'bikri'], ['R', 'tayyar'], ['D', 'tareekh'], ['S', 'slip'], ['W', 'WhatsApp'], ['X', 'cancel'], ['G', 'guide']]}

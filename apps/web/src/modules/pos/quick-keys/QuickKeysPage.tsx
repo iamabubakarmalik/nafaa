@@ -93,7 +93,7 @@ export default function QuickKeysPage() {
     onError: (e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(ctx.key, ctx.prev);
       const m = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(m || 'Tarteeb save nahi hui');
+      toast.error(m || 'Sort save nahi hui');
     },
     onSettled: () => { qc.invalidateQueries({ queryKey: [QK_KEY] }); qc.invalidateQueries({ queryKey: [POS_QK_KEY] }); },
   });
@@ -163,7 +163,7 @@ export default function QuickKeysPage() {
       <PageHero
         title="Quick keys"
         chip={<><Zap /> POS ke shortcut</>}
-        meta="Counter par ek tap me bikne wali cheezein — tarteeb, rang aur group"
+        meta="Counter par ek tap me bikne wali cheezein — sort, rang aur group"
         busy={keysQ.isFetching && !keysQ.isLoading || reorder.isPending}
         loading={keysQ.isLoading}
         actions={<>
@@ -187,7 +187,7 @@ export default function QuickKeysPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Key ka naam ya group…" label="Dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Key ka naam ya group…" label="Search" />}
         chips={filtered ? <>
           {q && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
           {where !== 'all' && <FilterChip onRemove={() => setWhere('all')}>{WHERE.find((w) => w.value === where)?.label}</FilterChip>}
@@ -199,12 +199,12 @@ export default function QuickKeysPage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={filtered && tab === 'editor' ? 'Filter laga hai — tarteeb badalne ke liye filter hatayein' : <><Kbd>N</Kbd> nayi · <Kbd>P</Kbd> preview · <Kbd>/</Kbd> dhoondein</>}
+        hint={filtered && tab === 'editor' ? 'Filter laga hai — sort badalne ke liye filter hatayein' : <><Kbd>N</Kbd> nayi · <Kbd>P</Kbd> preview · <Kbd>/</Kbd> search</>}
         tabs={[{ id: 'editor', label: 'Keys', icon: LayoutGrid, count: visible.length }, { id: 'preview', label: 'POS preview', icon: ShoppingCart }]} />
 
       {!canEdit && (
         <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-          <Lock className="h-4 w-4 shrink-0" /> Aap keys dekh sakte hain. Badalne ke liye "Products edit" ki ijazat chahiye.
+          <Lock className="h-4 w-4 shrink-0" /> Aap keys dekh sakte hain. Badalne ke liye "Products edit" ki permission chahiye.
         </p>
       )}
 
@@ -276,9 +276,9 @@ export default function QuickKeysPage() {
       {guide.isOpen && (
         <PageGuide title="Quick keys — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Key banayein', text: '"Nayi key" dabayein, product dhoondein ya scan karein. Dozen ya carton chun sakte hain, qism (variant) bhi. Combo ki key bhi banti hai.' },
+            { icon: Plus, color: '#2563eb', title: 'Key banayein', text: '"Nayi key" dabayein, product search ya scan karein. Dozen ya carton chun sakte hain, type (variant) bhi. Combo ki key bhi banti hai.' },
             { icon: Palette, color: '#db2777', title: 'Naam, emoji, rang', text: 'Chhota naam, ek emoji aur rang dein. Ek group (maslan "Doodh") ki sab keys ek rang ki hon to counter par jaldi milti hain.' },
-            { icon: Move, color: '#16a34a', title: 'Tarteeb badlein', text: 'Key ko pakar kar (drag) nayi jagah chhorein, ya teer wale button dabayein. Doosre group me chhorne se group bhi badal jata hai.' },
+            { icon: Move, color: '#16a34a', title: 'Sort badlein', text: 'Key ko pakar kar (drag) nayi jagah chhorein, ya teer wale button dabayein. Doosre group me chhorne se group bhi badal jata hai.' },
             { icon: MapPin, color: '#0891b2', title: 'Kahan dikhe', text: 'Key har branch par dikhti hai. "Sirf is branch" on karein to sirf us branch ke POS par. "Sirf mere liye" se sirf aap ko.' },
             { icon: Eye, color: '#7c3aed', title: 'Preview dekhein', text: '"POS preview" tab me bilkul wahi dikhta hai jo cashier ko F10 dabane par Quick tab me dikhta hai.' },
             { icon: MousePointerClick, color: '#d97706', title: 'Counter par', text: 'POS me "Quick" tab (F10) kholein aur key dabayein — cheez seedha bill me. Stock khatam ho to key halki ho jati hai.' },
@@ -286,8 +286,8 @@ export default function QuickKeysPage() {
           tips={[
             'Band ki hui key POS se chhup jati hai magar yahan rehti hai — mausam wali cheezon ke liye acha hai.',
             'Laal nishan wali key ka product ya combo hat chuka hai — key badlein ya hata dein.',
-            'Filter laga ho to tarteeb nahi badalti — pehle filter hatayein.',
-            'Keys badalne ke liye "Products edit" ki ijazat chahiye.',
+            'Filter laga ho to sort nahi badalti — pehle filter hatayein.',
+            'Keys badalne ke liye "Products edit" ki permission chahiye.',
           ]}
           shortcuts={[['N', 'nayi key'], ['P', 'POS preview'], ['/', 'dhoondein'], ['G', 'guide']]}
         />

@@ -59,7 +59,7 @@ export function MonthlyReportView({ q, money, onInvoices }: {
                   <div>
                     <h3 className="flex items-center gap-2 font-semibold text-slate-900"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: meta?.color }} />{a.name}</h3>
                     <p className="mt-0.5 text-[0.75rem] text-slate-500">
-                      {[a.businessName, a.ntn.length && `NTN ${a.ntn.join(', ')}`].filter(Boolean).join(' · ') || 'Registration ki tafseel Settings me'}
+                      {[a.businessName, a.ntn.length && `NTN ${a.ntn.join(', ')}`].filter(Boolean).join(' · ') || 'Registration ki details Settings me'}
                     </p>
                   </div>
                   <span className="text-[0.75rem] text-slate-500">{monthName(r.month)}</span>
@@ -67,7 +67,7 @@ export function MonthlyReportView({ q, money, onInvoices }: {
                 <dl className="mt-3 space-y-1.5 text-[0.8125rem]">
                   <Line k={`Sale, tax ke baghair (${t.bills} bill)`} v={money(t.grossValue)} />
                   <Line k="Output tax" v={money(t.grossTax)} />
-                  <Line k={`Credit notes / wapsi (${t.returns})`} v={`- ${money(t.returnValue)}`} sub />
+                  <Line k={`Credit notes / return (${t.returns})`} v={`- ${money(t.returnValue)}`} sub />
                   <Line k="Credit notes ka tax" v={`- ${money(t.returnTax)}`} sub />
                   <Line k="Net taxable sale" v={money(t.saleValue)} strong />
                   <Line k="Net tax (jama karna hai)" v={money(t.tax)} strong />
@@ -96,8 +96,8 @@ export function MonthlyReportView({ q, money, onInvoices }: {
       {r.byAuthority.length > 0 && (
         <Table
           title={`Roz ka hisaab: ${monthName(r.month)}`}
-          right={<Button size="sm" variant="ghost" onClick={() => setAllDays((v) => !v)}>{allDays ? 'Sirf bikri wale din' : 'Mahine ke sab din'}</Button>}
-          head={['Din', 'Bill', 'Wapsi', 'Sale', 'Tax', 'Kul']}
+          right={<Button size="sm" variant="ghost" onClick={() => setAllDays((v) => !v)}>{allDays ? 'Sirf sale wale din' : 'Mahine ke sab din'}</Button>}
+          head={['Din', 'Bill', 'Return', 'Sale', 'Tax', 'Kul']}
           rows={days.map((d) => [dayShort(d.day), d.bills, d.returns, money(d.saleValue), money(d.tax), money(d.total)])}
           foot={['Kul', r.totals.bills, r.totals.returns, money(r.totals.saleValue), money(r.totals.tax), money(r.totals.total)]}
         />

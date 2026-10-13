@@ -46,7 +46,7 @@ function BrandFields({ d, set }: { d: Draft; set: (k: string, v: unknown) => voi
         <Text label="Website" k="website" d={d} set={set} placeholder="https://…" />
       </div>
       <label className="block">
-        <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">Tafseel</span>
+        <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">Details</span>
         <textarea value={d.description ?? ''} onChange={(e) => set('description', e.target.value)} rows={2}
           className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500" />
       </label>
@@ -92,7 +92,7 @@ export default function BrandsPage() {
       industry: { name: presets.industryName, emoji: presets.industryEmoji },
       guide: [
         { title: 'Brand kya hai', body: 'Banane wali company — Nestle, Samsung, Lux. Product ke saath brand lagayein.' },
-        { title: 'Bikri brand ke hisaab se', body: 'Muddat chunein — har brand ki bikri, munafa aur stock ki qeemat dikhti hai. Kis company ka maal zyada chalta hai, yahin pata chalta hai.' },
+        { title: 'Sale brand ke hisaab se', body: 'Period chunein — har brand ki sale, profit aur stock ki qeemat dikhti hai. Kis company ka maal zyada chalta hai, yahin pata chalta hai.' },
         { title: 'Dealer aur warranty', body: 'Electronics aur appliances ke liye: support phone, warranty ki shartein aur service center — bill aur warranty claim me kaam aate hain.' },
         { title: 'Milana', body: 'Ek hi brand do naam se ban gaya ho ("Nestle", "Nestlé") to "Doosri me milayein".' },
       ],

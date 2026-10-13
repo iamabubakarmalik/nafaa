@@ -743,7 +743,7 @@ export class ShopifyService {
     const c = await this.client(integration);
     if (!c) {
       throw new BadRequestException((integration.credentials as any)?.shopifyReauth
-        ? 'Shopify ne dobara ijazat maangi — "Dobara install" dabayein'
+        ? 'Shopify ne dobara permission maangi — "Dobara install" dabayein'
         : 'Shopify jura nahi — pehle "Shopify se jorein" dabayein');
     }
     return c;

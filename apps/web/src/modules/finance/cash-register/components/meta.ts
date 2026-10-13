@@ -51,11 +51,11 @@ export const STATUS_FILTERS: Array<{ value: ShiftStatus; label: string; hint: st
 
 export const TX: Record<CashTxType, { label: string; icon: LucideIcon; sign: 1 | -1 | 0; color: string }> = {
   OPENING: { label: 'Shift khuli', icon: PlayCircle, sign: 0, color: '#475569' },
-  SALE: { label: 'Bikri', icon: ArrowDownToLine, sign: 1, color: '#16a34a' },
+  SALE: { label: 'Sale', icon: ArrowDownToLine, sign: 1, color: '#16a34a' },
   CASH_IN: { label: 'Cash daala', icon: ArrowDownToLine, sign: 1, color: '#16a34a' },
   CASH_OUT: { label: 'Cash nikala', icon: ArrowUpFromLine, sign: -1, color: '#e11d48' },
   EXPENSE: { label: 'Kharch', icon: ArrowUpFromLine, sign: -1, color: '#d97706' },
-  REFUND: { label: 'Wapsi', icon: RotateCcw, sign: -1, color: '#ea580c' },
+  REFUND: { label: 'Return', icon: RotateCcw, sign: -1, color: '#ea580c' },
   CLOSING: { label: 'Shift band', icon: StopCircle, sign: 0, color: '#475569' },
 };
 
@@ -69,16 +69,16 @@ export const REASONS: Record<'CASH_IN' | 'CASH_OUT', string[]> = {
 export function ledgerRows(c: CashBreakdown): Array<{ label: string; value: number; sign: '+' | '−' | '='; note?: string; keep?: boolean }> {
   return [
     { label: 'Shift kholte waqt', value: c.openingBalance, sign: '+', keep: true },
-    { label: 'Cash bikri', value: c.cashSales, sign: '+', note: `${c.cashSalesCount} bill`, keep: true },
-    { label: 'Booking ki raqam', value: c.bookingReceived, sign: '+', note: `${c.bookingReceivedCount} adaigi` },
-    { label: 'Khata wusooli', value: c.khataReceived, sign: '+', note: `${c.khataCount} wusooli` },
+    { label: 'Cash sale', value: c.cashSales, sign: '+', note: `${c.cashSalesCount} bill`, keep: true },
+    { label: 'Booking ki amount', value: c.bookingReceived, sign: '+', note: `${c.bookingReceivedCount} payment` },
+    { label: 'Khata receiving', value: c.khataReceived, sign: '+', note: `${c.khataCount} receiving` },
     { label: 'Haath se daala', value: c.cashIn, sign: '+', note: `${c.cashInCount} dafa` },
     { label: 'Haath se nikala', value: c.cashOut, sign: '−', note: `${c.cashOutCount} dafa` },
     { label: 'Cash kharch', value: c.expenses, sign: '−', note: `${c.expenseCount} kharch` },
-    { label: 'Wapsi me diya', value: c.returns, sign: '−', note: `${c.returnCount} wapsi` },
-    { label: 'Booking wapsi', value: c.bookingRefunds, sign: '−', note: `${c.bookingRefundCount} booking` },
-    { label: 'Maal khareeda (cash)', value: c.purchases, sign: '−', note: `${c.purchaseCount} kharidari` },
-    { label: 'Supplier ko diya', value: c.supplierPaid, sign: '−', note: `${c.supplierPaidCount} adaigi` },
+    { label: 'Return me diya', value: c.returns, sign: '−', note: `${c.returnCount} return` },
+    { label: 'Booking return', value: c.bookingRefunds, sign: '−', note: `${c.bookingRefundCount} booking` },
+    { label: 'Maal khareeda (cash)', value: c.purchases, sign: '−', note: `${c.purchaseCount} purchase` },
+    { label: 'Supplier ko diya', value: c.supplierPaid, sign: '−', note: `${c.supplierPaidCount} payment` },
   ];
 }
 

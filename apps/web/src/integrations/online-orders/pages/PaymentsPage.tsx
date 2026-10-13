@@ -19,7 +19,7 @@ export default function PaymentsPage() {
   const { data, isLoading, error } = useQuery({ queryKey: PAY_KEY, queryFn: paymentsApi.accounts });
   return (
     <Page back={{ to: '/online-orders', label: 'Online orders' }} title="Online payments"
-      subtitle="Customer se advance ya poori raqam online lein — COD ka RTO khatra kam. Paisa seedha aap ke account me.">
+      subtitle="Customer se advance ya poori amount online lein — COD ka RTO khatra kam. Paisa seedha aap ke account me.">
       {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Payments nahi khule">{apiErrorMessage(error)}</EmptyState></Card>
         : (
@@ -27,7 +27,7 @@ export default function PaymentsPage() {
             <Card title="Kaise kaam karta hai">
               <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-ink-200 sm:grid-cols-3">
                 <li><b>1.</b> Neeche apna gateway jorein (sirf ek dafa)</li>
-                <li><b>2.</b> Order par "Payment link" → poori raqam ya advance (jaise delivery charges) → WhatsApp</li>
+                <li><b>2.</b> Order par "Payment link" → poori amount ya advance (jaise delivery charges) → WhatsApp</li>
                 <li><b>3.</b> Customer pay kare → Nafaa gateway se pakki tasdeeq → order par paisa, courier ka COD utna kam</li>
               </ol>
             </Card>

@@ -157,9 +157,9 @@ export class PnlService {
     const today = businessDayKey(new Date(), c.tz, c.h);
     const fromKey = q.from ?? `${today.slice(0, 7)}-01`;
     const toKey = q.to ?? today;
-    if (fromKey > toKey) throw new BadRequestException('"Se" ki tareekh "Tak" se pehle honi chahiye');
+    if (fromKey > toKey) throw new BadRequestException('"Se" ki date "Tak" se pehle honi chahiye');
     const days = Math.round((Date.parse(`${toKey}T00:00:00Z`) - Date.parse(`${fromKey}T00:00:00Z`)) / DAY) + 1;
-    if (days > MAX_DAYS) throw new BadRequestException('Muddat 5 saal se lambi nahi ho sakti');
+    if (days > MAX_DAYS) throw new BadRequestException('Period 5 saal se lambi nahi ho sakti');
 
     const compare = q.compare ?? 'prev';
     let prevFrom: string;
@@ -515,7 +515,7 @@ export class PnlService {
   async cashFlow(user: AuthenticatedUser, scope: ShopScope, q: PnlQueryDto) {
     const c = await this.ctx(user, scope, q);
     const p = this.period(c, q);
-    if (p.days > 366) throw new BadRequestException('Paisa aaya/gaya ek saal tak ki muddat ke liye hai');
+    if (p.days > 366) throw new BadRequestException('Paisa aaya/gaya ek saal tak ki period ke liye hai');
     const shop = new ShopScope(c.shopId, !c.shopId);
     return this.money.analytics(user, shop, { from: p.fromKey, to: p.toKey });
   }
@@ -578,7 +578,7 @@ export class PnlService {
         break;
       }
       case 'writeoff': {
-        if (!c.costVisible) throw new ForbiddenException('Lagat dekhne ki ijazat nahi');
+        if (!c.costVisible) throw new ForbiddenException('Cost dekhne ki permission nahi');
         const [adjustments, returned] = await Promise.all([
           this.prisma.stockAdjustment.findMany({
             where: { tenantId: c.tenantId, type: { in: ['DAMAGE', 'LOSS', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN'] }, createdAt: r, ...shop },

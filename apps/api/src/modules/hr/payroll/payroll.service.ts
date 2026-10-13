@@ -178,7 +178,7 @@ export class PayrollService {
   private async payer(tx: Db, user: AuthenticatedUser, dto: PaySourceDto, branch: string | null, total: number, back = false): Promise<Payer | null> {
     if (dto.source === 'NONE') return null;
     if (dto.source === 'DRAWER') {
-      if (!this.can(user, PERMISSIONS.CASH_REGISTER_OPEN)) throw new ForbiddenException('Galle se paisa dene ki ijazat nahi (Cash register kholna)');
+      if (!this.can(user, PERMISSIONS.CASH_REGISTER_OPEN)) throw new ForbiddenException('Galle se paisa dene ki permission nahi (Cash register kholna)');
       if (!branch) throw new BadRequestException('Galle se dene ke liye upar se branch chunein');
       assertShopAccess(user, branch, 'Galle ka kaam');
       const reg = await tx.cashRegister.findFirst({
@@ -190,13 +190,13 @@ export class PayrollService {
       if (!back && !dto.allowNegative) {
         const live = await computeLiveCash(tx, user.tenantId, reg);
         if (live.expected - total < -0.005) {
-          throw new BadRequestException(`Galle me sirf ${rs(live.expected)} hone chahiye, chahiye ${rs(total)}. Raqam kam karein, account se dein ya "kam ho to bhi dein" chunein.`);
+          throw new BadRequestException(`Galle me sirf ${rs(live.expected)} hone chahiye, chahiye ${rs(total)}. Amount kam karein, account se dein ya "kam ho to bhi dein" chunein.`);
         }
       }
       return { source: 'DRAWER', register: { id: reg.id, shopId: reg.shopId }, method: 'CASH', label: `Galla ${reg.registerNumber}` };
     }
 
-    if (!this.can(user, PERMISSIONS.EXPENSES_CREATE)) throw new ForbiddenException('Account se paisa dene ki ijazat nahi (Kharche likhna)');
+    if (!this.can(user, PERMISSIONS.EXPENSES_CREATE)) throw new ForbiddenException('Account se paisa dene ki permission nahi (Expenses likhna)');
     if (!dto.accountId) throw new BadRequestException('Account chunein');
     const a = await tx.moneyAccount.findFirst({ where: { id: dto.accountId, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Account nahi mila');
@@ -207,7 +207,7 @@ export class PayrollService {
     if (!back && !dto.allowNegative) {
       const balance = await accountBalance(tx, a);
       if (balance - total < -0.005) {
-        throw new BadRequestException(`${a.name} me sirf ${rs(balance)} hain, chahiye ${rs(total)}. Raqam kam karein ya "kam ho to bhi dein" chunein.`);
+        throw new BadRequestException(`${a.name} me sirf ${rs(balance)} hain, chahiye ${rs(total)}. Amount kam karein ya "kam ho to bhi dein" chunein.`);
       }
     }
     const method: PaymentMethod = a.method ?? (a.kind === 'BANK' ? 'BANK_TRANSFER' : a.kind === 'WALLET' ? 'JAZZCASH' : 'CASH');
@@ -736,7 +736,7 @@ export class PayrollService {
     const tenantId = user.tenantId;
     const count = dto.installments ?? 1;
     const amount = r0(dto.amount);
-    if (amount < count) throw new BadRequestException('Raqam qiston se kam hai');
+    if (amount < count) throw new BadRequestException('Amount qiston se kam hai');
     const { tz, dayStartHour } = await this.tz.clock(tenantId);
     const thisMonth = businessDayKey(new Date(), tz, dayStartHour).slice(0, 7);
     if (dto.firstMonth < shiftMonth(thisMonth, -1)) throw new BadRequestException('Qist pichle mahine se pehle shuru nahi ho sakti');

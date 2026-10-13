@@ -38,8 +38,8 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Wallet} label="Kul kharcha" value={formatPKR(t.amount)} sub={`${t.count} kharche · ${t.days} din`} tone="rose" />
-        <Kpi icon={up ? TrendingUp : TrendingDown} label="Pichli itni muddat se" value={t.change == null ? '—' : `${up ? '+' : ''}${t.change}%`}
+        <Kpi icon={Wallet} label="Kul expense" value={formatPKR(t.amount)} sub={`${t.count} expenses · ${t.days} din`} tone="rose" />
+        <Kpi icon={up ? TrendingUp : TrendingDown} label="Pichli itni period se" value={t.change == null ? '—' : `${up ? '+' : ''}${t.change}%`}
           sub={`Pehle ${formatPKR(t.previous)}`} tone={t.change == null ? 'brand' : up ? 'rose' : 'emerald'} />
         <Kpi icon={CalendarDays} label="Roz ka ausat" value={formatPKR(t.perDay)} sub="Har din ka andaza" />
         <Kpi icon={Clock} label="Baqi bill" value={formatPKR(t.pending)} sub={t.pendingCount ? `${t.pendingCount} bill abhi dene hain` : 'Sab ada ho chuke'} tone="amber" />
@@ -80,7 +80,7 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Roz ka kharcha</Title>} description="Har karobari din kitna gaya">
+        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Roz ka expense</Title>} description="Har karobari din kitna gaya">
           {!t.count ? <Empty /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -88,7 +88,7 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Kharcha']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Expense']} {...theme.tooltip} />
                   <Bar dataKey="amount" fill="#e11d48" radius={[4, 4, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
@@ -104,7 +104,7 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
               <CartesianGrid stroke={theme.grid} vertical={false} />
               <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
               <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-              <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Kharcha']} {...theme.tooltip} />
+              <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Expense']} {...theme.tooltip} />
               <Bar dataKey="amount" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={36} />
             </BarChart>
           </ResponsiveContainer>
@@ -112,10 +112,10 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={Trophy} title="Sab se zyada kis par" description="Kharche ke naam se — kiraya, bijli, salary…" rows={d.topPayees} />
+        <Ranked icon={Trophy} title="Sab se zyada kis par" description="Expenses ke naam se — kiraya, bijli, salary…" rows={d.topPayees} />
         <Ranked icon={CreditCard} title="Kahan se diye" description="Cash galle se, baqi wallet aur bank se" rows={methods} />
-        {d.byBranch.length > 1 && <Ranked icon={Store} title="Branch" description="Har branch ka kharcha" rows={d.byBranch} />}
-        <Ranked icon={Users} title="Kis ne likha" description="Har bande ke likhe kharche" rows={d.byPerson} />
+        {d.byBranch.length > 1 && <Ranked icon={Store} title="Branch" description="Har branch ka expense" rows={d.byBranch} />}
+        <Ranked icon={Users} title="Kis ne likha" description="Har bande ke likhe expenses" rows={d.byPerson} />
       </div>
 
       <Card className="rounded-2xl" title={<Title icon={Receipt}>Category har mahine</Title>} description="Ek hi bill mahine ba mahine — maslan bijli July vs August" flush>
@@ -155,7 +155,7 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
             </table>
           </div>
         )}
-        {t.biggest && <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">Is muddat ka sab se bara kharcha: <b className="text-slate-700">{t.biggest.title}</b> · {formatPKR(t.biggest.amount)} · {day(t.biggest.date)}</p>}
+        {t.biggest && <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">Is period ka sab se bara expense: <b className="text-slate-700">{t.biggest.title}</b> · {formatPKR(t.biggest.amount)} · {day(t.biggest.date)}</p>}
       </Card>
     </div>
   );
@@ -180,7 +180,7 @@ function Ranked({ icon, title, description, rows }: { icon: LucideIcon; title: s
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full" style={{ width: `${(r.amount / max) * 100}%`, background: r.color ?? '#e11d48' }} />
               </div>
-              <p className="mt-0.5 text-[0.6875rem] text-slate-500">{r.count} kharche</p>
+              <p className="mt-0.5 text-[0.6875rem] text-slate-500">{r.count} expenses</p>
             </li>
           ))}
         </ul>
@@ -201,5 +201,5 @@ function Kpi({ icon: I, label, value, sub, tone = 'brand' }: { icon: LucideIcon;
 }
 
 function Empty() {
-  return <p className="py-10 text-center text-[0.875rem] text-slate-500">Is muddat me koi kharcha nahi</p>;
+  return <p className="py-10 text-center text-[0.875rem] text-slate-500">Is period me koi expense nahi</p>;
 }

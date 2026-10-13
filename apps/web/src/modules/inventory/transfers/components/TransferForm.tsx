@@ -179,7 +179,7 @@ export function TransferForm({ defaultFrom, locked, industryId, money, onClose, 
     !toId && 'Kis branch ko bhejna hai, chunein',
     fromId && fromId === toId && 'Dono branch alag honi chahiye',
     !lines.length && 'Kam se kam ek cheez jorein',
-    lines.some((l) => !(l.qty > 0)) && 'Har line ki miqdar likhein',
+    lines.some((l) => !(l.qty > 0)) && 'Har line ki quantity likhein',
     over.length > 0 && `${over[0].name}: stock sirf ${qty(over[0].stock ?? 0)} ${over[0].baseUnit} hai`,
   ].filter(Boolean) as string[];
 
@@ -192,7 +192,7 @@ export function TransferForm({ defaultFrom, locked, industryId, money, onClose, 
       }));
       return transfersApi.create({ fromShopId: fromId, toShopId: toId, notes: notes.trim() || undefined, items });
     },
-    onSuccess: (t) => { toast.success(`${t.transferNumber} bhej diya — maal raste me, ${t.toShop.name} wusool karegi`); onSent(t); },
+    onSuccess: (t) => { toast.success(`${t.transferNumber} bhej diya — maal raste me, ${t.toShop.name} receive karegi`); onSent(t); },
     onError: (e: any) => { toast.error(e?.response?.data?.message || 'Transfer nahi hua'); setConfirming(false); },
   });
 
@@ -200,7 +200,7 @@ export function TransferForm({ defaultFrom, locked, industryId, money, onClose, 
 
   return (
     <Modal open onClose={onClose} size="full" title={confirming ? 'Pakka karein' : 'Maal bhejein'}
-      description={confirming ? 'Bhejte hi maal bhejne wali branch ke stock se nikal jayega' : 'Dusri branch ko stock bhejein — wahan wusool hone par stock barhega'}
+      description={confirming ? 'Bhejte hi maal bhejne wali branch ke stock se nikal jayega' : 'Dusri branch ko stock bhejein — wahan receive hone par stock barhega'}
       footer={confirming ? <>
         <Button variant="secondary" onClick={() => setConfirming(false)}>Wapas, badlein</Button>
         <Button loading={send.isPending} onClick={() => send.mutate()} leftIcon={<Send className="h-4 w-4" />}>Haan, bhej dein</Button>
@@ -228,7 +228,7 @@ export function TransferForm({ defaultFrom, locked, industryId, money, onClose, 
                   <option value="">Chunein…</option>
                   {shops.filter((s) => s.id !== fromId).map((s) => <option key={s.id} value={s.id}>{s.name}{s.isMain ? ' (main)' : ''}</option>)}
                 </select>
-                <Hint>Wahan "Wusool karein" dabane par stock barhega</Hint>
+                <Hint>Wahan "Receive karein" dabane par stock barhega</Hint>
               </label>
             </div>
             {shopsQ.isSuccess && shops.length < 2 && (
@@ -251,7 +251,7 @@ export function TransferForm({ defaultFrom, locked, industryId, money, onClose, 
                       else if (deviceResults[0]) addDevices([deviceResults[0]]);
                     }}
                     placeholder={industryId === 'mobile' ? 'Product, IMEI ya used phone code…' : industryId === 'electronics' ? 'Product, serial ya IMEI…' : 'Product ka naam, SKU ya barcode…'}
-                    aria-label="Cheez dhoondein"
+                    aria-label="Cheez search"
                     className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
                 </div>
                 <Button variant="secondary" className="h-11" disabled={!fromId} onClick={() => setScanner(true)} leftIcon={<ScanLine className="h-4 w-4" />}><span className="hidden sm:inline">Scan</span></Button>
@@ -327,11 +327,11 @@ export function TransferForm({ defaultFrom, locked, industryId, money, onClose, 
             <div className="space-y-1.5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
               <p className="flex items-center gap-1.5 font-semibold text-slate-900"><span className="truncate">{fromShop?.name ?? '—'}</span><ArrowRight className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{toShop?.name ?? '—'}</span></p>
               <Row k="Cheezein" v={String(lines.length)} />
-              <Row k="Kul miqdar" v={unitsText(lines)} />
+              <Row k="Kul quantity" v={unitsText(lines)} />
               <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-900 px-3 py-2 text-white">
                 <span className="font-semibold">Maal ki qeemat</span><span className="text-lg font-bold tabular-nums">{money(value)}</span>
               </div>
-              <Hint>Cost par hisaab — yeh bikri nahi, sirf maal ki jagah badalti hai</Hint>
+              <Hint>Cost par hisaab — yeh sale nahi, sirf maal ki jagah badalti hai</Hint>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -394,7 +394,7 @@ function LineRow({ l, money, onPatch, onRemove }: { l: Line; money: (n: number) 
           <label className="text-[0.6875rem] text-slate-500">Kitne {l.unit.name}
             <span className="mt-0.5 flex">
               <button type="button" aria-label="Kam" onClick={() => onPatch({ qty: Math.max(l.qty - 1, 0) })} className="flex h-9 w-8 items-center justify-center rounded-l-lg border border-r-0 border-slate-200 text-slate-600 hover:bg-slate-50"><Minus className="h-3.5 w-3.5" /></button>
-              <input type="number" min={0} step="any" inputMode="decimal" value={l.qty || ''} placeholder="0" aria-label={`${l.name} miqdar`}
+              <input type="number" min={0} step="any" inputMode="decimal" value={l.qty || ''} placeholder="0" aria-label={`${l.name} quantity`}
                 onChange={(e) => onPatch({ qty: Math.max(Number(e.target.value) || 0, 0) })}
                 className="h-9 w-full min-w-0 border border-slate-200 bg-white px-2 text-center text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-brand-500" />
               <button type="button" aria-label="Zyada" onClick={() => onPatch({ qty: l.qty + 1 })} className="flex h-9 w-8 items-center justify-center rounded-r-lg border border-l-0 border-slate-200 text-slate-600 hover:bg-slate-50"><Plus className="h-3.5 w-3.5" /></button>
@@ -439,7 +439,7 @@ function Summary({ from, to, lines, value, notes, money }: { from: string; to: s
         <span className="text-slate-600">{lines.length} cheezein · {unitsText(lines)}</span><span className="text-lg font-bold tabular-nums text-slate-900">{money(value)}</span>
       </div>
       {notes.trim() && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-100">{notes.trim()}</p>}
-      <p className="text-center text-[0.8125rem] text-slate-500">Maal "Raste me" rahega jab tak {to} "Wusool karein" na dabaye. Ghalti ho to wusool se pehle cancel ho sakta hai.</p>
+      <p className="text-center text-[0.8125rem] text-slate-500">Maal "Raste me" rahega jab tak {to} "Receive karein" na dabaye. Ghalti ho to receive se pehle cancel ho sakta hai.</p>
     </div>
   );
 }
@@ -455,7 +455,7 @@ function unitsText(lines: Line[]) {
 }
 
 function KindBadge({ kind, variants }: { kind: SendProduct['kind']; variants: number }) {
-  const label = kind === 'carpet' ? 'Rolls' : kind === 'imei' ? 'IMEI' : kind === 'serial' ? 'Serial' : variants ? `${variants} qism` : '';
+  const label = kind === 'carpet' ? 'Rolls' : kind === 'imei' ? 'IMEI' : kind === 'serial' ? 'Serial' : variants ? `${variants} type` : '';
   return label ? <span className="rounded bg-violet-50 px-1 text-[0.625rem] font-semibold uppercase text-violet-700">{label}</span> : null;
 }
 

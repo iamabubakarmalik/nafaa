@@ -48,7 +48,7 @@ export function waUrlOf(n: Notification): string | null {
 export const GROUPS: Array<{ id: 'all' | NotificationGroup; label: string; hint: string }> = [
   { id: 'all', label: 'Sab', hint: 'Har notification' },
   { id: 'summary', label: 'Din ka hisaab', hint: 'Roz ki summary — WhatsApp par bhi bhej sakte hain' },
-  { id: 'sales', label: 'Bikri', hint: 'Bill, payment, wapsi, drawer' },
+  { id: 'sales', label: 'Sale', hint: 'Bill, payment, return, drawer' },
   { id: 'online', label: 'Online', hint: 'Online store ke orders' },
   { id: 'stock', label: 'Stock', hint: 'Kam stock aur transfers' },
   { id: 'alerts', label: 'Alerts', hint: 'Warning, udhaar, plan aur ghalti' },

@@ -348,7 +348,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
             <div className="min-w-0 flex-1">
               <h3 className="font-black text-rose-900 dark:text-rose-200 text-sm">
-                {stats.errored.length} integration me masla hai — dobara jorein warna orders chhoot sakte hain
+                {stats.errored.length} integration me masla hai — dobara jorein warna orders discount sakte hain
               </h3>
               <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {stats.errored.map((i) => (
@@ -518,7 +518,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
               <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
                 <Search className="h-10 w-10 text-slate-400 mx-auto mb-2" />
                 <p className="text-base font-black text-slate-800 dark:text-ink-100">Jori hui integrations me kuch nahi mila</p>
-                <p className="text-xs font-bold text-slate-500 mt-1">Chaant badlein — ya neeche directory me naya platform dhoondein.</p>
+                <p className="text-xs font-bold text-slate-500 mt-1">Chaant badlein — ya neeche directory me naya platform search.</p>
                 <Button className="mt-3" variant="secondary" onClick={clearFilters}><X className="h-4 w-4" /> Chaant hatao</Button>
               </div>
             )
@@ -917,7 +917,7 @@ function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
           <Tip icon={ShoppingCart} title="🛒 Bechne ki jagah">Foodpanda, Daraz, Shopify, apni website — yahan se orders aate hain.</Tip>
           <Tip icon={Truck} title="📦 Courier">TCS, Leopards, CallCourier — parcel book aur tracking.</Tip>
           <Tip icon={CreditCard} title="💳 Payment">JazzCash, EasyPaisa, NayaPay, Raast — online paisa lena.</Tip>
-          <Tip icon={Calculator} title="📊 Hisaab kitaab">QuickBooks, Xero — bikri khud books me.</Tip>
+          <Tip icon={Calculator} title="📊 Hisaab kitaab">QuickBooks, Xero — sale khud books me.</Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Halat ka matlab</div>
             <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-200">

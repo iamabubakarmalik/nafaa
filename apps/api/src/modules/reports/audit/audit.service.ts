@@ -304,11 +304,11 @@ export class AuditService {
       }
       const rr = pct(r.refundValue, r.sales);
       if (r.sales > 0 && r.refunds >= 3 && rr > avgRefund * 2) {
-        out.push({ tone: 'bad', title: `${r.name} ki wapsi zyada hai`, text: `${money(r.refundValue)} wapas kiye — un ki bikri ka ${rr.toFixed(1)}%. Ausat ${avgRefund.toFixed(1)}%.${r.cashRefunds ? ` ${r.cashRefunds} cash me.` : ''}`, userId: r.id, type: 'refund' });
+        out.push({ tone: 'bad', title: `${r.name} ki return zyada hai`, text: `${money(r.refundValue)} wapas kiye — un ki sale ka ${rr.toFixed(1)}%. Ausat ${avgRefund.toFixed(1)}%.${r.cashRefunds ? ` ${r.cashRefunds} cash me.` : ''}`, userId: r.id, type: 'refund' });
       }
       const dr = pct(r.discountValue, r.sales);
       if (r.sales > 0 && r.discounts >= 5 && dr > avgDiscount * 2) {
-        out.push({ tone: 'warn', title: `${r.name} chhoot zyada dete hain`, text: `${r.discounts} bill par ${money(r.discountValue)} ki haath ki chhoot — bikri ka ${dr.toFixed(1)}%. Ausat ${avgDiscount.toFixed(1)}%.`, userId: r.id, type: 'discount' });
+        out.push({ tone: 'warn', title: `${r.name} discount zyada dete hain`, text: `${r.discounts} bill par ${money(r.discountValue)} ki haath ki discount — sale ka ${dr.toFixed(1)}%. Ausat ${avgDiscount.toFixed(1)}%.`, userId: r.id, type: 'discount' });
       }
       if (r.shortCount >= 3 || r.drawerShort >= c.big / 2) {
         out.push({ tone: 'bad', title: `${r.name} ka drawer baar baar kam`, text: `${r.shortCount} dafa drawer kam nikla, kul ${money(r.drawerShort)}.`, userId: r.id, type: 'drawer' });
@@ -323,7 +323,7 @@ export class AuditService {
 
     const selfApproved = events.filter((e) => e.type === 'damage' && e.flags.includes('Khud report, khud manzoor'));
     if (selfApproved.length) {
-      out.push({ tone: 'warn', title: `${selfApproved.length} damage report khud hi manzoor`, text: 'Jis ne kharab maal likha, usi ne manzoor bhi kiya. Doosra banda check kare to behtar hai.', type: 'damage' });
+      out.push({ tone: 'warn', title: `${selfApproved.length} damage report khud hi approve`, text: 'Jis ne kharab maal likha, usi ne approve bhi kiya. Doosra banda check kare to behtar hai.', type: 'damage' });
     }
     const failedLogins = new Map<string, number>();
     for (const e of events) if (e.type === 'login' && e.title === 'Login nakam' && e.userId) failedLogins.set(e.userId, (failedLogins.get(e.userId) ?? 0) + 1);

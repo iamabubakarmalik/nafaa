@@ -322,11 +322,11 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'stock_movements.view': 'View Stock Movements', 'stock_adjustments.manage': 'Manage Adjustments', 'stock_transfers.manage': 'Manage Transfers',
   'suppliers.view': 'View Suppliers', 'suppliers.edit': 'Edit Suppliers',
   'purchases.view': 'View Purchases', 'purchases.create': 'Create Purchases',
-  'dashboard.view': 'View Dashboard', 'cost.view': 'Lagat aur munafa dekhein', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report',
+  'dashboard.view': 'View Dashboard', 'cost.view': 'Cost aur profit dekhein', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report',
   'staff.view': 'View Staff', 'staff.manage': 'Manage Staff',
   'commission.own': 'Apni commission dekhein',
   'commission.view': 'Sab ki commission dekhein',
-  'commission.manage': 'Commission rules aur adaigi',
+  'commission.manage': 'Commission rules aur payment',
   'expenses.view': 'View Expenses', 'expenses.create': 'Create Expenses',
   'exports.view': 'Data Exports', 'backup.manage': 'Manage Backups',
   'team.view': 'View Team', 'team.manage': 'Manage Team',
@@ -402,7 +402,7 @@ export function permissionGroupsFor(industryId?: string | null): PermissionGroup
   const leftover = ALL_PERMISSIONS.filter((p) => !covered.has(p));
   if (leftover.length > 0) {
     groups.push({
-      title: 'Baqi ijazatein', label: 'Baqi ijazatein', emoji: '🗝️', color: '#64748b',
+      title: 'Baqi permissions', label: 'Baqi permissions', emoji: '🗝️', color: '#64748b',
       permissions: leftover,
     });
   }

@@ -41,7 +41,7 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
   const n = Number(value || 0);
 
   const errors = {
-    value: !(n > 0) ? 'Raqam likhein' : type === 'PERCENT' && n > 100 ? 'Percent 100 se zyada nahi' : '',
+    value: !(n > 0) ? 'Amount likhein' : type === 'PERCENT' && n > 100 ? 'Percent 100 se zyada nahi' : '',
     bonus: target && !(Number(bonus) > 0) ? 'Target ke saath bonus bhi likhein' : '',
     target: bonus && !(Number(target) > 0) ? 'Bonus ke liye target likhein' : '',
   };
@@ -109,7 +109,7 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
               <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kitna</p>
               <Segmented label="Kitna" value={valueType} onChange={(v) => setValueType(v as CommissionValueType)}
                 items={[{ value: 'PERCENT', label: 'Percent (%)' }, { value: 'FIXED', label: 'Har cheez par Rs' }]} />
-              <p className="mt-1.5 text-xs text-slate-500">{valueType === 'PERCENT' ? 'Bikri ya munafa ka hissa' : 'Har biki hui cheez (unit) par fixed raqam'}</p>
+              <p className="mt-1.5 text-xs text-slate-500">{valueType === 'PERCENT' ? 'Sale ya profit ka hissa' : 'Har biki hui cheez (unit) par fixed amount'}</p>
             </div>
           )}
           <Input label={type === 'PERCENT' ? 'Percent' : perBill ? 'Har bill par (Rs)' : 'Har cheez par (Rs)'} type="number" inputMode="decimal" min={0} step="0.01"
@@ -148,10 +148,10 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
         )}
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Input label="Kam se kam bikri (mahina)" type="number" inputMode="decimal" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
+          <Input label="Kam se kam sale (mahina)" type="number" inputMode="decimal" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
             hint="Is se kam bikri par ye rule nahi chalta; poori ho jaye to mahine ki poori bikri par lagta hai. Do rules = slab." />
           <Input label="Target (mahina)" type="number" inputMode="decimal" min={0} value={target} onChange={(e) => setTarget(e.target.value)}
-            error={tried ? errors.target : undefined} hint="Mahine ki bikri itni ho jaye to upar se bonus" />
+            error={tried ? errors.target : undefined} hint="Mahine ki sale itni ho jaye to upar se bonus" />
           <Input label="Target bonus (Rs)" type="number" inputMode="decimal" min={0} value={bonus} onChange={(e) => setBonus(e.target.value)}
             error={tried ? errors.bonus : undefined} hint="Target poora hone par ek dafa" />
         </div>
@@ -161,7 +161,7 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
 
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Hisab har dafa asli bikri se banta hai. Rule badalne se wo mahine bhi badal jate hain jo abhi ada nahi hue. Jo adaigi likhi ja chuki hai woh nahi badalti.
+          Hisab har dafa asli sale se banta hai. Rule badalne se wo mahine bhi badal jate hain jo abhi ada nahi hue. Jo payment likhi ja chuki hai woh nahi badalti.
         </p>
       </div>
     </Modal>

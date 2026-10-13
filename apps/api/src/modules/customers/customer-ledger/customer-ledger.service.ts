@@ -174,7 +174,7 @@ export class CustomerLedgerService {
         'Is customer ka purana khata is shop mein pehle hi daala ja chuka hai — ab "Udhaar Chadhayein" use karein',
       );
     }
-    if (!(dto.balance > 0)) throw new BadRequestException('Purane khate ki raqam likhein');
+    if (!(dto.balance > 0)) throw new BadRequestException('Purane khate ki amount likhein');
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await this.bump(tx, user.tenantId, customerId, dto.balance);

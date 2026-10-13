@@ -89,7 +89,7 @@ export function PaymentModal({ booking, onClose }: { booking: Booking; onClose: 
   const [method, setMethod] = useState<PaymentMethod>(booking.paymentMethod ?? 'CASH');
   const [note, setNote] = useState('');
   const n = Number(amount) || 0;
-  const bad = n <= 0 ? 'Raqam likhein' : n > booking.balanceDue + 0.01 ? `Baqi sirf ${formatPKR(booking.balanceDue)} hai` : '';
+  const bad = n <= 0 ? 'Amount likhein' : n > booking.balanceDue + 0.01 ? `Baqi sirf ${formatPKR(booking.balanceDue)} hai` : '';
 
   const run = useMutation({
     mutationFn: () => bookingsApi.addPayment(booking.id, { amount: n, paymentMethod: method, notes: note.trim() || undefined }),
@@ -128,7 +128,7 @@ export function ConvertModal({ booking, onClose }: { booking: Booking; onClose: 
   const [method, setMethod] = useState<PaymentMethod>(booking.paymentMethod ?? 'CASH');
   const n = Number(amount) || 0;
   const udhaar = Math.max(booking.balanceDue - n, 0);
-  const bad = n < 0 ? 'Raqam ghalat hai' : n > booking.balanceDue + 0.01 ? `Baqi sirf ${formatPKR(booking.balanceDue)} hai` : '';
+  const bad = n < 0 ? 'Amount ghalat hai' : n > booking.balanceDue + 0.01 ? `Baqi sirf ${formatPKR(booking.balanceDue)} hai` : '';
 
   const run = useMutation({
     mutationFn: () => bookingsApi.convert(booking.id, { additionalPayment: n, paymentMethod: method }),
@@ -138,11 +138,11 @@ export function ConvertModal({ booking, onClose }: { booking: Booking; onClose: 
       onClose();
       navigate(`/sales/${sale.id}/receipt`);
     },
-    onError: (e) => toast.error(apiError(e, 'Bikri nahi hui')),
+    onError: (e) => toast.error(apiError(e, 'Sale nahi hui')),
   });
 
   return (
-    <Modal open onClose={onClose} size="md" title="Bikri karein (pickup)" description="Maal customer ko dein: bill banega aur stock is branch se nikal jayega"
+    <Modal open onClose={onClose} size="md" title="Sale karein (pickup)" description="Maal customer ko dein: bill banega aur stock is branch se nikal jayega"
       footer={<>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button loading={run.isPending} disabled={!!bad} onClick={() => run.mutate()} leftIcon={<ShoppingCart className="h-4 w-4" />}>Bill banayein</Button>
@@ -171,7 +171,7 @@ export function CancelModal({ booking, onClose }: { booking: Booking; onClose: (
   const [method, setMethod] = useState<PaymentMethod>(booking.paymentMethod ?? 'CASH');
 
   const run = useMutation({
-    mutationFn: () => withManagerPin('Advance wapsi', (managerPin) =>
+    mutationFn: () => withManagerPin('Advance return', (managerPin) =>
       bookingsApi.cancel(booking.id, { reason: reason.trim() || undefined, refundAdvance: refund, refundMethod: method, managerPin }), 'refund'),
     onSuccess: () => { toast.success(refund && booking.totalPaid > 0 ? `Booking cancel, ${formatPKR(booking.totalPaid)} wapas` : 'Booking cancel ho gayi'); refresh(); onClose(); },
     onError: (e) => toast.error(apiError(e, 'Cancel nahi hui')),
@@ -201,7 +201,7 @@ export function CancelModal({ booking, onClose }: { booking: Booking; onClose: (
             <span>
               <span className="block text-sm font-medium text-slate-900">Advance wapas dein ({formatPKR(booking.totalPaid)})</span>
               <span className="block text-[0.75rem] text-slate-500">
-                {refund ? 'Paise customer ko abhi wapas. Settings me ho to malik ka PIN mangega.' : 'Wapas nahi: advance customer ke khate me jama rahega, agli kharidari me kaam aayega.'}
+                {refund ? 'Paise customer ko abhi wapas. Settings me ho to malik ka PIN mangega.' : 'Wapas nahi: advance customer ke khate me jama rahega, agli purchase me kaam aayega.'}
               </span>
             </span>
           </label>
@@ -233,12 +233,12 @@ export function RescheduleModal({ booking, onClose }: { booking: Booking; onClos
       expectedPickupAt: pickup ? new Date(pickup).toISOString() : null,
       expiresAt: expires ? new Date(expires).toISOString() : null,
     }),
-    onSuccess: () => { toast.success('Tareekh badal gayi'); refresh(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Tareekh nahi badli')),
+    onSuccess: () => { toast.success('Date badal gayi'); refresh(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Date nahi badli')),
   });
 
   return (
-    <Modal open onClose={onClose} size="sm" title="Pickup ki tareekh" description={`${booking.bookingNumber} · ${booking.customer?.name ?? ''}`}
+    <Modal open onClose={onClose} size="sm" title="Pickup ki date" description={`${booking.bookingNumber} · ${booking.customer?.name ?? ''}`}
       footer={<>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button loading={run.isPending} disabled={!!pickup && !!expires && new Date(expires) < new Date(pickup)} onClick={() => run.mutate()} leftIcon={<CalendarClock className="h-4 w-4" />}>Save</Button>
@@ -253,7 +253,7 @@ export function RescheduleModal({ booking, onClose }: { booking: Booking; onClos
             ))}
             {pickup && <button type="button" onClick={() => setPickup('')} className="rounded-full px-2.5 py-1 text-[0.75rem] font-medium text-rose-700 hover:bg-rose-50">Hatayein</button>}
           </div>
-          <Hint>Upcoming list, calendar aur yaad dihani isi tareekh se chalti hai.</Hint>
+          <Hint>Upcoming list, calendar aur yaad dihani isi date se chalti hai.</Hint>
         </div>
         <div>
           <Label htmlFor="re-expires">Aakhri din (deadline)</Label>

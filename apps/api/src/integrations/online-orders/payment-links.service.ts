@@ -132,7 +132,7 @@ export class PaymentLinksService {
 
     const due = Math.max(0, Math.round(shopDue(order) - advancePaid(order.metadata)));
     const amount = Math.round(Number(body?.amount ?? due));
-    if (!(amount >= 1)) throw new BadRequestException('Raqam kam az kam Rs 1');
+    if (!(amount >= 1)) throw new BadRequestException('Amount kam az kam Rs 1');
     if (amount > due) throw new BadRequestException(`Baqi sirf Rs ${due.toLocaleString('en-PK')} hai`);
 
     const ref = `NP${Date.now().toString(36).toUpperCase()}${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
@@ -165,7 +165,7 @@ export class PaymentLinksService {
   async start(token: string, wallet?: { mobile?: string; cnic?: string }): Promise<Checkout | { kind: 'wallet'; status: 'PAID' | 'PENDING' | 'FAILED'; message: string | null }> {
     const { order, link } = await this.byToken(token);
     if (link.status !== 'PENDING') throw new BadRequestException(link.status === 'PAID' ? 'Ye payment ho chuki hai ✓' : 'Ye link band ho chuka — dukaan se naya link maangein');
-    if (Date.now() - Date.parse(link.createdAt) > LINK_TTL_MS) throw new BadRequestException('Link ki muddat khatam — dukaan se naya link maangein');
+    if (Date.now() - Date.parse(link.createdAt) > LINK_TTL_MS) throw new BadRequestException('Link ki period khatam — dukaan se naya link maangein');
     if (CLOSED.includes(order.orderStatus)) throw new BadRequestException('Ye order band ho chuka');
     const g = this.gatewayOrThrow(link.provider);
     const a = await this.readAccount(order.tenantId, link.provider);

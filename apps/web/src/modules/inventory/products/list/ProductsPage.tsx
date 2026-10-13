@@ -48,7 +48,7 @@ const SORTS: Array<FilterOption<CatalogSort>> = [
 ];
 const COST_SORTS: Array<FilterOption<CatalogSort>> = [
   { value: 'value', label: 'Stock ki qeemat', hint: 'Sab se zyada paisa laga' },
-  { value: 'margin', label: 'Zyada munafa wale' },
+  { value: 'margin', label: 'Zyada profit wale' },
 ];
 const STATUS: Array<FilterOption<CatalogFilters['active']>> = [
   { value: 'active', label: 'Chalu', hint: 'POS par bikti hain' },
@@ -217,15 +217,15 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         </>}
         stats={[
           { label: 'Stock ki cost', value: st ? cost(st.costValue) : '', hint: st ? `${qty(st.units)} units` : '' },
-          { label: 'Bechne par milega', value: st ? money(st.saleValue) : '', hint: costHidden || !st ? undefined : `munafa ${cost(st.saleValue - st.costValue)}` },
-          { label: `${st?.windowDays ?? 30} din ki bikri`, value: st ? money(st.revenue30) : '', hint: st ? `${qty(st.sold30)} units biki` : '' },
+          { label: 'Bechne par milega', value: st ? money(st.saleValue) : '', hint: costHidden || !st ? undefined : `profit ${cost(st.saleValue - st.costValue)}` },
+          { label: `${st?.windowDays ?? 30} din ki sale`, value: st ? money(st.revenue30) : '', hint: st ? `${qty(st.sold30)} units biki` : '' },
           { label: 'Pada hua maal', value: st ? cost(st.deadValue) : '', hint: st ? `${st.dead} nahi bik rahi` : '' },
         ]}
       />
 
       {c.offline && (
         <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] font-medium text-sky-800 ring-1 ring-sky-100">
-          <CloudOff className="h-4 w-4" /> Internet nahi — computer par save maal dikh raha hai. Bikri aur expiry ka hisaab internet aane par.
+          <CloudOff className="h-4 w-4" /> Internet nahi — computer par save maal dikh raha hai. Sale aur expiry ka hisaab internet aane par.
         </p>
       )}
 
@@ -266,7 +266,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         <div className="flex flex-col gap-2 xl:flex-row">
           <label className="group relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-            <input ref={searchRef} value={c.search} onChange={(e) => c.setSearch(e.target.value)} placeholder="Naam, SKU, barcode ya model…" aria-label="Maal dhoondein"
+            <input ref={searchRef} value={c.search} onChange={(e) => c.setSearch(e.target.value)} placeholder="Naam, SKU, barcode ya model…" aria-label="Maal search"
               className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-16 text-[0.9375rem] outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
             {c.search
               ? <button type="button" onClick={() => c.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
@@ -303,11 +303,11 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
               }
               return null;
             })}
-            <FilterMenu icon={Wheat} label="Qism" value={c.f.kindOf ?? 'all'} active={!!c.f.kindOf}
+            <FilterMenu icon={Wheat} label="Type" value={c.f.kindOf ?? 'all'} active={!!c.f.kindOf}
               options={[{ value: 'all', label: 'Sab' }, { value: 'sale', label: 'Bechne wale' }, { value: 'raw', label: 'Raw material (kacha maal)' }]}
               onChange={(v) => c.set('kindOf', v === 'all' ? undefined : (v as 'raw' | 'sale'))} />
             <FilterMenu icon={ToggleRight} label="Halat" value={c.f.active} active={c.f.active !== 'active'} options={STATUS} onChange={(v) => c.set('active', v)} />
-            <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={c.sort} align="right" width="w-64"
+            <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={c.sort} align="right" width="w-64"
               options={[...SORTS, ...(costHidden ? [] : COST_SORTS), ...(config.sorts ?? [])]} onChange={c.setSort} />
             <button type="button" onClick={() => c.set('featured', c.f.featured ? undefined : true)} title="Sirf khaas"
               className={cn('flex h-11 w-11 items-center justify-center rounded-2xl transition', c.f.featured ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-200' : 'bg-slate-100/80 text-slate-500 hover:bg-slate-200/70')}>
@@ -431,7 +431,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
 function ProductsGuide({ extra, onClose }: { extra?: GuideStep[]; onClose: () => void }) {
   const steps: GuideStep[] = [
     { icon: Plus, color: '#2563eb', title: 'Maal daalein', text: '"Naya" se ek cheez, ya Excel se sab ek saath. Barcode scan karein — nahi mila to wahin se nayi ban jati hai.' },
-    { icon: Search, color: '#7c3aed', title: 'Dhoondein', text: 'Naam, SKU, barcode ya model likhein. Category, brand aur halat ke filter upar hain — ginti saath likhi hai.' },
+    { icon: Search, color: '#7c3aed', title: 'Search', text: 'Naam, SKU, barcode ya model likhein. Category, brand aur halat ke filter upar hain — ginti saath likhi hai.' },
     { icon: AlertTriangle, color: '#d97706', title: 'Kam aur khatam', text: 'Upar ki pattiyan dabayein: Kam, Khatam, Nahi bik raha. Peela dabba batata hai kya mangwana hai.' },
     { icon: Package, color: '#16a34a', title: 'Stock badlein', text: 'Card par stock ka number ya "+ Stock" dabayein. Daalein, nikaalein ya ginti — wajah ke saath record banta hai.' },
     { icon: MousePointerClick, color: '#db2777', title: 'Ek saath kaam', text: 'Cards chunein, phir neeche kaali patti se chalu/band, khaas, labels, CSV ya mitana.' },

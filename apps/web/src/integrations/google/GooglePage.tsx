@@ -21,7 +21,7 @@ export default function GooglePage() {
   const { data, isLoading, error } = useQuery({ queryKey: KEY, queryFn: googleApi.overview });
   return (
     <Page back={{ to: '/settings', label: 'Settings' }} title="Google"
-      subtitle="Aap ke products Google Shopping aur Maps par — log dhoondein to aap ki dukaan nazar aaye.">
+      subtitle="Aap ke products Google Shopping aur Maps par — log search to aap ki dukaan nazar aaye.">
       {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Safha nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
         : (
@@ -149,7 +149,7 @@ function ReviewCard({ data }: { data: GoogleOverview }) {
     <Card title={<span className="flex items-center gap-2"><Star className="h-4 w-4 text-amber-500" /> Google reviews</span>}
       description="Zyada reviews = Google Maps par upar. Bill par QR — customer scan kare aur seedha review likhe.">
       <div className="space-y-3">
-        <Field label="Google Place ID" help={<>Apni dukaan <a className="font-semibold text-blue-700 underline" href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id" target="_blank" rel="noreferrer">yahan dhoondein</a> → "ChIJ…" copy karein</>}>
+        <Field label="Google Place ID" help={<>Apni dukaan <a className="font-semibold text-blue-700 underline" href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id" target="_blank" rel="noreferrer">yahan search</a> → "ChIJ…" copy karein</>}>
           <div className="flex gap-2">
             <input value={placeId} onChange={(e) => setPlaceId(e.target.value)} placeholder="ChIJ…" className={cn(inputCls, 'font-mono')} />
             {placeId !== data.settings.placeId && <Btn variant="primary" loading={save.isPending} onClick={() => save.mutate({ placeId })}>Save</Btn>}

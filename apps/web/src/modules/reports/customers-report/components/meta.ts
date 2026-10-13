@@ -43,7 +43,7 @@ export const SEGMENT_META: Record<SegmentKey, SegmentMeta> = {
   atRisk: {
     label: 'Khatre me', color: '#ea580c', icon: TriangleAlert,
     rule: '60 din se zyada se nahi aaye, magar pehle saal me 3+ din aate thay',
-    action: 'Abhi rabta karein: phone, WhatsApp, khaas chhoot — yeh ache customer thay',
+    action: 'Abhi rabta karein: phone, WhatsApp, khaas discount — yeh ache customer thay',
     message: 'Assalam-o-Alaikum {name}! {shop} ko aap ki kami mehsoos ho rahi hai. Aap ke liye khaas wapsi offer hai — is hafte tashreef layein. 🙏',
   },
   lost: {
@@ -55,7 +55,7 @@ export const SEGMENT_META: Record<SegmentKey, SegmentMeta> = {
   never: {
     label: 'Kabhi nahi khareeda', color: '#64748b', icon: UserX,
     rule: 'Naam likha gaya magar koi bill nahi bana',
-    action: 'Pehli khareedari par chhoot de kar bulayein',
+    action: 'Pehli khareedari par discount de kar bulayein',
     message: 'Assalam-o-Alaikum {name}! {shop} me khush-aamdeed. Pehli khareedari par aap ke liye khaas chhoot hai — zaroor aayein. 🙏',
   },
 };

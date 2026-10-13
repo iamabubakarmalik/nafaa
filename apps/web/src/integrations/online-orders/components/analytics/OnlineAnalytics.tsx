@@ -73,7 +73,7 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
   return (
     <div className="space-y-4">
       {has('pipeline') && (
-        <Card className="rounded-2xl" title={<Title icon={Truck}>Order ka safar</Title>} description="Is muddat ke orders abhi kis marhale par hain (test order shamil nahi)">
+        <Card className="rounded-2xl" title={<Title icon={Truck}>Order ka safar</Title>} description="Is period ke orders abhi kis marhale par hain (test order shamil nahi)">
           <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
             {PIPELINE.map((p, i) => {
               const n = data.byStatus[p.key] ?? 0;
@@ -103,7 +103,7 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
 
       {has('trend') && (
         <Card className="rounded-2xl" title={<Title icon={TrendingUp}>Roz ke orders aur sale</Title>} description="Sale me cancel aur wapas orders shamil nahi; khali din bhi dikhte hain">
-          {!t.orders ? <Empty text="Is muddat me koi online order nahi" /> : (
+          {!t.orders ? <Empty text="Is period me koi online order nahi" /> : (
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={days} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
@@ -220,7 +220,7 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
           )}
           {has('couriers') && (
             <Card className="rounded-2xl" title={<Title icon={Truck}>Courier aur RTO</Title>} description="Kaun sa courier zyada deliver karta hai, kis ke parcel wapas aate hain">
-              {!data.byCourier.length ? <Empty text="Is muddat me koi parcel nahi bheja" /> : (
+              {!data.byCourier.length ? <Empty text="Is period me koi parcel nahi bheja" /> : (
                 <>
                   <div className="h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -311,7 +311,7 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
 
       {has('codAging') && (
         <Card className="rounded-2xl" title={<Title icon={Wallet}>COD kitne din se courier ke paas</Title>}
-          description="Deliver ho chuka, paisa abhi jama nahi hua (poore account ka, tareekh ka nahi)"
+          description="Deliver ho chuka, paisa abhi jama nahi hua (poore account ka, date ka nahi)"
           actions={<Link to="/online-orders/cod" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">COD safha →</Link>}>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {data.codAging.map((a, i) => (

@@ -77,7 +77,7 @@ export function Delta({ now, before, up = 'good' }: { now: number; before: numbe
   const Icon = pct > 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-emerald-600' : 'text-rose-600')}>
-      <Icon className="h-3.5 w-3.5" />{Math.abs(pct).toFixed(0)}% pichli muddat se
+      <Icon className="h-3.5 w-3.5" />{Math.abs(pct).toFixed(0)}% pichli period se
     </span>
   );
 }
@@ -226,7 +226,7 @@ export function Heatmap({ grid }: { grid: number[][] }) {
   const theme = useChartTheme();
   const hours = Array.from({ length: 24 }, (_, h) => h).filter((h) => grid.some((row) => row[h] > 0));
   const max = Math.max(1, ...grid.flat());
-  if (!hours.length) return <Empty text="Koi bikri nahi" />;
+  if (!hours.length) return <Empty text="Koi sale nahi" />;
   const order = [1, 2, 3, 4, 5, 6, 0];
   return (
     <div className="overflow-x-auto pb-1">

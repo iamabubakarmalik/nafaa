@@ -49,16 +49,16 @@ export function PeakHours({ openFrom = 8, hint }: { openFrom?: number; hint?: st
           title: 'Rush ka waqt', subtitle: SPANS.find((x) => x.value === s.days)?.label,
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Ghanta' }, { label: 'Bill', align: 'right' }, { label: 'Bikri', align: 'right' }],
+            columns: [{ label: 'Ghanta' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }],
             rows: rows.filter((r) => r.total > 0).map((r) => [r.full, days === 1 ? String(r.count) : r.count.toFixed(1), sales(r.total)]),
           }],
         })}>
-        <MiniSelect label="Muddat" value={s.days} onChange={(v) => set({ days: v })} options={SPANS} />
-        <MiniSelect label="Kya dikhayein" value={s.metric} onChange={(v) => set({ metric: v })} options={[{ value: 'total', label: 'Raqam' }, { value: 'count', label: 'Bill ginti' }]} />
+        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={SPANS} />
+        <MiniSelect label="Kya dikhayein" value={s.metric} onChange={(v) => set({ metric: v })} options={[{ value: 'total', label: 'Amount' }, { value: 'count', label: 'Bill ginti' }]} />
         <MiniSelect label="Ghante" value={s.range} onChange={(v) => set({ range: v })} options={[{ value: 'open', label: 'Dukaan ke ghante' }, { value: 'all', label: 'Poore 24 ghante' }]} />
       </WidgetToolbar>
       {isLoading ? <Skeleton className="h-[260px] w-full" /> : hidden ? (
-        <EmptyHint icon={Clock} text="Bikri chhupi hui hai" />
+        <EmptyHint icon={Clock} text="Sale chhupi hui hai" />
       ) : rows.length === 0 || rows.every((r) => !r.total) ? (
         <EmptyHint icon={Clock} text="Abhi ghanton ka hisab nahi" />
       ) : (
@@ -70,7 +70,7 @@ export function PeakHours({ openFrom = 8, hint }: { openFrom?: number; hint?: st
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'total' ? axisMoney : undefined} width={44} />
                 <Tooltip
-                  formatter={(v) => [metric === 'total' ? formatPKR(Number(v)) : fmt(Number(v)), metric === 'total' ? 'Bikri' : 'Bill']}
+                  formatter={(v) => [metric === 'total' ? formatPKR(Number(v)) : fmt(Number(v)), metric === 'total' ? 'Sale' : 'Bill']}
                   labelFormatter={(_, p) => p?.[0]?.payload?.full ?? ''}
                   contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor}
                 />

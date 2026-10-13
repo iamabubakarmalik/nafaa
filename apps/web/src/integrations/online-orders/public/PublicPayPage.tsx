@@ -94,7 +94,7 @@ export default function PublicPayPage() {
             ) : info.status === 'EXPIRED' || info.status === 'FAILED' ? (
               <div className="mt-6 rounded-2xl bg-slate-50 p-5 text-center">
                 <XCircle className="mx-auto h-10 w-10 text-slate-400" />
-                <p className="mt-2 text-sm font-semibold text-slate-700">{info.status === 'EXPIRED' ? 'Is link ki muddat khatam ho gayi.' : 'Payment nahi hui.'} {info.shop} se naya link maangein.</p>
+                <p className="mt-2 text-sm font-semibold text-slate-700">{info.status === 'EXPIRED' ? 'Is link ki period khatam ho gayi.' : 'Payment nahi hui.'} {info.shop} se naya link maangein.</p>
               </div>
             ) : (
               <>

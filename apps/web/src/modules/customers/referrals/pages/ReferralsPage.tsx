@@ -30,13 +30,13 @@ const STATUS: Record<ReferralStatus, { label: string; hint: string; icon: Lucide
   PENDING: { label: 'Intezar', hint: 'Jur gaye, abhi payment nahi ki', icon: Clock, color: '#d97706', badge: 'warning' },
   CONVERTED: { label: 'Inaam mila', hint: 'Pehli payment ho gayi, credit jur gaya', icon: CheckCircle2, color: '#16a34a', badge: 'success' },
   PAID: { label: 'Payout ho gaya', hint: 'Inaam ada kar diya gaya', icon: Award, color: '#7c3aed', badge: 'brand' },
-  EXPIRED: { label: 'Khatam', hint: 'Muddat guzar gayi', icon: XCircle, color: '#94a3b8', badge: 'default' },
+  EXPIRED: { label: 'Khatam', hint: 'Period guzar gayi', icon: XCircle, color: '#94a3b8', badge: 'default' },
 };
 const CREDIT: Record<CreditType, { label: string; color: string }> = {
   REFERRAL_BONUS: { label: 'Referral inaam', color: '#16a34a' },
   PROMOTIONAL: { label: 'Promotion', color: '#2563eb' },
-  REFUND: { label: 'Wapsi', color: '#0891b2' },
-  ADJUSTMENT: { label: 'Durusti', color: '#64748b' },
+  REFUND: { label: 'Return', color: '#0891b2' },
+  ADJUSTMENT: { label: 'Correction', color: '#64748b' },
 };
 const FILTERS: Array<FilterOption<StatusFilter>> = [
   { value: 'all', label: 'Sab' },
@@ -59,7 +59,7 @@ export default function ReferralsPage() {
   const link = code ? `${window.location.origin}/register?ref=${code}` : '';
 
   const message = [
-    'Assalam-o-Alaikum! Main apni dukaan Nafaa POS par chalata hoon — bikri, stock, khata aur reports sab ek jagah.',
+    'Assalam-o-Alaikum! Main apni dukaan Nafaa POS par chalata hoon — sale, stock, khata aur reports sab ek jagah.',
     '',
     `Mere code se shuru karein: ${code}`,
     link,
@@ -183,7 +183,7 @@ export default function ReferralsPage() {
       {tab === 'friends' && (
         <>
           <FilterBar
-            search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Dukaan ka naam…" label="Dost dhoondein" />}
+            search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Dukaan ka naam…" label="Dost search" />}
             chips={status !== 'all' || search.trim() ? <>
               {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{STATUS[status].label}</FilterChip>}
               {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
@@ -285,8 +285,8 @@ function ReferralGuide({ rule, onClose }: { rule: string; onClose: () => void })
         { icon: Link2, color: '#2563eb', title: 'Link copy karein', text: 'Upar "Link copy" ya C dabayein. Code alag bhi copy ho sakta hai.' },
         { icon: MessageCircle, color: '#16a34a', title: 'Dost ko bhejein', text: 'WhatsApp, email ya phone ke share se kisi bhi dukaan-daar ko bhejein.' },
         { icon: UserPlus, color: '#7c3aed', title: 'Dost jurta hai', text: 'Wo link se account banata hai — "Dost" tab me "Intezar" me nazar aata hai.' },
-        { icon: Gift, color: '#db2777', title: 'Inaam', text: `Us ki pehli payment par aap ke credit me inaam: ${rule || 'tay shuda raqam'}.` },
-        { icon: Wallet, color: '#d97706', title: 'Credit history', text: 'Har inaam aur payout ki tareekh aur baqi credit yahan likha hota hai.' },
+        { icon: Gift, color: '#db2777', title: 'Inaam', text: `Us ki pehli payment par aap ke credit me inaam: ${rule || 'tay shuda amount'}.` },
+        { icon: Wallet, color: '#d97706', title: 'Credit history', text: 'Har inaam aur payout ki date aur baqi credit yahan likha hota hai.' },
         { icon: Trophy, color: '#0891b2', title: 'Top referrers', text: 'Sab se zyada dost lane wali dukaanein — doosri dukaanon ke naam chhupe hote hain.' },
       ]}
       tips={['Code bade huroof me hota hai — dost register karte waqt "Referral code" me likh sakta hai.', 'Credit nikalwane ke liye Credit history tab se support ko WhatsApp karein.']}

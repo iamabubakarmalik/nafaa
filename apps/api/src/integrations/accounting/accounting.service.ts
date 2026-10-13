@@ -30,7 +30,7 @@ export interface Stored {
 
 /** "2026-09-30" → us din ka UTC range (Pakistan waqt) */
 export function pkDayRange(day: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new BadRequestException('Tareekh YYYY-MM-DD');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new BadRequestException('Date YYYY-MM-DD');
   const start = new Date(`${day}T00:00:00+05:00`);
   return { start, end: new Date(start.getTime() + 86_400_000) };
 }

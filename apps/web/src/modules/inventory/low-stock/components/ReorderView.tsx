@@ -47,7 +47,7 @@ export function ReorderView({ rows, loading, qtyOf, setQty, removed, toggleRemov
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[0.8125rem] text-slate-600">{groups.length} supplier · miqdar badal sakte hain, ya X se line hata dein</p>
+        <p className="text-[0.8125rem] text-slate-600">{groups.length} supplier · quantity badal sakte hain, ya X se line hata dein</p>
         <PrintButton label="Sab ki sheet" size="sm" doc={() => reorderSheetDoc(groups.map(live), qtyOf, shop, !costHidden)} />
       </div>
       {groups.map((g) => {
@@ -79,11 +79,11 @@ export function ReorderView({ rows, loading, qtyOf, setQty, removed, toggleRemov
                   <tr className="border-b border-slate-100 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
                     <th className="px-4 py-2">Cheez</th>
                     <th className="px-3 py-2 text-right">Abhi</th>
-                    <th className="px-3 py-2 text-right">Roz bikri</th>
+                    <th className="px-3 py-2 text-right">Roz sale</th>
                     <th className="px-3 py-2 text-right">Kitne din</th>
                     <th className="px-3 py-2 text-right">Order me</th>
                     <th className="px-3 py-2 text-right">Mangwana</th>
-                    {!costHidden && <th className="px-3 py-2 text-right">Raqam</th>}
+                    {!costHidden && <th className="px-3 py-2 text-right">Amount</th>}
                     <th className="w-10 px-2 py-2" />
                   </tr>
                 </thead>

@@ -148,11 +148,11 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
     const mode = modeOf(o);
     const n = l.source.name;
     if (mode === 'loading') problems.push(`${n}: load ho raha hai`);
-    if (mode === 'variant' && !l.variantId) problems.push(`${n}: qism (variant) chunein`);
+    if (mode === 'variant' && !l.variantId) problems.push(`${n}: type (variant) chunein`);
     if (mode === 'roll' && !l.rollId) problems.push(`${n}: roll chunein`);
     if (mode === 'roll' && l.rollAction === 'ADJUST_LENGTH' && !(Number(l.ft) > 0 || Number(l.inch) > 0)) problems.push(`${n}: lambai likhein`);
     if (mode === 'imei' && !l.imeiId) problems.push(`${n}: device (IMEI) chunein`);
-    if ((mode === 'plain' || mode === 'variant') && !(Number(l.qty) > 0)) problems.push(`${n}: miqdar likhein`);
+    if ((mode === 'plain' || mode === 'variant') && !(Number(l.qty) > 0)) problems.push(`${n}: quantity likhein`);
     const p = (mode === 'plain' || mode === 'variant') ? preview(l, o) : null;
     if (p && p.after < 0 && !allowNegative) problems.push(`${n}: itna stock nahi (abhi ${qtyText(p.before)} ${l.source.baseUnit})`);
   });
@@ -257,7 +257,7 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
           {!lines.length ? (
             <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
               <PackageSearch className="mx-auto h-9 w-9 text-slate-300" />
-              <p className="mt-2 text-sm font-semibold text-slate-800">Upar se product dhoondein</p>
+              <p className="mt-2 text-sm font-semibold text-slate-800">Upar se product search</p>
               <p className="mt-0.5 text-[0.8125rem] text-slate-500">Har product ke liye chunein: barhayein, kam karein, kharab ya gum</p>
             </div>
           ) : (
@@ -286,7 +286,7 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <label htmlFor="adj-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Note</label>
-              <textarea id="adj-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={3} placeholder="Zaroorat ho to tafseel — kis ne dekha, kahan rakha tha…"
+              <textarea id="adj-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={3} placeholder="Zaroorat ho to details — kis ne dekha, kahan rakha tha…"
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
               <p className="mt-1 text-[0.75rem] text-slate-500">Marzi hai. Har line ke sath save hota hai.</p>
             </div>
@@ -350,7 +350,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, e
           <p className="truncate text-sm font-semibold text-slate-900">{l.source.name}</p>
           <p className="text-[0.75rem] text-slate-500">
             {l.source.sku ? `${l.source.sku} · ` : ''}
-            {mode === 'loading' ? (failed ? 'Tafseel load nahi hui' : 'Load ho raha hai…') : mode === 'roll' ? `${o!.carpetRolls.length} roll` : mode === 'imei' ? `${o!.imeis.length} device` : mode === 'variant' ? `${o!.variants.length} qismein` : `Branch stock ${qtyText(o!.product.branchStock ?? o!.product.stock)} ${l.source.baseUnit}`}
+            {mode === 'loading' ? (failed ? 'Details load nahi hui' : 'Load ho raha hai…') : mode === 'roll' ? `${o!.carpetRolls.length} roll` : mode === 'imei' ? `${o!.imeis.length} device` : mode === 'variant' ? `${o!.variants.length} qismein` : `Branch stock ${qtyText(o!.product.branchStock ?? o!.product.stock)} ${l.source.baseUnit}`}
           </p>
         </div>
         <button type="button" onClick={onRemove} aria-label="Hatayein" className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
@@ -381,7 +381,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, e
 
       {mode === 'variant' && (
         <div className="mt-3">
-          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Qism (variant) <span className="text-rose-600">*</span></p>
+          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Type (variant) <span className="text-rose-600">*</span></p>
           <div className="flex flex-wrap gap-1.5">
             {o!.variants.map((v) => (
               <button key={v.id} type="button" onClick={() => onChange({ variantId: v.id })}
@@ -399,7 +399,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, e
         <div className="mt-3 grid gap-3 sm:grid-cols-[12rem_minmax(0,1fr)]">
           <div>
             <div className="flex">
-              <input inputMode="decimal" value={l.qty} disabled={!!l.serialId} onChange={(e) => onChange({ qty: e.target.value.replace(/[^\d.]/g, '') })} aria-label="Miqdar"
+              <input inputMode="decimal" value={l.qty} disabled={!!l.serialId} onChange={(e) => onChange({ qty: e.target.value.replace(/[^\d.]/g, '') })} aria-label="Quantity"
                 className={cn('h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-right text-base font-semibold tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 disabled:bg-slate-50', l.source.units.length > 1 ? 'rounded-l-xl' : 'rounded-xl')} />
               {l.source.units.length > 1 && (
                 <select value={l.unit.name} onChange={(e) => onChange({ unit: l.source.units.find((u) => u.name === e.target.value) ?? l.unit })} aria-label="Unit"
@@ -424,7 +424,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, e
               </span>
               {p.after < 0 && (
                 <span className="w-full text-[0.6875rem] text-rose-700">
-                  {allowNegative ? 'Stock minus me chala jayega — settings me ijazat hai, is liye save ho jayega.' : 'Itna stock nahi hai. Minus stock ki ijazat settings me band hai.'}
+                  {allowNegative ? 'Stock minus me chala jayega — settings me permission hai, is liye save ho jayega.' : 'Itna stock nahi hai. Minus stock ki permission settings me band hai.'}
                 </span>
               )}
             </div>
@@ -482,7 +482,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, e
         <div className="mt-3">
           <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Device (IMEI) <span className="text-rose-600">*</span></p>
           {o!.imeis.length > 6 && (
-            <input value={deviceQuery} onChange={(e) => setDeviceQuery(e.target.value)} placeholder="IMEI ke aakhri number, rang…" aria-label="Device dhoondein"
+            <input value={deviceQuery} onChange={(e) => setDeviceQuery(e.target.value)} placeholder="IMEI ke aakhri number, rang…" aria-label="Device search"
               className="mb-1.5 h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500" />
           )}
           <div className="grid max-h-48 gap-1.5 overflow-y-auto sm:grid-cols-2">

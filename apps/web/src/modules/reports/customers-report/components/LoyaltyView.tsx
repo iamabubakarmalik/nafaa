@@ -37,7 +37,7 @@ export function LoyaltyView({ data: d, f, compare }: { data: Loyalty; f: Formatt
       <KpiRow>
         <KpiCard icon={Gift} color="#16a34a" label="Points diye" value={f.count(t.issued)}
           hint={prev ? <Delta now={t.issued} before={prev.issued} /> : `${t.earners} customers ko · ${f.money(t.issuedValue)} ki qeemat`} />
-        <KpiCard icon={Coins} color="#d97706" label="Points istemal hue" value={f.count(t.redeemed)} hint={`${f.money(t.redeemedValue)} chhoot · ${t.redeemBills} bill`} />
+        <KpiCard icon={Coins} color="#d97706" label="Points istemal hue" value={f.count(t.redeemed)} hint={`${f.money(t.redeemedValue)} discount · ${t.redeemBills} bill`} />
         <KpiCard icon={Percent} color="#2563eb" label="Istemal ki sharah" value={f.pct(t.redeemRate)}
           hint={prev && t.redeemRate != null ? <Delta now={t.redeemRate} before={prev.redeemRate} points /> : 'diye gaye points me se kitne kharch hue'} />
         <KpiCard icon={Star} color="#7c3aed" label="Baqi points" value={f.count(d.outstanding.points)} hint={`${d.outstanding.holders} customers ke paas`} />
@@ -46,7 +46,7 @@ export function LoyaltyView({ data: d, f, compare }: { data: Loyalty; f: Formatt
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel icon={TrendingUp} className="lg:col-span-2" title="Points diye vs istemal"
-          hint={`${d.grouping === 'month' ? 'Har mahine' : 'Har din'} — is branch ki bikri se`}>
+          hint={`${d.grouping === 'month' ? 'Har mahine' : 'Har din'} — is branch ki sale se`}>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -68,9 +68,9 @@ export function LoyaltyView({ data: d, f, compare }: { data: Loyalty; f: Formatt
             <Row label="1 point ki qeemat" value={f.money(s.redemptionRate)} />
             <Row label="Kam se kam istemal" value={s.minRedeem ? `${s.minRedeem} points` : 'Koi had nahi'} />
             <Row label="Points khatam" value={s.expiryDays ? `${s.expiryDays} din baad` : 'Kabhi nahi'} />
-            <Row label="Khatam hue (is muddat)" value={f.count(t.expired)} />
+            <Row label="Khatam hue (is period)" value={f.count(t.expired)} />
             {t.adjusted !== 0 && <Row label="Haath se badle" value={f.count(t.adjusted)} />}
-            <Row label="Points walon ki bikri" value={f.pct(t.memberShare)} />
+            <Row label="Points walon ki sale" value={f.pct(t.memberShare)} />
           </dl>
           <p className="mt-3 border-t border-slate-100 pt-2 text-[0.6875rem] leading-relaxed text-slate-500">Baqi points aur list sab branches ki hai — points customer ke saath chalte hain, branch ke saath nahi.</p>
         </Panel>

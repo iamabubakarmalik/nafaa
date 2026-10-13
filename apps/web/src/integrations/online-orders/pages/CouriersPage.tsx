@@ -117,7 +117,7 @@ export default function CouriersPage() {
         </KpiRow>
 
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Courier ka naam…" label="Courier dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Courier ka naam…" label="Courier search" />}
           chips={kind || term ? <>
             {kind && <FilterChip onRemove={() => setKind('')}>{KINDS.find((k) => k.value === kind)?.label}</FilterChip>}
             {term && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}

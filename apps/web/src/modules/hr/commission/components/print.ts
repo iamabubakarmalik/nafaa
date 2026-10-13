@@ -10,7 +10,7 @@ import type { CommissionDetail, CommissionLine, CommissionRow, CommissionSummary
 import { PAY, day, periodLabel, qtyText, signed } from './meta';
 
 export function lineBase(l: CommissionLine) {
-  if (l.basis === 'TARGET') return `Bikri ${formatPKR(l.base)}`;
+  if (l.basis === 'TARGET') return `Sale ${formatPKR(l.base)}`;
   if (l.basis === 'PER_BILL') return `${l.base} bill × ${formatPKR(l.rate)}`;
   if (l.valueType === 'FIXED') return `${qtyText(l.base)} cheez × ${formatPKR(l.rate)}`;
   return `${formatPKR(l.base)} × ${l.rate}%`;
@@ -38,8 +38,8 @@ export function monthDoc(s: CommissionSummary, rows: CommissionRow[], filter: st
       {
         kind: 'table',
         columns: [
-          { label: 'Banda' }, { label: 'Bill', align: 'right', wideOnly: true }, { label: 'Bikri', align: 'right', wideOnly: true },
-          { label: 'Wapsi', align: 'right', wideOnly: true }, { label: 'Commission', align: 'right' }, { label: 'Ada', align: 'right', wideOnly: true },
+          { label: 'Banda' }, { label: 'Bill', align: 'right', wideOnly: true }, { label: 'Sale', align: 'right', wideOnly: true },
+          { label: 'Return', align: 'right', wideOnly: true }, { label: 'Commission', align: 'right' }, { label: 'Ada', align: 'right', wideOnly: true },
           { label: 'Baqi', align: 'right' },
         ],
         rows: rows.map((r) => [
@@ -53,7 +53,7 @@ export function monthDoc(s: CommissionSummary, rows: CommissionRow[], filter: st
         ],
       },
     ],
-    footer: `Bikri = maal ki qeemat chhoot ke baad. Wapsi us mahine me katti hai jis me maal wapas aaya. Void bill shamil nahi.`,
+    footer: `Sale = maal ki qeemat discount ke baad. Return us mahine me katti hai jis me maal wapas aaya. Void bill shamil nahi.`,
   };
 }
 
@@ -65,7 +65,7 @@ export function statementDoc(d: CommissionDetail, showCost: boolean): PrintDoc {
       ...(d.staff?.designation ? [['Kaam', d.staff.designation] as [string, string]] : []),
       ...(d.staff?.staffNumber ? [['Staff #', d.staff.staffNumber] as [string, string]] : []),
       ['Bill', String(d.bills)],
-      ['Bikri', formatPKR(d.sale)],
+      ['Sale', formatPKR(d.sale)],
       ['Haal', PAY[d.payStatus].label],
     ],
     sections: [
@@ -73,11 +73,11 @@ export function statementDoc(d: CommissionDetail, showCost: boolean): PrintDoc {
         kind: 'rows',
         title: 'Hisab',
         rows: [
-          { label: 'Bikri (chhoot ke baad)', value: formatPKR(d.grossSale) },
+          { label: 'Sale (discount ke baad)', value: formatPKR(d.grossSale) },
           ...(d.returnSale ? [{ label: 'Is mahine wapas aaya maal', value: `−${formatPKR(d.returnSale)}`, sub: true }] : []),
-          { label: 'Asal bikri', value: formatPKR(d.sale) },
-          ...(showCost && d.profit != null ? [{ label: 'Munafa', value: formatPKR(d.profit), sub: true }] : []),
-          ...d.lines.map((l) => ({ label: `${l.label} (${lineBase(l)})${l.returnAmount ? ` · wapsi −${formatPKR(l.returnAmount)}` : ''}`, value: signed(l.amount) })),
+          { label: 'Asal sale', value: formatPKR(d.sale) },
+          ...(showCost && d.profit != null ? [{ label: 'Profit', value: formatPKR(d.profit), sub: true }] : []),
+          ...d.lines.map((l) => ({ label: `${l.label} (${lineBase(l)})${l.returnAmount ? ` · return −${formatPKR(l.returnAmount)}` : ''}`, value: signed(l.amount) })),
           { label: 'Kul commission', value: signed(d.earned), strong: true },
           ...(d.paidAmount != null ? [{ label: `Ada (${day(d.paidAt)})`, value: formatPKR(d.paidAmount) }] : []),
           { label: 'Baqi', value: formatPKR(d.due), strong: true },
@@ -87,25 +87,25 @@ export function statementDoc(d: CommissionDetail, showCost: boolean): PrintDoc {
       ...(d.byCategory.length ? [{
         kind: 'table' as const,
         title: 'Category ke hisaab se',
-        columns: [{ label: 'Category' }, { label: 'Miqdar', align: 'right' as const, wideOnly: true }, { label: 'Bikri', align: 'right' as const }, { label: 'Commission', align: 'right' as const }],
+        columns: [{ label: 'Category' }, { label: 'Quantity', align: 'right' as const, wideOnly: true }, { label: 'Sale', align: 'right' as const }, { label: 'Commission', align: 'right' as const }],
         rows: d.byCategory.map((c) => [c.name, qtyText(c.qty), formatPKR(c.sale - c.returnedSale), signed(c.commission)]),
       }] : []),
       ...(d.byProduct.length ? [{
         kind: 'table' as const,
         title: 'Cheezein',
-        columns: [{ label: 'Cheez' }, { label: 'Miqdar', align: 'right' as const }, { label: 'Wapas', align: 'right' as const, wideOnly: true }, { label: 'Bikri', align: 'right' as const, wideOnly: true }, { label: 'Commission', align: 'right' as const }],
+        columns: [{ label: 'Cheez' }, { label: 'Quantity', align: 'right' as const }, { label: 'Wapas', align: 'right' as const, wideOnly: true }, { label: 'Sale', align: 'right' as const, wideOnly: true }, { label: 'Commission', align: 'right' as const }],
         rows: d.byProduct.slice(0, 60).map((p) => [p.name, `${qtyText(p.qty)} ${p.unit}`, p.returnedQty ? qtyText(p.returnedQty) : '—', formatPKR(p.sale - p.returnedSale), signed(p.commission)]),
       }] : []),
       ...(d.returnList.length ? [{
         kind: 'table' as const,
-        title: 'Wapsi jo is mahine kati',
-        columns: [{ label: 'Tareekh' }, { label: 'Wapsi #', wideOnly: true }, { label: 'Asal bill' }, { label: 'Maal', align: 'right' as const }],
+        title: 'Return jo is mahine kati',
+        columns: [{ label: 'Date' }, { label: 'Return #', wideOnly: true }, { label: 'Asal bill' }, { label: 'Maal', align: 'right' as const }],
         rows: d.returnList.map((r) => [day(r.returnedAt), r.returnNumber, `${r.saleNumber} (${day(r.soldAt)})`, formatPKR(r.value)]),
       }] : []),
       {
         kind: 'table',
         title: 'Pichle mahine',
-        columns: [{ label: 'Mahina' }, { label: 'Bikri', align: 'right', wideOnly: true }, { label: 'Commission', align: 'right' }, { label: 'Ada', align: 'right' }],
+        columns: [{ label: 'Mahina' }, { label: 'Sale', align: 'right', wideOnly: true }, { label: 'Commission', align: 'right' }, { label: 'Ada', align: 'right' }],
         rows: d.history.map((h) => [periodLabel(h.period, true), formatPKR(h.sale), signed(h.earned), h.paid != null ? formatPKR(h.paid) : '—']),
       },
     ],

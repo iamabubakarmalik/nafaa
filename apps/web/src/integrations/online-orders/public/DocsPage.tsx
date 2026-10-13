@@ -216,7 +216,7 @@ export default function DocsPage() {
               Is channel ke orders ka stock is branch se kam hota hai aur website ko isi ka stock dikhta hai. Kai branches me, branch wale URL par aaya order apni branch ka stock leta hai.
             </Setting>
             <Setting id="setting-delivery" title="Delivery charges kis ke paas?">
-              <b>Dukaan ke:</b> delivery charges bill aur sale me (apna rider). <b>Rider ke:</b> bahar ka rider (Indolj, Foodpanda, Bykea) khud le leta hai — bill par likha aata hai ("Delivery (rider ko dein)"), lekin sale, drawer aur munafa me nahi. COD me dukaan ka paisa delivery ke baghair.
+              <b>Dukaan ke:</b> delivery charges bill aur sale me (apna rider). <b>Rider ke:</b> bahar ka rider (Indolj, Foodpanda, Bykea) khud le leta hai — bill par likha aata hai ("Delivery (rider ko dein)"), lekin sale, drawer aur profit me nahi. COD me dukaan ka paisa delivery ke baghair.
             </Setting>
             <Setting id="setting-price" title="Bill me qeemat">
               <b>Website wali:</b> jo customer ne di (offer chal raha ho to yahi). <b>Nafaa wali:</b> POS ki qeemat.

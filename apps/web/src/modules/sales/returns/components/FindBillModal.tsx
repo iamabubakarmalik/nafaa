@@ -68,12 +68,12 @@ export function FindBillModal({ initial = '', scan = false, onPick, onClose }: {
         <BarcodeScanner title="Bill ya IMEI scan" hint="Bill ka barcode ya phone ka IMEI dabbe me rakhein"
           onDetected={(c: string) => { setScanner(false); setText(c); setCode(c.trim()); }} onClose={() => setScanner(false)} />
       )}
-      <Modal open onClose={onClose} size="lg" title="Nayi wapsi — bill dhoondein" description="Bill number, customer ka naam ya phone, ya IMEI/serial likhein ya scan karein">
+      <Modal open onClose={onClose} size="lg" title="Nayi return — bill search" description="Bill number, customer ka naam ya phone, ya IMEI/serial likhein ya scan karein">
         <div className="flex gap-2">
           <label className="group relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
             <input ref={inputRef} autoFocus value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onKey}
-              placeholder="Jaise S-1042, 0300…, ya IMEI" aria-label="Bill dhoondein"
+              placeholder="Jaise S-1042, 0300…, ya IMEI" aria-label="Bill search"
               className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-11 pr-3 text-[0.9375rem] text-slate-900 outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
           </label>
           <Button variant="secondary" onClick={() => setScanner(true)} leftIcon={<ScanLine className="h-4 w-4" />}>Scan</Button>

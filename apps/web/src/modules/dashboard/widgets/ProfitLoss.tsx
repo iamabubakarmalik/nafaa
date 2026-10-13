@@ -39,28 +39,28 @@ export function ProfitLoss() {
         print={() => ({
           title: 'Nafa aur nuqsan', subtitle: 'Is mahine',
           sections: [{ kind: 'rows', rows: [
-            { label: `Bikri (${s?.ordersMonth ?? 0} bill)`, value: formatPKR(revenue) },
-            { label: '- Maal ki lagat', value: formatPKR(cogs) },
-            { label: '= Seedha munafa', value: formatPKR(gross), strong: true },
-            { label: '- Kharche', value: formatPKR(expenses) },
+            { label: `Sale (${s?.ordersMonth ?? 0} bill)`, value: formatPKR(revenue) },
+            { label: '- Maal ki cost', value: formatPKR(cogs) },
+            { label: '= Seedha profit', value: formatPKR(gross), strong: true },
+            { label: '- Expenses', value: formatPKR(expenses) },
             { label: '= Haath me bacha', value: formatPKR(net), strong: true },
           ] }, { kind: 'rows', title: 'Aaj', rows: [
-            { label: 'Bikri', value: formatPKR(s?.salesToday ?? 0) },
-            { label: 'Kharcha', value: formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0) },
+            { label: 'Sale', value: formatPKR(s?.salesToday ?? 0) },
+            { label: 'Expense', value: formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0) },
             { label: 'Bacha', value: formatPKR(todayNet), strong: true },
           ] }],
         })} />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
-        <MetricTile icon={TrendingUp} tone="brand" label="Bikri" value={formatPKR(revenue)} hint={`${s?.ordersMonth ?? 0} bill`} />
-        <MetricTile icon={TrendingDown} tone="danger" label="− Maal ki lagat" value={formatPKR(cogs)} />
-        <MetricTile icon={Sparkles} tone="success" label="= Seedha munafa" value={formatPKR(gross)} hint={pct(gross)} />
-        <MetricTile icon={Wallet} tone="warning" label="− Kharche" value={formatPKR(expenses)} hint="Bijli, kiraya, tankhwah" />
+        <MetricTile icon={TrendingUp} tone="brand" label="Sale" value={formatPKR(revenue)} hint={`${s?.ordersMonth ?? 0} bill`} />
+        <MetricTile icon={TrendingDown} tone="danger" label="− Maal ki cost" value={formatPKR(cogs)} />
+        <MetricTile icon={Sparkles} tone="success" label="= Seedha profit" value={formatPKR(gross)} hint={pct(gross)} />
+        <MetricTile icon={Wallet} tone="warning" label="− Expenses" value={formatPKR(expenses)} hint="Bijli, kiraya, tankhwah" />
         <MetricTile icon={Target} tone={net >= 0 ? 'success' : 'danger'} label="= Haath me bacha" value={formatPKR(net)} hint={pct(net)} alert={net < 0} />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-[0.8125rem]">
         <span className="inline-flex items-center gap-1.5 font-semibold text-slate-600"><Receipt className="h-3.5 w-3.5" /> Aaj</span>
-        <span className="text-slate-500">Bikri <b className="font-semibold tabular-nums text-slate-900">{formatPKR(s?.salesToday ?? 0)}</b></span>
-        <span className="text-slate-500">Kharcha <b className="font-semibold tabular-nums text-slate-900">{formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0)}</b></span>
+        <span className="text-slate-500">Sale <b className="font-semibold tabular-nums text-slate-900">{formatPKR(s?.salesToday ?? 0)}</b></span>
+        <span className="text-slate-500">Expense <b className="font-semibold tabular-nums text-slate-900">{formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0)}</b></span>
         <span className="text-slate-500">
           Bacha <b className={cn('font-semibold tabular-nums', todayNet >= 0 ? 'text-success-700' : 'text-rose-700')}>{formatPKR(todayNet)}</b>
         </span>

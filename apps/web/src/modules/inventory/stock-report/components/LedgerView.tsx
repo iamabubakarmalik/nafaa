@@ -59,7 +59,7 @@ export function LedgerView({ q, show, setShow, sort, money, cost, costHidden, on
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title="Har din ke aakhir me stock" description={costHidden ? 'Bechne ki qeemat par' : 'Lagat par (aaj ki ausat cost)'}>
+        <Card className="rounded-2xl lg:col-span-2" title="Har din ke aakhir me stock" description={costHidden ? 'Bechne ki qeemat par' : 'Cost par (aaj ki ausat cost)'}>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={d.trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -77,7 +77,7 @@ export function LedgerView({ q, show, setShow, sort, money, cost, costHidden, on
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card className="rounded-2xl" title="Kya aaya, kya gaya" description="Is muddat me">
+        <Card className="rounded-2xl" title="Kya aaya, kya gaya" description="Is period me">
           {!ins.length && !outs.length ? <p className="py-10 text-center text-[0.875rem] text-slate-500">Koi harkat nahi</p> : (
             <ul className="space-y-1.5 text-[0.8125rem]">
               {[...ins, ...outs].map(({ k, v }) => (
@@ -97,12 +97,12 @@ export function LedgerView({ q, show, setShow, sort, money, cost, costHidden, on
           <Segmented label="Kaunsi cheezein" value={show} onChange={setShow} items={[{ value: 'all', label: 'Sab' }, { value: 'moved', label: `Jin me harkat (${t.moved})` }]} />
         </header>
         {!d.items.length ? (
-          <div className="flex flex-col items-center px-6 py-14 text-center"><PackageOpen className="h-8 w-8 text-slate-300" /><p className="mt-2 text-[0.875rem] text-slate-500">Is muddat me kuch nahi</p></div>
+          <div className="flex flex-col items-center px-6 py-14 text-center"><PackageOpen className="h-8 w-8 text-slate-300" /><p className="mt-2 text-[0.875rem] text-slate-500">Is period me kuch nahi</p></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[44rem] text-[0.8125rem]">
               <thead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">Cheez</th><th className="px-2 py-2 text-right">Shuru</th><th className="px-2 py-2 text-right">Aaya</th><th className="px-2 py-2 text-right">Bika</th><th className="px-2 py-2 text-right">Baqi gaya</th><th className="px-2 py-2 text-right">Aakhir</th><th className="px-4 py-2 text-right">{costHidden ? 'Bechne par' : 'Lagat'}</th></tr>
+                <tr><th className="px-4 py-2">Cheez</th><th className="px-2 py-2 text-right">Shuru</th><th className="px-2 py-2 text-right">Aaya</th><th className="px-2 py-2 text-right">Bika</th><th className="px-2 py-2 text-right">Baqi gaya</th><th className="px-2 py-2 text-right">Aakhir</th><th className="px-4 py-2 text-right">{costHidden ? 'Bechne par' : 'Cost'}</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {d.items.map((x) => {
@@ -135,7 +135,7 @@ export function LedgerView({ q, show, setShow, sort, money, cost, costHidden, on
 
       <p className="flex items-start gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-[0.75rem] leading-relaxed text-slate-600 ring-1 ring-slate-200/70">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-        Aaj ke stock se peeche ginti: aakhri din ke baad ki harkat hata kar "aakhir", phir muddat ki harkat hata kar "shuru". Qeemat aaj ki ausat cost par. Purani harkat jis par branch nahi likhi woh main branch me gini gayi.
+        Aaj ke stock se peeche ginti: aakhri din ke baad ki harkat hata kar "aakhir", phir period ki harkat hata kar "shuru". Qeemat aaj ki ausat cost par. Purani harkat jis par branch nahi likhi woh main branch me gini gayi.
         {d.skipped.carpet > 0 && ` ${d.skipped.carpet} carpet cheezein yahan nahi — un ka hisaab rolls se hota hai.`}
       </p>
     </div>

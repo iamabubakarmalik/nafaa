@@ -39,12 +39,12 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
         <Kpi icon={ClipboardList} label="Adjustments" value={String(t.count)} sub={`${d.days} din me`} />
         <Kpi icon={ArrowUpCircle} label="Stock barha" value={money(t.gained)} sub="Cost ke hisaab se" tone="emerald" />
         <Kpi icon={ArrowDownCircle} label="Stock ghata" value={money(t.lost)} sub="Kam, kharab aur gum" tone="rose" />
-        <Kpi icon={Scale} label="Kul farq" value={`${net >= 0 ? '+' : '−'}${money(Math.abs(net))}`} sub={net < 0 ? 'Is muddat ka nuqsan' : 'Is muddat me faida'} tone={net < 0 ? 'rose' : 'emerald'} />
+        <Kpi icon={Scale} label="Kul farq" value={`${net >= 0 ? '+' : '−'}${money(Math.abs(net))}`} sub={net < 0 ? 'Is period ka nuqsan' : 'Is period me faida'} tone={net < 0 ? 'rose' : 'emerald'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ka hisaab</span>} description="Har din kitna stock barha aur kitna ghata (raqam)">
-          {!trend.length ? <Empty text="Is muddat me koi adjustment nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ka hisaab</span>} description="Har din kitna stock barha aur kitna ghata (amount)">
+          {!trend.length ? <Empty text="Is period me koi adjustment nahi" /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -61,7 +61,7 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Kis qism ka</span>} description="Raqam ke hisaab se">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Kis type ka</span>} description="Amount ke hisaab se">
           {!types.length ? <Empty text="Koi adjustment nahi" /> : (
             <>
               <div className="h-[170px]">

@@ -238,7 +238,7 @@ export default function PublicOrderPage() {
           {!focus && cat.products.length > 6 && (
             <div className="relative mb-3">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein…" className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-[0.9375rem] outline-none focus:border-emerald-600" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-[0.9375rem] outline-none focus:border-emerald-600" />
             </div>
           )}
           {cat.categories.length > 1 && (

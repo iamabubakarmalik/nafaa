@@ -141,7 +141,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
             <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               {Number(draft.businessDayStartHour ?? 0) === 0
                 ? 'Aam hisab — din raat 12 baje badalta hai.'
-                : `Din ${hourLabel(Number(draft.businessDayStartHour))} se agle din ${hourLabel(Number(draft.businessDayStartHour))} tak chalta hai. Is se pehle ki bikri pichhle din me girti hai.`}
+                : `Din ${hourLabel(Number(draft.businessDayStartHour))} se agle din ${hourLabel(Number(draft.businessDayStartHour))} tak chalta hai. Is se pehle ki sale pichhle din me girti hai.`}
             </p>
           </Field>
         </div>

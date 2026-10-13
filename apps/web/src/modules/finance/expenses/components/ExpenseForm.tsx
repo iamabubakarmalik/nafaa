@@ -69,9 +69,9 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
   const value = Number(amount);
   const cancelled = editing?.status === 'CANCELLED';
   const problems: string[] = [];
-  if (!title.trim()) problems.push('Kharcha kis cheez ka hai, likhein');
-  if (!(value > 0)) problems.push('Raqam likhein');
-  if (date > today) problems.push('Aane wale din ka kharcha nahi likh sakte');
+  if (!title.trim()) problems.push('Expense kis cheez ka hai, likhein');
+  if (!(value > 0)) problems.push('Amount likhein');
+  if (date > today) problems.push('Aane wale din ka expense nahi likh sakte');
   if (allShops && !editing && !shopId) problems.push('Branch chunein');
 
   const save = useMutation({
@@ -97,7 +97,7 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
       return expensesApi.create(payload);
     },
     onSuccess: (e) => {
-      toast.success(editing ? 'Kharcha badal gaya' : e.expenseNumber.startsWith('LOCAL-') ? 'Internet nahi — kharcha phone me save, baad me khud chala jayega' : `${formatPKR(e.amount)} ka kharcha likh liya`);
+      toast.success(editing ? 'Expense badal gaya' : e.expenseNumber.startsWith('LOCAL-') ? 'Internet nahi — expense phone me save, baad me khud chala jayega' : `${formatPKR(e.amount)} ka expense likh liya`);
       AFFECTED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
@@ -116,11 +116,11 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
   const cash = method === 'CASH' && !pending && !cancelled;
   const cashNote = useMemo(() => {
     if (!cash) return null;
-    if (date !== today) return { tone: 'slate', text: 'Pichli tareekh ka cash kharcha aaj ki shift (galla) me nahi ginta — sirf us din ke hisaab me aata hai.' };
-    if (!register) return { tone: 'slate', text: 'Cash kharcha us branch ki khuli shift ke galle se ghat jata hai.' };
+    if (date !== today) return { tone: 'slate', text: 'Pichli date ka cash expense aaj ki shift (galla) me nahi ginta — sirf us din ke hisaab me aata hai.' };
+    if (!register) return { tone: 'slate', text: 'Cash expense us branch ki khuli shift ke galle se ghat jata hai.' };
     if (!register.open) return { tone: 'amber', text: 'Is branch me abhi koi shift khuli nahi. Yeh cash kisi galle ke hisaab me nahi aayega.' };
     const at = new Date(register.openedAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' });
-    return { tone: 'emerald', text: `Shift ${register.registerNumber} (${at} se khuli) ke galle se ghatega. Is shift me ab tak ${formatPKR(register.cashExpenses)} cash kharcha.` };
+    return { tone: 'emerald', text: `Shift ${register.registerNumber} (${at} se khuli) ke galle se ghatega. Is shift me ab tak ${formatPKR(register.cashExpenses)} cash expense.` };
   }, [cash, date, today, register]);
 
   const seed = useMutation({
@@ -139,13 +139,13 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
 
   return (
     <Modal open onClose={onClose} size="lg" closeOnBackdrop={false}
-      title={editing ? `Kharcha badlein · ${editing.expenseNumber}` : 'Naya kharcha'}
-      description={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Bijli, kiraya, salary, chai-pani — har kharcha likhein taake munafa sahi nikle'}
+      title={editing ? `Expense badlein · ${editing.expenseNumber}` : 'Naya expense'}
+      description={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Bijli, kiraya, salary, chai-pani — har expense likhein taake profit sahi nikle'}
       footer={<>
         <span className="mr-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button onClick={() => save.mutate()} loading={save.isPending} disabled={uploader.uploading}>
-          {editing ? 'Save karein' : pending ? 'Baqi bill likhein' : 'Kharcha likhein'}
+          {editing ? 'Save karein' : pending ? 'Baqi bill likhein' : 'Expense likhein'}
         </Button>
       </>}>
       <div className="space-y-4">
@@ -161,7 +161,7 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
                 </button>
               ))}
             </div>
-            <p className={hintCls}>Abhi "Sab branches" khula hai. Kharcha jis branch ka hai woh chunein — usi ke hisaab aur galle me jayega.</p>
+            <p className={hintCls}>Abhi "Sab branches" khula hai. Expense jis branch ka hai woh chunein — usi ke hisaab aur galle me jayega.</p>
           </div>
         )}
 
@@ -176,21 +176,21 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
                 </button>
               ))}
             </div>
-            <p className={hintCls}>Ek dabayein — naam aur category bhar jayegi, sirf raqam likhein.</p>
+            <p className={hintCls}>Ek dabayein — naam aur category bhar jayegi, sirf amount likhein.</p>
           </div>
         )}
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
           <div>
-            <label htmlFor="exp-title" className={labelCls}>Kis cheez ka kharcha? <span className="text-rose-600">*</span></label>
+            <label htmlFor="exp-title" className={labelCls}>Kis cheez ka expense? <span className="text-rose-600">*</span></label>
             <input id="exp-title" ref={titleRef} value={title} onChange={(ev) => setTitle(ev.target.value)} maxLength={120} placeholder="Maslan: Bijli ka bill October" className={inputCls} />
             <p className={hintCls}>Har mahine ek hi naam likhein (maslan "Dukaan ka kiraya") — Nafaa khud yaad dilayega ke is mahine ka baqi hai.</p>
           </div>
           <div>
-            <label htmlFor="exp-amount" className={labelCls}>Raqam (Rs) <span className="text-rose-600">*</span></label>
+            <label htmlFor="exp-amount" className={labelCls}>Amount (Rs) <span className="text-rose-600">*</span></label>
             <input id="exp-amount" inputMode="decimal" value={amount} onChange={(ev) => setAmount(ev.target.value.replace(/[^\d.]/g, ''))} placeholder="0"
               className={cn(inputCls, 'h-11 text-right text-lg font-bold tabular-nums')} />
-            <p className={hintCls}>{value > 0 ? formatPKR(value) : 'Poori raqam, paisa samet'}</p>
+            <p className={hintCls}>{value > 0 ? formatPKR(value) : 'Poori amount, paisa samet'}</p>
           </div>
         </div>
 
@@ -262,14 +262,14 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
                 <button type="button" onClick={() => setPending(true)} aria-pressed={pending}
                   className={cn('inline-flex h-10 items-center justify-center gap-1 rounded-xl text-[0.8125rem] font-semibold ring-1 transition', pending ? 'bg-amber-500 text-white ring-amber-500' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}><Clock className="h-4 w-4" />Baad me dene</button>
               </div>
-              <p className={hintCls}>{pending ? 'Baqi bill ban jayega. "Ada karein" dabane par us waqt ki tareekh lagti hai aur cash galle se ghatta hai.' : 'Paise ja chuke hain — hisaab me abhi ginega.'}</p>
+              <p className={hintCls}>{pending ? 'Baqi bill ban jayega. "Ada karein" dabane par us waqt ki date lagti hai aur cash galle se ghatta hai.' : 'Paise ja chuke hain — hisaab me abhi ginega.'}</p>
             </div>
           )}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
           <div>
-            <label htmlFor="exp-note" className={labelCls}>Tafseel</label>
+            <label htmlFor="exp-note" className={labelCls}>Details</label>
             <textarea id="exp-note" value={note} onChange={(ev) => setNote(ev.target.value)} maxLength={500} rows={2}
               placeholder="Marzi hai — maslan: meter no. 1234, mistri ka naam"
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />

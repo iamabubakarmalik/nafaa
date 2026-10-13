@@ -16,7 +16,7 @@ export function IndustrySection({ data: d, f, config }: { data: IndustryReport; 
           {d.kpis.map((k, i) => <KpiCard key={k.label} icon={Icon} color={PALETTE[i % PALETTE.length]} label={k.label} value={f.fmt(k.value, k.fmt)} hint={k.hint} />)}
         </KpiRow>
       )}
-      {!hasData && <Panel icon={Icon} title={config.industry?.title ?? 'Karobar'}><Empty text="Is muddat me is karobar ka koi record nahi" /></Panel>}
+      {!hasData && <Panel icon={Icon} title={config.industry?.title ?? 'Karobar'}><Empty text="Is period me is karobar ka koi record nahi" /></Panel>}
 
       {d.charts.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">

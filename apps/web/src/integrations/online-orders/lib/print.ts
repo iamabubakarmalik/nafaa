@@ -23,8 +23,8 @@ export function ordersDoc(orders: OnlineOrder[], list: string, period: string, f
     sections: [{
       kind: 'table',
       columns: [
-        { label: 'Order' }, { label: 'Tareekh', wideOnly: true }, { label: 'Customer' }, { label: 'Shehar', wideOnly: true },
-        { label: 'Channel', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Raqam', align: 'right' },
+        { label: 'Order' }, { label: 'Date', wideOnly: true }, { label: 'Customer' }, { label: 'Shehar', wideOnly: true },
+        { label: 'Channel', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Amount', align: 'right' },
       ],
       rows: orders.map((o) => [
         `#${orderNo(o)}`, day(o.receivedAt), o.customerName, o.customerCity ?? '', o.integration?.displayName ?? sourceOf(o).label,
@@ -54,7 +54,7 @@ export function reportDoc(r: OnlineReport, period: string, channel: string): Pri
           { label: `Deliver hue (${t.delivered})`, value: formatPKR(t.deliveredValue) },
           { label: 'Ausat order', value: formatPKR(t.avgOrderValue) },
           { label: 'RTO rate', value: `${t.rtoRate}%` },
-          { label: 'COD baqi (is muddat)', value: formatPKR(r.payment.cod.pending) },
+          { label: 'COD baqi (is period)', value: formatPKR(r.payment.cod.pending) },
           { label: 'Sale', value: formatPKR(t.netValue), strong: true },
         ],
       },
@@ -98,19 +98,19 @@ export function codDoc(s: CodSummary, h: CodHistory | undefined, period: string)
       },
       {
         kind: 'table', title: 'Courier ke paas — settlement ka intezar',
-        columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Courier', wideOnly: true }, { label: 'CN', wideOnly: true }, { label: 'Din', align: 'right', wideOnly: true }, { label: 'Raqam', align: 'right' }],
+        columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Courier', wideOnly: true }, { label: 'CN', wideOnly: true }, { label: 'Din', align: 'right', wideOnly: true }, { label: 'Amount', align: 'right' }],
         rows: s.withCourier.map((o) => [`#${o.externalOrderNumber ?? o.externalOrderId}`, o.customerName, o.courier ?? '', o.trackingNumber ?? '', o.daysWaiting == null ? '' : String(o.daysWaiting), formatPKR(o.total)]),
         footer: ['', 'Kul', '', '', '', formatPKR(s.totals.withCourierValue)],
       },
       ...(h?.settlements.length ? [{
         kind: 'table' as const, title: 'Settlements (paisa mila)',
-        columns: [{ label: 'Tareekh' }, { label: 'Ref' }, { label: 'Orders', align: 'right' as const }, { label: 'Raqam', align: 'right' as const }],
+        columns: [{ label: 'Date' }, { label: 'Ref' }, { label: 'Orders', align: 'right' as const }, { label: 'Amount', align: 'right' as const }],
         rows: h.settlements.map((b) => [keyDay(b.day), b.ref ?? '—', String(b.count), formatPKR(b.value)]),
         footer: ['Kul', '', String(h.totals.settled), formatPKR(h.totals.settledValue)],
       }] : []),
       ...(h?.returns.length ? [{
         kind: 'table' as const, title: 'Wapas aaye parcels (RTO)',
-        columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Courier', wideOnly: true }, { label: 'Wajah', wideOnly: true }, { label: 'Raqam', align: 'right' as const }],
+        columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Courier', wideOnly: true }, { label: 'Wajah', wideOnly: true }, { label: 'Amount', align: 'right' as const }],
         rows: h.returns.map((r) => [`#${r.number}`, r.customerName, r.courier, r.reason ?? '', formatPKR(r.total)]),
         footer: ['', 'Kul', '', '', formatPKR(h.totals.returnedValue)],
       }] : []),

@@ -37,11 +37,11 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel icon={Users} className="lg:col-span-2" title={metric === 'people' ? 'Naye aur purane customers' : 'Naam wali aur walk-in bikri'}
+        <Panel icon={Users} className="lg:col-span-2" title={metric === 'people' ? 'Naye aur purane customers' : 'Naam wali aur walk-in sale'}
           hint={metric === 'people'
             ? `${d.grouping === 'month' ? 'Har mahine' : 'Har din'} kitne naye log pehli dafa aaye, aur kitne purane wapas aaye`
             : 'Jin bills par customer ka naam tha, aur jo bina naam ke bane'}
-          actions={<Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'people', label: 'Log' }, { value: 'money', label: 'Bikri' }]} />}>
+          actions={<Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'people', label: 'Log' }, { value: 'money', label: 'Sale' }]} />}>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               {metric === 'people' ? (
@@ -73,8 +73,8 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
           </div>
         </Panel>
 
-        <Panel icon={Store} title="Naam wale vs walk-in" hint="Kitni bikri pehchane hue customers se aayi">
-          {t.named + t.walkIn <= 0 ? <Empty text="Is muddat me koi bikri nahi" /> : (
+        <Panel icon={Store} title="Naam wale vs walk-in" hint="Kitni sale pehchane hue customers se aayi">
+          {t.named + t.walkIn <= 0 ? <Empty text="Is period me koi sale nahi" /> : (
             <>
               <div className="relative mx-auto h-40 w-40">
                 <ResponsiveContainer width="100%" height="100%">
@@ -104,7 +104,7 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Panel icon={UserPlus} title="Naye vs purane" hint="Naya = is muddat me pehli dafa khareeda (is branch par)">
+        <Panel icon={UserPlus} title="Naye vs purane" hint="Naya = is period me pehli dafa khareeda (is branch par)">
           <div className="grid grid-cols-2 gap-3">
             <Split color="#16a34a" label="Naye" people={t.newBuyers} money={f.money(t.newNet)} share={t.named ? (t.newNet / t.named) * 100 : 0}
               delta={prev ? <Delta now={t.newBuyers} before={prev.newBuyers} /> : null} />
@@ -114,7 +114,7 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
           <p className="mt-3 text-[0.75rem] text-slate-500">{t.signups} naye {noun.toLowerCase()} register hue{prev ? <> · <Delta now={t.signups} before={prev.signups} /></> : null}</p>
         </Panel>
 
-        <Panel icon={Repeat} title="Kitne din aaye" hint="Is muddat me har customer kitne alag dinon par aaya">
+        <Panel icon={Repeat} title="Kitne din aaye" hint="Is period me har customer kitne alag dinon par aaya">
           <div className="h-[190px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={d.visits} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
@@ -130,18 +130,18 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
         </Panel>
 
         <Panel icon={CalendarClock} title="Aane ka faasla" hint="Do dafa aane ke beech kitne din guzarte hain">
-          {d.frequency.customers === 0 ? <Empty text="Is muddat me koi do dafa nahi aaya" /> : (
+          {d.frequency.customers === 0 ? <Empty text="Is period me koi do dafa nahi aaya" /> : (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <Big label="Ausat" value={`${d.frequency.avgDays?.toFixed(1)} din`} />
                 <Big label="Aam taur par (median)" value={`${d.frequency.medianDays?.toFixed(1)} din`} />
               </div>
               <p className="text-[0.75rem] leading-relaxed text-slate-500">
-                {d.frequency.customers} customers jo is muddat me 2 ya zyada din aaye un ka hisaab. Median aam customer batata hai — chand roz aane wale is ko kharab nahi karte.
+                {d.frequency.customers} customers jo is period me 2 ya zyada din aaye un ka hisaab. Median aam customer batata hai — chand roz aane wale is ko kharab nahi karte.
               </p>
               <dl className="space-y-1.5 border-t border-slate-100 pt-3 text-[0.8125rem]">
                 <Row label="Ausat kharch (har customer)" value={f.money(t.avgSpend)} />
-                {showCost && <Row label="Munafa (naam wale)" value={`${f.cost(t.profit)} · ${f.pct(t.margin)}`} />}
+                {showCost && <Row label="Profit (naam wale)" value={`${f.cost(t.profit)} · ${f.pct(t.margin)}`} />}
                 <Row label="Udhaar par diya" value={f.money(t.credit)} />
               </dl>
             </div>
@@ -149,23 +149,23 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
         </Panel>
       </div>
 
-      <Panel icon={Trophy} flush title="Sab se ache customers" hint="Is muddat me — naam par click karein to poori profile khulegi"
+      <Panel icon={Trophy} flush title="Sab se ache customers" hint="Is period me — naam par click karein to poori profile khulegi"
         actions={<Segmented label="Kis hisaab se" value={top} onChange={setTop} items={[
           { value: 'spend', label: 'Kharch' },
-          ...(showCost && d.top.profit ? [{ value: 'profit' as const, label: 'Munafa' }] : []),
+          ...(showCost && d.top.profit ? [{ value: 'profit' as const, label: 'Profit' }] : []),
           { value: 'visits', label: 'Dafa' },
           { value: 'credit', label: 'Udhaar' },
         ]} />}>
         <div className="px-4 pb-3 sm:px-5">
-          <DataTable rows={topRows} rowKey={(r) => r.id} empty="Is muddat me koi naam wala bill nahi"
+          <DataTable rows={topRows} rowKey={(r) => r.id} empty="Is period me koi naam wala bill nahi"
             columns={[
               { label: '#', render: (_, i) => <span className="text-slate-400">{i + 1}</span> },
               { label: 'Customer', render: (r) => <CustomerCell id={r.id} name={r.name} phone={r.phone} isVip={r.isVip} sub={r.isNew ? <span className="font-semibold text-emerald-600">Naya</span> : r.city} /> },
               { label: 'Din', align: 'right', render: (r) => r.visits },
               { label: 'Bill', align: 'right', render: (r) => r.bills },
-              { label: 'Bikri', align: 'right', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
+              { label: 'Sale', align: 'right', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
               { label: 'Ausat bill', align: 'right', render: (r) => f.money(r.average) },
-              { label: 'Munafa', align: 'right', hide: !showCost, render: (r) => f.cost(r.profit) },
+              { label: 'Profit', align: 'right', hide: !showCost, render: (r) => f.cost(r.profit) },
               { label: 'Udhaar', align: 'right', render: (r) => (r.credit > 0 ? <span className="text-amber-700">{f.money(r.credit)}</span> : '—') },
               { label: 'Aakhri dafa', align: 'right', render: (r) => daysAgo(r.daysSince) },
             ]} />
@@ -173,7 +173,7 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel icon={MapPin} className="lg:col-span-2" title="Customer kahan se" hint="Customer ke profile me likha shehar ya ilaqa — bikri ke hisaab se"
+        <Panel icon={MapPin} className="lg:col-span-2" title="Customer kahan se" hint="Customer ke profile me likha shehar ya ilaqa — sale ke hisaab se"
           actions={<Segmented label="Shehar ya ilaqa" value={place} onChange={setPlace} items={[{ value: 'cities', label: 'Shehar' }, { value: 'areas', label: 'Ilaqa' }]} />}>
           <BarList format={f.money} empty={place === 'cities' ? 'Kisi customer ka shehar nahi likha' : 'Kisi customer ka ilaqa nahi likha'}
             rows={places.rows.map((c) => ({ key: c.name, name: c.name, value: c.net, hint: `${c.buyers} customers` }))} />

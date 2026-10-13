@@ -284,7 +284,7 @@ export class AttendanceService {
     const today = this.today(clock);
     const from = q.from ?? `${today.slice(0, 7)}-01`;
     const to = q.to ?? today;
-    if (to < from) throw new BadRequestException('"Tak" ki tareekh "Se" se pehle hai');
+    if (to < from) throw new BadRequestException('"Tak" ki date "Se" se pehle hai');
     const keys = keysBetween(from, to);
     if (keys.length > MAX_DAYS) throw new BadRequestException(`Ek dafa me ${MAX_DAYS} din tak ka hisaab dekh sakte hain`);
 
@@ -476,7 +476,7 @@ export class AttendanceService {
     const overlap = await this.leavesFor(user.tenantId, [staff.id], dto.startDate, dto.endDate, ['APPROVED', 'PENDING']);
     if (overlap.length) {
       const o = overlap[0];
-      throw new BadRequestException(`In dinon ki chhutti pehle se hai (${keyOf(o.startDate)} se ${keyOf(o.endDate)}, ${o.status === 'PENDING' ? 'manzoori baqi' : 'manzoor'})`);
+      throw new BadRequestException(`In dinon ki chhutti pehle se hai (${keyOf(o.startDate)} se ${keyOf(o.endDate)}, ${o.status === 'PENDING' ? 'approval baqi' : 'manzoor'})`);
     }
     const approve = !!dto.approve;
     return this.prisma.$transaction(async (tx) => {
@@ -501,7 +501,7 @@ export class AttendanceService {
     const leave = await this.prisma.staffLeave.findFirst({ where: { id, tenantId: user.tenantId }, include: { staff: { select: { fullName: true, shopId: true } } } });
     if (!leave) throw new NotFoundException('Chhutti nahi mili');
     if (leave.staff.shopId) assertShopAccess(user, leave.staff.shopId, 'Chhutti ka faisla');
-    if (dto.decision === 'REJECT' && !dto.reason?.trim()) throw new BadRequestException('Na-manzoori ki wajah likhein');
+    if (dto.decision === 'REJECT' && !dto.reason?.trim()) throw new BadRequestException('Na-approval ki wajah likhein');
 
     const target = { APPROVE: 'APPROVED', REJECT: 'REJECTED', CANCEL: 'CANCELLED' } as const;
     const from = dto.decision === 'CANCEL' ? ['PENDING', 'APPROVED'] : ['PENDING'];

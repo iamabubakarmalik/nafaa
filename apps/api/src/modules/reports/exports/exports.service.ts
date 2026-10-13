@@ -441,13 +441,13 @@ export class ExportsService {
 
   private assertCanExport(user: AuthenticatedUser, kind: ExportKind) {
     if (!hasPermission(user.role, user.permissions, KIND_PERMISSION[kind])) {
-      throw new ForbiddenException(`${KIND_LABEL[kind]} dekhne ki ijazat nahi — is ki file bhi nahi ban sakti`);
+      throw new ForbiddenException(`${KIND_LABEL[kind]} dekhne ki permission nahi — is ki file bhi nahi ban sakti`);
     }
   }
 
   private async context(user: AuthenticatedUser, scope: ShopScope, q: ExportQueryDto): Promise<ExportContext> {
     const clock = await this.tz.clock(user.tenantId);
-    if (q.from && q.to && q.from > q.to) throw new BadRequestException('"Se" tareekh "Tak" se pehle honi chahiye');
+    if (q.from && q.to && q.from > q.to) throw new BadRequestException('"Se" date "Tak" se pehle honi chahiye');
     const start = safeDayStart(clock.dayStartHour);
     const at = (key: string, addDays: number) => {
       const [y, m, d] = key.split('-').map(Number);

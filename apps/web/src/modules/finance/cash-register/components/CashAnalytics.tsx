@@ -38,15 +38,15 @@ export function CashAnalytics({ filters, money }: { filters: Omit<ShiftQuery, 'p
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<Title icon={Banknote} text="Roz ki cash bikri" />} description="Har karobari din galle me kitni cash bikri aayi (shift khulne ke din par)">
-          {!days.length ? <Empty text="Is muddat me koi shift nahi" /> : (
+        <Card className="rounded-2xl" title={<Title icon={Banknote} text="Roz ki cash sale" />} description="Har karobari din galle me kitni cash sale aayi (shift khulne ke din par)">
+          {!days.length ? <Empty text="Is period me koi shift nahi" /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Cash bikri']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Cash sale']} {...theme.tooltip} />
                   <Bar dataKey="cashSales" name="Cash bikri" fill="#16a34a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -54,7 +54,7 @@ export function CashAnalytics({ filters, money }: { filters: Omit<ShiftQuery, 'p
           )}
         </Card>
         <Card className="rounded-2xl" title={<Title icon={AlertTriangle} text="Roz ka farak" />} description="Neeche laal: paise kam nikle · upar neela: zyada nikle">
-          {!days.some((x) => x.short || x.over) ? <Empty text="Is muddat me galla har dafa barabar nikla" /> : (
+          {!days.some((x) => x.short || x.over) ? <Empty text="Is period me galla har dafa barabar nikla" /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={days} stackOffset="sign" margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -76,10 +76,10 @@ export function CashAnalytics({ filters, money }: { filters: Omit<ShiftQuery, 'p
       <div className="grid gap-4 lg:grid-cols-2">
         <Ranked icon={Users} title="Staff ke hisaab se" description="Jis ne shift kholi us ke naam par — sab se zyada kam pehle" rows={d.byStaff} money={money} />
         {d.byShop.length > 1
-          ? <Ranked icon={Store} title="Branch ke hisaab se" description="Har branch ki shifts, cash bikri aur farak" rows={d.byShop} money={money} />
+          ? <Ranked icon={Store} title="Branch ke hisaab se" description="Har branch ki shifts, cash sale aur farak" rows={d.byShop} money={money} />
           : <Ranked icon={Clock} title="Ausat opening float" description="Har din shift kitne khule paise se shuru hui" rows={[...d.byDay].reverse().slice(0, 10).map((x) => ({ ...x, label: dayLabel(x.key) }))} money={money} float />}
       </div>
-      {d.capped && <p className="text-center text-[0.75rem] text-slate-500">Bohat zyada shifts hain — pehli 5000 gini gayi hain. Muddat chhoti karein.</p>}
+      {d.capped && <p className="text-center text-[0.75rem] text-slate-500">Bohat zyada shifts hain — pehli 5000 gini gayi hain. Period chhoti karein.</p>}
     </div>
   );
 }
@@ -109,7 +109,7 @@ function Ranked({ icon, title, description, rows, money, float }: {
                 </div>
               )}
               <p className="mt-0.5 text-[0.6875rem] text-slate-500">
-                {r.shifts} shift · cash bikri {money(r.cashSales)}
+                {r.shifts} shift · cash sale {money(r.cashSales)}
                 {!float && r.shortCount > 0 && ` · ${r.shortCount} dafa kam (${money(r.short)})`}
                 {!float && r.overCount > 0 && ` · ${r.overCount} dafa zyada (${money(r.over)})`}
               </p>

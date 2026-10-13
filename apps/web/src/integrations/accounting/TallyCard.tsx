@@ -17,7 +17,7 @@ const pkDay = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ka
 const METHODS: Array<[PayMethod, string]> = [['CASH', 'Cash'], ['CARD', 'Card'], ['BANK_TRANSFER', 'Bank transfer'], ['JAZZCASH', 'JazzCash'], ['EASYPAISA', 'Easypaisa']];
 const LEDGERS: Array<[keyof TallySettings['mapping'], string]> = [
   ['sales', 'Sale'], ['discounts', 'Discount'], ['returns', 'Sales returns'], ['receivable', 'Udhaar (Sundry Debtors)'],
-  ['expenseDefault', 'Kharcha (aam)'], ['cogs', 'Cost of goods'], ['inventory', 'Stock'],
+  ['expenseDefault', 'Expense (aam)'], ['cogs', 'Cost of goods'], ['inventory', 'Stock'],
 ];
 
 export function TallyCard() {
@@ -70,7 +70,7 @@ export function TallyCard() {
         {p && (
           <p className="text-[0.8125rem] text-slate-600 dark:text-ink-300">
             {p.days} din · <b>{p.vouchers}</b> voucher · sale Rs {p.totals.sales.toLocaleString()} · refund Rs {p.totals.refunds.toLocaleString()} ·
-            udhaar wapsi Rs {p.totals.collections.toLocaleString()} · kharche Rs {p.totals.expenses.toLocaleString()} · {p.ledgers.length} ledger
+            udhaar return Rs {p.totals.collections.toLocaleString()} · expenses Rs {p.totals.expenses.toLocaleString()} · {p.ledgers.length} ledger
           </p>
         )}
 
@@ -92,7 +92,7 @@ export function TallyCard() {
             </Field>
           </div>
           <div className="mt-3 space-y-1">
-            <SettingRow title="Kharche bhi" help="Har category ka apna ledger (category ka naam)" control={<Toggle checked={s.includeExpenses} onChange={(v) => setS({ ...s, includeExpenses: v })} />} />
+            <SettingRow title="Expenses bhi" help="Har category ka apna ledger (category ka naam)" control={<Toggle checked={s.includeExpenses} onChange={(v) => setS({ ...s, includeExpenses: v })} />} />
             <SettingRow title="Cost of goods (Journal)" help="Tally me stock alag chalta ho to band rakhein" control={<Toggle checked={s.includeCogs} onChange={(v) => setS({ ...s, includeCogs: v })} />} />
           </div>
           <div className="mt-3 flex justify-end">

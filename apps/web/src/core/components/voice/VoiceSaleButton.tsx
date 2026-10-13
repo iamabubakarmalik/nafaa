@@ -261,7 +261,7 @@ export function VoiceSaleButton({ onCommand, className = '' }: {
       if (e.error === 'aborted') return;
       if (e.error === 'no-speech') return; // keep listening quietly
       keepRef.current = false;
-      setError(e.error === 'not-allowed' ? 'Mic ki ijazat chahiye — browser mein Allow dabayein' : 'Awaaz nahi suni ja saki — dobara koshish karein');
+      setError(e.error === 'not-allowed' ? 'Mic ki permission chahiye — browser mein Allow dabayein' : 'Awaaz nahi suni ja saki — dobara koshish karein');
     };
     // Keep the session going: start again after each phrase until the user stops.
     rec.onend = () => { setListening(false); if (keepRef.current) setTimeout(() => { if (keepRef.current) { try { rec.start(); } catch { /* already running */ } } }, 250); };

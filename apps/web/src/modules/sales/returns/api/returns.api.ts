@@ -149,6 +149,6 @@ export const returnsApi = {
     apiClient.get<{ data: ReturnAnalytics }>('/returns/analytics', { params: q }).then(unwrap),
   findBill: (q: string) =>
     apiClient.get<{ data: BillHit[] }>('/returns/find-bill', { params: { q } }).then(unwrap),
-  create: (payload: CreateReturnPayload) => withManagerPin('Wapsi', (managerPin) =>
+  create: (payload: CreateReturnPayload) => withManagerPin('Return', (managerPin) =>
     apiClient.post<{ data: CreatedReturn }>('/returns', { ...payload, managerPin }).then(unwrap), 'refund'),
 };

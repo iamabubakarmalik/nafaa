@@ -341,7 +341,7 @@ function ConnectionCard({ id, data, platform, onChange, setTab }: {
               <Btn variant="primary" loading={conn.phase === 'starting'} disabled={!site.trim() || !conn.oneClickReady} onClick={start}>Jorein</Btn>
             </div>
             {conn.error && <p className="mt-2 text-[0.78125rem] text-rose-600">{conn.error}</p>}
-            {conn.phase === 'denied' && <p className="mt-2 text-[0.78125rem] text-rose-600">Ijazat nahi di gayi — dobara koshish karein.</p>}
+            {conn.phase === 'denied' && <p className="mt-2 text-[0.78125rem] text-rose-600">Permission nahi di gayi — dobara koshish karein.</p>}
             {!conn.oneClickReady && conn.publicApi && <p className="mt-2 text-[0.75rem] text-amber-700">{conn.publicApi.reason}</p>}
           </div>
           <div className="rounded-lg border border-slate-200 p-4 dark:border-ink-700">

@@ -111,7 +111,7 @@ export default function TransfersPage() {
   const statusOptions: Array<{ value: TransferStatusFilter; label: string; hint?: string }> = [
     { value: 'all', label: 'Har halat', hint: counts ? `${counts.count} transfer` : undefined },
     { value: 'IN_TRANSIT', label: 'Raste me', hint: counts ? String(counts.inTransit) : undefined },
-    { value: 'RECEIVED', label: 'Wusool', hint: counts ? String(counts.received) : undefined },
+    { value: 'RECEIVED', label: 'Receive', hint: counts ? String(counts.received) : undefined },
     { value: 'CANCELLED', label: 'Cancel', hint: counts ? String(counts.cancelled) : undefined },
   ];
   const branchOptions = [{ value: '', label: currentShop ? 'Upar chuni branch' : 'Sab branches' }, ...(shopsQ.data ?? []).map((s) => ({ value: s.id, label: s.name }))];
@@ -129,7 +129,7 @@ export default function TransfersPage() {
       <PageHero
         title="Stock transfer"
         chip={<><Truck /> {viewShop ? scope : 'Branches ke beech maal'}</>}
-        meta="Bhejte hi stock nikalta hai, wusool par barhta hai"
+        meta="Bhejte hi stock nikalta hai, receive par barhta hai"
         busy={listQ.isFetching && !listQ.isLoading}
         loading={statsQ.isLoading || onWayQ.isLoading}
         actions={<>
@@ -140,7 +140,7 @@ export default function TransfersPage() {
         stats={[
           { label: `Kul maal gaya · ${stats?.count ?? 0} transfer`, value: money(stats?.value ?? 0) },
           { label: 'Raste me', value: money(onWay?.totals.inTransitValue ?? 0), hint: `${onWay?.total ?? 0} transfer` },
-          { label: 'Ausat wusooli waqt', value: stats?.avgHours != null ? `${stats.avgHours} ghante` : '—' },
+          { label: 'Ausat receiving waqt', value: stats?.avgHours != null ? `${stats.avgHours} ghante` : '—' },
           { label: 'Kam aaya', value: money(stats?.shortValue ?? 0) },
         ]}
       />
@@ -148,9 +148,9 @@ export default function TransfersPage() {
       <KpiRow>
         {statsQ.isLoading || onWayQ.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Clock} color="#2563eb" label="Wusool ka intezar" value={String(waiting.length)} hint={waiting.length ? `${money(waiting.reduce((s, t) => s + t.value, 0))} · ${viewShop ? 'is branch ke liye' : 'sab branches'}` : 'Kuch baqi nahi'} />
-            <KpiCard icon={Truck} color="#d97706" label="Raste me (is muddat)" value={String(stats?.inTransit ?? 0)} hint="Dabayein — sirf yeh dekhein" onClick={() => toggleStatus('IN_TRANSIT')} active={status === 'IN_TRANSIT'} />
-            <KpiCard icon={PackageCheck} color="#16a34a" label="Wusool" value={String(stats?.received ?? 0)} hint={stats?.avgHours != null ? `ausat ${stats.avgHours} ghante me` : 'Dabayein'} onClick={() => toggleStatus('RECEIVED')} active={status === 'RECEIVED'} />
+            <KpiCard icon={Clock} color="#2563eb" label="Receive ka intezar" value={String(waiting.length)} hint={waiting.length ? `${money(waiting.reduce((s, t) => s + t.value, 0))} · ${viewShop ? 'is branch ke liye' : 'sab branches'}` : 'Kuch baqi nahi'} />
+            <KpiCard icon={Truck} color="#d97706" label="Raste me (is period)" value={String(stats?.inTransit ?? 0)} hint="Dabayein — sirf yeh dekhein" onClick={() => toggleStatus('IN_TRANSIT')} active={status === 'IN_TRANSIT'} />
+            <KpiCard icon={PackageCheck} color="#16a34a" label="Receive" value={String(stats?.received ?? 0)} hint={stats?.avgHours != null ? `ausat ${stats.avgHours} ghante me` : 'Dabayein'} onClick={() => toggleStatus('RECEIVED')} active={status === 'RECEIVED'} />
             <KpiCard icon={AlertTriangle} color="#dc2626" label="Kam aaya" value={money(stats?.shortValue ?? 0)} hint={stats?.shortValue ? 'Raste me gum / toota' : 'Koi kami nahi'} />
             <KpiCard icon={Ban} color="#64748b" label="Cancel" value={String(stats?.cancelled ?? 0)} hint="Dabayein" onClick={() => toggleStatus('CANCELLED')} active={status === 'CANCELLED'} />
           </>
@@ -159,7 +159,7 @@ export default function TransfersPage() {
 
       <FilterBar
         search={<SearchField ref={searchRef} value={search} onChange={setSearch}
-          placeholder="Transfer #, product, IMEI ya note…" label="Transfer dhoondein" />}
+          placeholder="Transfer #, product, IMEI ya note…" label="Transfer search" />}
         chips={hasFilters ? <>
           {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{statusOptions.find((x) => x.value === status)?.label}</FilterChip>}
           {branch && <FilterChip onRemove={() => setBranch('')}>{shopName(branch) ?? 'Branch'}</FilterChip>}
@@ -172,7 +172,7 @@ export default function TransfersPage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab} tabs={tabs}
-        hint={tab === 'analytics' ? 'Saare charts upar chuni muddat ke hain' : data ? <>Maal <b className="tabular-nums text-slate-800">{money(data.totals.value)}</b></> : undefined} />
+        hint={tab === 'analytics' ? 'Saare charts upar chuni period ke hain' : data ? <>Maal <b className="tabular-nums text-slate-800">{money(data.totals.value)}</b></> : undefined} />
 
       {tab === 'analytics' ? (
         <TransferAnalytics data={statsQ.data} loading={statsQ.isLoading} money={money} />
@@ -180,7 +180,7 @@ export default function TransfersPage() {
         {waiting.length > 0 && (
           <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-3">
             <p className="mb-2 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-blue-900">
-              <Clock className="h-4 w-4" /> {viewShop ? `${scope} ke liye raste me` : 'Wusool ka intezar'} · {waiting.length}
+              <Clock className="h-4 w-4" /> {viewShop ? `${scope} ke liye raste me` : 'Receive ka intezar'} · {waiting.length}
             </p>
             <ul className="flex gap-2 overflow-x-auto pb-1">
               {waiting.slice(0, 12).map((t) => (
@@ -191,7 +191,7 @@ export default function TransfersPage() {
                   </button>
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold tabular-nums text-slate-900">{money(t.value)}</span>
-                    {canReceive(t) && <Button size="sm" onClick={() => setReceiving(t)} leftIcon={<PackageCheck className="h-3.5 w-3.5" />}>Wusool karein</Button>}
+                    {canReceive(t) && <Button size="sm" onClick={() => setReceiving(t)} leftIcon={<PackageCheck className="h-3.5 w-3.5" />}>Receive karein</Button>}
                   </div>
                 </li>
               ))}
@@ -205,7 +205,7 @@ export default function TransfersPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
             <Truck className="mx-auto h-10 w-10 text-slate-300" />
             <p className="mt-3 font-semibold text-slate-900">Is filter me koi transfer nahi</p>
-            <p className="mt-1 text-sm text-slate-500">Muddat ya filter badlein, ya dusri branch ko maal bhejein</p>
+            <p className="mt-1 text-sm text-slate-500">Period ya filter badlein, ya dusri branch ko maal bhejein</p>
             {canManage && <Button className="mt-4" onClick={() => setSending(true)} leftIcon={<Plus className="h-4 w-4" />}>Maal bhejein</Button>}
           </div>
         ) : (
@@ -226,21 +226,21 @@ export default function TransfersPage() {
       {guide.isOpen && (
         <PageGuide title="Stock transfer — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Send, color: '#2563eb', title: 'Maal bhejna', text: '"Maal bhejein" dabayein, kahan se aur kahan chunein, cheezein dhoondein ya scan karein, miqdar likhein aur pakka karein. Carton ya box me bhi bhej sakte hain.' },
-            { icon: Truck, color: '#d97706', title: 'Raste me ka matlab', text: 'Bhejte hi maal bhejne wali branch ke stock se nikal jata hai, magar lene wali me tab tak nahi judta jab tak wahan wusool na ho. Yeh maal "Raste me" dikhta hai.' },
-            { icon: PackageCheck, color: '#16a34a', title: 'Wusool karna', text: 'Lene wali branch upar wali neeli patti ya transfer khol kar "Wusool karein" dabaye. Har cheez poori maani jati hai — kam aayi ho to wohi ginti likhein.' },
+            { icon: Send, color: '#2563eb', title: 'Maal bhejna', text: '"Maal bhejein" dabayein, kahan se aur kahan chunein, cheezein search ya scan karein, quantity likhein aur pakka karein. Carton ya box me bhi bhej sakte hain.' },
+            { icon: Truck, color: '#d97706', title: 'Raste me ka matlab', text: 'Bhejte hi maal bhejne wali branch ke stock se nikal jata hai, magar lene wali me tab tak nahi judta jab tak wahan receive na ho. Yeh maal "Raste me" dikhta hai.' },
+            { icon: PackageCheck, color: '#16a34a', title: 'Receive karna', text: 'Lene wali branch upar wali neeli patti ya transfer khol kar "Receive karein" dabaye. Har cheez poori maani jati hai — kam aayi ho to wohi ginti likhein.' },
             { icon: AlertTriangle, color: '#dc2626', title: 'Kam aaya to kya', text: 'Jo kam aaya woh kisi stock me nahi judta — raste ka nuqsan darj hota hai, list me laal nishan aata hai aur owner ko notification jati hai.' },
             { icon: Ban, color: '#64748b', title: 'Cancel kab hota hai', text: 'Sirf jab tak maal raste me hai, aur sirf bhejne wali branch (ya owner) kar sakti hai. Saara maal wapas bhejne wali branch ke stock me aa jata hai.' },
-            { icon: ShieldCheck, color: '#7c3aed', title: 'Branch ke usool', text: 'Staff sirf apni branch se bhej sakta hai aur sirf apni branch me wusool kar sakta hai. Owner har branch ka kaam kar sakta hai.' },
+            { icon: ShieldCheck, color: '#7c3aed', title: 'Branch ke usool', text: 'Staff sirf apni branch se bhej sakta hai aur sirf apni branch me receive kar sakta hai. Owner har branch ka kaam kar sakta hai.' },
           ]}
           tips={[
             'Phone IMEI se, used phone code se, electronics serial se aur carpet poore roll ke hisaab se jata hai — ek unit, poora aata hai ya bilkul nahi.',
             'Bhejne se pehle har line par "abhi X, bhejne ke baad Y" dikhta hai; stock se zyada nahi bhej sakte.',
             'Transfer khol kar "Print slip" se delivery challan nikaalein — rates chhupa kar driver ke haath bhejein, dono branch dastkhat karein.',
-            'Analytics me dekhein kis raaste par sab se zyada maal jata hai aur wusool me kitna waqt lagta hai.',
+            'Analytics me dekhein kis raaste par sab se zyada maal jata hai aur receive me kitna waqt lagta hai.',
           ]}
           shortcuts={[['N', 'maal bhejein'], ['/', 'dhoondein'], ['G', 'guide']]}
-          footer={<span className="inline-flex items-center gap-1 text-[0.8125rem] text-slate-500"><CalendarRange className="h-4 w-4" /> Raste me wala maal har muddat me upar dikhta hai</span>}
+          footer={<span className="inline-flex items-center gap-1 text-[0.8125rem] text-slate-500"><CalendarRange className="h-4 w-4" /> Raste me wala maal har period me upar dikhta hai</span>}
         />
       )}
 
@@ -282,14 +282,14 @@ function Row({ t, money, viewShop, canReceive, onOpen, onReceive }: {
         <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{t.items.length} cheezein · {preview(t)}</p>
         <p className="mt-0.5 text-[0.75rem] text-slate-400">
           {t.transferNumber} · bheja {dayTime(sentAt)}{t.createdBy ? ` · ${t.createdBy.fullName}` : ''}
-          {t.status === 'RECEIVED' && ` · wusool ${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''} (${duration(sentAt, t.receivedAt)})`}
+          {t.status === 'RECEIVED' && ` · receive ${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''} (${duration(sentAt, t.receivedAt)})`}
           {t.status === 'IN_TRANSIT' && ` · ${duration(sentAt)} se raste me`}
           {t.status === 'CANCELLED' && ` · cancel${t.cancelReason ? `: ${t.cancelReason}` : ''}`}
         </p>
       </button>
       <div className="flex items-center gap-3">
         <p className={cn('text-lg font-bold tabular-nums', t.status === 'CANCELLED' ? 'text-slate-400 line-through' : 'text-slate-900')}>{money(t.value)}</p>
-        {canReceive && <Button size="sm" onClick={onReceive} leftIcon={<PackageCheck className="h-3.5 w-3.5" />}>Wusool</Button>}
+        {canReceive && <Button size="sm" onClick={onReceive} leftIcon={<PackageCheck className="h-3.5 w-3.5" />}>Receive</Button>}
       </div>
     </li>
   );

@@ -124,7 +124,7 @@ export default function StaffPage() {
   const period = resolveRange(range, startHour);
 
   const exportCsv = () => downloadCsv(`staff-${new Date().toISOString().slice(0, 10)}.csv`, [
-    ['Naam', 'Staff no.', 'Role', 'Kaam', 'Branch', 'Phone', 'Email', 'Haal', 'Joining', 'Aakhri login', ...(seesSales ? ['Aaj bikri', 'Aaj bill'] : [])],
+    ['Naam', 'Staff no.', 'Role', 'Kaam', 'Branch', 'Phone', 'Email', 'Haal', 'Joining', 'Aakhri login', ...(seesSales ? ['Aaj sale', 'Aaj bill'] : [])],
     ...rows.map((p) => [
       p.fullName, p.staffNumber, roleOf(p.role).label, p.designation, p.shop?.name ?? 'Sab branches', p.phone, p.email, STATUS[p.status].label,
       p.joinDate?.slice(0, 10), p.login ? (p.login.lastLoginAt ?? 'Kabhi nahi') : '', ...(seesSales ? [p.today?.sales ?? 0, p.today?.bills ?? 0] : []),
@@ -163,7 +163,7 @@ export default function StaffPage() {
         stats={listQ.data ? [
           { label: 'Kaam par', value: String(k.active), hint: `${current.length} me se` },
           { label: 'Abhi duty par', value: String(k.duty) },
-          ...(seesSales ? [{ label: 'Aaj staff ki bikri', value: formatPKR(k.sales), hint: `${k.bills} bill` }] : []),
+          ...(seesSales ? [{ label: 'Aaj staff ki sale', value: formatPKR(k.sales), hint: `${k.bills} bill` }] : []),
         ] : [{ label: 'Kaam par', value: '—' }]}
       />
 
@@ -174,11 +174,11 @@ export default function StaffPage() {
           <KpiCard icon={Clock} color="#0891b2" label="Abhi duty par" value={k.duty} hint={k.duty ? 'Galla khula ya haazri lagi' : 'Abhi koi duty par nahi'}
             onClick={() => show('DUTY')} active={tab === 'staff' && status === 'DUTY'} />
           <KpiCard icon={UserCog} color="#7c3aed" label="Roles" value={roleCounts.length ? roleCounts.map(([r, n]) => `${n} ${ROLES[r].label}`).join(' · ') : '—'}
-            hint="Role aur ijazat dekhein" onClick={() => setTab('roles')} active={tab === 'roles'} />
+            hint="Role aur permission dekhein" onClick={() => setTab('roles')} active={tab === 'roles'} />
           <KpiCard icon={LogIn} color="#0284c7" label="Login abhi nahi kiya" value={k.pending} hint={k.pending ? 'Login bana, magar istemal nahi hua' : 'Sab ne login kar liya'}
             onClick={() => show('PENDING')} active={tab === 'staff' && status === 'PENDING'} />
           {seesSales
-            ? <KpiCard icon={ShoppingBag} color="#d97706" label="Aaj ki bikri (staff)" value={formatPKR(k.sales)} hint={`${k.bills} bill`} onClick={() => { setTab('staff'); setSort('sales'); }} active={tab === 'staff' && sort === 'sales'} />
+            ? <KpiCard icon={ShoppingBag} color="#d97706" label="Aaj ki sale (staff)" value={formatPKR(k.sales)} hint={`${k.bills} bill`} onClick={() => { setTab('staff'); setSort('sales'); }} active={tab === 'staff' && sort === 'sales'} />
             : <KpiCard icon={KeyRound} color="#64748b" label="Bina login" value={k.noLogin} hint="Sirf tankhwah aur haazri" onClick={() => show('current', 'NO_LOGIN')} active={tab === 'staff' && role === 'NO_LOGIN'} />}
         </>}
       </KpiRow>
@@ -186,8 +186,8 @@ export default function StaffPage() {
       {tab === 'roles' ? null : (
         <FilterBar
           search={tab === 'staff'
-            ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, email, kaam ya staff no.…" label="Dhoondein" />
-            : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Bikri, haazri aur login isi muddat ke hain</p>}
+            ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, email, kaam ya staff no.…" label="Search" />
+            : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Sale, haazri aur login isi period ke hain</p>}
           chips={tab === 'staff' && filtered ? <>
             {role && <FilterChip onRemove={() => setRole('')}>{ROLES[role].label}</FilterChip>}
             {shopId && <FilterChip onRemove={() => setShopId('')}>{shopName ?? 'Branch'}</FilterChip>}
@@ -204,21 +204,21 @@ export default function StaffPage() {
                 options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name })), { value: 'none', label: 'Kisi ek branch ke nahi' }]} />
             )}
             <FilterMenu icon={Filter} label="Haal" value={status} active={status !== 'current'} onChange={setStatus} align="right" options={STATUS_FILTERS} />
-            <FilterMenu icon={ArrowDownWideNarrow} label={{ name: 'Naam', login: 'Aakhri login', sales: 'Aaj ki bikri', joined: 'Naye pehle' }[sort]} value={sort} onChange={setSort} align="right"
+            <FilterMenu icon={ArrowDownWideNarrow} label={{ name: 'Naam', login: 'Aakhri login', sales: 'Aaj ki sale', joined: 'Naye pehle' }[sort]} value={sort} onChange={setSort} align="right"
               options={[
                 { value: 'name', label: 'Duty wale pehle, phir naam' }, { value: 'joined', label: 'Naye pehle' },
                 ...(canTeam ? [{ value: 'login' as Sort, label: 'Aakhri login' }] : []),
-                ...(seesSales ? [{ value: 'sales' as Sort, label: 'Aaj ki bikri' }] : []),
+                ...(seesSales ? [{ value: 'sales' as Sort, label: 'Aaj ki sale' }] : []),
               ]} />
           </>}
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canAdd && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> dhoondein · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+        hint={<>{canAdd && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
         tabs={[
           { id: 'staff', label: 'Staff', icon: Users, count: listQ.data ? rows.length : null },
-          { id: 'roles', label: 'Roles aur ijazat', icon: ShieldCheck },
+          { id: 'roles', label: 'Roles aur permission', icon: ShieldCheck },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         ]} />
 
@@ -253,16 +253,16 @@ export default function StaffPage() {
       {guide.isOpen && (
         <PageGuide title="Staff — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#16a34a', title: 'Naya banda', text: '"Naya banda" dabayein: naam, phone, kaam aur tankhwah. App chalana hai to "Login dein" on karein — role chunein, ijazat khud lag jati hain, aur login ki parchi chhap lein.' },
+            { icon: Plus, color: '#16a34a', title: 'Naya banda', text: '"Naya banda" dabayein: naam, phone, kaam aur tankhwah. App chalana hai to "Login dein" on karein — role chunein, permission khud lag jati hain, aur login ki parchi chhap lein.' },
             { icon: Clock, color: '#0891b2', title: 'Abhi duty par', text: 'Jis ka galla (shift) khula hai ya aaj haazri lagi aur abhi chhutti nahi hui — hara nishan. Card par kab se duty par hai woh bhi likha hai.' },
-            { icon: ShieldCheck, color: '#7c3aed', title: 'Roles aur ijazat', text: 'Table me saaf likha hai ke Manager, Cashier aur Staff ko shuru me kya milta hai. Kisi ki ijazat role se alag ho to neeche list me nazar aata hai.' },
+            { icon: ShieldCheck, color: '#7c3aed', title: 'Roles aur permission', text: 'Table me saaf likha hai ke Manager, Cashier aur Staff ko shuru me kya milta hai. Kisi ki permission role se alag ho to neeche list me nazar aata hai.' },
             { icon: LogIn, color: '#0284c7', title: 'Login abhi nahi kiya', text: 'Login bana diya magar banda ne abhi tak khola nahi. Profile se naya password de kar parchi ya WhatsApp par bhej dein.' },
-            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Kis ne kitna becha, haazri, kitne aaye aur gaye, aur login ki ginti — muddat chun kar.' },
+            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Kis ne kitna becha, haazri, kitne aaye aur gaye, aur login ki ginti — period chun kar.' },
           ]}
           tips={[
-            'Card par click karein — poori profile: ijazat, branch, haazri, tankhwah, login aur devices.',
-            'Jis ki bikri ho chuki ho us ka login kabhi mitta nahi, sirf band hota hai — hisaab mehfooz rehta hai.',
-            'Login, ijazat aur password sirf malik badal sakta hai.',
+            'Card par click karein — poori profile: permission, branch, haazri, tankhwah, login aur devices.',
+            'Jis ki sale ho chuki ho us ka login kabhi mitta nahi, sirf band hota hai — hisaab mehfooz rehta hai.',
+            'Login, permission aur password sirf malik badal sakta hai.',
             'Bina login wale (helper, driver) bhi yahan rakhein — tankhwah aur haazri unhi se chalti hai.',
           ]}
           shortcuts={[['N', 'naya banda'], ['/', 'dhoondein'], ['1', 'staff'], ['2', 'roles'], ['3', 'analytics'], ['G', 'guide']]}

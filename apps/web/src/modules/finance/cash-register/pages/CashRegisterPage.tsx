@@ -163,8 +163,8 @@ export default function CashRegisterPage() {
         </>}
         stats={[
           { label: 'Galle me abhi hona chahiye', value: money(inDrawer), hint: live.length ? `${live.length} khuli shift` : 'Koi shift khuli nahi' },
-          { label: 'Khuli shift ki cash bikri', value: money(liveSales) },
-          { label: 'Is muddat kam nikle', value: pt ? money(pt.shortAmount) : '—', hint: pt?.short ? `${pt.short} shift` : undefined },
+          { label: 'Khuli shift ki cash sale', value: money(liveSales) },
+          { label: 'Is period kam nikle', value: pt ? money(pt.shortAmount) : '—', hint: pt?.short ? `${pt.short} shift` : undefined },
           { label: 'Zyada nikle', value: pt ? money(pt.overAmount) : '—', hint: pt?.over ? `${pt.over} shift` : undefined },
         ]}
       />
@@ -173,11 +173,11 @@ export default function CashRegisterPage() {
         {!pt || liveQ.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
           <KpiCard icon={Wallet} color="#16a34a" label="Galle me abhi" value={money(inDrawer)}
             hint={live.length ? `${live.length} khuli shift` : 'Shift kholein'} onClick={() => setTab('today')} active={tab === 'today'} />
-          <KpiCard icon={ArrowDownToLine} color="#0d9488" label="Cash bikri (khuli shift)" value={money(liveSales)}
+          <KpiCard icon={ArrowDownToLine} color="#0d9488" label="Cash sale (khuli shift)" value={money(liveSales)}
             hint={`${live.reduce((s, r) => s + (r.live?.cashSalesCount ?? 0), 0)} bill`} onClick={() => setTab('today')} />
-          <KpiCard icon={AlertTriangle} color="#e11d48" label="Paise kam nikle" value={money(pt.shortAmount)} hint={`${pt.short} shift · is muddat`}
+          <KpiCard icon={AlertTriangle} color="#e11d48" label="Paise kam nikle" value={money(pt.shortAmount)} hint={`${pt.short} shift · is period`}
             onClick={() => show('SHORT')} active={tab === 'shifts' && status === 'SHORT'} />
-          <KpiCard icon={TrendingUp} color="#0284c7" label="Paise zyada nikle" value={money(pt.overAmount)} hint={`${pt.over} shift · is muddat`}
+          <KpiCard icon={TrendingUp} color="#0284c7" label="Paise zyada nikle" value={money(pt.overAmount)} hint={`${pt.over} shift · is period`}
             onClick={() => show('OVER')} active={tab === 'shifts' && status === 'OVER'} />
           <KpiCard icon={Calculator} color="#475569" label="Ausat opening float" value={money(pt.avgFloat)} hint={`${pt.shifts} shift · ${pt.matched} barabar`}
             onClick={() => show('')} active={tab === 'shifts' && !status} />
@@ -185,7 +185,7 @@ export default function CashRegisterPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (v) setTab((t) => (t === 'today' ? 'shifts' : t)); }} placeholder="Register number, staff ka naam ya note…" label="Shift dhoondein" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (v) setTab((t) => (t === 'today' ? 'shifts' : t)); }} placeholder="Register number, staff ka naam ya note…" label="Shift search" />}
         chips={filtered ? <>
           {branch && <FilterChip onRemove={() => setBranch('')}>{branchLabel}</FilterChip>}
           {staff && <FilterChip onRemove={() => setStaff('')}>{staffLabel ?? 'Staff'}</FilterChip>}
@@ -207,8 +207,8 @@ export default function CashRegisterPage() {
 
       <ViewTabs value={tab} onChange={setTab}
         hint={tab === 'today'
-          ? <>Muddat ka filter yahan nahi lagta · <Kbd>I</Kbd> cash in · <Kbd>U</Kbd> cash out · <Kbd>C</Kbd> band</>
-          : <><Kbd>/</Kbd> dhoondein · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide</>}
+          ? <>Period ka filter yahan nahi lagta · <Kbd>I</Kbd> cash in · <Kbd>U</Kbd> cash out · <Kbd>C</Kbd> band</>
+          : <><Kbd>/</Kbd> search · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide</>}
         tabs={[
           { id: 'today', label: 'Aaj ka galla', icon: Wallet, count: live.length || null },
           { id: 'shifts', label: 'Shifts record', icon: ListChecks, count: periodQ.data?.total ?? null },
@@ -235,7 +235,7 @@ export default function CashRegisterPage() {
         ) : !listQ.data?.items.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi shift nahi' : 'Is muddat me koi shift nahi'}</p>
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi shift nahi' : 'Is period me koi shift nahi'}</p>
             <p className="mt-1 text-sm text-slate-500">Har shift kholne aur band karne par yahan record banta hai — kis ne kholi, kitna gina aur kitna farak aaya.</p>
             {filtered && <Button className="mt-4" variant="ghost" onClick={clear}>Filter saaf karein</Button>}
           </div>
@@ -261,16 +261,16 @@ export default function CashRegisterPage() {
       {guide.isOpen && (
         <PageGuide title="Cash register — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: PlayCircle, color: '#16a34a', title: 'Shift kholein', text: 'Din ya shift ke shuru me galla ginein — kul raqam likhein ya note gin kar. Ek branch me ek waqt me ek hi shift khulti hai.' },
+            { icon: PlayCircle, color: '#16a34a', title: 'Shift kholein', text: 'Din ya shift ke shuru me galla ginein — kul amount likhein ya note gin kar. Ek branch me ek waqt me ek hi shift khulti hai.' },
             { icon: Wallet, color: '#0d9488', title: 'Hisaab khud chalta hai', text: 'Cash bikri, booking ki cash raqam aur khata wusooli galle me judti hai; cash kharch, wapsi, cash kharidari aur supplier ko di gayi raqam ghat jati hai. "Hona chahiye" har waqt taaza rehta hai.' },
             { icon: ArrowDownToLine, color: '#2563eb', title: 'Cash in / out', text: 'Khula paisa daala, malik ne paise liye ya bank me jama karwaye? Wajah ke saath likhein taake shift ke aakhir me farak na aaye.' },
             { icon: StopCircle, color: '#e11d48', title: 'Band karein aur milayein', text: 'Shift ke aakhir me galla note gin kar likhein. Paise kam ya zyada hon to wajah likhna zaroori hai. Band hote hi Z-report print ho sakti hai.' },
             { icon: Printer, color: '#7c3aed', title: 'X / Z-report', text: 'Khuli shift ka X-report aur band shift ka Z-report — A4, PDF ya thermal par. Shifts record me kisi bhi shift par click karein.' },
-            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Kis staff ki shift me paise kam nikalte hain, roz ki cash bikri aur ausat opening float — karobari din ke hisaab se.' },
+            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Kis staff ki shift me paise kam nikalte hain, roz ki cash sale aur ausat opening float — karobari din ke hisaab se.' },
           ]}
           tips={[
-            'Khata wusooli aur supplier ki adaigi khud hisaab me judti hain — inhein dobara "Cash in / out" se mat likhein.',
-            'Shift band karne ke liye "Cash register band" ki ijazat chahiye — Team settings me de sakte hain.',
+            'Khata receiving aur supplier ki payment khud hisaab me judti hain — inhein dobara "Cash in / out" se mat likhein.',
+            'Shift band karne ke liye "Cash register band" ki permission chahiye — Team settings me de sakte hain.',
             'Sab branches wale view me har branch ka galla alag dikhta hai; wahin se khol aur band kar sakte hain.',
           ]}
           shortcuts={[['O', 'shift kholein'], ['I', 'cash in'], ['U', 'cash out'], ['C', 'shift band'], ['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]}
@@ -305,7 +305,7 @@ function ShiftLine({ r, money, showShop, onOpen }: { r: ShiftRow; money: (n: num
           </span>
         </span>
         <span className="hidden text-right sm:block">
-          <span className="block text-[0.6875rem] text-slate-400">Opening · cash bikri</span>
+          <span className="block text-[0.6875rem] text-slate-400">Opening · cash sale</span>
           <span className="block text-[0.8125rem] tabular-nums text-slate-700">{money(r.openingBalance)} · {money(r.totalSales)}</span>
         </span>
         <span className="ml-auto text-right">

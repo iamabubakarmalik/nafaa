@@ -42,7 +42,7 @@ export function CommissionCard({ hideAmounts = false, max = 4 }: { hideAmounts?:
       ) : !s ? (
         <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-11 rounded-xl" />)}</div>
       ) : !s.ruleCount && s.scope === 'all' ? (
-        <Setup icon={Target} title="Commission set nahi hai" text="Bandon ko bikri par hissa dete hain? Ek rule bana dein — phir har mahine ka hisab khud banega." cta={canManage ? 'Rule banayein' : undefined} />
+        <Setup icon={Target} title="Commission set nahi hai" text="Bandon ko sale par hissa dete hain? Ek rule bana dein — phir har mahine ka hisab khud banega." cta={canManage ? 'Rule banayein' : undefined} />
       ) : !s.enabledCount ? (
         <Setup icon={Users} title="Kisi bande par chaalu nahi" text="Har bande ko alag se chaalu karna parta hai — tabhi us ki commission banti hai." cta={canManage ? 'Bande chunein' : undefined} />
       ) : (<>

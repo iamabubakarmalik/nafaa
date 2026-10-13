@@ -47,7 +47,7 @@ export function InvoiceDrawer({ id, money, branchOf, onClose, onOpen, onRetry, r
             {d ? <>
               <div className="flex flex-wrap items-center gap-1.5">
                 <h2 className="font-mono text-lg font-semibold text-slate-900">{d.usin}</h2>
-                {d.kind === 'RETURN' && <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[0.6875rem] font-medium text-orange-700 ring-1 ring-orange-200">Wapsi (credit note)</span>}
+                {d.kind === 'RETURN' && <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[0.6875rem] font-medium text-orange-700 ring-1 ring-orange-200">Return (credit note)</span>}
                 {st && <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}><st.icon className="h-3 w-3" />{st.label}</span>}
               </div>
               <p className="mt-0.5 text-[0.8125rem] text-slate-500">{AUTH[d.authority]?.label ?? d.authority} · POS {d.posId}</p>
@@ -112,7 +112,7 @@ export function InvoiceDrawer({ id, money, branchOf, onClose, onOpen, onRetry, r
               )}
               {d.return && (
                 <p className="rounded-xl bg-orange-50 p-3 text-[0.8125rem] text-orange-900 ring-1 ring-orange-100">
-                  Wapsi {d.return.returnNumber} · {fullTime(d.return.returnedAt)} · {money(d.return.refundAmount)}{d.return.reason ? ` · ${d.return.reason}` : ''}
+                  Return {d.return.returnNumber} · {fullTime(d.return.returnedAt)} · {money(d.return.refundAmount)}{d.return.reason ? ` · ${d.return.reason}` : ''}
                 </p>
               )}
 
@@ -124,7 +124,7 @@ export function InvoiceDrawer({ id, money, branchOf, onClose, onOpen, onRetry, r
                       <li key={x.id}>
                         <button type="button" onClick={() => onOpen(x.id)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50">
                           <span className="font-mono font-semibold text-slate-900">{x.usin}</span>
-                          <span className="text-slate-500">{x.kind === 'RETURN' ? 'Wapsi' : 'Bill'} · {x.authority}</span>
+                          <span className="text-slate-500">{x.kind === 'RETURN' ? 'Return' : 'Bill'} · {x.authority}</span>
                           <span className="ml-auto" style={{ color: STATUS[x.status].color }}>{x.status === 'SUCCESS' ? x.fiscalNumber : STATUS[x.status].label}</span>
                         </button>
                       </li>

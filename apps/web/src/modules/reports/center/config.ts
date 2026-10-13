@@ -25,12 +25,12 @@ export interface ReportsConfig {
 const step = (icon: LucideIcon, color: string, title: string, text: string): GuideStep => ({ icon, color, title, text });
 
 const CONFIGS: Record<string, ReportsConfig> = {
-  retail: { label: 'Retail', tips: ['"Maal" tab me "Ruka hua maal" dekhein — jo is muddat me bilkul nahi bika, us par sale lagayein.'] },
+  retail: { label: 'Retail', tips: ['"Maal" tab me "Ruka hua maal" dekhein — jo is period me bilkul nahi bika, us par sale lagayein.'] },
   restaurant: {
     label: 'Restaurant',
     labels: { items: 'Dishes' },
     industry: { kind: 'restaurant', label: 'Restaurant', icon: ChefHat, title: 'Orders, tables, waiter aur kitchen',
-      guide: step(ChefHat, '#ea580c', 'Restaurant tab', 'Dine-in, takeaway, delivery ki alag kamai, kaunsi table sab se zyada kamati hai, waiter ki bikri aur kitchen ka ausat waqt.') },
+      guide: step(ChefHat, '#ea580c', 'Restaurant tab', 'Dine-in, takeaway, delivery ki alag kamai, kaunsi table sab se zyada kamati hai, waiter ki sale aur kitchen ka ausat waqt.') },
   },
   clinic: {
     label: 'Clinic',
@@ -52,7 +52,7 @@ const CONFIGS: Record<string, ReportsConfig> = {
   mobile: {
     label: 'Mobile',
     industry: { kind: 'mobile', label: 'Mobile', icon: Smartphone, title: 'IMEI, PTA, repair, used phone aur qistein',
-      guide: step(Smartphone, '#2563eb', 'Mobile tab', 'IMEI wale phone kitne bike, PTA ki halat, repair ki kamai, used phone ka munafa aur qiston ka baqi.') },
+      guide: step(Smartphone, '#2563eb', 'Mobile tab', 'IMEI wale phone kitne bike, PTA ki halat, repair ki kamai, used phone ka profit aur qiston ka baqi.') },
   },
   carpet: {
     label: 'Carpet',
@@ -63,7 +63,7 @@ const CONFIGS: Record<string, ReportsConfig> = {
     label: 'Pharmacy',
     labels: { items: 'Dawaiyan' },
     industry: { kind: 'pharmacy', label: 'Pharmacy', icon: Pill, title: 'Expiry, schedule dawai aur nuskhe',
-      guide: step(Pill, '#059669', 'Pharmacy tab', 'Kaunsi batch expire ho chuki ya 30/90 din me hogi, schedule wali dawaiyon ki bikri, nuskhe aur controlled register.') },
+      guide: step(Pill, '#059669', 'Pharmacy tab', 'Kaunsi batch expire ho chuki ya 30/90 din me hogi, schedule wali dawaiyon ki sale, nuskhe aur controlled register.') },
     tips: ['Expire hone wali batches pehle bechein ya supplier ko wapas karein — Pharmacy tab me list hai.'],
   },
   bakery: {
@@ -73,23 +73,23 @@ const CONFIGS: Record<string, ReportsConfig> = {
   },
   agri: {
     label: 'Agri',
-    industry: { kind: 'agri', label: 'Kheti', icon: Wheat, title: 'Qism, mausam aur farmer ka udhaar',
-      guide: step(Wheat, '#16a34a', 'Kheti tab', 'Beej, khaad, spray — kis qism aur mausam ka maal bika, farmer par kitna udhaar hai, kis zila ke farmer hain.') },
+    industry: { kind: 'agri', label: 'Kheti', icon: Wheat, title: 'Type, mausam aur farmer ka udhaar',
+      guide: step(Wheat, '#16a34a', 'Kheti tab', 'Beej, khaad, spray — kis type aur mausam ka maal bika, farmer par kitna udhaar hai, kis zila ke farmer hain.') },
   },
   garments: {
     label: 'Garments',
     industry: { kind: 'garments', label: 'Kapre', icon: Shirt, title: 'Size, rang, season aur silai',
-      guide: step(Shirt, '#db2777', 'Kapre tab', 'Kaunsa size aur rang zyada bikta hai, season war bikri aur silai ke order — late wale bhi.') },
+      guide: step(Shirt, '#db2777', 'Kapre tab', 'Kaunsa size aur rang zyada bikta hai, season war sale aur silai ke order — late wale bhi.') },
   },
   electronics: {
     label: 'Electronics',
-    industry: { kind: 'electronics', label: 'Electronics', icon: Cpu, title: 'Qism, serial aur warranty',
-      guide: step(Cpu, '#2563eb', 'Electronics tab', 'Qism war bikri, serial wale units ka munafa, purana para maal aur warranty claims.') },
+    industry: { kind: 'electronics', label: 'Electronics', icon: Cpu, title: 'Type, serial aur warranty',
+      guide: step(Cpu, '#2563eb', 'Electronics tab', 'Type war sale, serial wale units ka profit, purana para maal aur warranty claims.') },
   },
   appliances: {
     label: 'Appliances',
-    industry: { kind: 'appliances', label: 'Appliances', icon: Refrigerator, title: 'Qism, serial, service aur installation',
-      guide: step(Refrigerator, '#0891b2', 'Appliances tab', 'Qism war bikri, serial ki umar, service calls, installations aur brand se lene wale claims.') },
+    industry: { kind: 'appliances', label: 'Appliances', icon: Refrigerator, title: 'Type, serial, service aur installation',
+      guide: step(Refrigerator, '#0891b2', 'Appliances tab', 'Type war sale, serial ki umar, service calls, installations aur brand se lene wale claims.') },
   },
   hardware: {
     label: 'Hardware',
@@ -99,7 +99,7 @@ const CONFIGS: Record<string, ReportsConfig> = {
   dairy: {
     label: 'Dairy',
     industry: { kind: 'dairy', label: 'Dairy', icon: Milk, title: 'Subah/shaam, delivery aur khate',
-      guide: step(Milk, '#0284c7', 'Dairy tab', 'Subah aur shaam ki bikri, kitna doodh pohncha, kaunsi delivery reh gayi aur khaton me kitna baqi hai.') },
+      guide: step(Milk, '#0284c7', 'Dairy tab', 'Subah aur shaam ki sale, kitna doodh pohncha, kaunsi delivery reh gayi aur khaton me kitna baqi hai.') },
   },
   meat: {
     label: 'Meat',
@@ -114,13 +114,13 @@ const CONFIGS: Record<string, ReportsConfig> = {
   bookstore: {
     label: 'Bookstore',
     industry: { kind: 'bookstore', label: 'Kitabein', icon: BookOpen, title: 'Kitabein, stationery aur art',
-      guide: step(BookOpen, '#7c3aed', 'Kitabein tab', 'Kitabon, stationery aur art ke saamaan ki alag bikri aur har qism ki tafseel.') },
+      guide: step(BookOpen, '#7c3aed', 'Kitabein tab', 'Kitabon, stationery aur art ke saamaan ki alag sale aur har type ki details.') },
   },
   'services-biz': {
     label: 'Services',
     labels: { items: 'Services' },
-    industry: { kind: 'services-biz', label: 'Jobs', icon: Wrench, title: 'Jobs, technician aur baqi raqam',
-      guide: step(Wrench, '#0f766e', 'Jobs tab', 'Kitni jobs aayin, kitni mukammal hui, technician war kamai aur kitni raqam baqi hai.') },
+    industry: { kind: 'services-biz', label: 'Jobs', icon: Wrench, title: 'Jobs, technician aur baqi amount',
+      guide: step(Wrench, '#0f766e', 'Jobs tab', 'Kitni jobs aayin, kitni mukammal hui, technician war kamai aur kitni amount baqi hai.') },
   },
 };
 

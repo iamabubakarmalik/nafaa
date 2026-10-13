@@ -21,7 +21,7 @@ export function staffListDoc(people: DirectoryPerson[], filter: string): PrintDo
         columns: [
           { label: 'Naam' }, { label: 'Role' }, { label: 'Kaam', wideOnly: true }, { label: 'Branch', wideOnly: true },
           { label: 'Phone', wideOnly: true }, { label: 'Haal' }, { label: 'Aakhri login', wideOnly: true },
-          ...(sales ? [{ label: 'Aaj bikri', align: 'right' as const }] : []),
+          ...(sales ? [{ label: 'Aaj sale', align: 'right' as const }] : []),
         ],
         rows: people.map((p) => [
           `${p.fullName}${p.staffNumber ? ` (${p.staffNumber})` : ''}`, roleOf(p.role).label, p.designation ?? '—', p.shop?.name ?? 'Sab branches',
@@ -47,7 +47,7 @@ export function loginSlipDoc(s: LoginSlip): PrintDoc {
   return {
     title: 'Login parchi',
     subtitle: s.name,
-    meta: [['Tareekh', day(new Date().toISOString())]],
+    meta: [['Date', day(new Date().toISOString())]],
     sections: [
       {
         kind: 'rows',

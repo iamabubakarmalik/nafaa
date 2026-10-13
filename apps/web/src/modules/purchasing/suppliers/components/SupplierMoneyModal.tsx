@@ -15,10 +15,10 @@ import { supplierLedgerApi, type SupplierPaymentMethod } from '../api/supplier-l
 export type MoneyKind = 'payment' | 'due' | 'return' | 'adjust' | 'opening';
 
 const KINDS: Array<{ value: MoneyKind; label: string; hint: string }> = [
-  { value: 'payment', label: 'Paisa diya', hint: 'Supplier ko adaigi — dena kam hoga' },
+  { value: 'payment', label: 'Paisa diya', hint: 'Supplier ko payment — dena kam hoga' },
   { value: 'due', label: 'Udhaar liya', hint: 'Bagair bill ke maal liya — dena barhega' },
-  { value: 'return', label: 'Maal wapas', hint: 'Wapas kiye maal ki raqam — dena kam hoga' },
-  { value: 'adjust', label: 'Durusti', hint: '+ dena barhe, − dena kam ho' },
+  { value: 'return', label: 'Maal wapas', hint: 'Wapas kiye maal ki amount — dena kam hoga' },
+  { value: 'adjust', label: 'Correction', hint: '+ dena barhe, − dena kam ho' },
   { value: 'opening', label: 'Purana hisaab', hint: 'Khata shuru hone se pehle ka baqi (sirf ek dafa)' },
 ];
 const METHODS: Array<{ value: SupplierPaymentMethod; label: string }> = [
@@ -76,11 +76,11 @@ export function SupplierMoneyModal({ supplier, initial = 'payment', onClose }: {
       <p className="mt-2 text-[0.8125rem] text-slate-500">{KINDS.find((k) => k.value === kind)!.hint}</p>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="text-[0.75rem] text-slate-500">Raqam
+        <label className="text-[0.75rem] text-slate-500">Amount
           <input data-autofocus type="number" inputMode="decimal" title="Kitne rupay" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={kind === 'adjust' ? '+500 ya −500' : '0'}
             className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-right text-lg font-semibold tabular-nums outline-none focus:border-brand-500" />
         </label>
-        <label className="text-[0.75rem] text-slate-500">Tareekh
+        <label className="text-[0.75rem] text-slate-500">Date
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-brand-500" />
         </label>
       </div>
@@ -104,7 +104,7 @@ export function SupplierMoneyModal({ supplier, initial = 'payment', onClose }: {
           Is ke baad dena: <b>{formatPKR(Math.max(after, 0))}</b>{after < 0 ? ` (supplier ke paas ${formatPKR(-after)} advance)` : ''}
         </p>
       )}
-      {kind === 'payment' && n > supplier.outstandingDue + 0.01 && <p className="mt-2 text-[0.8125rem] text-rose-600">Baqi se zyada adaigi darj nahi hoti</p>}
+      {kind === 'payment' && n > supplier.outstandingDue + 0.01 && <p className="mt-2 text-[0.8125rem] text-rose-600">Baqi se zyada payment darj nahi hoti</p>}
     </Modal>
   );
 }

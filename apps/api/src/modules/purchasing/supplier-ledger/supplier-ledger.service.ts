@@ -74,7 +74,7 @@ export class SupplierLedgerService {
         });
         if (!ok.count) {
           const s = await db.supplier.findUniqueOrThrow({ where: { id: supplierId }, select: { outstandingDue: true } });
-          throw new BadRequestException(`Sirf ${Number(s.outstandingDue).toFixed(0)} dena baqi hai — is se ziyada adaigi darj nahi hoti`);
+          throw new BadRequestException(`Sirf ${Number(s.outstandingDue).toFixed(0)} dena baqi hai — is se ziyada payment darj nahi hoti`);
         }
       } else {
         await db.supplier.update({ where: { id: supplierId }, data: { outstandingDue: { increment: delta } } });
@@ -217,7 +217,7 @@ export class SupplierLedgerService {
   /** Haath se durusti */
   async adjust(user: AuthenticatedUser, supplierId: string, dto: AdjustmentDto) {
     await this.getSupplier(user, supplierId);
-    if (dto.amount === 0) throw new BadRequestException('Raqam 0 nahi ho sakti');
+    if (dto.amount === 0) throw new BadRequestException('Amount 0 nahi ho sakti');
     return this.post(user, supplierId, 'ADJUSTMENT', dto.amount, {
       note: dto.note,
       entryDate: dto.entryDate,
@@ -232,7 +232,7 @@ export class SupplierLedgerService {
     if (!entry) throw new NotFoundException('Entry nahi mili');
     if (entry.type === 'PURCHASE_CREDIT' && entry.reference) {
       throw new BadRequestException(
-        'Ye entry kisi kharidari se bani hai — usay purchase page se hi theek karein',
+        'Ye entry kisi purchase se bani hai — usay purchase page se hi theek karein',
       );
     }
 

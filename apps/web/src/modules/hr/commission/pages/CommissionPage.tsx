@@ -46,7 +46,7 @@ type Status = '' | 'due' | 'paid' | 'minus' | 'off';
 type Sort = 'earned' | 'sale' | 'due' | 'name';
 
 const STATUS_LABEL: Record<Exclude<Status, ''>, string> = { due: 'Dena baqi', paid: 'Ada ho gayi', minus: 'Minus / zyada ada', off: 'Commission band' };
-const SORT_LABEL: Record<Sort, string> = { earned: 'Commission zyada pehle', sale: 'Bikri zyada pehle', due: 'Baqi zyada pehle', name: 'Naam se' };
+const SORT_LABEL: Record<Sort, string> = { earned: 'Commission zyada pehle', sale: 'Sale zyada pehle', due: 'Baqi zyada pehle', name: 'Naam se' };
 
 export default function CommissionPage() {
   const thisPeriod = useThisPeriod();
@@ -132,7 +132,7 @@ export default function CommissionPage() {
     if (!rows.length) return toast.error('Koi hisab nahi');
     downloadCsv(`commission-${period}.csv`, [
       [`Commission — ${periodLabel(period)}`], [''],
-      ['Banda', 'Kaam', 'Chaalu', 'Bill', 'Bikri', 'Wapsi', 'Asal bikri', 'Commission', 'Bonus', 'Ada', 'Baqi', 'Haal'],
+      ['Banda', 'Kaam', 'Chaalu', 'Bill', 'Sale', 'Return', 'Asal sale', 'Commission', 'Bonus', 'Ada', 'Baqi', 'Haal'],
       ...rows.map((r) => [
         r.name, r.staff?.designation ?? '', r.enrolled ? 'Haan' : 'Nahi', r.bills, r.grossSale.toFixed(2), r.returnSale.toFixed(2), r.sale.toFixed(2),
         r.earned, r.bonus, (r.paidAmount ?? 0).toFixed(2), r.due.toFixed(2), PAY[r.payStatus].label,
@@ -145,13 +145,13 @@ export default function CommissionPage() {
     c.enroll.mutate({ userId: p.userId!, on, staffId: p.staff?.id });
   };
   const undo = (r: { userId: string; name: string; paidAmount?: number | null }) => {
-    if (window.confirm(`${r.name} ki ${periodLabel(period)} ki adaigi (${formatPKR(r.paidAmount ?? 0)}) wapas lein?\n\nYe sirf record hatata hai — paise khud wapas lene honge.`)) c.undoPay.mutate(r.userId);
+    if (window.confirm(`${r.name} ki ${periodLabel(period)} ki payment (${formatPKR(r.paidAmount ?? 0)}) wapas lein?\n\nYe sirf record hatata hai — paise khud wapas lene honge.`)) c.undoPay.mutate(r.userId);
   };
 
   const tabs = own
     ? [
       { id: 'hisab' as const, label: 'Mera hisab', icon: ListChecks },
-      { id: 'payouts' as const, label: 'Adaigi', icon: Wallet },
+      { id: 'payouts' as const, label: 'Payment', icon: Wallet },
       { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
     ]
     : [
@@ -161,7 +161,7 @@ export default function CommissionPage() {
         { id: 'rules' as const, label: 'Rules', icon: Gauge, count: c.rules.filter((r) => r.isActive).length || null },
         { id: 'team' as const, label: 'Team', icon: UserCheck, count: s?.enabledCount || null },
       ] : []),
-      { id: 'payouts' as const, label: 'Adaigi', icon: Wallet },
+      { id: 'payouts' as const, label: 'Payment', icon: Wallet },
       { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
     ];
 
@@ -170,7 +170,7 @@ export default function CommissionPage() {
       <PageHero
         title="Commission"
         chip={<><HandCoins /> {periodLabel(period)}</>}
-        meta={own ? 'Aap ki apni bikri par commission' : 'Bandon ki bikri par unka hissa — asli bikri se, wapsi nikaal kar'}
+        meta={own ? 'Aap ki apni sale par commission' : 'Bandon ki sale par unka hissa — asli sale se, return nikaal kar'}
         busy={c.summaryQ.isFetching && !c.summaryQ.isLoading}
         loading={c.summaryQ.isLoading}
         actions={<>
@@ -198,13 +198,13 @@ export default function CommissionPage() {
             hint={`${rows.filter((r) => r.enrolled && r.due > 0).length} bandon ka`} onClick={() => { setTab('hisab'); setStatus('due'); }} active={tab === 'hisab' && status === 'due'} />
           <KpiCard icon={CheckCircle2} color="#16a34a" label="Ada hui" value={formatPKR(totals.paid)}
             hint={`${rows.filter((r) => r.payStatus === 'full' || r.payStatus === 'over').length} poori ada`} onClick={() => { setTab('hisab'); setStatus('paid'); }} active={tab === 'hisab' && status === 'paid'} />
-          <KpiCard icon={Wallet} color="#0891b2" label="Asal bikri" value={formatPKR(live.reduce((a, r) => a + r.sale, 0))}
-            hint={s.returnTotal ? `Wapsi ${formatPKR(s.returnTotal)} nikaal kar` : 'Chaalu bandon ki'} />
+          <KpiCard icon={Wallet} color="#0891b2" label="Asal sale" value={formatPKR(live.reduce((a, r) => a + r.sale, 0))}
+            hint={s.returnTotal ? `Return ${formatPKR(s.returnTotal)} nikaal kar` : 'Chaalu bandon ki'} />
           {own ? (
             <KpiCard icon={Target} color="#db2777" label="Target" value={rows[0]?.targets[0] ? `${Math.round(rows[0].targets[0].pct)}%` : '—'}
               hint={rows[0]?.targets[0] ? `${formatPKR(rows[0].targets[0].amount)} me se` : 'Koi target nahi'} />
           ) : (
-            <KpiCard icon={Trophy} color="#f59e0b" label="Sab se zyada bikri" value={leader?.name ?? '—'}
+            <KpiCard icon={Trophy} color="#f59e0b" label="Sab se zyada sale" value={leader?.name ?? '—'}
               hint={leader ? `${formatPKR(leader.sale)} · ${leader.bills} bill` : 'Abhi koi nahi'} onClick={leader ? () => setTab('board') : undefined} active={tab === 'board'} />
           )}
         </>}
@@ -212,7 +212,7 @@ export default function CommissionPage() {
 
       <FilterBar
         search={['hisab', 'payouts', 'team'].includes(tab)
-          ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bande ka naam, kaam ya staff #…" label="Dhoondein" />
+          ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bande ka naam, kaam ya staff #…" label="Search" />
           : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'analytics' ? `${periodLabel(shiftPeriod(period, -11), true)} se ${periodLabel(period, true)} tak` : 'Mahina badal kar dekhein'}</p>}
         chips={filtered ? <>
           {shopId && <FilterChip onRemove={() => setShopId('')}>{shops.find((x) => x.id === shopId)?.name ?? 'Branch'}</FilterChip>}
@@ -238,7 +238,7 @@ export default function CommissionPage() {
         hint={<>{manage && <><Kbd>N</Kbd> rule · </>}<Kbd>[</Kbd><Kbd>]</Kbd> mahina · <Kbd>1</Kbd>-<Kbd>{tabs.length}</Kbd> tabs</>} />
 
       {tab === 'hisab' && <>
-        {own && <Note icon={Info} tone="sky">Ye aap ka apna hisab hai. Rate ya adaigi par sawal ho to dukaan ke malik se baat karein. Kisi line par click karein to poori tafseel khulti hai.</Note>}
+        {own && <Note icon={Info} tone="sky">Ye aap ka apna hisab hai. Rate ya payment par sawal ho to dukaan ke malik se baat karein. Kisi line par click karein to poori details khulti hai.</Note>}
         {!own && s && <Warnings s={s} withoutLogin={withoutLogin.length} manage={manage} onTeam={() => setTab('team')} onOff={() => setStatus('off')} />}
         {s && !s.ruleCount && manage && (
           <Note icon={Gauge} tone="amber">Abhi koi chaalu rule nahi, is liye kisi ki commission nahi ban rahi. <button type="button" className="font-semibold underline" onClick={() => setRuleForm({})}>Rule banayein</button></Note>
@@ -278,17 +278,17 @@ export default function CommissionPage() {
       {guide.isOpen && (
         <PageGuide title="Commission — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Gauge, color: '#7c3aed', title: 'Rule banayein', text: 'Kis par (bikri, munafa ya har bill) aur kitna (percent ya fixed). Category, kam se kam bikri aur target bonus bhi laga sakte hain.' },
-            { icon: UserCheck, color: '#16a34a', title: 'Bande chaalu karein', text: 'Team tab me har bande ka switch. Sirf chaalu bandon ki commission banti hai aur wohi POS par "bikri kis ke naam" me aate hain.' },
-            { icon: ListChecks, color: '#0891b2', title: 'Hisab khud banta hai', text: 'Har bill se: chhoot ke baad maal ki qeemat. Void bill nahi gine jate. Wapas aaya maal us mahine me katta hai jis me wapas aaya.' },
-            { icon: HandCoins, color: '#d97706', title: 'Adaigi likhein', text: '"Ada karein" se poori ya kuch raqam likhein. Double click se dobara nahi likhti. Ghalti ho to drawer se "Adaigi wapas".' },
-            { icon: Printer, color: '#db2777', title: 'Statement aur slip', text: 'Kisi bande par click karein: Statement (A4/PDF) me poori tafseel, Slip (thermal/A4) dastkhat ke saath bande ko dene ke liye.' },
-            { icon: BarChart3, color: '#2563eb', title: 'Leaderboard aur analytics', text: 'Kaun sab se aage hai, target kitna poora, aur 12 mahine me commission aur adaigi.' },
+            { icon: Gauge, color: '#7c3aed', title: 'Rule banayein', text: 'Kis par (sale, profit ya har bill) aur kitna (percent ya fixed). Category, kam se kam sale aur target bonus bhi laga sakte hain.' },
+            { icon: UserCheck, color: '#16a34a', title: 'Bande chaalu karein', text: 'Team tab me har bande ka switch. Sirf chaalu bandon ki commission banti hai aur wohi POS par "sale kis ke naam" me aate hain.' },
+            { icon: ListChecks, color: '#0891b2', title: 'Hisab khud banta hai', text: 'Har bill se: discount ke baad maal ki qeemat. Void bill nahi gine jate. Wapas aaya maal us mahine me katta hai jis me wapas aaya.' },
+            { icon: HandCoins, color: '#d97706', title: 'Payment likhein', text: '"Ada karein" se poori ya kuch amount likhein. Double click se dobara nahi likhti. Ghalti ho to drawer se "Payment wapas".' },
+            { icon: Printer, color: '#db2777', title: 'Statement aur slip', text: 'Kisi bande par click karein: Statement (A4/PDF) me poori details, Slip (thermal/A4) dastkhat ke saath bande ko dene ke liye.' },
+            { icon: BarChart3, color: '#2563eb', title: 'Leaderboard aur analytics', text: 'Kaun sab se aage hai, target kitna poora, aur 12 mahine me commission aur payment.' },
           ]}
           tips={[
-            'Slab chahiye? Do rule banayein: "2% bikri par" aur "1% aur — kam se kam bikri 2 lakh". Dono jur jate hain.',
+            'Slab chahiye? Do rule banayein: "2% sale par" aur "1% aur — kam se kam sale 2 lakh". Dono jur jate hain.',
             'Jis bande ka apna rule hai, us par "sab ke liye" wale rule nahi lagte.',
-            'Rule badalne se wo mahine bhi badalte hain jo abhi ada nahi hue. Ada ki hui raqam nahi badalti.',
+            'Rule badalne se wo mahine bhi badalte hain jo abhi ada nahi hue. Ada ki hui amount nahi badalti.',
             'Commission tankhwah ke saath deni ho to Payroll khud yahan "ada" likh deta hai. Yahan pehle ada likhi ho to Payroll use dobara nahi jorta.',
             'Apni commission dekhne ke liye "Apni commission" ki ijazat kaafi hai; doosron ki dekhne ke liye "Sab ki commission".',
           ]}
@@ -311,11 +311,11 @@ function Warnings({ s, withoutLogin, manage, onTeam, onOff }: {
   s: NonNullable<ReturnType<typeof useCommission>['summary']>; withoutLogin: number; manage: boolean; onTeam: () => void; onOff: () => void;
 }) {
   const items: ReactNode[] = [];
-  if (s.notEnrolled.length) items.push(<><b>{s.notEnrolled.length} bandon</b> ki bikri hai magar commission chaalu nahi ({s.notEnrolled.slice(0, 3).map((r) => r.name).join(', ')}{s.notEnrolled.length > 3 ? '…' : ''}). <button type="button" className="font-semibold underline" onClick={manage ? onTeam : onOff}>Dekhein</button></>);
+  if (s.notEnrolled.length) items.push(<><b>{s.notEnrolled.length} bandon</b> ki sale hai magar commission chaalu nahi ({s.notEnrolled.slice(0, 3).map((r) => r.name).join(', ')}{s.notEnrolled.length > 3 ? '…' : ''}). <button type="button" className="font-semibold underline" onClick={manage ? onTeam : onOff}>Dekhein</button></>);
   if (s.orphanBills) items.push(<><b>{s.orphanBills} bill</b> par kisi bande ka naam nahi ({formatPKR(s.orphanSale)}) — in ki commission kisi ko nahi milti.</>);
-  if (withoutLogin && manage) items.push(<><b>{withoutLogin} employee</b> ka apna login nahi — un ki bikri darj nahi hoti. <button type="button" className="font-semibold underline" onClick={onTeam}>Team</button></>);
+  if (withoutLogin && manage) items.push(<><b>{withoutLogin} employee</b> ka apna login nahi — un ki sale darj nahi hoti. <button type="button" className="font-semibold underline" onClick={onTeam}>Team</button></>);
   if (s.overpaidTotal > 0) items.push(<>Kuch bandon ko banti se <b>{formatPKR(s.overpaidTotal)}</b> zyada ada hua hai (baad me bill void hua ya rule badla).</>);
-  if (s.noCostLines) items.push(<>{s.noCostLines} bikri lines par cost nahi thi — munafa wale rule me aaj ki cost lagi.</>);
+  if (s.noCostLines) items.push(<>{s.noCostLines} sale lines par cost nahi thi — profit wale rule me aaj ki cost lagi.</>);
   if (!items.length) return null;
   return (
     <div className="space-y-1.5 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
@@ -342,7 +342,7 @@ function HisabList({ rows, loading, failed, retry, filtered, clear, manage, busy
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Users className="mx-auto h-10 w-10 text-slate-300" />
         <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi banda nahi' : 'Is mahine koi hisab nahi'}</p>
-        <p className="mt-1 text-sm text-slate-500">Jin par commission chaalu hai ya jinhon ne bikri ki, woh yahan aate hain.</p>
+        <p className="mt-1 text-sm text-slate-500">Jin par commission chaalu hai ya jinhon ne sale ki, woh yahan aate hain.</p>
         {filtered && <Button className="mt-3" variant="ghost" onClick={clear}>Filter saaf karein</Button>}
       </div>
     );
@@ -363,7 +363,7 @@ function HisabList({ rows, loading, failed, retry, filtered, clear, manage, busy
                     {r.enrolled && <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}><st.icon className="h-3 w-3" />{st.label}</span>}
                   </span>
                   <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">
-                    {r.bills} bill · bikri {formatPKR(r.sale)}{r.returnSale ? ` (wapsi −${formatPKR(r.returnSale)})` : ''}
+                    {r.bills} bill · sale {formatPKR(r.sale)}{r.returnSale ? ` (return −${formatPKR(r.returnSale)})` : ''}
                     {r.blockedByMin && !r.lines.length ? ` · hadd se ${formatPKR(r.blockedByMin.short)} kam` : ''}
                     {r.targets[0] ? ` · target ${Math.round(r.targets[0].pct)}%` : ''}
                   </span>

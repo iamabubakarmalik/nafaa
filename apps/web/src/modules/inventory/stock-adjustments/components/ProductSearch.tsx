@@ -63,7 +63,7 @@ export function ProductSearch({ sources, byCode, loading, onPick, onMiss, placeh
               if (results[0]) pick(results[0]);
               else onCode(query);
             }}
-            placeholder={placeholder} aria-label="Product dhoondein"
+            placeholder={placeholder} aria-label="Product search"
             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
         </div>
         <Button variant="secondary" className="h-11" onClick={() => setScanner(true)} leftIcon={<ScanLine className="h-4 w-4" />}><span className="hidden sm:inline">Scan</span></Button>
@@ -71,7 +71,7 @@ export function ProductSearch({ sources, byCode, loading, onPick, onMiss, placeh
       {open && query.trim() && (
         <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
           {loading ? <p className="p-4 text-center text-sm text-slate-500">Load ho raha hai…</p>
-            : !results.length ? <p className="p-4 text-center text-sm text-slate-500">Koi product nahi mila{onMiss ? ' — Enter dabayein to IMEI / serial dhoondein' : ''}</p>
+            : !results.length ? <p className="p-4 text-center text-sm text-slate-500">Koi product nahi mila{onMiss ? ' — Enter dabayein to IMEI / serial search' : ''}</p>
             : results.map((s) => (
               <div key={s.key} className="flex items-center gap-3 border-b border-slate-100 px-3 py-2 last:border-0 hover:bg-slate-50">
                 <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(s)} className="flex min-w-0 flex-1 items-center gap-3 text-left">

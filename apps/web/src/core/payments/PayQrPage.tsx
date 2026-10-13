@@ -132,7 +132,7 @@ export default function PayQrPage() {
             <ol className="grid gap-3 text-[0.8125rem] text-slate-700 sm:grid-cols-3">
               {[
                 { icon: ImageUp, text: 'Apne bank / wallet app se apna "receive" QR ka screenshot yahan lagayein.' },
-                { icon: ScanLine, text: 'POS par customer scan karta hai — bill ki raqam QR me khud bhari hoti hai.' },
+                { icon: ScanLine, text: 'POS par customer scan karta hai — bill ki amount QR me khud bhari hoti hai.' },
                 { icon: Smartphone, text: 'Apne phone par paisa aane ka message dekh kar hi bill confirm karein.' },
               ].map(({ icon: Icon, text }, i) => (
                 <li key={text} className="flex gap-2.5 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-100">
@@ -167,15 +167,15 @@ export default function PayQrPage() {
         <PageGuide title="Payment QR — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: ImageUp, color: '#0891b2', title: 'QR lagayein', text: 'Bank app (Raast "My QR"), JazzCash ya Easypaisa Business app ka QR screenshot lein aur yahan "QR ki tasveer" se lagayein.' },
-            { icon: Banknote, color: '#16a34a', title: 'Raqam QR me', text: 'On ho to customer ko raqam likhni nahi parti. Kisi app me QR na chale to band kar dein.' },
-            { icon: Receipt, color: '#d97706', title: 'Udhaar bill par', text: 'On karein to baqi raqam ka QR bill par chhapta hai — customer ghar se bhej de.' },
+            { icon: Banknote, color: '#16a34a', title: 'Amount QR me', text: 'On ho to customer ko amount likhni nahi parti. Kisi app me QR na chale to band kar dein.' },
+            { icon: Receipt, color: '#d97706', title: 'Udhaar bill par', text: 'On karein to baqi amount ka QR bill par chhapta hai — customer ghar se bhej de.' },
             { icon: Monitor, color: '#2563eb', title: 'Customer screen', text: 'Customer display khula ho to payment ke waqt bara QR wahan bhi aata hai.' },
             { icon: Smartphone, color: '#7c3aed', title: 'Pehle test', text: 'Test QR (Rs 10) apne doosre phone se scan karke bhejein aur dekhein paisa aap ke khate me aaya.' },
             { icon: ShieldCheck, color: '#e11d48', title: 'Confirm khud karein', text: 'Bank Nafaa ko nahi batata. Phone par paisa aane ka message dekh kar hi bill confirm karein.' },
           ]}
           tips={[
             'QR sirf malik ya manager laga sakta hai.',
-            'Bill par QR tab chhapta hai jab Settings → Raseed me "Payment QR" on ho aur bill par raqam baqi ho.',
+            'Bill par QR tab chhapta hai jab Settings → Raseed me "Payment QR" on ho aur bill par amount baqi ho.',
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['G', 'guide']]}
         />
@@ -243,7 +243,7 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
           {testSvg && (
             <div className="shrink-0 text-center">
               <div className="inline-block rounded-xl bg-ink-white p-1.5 ring-1 ring-slate-200" dangerouslySetInnerHTML={{ __html: testSvg }} />
-              <div className="mt-1 text-[0.71875rem] text-slate-500">Test: Rs 10 {draft.amountInQr ? '(raqam ke saath)' : ''}</div>
+              <div className="mt-1 text-[0.71875rem] text-slate-500">Test: Rs 10 {draft.amountInQr ? '(amount ke saath)' : ''}</div>
             </div>
           )}
           <div className="min-w-0 flex-1 space-y-3">
@@ -255,9 +255,9 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
             )}
             <Input label="POS par naam" maxLength={40} value={draft.label} onChange={(e) => onChange({ ...draft, label: e.target.value })}
               hint="Checkout aur bill par yahi naam" wrapperClassName="max-w-xs" />
-            <Switch size="sm" label="Raqam QR me daalein" description="Customer ko raqam likhni na pare. Kisi app me QR na chale to band kar dein."
+            <Switch size="sm" label="Amount QR me daalein" description="Customer ko amount likhni na pare. Kisi app me QR na chale to band kar dein."
               checked={draft.amountInQr} onChange={(e) => onChange({ ...draft, amountInQr: e.target.checked })} />
-            <Switch size="sm" label="Udhaar wale bill par chhapein" description="Baqi raqam ka QR bill par — customer ghar se bhej de"
+            <Switch size="sm" label="Udhaar wale bill par chhapein" description="Baqi amount ka QR bill par — customer ghar se bhej de"
               checked={draft.printOnBill} onChange={(e) => onChange({ ...draft, printOnBill: e.target.checked })} />
             <p className="text-[0.75rem] text-slate-500">Pehli dafa: doosre phone se test QR scan karke Rs 10 bhejein aur dekhein ke aap ke khate me aaye.</p>
             <Button size="sm" variant="ghost" className="text-rose-600" leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => onChange(null)}>Hatayein</Button>
@@ -297,7 +297,7 @@ function QrPreview({ saved, drafts, dirty }: { saved: PayQr[]; drafts: Draft[]; 
           {!setup.design.showPayQr && (
             <Alert tone="warning">Settings → Raseed me "Payment QR" band hai. <Link to="/settings?tab=receipt" className="font-semibold underline">On karein</Link></Alert>
           )}
-          {!onBill && <Alert tone="info">Kisi QR par "Udhaar wale bill par chhapein" on karein — tab baqi raqam ka QR bill par aayega.</Alert>}
+          {!onBill && <Alert tone="info">Kisi QR par "Udhaar wale bill par chhapein" on karein — tab baqi amount ka QR bill par aayega.</Alert>}
           {dirty && <p className="text-[0.75rem] text-amber-700">Preview save shuda QR ka hai — save karne ke baad naya dikhega.</p>}
           <div className="flex items-center justify-between gap-2">
             <span className="text-[0.75rem] text-slate-500">Udhaar bill: baqi {formatPKR(due)}</span>

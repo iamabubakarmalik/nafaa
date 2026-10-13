@@ -390,7 +390,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
       const pieces = Math.max(1, Math.round(body?.pieces ?? items.reduce((s, i) => s + (Number(i?.quantity) || 0), 0)));
       // Advance (payment link) mil chuka ho to COD utna kam
       const cod = body?.codAmount !== undefined ? Number(body.codAmount) : order.paymentStatus === 'PAID' ? 0 : Math.max(0, Number(order.total) - advancePaid(order.metadata));
-      if (!Number.isFinite(cod) || cod < 0) throw new BadRequestException('COD raqam sahi nahi');
+      if (!Number.isFinite(cod) || cod < 0) throw new BadRequestException('COD amount sahi nahi');
       const weightKg = Number(body?.weightKg ?? settings.defaultWeightKg ?? 0.5);
       if (!(weightKg > 0 && weightKg <= 100)) throw new BadRequestException('Wazan 0.01 se 100 kg ke beech');
       if (!order.customerPhone) throw new BadRequestException('Customer ka phone nahi — booking ke liye zaroori hai');

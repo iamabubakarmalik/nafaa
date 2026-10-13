@@ -29,7 +29,7 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
       <Panel icon={Wallet} title="Payment ke tareeqe" hint={`Kul paisa aaya ${m.sales(totalIn)}. "Mila" = bill par liya paisa (cash me wapas rezgari nikal kar). Booking se bane bill ka paisa booking wale din gina jata hai.`}>
         {!d.payments.length ? <Empty icon={Wallet} text="Koi payment nahi" /> : (
           <TableWrap>
-            <thead><tr><th className={th}>Tareeqa</th><th className={thR}>Bill</th><th className={thR}>Bill ki raqam</th><th className={thR}>Mila</th><th className={thR}>Udhaar</th><th className={thR}>Booking</th><th className={thR}>Kul aaya</th></tr></thead>
+            <thead><tr><th className={th}>Tareeqa</th><th className={thR}>Bill</th><th className={thR}>Bill ki amount</th><th className={thR}>Mila</th><th className={thR}>Udhaar</th><th className={thR}>Booking</th><th className={thR}>Kul aaya</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {d.payments.map((p) => (
                 <tr key={p.method}>
@@ -57,8 +57,8 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel icon={Globe} title="Bikri kahan se aayi" hint="Counter ya online channel">
-          {!d.sources.length ? <Empty icon={Globe} text="Koi bikri nahi" /> : (
+        <Panel icon={Globe} title="Sale kahan se aayi" hint="Counter ya online channel">
+          {!d.sources.length ? <Empty icon={Globe} text="Koi sale nahi" /> : (
             <ul className="space-y-2.5">
               {d.sources.map((s) => (
                 <li key={s.source}>
@@ -100,10 +100,10 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
           )}
         </Panel>
 
-        <Panel icon={CalendarCheck} title="Booking ka paisa" hint={`Advance aur wapsi. ${d.bookings.converted} booking aaj bill bani.`}>
+        <Panel icon={CalendarCheck} title="Booking ka paisa" hint={`Advance aur return. ${d.bookings.converted} booking aaj bill bani.`}>
           <div className="mb-3 grid grid-cols-2 gap-2">
             <div className="rounded-xl bg-sky-50 px-3 py-2"><p className="text-[0.6875rem] font-medium text-sky-800">Advance · {d.bookings.advanceCount}</p><p className="font-bold tabular-nums text-sky-900">{m.sales(d.bookings.advances)}</p></div>
-            <div className="rounded-xl bg-rose-50 px-3 py-2"><p className="text-[0.6875rem] font-medium text-rose-800">Wapsi · {d.bookings.refundCount}</p><p className="font-bold tabular-nums text-rose-900">{m.sales(d.bookings.refunds)}</p></div>
+            <div className="rounded-xl bg-rose-50 px-3 py-2"><p className="text-[0.6875rem] font-medium text-rose-800">Return · {d.bookings.refundCount}</p><p className="font-bold tabular-nums text-rose-900">{m.sales(d.bookings.refunds)}</p></div>
           </div>
           {!bookings.length ? <Empty icon={CalendarCheck} text={q ? 'Koi booking nahi mili' : 'Is din booking ka paisa nahi aaya'} /> : (
             <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
@@ -111,7 +111,7 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
                 <li key={b.id}>
                   <Link to={`/bookings/${b.bookingId}`} className="flex items-center justify-between gap-2 py-2 hover:opacity-80">
                     <span className="min-w-0"><span className="block truncate text-[0.8125rem] font-medium text-slate-800">{b.number}{b.customer ? ` · ${b.customer}` : ''}</span><span className="text-[0.6875rem] text-slate-500">{clock(b.at)} · {method(b.method)}</span></span>
-                    <span className="flex shrink-0 items-center gap-2">{b.type === 'REFUND' ? <Tag tone="rose">Wapsi</Tag> : <Tag tone="sky">Advance</Tag>}<span className="tabular-nums text-[0.8125rem] font-semibold text-slate-900">{m.sales(b.amount)}</span></span>
+                    <span className="flex shrink-0 items-center gap-2">{b.type === 'REFUND' ? <Tag tone="rose">Return</Tag> : <Tag tone="sky">Advance</Tag>}<span className="tabular-nums text-[0.8125rem] font-semibold text-slate-900">{m.sales(b.amount)}</span></span>
                   </Link>
                 </li>
               ))}
@@ -120,9 +120,9 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
         </Panel>
       </div>
 
-      <Panel icon={ShoppingBag} title="Kharcha" hint={`${d.expenses.count} kharche · kul ${m.cost(d.expenses.total)} · is me se cash ${m.cost(d.expenses.cash)}`}
-        actions={<Link to="/expenses" className="text-[0.75rem] font-semibold text-brand-700 hover:underline">Kharcha likhein →</Link>}>
-        {!d.expenses.count ? <Empty icon={ShoppingBag} text="Is din koi kharcha darj nahi hua" /> : (
+      <Panel icon={ShoppingBag} title="Expense" hint={`${d.expenses.count} expenses · kul ${m.cost(d.expenses.total)} · is me se cash ${m.cost(d.expenses.cash)}`}
+        actions={<Link to="/expenses" className="text-[0.75rem] font-semibold text-brand-700 hover:underline">Expense likhein →</Link>}>
+        {!d.expenses.count ? <Empty icon={ShoppingBag} text="Is din koi expense darj nahi hua" /> : (
           <div className="grid gap-5 lg:grid-cols-5">
             <ul className="space-y-2.5 lg:col-span-2">
               {d.expenses.byCategory.map((c) => (
@@ -133,7 +133,7 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
               ))}
             </ul>
             <div className="lg:col-span-3">
-              {!expenses.length ? <Empty icon={ShoppingBag} text="Koi kharcha nahi mila" /> : (
+              {!expenses.length ? <Empty icon={ShoppingBag} text="Koi expense nahi mila" /> : (
                 <ul className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
                   {expenses.map((e) => (
                     <li key={e.id} className="flex items-center justify-between gap-2 py-2">
@@ -149,7 +149,7 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel icon={Truck} title="Kharidari" hint={`${d.purchases.count} bill · maal ${m.cost(d.purchases.total)} · diye ${m.cost(d.purchases.paid)}`}>
+        <Panel icon={Truck} title="Purchase" hint={`${d.purchases.count} bill · maal ${m.cost(d.purchases.total)} · diye ${m.cost(d.purchases.paid)}`}>
           {!purchases.length ? <Empty icon={Truck} text={q ? 'Koi bill nahi mila' : 'Is din maal nahi khareeda'} /> : (
             <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
               {purchases.map((p) => (
@@ -163,8 +163,8 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
             </ul>
           )}
         </Panel>
-        <Panel icon={Truck} title="Supplier ko adaigi" hint={`Kul ${m.cost(d.supplierPayments.total)} · cash ${m.cost(d.supplierPayments.cash)}`}>
-          {!supplierPays.length ? <Empty icon={Truck} text={q ? 'Koi adaigi nahi mili' : 'Is din supplier ko kuch nahi diya'} /> : (
+        <Panel icon={Truck} title="Supplier ko payment" hint={`Kul ${m.cost(d.supplierPayments.total)} · cash ${m.cost(d.supplierPayments.cash)}`}>
+          {!supplierPays.length ? <Empty icon={Truck} text={q ? 'Koi payment nahi mili' : 'Is din supplier ko kuch nahi diya'} /> : (
             <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
               {supplierPays.map((p) => (
                 <li key={p.id}>
