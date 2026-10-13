@@ -4,7 +4,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { BusinessPulseService } from '../../../modules/dashboard/business-pulse.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import {
-  addDaysTz, endOfDayTz, startOfDayTz, startOfMonthTz, subDaysTz,
+  addDaysTz, endOfDayTz, subDaysTz,
   startOfBusinessDayTz,
   endOfBusinessDayTz,
   startOfBusinessMonthTz,

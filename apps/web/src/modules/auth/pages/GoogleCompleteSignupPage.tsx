@@ -1,18 +1,28 @@
-import { useEffect, useState } from 'react';
+/**
+ * New Google user: asks for the shop name (required by the API) and the
+ * industry, then creates the account with the temporary Google token.
+ */
+
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Store, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, Store } from 'lucide-react';
 import { authApi } from '@modules/auth/api/auth.api';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { useAuthStore } from '@core/stores/auth.store';
-import { Button, Input } from '@/design-system/components';
+import { Alert, Button, Input } from '@/design-system/components';
+import { AuthHeading, AuthLayout } from '../components/AuthLayout';
+import { IndustryPicker } from '../components/IndustryPicker';
+import { authErrorMessage } from '../lib/auth-errors';
+import { applySignupIndustry, industryChoices, readSignupIndustry, rememberSignupIndustry } from '../lib/industry-choices';
 
 const schema = z.object({
-  shopName: z.string().min(2, 'Shop ka naam likhein (min 2 chars)'),
+  shopName: z.string().trim().min(2, 'Dukaan ka naam likhein (kam se kam 2 huroof)').max(100, 'Naam 100 huroof se chhota rakhein'),
+  businessType: z.string().min(1, 'Apna kaam chunein — is se app aap ke hisaab se set hoti hai'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -28,18 +38,18 @@ export default function GoogleCompleteSignupPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setSession = useAuthStore((s) => s.setSession);
+  const choices = useMemo(industryChoices, []);
   const [pending, setPending] = useState<PendingGoogleUser | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    const params = new URLSearchParams(hash);
+    const params = new URLSearchParams(window.location.hash.slice(1));
     const tempToken = params.get('tempToken');
     const email = params.get('email');
     const fullName = params.get('fullName');
     const avatarUrl = params.get('avatarUrl') || undefined;
-
     if (!tempToken || !email || !fullName) {
-      toast.error('Google signup data missing');
+      toast.error('Google ki maloomat nahi mili. Dobara try karein.');
       navigate('/login', { replace: true });
       return;
     }
@@ -48,124 +58,85 @@ export default function GoogleCompleteSignupPage() {
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { shopName: '' },
+    defaultValues: { shopName: '', businessType: readSignupIndustry() ?? '' },
   });
+  const businessType = form.watch('businessType');
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
-      authApi.completeGoogleSignup(pending!.tempToken, data.shopName.trim()),
-    onSuccess: async (data) => {
-      // Step 1: Set session FIRST
+    mutationFn: (d: FormData) => authApi.completeGoogleSignup(pending!.tempToken, d.shopName.trim()),
+    onSuccess: async (data, vars) => {
       setSession(data);
-
-      // Step 2: Clear all stale caches (CRITICAL — onboarding cache from previous user)
+      // Drop cached data from any previous account so OnboardingGate reads fresh state.
       queryClient.clear();
-
-      // Step 3: Pre-fetch fresh onboarding state so OnboardingGate doesn't redirect to dashboard
+      rememberSignupIndustry(vars.businessType);
+      await applySignupIndustry(vars.businessType);
       try {
-        await queryClient.fetchQuery({
-          queryKey: ['onboarding'],
-          queryFn: onboardingApi.get,
-        });
+        await queryClient.fetchQuery({ queryKey: ['onboarding'], queryFn: onboardingApi.get });
       } catch {
-        // If fails, continue anyway — gate will retry
+        // OnboardingGate retries.
       }
-
-      toast.success(`Mubarak ho ${data.user.fullName.split(' ')[0]}! 🎉`);
-
-      // Step 4: Now navigate — fresh cache, fresh data
+      toast.success(`Mubarak ho, ${data.user.fullName.split(' ')[0]}!`);
       navigate('/onboarding', { replace: true });
     },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Account banane mein masla');
-    },
+    onError: (err) => setFormError(authErrorMessage(err, 'Account nahi ban saka. Dobara koshish karein.')),
   });
 
   if (!pending) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Sparkles className="h-10 w-10 text-emerald-600 animate-pulse" />
+      <div className="flex min-h-dvh items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label="Load ho raha hai" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <div className="text-2xl font-extrabold text-slate-900">Nafaa</div>
-            <div className="text-xs text-slate-500">Pakistan-first retail OS</div>
-          </div>
+    <AuthLayout side="signup" wide>
+      <AuthHeading title="Bas aakhri qadam" subtitle="Apni dukaan ka naam aur kaam batayein — account foran ban jayega." />
+
+      <div className="mb-5 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
+        {pending.avatarUrl ? (
+          <img src={pending.avatarUrl} className="h-10 w-10 rounded-full" alt="" referrerPolicy="no-referrer" />
+        ) : (
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 font-semibold text-brand-fg">
+            {pending.fullName.charAt(0).toUpperCase()}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold text-slate-900">{pending.fullName}</div>
+          <div className="truncate text-xs text-slate-500">{pending.email}</div>
         </div>
-
-        <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-br from-emerald-600 to-brand-700 p-8 text-white">
-            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-white/20 mb-4">
-              <Store className="h-7 w-7" />
-            </div>
-            <h2 className="text-3xl font-extrabold">Aakhri Step!</h2>
-            <p className="text-emerald-100 text-sm mt-2">
-              Apni dukan ka naam batayein
-            </p>
-          </div>
-
-          <div className="p-8 space-y-5">
-            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-3 flex items-center gap-3">
-              {pending.avatarUrl ? (
-                <img src={pending.avatarUrl} className="h-10 w-10 rounded-full" alt="" />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center">
-                  {pending.fullName.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold text-emerald-900 truncate">{pending.fullName}</div>
-                <div className="text-xs text-emerald-700 truncate">{pending.email}</div>
-              </div>
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />
-            </div>
-
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Google se sign in ho gaya hai ✅<br />
-              Bas apni dukan/business ka naam batayein:
-            </p>
-
-            <form
-              onSubmit={form.handleSubmit((d) => mutation.mutate(d))}
-              className="space-y-4"
-            >
-              <Input
-                label="Shop / Business Name"
-                placeholder="e.g. Ahmad Bakery"
-                leftIcon={<Store className="h-4 w-4 text-slate-400" />}
-                autoFocus
-                {...form.register('shopName')}
-                error={form.formState.errors.shopName?.message}
-              />
-
-              <Button
-                type="submit"
-                loading={mutation.isPending}
-                className="w-full"
-                size="lg"
-              >
-                Account Banayein
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-
-              <p className="text-xs text-slate-500 text-center">
-                Continue karke aap{' '}
-                <Link to="/legal" className="font-bold text-emerald-700">Terms</Link> aur{' '}
-                <Link to="/legal" className="font-bold text-emerald-700">Privacy</Link> se agree karte hain.
-              </p>
-            </form>
-          </div>
-        </div>
+        <span className="flex items-center gap-1 text-xs font-semibold text-success-700">
+          <CheckCircle2 className="h-4 w-4" aria-hidden /> Google
+        </span>
       </div>
-    </div>
+
+      <form onSubmit={form.handleSubmit((d) => { setFormError(null); mutation.mutate(d); })} className="space-y-5" noValidate>
+        {formError && <Alert tone="danger">{formError}</Alert>}
+        <Input
+          label="Dukaan / business ka naam"
+          placeholder="Misaal: Ahmad Medical Store"
+          size="lg"
+          autoFocus
+          leftIcon={<Store className="h-4 w-4" />}
+          hint="Bill aur receipt par yahi naam chhapega."
+          {...form.register('shopName')}
+          error={form.formState.errors.shopName?.message}
+        />
+        <IndustryPicker
+          choices={choices}
+          value={businessType}
+          onChange={(v) => form.setValue('businessType', v, { shouldValidate: true })}
+          error={form.formState.errors.businessType?.message}
+        />
+        <Button type="submit" size="xl" fullWidth loading={mutation.isPending} rightIcon={<ArrowRight className="h-4 w-4" />}>
+          Account banayein
+        </Button>
+        <p className="text-center text-xs leading-relaxed text-slate-500">
+          Account bana kar aap Nafaa ki{' '}
+          <Link to="/legal" className="font-semibold text-brand-700 hover:underline">Terms</Link> aur{' '}
+          <Link to="/legal" className="font-semibold text-brand-700 hover:underline">Privacy Policy</Link> se mutafiq hain.
+        </p>
+      </form>
+    </AuthLayout>
   );
 }

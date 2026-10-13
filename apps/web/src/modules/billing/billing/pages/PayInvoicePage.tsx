@@ -1,32 +1,32 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+/**
+ * Pay one Nafaa bill: card through Stripe when it is switched on, or a bank /
+ * wallet transfer with a receipt screenshot that the Nafaa team approves.
+ * Shows the paid, cancelled, under-review and rejected states. The payment
+ * calls are unchanged from the earlier page.
+ *
+ * Keys: U upload receipt · S send · G guide · Esc back to billing.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  CreditCard, Building2, Smartphone, Upload, FileImage,
-  Copy, Check, ArrowLeft, AlertCircle, Globe, Wallet, Zap,
-  Sparkles, ShieldCheck, Receipt, Building, Image as ImageIcon,
-  X, ExternalLink, AlertTriangle, Clock, GraduationCap,
-  Printer, User as UserIcon, Hash, Calendar, CheckCircle2,
-  Phone, FileText, ChevronRight, Rocket,
+  AlertTriangle, ArrowLeft, Check, CheckCircle2, Clock, Copy, CreditCard, ExternalLink, FileImage, GraduationCap,
+  Image as ImageIcon, Lock, Rocket, Send, ShieldCheck, Upload, Wallet, X,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Alert, Button, Card, Input, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { billingApi, type PaymentProvider } from '@modules/billing/billing/api/billing.api';
 import { stripeApi } from '@integrations/stripe/api/stripe.api';
-import { Button, Input } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
-import { toast } from 'sonner';
-import { paymentProviderConfig, formatDate, getDaysUntilDue } from '../components/helpers';
-
-/* ═════════════════════════════════════════════════════════════
-   NAFAA PAY INVOICE — GLOBAL FULL BEST v3
-   ─────────────────────────────────────────────────────────────
-   🌙 Dark mode complete
-   🎓 Teacher modal — Payment methods + step-by-step guide
-   ⌨️  C copy • U upload • T guide • S submit • Esc
-   🎯 Progress stepper (1: method → 2: transfer → 3: submit)
-   ⏱️ Live due date countdown
-   🖼️ Drag-drop file upload with preview
-   🖨️ Print invoice receipt (80mm thermal)
-   ═════════════════════════════════════════════════════════════ */
+import { INVOICE_STATUS, PROVIDER, daysText, daysUntil, formatDate } from '../components/helpers';
+import { invoiceDoc } from '../components/print';
 
 const providerOptions: PaymentProvider[] = ['MANUAL_BANK', 'JAZZCASH', 'EASYPAISA', 'NAYAPAY'];
 
@@ -34,6 +34,8 @@ export default function PayInvoicePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const guide = usePageGuide();
+  const canPay = usePermission(PERMISSIONS.BILLING_MANAGE);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -51,48 +53,37 @@ export default function PayInvoicePage() {
   const [uploadId, setUploadId] = useState<string | null>(null);
   const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [showTeacher, setShowTeacher] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
-  const { data: invoice, isLoading: loadingInvoice } = useQuery({
+  const { data: invoice, isLoading: loadingInvoice, isError, refetch } = useQuery({
     queryKey: ['billing-invoice', id],
     queryFn: () => billingApi.invoice(id!),
     enabled: !!id,
   });
-
-  const { data: bank } = useQuery({
-    queryKey: ['billing-bank-info'],
-    queryFn: billingApi.bankInfo,
-  });
-
-  const { data: stripeConfig } = useQuery({
-    queryKey: ['stripe-config'],
-    queryFn: stripeApi.config,
-  });
+  const { data: bank } = useQuery({ queryKey: ['billing-bank-info'], queryFn: billingApi.bankInfo });
+  const { data: stripeConfig } = useQuery({ queryKey: ['stripe-config'], queryFn: stripeApi.config });
 
   const submitMutation = useMutation({
     mutationFn: billingApi.submitPayment,
     onSuccess: () => {
-      toast.success('Payment submit ho gayi!', {
-        description: 'Admin 24 hours me review karega. Notification aayegi.',
-      });
+      toast.success('Payment bhej di gayi', { description: 'Nafaa team 24 ghante me check karegi. Notification aayegi.' });
       queryClient.invalidateQueries({ queryKey: ['billing-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['billing-payments'] });
       queryClient.invalidateQueries({ queryKey: ['subscription-current'] });
       navigate('/billing');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Submit fail'),
+    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message || 'Payment nahi gayi'),
   });
 
   const stripeMutation = useMutation({
     mutationFn: (invoiceId: string) => stripeApi.checkout(invoiceId),
     onSuccess: (data) => { window.location.href = data.url; },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Stripe fail'),
+    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message || 'Card payment shuru nahi hui'),
   });
 
   const handleFileUpload = async (selected: File) => {
     if (selected.size > 10 * 1024 * 1024) {
-      toast.error('File 10MB se zyada nahi ho sakti');
+      toast.error('File 10MB se bari nahi ho sakti');
       return;
     }
     setFile(selected);
@@ -108,11 +99,9 @@ export default function PayInvoicePage() {
       const result = await billingApi.uploadFile(selected, 'payment-receipt');
       setUploadId(result.id);
       setUploadUrl(result.url);
-      toast.success('Receipt upload ho gayi!');
-    } catch (e: any) {
-      toast.error('Receipt upload nahi ho saki', {
-        description: e?.message || 'Dobara koshish karein.',
-      });
+      toast.success('Receipt upload ho gayi');
+    } catch (e) {
+      toast.error('Receipt upload nahi hui', { description: (e as Error)?.message || 'Dobara koshish karein.' });
       setFile(null);
       setFilePreview(null);
     } finally {
@@ -127,22 +116,22 @@ export default function PayInvoicePage() {
     setUploadUrl(null);
   };
 
-  const copyToClipboard = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
+  const copy = (text: string, key: string) => {
+    void navigator.clipboard?.writeText(text);
     setCopied(key);
     setTimeout(() => setCopied(null), 2000);
-    toast.success('Copy ho gaya!');
+    toast.success('Copy ho gaya');
   };
 
   const handleSubmit = () => {
     if (!invoice) return;
     if (!uploadId) {
-      toast.error('Payment screenshot upload karo');
+      toast.error('Payment ka screenshot upload karein');
       uploadRef.current?.click();
       return;
     }
     if (!payerName.trim()) {
-      toast.error('Aap ka naam zaroori hai');
+      toast.error('Bhejne wale ka naam zaroori hai');
       nameRef.current?.focus();
       return;
     }
@@ -160,794 +149,298 @@ export default function PayInvoicePage() {
     });
   };
 
-  /* 🧾 Thermal receipt (invoice) */
-  const printInvoice = () => {
-    if (!invoice) return;
-    const html = `<!doctype html>
-<html><head><meta charset="utf-8" /><title>Invoice ${invoice.invoiceNumber}</title>
-<style>
-  @page { size: 80mm auto; margin: 0; }
-  * { box-sizing: border-box; }
-  body { font-family: 'Courier New', monospace; width: 80mm; padding: 4mm 3mm; margin: 0; color: #000; font-size: 11px; line-height: 1.3; }
-  .center { text-align: center; }
-  .bold { font-weight: 700; }
-  .big { font-size: 14px; }
-  .huge { font-size: 18px; font-weight: 800; }
-  .divider { border-top: 1px dashed #000; margin: 6px 0; }
-  .row { display: flex; justify-content: space-between; gap: 6px; margin: 2px 0; }
-  .row .value { text-align: right; font-weight: 700; word-break: break-word; }
-  .amount-box { border: 2px solid #000; padding: 6px; margin: 6px 0; text-align: center; }
-  .badge { display: inline-block; border: 1.5px solid #000; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 1px; margin: 4px 0; }
-  @media print { body { padding: 3mm 2mm; } }
-</style></head><body>
-  <div class="center bold big">Nafaa POS</div>
-  <div class="center" style="font-size: 9px;">Subscription Invoice</div>
-  <div class="divider"></div>
-  <div class="center"><span class="badge">${invoice.status}</span></div>
-  <div class="row"><span>Invoice #:</span><span class="value">${invoice.invoiceNumber}</span></div>
-  <div class="row"><span>Date:</span><span class="value">${formatDate(invoice.createdAt)}</span></div>
-  ${invoice.dueDate ? `<div class="row"><span>Due:</span><span class="value">${formatDate(invoice.dueDate)}</span></div>` : ''}
-  <div class="divider"></div>
-  <div class="bold">Description:</div>
-  <div style="margin: 3px 0; word-break: break-word;">${invoice.subscription?.plan?.name || invoice.description || 'Subscription'}</div>
-  <div class="amount-box">
-    <div style="font-size: 10px;">AMOUNT DUE</div>
-    <div class="huge">${formatPKR(invoice.amountDue)}</div>
-  </div>
-  <div class="center" style="font-size: 9px; margin-top: 8px;">Please pay before due date.<br/>* * * SHUKRIYA * * *</div>
-  <div class="center" style="font-size: 8px; margin-top: 6px;">Printed: ${new Date().toLocaleString('en-PK')}</div>
-  <script>window.onload = function() { setTimeout(function() { window.print(); setTimeout(function() { window.close(); }, 500); }, 200); };</script>
-</body></html>`;
-    const w = window.open('', '_blank', 'width=380,height=700');
-    if (!w) return toast.error('Popup blocked');
-    w.document.write(html); w.document.close();
-  };
+  const steps = useMemo(() => [
+    { label: 'Tareeqa chunein', done: !!provider, icon: Wallet },
+    { label: 'Receipt upload', done: !!uploadUrl, icon: Upload },
+    { label: 'Bhej dein', done: !!uploadUrl && !!payerName.trim(), icon: Rocket },
+  ], [provider, uploadUrl, payerName]);
 
-  // Progress stepper
-  const steps = useMemo(() => {
-    const s1 = !!provider;
-    const s2 = !!uploadUrl;
-    const s3 = !!uploadUrl && !!payerName.trim();
-    return { s1, s2, s3, completed: [s1, s2, s3].filter(Boolean).length };
-  }, [provider, uploadUrl, payerName]);
+  const pendingPayment = invoice?.payments?.find((p) => p.status === 'PENDING') ?? null;
+  const canSubmit = !!invoice && invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && !pendingPayment;
 
-  /* Keyboard shortcuts */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showTeacher) return setShowTeacher(false);
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key.toLowerCase() === 't') { e.preventDefault(); setShowTeacher(true); }
-      if (e.key.toLowerCase() === 'u' && !uploading) { e.preventDefault(); uploadRef.current?.click(); }
-      if (e.key.toLowerCase() === 's' && uploadUrl && payerName.trim()) { e.preventDefault(); handleSubmit(); }
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === 'Escape') navigate('/billing');
+      if (!canSubmit || !canPay) return;
+      if (k === 'u' && !uploading) { e.preventDefault(); uploadRef.current?.click(); }
+      if (k === 's' && uploadUrl && payerName.trim()) { e.preventDefault(); handleSubmit(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTeacher, uploading, uploadUrl, payerName]);
-
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = showTeacher ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher]);
+  });
 
   if (loadingInvoice) {
-    return (
-      <div className="space-y-6">
-        <div className="h-12 bg-slate-100 dark:bg-ink-800 rounded-xl animate-pulse" />
-        <div className="h-48 bg-slate-100 dark:bg-ink-800 rounded-3xl animate-pulse" />
-        <div className="h-96 bg-slate-100 dark:bg-ink-800 rounded-3xl animate-pulse" />
-      </div>
-    );
+    return <PageShell><Skeleton className="h-44 rounded-3xl" /><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></PageShell>;
   }
-
   if (!invoice) {
     return (
-      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-12 text-center">
-        <AlertCircle className="h-12 w-12 text-rose-400 mx-auto mb-3" />
-        <h3 className="text-xl font-extrabold text-slate-900 dark:text-ink-white">Invoice not found</h3>
-        <Link to="/billing" className="mt-4 inline-flex items-center gap-1 text-brand-700 dark:text-brand-400 hover:underline font-bold">
-          <ArrowLeft className="h-4 w-4" /> Back to Billing
-        </Link>
-      </div>
+      <PageShell>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">{isError ? 'Bill load nahi hua' : 'Ye bill nahi mila'}</p>
+          <div className="mt-3 flex justify-center gap-2">
+            {isError && <Button variant="secondary" onClick={() => refetch()}>Dobara koshish</Button>}
+            <Button variant="ghost" onClick={() => navigate('/billing')}>Billing par wapas</Button>
+          </div>
+        </div>
+      </PageShell>
     );
   }
 
+  const st = INVOICE_STATUS[invoice.status];
   const isPaid = invoice.status === 'PAID';
   const isCancelled = invoice.status === 'CANCELLED';
+  // The API takes one receipt per bill at a time; show that before the form, not as an error after it.
+  const lastRejected = !pendingPayment ? invoice.payments?.find((p) => p.status === 'REJECTED') ?? null : null;
+  const days = daysUntil(invoice.dueDate);
+  const current = PROVIDER[provider];
 
-  // The API only accepts one receipt per invoice at a time. Reflect that here
-  // instead of letting the user fill the whole form and hit a 400 at the end.
-  const pendingPayment = invoice.payments?.find((p) => p.status === 'PENDING') ?? null;
-  const lastRejected = !pendingPayment
-    ? (invoice.payments?.find((p) => p.status === 'REJECTED') ?? null)
-    : null;
-  const canSubmit = !isPaid && !isCancelled && !pendingPayment;
-  const daysUntilDue = getDaysUntilDue(invoice.dueDate);
-  const isOverdue = daysUntilDue < 0;
-
-  const renderPaymentDetails = () => {
-    if (!bank) return null;
-    if (provider === 'MANUAL_BANK') {
-      return (
-        <div className="space-y-3 text-sm">
-          <DetailRow label="Bank Name" value={bank.bank.name} />
-          <DetailRow label="Account Title" value={bank.bank.accountTitle} />
-          <CopyRow label="Account Number" value={bank.bank.accountNumber} copyKey="acc" copied={copied} onCopy={copyToClipboard} mono />
-          <CopyRow label="IBAN" value={bank.bank.iban} copyKey="iban" copied={copied} onCopy={copyToClipboard} mono />
-        </div>
-      );
-    }
-    if (provider === 'JAZZCASH') {
-      return (
-        <div className="space-y-3 text-sm">
-          <DetailRow label="Account Title" value={bank.jazzcash.title} />
-          <CopyRow label="JazzCash Number" value={bank.jazzcash.number} copyKey="jc" copied={copied} onCopy={copyToClipboard} mono large />
-        </div>
-      );
-    }
-    if (provider === 'EASYPAISA') {
-      return (
-        <div className="space-y-3 text-sm">
-          <DetailRow label="Account Title" value={bank.easypaisa.title} />
-          <CopyRow label="EasyPaisa Number" value={bank.easypaisa.number} copyKey="ep" copied={copied} onCopy={copyToClipboard} mono large />
-        </div>
-      );
-    }
-    if (provider === 'NAYAPAY') {
-      return (
-        <div className="space-y-3 text-sm">
-          <DetailRow label="Account Title" value={bank.nayapay.title} />
-          <CopyRow label="NayaPay Number" value={bank.nayapay.number} copyKey="np" copied={copied} onCopy={copyToClipboard} mono large />
-          {bank.nayapay.handle && (
-            <CopyRow label="NayaPay Handle" value={`@${bank.nayapay.handle}`} copyKey="nph" copied={copied} onCopy={copyToClipboard} />
-          )}
-        </div>
-      );
-    }
-    return null;
+  const accountRows = (): Array<{ label: string; value?: string | null; copyKey?: string; big?: boolean }> => {
+    if (!bank) return [];
+    if (provider === 'MANUAL_BANK') return [
+      { label: 'Bank', value: bank.bank.name }, { label: 'Account title', value: bank.bank.accountTitle },
+      { label: 'Account number', value: bank.bank.accountNumber, copyKey: 'acc' }, { label: 'IBAN', value: bank.bank.iban, copyKey: 'iban' },
+    ];
+    if (provider === 'JAZZCASH') return [{ label: 'Account title', value: bank.jazzcash.title }, { label: 'JazzCash number', value: bank.jazzcash.number, copyKey: 'jc', big: true }];
+    if (provider === 'EASYPAISA') return [{ label: 'Account title', value: bank.easypaisa.title }, { label: 'EasyPaisa number', value: bank.easypaisa.number, copyKey: 'ep', big: true }];
+    return [
+      { label: 'Account title', value: bank.nayapay.title }, { label: 'NayaPay number', value: bank.nayapay.number, copyKey: 'np', big: true },
+      ...(bank.nayapay.handle ? [{ label: 'NayaPay handle', value: `@${bank.nayapay.handle}`, copyKey: 'nph' }] : []),
+    ];
   };
 
-  const currentProvider = paymentProviderConfig[provider];
-
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10">
-      {showTeacher && <PayTeacher onClose={() => setShowTeacher(false)} amount={invoice.amountDue} />}
+    <PageShell>
+      {guide.isOpen && <PayGuide amount={invoice.amountDue} card={!!stripeConfig?.enabled} onClose={guide.close} />}
 
-      {/* Back nav */}
-      <div className="flex items-center justify-between gap-2 flex-wrap print:hidden">
-        <Link to="/billing" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-400 hover:text-brand-700 dark:hover:text-brand-400 font-extrabold transition">
-          <ArrowLeft className="h-4 w-4" /> Back to Billing
-        </Link>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowTeacher(true)}
-            className="h-10 px-3 rounded-xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-sm transition"
-          >
-            <GraduationCap className="h-4 w-4" /> Guide
-          </button>
-          <button
-            onClick={printInvoice}
-            className="h-10 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-sm transition"
-          >
-            <Printer className="h-4 w-4" /> Print
-          </button>
+      <div className="relative rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-6">
+        <div className="flex flex-wrap items-start gap-3">
+          <Link to="/billing" aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></Link>
+          <div className="min-w-0 flex-1">
+            <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">
+              <span className="font-mono">{invoice.invoiceNumber}</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] font-semibold"><st.icon className="h-3.5 w-3.5" />{st.label}</span>
+            </h1>
+            <p className="text-[0.8125rem] text-white/75">{invoice.subscription?.plan?.name || invoice.description || 'Subscription'} · Due {formatDate(invoice.dueDate)}</p>
+            {!isPaid && !isCancelled && (
+              <p className={cn('mt-1 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.75rem] font-semibold', days < 0 ? 'bg-rose-400/25 text-rose-50' : 'bg-white/15')}>
+                <Clock className="h-3.5 w-3.5" />{days < 0 ? `${Math.abs(days)} din der ho gayi` : daysText(days)}
+              </p>
+            )}
+          </div>
+          <div className="text-right">
+            <p className="text-[0.75rem] text-white/70">{isPaid ? 'Ada ho chuka' : 'Dena hai'}</p>
+            <p className="text-3xl font-bold tabular-nums">{formatPKR(isPaid ? invoice.total : invoice.amountDue)}</p>
+          </div>
         </div>
+        <div className="mt-4 flex flex-wrap items-center gap-1.5">
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => invoiceDoc(invoice)} label="Bill print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /> Guide</button>
+        </div>
+        {canSubmit && (
+          <ol className="mt-4 grid grid-cols-3 gap-2">
+            {steps.map((s, i) => (
+              <li key={s.label} className={cn('flex items-center gap-2 rounded-xl px-2.5 py-2 ring-1', s.done ? 'bg-emerald-400/25 ring-emerald-300/40' : 'bg-white/10 ring-white/20')}>
+                <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', s.done ? 'bg-emerald-500' : 'bg-white/20')}>{s.done ? <Check className="h-4 w-4" /> : <s.icon className="h-3.5 w-3.5" />}</span>
+                <span className="min-w-0"><span className="block text-[0.625rem] uppercase tracking-wide text-white/70">Qadam {i + 1}</span><span className="block truncate text-[0.75rem] font-semibold">{s.label}</span></span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-ink-950 dark:via-brand-950 dark:to-brand-900 text-white p-5 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-brand-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
-
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <Receipt className="h-3.5 w-3.5 text-amber-300" /> Pay Invoice
-            </div>
-            <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold font-mono">{invoice.invoiceNumber}</h2>
-            <p className="mt-2 text-sm text-white/85 font-semibold">{invoice.description || invoice.subscription?.plan?.name}</p>
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
-              <div className="inline-flex items-center gap-2 text-xs text-white/80 font-semibold rounded-lg bg-white/10 backdrop-blur px-2.5 py-1">
-                <Clock className="h-3 w-3" />
-                Due: {formatDate(invoice.dueDate)}
-              </div>
-              {daysUntilDue > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/30 border border-amber-400/40 px-2.5 py-1 text-[0.6875rem] font-extrabold text-amber-100">
-                  ⏱️ {daysUntilDue} din baaki
-                </span>
-              )}
-              {isOverdue && (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-rose-500/30 border border-rose-400/40 px-2.5 py-1 text-[0.6875rem] font-extrabold text-rose-100 animate-pulse">
-                  ⚠️ {Math.abs(daysUntilDue)} din overdue
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-xs text-white/70 font-extrabold uppercase tracking-widest">Amount Due</div>
-            <div className="text-4xl sm:text-5xl font-extrabold tabular-nums leading-none mt-1">
-              {formatPKR(invoice.amountDue)}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress stepper */}
-        {canSubmit && (
-          <div className="relative mt-5 grid grid-cols-3 gap-2">
-            {[
-              { n: 1, label: 'Method', done: steps.s1, icon: Wallet },
-              { n: 2, label: 'Upload Proof', done: steps.s2, icon: Upload },
-              { n: 3, label: 'Submit', done: steps.s3, icon: Rocket },
-            ].map((s) => {
-              const StepIcon = s.icon;
-              return (
-                <div key={s.n} className={`rounded-xl p-2.5 border-2 backdrop-blur-md transition ${
-                  s.done ? 'bg-emerald-500/30 border-emerald-400/50' : 'bg-white/10 border-white/20'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <div className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${
-                      s.done ? 'bg-emerald-500 text-white' : 'bg-white/20 text-white/70'
-                    }`}>
-                      {s.done ? <Check className="h-4 w-4" /> : <StepIcon className="h-3.5 w-3.5" />}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-[0.625rem] font-extrabold uppercase tracking-widest text-white/70">Step {s.n}</div>
-                      <div className="text-xs font-extrabold text-white truncate">{s.label}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Already paid */}
       {isPaid && (
-        <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-2 border-emerald-300 dark:border-emerald-500/40 p-8 text-center shadow-lg">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/40">
-            <Check className="h-10 w-10" />
+        <Card className="rounded-3xl">
+          <div className="flex flex-col items-center py-6 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><CheckCircle2 className="h-7 w-7" /></span>
+            <h2 className="mt-3 text-lg font-semibold text-slate-900">Ye bill ada ho chuka hai</h2>
+            <p className="text-[0.875rem] text-slate-500">{invoice.paidAt ? `${formatDate(invoice.paidAt)} ko — plan chalu hai.` : 'Plan chalu hai.'}</p>
           </div>
-          <h3 className="mt-5 text-2xl font-extrabold text-emerald-900 dark:text-emerald-200">Already Paid! 🎉</h3>
-          <p className="mt-2 text-emerald-700 dark:text-emerald-300 font-semibold">
-            Ye invoice paid ho chuki hai. Aap ka plan active hai.
-          </p>
-          {invoice.paidAt && (
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-extrabold">
-              Paid on: {formatDate(invoice.paidAt)}
-            </p>
-          )}
-        </div>
+        </Card>
       )}
 
-      {/* Cancelled */}
-      {isCancelled && (
-        <div className="rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-300 dark:border-ink-700 p-8 text-center">
-          <X className="h-16 w-16 text-slate-400 dark:text-ink-500 mx-auto" />
-          <h3 className="mt-4 text-xl font-extrabold text-slate-900 dark:text-ink-white">Invoice Cancelled</h3>
-          <p className="mt-2 text-slate-600 dark:text-ink-400 font-semibold">Ye invoice cancel kar di gayi hai.</p>
-        </div>
-      )}
+      {isCancelled && <Alert tone="info" title="Ye bill cancel hai">Is bill par payment nahi ho sakti. Naya plan Billing → Plans se lein.</Alert>}
 
-      {/* Receipt already submitted — waiting on the admin */}
       {pendingPayment && (
-        <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-8 text-center shadow-lg">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/40">
-            <Clock className="h-10 w-10" />
-          </div>
-          <h3 className="mt-5 text-2xl font-extrabold text-amber-900 dark:text-amber-200">
-            Payment Review Mein Hai ⏳
-          </h3>
-          <p className="mt-2 text-amber-800 dark:text-amber-300 font-semibold max-w-md mx-auto leading-relaxed">
-            Aap ne {formatPKR(pendingPayment.amount)} ki receipt{' '}
-            {formatDate(pendingPayment.createdAt)} ko submit ki thi. Admin 24 hours mein
-            approve karega — approve hote hi plan turant activate ho jayega.
-          </p>
-          {pendingPayment.transactionId && (
-            <p className="mt-2 text-xs font-mono font-extrabold text-amber-700 dark:text-amber-400">
-              Ref: {pendingPayment.transactionId}
+        <Card className="rounded-3xl">
+          <div className="flex flex-col items-center py-6 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600"><Clock className="h-7 w-7" /></span>
+            <h2 className="mt-3 text-lg font-semibold text-slate-900">Payment check ho rahi hai</h2>
+            <p className="max-w-md text-[0.875rem] text-slate-500">
+              Aap ne {formatPKR(pendingPayment.amount)} ki receipt {formatDate(pendingPayment.createdAt)} ko bheji thi. Nafaa team 24 ghante me dekhegi — manzoor hote hi plan chalu ho jayega.
             </p>
-          )}
-          <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-            {pendingPayment.upload?.url && (
-              <a
-                href={pendingPayment.upload.url}
-                target="_blank"
-                rel="noreferrer"
-                className="h-11 px-4 rounded-xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-sm font-extrabold inline-flex items-center gap-1.5 shadow-sm transition hover:bg-amber-100 dark:hover:bg-amber-500/20"
-              >
-                <ImageIcon className="h-4 w-4" /> Receipt Dekhein
-              </a>
-            )}
-            <Link to="/billing">
-              <Button variant="secondary">
-                Back to Billing
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
+            {pendingPayment.transactionId && <p className="mt-1 font-mono text-[0.75rem] font-semibold text-amber-700">Ref: {pendingPayment.transactionId}</p>}
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {pendingPayment.upload?.url && <a href={pendingPayment.upload.url} target="_blank" rel="noreferrer"><Button variant="secondary"><ImageIcon className="h-4 w-4" /> Receipt dekhein</Button></a>}
+              <Link to="/billing"><Button variant="ghost">Billing par wapas</Button></Link>
+            </div>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* Previous attempt was rejected — say why, then let them retry */}
       {lastRejected && (
-        <div className="rounded-2xl sm:rounded-3xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-5 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-          <div className="min-w-0">
-            <div className="font-extrabold text-rose-900 dark:text-rose-200 text-sm">
-              Pichli Payment Reject Ho Gayi Thi
-            </div>
-            <p className="text-xs text-rose-800 dark:text-rose-300 mt-1 font-semibold leading-relaxed">
-              Reason: {lastRejected.rejectionReason || 'Details verify nahi ho sake.'}
-              {' '}Sahi receipt dobara upload karein — invoice abhi bhi open hai.
-            </p>
-          </div>
-        </div>
+        <Alert tone="danger" title="Pichli payment wapas ki gayi thi" icon={<AlertTriangle className="h-4 w-4" />}>
+          Wajah: {lastRejected.rejectionReason || 'Tafseel check nahi ho saki.'} Sahi receipt dobara upload karein — bill abhi khula hai.
+        </Alert>
+      )}
+
+      {canSubmit && !canPay && (
+        <Alert tone="info" icon={<Lock className="h-4 w-4" />} title="Payment sirf malik bhej sakta hai">
+          Aap bill dekh aur print kar sakte hain. Payment bhejne ke liye billing ki ijazat chahiye.
+        </Alert>
       )}
 
       {canSubmit && (
         <>
-          {/* ═══ STRIPE INSTANT PAY ═══ */}
           {stripeConfig?.enabled && (
-            <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-600 via-violet-600 to-purple-700 text-white p-5 sm:p-7 shadow-2xl shadow-blue-500/30">
-              <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-              <div className="absolute top-3 right-3">
-                <span className="px-2 py-0.5 rounded-md bg-amber-400 text-amber-900 text-[0.625rem] font-extrabold uppercase tracking-wider shadow-lg">
-                  ⚡ Recommended
-                </span>
-              </div>
-
-              <div className="relative flex items-center justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xl ring-2 ring-white/30 shrink-0">
-                    <Globe className="h-8 w-8 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-xl sm:text-2xl font-extrabold">Pay with Card — Instant ⚡</h3>
-                    <p className="text-xs sm:text-sm text-white/85 mt-1 font-semibold">
-                      Visa / Master / international cards • Plan auto-activate hoga
-                    </p>
-                    <div className="mt-2 inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-white/90">
-                      <ShieldCheck className="h-3 w-3" />
-                      Secure • 256-bit SSL • Powered by Stripe
-                    </div>
+            <Card className="rounded-3xl">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600"><CreditCard className="h-6 w-6" /></span>
+                  <div>
+                    <h2 className="text-[0.9375rem] font-semibold text-slate-900">Card se foran payment</h2>
+                    <p className="text-[0.8125rem] text-slate-500">Visa / Mastercard · plan khud chalu ho jayega</p>
+                    <p className="mt-0.5 inline-flex items-center gap-1 text-[0.75rem] text-slate-500"><ShieldCheck className="h-3.5 w-3.5" /> Stripe ke zariye mehfooz</p>
                   </div>
                 </div>
-                <Button
-                  size="lg"
-                  loading={stripeMutation.isPending}
-                  onClick={() => stripeMutation.mutate(invoice.id)}
-                  className="bg-white text-slate-900 hover:bg-slate-50 shadow-xl font-extrabold"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Pay {formatPKR(invoice.amountDue)}
+                <Button size="lg" loading={stripeMutation.isPending} onClick={() => stripeMutation.mutate(invoice.id)}>
+                  <CreditCard className="h-4 w-4" /> {formatPKR(invoice.amountDue)} card se
                 </Button>
               </div>
-            </section>
+            </Card>
           )}
 
-          {/* Divider */}
-          <div className="relative flex items-center gap-3 my-2">
-            <div className="flex-1 h-px bg-slate-200 dark:bg-ink-700" />
-            <span className="text-xs font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-widest">
-              {stripeConfig?.enabled ? '— Or Manual Payment —' : 'Manual Payment'}
-            </span>
-            <div className="flex-1 h-px bg-slate-200 dark:bg-ink-700" />
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{stripeConfig?.enabled ? 'Ya bank / wallet se' : 'Bank / wallet se payment'}</span>
+            <span className="h-px flex-1 bg-slate-200" />
           </div>
 
-          {/* ═══ MANUAL PAYMENT GRID ═══ */}
-          <div className="grid lg:grid-cols-2 gap-4 sm:gap-5">
-            {/* LEFT */}
+          <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-4">
-              {/* Method picker */}
-              <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                  Step 1 — Payment Method Chuno
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-2">
-                  {providerOptions.map((id) => {
-                    const m = paymentProviderConfig[id];
-                    const Icon = m.icon;
-                    const active = provider === id;
+              <Card className="rounded-3xl" title="1. Tareeqa chunein">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {providerOptions.map((pid) => {
+                    const m = PROVIDER[pid];
+                    const active = provider === pid;
                     return (
-                      <button
-                        key={id}
-                        onClick={() => setProvider(id)}
-                        className={`group relative flex items-center gap-3 p-3 rounded-2xl border-2 transition text-left ${
-                          active
-                            ? 'border-brand-500 dark:border-brand-400 bg-brand-50 dark:bg-brand-500/15 ring-2 ring-brand-200 dark:ring-brand-500/30 shadow-md'
-                            : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/50 hover:border-slate-300 dark:hover:border-ink-600 hover:shadow'
-                        }`}
-                      >
-                        <div className={`h-11 w-11 rounded-xl ${active ? m.bgClass : 'bg-slate-100 dark:bg-ink-700'} ${active ? 'text-white' : 'text-slate-600 dark:text-ink-300'} flex items-center justify-center shadow shrink-0 transition`}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{m.label}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold truncate">{m.description}</div>
-                        </div>
-                        {active && (
-                          <div className="h-5 w-5 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
-                            <Check className="h-3 w-3" />
-                          </div>
-                        )}
+                      <button key={pid} type="button" onClick={() => setProvider(pid)} aria-pressed={active}
+                        className={cn('flex items-center gap-3 rounded-2xl p-3 text-left ring-1 transition', active ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:ring-slate-300')}>
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${m.color}17`, color: m.color }}><m.icon className="h-5 w-5" /></span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[0.875rem] font-semibold text-slate-900">{m.label}</span>
+                          <span className="block truncate text-[0.75rem] text-slate-500">{m.hint}</span>
+                        </span>
+                        {active && <Check className="h-4 w-4 text-brand-600" />}
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              </Card>
 
-              {/* Account details */}
-              <div className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 border-transparent shadow-lg ${currentProvider.bgClass} text-white`}>
-                <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/15 blur-2xl pointer-events-none" />
-
-                <div className="relative p-5 sm:p-6">
-                  <div className="flex items-center gap-2 mb-1">
-                    <currentProvider.icon className="h-5 w-5" />
-                    <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold opacity-90">
-                      Step 2 — Payment Yahan Bhejo
-                    </span>
-                  </div>
-                  <h3 className="font-extrabold text-xl mb-4">{currentProvider.label}</h3>
-
-                  <div className="bg-white text-slate-900 rounded-2xl p-4 shadow-inner">
-                    {renderPaymentDetails()}
-                  </div>
-
-                  <div className="mt-4 rounded-xl bg-white/15 backdrop-blur-md border-2 border-white/30 p-3 flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-300" />
-                    <div className="text-xs font-semibold">
-                      <strong className="text-amber-300 tabular-nums">Total {formatPKR(invoice.amountDue)}</strong> bhejo. Screenshot lo aur niche upload karo.
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Card className="rounded-3xl" title={`2. ${current.label} par bhejein`} description={`Poore ${formatPKR(invoice.amountDue)} bhejein, phir screenshot lein`}>
+                {!bank ? <Skeleton className="h-28 rounded-2xl" /> : (
+                  <dl className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+                    {accountRows().map((r) => (
+                      <div key={r.label} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                        <div className="min-w-0">
+                          <dt className="text-[0.75rem] text-slate-500">{r.label}</dt>
+                          <dd className={cn('break-all font-semibold text-slate-900', r.copyKey && 'font-mono', r.big ? 'text-lg' : 'text-[0.875rem]')}>{r.value || '—'}</dd>
+                        </div>
+                        {r.copyKey && r.value && (
+                          <button type="button" onClick={() => copy(r.value!, r.copyKey!)} aria-label={`${r.label} copy`}
+                            className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition', copied === r.copyKey ? 'bg-emerald-600 text-white' : 'bg-brand-50 text-brand-700 hover:bg-brand-100')}>
+                            {copied === r.copyKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </Card>
             </div>
 
-            {/* RIGHT */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6 space-y-4 h-fit">
-              <div className="flex items-center gap-2 mb-2">
-                <FileImage className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Step 3 — Transaction Details</h3>
-              </div>
+            <Card className="h-fit rounded-3xl" title="3. Payment ki tafseel" description="Nafaa team inhi se payment milati hai">
+              <div className="space-y-3">
+                <Input ref={nameRef} label="Bhejne wale ka naam" required value={payerName} onChange={(e) => setPayerName(e.target.value)} placeholder="Ahmad Ali" />
+                <Input label="Phone" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} placeholder="03001234567" hint="Manzoori ki khabar isi par aayegi" inputMode="tel" />
+                <Input label="Transaction / TID number" value={transactionId} onChange={(e) => setTransactionId(e.target.value)} placeholder="TX-12345678" hint="Bank ya wallet ka reference — check karne me sab se zyada kaam aata hai" className="font-mono" />
+                {provider === 'MANUAL_BANK' && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Input label="Aap ka bank" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="HBL, UBL, MCB…" />
+                    <Input label="Aap ka account number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="01234567890" />
+                  </div>
+                )}
 
-              <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 items-center gap-1.5">
-                  <UserIcon className="h-3.5 w-3.5" />
-                  Aap ka Naam (Payer) *
-                </label>
-                <input
-                  ref={nameRef}
-                  value={payerName}
-                  onChange={(e) => setPayerName(e.target.value)}
-                  placeholder="Ahmad Ali"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5" />
-                  Phone Number
-                </label>
-                <input
-                  value={payerPhone}
-                  onChange={(e) => setPayerPhone(e.target.value)}
-                  placeholder="+923001234567"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 -center gap-1.5">
-                  <Hash className="h-3.5 w-3.5" />
-                  Transaction / TID Number
-                </label>
-                <input
-                  value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
-                  placeholder="TX-12345678"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-mono font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition"
-                />
-                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-1 font-semibold">
-                  Bank/wallet ka reference number
-                </div>
-              </div>
-
-              {provider === 'MANUAL_BANK' && (
-                <>
-                  <Input
-                    label="Aap ka Bank"
-                    value={bankName}
-                    onChange={(e: any) => setBankName(e.target.value)}
-                    placeholder="HBL, UBL, MCB, etc."
-                  />
-                  <Input
-                    label="Aap ka Account Number"
-                    value={accountNumber}
-                    onChange={(e: any) => setAccountNumber(e.target.value)}
-                    placeholder="01234567890"
-                  />
-                </>
-              )}
-
-              {/* File upload with drag-drop */}
-              <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-2 items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5">
-                    <FileImage className="h-3.5 w-3.5" />
-                    Payment Screenshot / Receipt <span className="text-rose-600">*</span>
-                  </span>
-                  {!uploadUrl && !uploading && (
-                    <span className="text-[0.6875rem] text-slate-400 font-bold">Press U to upload</span>
-                  )}
-                </label>
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={(e) => {
-                    e.preventDefault(); setDragOver(false);
-                    const f = e.dataTransfer.files?.[0];
-                    if (f) handleFileUpload(f);
-                  }}
-                  className={`relative rounded-2xl border-2 border-dashed p-5 text-center transition-all ${
-                    uploadUrl
-                      ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10'
-                      : uploading
-                        ? 'border-blue-300 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10'
-                        : dragOver
-                          ? 'border-brand-500 dark:border-brand-400 bg-brand-50 dark:bg-brand-500/15 scale-[1.01]'
-                          : 'border-slate-300 dark:border-ink-600 hover:border-brand-400 hover:bg-brand-50/30 dark:hover:bg-brand-500/5'
-                  }`}
-                >
-                  {uploadUrl ? (
-                    <div>
-                      {filePreview ? (
-                        <div className="relative inline-block">
-                          <img src={filePreview} alt="Receipt preview" className="max-h-40 rounded-xl shadow-md" />
+                <div>
+                  <p className="mb-1.5 flex items-center justify-between text-[0.8125rem] font-medium text-slate-800">
+                    <span>Payment ka screenshot / receipt <span className="text-rose-600">*</span></span>
+                    {!uploadUrl && !uploading && <span className="hidden text-[0.6875rem] text-slate-400 sm:inline">U dabayein</span>}
+                  </p>
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f && canPay) void handleFileUpload(f); }}
+                    className={cn('relative rounded-2xl border-2 border-dashed p-5 text-center transition',
+                      uploadUrl ? 'border-emerald-300 bg-emerald-50' : uploading ? 'border-blue-300 bg-blue-50' : dragOver ? 'border-brand-500 bg-brand-50' : 'border-slate-300 hover:border-brand-400')}>
+                    {uploadUrl ? (
+                      <div>
+                        {filePreview ? <img src={filePreview} alt="Receipt" className="mx-auto max-h-40 rounded-xl shadow" /> : <FileImage className="mx-auto h-10 w-10 text-emerald-600" />}
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-emerald-800"><Check className="h-4 w-4" /> Upload ho gayi</p>
+                        <p className="truncate text-[0.75rem] text-slate-600">{file?.name}</p>
+                        <div className="mt-2 flex justify-center gap-3">
+                          <a href={uploadUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline"><ExternalLink className="h-3 w-3" /> Dekhein</a>
+                          <button type="button" onClick={removeFile} className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-rose-700 hover:underline"><X className="h-3 w-3" /> Hatayein</button>
                         </div>
-                      ) : (
-                        <FileImage className="h-12 w-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
-                      )}
-                      <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-extrabold text-emerald-900 dark:text-emerald-200">
-                        <Check className="h-4 w-4" />
-                        Upload Successful
                       </div>
-                      <div className="text-xs text-slate-600 dark:text-ink-400 mt-1 font-semibold truncate">{file?.name}</div>
-                      <div className="flex items-center justify-center gap-2 mt-2">
-                        <a
-                          href={uploadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-brand-700 dark:text-brand-400 hover:underline font-extrabold inline-flex items-center gap-1"
-                        >
-                          <ExternalLink className="h-3 w-3" /> View
-                        </a>
-                        <button
-                          onClick={removeFile}
-                          className="text-xs text-rose-600 dark:text-rose-400 hover:underline font-extrabold inline-flex items-center gap-1"
-                        >
-                          <X className="h-3 w-3" /> Remove
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {uploading ? (
-                        <>
-                          <div className="h-12 w-12 mx-auto rounded-2xl bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center animate-pulse">
-                            <Upload className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="mt-3 text-sm font-extrabold text-blue-900 dark:text-blue-200">Uploading...</div>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-12 w-12 text-slate-400 dark:text-ink-500 mx-auto" />
-                          <div className="mt-2 text-sm font-extrabold text-slate-700 dark:text-ink-200">
-                            {dragOver ? '🎯 Drop here!' : 'Screenshot upload karo'}
-                          </div>
-                          <div className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
-                            Click ya drag-drop • PNG, JPG ya PDF • Max 10MB
-                          </div>
-                        </>
-                      )}
-                      <input
-                        ref={uploadRef}
-                        type="file"
-                        accept="image/*,application/pdf"
-                        disabled={uploading}
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) handleFileUpload(f);
-                        }}
-                        className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                      />
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <Upload className={cn('mx-auto h-10 w-10', uploading ? 'animate-pulse text-blue-600' : 'text-slate-400')} />
+                        <p className="mt-2 text-[0.875rem] font-semibold text-slate-700">{uploading ? 'Upload ho rahi hai…' : dragOver ? 'Yahan chhor dein' : 'Screenshot upload karein'}</p>
+                        <p className="text-[0.75rem] text-slate-500">Click ya drag-drop · PNG, JPG ya PDF · 10MB tak</p>
+                        <input ref={uploadRef} type="file" accept="image/*,application/pdf" disabled={uploading || !canPay} aria-label="Receipt upload"
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFileUpload(f); }}
+                          className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed" />
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5" />
-                  Notes (optional)
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                  placeholder="Additional info..."
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition resize-none"
-                />
-              </div>
+                <Textarea label="Note (agar zaroorat ho)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Koi aur baat…" />
 
-              <Button
-                className="w-full bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-700 hover:to-emerald-700 shadow-xl shadow-brand-500/30 font-extrabold h-12"
-                size="lg"
-                loading={submitMutation.isPending || uploading}
-                onClick={handleSubmit}
-                disabled={!uploadUrl || !payerName.trim()}
-              >
-                <Upload className="h-4 w-4" />
-                Submit for Approval
-                <Sparkles className="h-3.5 w-3.5" />
-              </Button>
-
-              <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 flex items-start gap-2">
-                <ShieldCheck className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
-                <p className="text-[0.6875rem] text-blue-900 dark:text-blue-200 font-semibold leading-relaxed">
-                  Admin <strong>24 hours</strong> me review karega aur approve/reject karega. Notification aayegi. Receipt safely store hoti hai — kabhi delete nahi hoti.
+                <Button fullWidth size="lg" loading={submitMutation.isPending || uploading} onClick={handleSubmit} disabled={!canPay || !uploadUrl || !payerName.trim()}>
+                  <Send className="h-4 w-4" /> Check ke liye bhejein
+                </Button>
+                <p className="flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-100">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                  Nafaa team 24 ghante me manzoor ya wapas karegi aur notification aayegi. Receipt mehfooz rehti hai.
                 </p>
               </div>
-            </div>
+            </Card>
           </div>
         </>
       )}
-    </div>
+    </PageShell>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   PAY TEACHER MODAL
-   ═════════════════════════════════════════════════════════════ */
-function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }) {
+function PayGuide({ amount, card, onClose }: { amount: number; card: boolean; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-3 border-b-2 border-brand-200 dark:border-brand-500/30 bg-gradient-to-r from-brand-50 to-emerald-50 dark:from-brand-500/15 dark:to-emerald-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-brand-900 dark:text-brand-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Pay Invoice — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            <strong>Payment 2 tareeqon se ho sakti hai:</strong> Instant card payment (Stripe) ya manual bank transfer/wallet (JazzCash/EasyPaisa/NayaPay/Bank). Dono verified aur safe.
-          </p>
-
-          {/* Instant vs Manual */}
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
-              <Globe className="h-3 w-3" /> Kaunsa Method Choose Karein?
-            </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
-                ⚡ <strong>Instant (Stripe Card):</strong> Visa/Master card use karo → payment turant hoti hai, plan seedha activate. Best for urgency.
-              </div>
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
-                🏦 <strong>Manual Bank:</strong> Bank transfer / online banking. Fees kam, but review time 24hrs. IBAN copy karo, app se transfer karo.
-              </div>
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
-                📱 <strong>JazzCash / EasyPaisa / NayaPay:</strong> Mobile wallet — Pakistan me sabse popular. Number copy karo, app se send karo.
-              </div>
-            </div>
-          </div>
-
-          {/* 3-step process */}
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" /> Manual Payment — 3 Steps
-            </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
-                <strong>1️⃣ Method Chuno:</strong> JazzCash/EasyPaisa/NayaPay/Bank me se ek pick karo. Account details show ho jayenge.
-              </div>
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
-                <strong>2️⃣ Paisay Bhejo:</strong> Account number/IBAN copy karo. Apne bank/wallet app se <strong className="text-emerald-700 dark:text-emerald-400">{formatPKR(amount)}</strong> transfer karo.
-              </div>
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
-                <strong>3️⃣ Screenshot Upload:</strong> Payment ka screenshot lo, upload karo. Apna naam + phone likho. Submit dabao.
-              </div>
-            </div>
-          </div>
-
-          {/* Troubleshooting */}
-          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 space-y-1.5 text-xs font-semibold text-amber-900 dark:text-amber-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1 mb-1">
-              <AlertTriangle className="h-3 w-3" /> Common Issues
-            </div>
-            <TipRow><strong>Screenshot nahi upload ho raha?</strong> File 10MB se kam honi chahiye. PNG/JPG/PDF format work karta hai.</TipRow>
-            <TipRow><strong>Payment reject ho gayi?</strong> Rejection reason padho — usually wrong TID ya blurry screenshot. Dobara try karo.</TipRow>
-            <TipRow><strong>Amount thoda kam bheja?</strong> Exactly <strong>{formatPKR(amount)}</strong> bhejo — kam/zyada reject ho jata hai.</TipRow>
-            <TipRow><strong>24hrs se zyada ho gaye?</strong> Support ko WhatsApp karo — kabhi kabhi weekends pe delay hota hai.</TipRow>
-          </div>
-
-          {/* Pro tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <TipRow><strong>📸 Full screenshot lo</strong> — TID, amount, date, recipient sab dikhna chahiye.</TipRow>
-            <TipRow><strong>🔢 TID zaroor likho</strong> — verification me sabse important hota hai.</TipRow>
-            <TipRow><strong>📱 Phone number sahi do</strong> — approval/rejection notification aayegi.</TipRow>
-            <TipRow><strong>💾 Receipt file me rakho</strong> — tax audit ya dispute ke waqt kaam ata hai.</TipRow>
-            <TipRow><strong>⚡ Emergency me Stripe</strong> — plan foran chalu karna ho to card se pay karo, no wait.</TipRow>
-          </div>
-
-          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
-            💡 <strong>Pro tip:</strong> Payment karne ke baad "Billing" page pe payment ki status track karo — Pending → Approved hote hi plan auto-activate.
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-700 hover:to-emerald-700 font-extrabold shadow-lg shadow-brand-500/40 h-12"
-            onClick={onClose}
-          >
-            <ShieldCheck className="h-4 w-4" /> Samajh Gaya — Pay Karo!
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TipRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-[0.6875rem] text-slate-500 uppercase tracking-widest font-extrabold">{label}</div>
-      <div className="font-extrabold text-slate-900 mt-0.5">{value}</div>
-    </div>
-  );
-}
-
-function CopyRow({ label, value, copyKey, copied, onCopy, mono, large }: {
-  label: string;
-  value: string;
-  copyKey: string;
-  copied: string | null;
-  onCopy: (v: string, k: string) => void;
-  mono?: boolean;
-  large?: boolean;
-}) {
-  return (
-    <div>
-      <div className="text-[0.6875rem] text-slate-500 uppercase tracking-widest font-extrabold">{label}</div>
-      <div className="flex items-center gap-2 mt-1">
-        <div className={`font-extrabold text-slate-900 ${mono ? 'font-mono' : ''} ${large ? 'text-lg' : 'text-sm'} break-all`}>
-          {value}
-        </div>
-        <button
-          onClick={() => onCopy(value, copyKey)}
-          className={`h-7 w-7 rounded-lg flex items-center justify-center transition shadow-sm shrink-0 ${
-            copied === copyKey
-              ? 'bg-emerald-600 text-white'
-              : 'bg-brand-100 hover:bg-brand-200 text-brand-700'
-          }`}
-        >
-          {copied === copyKey ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        </button>
-      </div>
-    </div>
+    <PageGuide title="Bill ki payment — aasaan tareeqa" onClose={onClose}
+      steps={[
+        ...(card ? [{ icon: CreditCard, color: '#2563eb', title: 'Card se foran', text: 'Visa / Mastercard se payment — plan usi waqt chalu ho jata hai, intezar nahi.' }] : []),
+        { icon: Wallet, color: '#16a34a', title: 'Tareeqa chunein', text: 'Bank transfer, JazzCash, EasyPaisa ya NayaPay. Account ki tafseel saamne aa jayegi.' },
+        { icon: Copy, color: '#7c3aed', title: 'Paise bhejein', text: `Number ya IBAN copy karein aur apni app se poore ${formatPKR(amount)} bhejein.` },
+        { icon: Upload, color: '#d97706', title: 'Screenshot upload', text: 'Payment ka screenshot lein jis me TID, raqam aur tareekh nazar aaye, aur upload karein.' },
+        { icon: Send, color: '#0891b2', title: 'Bhej dein', text: 'Naam aur phone likh kar "Check ke liye bhejein" dabayein. 24 ghante me jawab.' },
+      ]}
+      tips={[
+        `Bilkul ${formatPKR(amount)} bhejein — kam ya zyada raqam wapas ho sakti hai.`,
+        'TID zaroor likhein — payment milane me sab se zyada kaam aata hai.',
+        '24 ghante se zyada ho jayein to Madad page se WhatsApp karein.',
+      ]}
+      shortcuts={[['U', 'upload'], ['S', 'bhejein'], ['Esc', 'wapas'], ['G', 'guide']]}
+    />
   );
 }

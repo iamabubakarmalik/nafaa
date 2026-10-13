@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { BakeryCategory, BakeryOrderStatus, BakerySize, CakeFlavor, CakeShape, CreamType, DeliveryType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateCakeOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() customerId?: string;
@@ -73,6 +73,29 @@ export class CreateCakeOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() specialInstructions?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() internalNotes?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
+
+  /** DRAFT = only asked, QUOTED = price given, CONFIRMED (default) = booked. */
+  @ApiPropertyOptional({ enum: ['DRAFT', 'QUOTED', 'CONFIRMED'] }) @IsOptional() @IsIn(['DRAFT', 'QUOTED', 'CONFIRMED']) status?: 'DRAFT' | 'QUOTED' | 'CONFIRMED';
+}
+
+/** Editable details of a booked order; money already received is changed only through payments. */
+export class UpdateCakeOrderDto extends PartialType(OmitType(CreateCakeOrderDto, ['advancePaid', 'status', 'shopId'] as const)) {}
+
+export class CakeOrderPaymentDto {
+  @ApiProperty() @IsNumber() amount!: number;
+  /** Amount already paid as the client last saw it; a mismatch means the payment was already recorded. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() expectedPaid?: number;
+}
+
+export class CakeOrderRatingDto {
+  @ApiProperty() @IsInt() @Min(1) @Max(5) rating!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() feedback?: string;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) photoUrls?: string[];
+}
+
+export class CakeOrderAssignDto {
+  @ApiProperty() @IsString() bakerId!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() decoratorId?: string;
 }
 
 export class UpdateCakeOrderStatusDto {

@@ -16,10 +16,15 @@ const { print } = usePrinter();
 print(doc, 'pdf');
 ```
 
-Settings → Printing (`PrintSettingsPage`) holds the per-computer options:
-default format, colour or black & white, logo/address/phone, footer line,
-print stamp and thermal text size. Shop name, address, phone and logo come
-from the business settings (`useBusinessHeader`).
+Settings → Printing (`PrintSettingsPage`) holds the per-computer options.
+The "Kaghaz aur copies" tab sets the bill paper for this computer, POS auto
+print, the shop-wide bill paper / copies / auto print (settings.edit), and
+the paper and copies of every other printed slip (`docPrefs.ts` lists the
+print dialogs and the storage keys they remember their choices under). The
+"Reports ka print" tab sets the default format, colour or black & white,
+logo/address/phone, footer line, print stamp and thermal text size. Shop
+name, address, phone and logo come from the business settings
+(`useBusinessHeader`).
 
 Columns marked `wideOnly` are dropped on thermal paper. POS sale receipts
 still use `@modules/pos/lib/thermalReceipt` and `@core/hardware/print`.

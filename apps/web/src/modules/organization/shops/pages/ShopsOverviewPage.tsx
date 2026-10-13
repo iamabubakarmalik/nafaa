@@ -1,549 +1,247 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import {
-  AlertTriangle, ArrowDownRight, ArrowRight, ArrowUpRight, Boxes, Building2,
-  Crown, Layers, Lock, LockOpen, Package, Receipt, RefreshCw, Store, Table2,
-  TrendingUp, Users, Wallet, Warehouse,
-} from 'lucide-react';
-import {
-  Bar, BarChart, CartesianGrid, Cell, LabelList, Legend,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from 'recharts';
-import { shopsApi, type ShopAnalyticsRow } from '@modules/organization/shops/api/shops.api';
-import { useAuthStore } from '@core/stores/auth.store';
-import { formatPKR } from '@core/lib/format';
-
 /**
- * ════════════════════════════════════════════════════════════════
- * BRANCH ANALYTICS
- * ════════════════════════════════════════════════════════════════
+ * Branch analytics: every branch side by side for any period — sales, net
+ * profit and bills against the previous period of the same length, share of
+ * sales, the daily trend, busy hours and the full table, with print and CSV.
+ * Figures use the same business maths as the Reports centre.
  *
- * The owner's one screen for "which branch needs me". Every number here is
- * per branch and comparable across branches — that is the whole point, so the
- * page leads with comparison (ranked bars, share of month, a full table) and
- * keeps the single-branch detail behind the switcher.
- *
- * Colour is assigned by *branch identity* in a fixed order and never cycled, so
- * a branch keeps its colour as the sort changes. Metric series (sales / profit
- * / expenses) use their own three-slot palette. Both sets were validated for
- * colour-vision separation; the fills that sit under 3:1 against the surface
- * carry direct value labels and a table view, which is the required relief.
+ * `?branch=<id>` (from a branch card) shows that branch only.
+ * Keys: 1–4 views · G guide.
  */
 
-// Categorical slots, fixed order — never cycled. Beyond 8 branches the rest
-// fold into a neutral "others" tone rather than inventing new hues.
-const BRANCH_HUES = [
-  '#2a78d6', '#eb6834', '#1baf7a', '#eda100',
-  '#e87ba4', '#008300', '#4a3aa7', '#e34948',
-] as const;
-const OVERFLOW_HUE = '#94a3b8';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import {
+  BarChart3, Building2, CalendarRange, Clock, Download, GraduationCap, LineChart as LineIcon, Receipt, RotateCcw, Scale, ShoppingBag,
+  Table2, TrendingUp, Wallet,
+} from 'lucide-react';
+import {
+  DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs,
+  heroButton, heroIconButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { usePermission } from '@core/hooks/usePermission';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { downloadCsv } from '@core/lib/csv';
+import { rangeLabel } from '@core/lib/dateRange';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { MASK, useMasked } from '@modules/dashboard/engine/useMasked';
+import { shopsApi, type BranchComparison } from '../api/shops.api';
+import { CompareView, FiguresTable, Growth, HoursView, METRICS, TrendView, type Metric } from '../components/BranchAnalyticsViews';
+import { hueAt } from '../components/meta';
 
-const METRIC_HUES = {
-  sales: '#2a78d6',
-  profit: '#1baf7a',
-  expenses: '#eb6834',
-} as const;
-
-type Period = 'today' | 'week' | 'month';
-
-const PERIODS: { key: Period; label: string }[] = [
-  { key: 'today', label: 'Aaj' },
-  { key: 'week', label: '7 Din' },
-  { key: 'month', label: 'Is Mahine' },
-];
-
-type SortKey = 'sales' | 'profit' | 'orders' | 'credit' | 'name';
+type Tab = 'compare' | 'trend' | 'hours' | 'table';
+const TABS: Tab[] = ['compare', 'trend', 'hours', 'table'];
 
 export default function ShopsOverviewPage() {
-  const user = useAuthStore((s) => s.user);
+  const startHour = useBusinessDayStart();
+  const guide = usePageGuide();
+  const [params, setParams] = useSearchParams();
   const tenantName = useAuthStore((s) => s.tenant?.name);
-  const isOwner = user?.role === 'OWNER' || user?.role === 'SUPER_ADMIN';
+  const canMoney = usePermission(PERMISSIONS.REPORTS_VIEW);
+  const { sales: money, cost, costHidden } = useMasked();
 
-  const [period, setPeriod] = useState<Period>('month');
-  const [sortBy, setSortBy] = useState<SortKey>('sales');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'thisMonth', custom: { from: '', to: '' } });
+  const [metric, setMetric] = useState<Metric>('net');
+  const [tab, setTab] = useState<Tab>('compare');
+  const branch = params.get('branch') ?? '';
+  const setBranch = (id: string) => setParams((p) => { const n = new URLSearchParams(p); if (id) n.set('branch', id); else n.delete('branch'); return n; }, { replace: true });
 
-  const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['shops-analytics'],
-    queryFn: shopsApi.analytics,
-    enabled: isOwner,
-    refetchInterval: 60_000,
+  const period = resolveRange(range, startHour);
+  const from = period?.from ?? '';
+  const to = period?.to ?? '';
+  const q = useQuery({
+    queryKey: ['shops-compare', from, to],
+    queryFn: () => shopsApi.compare({ from, to }),
+    enabled: canMoney && !!from,
+    placeholderData: (p) => p,
+  });
+  const live = useQuery({ queryKey: ['shops-analytics'], queryFn: shopsApi.analytics, enabled: canMoney, refetchInterval: 60_000, retry: false });
+
+  // Colours follow main-first, then name, so they do not move with the period or sort.
+  const all = q.data;
+  const hue = useMemo(() => {
+    const order = [...(all?.shops ?? [])].sort((a, b) => Number(b.isMain) - Number(a.isMain) || a.name.localeCompare(b.name));
+    const map = new Map(order.map((s, i) => [s.id, hueAt(i)]));
+    return (id: string) => map.get(id) ?? hueAt(99);
+  }, [all]);
+
+  // One branch picked: keep only its rows and series.
+  const data: BranchComparison | undefined = useMemo(() => {
+    if (!all || !branch || !all.shops.some((s) => s.id === branch)) return all;
+    const one = all.shops.find((s) => s.id === branch)!;
+    const pick = <T extends Record<string, number | string>>(r: T) => Object.fromEntries(Object.entries(r).filter(([k]) => k === branch || k === 'day' || k === 'hour')) as T;
+    return {
+      ...all,
+      shops: [one],
+      totals: {
+        bills: one.bills, gross: one.gross, refunds: one.refunds, net: one.net, discount: one.discount, cashIn: one.cashIn, credit: one.credit,
+        cost: one.cost, grossProfit: one.grossProfit, expenses: one.expenses, writeOff: one.writeOff, netProfit: one.netProfit,
+        prevNet: one.prev.net, prevNetProfit: one.prev.netProfit, prevBills: one.prev.bills,
+      },
+      trend: all.trend.map(pick),
+      hours: all.hours.map(pick),
+    };
+  }, [all, branch]);
+
+  const hidden = costHidden || !!data?.costHidden;
+  const costOf = (n: number | undefined) => (hidden || n === undefined ? MASK : cost(n));
+  const fmt = { money, cost: costOf };
+  const t = data?.totals;
+  const growth = t ? (t.prevNet > 0 ? ((t.net - t.prevNet) / t.prevNet) * 100 : t.net > 0 ? 100 : 0) : 0;
+  const label = period ? rangeLabel(period.from, period.to) : '';
+  const branchName = branch ? all?.shops.find((s) => s.id === branch)?.name : undefined;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const i = Number(e.key) - 1;
+      if (i >= 0 && i < TABS.length) setTab(TABS[i]);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const rows = () => (data?.shops ?? []).map((s) => [
+    s.name, s.bills, s.net, s.refunds, s.discount, s.cashIn, s.credit, s.avgBill,
+    hidden ? '' : s.grossProfit ?? '', s.expenses, hidden ? '' : s.writeOff, hidden ? '' : s.netProfit ?? '', `${s.share}%`, `${s.growth.toFixed(1)}%`,
+  ]);
+  const HEAD = ['Branch', 'Bill', 'Bikri', 'Wapsi', 'Discount', 'Haath aaya', 'Udhaar', 'Ausat bill', 'Munafa', 'Kharche', 'Nuqsan', 'Net munafa', 'Hissa', 'Pichhli se'];
+  const exportCsv = () => downloadCsv(`branches-${from}-${to}.csv`, [[`Branch analytics — ${tenantName ?? ''}`], [`Muddat: ${label}`], [], HEAD, ...rows()]);
+  const printDoc = (): PrintDoc => ({
+    title: 'Branch analytics',
+    subtitle: label,
+    meta: [
+      ['Branches', String(data?.shops.length ?? 0)],
+      ['Kul bikri', money(t?.net ?? 0)],
+      ...(!hidden ? [['Net munafa', costOf(t?.netProfit)] as [string, string]] : []),
+      ['Pichhli muddat', `${data ? rangeLabel(data.previous.from, data.previous.to) : ''} · ${money(t?.prevNet ?? 0)}`],
+    ],
+    sections: [{
+      kind: 'table',
+      columns: [
+        { label: 'Branch' }, { label: 'Bill', align: 'right' }, { label: 'Bikri', align: 'right' }, { label: 'Wapsi', align: 'right', wideOnly: true },
+        { label: 'Haath aaya', align: 'right', wideOnly: true }, { label: 'Udhaar', align: 'right', wideOnly: true }, { label: 'Kharche', align: 'right', wideOnly: true },
+        ...(!hidden ? [{ label: 'Net munafa', align: 'right' as const }] : []), { label: 'Hissa', align: 'right', wideOnly: true },
+      ],
+      rows: (data?.shops ?? []).map((s) => [
+        s.name, String(s.bills), money(s.net), money(s.refunds), money(s.cashIn), money(s.credit), money(s.expenses),
+        ...(!hidden ? [costOf(s.netProfit)] : []), `${s.share.toFixed(1)}%`,
+      ]),
+      footer: t ? ['Kul', String(t.bills), money(t.net), money(t.refunds), money(t.cashIn), money(t.credit), money(t.expenses), ...(!hidden ? [costOf(t.netProfit)] : []), '100%'] : undefined,
+    }],
+    footer: 'Bikri = bill − wapsi · Net munafa = bikri − lagat − kharche − nuqsan',
   });
 
-  const shops = data?.shops ?? [];
-  const totals = data?.totals;
-
-  /** Branch id → its fixed colour, decided once by rank so sorting never repaints. */
-  const hueOf = useMemo(() => {
-    const map = new Map<string, string>();
-    [...shops]
-      .sort((a, b) => a.rank - b.rank)
-      .forEach((s, i) => map.set(s.id, BRANCH_HUES[i] ?? OVERFLOW_HUE));
-    return map;
-  }, [shops]);
-
-  const pick = useMemo(() => {
-    const forPeriod = (s: ShopAnalyticsRow) =>
-      period === 'today'
-        ? { sales: s.todaySales, profit: s.todayNetProfit, expenses: s.todayExpenses, orders: s.todayOrders }
-        : period === 'week'
-          ? { sales: s.weekSales, profit: s.weekProfit, expenses: 0, orders: s.weekOrders }
-          : { sales: s.monthSales, profit: s.monthNetProfit, expenses: s.monthExpenses, orders: s.todayOrders };
-    return forPeriod;
-  }, [period]);
-
-  const sorted = useMemo(() => {
-    const list = [...shops];
-    if (sortBy === 'name') return list.sort((a, b) => a.name.localeCompare(b.name));
-    if (sortBy === 'credit') return list.sort((a, b) => b.outstandingCredit - a.outstandingCredit);
-    return list.sort((a, b) => {
-      const A = pick(a);
-      const B = pick(b);
-      if (sortBy === 'profit') return B.profit - A.profit;
-      if (sortBy === 'orders') return B.orders - A.orders;
-      return B.sales - A.sales;
-    });
-  }, [shops, sortBy, pick]);
-
-  const comparisonData = useMemo(
-    () =>
-      sorted.map((s) => {
-        const v = pick(s);
-        return {
-          id: s.id,
-          name: s.name.length > 14 ? `${s.name.slice(0, 14)}…` : s.name,
-          Sales: Math.round(v.sales),
-          Profit: Math.round(v.profit),
-          Kharche: Math.round(v.expenses),
-        };
-      }),
-    [sorted, pick],
-  );
-
-  const shareData = useMemo(
-    () =>
-      [...shops]
-        .sort((a, b) => b.monthShare - a.monthShare)
-        .map((s) => ({
-          id: s.id,
-          name: s.name.length > 16 ? `${s.name.slice(0, 16)}…` : s.name,
-          share: Number(s.monthShare.toFixed(1)),
-          sales: Math.round(s.monthSales),
-        })),
-    [shops],
-  );
-
-  if (!isOwner) {
+  if (!canMoney) {
     return (
-      <div className="rounded-3xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 p-12 text-center">
-        <AlertTriangle className="h-14 w-14 text-amber-600 mx-auto mb-4" />
-        <h2 className="text-2xl font-extrabold text-amber-900 dark:text-amber-200">Owner Only</h2>
-        <p className="text-amber-700 dark:text-amber-300/80 mt-2">
-          Sirf Owner saari branches ka hisab dekh sakta hai.
-        </p>
-      </div>
+      <PageShell>
+        <PageHero title="Branch analytics" />
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">Branches ka hisaab dekhne ke liye "Reports dekhna" ki ijazat chahiye</p>
+          <Link to="/shops" className="mt-3 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">Branches ki list →</Link>
+        </div>
+      </PageShell>
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-44 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-          ))}
-        </div>
-        <div className="h-80 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-      </div>
-    );
-  }
-
-  const periodLabel = PERIODS.find((p) => p.key === period)!.label;
-
+  const loading = q.isLoading || !data;
   return (
-    <div className="space-y-5 pb-12">
-      {/* ═══════════ HERO ═══════════ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-violet-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-indigo-400/20 blur-3xl" />
+    <PageShell>
+      <PageHero
+        title="Branch analytics"
+        chip={<><CalendarRange />{label}</>}
+        meta={branchName ? `${branchName} · ${tenantName ?? ''}` : `${data?.shops.length ?? 0} branches · ${tenantName ?? ''}`}
+        busy={q.isFetching && !q.isLoading}
+        loading={loading}
+        actions={<>
+          <PrivacyToggle compact />
+          <Link to="/shops" className={heroButton}><Building2 className="h-4 w-4" /><span className="hidden sm:inline">Branches</span></Link>
+          <button type="button" onClick={exportCsv} disabled={!data?.shops.length} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.shops.length} /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: `Kul bikri · ${t?.bills ?? 0} bill`, value: money(t?.net ?? 0), hint: t ? <Growth v={growth} /> : undefined },
+          { label: 'Net munafa', value: costOf(t?.netProfit), hint: hidden ? 'Lagat lock' : undefined },
+          { label: 'Pichhli muddat', value: money(t?.prevNet ?? 0), hint: data ? rangeLabel(data.previous.from, data.previous.to) : undefined },
+          { label: 'Ausat bill', value: money(t && t.bills ? t.net / t.bills : 0) },
+        ]}
+      />
 
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider">
-              <Layers className="h-3.5 w-3.5" />
-              Branch Analytics
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              Sab Branches Ka Hisab
-            </h1>
-            <p className="mt-1.5 text-sm font-semibold text-white/75">
-              {tenantName ? `${tenantName} — ` : ''}
-              {totals?.shopCount ?? 0} branches · live comparison, har minute update
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => refetch()}
-              className="h-10 inline-flex items-center gap-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold backdrop-blur transition"
-            >
-              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            <Link
-              to="/shops"
-              className="h-10 inline-flex items-center gap-2 px-4 rounded-xl bg-white text-indigo-800 text-xs font-extrabold hover:bg-indigo-50 transition"
-            >
-              <Building2 className="h-4 w-4" />
-              Manage Branches
-            </Link>
-          </div>
-        </div>
-
-        <div className="relative mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <HeroStat label="Is mahine bikri" value={formatPKR(totals?.monthSales ?? 0)} sub={`Aaj ${formatPKR(totals?.todaySales ?? 0)}`} />
-          <HeroStat label="Is mahine net profit" value={formatPKR(totals?.monthNetProfit ?? 0)} sub="Sales − cost − kharche" />
-          <HeroStat label="Udhaar baqi" value={formatPKR(totals?.outstandingCredit ?? 0)} sub="Sab branches milakar" />
-          <HeroStat label="Registers khule" value={`${totals?.registersOpen ?? 0} / ${totals?.shopCount ?? 0}`} sub={`${totals?.staffCount ?? 0} active staff`} />
-        </div>
-      </section>
-
-      {/* ═══════════ TOP PERFORMER + ALERTS ═══════════ */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        {data?.best && (
-          <section className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-ink-900 dark:border-amber-500/40 p-5">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center shadow">
-                <Crown className="h-6 w-6" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700 dark:text-amber-300">
-                  Sab se aage
-                </div>
-                <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white truncate">
-                  {data.best.name}
-                </div>
-              </div>
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-3">
-              <MiniFact label="Is mahine" value={formatPKR(data.best.monthSales)} />
-              <MiniFact label="Hissa" value={`${data.best.monthShare.toFixed(0)}%`} />
-              <MiniFact label="Net profit" value={formatPKR(data.best.monthNetProfit)} />
-            </div>
-          </section>
+      <KpiRow>
+        {loading || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Wallet} color="#16a34a" label="Haath aaya" value={money(t.cashIn)} hint={`Udhaar ${money(t.credit)}`} />
+            <KpiCard icon={RotateCcw} color="#ea580c" label="Wapsi" value={money(t.refunds)} hint={t.net + t.refunds > 0 ? `${((t.refunds / (t.net + t.refunds)) * 100).toFixed(1)}% bikri ka` : undefined} />
+            <KpiCard icon={Receipt} color="#e11d48" label="Kharche" value={money(t.expenses)} hint="Paid kharche" />
+            <KpiCard icon={Scale} color="#a16207" label="Nuqsan" value={costOf(t.writeOff)} hint="Kharab, gum, ginti me kam" />
+            <KpiCard icon={ShoppingBag} color="#2563eb" label="Bill" value={String(t.bills)} hint={`Pehle ${t.prevBills}`} />
+          </>
         )}
+      </KpiRow>
 
-        <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5">
-          <div className="flex items-center gap-2 font-extrabold text-slate-900 dark:text-ink-white text-sm">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            Tawajjo chahiye
-          </div>
-          {(data?.needsAttention?.length ?? 0) === 0 ? (
-            <p className="mt-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-              Sab branches theek chal rahi hain — koi masla nahi.
-            </p>
-          ) : (
-            <ul className="mt-3 space-y-2 max-h-40 overflow-y-auto">
-              {data!.needsAttention.map((n) => (
-                <li key={n.shopId} className="flex items-start gap-2">
-                  <span
-                    className="mt-1.5 h-2.5 w-2.5 rounded-full shrink-0"
-                    style={{ background: hueOf.get(n.shopId) ?? OVERFLOW_HUE }}
-                  />
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-slate-900 dark:text-ink-white">{n.name}</div>
-                    <div className="text-[0.6875rem] font-semibold text-amber-700 dark:text-amber-300">
-                      {n.reasons.join(' · ')}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      {/* ═══════════ COMPARISON CHART ═══════════ */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Branch Comparison</h2>
-            <p className="text-xs font-semibold text-slate-500 dark:text-ink-400">
-              {periodLabel} — har branch ki bikri, net profit aur kharche
-            </p>
-          </div>
-          <div className="inline-flex rounded-xl border border-slate-200 dark:border-ink-700 p-1">
-            {PERIODS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPeriod(p.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  period === p.key
-                    ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900'
-                    : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-4 overflow-x-auto">
-          <div style={{ minWidth: Math.max(comparisonData.length * 140, 520) }}>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={comparisonData} margin={{ top: 24, right: 12, left: 4, bottom: 4 }} barGap={2}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-ink-700" />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fontWeight: 700 }} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} width={44} />
-                <Tooltip
-                  cursor={{ fill: 'currentColor', className: 'text-slate-100 dark:text-ink-800' } as any}
-                  formatter={(v: any, n: any) => [formatPKR(Number(v)), n]}
-                  contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, fontWeight: 700 }}
-                />
-                <Legend wrapperStyle={{ fontSize: 11, fontWeight: 800 }} />
-                {/* Direct value labels are the required relief for the fills that
-                    sit under 3:1 against the surface — identity never rests on
-                    colour alone. */}
-                <Bar dataKey="Sales" fill={METRIC_HUES.sales} radius={[4, 4, 0, 0]} maxBarSize={34}>
-                  <LabelList dataKey="Sales" position="top" formatter={(v: any) => (Number(v) ? formatPKR(Number(v)) : '')} style={{ fontSize: 10, fontWeight: 800 }} className="fill-slate-600 dark:fill-ink-300" />
-                </Bar>
-                <Bar dataKey="Profit" fill={METRIC_HUES.profit} radius={[4, 4, 0, 0]} maxBarSize={34} />
-                <Bar dataKey="Kharche" fill={METRIC_HUES.expenses} radius={[4, 4, 0, 0]} maxBarSize={34} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          {period === 'week' && (
-            <p className="px-1 pt-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">
-              7-din ke kharche branch-wise abhi record nahi hote — is period mein Kharche 0 dikhenge.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ═══════════ SHARE OF MONTH ═══════════ */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-ink-800">
-          <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Is mahine ka hissa</h2>
-          <p className="text-xs font-semibold text-slate-500 dark:text-ink-400">
-            Kul bikri mein har branch kitna la rahi hai
-          </p>
-        </div>
-        <div className="p-4">
-          <ResponsiveContainer width="100%" height={Math.max(shareData.length * 46 + 30, 140)}>
-            <BarChart data={shareData} layout="vertical" margin={{ top: 4, right: 72, left: 4, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-ink-700" />
-              <XAxis type="number" domain={[0, 100]} tickLine={false} axisLine={false} tick={{ fontSize: 11 }} unit="%" />
-              <YAxis type="category" dataKey="name" width={130} tickLine={false} axisLine={false} tick={{ fontSize: 11, fontWeight: 700 }} />
-              <Tooltip
-                formatter={(_v: any, _n: any, item: any) => [
-                  `${item.payload.share}% · ${formatPKR(item.payload.sales)}`,
-                  'Hissa',
-                ]}
-                contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, fontWeight: 700 }}
-              />
-              <Bar dataKey="share" radius={[0, 4, 4, 0]} maxBarSize={26}>
-                {shareData.map((d) => (
-                  <Cell key={d.id} fill={hueOf.get(d.id) ?? OVERFLOW_HUE} />
-                ))}
-                <LabelList dataKey="share" position="right" formatter={(v: any) => `${v}%`} style={{ fontSize: 11, fontWeight: 800 }} className="fill-slate-700 dark:fill-ink-200" />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
-
-      {/* ═══════════ FULL DETAIL TABLE ═══════════ */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Table2 className="h-4 w-4 text-slate-500" />
-            <div>
-              <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Har Branch — Poori Tafseel</h2>
-              <p className="text-xs font-semibold text-slate-500 dark:text-ink-400">
-                Wohi numbers jo charts mein hain, parhne ke liye
-              </p>
-            </div>
-          </div>
-          <div className="inline-flex rounded-xl border border-slate-200 dark:border-ink-700 p-1 flex-wrap">
-            {([
-              ['sales', 'Bikri'], ['profit', 'Profit'], ['orders', 'Orders'],
-              ['credit', 'Udhaar'], ['name', 'Naam'],
-            ] as [SortKey, string][]).map(([k, label]) => (
-              <button
-                key={k}
-                onClick={() => setSortBy(k)}
-                className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition ${
-                  sortBy === k
-                    ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900'
-                    : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-ink-800/60 text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400">
-              <tr>
-                <Th className="text-left pl-5">Branch</Th>
-                <Th>Aaj</Th>
-                <Th>vs Kal</Th>
-                <Th>7 Din</Th>
-                <Th>Is Mahine</Th>
-                <Th>Net Profit</Th>
-                <Th>Kharche</Th>
-                <Th>Udhaar</Th>
-                <Th>Avg Bill</Th>
-                <Th>Stock</Th>
-                <Th>Low</Th>
-                <Th>Staff</Th>
-                <Th>Register</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
-              {sorted.map((s) => {
-                const up = s.growthVsYesterday >= 0;
-                const Arrow = up ? ArrowUpRight : ArrowDownRight;
-                return (
-                  <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
-                    <td className="pl-5 py-3">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: hueOf.get(s.id) }} />
-                        {s.type === 'WAREHOUSE' ? (
-                          <Warehouse className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        ) : (
-                          <Store className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        )}
-                        <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{s.name}</span>
-                        {s.isMain && (
-                          <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 shrink-0">
-                            MAIN
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <Td>{formatPKR(s.todaySales)}</Td>
-                    <td className="px-3 py-3 text-right tabular-nums">
-                      <span className={`inline-flex items-center gap-0.5 font-extrabold ${up ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        <Arrow className="h-3.5 w-3.5" />
-                        {Math.abs(s.growthVsYesterday).toFixed(0)}%
-                      </span>
-                    </td>
-                    <Td>{formatPKR(s.weekSales)}</Td>
-                    <Td strong>{formatPKR(s.monthSales)}</Td>
-                    <Td>{formatPKR(s.monthNetProfit)}</Td>
-                    <Td>{formatPKR(s.monthExpenses)}</Td>
-                    <Td>{formatPKR(s.outstandingCredit)}</Td>
-                    <Td>{formatPKR(s.avgOrderValue)}</Td>
-                    <Td>{Math.round(s.totalStock)}</Td>
-                    <td className="px-3 py-3 text-right tabular-nums">
-                      <span className={`font-extrabold ${s.lowStockCount > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
-                        {s.lowStockCount}
-                      </span>
-                    </td>
-                    <Td>{s.staffCount}</Td>
-                    <td className="px-3 py-3 text-center">
-                      {s.registerOpen ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                          <LockOpen className="h-2.5 w-2.5" /> Khula
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-slate-200 text-slate-600 dark:bg-ink-700 dark:text-ink-300">
-                          <Lock className="h-2.5 w-2.5" /> Band
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {sorted.length === 0 && (
-          <div className="p-10 text-center">
-            <Building2 className="h-10 w-10 text-slate-300 mx-auto" />
-            <p className="mt-3 text-sm font-semibold text-slate-500">
-              Abhi koi active branch nahi hai.
-            </p>
-            <Link to="/shops" className="mt-2 inline-flex items-center gap-1 text-sm font-extrabold text-indigo-600 hover:underline">
-              Pehli branch banayein <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+      <FilterBar
+        chips={branch && branchName ? <FilterChip onRemove={() => setBranch('')}>{branchName}</FilterChip> : undefined}
+        onClear={() => setBranch('')}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} allowAll={false} defaultPreset="thisMonth" />
+        <FilterMenu icon={Building2} label="Branch" value={branch} active={!!branch} onChange={setBranch}
+          options={[{ value: '', label: 'Sab branches' }, ...(all?.shops ?? []).map((s) => ({ value: s.id, label: s.name, color: hue(s.id) }))]} />
+        {tab === 'compare' && (
+          <FilterMenu icon={TrendingUp} label="Dikhayein" value={metric} onChange={setMetric}
+            options={(Object.keys(METRICS) as Metric[]).map((m) => ({ value: m, label: METRICS[m].label }))} />
         )}
-      </section>
+      </FilterBar>
 
-      {/* ═══════════ QUICK LINKS ═══════════ */}
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <QuickLink to="/transfers" icon={Package} label="Stock Transfers" sub="Ek branch se dusri" />
-        <QuickLink to="/low-stock" icon={Boxes} label="Low Stock" sub={`${totals?.lowStockCount ?? 0} items`} />
-        <QuickLink to="/khata" icon={Wallet} label="Khata" sub={formatPKR(totals?.outstandingCredit ?? 0)} />
-        <QuickLink to="/reports" icon={TrendingUp} label="All Reports" sub="Gehri tafseel" />
-      </section>
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>4</Kbd> se badlein</>}
+        tabs={[
+          { id: 'compare', label: 'Muqabla', icon: BarChart3 },
+          { id: 'trend', label: 'Trend', icon: LineIcon },
+          { id: 'hours', label: 'Rush time', icon: Clock },
+          { id: 'table', label: 'Table', icon: Table2, count: data?.shops.length },
+        ]} />
 
-      <p className="text-center text-xs font-semibold text-slate-500 dark:text-ink-400">
-        Kisi ek branch ka poora hisab dekhne ke liye upar dropdown se woh shop chunein.
-      </p>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════
-
-function HeroStat({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return (
-    <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/25 p-4">
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">{label}</div>
-      <div className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums truncate">{value}</div>
-      <div className="text-[0.6875rem] font-semibold text-white/70 truncate">{sub}</div>
-    </div>
-  );
-}
-
-function MiniFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-white/70 dark:bg-ink-800/60 p-2.5">
-      <div className="text-[0.625rem] uppercase tracking-wide font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
-      <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums text-sm truncate">{value}</div>
-    </div>
-  );
-}
-
-function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-3 py-2.5 font-extrabold text-right ${className}`}>{children}</th>;
-}
-
-function Td({ children, strong }: { children: React.ReactNode; strong?: boolean }) {
-  return (
-    <td className={`px-3 py-3 text-right tabular-nums ${strong ? 'font-extrabold text-slate-900 dark:text-ink-white' : 'font-bold text-slate-600 dark:text-ink-300'}`}>
-      {children}
-    </td>
-  );
-}
-
-function QuickLink({
-  to, icon: Icon, label, sub,
-}: { to: string; icon: typeof Users; label: string; sub: string }) {
-  return (
-    <Link
-      to={to}
-      className="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 p-4 hover:border-indigo-400 hover:shadow-md transition group"
-    >
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 flex items-center justify-center transition">
-          <Icon className="h-5 w-5 text-slate-600 dark:text-ink-300 group-hover:text-indigo-600" />
+      {q.isError && !data ? (
+        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Hisaab load nahi hua — internet check karein aur dobara kholein.</p>
+      ) : loading ? (
+        <div className="space-y-4"><Skeleton className="h-80 rounded-2xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-56 rounded-2xl" /><Skeleton className="h-56 rounded-2xl" /></div></div>
+      ) : !data!.shops.length ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <Building2 className="h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-semibold text-slate-900">Koi chalu branch nahi</p>
+          <Link to="/shops" className="mt-2 text-[0.875rem] font-semibold text-brand-700 hover:underline">Branches par jayein →</Link>
         </div>
-        <div className="min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{label}</div>
-          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 truncate">{sub}</div>
-        </div>
-        <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 ml-auto shrink-0 transition" />
-      </div>
-    </Link>
+      ) : tab === 'compare' ? (
+        <CompareView data={data!} metric={metric} hue={hue} fmt={fmt} live={branch ? undefined : live.data} />
+      ) : tab === 'trend' ? (
+        <TrendView data={data!} hue={hue} fmt={fmt} />
+      ) : tab === 'hours' ? (
+        <HoursView data={data!} hue={hue} />
+      ) : (
+        <FiguresTable data={data!} hue={hue} fmt={fmt} />
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Branch analytics — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: 'Aaj, 7 din, is mahine ya apni tareekh. Har number usi muddat ka hai, aur pichhli barabar muddat se muqabla hota hai.' },
+            { icon: BarChart3, color: '#16a34a', title: 'Muqabla', text: 'Har branch ki bikri, net munafa ya bill — rangeen bar is muddat ke, halke bar pichhli muddat ke.' },
+            { icon: LineIcon, color: '#7c3aed', title: 'Trend', text: 'Roz ki bikri har branch ki alag line me. Kaunsi branch upar ja rahi hai, kaunsi neeche.' },
+            { icon: Clock, color: '#d97706', title: 'Rush time', text: 'Kis ghante sab se zyada bill bante hain — staff ki shift isi hisaab se lagayein.' },
+            { icon: Table2, color: '#0891b2', title: 'Table', text: 'Sab number ek jagah: wapsi, discount, udhaar, kharche, nuqsan aur net munafa. CSV ya print nikaal lein.' },
+            { icon: Building2, color: '#db2777', title: 'Ek branch', text: '"Branch" filter se sirf ek branch dekhein. Branch ke card par "Analytics" dabane se bhi yahi hota hai.' },
+          ]}
+          tips={[
+            'Bikri me se wapsi ghatai jati hai; net munafa me kharche aur kharab/gum maal bhi ghatte hain — wohi hisaab jo Reports me hai.',
+            'Din dukaan ke apne waqt par badalta hai (Settings → "Din kab shuru hota hai").',
+          ]}
+          shortcuts={[['1', 'muqabla'], ['2', 'trend'], ['3', 'rush time'], ['4', 'table'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

@@ -146,11 +146,3 @@ export const OCCASIONS = [
   { value: 'HOUSEWARMING', label: 'Housewarming', emoji: '🏡' },
   { value: 'OTHER', label: 'Other', emoji: '⭐' },
 ];
-
-export const CATEGORY_EMOJI: Record<string, string> = Object.fromEntries(
-  CATEGORIES.map((c) => [c.value, c.emoji]),
-);
-
-export const OCCASION_EMOJI: Record<string, string> = Object.fromEntries(
-  OCCASIONS.map((o) => [o.value, o.emoji]),
-);

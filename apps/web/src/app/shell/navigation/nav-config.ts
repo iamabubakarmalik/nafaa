@@ -281,7 +281,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
     items: [
       { to: '/settings', label: 'General', icon: Store, permission: P.SETTINGS_VIEW, desc: 'Store details, receipts and preferences', keywords: 'shop name receipt currency' },
       { to: '/shops', label: 'Branches', icon: Building2, permission: P.SHOPS_VIEW, desc: 'Locations, counters and stock points', keywords: 'locations shops' },
-      { to: '/team', label: 'Users & permissions', icon: ShieldCheck, permission: P.TEAM_VIEW, desc: 'Who can log in and what they can do', keywords: 'roles access staff login' },
+      { to: '/staff?tab=roles', label: 'Users & permissions', icon: ShieldCheck, permission: P.TEAM_VIEW, desc: 'Who can log in and what they can do', keywords: 'roles access staff login' },
     ],
   },
   {

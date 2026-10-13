@@ -1,3 +1,9 @@
+/**
+ * The shop's payment QRs (Raast / bank, JazzCash, Easypaisa merchant QR):
+ * API calls, the cached copy used when printing outside React, and helpers
+ * that put the bill amount into a QR.
+ */
+
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@core/api/client';
 import { qrWithAmount } from './emvQr';
@@ -14,27 +20,34 @@ export const payQrApi = {
 
 export const PAY_QR_KEY = ['pay-qr'];
 
-/** Bill chhapte waqt (sync) kaam aaye — hook ka aakhri jawab yahan */
+/** Latest answer, for printing bills outside React (sync). */
 let cache: PayQr[] = [];
 
+/** Keeps the print cache in step after a save, without waiting for a refetch. */
+export function rememberPayQrs(list: PayQr[]) {
+  cache = list;
+}
+
+export const payQrQuery = {
+  queryKey: PAY_QR_KEY,
+  queryFn: async () => { const r = await payQrApi.list(); cache = r; return r; },
+  staleTime: 10 * 60_000,
+  retry: false,
+};
+
 export function usePayQrs() {
-  const q = useQuery({
-    queryKey: PAY_QR_KEY,
-    queryFn: async () => { const r = await payQrApi.list(); cache = r; return r; },
-    staleTime: 10 * 60_000,
-    retry: false,
-  });
+  const q = useQuery(payQrQuery);
   return q.data ?? cache;
 }
 
-/** Us tareeqe ka QR, raqam ke saath (ya bina raqam agar dukaan ne band kiya ho) */
+/** That method's QR with the amount in it (or without, when the shop turned that off). */
 export function qrFor(qrs: PayQr[], method: string, amount: number, bill?: string): { qr: PayQr; text: string } | null {
   const qr = qrs.find((x) => x.method === method);
   if (!qr || amount <= 0) return null;
   try { return { qr, text: qr.amountInQr ? qrWithAmount(qr.payload, amount, bill) : qr.payload }; } catch { return null; }
 }
 
-/** Udhaar wale bill par "baqi raqam QR se bhejein" — dukaan ne on kiya ho to */
+/** QR for the amount still due, printed on unpaid bills when the shop turned it on. */
 export function billQr(due: number, saleNumber: string): { label: string; text: string } | null {
   if (due <= 0) return null;
   const qr = cache.find((x) => x.printOnBill && x.method === 'BANK_TRANSFER') ?? cache.find((x) => x.printOnBill);

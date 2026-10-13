@@ -7,16 +7,21 @@
  * to the server, so they follow the user to every device.
  *
  * Each block shows where its value comes from (your choice, business default,
- * Nafaa default) and can be reset to the layer below.
+ * Nafaa default) and can be reset to the layer below. Shortcuts: D toggles
+ * dark mode, G opens the guide.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Accessibility, Building2, LayoutGrid, Loader2, Monitor, Moon, Palette, PanelLeft, PanelLeftClose,
+  Accessibility, Building2, GraduationCap, LayoutGrid, Monitor, Moon, Palette, PanelLeft, PanelLeftClose,
   PanelLeftOpen, RotateCcw, Sun, Type, User,
 } from 'lucide-react';
+import { PageHero, PageShell, Switch, heroButton, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { HeroBack } from '@core/components/HeroBack';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import {
-  CANVAS_TONES, industryIdentity, LATIN_FONTS, TEXT_SCALES, URDU_FONTS,
+  CANVAS_TONES, findLatinFont, industryIdentity, LATIN_FONTS, TEXT_SCALES, URDU_FONTS,
   type CanvasTone, type Density, type PageWidth, type Radius, type SidebarMode, type SidebarStyle, type TextScale, type ThemeMode,
 } from '@/design-system';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
@@ -94,23 +99,7 @@ function DensityVisual({ density }: { density: Density }) {
   );
 }
 
-function ToggleRow({ title, text, checked, onChange }: { title: string; text: string; checked: boolean; onChange: (on: boolean) => void }) {
-  return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 p-3">
-      <span>
-        <span className="block text-[0.8125rem] font-semibold text-slate-900">{title}</span>
-        <span className="block text-[0.75rem] text-slate-500">{text}</span>
-      </span>
-      <input
-        type="checkbox"
-        role="switch"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition before:block before:h-4 before:w-4 before:translate-x-0.5 before:translate-y-0.5 before:rounded-full before:bg-white before:shadow before:transition checked:bg-brand-600 checked:before:translate-x-[1.125rem]"
-      />
-    </label>
-  );
-}
+const MODE_LABEL: Record<ThemeMode, string> = { light: 'Light', dark: 'Dark', system: 'System' };
 
 /* ─── Page ─── */
 
@@ -122,23 +111,38 @@ export default function AppearancePage() {
   const a = ed.resolved;
   const resetFor = (key: Parameters<typeof ed.reset>[0]) => (ed.isSet(key) ? () => ed.reset(key) : undefined);
 
+  const guide = usePageGuide();
+  const resetAll = () => {
+    if (confirm(scope === 'personal' ? 'Apni saari pasand hata kar business default par wapas jayein?' : 'Business ka look Nafaa default par wapas karein?')) ed.resetAll();
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (e.key === 'd' || e.key === 'D') { e.preventDefault(); ed.set('mode', a.mode === 'dark' ? 'light' : 'dark'); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   return (
-    <div className="mx-auto max-w-6xl space-y-5 pb-16">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[1.375rem] font-bold tracking-tight text-slate-900">Appearance</h1>
-          <p className="mt-1 max-w-xl text-[0.875rem] text-slate-500">
-            Rang, font, dark mode, text size aur layout — apni marzi se. Har badlaav foran poori app me lagta hai aur har device par saath chalta hai.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {ed.saving && <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving</span>}
-          <button type="button" onClick={() => { if (confirm(scope === 'personal' ? 'Apni saari pasand hata kar business default par wapas jayein?' : 'Business ka look Nafaa default par wapas karein?')) ed.resetAll(); }}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[0.8125rem] font-semibold text-slate-700 transition hover:bg-slate-50">
-            <RotateCcw className="h-4 w-4" /> Reset all
-          </button>
-        </div>
-      </header>
+    <PageShell>
+      <PageHero
+        title={<HeroBack to="/settings" label="Settings">Appearance</HeroBack>}
+        chip={<>{scope === 'business' ? <Building2 /> : <User />} {scope === 'business' ? 'Business default' : 'Sirf aap ke liye'}</>}
+        meta="Har badlaav foran poori app me lagta hai aur har device par saath chalta hai"
+        busy={ed.saving}
+        actions={<>
+          <button type="button" onClick={resetAll} className={heroButton}><RotateCcw className="h-4 w-4" /> Reset all</button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Mode', value: MODE_LABEL[a.mode] },
+          { label: 'Brand color', value: <span className="inline-flex items-center gap-2"><span className="h-4 w-4 rounded-full ring-2 ring-white/40" style={{ backgroundColor: a.accentHex }} />{a.accentHex.toUpperCase()}</span> },
+          { label: 'Text size', value: TEXT_SCALES[a.textScale].label },
+          { label: 'Font', value: findLatinFont(a.latinFont).label },
+        ]}
+      />
 
       {ed.canEditBusiness && (
         <div role="tablist" aria-label="Who this applies to" className="grid gap-2 sm:grid-cols-2">
@@ -169,8 +173,8 @@ export default function AppearancePage() {
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="min-w-0 space-y-5">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="min-w-0 space-y-4">
           <SettingCard title="Mode" description="Light, dark, ya computer ke hisaab se khud" icon={<Sun className="h-[1.125rem] w-[1.125rem]" />}
             source={ed.sourceOf('mode')} onReset={resetFor('mode')}>
             <ChoiceGrid<ThemeMode> label="Mode" value={a.mode} onChange={(v) => ed.set('mode', v)} options={[
@@ -255,7 +259,7 @@ export default function AppearancePage() {
             ]} />
           </SettingCard>
 
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <SettingCard title="Density" description="Cheezon ke beech jagah" source={ed.sourceOf('density')} onReset={resetFor('density')}>
               <ChoiceGrid<Density> label="Density" columns={2} value={a.density} onChange={(v) => ed.set('density', v)} options={[
                 { value: 'comfortable', label: 'Comfortable', visual: <DensityVisual density="comfortable" /> },
@@ -274,17 +278,19 @@ export default function AppearancePage() {
           <SettingCard title="Accessibility" description="Aankhon aur aaram ke liye" icon={<Accessibility className="h-[1.125rem] w-[1.125rem]" />}
             onReset={ed.isSet('contrast') || ed.isSet('reduceMotion') ? () => { ed.reset('contrast'); ed.reset('reduceMotion'); } : undefined}>
             <div className="space-y-2">
-              <ToggleRow
-                title="High contrast"
-                text="Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye"
+              <Switch
+                className="rounded-xl border border-slate-200 p-3"
+                label="High contrast"
+                description="Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye"
                 checked={a.contrast === 'high'}
-                onChange={(on) => ed.set('contrast', on ? 'high' : 'normal')}
+                onChange={(e) => ed.set('contrast', e.target.checked ? 'high' : 'normal')}
               />
-              <ToggleRow
-                title="Reduce motion"
-                text="Animations aur hilti cheezein band — tez aur pur-sukoon"
+              <Switch
+                className="rounded-xl border border-slate-200 p-3"
+                label="Reduce motion"
+                description="Animations aur hilti cheezein band — tez aur pur-sukoon"
                 checked={a.reduceMotion}
-                onChange={(on) => ed.set('reduceMotion', on)}
+                onChange={(e) => ed.set('reduceMotion', e.target.checked)}
               />
             </div>
           </SettingCard>
@@ -303,6 +309,20 @@ export default function AppearancePage() {
           </p>
         </aside>
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide title="Appearance — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: User, color: '#2563eb', title: 'Sirf aap ke liye', text: 'Jo badlein woh sirf aap ke account par lagta hai — baqi staff ka look waisa hi rehta hai.' },
+            { icon: Building2, color: '#7c3aed', title: 'Business default', text: 'Malik ya settings wala sab staff ka default look set kar sakta hai; har koi phir apna badal sakta hai.' },
+            { icon: Moon, color: '#0f172a', title: 'Dark mode', text: 'Raat ko ya kam roshni me aankhon ko aaram. "System" chunein to computer ke saath badalta hai.' },
+            { icon: Palette, color: '#e11d48', title: 'Rang aur font', text: 'Brand color buttons aur menu par lagta hai; font aur text size poori app me.' },
+            { icon: Accessibility, color: '#16a34a', title: 'Aasani', text: 'High contrast dhoop me parhne ke liye, reduce motion animations band karne ke liye.' },
+            { icon: RotateCcw, color: '#d97706', title: 'Reset', text: 'Har dabbe me Reset us ek cheez ko wapas karta hai; upar "Reset all" sab ko.' },
+          ]}
+          shortcuts={[['D', 'dark / light'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

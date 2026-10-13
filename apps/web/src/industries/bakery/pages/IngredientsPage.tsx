@@ -1,1084 +1,321 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+/**
+ * Raw materials (flour, sugar, butter): store value, what is running low
+ * and the shopping list for the supplier; the stock list with goods
+ * received, waste and counted corrections; recipe costing at today's rates;
+ * the movement record; and analytics of money spent, used and wasted.
+ *
+ * Keys: N new material · / search · 1 stock · 2 recipes · 3 record · 4 analytics · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import {
-  Wheat, Plus, X, Search, RefreshCw, AlertTriangle, CheckCircle2,
-  Snowflake, Truck, Phone, Trash2, Edit3, BarChart3, GraduationCap,
-  FileSpreadsheet, Printer, Package, DollarSign, TrendingDown,
-  ArrowDownToLine, ArrowUpFromLine, Scale, Boxes, Loader2, Copy,
-  MessageCircle, Flame, Layers, ChevronDown, Banknote, CreditCard,
-  Smartphone, Building2, BookOpen, Wallet,
-} from 'lucide-react';
-import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
-  PieChart, Pie, Cell, Legend,
-} from 'recharts';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ingredientsApi, type Ingredient } from '../api/ingredients.api';
-import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
-import { useShopParam } from '@core/stores/auth.store';
+import {
+  AlertTriangle, ArrowDownToLine, BarChart3, Boxes, ChevronDown, Copy, Eye, EyeOff, FileSpreadsheet, Filter, GraduationCap, History, ListChecks,
+  MessageCircle, Pencil, Plus, Printer, Scale, Snowflake, Tags, Trash2, Truck, Wheat,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { ingredientsApi, type Ingredient, type MovementKind } from '../api/ingredients.api';
+import { HistoryModal, IngredientForm, RAW_CATEGORIES, StockModal, rawCategoryOf, type StockMode } from '../components/raw/IngredientModals';
+import { MovementRecord, RawAnalytics } from '../components/raw/RawMovements';
+import { RecipeCosting, useRecipes, type RecipeFilter } from '../components/raw/RecipeCosting';
+import { LoadFailed } from '../components/charts';
+import { RAW_KEY, apiError, downloadCsv, fmtQty, waLink } from '../components/meta';
 
-/* ═════════════════════════════════════════════════════════════
-   SAAMAAN — BAKERY KA GUDAAM
-   ─────────────────────────────────────────────────────────────
-   Maida, cheeni, makkhan. Ye bikne ki cheezein nahi — is liye
-   POS aur catalog me kabhi nazar nahi aatin.
+type Tab = 'stock' | 'recipes' | 'record' | 'analytics';
+type State = 'all' | 'low' | 'out' | 'critical' | 'fridge' | 'hidden';
 
-   Teen kaam roz ke hain, aur teenon yahin se ho jate hain:
-     • Kya khatam ho raha hai (aur supplier ko list bhejni hai)
-     • Maal aaya — stock barhao, naya rate lagao
-     • Kharab hua ya gir gaya — zaya darj karo
-
-   Purane safhe par sirf list thi; rate barhne ka asar kahin
-   nazar nahi aata tha.
-   ═════════════════════════════════════════════════════════════ */
-
-type Tab = 'list' | 'analytics';
-type Filter = 'all' | 'low' | 'out' | 'critical' | 'fridge';
-
-const CATEGORIES = [
-  { value: 'FLOUR', label: 'Aata / Maida', emoji: '🌾' },
-  { value: 'SUGAR', label: 'Cheeni', emoji: '🍬' },
-  { value: 'DAIRY', label: 'Doodh / Cream', emoji: '🥛' },
-  { value: 'EGG', label: 'Anday', emoji: '🥚' },
-  { value: 'FAT', label: 'Ghee / Oil', emoji: '🫒' },
-  { value: 'CHOCOLATE', label: 'Chocolate', emoji: '🍫' },
-  { value: 'FRUIT', label: 'Phal / Nuts', emoji: '🍓' },
-  { value: 'FLAVOR', label: 'Flavour', emoji: '🧪' },
-  { value: 'DECORATION', label: 'Sajawat', emoji: '✨' },
-  { value: 'PACKAGING', label: 'Packing', emoji: '📦' },
-  { value: 'GENERAL', label: 'Aur koi', emoji: '🧺' },
+const STATES: Array<{ id: State; label: string }> = [
+  { id: 'all', label: 'Sab' }, { id: 'low', label: 'Kam ho gaya' }, { id: 'out', label: 'Khatam' },
+  { id: 'critical', label: 'Zaroori' }, { id: 'fridge', label: 'Fridge wale' }, { id: 'hidden', label: 'Hataye hue' },
 ];
 
-const UNITS = ['kg', 'gram', 'litre', 'ml', 'packet', 'dozen', 'piece', 'bag', 'tin', 'bottle'];
-
-const GRID = '#94a3b8';
-const AXIS = '#64748b';
-const PIE_COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6', '#f97316'];
-const TOOLTIP = {
-  borderRadius: 12, border: '2px solid #cbd5e1', background: '#ffffff',
-  color: '#0f172a', fontWeight: 700, fontSize: 12,
-};
-
-const fmtQty = (q: number) => Number(q || 0).toFixed(Number(q || 0) % 1 === 0 ? 0 : 2);
-const catOf = (v?: string) => CATEGORIES.find((c) => c.value === v) ?? CATEGORIES[CATEGORIES.length - 1];
+const levelOf = (i: Ingredient) => Number(i.reorderLevel ?? i.minStock ?? 0);
+const isOut = (i: Ingredient) => Number(i.currentStock || 0) <= 0;
+const isLow = (i: Ingredient) => !isOut(i) && Number(i.currentStock || 0) <= levelOf(i);
+const shortOf = (i: Ingredient) => Math.max(levelOf(i) - Number(i.currentStock || 0), 0);
 
 export default function IngredientsPage() {
   const qc = useQueryClient();
-  const tenant = useAuthStore((s) => s.tenant);
+  const [params, setParams] = useSearchParams();
+  const startHour = useBusinessDayStart();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Bakery';
+  const canManage = usePermission(PERMISSIONS.BAKERY_INGREDIENTS_MANAGE);
+  const { cost, costHidden } = useMasked();
+  const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [tab, setTab] = useState<Tab>('list');
+  const [tab, setTab] = useState<Tab>('stock');
+  const [state, setState] = useState<State>('all');
+  const [category, setCategory] = useState('');
+  const [recipeFilter, setRecipeFilter] = useState<RecipeFilter>('all');
+  const [kind, setKind] = useState<'' | MovementKind>('');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
-  const [showTeacher, setShowTeacher] = useState(false);
-  const [editing, setEditing] = useState<Ingredient | null>(null);
-  // ?new=1 (from the product editor's "raw material" choice) opens the add form straight away.
-  const [params] = useSearchParams();
-  const [creating, setCreating] = useState(params.get('new') === '1');
-  const [stockOn, setStockOn] = useState<{ item: Ingredient; mode: 'purchase' | 'waste' | 'adjust' } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [form, setForm] = useState<{ item: Ingredient | null } | null>(params.get('new') === '1' ? { item: null } : null);
+  const [stockOn, setStockOn] = useState<{ item: Ingredient; mode: StockMode } | null>(null);
+  const [history, setHistory] = useState<Ingredient | null>(null);
+  useEffect(() => { if (params.get('new') === '1') { const n = new URLSearchParams(params); n.delete('new'); setParams(n, { replace: true }); } }, [params, setParams]);
 
-  const listQ = useQuery({
-    queryKey: ['bakery-ingredients'],
-    queryFn: () => ingredientsApi.list({}),
-  });
+  const period = resolveRange(range, startHour);
+  const listQ = useQuery({ queryKey: [RAW_KEY, 'list', state === 'hidden'], queryFn: () => ingredientsApi.list(state === 'hidden' ? { active: 'false' } : {}) });
+  const recipesQ = useRecipes();
+  const all = listQ.data ?? [];
+  const live = state === 'hidden' ? all : all.filter((i) => i.isActive !== false);
 
-  const removeMut = useMutation({
-    mutationFn: (id: string) => ingredientsApi.remove(id),
-    onSuccess: () => { toast.success('Hata diya'); qc.invalidateQueries({ queryKey: ['bakery-ingredients'] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hata'),
-  });
-
-  /* ── Rows ── */
-  const rows = useMemo(() => {
-    const list = listQ.data ?? [];
-    return list.map((i) => {
-      const level = Number(i.reorderLevel ?? i.minStock ?? 0);
-      const have = Number(i.currentStock || 0);
-      const cost = Number(i.costPerUnit || 0);
-      return {
-        ...i,
-        level,
-        have,
-        cost,
-        short: Math.max(level - have, 0),
-        value: have * cost,
-        isOut: have <= 0,
-        isLow: have > 0 && have <= level,
-      };
-    });
-  }, [listQ.data]);
-
-  const q = search.trim().toLowerCase();
-  const shown = useMemo(() => {
-    let out = rows.filter((r) => r.isActive !== false);
-    if (filter === 'low') out = out.filter((r) => r.isLow);
-    if (filter === 'out') out = out.filter((r) => r.isOut);
-    if (filter === 'critical') out = out.filter((r) => r.isCritical);
-    if (filter === 'fridge') out = out.filter((r) => r.requiresRefrigeration);
-    if (categoryFilter !== 'all') out = out.filter((r) => r.category === categoryFilter);
-    if (q) out = out.filter((r) =>
-      r.name.toLowerCase().includes(q) ||
-      (r.supplierName ?? '').toLowerCase().includes(q) ||
-      (r.brand ?? '').toLowerCase().includes(q));
-    return [...out].sort((a, b) => {
-      if (a.isOut !== b.isOut) return a.isOut ? -1 : 1;
-      if (a.isLow !== b.isLow) return a.isLow ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
-  }, [rows, filter, categoryFilter, q]);
-
-  /* ── Stats ── */
   const stats = useMemo(() => {
-    const live = rows.filter((r) => r.isActive !== false);
-    const low = live.filter((r) => r.isLow || r.isOut);
+    const active = (state === 'hidden' ? [] : live);
+    const need = active.filter((i) => isLow(i) || isOut(i));
     return {
-      total: live.length,
-      out: live.filter((r) => r.isOut).length,
-      low: live.filter((r) => r.isLow).length,
-      critical: live.filter((r) => r.isCritical && (r.isLow || r.isOut)).length,
-      value: live.reduce((s, r) => s + r.value, 0),
-      orderCost: low.reduce((s, r) => s + r.short * r.cost, 0),
-      wasted: live.reduce((s, r) => s + Number(r.totalWasted || 0) * r.cost, 0),
-      consumed: live.reduce((s, r) => s + Number(r.totalConsumed || 0) * r.cost, 0),
-      fridge: live.filter((r) => r.requiresRefrigeration).length,
+      total: active.length,
+      value: active.reduce((s, i) => s + Math.max(Number(i.currentStock || 0), 0) * Number(i.costPerUnit || 0), 0),
+      low: active.filter(isLow).length,
+      out: active.filter(isOut).length,
+      critical: active.filter((i) => i.isCritical && (isLow(i) || isOut(i))).length,
+      orderCost: need.reduce((s, i) => s + (shortOf(i) || levelOf(i)) * Number(i.costPerUnit || 0), 0),
+      need,
     };
-  }, [rows]);
+  }, [live, state]);
 
-  /* ── Charts ── */
-  const categoryChart = useMemo(() => {
-    const m = new Map<string, number>();
-    rows.filter((r) => r.isActive !== false).forEach((r) => {
-      m.set(r.category, (m.get(r.category) ?? 0) + r.value);
-    });
-    return [...m.entries()]
-      .map(([k, v]) => ({ name: catOf(k).label, value: Math.round(v) }))
-      .filter((x) => x.value > 0)
-      .sort((a, b) => b.value - a.value);
-  }, [rows]);
+  const t = search.trim().toLowerCase();
+  const shown = useMemo(() => live
+    .filter((i) => state === 'hidden' || state === 'all' || (state === 'low' ? isLow(i) : state === 'out' ? isOut(i) : state === 'critical' ? i.isCritical : i.requiresRefrigeration))
+    .filter((i) => !category || i.category === category)
+    .filter((i) => !t || [i.name, i.brand, i.supplierName, i.lastVendorName, i.code].some((v) => v?.toLowerCase().includes(t)))
+    .sort((a, b) => Number(isOut(b)) - Number(isOut(a)) || Number(isLow(b)) - Number(isLow(a)) || Number(b.isCritical) - Number(a.isCritical) || a.name.localeCompare(b.name)),
+  [live, state, category, t]);
 
-  const topValue = useMemo(
-    () => [...rows].filter((r) => r.isActive !== false)
-      .sort((a, b) => b.value - a.value).slice(0, 10)
-      .map((r) => ({ name: r.name.slice(0, 14), value: Math.round(r.value) })),
-    [rows],
-  );
+  const orderText = [
+    `🛒 *${shopName}* — saamaan ki list`, '',
+    ...stats.need.map((i, n) => `${n + 1}. ${i.name} — ${fmtQty(shortOf(i) || levelOf(i) || 1)} ${i.unit}`),
+  ].join('\n');
+  const copyList = async () => { try { await navigator.clipboard.writeText(orderText); toast.success('List copy ho gayi'); } catch { toast.error('Copy nahi hui'); } };
 
-  const wasteChart = useMemo(
-    () => [...rows].filter((r) => Number(r.totalWasted || 0) > 0)
-      .sort((a, b) => Number(b.totalWasted) * b.cost - Number(a.totalWasted) * a.cost)
-      .slice(0, 8)
-      .map((r) => ({ name: r.name.slice(0, 14), value: Math.round(Number(r.totalWasted) * r.cost) })),
-    [rows],
-  );
-
-  const healthPie = useMemo(() => ([
-    { name: 'Theek hai', value: rows.filter((r) => r.isActive !== false && !r.isLow && !r.isOut).length },
-    { name: 'Kam ho gaya', value: stats.low },
-    { name: 'Khatam', value: stats.out },
-  ].filter((x) => x.value > 0)), [rows, stats]);
-
-  /* ── Order list ── */
-  const orderText = useMemo(() => {
-    const need = rows.filter((r) => r.isActive !== false && (r.isLow || r.isOut));
-    const lines = need.map((r, i) => `${i + 1}. ${r.name} — ${fmtQty(r.short || r.level || 1)} ${r.unit}`);
-    return [
-      `🛒 *${tenant?.name || 'Bakery'}* — saamaan ki list`,
-      '',
-      ...lines,
-      '',
-      `Andazan kharcha: ${formatPKR(stats.orderCost)}`,
-    ].join('\n');
-  }, [rows, tenant, stats.orderCost]);
-
-  const copyOrder = async () => {
-    try {
-      await navigator.clipboard.writeText(orderText);
-      setCopied(true); setTimeout(() => setCopied(false), 1800);
-      toast.success('List copy ho gayi');
-    } catch { toast.error('Copy nahi hui'); }
-  };
-
-  const exportCsv = () => {
-    const head = ['Naam', 'Category', 'Abhi hai', 'Hadd', 'Kami', 'Unit', 'Rate', 'Qeemat', 'Supplier', 'Phone', 'Fridge', 'Zaroori'];
-    const body = shown.map((r) => [
-      r.name, catOf(r.category).label, r.have, r.level, r.short, r.unit, r.cost,
-      Math.round(r.value), r.supplierName ?? '', r.supplierPhone ?? '',
-      r.requiresRefrigeration ? 'Haan' : 'Nahi', r.isCritical ? 'Haan' : 'Nahi',
-    ]);
-    const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const csv = [head, ...body].map((r) => r.map(esc).join(',')).join('\n');
-    const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }));
-    const a = document.createElement('a'); a.href = url;
-    a.download = `saamaan-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    toast.success('CSV nikal gayi');
-  };
+  const restore = useMutation({
+    mutationFn: (i: Ingredient) => (i.isActive === false ? ingredientsApi.update(i.id, { isActive: true }) : ingredientsApi.remove(i.id)),
+    onSuccess: (i) => { toast.success(i.isActive ? `${i.name} wapas aa gaya` : `${i.name} hata diya — record rehta hai`); qc.invalidateQueries({ queryKey: [RAW_KEY] }); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (stockOn) return setStockOn(null);
-        if (editing) return setEditing(null);
-        if (creating) return setCreating(false);
-        if (showTeacher) return setShowTeacher(false);
-        return;
-      }
-      const t = document.activeElement?.tagName;
-      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
-      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
-      if (e.key.toLowerCase() === 'g') setShowTeacher(true);
-      if (e.key.toLowerCase() === 'a') setTab((x) => (x === 'analytics' ? 'list' : 'analytics'));
-      if (e.key.toLowerCase() === 'n') setCreating(true);
-      if (e.key.toLowerCase() === 'p') window.print();
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); setForm({ item: null }); }
+      if (e.key === '1') setTab('stock');
+      if (e.key === '2') setTab('recipes');
+      if (e.key === '3') setTab('record');
+      if (e.key === '4') setTab('analytics');
+      if (e.key === '/') { e.preventDefault(); window.setTimeout(() => searchRef.current?.focus(), 0); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [stockOn, editing, creating, showTeacher]);
+  }, [canManage]);
 
-  const activeFilters = [filter !== 'all', categoryFilter !== 'all'].filter(Boolean).length;
+  const printDoc = (): PrintDoc => (tab === 'stock' && state !== 'low' && state !== 'out' ? {
+    title: 'Kachcha maal — stock',
+    meta: [['Cheezein', String(shown.length)], ...(costHidden ? [] : [['Qeemat', formatPKR(stats.value)] as [string, string]])],
+    sections: [{
+      kind: 'table',
+      columns: [{ label: 'Saamaan' }, { label: 'Qisam', wideOnly: true }, { label: 'Stock', align: 'right' }, { label: 'Had', align: 'right', wideOnly: true }, { label: 'Gin kar', align: 'right' }],
+      rows: shown.map((i) => [i.name, rawCategoryOf(i.category).label, `${fmtQty(i.currentStock)} ${i.unit}`, fmtQty(levelOf(i)), '______']),
+    }],
+  } : {
+    title: 'Saamaan mangwane ki list',
+    meta: [['Cheezein', String(stats.need.length)], ...(costHidden ? [] : [['Andazan', formatPKR(stats.orderCost)] as [string, string]])],
+    sections: [{
+      kind: 'table',
+      columns: [{ label: 'Saamaan' }, { label: 'Abhi', align: 'right' }, { label: 'Mangwana', align: 'right' }, { label: 'Supplier', wideOnly: true }],
+      rows: stats.need.map((i) => [i.name, `${fmtQty(i.currentStock)} ${i.unit}`, `${fmtQty(shortOf(i) || levelOf(i))} ${i.unit}`, i.supplierName ?? '']),
+    }],
+  });
 
+  const recipes = recipesQ.data?.totals;
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10">
-      <div className="hidden print:block mb-4">
-        <h1 className="text-xl font-extrabold">{tenant?.name || 'Bakery'} — Saamaan</h1>
-        <p className="text-xs text-slate-600">{new Date().toLocaleString('en-PK', { dateStyle: 'full', timeStyle: 'short' })}</p>
-      </div>
+    <PageShell>
+      <PageHero
+        title="Kachcha maal"
+        chip={<><Wheat /> Saamaan</>}
+        meta="Maida, cheeni, makhan — kya para hai, kya mangwana hai, recipe ki lagat"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={listQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!live.length} /></span>
+          <button type="button" title="CSV" onClick={() => downloadCsv('saamaan', ['Naam', 'Qisam', 'Stock', 'Unit', 'Had', 'Rate', 'Supplier'], shown.map((i) => [i.name, rawCategoryOf(i.category).label, i.currentStock, i.unit, levelOf(i), costHidden ? '' : i.costPerUnit, i.supplierName]))} className={heroIconButton}><FileSpreadsheet className="h-4 w-4" /></button>
+          <Link to="/purchases/new" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Supplier ka bill</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setForm({ item: null })} title="Naya saamaan (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya saamaan</button>}
+        </>}
+        stats={[
+          { label: 'Gudaam ki qeemat', value: cost(stats.value), hint: `${stats.total} cheezein` },
+          { label: 'Mangwana hai', value: stats.low + stats.out, hint: costHidden ? undefined : `andazan ${formatPKR(stats.orderCost)}` },
+          { label: 'Recipes', value: recipes?.recipes ?? '—', hint: recipes?.lowMargin ? `${recipes.lowMargin} kam munafa` : undefined },
+        ]}
+      />
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-5 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-violet-400/25 blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.06]"
-          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
-              <Wheat className="h-3.5 w-3.5 text-violet-300" /> Bakery · Gudaam
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🌾 Banane ka Saamaan</h1>
-            <p className="mt-1.5 text-xs sm:text-sm font-bold text-white/90">
-              <strong className="text-white">{formatPKR(stats.value)}</strong> ka para hua ·{' '}
-              <strong className="text-rose-200">{stats.out}</strong> khatam ·{' '}
-              <strong className="text-amber-200">{stats.low}</strong> kam ho raha
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            {/* A supplier bill with many raw materials (and products) at once. */}
-            <Link to="/purchases/new"
-              className="h-11 px-3.5 rounded-xl bg-white/15 hover:bg-white/25 text-white ring-1 ring-white/25 text-xs font-black inline-flex items-center gap-1.5 transition">
-              <Truck className="h-4 w-4" /> Supplier ka bill
-            </Link>
-            <button onClick={() => setCreating(true)}
-              className="h-11 px-3.5 rounded-xl bg-white text-violet-700 hover:bg-violet-50 text-xs font-black inline-flex items-center gap-1.5 shadow-lg transition">
-              <Plus className="h-4 w-4" /> Naya saamaan
-            </button>
-            <button onClick={() => setShowTeacher(true)}
-              className="h-11 w-11 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 flex items-center justify-center shadow-lg transition">
-              <GraduationCap className="h-4 w-4" />
-            </button>
-            <button onClick={exportCsv}
-              className="h-11 w-11 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center backdrop-blur transition">
-              <FileSpreadsheet className="h-4 w-4" />
-            </button>
-            <button onClick={() => window.print()}
-              className="h-11 w-11 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center backdrop-blur transition">
-              <Printer className="h-4 w-4" />
-            </button>
-            <button onClick={() => listQ.refetch()} disabled={listQ.isRefetching}
-              className="h-11 w-11 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center backdrop-blur disabled:opacity-50 transition">
-              <RefreshCw className={`h-4 w-4 ${listQ.isRefetching ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
+      <KpiRow cols={5}>
+        {listQ.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Boxes} color="#a16207" label="Gudaam ki qeemat" value={cost(stats.value)} hint={`${stats.total} cheezein`} onClick={() => { setTab('stock'); setState('all'); }} active={tab === 'stock' && state === 'all'} />
+          <KpiCard icon={AlertTriangle} color="#d97706" label="Kam ho gaya" value={stats.low} hint="Had se neeche" onClick={() => { setTab('stock'); setState('low'); }} active={tab === 'stock' && state === 'low'} />
+          <KpiCard icon={Trash2} color={stats.out ? '#e11d48' : '#64748b'} label="Khatam" value={stats.out} hint={stats.critical ? `${stats.critical} zaroori` : 'Stock 0'} onClick={() => { setTab('stock'); setState('out'); }} active={tab === 'stock' && state === 'out'} />
+          <KpiCard icon={Tags} color="#7c3aed" label="Kam munafa" value={recipes?.lowMargin ?? '—'} hint="Recipe 20% se kam" onClick={() => { setTab('recipes'); setRecipeFilter('low'); }} active={tab === 'recipes' && recipeFilter === 'low'} />
+          <KpiCard icon={Scale} color="#0891b2" label="Lagat ka farq" value={recipes?.costOff ?? '—'} hint="Product par purani lagat" onClick={() => { setTab('recipes'); setRecipeFilter('off'); }} active={tab === 'recipes' && recipeFilter === 'off'} />
+        </>}
+      </KpiRow>
+
+      {tab === 'stock' && stats.need.length > 0 && state !== 'hidden' && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200">
+          <AlertTriangle className="h-5 w-5 text-amber-700" />
+          <p className="min-w-0 flex-1 text-[0.8125rem] text-amber-900"><b>{stats.need.length}</b> cheezein mangwani hain{costHidden ? '' : <> — andazan <b>{formatPKR(stats.orderCost)}</b></>}{stats.critical ? <span className="text-rose-700"> · {stats.critical} zaroori cheez</span> : null}</p>
+          <Button size="sm" variant="secondary" onClick={copyList} leftIcon={<Copy className="h-4 w-4" />}>List copy</Button>
+          <a href={`https://wa.me/?text=${encodeURIComponent(orderText)}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-success-600 px-3 text-[0.8125rem] font-semibold text-white hover:bg-success-700"><MessageCircle className="h-4 w-4" />WhatsApp</a>
         </div>
-      </section>
-
-      {/* ═══ KPI ═══ */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 print:hidden">
-        <Kpi icon={Boxes} label="Gudaam ki qeemat" value={formatPKR(stats.value)} sub={`${stats.total} cheezein`} tone="violet" />
-        <Kpi icon={AlertTriangle} label="Mangwana hai" value={formatPKR(stats.orderCost)}
-          sub={`${stats.out + stats.low} cheezein kam`} tone="amber"
-          onClick={() => { setFilter('low'); setTab('list'); }} />
-        <Kpi icon={Flame} label="Zaya hua" value={formatPKR(stats.wasted)} sub="Ab tak ka nuqsaan" tone="rose" />
-        <Kpi icon={Snowflake} label="Fridge wale" value={stats.fridge} sub={`${stats.critical} zaroori cheez kam hai`} tone="sky"
-          onClick={() => { setFilter('fridge'); setTab('list'); }} />
-      </section>
-
-      {/* ═══ ORDER BANNER ═══ */}
-      {(stats.out + stats.low) > 0 && (
-        <section className="rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-4 flex items-center gap-3 flex-wrap print:hidden">
-          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-          <p className="text-sm font-extrabold text-amber-900 dark:text-amber-200 min-w-0 flex-1">
-            <strong>{stats.out + stats.low}</strong> cheezein mangwani hain — andazan{' '}
-            <strong>{formatPKR(stats.orderCost)}</strong> ka kharcha
-            {stats.critical > 0 && <span className="text-rose-700 dark:text-rose-300"> · {stats.critical} zaroori cheez khatam hai</span>}
-          </p>
-          <div className="flex gap-1.5">
-            <button onClick={copyOrder}
-              className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-300 dark:border-amber-500/40 text-xs font-black text-amber-800 dark:text-amber-200 inline-flex items-center gap-1.5 transition">
-              {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-              {copied ? 'Copy hui' : 'List copy'}
-            </button>
-            <a href={`https://wa.me/?text=${encodeURIComponent(orderText)}`} target="_blank" rel="noreferrer"
-              className="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black inline-flex items-center gap-1.5 transition">
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </a>
-          </div>
-        </section>
       )}
 
-      {/* ═══ TABS ═══ */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 print:hidden">
-        {([['list', 'Saamaan', Wheat], ['analytics', 'Analytics', BarChart3]] as const).map(([v, label, Icon]) => (
-          <button key={v} onClick={() => setTab(v as Tab)}
-            className={`h-14 rounded-2xl border-2 font-black text-sm inline-flex items-center justify-center gap-2 transition ${
-              tab === v
-                ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-violet-400'
-            }`}>
-            <Icon className="h-4 w-4" /> {label}
-            {v === 'list' && (
-              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'}`}>{shown.length}</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'list' ? (
-        <>
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
-            <div className="flex gap-2 flex-wrap items-center">
-              <div className="relative flex-1 min-w-[220px]">
-                <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Naam, supplier, brand… (/ dabao)"
-                  className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition" />
-                {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
-                    <X className="h-4 w-4 text-slate-400" />
-                  </button>
-                )}
-              </div>
-              <button onClick={() => setShowFilters((v) => !v)}
-                className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
-                  activeFilters > 0
-                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
-                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-violet-400'
-                }`}>
-                <Layers className="h-4 w-4" /> Chaant
-                {activeFilters > 0 && <span className="text-[0.6875rem] px-1.5 py-0.5 rounded-lg bg-violet-600 text-white">{activeFilters}</span>}
-                <ChevronDown className={`h-4 w-4 transition ${showFilters ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
-
-            <div className="flex gap-1.5 flex-wrap">
-              {([['all', 'Sab'], ['low', '🟡 Kam ho gaya'], ['out', '🔴 Khatam'], ['critical', '⚠️ Zaroori'], ['fridge', '❄️ Fridge']] as const).map(([v, l]) => (
-                <button key={v} onClick={() => setFilter(v as Filter)}
-                  className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
-                    filter === v
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
-                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-violet-400'
-                  }`}>{l}</button>
-              ))}
-            </div>
-
-            {showFilters && (
-              <div className="pt-2 border-t-2 border-slate-100 dark:border-ink-800">
-                <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Category</label>
-                <div className="flex gap-1.5 flex-wrap">
-                  <button onClick={() => setCategoryFilter('all')}
-                    className={`h-9 px-2.5 rounded-lg border-2 text-[0.6875rem] font-black transition ${
-                      categoryFilter === 'all' ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
-                    }`}>Sab</button>
-                  {CATEGORIES.map((c) => (
-                    <button key={c.value} onClick={() => setCategoryFilter(c.value)}
-                      className={`h-9 px-2.5 rounded-lg border-2 text-[0.6875rem] font-black inline-flex items-center gap-1 transition ${
-                        categoryFilter === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
-                      }`}>{c.emoji} {c.label}</button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-
-          {listQ.isLoading ? (
-            <div className="flex items-center justify-center py-24">
-              <div className="h-12 w-12 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
-            </div>
-          ) : shown.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 sm:p-14 text-center">
-              <div className="h-16 w-16 rounded-3xl bg-violet-100 dark:bg-violet-500/20 mx-auto flex items-center justify-center">
-                <Wheat className="h-8 w-8 text-violet-600 dark:text-violet-400" />
-              </div>
-              <p className="mt-4 font-black text-slate-800 dark:text-ink-100 text-lg sm:text-xl">
-                {search || activeFilters > 0 ? 'Kuch nahi mila' : 'Abhi koi saamaan nahi'}
-              </p>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold mt-1.5 max-w-md mx-auto">
-                Maida, cheeni, makkhan daalein — phir cake ki recipe me lag sakenge aur khatam
-                hone par khud warning aa jayegi.
-              </p>
-              <Button className="mt-4 bg-violet-600 hover:bg-violet-700" onClick={() => setCreating(true)}>
-                <Plus className="h-4 w-4" /> Naya saamaan
-              </Button>
-            </div>
-          ) : (
-            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-ink-800">
-                {shown.map((r) => {
-                  const cat = catOf(r.category);
-                  return (
-                    <div key={r.id} className="p-3 sm:p-4 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition avoid-break">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 text-lg ${
-                          r.isOut ? 'bg-rose-100 dark:bg-rose-500/20' : r.isLow ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-violet-100 dark:bg-violet-500/20'
-                        }`}>{cat.emoji}</span>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.name}</span>
-                            {r.isCritical && <Chip tone="rose">Zaroori</Chip>}
-                            {r.requiresRefrigeration && <Chip tone="sky"><Snowflake className="h-2.5 w-2.5" /> Fridge</Chip>}
-                            {r.isOut && <Chip tone="rose">Khatam</Chip>}
-                            {r.isLow && <Chip tone="amber">Kam ho gaya</Chip>}
-                          </div>
-                          <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5 truncate">
-                            {formatPKR(r.cost)} / {r.unit}
-                            {r.supplierName ? ` · ${r.supplierName}` : ''}
-                            {r.level > 0 ? ` · hadd ${fmtQty(r.level)}` : ''}
-                          </div>
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          <div className={`text-lg font-black tabular-nums ${
-                            r.isOut ? 'text-rose-600' : r.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-ink-white'
-                          }`}>{fmtQty(r.have)} <span className="text-xs">{r.unit}</span></div>
-                          <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">{formatPKR(r.value)}</div>
-                        </div>
-                      </div>
-
-                      <div className="mt-2.5 flex gap-1.5 flex-wrap print:hidden">
-                        <button onClick={() => setStockOn({ item: r, mode: 'purchase' })}
-                          className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
-                          <ArrowDownToLine className="h-3.5 w-3.5" /> Maal aaya
-                        </button>
-                        <button onClick={() => setStockOn({ item: r, mode: 'waste' })}
-                          className="h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
-                          <Trash2 className="h-3.5 w-3.5" /> Zaya hua
-                        </button>
-                        <button onClick={() => setStockOn({ item: r, mode: 'adjust' })}
-                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
-                          <Scale className="h-3.5 w-3.5" /> Gin kar theek
-                        </button>
-                        <button onClick={() => setEditing(r)}
-                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
-                          <Edit3 className="h-3.5 w-3.5" /> Edit
-                        </button>
-                        {r.supplierPhone && (
-                          <a href={`https://wa.me/${r.supplierPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Assalam o alaikum, ${r.name} chahiye — ${fmtQty(r.short || r.level || 1)} ${r.unit}`)}`}
-                            target="_blank" rel="noreferrer"
-                            className="h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
-                            <Phone className="h-3.5 w-3.5" /> Supplier
-                          </a>
-                        )}
-                        <button onClick={() => { if (confirm(`"${r.name}" hata dein?`)) removeMut.mutate(r.id); }}
-                          className="h-9 w-9 rounded-xl border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:border-rose-400 ml-auto transition">
-                          <Trash2 className="h-3.5 w-3.5 text-rose-500" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-        </>
+      {tab === 'analytics' ? (
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is muddat me kitne ka saamaan aaya, laga aur zaya hua</p>}>
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
+        </FilterBar>
       ) : (
-        <div className="grid lg:grid-cols-2 gap-4">
-          <ChartCard icon={Layers} title="Kis category me kitna paisa">
-            {categoryChart.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={categoryChart} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={3}>
-                    {categoryChart.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => formatPKR(Number(v))} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : <EmptyBox />}
-          </ChartCard>
-
-          <ChartCard icon={CheckCircle2} title="Stock ki halat">
-            {healthPie.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={healthPie} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={3}>
-                    <Cell fill="#10b981" /><Cell fill="#f59e0b" /><Cell fill="#ef4444" />
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : <EmptyBox />}
-          </ChartCard>
-
-          <ChartCard icon={DollarSign} title="Sab se zyada paisa kis saamaan me" wide>
-            {topValue.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topValue}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-                  <XAxis dataKey="name" stroke={AXIS} fontSize={10} fontWeight={700} interval={0} angle={-20} textAnchor="end" height={60} />
-                  <YAxis stroke={AXIS} fontSize={11} width={78} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
-                  <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Qeemat']} />
-                  <Bar dataKey="value" fill="#8b5cf6" radius={[8, 8, 0, 0]} maxBarSize={56} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <EmptyBox />}
-          </ChartCard>
-
-          <ChartCard icon={TrendingDown} title="Kis saamaan ka zaya sab se zyada" wide>
-            {wasteChart.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={wasteChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-                  <XAxis dataKey="name" stroke={AXIS} fontSize={10} fontWeight={700} interval={0} angle={-20} textAnchor="end" height={60} />
-                  <YAxis stroke={AXIS} fontSize={11} width={78} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
-                  <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Nuqsaan']} />
-                  <Bar dataKey="value" fill="#ef4444" radius={[8, 8, 0, 0]} maxBarSize={56} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <EmptyBox text="Abhi tak kuch zaya nahi hua — shabash" />}
-          </ChartCard>
-        </div>
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'recipes' ? 'Product ya saamaan…' : 'Saamaan, brand, supplier…'} label="Dhoondein" />}
+          chips={tab === 'stock' && (state !== 'all' || category) ? <>
+            {state !== 'all' && <FilterChip onRemove={() => setState('all')}>{STATES.find((s) => s.id === state)?.label}</FilterChip>}
+            {category && <FilterChip onRemove={() => setCategory('')}>{rawCategoryOf(category).label}</FilterChip>}
+          </> : undefined}
+          onClear={() => { setState('all'); setCategory(''); setSearch(''); }}>
+          {tab === 'stock' && <>
+            <FilterMenu icon={Filter} label={STATES.find((s) => s.id === state)?.label ?? 'Haal'} value={state} active={state !== 'all'} onChange={setState} options={STATES.map((s) => ({ value: s.id, label: s.label, icon: s.id === 'hidden' ? EyeOff : s.id === 'fridge' ? Snowflake : undefined }))} />
+            <FilterMenu icon={Tags} label="Qisam" value={category} active={!!category} onChange={setCategory} options={[{ value: '', label: 'Sab qismein' }, ...RAW_CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` }))]} />
+          </>}
+          {tab === 'recipes' && (
+            <FilterMenu icon={Filter} label={recipeFilter === 'low' ? 'Kam munafa' : recipeFilter === 'off' ? 'Lagat ka farq' : recipeFilter === 'missing' ? 'Saamaan gum' : 'Sab recipes'} value={recipeFilter} active={recipeFilter !== 'all'} onChange={setRecipeFilter}
+              options={[{ value: 'all', label: 'Sab recipes' }, { value: 'low', label: 'Kam munafa (20% se kam)' }, { value: 'off', label: 'Product par purani lagat' }, { value: 'missing', label: 'Jin ka saamaan nahi mila' }]} />
+          )}
+          {tab === 'record' && <>
+            <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
+            <FilterMenu icon={Filter} label={kind ? ({ PURCHASE: 'Aaya', CONSUMPTION: 'Istemal', WASTE: 'Zaya', ADJUSTMENT: 'Ginti' } as const)[kind] : 'Sab qism'} value={kind} active={!!kind} onChange={setKind} align="right"
+              options={[{ value: '', label: 'Sab' }, { value: 'PURCHASE', label: 'Maal aaya' }, { value: 'CONSUMPTION', label: 'Banane me laga' }, { value: 'WASTE', label: 'Zaya' }, { value: 'ADJUSTMENT', label: 'Ginti ka farq' }]} />
+          </>}
+        </FilterBar>
       )}
 
-      {(creating || editing) && (
-        <IngredientForm
-          item={editing}
-          onClose={() => { setCreating(false); setEditing(null); }}
-          onDone={() => { setCreating(false); setEditing(null); qc.invalidateQueries({ queryKey: ['bakery-ingredients'] }); }}
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> dhoondein · <Kbd>1</Kbd>-<Kbd>4</Kbd> tabs</>}
+        tabs={[
+          { id: 'stock', label: 'Stock', icon: Boxes, count: tab === 'stock' ? shown.length : null },
+          { id: 'recipes', label: 'Recipe aur lagat', icon: Wheat, count: recipes?.recipes ?? null },
+          { id: 'record', label: 'Record', icon: ListChecks },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
+
+      {tab === 'recipes' ? <RecipeCosting search={search} filter={recipeFilter} />
+        : tab === 'record' ? <MovementRecord range={period} type={kind || undefined} search={search} />
+          : tab === 'analytics' ? <RawAnalytics range={period} items={live} />
+            : listQ.isError && !listQ.data ? <LoadFailed what="Saamaan" retry={() => listQ.refetch()} />
+              : listQ.isLoading ? <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+                : !shown.length ? (
+                  <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+                    <Wheat className="mx-auto h-10 w-10 text-slate-300" />
+                    <p className="mt-3 font-semibold text-slate-900">{t || state !== 'all' || category ? 'Is filter me kuch nahi' : 'Abhi koi saamaan nahi'}</p>
+                    <p className="mt-1 text-sm text-slate-500">Maida, cheeni, makhan daalein — phir recipe me lag sakenge aur khatam hone par yaad dilaye ga.</p>
+                    {canManage && <Button className="mt-4" onClick={() => setForm({ item: null })} leftIcon={<Plus className="h-4 w-4" />}>Naya saamaan</Button>}
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+                    {shown.map((i) => (
+                      <RawRow key={i.id} i={i} canManage={canManage} usedIn={recipesQ.data?.usedIn[i.id] ?? 0}
+                        onStock={(mode) => setStockOn({ item: i, mode })} onEdit={() => setForm({ item: i })} onHistory={() => setHistory(i)}
+                        onToggle={() => { if (i.isActive === false || window.confirm(`"${i.name}" list se hatayein? Record aur recipes rehti hain.`)) restore.mutate(i); }} />
+                    ))}
+                  </ul>
+                )}
+
+      {form && <IngredientForm item={form.item} onClose={() => setForm(null)} />}
+      {stockOn && <StockModal item={stockOn.item} mode={stockOn.mode} onClose={() => setStockOn(null)} />}
+      {history && <HistoryModal item={history} onClose={() => setHistory(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Kachcha maal — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: ArrowDownToLine, color: '#16a34a', title: 'Maal aaya', text: 'Supplier se saamaan aaye to "Maal aaya": kitna, kis rate par aur paisa kaise diya. Diya hua kharche me, udhaar supplier ke khate me jata hai.' },
+            { icon: Wheat, color: '#a16207', title: 'Recipe aur lagat', text: 'Har cheez ki recipe aaj ke rate se: ek piece ki lagat, bechne ki qeemat aur munafa. Rate badla to yahin pata chalta hai.' },
+            { icon: Trash2, color: '#e11d48', title: 'Zaya hua', text: 'Kharab ya gira hua saamaan wajah ke saath likhein — Taazgi aur zaya ke record me bhi aata hai.' },
+            { icon: Scale, color: '#7c3aed', title: 'Gin kar theek', text: 'Mahine me ek baar gudaam gin kar yahan theek karein — farq wajah ke saath record me rehta hai.' },
+            { icon: MessageCircle, color: '#22c55e', title: 'Mangwane ki list', text: 'Jo kam hai us ki list ek click me WhatsApp par. Har saamaan par supplier ka number ho to seedha us ko.' },
+            { icon: Printer, color: '#0891b2', title: 'Print', text: '"Kam ho gaya" chun kar print karein to mangwane ki list, warna ginti ki sheet.' },
+          ]}
+          tips={[
+            'Baking me "Recipe ka saamaan ghatayein" on karein to istemal khud likha jata hai.',
+            'Kai cheezon ka ek bill ho to "Supplier ka bill" se purchase banayein.',
+            'Saamaan sambhalne ke liye "Bakery saamaan sambhalna" ki ijazat chahiye.',
+          ]}
+          shortcuts={[['N', 'naya saamaan'], ['/', 'dhoondein'], ['1', 'stock'], ['2', 'recipe'], ['3', 'record'], ['4', 'analytics'], ['G', 'guide']]}
         />
       )}
-      {stockOn && (
-        <StockModal item={stockOn.item} mode={stockOn.mode}
-          onClose={() => setStockOn(null)}
-          onDone={() => { setStockOn(null); qc.invalidateQueries({ queryKey: ['bakery-ingredients'] }); }} />
-      )}
-      {showTeacher && <Teacher onClose={() => setShowTeacher(false)} />}
-    </div>
+    </PageShell>
   );
 }
 
-/* ═══ FORM ═══ */
-function IngredientForm({ item, onClose, onDone }: any) {
-  const isEdit = Boolean(item);
-  const [f, setF] = useState({
-    name: item?.name ?? '',
-    category: item?.category ?? 'GENERAL',
-    unit: item?.unit ?? 'kg',
-    costPerUnit: item?.costPerUnit ?? '',
-    currentStock: item?.currentStock ?? '',
-    minStock: item?.minStock ?? '',
-    supplierName: item?.supplierName ?? '',
-    supplierPhone: item?.supplierPhone ?? '',
-    shelfLifeDays: item?.shelfLifeDays ?? '',
-    requiresRefrigeration: item?.requiresRefrigeration ?? false,
-    isCritical: item?.isCritical ?? false,
-    notes: item?.notes ?? '',
-  });
-  const set = (p: any) => setF((x) => ({ ...x, ...p }));
-
-  const mut = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        name: f.name.trim(),
-        category: f.category,
-        unit: f.unit,
-        costPerUnit: Number(f.costPerUnit) || 0,
-        minStock: Number(f.minStock) || 0,
-        supplierName: f.supplierName || undefined,
-        supplierPhone: f.supplierPhone || undefined,
-        shelfLifeDays: f.shelfLifeDays === '' ? undefined : Number(f.shelfLifeDays),
-        requiresRefrigeration: f.requiresRefrigeration,
-        isCritical: f.isCritical,
-        notes: f.notes || undefined,
-      };
-      /* Stock sirf naya banate waqt. Edit me haath lagayenge to
-         gudaam ka asal number ur jayega — us ke liye "Maal aaya"
-         aur "Gin kar theek" ke apne raaste hain. */
-      if (!isEdit) payload.currentStock = Number(f.currentStock) || 0;
-      return isEdit ? ingredientsApi.update(item.id, payload) : ingredientsApi.create(payload);
-    },
-    onSuccess: () => { toast.success(isEdit ? 'Update ho gaya' : 'Saamaan ban gaya'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save nahi hua'),
-  });
-
-  const bad = !f.name.trim() || Number(f.costPerUnit) <= 0;
-
+function RawRow({ i, canManage, usedIn, onStock, onEdit, onHistory, onToggle }: {
+  i: Ingredient; canManage: boolean; usedIn: number;
+  onStock: (mode: StockMode) => void; onEdit: () => void; onHistory: () => void; onToggle: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const { cost } = useMasked();
+  const out = isOut(i);
+  const low = isLow(i);
+  const cat = rawCategoryOf(i.category);
+  const wa = i.supplierPhone ? waLink(i.supplierPhone, `Assalam o alaikum, ${i.name} chahiye — ${fmtQty(shortOf(i) || levelOf(i) || 1)} ${i.unit}`) : undefined;
+  const hidden = i.isActive === false;
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/15 dark:to-purple-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2">
-            <Wheat className="h-5 w-5" /> {isEdit ? 'Saamaan edit karein' : 'Naya saamaan'}
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-3">
-          <Field label="Naam *">
-            <input value={f.name} onChange={(e) => set({ name: e.target.value })} autoFocus
-              placeholder="Maida, Cheeni, Makkhan…" className={inp} />
-          </Field>
-
-          <Field label="Kis qism ka">
-            <div className="grid grid-cols-3 gap-1.5">
-              {CATEGORIES.map((c) => (
-                <button key={c.value} onClick={() => set({ category: c.value })}
-                  className={`h-10 px-1 rounded-lg border-2 text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
-                    f.category === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
-                  }`}>{c.emoji} <span className="truncate">{c.label}</span></button>
-              ))}
-            </div>
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Unit *">
-              <select value={f.unit} onChange={(e) => set({ unit: e.target.value })} className={inp}>
-                {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </Field>
-            <Field label={`Ek ${f.unit} ka rate *`}>
-              <input type="number" min={0} step="any" value={f.costPerUnit}
-                onChange={(e) => set({ costPerUnit: e.target.value === '' ? '' : Number(e.target.value) })} className={inp} />
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {!isEdit && (
-              <Field label="Abhi kitna hai">
-                <input type="number" min={0} step="any" value={f.currentStock}
-                  onChange={(e) => set({ currentStock: e.target.value === '' ? '' : Number(e.target.value) })} className={inp} />
-              </Field>
-            )}
-            <Field label="Itna reh jaye to batao">
-              <input type="number" min={0} step="any" value={f.minStock}
-                onChange={(e) => set({ minStock: e.target.value === '' ? '' : Number(e.target.value) })} className={inp} />
-            </Field>
-          </div>
-
-          {isEdit && (
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 -mt-1">
-              Stock yahan se nahi badalta — "Maal aaya" ya "Gin kar theek" se badlein, taake
-              record me wajah bhi aa jaye.
-            </p>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Supplier"><input value={f.supplierName} onChange={(e) => set({ supplierName: e.target.value })} className={inp} /></Field>
-            <Field label="WhatsApp"><input value={f.supplierPhone} onChange={(e) => set({ supplierPhone: e.target.value })} placeholder="03001234567" className={inp} /></Field>
-          </div>
-
-          <Field label="Kitne din theek rehta hai">
-            <input type="number" min={0} value={f.shelfLifeDays}
-              onChange={(e) => set({ shelfLifeDays: e.target.value === '' ? '' : Number(e.target.value) })} className={inp} />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-2">
-            <Toggle icon={Snowflake} label="Fridge chahiye" value={f.requiresRefrigeration} onChange={(v: boolean) => set({ requiresRefrigeration: v })} />
-            <Toggle icon={AlertTriangle} label="Bagair kaam nahi chalta" value={f.isCritical} onChange={(v: boolean) => set({ isCritical: v })} />
-          </div>
-
-          <Field label="Note"><input value={f.notes} onChange={(e) => set({ notes: e.target.value })} className={inp} /></Field>
-
-          <div className="flex gap-2 pt-1">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Rehne dein</Button>
-            <Button className="flex-[2] bg-violet-600 hover:bg-violet-700" disabled={bad} loading={mut.isPending} onClick={() => mut.mutate()}>
-              <CheckCircle2 className="h-4 w-4" /> {isEdit ? 'Save karein' : 'Banao'}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══ STOCK MODAL ═══ */
-const PAY_WAYS: Array<[string, string, any]> = [
-  ['CASH', 'Cash', Banknote],
-  ['BANK_TRANSFER', 'Bank', Building2],
-  ['CARD', 'Card', CreditCard],
-  ['JAZZCASH', 'JazzCash', Smartphone],
-  ['EASYPAISA', 'EasyPaisa', Smartphone],
-];
-
-function StockModal({ item, mode, onClose, onDone }: any) {
-  const shopId = useShopParam();
-  const [qty, setQty] = useState<number | ''>('');
-  const [rate, setRate] = useState<number | ''>(item.costPerUnit ?? '');
-  const [vendor, setVendor] = useState(item.supplierName ?? '');
-  const [reason, setReason] = useState('');
-  const [newStock, setNewStock] = useState<number | ''>(item.currentStock ?? 0);
-
-  /* Paisa kahan jayega — yehi wo hissa tha jo pehle tha hi nahi */
-  const [payWay, setPayWay] = useState('CASH');
-  const [payMode, setPayMode] = useState<'FULL' | 'PARTIAL' | 'UDHAAR'>('FULL');
-  const [paidNow, setPaidNow] = useState<number | ''>('');
-  const [supplierId, setSupplierId] = useState('');
-
-  const suppliersQ = useQuery({
-    queryKey: ['suppliers-for-ingredient'],
-    queryFn: () => suppliersApi.list({ limit: 500, status: 'active' }),
-    enabled: mode === 'purchase',
-  });
-  const suppliers = (suppliersQ.data as any)?.items ?? [];
-
-  const totalCost = (Number(qty) || 0) * (Number(rate) || 0);
-  const paid = payMode === 'FULL' ? totalCost : payMode === 'UDHAAR' ? 0 : Number(paidNow) || 0;
-  const udhaar = Math.max(totalCost - paid, 0);
-
-  const cfg = {
-    purchase: { title: 'Maal aaya', tone: 'bg-emerald-600 hover:bg-emerald-700', icon: ArrowDownToLine },
-    waste:    { title: 'Zaya hua', tone: 'bg-rose-600 hover:bg-rose-700', icon: Trash2 },
-    adjust:   { title: 'Gin kar theek karein', tone: 'bg-violet-600 hover:bg-violet-700', icon: Scale },
-  }[mode as 'purchase' | 'waste' | 'adjust'];
-
-  const mut = useMutation({
-    mutationFn: () => {
-      if (mode === 'purchase') {
-        return ingredientsApi.purchase(item.id, {
-          quantity: Number(qty) || 0,
-          costPerUnit: Number(rate) || 0,
-          vendorName: vendor || undefined,
-          supplierId: supplierId || undefined,
-          paymentMethod: payWay,
-          paidAmount: paid,
-          shopId: shopId || undefined,
-        });
-      }
-      if (mode === 'waste') {
-        return ingredientsApi.waste(item.id, { quantity: Number(qty) || 0, reason: reason || 'Kharab ho gaya' });
-      }
-      return ingredientsApi.adjust(item.id, { newStock: Number(newStock) || 0, reason: reason || 'Gin kar theek kiya' });
-    },
-    onSuccess: () => { toast.success('Darj ho gaya'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi ho saka'),
-  });
-
-  const bad = mode === 'adjust'
-    ? newStock === '' || Number(newStock) < 0 || !reason.trim()
-    : mode === 'purchase'
-      ? qty === '' || Number(qty) <= 0 || Number(rate) <= 0 || paid > totalCost || (udhaar > 0 && !supplierId)
-      : qty === '' || Number(qty) <= 0 || !reason.trim();
-
-  const Icon = cfg.icon;
-  const rateChanged = mode === 'purchase' && rate !== '' && Number(rate) !== Number(item.costPerUnit);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-2.5">
-          <span className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center">
-            <Icon className="h-5 w-5 text-slate-600 dark:text-ink-300" />
+    <li className={cn(hidden && 'bg-slate-50/60')}>
+      <div className="flex items-center gap-3 px-3 py-2.5 sm:px-4">
+        <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg', out ? 'bg-rose-50' : low ? 'bg-amber-50' : 'bg-slate-100')}>{cat.emoji}</span>
+        <button type="button" onClick={() => setOpen((v) => !v)} className="min-w-0 flex-1 text-left" aria-expanded={open}>
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className={cn('truncate font-semibold', hidden ? 'text-slate-400' : 'text-slate-900')}>{i.name}</span>
+            {i.isCritical && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-medium text-rose-700 ring-1 ring-rose-200">Zaroori</span>}
+            {i.requiresRefrigeration && <Snowflake className="h-3.5 w-3.5 text-sky-500" aria-label="Fridge" />}
+            {out && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-medium text-rose-700 ring-1 ring-rose-200">Khatam</span>}
+            {low && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-medium text-amber-800 ring-1 ring-amber-200">Kam ho gaya</span>}
           </span>
-          <div className="min-w-0">
-            <h3 className="font-black text-slate-900 dark:text-ink-white">{cfg.title}</h3>
-            <p className="text-[0.6875rem] font-bold text-slate-500 truncate">
-              {item.name} · abhi {fmtQty(Number(item.currentStock))} {item.unit}
-            </p>
-          </div>
+          <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{cost(i.costPerUnit)} / {i.unit}{i.supplierName ? ` · ${i.supplierName}` : ''}{levelOf(i) ? ` · had ${fmtQty(levelOf(i))}` : ''}{usedIn ? ` · ${usedIn} recipes me` : ''}</span>
+        </button>
+        <div className="text-right">
+          <p className={cn('text-base font-bold tabular-nums', out ? 'text-rose-700' : low ? 'text-amber-700' : 'text-slate-900')}>{fmtQty(i.currentStock)} <span className="text-[0.75rem] font-medium">{i.unit}</span></p>
+          <p className="text-[0.6875rem] tabular-nums text-slate-500">{cost(Math.max(i.currentStock, 0) * i.costPerUnit)}</p>
         </div>
-
-        <div className="mt-4 space-y-3">
-          {mode === 'adjust' ? (
-            <Field label={`Gin kar kitna nikla (${item.unit})`}>
-              <input type="number" min={0} step="any" autoFocus value={newStock}
-                onChange={(e) => setNewStock(e.target.value === '' ? '' : Number(e.target.value))}
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
-            </Field>
-          ) : (
-            <Field label={`Kitna (${item.unit})`}>
-              <input type="number" min={0} step="any" autoFocus value={qty}
-                onChange={(e) => setQty(e.target.value === '' ? '' : Number(e.target.value))}
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
-            </Field>
-          )}
-
-          {mode === 'purchase' && (
-            <>
-              <Field label={`Ab ek ${item.unit} kitne ka aaya`}>
-                <input type="number" min={0} step="any" value={rate}
-                  onChange={(e) => setRate(e.target.value === '' ? '' : Number(e.target.value))} className={inp} />
-              </Field>
-              {rateChanged && (
-                <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
-                    Rate {formatPKR(item.costPerUnit)} se {formatPKR(Number(rate))} ho gaya. Jin cheezon
-                    ki recipe me ye saamaan lagta hai, un ki cost bhi dobara dekh lein.
-                  </p>
-                </div>
-              )}
-              <Field label="Kahan se aaya"><input value={vendor} onChange={(e) => setVendor(e.target.value)} className={inp} /></Field>
-
-              {/* ── Paisa kahan gaya ──
-                  Ye hissa pehle tha hi nahi. Saamaan ka stock to barh
-                  jata tha, magar paisa kitaab me kahin darj nahi hota —
-                  na cash register me, na Money page me. */}
-              <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Wallet className="h-4 w-4 text-emerald-600" />
-                  <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-ink-white">Paisa kaise diya</span>
-                  <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-ink-white">
-                    {formatPKR(totalCost)}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-1.5">
-                  {([['FULL', 'Poora diya'], ['PARTIAL', 'Kuch diya'], ['UDHAAR', 'Poora udhaar']] as const).map(([v, l]) => (
-                    <button key={v} type="button" onClick={() => setPayMode(v as any)}
-                      className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${
-                        payMode === v ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
-                      }`}>{l}</button>
-                  ))}
-                </div>
-
-                {payMode === 'PARTIAL' && (
-                  <Field label="Abhi kitna diya">
-                    <input type="number" min={0} max={totalCost} step="any" value={paidNow}
-                      onChange={(e) => setPaidNow(e.target.value === '' ? '' : Number(e.target.value))}
-                      className={inp} />
-                  </Field>
-                )}
-
-                {paid > 0 && (
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {PAY_WAYS.map(([v, l, Icon]) => (
-                      <button key={v} type="button" onClick={() => setPayWay(v)}
-                        className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
-                          payWay === v ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
-                        }`}>
-                        <Icon className="h-3.5 w-3.5" /> {l}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {udhaar > 0 && (
-                  <Field label="Kis supplier se udhaar *">
-                    <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className={inp}>
-                      <option value="">Supplier chunein…</option>
-                      {suppliers.map((sp: any) => (
-                        <option key={sp.id} value={sp.id}>
-                          {sp.name}{Number(sp.outstandingDue) > 0 ? ` — ${formatPKR(sp.outstandingDue)} dena hai` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                )}
-
-                <div className="rounded-xl bg-white dark:bg-ink-900 p-2.5 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.6875rem] font-bold text-slate-500">Abhi diya</span>
-                    <span className="text-[0.8125rem] font-black tabular-nums text-emerald-600 dark:text-emerald-400">{formatPKR(paid)}</span>
-                  </div>
-                  {udhaar > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-[0.6875rem] font-bold text-slate-500">Udhaar raha</span>
-                      <span className="text-[0.8125rem] font-black tabular-nums text-amber-600 dark:text-amber-400">{formatPKR(udhaar)}</span>
-                    </div>
-                  )}
-                </div>
-
-                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-                  {paid > 0 && udhaar > 0
-                    ? <>Diya hua paisa <strong>kharch</strong> me jayega{payWay === 'CASH' ? ' (cash register se ghatega)' : ''}, aur baqi supplier ke <strong>khate</strong> me.</>
-                    : udhaar > 0
-                    ? <>Poori rakam supplier ke <strong>khate</strong> me jayegi — golak par asar nahi.</>
-                    : payWay === 'CASH'
-                    ? <>Ye paisa <strong>kharch</strong> me jayega aur <strong>cash register</strong> se khud ghat jayega.</>
-                    : <>Ye paisa <strong>kharch</strong> me jayega. Cash nahi diya, is liye golak par asar nahi.</>}
-                </p>
-
-                {udhaar > 0 && !supplierId && (
-                  <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 flex gap-2">
-                    <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                    <p className="text-[0.6875rem] font-bold text-rose-900 dark:text-rose-200">
-                      Udhaar ke liye supplier chunna zaroori hai — warna baad me pata nahi chalega
-                      ke kis ko dena hai.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {(mode === 'waste' || mode === 'adjust') && (
-            <Field label="Wajah *">
-              <input value={reason} onChange={(e) => setReason(e.target.value)}
-                placeholder={mode === 'waste' ? 'Kharab ho gaya, gir gaya…' : 'Ginti me farq nikla'} className={inp} />
-            </Field>
-          )}
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Rehne dein</Button>
-          <Button className={`flex-[2] ${cfg.tone}`} disabled={bad} loading={mut.isPending} onClick={() => mut.mutate()}>
-            Darj karein
-          </Button>
-        </div>
+        {canManage && !hidden && <Button size="sm" variant="secondary" className="hidden sm:inline-flex" onClick={() => onStock('purchase')} leftIcon={<ArrowDownToLine className="h-4 w-4" />}>Maal aaya</Button>}
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Aur kaam" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} /></button>
       </div>
-    </div>
-  );
-}
-
-/* ═══ CHHOTE HISSE ═══ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500';
-
-function Field({ label, children }: any) {
-  return (
-    <div>
-      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function Toggle({ icon: Icon, label, value, onChange }: any) {
-  return (
-    <button type="button" onClick={() => onChange(!value)}
-      className={`text-left rounded-xl border-2 p-2.5 flex items-center gap-2 transition ${
-        value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
-      }`}>
-      <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-        value ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-500'
-      }`}><Icon className="h-4 w-4" /></span>
-      <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white leading-tight">{label}</span>
-    </button>
-  );
-}
-
-function Chip({ tone, children }: any) {
-  const tones: Record<string, string> = {
-    rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
-    amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
-    sky: 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300',
-  };
-  return <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 ${tones[tone]}`}>{children}</span>;
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    violet: 'from-violet-500 to-purple-600 shadow-violet-500/40',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/40',
-    rose: 'from-rose-500 to-red-600 shadow-rose-500/40',
-    sky: 'from-sky-500 to-blue-600 shadow-sky-500/40',
-  };
-  const Comp: any = onClick ? 'button' : 'div';
-  return (
-    <Comp onClick={onClick}
-      className={`rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm text-left w-full transition-all ${
-        onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : ''
-      }`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
+      {open && (
+        <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 sm:pl-[4.25rem]">
+          {canManage && !hidden && <>
+            <Button size="sm" variant="secondary" className="sm:hidden" onClick={() => onStock('purchase')} leftIcon={<ArrowDownToLine className="h-4 w-4" />}>Maal aaya</Button>
+            <Button size="sm" variant="secondary" onClick={() => onStock('waste')} leftIcon={<Trash2 className="h-4 w-4" />}>Zaya hua</Button>
+            <Button size="sm" variant="secondary" onClick={() => onStock('adjust')} leftIcon={<Scale className="h-4 w-4" />}>Gin kar theek</Button>
+            <Button size="sm" variant="secondary" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>
+          </>}
+          <Button size="sm" variant="secondary" onClick={onHistory} leftIcon={<History className="h-4 w-4" />}>Record</Button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />Supplier</a>}
+          {canManage && <Button size="sm" variant="ghost" className={hidden ? '' : 'text-rose-700'} onClick={onToggle} leftIcon={hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}>{hidden ? 'Wapas layein' : 'Hatayein'}</Button>}
+          {i.notes && <p className="w-full text-[0.75rem] text-slate-500">{i.notes}</p>}
         </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </Comp>
-  );
-}
-
-function ChartCard({ icon: Icon, title, wide, children }: any) {
-  return (
-    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-violet-600" /> {title}
-      </h3>
-      <div className="h-64">{children}</div>
-    </section>
-  );
-}
-
-function EmptyBox({ text }: { text?: string }) {
-  return <div className="h-full flex items-center justify-center"><p className="text-sm font-bold text-slate-400 text-center px-4">{text ?? 'Abhi dikhane ko kuch nahi'}</p></div>;
-}
-
-function Teacher({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/15 dark:to-purple-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Saamaan ka safha
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-ink-200">
-            Maida, cheeni, makkhan. <strong>Ye bikne ki cheezein nahi</strong> — POS aur catalog
-            me kabhi nazar nahi aatin.
-          </p>
-          <Tip icon={ArrowDownToLine} title="Maal aaya">
-            Supplier se saamaan aaye to yahan darj karein. Naya rate bhi wahin likh dein — rate
-            badla to system aap ko bata dega ke jin cheezon ki recipe me ye lagta hai, un ki cost
-            dobara dekhni chahiye.
-          </Tip>
-          <Tip icon={Trash2} title="Zaya hua">
-            Kharab ho gaya ya gir gaya to wajah ke sath darj karein. Analytics me pata chal jata
-            hai ke kis saamaan ka zaya sab se zyada hai.
-          </Tip>
-          <Tip icon={Scale} title="Gin kar theek">
-            Mahine me ek baar gudaam gin lein. Ginti aur system me farq ho to yahan se theek
-            karein — wajah ke sath, taake record saaf rahe.
-          </Tip>
-          <Tip icon={MessageCircle} title="Supplier ko list">
-            Upar wali patti se poori list ek click me WhatsApp par. Har cheez ka apna supplier
-            number ho to us ke saamne seedha button bhi aa jata hai.
-          </Tip>
-          <Tip icon={AlertTriangle} title="Zaroori cheez">
-            "Bagair kaam nahi chalta" laga dein — khatam hone par sab se upar aayegi.
-          </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
-            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">N</kbd> naya saamaan</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">A</kbd> analytics</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
-            </div>
-          </div>
-          <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Tip({ icon: Icon, title, children }: any) {
-  return (
-    <div className="flex gap-2.5">
-      <div className="h-8 w-8 rounded-xl bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
-        <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-      </div>
-      <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
-      </div>
-    </div>
+      )}
+    </li>
   );
 }

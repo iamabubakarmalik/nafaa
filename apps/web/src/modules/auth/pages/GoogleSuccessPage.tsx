@@ -1,10 +1,17 @@
-import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+/**
+ * Google sign-in landing. The API redirects here with the tokens in the URL
+ * hash; the session is stored exactly as before, then the user goes to
+ * onboarding or the dashboard.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { apiClient } from '@core/api/client';
 import { useAuthStore } from '@core/stores/auth.store';
+import { Logo } from '@core/components/brand/Logo';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 
 export default function GoogleSuccessPage() {
@@ -12,86 +19,72 @@ export default function GoogleSuccessPage() {
   const queryClient = useQueryClient();
   const setSession = useAuthStore((s) => s.setSession);
   const ranRef = useRef(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (ranRef.current) return;
     ranRef.current = true;
 
-    const hash = window.location.hash.slice(1);
-    const params = new URLSearchParams(hash);
+    const params = new URLSearchParams(window.location.hash.slice(1));
     const accessToken = params.get('accessToken');
     const refreshToken = params.get('refreshToken');
     const isNewUser = params.get('isNewUser') === 'true';
 
     if (!accessToken || !refreshToken) {
-      toast.error('Google login fail ho gaya');
+      toast.error('Google login poora nahi hua. Dobara try karein.');
       navigate('/login', { replace: true });
       return;
     }
 
     (async () => {
       try {
-        const meRes = await apiClient.get('/auth/me', {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const meRes = await apiClient.get('/auth/me', { headers: { Authorization: `Bearer ${accessToken}` } });
         const data = meRes.data?.data;
         if (!data?.user || !data?.tenant) throw new Error('Invalid user data');
 
-        // Set session
-        setSession({
-          user: data.user,
-          tenant: data.tenant,
-          accessToken,
-          refreshToken,
-        });
-
-        // CRITICAL: Clear stale cache from previous session
+        setSession({ user: data.user, tenant: data.tenant, accessToken, refreshToken });
+        // Drop cached data from any previous account on this device.
         queryClient.clear();
 
         const firstName = data.user.fullName.split(' ')[0];
-        toast.success(
-          isNewUser
-            ? `Mubarak ho ${firstName}! 🎉`
-            : `Welcome back, ${firstName}! 👋`,
-        );
+        toast.success(isNewUser ? `Mubarak ho, ${firstName}!` : `Khush aamdeed, ${firstName}!`);
 
-        // Pre-fetch fresh onboarding state
         try {
-          const progress = await queryClient.fetchQuery({
-            queryKey: ['onboarding'],
-            queryFn: onboardingApi.get,
-          });
+          const progress = await queryClient.fetchQuery({ queryKey: ['onboarding'], queryFn: onboardingApi.get });
           if (!progress.isCompleted) {
             navigate('/onboarding', { replace: true });
             return;
           }
         } catch {
-          // If onboarding fetch fails, gate will handle it
+          // OnboardingGate decides on the next screen.
         }
-
         navigate('/dashboard', { replace: true });
       } catch {
-        toast.error('Authentication fail ho gayi');
-        navigate('/login', { replace: true });
+        setFailed(true);
       }
     })();
   }, [navigate, setSession, queryClient]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-brand-700 to-emerald-900 flex items-center justify-center p-6">
-      <div className="text-center text-white space-y-6">
-        <div className="flex items-center justify-center gap-3">
-          <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <Sparkles className="h-7 w-7 text-amber-300" />
-          </div>
-          <span className="text-3xl font-extrabold">Nafaa</span>
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 px-5 py-2 text-sm font-semibold">
-          Sign in ho raha hai...
-        </div>
-        <div className="flex items-center justify-center">
-          <div className="h-12 w-12 rounded-full border-4 border-white/20 border-t-white animate-spin" />
-        </div>
+    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <Logo size={48} className="mx-auto" />
+        {failed ? (
+          <>
+            <AlertCircle className="mx-auto mt-6 h-8 w-8 text-rose-600" aria-hidden />
+            <h1 className="mt-3 text-lg font-bold text-slate-900">Login poora nahi hua</h1>
+            <p className="mt-1 text-sm text-slate-600">Server se account ki maloomat nahi mili. Internet check karke dobara try karein.</p>
+            <Link to="/login" replace className="mt-5 inline-flex h-10 items-center justify-center rounded-lg bg-brand-600 px-5 text-sm font-semibold text-brand-fg hover:bg-brand-700">
+              Login par wapas
+            </Link>
+          </>
+        ) : (
+          <>
+            <Loader2 className="mx-auto mt-6 h-8 w-8 animate-spin text-brand-600" aria-hidden />
+            <h1 className="mt-3 text-lg font-bold text-slate-900">Google se login ho raha hai…</h1>
+            <p className="mt-1 text-sm text-slate-600">Bas ek pal.</p>
+          </>
+        )}
       </div>
     </div>
   );

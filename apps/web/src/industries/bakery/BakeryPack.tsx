@@ -1,5 +1,5 @@
 import {
-  Cake, LayoutDashboard, Calendar, Cookie, ChefHat, Wheat, Timer, ShoppingBag, Sparkles,
+  Cake, Calendar, ChefHat, Wheat, Timer, ShoppingBag,
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
@@ -51,11 +51,11 @@ export const BakeryPack: IndustryPack = {
       color: '#f472b6',
       order: 20,
       items: [
-        { to: '/bakery/cake-orders/new', label: 'Cake Customizer', icon: Cake, badge: 'HOT' },
+        { to: '/bakery/cake-orders/new', label: 'Naya cake order', icon: Cake },
         { to: '/bakery/cake-orders', label: 'Cake Orders', icon: Calendar },
-        { to: '/bakery/production', label: 'Production', icon: ChefHat },
-        { to: '/bakery/ingredients', label: 'Ingredients', icon: Wheat },
-        { to: '/bakery/freshness', label: 'Freshness', icon: Timer },
+        { to: '/bakery/production', label: 'Baking', icon: ChefHat },
+        { to: '/bakery/ingredients', label: 'Kachcha maal', icon: Wheat },
+        { to: '/bakery/freshness', label: 'Taazgi aur zaya', icon: Timer },
         { to: '/bakery/bulk-orders', label: 'Bulk Orders', icon: ShoppingBag },
       ],
     },
@@ -69,6 +69,7 @@ export const BakeryPack: IndustryPack = {
     { path: '/bakery', element: BakeryDashboard },
     { path: '/bakery/dashboard', element: BakeryDashboard },
     { path: '/bakery/cake-orders/new', element: CakeCustomizerPage },
+    { path: '/bakery/cake-orders/:id/edit', element: CakeCustomizerPage },
     { path: '/bakery/cake-orders/:id', element: CakeOrderDetailPage },
     { path: '/bakery/cake-orders', element: CakeOrdersPage },
     /* Purana BakeryProductsPage sirf wo cheezein dikhata tha jin ka

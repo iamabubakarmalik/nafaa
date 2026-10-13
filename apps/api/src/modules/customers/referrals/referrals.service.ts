@@ -70,15 +70,17 @@ export class ReferralsService {
     };
   }
 
+  /**
+   * Top referrers. Other shops see a masked name only — never the id or
+   * referral code of another business.
+   */
   async leaderboard() {
     const top = await this.prisma.tenant.findMany({
       where: {
         referralsGiven: { some: { status: { in: ['CONVERTED', 'PAID'] } } },
       },
       select: {
-        id: true,
         name: true,
-        referralCode: true,
         _count: {
           select: {
             referralsGiven: { where: { status: { in: ['CONVERTED', 'PAID'] } } },
@@ -88,16 +90,20 @@ export class ReferralsService {
       take: 20,
     });
 
+    const mask = (name: string) => name.split(/\s+/).map((w) => (w.length <= 2 ? w : `${w.slice(0, 2)}${'*'.repeat(Math.min(4, w.length - 2))}`)).join(' ');
     return top
       .map((t) => ({
-        id: t.id,
-        name: t.name,
-        referralCode: t.referralCode,
+        name: mask(t.name),
         successfulReferrals: t._count.referralsGiven,
       }))
       .sort((a, b) => b.successfulReferrals - a.successfulReferrals);
   }
 
+  /**
+   * Pays the referrer once, when the referred shop makes its first approved
+   * payment. Safe to call twice (admin approval and Stripe webhook): only the
+   * call that moves the referral out of PENDING writes the credit.
+   */
   async convertReferral(refereeTenantId: string, paymentAmount: number) {
     const referral = await this.prisma.referral.findUnique({
       where: { refereeTenantId },
@@ -110,24 +116,20 @@ export class ReferralsService {
     const rewardAmount = Math.max(fixedReward, Math.round(pctValue));
 
     return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.referral.update({
-        where: { id: referral.id },
+      const claimed = await tx.referral.updateMany({
+        where: { id: referral.id, status: 'PENDING' },
         data: {
           status: 'CONVERTED',
           rewardAmount,
           convertedAt: new Date(),
         },
       });
+      if (claimed.count === 0) return null;
 
-      const referrer = await tx.tenant.findUnique({
+      const referrer = await tx.tenant.update({
         where: { id: referral.referrerTenantId },
-      });
-      if (!referrer) return updated;
-
-      const newCredit = referrer.accountCredit + rewardAmount;
-      await tx.tenant.update({
-        where: { id: referrer.id },
-        data: { accountCredit: newCredit },
+        data: { accountCredit: { increment: rewardAmount } },
+        select: { id: true, accountCredit: true },
       });
 
       await tx.creditTransaction.create({
@@ -135,7 +137,7 @@ export class ReferralsService {
           tenantId: referrer.id,
           type: 'REFERRAL_BONUS',
           amount: rewardAmount,
-          balanceAfter: newCredit,
+          balanceAfter: referrer.accountCredit,
           reference: referral.id,
           note: `Referral reward earned`,
         },
@@ -151,7 +153,7 @@ export class ReferralsService {
         },
       });
 
-      return updated;
+      return tx.referral.findUnique({ where: { id: referral.id } });
     });
   }
 }

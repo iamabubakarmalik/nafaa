@@ -48,11 +48,17 @@ export interface ReferralDashboard {
   credits: CreditEntry[];
 }
 
+export interface LeaderboardEntry {
+  /** Masked shop name, e.g. "Al**** Ki****". */
+  name: string;
+  successfulReferrals: number;
+}
+
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const referralsApi = {
   myDashboard: () =>
     apiClient.get<{ data: ReferralDashboard }>('/referrals/me').then(unwrap),
   leaderboard: () =>
-    apiClient.get<{ data: any[] }>('/referrals/leaderboard').then(unwrap),
+    apiClient.get<{ data: LeaderboardEntry[] }>('/referrals/leaderboard').then(unwrap),
 };

@@ -66,6 +66,9 @@ interface RouteRule {
  * `stock` wala aam usool pakar leta.
  */
 export const ROUTE_RULES: RouteRule[] = [
+  /* Data files. Each file also needs the view right of what it holds (checked in ExportsService). */
+  { match: /^exports(\/|$)/, GET: P.EXPORTS_VIEW },
+
   /* ── Bikri aur counter ── */
   { match: /(^|\/)pos(\/|$)/, GET: P.POS_USE, write: P.POS_USE },
   { match: /(^|\/)sales(\/|$)/, GET: P.SALES_VIEW, write: P.POS_USE, DELETE: P.SALES_VOID },
@@ -195,6 +198,7 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)tax-authority(\/|$)/, GET: P.SETTINGS_VIEW, write: P.SETTINGS_EDIT },
   { match: /(^|\/)billing(\/|$)/, GET: P.BILLING_VIEW, write: P.BILLING_MANAGE },
   { match: /(^|\/)subscriptions(\/|$)/, GET: P.BILLING_VIEW, write: P.BILLING_MANAGE },
+  { match: /^referrals(\/|$)/, GET: P.REFERRALS_VIEW },
 ];
 
 /**

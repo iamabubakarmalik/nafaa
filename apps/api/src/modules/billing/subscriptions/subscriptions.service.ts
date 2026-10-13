@@ -702,7 +702,7 @@ export class SubscriptionsService {
    */
   async cleanupPendingSubscriptions(tenantId: string) {
     return this.prisma.$transaction(async (tx) => {
-      // Find ALL pending with their invoices
+      // Find ALL pending with their open invoices and any receipt under review
       const pending = await tx.subscription.findMany({
         where: { tenantId, status: 'PENDING_PAYMENT' },
         orderBy: { createdAt: 'desc' },
@@ -710,7 +710,7 @@ export class SubscriptionsService {
           invoices: {
             where: { status: { in: ['PENDING', 'OVERDUE'] } },
             orderBy: { createdAt: 'desc' },
-            take: 1,
+            select: { id: true, payments: { where: { status: 'PENDING' }, select: { id: true } } },
           },
         },
       });
@@ -719,11 +719,14 @@ export class SubscriptionsService {
         return { kept: 0, cancelled: 0, message: 'No pending found' };
       }
 
-      // Prefer one that HAS an invoice as the "keeper"
-      const withInvoice = pending.find((p) => p.invoices.length > 0);
-      const keep = withInvoice || pending[0];
+      // A bill whose receipt is being reviewed is never cancelled: the admin
+      // may still approve that payment.
+      const underReview = (p: (typeof pending)[number]) => p.invoices.some((i) => i.payments.length > 0);
 
-      const cancelIds = pending.filter((p) => p.id !== keep.id).map((p) => p.id);
+      // Prefer the one under review, then one that HAS an invoice, as the "keeper"
+      const keep = pending.find(underReview) || pending.find((p) => p.invoices.length > 0) || pending[0];
+
+      const cancelIds = pending.filter((p) => p.id !== keep.id && !underReview(p)).map((p) => p.id);
 
       if (cancelIds.length > 0) {
         await tx.subscription.updateMany({

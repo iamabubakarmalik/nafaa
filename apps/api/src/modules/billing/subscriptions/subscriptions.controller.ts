@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BillingInterval } from '@prisma/client';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
@@ -58,10 +58,11 @@ export class SubscriptionsController {
   }
 
   @Post('admin/run-cron')
-  @ApiOperation({ summary: 'Manually trigger daily expiry check (admin)' })
+  @ApiOperation({ summary: 'Manually trigger daily expiry check (platform admin)' })
   runCron(@GetUser() user: AuthenticatedUser) {
-    if (user.role !== 'SUPER_ADMIN' && user.role !== 'OWNER') {
-      throw new Error('Forbidden');
+    // The check runs across every business, so a shop owner may not start it.
+    if (user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Sirf Nafaa admin ye chala sakta hai');
     }
     return this.cron.runNow();
   }

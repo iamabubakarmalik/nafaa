@@ -1,400 +1,363 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+/**
+ * Activity log: who changed what and when, as plain sentences grouped by
+ * business day. Filter by period, person, action, record type, branch and
+ * text; open the record a line is about; see who does the most; export the
+ * whole filtered log to CSV or print.
+ *
+ * Keys: / search · 1 list · 2 people · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
-  Activity, User, Clock, Search, X, Filter, Download, RefreshCw,
-  Shield, ShoppingCart, Package, Users, Truck, Wallet, Receipt,
-  Plus, Edit3, Trash2, LogIn, LogOut, Settings, Key, Eye,
+  Activity, Building2, ChevronDown, Download, FileText, GraduationCap, History, ListFilter, MonitorSmartphone, MousePointerClick, Search,
+  ShieldCheck, Trash2, UserRound, Users,
 } from 'lucide-react';
-import { activityLogApi } from '@modules/reports/activity-log/api/activity-log.api';
-import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
+import { downloadCsv } from '@core/lib/csv';
+import { rangeLabel } from '@core/lib/dateRange';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { cn } from '@core/lib/cn';
+import { useAuthStore, useCanSwitchShops } from '@core/stores/auth.store';
+import { shopsApi } from '@modules/organization/shops/api/shops.api';
+import { ROLE_LABEL } from '@modules/reports/audit/meta';
+import { activityLogApi, type ActivityEntry, type ActivityFeed, type ActivityFilters } from '../api/activity-log.api';
+import { actionLabel, detailOf, deviceOf, entityLabel, iconOf, kindOf, linkOf, sentence } from '../meta';
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+type Tab = 'list' | 'people';
+const PAGE = 50;
+const EXPORT_PAGE = 500;
+const EXPORT_MAX = 10_000;
 
-const formatRelative = (v: string) => {
-  const d = new Date(v);
-  const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (diff < 60) return 'Just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
-  return d.toLocaleDateString('en-PK');
-};
-
-// Smart icon detection based on description/action
-const getActionConfig = (description: string, action?: string, entityType?: string) => {
-  const text = (description + ' ' + (action || '') + ' ' + (entityType || '')).toLowerCase();
-
-  if (text.includes('login') || text.includes('signed in')) return { icon: LogIn, color: 'bg-emerald-100 text-emerald-700', label: 'Login' };
-  if (text.includes('logout') || text.includes('signed out')) return { icon: LogOut, color: 'bg-slate-100 text-slate-700', label: 'Logout' };
-  if (text.includes('sale') || text.includes('pos')) return { icon: ShoppingCart, color: 'bg-emerald-100 text-emerald-700', label: 'Sale' };
-  if (text.includes('product')) return { icon: Package, color: 'bg-violet-100 text-violet-700', label: 'Product' };
-  if (text.includes('customer')) return { icon: Users, color: 'bg-blue-100 text-blue-700', label: 'Customer' };
-  if (text.includes('supplier')) return { icon: Truck, color: 'bg-orange-100 text-orange-700', label: 'Supplier' };
-  if (text.includes('purchase')) return { icon: ShoppingCart, color: 'bg-amber-100 text-amber-700', label: 'Purchase' };
-  if (text.includes('expense')) return { icon: Wallet, color: 'bg-rose-100 text-rose-700', label: 'Expense' };
-  if (text.includes('payment')) return { icon: Wallet, color: 'bg-emerald-100 text-emerald-700', label: 'Payment' };
-  if (text.includes('refund') || text.includes('return')) return { icon: RefreshCw, color: 'bg-orange-100 text-orange-700', label: 'Return' };
-  if (text.includes('delete') || text.includes('removed')) return { icon: Trash2, color: 'bg-rose-100 text-rose-700', label: 'Delete' };
-  if (text.includes('update') || text.includes('edit')) return { icon: Edit3, color: 'bg-blue-100 text-blue-700', label: 'Edit' };
-  if (text.includes('create') || text.includes('add')) return { icon: Plus, color: 'bg-emerald-100 text-emerald-700', label: 'Create' };
-  if (text.includes('permission') || text.includes('role') || text.includes('access')) return { icon: Key, color: 'bg-violet-100 text-violet-700', label: 'Access' };
-  if (text.includes('settings') || text.includes('config')) return { icon: Settings, color: 'bg-slate-100 text-slate-700', label: 'Settings' };
-  if (text.includes('register')) return { icon: Wallet, color: 'bg-emerald-100 text-emerald-700', label: 'Cash Register' };
-  if (text.includes('view') || text.includes('viewed')) return { icon: Eye, color: 'bg-slate-100 text-slate-700', label: 'View' };
-  return { icon: Activity, color: 'bg-slate-100 text-slate-700', label: 'Activity' };
-};
-
-type DateFilter = 'all' | 'today' | 'week' | 'month';
-type ActionFilter = 'all' | 'login' | 'sale' | 'product' | 'customer' | 'delete' | 'edit' | 'access';
+const timeOf = (v: string) => new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit' }).format(new Date(v));
+const stamp = (v: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
 
 export default function ActivityLogPage() {
-  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
-     liye raat 1 baje ki bikri abhi "aaj" ki hai */
-  const bdStart = useBusinessDayStart();
+  const startHour = useBusinessDayStart();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const tenantName = useAuthStore((s) => s.tenant?.name);
+  const isOwner = useCanSwitchShops();
+
+  const [tab, setTab] = useState<Tab>('list');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'week', custom: { from: '', to: '' } });
+  const [userId, setUserId] = useState('');
+  const [action, setAction] = useState('');
+  const [entity, setEntity] = useState('');
+  const [shopId, setShopId] = useState('');
   const [search, setSearch] = useState('');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
-  const [actionFilter, setActionFilter] = useState<ActionFilter>('all');
-  const [userFilter, setUserFilter] = useState<string>('all');
+  const [needle, setNeedle] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
-  const { data: logs = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['activity-log'],
-    queryFn: activityLogApi.list,
+  useEffect(() => { const t = setTimeout(() => setNeedle(search.trim()), 300); return () => clearTimeout(t); }, [search]);
+
+  const period = resolveRange(range, startHour);
+  const pFrom = period?.from;
+  const pTo = period?.to;
+  const filters: ActivityFilters = useMemo(() => ({
+    ...(pFrom && pTo && { from: pFrom, to: pTo }),
+    ...(userId && { userId }), ...(action && { action }), ...(entity && { entity }), ...(shopId && { shopId }), ...(needle && { search: needle }),
+  }), [pFrom, pTo, userId, action, entity, shopId, needle]);
+
+  const q = useInfiniteQuery({
+    queryKey: ['activity-log', 'feed', filters],
+    queryFn: ({ pageParam }) => activityLogApi.feed(filters, pageParam, PAGE),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last: ActivityFeed) => last.nextCursor ?? undefined,
+    placeholderData: (p) => p,
   });
+  const { data: shops = [] } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, enabled: isOwner, staleTime: 5 * 60_000 });
 
-  const uniqueUsers = useMemo(() => {
-    const users = new Map<string, { id: string; name: string; role: string }>();
-    logs.forEach((log: any) => {
-      if (log.user && !users.has(log.user.id)) {
-        users.set(log.user.id, { id: log.user.id, name: log.user.fullName, role: log.user.role });
-      }
-    });
-    return Array.from(users.values());
-  }, [logs]);
-
-  const filtered = useMemo(() => {
-    let result = [...logs];
-    const q = search.toLowerCase().trim();
-    if (q) {
-      result = result.filter((l: any) =>
-        l.description.toLowerCase().includes(q) ||
-        (l.user?.fullName || '').toLowerCase().includes(q) ||
-        (l.action || '').toLowerCase().includes(q) ||
-        (l.entityType || '').toLowerCase().includes(q)
-      );
-    }
-    if (dateFilter !== 'all') {
-      const now = new Date();
-      let cutoff = new Date();
-      if (dateFilter === 'today') setToDayStart(cutoff, bdStart);
-      else if (dateFilter === 'week') cutoff.setDate(now.getDate() - 7);
-      else if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
-      result = result.filter((l: any) => new Date(l.createdAt) >= cutoff);
-    }
-    if (actionFilter !== 'all') {
-      result = result.filter((l: any) => {
-        const text = (l.description + ' ' + (l.action || '') + ' ' + (l.entityType || '')).toLowerCase();
-        if (actionFilter === 'login') return text.includes('login') || text.includes('logout') || text.includes('signed');
-        if (actionFilter === 'sale') return text.includes('sale') || text.includes('pos');
-        if (actionFilter === 'product') return text.includes('product');
-        if (actionFilter === 'customer') return text.includes('customer');
-        if (actionFilter === 'delete') return text.includes('delete') || text.includes('removed');
-        if (actionFilter === 'edit') return text.includes('update') || text.includes('edit');
-        if (actionFilter === 'access') return text.includes('permission') || text.includes('role') || text.includes('access');
-        return true;
-      });
-    }
-    if (userFilter !== 'all') {
-      result = result.filter((l: any) => l.user?.id === userFilter);
-    }
-    return result;
-  }, [logs, search, dateFilter, actionFilter, userFilter]);
+  const first = q.data?.pages[0];
+  const items = useMemo(() => q.data?.pages.flatMap((p) => p.items) ?? [], [q.data]);
+  const facets = first?.facets;
+  const total = first?.total ?? 0;
+  const label = period ? rangeLabel(period.from, period.to) : 'Shuru se ab tak';
 
   const stats = useMemo(() => {
-    const today = new Date().toDateString();
-    const todayLogs = logs.filter((l: any) => new Date(l.createdAt).toDateString() === today);
+    const count = (test: (a: string) => boolean) => (facets?.actions ?? []).filter((a) => test(a.key)).reduce((s, a) => s + a.count, 0);
     return {
-      total: logs.length,
-      today: todayLogs.length,
-      uniqueUsers: uniqueUsers.length,
-      filtered: filtered.length,
+      people: (facets?.users ?? []).filter((u) => u.id !== 'system').length,
+      deletes: count((a) => kindOf(a) === 'delete'),
+      security: count((a) => kindOf(a) === 'security'),
+      pinFailed: count((a) => a === 'PIN_VERIFY_FAILED' || a === 'PIN_RESET_FAILED'),
+      top: facets?.users.find((u) => u.id !== 'system'),
     };
-  }, [logs, uniqueUsers, filtered]);
+  }, [facets]);
 
-  const exportCSV = () => {
-    if (filtered.length === 0) return;
-    const headers = ['Date', 'User', 'Role', 'Action', 'Entity', 'Description', 'IP'];
-    const rows = filtered.map((l: any) => [
-      new Date(l.createdAt).toLocaleString('en-PK'),
-      l.user?.fullName || 'System',
-      l.user?.role || '—',
-      l.action || '—',
-      l.entityType || '—',
-      l.description,
-      l.ipAddress || '—',
-    ]);
-    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `activity-log-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
+  const days = useMemo(() => {
+    const map = new Map<string, ActivityEntry[]>();
+    for (const e of items) {
+      const k = businessDayKey(new Date(e.createdAt), startHour);
+      map.set(k, [...(map.get(k) ?? []), e]);
+    }
+    return [...map.entries()];
+  }, [items, startHour]);
+  const dayTitle = (key: string) => {
+    const today = businessDayKey(new Date(), startHour);
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    if (key === today) return 'Aaj';
+    if (key === businessDayKey(y, startHour)) return 'Kal';
+    return new Intl.DateTimeFormat('en-PK', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${key}T12:00:00`));
   };
 
-  const hasFilters = search || dateFilter !== 'all' || actionFilter !== 'all' || userFilter !== 'all';
-  const clearFilters = () => {
-    setSearch(''); setDateFilter('all'); setActionFilter('all'); setUserFilter('all');
+  const hasFilters = !!(userId || action || entity || shopId || needle) || range.preset !== 'week';
+  const clear = () => { setUserId(''); setAction(''); setEntity(''); setShopId(''); setSearch(''); setRange({ preset: 'week', custom: { from: '', to: '' } }); };
+
+  const fetchAll = async () => {
+    const out: ActivityEntry[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await activityLogApi.feed(filters, cursor, EXPORT_PAGE);
+      out.push(...page.items);
+      cursor = page.nextCursor ?? undefined;
+    } while (cursor && out.length < EXPORT_MAX);
+    return out;
   };
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const rows = await fetchAll();
+      if (!rows.length) return void toast.error('Is filter me kuch nahi');
+      downloadCsv(`activity-log-${period?.from ?? 'all'}-${period?.to ?? ''}.csv`, [
+        [`Activity log — ${tenantName ?? ''}`], [`Muddat: ${label}`], [],
+        ['Waqt', 'Kis ne', 'Role', 'Kya kiya', 'Tafseel', 'Record', 'Record id', 'IP', 'Device'],
+        ...rows.map((e) => [stamp(e.createdAt), e.user?.fullName ?? 'System', e.user ? ROLE_LABEL[e.user.role] ?? e.user.role : '', sentence(e), detailOf(e),
+          e.entityType ? entityLabel(e.entityType) : '', e.entityId ?? '', e.ipAddress ?? '', deviceOf(e.userAgent) ?? '']),
+      ]);
+      toast.success(`${rows.length} entries CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+  };
+  const printDoc = async (): Promise<PrintDoc> => {
+    const rows = await fetchAll();
+    return {
+      title: 'Activity log',
+      subtitle: label,
+      meta: [['Entries', String(rows.length)], ...(userId && facets ? [['Banda', facets.users.find((u) => u.id === userId)?.name ?? ''] as [string, string]] : [])],
+      sections: [{
+        kind: 'table',
+        columns: [{ label: 'Waqt' }, { label: 'Kya hua' }, { label: 'Tafseel', wideOnly: true }],
+        rows: rows.map((e) => [stamp(e.createdAt), sentence(e), detailOf(e)]),
+      }],
+    };
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === '1') setTab('list');
+      if (e.key === '2') setTab('people');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const userName = (id: string) => facets?.users.find((u) => u.id === id)?.name ?? 'Banda';
+  const loading = q.isLoading;
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-800 to-slate-700 text-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-              <Shield className="h-3.5 w-3.5 text-amber-300" /> Audit Trail
-            </div>
-            <h2 className="mt-3 text-3xl font-extrabold">Activity Log</h2>
-            <p className="mt-2 text-sm text-white/80">
-              Kis user ne kya kiya — sab ka complete record. Login, sales, edits, deletes — sab trackable.
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold transition disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            {filtered.length > 0 && (
-              <button onClick={exportCSV} className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 hover:bg-slate-100 px-4 py-2.5 text-sm font-bold transition">
-                <Download className="h-4 w-4" />
-                Export
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Activity log"
+        chip={<><History />{label}</>}
+        meta={tenantName}
+        busy={q.isFetching && !q.isLoading && !q.isFetchingNextPage}
+        loading={loading}
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting || !total} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!total} /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Kul kaam', value: total.toLocaleString('en-PK') },
+          { label: 'Log', value: String(stats.people), hint: stats.top ? `sab se zyada: ${stats.top.name}` : undefined },
+          { label: 'Mitaye / void', value: String(stats.deletes) },
+          { label: 'Security', value: String(stats.security), hint: stats.pinFailed ? `${stats.pinFailed} ghalat PIN` : undefined },
+        ]}
+      />
 
-      <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Total Activities" value={stats.total} icon={Activity} color="slate" />
-        <StatCard label="Today" value={stats.today} icon={Clock} color="blue" />
-        <StatCard label="Unique Users" value={stats.uniqueUsers} icon={Users} color="violet" />
-        <StatCard label="Filtered" value={stats.filtered} icon={Filter} color="emerald" hint={`${Math.round((stats.filtered/Math.max(stats.total,1))*100)}% of all`} />
-      </section>
-
-      <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/30 focus:border-slate-500"
-            placeholder="Search by description, user, action, entity..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-              <X className="h-4 w-4 text-slate-400" />
-            </button>
-          )}
-        </div>
-        <div className="space-y-2">
-          <div className="flex gap-1 flex-wrap">
-            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">Date:</span>
-            {[
-              { v: 'all' as DateFilter, l: 'All Time' },
-              { v: 'today' as DateFilter, l: 'Today' },
-              { v: 'week' as DateFilter, l: '7 Days' },
-              { v: 'month' as DateFilter, l: '30 Days' },
-            ].map((opt) => (
-              <button
-                key={opt.v}
-                onClick={() => setDateFilter(opt.v)}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                  dateFilter === opt.v ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {opt.l}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1 flex-wrap">
-            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">Action:</span>
-            {[
-              { v: 'all' as ActionFilter, l: 'All' },
-              { v: 'login' as ActionFilter, l: '🔑 Login' },
-              { v: 'sale' as ActionFilter, l: '🛒 Sales' },
-              { v: 'product' as ActionFilter, l: '📦 Products' },
-              { v: 'customer' as ActionFilter, l: '👥 Customers' },
-              { v: 'edit' as ActionFilter, l: '✏️ Edits' },
-              { v: 'delete' as ActionFilter, l: '🗑 Deletes' },
-              { v: 'access' as ActionFilter, l: '🔐 Access' },
-            ].map((opt) => (
-              <button
-                key={opt.v}
-                onClick={() => setActionFilter(opt.v)}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                  actionFilter === opt.v ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {opt.l}
-              </button>
-            ))}
-          </div>
-          {uniqueUsers.length > 0 && (
-            <div className="flex gap-1 flex-wrap">
-              <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">User:</span>
-              <button
-                onClick={() => setUserFilter('all')}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                  userFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                All Users
-              </button>
-              {uniqueUsers.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => setUserFilter(u.id)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                    userFilter === u.id ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  {u.name}
-                </button>
-              ))}
-            </div>
-          )}
-          {hasFilters && (
-            <button onClick={clearFilters} className="text-xs font-bold text-rose-600 hover:text-rose-700 inline-flex items-center gap-1">
-              <X className="h-3 w-3" /> Clear all filters
-            </button>
-          )}
-        </div>
-      </div>
-
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h3 className="text-xl font-bold text-slate-900">All Activities</h3>
-          <p className="text-sm text-slate-500">{filtered.length} of {logs.length} entries</p>
-        </div>
-
-        {isLoading ? (
-          <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 rounded-xl bg-slate-100 animate-pulse" />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-              <Activity className="h-9 w-9 text-slate-500" />
-            </div>
-            <h4 className="mt-5 text-xl font-bold text-slate-900">
-              {hasFilters ? 'No matches' : 'Activity log is empty'}
-            </h4>
-            <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
-              {hasFilters
-                ? 'Try different filters or clear them'
-                : 'User actions ka record yahan automatic save hota hai. POS sales, edits, logins — sab ka complete trail.'}
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100 max-h-[800px] overflow-y-auto">
-            {filtered.map((log: any) => {
-              const cfg = getActionConfig(log.description, log.action, log.entityType);
-              const Icon = cfg.icon;
-              return (
-                <div key={log.id} className="px-6 py-4 hover:bg-slate-50 transition group">
-                  <div className="flex items-start gap-3">
-                    <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 shadow ${cfg.color}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900">
-                          {log.user?.fullName || 'System'}
-                        </span>
-                        {log.user?.role && (
-                          <span className="inline-flex px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.6875rem] font-extrabold">
-                            {log.user.role}
-                          </span>
-                        )}
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${cfg.color}`}>
-                          {cfg.label}
-                        </span>
-                      </div>
-                      <div className="text-sm text-slate-700 mt-1 font-semibold">{log.description}</div>
-                      <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-400 flex-wrap font-bold">
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-2.5 w-2.5" />
-                          {formatDate(log.createdAt)}
-                        </span>
-                        <span>•</span>
-                        <span>{formatRelative(log.createdAt)}</span>
-                        {log.entityType && (
-                          <>
-                            <span>•</span>
-                            <span className="font-mono">{log.entityType}</span>
-                          </>
-                        )}
-                        {log.entityId && (
-                          <span className="font-mono text-slate-300">#{log.entityId.slice(0, 8)}</span>
-                        )}
-                        {log.ipAddress && (
-                          <>
-                            <span>•</span>
-                            <span className="font-mono">{log.ipAddress}</span>
-                          </>
-                        )}
-                      </div>
-                      {log.metadata && Object.keys(log.metadata).length > 0 && (
-                        <details className="mt-2 opacity-0 group-hover:opacity-100 transition">
-                          <summary className="text-[0.6875rem] font-bold text-slate-500 cursor-pointer hover:text-slate-700">View metadata</summary>
-                          <pre className="mt-1 text-[0.6875rem] bg-slate-50 rounded-lg p-2 overflow-x-auto">{JSON.stringify(log.metadata, null, 2)}</pre>
-                        </details>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      <KpiRow cols={4}>
+        {loading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Users} color="#2563eb" label="Sab se zyada kaam" value={stats.top?.name ?? '—'} hint={stats.top ? `${stats.top.count} kaam · dabayein` : undefined}
+              onClick={stats.top ? () => setUserId(userId === stats.top!.id ? '' : stats.top!.id) : undefined} active={!!stats.top && userId === stats.top.id} />
+            <KpiCard icon={Trash2} color="#e11d48" label="Mitaya gaya" value={String(stats.deletes)} hint="Mitaye, void aur radd" />
+            <KpiCard icon={ShieldCheck} color="#7c3aed" label="PIN aur security" value={String(stats.security)} hint={stats.pinFailed ? `${stats.pinFailed} ghalat PIN · dabayein` : 'PIN, logout, download'}
+              onClick={stats.pinFailed ? () => setAction(action === 'PIN_VERIFY_FAILED' ? '' : 'PIN_VERIFY_FAILED') : undefined} active={action === 'PIN_VERIFY_FAILED'} />
+            <KpiCard icon={FileText} color="#0891b2" label="Record ki qisam" value={String(facets?.entities.length ?? 0)} hint={facets?.entities[0] ? `zyada: ${entityLabel(facets.entities[0].key)}` : undefined} />
+          </>
         )}
-      </section>
+      </KpiRow>
 
-      <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-200 p-4 flex items-start gap-3">
-        <div className="h-9 w-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-          <Shield className="h-4 w-4" />
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Tafseel, naam ya record id…" label="Activity dhoondein" />}
+        chips={hasFilters ? <>
+          {range.preset !== 'week' && <FilterChip onRemove={() => setRange({ preset: 'week', custom: { from: '', to: '' } })}>{label}</FilterChip>}
+          {userId && <FilterChip onRemove={() => setUserId('')}>{userName(userId)}</FilterChip>}
+          {action && <FilterChip onRemove={() => setAction('')}>{actionLabel(action)}</FilterChip>}
+          {entity && <FilterChip onRemove={() => setEntity('')}>{entityLabel(entity)}</FilterChip>}
+          {shopId && <FilterChip onRemove={() => setShopId('')}>{shops.find((s) => s.id === shopId)?.name ?? 'Branch'}</FilterChip>}
+          {needle && <FilterChip onRemove={() => setSearch('')}>"{needle}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="week" />
+        <FilterMenu icon={UserRound} label="Banda" value={userId} active={!!userId} onChange={setUserId} width="w-72"
+          options={[{ value: '', label: 'Sab log' }, ...(facets?.users ?? []).map((u) => ({ value: u.id, label: u.name, hint: `${u.role ? `${ROLE_LABEL[u.role] ?? u.role} · ` : ''}${u.count} kaam` }))]} />
+        <FilterMenu icon={ListFilter} label="Kaam" value={action} active={!!action} onChange={setAction} width="w-72"
+          options={[{ value: '', label: 'Har kaam' }, ...(facets?.actions ?? []).map((a) => ({ value: a.key, label: actionLabel(a.key), hint: `${a.count}` }))]} />
+        <FilterMenu icon={FileText} label="Record" value={entity} active={!!entity} onChange={setEntity}
+          options={[{ value: '', label: 'Har record' }, ...(facets?.entities ?? []).map((x) => ({ value: x.key, label: entityLabel(x.key), hint: `${x.count}` }))]} />
+        {isOwner && shops.length > 1 && (
+          <FilterMenu icon={Building2} label="Branch" value={shopId} active={!!shopId} onChange={setShopId} align="right"
+            options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name, hint: 'Is branch ke staff ke kaam' }))]} />
+        )}
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> <Kbd>2</Kbd> se badlein</>}
+        tabs={[{ id: 'list', label: 'Sab kaam', icon: Activity, count: total }, { id: 'people', label: 'Log', icon: Users, count: stats.people }]} />
+
+      {q.isError && !first ? (
+        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Log load nahi hua — internet check karein aur dobara kholein.</p>
+      ) : loading ? (
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+      ) : tab === 'people' ? (
+        <PeopleView feed={first!} onPick={(id) => { setUserId(id); setTab('list'); }} />
+      ) : items.length === 0 ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><History className="h-7 w-7" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{hasFilters ? 'Is filter me kuch nahi' : 'Abhi koi activity nahi'}</h3>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{hasFilters ? 'Filter badal kar ya muddat barha kar dekhein' : 'Branch, staff, settings ya PIN me badlav yahan likhe jate hain'}</p>
+          {hasFilters && <Button className="mt-4" variant="secondary" onClick={clear}>Filter hatayein</Button>}
         </div>
-        <div className="text-sm text-slate-700">
-          <strong className="font-bold text-blue-900">Note about Activity Log:</strong> Yeh sab activities backend se aati hain. Agar aap ko lagta hai kuch entries miss ho rahi hain (jaise logins ya specific actions), to backend service me activity recording ko verify karein. Frontend sirf jo data backend bhejta hai woh dikhata hai.
+      ) : (
+        <div className="space-y-4">
+          {days.map(([key, list]) => (
+            <section key={key} className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+              <header className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 sm:px-5">
+                <h2 className="text-[0.875rem] font-semibold text-slate-900">{dayTitle(key)}</h2>
+                <span className="text-[0.75rem] text-slate-500">{list.length} kaam</span>
+              </header>
+              <ul className="divide-y divide-slate-100">
+                {list.map((e) => <EntryRow key={e.id} e={e} expanded={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} onUser={(id) => setUserId(id)} />)}
+              </ul>
+            </section>
+          ))}
+          {q.hasNextPage && (
+            <button type="button" onClick={() => void q.fetchNextPage()} disabled={q.isFetchingNextPage}
+              className="w-full rounded-2xl bg-white py-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-brand-50 disabled:opacity-60">
+              {q.isFetchingNextPage ? 'Aa rahe hain…' : `Aur dikhayein (${items.length} / ${total})`}
+            </button>
+          )}
         </div>
-      </div>
-    </div>
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Activity log — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: History, color: '#2563eb', title: 'Kya likha jata hai', text: 'Branch, login, staff, settings, PIN, tankhwah, void bill aur mitaye gaye kharche — kis ne kab kiya.' },
+            { icon: ListFilter, color: '#d97706', title: 'Filter', text: 'Muddat, banda, kaam aur record chunein. Lage filter neeche dikhte hain, X se hat jate hain.' },
+            { icon: MousePointerClick, color: '#16a34a', title: 'Tafseel', text: 'Kisi line par click karein: poori baat, IP, device, aur record kholne ka link.' },
+            { icon: Users, color: '#7c3aed', title: 'Log', text: '"Log" tab me dekhein kis ne kitne kaam kiye. Naam dabane se sirf us ke kaam aa jate hain.' },
+            { icon: ShieldCheck, color: '#e11d48', title: 'Khatre ki baat', text: 'Ghalat PIN, mitaye gaye kharche aur void bill par nazar rakhein. Poori jaanch ke liye Audit report.' },
+            { icon: Download, color: '#0891b2', title: 'Export', text: 'CSV ya Print/PDF — is filter ki saari entries aa jati hain.' },
+          ]}
+          tips={['Din dukaan ke apne waqt par badalta hai.', 'Branch filter us branch ke staff ke kaam dikhata hai.']}
+          shortcuts={[['/', 'dhoondein'], ['1', 'sab kaam'], ['2', 'log'], ['G', 'guide']]}
+          footer={<Link to="/audit" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Audit report →</Link>}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, hint }: any) {
-  const colors: any = {
-    slate: 'from-slate-600 to-slate-800',
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/30',
-    violet: 'from-violet-500 to-violet-700 shadow-violet-500/30',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/30',
-  };
+function EntryRow({ e, expanded, onToggle, onUser }: { e: ActivityEntry; expanded: boolean; onToggle: () => void; onUser: (id: string) => void }) {
+  const { icon: Icon, color } = iconOf(e);
+  const link = linkOf(e);
+  const device = deviceOf(e.userAgent);
+  const detail = detailOf(e);
   return (
-    <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900">{value}</div>
-          {hint && <div className="text-xs text-slate-500 font-semibold mt-1">{hint}</div>}
+    <li>
+      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50/70 sm:px-5">
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-4 w-4" /></span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[0.875rem] font-semibold text-slate-900">{sentence(e)}</span>
+          <span className={cn('block text-[0.8125rem] text-slate-500', !expanded && 'truncate')}>{detail}</span>
+        </span>
+        <span className="flex shrink-0 flex-col items-end gap-1">
+          <span className="text-[0.75rem] tabular-nums text-slate-500">{timeOf(e.createdAt)}</span>
+          <ChevronDown className={cn('h-4 w-4 text-slate-400 transition', expanded && 'rotate-180')} />
+        </span>
+      </button>
+      {expanded && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-dashed border-slate-100 bg-slate-50/50 px-4 py-2.5 pl-16 text-[0.75rem] text-slate-600 sm:px-5 sm:pl-[4.25rem]">
+          <span>{stamp(e.createdAt)}</span>
+          {e.user && (
+            <button type="button" onClick={() => onUser(e.user!.id)} className="inline-flex items-center gap-1 font-medium text-slate-700 hover:text-brand-700">
+              <UserRound className="h-3.5 w-3.5" />{e.user.fullName}{e.user.role ? ` · ${ROLE_LABEL[e.user.role] ?? e.user.role}` : ''}{e.user.assignedShop ? ` · ${e.user.assignedShop.name}` : ''}
+            </button>
+          )}
+          {e.entityType && <span>{entityLabel(e.entityType)}{e.entityId ? <span className="ml-1 font-mono text-[0.6875rem] text-slate-400">{e.entityId.slice(0, 8)}</span> : null}</span>}
+          {(e.ipAddress || device) && <span className="inline-flex items-center gap-1"><MonitorSmartphone className="h-3.5 w-3.5" />{[device, e.ipAddress].filter(Boolean).join(' · ')}</span>}
+          {link && <Link to={link.to} className="ml-auto font-semibold text-brand-700 hover:underline">{link.label} →</Link>}
         </div>
-        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg`}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
+      )}
+    </li>
+  );
+}
+
+function PeopleView({ feed, onPick }: { feed: ActivityFeed; onPick: (id: string) => void }) {
+  const users = feed.facets.users;
+  const actions = feed.facets.actions.slice(0, 12);
+  const maxU = Math.max(1, ...users.map((u) => u.count));
+  const maxA = Math.max(1, ...actions.map((a) => a.count));
+  if (!users.length) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is muddat me koi activity nahi</p>;
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Users className="h-4 w-4 text-brand-600" />Kis ne kitne kaam kiye</h2>
+        <p className="mt-0.5 text-[0.8125rem] text-slate-500">Naam dabayein — sirf us ke kaam dikhenge</p>
+        <ul className="mt-4 space-y-2">
+          {users.map((u) => (
+            <li key={u.id}>
+              <button type="button" onClick={() => onPick(u.id)} className="group block w-full text-left">
+                <span className="flex items-center justify-between gap-3 text-[0.8125rem]">
+                  <span className="truncate font-medium text-slate-800 group-hover:text-brand-700">{u.name}{u.role ? <span className="ml-1.5 text-[0.75rem] font-normal text-slate-500">{ROLE_LABEL[u.role] ?? u.role}</span> : null}</span>
+                  <span className="tabular-nums text-slate-600">{u.count}</span>
+                </span>
+                <span className="mt-1 block h-2 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${(u.count / maxU) * 100}%` }} /></span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Search className="h-4 w-4 text-brand-600" />Kaun se kaam zyada hue</h2>
+        <p className="mt-0.5 text-[0.8125rem] text-slate-500">Is muddat ke sab se aam kaam</p>
+        <ul className="mt-4 space-y-2">
+          {actions.map((a) => {
+            const { icon: Icon, color } = iconOf({ action: a.key, entityType: null });
+            return (
+              <li key={a.key} className="flex items-center gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-3.5 w-3.5" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-3 text-[0.8125rem]"><span className="truncate text-slate-800">{actionLabel(a.key)}</span><span className="tabular-nums text-slate-600">{a.count}</span></span>
+                  <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full" style={{ width: `${(a.count / maxA) * 100}%`, backgroundColor: color }} /></span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
     </div>
   );
 }

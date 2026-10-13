@@ -1,7 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { NotificationType } from '@prisma/client';
+/**
+ * In-app notifications: create (with mobile push), the bell's latest list,
+ * the Notifications page feed (groups, read state, period, text, cursor
+ * paging), and read/unread/delete for one or many. A person sees their own
+ * notifications and the business-wide ones (no user).
+ */
+
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { NotificationType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
+import { zonedToUtc } from '../../common/helpers/business-time.helper';
+import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 
 interface CreateNotificationParams {
   tenantId: string;
@@ -15,11 +24,39 @@ interface CreateNotificationParams {
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
+/** Page groups. A notification can sit in more than one. */
+export const NOTIFICATION_GROUPS = ['summary', 'sales', 'online', 'stock', 'alerts'] as const;
+export type NotificationGroup = (typeof NOTIFICATION_GROUPS)[number];
+
+const GROUP_WHERE: Record<NotificationGroup, Prisma.NotificationWhereInput> = {
+  summary: { metadata: { path: ['kind'], equals: 'daily-summary' } },
+  sales: { type: { in: ['NEW_SALE', 'PAYMENT_RECEIVED', 'RETURN_PROCESSED', 'REGISTER_OPENED', 'REGISTER_CLOSED'] } },
+  online: { OR: [{ metadata: { path: ['kind'], equals: 'ONLINE_ORDER' } }, { link: { startsWith: '/online-orders' } }] },
+  stock: { OR: [{ type: 'LOW_STOCK' }, { link: { startsWith: '/transfers' } }, { link: { startsWith: '/low-stock' } }] },
+  alerts: { type: { in: ['WARNING', 'ERROR', 'CREDIT_ALERT', 'PAYMENT_REJECTED', 'SUBSCRIPTION_EXPIRING'] } },
+};
+
+export interface NotificationFeedQuery {
+  group?: NotificationGroup;
+  unreadOnly?: boolean;
+  /** Business days "YYYY-MM-DD". */
+  from?: string;
+  to?: string;
+  search?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export type BulkAction = 'read' | 'unread' | 'delete';
+
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clocks: TenantTimezoneService,
+  ) {}
 
   async registerPushToken(userId: string, token: string) {
     if (!token.startsWith('ExponentPushToken[') && !token.startsWith('ExpoPushToken[')) {
@@ -176,15 +213,79 @@ export class NotificationsService {
     return notification;
   }
 
-  async list(user: AuthenticatedUser) {
+  /** The viewer's own notifications and the business-wide ones. */
+  private mine(user: AuthenticatedUser): Prisma.NotificationWhereInput {
+    return { tenantId: user.tenantId, OR: [{ userId: user.id }, { userId: null }] };
+  }
+
+  /** Latest notifications (bell, mobile, offline cache). */
+  async list(user: AuthenticatedUser, opts: { limit?: number; unreadOnly?: boolean } = {}) {
     return this.prisma.notification.findMany({
-      where: {
-        tenantId: user.tenantId,
-        OR: [{ userId: user.id }, { userId: null }],
-      },
+      where: { ...this.mine(user), ...(opts.unreadOnly && { isRead: false }) },
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: Math.min(Math.max(opts.limit ?? 100, 1), 200),
     });
+  }
+
+  /** Notifications page: one page of the filtered list plus counts for the tabs. */
+  async feed(user: AuthenticatedUser, q: NotificationFeedQuery) {
+    const limit = Math.min(Math.max(q.limit ?? 50, 1), 200);
+    const needle = q.search?.trim();
+    const { tz, dayStartHour: h } = await this.clocks.clock(user.tenantId);
+    const dayStart = (key: string) => { const [y, m, d] = key.split('-').map(Number); return zonedToUtc(y, m, d, h, 0, 0, tz); };
+    const gte = q.from ? dayStart(q.from) : undefined;
+    const lt = q.to ? new Date(dayStart(q.to).getTime() + 86_400_000) : undefined;
+    const base: Prisma.NotificationWhereInput[] = [
+      this.mine(user),
+      ...(gte || lt ? [{ createdAt: { ...(gte && { gte }), ...(lt && { lt }) } }] : []),
+      ...(needle ? [{ OR: [{ title: { contains: needle, mode: 'insensitive' as const } }, { message: { contains: needle, mode: 'insensitive' as const } }] }] : []),
+    ];
+    const where: Prisma.NotificationWhereInput = {
+      AND: [...base, ...(q.group ? [GROUP_WHERE[q.group]] : []), ...(q.unreadOnly ? [{ isRead: false }] : [])],
+    };
+    const cursor = this.parseCursor(q.cursor);
+    const pageWhere: Prisma.NotificationWhereInput = cursor
+      ? { AND: [where, { OR: [{ createdAt: { lt: cursor.at } }, { createdAt: cursor.at, id: { lt: cursor.id } }] }] }
+      : where;
+
+    const [rows, total, all, unread, ...groups] = await Promise.all([
+      this.prisma.notification.findMany({ where: pageWhere, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: limit + 1 }),
+      this.prisma.notification.count({ where }),
+      this.prisma.notification.count({ where: { AND: base } }),
+      this.prisma.notification.count({ where: { AND: [...base, { isRead: false }] } }),
+      ...NOTIFICATION_GROUPS.map((g) => this.prisma.notification.count({ where: { AND: [...base, GROUP_WHERE[g], ...(q.unreadOnly ? [{ isRead: false }] : [])] } })),
+    ]);
+    const items = rows.slice(0, limit);
+    const last = items[items.length - 1];
+    return {
+      items,
+      nextCursor: rows.length > limit && last ? `${last.createdAt.toISOString()}_${last.id}` : null,
+      total,
+      counts: { all, unread, groups: Object.fromEntries(NOTIFICATION_GROUPS.map((g, i) => [g, groups[i]])) as Record<NotificationGroup, number> },
+    };
+  }
+
+  private parseCursor(raw?: string): { at: Date; id: string } | null {
+    if (!raw) return null;
+    const cut = raw.indexOf('_');
+    const at = new Date(raw.slice(0, cut));
+    const id = raw.slice(cut + 1);
+    if (cut < 0 || Number.isNaN(at.getTime()) || !id) throw new BadRequestException('Ghalat cursor');
+    return { at, id };
+  }
+
+  /** Read, unread or delete many at once; only the viewer's own and business-wide ones. */
+  async bulk(user: AuthenticatedUser, ids: string[], action: BulkAction) {
+    const where: Prisma.NotificationWhereInput = { AND: [this.mine(user), { id: { in: ids } }] };
+    if (action === 'delete') {
+      const r = await this.prisma.notification.deleteMany({ where });
+      return { count: r.count };
+    }
+    const r = await this.prisma.notification.updateMany({
+      where,
+      data: action === 'read' ? { isRead: true, readAt: new Date() } : { isRead: false, readAt: null },
+    });
+    return { count: r.count };
   }
 
   async unreadCount(user: AuthenticatedUser) {
@@ -200,8 +301,15 @@ export class NotificationsService {
 
   async markAsRead(user: AuthenticatedUser, id: string) {
     return this.prisma.notification.updateMany({
-      where: { id, tenantId: user.tenantId },
+      where: { AND: [this.mine(user), { id }] },
       data: { isRead: true, readAt: new Date() },
+    });
+  }
+
+  async markAsUnread(user: AuthenticatedUser, id: string) {
+    return this.prisma.notification.updateMany({
+      where: { AND: [this.mine(user), { id }] },
+      data: { isRead: false, readAt: null },
     });
   }
 
@@ -219,7 +327,7 @@ export class NotificationsService {
 
   async delete(user: AuthenticatedUser, id: string) {
     await this.prisma.notification.deleteMany({
-      where: { id, tenantId: user.tenantId },
+      where: { AND: [this.mine(user), { id }] },
     });
     return { message: 'Notification deleted' };
   }

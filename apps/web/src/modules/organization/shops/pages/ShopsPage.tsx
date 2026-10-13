@@ -1,699 +1,349 @@
-import { useState, useMemo } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Building2, Plus, Trash2, Star, MapPin, Phone, X, Edit3, Save, Wrench,
-  Search, Info, CheckCircle2, Globe, MessageCircle, Warehouse,
-  UserPlus, Mail, Lock, Eye, EyeOff, ShieldCheck, AlertCircle,
-  TrendingUp, Package, Activity, Sparkles,
-} from 'lucide-react';
-import { shopsApi, type Shop, type ShopType } from '@modules/organization/shops/api/shops.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { Button, Input } from '@/design-system/components';
-import { useAuthStore } from '@core/stores/auth.store';
-import { toast } from 'sonner';
+/**
+ * Branches: every shop, warehouse and godown with today's sales, the drawer,
+ * stock value and staff on duty; a table view for side-by-side numbers;
+ * switch a branch on/off, delete an unused one, print the list. Creating and
+ * editing open the branch form page.
+ *
+ * Keys: N new branch · / search · 1 cards · 2 table · A analytics · G guide.
+ */
 
-const shopTypeConfig: Record<ShopType, { label: string; icon: any; color: string; description: string }> = {
-  SHOP: { label: 'Retail Shop', icon: Building2, color: 'indigo', description: 'POS + sales + customers' },
-  WAREHOUSE: { label: 'Warehouse', icon: Warehouse, color: 'amber', description: 'Storage + transfers only' },
-  GODOWN: { label: 'Godown', icon: Package, color: 'violet', description: 'Backup storage' },
-};
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, Building2, CalendarClock, GraduationCap, LayoutGrid, ListFilter, Plus, Power,
+  Store, Table2, Trash2, Users, Wallet, Warehouse, Wrench,
+} from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, type FilterOption,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { cn } from '@core/lib/cn';
+import { MASK, useMasked } from '@modules/dashboard/engine/useMasked';
+import { productsApi } from '@modules/inventory/products/api/products.api';
+import { shopsApi, type Shop, type ShopAnalyticsRow, type ShopDeleteError, type ShopType } from '../api/shops.api';
+import { BranchCard } from '../components/BranchCard';
+import { SHOP_KEYS, SHOP_TYPES, apiError } from '../components/meta';
+
+type Tab = 'cards' | 'table';
+type TypeFilter = 'all' | ShopType;
+type StatusFilter = 'active' | 'off' | 'all';
+type Sort = 'main' | 'name' | 'sales' | 'stock';
+
+const TYPE_FILTERS: Array<FilterOption<TypeFilter>> = [
+  { value: 'all', label: 'Sab qisam' },
+  ...(Object.entries(SHOP_TYPES) as Array<[ShopType, (typeof SHOP_TYPES)[ShopType]]>).map(([value, t]) => ({ value, label: t.label, hint: t.hint, icon: t.icon, color: t.color })),
+];
+const STATUS_FILTERS: Array<FilterOption<StatusFilter>> = [
+  { value: 'active', label: 'Chalu branches' },
+  { value: 'off', label: 'Band branches' },
+  { value: 'all', label: 'Sab' },
+];
+const SORTS: Array<FilterOption<Sort>> = [
+  { value: 'main', label: 'Main pehle' },
+  { value: 'name', label: 'Naam (A–Z)' },
+  { value: 'sales', label: 'Aaj ki bikri' },
+  { value: 'stock', label: 'Stock value' },
+];
 
 export default function ShopsPage() {
-  const queryClient = useQueryClient();
-  const currentUser = useAuthStore((s) => s.user);
-  const isOwner = currentUser?.role === 'OWNER' || currentUser?.role === 'SUPER_ADMIN';
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const tenantName = useAuthStore((s) => s.tenant?.name);
+  const canManage = usePermission(PERMISSIONS.SHOPS_MANAGE);
+  const canMoney = usePermission(PERMISSIONS.REPORTS_VIEW);
+  const canFixStock = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const { sales: money, cost, costHidden } = useMasked();
 
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Shop | null>(null);
+  const [tab, setTab] = useState<Tab>('cards');
   const [search, setSearch] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [createManager, setCreateManager] = useState(false);
+  const [type, setType] = useState<TypeFilter>('all');
+  const [status, setStatus] = useState<StatusFilter>('active');
+  const [sort, setSort] = useState<Sort>('main');
+  const [confirmOff, setConfirmOff] = useState<Shop | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Shop | null>(null);
 
-  const [form, setForm] = useState({
-    name: '', address: '', phone: '', isMain: false,
-    type: 'SHOP' as ShopType,
-    managerName: '', managerEmail: '', managerPhone: '', managerPassword: '',
+  const listQ = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list });
+  const figQ = useQuery({ queryKey: ['shops-analytics'], queryFn: shopsApi.analytics, enabled: canMoney, refetchInterval: 60_000, retry: false });
+  const shops = useMemo(() => listQ.data ?? [], [listQ.data]);
+  const fig = figQ.data;
+  const figOf = useMemo(() => new Map<string, ShopAnalyticsRow>((fig?.shops ?? []).map((s) => [s.id, s])), [fig]);
+  const costOf = (n: number | undefined) => (fig?.costHidden || costHidden || n === undefined ? MASK : cost(n));
+
+  const refresh = () => SHOP_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const toggle = useMutation({
+    mutationFn: (s: Shop) => shopsApi.toggleActive(s.id),
+    onSuccess: (s) => { toast.success(s.isActive ? `${s.name} chalu ho gayi` : `${s.name} band ho gayi`); setConfirmOff(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Badal nahi saka')),
   });
 
-  const { data: shops = [] } = useQuery({
-    queryKey: ['shops'],
-    queryFn: shopsApi.list,
-  });
-
-  const { data: overview = [] } = useQuery({
-    queryKey: ['shops-overview'],
-    queryFn: shopsApi.overview,
-    enabled: isOwner,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: shopsApi.create,
-    onSuccess: (data: any) => {
-      if (data.manager) {
-        toast.success(`Shop + Manager created!`, {
-          description: `Manager: ${data.manager.fullName} (${data.manager.email})`,
+  const remove = useMutation({
+    mutationFn: (s: Shop) => shopsApi.remove(s.id),
+    onSuccess: (_r, s) => { toast.success(`${s.name} mita di gayi`); setConfirmDelete(null); refresh(); },
+    onError: (e, s) => {
+      setConfirmDelete(null);
+      const body = (e as { response?: { data?: { message?: ShopDeleteError | string } } })?.response?.data?.message;
+      if (!body || typeof body === 'string') return toast.error(body || 'Mita nahi saka');
+      if (body.code === 'HAS_FINANCIAL_HISTORY' || body.code === 'HAS_SALES_HISTORY') {
+        return toast.error('Is branch ka hisaab maujood hai', {
+          description: 'Record bachane ke liye branch mitti nahi — band kar dein. Purana hisaab reports me rahega.',
+          duration: 10000,
+          action: s.isActive ? { label: 'Band karein', onClick: () => setConfirmOff(s) } : undefined,
         });
-      } else {
-        toast.success('Shop added successfully');
       }
-      closeForm();
-      queryClient.invalidateQueries({ queryKey: ['shops'] });
-      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
-      queryClient.invalidateQueries({ queryKey: ['team'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-  const forceDeleteMutation = useMutation({
-    mutationFn: (id: string) => shopsApi.remove(id, true),
-    onSuccess: () => {
-      toast.success('Shop force-deleted with all history', {
-        description: 'Cascade delete complete',
-      });
-      queryClient.invalidateQueries({ queryKey: ['shops'] });
-      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
-    },
-    onError: (e: any) =>
-      toast.error(e?.response?.data?.message || 'Force delete failed'),
-  });
-
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => shopsApi.remove(id),
-    onSuccess: () => {
-      toast.success('Shop deleted');
-      queryClient.invalidateQueries({ queryKey: ['shops'] });
-      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
-    },
-    onError: (e: any) => {
-      const err = e?.response?.data?.message;
-      // Backend now returns structured errors
-      if (typeof err === 'object' && err?.code) {
-        const errObj = err as {
-          message: string;
-          code: string;
-          suggestion: string;
-          stats?: any;
-        };
-        switch (errObj.code) {
-          case 'MAIN_SHOP_PROTECTED':
-            toast.error(errObj.message, {
-              description: 'Kisi doosri shop ko Main banayein pehle.',
-              duration: 6000,
-            });
-            break;
-          case 'HAS_SALES_HISTORY':
-            toast.error(errObj.message || 'Cannot delete — has sales history', {
-              description: `${errObj.stats?.sales ?? 0} sales hain. Force Delete se sab kuch mit jayega (irreversible).`,
-              duration: 12000,
-              action: {
-                label: '⚠️ Force Delete',
-                onClick: () => {
-                  const shopId = deleteMutation.variables as string;
-                  if (!shopId) return;
-                  const c1 = confirm(`⚠️ DANGER: Ye ${errObj.stats?.sales ?? 0} sales, cash registers, transfers, aur ShopStock — sab kuch delete kar dega. Ye undo nahi ho sakta.\n\nContinue?`);
-                  if (!c1) return;
-                  const c2 = confirm('Bilkul sure? Ye demo/test cleanup ke liye hai. Production shops mein use MAT karein.');
-                  if (!c2) return;
-                  forceDeleteMutation.mutate(shopId);
-                },
-              },
-            });
-            break;
-          case 'HAS_PENDING_TRANSFERS':
-            toast.error(errObj.message, {
-              description: 'Pending transfers complete karein pehle.',
-              duration: 6000,
-              action: {
-                label: 'View Transfers',
-                onClick: () => (window.location.href = '/transfers'),
-              },
-            });
-            break;
-          case 'HAS_OPEN_REGISTER':
-            toast.error(errObj.message, {
-              description: 'Register close karke phir try karein.',
-              duration: 6000,
-              action: {
-                label: 'Open Register',
-                onClick: () => (window.location.href = '/cash-register'),
-              },
-            });
-            break;
-          default:
-            toast.error(errObj.message);
-        }
-      } else {
-        toast.error(typeof err === 'string' ? err : 'Cannot delete');
-      }
+      if (body.code === 'HAS_PENDING_TRANSFERS') return toast.error(body.message, { action: { label: 'Transfers', onClick: () => navigate('/transfers') } });
+      if (body.code === 'HAS_OPEN_REGISTER') return toast.error(body.message, { action: { label: 'Drawer', onClick: () => navigate('/cash-register') } });
+      toast.error(body.message);
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: any }) => shopsApi.update(id, payload),
-    onSuccess: () => {
-      toast.success('Shop updated successfully');
-      closeForm();
-      queryClient.invalidateQueries({ queryKey: ['shops'] });
-      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update failed'),
-  });
-
-  const toggleMutation = useMutation({
-    mutationFn: shopsApi.toggleActive,
-    onSuccess: () => {
-      toast.success('Status updated');
-      queryClient.invalidateQueries({ queryKey: ['shops'] });
-    },
-  });
-
-  const backfillMutation = useMutation({
+  const fixStock = useMutation({
     mutationFn: () => productsApi.backfillShopStock(),
-    onSuccess: (data: any) => {
-      toast.success(
-        `Multi-shop stock fixed!`,
-        {
-          description: `${data.productsProcessed} products × ${data.shopsProcessed} shops synced.`,
-          duration: 6000,
-        },
-      );
-      queryClient.invalidateQueries({ queryKey: ['products-for-pos'] });
-      queryClient.invalidateQueries({ queryKey: ['shops-overview'] });
+    onSuccess: (d: { productsProcessed: number; shopsProcessed: number }) => {
+      toast.success('Stock records poore ho gaye', { description: `${d.productsProcessed} cheezein × ${d.shopsProcessed} branches` });
+      refresh();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Backfill failed'),
+    onError: (e) => toast.error(apiError(e, 'Nahi ho saka')),
   });
 
+  const needle = search.trim().toLowerCase();
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return shops;
-    return shops.filter((s) =>
-      s.name.toLowerCase().includes(q) ||
-      (s.address || '').toLowerCase().includes(q) ||
-      (s.phone || '').toLowerCase().includes(q),
-    );
-  }, [shops, search]);
+    const list = shops.filter((s) =>
+      (type === 'all' || s.type === type)
+      && (status === 'all' || (status === 'active' ? s.isActive : !s.isActive))
+      && (!needle || `${s.name} ${s.address ?? ''} ${s.phone ?? ''}`.toLowerCase().includes(needle)));
+    const f = (s: Shop) => figOf.get(s.id);
+    return list.sort((a, b) => {
+      if (sort === 'name') return a.name.localeCompare(b.name);
+      if (sort === 'sales') return (f(b)?.todaySales ?? -1) - (f(a)?.todaySales ?? -1);
+      if (sort === 'stock') return (f(b)?.stockValue ?? f(b)?.stockRetailValue ?? -1) - (f(a)?.stockValue ?? f(a)?.stockRetailValue ?? -1);
+      return Number(b.isMain) - Number(a.isMain) || Number(b.isActive) - Number(a.isActive) || a.name.localeCompare(b.name);
+    });
+  }, [shops, type, status, needle, sort, figOf]);
+  const hasFilters = type !== 'all' || status !== 'active' || !!needle;
+  const clear = () => { setType('all'); setStatus('active'); setSearch(''); };
 
-  const stats = useMemo(() => {
-    return {
-      total: shops.length,
-      shops: shops.filter((s) => s.type === 'SHOP').length,
-      warehouses: shops.filter((s) => s.type === 'WAREHOUSE' || s.type === 'GODOWN').length,
-      hasMain: !!shops.find((s) => s.isMain),
+  const counts = useMemo(() => ({
+    active: shops.filter((s) => s.isActive).length,
+    stores: shops.filter((s) => s.isActive && s.type !== 'SHOP').length,
+    off: shops.filter((s) => !s.isActive).length,
+  }), [shops]);
+  const t = fig?.totals;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (k === 'n' && canManage) { e.preventDefault(); navigate('/shops/new'); }
+      if (k === '1') setTab('cards');
+      if (k === '2') setTab('table');
+      if (k === 'a') navigate('/shops/overview');
     };
-  }, [shops]);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage, navigate]);
 
-  const overviewMap = useMemo(() => {
-    const map: Record<string, any> = {};
-    overview.forEach((o) => { map[o.id] = o; });
-    return map;
-  }, [overview]);
+  const printDoc = (): PrintDoc => ({
+    title: 'Branches',
+    subtitle: new Date().toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+    meta: [['Branches', String(filtered.length)], ...(t ? [['Aaj ki bikri', money(t.todaySales)] as [string, string]] : [])],
+    sections: [{
+      kind: 'table',
+      columns: [
+        { label: 'Branch' }, { label: 'Qisam', wideOnly: true }, { label: 'Phone', wideOnly: true },
+        ...(fig ? [{ label: 'Aaj bikri', align: 'right' as const }, { label: 'Drawer', align: 'right' as const, wideOnly: true }, { label: 'Duty par', align: 'right' as const, wideOnly: true }] : []),
+      ],
+      rows: filtered.map((s) => {
+        const f = figOf.get(s.id);
+        return [
+          `${s.name}${s.isMain ? ' (Main)' : ''}${s.isActive ? '' : ' — band'}`, SHOP_TYPES[s.type].label, s.phone ?? '—',
+          ...(fig ? [f ? money(f.todaySales) : '—', f ? (f.registerOpen ? money(f.registerBalance) : 'Band') : '—', f ? `${f.staffOnDuty}/${f.staffCount}` : '—'] : []),
+        ];
+      }),
+    }],
+  });
 
-  const closeForm = () => {
-    setShowForm(false);
-    setEditing(null);
-    setCreateManager(false);
-    setForm({
-      name: '', address: '', phone: '', isMain: false, type: 'SHOP',
-      managerName: '', managerEmail: '', managerPhone: '', managerPassword: '',
-    });
-  };
-
-  const openCreate = () => {
-    if (!isOwner) {
-      toast.error('Sirf Owner shop create kar sakta hai');
-      return;
-    }
-    setEditing(null);
-    setForm({
-      name: '', address: '', phone: '', isMain: shops.length === 0, type: 'SHOP',
-      managerName: '', managerEmail: '', managerPhone: '', managerPassword: '',
-    });
-    setShowForm(true);
-  };
-
-  const openEdit = (shop: Shop) => {
-    if (!isOwner) {
-      toast.error('Sirf Owner shop edit kar sakta hai');
-      return;
-    }
-    setEditing(shop);
-    setCreateManager(false);
-    setForm({
-      name: shop.name,
-      address: shop.address || '',
-      phone: shop.phone || '',
-      isMain: shop.isMain,
-      type: shop.type,
-      managerName: '', managerEmail: '', managerPhone: '', managerPassword: '',
-    });
-    setShowForm(true);
-  };
-
-  const handleSubmit = () => {
-    if (!form.name.trim()) return toast.error('Shop name required');
-
-    const payload: any = {
-      name: form.name.trim(),
-      address: form.address.trim() || undefined,
-      phone: form.phone.trim() || undefined,
-      isMain: form.isMain,
-      type: form.type,
-    };
-
-    // EDIT MODE
-    if (editing) {
-      updateMutation.mutate({ id: editing.id, payload });
-      return;
-    }
-
-    // CREATE MODE (with optional manager)
-    if (createManager) {
-      if (!form.managerName.trim()) return toast.error('Manager name required');
-      if (!form.managerEmail.trim()) return toast.error('Manager email required');
-      if (form.managerPassword.length < 8) return toast.error('Password min 8 characters');
-      payload.managerName = form.managerName.trim();
-      payload.managerEmail = form.managerEmail.trim();
-      payload.managerPhone = form.managerPhone.trim() || undefined;
-      payload.managerPassword = form.managerPassword;
-    }
-
-    createMutation.mutate(payload);
-  };
-
+  const loading = listQ.isLoading;
   return (
-    <div className="space-y-6">
-      {/* Hero */}
-      <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-indigo-700 text-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-              <Building2 className="h-3.5 w-3.5 text-amber-300" /> Multi-Branch Setup
-            </div>
-            <h2 className="mt-3 text-3xl font-extrabold">Shops / Branches</h2>
-            <p className="mt-2 text-sm text-white/80">
-              Apni saari dukan branches, warehouses aur godowns ek hi software se manage karein.
-            </p>
-          </div>
-          {isOwner && (
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                onClick={() => {
-                  if (confirm('Ye sab shops mein missing ShopStock entries banayega. Continue?')) {
-                    backfillMutation.mutate();
-                  }
-                }}
-                loading={backfillMutation.isPending}
-                variant="secondary"
-                className="bg-white/15 backdrop-blur text-white hover:bg-white/25 border-white/20"
-                title="Fix ShopStock — safe to run anytime"
-              >
-                <Wrench className="h-4 w-4" /> Fix Multi-Shop Stock
-              </Button>
-              <Button onClick={openCreate} className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" /> New Shop / Warehouse
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Branches"
+        chip={<><Building2 />{counts.active} chalu{counts.off ? ` · ${counts.off} band` : ''}</>}
+        meta={tenantName}
+        busy={figQ.isFetching && !figQ.isLoading}
+        loading={canMoney && figQ.isLoading}
+        actions={<>
+          {canMoney && <PrivacyToggle compact />}
+          <Link to="/shops/overview" className={heroButton} title="Branch analytics (A)"><BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">Analytics</span></Link>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!filtered.length} /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <Link to="/shops/new" className={heroPrimaryButton} title="Nayi branch (N)"><Plus className="h-4 w-4" />Nayi branch</Link>}
+        </>}
+        stats={canMoney ? [
+          { label: 'Aaj ki bikri · sab branches', value: t ? money(t.todaySales) : '', hint: t ? `${t.todayOrders} bill` : undefined },
+          { label: 'Drawers me cash', value: t ? money(t.drawerCash) : '', hint: t ? `${t.registersOpen} khule` : undefined },
+          { label: 'Stock (lagat)', value: t ? costOf(t.stockValue) : '' },
+          { label: 'Duty par', value: t ? `${t.staffOnDuty} / ${t.staffCount}` : '' },
+        ] : undefined}
+      />
 
-      {/* Stats */}
-      <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Total Locations" value={stats.total} icon={Globe} color="indigo" />
-        <StatCard label="Retail Shops" value={stats.shops} icon={Building2} color="emerald" />
-        <StatCard label="Warehouses" value={stats.warehouses} icon={Warehouse} color="amber" />
-        <StatCard label="Main Branch" value={stats.hasMain ? 'Set ✓' : 'Not Set ⚠'} icon={Star} color="violet" isText />
-      </section>
+      <KpiRow>
+        {loading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Store} color="#2563eb" label="Dukaanein" value={String(shops.filter((s) => s.isActive && s.type === 'SHOP').length)} hint="POS wali branches"
+              onClick={() => setType(type === 'SHOP' ? 'all' : 'SHOP')} active={type === 'SHOP'} />
+            <KpiCard icon={Warehouse} color="#d97706" label="Store / godown" value={String(counts.stores)} hint="Sirf maal rakhne ke liye"
+              onClick={() => setType(type === 'WAREHOUSE' ? 'all' : 'WAREHOUSE')} active={type === 'WAREHOUSE'} />
+            <KpiCard icon={Wallet} color="#16a34a" label="Drawer khule" value={t ? `${t.registersOpen} / ${shops.filter((s) => s.isActive && s.type === 'SHOP').length}` : '—'} hint={t ? 'Aaj kitni dukaanein chal rahi hain' : 'Reports ki ijazat chahiye'} />
+            <KpiCard icon={AlertTriangle} color="#ea580c" label="Stock kam" value={t ? String(t.lowStockCount) : '—'} hint="Sab branches milakar · dabayein"
+              onClick={t ? () => navigate('/low-stock') : undefined} />
+            <KpiCard icon={Power} color="#64748b" label="Band branches" value={String(counts.off)} hint={counts.off ? 'Dekhne ke liye dabayein' : 'Koi nahi'}
+              onClick={() => setStatus(status === 'off' ? 'active' : 'off')} active={status === 'off'} />
+          </>
+        )}
+      </KpiRow>
 
-      {/* Info banner */}
-      <div className="rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-blue-50 border-2 border-indigo-200 p-5">
-        <div className="flex items-start gap-3">
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center shadow-lg shrink-0">
-            <Info className="h-5 w-5" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-extrabold text-indigo-900 text-lg">Multi-Shop Setup Guide</h3>
-            <p className="text-sm text-slate-700 mt-1">
-              Har shop ka apna stock, cash register, staff aur reports — sab automatic track hota hai.
-            </p>
-            <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs">
-              {[
-                { icon: '🏪', text: 'Retail Shop — POS + sales' },
-                { icon: '🏬', text: 'Warehouse — central storage' },
-                { icon: '🔄', text: 'Stock transfer between shops' },
-                { icon: '👤', text: 'Manager per shop with limited access' },
-                { icon: '📊', text: 'Owner sees global dashboard' },
-                { icon: '💰', text: 'Cash register per shop' },
-              ].map((item, i) => (
-                <div key={i} className="bg-white rounded-lg p-2 border border-indigo-100 inline-flex items-center gap-2">
-                  <span className="text-base">{item.icon}</span>
-                  <span className="font-bold text-slate-700">{item.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Branch ka naam, pata ya phone…" label="Branch dhoondein" />}
+        chips={hasFilters ? <>
+          {type !== 'all' && <FilterChip onRemove={() => setType('all')}>{SHOP_TYPES[type].label}</FilterChip>}
+          {status !== 'active' && <FilterChip onRemove={() => setStatus('active')}>{STATUS_FILTERS.find((x) => x.value === status)?.label}</FilterChip>}
+          {needle && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <FilterMenu icon={Building2} label="Qisam" value={type} active={type !== 'all'} options={TYPE_FILTERS} onChange={setType} />
+        <FilterMenu icon={ListFilter} label="Haal" value={status} active={status !== 'active'} options={STATUS_FILTERS} onChange={setStatus} />
+        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />
+      </FilterBar>
 
-      {/* Search */}
-      {shops.length > 0 && (
-        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-4">
-          <div className="relative">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              className="h-11 w-full rounded-xl border border-slate-200 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Search shops..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                <X className="h-4 w-4 text-slate-400" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> <Kbd>2</Kbd> se badlein</>}
+        tabs={[{ id: 'cards', label: 'Cards', icon: LayoutGrid, count: filtered.length }, { id: 'table', label: 'Table', icon: Table2 }]} />
 
-      {/* Shops Grid */}
-      {filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-200 p-16 text-center">
-          <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center">
-            <Building2 className="h-9 w-9 text-indigo-600" />
-          </div>
-          <h3 className="mt-5 text-xl font-bold text-slate-900">
-            {search ? 'No matches' : 'No shops yet'}
-          </h3>
-          <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
-            {search ? 'Try different search' : 'Apni first shop add karein.'}
-          </p>
-          {!search && isOwner && (
-            <Button onClick={openCreate} className="mt-5">
-              <Plus className="h-4 w-4" /> Add First Shop
-            </Button>
-          )}
+      {loading ? (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-72 rounded-3xl" />)}</div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><Building2 className="h-7 w-7" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{hasFilters ? 'Is filter me koi branch nahi' : 'Abhi koi branch nahi'}</h3>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{hasFilters ? 'Filter badal kar dekhein' : 'Pehli dukaan ya store banayein — har branch ka apna stock, drawer aur staff hota hai.'}</p>
+          <div className="mt-4">{hasFilters ? <Button variant="secondary" onClick={clear}>Filter hatayein</Button> : canManage && <Button onClick={() => navigate('/shops/new')}><Plus className="h-4 w-4" />Nayi branch</Button>}</div>
         </div>
+      ) : tab === 'cards' ? (
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((s) => (
+            <BranchCard key={s.id} shop={s} f={figOf.get(s.id)} money={money} cost={costOf} canManage={canManage}
+              onToggle={() => (s.isActive ? setConfirmOff(s) : toggle.mutate(s))} onDelete={() => setConfirmDelete(s)} />
+          ))}
+        </ul>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((shop) => {
-            const typeCfg = shopTypeConfig[shop.type];
-            const TypeIcon = typeCfg.icon;
-            const stats = overviewMap[shop.id];
-
-            return (
-              <div
-                key={shop.id}
-                className={`group rounded-3xl border-2 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden ${
-                  shop.isMain
-                    ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-amber-300'
-                    : 'bg-white border-slate-200 hover:border-indigo-300'
-                }`}
-              >
-                {shop.isMain && (
-                  <div className="absolute top-0 right-0 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[0.6875rem] font-extrabold rounded-bl-2xl inline-flex items-center gap-1 shadow">
-                    <Star className="h-3 w-3 fill-white" /> MAIN
-                  </div>
-                )}
-
-                <div className="flex items-start gap-3">
-                  <div className={`h-14 w-14 rounded-2xl text-white flex items-center justify-center shadow-lg shrink-0 ${
-                    shop.isMain
-                      ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30'
-                      : `bg-gradient-to-br from-${typeCfg.color}-500 to-${typeCfg.color}-700`
-                  }`}>
-                    <TypeIcon className="h-7 w-7" />
-                  </div>
-                  <div className="flex-1 min-w-0 pt-1">
-                    <h4 className="text-lg font-extrabold text-slate-900 truncate">{shop.name}</h4>
-                    <div className="flex items-center gap-1 mt-1 flex-wrap">
-                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.6875rem] font-bold">
-                        {typeCfg.label}
-                      </span>
-                      {!shop.isActive && (
-                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-bold">
-                          INACTIVE
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  {shop.address && (
-                    <div className="flex items-start gap-2 text-sm text-slate-700">
-                      <MapPin className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                      <span className="font-semibold">{shop.address}</span>
-                    </div>
-                  )}
-                  {shop.phone && (
-                    <div className="flex items-center gap-2 text-sm text-slate-700">
-                      <Phone className="h-4 w-4 text-blue-600 shrink-0" />
-                      <a href={`tel:${shop.phone}`} className="font-semibold hover:text-blue-700">
-                        {shop.phone}
-                      </a>
-                    </div>
-                  )}
-                </div>
-
-                {/* Today's stats (Owner only) */}
-                {stats && isOwner && (
-                  <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-3 gap-2 text-center">
-                    <div>
-                      <div className="text-[0.625rem] font-bold text-slate-500 uppercase">Today</div>
-                      <div className="text-sm font-extrabold text-emerald-700">Rs {stats.todaySales.toLocaleString('en-PK')}</div>
-                    </div>
-                    <div>
-                      <div className="text-[0.625rem] font-bold text-slate-500 uppercase">Orders</div>
-                      <div className="text-sm font-extrabold text-slate-900">{stats.todayOrders}</div>
-                    </div>
-                    <div>
-                      <div className="text-[0.625rem] font-bold text-slate-500 uppercase">Low Stock</div>
-                      <div className={`text-sm font-extrabold ${stats.lowStockCount > 0 ? 'text-amber-700' : 'text-slate-400'}`}>
-                        {stats.lowStockCount}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Footer counts */}
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[0.6875rem]">
-                  <div className="flex items-center gap-3 text-slate-600">
-                    {shop._count?.users !== undefined && (
-                      <span className="inline-flex items-center gap-1 font-bold">
-                        <ShieldCheck className="h-3 w-3" /> {shop._count.users} staff
-                      </span>
-                    )}
-                    {stats?.registerOpen && (
-                      <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
-                        <Activity className="h-3 w-3" /> Register Open
-                      </span>
-                    )}
-                  </div>
-                  {isOwner && (
-                    <div className="flex items-center gap-1">
-                      {shop.phone && (
-                        <a
-                          href={`https://wa.me/${shop.phone.replace(/[^0-9]/g, '').replace(/^0/, '92')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="h-7 w-7 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 flex items-center justify-center"
-                          title="WhatsApp"
-                        >
-                          <MessageCircle className="h-3.5 w-3.5" />
-                        </a>
-                      )}
-                      <button
-                        onClick={() => openEdit(shop)}
-                        className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 flex items-center justify-center transition"
-                        title="Edit"
-                      >
-                        <Edit3 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => toggleMutation.mutate(shop.id)}
-                        className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-amber-100 hover:text-amber-700 flex items-center justify-center transition"
-                        title={shop.isActive ? 'Deactivate' : 'Activate'}
-                      >
-                        {shop.isActive ? '🟢' : '🔴'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Delete "${shop.name}"?`)) deleteMutation.mutate(shop.id);
-                        }}
-                        className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-rose-100 hover:text-rose-700 flex items-center justify-center transition"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <BranchTable shops={filtered} figOf={figOf} money={money} cost={costOf} showMoney={!!fig} />
       )}
 
-      {/* CREATE MODAL */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-br from-indigo-50 to-blue-50">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow">
-                  <Building2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-xl text-slate-900">
-                    {editing ? `Edit: ${editing.name}` : 'New Shop / Warehouse'}
-                  </h3>
-                  <p className="text-xs text-slate-600">
-                    {editing ? 'Update shop details' : 'Add location with optional manager'}
-                  </p>
-                </div>
-              </div>
-              <button onClick={closeForm} className="rounded-lg p-2 hover:bg-white">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      {canMoney && figQ.isError && <p className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Aaj ke number load nahi hue — internet check karein. Branches ki list neeche theek hai.</p>}
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              {/* Type selector */}
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Location Type</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(Object.entries(shopTypeConfig) as [ShopType, any][]).map(([type, cfg]) => {
-                    const Icon = cfg.icon;
-                    const active = form.type === type;
-                    return (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setForm({ ...form, type })}
-                        className={`p-3 rounded-xl border-2 transition text-center ${
-                          active ? `border-${cfg.color}-500 bg-${cfg.color}-50` : 'border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        <Icon className={`h-6 w-6 mx-auto mb-1 ${active ? `text-${cfg.color}-600` : 'text-slate-400'}`} />
-                        <div className="text-sm font-extrabold text-slate-900">{cfg.label}</div>
-                        <div className="text-[0.6875rem] text-slate-500 font-semibold">{cfg.description}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <Input label="Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Hassan Carpets — Civil Lines" />
-              <Input label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Shop #, Street, City" />
-              <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+923001234567" />
-
-              <label className={`flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition ${
-                form.isMain ? 'border-amber-300 bg-amber-50' : 'border-slate-200 hover:border-amber-200'
-              }`}>
-                <div className="flex items-center gap-3">
-                  <Star className={`h-5 w-5 ${form.isMain ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
-                  <div>
-                    <div className="font-extrabold text-slate-900 text-sm">Set as Main Branch</div>
-                    <div className="text-xs text-slate-500">Default shop for new sales</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={form.isMain}
-                  onChange={(e) => setForm({ ...form, isMain: e.target.checked })}
-                  className="h-5 w-5 rounded"
-                />
-              </label>
-
-              {/* Manager section — only in create mode */}
-              {!editing && (
-              <div className="rounded-2xl border-2 border-violet-200 bg-violet-50/50 overflow-hidden">
-                <label className="flex items-center justify-between p-3 cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow">
-                      <UserPlus className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="font-extrabold text-violet-900 text-sm">Create Manager Account</div>
-                      <div className="text-xs text-violet-700">Auto-assigns to this shop</div>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={createManager}
-                    onChange={(e) => setCreateManager(e.target.checked)}
-                    className="h-5 w-5 rounded"
-                  />
-                </label>
-
-                {createManager && (
-                  <div className="border-t border-violet-200 p-3 space-y-3 bg-white">
-                    <Input label="Manager Name *" value={form.managerName} onChange={(e) => setForm({ ...form, managerName: e.target.value })} placeholder="Ahmad Ali" />
-                    <Input label="Manager Email *" type="email" value={form.managerEmail} onChange={(e) => setForm({ ...form, managerEmail: e.target.value })} placeholder="manager@yourshop.pk" />
-                    <Input label="Manager Phone" value={form.managerPhone} onChange={(e) => setForm({ ...form, managerPhone: e.target.value })} placeholder="+923001234567" />
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">Password *</label>
-                      <div className="relative">
-                        <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={form.managerPassword}
-                          onChange={(e) => setForm({ ...form, managerPassword: e.target.value })}
-                          placeholder="Min 8 characters"
-                          className="h-11 w-full rounded-xl border border-slate-200 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30"
-                        />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-2 text-xs">
-                      <AlertCircle className="h-3.5 w-3.5 text-amber-700 mt-0.5 shrink-0" />
-                      <span className="text-amber-900">Manager ko yeh credentials WhatsApp/Email pe send karein. Woh first login pe password change kar sakta hai.</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              )}
-            </div>
-
-            <div className="px-5 py-4 border-t border-slate-200 bg-slate-50 flex gap-2 justify-end">
-              <Button variant="secondary" onClick={closeForm}>Cancel</Button>
-              <Button
-                onClick={handleSubmit}
-                loading={createMutation.isPending || updateMutation.isPending}
-                className="bg-indigo-600 hover:bg-indigo-700"
-              >
-                <Save className="h-4 w-4" />
-                {editing ? 'Update Shop' : createManager ? 'Create Shop + Manager' : 'Create Shop'}
-              </Button>
-            </div>
-          </div>
-        </div>
+      {confirmOff && (
+        <Modal open onClose={() => setConfirmOff(null)} size="sm" title={`${confirmOff.name} band karein?`}
+          description="Band branch me POS se bikri nahi hogi aur woh branch chunne ki list me nahi aayegi. Purana hisaab, stock aur reports waise hi rahenge. Baad me dobara chalu kar sakte hain."
+          footer={<><Button variant="secondary" onClick={() => setConfirmOff(null)}>Rehne dein</Button><Button variant="danger" loading={toggle.isPending} onClick={() => toggle.mutate(confirmOff)}><Power className="h-4 w-4" />Band karein</Button></>}>
+          {figOf.get(confirmOff.id)?.registerOpen && <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Is branch ka drawer abhi khula hai. Pehle drawer band kar lein.</p>}
+        </Modal>
       )}
+      {confirmDelete && (
+        <Modal open onClose={() => setConfirmDelete(null)} size="sm" title={`${confirmDelete.name} mitayein?`}
+          description="Sirf woh branch mit sakti hai jis me koi bikri, kharid, kharcha ya khata nahi. Jis ka hisaab hai use band karein — record save rehta hai."
+          footer={<><Button variant="secondary" onClick={() => setConfirmDelete(null)}>Rehne dein</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate(confirmDelete)}><Trash2 className="h-4 w-4" />Mitayein</Button></>}>
+          <p className="text-[0.8125rem] text-slate-600">Is branch ke stock ke khali record aur band drawer bhi mit jayenge. Staff ka login rahega, bas branch se hat jayega.</p>
+        </Modal>
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Branches — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Nayi branch', text: 'Dukaan, warehouse ya godown banayein. Dukaan me POS aur drawer hota hai; store me sirf maal rakha jata hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Aaj ka haal', text: 'Har card par aaj ki bikri, drawer me kitna cash hai, stock ki value aur kaun duty par hai.' },
+            { icon: Boxes, color: '#d97706', title: 'Stock', text: 'Nayi branch khali shuru hoti hai. Maal Transfers se bhejein ya Kharid me is branch ko chunein.' },
+            { icon: Users, color: '#7c3aed', title: 'Staff', text: 'Branch banate waqt manager ka login de sakte hain. Baqi staff Staff ke page se is branch me lagayein.' },
+            { icon: Power, color: '#64748b', title: 'Band karna', text: 'Jo branch band ho gayi use mitayein nahi, band karein — purana hisaab reports me rehta hai.' },
+            { icon: BarChart3, color: '#db2777', title: 'Muqabla', text: '"Analytics" me kisi bhi muddat ke liye branches ka muqabla, trend aur rush time.' },
+          ]}
+          tips={[
+            'Card ke number har minute khud taaza hote hain.',
+            'Main branch wohi hai jo naye account me pehle se chuni hoti hai. Main badalne ke liye doosri branch edit karke "Main branch" on karein.',
+            'Stock ki value lagat par hai — lagat dekhne ki ijazat na ho to chhupi rehti hai.',
+          ]}
+          shortcuts={[['N', 'nayi branch'], ['/', 'dhoondein'], ['1', 'cards'], ['2', 'table'], ['A', 'analytics'], ['G', 'guide']]}
+          footer={canFixStock ? (
+            <Button size="sm" variant="secondary" loading={fixStock.isPending} onClick={() => fixStock.mutate()}
+              title="Kisi branch me koi cheez nazar na aaye to — sirf khali record jorta hai, kuch mitata nahi"><Wrench className="h-4 w-4" />Stock records poore karein</Button>
+          ) : undefined}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function BranchTable({ shops, figOf, money, cost, showMoney }: {
+  shops: Shop[];
+  figOf: Map<string, ShopAnalyticsRow>;
+  money: (n: number) => string;
+  cost: (n: number | undefined) => string;
+  showMoney: boolean;
+}) {
+  const head = ['Branch', ...(showMoney ? ['Aaj', 'Bill', 'Is mahine', 'Drawer', 'Stock (lagat)', 'Kam stock', 'Udhaar', 'Duty par'] : ['Qisam', 'Login', 'Stock records'])];
+  return (
+    <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[44rem] text-[0.8125rem]">
+          <thead className="bg-slate-50/70 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+            <tr>{head.map((h, i) => <th key={h} className={cn('px-3 py-2.5', i === 0 ? 'pl-5 text-left' : 'text-right')}>{h}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {shops.map((s) => {
+              const f = figOf.get(s.id);
+              const T = SHOP_TYPES[s.type];
+              return (
+                <tr key={s.id} className="hover:bg-slate-50/60">
+                  <td className="py-2.5 pl-5 pr-3">
+                    <Link to={`/shops/${s.id}/edit`} className="flex min-w-0 items-center gap-2 font-semibold text-slate-900 hover:text-brand-700">
+                      <T.icon className="h-4 w-4 shrink-0" style={{ color: T.color }} /><span className="truncate">{s.name}</span>
+                      {s.isMain && <span className="rounded bg-amber-50 px-1.5 text-[0.625rem] font-bold text-amber-800">MAIN</span>}
+                      {!s.isActive && <span className="rounded bg-slate-100 px-1.5 text-[0.625rem] font-bold text-slate-600">BAND</span>}
+                    </Link>
+                  </td>
+                  {showMoney ? (
+                    f ? <>
+                      <Num>{money(f.todaySales)}</Num><Num>{f.todayOrders}</Num><Num strong>{money(f.monthSales)}</Num>
+                      <Num>{f.registerOpen ? money(f.registerBalance) : <span className="text-slate-400">Band</span>}</Num>
+                      <Num>{cost(f.stockValue)}</Num>
+                      <Num>{f.lowStockCount > 0 ? <span className="font-semibold text-amber-700">{f.lowStockCount}</span> : <span className="text-slate-400">0</span>}</Num>
+                      <Num>{money(f.outstandingCredit)}</Num><Num>{f.staffOnDuty}/{f.staffCount}</Num>
+                    </> : <td colSpan={8} className="px-3 py-2.5 text-right text-slate-400">{s.isActive ? '—' : 'Band branch'}</td>
+                  ) : <>
+                    <Num>{T.label}</Num><Num>{s._count?.users ?? 0}</Num><Num>{s._count?.shopStocks ?? 0}</Num>
+                  </>}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {showMoney && <p className="flex items-center gap-1.5 border-t border-slate-100 px-5 py-2.5 text-[0.75rem] text-slate-500"><CalendarClock className="h-3.5 w-3.5" />Bikri wapsi ghata kar · drawer ka cash abhi tak ka</p>}
     </div>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, isText }: any) {
-  const colors: any = {
-    indigo: 'from-indigo-500 to-indigo-700 shadow-indigo-500/30',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/30',
-    amber: 'from-amber-500 to-amber-700 shadow-amber-500/30',
-    violet: 'from-violet-500 to-violet-700 shadow-violet-500/30',
-  };
-  return (
-    <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className={`mt-2 font-extrabold text-slate-900 ${isText ? 'text-lg' : 'text-2xl'}`}>{value}</div>
-        </div>
-        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0 ml-2`}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
+function Num({ children, strong }: { children: ReactNode; strong?: boolean }) {
+  return <td className={cn('whitespace-nowrap px-3 py-2.5 text-right tabular-nums', strong ? 'font-semibold text-slate-900' : 'text-slate-600')}>{children}</td>;
 }

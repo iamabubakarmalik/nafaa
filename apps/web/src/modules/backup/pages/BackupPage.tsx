@@ -1,294 +1,203 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+/**
+ * Backup: one JSON file with all the business records, what it holds, when
+ * the last one was taken, and a history of backups and file exports. Owner
+ * only. Nothing on this page changes or removes data.
+ *
+ * Keys: D download · 1-2 tabs · G guide.
+ */
+
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Database, Download, ShieldCheck, Clock, HardDrive, AlertTriangle,
-  CheckCircle2, Cloud, Loader2, Calendar, Package, Users, Truck, Wallet,
-  Receipt, BookOpen, ShoppingCart, BarChart3, Sparkles, Info, Building2,
-  CalendarClock, FileText, FolderArchive, RotateCcw,
+  ArrowLeftRight, BookOpen, Building2, CheckCircle2, Cloud, Database, Download, FileSpreadsheet, FolderTree, GraduationCap,
+  History, Lock, Package, Receipt, ShieldCheck, ShoppingCart, Truck, Users, Wallet, type LucideIcon,
 } from 'lucide-react';
-import { backupApi } from '@modules/backup/api/backup.api';
-import { Button } from '@/design-system/components';
-import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
+import {
+  Alert, Button, Card, EmptyState, Kbd, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { backupApi, type BackupSummary } from '../api/backup.api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+type CountKey = keyof BackupSummary['counts'];
+const TABLES: Array<{ key: CountKey; label: string; icon: LucideIcon; color: string }> = [
+  { key: 'sales', label: 'Bikri ke bill', icon: ShoppingCart, color: '#16a34a' },
+  { key: 'products', label: 'Products', icon: Package, color: '#2563eb' },
+  { key: 'customers', label: 'Customers', icon: Users, color: '#db2777' },
+  { key: 'khataEntries', label: 'Khata entries', icon: BookOpen, color: '#7c3aed' },
+  { key: 'purchases', label: 'Kharidari', icon: Receipt, color: '#d97706' },
+  { key: 'suppliers', label: 'Suppliers', icon: Truck, color: '#ea580c' },
+  { key: 'expenses', label: 'Kharche', icon: Wallet, color: '#e11d48' },
+  { key: 'stockMovements', label: 'Stock entries', icon: ArrowLeftRight, color: '#0891b2' },
+  { key: 'categories', label: 'Categories', icon: FolderTree, color: '#65a30d' },
+  { key: 'cashRegisters', label: 'Drawer ke din', icon: Wallet, color: '#0d9488' },
+  { key: 'transfers', label: 'Stock transfers', icon: Truck, color: '#0284c7' },
+  { key: 'shops', label: 'Branches', icon: Building2, color: '#475569' },
+];
 
-const STAT_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
-  shops: { label: 'Shops', icon: Building2, color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-200' },
-  categories: { label: 'Categories', icon: FolderArchive, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  products: { label: 'Products', icon: Package, color: 'text-violet-700', bg: 'bg-violet-50 border-violet-200' },
-  customers: { label: 'Customers', icon: Users, color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
-  suppliers: { label: 'Suppliers', icon: Truck, color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200' },
-  sales: { label: 'Sales', icon: Receipt, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  purchases: { label: 'Purchases', icon: ShoppingCart, color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
-  expenses: { label: 'Expenses', icon: Wallet, color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
-  stockMovements: { label: 'Stock Moves', icon: BarChart3, color: 'text-cyan-700', bg: 'bg-cyan-50 border-cyan-200' },
-  cashRegisters: { label: 'Cash Sessions', icon: Wallet, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  transfers: { label: 'Transfers', icon: Truck, color: 'text-sky-700', bg: 'bg-sky-50 border-sky-200' },
-};
+const when = (v: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
+const daysSince = (v: string) => Math.floor((Date.now() - new Date(v).getTime()) / 86_400_000);
+const n = (v?: number) => (v ?? 0).toLocaleString('en-PK');
 
 export default function BackupPage() {
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const [downloading, setDownloading] = useState(false);
-  const [lastBackupAt, setLastBackupAt] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('nafaa.last-backup-at');
-    } catch {
-      return null;
-    }
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const [tab, setTab] = useState<'backup' | 'history'>('backup');
+  const summary = useQuery({ queryKey: ['backup-summary'], queryFn: backupApi.summary });
+  const history = useQuery({ queryKey: ['backup-history'], queryFn: backupApi.history });
+
+  const download = useMutation({
+    mutationFn: backupApi.download,
+    onMutate: () => toast.info('Backup tayyar ho raha hai…', { description: 'Bara karobar ho to thora waqt lagta hai' }),
+    onSuccess: (bytes) => {
+      toast.success('Backup download ho gaya', { description: `${(bytes / 1024 / 1024).toFixed(2)} MB — ab ise Drive ya email me rakh dein` });
+      qc.invalidateQueries({ queryKey: ['backup-summary'] });
+      qc.invalidateQueries({ queryKey: ['backup-history'] });
+    },
+    onError: () => toast.error('Backup nahi bana — internet check karke dobara koshish karein'),
   });
 
-  const { data: summary, isLoading, refetch } = useQuery({
-    queryKey: ['backup-summary'],
-    queryFn: backupApi.summary,
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'd' || e.key === 'D') && !download.isPending) { e.preventDefault(); download.mutate(); }
+      if (e.key === '1') setTab('backup');
+      if (e.key === '2') setTab('history');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
-  const handleDownload = async () => {
-    setDownloading(true);
-    try {
-      toast.info('Backup taiyar ho rahi hai...', { description: 'Yeh kuch seconds lega' });
-      const res = await fetch(`${API_URL}/backup/download`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (!res.ok) throw new Error('Backup failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `nafaa-backup-${new Date().toISOString().slice(0, 10)}-${Date.now()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-
-      const now = new Date().toISOString();
-      try { localStorage.setItem('nafaa.last-backup-at', now); } catch {}
-      setLastBackupAt(now);
-
-      const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-      toast.success('Backup downloaded successfully', { description: `Size: ${sizeMB} MB` });
-    } catch (e: any) {
-      toast.error(e?.message || 'Backup download fail');
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const stats = summary?.counts || {};
-  const totalEntries = Object.values(stats).reduce((s: number, v: any) => s + (v || 0), 0);
-
-  const daysSinceLastBackup = lastBackupAt
-    ? Math.floor((Date.now() - new Date(lastBackupAt).getTime()) / (1000 * 60 * 60 * 24))
-    : null;
-
-  const backupStatus = !lastBackupAt
-    ? { status: 'none', label: 'Never backed up', color: 'rose', icon: AlertTriangle }
-    : daysSinceLastBackup === 0
-    ? { status: 'fresh', label: 'Backed up today', color: 'emerald', icon: CheckCircle2 }
-    : daysSinceLastBackup! < 7
-    ? { status: 'recent', label: `${daysSinceLastBackup} days ago`, color: 'blue', icon: Clock }
-    : daysSinceLastBackup! < 30
-    ? { status: 'old', label: `${daysSinceLastBackup} days ago`, color: 'amber', icon: AlertTriangle }
-    : { status: 'critical', label: `${daysSinceLastBackup} days ago`, color: 'rose', icon: AlertTriangle };
-
-  const StatusIcon = backupStatus.icon;
+  const s = summary.data;
+  const total = s ? Object.values(s.counts).reduce((a, b) => a + (b ?? 0), 0) : 0;
+  const last = s?.lastBackup ?? null;
+  const age = last ? daysSince(last.at) : null;
+  const status = age == null ? { label: 'Kabhi nahi liya', tone: 'danger' as const }
+    : age === 0 ? { label: 'Aaj liya', tone: 'success' as const }
+    : age < 7 ? { label: `${age} din pehle`, tone: 'success' as const }
+    : { label: `${age} din pehle`, tone: age < 30 ? 'warning' as const : 'danger' as const };
+  const log = history.data ?? [];
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-purple-900 to-purple-700 text-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-              <ShieldCheck className="h-3.5 w-3.5 text-amber-300" /> Data Safety
-            </div>
-            <h2 className="mt-3 text-3xl font-extrabold">Backup & Restore</h2>
-            <p className="mt-2 text-sm text-white/80">
-              Apna saara business data ek file mein safe karein — products, sales, customers, sab kuch.
-            </p>
-          </div>
-          <Button
-            size="lg"
-            onClick={handleDownload}
-            loading={downloading}
-            className="bg-white text-slate-900 hover:bg-slate-100"
-          >
-            {downloading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Preparing...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Download Backup
-              </>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Backup — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Download, color: '#2563eb', title: 'Download karein', text: '"Backup download" ya D dabayein. Saara data ek file me aa jata hai.' },
+            { icon: Cloud, color: '#16a34a', title: 'Mehfooz jagah rakhein', text: 'File Google Drive, email ya USB me rakhein — sirf is computer par nahi.' },
+            { icon: History, color: '#7c3aed', title: 'Record dekhein', text: 'History tab me har backup aur Excel file ka waqt aur nikaalne wale ka naam.' },
+            { icon: FileSpreadsheet, color: '#d97706', title: 'Excel chahiye?', text: 'Accountant ke liye Exports page se alag alag Excel files nikaalein.' },
+          ]}
+          tips={['Har hafte ek backup lein. 7 din se purana ho to ye page yaad dilata hai.', 'File me customers aur hisaab hai — sirf bharose wale ke paas rakhein.']}
+          shortcuts={[['D', 'download'], ['1-2', 'tabs'], ['G', 'guide']]} />
+      )}
+
+      <PageHero
+        title="Backup"
+        chip={<><ShieldCheck />{status.label}</>}
+        meta="Poore karobar ka data ek file me — sirf malik ke liye"
+        loading={summary.isLoading}
+        busy={summary.isFetching && !summary.isLoading}
+        actions={<>
+          <button type="button" onClick={() => download.mutate()} disabled={download.isPending} title="Download (D)" className={heroPrimaryButton}>
+            <Download className="h-4 w-4" />{download.isPending ? 'Ban raha hai…' : 'Backup download'}
+          </button>
+          <button type="button" onClick={guide.open} aria-label="Guide" title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Kul records', value: n(total) },
+          { label: 'Aakhri backup', value: last ? when(last.at) : 'Kabhi nahi', hint: last?.by ?? undefined },
+          { label: 'Bikri ke bill', value: n(s?.counts.sales) },
+        ]}
+      />
+
+      <KpiRow>
+        {summary.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : TABLES.slice(0, 5).map((t) => (
+          <KpiCard key={t.key} icon={t.icon} color={t.color} label={t.label} value={n(s?.counts[t.key])} />
+        ))}
+      </KpiRow>
+
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> / <Kbd>2</Kbd> se badlein</>}
+        tabs={[{ id: 'backup', label: 'Backup', icon: Database }, { id: 'history', label: 'History', icon: History, count: log.length || null }]} />
+
+      {tab === 'backup' && (
+        <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+          <div className="space-y-3">
+            {status.tone !== 'success' && !summary.isLoading && (
+              <Alert tone={status.tone} title={age == null ? 'Abhi tak koi backup nahi liya' : `Aakhri backup ${age} din purana hai`}
+                action={<Button size="sm" loading={download.isPending} onClick={() => download.mutate()}><Download className="h-4 w-4" /> Abhi lein</Button>}>
+                Computer kharab ya chori ho jaye to apna record mehfooz rahe — har hafte ek backup lein.
+              </Alert>
             )}
-          </Button>
-        </div>
-      </section>
-
-      {/* Backup status banner */}
-      <div className={`rounded-2xl border-2 p-4 flex items-center gap-3 ${
-        backupStatus.color === 'emerald' ? 'bg-emerald-50 border-emerald-300' :
-        backupStatus.color === 'blue' ? 'bg-blue-50 border-blue-300' :
-        backupStatus.color === 'amber' ? 'bg-amber-50 border-amber-300' :
-        'bg-rose-50 border-rose-300'
-      }`}>
-        <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
-          backupStatus.color === 'emerald' ? 'bg-emerald-100 text-emerald-700' :
-          backupStatus.color === 'blue' ? 'bg-blue-100 text-blue-700' :
-          backupStatus.color === 'amber' ? 'bg-amber-100 text-amber-700' :
-          'bg-rose-100 text-rose-700'
-        }`}>
-          <StatusIcon className="h-5 w-5" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className={`font-extrabold ${
-            backupStatus.color === 'emerald' ? 'text-emerald-900' :
-            backupStatus.color === 'blue' ? 'text-blue-900' :
-            backupStatus.color === 'amber' ? 'text-amber-900' :
-            'text-rose-900'
-          }`}>
-            Last Backup: {backupStatus.label}
-          </div>
-          <div className="text-xs text-slate-600 mt-0.5">
-            {!lastBackupAt
-              ? '⚠️ Aap ne abhi tak koi backup nahi liya — abhi download karein!'
-              : daysSinceLastBackup! < 7
-              ? '✅ Aap ka data safe hai'
-              : daysSinceLastBackup! < 30
-              ? '⚠️ Naya backup leyne ka time hai'
-              : '🚨 Bohot purana backup hai — abhi backup leyein!'}
-          </div>
-        </div>
-        {lastBackupAt && (
-          <div className="text-right shrink-0 text-xs">
-            <div className="text-slate-500 font-semibold">Last backup at</div>
-            <div className="font-bold text-slate-900">
-              {new Date(lastBackupAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {isLoading ? (
-        <div className="rounded-3xl bg-white border border-slate-200 p-12 text-center">
-          <div className="inline-block h-10 w-10 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
-        </div>
-      ) : (
-        <>
-          <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center shadow-lg">
-                  <Database className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">Aap ke Data ka Snapshot</h3>
-                  <p className="text-sm text-slate-500">
-                    {summary?.meta?.tenantName} • Version {summary?.meta?.version} • <strong>{totalEntries.toLocaleString()}</strong> total entries
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-              {Object.entries(stats).map(([key, value]: [string, any]) => {
-                const cfg = STAT_CONFIG[key] || { label: key, icon: Database, color: 'text-slate-700', bg: 'bg-slate-50 border-slate-200' };
-                const Icon = cfg.icon;
-                return (
-                  <div key={key} className={`rounded-2xl border-2 p-4 ${cfg.bg}`}>
-                    <Icon className={`h-5 w-5 ${cfg.color} mb-1`} />
-                    <div className={`text-[0.6875rem] font-bold uppercase tracking-wider ${cfg.color}`}>{cfg.label}</div>
-                    <div className={`mt-1 text-2xl font-extrabold ${cfg.color}`}>{(value || 0).toLocaleString()}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="grid lg:grid-cols-2 gap-6">
-            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Best Practices</h3>
-                  <p className="text-xs text-slate-500">Apna data safe rakhne ka tareeqa</p>
-                </div>
-              </div>
-              <ul className="space-y-3 text-sm text-slate-700">
-                {[
-                  { icon: Calendar, text: 'Har hafte ek backup zaroor download karein', color: 'text-emerald-600' },
-                  { icon: Cloud, text: 'Backup file Google Drive ya Dropbox pe rakhein', color: 'text-blue-600' },
-                  { icon: CalendarClock, text: 'Mahine ke akhir mein full backup zaroori', color: 'text-violet-600' },
-                  { icon: ShieldCheck, text: 'Backup file mein saara data hota hai — ehtiyat se rakhein', color: 'text-amber-600' },
-                  { icon: HardDrive, text: 'Multiple copies banayein — local + cloud', color: 'text-rose-600' },
-                ].map((tip, i) => {
-                  const Icon = tip.icon;
-                  return (
-                    <li key={i} className="flex items-start gap-2">
-                      <Icon className={`h-4 w-4 ${tip.color} shrink-0 mt-0.5`} />
-                      <span className="font-semibold">{tip.text}</span>
+            <Card className="rounded-3xl" title="Is file me kya hai" description={`${n(total)} records · ${s?.meta.tenantName ?? ''}`}>
+              {summary.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : summary.isError ? (
+                <EmptyState title="Hisaab load nahi hua" action={<Button variant="secondary" onClick={() => summary.refetch()}>Dobara koshish</Button>} />
+              ) : (
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {TABLES.map((t) => (
+                    <li key={t.key} className="flex items-center gap-2.5 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: `${t.color}17`, color: t.color }}><t.icon className="h-3.5 w-3.5" /></span>
+                      <span className="flex-1 text-[0.8125rem] text-slate-700">{t.label}</span>
+                      <span className="text-[0.8125rem] font-semibold tabular-nums text-slate-900">{n(s?.counts[t.key])}</span>
                     </li>
-                  );
+                  ))}
+                </ul>
+              )}
+              <p className="mt-3 text-[0.75rem] text-slate-500">Saath me: dukaan ki settings, bill ki cheezein, kharidari ki cheezein, drawer ki entries aur stock adjustments.</p>
+            </Card>
+          </div>
+
+          <div className="space-y-3">
+            <Card className="rounded-3xl" title="Mehfooz kaise rakhein">
+              <ul className="space-y-2 text-[0.8125rem] text-slate-700">
+                {[
+                  [Cloud, 'File Google Drive ya email par bhi rakhein, sirf is computer par nahi.'],
+                  [CheckCircle2, 'Har hafte naya backup — purane bhi rakh sakte hain.'],
+                  [Lock, 'File me customers, udhaar aur munafa hai — kisi anjaan ko na dein. Malik ka PIN file me nahi jata.'],
+                  [Database, 'Is file se data khud wapas nahi dala jata — zaroorat ho to support se baat karein.'],
+                ].map(([Icon, text]) => {
+                  const I = Icon as LucideIcon;
+                  return <li key={text as string} className="flex items-start gap-2.5"><I className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" /><span>{text as string}</span></li>;
                 })}
               </ul>
-            </div>
-
-            <div className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-200 shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg">
-                  <Info className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Important Note</h3>
-                  <p className="text-xs text-slate-500">Restore feature & data sensitivity</p>
-                </div>
-              </div>
-              <div className="space-y-3 text-sm text-slate-700">
-                <div className="rounded-xl bg-white border border-amber-200 p-3">
-                  <div className="font-bold text-amber-900 inline-flex items-center gap-1 mb-1">
-                    <FileText className="h-3.5 w-3.5" /> Format
-                  </div>
-                  <p className="text-xs">JSON file format — Microsoft Excel mein open nahi hoti. Programming tools chahiye to read.</p>
-                </div>
-                <div className="rounded-xl bg-white border border-amber-200 p-3">
-                  <div className="font-bold text-amber-900 inline-flex items-center gap-1 mb-1">
-                    <RotateCcw className="h-3.5 w-3.5" /> Restore Feature
-                  </div>
-                  <p className="text-xs"><strong>Coming soon.</strong> Filhal aap data download kar ke safe rakh sakte hain. Restore functionality next update mein add hogi.</p>
-                </div>
-                <div className="rounded-xl bg-white border border-rose-200 p-3">
-                  <div className="font-bold text-rose-900 inline-flex items-center gap-1 mb-1">
-                    <AlertTriangle className="h-3.5 w-3.5" /> Security
-                  </div>
-                  <p className="text-xs">Backup mein <strong>customer phone numbers, balances, prices</strong> sab hota hai — kisi ko share na karein!</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-3xl bg-gradient-to-br from-slate-950 to-purple-900 text-white p-6">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
-                  <Cloud className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg">Auto Cloud Backup</h3>
-                  <p className="text-sm text-white/70">Coming soon — automatic daily cloud backup</p>
-                </div>
-              </div>
-              <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold">
-                <Sparkles className="h-3 w-3" />
-                Roadmap
-              </div>
-            </div>
-          </section>
-        </>
+            </Card>
+            <Link to="/exports" className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition hover:ring-brand-300">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><FileSpreadsheet className="h-5 w-5" /></span>
+              <span className="flex-1">
+                <span className="block text-[0.875rem] font-semibold text-slate-900">Excel files chahiye?</span>
+                <span className="block text-[0.75rem] text-slate-500">Bikri, khata, stock — muddat ke hisaab se, Exports page par</span>
+              </span>
+            </Link>
+          </div>
+        </div>
       )}
-    </div>
+
+      {tab === 'history' && (history.isLoading ? (
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
+      ) : log.length === 0 ? (
+        <div className="rounded-3xl bg-white ring-1 ring-slate-200/80"><EmptyState icon={<History className="h-6 w-6" />} title="Abhi koi backup ya file nahi nikaali" description="Pehla backup lein — yahan us ka record aayega" /></div>
+      ) : (
+        <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <ul className="divide-y divide-slate-100">
+            {log.map((h) => {
+              const isBackup = h.action === 'BACKUP_DOWNLOADED';
+              return (
+                <li key={h.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${isBackup ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-600'}`}>
+                    {isBackup ? <Database className="h-4 w-4" /> : <FileSpreadsheet className="h-4 w-4" />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[0.875rem] font-semibold text-slate-900">{h.description}</p>
+                    <p className="text-[0.75rem] text-slate-500">{when(h.createdAt)} · {h.user?.fullName ?? '—'}{isBackup && h.metadata?.bytes ? ` · ${(h.metadata.bytes / 1024 / 1024).toFixed(2)} MB` : ''}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
+    </PageShell>
   );
 }

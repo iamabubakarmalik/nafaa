@@ -1,45 +1,91 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+/**
+ * Raw materials (flour, sugar, butter): the store list, goods received with
+ * the money paid or owed, use, waste and counted corrections, the movement
+ * log, and recipe costing at today's rates. Stock changes are conditional
+ * updates so two people cannot take the same stock twice.
+ */
+
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { ShopScope } from '../../../common/shop-scope';
+import { DAY_MS, positive, r2, r3, recipeOf, shopClock } from '../bakery-common';
+
+type Body = Record<string, unknown>;
+
+const TEXT_FIELDS = ['category', 'code', 'brand', 'unit', 'lastVendorName', 'storageMethod', 'countryOfOrigin', 'supplierName', 'supplierPhone', 'imageUrl', 'notes'] as const;
+const NUMBER_FIELDS = ['minStock', 'maxStock', 'reorderLevel', 'costPerUnit', 'lastPurchasePrice'] as const;
+const FLAG_FIELDS = ['requiresRefrigeration', 'isCritical', 'isOrganic', 'isImported'] as const;
+
+/** Store fields a client may set; stock itself changes only through purchase, use, waste and count. */
+function cleanFields(dto: Body): Prisma.BakeryIngredientUncheckedUpdateInput {
+  const out: Prisma.BakeryIngredientUncheckedUpdateInput = {};
+  for (const k of TEXT_FIELDS) {
+    if (dto[k] === undefined) continue;
+    const v = typeof dto[k] === 'string' ? (dto[k] as string).trim() : '';
+    (out as Body)[k] = k === 'category' || k === 'unit' ? v || undefined : v || null;
+  }
+  for (const k of NUMBER_FIELDS) {
+    if (dto[k] === undefined) continue;
+    const n = dto[k] === null || dto[k] === '' ? null : Number(dto[k]);
+    if (n !== null && (!Number.isFinite(n) || n < 0)) throw new BadRequestException('Rate aur had sahi number hon');
+    (out as Body)[k] = k === 'minStock' || k === 'costPerUnit' ? n ?? 0 : n;
+  }
+  for (const k of FLAG_FIELDS) if (dto[k] !== undefined) (out as Body)[k] = !!dto[k];
+  if (dto.shelfLifeDays !== undefined) {
+    const n = dto.shelfLifeDays === null || dto.shelfLifeDays === '' ? null : Math.round(Number(dto.shelfLifeDays));
+    out.shelfLifeDays = n !== null && Number.isFinite(n) && n >= 0 ? n : null;
+  }
+  if (dto.lastPurchaseDate !== undefined) {
+    const d = dto.lastPurchaseDate ? new Date(String(dto.lastPurchaseDate)) : null;
+    out.lastPurchaseDate = d && !Number.isNaN(d.getTime()) ? d : null;
+  }
+  return out;
+}
 
 @Injectable()
 export class IngredientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tz: TenantTimezoneService,
+  ) {}
 
-  async create(user: AuthenticatedUser, dto: any) {
-    const dup = await this.prisma.bakeryIngredient.findFirst({ where: { tenantId: user.tenantId, name: dto.name } });
-    if (dup) throw new BadRequestException(`Ingredient "${dto.name}" already exists`);
+  async create(user: AuthenticatedUser, dto: Body) {
+    const name = typeof dto?.name === 'string' ? dto.name.trim().replace(/\s+/g, ' ') : '';
+    if (!name) throw new BadRequestException('Saamaan ka naam likhein');
+    const dup = await this.prisma.bakeryIngredient.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' } }, select: { id: true, isActive: true } });
+    if (dup) throw new BadRequestException(dup.isActive ? `"${name}" pehle se saamaan me hai` : `"${name}" pehle hataya gaya tha — "Hataye hue" me se wapas layein`);
+    const stock = dto.currentStock === undefined || dto.currentStock === '' ? 0 : Number(dto.currentStock);
+    if (!Number.isFinite(stock) || stock < 0) throw new BadRequestException('Shuru ka stock sahi number ho');
+    const fields = cleanFields(dto) as Prisma.BakeryIngredientUncheckedCreateInput;
     return this.prisma.bakeryIngredient.create({
-      data: {
-        tenantId: user.tenantId,
-        ...dto,
-        lastPurchaseDate: dto.lastPurchaseDate ? new Date(dto.lastPurchaseDate) : null,
-      },
+      data: { ...fields, tenantId: user.tenantId, name, category: (fields.category as string) || 'GENERAL', unit: (fields.unit as string) || 'kg', currentStock: stock },
     });
   }
 
   async list(user: AuthenticatedUser, params: { category?: string; lowStock?: boolean; critical?: boolean; search?: string; active?: boolean }) {
+    const s = params.search?.trim();
     const items = await this.prisma.bakeryIngredient.findMany({
       where: {
         tenantId: user.tenantId,
         ...(params.active !== undefined && { isActive: params.active }),
         ...(params.category && { category: params.category }),
         ...(params.critical !== undefined && { isCritical: params.critical }),
-        ...(params.search && {
+        ...(s && {
           OR: [
-            { name: { contains: params.search, mode: 'insensitive' } },
-            { code: { contains: params.search, mode: 'insensitive' } },
-            { brand: { contains: params.search, mode: 'insensitive' } },
+            { name: { contains: s, mode: 'insensitive' } },
+            { code: { contains: s, mode: 'insensitive' } },
+            { brand: { contains: s, mode: 'insensitive' } },
+            { supplierName: { contains: s, mode: 'insensitive' } },
           ],
         }),
       },
       orderBy: [{ isCritical: 'desc' }, { name: 'asc' }],
-      take: 300,
+      take: 1000,
     });
-
-    if (params.lowStock) {
-      return items.filter((i) => i.currentStock <= i.minStock);
-    }
+    if (params.lowStock) return items.filter((i) => i.currentStock <= (i.reorderLevel ?? i.minStock));
     return items;
   }
 
@@ -48,244 +94,193 @@ export class IngredientsService {
       where: { id, tenantId: user.tenantId },
       include: { transactions: { orderBy: { createdAt: 'desc' }, take: 20 } },
     });
-    if (!i) throw new NotFoundException('Ingredient not found');
+    if (!i) throw new NotFoundException('Saamaan nahi mila');
     return i;
   }
 
-  async update(user: AuthenticatedUser, id: string, dto: any) {
-    const i = await this.prisma.bakeryIngredient.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!i) throw new NotFoundException('Ingredient not found');
-    return this.prisma.bakeryIngredient.update({
-      where: { id },
-      data: {
-        ...dto,
-        lastPurchaseDate: dto.lastPurchaseDate ? new Date(dto.lastPurchaseDate) : undefined,
-      },
-    });
+  async update(user: AuthenticatedUser, id: string, dto: Body) {
+    const current = await this.mustFind(user, id);
+    const data = cleanFields(dto ?? {});
+    if (typeof dto?.name === 'string') {
+      const name = dto.name.trim().replace(/\s+/g, ' ');
+      if (!name) throw new BadRequestException('Saamaan ka naam likhein');
+      if (name.toLowerCase() !== current.name.toLowerCase()) {
+        const dup = await this.prisma.bakeryIngredient.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' }, id: { not: id } }, select: { id: true } });
+        if (dup) throw new BadRequestException(`"${name}" pehle se saamaan me hai`);
+      }
+      data.name = name;
+    }
+    if (dto?.isActive !== undefined) data.isActive = !!dto.isActive;
+    await this.prisma.bakeryIngredient.updateMany({ where: { id, tenantId: user.tenantId }, data: data as Prisma.BakeryIngredientUpdateManyMutationInput });
+    return this.mustFind(user, id);
   }
 
+  /** Hides a raw material; its history and recipes stay. */
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.bakeryIngredient.update({ where: { id }, data: { isActive: false } });
+    await this.mustFind(user, id);
+    await this.prisma.bakeryIngredient.updateMany({ where: { id, tenantId: user.tenantId }, data: { isActive: false } });
+    return this.mustFind(user, id);
   }
 
   /**
-   * Saamaan aaya — stock BHI barhta hai aur paisa BHI darj hota hai.
+   * Goods received: stock goes up and the money is recorded.
    *
-   * Pehle ye sirf ingredient ka stock barhata tha. Na `Expense` banta
-   * tha, na supplier ka khata chalta tha — yani 50,000 ka maida
-   * khareedne par wo paisa kitaab se ghayab ho jata tha. Cash register
-   * me nazar nahi aata, Money page me nahi, aur munafa ghalat nikalta.
-   *
-   * `Purchase` me nahi daal sakte: `PurchaseItem.productId` lazmi hai
-   * aur Product se juda hai, jabke ingredient Product hai hi nahi. Is
-   * liye paisa do raaston se jata hai:
-   *
-   *   • Jo abhi diya  → Expense (cash register khud ghata deta hai)
-   *   • Jo udhaar hai  → supplier ka khata barh jata hai
+   * Raw materials are not products, so this cannot be a Purchase. What was
+   * paid now becomes a paid expense (the open cash shift counts cash ones);
+   * what is owed goes on the supplier's account.
    */
-  async recordPurchase(user: AuthenticatedUser, id: string, dto: {
+  async recordPurchase(user: AuthenticatedUser, scope: ShopScope, id: string, dto: {
     quantity: number; costPerUnit: number;
     vendorName?: string; notes?: string;
     supplierId?: string;
     paymentMethod?: string;
-    /** Kitna abhi diya — na bataya jaye to poora */
+    /** Paid now; the full amount when left out. */
     paidAmount?: number;
     shopId?: string;
   }) {
-    const i = await this.prisma.bakeryIngredient.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!i) throw new NotFoundException('Ingredient not found');
+    const i = await this.mustFind(user, id);
+    const qty = positive(dto?.quantity, 'Kitna aaya — tadaad likhein');
+    const rate = Number(dto?.costPerUnit) || 0;
+    if (rate < 0) throw new BadRequestException('Rate sahi likhein');
 
-    const qty = Number(dto.quantity) || 0;
-    const rate = Number(dto.costPerUnit) || 0;
-    if (qty <= 0) throw new BadRequestException('Kitna aaya — tadaad likhein');
+    const totalCost = r2(qty * rate);
+    const paid = dto.paidAmount === undefined || dto.paidAmount === null ? totalCost : r2(Math.max(Number(dto.paidAmount) || 0, 0));
+    if (paid > totalCost + 0.005) throw new BadRequestException('Diya hua paisa kul rakam se zyada nahi ho sakta');
+    const credit = r2(Math.max(totalCost - paid, 0));
 
-    const totalCost = qty * rate;
-    const paid = dto.paidAmount === undefined || dto.paidAmount === null
-      ? totalCost
-      : Math.max(Number(dto.paidAmount) || 0, 0);
-    const credit = Math.max(totalCost - paid, 0);
-
-    if (paid > totalCost) {
-      throw new BadRequestException('Diya hua paisa kul rakam se zyada nahi ho sakta');
-    }
-
-    /* Udhaar ke liye supplier lazmi — warna baad me pata hi nahi
-       chalega ke kis ko dena hai. */
-    let supplier: { id: string; outstandingDue: number } | null = null;
+    let supplier: { id: string } | null = null;
     if (dto.supplierId) {
-      const s = await this.prisma.supplier.findFirst({
-        where: { id: dto.supplierId, tenantId: user.tenantId },
-        select: { id: true, outstandingDue: true },
-      });
-      if (!s) throw new NotFoundException('Supplier nahi mila');
-      supplier = s;
+      supplier = await this.prisma.supplier.findFirst({ where: { id: dto.supplierId, tenantId: user.tenantId }, select: { id: true } });
+      if (!supplier) throw new NotFoundException('Supplier nahi mila');
     }
-    if (credit > 0 && !supplier) {
-      throw new BadRequestException('Udhaar par lena hai to supplier chunna zaroori hai');
+    if (credit > 0 && !supplier) throw new BadRequestException('Udhaar par lena hai to supplier chunna zaroori hai');
+    let shopId = dto.shopId ?? scope.shopId ?? undefined;
+    if (dto.shopId) {
+      const shop = await this.prisma.shop.findFirst({ where: { id: dto.shopId, tenantId: user.tenantId }, select: { id: true } });
+      if (!shop) throw new NotFoundException('Branch nahi mili');
+      shopId = shop.id;
     }
+    const vendor = dto.vendorName?.trim() || undefined;
 
     return this.prisma.$transaction(async (tx) => {
       await tx.bakeryIngredientTransaction.create({
         data: {
-          tenantId: user.tenantId,
-          ingredientId: id,
-          transactionType: 'PURCHASE',
-          quantity: qty,
-          unit: i.unit,
-          costPerUnit: rate,
-          totalCost,
-          notes: dto.notes,
-          performedById: user.id,
+          tenantId: user.tenantId, ingredientId: id, transactionType: 'PURCHASE', quantity: qty, unit: i.unit,
+          costPerUnit: rate, totalCost, notes: dto.notes?.trim() || vendor || null, performedById: user.id,
         },
       });
 
-      /* ── Jo abhi diya — kharch me ──
-         Cash register `Expense` ko CASH wale paymentMethod par khud
-         ghata deta hai, is liye alag se kuch karne ki zaroorat nahi.
-         shopId zaroori hai: register usi dukaan ka kharch ginta hai. */
       if (paid > 0) {
         await tx.expense.create({
           data: {
             tenantId: user.tenantId,
-            shopId: dto.shopId ?? undefined,
+            shopId,
             createdById: user.id,
             expenseNumber: `EXP-${Date.now().toString().slice(-8)}`,
             title: `Saamaan: ${i.name}`,
-            description: `${qty} ${i.unit} × ${rate}`
-              + (dto.vendorName ? ` — ${dto.vendorName}` : '')
-              + (credit > 0 ? ` (${credit} udhaar)` : ''),
+            description: `${qty} ${i.unit} × ${rate}` + (vendor ? ` — ${vendor}` : '') + (credit > 0 ? ` (${credit} udhaar)` : ''),
             amount: paid,
-            paymentMethod: (dto.paymentMethod as any) ?? 'CASH',
+            paymentMethod: (dto.paymentMethod as never) ?? 'CASH',
             status: 'PAID',
           },
         });
       }
 
-      /* ── Jo udhaar raha — supplier ka khata ── */
       if (credit > 0 && supplier) {
-        const balanceAfter = Number(supplier.outstandingDue) + credit;
+        const updated = await tx.supplier.update({
+          where: { id: supplier.id },
+          data: { outstandingDue: { increment: credit }, totalPurchased: { increment: totalCost } },
+          select: { outstandingDue: true },
+        });
         await tx.supplierLedger.create({
           data: {
-            tenantId: user.tenantId,
-            supplierId: supplier.id,
-            createdById: user.id,
-            shopId: dto.shopId ?? undefined,
-            type: 'PURCHASE_CREDIT',
-            amount: credit,
-            balanceAfter,
+            tenantId: user.tenantId, supplierId: supplier.id, createdById: user.id, shopId,
+            type: 'PURCHASE_CREDIT', amount: credit, balanceAfter: Number(updated.outstandingDue),
             note: `Saamaan udhaar: ${i.name} — ${qty} ${i.unit}`,
           },
-        });
-        await tx.supplier.update({
-          where: { id: supplier.id },
-          data: { outstandingDue: balanceAfter, totalPurchased: { increment: totalCost } },
         });
       }
 
       return tx.bakeryIngredient.update({
         where: { id },
         data: {
-          currentStock: i.currentStock + qty,
-          totalPurchased: i.totalPurchased + qty,
+          currentStock: { increment: qty },
+          totalPurchased: { increment: qty },
           costPerUnit: rate,
           lastPurchaseDate: new Date(),
           lastPurchasePrice: totalCost,
-          lastVendorName: dto.vendorName,
+          ...(vendor && { lastVendorName: vendor }),
         },
       });
     });
   }
 
   async recordConsumption(user: AuthenticatedUser, id: string, dto: { quantity: number; productionItemId?: string; cakeOrderId?: string; batchNumber?: string; notes?: string }) {
-    const i = await this.prisma.bakeryIngredient.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!i) throw new NotFoundException('Ingredient not found');
-    if (i.currentStock < dto.quantity) throw new BadRequestException('Insufficient stock');
-
+    const i = await this.mustFind(user, id);
+    const qty = positive(dto?.quantity, 'Kitna istemal hua — tadaad likhein');
     return this.prisma.$transaction(async (tx) => {
+      const taken = await tx.bakeryIngredient.updateMany({
+        where: { id, tenantId: user.tenantId, currentStock: { gte: qty - 0.0001 } },
+        data: { currentStock: { decrement: qty }, totalConsumed: { increment: qty } },
+      });
+      if (!taken.count) throw new BadRequestException(`${i.name} itna stock me nahi`);
       await tx.bakeryIngredientTransaction.create({
         data: {
-          tenantId: user.tenantId,
-          ingredientId: id,
-          transactionType: 'CONSUMPTION',
-          quantity: dto.quantity,
-          unit: i.unit,
-          costPerUnit: i.costPerUnit,
-          totalCost: dto.quantity * i.costPerUnit,
-          productionItemId: dto.productionItemId,
-          cakeOrderId: dto.cakeOrderId,
-          batchNumber: dto.batchNumber,
-          notes: dto.notes,
-          performedById: user.id,
+          tenantId: user.tenantId, ingredientId: id, transactionType: 'CONSUMPTION', quantity: qty, unit: i.unit,
+          costPerUnit: i.costPerUnit, totalCost: r2(qty * i.costPerUnit), productionItemId: dto.productionItemId ?? null,
+          cakeOrderId: dto.cakeOrderId ?? null, batchNumber: dto.batchNumber ?? null, notes: dto.notes?.trim() || null, performedById: user.id,
         },
       });
-
-      return tx.bakeryIngredient.update({
-        where: { id },
-        data: {
-          currentStock: i.currentStock - dto.quantity,
-          totalConsumed: i.totalConsumed + dto.quantity,
-        },
-      });
+      return tx.bakeryIngredient.findUniqueOrThrow({ where: { id } });
     });
   }
 
+  /** Wasted raw material. More than what is in stock only takes the stock to zero. */
   async recordWaste(user: AuthenticatedUser, id: string, dto: { quantity: number; reason: string }) {
-    const i = await this.prisma.bakeryIngredient.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!i) throw new NotFoundException('Ingredient not found');
-
+    const i = await this.mustFind(user, id);
+    const qty = positive(dto?.quantity, 'Kitna zaya hua — tadaad likhein');
+    const reason = dto?.reason?.trim() || 'Kharab ho gaya';
     return this.prisma.$transaction(async (tx) => {
+      const next = Math.max(r3(i.currentStock - qty), 0);
+      const done = await tx.bakeryIngredient.updateMany({
+        where: { id, tenantId: user.tenantId, currentStock: i.currentStock },
+        data: { currentStock: next, totalWasted: { increment: qty } },
+      });
+      if (!done.count) throw new ConflictException('Stock abhi badla gaya — dobara koshish karein');
       await tx.bakeryIngredientTransaction.create({
         data: {
-          tenantId: user.tenantId,
-          ingredientId: id,
-          transactionType: 'WASTE',
-          quantity: dto.quantity,
-          unit: i.unit,
-          costPerUnit: i.costPerUnit,
-          totalCost: dto.quantity * i.costPerUnit,
-          reason: dto.reason,
-          performedById: user.id,
+          tenantId: user.tenantId, ingredientId: id, transactionType: 'WASTE', quantity: qty, unit: i.unit,
+          costPerUnit: i.costPerUnit, totalCost: r2(qty * i.costPerUnit), reason, performedById: user.id,
         },
       });
-
-      return tx.bakeryIngredient.update({
-        where: { id },
-        data: {
-          currentStock: Math.max(i.currentStock - dto.quantity, 0),
-          totalWasted: i.totalWasted + dto.quantity,
-        },
-      });
+      return tx.bakeryIngredient.findUniqueOrThrow({ where: { id } });
     });
   }
 
+  /** Sets the stock to what was counted, recording the difference with its reason. */
   async adjustStock(user: AuthenticatedUser, id: string, dto: { newStock: number; reason: string }) {
-    const i = await this.prisma.bakeryIngredient.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!i) throw new NotFoundException('Ingredient not found');
-
-    const diff = dto.newStock - i.currentStock;
-
+    const i = await this.mustFind(user, id);
+    const next = Number(dto?.newStock);
+    if (!Number.isFinite(next) || next < 0) throw new BadRequestException('Gin kar kitna nikla — sahi number likhein');
+    const reason = dto?.reason?.trim();
+    if (!reason) throw new BadRequestException('Farq ki wajah likhein');
+    const diff = r3(next - i.currentStock);
+    if (Math.abs(diff) < 0.0005) return i;
     return this.prisma.$transaction(async (tx) => {
+      const done = await tx.bakeryIngredient.updateMany({ where: { id, tenantId: user.tenantId, currentStock: i.currentStock }, data: { currentStock: next } });
+      if (!done.count) throw new ConflictException('Stock abhi badla gaya — dobara gin kar likhein');
       await tx.bakeryIngredientTransaction.create({
         data: {
-          tenantId: user.tenantId,
-          ingredientId: id,
-          transactionType: 'ADJUSTMENT',
-          quantity: diff,
-          unit: i.unit,
-          costPerUnit: i.costPerUnit,
-          reason: dto.reason,
-          performedById: user.id,
+          tenantId: user.tenantId, ingredientId: id, transactionType: 'ADJUSTMENT', quantity: diff, unit: i.unit,
+          costPerUnit: i.costPerUnit, totalCost: r2(diff * i.costPerUnit), reason, performedById: user.id,
         },
       });
-
-      return tx.bakeryIngredient.update({
-        where: { id },
-        data: { currentStock: dto.newStock },
-      });
+      return tx.bakeryIngredient.findUniqueOrThrow({ where: { id } });
     });
   }
 
   async transactions(user: AuthenticatedUser, id: string) {
+    await this.mustFind(user, id);
     return this.prisma.bakeryIngredientTransaction.findMany({
       where: { tenantId: user.tenantId, ingredientId: id },
       orderBy: { createdAt: 'desc' },
@@ -294,9 +289,126 @@ export class IngredientsService {
   }
 
   async lowStockAlert(user: AuthenticatedUser) {
-    const all = await this.prisma.bakeryIngredient.findMany({
-      where: { tenantId: user.tenantId, isActive: true },
+    const all = await this.prisma.bakeryIngredient.findMany({ where: { tenantId: user.tenantId, isActive: true } });
+    return all.filter((i) => i.currentStock <= (i.reorderLevel ?? i.minStock));
+  }
+
+  /**
+   * Every raw-material movement in a period of business days (last 30 days
+   * by default) with money totals per kind, per day and per material.
+   */
+  async movements(user: AuthenticatedUser, from?: string, to?: string, type?: string) {
+    const clock = await shopClock(this.tz, user.tenantId);
+    const range = clock.range(from, to) ?? { gte: new Date(clock.today().gte.getTime() - 29 * DAY_MS), lt: clock.today().lt };
+    const rows = await this.prisma.bakeryIngredientTransaction.findMany({
+      where: { tenantId: user.tenantId, createdAt: { gte: range.gte, lt: range.lt }, ...(type && { transactionType: type }) },
+      orderBy: { createdAt: 'desc' },
+      take: 3000,
+      select: {
+        id: true, transactionType: true, quantity: true, unit: true, costPerUnit: true, totalCost: true, reason: true, notes: true,
+        batchNumber: true, createdAt: true, ingredient: { select: { id: true, name: true, category: true } },
+      },
     });
-    return all.filter((i) => i.currentStock <= i.minStock);
+    const kinds = ['PURCHASE', 'CONSUMPTION', 'WASTE', 'ADJUSTMENT'] as const;
+    const totals = Object.fromEntries(kinds.map((k) => [k, { count: 0, cost: 0 }])) as Record<(typeof kinds)[number], { count: number; cost: number }>;
+    const byDay = new Map<string, Record<(typeof kinds)[number], number>>();
+    const byIngredient = new Map<string, { id: string; name: string; used: number; wasted: number; bought: number; unit: string; cost: number }>();
+    for (const r of rows) {
+      const k = (kinds as readonly string[]).includes(r.transactionType) ? (r.transactionType as (typeof kinds)[number]) : null;
+      const money = r2(Number(r.totalCost) || 0);
+      if (k) { totals[k].count += 1; totals[k].cost = r2(totals[k].cost + money); }
+      const day = clock.keyOf(r.createdAt);
+      const d = byDay.get(day) ?? { PURCHASE: 0, CONSUMPTION: 0, WASTE: 0, ADJUSTMENT: 0 };
+      if (k) d[k] = r2(d[k] + money);
+      byDay.set(day, d);
+      const g = byIngredient.get(r.ingredient.id) ?? { id: r.ingredient.id, name: r.ingredient.name, used: 0, wasted: 0, bought: 0, unit: r.unit, cost: 0 };
+      if (k === 'CONSUMPTION') { g.used = r3(g.used + r.quantity); g.cost = r2(g.cost + money); }
+      if (k === 'WASTE') g.wasted = r3(g.wasted + r.quantity);
+      if (k === 'PURCHASE') g.bought = r3(g.bought + r.quantity);
+      byIngredient.set(r.ingredient.id, g);
+    }
+    return {
+      period: { from: clock.keyOf(range.gte), to: clock.keyOf(new Date(range.lt.getTime() - 1)) },
+      rows: rows.slice(0, 300).map((r) => ({ ...r, cost: r2(Number(r.totalCost) || 0), totalCost: undefined })),
+      totals,
+      byDay: [...byDay.entries()].map(([key, v]) => ({ key, cost: v })).sort((a, b) => a.key.localeCompare(b.key)),
+      byIngredient: [...byIngredient.values()].sort((a, b) => b.cost - a.cost),
+    };
+  }
+
+  /**
+   * Recipe costing: every product with a recipe, priced at today's raw
+   * material rates, against its selling price and the cost written on the
+   * product, with how many can be made from the store.
+   */
+  async recipes(user: AuthenticatedUser) {
+    const profiles = await this.prisma.bakeryProductProfile.findMany({
+      where: { tenantId: user.tenantId, ingredients: { not: Prisma.DbNull } },
+      select: { productId: true, ingredients: true, updatedAt: true },
+    });
+    const withRecipe = profiles.map((p) => ({ ...p, recipe: recipeOf(p.ingredients) })).filter((p) => p.recipe);
+    const productIds = withRecipe.map((p) => p.productId);
+    const ingredientIds = [...new Set(withRecipe.flatMap((p) => p.recipe!.lines.map((l) => l.ingredientId)))];
+    const [products, ingredients] = await Promise.all([
+      productIds.length ? this.prisma.product.findMany({
+        where: { tenantId: user.tenantId, id: { in: productIds } },
+        select: { id: true, name: true, unit: true, price: true, costPrice: true, isActive: true, images: { where: { isPrimary: true }, take: 1, select: { url: true } } },
+      }) : [],
+      ingredientIds.length ? this.prisma.bakeryIngredient.findMany({
+        where: { tenantId: user.tenantId, id: { in: ingredientIds } },
+        select: { id: true, name: true, unit: true, costPerUnit: true, currentStock: true, isActive: true },
+      }) : [],
+    ]);
+    const byProduct = new Map(products.map((p) => [p.id, p]));
+    const byIngredient = new Map(ingredients.map((i) => [i.id, i]));
+    const usedIn = new Map<string, number>();
+
+    const rows = withRecipe.flatMap((p) => {
+      const product = byProduct.get(p.productId);
+      if (!product) return [];
+      const recipe = p.recipe!;
+      const lines = recipe.lines.map((l) => {
+        usedIn.set(l.ingredientId, (usedIn.get(l.ingredientId) ?? 0) + 1);
+        const now = byIngredient.get(l.ingredientId);
+        const rate = now?.costPerUnit ?? l.costPerUnit;
+        return {
+          ingredientId: l.ingredientId, name: now?.name ?? l.name, qty: l.qty, unit: now?.unit ?? l.unit,
+          stock: now ? r3(now.currentStock) : null, missing: !now || !now.isActive,
+          batches: now && l.qty > 0 ? Math.floor(Math.max(now.currentStock, 0) / l.qty) : null,
+          cost: { rate: r2(rate), savedRate: r2(l.costPerUnit), line: r2(l.qty * rate), changed: Math.abs(rate - l.costPerUnit) > Math.max(l.costPerUnit * 0.02, 0.01) },
+        };
+      });
+      const batch = r2(lines.reduce((s, l) => s + l.cost.line, 0));
+      const perUnit = r2(batch / recipe.yieldQty);
+      const known = lines.filter((l) => l.batches !== null);
+      const capacity = known.length === lines.length && lines.length ? Math.min(...known.map((l) => l.batches!)) : null;
+      const limiting = capacity !== null ? lines.find((l) => l.batches === capacity)?.name ?? null : null;
+      const margin = r2(product.price - perUnit);
+      return [{
+        productId: product.id, name: product.name, unit: product.unit, price: product.price, isActive: product.isActive,
+        image: product.images[0]?.url ?? null, yieldQty: recipe.yieldQty, lines, updatedAt: p.updatedAt,
+        canMake: capacity !== null ? capacity * recipe.yieldQty : null, limiting,
+        ratesChanged: lines.filter((l) => l.cost.changed).length, missing: lines.filter((l) => l.missing).length,
+        cost: { batch, perUnit, current: product.costPrice, diff: r2(perUnit - product.costPrice) },
+        margin: { amount: margin, pct: product.price > 0 ? Math.round((margin / product.price) * 1000) / 10 : null },
+      }];
+    }).sort((a, b) => a.name.localeCompare(b.name));
+
+    return {
+      rows,
+      usedIn: Object.fromEntries(usedIn),
+      totals: {
+        recipes: rows.length,
+        lowMargin: rows.filter((r) => r.margin.pct !== null && r.margin.pct < 20).length,
+        costOff: rows.filter((r) => r.cost.current > 0 ? Math.abs(r.cost.diff) / r.cost.current > 0.05 : r.cost.perUnit > 0).length,
+        missing: rows.filter((r) => r.missing > 0).length,
+      },
+    };
+  }
+
+  private async mustFind(user: AuthenticatedUser, id: string) {
+    const i = await this.prisma.bakeryIngredient.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!i) throw new NotFoundException('Saamaan nahi mila');
+    return i;
   }
 }

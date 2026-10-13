@@ -1,7 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
-import { Public } from '../../auth/decorators/public.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ReferralsService } from './referrals.service';
 
@@ -16,7 +15,6 @@ export class ReferralsController {
     return this.service.myDashboard(user);
   }
 
-  @Public()
   @Get('leaderboard')
   leaderboard() {
     return this.service.leaderboard();

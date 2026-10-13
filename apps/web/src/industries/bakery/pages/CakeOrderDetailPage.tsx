@@ -1,589 +1,317 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, CheckCircle2, X, Ban, Sparkles, User, Phone, Mail, Clock,
-  Printer, DollarSign, CreditCard, Star, Calendar, Truck, MapPin,
-  Cake, Camera, Heart, ArrowRight, ChefHat, Palette, Type,
-} from 'lucide-react';
-import { cakeOrdersApi, type BakeryOrderStatus } from '../api/cake-orders.api';
-import { CATEGORY_EMOJI, OCCASION_EMOJI, FLAVORS, SIZES, SHAPES, CREAMS } from '../api/constants';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * One cake order: the step it is at with the next step one tap away, the
+ * cake and its design with photos, occasion, pickup or delivery, the money
+ * with advance and balance, the bill once handed over, the timeline and the
+ * customer's rating. Prints the customer or kitchen slip.
+ *
+ * Keys: P slip · K kitchen slip · E edit · Esc back.
+ */
+
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-
-const STATUS_FLOW: BakeryOrderStatus[] = [
-  'CONFIRMED', 'DEPOSIT_PAID', 'IN_PRODUCTION', 'BAKING',
-  'DECORATING', 'QUALITY_CHECK', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED',
-];
-
-const STATUS_CONFIG: Record<BakeryOrderStatus, { label: string; color: string; icon: any }> = {
-  DRAFT: { label: 'Draft', color: 'bg-slate-500', icon: Clock },
-  QUOTED: { label: 'Quoted', color: 'bg-blue-500', icon: Clock },
-  CONFIRMED: { label: 'Confirmed', color: 'bg-cyan-500', icon: CheckCircle2 },
-  DEPOSIT_PAID: { label: 'Deposit Paid', color: 'bg-teal-500', icon: DollarSign },
-  IN_PRODUCTION: { label: 'In Production', color: 'bg-amber-500', icon: ChefHat },
-  BAKING: { label: 'Baking', color: 'bg-orange-500', icon: ChefHat },
-  DECORATING: { label: 'Decorating', color: 'bg-fuchsia-500', icon: Palette },
-  QUALITY_CHECK: { label: 'Quality Check', color: 'bg-violet-500', icon: CheckCircle2 },
-  READY: { label: 'Ready', color: 'bg-emerald-500', icon: CheckCircle2 },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'bg-blue-600', icon: Truck },
-  DELIVERED: { label: 'Delivered', color: 'bg-green-600', icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancelled', color: 'bg-rose-500', icon: X },
-  REFUNDED: { label: 'Refunded', color: 'bg-slate-600', icon: X },
-};
+import {
+  ArrowLeft, Ban, Cake, CheckCircle2, ChefHat, Clock, Heart, History, ImageIcon, MapPin, MessageCircle, PartyPopper, Pencil, Phone, Printer,
+  Receipt, Star, StickyNote, Undo2, User, Wallet,
+} from 'lucide-react';
+import { Button, Card, Kbd, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { UploadDropzone } from '@core/components/uploads';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { cakeOrdersApi, type CakeOrder } from '../api/cake-orders.api';
+import { useCakeActions } from '../components/cake/useCakeActions';
+import { cakeMessage, printCakeSlip } from '../components/orderSlip';
+import {
+  CAKE_FLOW, CAKE_KEY, CAKE_PREV, apiError, cakeNext, creamLabel, dateTime, dayOnly, deliveryOf, dueOf, flavorLabel, flowIndex, hoursTo, isClosed,
+  isDelivery, leftText, occasionOf, shapeLabel, sizeLabel, statusOf, waLink,
+} from '../components/meta';
 
 export default function CakeOrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [showPayment, setShowPayment] = useState(false);
-  const [showRating, setShowRating] = useState(false);
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Bakery';
+  const canManage = usePermission(PERMISSIONS.BAKERY_ORDERS_MANAGE);
+  const [rating, setRating] = useState(false);
+  useReceiptSetup();
 
-  const { data: order, isLoading, refetch } = useQuery({
-    queryKey: ['cake-order', id],
-    queryFn: () => cakeOrdersApi.getOne(id!),
-    enabled: !!id,
-    refetchInterval: 30_000,
-  });
+  const q = useQuery({ queryKey: [CAKE_KEY, 'one', id], queryFn: () => cakeOrdersApi.getOne(id!), enabled: !!id, refetchInterval: 30_000 });
+  const o = q.data;
+  const billQ = useQuery({ queryKey: [CAKE_KEY, 'bill', id], queryFn: () => cakeOrdersApi.bill(id!), enabled: !!id && o?.status === 'DELIVERED' });
+  const act = useCakeActions(shopName);
 
-  const statusMutation = useMutation({
-    mutationFn: (status: string) => cakeOrdersApi.updateStatus(id!, status),
-    onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['cake-order', id] }); queryClient.invalidateQueries({ queryKey: ['cake-orders'] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!o || e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (e.key === 'p' || e.key === 'P') printCakeSlip(o, shopName);
+      if (e.key === 'k' || e.key === 'K') printCakeSlip(o, shopName, true);
+      if ((e.key === 'e' || e.key === 'E') && canManage && !isClosed(o.status)) navigate(`/bakery/cake-orders/${o.id}/edit`);
+      if (e.key === 'Escape') navigate('/bakery/cake-orders');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [o, shopName, canManage, navigate]);
 
-  const cancelMutation = useMutation({
-    mutationFn: (reason: string) => cakeOrdersApi.updateStatus(id!, 'CANCELLED', reason),
-    onSuccess: () => { toast.success('Order cancelled'); refetch(); },
-  });
+  if (q.isLoading) return <PageShell><Skeleton className="h-32 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"><Skeleton className="h-96 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
+  if (!o) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Yeh order nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/bakery/cake-orders')}>Orders par wapas</Button></div></PageShell>;
 
-  if (isLoading || !order) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
-  }
-
-  const statusCfg = STATUS_CONFIG[order.status];
-  const currentIdx = STATUS_FLOW.indexOf(order.status);
-  const nextStatus = currentIdx >= 0 && currentIdx < STATUS_FLOW.length - 1 ? STATUS_FLOW[currentIdx + 1] : null;
-  const remaining = order.total - order.paidAmount;
-  const isFullyPaid = remaining <= 0.01;
-  const flavor = FLAVORS.find((f) => f.value === order.flavor);
-  const size = SIZES.find((s) => s.value === order.size);
-  const shape = SHAPES.find((s) => s.value === order.shape);
-  const cream = CREAMS.find((c) => c.value === order.creamType);
-
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-fuchsia-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <button onClick={() => navigate('/bakery/cake-orders')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                {order.orderNumber}
-              </div>
-              <h1 className="mt-1 text-3xl font-extrabold">{order.customerName}</h1>
-              <div className="mt-1 flex items-center gap-2 flex-wrap text-sm">
-                <span className={'px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase text-white ' + statusCfg.color}>{statusCfg.label}</span>
-                <span className="text-white/80 font-semibold inline-flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Needed: {format(new Date(order.neededBy), 'dd MMM yyyy, HH:mm')}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold border border-white/20">
-              <Printer className="h-4 w-4" />
-              Print
-            </button>
-            {!isFullyPaid && !['CANCELLED', 'REFUNDED'].includes(order.status) && (
-              <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
-                <DollarSign className="h-4 w-4" />
-                Add Payment
-              </Button>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Status flow */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Order Workflow</h3>
-          {nextStatus && !['CANCELLED', 'REFUNDED', 'DELIVERED'].includes(order.status) && (
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => statusMutation.mutate(nextStatus)} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
-                <ArrowRight className="h-3.5 w-3.5" />
-                {STATUS_CONFIG[nextStatus].label}
-              </Button>
-              <Button size="sm" variant="secondary" onClick={() => {
-                const reason = prompt('Cancellation reason?');
-                if (reason) cancelMutation.mutate(reason);
-              }} className="bg-rose-50 text-rose-700 border-rose-300">
-                <Ban className="h-3.5 w-3.5" />
-                Cancel
-              </Button>
-            </div>
-          )}
-          {order.status === 'DELIVERED' && !order.customerRating && (
-            <Button size="sm" onClick={() => setShowRating(true)} className="bg-gradient-to-r from-amber-500 to-orange-600 text-white">
-              <Star className="h-3.5 w-3.5" />
-              Add Rating
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 overflow-x-auto pb-2">
-          {STATUS_FLOW.map((s, i) => {
-            const isActive = i <= currentIdx;
-            const isCurrent = i === currentIdx;
-            const cfg = STATUS_CONFIG[s];
-            const Icon = cfg.icon;
-            return (
-              <div key={s} className="flex items-center shrink-0">
-                <div className="flex flex-col items-center gap-1">
-                  <div className={
-                    'h-10 w-10 rounded-full flex items-center justify-center transition ' +
-                    (isCurrent ? cfg.color + ' text-white ring-4 ring-pink-200 dark:ring-pink-900 shadow' :
-                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-500')
-                  }>
-                    {isActive && !isCurrent ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-4 w-4" />}
-                  </div>
-                  <span className={
-                    'text-[0.625rem] font-extrabold uppercase ' +
-                    (isActive ? 'text-slate-900 dark:text-ink-white' : 'text-slate-400')
-                  }>
-                    {cfg.label}
-                  </span>
-                </div>
-                {i < STATUS_FLOW.length - 1 && (
-                  <div className={'h-0.5 w-8 mx-1 ' + (i < currentIdx ? 'bg-pink-500' : 'bg-slate-200 dark:bg-ink-700')} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="grid lg:grid-cols-[1fr_380px] gap-6">
-        <section className="space-y-4">
-          {/* Cake Preview */}
-          <div className={
-            'rounded-3xl overflow-hidden shadow-xl relative bg-gradient-to-br ' +
-            (flavor?.color ?? 'from-pink-500 to-fuchsia-600')
-          }>
-            <div className="p-6 text-white text-center relative">
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="relative">
-                <div className="text-7xl mb-2">{OCCASION_EMOJI[order.occasion] || '🎂'}</div>
-                <div className="text-2xl font-extrabold">{order.occasion?.replace('_', ' ')} Cake</div>
-                {order.celebrantName && (
-                  <div className="mt-1 text-lg font-bold">for {order.celebrantName}{order.celebrantAge ? ' (' + order.celebrantAge + ')' : ''}</div>
-                )}
-                {order.messageOnCake && (
-                  <div className="mt-4 inline-block px-4 py-2 rounded-xl bg-white/25 backdrop-blur border border-white/30">
-                    <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Message</div>
-                    <div className="text-lg font-extrabold italic">"{order.messageOnCake}"</div>
-                  </div>
-                )}
-                <div className="mt-4 flex flex-wrap gap-1 justify-center">
-                  <span className="px-2 py-0.5 rounded-full bg-white/25 backdrop-blur text-xs font-extrabold">{size?.emoji} {size?.label}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/25 backdrop-blur text-xs font-extrabold">{shape?.emoji} {shape?.label}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/25 backdrop-blur text-xs font-extrabold">{flavor?.emoji} {flavor?.label}</span>
-                  {cream && <span className="px-2 py-0.5 rounded-full bg-white/25 backdrop-blur text-xs font-extrabold">{cream.emoji} {cream.label}</span>}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Customer info */}
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
-              <User className="h-4 w-4 text-pink-600" />
-              Customer
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="font-extrabold text-slate-900 dark:text-ink-white text-base">{order.customerName}</div>
-              <a href={'tel:' + order.customerPhone} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
-                <Phone className="h-3 w-3" />
-                {order.customerPhone}
-              </a>
-              {order.customerEmail && (
-                <a href={'mailto:' + order.customerEmail} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
-                  <Mail className="h-3 w-3" />
-                  {order.customerEmail}
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Photo cake / references */}
-          {(order.hasPhotoOnCake || order.designReferenceUrls?.length > 0) && (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Camera className="h-4 w-4 text-fuchsia-600" />
-                Design & Photos
-              </h3>
-              {order.hasPhotoOnCake && order.photoUrl && (
-                <div>
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1">📸 Photo for Cake (Edible Print)</div>
-                  <a href={order.photoUrl} target="_blank" rel="noreferrer">
-                    <img src={order.photoUrl} alt="" className="w-40 h-40 rounded-xl object-cover border-2 border-fuchsia-300" />
-                  </a>
-                </div>
-              )}
-              {order.designReferenceUrls?.length > 0 && (
-                <div>
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1">Design References</div>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                    {order.designReferenceUrls.map((url: string, i: number) => (
-                      <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border border-slate-200 hover:border-fuchsia-500 transition">
-                        <img src={url} alt="" className="w-full h-full object-cover" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {order.designInstructions && (
-                <div className="rounded-lg bg-violet-50 dark:bg-violet-950/30 border border-violet-200 p-3 text-sm text-slate-800 dark:text-ink-200">
-                  {order.designInstructions}
-                </div>
-              )}
-              {(order.colorTheme || order.primaryColor) && (
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {order.colorTheme && <span className="px-2 py-1 rounded bg-violet-100 text-violet-700 font-extrabold">Theme: {order.colorTheme}</span>}
-                  {order.primaryColor && <span className="px-2 py-1 rounded bg-pink-100 text-pink-700 font-extrabold">Primary: {order.primaryColor}</span>}
-                  {order.secondaryColor && <span className="px-2 py-1 rounded bg-fuchsia-100 text-fuchsia-700 font-extrabold">Secondary: {order.secondaryColor}</span>}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Occasion + Event */}
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-fuchsia-600" />
-              Event Details
-            </h3>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Occasion</div>
-                <div className="font-extrabold flex items-center gap-1">{OCCASION_EMOJI[order.occasion] || '⭐'} {order.occasion?.replace('_', ' ')}</div>
-              </div>
-              {order.celebrantName && (
-                <div>
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">For</div>
-                  <div className="font-extrabold">{order.celebrantName}{order.celebrantAge ? ' (' + order.celebrantAge + ')' : ''}</div>
-                </div>
-              )}
-              {order.eventDate && (
-                <div>
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Event Date</div>
-                  <div className="font-extrabold">{format(new Date(order.eventDate), 'dd MMM yyyy')}</div>
-                </div>
-              )}
-              {order.eventTime && (
-                <div>
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Event Time</div>
-                  <div className="font-extrabold">{order.eventTime}</div>
-                </div>
-              )}
-              {order.eventVenue && (
-                <div className="col-span-2">
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Venue</div>
-                  <div className="font-extrabold">{order.eventVenue}</div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Dietary + Extras */}
-          {(order.isEggless || order.isSugarFree || order.isVegan || order.cakeStand || order.cakeKnife || (order.candlesRequired ?? 0) > 0) && (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-2">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Heart className="h-4 w-4 text-emerald-600" />
-                Dietary & Extras
-              </h3>
-              <div className="flex flex-wrap gap-1">
-                {order.isEggless && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs font-extrabold">🥚 Eggless</span>}
-                {order.isSugarFree && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs font-extrabold">🍬 Sugar-free</span>}
-                {order.isVegan && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs font-extrabold">🌱 Vegan</span>}
-                {(order.candlesRequired ?? 0) > 0 && (
-                  <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-extrabold">
-                    🕯️ {order.candlesRequired} candles {order.candleType && '(' + order.candleType + ')'}
-                  </span>
-                )}
-                {order.cakeStand && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-extrabold">🎂 Cake Stand</span>}
-                {order.cakeKnife && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-extrabold">🔪 Cake Knife</span>}
-              </div>
-              {order.allergies?.length > 0 && (
-                <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 p-2 text-xs">
-                  <div className="font-extrabold text-rose-800 mb-1">⚠️ Allergies</div>
-                  <div>{order.allergies.join(', ')}</div>
-                </div>
-              )}
-              {order.dietaryNotes && (
-                <div className="text-xs italic text-slate-600">{order.dietaryNotes}</div>
-              )}
-            </div>
-          )}
-
-          {/* Delivery */}
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-2">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Truck className="h-4 w-4 text-blue-600" />
-              Delivery
-            </h3>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs font-extrabold uppercase">
-                {order.deliveryType?.replace('_', ' ')}
-              </span>
-              {order.deliveryTime && (
-                <span className="text-xs font-bold text-slate-600">
-                  <Clock className="h-3 w-3 inline mr-0.5" />
-                  {order.deliveryTime}
-                </span>
-              )}
-            </div>
-            {order.deliveryAddress && (
-              <div className="text-sm text-slate-700 dark:text-ink-300">
-                <MapPin className="h-3 w-3 inline mr-1" />
-                {order.deliveryAddress}
-              </div>
-            )}
-            {order.deliveryLandmark && (
-              <div className="text-xs text-slate-500">Landmark: {order.deliveryLandmark}</div>
-            )}
-            {order.deliveryCharges > 0 && (
-              <div className="text-xs font-extrabold text-blue-700">Charges: {formatPKR(order.deliveryCharges)}</div>
-            )}
-          </div>
-
-          {/* Rating & feedback */}
-          {order.customerRating && (
-            <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 dark:border-amber-800 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <Star key={n} className={'h-5 w-5 ' + (n <= (order.customerRating || 0) ? 'text-amber-500 fill-amber-500' : 'text-slate-300')} />
-                  ))}
-                </div>
-                <span className="font-extrabold text-amber-900">{order.customerRating}/5</span>
-              </div>
-              {order.customerFeedback && (
-                <p className="text-sm italic text-slate-700">"{order.customerFeedback}"</p>
-              )}
-              {order.finalPhotoUrls?.length > 0 && (
-                <div className="mt-3 grid grid-cols-4 gap-2">
-                  {order.finalPhotoUrls.map((url: string, i: number) => (
-                    <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border border-amber-300">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Special instructions */}
-          {order.specialInstructions && (
-            <div className="rounded-2xl bg-fuchsia-50 dark:bg-fuchsia-950/30 border-2 border-fuchsia-200 dark:border-fuchsia-800 p-4">
-              <div className="text-sm font-extrabold text-fuchsia-900 mb-1">📝 Special Instructions</div>
-              <p className="text-sm text-slate-800 dark:text-ink-200">{order.specialInstructions}</p>
-            </div>
-          )}
-
-          {/* Cancellation reason */}
-          {order.cancellationReason && (
-            <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-200 dark:border-rose-800 p-4">
-              <div className="flex items-center gap-2 text-rose-700 font-extrabold text-sm">
-                <Ban className="h-4 w-4" />
-                Cancelled
-              </div>
-              <p className="mt-1 text-xs text-slate-700">{order.cancellationReason}</p>
-            </div>
-          )}
-        </section>
-
-        {/* Bill Summary sidebar */}
-        <aside className="space-y-4">
-          <div className="sticky top-4 space-y-4">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-pink-900 text-white p-5 shadow-xl">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
-
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between"><span className="text-white/70">Base Price</span><span className="font-bold tabular-nums">{formatPKR(order.basePrice)}</span></div>
-                {order.customizationCharges > 0 && (
-                  <div className="flex justify-between"><span className="text-white/70">Customization</span><span className="font-bold tabular-nums">{formatPKR(order.customizationCharges)}</span></div>
-                )}
-                {order.photoCakeCharges > 0 && (
-                  <div className="flex justify-between text-fuchsia-300"><span>Photo Cake</span><span className="font-bold tabular-nums">{formatPKR(order.photoCakeCharges)}</span></div>
-                )}
-                {order.deliveryCharges > 0 && (
-                  <div className="flex justify-between text-blue-300"><span>Delivery</span><span className="font-bold tabular-nums">{formatPKR(order.deliveryCharges)}</span></div>
-                )}
-                {order.taxAmount > 0 && (
-                  <div className="flex justify-between"><span className="text-white/70">Tax</span><span className="font-bold tabular-nums">{formatPKR(order.taxAmount)}</span></div>
-                )}
-                {order.discount > 0 && (
-                  <div className="flex justify-between text-rose-300"><span>Discount</span><span className="font-bold tabular-nums">-{formatPKR(order.discount)}</span></div>
-                )}
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-white/20 flex justify-between items-center">
-                <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
-                <span className="text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(order.total)}</span>
-              </div>
-
-              <div className="mt-2 space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-white/70">Advance Required</span>
-                  <span className="font-extrabold text-amber-300 tabular-nums">{formatPKR(order.advanceRequired)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/70">Paid</span>
-                  <span className="font-extrabold text-emerald-300 tabular-nums">{formatPKR(order.paidAmount)}</span>
-                </div>
-                {remaining > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-amber-300 font-extrabold">Remaining</span>
-                    <span className="font-extrabold text-amber-300 tabular-nums">{formatPKR(remaining)}</span>
-                  </div>
-                )}
-                {isFullyPaid && (
-                  <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/30 text-emerald-200 text-xs font-extrabold">
-                    <CheckCircle2 className="h-3 w-3" />
-                    PAID IN FULL
-                  </div>
-                )}
-              </div>
-
-              {!isFullyPaid && !['CANCELLED', 'REFUNDED'].includes(order.status) && (
-                <Button size="lg" className="w-full mt-4 bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
-                  <CreditCard className="h-4 w-4" />
-                  Add Payment
-                </Button>
-              )}
-            </div>
-          </div>
-        </aside>
-      </div>
-
-      {showPayment && (
-        <PaymentModal orderId={id!} remaining={remaining} onClose={() => setShowPayment(false)} onDone={() => { setShowPayment(false); refetch(); }} />
-      )}
-      {showRating && (
-        <RatingModal orderId={id!} onClose={() => setShowRating(false)} onDone={() => { setShowRating(false); refetch(); }} />
-      )}
-    </div>
-  );
-}
-
-function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
-  const [amount, setAmount] = useState(remaining);
-  const payMutation = useMutation({
-    mutationFn: () => cakeOrdersApi.addPayment(orderId, amount),
-    onSuccess: () => { toast.success('Payment added'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
+  const st = statusOf(o.status);
+  const closed = isClosed(o.status);
+  const next = cakeNext(o);
+  const left = hoursTo(o.neededBy);
+  const late = !closed && left !== null && left < 0;
+  const due = dueOf(o);
+  const advanceShort = !closed && !['DRAFT', 'QUOTED'].includes(o.status) ? Math.max(o.advanceRequired - o.paidAmount, 0) : 0;
+  const wa = waLink(o.customerPhone, cakeMessage(o, shopName));
+  const idx = flowIndex(o.status);
+  const Del = deliveryOf(o.deliveryType).icon;
+  const busy = act.busyId === o.id;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">Add Payment</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
+    <PageShell>
+      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" onClick={() => navigate('/bakery/cake-orders')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="truncate text-xl font-bold">{o.customerName}</h1>
+              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1 ring-white/25">{st.label}</span>
+              <span className="font-mono text-[0.75rem] text-white/70">{o.orderNumber}</span>
+            </div>
+            <p className={cn('mt-0.5 flex items-center gap-1.5 text-[0.8125rem]', late ? 'font-semibold text-rose-200' : 'text-white/80')}>
+              <Clock className="h-3.5 w-3.5" />{closed ? dateTime(o.neededBy) : `${leftText(left)} · ${dateTime(o.neededBy)}`} · <Del className="h-3.5 w-3.5" />{deliveryOf(o.deliveryType).label}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" onClick={() => printCakeSlip(o, shopName)} title="Customer parchi (P)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Printer className="h-4 w-4" />Parchi</button>
+            <button type="button" onClick={() => printCakeSlip(o, shopName, true)} title="Kitchen parchi (K)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><ChefHat className="h-4 w-4" />Kitchen</button>
+            {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+            {canManage && !closed && <Link to={`/bakery/cake-orders/${o.id}/edit`} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800 hover:bg-brand-50"><Pencil className="h-4 w-4" />Badlein</Link>}
+          </div>
         </div>
-        <div className="p-5 space-y-3">
-          <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 dark:bg-pink-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
-          <div className="flex gap-1">
-            {[0.25, 0.5, 0.75, 1].map((f) => (
-              <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200">
-                {(f * 100).toFixed(0)}%
-              </button>
+        {o.status !== 'CANCELLED' && o.status !== 'REFUNDED' && (
+          <ol className="mt-4 grid grid-cols-5 gap-1.5">
+            {CAKE_FLOW.map((s, i) => (
+              <li key={s} className="min-w-0">
+                <div className={cn('h-1.5 rounded-full', i <= idx ? 'bg-white' : 'bg-white/25')} />
+                <p className={cn('mt-1 truncate text-[0.6875rem]', i === idx ? 'font-bold text-white' : 'text-white/60')}>{statusOf(s).label}</p>
+              </li>
             ))}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-pink-600 to-fuchsia-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
-              <CheckCircle2 className="h-4 w-4" />
-              Confirm
-            </Button>
-          </div>
-        </div>
+          </ol>
+        )}
       </div>
-    </div>
-  );
-}
 
-function RatingModal({ orderId, onClose, onDone }: any) {
-  const [rating, setRating] = useState(5);
-  const [feedback, setFeedback] = useState('');
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-
-  const rateMutation = useMutation({
-    mutationFn: () => cakeOrdersApi.rate(orderId, rating, feedback || undefined, photoUrls.length > 0 ? photoUrls : undefined),
-    onSuccess: () => { toast.success('Rating saved'); onDone(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">Rate Order</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
+      {canManage && !closed && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
+          {next && <Button variant={next.to === 'DELIVER' ? 'success' : 'primary'} loading={busy} onClick={() => act.next(o)} leftIcon={next.to === 'DELIVER' ? <Receipt className="h-4 w-4" /> : <ChefHat className="h-4 w-4" />}>{next.label}</Button>}
+          {due > 0.5 && <Button variant="secondary" onClick={() => act.pay(o)} leftIcon={<Wallet className="h-4 w-4" />}>Paisa mila</Button>}
+          {CAKE_PREV[o.status] && <Button variant="ghost" disabled={busy} onClick={() => act.back(o)} leftIcon={<Undo2 className="h-4 w-4" />}>Ek qadam peeche</Button>}
+          <Button variant="ghost" className="ml-auto text-rose-700" onClick={() => act.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
         </div>
-        <div className="p-5 space-y-4">
-          <div className="text-center">
-            <div className="flex justify-center gap-2 mb-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} onClick={() => setRating(n)} className="transition-transform hover:scale-110">
-                  <Star className={'h-12 w-12 ' + (n <= rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300')} />
-                </button>
-              ))}
-            </div>
-            <div className="text-2xl font-extrabold text-amber-700">{rating}/5</div>
-          </div>
-          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Customer feedback..." className="w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Final Delivery Photos</label>
-            {photoUrls.length > 0 && (
-              <div className="grid grid-cols-4 gap-1 mb-2">
-                {photoUrls.map((url, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
-                    <img src={url} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => setPhotoUrls(photoUrls.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 h-5 w-5 rounded-bl bg-rose-600 text-white flex items-center justify-center">
-                      <X className="h-2.5 w-2.5" />
-                    </button>
-                  </div>
-                ))}
+      )}
+      {canManage && o.status === 'CANCELLED' && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-[0.8125rem] text-rose-900 ring-1 ring-rose-200">
+          <Ban className="h-4 w-4" /> Cancel hua {dateTime(o.cancelledAt)}{o.cancellationReason ? ` — ${o.cancellationReason}` : ''}
+          <Button size="sm" variant="secondary" className="ml-auto" loading={busy} onClick={() => act.confirm(o)}>Dobara pakka karein</Button>
+        </div>
+      )}
+      {advanceShort > 0.5 && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Advance me {formatPKR(advanceShort)} kam hai — bara cake bina advance ke na banayein.</p>}
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={Cake}>Cake</T>}>
+            <dl className="grid gap-x-6 gap-y-2 text-[0.8125rem] sm:grid-cols-2">
+              <Fact k="Size" v={o.size === 'CUSTOM' && o.customWeightKg ? `${o.customWeightKg} kg` : sizeLabel(o.size)} />
+              <Fact k="Shakal" v={o.shape === 'CUSTOM_SHAPE' ? o.customShapeDesc || 'Apni' : shapeLabel(o.shape)} />
+              <Fact k="Flavour" v={o.flavor === 'CUSTOM_FLAVOR' ? o.customFlavorDesc || 'Apna' : flavorLabel(o.flavor)} />
+              <Fact k="Cream" v={o.creamType ? creamLabel(o.creamType) : '—'} />
+              {o.numberOfTiers > 1 && <Fact k="Manzil" v={String(o.numberOfTiers)} />}
+              {o.numberOrLetter && <Fact k="Number / harf" v={o.numberOrLetter} />}
+              {o.productName && <Fact k="Maal se jura" v={o.productName} />}
+            </dl>
+            {o.messageOnCake && (
+              <div className="mt-3 rounded-xl bg-fuchsia-50 px-3 py-2.5 ring-1 ring-fuchsia-100">
+                <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-fuchsia-700">Cake par likhna hai{o.messageColor ? ` · ${o.messageColor}` : ''}</p>
+                <p className="text-lg font-bold text-slate-900">"{o.messageOnCake}"</p>
               </div>
             )}
-            <UploadDropzone onUploaded={(records) => {
-              const urls = Array.isArray(records) ? records.map((r: any) => r.url || r).filter(Boolean) : [(records as any)?.url || records];
-              setPhotoUrls([...photoUrls, ...urls]);
-            }} />
+            {(o.isEggless || o.isSugarFree || o.isVegan || o.allergies?.length > 0 || o.dietaryNotes) && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[0.75rem]">
+                <Heart className="h-4 w-4 text-rose-500" />
+                {o.isEggless && <Pill>Anday ke bagair</Pill>}
+                {o.isSugarFree && <Pill>Cheeni ke bagair</Pill>}
+                {o.isVegan && <Pill>Vegan</Pill>}
+                {(o.allergies ?? []).map((a) => <Pill key={a} danger>Allergy: {a}</Pill>)}
+                {o.dietaryNotes && <span className="text-slate-600">{o.dietaryNotes}</span>}
+              </div>
+            )}
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={ImageIcon}>Design</T>}>
+            <div className="space-y-3 text-[0.8125rem]">
+              {o.designInstructions ? <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2.5 text-slate-800">{o.designInstructions}</p> : <p className="text-slate-500">Design ki tafseel nahi likhi</p>}
+              {(o.colorTheme || o.primaryColor) && <p className="text-slate-700">{[o.colorTheme && `Theme: ${o.colorTheme}`, o.primaryColor && `Rang: ${o.primaryColor}${o.secondaryColor ? ` + ${o.secondaryColor}` : ''}`].filter(Boolean).join(' · ')}</p>}
+              {o.decorativeItems?.length > 0 && <div className="flex flex-wrap gap-1.5">{o.decorativeItems.map((d) => <Pill key={d}>{d}</Pill>)}</div>}
+              {(o.candlesRequired || o.cakeStand || o.cakeKnife) && <p className="text-slate-700">{[o.candlesRequired ? `${o.candlesRequired} mombatti${o.candleType ? ` (${o.candleType})` : ''}` : '', o.cakeStand && 'Cake stand', o.cakeKnife && 'Chhuri'].filter(Boolean).join(' · ')}</p>}
+              {(o.hasPhotoOnCake || o.designReferenceUrls?.length > 0) && (
+                <div className="flex flex-wrap gap-2">
+                  {o.hasPhotoOnCake && o.photoUrl && <Photo url={o.photoUrl} label={`Cake ki photo${o.hasEdibleImage ? ' · edible' : ''}`} />}
+                  {(o.designReferenceUrls ?? []).map((u, i) => <Photo key={u} url={u} label={`Misaal ${i + 1}`} />)}
+                </div>
+              )}
+              {o.hasPhotoOnCake && !o.photoUrl && <p className="text-amber-800">Photo cake hai magar photo nahi lagi — customer se mangwa lein.</p>}
+            </div>
+          </Card>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Card className="rounded-2xl" title={<T icon={PartyPopper}>Mauqa</T>}>
+              <dl className="space-y-1.5 text-[0.8125rem]">
+                <Fact k="Mauqa" v={`${occasionOf(o.occasion).emoji} ${occasionOf(o.occasion).label}`} />
+                {o.celebrantName && <Fact k="Kis ke liye" v={`${o.celebrantName}${o.celebrantAge ? ` (${o.celebrantAge})` : ''}`} />}
+                {o.eventDate && <Fact k="Function" v={`${dayOnly(o.eventDate)}${o.eventTime ? ` · ${o.eventTime}` : ''}`} />}
+                {o.eventVenue && <Fact k="Jagah" v={o.eventVenue} />}
+              </dl>
+            </Card>
+            <Card className="rounded-2xl" title={<T icon={MapPin}>{isDelivery(o.deliveryType) ? 'Pahunchana' : 'Dukaan se lena'}</T>}>
+              <dl className="space-y-1.5 text-[0.8125rem]">
+                <Fact k="Kab" v={dateTime(o.neededBy)} />
+                <Fact k="Kaise" v={deliveryOf(o.deliveryType).label} />
+                {o.deliveryAddress && <p className="text-slate-800">{o.deliveryAddress}{o.deliveryLandmark ? ` — ${o.deliveryLandmark}` : ''}</p>}
+                {o.deliveryCharges > 0 && <Fact k="Delivery charges" v={formatPKR(o.deliveryCharges)} />}
+              </dl>
+            </Card>
           </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600" onClick={() => rateMutation.mutate()} loading={rateMutation.isPending}>
-              <Star className="h-4 w-4" />
-              Save Rating
-            </Button>
-          </div>
+
+          {(o.specialInstructions || o.internalNotes) && (
+            <Card className="rounded-2xl" title={<T icon={StickyNote}>Note</T>}>
+              <div className="space-y-2 text-[0.8125rem]">
+                {o.specialInstructions && <p><span className="text-slate-500">Customer ke liye: </span>{o.specialInstructions}</p>}
+                {o.internalNotes && <p><span className="text-slate-500">Andar ke liye: </span>{o.internalNotes}</p>}
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>Paisa</T>}>
+            <dl className="space-y-1.5 text-[0.8125rem]">
+              <Row k="Cake" v={formatPKR(o.basePrice)} />
+              {o.customizationCharges > 0 && <Row k="Design" v={`+${formatPKR(o.customizationCharges)}`} />}
+              {o.photoCakeCharges > 0 && <Row k="Photo cake" v={`+${formatPKR(o.photoCakeCharges)}`} />}
+              {o.deliveryCharges > 0 && <Row k="Delivery" v={`+${formatPKR(o.deliveryCharges)}`} />}
+              {o.taxAmount > 0 && <Row k="Tax" v={`+${formatPKR(o.taxAmount)}`} />}
+              {o.discount > 0 && <Row k="Chhoot" v={`−${formatPKR(o.discount)}`} />}
+              <Row k="Kul" v={formatPKR(o.total)} strong />
+              <Row k="Advance chahiye tha" v={formatPKR(o.advanceRequired)} />
+              <Row k="Mila" v={formatPKR(o.paidAmount)} />
+            </dl>
+            <div className={cn('mt-3 flex items-center justify-between rounded-xl px-3 py-2.5 ring-1', due > 0.5 ? 'bg-amber-50 ring-amber-200' : 'bg-success-50 ring-success-200')}>
+              <span className="text-[0.8125rem] font-medium text-slate-700">{o.status === 'DELIVERED' ? (due > 0.5 ? 'Khate me gaya' : 'Poora mil gaya') : due > 0.5 ? 'Lete waqt baqi' : 'Poora mil gaya'}</span>
+              <span className="text-lg font-bold tabular-nums text-slate-900">{formatPKR(due)}</span>
+            </div>
+            {o.status === 'DELIVERED' && billQ.data && (
+              <Link to={`/sales/${billQ.data.id}/receipt`} className="mt-3 flex items-center justify-between rounded-xl bg-white px-3 py-2.5 text-[0.8125rem] ring-1 ring-slate-200 hover:bg-slate-50">
+                <span className="inline-flex items-center gap-2 font-medium text-slate-800"><Receipt className="h-4 w-4 text-brand-600" />Bill {billQ.data.saleNumber}</span>
+                <span className="text-brand-700">Dekhein →</span>
+              </Link>
+            )}
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={User}>Customer</T>}>
+            <p className="text-[0.9375rem] font-semibold text-slate-900">{o.customerName}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <a href={`tel:${o.customerPhone}`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Phone className="h-4 w-4" />{o.customerPhone}</a>
+              {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+              {o.customerId && <Link to={`/customers/${o.customerId}`} className="inline-flex h-8 items-center rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">Customer ka khata →</Link>}
+            </div>
+            {o.customerEmail && <p className="mt-2 text-[0.75rem] text-slate-500">{o.customerEmail}</p>}
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={History}>Kab kya hua</T>}>
+            <ol className="space-y-2 text-[0.8125rem]">
+              {[
+                ['Order likha', o.createdAt], ['Pakka hua', o.confirmedAt], ['Banana shuru', o.startedAt], ['Tayyar hua', o.completedAt],
+                ['De diya', o.deliveredAt], ['Cancel hua', o.cancelledAt],
+              ].filter(([, at]) => at).map(([label, at]) => (
+                <li key={label} className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /><span className="flex-1 text-slate-700">{label}</span><span className="text-slate-500">{dateTime(at)}</span></li>
+              ))}
+            </ol>
+          </Card>
+
+          {o.status === 'DELIVERED' && (
+            <Card className="rounded-2xl" title={<T icon={Star}>Customer ki raye</T>}
+              actions={canManage && !o.customerRating ? <Button size="sm" variant="secondary" onClick={() => setRating(true)}>Raye likhein</Button> : undefined}>
+              {o.customerRating ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1">{[1, 2, 3, 4, 5].map((n) => <Star key={n} className={cn('h-5 w-5', n <= (o.customerRating ?? 0) ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} />)}</div>
+                  {o.customerFeedback && <p className="text-[0.8125rem] italic text-slate-700">"{o.customerFeedback}"</p>}
+                  {o.finalPhotoUrls?.length > 0 && <div className="flex flex-wrap gap-2">{o.finalPhotoUrls.map((u, i) => <Photo key={u} url={u} label={`Bana hua ${i + 1}`} />)}</div>}
+                </div>
+              ) : <p className="text-[0.8125rem] text-slate-500">Abhi raye nahi likhi. Customer se pooch kar likhein — aur bane hue cake ki photo bhi lagayein.</p>}
+            </Card>
+          )}
         </div>
       </div>
-    </div>
+
+      <p className="hidden items-center gap-2 text-[0.75rem] text-slate-500 sm:flex"><Kbd>P</Kbd> parchi · <Kbd>K</Kbd> kitchen parchi{canManage && !closed && <> · <Kbd>E</Kbd> badlein</>} · <Kbd>Esc</Kbd> wapas</p>
+
+      {act.modals}
+      {rating && <RatingModal o={o} onClose={() => setRating(false)} />}
+    </PageShell>
   );
 }
+
+function RatingModal({ o, onClose }: { o: CakeOrder; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [stars, setStars] = useState(5);
+  const [feedback, setFeedback] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
+  const save = useMutation({
+    mutationFn: () => cakeOrdersApi.rate(o.id, stars, feedback.trim() || undefined, photos),
+    onSuccess: () => { toast.success('Raye save ho gayi'); qc.invalidateQueries({ queryKey: [CAKE_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hui')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title="Customer ki raye" description={`${o.customerName} · ${o.orderNumber}`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Star className="h-4 w-4" />}>Save karein</Button></>}>
+      <div className="space-y-3">
+        <div className="flex justify-center gap-1.5">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button key={n} type="button" onClick={() => setStars(n)} aria-label={`${n} sitare`}><Star className={cn('h-9 w-9', n <= stars ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} /></button>
+          ))}
+        </div>
+        <Textarea label="Customer ne kya kaha" value={feedback} onChange={(e) => setFeedback(e.target.value)} rows={2} maxLength={500} />
+        {photos.length > 0 && <div className="flex flex-wrap gap-2">{photos.map((u) => <img key={u} src={u} alt="" className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200" />)}</div>}
+        <UploadDropzone maxFiles={4} purpose="product-image" hint="Bane hue cake ki photo — agle customer ko dikhane ke kaam aati hai" onUploaded={(r) => setPhotos((p) => [...p, ...r.map((x) => x.url).filter(Boolean)].slice(0, 4))} />
+      </div>
+    </Modal>
+  );
+}
+
+function Photo({ url, label }: { url: string; label: string }) {
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="group block w-24">
+      <img src={url} alt={label} loading="lazy" className="h-24 w-24 rounded-xl object-cover ring-1 ring-slate-200 group-hover:ring-brand-400" />
+      <span className="mt-0.5 block truncate text-[0.6875rem] text-slate-500">{label}</span>
+    </a>
+  );
+}
+
+function Pill({ children, danger }: { children: ReactNode; danger?: boolean }) {
+  return <span className={cn('rounded-full px-2 py-0.5 text-[0.75rem] font-medium', danger ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-700')}>{children}</span>;
+}
+
+function Fact({ k, v }: { k: string; v: string }) {
+  return <div className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className="text-right font-medium text-slate-900">{v}</dd></div>;
+}
+
+function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
+  return <div className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className={cn('tabular-nums', strong ? 'font-bold text-slate-900' : 'font-medium text-slate-800')}>{v}</dd></div>;
+}
+
+const T = ({ icon: Icon, children }: { icon: typeof Cake; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;

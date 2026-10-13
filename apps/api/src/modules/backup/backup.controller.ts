@@ -12,12 +12,13 @@ export class BackupController {
   constructor(private readonly service: BackupService) {}
 
   @Get('summary')
-  async summary(@GetUser() user: AuthenticatedUser) {
-    const data = await this.service.exportAll(user);
-    return {
-      meta: data.meta,
-      counts: data.counts,
-    };
+  summary(@GetUser() user: AuthenticatedUser) {
+    return this.service.summary(user);
+  }
+
+  @Get('history')
+  history(@GetUser() user: AuthenticatedUser) {
+    return this.service.history(user);
   }
 
   @Get('download')
@@ -27,6 +28,7 @@ export class BackupController {
   ) {
     const data = await this.service.exportAll(user);
     const json = JSON.stringify(data, null, 2);
+    await this.service.logDownload(user, data.counts, Buffer.byteLength(json));
 
     res.setHeader('Content-Type', 'application/json');
     res.setHeader(

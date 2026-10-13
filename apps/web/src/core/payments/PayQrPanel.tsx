@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { QrCode } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
-import { postToDisplay } from '@core/hardware/customerDisplay';
+import { postToDisplay, restoreDisplayCart } from '@core/hardware/customerDisplay';
 import { qrFor, usePayQrs } from './payQr';
 import { qrSvg } from './qrSvg';
 
@@ -18,6 +18,8 @@ export function PayQrPanel({ method, amount, shopName }: { method: string; amoun
   useEffect(() => {
     if (!r) return;
     postToDisplay({ kind: 'qr', shopName: shopName ?? '', amount, label: r.qr.label, merchantName: r.qr.merchantName, svg: qrSvg(r.text, 360) });
+    // Payment closed or method changed without a sale: show the bill again.
+    return restoreDisplayCart;
   }, [r, amount, shopName]);
 
   if (!r) return null;

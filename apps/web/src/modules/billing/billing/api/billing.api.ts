@@ -30,6 +30,7 @@ export interface Invoice {
   invoiceNumber: string;
   status: InvoiceStatus;
   subtotal: number;
+  tax?: number;
   total: number;
   amountPaid: number;
   amountDue: number;
@@ -39,7 +40,7 @@ export interface Invoice {
   periodStart?: string | null;
   periodEnd?: string | null;
   createdAt: string;
-  subscription?: { plan: { name: string; slug: string } } | null;
+  subscription?: { interval?: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'; plan: { name: string; slug: string } } | null;
   payments?: Payment[];
 }
 

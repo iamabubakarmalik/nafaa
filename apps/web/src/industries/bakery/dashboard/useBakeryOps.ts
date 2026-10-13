@@ -12,6 +12,7 @@ import { bulkOrdersApi } from '../api/bulk-orders.api';
 import { productionApi } from '../api/production.api';
 import { ingredientsApi } from '../api/ingredients.api';
 import { freshnessApi, type FreshnessLog } from '../api/freshness.api';
+import { BULK_KEY, CAKE_KEY, FRESH_KEY, PRODUCTION_KEY, RAW_KEY } from '../components/meta';
 
 const MINUTE = 60_000;
 
@@ -29,11 +30,12 @@ export interface DueOrder {
 }
 
 export function useBakeryOps() {
-  const cakes = useQuery({ queryKey: ['cake-orders'], queryFn: () => cakeOrdersApi.list({}).catch(() => []), refetchInterval: MINUTE });
-  const bulks = useQuery({ queryKey: ['bulk-orders'], queryFn: () => bulkOrdersApi.list({}).catch(() => []), refetchInterval: MINUTE });
-  const plans = useQuery({ queryKey: ['bakery-production-today'], queryFn: () => productionApi.today().catch(() => []), refetchInterval: MINUTE });
-  const ingredients = useQuery({ queryKey: ['bakery-ingredients'], queryFn: () => ingredientsApi.list({}).catch(() => []), refetchInterval: 5 * MINUTE });
-  const freshness = useQuery({ queryKey: ['freshness-logs'], queryFn: () => freshnessApi.list({}).catch(() => []), refetchInterval: MINUTE });
+  // Keys match the bakery pages, so a change there refreshes these numbers too.
+  const cakes = useQuery({ queryKey: [CAKE_KEY, 'open'], queryFn: () => cakeOrdersApi.list({ open: 'true' }).catch(() => []), refetchInterval: MINUTE });
+  const bulks = useQuery({ queryKey: [BULK_KEY, 'open'], queryFn: () => bulkOrdersApi.list({ open: 'true' }).catch(() => []), refetchInterval: MINUTE });
+  const plans = useQuery({ queryKey: [PRODUCTION_KEY, 'today'], queryFn: () => productionApi.today().catch(() => []), refetchInterval: MINUTE });
+  const ingredients = useQuery({ queryKey: [RAW_KEY, 'list', false], queryFn: () => ingredientsApi.list({}).catch(() => []), refetchInterval: 5 * MINUTE });
+  const freshness = useQuery({ queryKey: [FRESH_KEY, 'live'], queryFn: () => freshnessApi.list({ active: 'true' }).catch(() => []), refetchInterval: MINUTE });
 
   // Freshness logs carry no price; join the product list so "3 batches"
   // becomes "Rs 4,500 of stock", which is what makes an owner act.
@@ -82,7 +84,7 @@ export function useBakeryOps() {
     const all: DueOrder[] = [
       ...(cakes.data ?? []).filter((c) => !closed(c.status)).map((c) => ({
         kind: 'cake' as const, id: c.id, name: c.customerName, number: c.orderNumber,
-        left: hoursTo(c.deliveryDate || c.neededBy),
+        left: hoursTo(c.neededBy),
         total: Number(c.total || 0), due: Math.max(Number(c.total || 0) - Number(c.paidAmount || 0), 0),
       })),
       ...(bulks.data ?? []).filter((b) => !closed(b.status)).map((b) => {

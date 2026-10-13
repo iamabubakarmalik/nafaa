@@ -35,6 +35,17 @@ export interface ActiveSession {
   expiresAt: string;
 }
 
+export interface LoginHistoryEntry {
+  id: string;
+  success: boolean;
+  failureReason?: string | null;
+  ipAddress?: string | null;
+  deviceName?: string | null;
+  location?: string | null;
+  isNewDevice?: boolean;
+  createdAt: string;
+}
+
 const unwrap = <T>(res: any): T =>
   res?.data?.data !== undefined ? res.data.data : res?.data;
 const unwrapPlain = <T>(res: any): T => res?.data;
@@ -89,6 +100,13 @@ export const authApi = {
   // ─── Session Management ───
   listSessions: () =>
     apiClient.get('/auth/sessions').then((r) => unwrapPlain<ActiveSession[]>(r)),
+
+  /** Id of the session that belongs to this device (null when not found). */
+  currentSession: (refreshToken: string) =>
+    apiClient.post('/auth/sessions/current', { refreshToken }).then((r) => unwrap<{ id: string | null }>(r)),
+
+  loginHistory: () =>
+    apiClient.get('/auth/login-history').then((r) => unwrap<LoginHistoryEntry[]>(r)),
 
   revokeSession: (sessionId: string) =>
     apiClient.post(`/auth/sessions/${sessionId}/revoke`).then(unwrapPlain),

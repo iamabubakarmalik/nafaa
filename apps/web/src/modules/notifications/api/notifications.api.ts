@@ -1,3 +1,8 @@
+/**
+ * Notifications API: the latest list and unread count (bell), the page feed
+ * with group counts, and read/unread/delete for one or many.
+ */
+
 import { apiClient } from '@core/api/client';
 
 export type NotificationType =
@@ -43,6 +48,25 @@ export interface NotificationListResponse {
   };
 }
 
+/** Page groups; one notification can be in more than one. */
+export type NotificationGroup = 'summary' | 'sales' | 'online' | 'stock' | 'alerts';
+
+export interface NotificationFeedFilters {
+  group?: NotificationGroup;
+  unreadOnly?: boolean;
+  /** Business days "YYYY-MM-DD". */
+  from?: string;
+  to?: string;
+  search?: string;
+}
+
+export interface NotificationFeed {
+  items: Notification[];
+  nextCursor: string | null;
+  total: number;
+  counts: { all: number; unread: number; groups: Record<NotificationGroup, number> };
+}
+
 function unwrapList(res: any): NotificationListResponse {
   const body = res?.data;
   if (body?.data?.items) return body.data;
@@ -84,6 +108,15 @@ export const notificationsApi = {
 
   markRead: (id: string): Promise<Notification> =>
     apiClient.patch(`/notifications/${id}/read`).then((r) => unwrapOne<Notification>(r)),
+
+  feed: (f: NotificationFeedFilters, cursor?: string, limit = 50): Promise<NotificationFeed> =>
+    apiClient.get('/notifications/feed', { params: { ...f, ...(cursor && { cursor }), limit } }).then((r) => unwrapOne<NotificationFeed>(r)),
+
+  markUnread: (id: string) =>
+    apiClient.patch(`/notifications/${id}/unread`).then((r) => unwrapOne<{ count: number }>(r)),
+
+  bulk: (ids: string[], action: 'read' | 'unread' | 'delete') =>
+    apiClient.post('/notifications/bulk', { ids, action }).then((r) => unwrapOne<{ count: number }>(r)),
 
   markAllRead: (): Promise<{ message: string }> =>
     apiClient.post('/notifications/mark-all-read').then((r) => unwrapOne<{ message: string }>(r)),

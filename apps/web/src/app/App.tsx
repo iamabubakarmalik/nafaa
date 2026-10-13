@@ -133,6 +133,7 @@ import ProfitReportPage from '@modules/finance/profit-report/pages/ProfitReportP
 import SettingsPage from '@modules/organization/settings/pages/SettingsPage';
 import BarcodeLabelsPage from '@modules/inventory/barcodes/pages/BarcodeLabelsPage';
 import ShopsPage from '@modules/organization/shops/pages/ShopsPage';
+import ShopFormPage from '@modules/organization/shops/pages/ShopFormPage';
 import ShopsOverviewPage from '@modules/organization/shops/pages/ShopsOverviewPage';
 import ActivityLogPage from '@modules/reports/activity-log/pages/ActivityLogPage';
 import ExportsPage from '@modules/reports/exports/pages/ExportsPage';
@@ -142,7 +143,6 @@ import CashRegisterPage from '@modules/finance/cash-register/pages/CashRegisterP
 import MoneyPage from '@modules/finance/money/pages/MoneyPage';
 
 // ─── Team & Staff ──────────────────────────────────────────────
-import TeamPage from '@modules/organization/team/pages/TeamPage';
 import HrStaffPage from '@modules/hr/staff/pages/StaffPage';
 import HrStaffFormPage from '@modules/hr/staff/pages/StaffFormPage';
 import HrStaffProfilePage from '@modules/hr/staff/pages/StaffProfilePage';
@@ -756,14 +756,16 @@ export default function App() {
                   <Route path="/marketplace/settings-hub" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsHubPage />)} />
 
                   <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
+                  <Route path="/shops/new" element={secure(PERMISSIONS.SHOPS_MANAGE, <ShopFormPage />)} />
+                  <Route path="/shops/:id/edit" element={secure(PERMISSIONS.SHOPS_MANAGE, <ShopFormPage />)} />
                   <Route path="/shops" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsPage />)} />
-                  <Route path="/Shops/overview" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsOverviewPage />)} />
+                  <Route path="/shops/overview" element={secure(PERMISSIONS.SHOPS_VIEW, <ShopsOverviewPage />)} />
                   <Route path="/activity-log" element={secure(PERMISSIONS.ACTIVITY_VIEW, <ActivityLogPage />)} />
                   <Route path="/exports" element={secure(PERMISSIONS.EXPORTS_VIEW, <ExportsPage />)} />
                   <Route path="/backup" element={secure(PERMISSIONS.BACKUP_MANAGE, <BackupPage />)} />
 
                   {/* ── Team & Staff ───────────────────────────── */}
-                  <Route path="/team" element={secure(PERMISSIONS.TEAM_VIEW, <TeamPage />)} />
+                  <Route path="/team" element={secure(PERMISSIONS.TEAM_VIEW, <Navigate to="/staff?tab=roles" replace />)} />
                   <Route path="/staff/new" element={secure(PERMISSIONS.STAFF_MANAGE, <HrStaffFormPage />)} />
                   <Route path="/staff/attendance" element={secure(PERMISSIONS.STAFF_VIEW, <HrAttendancePage />)} />
                   <Route path="/staff/salary/new" element={secure(PERMISSIONS.STAFF_MANAGE, <PayrollPage />)} />
@@ -939,15 +941,16 @@ export default function App() {
                       sidebar se hamesha purana hi milta tha. */}
                   <Route path="/bakery" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboard />)} />
                   <Route path="/bakery/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboard />)} />
-                  <Route path="/bakery/cake-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeCustomizerPage />)} />
+                  <Route path="/bakery/cake-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_MANAGE, <CakeCustomizerPage />)} />
+                  <Route path="/bakery/cake-orders/:id/edit" element={secure(PERMISSIONS.BAKERY_ORDERS_MANAGE, <CakeCustomizerPage />)} />
                   <Route path="/bakery/cake-orders/:id" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrderDetailPage />)} />
                   <Route path="/bakery/cake-orders" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrdersPage />)} />
                   <Route path="/bakery/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BakeryProducts />)} />
                   <Route path="/bakery/production" element={secure(PERMISSIONS.BAKERY_PRODUCTION_VIEW, <ProductionPage />)} />
                   <Route path="/bakery/ingredients" element={secure(PERMISSIONS.BAKERY_INGREDIENTS_VIEW, <IngredientsPage />)} />
                   <Route path="/bakery/freshness" element={secure(PERMISSIONS.BAKERY_PRODUCTION_VIEW, <FreshnessPage />)} />
-                  <Route path="/bakery/bulk-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <BakeryBulkOrderFormPage />)} />
-                  <Route path="/bakery/bulk-orders/:id/edit" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <BakeryBulkOrderFormPage />)} />
+                  <Route path="/bakery/bulk-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_MANAGE, <BakeryBulkOrderFormPage />)} />
+                  <Route path="/bakery/bulk-orders/:id/edit" element={secure(PERMISSIONS.BAKERY_ORDERS_MANAGE, <BakeryBulkOrderFormPage />)} />
                   <Route path="/bakery/bulk-orders" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <BakeryBulkOrdersPage />)} />
 
                   {/* Agri */}

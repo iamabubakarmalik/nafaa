@@ -111,6 +111,18 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Post('sessions/current')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Which session is this device' })
+  currentSession(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { refreshToken: string },
+  ) {
+    return this.authService.currentSessionId(user.id, body?.refreshToken);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('sessions/revoke-others')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Revoke all sessions except current' })

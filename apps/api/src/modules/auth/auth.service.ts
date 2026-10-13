@@ -998,6 +998,20 @@ export class AuthService {
     return { success: true, message: 'Device session revoked' };
   }
 
+  /** Which of the user's sessions belongs to this refresh token (this device). */
+  async currentSessionId(userId: string, refreshToken: string) {
+    if (!refreshToken) return { id: null };
+    const sessions = await this.prisma.session.findMany({
+      where: { userId, expiresAt: { gt: new Date() } },
+      orderBy: { lastUsedAt: 'desc' },
+      select: { id: true, refreshTokenHash: true },
+    });
+    for (const s of sessions) {
+      if (await comparePassword(refreshToken, s.refreshTokenHash)) return { id: s.id };
+    }
+    return { id: null };
+  }
+
   async revokeAllExceptCurrent(userId: string, currentRefreshToken: string) {
     const sessions = await this.prisma.session.findMany({ where: { userId } });
 
@@ -1009,10 +1023,13 @@ export class AuthService {
       }
     }
 
-    const where: any = { userId };
-    if (currentId) where.id = { not: currentId };
+    // Without a match every session, this one included, would be removed and
+    // the user signed out here as well.
+    if (!currentId) {
+      throw new BadRequestException('Ye device pehchana nahi gaya — page refresh karke dobara koshish karein');
+    }
 
-    const result = await this.prisma.session.deleteMany({ where });
+    const result = await this.prisma.session.deleteMany({ where: { userId, id: { not: currentId } } });
 
     return {
       success: true,

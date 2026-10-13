@@ -1,11 +1,15 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { startOfMonth } from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
+import { startOfBusinessMonthTz, businessDayKey } from '../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class FeatureGatingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tz: TenantTimezoneService,
+  ) {}
 
   async getCurrentPlan(tenantId: string) {
     const sub = await this.prisma.subscription.findFirst({
@@ -23,7 +27,10 @@ export class FeatureGatingService {
   }
 
   async getUsage(user: AuthenticatedUser) {
-    const monthStart = startOfMonth(new Date());
+    // The monthly sales count follows the shop's own business month, not the server's UTC month.
+    const clock = await this.tz.clock(user.tenantId);
+    const [year, month] = businessDayKey(new Date(), clock.tz, clock.dayStartHour).split('-').map(Number);
+    const monthStart = startOfBusinessMonthTz(year, month, clock.tz, clock.dayStartHour);
 
     const [products, users, shops, salesThisMonth] = await Promise.all([
       this.prisma.product.count({
