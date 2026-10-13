@@ -77,6 +77,8 @@ export interface WorkshopJob {
   statusLogs?: any[];
   customer?: any;
   vehicle?: any;
+  /** Bill made when the vehicle was handed back. */
+  sale?: { id: string; saleNumber: string; total: number; creditAmount: number } | null;
   createdAt: string;
   updatedAt: string;
 }

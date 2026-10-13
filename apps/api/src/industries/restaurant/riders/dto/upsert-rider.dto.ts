@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { RiderStatus } from '@prisma/client';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
@@ -18,3 +18,6 @@ export class UpsertRiderDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() baseSalary?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 }
+
+/** Edits send only what changed (e.g. the status buttons send just `status`). */
+export class UpdateRiderDto extends PartialType(UpsertRiderDto) {}

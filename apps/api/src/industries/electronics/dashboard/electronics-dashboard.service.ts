@@ -3,6 +3,7 @@ import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
+import { saleFigures } from '../../../common/helpers/business-math.helper';
 
 @Injectable()
 export class ElectronicsDashboardService {
@@ -27,16 +28,8 @@ export class ElectronicsDashboardService {
       this.prisma.electronicsBundle.count({ where: { tenantId: user.tenantId, isActive: true } }),
     ]);
 
-    // Monthly revenue from sold serials
-    const monthlyRevenue = await this.prisma.electronicsSerialTracking.aggregate({
-      where: {
-        tenantId: user.tenantId,
-        status: 'SOLD',
-        soldAt: { gte: monthAgo },
-      },
-      _sum: { soldPrice: true },
-      _count: { _all: true },
-    });
+    // Last 30 days of bills by the shared rules, so it matches the day book and reports.
+    const monthly = await saleFigures(this.prisma, { tenantId: user.tenantId, shopId: scope.shopId }, { gte: monthAgo });
 
     // Expiring warranties (next 30 days)
     const expiringWarranties = await this.prisma.electronicsSerialTracking.count({
@@ -70,7 +63,8 @@ export class ElectronicsDashboardService {
     const brandSales = await this.prisma.saleItem.groupBy({
       by: ['productId'],
       where: {
-        sale: { tenantId: user.tenantId, ...scope.where, status: 'COMPLETED' },
+        // Every live bill counts, including ones with a partial return.
+        sale: { tenantId: user.tenantId, ...scope.where, status: { not: 'VOIDED' } },
         productId: { not: null },
       },
       _sum: { total: true, quantity: true },
@@ -108,8 +102,8 @@ export class ElectronicsDashboardService {
       inventory: { inStock: inStockSerials, sold: soldSerials, defective: defectiveSerials },
       warranty: { activeClaims, resolvedClaims, expiringWarranties },
       monthlyBusiness: {
-        salesCount: monthlyRevenue._count._all,
-        revenue: monthlyRevenue._sum.soldPrice ?? 0,
+        salesCount: monthly.bills,
+        revenue: monthly.net,
       },
       topProducts, recentClaims, topBrands, byCategory,
     };

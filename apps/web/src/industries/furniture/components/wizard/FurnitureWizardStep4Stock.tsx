@@ -10,6 +10,8 @@ import type {
 } from '../../hooks/useFurnitureWizard';
 
 interface Props {
+  /** Editing a saved product: stock changes go through stock adjustment instead. */
+  isEdit?: boolean;
   basic: FurnitureWizardBasic;
   hasVariants: boolean;
   onToggleVariants: (v: boolean) => void;
@@ -32,7 +34,7 @@ const VARIANT_PRESETS = [
   { group: 'Wood', items: ['Sheesham', 'Teak', 'Rosewood', 'MDF', 'Plywood'] },
 ];
 
-export function FurnitureWizardStep4Stock({
+export function FurnitureWizardStep4Stock({ isEdit,
   basic, hasVariants, onToggleVariants, variants, stock,
   onAddVariant, onUpdateVariant, onRemoveVariant, onUpdateStock, errors,
 }: Props) {
@@ -112,7 +114,10 @@ export function FurnitureWizardStep4Stock({
             <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
               How many pieces in stock?
             </label>
-            <input type="number" step="1" inputMode="decimal" value={stock.currentStock}
+            {isEdit && (
+              <p className="mb-2 text-xs font-semibold text-amber-700">Stock yahan se nahi badalta — Stock Adjustment se karein, wajah ke saath record banta hai.</p>
+            )}
+            <input type="number" step="1" inputMode="decimal" value={stock.currentStock} disabled={isEdit}
               onChange={(e) => onUpdateStock({ currentStock: Number(e.target.value || 0) })}
               className="h-16 w-full rounded-2xl border-2 border-emerald-400 bg-white px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200" />
             <div className="mt-2 flex flex-wrap gap-1.5">

@@ -74,7 +74,14 @@ export const liveAnimalsApi = {
   unreserve: (id: string) =>
     apiClient.post('/petshop/live-animals/' + id + '/unreserve').then(unwrap<PetLiveAnimal>),
 
-  sell: (id: string, data: { soldPrice: number; soldToCustomerId?: string; soldToCustomerName?: string; notes?: string }) =>
+  /** Catalogue line (stock 1) the POS bills this animal through. */
+  counterItem: (id: string) =>
+    apiClient.post('/petshop/live-animals/' + id + '/counter-item').then(unwrap<{ animalId: string; productId: string; name: string; price: number; cost: number }>),
+
+  sell: (id: string, data: {
+    soldPrice: number; soldToCustomerId?: string; soldToCustomerName?: string; notes?: string;
+    saleId?: string; paymentMethod?: string; paidAmount?: number;
+  }) =>
     apiClient.post('/petshop/live-animals/' + id + '/sell', data).then(unwrap<PetLiveAnimal>),
 
   addMedicalRecord: (id: string, data: { type: string; description: string; vetName?: string; cost?: number; nextDueDate?: string }) =>

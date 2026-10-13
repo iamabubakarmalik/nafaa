@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableStatus } from '@prisma/client';
-import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpsertTableDto {
   @ApiProperty() @IsString() tableNumber!: string;
@@ -28,7 +28,11 @@ export class UpsertTableDto {
 export class ReserveTableDto {
   @ApiProperty() @IsString() reservedByName!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() reservedByPhone?: string;
-  @ApiProperty() reservedFor!: string;
+  @ApiProperty() @IsDateString() reservedFor!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() reservationNote?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() numberOfGuests?: number;
+}
+
+export class ChangeTableStatusDto {
+  @ApiProperty({ enum: TableStatus }) @IsEnum(TableStatus) status!: TableStatus;
 }

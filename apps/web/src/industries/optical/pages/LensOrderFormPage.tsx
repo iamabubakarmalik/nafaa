@@ -27,7 +27,7 @@ export default function LensOrderFormPage() {
     leftSph: '', leftCyl: '', leftAxis: '', leftAdd: '',
     pupilDistance: '',
     labName: '', labOrderRef: '', expectedDate: '',
-    framePrice: '', lensPrice: '', fittingCharge: 0, paidAmount: 0,
+    framePrice: '', lensPrice: '', fittingCharge: 0, paidAmount: 0, paymentMethod: 'CASH',
     notes: '',
   });
 
@@ -262,8 +262,18 @@ export default function LensOrderFormPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Advance Payment" type="number" step="0.01" value={form.paidAmount}
-            onChange={(e) => setForm({ ...form, paidAmount: e.target.value })} />
+          <div className="space-y-2">
+            <Input label="Advance Payment" type="number" step="0.01" value={form.paidAmount}
+              onChange={(e) => setForm({ ...form, paidAmount: e.target.value })} />
+            <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+              className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-3 text-sm font-bold">
+              <option value="CASH">Cash</option>
+              <option value="CARD">Card</option>
+              <option value="BANK_TRANSFER">Bank</option>
+              <option value="JAZZCASH">JazzCash</option>
+              <option value="EASYPAISA">Easypaisa</option>
+            </select>
+          </div>
           <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3">
             <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Remaining Balance</div>
             <div className="text-2xl font-extrabold text-amber-900 tabular-nums">{formatPKR(Math.max(remaining, 0))}</div>

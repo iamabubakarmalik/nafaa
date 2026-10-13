@@ -1,5 +1,6 @@
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi, type UpsertVariantPayload } from '@modules/inventory/products/api/product-variants.api';
+import { apiClient } from '@core/api/client';
 import { sportsProductsApi } from './products.api';
 import type { SportsWizardDraft } from '../hooks/useSportsWizard';
 
@@ -36,7 +37,9 @@ draft: SportsWizardDraft,
     costPrice: Number(basic.costPrice || 0),
     wholesalePrice: basic.wholesalePrice === '' ? undefined : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: baselineStock,
+    // Editing never overwrites stock: the edit form does not load it, and
+    // stock changes must go through purchase or stock adjustment.
+    ...(existingId ? {} : { stock: hasVariants ? 0 : baselineStock }),
     lowStockAlert: Number(stock.lowStockAlert || 3),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -136,14 +139,15 @@ draft: SportsWizardDraft,
       unit: 'pcs',
       price: v.priceOverride ?? Number(basic.retailPrice || 0),
       costPrice: v.costOverride ?? Number(basic.costPrice || 0),
-      stock: Number(v.stock || 0),
+      stock: 0,
       lowStockAlert: Number(v.lowStockAlert || 3),
       imageUrl: v.imageUrl || undefined,
       isActive: v.isActive,
       sortOrder: i,
     }));
     try {
-      createdVariants = await productVariantsApi.bulkCreate(productId, payloads);
+      createdVariants = variantList(await productVariantsApi.bulkCreate(productId, payloads));
+      await addVariantOpeningStock(productId, createdVariants, variants.map((v) => Number(v.stock || 0)));
     } catch (e) {
       await rollback(e);
     }
@@ -157,3 +161,20 @@ draft: SportsWizardDraft,
     totalStock: baselineStock,
   };
 }
+
+
+/**
+ * Variant stock is booked as opening stock, so each size or colour gets its
+ * own branch stock row and the POS can sell it. Creating a variant with a
+ * stock number only sets the cached count, which the POS does not sell from.
+ */
+async function addVariantOpeningStock(productId: string, created: any[], stocks: number[]) {
+  const items = created
+    .map((v, i) => ({ variantId: v?.id as string, quantity: Number(stocks[i] || 0) }))
+    .filter((it) => it.variantId && it.quantity > 0);
+  if (!items.length) return;
+  await apiClient.post(`/sports/products/${productId}/opening-stock`, { items });
+}
+
+/** The bulk endpoint answers { created, items }; older builds answered a plain list. */
+const variantList = (res: any): any[] => (Array.isArray(res) ? res : Array.isArray(res?.items) ? res.items : []);

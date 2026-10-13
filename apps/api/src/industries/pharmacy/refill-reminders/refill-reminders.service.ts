@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -39,10 +40,8 @@ export class RefillRemindersService {
   }
 
   async dueToday(user: AuthenticatedUser) {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
+    const start = startOfDayTz();
+    const end = endOfDayTz();
 
     return this.prisma.refillReminder.findMany({
       where: {

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ApplianceInstallationStatus } from '@prisma/client';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { billJob, receiveJobMoney } from '../common/books';
 import {
   AddInstallationPaymentDto,
   AssignTechnicianDto,
@@ -349,6 +350,33 @@ export class InstallationsService {
         });
       }
 
+      // Installation charges are a bill, unless the POS bill already carried them.
+      const billedAtPos = i.saleId
+        ? JSON.stringify((await tx.sale.findFirst({ where: { id: i.saleId, tenantId: user.tenantId }, select: { serviceChargesBreakdown: true } }))?.serviceChargesBreakdown ?? '').includes('INSTALLATION')
+        : false;
+      if (billedAtPos) {
+        // The POS bill took this money; nothing is owed on the installation itself.
+        await tx.applianceInstallation.update({ where: { id }, data: { paidByCustomer: totalCharge } });
+      } else {
+        const what = `${i.productName}${i.serialNumber ? ` (${i.serialNumber})` : ''}`;
+        const lines = coveredUnderWarranty
+          ? [{ label: `Installation ${i.installationNumber} — ${what}: customer ka hissa`, amount: paidByCustomer }]
+          : [
+              // Material is bought for the job; its price is taken as its cost.
+              { label: `Installation ${i.installationNumber} — ${what}: saman`, amount: materialsCharge, cost: materialsCharge },
+              { label: `Installation ${i.installationNumber} — ${what}: mazdoori`, amount: laborCharge },
+              { label: `Installation ${i.installationNumber} — ${what}: visit`, amount: visitCharge },
+            ];
+        const bill = await billJob(
+          tx, user,
+          { number: i.installationNumber, customerId: i.customerId, customerName: i.customerName, customerPhone: i.customerPhone },
+          lines, paidByCustomer,
+        );
+        if (bill?.customerId && bill.customerId !== i.customerId) {
+          await tx.applianceInstallation.update({ where: { id }, data: { customerId: bill.customerId } });
+        }
+      }
+
       if (i.serialTrackingId) {
         await tx.applianceSerialTracking.updateMany({
           where: { id: i.serialTrackingId, tenantId: user.tenantId },
@@ -374,12 +402,22 @@ export class InstallationsService {
     if (dto.amount <= 0) throw new BadRequestException('Raqam 0 se ziyada honi chahiye');
     if (dto.amount > due) throw new BadRequestException(`Sirf ${due} baqi hai`);
 
-    return this.prisma.applianceInstallation.update({
-      where: { id },
-      data: {
-        paidByCustomer: { increment: dto.amount },
-        internalNotes: `${i.internalNotes || ''}\n[${new Date().toLocaleString('en-PK')}] Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`.trim(),
-      },
+    if (i.status === 'CANCELLED') throw new BadRequestException('Cancel hui installation par paisa nahi liya ja sakta');
+    return this.prisma.$transaction(async (tx) => {
+      // Before the bill this is an advance; after it, it pays the bill's udhaar on khata.
+      const customerId = await receiveJobMoney(
+        tx, user,
+        { number: i.installationNumber, customerId: i.customerId, customerName: i.customerName, customerPhone: i.customerPhone },
+        dto.amount, `Installation ${i.installationNumber} wusooli`,
+      );
+      return tx.applianceInstallation.update({
+        where: { id },
+        data: {
+          customerId,
+          paidByCustomer: { increment: dto.amount },
+          internalNotes: `${i.internalNotes || ''}\n[${new Date().toLocaleString('en-PK')}] Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`.trim(),
+        },
+      });
     });
   }
 

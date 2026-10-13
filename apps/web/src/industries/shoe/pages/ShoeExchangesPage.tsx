@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { shoeExchangesApi } from '../api/exchanges.api';
+import { shoeSizeVariantsApi } from '../api/size-variants.api';
+import { productsApi } from '@modules/inventory/products/api/products.api';
 import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR } from '@core/lib/format';
@@ -44,6 +46,7 @@ export default function ShoeExchangesPage() {
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => shoeExchangesApi.updateStatus(id, { status }),
     onSuccess: () => { toast.success('Status updated'); qc.invalidateQueries({ queryKey: ['shoe-exchanges'] }); qc.invalidateQueries({ queryKey: ['shoe-exchanges-summary'] }); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
   });
 
   return (
@@ -197,14 +200,29 @@ export default function ShoeExchangesPage() {
 
 function ExchangeFormModal({ onClose, onSaved }: any) {
   const [form, setForm] = useState({
-    customerName: '', customerPhone: '', productName: '',
+    customerName: '', customerPhone: '', productId: '', productName: '',
     originalSize: '', newSize: '', reason: '', reasonCategory: '',
     priceDifference: 0, photoUrls: [] as string[],
   });
+  const [productSearch, setProductSearch] = useState('');
+
+  // The exchange moves stock between two sizes of one product, so both are picked from the list.
+  const { data: productHits } = useQuery({
+    queryKey: ['shoe-exchange-products', productSearch],
+    queryFn: () => productsApi.list({ page: 1, limit: 10, search: productSearch || undefined } as any),
+    enabled: !form.productId && productSearch.trim().length > 1,
+  });
+  const { data: sizes = [] } = useQuery({
+    queryKey: ['shoe-exchange-sizes', form.productId],
+    queryFn: () => shoeSizeVariantsApi.byProduct(form.productId),
+    enabled: !!form.productId,
+  });
+  const sizeName = (v: any) => `${v.sizeSystem} ${v.size}${v.width && v.width !== 'REGULAR' ? ` ${v.width}` : ''}`;
 
   const save = useMutation({
-    mutationFn: () => shoeExchangesApi.create(form),
+    mutationFn: () => shoeExchangesApi.create({ ...form, productId: form.productId || undefined } as any),
     onSuccess: () => { toast.success('Exchange created'); onSaved(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Exchange nahi bana'),
   });
 
   return (
@@ -221,18 +239,44 @@ function ExchangeFormModal({ onClose, onSaved }: any) {
             <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *"
               className="h-11 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold" />
           </div>
-          <input value={form.productName} onChange={(e) => setForm({ ...form, productName: e.target.value })} placeholder="Product name *"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold" />
+          {form.productId ? (
+            <div className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold flex items-center justify-between">
+              <span className="truncate">{form.productName}</span>
+              <button type="button" onClick={() => setForm({ ...form, productId: '', productName: '', originalSize: '', newSize: '' })}
+                className="text-xs font-extrabold text-rose-600">Badlein</button>
+            </div>
+          ) : (
+            <div>
+              <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Joota dhoondein (naam / SKU) *"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold" />
+              {((productHits as any)?.items ?? []).length > 0 && (
+                <div className="mt-1 rounded-xl border-2 border-slate-200 divide-y max-h-48 overflow-y-auto">
+                  {((productHits as any)?.items ?? []).map((p: any) => (
+                    <button key={p.id} type="button" onClick={() => { setForm({ ...form, productId: p.id, productName: p.name }); setProductSearch(''); }}
+                      className="w-full px-3 py-2 text-left text-sm font-bold hover:bg-slate-50">{p.name}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-extrabold uppercase mb-1">Original Size *</label>
-              <input value={form.originalSize} onChange={(e) => setForm({ ...form, originalSize: e.target.value })} placeholder="e.g. 9"
-                className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 px-3 text-sm font-extrabold" />
+              <label className="block text-xs font-extrabold uppercase mb-1">Wapas aaya size *</label>
+              <select value={form.originalSize} onChange={(e) => setForm({ ...form, originalSize: e.target.value })} disabled={!form.productId}
+                className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 px-3 text-sm font-extrabold">
+                <option value="">Chunein</option>
+                {(sizes as any[]).map((v) => <option key={v.id} value={sizeName(v)}>{sizeName(v)}</option>)}
+              </select>
             </div>
             <div>
-              <label className="block text-xs font-extrabold uppercase mb-1">New Size *</label>
-              <input value={form.newSize} onChange={(e) => setForm({ ...form, newSize: e.target.value })} placeholder="e.g. 10"
-                className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold" />
+              <label className="block text-xs font-extrabold uppercase mb-1">Naya size *</label>
+              <select value={form.newSize} onChange={(e) => setForm({ ...form, newSize: e.target.value })} disabled={!form.productId}
+                className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold">
+                <option value="">Chunein</option>
+                {(sizes as any[]).map((v) => (
+                  <option key={v.id} value={sizeName(v)} disabled={v.stock <= 0}>{sizeName(v)} ({v.stock} joray)</option>
+                ))}
+              </select>
             </div>
           </div>
           <div>
@@ -257,7 +301,7 @@ function ExchangeFormModal({ onClose, onSaved }: any) {
         <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700" onClick={() => save.mutate()} loading={save.isPending}
-            disabled={!form.customerName.trim() || !form.originalSize.trim() || !form.newSize.trim() || !form.reason.trim()}>
+            disabled={!form.customerName.trim() || !form.customerPhone.trim() || !form.productId || !form.originalSize.trim() || !form.newSize.trim() || form.originalSize === form.newSize || !form.reason.trim()}>
             <Save className="h-4 w-4" /> Create
           </Button>
         </div>

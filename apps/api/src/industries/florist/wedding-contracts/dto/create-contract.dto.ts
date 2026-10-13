@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsArray, IsBoolean, IsEmail, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateWeddingContractDto {
@@ -6,7 +7,8 @@ export class CreateWeddingContractDto {
   @ApiProperty() @IsString() groomName!: string;
   @ApiProperty() @IsString() contactPerson!: string;
   @ApiProperty() @IsString() contactPhone!: string;
-  @ApiPropertyOptional() @IsOptional() @IsEmail() contactEmail?: string;
+  // The form sends '' when no email is typed; that means none, not a bad address.
+  @ApiPropertyOptional() @IsOptional() @Transform(({ value }) => (value === '' ? undefined : value)) @IsEmail() contactEmail?: string;
 
   @ApiProperty() @IsString() weddingDate!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() ceremonyVenue?: string;
@@ -48,4 +50,5 @@ export class UpdateContractStatusDto {
 export class RecordWeddingPaymentDto {
   @ApiProperty() @IsNumber() amount!: number;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
 }

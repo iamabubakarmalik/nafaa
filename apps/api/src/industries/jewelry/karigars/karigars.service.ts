@@ -51,6 +51,9 @@ export class KarigarsService {
   }
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
+    await this.getOne(user, id);
+    const { id: _id, tenantId: _t, karigarNumber: _n, createdAt: _c, updatedAt: _u, ...safe } = dto ?? {};
+    dto = safe;
     return this.prisma.jewelryKarigar.update({
       where: { id },
       data: {
@@ -101,6 +104,7 @@ export class KarigarsService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
+    await this.getOne(user, id);
     return this.prisma.jewelryKarigar.update({ where: { id }, data: { isActive: false } });
   }
 

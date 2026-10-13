@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -8,8 +9,8 @@ export class ClinicDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz(new Date());
     const monthAgo = subDays(new Date(), 30);
     const upcomingWeek = new Date();
     upcomingWeek.setDate(upcomingWeek.getDate() + 7);

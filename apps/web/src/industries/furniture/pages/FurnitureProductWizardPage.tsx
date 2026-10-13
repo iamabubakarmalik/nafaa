@@ -276,6 +276,7 @@ export default function FurnitureProductWizardPage() {
           )}
           {draft.step === 4 && (
             <FurnitureWizardStep4Stock
+              isEdit={isEdit}
               basic={draft.basic}
               hasVariants={draft.hasVariants}
               onToggleVariants={setHasVariants}

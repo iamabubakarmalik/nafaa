@@ -86,7 +86,7 @@ export const ordersApi = {
   create: (data: Partial<RestaurantOrder> & { items: OrderItem[] }) =>
     apiClient.post('/restaurant/orders', data).then(unwrap<RestaurantOrder>),
 
-  list: (params?: { status?: string; mode?: string; tableId?: string; from?: string; to?: string; search?: string }) =>
+  list: (params?: { status?: string; mode?: string; tableId?: string; from?: string; to?: string; search?: string; saleId?: string }) =>
     apiClient.get('/restaurant/orders', { params }).then(unwrap<RestaurantOrder[]>),
 
   summary: (params?: { from?: string; to?: string }) =>
@@ -98,7 +98,11 @@ export const ordersApi = {
   updateStatus: (id: string, status: OrderStatus, opts?: { notes?: string; cancellationReason?: string }) =>
     apiClient.patch('/restaurant/orders/' + id + '/status', { status, ...opts }).then(unwrap<RestaurantOrder>),
 
-  addPayment: (id: string, payment: { amount: number; paymentMethod: string; paidBy?: string; reference?: string; notes?: string }) =>
+  /** Once the order is fully paid (or closed on khata) the server turns it into a bill (Sale). */
+  addPayment: (id: string, payment: {
+    amount: number; paymentMethod: string; paidBy?: string; reference?: string; notes?: string;
+    closeOnCredit?: boolean; customerId?: string; managerPin?: string;
+  }) =>
     apiClient.post('/restaurant/orders/' + id + '/payments', payment).then(unwrap<RestaurantOrder>),
 
   addItems: (id: string, items: OrderItem[]) =>
@@ -107,6 +111,6 @@ export const ordersApi = {
   removeItem: (id: string, itemId: string) =>
     apiClient.delete('/restaurant/orders/' + id + '/items/' + itemId).then(unwrap),
 
-  splitBill: (id: string, splits: { paidBy: string; amount: number; paymentMethod: string }[]) =>
-    apiClient.post('/restaurant/orders/' + id + '/split-bill', { splits }).then(unwrap<RestaurantOrder>),
+  splitBill: (id: string, splits: { paidBy: string; amount: number; paymentMethod: string }[], managerPin?: string) =>
+    apiClient.post('/restaurant/orders/' + id + '/split-bill', { splits, ...(managerPin && { managerPin }) }).then(unwrap<RestaurantOrder>),
 };

@@ -10,9 +10,11 @@ import {
 } from 'lucide-react';
 import { ordersApi, type OrderStatus } from '../api/orders.api';
 import { kotApi } from '../api/kot.api';
+import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
+import { withManagerPin } from '@core/security/ManagerPin';
 
 const MODE_ICON: Record<string, any> = {
   DINE_IN: Utensils, TAKEAWAY: ShoppingBag, DELIVERY: Bike,
@@ -137,7 +139,13 @@ export default function OrderDetailPage() {
               <Printer className="h-4 w-4" />
               Print KOT
             </button>
-            {!isFullyPaid && !['CANCELLED', 'COMPLETED'].includes(order.status) && (
+            {order.saleId && (
+              <Link to={`/sales/${order.saleId}/receipt`} className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-white/15 hover:bg-white/25 text-sm font-extrabold">
+                <Printer className="h-4 w-4" />
+                Bill
+              </Link>
+            )}
+            {!order.saleId && !['CANCELLED', 'COMPLETED'].includes(order.status) && (
               <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
                 <DollarSign className="h-4 w-4" />
                 Pay
@@ -375,7 +383,7 @@ export default function OrderDetailPage() {
               </div>
               {remaining > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-amber-300 font-extrabold">Remaining</span>
+                  <span className="text-amber-300 font-extrabold">{order.saleId ? 'Udhaar (khate me)' : 'Remaining'}</span>
                   <span className="font-extrabold text-amber-300 tabular-nums">{formatPKR(remaining)}</span>
                 </div>
               )}
@@ -426,22 +434,37 @@ export default function OrderDetailPage() {
         </aside>
       </div>
 
-      {showPayment && <PaymentModal orderId={id!} remaining={remaining} onClose={() => setShowPayment(false)} onDone={() => { setShowPayment(false); refetch(); }} />}
+      {showPayment && <PaymentModal orderId={id!} remaining={remaining} orderCustomerId={order.customerId} onClose={() => setShowPayment(false)} onDone={() => { setShowPayment(false); refetch(); }} />}
       {showSplit && <SplitBillModal orderId={id!} total={remaining} onClose={() => setShowSplit(false)} onDone={() => { setShowSplit(false); refetch(); }} />}
     </div>
   );
 }
 
-function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
+function PaymentModal({ orderId, remaining, orderCustomerId, onClose, onDone }: any) {
   const [amount, setAmount] = useState(remaining);
   const [method, setMethod] = useState('CASH');
   const [reference, setReference] = useState('');
-  const [notes, setNotes] = useState('');
+  const [notes] = useState('');
+  // Close the bill now and put the unpaid part on the customer's khata.
+  const [onKhata, setOnKhata] = useState(false);
+  const [customerId, setCustomerId] = useState<string>(orderCustomerId ?? '');
+  const { data: customersData } = useQuery({
+    queryKey: ['customers-for-order-pay'],
+    queryFn: () => customersApi.list({ limit: 500 }),
+    enabled: onKhata && !orderCustomerId,
+  });
 
   const payMutation = useMutation({
-    mutationFn: () => ordersApi.addPayment(orderId, { amount, paymentMethod: method, reference, notes }),
-    onSuccess: () => {
-      toast.success('Payment added');
+    // Shop rules may ask for the owner's PIN (big discount, khata limit); the dialog asks once and retries.
+    mutationFn: () => withManagerPin('Bill ke liye malik ka PIN', (managerPin) => ordersApi.addPayment(orderId, {
+      amount: Number(amount) || 0, paymentMethod: method,
+      reference: reference || undefined, notes: notes || undefined,
+      ...(onKhata && { closeOnCredit: true, customerId: customerId || undefined }),
+      ...(managerPin && { managerPin }),
+    }), onKhata ? 'credit' : 'discount'),
+    onSuccess: (o: any) => {
+      toast.success(o?.saleId ? 'Bill ban gaya' : 'Payment jama ho gayi');
+      if (o?.saleId) window.open(`/sales/${o.saleId}/receipt?auto=1`, '_blank');
       onDone();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
@@ -481,7 +504,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Payment Method</label>
             <div className="grid grid-cols-3 gap-2">
-              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
+              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK'].map((m) => (
                 <button
                   key={m}
                   onClick={() => setMethod(m)}
@@ -506,9 +529,24 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
             />
           </div>
 
+          <div className="rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-2">
+            <label className="flex items-center gap-2 text-xs font-extrabold text-amber-900">
+              <input type="checkbox" checked={onKhata} onChange={(e) => setOnKhata(e.target.checked)} />
+              Baqi raqam udhaar (khate) me daalein
+            </label>
+            {onKhata && !orderCustomerId && (
+              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}
+                className="h-10 w-full rounded-lg border-2 border-amber-200 bg-white dark:bg-ink-800 px-2 text-xs font-bold">
+                <option value="">Customer chunein</option>
+                {(customersData?.items ?? []).map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ''}</option>)}
+              </select>
+            )}
+          </div>
+
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
+            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending}
+              disabled={onKhata ? !customerId || amount < 0 : amount <= 0}>
               <CheckCircle2 className="h-4 w-4" />
               Confirm Payment
             </Button>
@@ -520,7 +558,8 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
 }
 
 function SplitBillModal({ orderId, total, onClose, onDone }: any) {
-  const [splits, setSplits] = useState([{ paidBy: '', amount: total / 2, paymentMethod: 'CASH' }, { paidBy: '', amount: total / 2, paymentMethod: 'CASH' }]);
+  const half = Math.floor((total / 2) * 100) / 100;
+  const [splits, setSplits] = useState([{ paidBy: '', amount: half, paymentMethod: 'CASH' }, { paidBy: '', amount: Math.round((total - half) * 100) / 100, paymentMethod: 'CASH' }]);
 
   const sumSplits = splits.reduce((s, sp) => s + sp.amount, 0);
   const diff = total - sumSplits;
@@ -530,14 +569,18 @@ function SplitBillModal({ orderId, total, onClose, onDone }: any) {
   const removeSplit = (idx: number) => setSplits(splits.filter((_, i) => i !== idx));
 
   const splitEqually = () => {
-    const per = Number((total / splits.length).toFixed(2));
-    setSplits(splits.map((s) => ({ ...s, amount: per })));
+    const per = Math.floor((total / splits.length) * 100) / 100;
+    // The last person takes the paisa left over, so the parts always add up to the bill.
+    const last = Math.round((total - per * (splits.length - 1)) * 100) / 100;
+    setSplits(splits.map((s, i) => ({ ...s, amount: i === splits.length - 1 ? last : per })));
   };
 
   const splitMutation = useMutation({
-    mutationFn: () => ordersApi.splitBill(orderId, splits.filter((s) => s.amount > 0)),
-    onSuccess: () => {
-      toast.success('Bill split successfully');
+    mutationFn: () => withManagerPin('Bill ke liye malik ka PIN', (managerPin) =>
+      ordersApi.splitBill(orderId, splits.filter((s) => s.amount > 0).map((s) => ({ ...s, paidBy: s.paidBy || undefined })) as any, managerPin), 'discount'),
+    onSuccess: (o: any) => {
+      toast.success('Bill ban gaya');
+      if (o?.saleId) window.open(`/sales/${o.saleId}/receipt?auto=1`, '_blank');
       onDone();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
@@ -592,7 +635,7 @@ function SplitBillModal({ orderId, total, onClose, onDone }: any) {
                   onChange={(e) => updateSplit(i, { paymentMethod: e.target.value })}
                   className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                 >
-                  <option>CASH</option><option>CARD</option><option>JAZZCASH</option><option>EASYPAISA</option><option>BANK</option>
+                  <option>CASH</option><option>CARD</option><option>JAZZCASH</option><option>EASYPAISA</option><option value="BANK">BANK</option>
                 </select>
               </div>
             </div>

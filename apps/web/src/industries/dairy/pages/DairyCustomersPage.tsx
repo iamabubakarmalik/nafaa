@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users, Plus, Search, X, Save, Edit3, RefreshCw, Sparkles, Phone,
@@ -375,7 +376,7 @@ function PaymentModal({ customer, onClose, onDone }: any) {
 }
 
 function PauseModal({ customer, onClose, onDone }: any) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = format(new Date(), 'yyyy-MM-dd');
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState('');
   const [reason, setReason] = useState('');

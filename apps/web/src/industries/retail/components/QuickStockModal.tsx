@@ -4,7 +4,7 @@ import { X, Package, Plus, Minus, Save, AlertTriangle, TrendingUp } from 'lucide
 import { toast } from 'sonner';
 import { Button } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
-import { productsApi } from '@modules/inventory/products/api/products.api';
+import { stockAdjustmentsApi } from '@modules/inventory/stock-adjustments/api/stock-adjustments.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 
 interface Props {
@@ -17,14 +17,16 @@ const QUICK_ADD = [1, 5, 10, 12, 24, 50, 100];
 type Mode = 'add' | 'remove' | 'set';
 
 /**
- * QuickStockModal v3 — Shop counter ke liye fastest stock update.
- * ➕ Maal Aaya  •  ➖ Maal Kam (toota/nikla)  •  ✍️ Ginti (exact set)
- * FIX: viewport clipping — modal ab max-h + internal scroll, kabhi cut nahi hoga.
- * ⌨️ Enter = Save, Esc = Band
+ * Quick stock change from a product list: found more, lost some, or set by count.
+ * Bought goods go through Purchases; an increase here is booked as found stock.
+ * Saves a stock adjustment for the branch in view, so the change has a
+ * record, moves branch stock and shows in write-off reports.
+ * Enter saves, Esc closes.
  */
 export function QuickStockModal({ product, onClose }: Props) {
   const queryClient = useQueryClient();
-  const current = Number(product?.stock || 0);
+  // Branch stock when the list sends it; adjustments change the branch in view.
+  const current = Number(product?.shopStock ?? product?.stock ?? 0);
   const unit = product?.unit || 'pcs';
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,15 +45,20 @@ export function QuickStockModal({ product, onClose }: Props) {
     mode === 'add' ? addQty === '' : mode === 'remove' ? removeQty === '' : setQty === '';
 
   const mutation = useMutation({
-    mutationFn: () => productsApi.update(product.id, { stock: finalStock } as any),
+    mutationFn: () => stockAdjustmentsApi.create({
+      productId: product.id,
+      type: diff > 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT',
+      quantity: Math.abs(diff),
+      reason: mode === 'add' ? 'Ginti me zyada nikla (quick stock)' : mode === 'remove' ? 'Maal kam hua (quick stock)' : 'Ginti (quick stock)',
+    }),
     onSuccess: () => {
-      forceRefreshProducts().catch(() => {}); // ⭐ POS cache refresh
       toast.success(`${product.name} — stock ${finalStock} ${unit} ho gaya`, {
-        description: diff > 0 ? `+${diff} ${unit} add hua` : diff < 0 ? `${diff} ${unit} kam hua` : 'No change',
+        description: diff > 0 ? `+${diff} ${unit} add hua` : diff < 0 ? `${diff} ${unit} kam hua` : 'Koi tabdeeli nahi',
       });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product', product.id] });
       queryClient.invalidateQueries({ queryKey: ['retail-products'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-adjustments'] });
       forceRefreshProducts().catch(() => {});
       onClose();
     },
@@ -117,8 +124,8 @@ export function QuickStockModal({ product, onClose }: Props) {
               active={mode === 'add'}
               onClick={() => { setMode('add'); focusInput(); }}
               activeCls="border-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
-              title="➕ Maal Aaya"
-              sub="Add karo"
+              title="➕ Zyada Nikla"
+              sub="Ginti me zyada"
             />
             <ModeBtn
               active={mode === 'remove'}
@@ -136,11 +143,19 @@ export function QuickStockModal({ product, onClose }: Props) {
             />
           </div>
 
+          {/* Bought goods belong in Purchases; a stock increase here counts as found stock. */}
+          {mode !== 'remove' && (
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-2.5 flex items-start gap-2 text-xs font-bold text-amber-800 dark:text-amber-300">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>Naya maal kharida hai? Use Kharidari (Purchase) me darj karein, taake supplier ka hisaab aur munafa sahi rahe. Yahan barhaya stock report me "zyada nikla maal" gina jata hai.</span>
+            </div>
+          )}
+
           {/* Input */}
           {mode !== 'set' ? (
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
-                {mode === 'add' ? `Kitna maal aaya? (${unit})` : `Kitna maal kam hua? (${unit})`}
+                {mode === 'add' ? `Kitna zyada nikla? (${unit})` : `Kitna maal kam hua? (${unit})`}
               </label>
               <div className="flex items-center gap-2">
                 <button

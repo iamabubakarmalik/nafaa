@@ -42,10 +42,47 @@ export default function CustomOrdersPage() {
     ? orders.filter((o) => !['DELIVERED', 'CANCELLED'].includes(o.status))
     : orders;
 
+  const refresh = () => {
+    ['jewelry-custom-orders', 'sales-list', 'customer-directory'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
+  };
+  const onFail = (e: any) => toast.error(e?.response?.data?.message || 'Kaam nahi hua');
+
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => customOrdersApi.updateStatus(id, status),
-    onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['jewelry-custom-orders'] }); },
+    mutationFn: async ({ id, status, finalPrice, reason }: { id: string; status: string; finalPrice?: number; reason?: string }) => {
+      if (finalPrice !== undefined) await customOrdersApi.update(id, { finalPrice });
+      return customOrdersApi.updateStatus(id, status, reason);
+    },
+    onSuccess: (_d, v) => {
+      toast.success(v.status === 'DELIVERED' ? 'Deliver ho gaya — bill ban gaya, baqi raqam khata me' : 'Status badal gaya');
+      refresh();
+    },
+    onError: onFail,
   });
+
+  const paymentMutation = useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: number }) => customOrdersApi.addPayment(id, amount),
+    onSuccess: () => { toast.success('Raqam mil gayi — customer ke khata me jama'); refresh(); },
+    onError: onFail,
+  });
+
+  const advance = (order: any) => {
+    const v = Number(window.prompt(`${order.orderNumber}: kitni raqam mili?`, '') || 0);
+    if (v > 0) paymentMutation.mutate({ id: order.id, amount: v });
+  };
+
+  const moveTo = (order: any, status: string) => {
+    if (status !== 'DELIVERED') { statusMutation.mutate({ id: order.id, status }); return; }
+    const price = Number(window.prompt(
+      `${order.orderNumber} deliver: final qeemat (Rs)? Advance ${formatPKR(order.paidAmount || 0)} is me se kat jayega, baqi khata me udhaar.`,
+      String(order.finalPrice ?? order.estimatedPrice ?? ''),
+    ) || 0);
+    if (price > 0) statusMutation.mutate({ id: order.id, status, finalPrice: price });
+  };
+
+  const cancelOrder = (order: any) => {
+    const reason = window.prompt(`${order.orderNumber} cancel karein? Wajah likhein. (Advance customer ke khata me jama rahega)`, '');
+    if (reason !== null) statusMutation.mutate({ id: order.id, status: 'CANCELLED', reason: reason.trim() || undefined });
+  };
 
   return (
     <div className="space-y-6">
@@ -169,12 +206,18 @@ export default function CustomOrdersPage() {
                   </div>
                 )}
 
-                {nextStatus && !['DELIVERED', 'CANCELLED'].includes(order.status) && (
-                  <div className="pt-2 border-t border-slate-100 dark:border-ink-800">
-                    <button onClick={() => statusMutation.mutate({ id: order.id, status: nextStatus })} className="w-full h-9 rounded-lg bg-gradient-to-r from-rose-600 to-pink-700 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1">
-                      <ArrowRight className="h-3 w-3" />
-                      Mark: {nextStatus.replace('_', ' ')}
-                    </button>
+                {!['DELIVERED', 'CANCELLED'].includes(order.status) && (
+                  <div className="pt-2 border-t border-slate-100 dark:border-ink-800 space-y-2">
+                    {nextStatus && (
+                      <button disabled={statusMutation.isPending} onClick={() => moveTo(order, nextStatus)} className="w-full h-9 rounded-lg bg-gradient-to-r from-rose-600 to-pink-700 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1 disabled:opacity-50">
+                        <ArrowRight className="h-3 w-3" />
+                        Mark: {nextStatus.replace('_', ' ')}
+                      </button>
+                    )}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button disabled={paymentMutation.isPending} onClick={() => advance(order)} className="h-8 rounded-lg border-2 border-emerald-300 text-emerald-700 text-xs font-extrabold disabled:opacity-50">+ Raqam li</button>
+                      <button disabled={statusMutation.isPending} onClick={() => cancelOrder(order)} className="h-8 rounded-lg border-2 border-rose-200 text-rose-600 text-xs font-extrabold disabled:opacity-50">Cancel</button>
+                    </div>
                   </div>
                 )}
               </div>

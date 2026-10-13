@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import {
+  KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_REVENUE, billMathCte, liveSaleSql, saleFigures,
+} from '../../../common/helpers/business-math.helper';
+import { dateKeyTz, endOfDayTz, startOfDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 /**
@@ -26,11 +30,10 @@ export class AppliancesAnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private dateRange(from?: string, to?: string) {
-    const gte = from
-      ? new Date(from)
-      : (() => { const d = new Date(); d.setDate(d.getDate() - 30); d.setHours(0, 0, 0, 0); return d; })();
-    const lte = to ? new Date(to) : new Date();
-    if (to) lte.setHours(23, 59, 59, 999);
+    // Business days in Pakistan time; the server clock runs in UTC.
+    const dateOnly = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v);
+    const gte = from ? (dateOnly(from) ? startOfDayTz(new Date(from)) : new Date(from)) : subDaysTz(startOfDayTz(new Date()), 30);
+    const lte = to ? (dateOnly(to) ? endOfDayTz(new Date(to)) : new Date(to)) : new Date();
     return { gte, lte };
   }
 
@@ -44,25 +47,32 @@ export class AppliancesAnalyticsService {
     const { gte, lte } = this.dateRange(params.from, params.to);
     const tenantId = user.tenantId;
 
-    const [sales, profiles, brands, installations, services, amcs, deliveries] = await Promise.all([
-      this.prisma.sale.findMany({
-        where: {
-          tenantId,
-          status: 'COMPLETED',
-          soldAt: { gte, lte },
-          ...(params.shopId && { shopId: params.shopId }),
-        },
-        select: {
-          id: true, discount: true, soldAt: true,
-          serviceCharges: true, serviceChargesBreakdown: true,
-          items: {
-            select: {
-              id: true, quantity: true, costPrice: true, total: true, productId: true,
-              product: { select: { id: true, name: true } },
-            },
-          },
-        },
-      }),
+    // Money comes from the bills (shared rules: live bills, discount share,
+    // returns), so these totals match the day book and profit report. Job
+    // records below only add counts and details.
+    const scope = { tenantId, shopId: params.shopId || null };
+    const range = { gte, lt: new Date(lte.getTime() + 1) };
+    const where = liveSaleSql(scope, range);
+
+    const [lines, chargeBills, figures, profiles, brands, installations, services, amcs, deliveries] = await Promise.all([
+      this.prisma.$queryRaw<Array<{
+        saleId: string; saleNumber: string; soldAt: Date; productId: string | null; name: string | null;
+        kept: number; revenue: number; cost: number;
+      }>>`
+        WITH ${billMathCte(where)}
+        SELECT s.id AS "saleId", s."saleNumber" AS "saleNumber", s."soldAt" AS "soldAt",
+          si."productId" AS "productId", bm_p.name AS name,
+          ${KEPT_QTY}::float8 AS kept, ${LINE_REVENUE}::float8 AS revenue, ${LINE_COST}::float8 AS cost
+        FROM "Sale" s
+        JOIN bm ON bm.id = s.id
+        JOIN "SaleItem" si ON si."saleId" = s.id
+        ${LINE_COST_JOINS}
+        WHERE ${where}`,
+      this.prisma.$queryRaw<Array<{ id: string; soldAt: Date; serviceCharges: number; breakdown: unknown }>>`
+        SELECT s.id, s."soldAt" AS "soldAt", s."serviceCharges"::float8 AS "serviceCharges", s."serviceChargesBreakdown" AS breakdown
+        FROM "Sale" s
+        WHERE ${where} AND s."serviceCharges" > 0`,
+      saleFigures(this.prisma, scope, range),
       this.prisma.applianceProductProfile.findMany({
         where: { tenantId },
         select: {
@@ -126,63 +136,97 @@ export class AppliancesAnalyticsService {
     const daily = new Map<string, { date: string; revenue: number; profit: number; services: number }>();
 
     const goods = blank();
-    let posServiceIncome = 0;
-    let posServiceCost = 0;
+    let goodsBills = 0;
+    // Bill money per stream: product lines are goods; product-less lines
+    // belong to the job whose number is the bill number; bill-level
+    // charges go by their type.
+    const stream = {
+      INSTALLATION: { revenue: 0, cost: 0 },
+      SERVICE: { revenue: 0, cost: 0 },
+      AMC: { revenue: 0, cost: 0 },
+      DELIVERY: { revenue: 0, cost: 0 },
+      POS_SERVICES: { revenue: 0, cost: 0 },
+      OTHER: { revenue: 0, cost: 0 },
+    };
+    const streamOf = (saleNumber: string): keyof typeof stream =>
+      saleNumber.startsWith('SR-') ? 'SERVICE'
+        : saleNumber.startsWith('INST-') ? 'INSTALLATION'
+          : saleNumber.startsWith('AMC-') ? 'AMC'
+            : 'OTHER';
 
     const touchDay = (d: Date) => {
-      const key = d.toISOString().slice(0, 10);
+      const key = dateKeyTz(new Date(d));
       const day = daily.get(key) ?? { date: key, revenue: 0, profit: 0, services: 0 };
       daily.set(key, day);
       return day;
     };
 
-    for (const sale of sales) {
-      // POS par lagaye gaye delivery/installation charges — ye item par nahi
-      // poori sale par lagte hain, is liye alag ginti.
-      posServiceIncome += Number(sale.serviceCharges) || 0;
-      for (const sc of (Array.isArray(sale.serviceChargesBreakdown)
-        ? (sale.serviceChargesBreakdown as any[])
-        : [])) {
-        posServiceCost += Number(sc?.cost) || 0;
+    const goodsSales = new Set<string>();
+    for (const line of lines) {
+      const revenue = Number(line.revenue) || 0;
+      const cost = Number(line.cost) || 0;
+      const profit = revenue - cost;
+      const units = Number(line.kept) || 0;
+      const day = touchDay(line.soldAt);
+      day.revenue += revenue;
+      day.profit += profit;
+
+      if (!line.productId) {
+        const k = streamOf(line.saleNumber);
+        stream[k].revenue += revenue;
+        stream[k].cost += cost;
+        day.services += revenue;
+        continue;
       }
 
-      const lineSum = sale.items.reduce((s, i) => s + Number(i.total), 0);
-      const discount = Number(sale.discount) || 0;
+      goodsSales.add(line.saleId);
+      const add = (b: Bucket) => { b.revenue += revenue; b.cost += cost; b.profit += profit; b.units += units; };
+      add(goods);
 
-      for (const item of sale.items) {
-        const gross = Number(item.total) || 0;
-        const share = lineSum > 0 ? gross / lineSum : 0;
-        const revenue = Math.max(gross - discount * share, 0);
-        const cost = Number(item.costPrice) * Number(item.quantity);
-        const profit = revenue - cost;
-        const units = Number(item.quantity) || 0;
+      const prof = profileByProduct.get(line.productId);
 
-        const add = (b: Bucket) => { b.revenue += revenue; b.cost += cost; b.profit += profit; b.units += units; };
-        add(goods);
+      const cat = prof?.categoryType ?? 'OTHER';
+      const c = byCategory.get(cat) ?? blank(); add(c); byCategory.set(cat, c);
 
-        const prof = item.productId ? profileByProduct.get(item.productId) : undefined;
+      const energy = prof?.isInverter ? 'INVERTER' : (prof?.energyRating ?? 'NOT_RATED');
+      const en = byEnergy.get(energy) ?? blank(); add(en); byEnergy.set(energy, en);
 
-        const cat = prof?.categoryType ?? 'OTHER';
-        const c = byCategory.get(cat) ?? blank(); add(c); byCategory.set(cat, c);
+      if (prof?.brandId) {
+        const b = byBrand.get(prof.brandId)
+          ?? { ...blank(), id: prof.brandId, name: brandName.get(prof.brandId) ?? 'Brand' };
+        add(b); byBrand.set(prof.brandId, b);
+      }
 
-        const energy = prof?.isInverter ? 'INVERTER' : (prof?.energyRating ?? 'NOT_RATED');
-        const en = byEnergy.get(energy) ?? blank(); add(en); byEnergy.set(energy, en);
+      const p = byProduct.get(line.productId)
+        ?? { ...blank(), id: line.productId, name: line.name ?? 'Product', category: prof?.categoryType ?? null };
+      add(p); byProduct.set(line.productId, p);
+    }
+    goodsBills = goodsSales.size;
 
-        if (prof?.brandId) {
-          const b = byBrand.get(prof.brandId)
-            ?? { ...blank(), id: prof.brandId, name: brandName.get(prof.brandId) ?? 'Brand' };
-          add(b); byBrand.set(prof.brandId, b);
-        }
-
-        if (item.productId && item.product) {
-          const p = byProduct.get(item.productId)
-            ?? { ...blank(), id: item.productId, name: item.product.name, category: prof?.categoryType ?? null };
-          add(p); byProduct.set(item.productId, p);
-        }
-
-        const day = touchDay(sale.soldAt);
-        day.revenue += revenue;
-        day.profit += profit;
+    for (const bill of chargeBills) {
+      const items = Array.isArray(bill.breakdown) ? (bill.breakdown as any[]) : [];
+      let counted = 0;
+      const day = touchDay(bill.soldAt);
+      for (const sc of items) {
+        if (sc?.passThrough) continue;
+        const amount = Number(sc?.amount) || 0;
+        const cost = Number(sc?.cost) || 0;
+        const type = String(sc?.type ?? '').toUpperCase();
+        const k: keyof typeof stream = type === 'INSTALLATION' ? 'INSTALLATION' : type === 'DELIVERY' ? 'DELIVERY' : 'POS_SERVICES';
+        stream[k].revenue += amount;
+        stream[k].cost += cost;
+        counted += amount;
+        day.revenue += amount;
+        day.profit += amount - cost;
+        day.services += amount;
+      }
+      // Charges saved without a breakdown still count.
+      const rest = (Number(bill.serviceCharges) || 0) - counted;
+      if (rest > 0.005) {
+        stream.POS_SERVICES.revenue += rest;
+        day.revenue += rest;
+        day.profit += rest;
+        day.services += rest;
       }
     }
 
@@ -190,7 +234,7 @@ export class AppliancesAnalyticsService {
     // Material ki lagat cost hai, labor + visit khaalis kamai.
     // Warranty me covered installation ki kamai 0 hoti hai lekin
     // material ka kharcha phir bhi dukaan ke sar par aata hai.
-    let instRevenue = 0, instCost = 0, instJobs = 0, instFree = 0;
+    let instJobs = 0, instFree = 0;
     const byServiceType = new Map<string, { type: string; jobs: number; revenue: number; cost: number; profit: number }>();
     const addServiceType = (type: string, revenue: number, cost: number) => {
       const s = byServiceType.get(type) ?? { type, jobs: 0, revenue: 0, cost: 0, profit: 0 };
@@ -201,28 +245,18 @@ export class AppliancesAnalyticsService {
     for (const i of installations) {
       const revenue = Number(i.totalCharge) || 0;
       const cost = Number(i.materialsCharge) || 0;
-      instRevenue += revenue;
-      instCost += cost;
       instJobs += 1;
       if (i.covered_underWarranty || revenue === 0) instFree += 1;
       addServiceType(i.serviceType ?? 'INSTALLATION', revenue, cost);
-      if (i.completedAt) {
-        const day = touchDay(i.completedAt);
-        day.revenue += revenue;
-        day.profit += revenue - cost;
-        day.services += revenue;
-      }
     }
 
     // ── Repair / Service ──────────────────────────────────────
-    let svcRevenue = 0, svcCost = 0, svcJobs = 0, svcWarranty = 0, svcAmc = 0, svcUnpaid = 0;
+    let svcJobs = 0, svcWarranty = 0, svcAmc = 0, svcUnpaid = 0;
     const byIssue = new Map<string, { issue: string; jobs: number; revenue: number }>();
 
     for (const s of services) {
       const revenue = Number(s.totalCharge) || 0;
       const cost = Number(s.partsCharge) || 0;
-      svcRevenue += revenue;
-      svcCost += cost;
       svcJobs += 1;
       if (s.coveredUnderWarranty) svcWarranty += 1;
       if (s.coveredUnderAmc) svcAmc += 1;
@@ -233,12 +267,6 @@ export class AppliancesAnalyticsService {
       const iss = byIssue.get(issue) ?? { issue, jobs: 0, revenue: 0 };
       iss.jobs += 1; iss.revenue += revenue; byIssue.set(issue, iss);
 
-      if (s.completedAt) {
-        const day = touchDay(s.completedAt);
-        day.revenue += revenue;
-        day.profit += revenue - cost;
-        day.services += revenue;
-      }
     }
 
     // ── AMC ───────────────────────────────────────────────────
@@ -251,38 +279,24 @@ export class AppliancesAnalyticsService {
       const t = byAmcType.get(a.amcType) ?? { type: a.amcType, count: 0, value: 0, paid: 0 };
       t.count += 1; t.value += Number(a.contractValue) || 0; t.paid += paid;
       byAmcType.set(a.amcType, t);
-      const day = touchDay(a.createdAt);
-      day.revenue += paid;
-      day.profit += paid;
-      day.services += paid;
     }
 
     // ── Delivery ──────────────────────────────────────────────
-    let delRevenue = 0, delTrips = 0;
-    for (const d of deliveries) {
-      const revenue = Number(d.totalCharge)
-        || (Number(d.deliveryCharge) || 0) + (Number(d.loadingCharge) || 0)
-         + (Number(d.unloadingCharge) || 0) + (Number(d.floorCharge) || 0);
-      delRevenue += revenue;
-      delTrips += 1;
-      if (d.deliveredAt) {
-        const day = touchDay(d.deliveredAt);
-        day.revenue += revenue;
-        day.profit += revenue;
-        day.services += revenue;
-      }
-    }
+    // Trips only; delivery money is what the bills charged.
+    const delTrips = deliveries.length;
 
     const withMargin = <T extends Bucket>(b: T) => ({
       ...b,
       margin: b.revenue > 0 ? (b.profit / b.revenue) * 100 : 0,
     });
 
-    const serviceIncome = instRevenue + svcRevenue + amcRevenue + delRevenue + posServiceIncome;
-    const serviceCost = instCost + svcCost + posServiceCost;
-
-    const grandRevenue = goods.revenue + serviceIncome;
-    const grandCost = goods.cost + serviceCost;
+    // Job records give counts; the money in every stream comes from the bills.
+    const st = (k: keyof typeof stream) => ({ revenue: stream[k].revenue, cost: stream[k].cost, profit: stream[k].revenue - stream[k].cost });
+    const grandRevenue = figures.net;
+    const grandCost = figures.cost;
+    // Returns of charges, tax and rounding: whatever the streams do not explain.
+    const explained = goods.revenue + Object.values(stream).reduce((a, x) => a + x.revenue, 0);
+    const otherRevenue = stream.OTHER.revenue + (grandRevenue - explained);
 
     return {
       range: { from: gte.toISOString(), to: lte.toISOString() },
@@ -294,46 +308,47 @@ export class AppliancesAnalyticsService {
         profit: grandRevenue - grandCost,
         margin: grandRevenue > 0 ? ((grandRevenue - grandCost) / grandRevenue) * 100 : 0,
         units: goods.units,
-        salesCount: sales.length,
+        salesCount: figures.bills,
       },
 
       /** Sirf maal bechne ka munafa — services isme shamil nahi */
       goods: withMargin(goods),
 
-      /** Paanch kamai ke raste alag alag — kaunsa raasta kitna de raha hai */
+      /** Kamai ke raste alag alag — har raasta bills se, is liye jor report ke barabar */
       streams: [
-        { key: 'GOODS', label: 'Maal ki bikri', revenue: goods.revenue, cost: goods.cost, profit: goods.profit, count: sales.length },
-        { key: 'INSTALLATION', label: 'Installation', revenue: instRevenue, cost: instCost, profit: instRevenue - instCost, count: instJobs },
-        { key: 'SERVICE', label: 'Repair / Service', revenue: svcRevenue, cost: svcCost, profit: svcRevenue - svcCost, count: svcJobs },
-        { key: 'AMC', label: 'AMC contracts', revenue: amcRevenue, cost: 0, profit: amcRevenue, count: amcs.length },
-        { key: 'DELIVERY', label: 'Delivery', revenue: delRevenue, cost: 0, profit: delRevenue, count: delTrips },
-        { key: 'POS_SERVICES', label: 'POS par lagaye charges', revenue: posServiceIncome, cost: posServiceCost, profit: posServiceIncome - posServiceCost, count: 0 },
-      ].filter((s) => s.revenue !== 0 || s.count > 0),
+        { key: 'GOODS', label: 'Maal ki bikri', revenue: goods.revenue, cost: goods.cost, profit: goods.profit, count: goodsBills },
+        { key: 'INSTALLATION', label: 'Installation', ...st('INSTALLATION'), count: instJobs },
+        { key: 'SERVICE', label: 'Repair / Service', ...st('SERVICE'), count: svcJobs },
+        { key: 'AMC', label: 'AMC contracts', ...st('AMC'), count: amcs.length },
+        { key: 'DELIVERY', label: 'Delivery', ...st('DELIVERY'), count: delTrips },
+        { key: 'POS_SERVICES', label: 'POS par lagaye charges', ...st('POS_SERVICES'), count: 0 },
+        { key: 'OTHER', label: 'Deegar', revenue: otherRevenue, cost: stream.OTHER.cost, profit: otherRevenue - stream.OTHER.cost, count: 0 },
+      ].filter((x) => Math.abs(x.revenue) > 0.005 || x.count > 0),
 
       installations: {
         jobs: instJobs,
-        revenue: instRevenue,
-        materialCost: instCost,
-        profit: instRevenue - instCost,
+        revenue: stream.INSTALLATION.revenue,
+        materialCost: stream.INSTALLATION.cost,
+        profit: stream.INSTALLATION.revenue - stream.INSTALLATION.cost,
         freeJobs: instFree,
-        avgTicket: instJobs ? instRevenue / instJobs : 0,
+        avgTicket: instJobs ? stream.INSTALLATION.revenue / instJobs : 0,
       },
 
       services: {
         jobs: svcJobs,
-        revenue: svcRevenue,
-        partsCost: svcCost,
-        profit: svcRevenue - svcCost,
+        revenue: stream.SERVICE.revenue,
+        partsCost: stream.SERVICE.cost,
+        profit: stream.SERVICE.revenue - stream.SERVICE.cost,
         warrantyJobs: svcWarranty,
         amcJobs: svcAmc,
         /** Jo kaam ho gaya lekin paisa abhi baqi hai */
         unpaid: svcUnpaid,
-        avgTicket: svcJobs ? svcRevenue / svcJobs : 0,
+        avgTicket: svcJobs ? stream.SERVICE.revenue / svcJobs : 0,
       },
 
       amc: { contracts: amcs.length, billed: amcBilled, collected: amcRevenue, pending: amcBilled - amcRevenue, byType: [...byAmcType.values()] },
 
-      delivery: { trips: delTrips, revenue: delRevenue, avgTrip: delTrips ? delRevenue / delTrips : 0 },
+      delivery: { trips: delTrips, revenue: stream.DELIVERY.revenue, avgTrip: delTrips ? stream.DELIVERY.revenue / delTrips : 0 },
 
       byCategory: [...byCategory.entries()]
         .map(([categoryType, b]) => ({ categoryType, ...withMargin(b) }))

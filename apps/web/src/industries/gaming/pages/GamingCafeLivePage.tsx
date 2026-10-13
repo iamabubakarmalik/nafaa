@@ -394,7 +394,13 @@ function EndSessionModal({ session, now, onClose, onEnded }: any) {
   const [notes, setNotes] = useState('');
 
   const startTime = new Date(session.startedAt).getTime();
-  const elapsedMins = Math.max(0, Math.floor((now - startTime) / 60000) - (session.totalPauseMinutes || 0));
+  // Same rule as the server bill: running pause is not billed, minimum minutes are.
+  const openPause = session.status === 'PAUSED' && session.pausedAt ? Math.floor((now - new Date(session.pausedAt).getTime()) / 60000) : 0;
+  const elapsedMins = Math.max(
+    Math.floor((now - startTime) / 60000) - (session.totalPauseMinutes || 0) - openPause,
+    Number((session as any).station?.minimumMinutes ?? 0),
+    0,
+  );
   const hours = Math.floor(elapsedMins / 60);
   const mins = elapsedMins % 60;
   const baseAmount = (elapsedMins / 60) * Number(session.ratePerHour || 0);
@@ -408,8 +414,9 @@ function EndSessionModal({ session, now, onClose, onEnded }: any) {
       paidAmount: total, paymentMethod,
       notes: notes || undefined,
     }),
-    onSuccess: () => {
-      toast.success(`Session ended • ${formatPKR(total)} billed`);
+    onSuccess: (res: any) => {
+      toast.success(`Session ended • ${formatPKR(res?.totalAmount ?? total)} billed`);
+      if (res?.saleId) window.open(`/sales/${res.saleId}/receipt?auto=1`, '_blank');
       onEnded();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to end'),

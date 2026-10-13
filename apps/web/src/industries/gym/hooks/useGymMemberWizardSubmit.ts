@@ -88,8 +88,9 @@ export function useGymMemberWizardSubmit(existingMemberId?: string) {
             totalPrice: Number(draft.subscription.totalPrice) || undefined,
             autoRenew: draft.subscription.autoRenew,
           });
-        } catch (err) {
-          console.warn('Subscription failed', err);
+        } catch (err: any) {
+          // The member is saved; tell the desk the plan still has to be sold.
+          toast.error(`Member ban gaya, lekin membership nahi bani: ${err?.response?.data?.message || 'dobara koshish karein'}`, { duration: 8000 });
         }
       }
 

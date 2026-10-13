@@ -39,6 +39,7 @@ export class CustomOrdersController {
   @Post(':id/progress') progress(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateProgressDto) {
     return this.service.updateProgress(user, id, dto);
   }
+  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CreateCustomOrderDto) { return this.service.update(user, id, dto); }
   @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
     return this.service.updateStatus(user, id, dto);
   }

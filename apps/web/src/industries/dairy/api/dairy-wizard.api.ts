@@ -19,11 +19,24 @@ export interface DairyWizardSaveResult {
  *
  * Rollback: deletes the product if dairy profile save fails.
  */
+/**
+ * Stock to send with the product. On edit it goes only when the user
+ * actually changed the number; sending the form's copy every time reset
+ * live stock (sales made while the form was open, or 0 when the form
+ * never loaded it).
+ */
+function stockField(entered: number, existingId?: string, originalStock?: number): { stock?: number } {
+  if (!existingId) return { stock: entered };
+  return originalStock !== undefined && entered !== originalStock ? { stock: entered } : {};
+}
+
 export async function saveDairyWizard(
 
   draft: DairyWizardDraft,
   /** Diya ho to isi product ko badla jayega, naya nahi banega */
   existingId?: string,
+  /** Stock when the edit form opened; stock is sent only if the user changed it. */
+  originalStock?: number,
 ): Promise<DairyWizardSaveResult> {
   const { basic, composition, availability } = draft;
 
@@ -43,7 +56,7 @@ export async function saveDairyWizard(
     costPrice: Number(basic.costPrice || 0),
     wholesalePrice: basic.wholesalePrice === '' ? undefined : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: Number(availability.initialStock || 0),
+    ...stockField(Number(availability.initialStock || 0), existingId, originalStock),
     lowStockAlert: Number(availability.lowStockAlert || 5),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -53,7 +66,7 @@ export async function saveDairyWizard(
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
 

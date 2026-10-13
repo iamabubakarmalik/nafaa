@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { addDays, startOfDay, subDays } from 'date-fns';
+import { addDays, subDays } from 'date-fns';
+import { startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -8,7 +9,8 @@ export class AutoPartsDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
+    // Business day (Pakistan time), not the server's UTC midnight.
+    const todayStart = startOfDayTz();
     const monthAgo = subDays(new Date(), 30);
     const in30d = addDays(new Date(), 30);
 
@@ -20,7 +22,7 @@ export class AutoPartsDashboardService {
       this.prisma.mechanicProfile.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.workshopJob.count({ where: { tenantId: user.tenantId, status: { in: ['APPROVED', 'IN_PROGRESS'] } } }),
       this.prisma.workshopJob.count({ where: { tenantId: user.tenantId, status: 'WAITING_PARTS' } }),
-      this.prisma.workshopJob.count({ where: { tenantId: user.tenantId, status: 'READY_FOR_TEST' } }),
+      this.prisma.workshopJob.count({ where: { tenantId: user.tenantId, status: { in: ['READY_FOR_TEST', 'QUALITY_CHECK', 'COMPLETED'] } } }),
       this.prisma.workshopJob.aggregate({
         where: { tenantId: user.tenantId, deliveredAt: { gte: todayStart }, status: 'DELIVERED' },
         _sum: { total: true, paidAmount: true },

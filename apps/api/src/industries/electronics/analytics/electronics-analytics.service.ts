@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import {
+  KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_REVENUE, billMathCte, liveSaleSql, saleFigures,
+} from '../../../common/helpers/business-math.helper';
+import { dateKeyTz, endOfDayTz, startOfDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 /**
@@ -19,11 +23,10 @@ export class ElectronicsAnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private dateRange(from?: string, to?: string) {
-    const gte = from
-      ? new Date(from)
-      : (() => { const d = new Date(); d.setDate(d.getDate() - 30); d.setHours(0, 0, 0, 0); return d; })();
-    const lte = to ? new Date(to) : new Date();
-    if (to) lte.setHours(23, 59, 59, 999);
+    // Business days in Pakistan time; the server clock runs in UTC.
+    const dateOnly = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v);
+    const gte = from ? (dateOnly(from) ? startOfDayTz(new Date(from)) : new Date(from)) : subDaysTz(startOfDayTz(new Date()), 30);
+    const lte = to ? (dateOnly(to) ? endOfDayTz(new Date(to)) : new Date(to)) : new Date();
     return { gte, lte };
   }
 
@@ -37,38 +40,38 @@ export class ElectronicsAnalyticsService {
     const { gte, lte } = this.dateRange(params.from, params.to);
     const tenantId = user.tenantId;
 
-    const [sales, profiles, soldSerials] = await Promise.all([
-      this.prisma.sale.findMany({
-        where: {
-          tenantId,
-          status: 'COMPLETED',
-          soldAt: { gte, lte },
-          ...(params.shopId && { shopId: params.shopId }),
-        },
-        select: {
-          id: true, discount: true, soldAt: true,
-          serviceCharges: true, serviceChargesBreakdown: true,
-          items: {
-            select: {
-              id: true, quantity: true, costPrice: true, total: true, productId: true,
-              product: { select: { id: true, name: true, brand: { select: { id: true, name: true } } } },
-            },
-          },
-        },
-      }),
-      // Profile ka Product se relation nahi — alag laa kar JS me jorte hain
+    // Lines by the shared rules (discount share, returns, kept quantity), so
+    // the totals match the day book and profit report.
+    const scope = { tenantId, shopId: params.shopId || null };
+    const range = { gte, lt: new Date(lte.getTime() + 1) };
+    const where = liveSaleSql(scope, range);
+
+    const [lines, figures, profiles] = await Promise.all([
+      this.prisma.$queryRaw<Array<{
+        saleId: string; soldAt: Date; productId: string | null; name: string | null;
+        brandId: string | null; brandName: string | null; isSerial: boolean;
+        kept: number; revenue: number; cost: number;
+      }>>`
+        WITH ${billMathCte(where)}
+        SELECT s.id AS "saleId", s."soldAt" AS "soldAt", si."productId" AS "productId", bm_p.name AS name,
+          br.id AS "brandId", br.name AS "brandName",
+          EXISTS (SELECT 1 FROM "ElectronicsSerialTracking" est WHERE est."saleItemId" = si.id) AS "isSerial",
+          ${KEPT_QTY}::float8 AS kept, ${LINE_REVENUE}::float8 AS revenue, ${LINE_COST}::float8 AS cost
+        FROM "Sale" s
+        JOIN bm ON bm.id = s.id
+        JOIN "SaleItem" si ON si."saleId" = s.id
+        ${LINE_COST_JOINS}
+        LEFT JOIN "Brand" br ON br.id = bm_p."brandId"
+        WHERE ${where}`,
+      saleFigures(this.prisma, scope, range),
+      // The profile has no Prisma relation to Product; joined here in JS.
       this.prisma.electronicsProductProfile.findMany({
         where: { tenantId },
         select: { productId: true, categoryType: true, conditionType: true, requiresSerial: true },
       }),
-      this.prisma.electronicsSerialTracking.findMany({
-        where: { tenantId, status: 'SOLD', soldAt: { gte, lte } },
-        select: { saleItemId: true },
-      }),
     ]);
 
     const profileByProduct = new Map(profiles.map((p) => [p.productId, p]));
-    const serialItemIds = new Set(soldSerials.map((s) => s.saleItemId).filter(Boolean) as string[]);
 
     type Bucket = { revenue: number; cost: number; profit: number; units: number };
     const blank = (): Bucket => ({ revenue: 0, cost: 0, profit: 0, units: 0 });
@@ -79,71 +82,49 @@ export class ElectronicsAnalyticsService {
     const byProduct = new Map<string, Bucket & { id: string; name: string; category: string | null }>();
     const daily = new Map<string, { date: string; revenue: number; profit: number }>();
 
-    const totals = blank();
+    const goods = blank();
     let serialUnits = 0;
     let serialRevenue = 0;
-    // Delivery/installation jaisi services — ye item par nahi, poori sale
-    // par lagti hain. Inhe alag gina jata hai warna profit report aur
-    // dashboard do alag numbers dikhate hain.
-    let serviceIncome = 0;
-    let serviceCost = 0;
 
-    for (const sale of sales) {
-      serviceIncome += Number(sale.serviceCharges) || 0;
-      for (const sc of (Array.isArray(sale.serviceChargesBreakdown)
-        ? (sale.serviceChargesBreakdown as any[])
-        : [])) {
-        serviceCost += Number(sc?.cost) || 0;
+    for (const line of lines) {
+      const revenue = Number(line.revenue) || 0;
+      const cost = Number(line.cost) || 0;
+      const profit = revenue - cost;
+      const units = Number(line.kept) || 0;
+      const add = (b: Bucket) => { b.revenue += revenue; b.cost += cost; b.profit += profit; b.units += units; };
+      add(goods);
+
+      const prof = line.productId ? profileByProduct.get(line.productId) : undefined;
+      const cat = prof?.categoryType ?? 'OTHER';
+      const cond = prof?.conditionType ?? 'BRAND_NEW';
+      const c = byCategory.get(cat) ?? blank(); add(c); byCategory.set(cat, c);
+      const cd = byCondition.get(cond) ?? blank(); add(cd); byCondition.set(cond, cd);
+
+      if (line.brandId) {
+        const b = byBrand.get(line.brandId) ?? { ...blank(), id: line.brandId, name: line.brandName ?? 'Brand' };
+        add(b); byBrand.set(line.brandId, b);
+      }
+      if (line.productId) {
+        const p = byProduct.get(line.productId)
+          ?? { ...blank(), id: line.productId, name: line.name ?? 'Product', category: prof?.categoryType ?? null };
+        add(p); byProduct.set(line.productId, p);
+      }
+      // Serial-tracked units: the costly pieces, counted on their own.
+      if (line.isSerial) {
+        serialUnits += units;
+        serialRevenue += revenue;
       }
 
-      // Sale-level discount har line par uske hisse ke mutabiq
-      const lineSum = sale.items.reduce((s, i) => s + Number(i.total), 0);
-      const discount = Number(sale.discount) || 0;
-
-      for (const item of sale.items) {
-        const gross = Number(item.total) || 0;
-        const share = lineSum > 0 ? gross / lineSum : 0;
-        const revenue = Math.max(gross - discount * share, 0);
-        const cost = Number(item.costPrice) * Number(item.quantity);
-        const profit = revenue - cost;
-        const units = Number(item.quantity) || 0;
-
-        const add = (b: Bucket) => { b.revenue += revenue; b.cost += cost; b.profit += profit; b.units += units; };
-
-        add(totals);
-
-        const prof = item.productId ? profileByProduct.get(item.productId) : undefined;
-        const cat = prof?.categoryType ?? 'OTHER';
-        const cond = prof?.conditionType ?? 'BRAND_NEW';
-
-        const c = byCategory.get(cat) ?? blank(); add(c); byCategory.set(cat, c);
-        const cd = byCondition.get(cond) ?? blank(); add(cd); byCondition.set(cond, cd);
-
-        if (item.product?.brand) {
-          const b = byBrand.get(item.product.brand.id)
-            ?? { ...blank(), id: item.product.brand.id, name: item.product.brand.name };
-          add(b); byBrand.set(item.product.brand.id, b);
-        }
-
-        if (item.productId && item.product) {
-          const p = byProduct.get(item.productId)
-            ?? { ...blank(), id: item.productId, name: item.product.name, category: prof?.categoryType ?? null };
-          add(p); byProduct.set(item.productId, p);
-        }
-
-        // Serial-tracked units ka apna hisab — ye mehngi cheezein hoti hain
-        if (serialItemIds.has(item.id)) {
-          serialUnits += units;
-          serialRevenue += revenue;
-        }
-
-        const dayKey = sale.soldAt.toISOString().slice(0, 10);
-        const day = daily.get(dayKey) ?? { date: dayKey, revenue: 0, profit: 0 };
-        day.revenue += revenue;
-        day.profit += profit;
-        daily.set(dayKey, day);
-      }
+      const dayKey = dateKeyTz(new Date(line.soldAt));
+      const day = daily.get(dayKey) ?? { date: dayKey, revenue: 0, profit: 0 };
+      day.revenue += revenue;
+      day.profit += profit;
+      daily.set(dayKey, day);
     }
+
+    // Bill-level charges (delivery, installation): what the bills hold beyond their lines.
+    const serviceIncome = Math.max(figures.net - goods.revenue, 0);
+    const serviceCost = Math.max(figures.cost - goods.cost, 0);
 
     const withMargin = <T extends Bucket>(b: T) => ({
       ...b,
@@ -153,14 +134,8 @@ export class ElectronicsAnalyticsService {
     return {
       range: { from: gte.toISOString(), to: lte.toISOString() },
       totals: {
-        ...withMargin({
-          ...totals,
-          // Service income bhi bikri aur munafe ka hissa hai
-          revenue: totals.revenue + serviceIncome,
-          cost: totals.cost + serviceCost,
-          profit: totals.profit + serviceIncome - serviceCost,
-        }),
-        salesCount: sales.length,
+        ...withMargin({ revenue: figures.net, cost: figures.cost, profit: figures.grossProfit, units: goods.units }),
+        salesCount: figures.bills,
       },
       /** Delivery waghera se alag kamai — product ke munafe se mila kar na parhein */
       services: {

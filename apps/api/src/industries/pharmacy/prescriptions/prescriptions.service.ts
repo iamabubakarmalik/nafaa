@@ -1,23 +1,57 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
+import { SalesService } from '../../../modules/sales/sales/sales.service';
+import { ControlledLogService } from '../controlled-log/controlled-log.service';
 import { CreatePrescriptionDto, DispenseDto } from './dto/create-prescription.dto';
 
 @Injectable()
 export class PrescriptionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(PrescriptionsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sales: SalesService,
+    private readonly controlledLog: ControlledLogService,
+  ) {}
+
+  /** Next free Rx number for this year; skips numbers already taken. */
+  private async nextNumber(tenantId: string) {
+    const year = new Date().getFullYear();
+    let seq = (await this.prisma.prescription.count({ where: { tenantId } })) + 1;
+    let num = `Rx-${year}-${String(seq).padStart(4, '0')}`;
+    while (await this.prisma.prescription.findFirst({ where: { tenantId, prescriptionNumber: num }, select: { id: true } })) {
+      seq += 1;
+      num = `Rx-${year}-${String(seq).padStart(4, '0')}`;
+    }
+    return num;
+  }
 
   async create(user: AuthenticatedUser, dto: CreatePrescriptionDto) {
-    const count = await this.prisma.prescription.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const prescriptionNumber = `Rx-${year}-${String(count + 1).padStart(4, '0')}`;
+    // The form sends '' for a doctor or patient that was not picked.
+    const customerId = dto.customerId || undefined;
+    const doctorId = dto.doctorId || undefined;
+    if (customerId && !(await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } }))) {
+      throw new NotFoundException('Customer nahi mila');
+    }
+    if (doctorId && !(await this.prisma.doctor.findFirst({ where: { id: doctorId, tenantId: user.tenantId }, select: { id: true } }))) {
+      throw new NotFoundException('Doctor nahi mila');
+    }
+    const productIds = [...new Set(dto.items.map((it) => it.productId).filter(Boolean) as string[])];
+    const products = productIds.length
+      ? await this.prisma.product.findMany({ where: { id: { in: productIds }, tenantId: user.tenantId }, select: { id: true, price: true } })
+      : [];
+    if (products.length !== productIds.length) throw new NotFoundException('Dawai (product) nahi mili');
+    const priceOf = new Map(products.map((p) => [p.id, p.price]));
+    const prescriptionNumber = await this.nextNumber(user.tenantId);
 
     return this.prisma.prescription.create({
       data: {
         tenantId: user.tenantId,
-        shopId: dto.shopId,
-        customerId: dto.customerId,
-        doctorId: dto.doctorId,
+        shopId: dto.shopId || undefined,
+        customerId,
+        doctorId,
         prescriptionNumber,
         type: dto.type ?? 'WALK_IN',
         status: 'PENDING',
@@ -44,7 +78,7 @@ export class PrescriptionsService {
         notes: dto.notes,
         items: {
           create: dto.items.map((it, idx) => ({
-            productId: it.productId,
+            productId: it.productId || undefined,
             medicineName: it.medicineName,
             saltName: it.saltName,
             strength: it.strength,
@@ -55,6 +89,8 @@ export class PrescriptionsService {
             instructions: it.instructions,
             prescribedQty: it.prescribedQty,
             unit: it.unit ?? 'tablet',
+            // Shelf price as the starting rate, so dispensing is not billed at 0.
+            unitPrice: it.productId ? priceOf.get(it.productId) ?? 0 : 0,
             displayOrder: idx,
           })),
         },
@@ -134,101 +170,161 @@ export class PrescriptionsService {
     });
   }
 
-  async dispense(user: AuthenticatedUser, id: string, dto: DispenseDto) {
+  /**
+   * Hands medicines over and bills them as one normal sale, so stock (shop
+   * and product), the patient's khata, the cash drawer and every report see
+   * it exactly like a counter sale. The chosen batch is drawn down and
+   * narcotics get a register line.
+   */
+  async dispense(user: AuthenticatedUser, scope: ShopScope, id: string, dto: DispenseDto) {
     const rx = await this.prisma.prescription.findFirst({
       where: { id, tenantId: user.tenantId },
       include: { items: true },
     });
     if (!rx) throw new NotFoundException('Prescription not found');
+    if (rx.status === 'DISPENSED') throw new BadRequestException('Is nuskhe ki saari dawai pehle de di gayi hai');
+    if (rx.status === 'REJECTED' || rx.status === 'CANCELLED') throw new BadRequestException('Ye nuskha radd ho chuka hai');
     if (!['VERIFIED', 'PARTIALLY_DISPENSED'].includes(rx.status)) {
-      throw new BadRequestException(`Cannot dispense — status is ${rx.status}. Verify first.`);
+      throw new BadRequestException(`Pehle nuskha verify karein (abhi status ${rx.status} hai)`);
     }
 
-    let totalAmount = 0;
-
-    for (const dispatchItem of dto.items) {
-      const rxItem = rx.items.find((r) => r.id === dispatchItem.itemId);
-      if (!rxItem) continue;
-
-      const newDispensedQty = rxItem.dispensedQty + dispatchItem.dispensedQty;
-      const isFullyDispensed = newDispensedQty >= rxItem.prescribedQty;
-      const unitPrice = dispatchItem.unitPrice ?? rxItem.unitPrice;
-      const linePrice = unitPrice * dispatchItem.dispensedQty;
-      totalAmount += linePrice;
-
-      await this.prisma.prescriptionItem.update({
-        where: { id: rxItem.id },
-        data: {
-          dispensedQty: newDispensedQty,
-          isDispensed: isFullyDispensed,
-          unitPrice,
-          totalPrice: rxItem.totalPrice + linePrice,
-          productId: dispatchItem.productId ?? rxItem.productId,
-          batchId: dispatchItem.batchId ?? rxItem.batchId,
-          isSubstituted: dispatchItem.isSubstituted ?? rxItem.isSubstituted,
-          substituteFor: dispatchItem.substituteFor ?? rxItem.substituteFor,
-        },
+    type Line = { rxItem: (typeof rx.items)[number]; qty: number; productId: string; batchId?: string; unitPrice: number; isSubstituted?: boolean; substituteFor?: string };
+    const lines: Line[] = [];
+    const seen = new Set<string>();
+    for (const d of dto.items) {
+      if (!(d.dispensedQty > 0)) continue;
+      const rxItem = rx.items.find((r) => r.id === d.itemId);
+      if (!rxItem) throw new BadRequestException('Ye dawai is nuskhe me nahi hai');
+      if (seen.has(rxItem.id)) throw new BadRequestException(`${rxItem.medicineName} do dafa bheji gayi`);
+      seen.add(rxItem.id);
+      const remaining = rxItem.prescribedQty - rxItem.dispensedQty;
+      if (d.dispensedQty > remaining + 1e-9) {
+        throw new BadRequestException(`${rxItem.medicineName}: sirf ${remaining} baqi hai`);
+      }
+      const productId = d.productId || rxItem.productId;
+      if (!productId) {
+        throw new BadRequestException(`${rxItem.medicineName}: pehle is dawai ko stock wale product se jorein`);
+      }
+      lines.push({
+        rxItem,
+        qty: d.dispensedQty,
+        productId,
+        batchId: d.batchId || undefined,
+        unitPrice: d.unitPrice ?? rxItem.unitPrice,
+        isSubstituted: d.isSubstituted,
+        substituteFor: d.substituteFor,
       });
+    }
+    if (!lines.length) throw new BadRequestException('Koi dawai nahi chuni');
 
-      // Deduct stock
-      if (dispatchItem.productId) {
-        await this.prisma.product.update({
-          where: { id: dispatchItem.productId },
-          data: { stock: { decrement: dispatchItem.dispensedQty } },
-        });
+    for (const l of lines) {
+      if (!l.batchId) continue;
+      const batch = await this.prisma.productBatch.findFirst({
+        where: { id: l.batchId, productId: l.productId, tenantId: user.tenantId },
+      });
+      if (!batch) throw new NotFoundException(`${l.rxItem.medicineName}: batch nahi mila`);
+    }
 
-        if (dispatchItem.batchId) {
-          await this.prisma.productBatch.update({
-            where: { id: dispatchItem.batchId },
-            data: { quantity: { decrement: dispatchItem.dispensedQty } },
-          });
-        }
+    const sale: any = await this.sales.create(user, scope, {
+      shopId: dto.shopId || rx.shopId || undefined,
+      customerId: rx.customerId || undefined,
+      paymentMethod: dto.paymentMethod ?? 'CASH',
+      paidAmount: dto.paidAmount ?? lines.reduce((s, l) => s + l.unitPrice * l.qty, 0) - (dto.discount ?? 0),
+      discount: dto.discount ?? 0,
+      note: [`Nuskha ${rx.prescriptionNumber}`, rx.doctorName ? `Dr. ${rx.doctorName}` : '', dto.notes || ''].filter(Boolean).join(' · '),
+      items: lines.map((l) => ({ productId: l.productId, quantity: l.qty, priceOverride: l.unitPrice })),
+    } as any);
 
-        await this.prisma.stockMovement.create({
+    const updated = await this.prisma.$transaction(async (tx) => {
+      for (const l of lines) {
+        const newDispensedQty = l.rxItem.dispensedQty + l.qty;
+        await tx.prescriptionItem.update({
+          where: { id: l.rxItem.id },
           data: {
-            tenantId: user.tenantId,
-            productId: dispatchItem.productId,
-            type: 'SALE_OUT',
-            quantity: -dispatchItem.dispensedQty,
-            balanceAfter: 0,
-            reference: rx.prescriptionNumber,
-            note: `Dispensed to ${rx.patientName || 'patient'}`,
+            dispensedQty: newDispensedQty,
+            isDispensed: newDispensedQty >= l.rxItem.prescribedQty - 1e-9,
+            unitPrice: l.unitPrice,
+            totalPrice: l.rxItem.totalPrice + l.unitPrice * l.qty,
+            productId: l.productId,
+            batchId: l.batchId ?? l.rxItem.batchId,
+            isSubstituted: l.isSubstituted ?? l.rxItem.isSubstituted,
+            substituteFor: l.substituteFor ?? l.rxItem.substituteFor,
           },
         });
+        if (l.batchId) {
+          const batch = await tx.productBatch.findUnique({ where: { id: l.batchId }, select: { quantity: true } });
+          const take = Math.min(Math.round(l.qty), batch?.quantity ?? 0);
+          if (take > 0) {
+            await tx.productBatch.update({ where: { id: l.batchId }, data: { quantity: { decrement: take } } });
+          }
+        }
+      }
+
+      const items = await tx.prescriptionItem.findMany({ where: { prescriptionId: id } });
+      const allDispensed = items.every((it) => it.isDispensed);
+      const someDispensed = items.some((it) => it.dispensedQty > 0);
+      return tx.prescription.update({
+        where: { id },
+        data: {
+          status: allDispensed ? 'DISPENSED' : someDispensed ? 'PARTIALLY_DISPENSED' : rx.status,
+          dispensedById: allDispensed ? user.id : rx.dispensedById,
+          dispensedAt: allDispensed ? new Date() : rx.dispensedAt,
+          totalAmount: rx.totalAmount + Number(sale.total ?? 0),
+          saleId: sale.id,
+        },
+        include: { items: true, doctor: true },
+      });
+    });
+
+    // Narcotic register lines; a failure here must not undo a completed sale.
+    for (const l of lines) {
+      try {
+        const med = await this.prisma.pharmacyMedicine.findFirst({
+          where: { productId: l.productId, tenantId: user.tenantId, isNarcotic: true },
+          select: { id: true },
+        });
+        if (!med) continue;
+        await this.controlledLog.record(this.prisma, user.tenantId, {
+          productId: l.productId,
+          logType: 'SALE',
+          quantity: l.qty,
+          unit: l.rxItem.unit,
+          batchId: l.batchId,
+          saleId: sale.id,
+          prescriptionId: rx.id,
+          prescriptionNumber: rx.prescriptionNumber,
+          patientName: rx.patientName ?? undefined,
+          patientCnic: rx.patientCnic ?? undefined,
+          patientPhone: rx.patientPhone ?? undefined,
+          doctorName: rx.doctorName ?? undefined,
+          doctorRegNumber: rx.doctorRegNumber ?? undefined,
+        }, user.email);
+      } catch (e) {
+        this.logger.warn(`Narcotic register entry failed for ${rx.prescriptionNumber}: ${(e as Error).message}`);
       }
     }
 
-    // Update prescription status
-    const updated = await this.prisma.prescription.findUnique({
-      where: { id },
-      include: { items: true },
-    });
-
-    const allDispensed = updated!.items.every((it) => it.isDispensed);
-    const someDispensed = updated!.items.some((it) => it.isDispensed);
-
-    return this.prisma.prescription.update({
-      where: { id },
-      data: {
-        status: allDispensed ? 'DISPENSED' : someDispensed ? 'PARTIALLY_DISPENSED' : rx.status,
-        dispensedById: allDispensed ? user.id : rx.dispensedById,
-        dispensedAt: allDispensed ? new Date() : rx.dispensedAt,
-        totalAmount: rx.totalAmount + totalAmount,
-      },
-      include: { items: true, doctor: true },
-    });
+    return { ...updated, sale: { id: sale.id, saleNumber: sale.saleNumber, total: sale.total, creditAmount: sale.creditAmount } };
   }
 
   async refill(user: AuthenticatedUser, id: string) {
     const rx = await this.prisma.prescription.findFirst({ where: { id, tenantId: user.tenantId }, include: { items: true } });
     if (!rx) throw new NotFoundException('Prescription not found');
-    if (!rx.isRefillable) throw new BadRequestException('Not refillable');
-    if (rx.refillsUsed >= rx.refillsAllowed) throw new BadRequestException('No refills remaining');
+    if (rx.type === 'REFILL') throw new BadRequestException('Refill asal nuskhe se banayein');
+    if (!rx.isRefillable) throw new BadRequestException('Ye nuskha refill wala nahi');
+    if (rx.refillsUsed >= rx.refillsAllowed) throw new BadRequestException('Is nuskhe ke saare refill ho chuke');
+
+    // Bill at today's shelf price; the old rate may be stale or 0.
+    const productIds = [...new Set(rx.items.map((it) => it.productId).filter(Boolean) as string[])];
+    const prices = new Map(
+      (productIds.length
+        ? await this.prisma.product.findMany({ where: { id: { in: productIds }, tenantId: user.tenantId }, select: { id: true, price: true } })
+        : []
+      ).map((p) => [p.id, p.price]),
+    );
 
     // Create new prescription based on original
-    const count = await this.prisma.prescription.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const newNumber = `Rx-${year}-${String(count + 1).padStart(4, '0')}`;
+    const newNumber = await this.nextNumber(user.tenantId);
 
     const newRx = await this.prisma.prescription.create({
       data: {
@@ -252,8 +348,8 @@ export class PrescriptionsService {
         diagnosis: rx.diagnosis,
         chiefComplaint: rx.chiefComplaint,
         imageUrls: rx.imageUrls,
-        isRefillable: rx.refillsUsed + 1 < rx.refillsAllowed,
-        refillsAllowed: Math.max(rx.refillsAllowed - rx.refillsUsed - 1, 0),
+        isRefillable: false,
+        refillsAllowed: 0,
         refillFrequency: rx.refillFrequency,
         notes: `Refill of ${rx.prescriptionNumber}`,
         items: {
@@ -269,6 +365,7 @@ export class PrescriptionsService {
             instructions: it.instructions,
             prescribedQty: it.prescribedQty,
             unit: it.unit,
+            unitPrice: (it.productId && prices.get(it.productId)) || it.unitPrice,
             displayOrder: it.displayOrder,
           })),
         },

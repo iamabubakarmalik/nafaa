@@ -71,7 +71,9 @@ export const gamingTopupsApi = {
   sell: (id: string, data: {
     customerId?: string; customerName?: string; customerPhone?: string;
     deliveredVia?: string; deliveryReference?: string; actualSellingPrice?: number;
-  }) => apiClient.post('/gaming/digital-topups/' + id + '/sell', data).then(unwrap<GamingTopup>),
+    paidAmount?: number; paymentMethod?: string; shopId?: string;
+  }) => apiClient.post('/gaming/digital-topups/' + id + '/sell', data)
+    .then(unwrap<GamingTopup & { sale?: { id: string; saleNumber: string } }>),
 
   redeem: (id: string) =>
     apiClient.post('/gaming/digital-topups/' + id + '/redeem').then(unwrap<GamingTopup>),

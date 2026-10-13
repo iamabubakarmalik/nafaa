@@ -12,7 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope } from '../../../common/shop-scope';
-import { DAY_MS, positive, r2, r3, recipeOf, shopClock, writeShopId } from '../bakery-common';
+import { DAY_MS, positive, r2, r3, recipeOf, shopClock, syncBatchesWithStock, writeShopId } from '../bakery-common';
 
 export type WasteSource = 'BATCH' | 'BAKING' | 'RAW' | 'DAMAGE';
 
@@ -68,6 +68,7 @@ export class FreshnessService {
 
   async list(user: AuthenticatedUser, scope: ShopScope, params: { status?: string; productId?: string; active?: string }) {
     const active = params.active === 'true';
+    if (active) await syncBatchesWithStock(this.prisma, user.tenantId, scope.whereLoose);
     return this.prisma.bakeryFreshnessLog.findMany({
       where: {
         tenantId: user.tenantId,
@@ -127,6 +128,7 @@ export class FreshnessService {
 
   /** Re-marks live batches by their best-before time. */
   async runExpiryCheck(user: AuthenticatedUser, scope: ShopScope) {
+    await syncBatchesWithStock(this.prisma, user.tenantId, scope.whereLoose);
     const now = new Date();
     const soon = new Date(now.getTime() + DAY_MS);
     const base = { tenantId: user.tenantId, ...scope.whereLoose };
@@ -140,13 +142,14 @@ export class FreshnessService {
   }
 
   async summary(user: AuthenticatedUser, scope: ShopScope) {
+    await syncBatchesWithStock(this.prisma, user.tenantId, scope.whereLoose);
     const base = { tenantId: user.tenantId, ...scope.whereLoose };
     const today = (await shopClock(this.tz, user.tenantId)).today();
     const [fresh, dayOld, nearExpiry, expired, todayWaste] = await Promise.all([
-      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'FRESH' } }),
-      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'DAY_OLD' } }),
-      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'NEAR_EXPIRY' } }),
-      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'EXPIRED' } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'FRESH', currentQty: { gt: 0 } } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'DAY_OLD', currentQty: { gt: 0 } } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'NEAR_EXPIRY', currentQty: { gt: 0 } } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'EXPIRED', currentQty: { gt: 0 } } }),
       this.prisma.bakeryFreshnessLog.aggregate({ where: { ...base, discardedAt: { gte: today.gte, lt: today.lt } }, _sum: { wastedQty: true } }),
     ]);
     return { fresh, dayOld, nearExpiry, expired, todayWasteQty: todayWaste._sum.wastedQty ?? 0 };

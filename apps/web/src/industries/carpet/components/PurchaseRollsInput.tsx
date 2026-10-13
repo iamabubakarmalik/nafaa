@@ -358,8 +358,8 @@ export function rollsToPayload(rolls: PurchaseRoll[]): any[] {
       designCode: r.designCode.trim() || undefined,
       widthFt: Number(r.widthFt),
       widthInch: Number(r.widthInch) || 0,
-      lengthFt: Number(r.lengthFt),
-      lengthInch: Number(r.lengthInch) || 0,
+      // The purchase API takes length in feet only; inches go in as a fraction (40ft 6in → 40.5).
+      lengthFt: Math.round((Number(r.lengthFt) + (Number(r.lengthInch) || 0) / 12) * 10000) / 10000,
       costPerSqft: r.costPerSqft ? Number(r.costPerSqft) : undefined,
       salePricePerSqft: r.salePricePerSqft ? Number(r.salePricePerSqft) : undefined,
       variantId: r.variantId || undefined,

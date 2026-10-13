@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { UpsertRiderDto } from './dto/upsert-rider.dto';
+import { UpdateRiderDto, UpsertRiderDto } from './dto/upsert-rider.dto';
 
 @Injectable()
 export class RidersService {
@@ -37,7 +37,7 @@ export class RidersService {
     return r;
   }
 
-  async update(user: AuthenticatedUser, id: string, dto: UpsertRiderDto) {
+  async update(user: AuthenticatedUser, id: string, dto: UpdateRiderDto) {
     const r = await this.prisma.rider.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Rider not found');
     return this.prisma.rider.update({ where: { id }, data: dto });

@@ -11,6 +11,7 @@ import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
+import { lineCost } from '../lib/recipeUnits';
 
 const UNIT_OPTIONS = ['kg', 'g', 'mg', 'l', 'ml', 'piece', 'dozen', 'tbsp', 'tsp', 'cup', 'oz', 'lb'];
 
@@ -154,9 +155,13 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
     }
   }, [existingRecipe, menuItem.id]);
 
-  const totalCost = ingredients.reduce((sum, ing) => sum + (ing.costPerUnit ?? 0) * ing.quantity, 0);
+  // Optional lines are left out of the dish cost, as on the server.
+  const totalCost = ingredients.reduce((sum, ing) => (ing.isOptional ? sum
+    : sum + lineCost(ing.quantity, ing.unit, ing.costPerUnit ?? 0, ing.ingredient?.unit)), 0);
   const menuPrice = menuItem.product?.price ?? 0;
-  const marginPct = menuPrice > 0 ? ((menuPrice - totalCost) / menuPrice) * 100 : 0;
+  // The menu price is per plate, so margin is measured against one portion's cost.
+  const portionCost = yieldQuantity > 0 ? totalCost / yieldQuantity : totalCost;
+  const marginPct = menuPrice > 0 ? ((menuPrice - portionCost) / menuPrice) * 100 : 0;
 
   const saveMutation = useMutation({
     mutationFn: () => recipesApi.upsert({
@@ -165,7 +170,16 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
       yieldUnit,
       cookingTime,
       preparationSteps: preparationSteps || undefined,
-      ingredients: ingredients.filter((i) => i.ingredientProductId && i.quantity > 0),
+      // Saved rows come back with ids and the ingredient object; send only the fields the API takes.
+      ingredients: ingredients.filter((i) => i.ingredientProductId && i.quantity > 0).map((i, idx) => ({
+        ingredientProductId: i.ingredientProductId,
+        quantity: Number(i.quantity),
+        unit: i.unit,
+        ...(i.costPerUnit != null && { costPerUnit: Number(i.costPerUnit) }),
+        isOptional: !!i.isOptional,
+        ...(i.notes && { notes: i.notes }),
+        displayOrder: idx,
+      })),
     }),
     onSuccess: () => {
       toast.success('Recipe saved');
@@ -236,7 +250,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
             'text-[0.6875rem] font-bold ' +
             (marginPct > 50 ? 'text-emerald-700' : marginPct > 30 ? 'text-amber-700' : 'text-rose-700')
           }>
-            Profit: {formatPKR(menuPrice - totalCost)}
+            Profit: {formatPKR(menuPrice - portionCost)}
           </div>
         </div>
       </div>
@@ -365,8 +379,8 @@ function IngredientsSection({ ingredients, onChange }: {
       if (i !== idx) return ing;
       const next = { ...ing, ...patch };
       // Recalc totalCost
-      if ('quantity' in patch || 'costPerUnit' in patch) {
-        next.totalCost = (next.quantity ?? 0) * (next.costPerUnit ?? 0);
+      if ('quantity' in patch || 'costPerUnit' in patch || 'unit' in patch) {
+        next.totalCost = lineCost(next.quantity ?? 0, next.unit, next.costPerUnit ?? 0, next.ingredient?.unit);
       }
       return next;
     });
@@ -462,7 +476,8 @@ function IngredientsSection({ ingredients, onChange }: {
                   onChange={(e) => update(i, { unit: e.target.value })}
                   className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-lime-500"
                 >
-                  {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
+                  {[...new Set([ing.unit, ing.ingredient?.unit, ...UNIT_OPTIONS].filter(Boolean) as string[])]
+                    .map((u) => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
 
@@ -473,13 +488,14 @@ function IngredientsSection({ ingredients, onChange }: {
                   value={ing.costPerUnit ?? 0}
                   onChange={(e) => update(i, { costPerUnit: Number(e.target.value) })}
                   placeholder="Cost/unit"
+                  title={`Rate per ${ing.ingredient?.unit || 'unit'} (stock ki unit)`}
                   className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-7 pr-2 text-xs font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
                 />
               </div>
 
               <div className="col-span-1 text-right">
                 <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
-                  {formatPKR((ing.quantity ?? 0) * (ing.costPerUnit ?? 0))}
+                  {formatPKR(lineCost(ing.quantity ?? 0, ing.unit, ing.costPerUnit ?? 0, ing.ingredient?.unit))}
                 </div>
                 <label className="inline-flex items-center gap-1 text-[0.625rem] font-bold text-slate-500 cursor-pointer">
                   <input

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PetSaleStatus, PetSpeciesType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { PaymentMethod, PetSaleStatus, PetSpeciesType } from '@prisma/client';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpsertLiveAnimalDto {
   @ApiProperty({ enum: PetSpeciesType }) @IsEnum(PetSpeciesType) species!: PetSpeciesType;
@@ -38,10 +38,15 @@ export class UpsertLiveAnimalDto {
 }
 
 export class SellAnimalDto {
-  @ApiProperty() @IsNumber() soldPrice!: number;
+  @ApiProperty() @IsNumber() @Min(0) soldPrice!: number;
   @ApiPropertyOptional() @IsOptional() @IsString() soldToCustomerId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() soldToCustomerName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+  /** Bill already rung up at the POS for this animal; when missing a bill is made here. */
+  @ApiPropertyOptional() @IsOptional() @IsString() saleId?: string;
+  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
+  /** Paid now; missing = paid in full. Anything less goes on the customer's khata. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidAmount?: number;
 }
 
 export class AddMedicalRecordDto {

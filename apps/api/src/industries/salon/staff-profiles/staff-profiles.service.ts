@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertStaffProfileDto } from './dto/upsert-staff-profile.dto';
@@ -15,7 +16,7 @@ export class StaffProfilesService {
     if (existing) {
       return this.prisma.salonStaffProfile.update({
         where: { staffId: dto.staffId },
-        data: { ...dto, tenantId: user.tenantId },
+        data: { ...dto, isActive: dto.isActive ?? true, tenantId: user.tenantId },
       });
     }
     return this.prisma.salonStaffProfile.create({
@@ -39,7 +40,8 @@ export class StaffProfilesService {
     const staffs = await this.prisma.staff.findMany({
       where: {
         id: { in: staffIds },
-        ...(params.search && { name: { contains: params.search, mode: 'insensitive' } }),
+        tenantId: user.tenantId,
+        ...(params.search && { fullName: { contains: params.search, mode: 'insensitive' } }),
       },
     });
     const staffMap = new Map(staffs.map((s) => [s.id, s]));
@@ -106,14 +108,15 @@ export class StaffProfilesService {
     const profile = await this.prisma.salonStaffProfile.findFirst({ where: { id: staffProfileId, tenantId: user.tenantId } });
     if (!profile) throw new NotFoundException('Profile not found');
 
-    const dayOfWeek = new Date(date).getDay();
+    // `date` is a shop-local YYYY-MM-DD; the server runs in UTC.
+    const [y, m, d] = String(date).slice(0, 10).split('-').map(Number);
+    if (!y || !m || !d) throw new BadRequestException('Date sahi likhein (YYYY-MM-DD)');
+    const dayOfWeek = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
     const isWorkingDay = profile.workingDays.includes(dayOfWeek);
     if (!isWorkingDay) return { available: false, reason: 'Not a working day', bookings: [] };
 
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
+    const dayStart = zonedToUtc(y, m, d, 0, 0, 0);
+    const dayEnd = new Date(zonedToUtc(y, m, d + 1, 0, 0, 0).getTime() - 1);
 
     // Fetch appointments for staff on that date
     const appointments = await this.prisma.salonAppointmentService.findMany({

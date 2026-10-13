@@ -82,6 +82,6 @@ export class TrainersService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.gymTrainer.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.gymTrainer.update({ where: { id, tenantId: user.tenantId }, data: { isActive: false } });
   }
 }

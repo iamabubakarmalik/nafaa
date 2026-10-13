@@ -10,6 +10,7 @@ import {
   startOfBusinessMonthTz,
   tzParts
 } from '../../../common/helpers/business-time.helper';
+import { saleFigures } from '../../../common/helpers/business-math.helper';
 
 /** Counter par bikne wali sales — draft/cancel nahi. */
 const SOLD_STATUSES = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
@@ -44,11 +45,7 @@ export class BakeryDashboardService {
     const weekAgo = subDaysTz(todayStart, 6, tz);
     const yesterdayStart = subDaysTz(todayStart, 1, tz);
 
-    const saleWhere = {
-      tenantId: user.tenantId,
-      status: { in: [...SOLD_STATUSES] },
-      ...(shopId && { shopId }),
-    };
+    const math = { tenantId: user.tenantId, shopId: shopId ?? null };
 
     const [
       totalProducts, totalIngredients, criticalIngredients, lowStock,
@@ -138,26 +135,11 @@ export class BakeryDashboardService {
          bakery ki rozana kamai counter se aati hai — rusk, biscuit,
          patties, bread. Malik ko "aaj kitna hua" poochna ho to us me
          wo sab shamil hona chahiye, sirf cake ka order nahi. */
-      this.prisma.sale.aggregate({
-        where: { ...saleWhere, soldAt: { gte: todayStart } },
-        _sum: { total: true, costOfGoods: true },
-        _count: { _all: true },
-      }),
-      this.prisma.sale.aggregate({
-        where: { ...saleWhere, soldAt: { gte: yesterdayStart, lt: todayStart } },
-        _sum: { total: true },
-        _count: { _all: true },
-      }),
-      this.prisma.sale.aggregate({
-        where: { ...saleWhere, soldAt: { gte: weekAgo } },
-        _sum: { total: true, costOfGoods: true },
-        _count: { _all: true },
-      }),
-      this.prisma.sale.aggregate({
-        where: { ...saleWhere, soldAt: { gte: monthStart } },
-        _sum: { total: true, costOfGoods: true },
-        _count: { _all: true },
-      }),
+      // Shared sale math (net of returns, cost of what was kept), so these match the day book and reports.
+      saleFigures(this.prisma, math, { gte: todayStart }),
+      saleFigures(this.prisma, math, { gte: yesterdayStart, lt: todayStart }),
+      saleFigures(this.prisma, math, { gte: weekAgo }),
+      saleFigures(this.prisma, math, { gte: monthStart }),
       this.prisma.saleItem.groupBy({
         by: ['productId'],
         where: {
@@ -235,9 +217,9 @@ export class BakeryDashboardService {
       _count: { _all: true },
     });
 
-    const revToday = counterToday._sum.total ?? 0;
-    const revYesterday = counterYesterday._sum.total ?? 0;
-    const revMonth = counterMonth._sum.total ?? 0;
+    const revToday = counterToday.net;
+    const revYesterday = counterYesterday.net;
+    const revMonth = counterMonth.net;
 
     return {
       timezone: tz,
@@ -247,19 +229,19 @@ export class BakeryDashboardService {
          jorne se "aaj ki kamai" do dafa gini jati, is liye alag. */
       counter: {
         today: revToday,
-        todayOrders: counterToday._count._all,
-        todayProfit: revToday - (counterToday._sum.costOfGoods ?? 0),
+        todayOrders: counterToday.bills,
+        todayProfit: counterToday.grossProfit,
         yesterday: revYesterday,
-        yesterdayOrders: counterYesterday._count._all,
+        yesterdayOrders: counterYesterday.bills,
         growthPercent:
           revYesterday > 0
             ? ((revToday - revYesterday) / revYesterday) * 100
             : revToday > 0 ? 100 : 0,
-        week: counterWeek._sum.total ?? 0,
-        weekProfit: (counterWeek._sum.total ?? 0) - (counterWeek._sum.costOfGoods ?? 0),
+        week: counterWeek.net,
+        weekProfit: counterWeek.grossProfit,
         month: revMonth,
-        monthOrders: counterMonth._count._all,
-        monthProfit: revMonth - (counterMonth._sum.costOfGoods ?? 0),
+        monthOrders: counterMonth.bills,
+        monthProfit: counterMonth.grossProfit,
         topProducts: topCounterProducts.map((t) => ({
           productId: t.productId,
           product: t.productId ? counterProductMap.get(t.productId) : undefined,
@@ -311,10 +293,10 @@ export class BakeryDashboardService {
 
   private async getFreshnessSummary(user: AuthenticatedUser) {
     const [fresh, dayOld, nearExpiry, expired] = await Promise.all([
-      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'FRESH' } }),
-      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'DAY_OLD' } }),
-      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'NEAR_EXPIRY' } }),
-      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'EXPIRED' } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'FRESH', currentQty: { gt: 0 } } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'DAY_OLD', currentQty: { gt: 0 } } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'NEAR_EXPIRY', currentQty: { gt: 0 } } }),
+      this.prisma.bakeryFreshnessLog.count({ where: { tenantId: user.tenantId, status: 'EXPIRED', currentQty: { gt: 0 } } }),
     ]);
     return { fresh, dayOld, nearExpiry, expired };
   }

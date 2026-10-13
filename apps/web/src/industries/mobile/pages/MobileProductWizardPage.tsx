@@ -16,6 +16,7 @@ import { MobileWizardStep2Variants } from '../components/wizard/MobileWizardStep
 import { MobileWizardStep3Imeis } from '../components/wizard/MobileWizardStep3Imeis';
 import { MobileWizardSummary } from '../components/wizard/MobileWizardSummary';
 import { saveMobileWizard, type MobileWizardSaveResult } from '../api/mobile-wizard.api';
+import { imeiApi } from '../api/imei.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
@@ -94,15 +95,28 @@ export default function MobileProductWizardPage() {
     enabled: isEdit,
   });
 
+  // The product row cannot hold PHONE/ACCESSORY; a model with IMEIs is a phone.
+  const { data: existingImeis, isFetched: imeisFetched } = useQuery({
+    queryKey: ['product-imeis-for-wizard', id],
+    queryFn: () => imeiApi.listByProduct(id!),
+    enabled: isEdit,
+  });
+
   useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
+    if (!isEdit || !existingProduct || editLoaded || !imeisFetched) return;
+    const savedType = (existingProduct as any).productType;
+    const inferredType: ProductType = savedType === 'PHONE' || savedType === 'ACCESSORY'
+      ? savedType
+      : (existingImeis?.length ?? 0) > 0 ? 'PHONE' : 'ACCESSORY';
 
     updateBasic({
       name: existingProduct.name,
       description: existingProduct.description ?? '',
       categoryId: existingProduct.categoryId ?? '',
       brandId: existingProduct.brandId ?? '',
-      modelNumber: existingProduct.metaTitle?.split('—').pop()?.trim() ?? '',
+      modelNumber: (existingProduct as any).shortDescription?.startsWith('Model: ')
+        ? (existingProduct as any).shortDescription.slice(7).trim()
+        : existingProduct.metaTitle?.split('—').pop()?.trim() ?? '',
       sku: existingProduct.sku ?? '',
       barcode: existingProduct.barcode ?? '',
       costPrice: existingProduct.costPrice ?? 0,
@@ -116,12 +130,12 @@ export default function MobileProductWizardPage() {
       imageUrls: (existingProduct.images ?? []).map((img: any) => img?.url).filter(Boolean),
       tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
       // ✅ Real type preserve — hardcode NAHI
-      productType: ((existingProduct as any).productType as ProductType) ?? 'PHONE',
+      productType: inferredType,
     } as any);
 
     setHasVariants(existingVariants.length > 0);
     setEditLoaded(true);
-  }, [isEdit, existingProduct, existingVariants, editLoaded, updateBasic, setHasVariants]);
+  }, [isEdit, existingProduct, existingVariants, existingImeis, imeisFetched, editLoaded, updateBasic, setHasVariants]);
 
   const saveMutation = useMutation({
     mutationFn: () => saveMobileWizard(draft, currentShopId || undefined, isEdit ? id : undefined),

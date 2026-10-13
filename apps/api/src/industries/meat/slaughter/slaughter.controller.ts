@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { SlaughterService } from './slaughter.service';
 
 @ApiTags('Meat - Slaughter Log')
@@ -12,7 +13,7 @@ import { SlaughterService } from './slaughter.service';
 export class SlaughterController {
   constructor(private readonly service: SlaughterService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() dto: any) { return this.service.create(user, dto, scope.shopId); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('animalType') animalType?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('search') search?: string) {
     return this.service.list(user, { animalType, from, to, search });
   }

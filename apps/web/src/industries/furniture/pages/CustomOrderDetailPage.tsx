@@ -42,11 +42,16 @@ export default function CustomOrderDetailPage() {
   const approve = useMutation({
     mutationFn: (finalPrice?: number) => customOrdersApi.approve(id!, finalPrice),
     onSuccess: () => { toast.success('Order approved'); qc.invalidateQueries({ queryKey: ['custom-order', id] }); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Approve nahi hua'),
   });
 
   const updateStatus = useMutation({
     mutationFn: (data: any) => customOrdersApi.updateStatus(id!, data),
-    onSuccess: () => { toast.success('Status updated'); qc.invalidateQueries({ queryKey: ['custom-order', id] }); },
+    onSuccess: (_d, vars: any) => {
+      toast.success(vars?.status === 'DELIVERED' ? 'Furniture de diya — bill ban gaya' : 'Status badal gaya');
+      qc.invalidateQueries({ queryKey: ['custom-order', id] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
   });
 
   const remove = useMutation({
@@ -150,10 +155,18 @@ export default function CustomOrderDetailPage() {
         {order.status === 'READY_FOR_DELIVERY' && (
           <ActionCard onClick={() => updateStatus.mutate({ status: 'OUT_FOR_DELIVERY' })} icon={Truck} label="Dispatch" desc="Send for delivery" tone="cyan" />
         )}
+        {['READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY'].includes(order.status) && (
+          <ActionCard onClick={() => {
+            if (confirm('Furniture customer ko mil gaya? Bill ban jayega aur baqi raqam khate me udhaar hogi.')) updateStatus.mutate({ status: 'DELIVERED' });
+          }} icon={CheckCircle2} label="Delivered" desc="Bill banao" tone="emerald" />
+        )}
         {order.status === 'DELIVERED' && (
           <ActionCard onClick={() => updateStatus.mutate({ status: 'COMPLETED' })} icon={CheckCircle2} label="Mark Completed" desc="Close order" tone="emerald" />
         )}
-        {!['CANCELLED', 'COMPLETED', 'REFUNDED'].includes(order.status) && (
+        {order.sale && (
+          <ActionCard onClick={() => window.open(`/sales/${order.sale!.id}/receipt`, '_blank')} icon={DollarSign} label={`Bill ${order.sale.saleNumber}`} desc="Bill dekhein" tone="blue" />
+        )}
+        {!['CANCELLED', 'COMPLETED', 'REFUNDED', 'DELIVERED', 'ASSEMBLED'].includes(order.status) && (
           <ActionCard onClick={() => {
             const reason = prompt('Cancellation reason:');
             if (reason) updateStatus.mutate({ status: 'CANCELLED', cancellationReason: reason });
@@ -295,7 +308,8 @@ function PaymentModal({ orderId, order, onClose, onSuccess }: any) {
 
   const record = useMutation({
     mutationFn: () => customOrdersApi.recordPayment(orderId, { amount, paymentMethod, isDeposit, reference: reference || undefined }),
-    onSuccess: () => { toast.success('Payment recorded'); onSuccess(); },
+    onSuccess: () => { toast.success('Payment darj ho gayi'); onSuccess(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment darj nahi hui'),
   });
 
   return (

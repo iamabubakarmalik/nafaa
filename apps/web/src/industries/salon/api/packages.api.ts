@@ -43,7 +43,7 @@ export const packagesApi = {
   update: (id: string, data: Partial<Package>) => apiClient.patch('/salon/packages/' + id, data).then(unwrap<Package>),
   remove: (id: string) => apiClient.delete('/salon/packages/' + id).then(unwrap),
 
-  purchase: (data: { packageId: string; customerId: string; amountPaid: number; notes?: string }) =>
+  purchase: (data: { packageId: string; customerId: string; amountPaid: number; paymentMethod?: string; notes?: string }) =>
     apiClient.post('/salon/packages/purchase', data).then(unwrap<PackagePurchase>),
   purchases: (params?: { status?: string; customerId?: string }) =>
     apiClient.get('/salon/packages/purchases/list', { params }).then(unwrap<PackagePurchase[]>),

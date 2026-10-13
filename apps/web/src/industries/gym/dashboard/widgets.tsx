@@ -102,8 +102,8 @@ export function GymClasses() {
       <RowList empty="Aaj koi class nahi" emptyIcon={Calendar}>
         {classes.list.slice(0, 8).map((c) => {
           const full = c.maxParticipants > 0 && c.currentEnrolled >= c.maxParticipants;
-          const trainer = (c.trainer as { name?: string; staff?: { firstName?: string } } | undefined);
-          const trainerName = trainer?.name || trainer?.staff?.firstName;
+          const trainer = (c.trainer as { name?: string; staff?: { fullName?: string; firstName?: string } } | undefined);
+          const trainerName = trainer?.name || (trainer?.staff?.fullName || trainer?.staff?.firstName);
           return (
             <ListRow
               key={c.id}

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { slaughterApi, type SlaughterLog } from '../api/slaughter.api';
 import { liveAnimalsApi } from '../api/live-animals.api';
+import { productsApi } from '@modules/inventory/products/api/products.api';
 import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
@@ -288,9 +289,10 @@ function LogCard({ log }: { log: SlaughterLog }) {
 function SlaughterForm({ onClose, onSaved }: any) {
   const [form, setForm] = useState<any>({
     liveAnimalId: '',
+    stockProductId: '',
     animalType: 'GOAT',
     animalTag: '',
-    slaughterDate: new Date().toISOString().slice(0, 16),
+    slaughterDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     slaughterMethod: 'HALAL_HAND',
     slaughteredBy: '',
     slaughtererCertNumber: '',
@@ -324,9 +326,19 @@ function SlaughterForm({ onClose, onSaved }: any) {
     enabled: showAnimalPicker,
   });
 
+  // Meat items sold by weight; the dressed meat can go straight into one of them.
+  const { data: meatItems = [] } = useQuery({
+    queryKey: ['meat-items-for-slaughter'],
+    queryFn: () => productsApi.list({ page: 1, limit: 300, isActive: true }).then((r) => r.items),
+    staleTime: 60_000,
+  });
+
   const saveMutation = useMutation({
     mutationFn: () => slaughterApi.create({
       ...form,
+      stockProductId: form.stockProductId || undefined,
+      // The input holds local wall time; send the real moment.
+      slaughterDate: form.slaughterDate ? new Date(form.slaughterDate).toISOString() : undefined,
       liveWeightKg: Number(form.liveWeightKg) || 0,
       dressedWeightKg: form.dressedWeightKg ? Number(form.dressedWeightKg) : undefined,
       temperature: form.temperature ? Number(form.temperature) : undefined,
@@ -422,6 +434,24 @@ function SlaughterForm({ onClose, onSaved }: any) {
             <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Dressed Weight (kg)</label>
             <input type="number" step="0.1" value={form.dressedWeightKg} onChange={(e) => setForm({ ...form, dressedWeightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
+        </div>
+
+        <div>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Gosht stock me daalein (item)</label>
+          <select value={form.stockProductId} onChange={(e) => setForm({ ...form, stockProductId: e.target.value })}
+            className="h-11 w-full rounded-xl border-2 border-emerald-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
+            <option value="">-- Stock me na daalein --</option>
+            {meatItems.map((p) => (
+              <option key={p.id} value={p.id}>{p.name} ({p.unit}) · stock {Number(p.stock ?? 0)}</option>
+            ))}
+          </select>
+          {form.stockProductId && (
+            <p className="mt-1 text-[0.6875rem] font-semibold text-slate-500">
+              {Number(form.dressedWeightKg) > 0
+                ? `${form.dressedWeightKg} kg is item ke stock me aa jayega, janwar ki qeemat + chara ke hisaab se lagat ke saath.`
+                : 'Stock me daalne ke liye gosht ka wazan (Dressed Weight) likhein.'}
+            </p>
+          )}
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">

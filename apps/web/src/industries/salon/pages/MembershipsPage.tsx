@@ -478,7 +478,8 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
     mutationFn: () => membershipsApi.subscribe({
       planId: form.planId,
       customerId: form.customerId,
-      amountPaid: Number(form.amountPaid) || (selectedPlan?.price ?? 0),
+      // Less than the plan price is allowed: the rest goes on the customer's khata.
+      amountPaid: form.amountPaid === '' ? 0 : Math.max(Number(form.amountPaid) || 0, 0),
       paymentMethod: form.paymentMethod,
       autoRenew: form.autoRenew,
       notes: form.notes || undefined,

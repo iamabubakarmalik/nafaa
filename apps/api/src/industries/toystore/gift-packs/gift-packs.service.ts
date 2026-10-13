@@ -3,6 +3,18 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertGiftPackDto } from './dto/upsert-gift-pack.dto';
 
+/**
+ * Lines of a pack. Packs saved while the request pipe emptied every line
+ * hold `[]` entries; those are skipped so the list still opens and the
+ * owner can re-add the toys.
+ */
+function packItems(items: unknown): Array<{ productId: string; variantId?: string; quantity: number; unitPrice: number }> {
+  return (Array.isArray(items) ? items : []).filter(
+    (i): i is { productId: string; variantId?: string; quantity: number; unitPrice: number } =>
+      !!i && typeof i === 'object' && !Array.isArray(i) && typeof (i as any).productId === 'string',
+  );
+}
+
 @Injectable()
 export class GiftPacksService {
   constructor(private readonly prisma: PrismaService) {}
@@ -70,17 +82,17 @@ export class GiftPacksService {
 
     // Attach product details to each pack item
     const allProductIds = new Set<string>();
-    packs.forEach((p) => ((p.items as any[]) ?? []).forEach((i) => allProductIds.add(i.productId)));
+    packs.forEach((p) => packItems(p.items).forEach((i) => allProductIds.add(i.productId)));
 
     const products = await this.prisma.product.findMany({
-      where: { id: { in: Array.from(allProductIds) } },
+      where: { tenantId: user.tenantId, id: { in: Array.from(allProductIds) } },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const map = new Map(products.map((p) => [p.id, p]));
 
     return packs.map((p) => ({
       ...p,
-      items: ((p.items as any[]) ?? []).map((i) => ({ ...i, product: map.get(i.productId) ?? null })),
+      items: packItems(p.items).map((i) => ({ ...i, product: map.get(i.productId) ?? null })),
     }));
   }
 
@@ -88,15 +100,15 @@ export class GiftPacksService {
     const p = await this.prisma.toyGiftPack.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Gift pack not found');
 
-    const ids = ((p.items as any[]) ?? []).map((i) => i.productId);
+    const ids = packItems(p.items).map((i) => i.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: ids } },
+      where: { tenantId: user.tenantId, id: { in: ids } },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const map = new Map(products.map((x) => [x.id, x]));
 
     // Buildable? check stock of every component
-    const items = ((p.items as any[]) ?? []).map((i) => {
+    const items = packItems(p.items).map((i) => {
       const prod = map.get(i.productId);
       const stock = Number(prod?.stock ?? 0);
       return {

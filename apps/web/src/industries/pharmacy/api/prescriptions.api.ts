@@ -72,6 +72,21 @@ export interface Prescription {
   updatedAt: string;
 }
 
+export interface DispensePayload {
+  items: { itemId: string; dispensedQty: number; unitPrice?: number; productId?: string; batchId?: string }[];
+  paymentMethod?: 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
+  paidAmount?: number;
+  discount?: number;
+  notes?: string;
+}
+
+export interface DispensedSale {
+  id: string;
+  saleNumber: string;
+  total: number;
+  creditAmount: number;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const prescriptionsApi = {
@@ -86,7 +101,8 @@ export const prescriptionsApi = {
     apiClient.post('/pharmacy/prescriptions/' + id + '/verify', { notes }).then(unwrap<Prescription>),
   reject: (id: string, reason: string) =>
     apiClient.post('/pharmacy/prescriptions/' + id + '/reject', { reason }).then(unwrap<Prescription>),
-  dispense: (id: string, items: any[], notes?: string) =>
-    apiClient.post('/pharmacy/prescriptions/' + id + '/dispense', { items, notes }).then(unwrap<Prescription>),
+  /** Bills the handed-over medicines as a sale; the unpaid part goes on the patient's khata. */
+  dispense: (id: string, body: DispensePayload) =>
+    apiClient.post('/pharmacy/prescriptions/' + id + '/dispense', body).then(unwrap<Prescription & { sale?: DispensedSale }>),
   refill: (id: string) => apiClient.post('/pharmacy/prescriptions/' + id + '/refill').then(unwrap<Prescription>),
 };

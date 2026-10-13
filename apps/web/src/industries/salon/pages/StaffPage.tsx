@@ -141,7 +141,7 @@ export default function StaffPage() {
               key={profile.id}
               profile={profile}
               onEdit={() => { setEditing(profile); setShowForm(true); }}
-              onDelete={() => { if (confirm('Deactivate ' + (profile.staff?.firstName || 'this staff') + '?')) removeMutation.mutate(profile.id); }}
+              onDelete={() => { if (confirm('Deactivate ' + ((profile.staff?.fullName || profile.staff?.firstName) || 'this staff') + '?')) removeMutation.mutate(profile.id); }}
               onManageServices={() => setManagingServices(profile)}
             />
           ))}
@@ -154,7 +154,7 @@ export default function StaffPage() {
 function StaffCard({ profile, onEdit, onDelete, onManageServices }: any) {
   const role = ROLES.find((r) => r.value === profile.role);
   const staff = profile.staff;
-  const staffName = staff ? ((staff.firstName || '') + ' ' + (staff.lastName || '')).trim() || staff.name : 'Staff';
+  const staffName = staff ? (((staff.fullName || staff.firstName) || '') + ' ' + (staff.lastName || '')).trim() || staff.name : 'Staff';
 
   return (
     <div className={
@@ -345,7 +345,7 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
             <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
               <option value="">-- Pick from HR/Staff --</option>
               {(staffList ?? []).map((s: any) => {
-                const nm = ((s.firstName || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
+                const nm = (((s.fullName || s.firstName) || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
                 return <option key={s.id} value={s.id}>{nm} • {s.phone || ''}</option>;
               })}
             </select>
@@ -531,7 +531,7 @@ function StaffServicesModal({ profile, onClose, onSaved }: { profile: StaffProfi
         <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Manage Services</h3>
-            <p className="text-xs text-slate-500 font-semibold">{profile.staff?.firstName || 'Staff'} • {profile.role}</p>
+            <p className="text-xs text-slate-500 font-semibold">{(profile.staff?.fullName || profile.staff?.firstName) || 'Staff'} • {profile.role}</p>
           </div>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />

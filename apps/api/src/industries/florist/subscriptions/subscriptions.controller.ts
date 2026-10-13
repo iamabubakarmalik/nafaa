@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { FloristSubscriptionsService } from './subscriptions.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 
 @ApiTags('Florist - Subscriptions')
@@ -20,7 +21,7 @@ export class FloristSubscriptionsController {
   @Get('summary') summary(@GetUser() u: AuthenticatedUser) { return this.service.summary(u); }
   @Get('due-today') due(@GetUser() u: AuthenticatedUser) { return this.service.dueToday(u); }
   @Get(':id') getOne(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(u, id); }
-  @Post(':id/mark-delivered') delivered(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.markDelivered(u, id); }
+  @Post(':id/mark-delivered') delivered(@GetUser() u: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) { return this.service.markDelivered(u, scope, id); }
   @Post(':id/pause') pause(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.pause(u, id); }
   @Post(':id/resume') resume(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.resume(u, id); }
   @Post(':id/cancel') cancel(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.cancel(u, id); }

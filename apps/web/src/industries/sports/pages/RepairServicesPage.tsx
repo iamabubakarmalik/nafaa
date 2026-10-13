@@ -493,14 +493,28 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
   const [notes, setNotes] = useState('');
 
   const update = useMutation({
-    mutationFn: () => repairServicesApi.updateStatus(repair.id, {
+    mutationFn: (paidNow?: number) => repairServicesApi.updateStatus(repair.id, {
       status, workDone, finalCost, photosAfterUrls: photosAfter, notes: notes || undefined,
+      ...(paidNow !== undefined ? { paidNow, paymentMethod: 'CASH' } : {}),
     }),
     onSuccess: () => {
       toast.success('Updated');
       onUpdated();
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update nahi hua'),
   });
+
+  /** Delivery makes the bill: ask what is taken now; the rest goes to the customer's khata. */
+  const save = () => {
+    if (status !== 'DELIVERED' || repair.status === 'DELIVERED') { update.mutate(undefined); return; }
+    const due = Math.max(0, Math.round((finalCost - Number(repair.advancePaid || 0)) * 100) / 100);
+    if (due <= 0) { update.mutate(undefined); return; }
+    const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh customer ke khate me jayega)`, String(due));
+    if (input === null) return;
+    const paidNow = Number(input);
+    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Raqam sahi likhein'); return; }
+    update.mutate(paidNow);
+  };
 
   const payment = useMutation({
     mutationFn: () => repairServicesApi.recordPayment(repair.id, addPayment),
@@ -509,6 +523,7 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
       setAddPayment(0);
       onUpdated();
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment darj nahi hui'),
   });
 
   const balance = finalCost - Number(repair.advancePaid || 0);
@@ -650,7 +665,7 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
         <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Close</Button>
           <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700"
-            onClick={() => update.mutate()} loading={update.isPending}>
+            onClick={save} loading={update.isPending}>
             <Save className="h-4 w-4" /> Update Repair
           </Button>
         </div>

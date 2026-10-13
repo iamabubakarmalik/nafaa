@@ -63,11 +63,14 @@ export default function GymPosPage() {
       memberId: selectedMember.id,
       planId: selectedPlan.id,
       paidAmount: Number(paidAmount) || 0,
+      paymentMethod,
+      shopId: currentShopId || undefined,
       autoRenew,
     }),
     onSuccess: (membership: any) => {
-      toast.success('🎉 Membership activated!');
-      window.open('/sales/' + membership.id + '/receipt?auto=1', '_blank');
+      toast.success('🎉 Membership active ho gayi!');
+      // The receipt belongs to the sale posted for this membership.
+      if (membership.sale?.id) window.open('/sales/' + membership.sale.id + '/receipt?auto=1', '_blank');
       setSelectedMember(null); setSelectedPlan(null); setPaidAmount(0);
       queryClient.invalidateQueries({ queryKey: ['gym-members'] });
     },
@@ -90,6 +93,7 @@ export default function GymPosPage() {
       window.open('/sales/' + sale.id + '/receipt?auto=1', '_blank');
       setShopCart([]); setSelectedMember(null);
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale nahi hui'),
   });
 
   const shopTotal = shopCart.reduce((s, c) => s + c.price * c.quantity, 0);

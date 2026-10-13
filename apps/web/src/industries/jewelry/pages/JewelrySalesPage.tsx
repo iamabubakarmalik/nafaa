@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   Receipt, TrendingUp, Wallet, Gem, Search, X, Calendar,
   Banknote, CreditCard, Building2, Sparkles, Eye, Download,
   RefreshCw, Award, ArrowRight, Clock, User, Package,
   BarChart3, Lock, Unlock, EyeOff, Shield, CalendarRange,
-  ShieldCheck, Scale, Coins,
+  ShieldCheck, Scale, Coins, Ban,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { jewelrySalesApi } from '../api/sales.api';
@@ -16,6 +16,7 @@ import { useSalesPrivacy } from '@modules/sales/sales/hooks/useSalesPrivacy';
 import { SalesPrivacyModal } from '@modules/sales/sales/components/SalesPrivacyModal';
 import { HiddenAmount } from '@modules/sales/sales/components/HiddenAmount';
 import { toast } from 'sonner';
+import { withManagerPin } from '@core/security/ManagerPin';
 import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 
 const formatDate = (v: string) =>
@@ -25,6 +26,9 @@ const paymentConfig: Record<string, { label: string; icon: any; color: string }>
   CASH: { label: 'Cash', icon: Banknote, color: '#16a34a' },
   CARD: { label: 'Card', icon: CreditCard, color: '#2563eb' },
   BANK: { label: 'Bank', icon: Building2, color: '#7c3aed' },
+  BANK_TRANSFER: { label: 'Bank', icon: Building2, color: '#7c3aed' },
+  JAZZCASH: { label: 'JazzCash', icon: Wallet, color: '#dc2626' },
+  EASYPAISA: { label: 'Easypaisa', icon: Wallet, color: '#16a34a' },
   MIXED: { label: 'Mixed', icon: Sparkles, color: '#f97316' },
 };
 
@@ -51,6 +55,23 @@ export default function JewelrySalesPage() {
     queryFn: () => jewelrySalesApi.list(),
     enabled: !privacy.isLocked,
   });
+
+  const qc = useQueryClient();
+  // Cancelling a bill voids the shared sale: stock, khata and cash come back.
+  const cancelBill = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      withManagerPin('Bill cancel', (pin) => jewelrySalesApi.markReturned(id, reason, pin), 'void'),
+    onSuccess: () => {
+      toast.success('Bill cancel ho gaya — zewar stock me wapas');
+      ['jewelry-sales-list', 'jewelry-sales', 'jewelry-products', 'metal-stock-balance', 'sales-list'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Bill cancel nahi hua'),
+  });
+  const askCancel = (sale: any) => {
+    const reason = window.prompt(`Bill ${sale.invoiceNumber} cancel / wapsi — wajah likhein:`, 'Customer ne wapas kiya');
+    if (reason === null) return;
+    cancelBill.mutate({ id: sale.id, reason: reason.trim() || 'Wapsi' });
+  };
 
   const hideAmounts = privacy.hideStats;
   const showValue = (v: string) => hideAmounts ? '••••••' : v;
@@ -88,11 +109,13 @@ export default function JewelrySalesPage() {
     return list.sort((a: any, b: any) => new Date(b.soldAt || b.createdAt).getTime() - new Date(a.soldAt || a.createdAt).getTime());
   }, [sales, dateFilter, customStart, customEnd, paymentFilter, search]);
 
+  // Cancelled bills stay in the list but never count in totals.
   const stats = useMemo(() => {
-    const revenue = filtered.reduce((s: number, x: any) => s + Number(x.total || 0), 0);
-    const totalWeight = filtered.reduce((s: number, x: any) => s + Number(x.totalWeight || 0), 0);
-    const avgOrder = filtered.length > 0 ? revenue / filtered.length : 0;
-    return { revenue, totalWeight, avgOrder, count: filtered.length };
+    const live = filtered.filter((x: any) => x.status !== 'CANCELLED');
+    const revenue = live.reduce((s: number, x: any) => s + Number(x.total || 0), 0);
+    const totalWeight = live.reduce((s: number, x: any) => s + Number(x.netWeight || 0), 0);
+    const avgOrder = live.length > 0 ? revenue / live.length : 0;
+    return { revenue, totalWeight, avgOrder, count: live.length };
   }, [filtered]);
 
   const trendData = useMemo(() => {
@@ -102,7 +125,7 @@ export default function JewelrySalesPage() {
       const key = d.toISOString().slice(0, 10);
       buckets[key] = { date: key, label: d.toLocaleDateString('en-PK', { weekday: 'short' }), sales: 0 };
     }
-    sales.forEach((s: any) => {
+    sales.filter((s: any) => s.status !== 'CANCELLED').forEach((s: any) => {
       const key = new Date(s.soldAt || s.createdAt).toISOString().slice(0, 10);
       if (buckets[key]) buckets[key].sales += Number(s.total || 0);
     });
@@ -118,7 +141,7 @@ export default function JewelrySalesPage() {
       s.customerName || 'Walk-in',
       s.customerPhone || '',
       s.items?.length || 0,
-      (s.totalWeight || 0).toFixed(2) + 'g',
+      Number(s.netWeight || 0).toFixed(3) + 'g',
       s.paymentMethod,
       Number(s.total).toFixed(2),
       Number(s.paidAmount).toFixed(2),
@@ -310,6 +333,9 @@ export default function JewelrySalesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-extrabold text-slate-900">{sale.invoiceNumber}</span>
+                            {sale.status === 'CANCELLED' && (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">CANCEL</span>
+                            )}
                             {sale.hallmarkVerified && (
                               <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                                 <ShieldCheck className="h-2.5 w-2.5" />HALLMARK
@@ -325,7 +351,7 @@ export default function JewelrySalesPage() {
                             <User className="h-3 w-3" />{sale.customerName || 'Walk-in'}
                             {sale.customerPhone && <><span>•</span><span>{sale.customerPhone}</span></>}
                             <span>•</span><Package className="h-3 w-3" />{sale.items?.length || 0} items
-                            {sale.totalWeight > 0 && <><span>•</span><Scale className="h-3 w-3" />{Number(sale.totalWeight).toFixed(2)}g</>}
+                            {sale.netWeight > 0 && <><span>•</span><Scale className="h-3 w-3" />{Number(sale.netWeight).toFixed(3)}g</>}
                           </div>
                           <div className="mt-1 text-[0.6875rem] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt || sale.createdAt)}</div>
                         </div>
@@ -334,6 +360,16 @@ export default function JewelrySalesPage() {
                         <div className="text-2xl font-extrabold text-amber-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
                         <div className="text-[0.6875rem] text-slate-500 inline-flex items-center justify-end gap-1 mt-0.5"><PayIcon className="h-2.5 w-2.5" />{paymentConfig[sale.paymentMethod]?.label}</div>
                         <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-amber-600 group-hover:text-amber-700"><Eye className="h-3 w-3" /> Invoice <ArrowRight className="h-3 w-3" /></div>
+                        {sale.status !== 'CANCELLED' && (
+                          <button
+                            type="button"
+                            disabled={cancelBill.isPending}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); askCancel(sale); }}
+                            className="mt-1 ml-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                          >
+                            <Ban className="h-3 w-3" /> Cancel / Wapsi
+                          </button>
+                        )}
                       </div>
                     </div>
                   </Link>

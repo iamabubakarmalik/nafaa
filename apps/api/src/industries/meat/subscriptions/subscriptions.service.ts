@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput, parseDay } from '../meat-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -15,8 +16,8 @@ export class SubscriptionsService {
 
     return this.prisma.meatSubscription.create({
       data: {
+        ...cleanInput(dto),
         tenantId: user.tenantId,
-        ...dto,
         subscriptionNumber,
         startDate,
         nextDeliveryDate,
@@ -60,10 +61,11 @@ export class SubscriptionsService {
   async update(user: AuthenticatedUser, id: string, dto: any) {
     const s = await this.prisma.meatSubscription.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Subscription not found');
-    return this.prisma.meatSubscription.update({ where: { id }, data: dto });
+    return this.prisma.meatSubscription.update({ where: { id }, data: cleanInput(dto) });
   }
 
   async pause(user: AuthenticatedUser, id: string, reason?: string) {
+    await this.getOne(user, id);
     return this.prisma.meatSubscription.update({
       where: { id },
       data: { status: 'PAUSED', pausedAt: new Date(), pauseReason: reason },
@@ -85,6 +87,7 @@ export class SubscriptionsService {
   }
 
   async cancel(user: AuthenticatedUser, id: string, reason?: string) {
+    await this.getOne(user, id);
     return this.prisma.meatSubscription.update({
       where: { id },
       data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: reason },

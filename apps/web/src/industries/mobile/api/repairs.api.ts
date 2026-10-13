@@ -356,9 +356,6 @@ export const repairsApi = {
   getOne: (id: string) =>
     apiClient.get(`/repair-tickets/${id}`).then(unwrap) as Promise<RepairTicket>,
 
-  getByImei: (imei: string) =>
-    apiClient.get(`/repair-tickets/by-imei/${imei}`).then(unwrap) as Promise<RepairTicket | null>,
-
   create: (payload: CreateRepairTicketPayload) =>
     apiClient.post('/repair-tickets', payload).then(unwrap) as Promise<RepairTicket>,
 
@@ -382,11 +379,4 @@ export const repairsApi = {
 
   remove: (id: string) =>
     apiClient.delete(`/repair-tickets/${id}`).then(unwrap),
-
-  // Utility endpoints
-  sendSms: (id: string, message?: string) =>
-    apiClient.post(`/repair-tickets/${id}/send-sms`, { message }).then(unwrap),
-
-  printReceipt: (id: string) =>
-    apiClient.get(`/repair-tickets/${id}/receipt`, { responseType: 'blob' }).then((r) => r.data) as Promise<Blob>,
 };

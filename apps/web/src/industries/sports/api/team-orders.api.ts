@@ -74,7 +74,7 @@ export const teamOrdersApi = {
   update: (id: string, data: Partial<SportsTeamOrder>) =>
     apiClient.patch('/sports/team-orders/' + id, data).then(unwrap<SportsTeamOrder>),
 
-  updateStatus: (id: string, data: { status: TeamOrderStatus; notes?: string }) =>
+  updateStatus: (id: string, data: { status: TeamOrderStatus; notes?: string; paidNow?: number; paymentMethod?: string }) =>
     apiClient.patch('/sports/team-orders/' + id + '/status', data).then(unwrap<SportsTeamOrder>),
 
   recordPayment: (id: string, data: { amount: number; paymentMethod?: string; notes?: string }) =>

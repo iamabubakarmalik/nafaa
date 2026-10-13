@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { EyeTestsService } from './eye-tests.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { CreateEyeTestDto, RecordTestPaymentDto, RecordTestResultsDto, UpdateTestStatusDto } from './dto/create-eye-test.dto';
 
 @ApiTags('Optical - Eye Tests')
@@ -41,8 +42,8 @@ export class EyeTestsController {
   @Post(':id/results') results(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: RecordTestResultsDto) {
     return this.service.recordResults(user, id, dto);
   }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: RecordTestPaymentDto) {
-    return this.service.recordPayment(user, id, dto);
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: RecordTestPaymentDto) {
+    return this.service.recordPayment(user, shop, id, dto);
   }
   @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateTestStatusDto) {
     return this.service.updateStatus(user, id, dto);

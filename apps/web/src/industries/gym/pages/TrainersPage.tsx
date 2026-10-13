@@ -130,7 +130,7 @@ export default function TrainersPage() {
 function TrainerCard({ trainer, onEdit, onDelete }: any) {
   const role = ROLES.find((r) => r.value === trainer.role);
   const staffName = trainer.staff
-    ? ((trainer.staff.firstName || '') + ' ' + (trainer.staff.lastName || '')).trim() || trainer.staff.name
+    ? (((trainer.staff.fullName || trainer.staff.firstName) || '') + ' ' + (trainer.staff.lastName || '')).trim() || trainer.staff.name
     : 'Trainer';
 
   return (
@@ -294,7 +294,7 @@ function TrainerForm({ editing, onClose, onSaved }: any) {
             <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
               <option value="">-- Pick from HR/Staff --</option>
               {(staffList ?? []).map((s: any) => {
-                const nm = ((s.firstName || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
+                const nm = (((s.fullName || s.firstName) || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
                 return <option key={s.id} value={s.id}>{nm} • {s.phone || ''}</option>;
               })}
             </select>

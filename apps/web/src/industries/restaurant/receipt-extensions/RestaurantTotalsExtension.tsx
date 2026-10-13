@@ -15,7 +15,8 @@ import { useRestaurantOrderForSale } from '../hooks/useRestaurantOrderForSale';
  */
 export function RestaurantTotalsExtension({ sale }: { sale: any }) {
   const { data: order } = useRestaurantOrderForSale(sale?.id, sale?.saleNumber);
-  if (!order) return null;
+  // Bills made from an order carry these charges themselves; showing them again would double them.
+  if (!order || Number(sale?.serviceCharges) > 0) return null;
 
   const rows: Array<{ label: string; amount: number; tone: string; icon?: any }> = [];
 

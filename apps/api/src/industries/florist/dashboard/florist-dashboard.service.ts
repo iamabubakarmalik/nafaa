@@ -1,18 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { saleFigures } from '../../../common/helpers/business-math.helper';
+import { addDaysTz, dayEnd, dayStart } from '../florist-common';
 
 @Injectable()
 export class FloristDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const monthAgo = subDays(new Date(), 30);
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
-    const in7Days = new Date(); in7Days.setDate(in7Days.getDate() + 7);
-    const in30Days = new Date(); in30Days.setDate(in30Days.getDate() + 30);
+    // Shop-day edges (Pakistan time), not the server's UTC day.
+    const todayStart = dayStart();
+    const todayEnd = dayEnd();
+    const monthAgo = addDaysTz(todayStart, -30);
+    const in7Days = addDaysTz(todayEnd, 7);
+    const in30Days = addDaysTz(todayEnd, 30);
 
     const [
       totalProducts,
@@ -130,6 +132,8 @@ export class FloristDashboardService {
       _count: { _all: true },
     });
 
+    const billed = await saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthAgo });
+
     return {
       totals: {
         totalProducts, activeOrders, deliveredToday,
@@ -149,9 +153,10 @@ export class FloristDashboardService {
         subscriptions: {
           count: monthlySubscriptions._count._all,
         },
-        totalRevenue:
-          (monthlyOrders._sum.totalAmount ?? 0) +
-          (monthlyWeddings._sum.quotedAmount ?? 0),
+        // What was actually billed: counter sales (delivery orders are rung at the POS),
+        // completed weddings and subscription deliveries all become bills.
+        totalRevenue: billed.net,
+        grossProfit: billed.grossProfit,
       },
       todayScheduledDeliveries,
       upcomingWeddingList,
@@ -163,8 +168,8 @@ export class FloristDashboardService {
   }
 
   async deliveryReport(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    const start = dayStart(from);
+    const end = dayEnd(to);
     const orders = await this.prisma.floristOrder.findMany({
       where: {
         tenantId: user.tenantId,

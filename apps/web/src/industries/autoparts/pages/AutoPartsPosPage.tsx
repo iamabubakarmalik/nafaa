@@ -14,6 +14,7 @@ import { productsApi, type Product } from '@modules/inventory/products/api/produ
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { withManagerPin } from '@core/security/ManagerPin';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { partProfilesApi, type PartCategory } from '../api/part-profiles.api';
 import { customerVehiclesApi } from '../api/customer-vehicles.api';
@@ -59,6 +60,8 @@ export default function AutoPartsPosPage() {
     queryFn: () => partProfilesApi.list({
       search: search.trim() || undefined,
       category: categoryFilter === 'all' ? undefined : categoryFilter,
+      // Also parts added from the plain Products page, which have no part profile.
+      includeAll: true,
     }),
   });
 
@@ -145,13 +148,19 @@ export default function AutoPartsPosPage() {
   const checkoutMutation = useMutation({
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
-      return offlineSalesApi.create({
+      // The bill has no vehicle column; each line keeps it in its team-only note.
+      const vehicle = (customerVehicles as any[]).find((v) => v.id === selectedVehicleId);
+      const vehicleTag = vehicle
+        ? `Vehicle: ${[vehicle.registrationNumber, vehicle.makeName, vehicle.modelName].filter(Boolean).join(' ')}`
+        : undefined;
+      // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
+      return withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+        ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,
         paidAmount: effectivePaid,
         discount: Number(globalDiscount) || 0,
-        note: selectedVehicleId ? `Vehicle: ${selectedVehicleId}` : undefined,
         items: cart.map((c) => ({
           productId: c.productId,
           quantity: c.quantity,
@@ -159,8 +168,9 @@ export default function AutoPartsPosPage() {
           lineDiscount: c.lineDiscount,
           useWholesale: c.useWholesale,
           note: c.note,
+          ...(vehicleTag && { internalNote: vehicleTag }),
         })),
-      });
+      }));
     },
     onSuccess: (sale) => {
       window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
@@ -168,7 +178,7 @@ export default function AutoPartsPosPage() {
       setSelectedVehicleId('');
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Bill nahi bana'),
   });
 
   const handleCheckout = () => {

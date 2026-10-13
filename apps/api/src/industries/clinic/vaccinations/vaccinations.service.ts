@@ -9,8 +9,8 @@ export class VaccinationsService {
   async schedule(user: AuthenticatedUser, dto: any) {
     return this.prisma.clinicVaccination.create({
       data: {
-        tenantId: user.tenantId,
         ...dto,
+        tenantId: user.tenantId,
         dueDate: new Date(dto.dueDate),
         expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
       },
@@ -60,6 +60,8 @@ export class VaccinationsService {
   }
 
   async administer(user: AuthenticatedUser, id: string, dto: { batchNumber?: string; manufacturer?: string; siteAdministered?: string; routeAdministered?: string; administeredBy?: string; expiryDate?: string; adverseReactions?: string }) {
+    const own = await this.prisma.clinicVaccination.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true } });
+    if (!own) throw new NotFoundException('Vaccination nahi mili');
     return this.prisma.clinicVaccination.update({
       where: { id },
       data: {

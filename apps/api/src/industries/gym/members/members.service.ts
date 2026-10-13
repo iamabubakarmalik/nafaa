@@ -8,55 +8,75 @@ export class MembersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: UpsertMemberDto) {
+    if (!dto.customerId) throw new BadRequestException('Customer chunein');
     const customer = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId } });
     if (!customer) throw new NotFoundException('Customer not found');
 
     const existing = await this.prisma.gymMember.findUnique({ where: { customerId: dto.customerId } });
-    if (existing) throw new BadRequestException('Gym member profile already exists for this customer');
+    if (existing) throw new BadRequestException('Is customer ka gym member profile pehle se bana hua hai');
 
     if (!dto.memberNumber) {
       const count = await this.prisma.gymMember.count({ where: { tenantId: user.tenantId } });
       dto.memberNumber = 'MEM-' + String(count + 1).padStart(5, '0');
     }
-
     if (!dto.qrCode) dto.qrCode = 'GYM-' + user.tenantId.slice(0, 8) + '-' + dto.memberNumber;
+
+    // The typed referral code is the code of the member who referred this one.
+    const { referralCode, customerId, dateOfBirth, ...rest } = dto;
+    let referredById = dto.referredById;
+    if (!referredById && referralCode) {
+      const referrer = await this.prisma.gymMember.findFirst({ where: { tenantId: user.tenantId, referralCode }, select: { id: true } });
+      referredById = referrer?.id;
+    }
 
     return this.prisma.gymMember.create({
       data: {
-  tenantId: user.tenantId,
-  customerId: dto.customerId,
-  memberNumber: dto.memberNumber!, // ✅ FORCE (already generated above)
-  qrCode: dto.qrCode!,
-  referralCode: 'REF-' + dto.memberNumber,
-  
-  dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
-
-  // OPTIONAL FIELDS
-  gender: dto.gender,
-  bloodGroup: dto.bloodGroup,
-  rfidCard: dto.rfidCard,
-  biometricId: dto.biometricId,
-},
+        ...rest,
+        tenantId: user.tenantId,
+        customerId: customerId!,
+        memberNumber: dto.memberNumber!,
+        qrCode: dto.qrCode!,
+        referralCode: 'REF-' + dto.memberNumber,
+        referredById,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      },
     });
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertMemberDto) {
     const m = await this.prisma.gymMember.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!m) throw new NotFoundException('Member not found');
+    // The customer link and own referral code never change on edit.
+    const { customerId: _c, referralCode: _r, ...rest } = dto;
     return this.prisma.gymMember.update({
       where: { id },
       data: {
-        ...dto,
+        ...rest,
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
       },
     });
   }
 
   async list(user: AuthenticatedUser, params: { status?: string; goal?: string; search?: string; hasActiveMembership?: boolean }) {
+    // Search by name / phone / member number over every member, not only the latest 200.
+    const q = params.search?.trim();
+    const matchedCustomers = q
+      ? await this.prisma.customer.findMany({
+          where: { tenantId: user.tenantId, OR: [{ name: { contains: q, mode: 'insensitive' } }, { phone: { contains: q } }] },
+          select: { id: true },
+          take: 500,
+        })
+      : [];
     const members = await this.prisma.gymMember.findMany({
       where: {
         tenantId: user.tenantId,
         isActive: true,
+        ...(q && {
+          OR: [
+            { customerId: { in: matchedCustomers.map((c) => c.id) } },
+            { memberNumber: { contains: q, mode: 'insensitive' } },
+          ],
+        }),
         ...(params.status && { status: params.status as any }),
         ...(params.goal && { primaryGoal: params.goal as any }),
       },
@@ -66,15 +86,7 @@ export class MembersService {
 
     const customerIds = members.map((m) => m.customerId);
     const customers = await this.prisma.customer.findMany({
-      where: {
-        id: { in: customerIds },
-        ...(params.search && {
-          OR: [
-            { name: { contains: params.search, mode: 'insensitive' } },
-            { phone: { contains: params.search } },
-          ],
-        }),
-      },
+      where: { id: { in: customerIds }, tenantId: user.tenantId },
     });
     const customersMap = new Map(customers.map((c) => [c.id, c]));
 

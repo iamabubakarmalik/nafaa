@@ -36,9 +36,19 @@ export async function saveCarpetWizard(
   /* Pehle yahan sirf `create` tha: product "edit" karne par naya
      product ban jata tha aur purana waise ka waisa para rehta —
      ek hi cheez do dafa, do alag stock ke sath. */
+  // Running-feet stock without variants is set when the product is created; on
+  // edit stock changes go through stock adjustment so the movement is recorded.
+  const productFt = !(hasVariants && variants.length > 0)
+    ? ftStock.reduce((a, f) => a + Number(f.currentFt || 0), 0)
+    : 0;
+  const designLine = basic.designCode?.trim() ? `Design: ${basic.designCode.trim()}` : '';
+  const description = [basic.description.trim(), designLine && !basic.description.includes(designLine) ? designLine : '']
+    .filter(Boolean).join(' | ');
+
   const _payload = {
     name: basic.name.trim(),
-    description: basic.description.trim() || undefined,
+    // The product API has no SEO title field; the design code travels in the description.
+    description: description || undefined,
     categoryId: basic.categoryId || undefined,
     brandId: basic.brandId || undefined,
     sku: basic.sku.trim() || undefined,
@@ -51,18 +61,17 @@ export async function saveCarpetWizard(
         ? undefined
         : Number(basic.wholesalePricePerSqft),
     taxRate: Number(basic.taxRate || 0),
-    stock: 0,
+    ...(existingId ? {} : { stock: productFt }),
     lowStockAlert: 0,
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
     tagIds: basic.tagIds,
     imageUrls: basic.imageUrls,
-    metaTitle: basic.designCode ? `${basic.name} — ${basic.designCode}` : undefined,
   };
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
 
@@ -122,16 +131,6 @@ export async function saveCarpetWizard(
       createdVariants = await productVariantsApi.bulkCreate(productId, variantPayloads);
     } catch (e) {
       await rollback(e);
-    }
-  } else if (ftStock.length > 0) {
-    // No variants but user entered ft stock at product level — bake it in
-    const totalFt = ftStock.reduce((a, f) => a + Number(f.currentFt || 0), 0);
-    if (totalFt > 0) {
-      try {
-        await productsApi.update(productId, { stock: totalFt });
-      } catch (e) {
-        await rollback(e);
-      }
     }
   }
 
@@ -375,10 +374,11 @@ export async function loadCarpetProductForEdit(productId: string) {
     productId,
     basic: {
       name: product.name,
-      description: product.description ?? '',
+      description: (product.description ?? '').replace(/\s*\|?\s*Design: [^|]*$/, '').trim(),
       categoryId: product.categoryId ?? '',
       brandId: product.brandId ?? '',
-      designCode: (product as any).metaTitle?.split(' — ')?.[1] ?? '',
+      designCode: (product.description ?? '').match(/Design: ([^|]*)$/)?.[1]?.trim()
+        ?? (product as any).metaTitle?.split(' — ')?.[1] ?? '',
       sku: product.sku ?? '',
       barcode: product.barcode ?? '',
       unit: (product.unit as any) ?? 'sqft',
@@ -429,9 +429,12 @@ export async function updateCarpetWizard(
   const { basic, hasVariants, variants, rolls, pieceLines } = draft;
 
   // ─── 1. PATCH PRODUCT ────────────────────────────────
+  // The product API has no SEO title field; the design code travels in the description.
+  const designLine = basic.designCode?.trim() ? `Design: ${basic.designCode.trim()}` : '';
+  const plainDescription = basic.description.replace(/\s*\|?\s*Design: [^|]*$/, '').trim();
   const product = await _productsApi.update(productId, {
     name: basic.name.trim(),
-    description: basic.description.trim() || undefined,
+    description: [plainDescription, designLine].filter(Boolean).join(' | ') || undefined,
     categoryId: basic.categoryId || undefined,
     brandId: basic.brandId || undefined,
     sku: basic.sku.trim() || undefined,
@@ -448,7 +451,6 @@ export async function updateCarpetWizard(
     isFeatured: basic.isFeatured,
     tagIds: basic.tagIds,
     imageUrls: basic.imageUrls,
-    metaTitle: basic.designCode ? `${basic.name} — ${basic.designCode}` : undefined,
   });
 
   // ─── 2. RECONCILE VARIANTS ───────────────────────────

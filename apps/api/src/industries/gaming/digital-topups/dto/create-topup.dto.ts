@@ -36,4 +36,8 @@ export class SellTopupDto {
   @ApiPropertyOptional() @IsOptional() @IsString() deliveredVia?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() deliveryReference?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() actualSellingPrice?: number;
+  /** Money taken for this card; defaults to its selling price. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() paidAmount?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
 }

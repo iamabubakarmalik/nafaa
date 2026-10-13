@@ -86,7 +86,7 @@ export default function BulkImportPage() {
         rows,
       }),
     onSuccess: (job: BulkImportJob) => {
-      toast.success(`Import complete: ${job.successCount} add, ${job.errorCount} fail`);
+      toast.success(`Import mukammal: ${job.successCount} add${job.skipCount ? `, ${job.skipCount} pehle se thi` : ''}${job.errorCount ? `, ${job.errorCount} fail` : ''}`);
       setPreview(null);
       setFileName('');
       setRawHeaders([]);

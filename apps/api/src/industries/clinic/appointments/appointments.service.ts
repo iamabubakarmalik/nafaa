@@ -1,11 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { PaymentMethod } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { startOfDay, endOfDay } from 'date-fns';
+import { ShopScope } from '../../../common/shop-scope';
+import { SalesService } from '../../../modules/sales/sales/sales.service';
+import { billClinicFee } from './fee-billing';
+
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sales: SalesService,
+  ) {}
 
   async create(user: AuthenticatedUser, dto: any) {
     if (!dto.patientId || !dto.doctorId || !dto.scheduledStart) {
@@ -22,8 +30,8 @@ export class AppointmentsService {
 
     // Token for the day
     const start = new Date(dto.scheduledStart);
-    const dayStart = startOfDay(start);
-    const dayEnd = endOfDay(start);
+    const dayStart = startOfDayTz(start);
+    const dayEnd = endOfDayTz(start);
     const dayCount = await this.prisma.clinicAppointment.count({
       where: {
         tenantId: user.tenantId,
@@ -103,8 +111,8 @@ export class AppointmentsService {
 
   async queue(user: AuthenticatedUser, doctorId: string, date: string) {
     const targetDate = new Date(date);
-    const dayStart = startOfDay(targetDate);
-    const dayEnd = endOfDay(targetDate);
+    const dayStart = startOfDayTz(targetDate);
+    const dayEnd = endOfDayTz(targetDate);
 
     const appts = await this.prisma.clinicAppointment.findMany({
       where: {
@@ -165,17 +173,52 @@ export class AppointmentsService {
     });
   }
 
-  async addPayment(user: AuthenticatedUser, id: string, amount: number) {
+  /**
+   * Takes the patient's fee and bills it as a sale (cash basis): each payment
+   * is its own bill, so the drawer and reports carry exactly what was taken.
+   */
+  async addPayment(user: AuthenticatedUser, scope: ShopScope, id: string, body: { amount: number; paymentMethod?: PaymentMethod }) {
     const apt = await this.prisma.clinicAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!apt) throw new NotFoundException('Not found');
-    const newPaid = apt.paidAmount + amount;
-    let paymentStatus = 'PARTIALLY_PAID';
-    if (newPaid >= apt.total) paymentStatus = 'PAID';
-    if (newPaid <= 0) paymentStatus = 'UNPAID';
-    return this.prisma.clinicAppointment.update({ where: { id }, data: { paidAmount: newPaid, paymentStatus } });
+    if (apt.status === 'CANCELLED' || apt.status === 'NO_SHOW') {
+      throw new BadRequestException('Cancel / no-show appointment ki fees nahi li ja sakti');
+    }
+    const amount = Math.round(Number(body?.amount) * 100) / 100;
+    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+    const remaining = Math.round((apt.total - apt.paidAmount) * 100) / 100;
+    if (amount > remaining + 0.009) {
+      throw new BadRequestException(remaining > 0 ? `Sirf Rs ${remaining} baqi hain` : 'Is appointment ki poori fees mil chuki hai');
+    }
+
+    const [patient, doctor] = await Promise.all([
+      this.prisma.clinicPatientProfile.findFirst({ where: { id: apt.patientId, tenantId: user.tenantId }, select: { customerId: true, fullName: true } }),
+      this.prisma.clinicDoctorProfile.findFirst({ where: { id: apt.doctorId, tenantId: user.tenantId }, select: { fullName: true } }),
+    ]);
+    const sale = await billClinicFee(this.prisma, this.sales, user, scope, {
+      amount,
+      paymentMethod: body?.paymentMethod,
+      customerId: patient?.customerId,
+      shopId: apt.shopId,
+      lineNote: [apt.appointmentNumber, doctor?.fullName ? `Dr. ${doctor.fullName}` : null].filter(Boolean).join(' · '),
+      note: `Fees ${apt.appointmentNumber}${patient?.fullName ? ' · ' + patient.fullName : ''}`,
+    });
+
+    const newPaid = Math.round((apt.paidAmount + amount) * 100) / 100;
+    const paymentStatus = newPaid >= apt.total - 0.009 ? 'PAID' : newPaid > 0 ? 'PARTIALLY_PAID' : 'UNPAID';
+    const updated = await this.prisma.clinicAppointment.update({
+      where: { id },
+      data: {
+        paidAmount: newPaid,
+        paymentStatus,
+        internalNotes: [apt.internalNotes, `Bill ${sale.saleNumber}: Rs ${amount}`].filter(Boolean).join('\n'),
+      },
+    });
+    return { ...updated, sale };
   }
 
   async submitRating(user: AuthenticatedUser, id: string, rating: number, feedback?: string) {
+    const apt = await this.prisma.clinicAppointment.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true } });
+    if (!apt) throw new NotFoundException('Not found');
     return this.prisma.clinicAppointment.update({ where: { id }, data: { patientRating: rating, patientFeedback: feedback } });
   }
 }

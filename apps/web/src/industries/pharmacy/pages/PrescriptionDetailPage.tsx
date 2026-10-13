@@ -366,29 +366,39 @@ function DispenseModal({ rx, onClose, onDone }: any) {
         initial[it.id] = {
           dispensedQty: it.prescribedQty - it.dispensedQty,
           unitPrice: it.unitPrice || 0,
-          productId: it.productId,
-          batchId: it.batchId,
+          productId: it.productId || undefined,
+          batchId: it.batchId || undefined,
         };
       }
     });
     return initial;
   });
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'BANK_TRANSFER'>('CASH');
+  const [paid, setPaid] = useState<string>('');
 
   const dispenseMutation = useMutation({
     mutationFn: () => {
       const items = Object.entries(dispenseItems)
         .filter(([_, v]) => v.dispensedQty > 0)
         .map(([itemId, v]) => ({ itemId, ...v }));
-      return prescriptionsApi.dispense(rx.id, items);
+      return prescriptionsApi.dispense(rx.id, {
+        items,
+        paymentMethod,
+        paidAmount: paid === '' ? total : Math.max(0, Number(paid) || 0),
+      });
     },
-    onSuccess: () => {
-      toast.success('Dispensed successfully');
+    onSuccess: (res) => {
+      toast.success(res.sale ? `Bill ${res.sale.saleNumber} ban gaya` : 'Dawai de di gayi');
+      if (res.sale?.id) window.open(`/sales/${res.sale.id}/receipt?auto=1`, '_blank');
       onDone();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Dawai dene me masla'),
   });
 
   const total = Object.values(dispenseItems).reduce((s, v) => s + v.dispensedQty * v.unitPrice, 0);
+  const paidNow = paid === '' ? total : Math.max(0, Number(paid) || 0);
+  const udhaar = Math.max(total - paidNow, 0);
+  const missingProduct = rx.items.some((it: any) => dispenseItems[it.id]?.dispensedQty > 0 && !dispenseItems[it.id]?.productId);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -464,20 +474,47 @@ function DispenseModal({ rx, onClose, onDone }: any) {
         </div>
 
         <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4">
+          {missingProduct && (
+            <div className="mb-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-bold text-amber-800">
+              Kuch dawaiyan stock wale product se nahi jurin — nuskha banate waqt product chunein.
+            </div>
+          )}
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-extrabold text-slate-600">Total</span>
             <span className="text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(total)}</span>
           </div>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Paise kaise</label>
+              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as any)}
+                className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold">
+                <option value="CASH">Cash</option>
+                <option value="CARD">Card</option>
+                <option value="BANK_TRANSFER">Bank / Wallet</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Abhi mile (Rs)</label>
+              <input type="number" min="0" step="1" value={paid} placeholder={String(Math.round(total))}
+                onChange={(e) => setPaid(e.target.value)}
+                className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums" />
+            </div>
+          </div>
+          {udhaar > 0 && (
+            <div className={'mb-3 text-xs font-bold ' + (rx.customerId ? 'text-amber-700' : 'text-rose-600')}>
+              {rx.customerId ? `${formatPKR(udhaar)} mareez ke khate me udhaar jayega` : 'Udhaar ke liye nuskhe me customer chuna hona zaroori hai'}
+            </div>
+          )}
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button
               className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700"
               onClick={() => dispenseMutation.mutate()}
               loading={dispenseMutation.isPending}
-              disabled={total <= 0}
+              disabled={total <= 0 || missingProduct || (udhaar > 0 && !rx.customerId)}
             >
               <Package className="h-4 w-4" />
-              Confirm Dispense
+              Bill banayein aur dawai dein
             </Button>
           </div>
         </div>

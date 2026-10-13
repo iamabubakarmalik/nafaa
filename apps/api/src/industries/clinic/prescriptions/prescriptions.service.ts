@@ -73,6 +73,7 @@ export class PrescriptionsService {
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, status: string) {
+    await this.getOne(user, id);
     return this.prisma.clinicPrescription.update({ where: { id }, data: { status: status as any } });
   }
 }

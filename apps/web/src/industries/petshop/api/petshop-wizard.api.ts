@@ -11,10 +11,23 @@ export interface PetshopWizardSaveResult {
   totalStock: number;
 }
 
+/**
+ * Stock to send with the product. On edit it goes only when the user
+ * actually changed the number; sending the form's copy every time reset
+ * live stock (sales made while the form was open, or 0 when the form
+ * never loaded it).
+ */
+function stockField(entered: number, existingId?: string, originalStock?: number): { stock?: number } {
+  if (!existingId) return { stock: entered };
+  return originalStock !== undefined && entered !== originalStock ? { stock: entered } : {};
+}
+
 export async function savePetshopWizard(
 draft: PetshopWizardDraft,
   /** Diya ho to isi product ko badla jayega, naya nahi banega */
   existingId?: string,
+  /** Stock when the edit form opened; stock is sent only if the user changed it. */
+  originalStock?: number,
 ): Promise<PetshopWizardSaveResult> {
   const { basic, details, medicine, hasVariants, variants, stock } = draft;
 
@@ -35,7 +48,7 @@ draft: PetshopWizardDraft,
     price: Number(basic.retailPrice || 0),
     costPrice: Number(basic.costPrice || 0),
     taxRate: Number(basic.taxRate || 0),
-    stock: baselineStock,
+    ...stockField(baselineStock, existingId, originalStock),
     lowStockAlert: Number(stock.lowStockAlert || 5),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -45,7 +58,7 @@ draft: PetshopWizardDraft,
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
   const rollback = async (reason: unknown) => {
@@ -120,7 +133,9 @@ draft: PetshopWizardDraft,
   }
 
   let createdVariants: any[] = [];
-  if (hasVariants && variants.length > 0) {
+  // Variants are made once, on create. The edit form does not load the
+  // existing ones, so creating them again here only made duplicates.
+  if (!existingId && hasVariants && variants.length > 0) {
     const payloads: UpsertVariantPayload[] = variants.map((v, i) => ({
       name: v.name.trim(),
       sku: v.sku?.trim() || undefined,

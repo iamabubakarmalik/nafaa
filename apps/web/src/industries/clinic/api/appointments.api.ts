@@ -58,6 +58,9 @@ export const appointmentsApi = {
   updateStatus: (id: string, status: string, cancellationReason?: string) =>
     apiClient.patch('/clinic/appointments/' + id + '/status', { status, cancellationReason }).then(unwrap<Appointment>),
   reschedule: (id: string, data: any) => apiClient.post('/clinic/appointments/' + id + '/reschedule', data).then(unwrap<Appointment>),
-  addPayment: (id: string, amount: number) => apiClient.post('/clinic/appointments/' + id + '/payment', { amount }).then(unwrap<Appointment>),
+  /** Each payment is billed as a sale, so it shows in the drawer and reports. */
+  addPayment: (id: string, amount: number, paymentMethod: 'CASH' | 'CARD' | 'BANK_TRANSFER' = 'CASH') =>
+    apiClient.post('/clinic/appointments/' + id + '/payment', { amount, paymentMethod })
+      .then(unwrap<Appointment & { sale?: { id: string; saleNumber: string; total: number } }>),
   rate: (id: string, rating: number, feedback?: string) => apiClient.post('/clinic/appointments/' + id + '/rating', { rating, feedback }).then(unwrap<Appointment>),
 };

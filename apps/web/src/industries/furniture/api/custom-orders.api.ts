@@ -60,6 +60,8 @@ export interface FurnitureCustomOrder {
   internalNotes?: string;
   createdAt: string;
   updatedAt: string;
+  /** Bill made when the furniture left the shop. */
+  sale?: { id: string; saleNumber: string; total: number; creditAmount: number } | null;
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
@@ -85,6 +87,8 @@ export const customOrdersApi = {
   assignCarpenter: (id: string, carpenterId: string, workshopLocation?: string) =>
     apiClient.post('/furniture/custom-orders/' + id + '/assign-carpenter', { carpenterId, workshopLocation }).then(unwrap<FurnitureCustomOrder>),
 
+  update: (id: string, data: Partial<FurnitureCustomOrder>) =>
+    apiClient.patch('/furniture/custom-orders/' + id, data).then(unwrap<FurnitureCustomOrder>),
   updateProgress: (id: string, data: { progressPct: number; progressPhotos?: string[]; updateNote?: string }) =>
     apiClient.post('/furniture/custom-orders/' + id + '/progress', data).then(unwrap<FurnitureCustomOrder>),
 

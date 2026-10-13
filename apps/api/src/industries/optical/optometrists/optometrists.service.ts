@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz, weekdayInTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertOptometristDto } from './dto/upsert-optometrist.dto';
 
@@ -16,7 +17,7 @@ export class OptometristsService {
   }
 
   async list(user: AuthenticatedUser, params: { active?: boolean; availableToday?: boolean; search?: string }) {
-    const dayOfWeek = new Date().getDay();
+    const dayOfWeek = weekdayInTz(new Date());
     return this.prisma.opticalOptometrist.findMany({
       where: {
         tenantId: user.tenantId,
@@ -39,8 +40,8 @@ export class OptometristsService {
     const o = await this.prisma.opticalOptometrist.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!o) throw new NotFoundException('Optometrist not found');
 
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
 
     const [todayAppointments, upcoming, recentCompleted] = await Promise.all([
       this.prisma.opticalEyeTest.findMany({

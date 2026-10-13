@@ -6,14 +6,17 @@
  */
 
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { PaymentMethod, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope } from '../../../common/shop-scope';
+import { PurchasesService } from '../../../modules/purchasing/purchases/purchases.service';
 import { DAY_MS, positive, r2, r3, recipeOf, shopClock } from '../bakery-common';
 
 type Body = Record<string, unknown>;
+
+const PAY_METHODS = new Set<string>(Object.values(PaymentMethod));
 
 const TEXT_FIELDS = ['category', 'code', 'brand', 'unit', 'lastVendorName', 'storageMethod', 'countryOfOrigin', 'supplierName', 'supplierPhone', 'imageUrl', 'notes'] as const;
 const NUMBER_FIELDS = ['minStock', 'maxStock', 'reorderLevel', 'costPerUnit', 'lastPurchasePrice'] as const;
@@ -50,6 +53,7 @@ export class IngredientsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tz: TenantTimezoneService,
+    private readonly purchases: PurchasesService,
   ) {}
 
   async create(user: AuthenticatedUser, dto: Body) {
@@ -129,6 +133,15 @@ export class IngredientsService {
    * paid now becomes a paid expense (the open cash shift counts cash ones);
    * what is owed goes on the supplier's account.
    */
+  /**
+   * Goods received from the quick "Saamaan aaya" form. It is booked as a
+   * supplier bill (Purchase), the same as the full purchase screen, so the
+   * cash paid shows in the drawer and day book as a purchase and the cost
+   * reaches profit once, through the cost of what is baked and sold. (It used
+   * to be written as an expense too, which counted raw material twice.)
+   * Without a chosen supplier the bill goes to the vendor named on the form,
+   * or to a single "Bazaar (naqd khareed)" supplier.
+   */
   async recordPurchase(user: AuthenticatedUser, scope: ShopScope, id: string, dto: {
     quantity: number; costPerUnit: number;
     vendorName?: string; notes?: string;
@@ -138,7 +151,7 @@ export class IngredientsService {
     paidAmount?: number;
     shopId?: string;
   }) {
-    const i = await this.mustFind(user, id);
+    await this.mustFind(user, id);
     const qty = positive(dto?.quantity, 'Kitna aaya — tadaad likhein');
     const rate = Number(dto?.costPerUnit) || 0;
     if (rate < 0) throw new BadRequestException('Rate sahi likhein');
@@ -147,72 +160,36 @@ export class IngredientsService {
     const paid = dto.paidAmount === undefined || dto.paidAmount === null ? totalCost : r2(Math.max(Number(dto.paidAmount) || 0, 0));
     if (paid > totalCost + 0.005) throw new BadRequestException('Diya hua paisa kul rakam se zyada nahi ho sakta');
     const credit = r2(Math.max(totalCost - paid, 0));
+    if (credit > 0 && !dto.supplierId) throw new BadRequestException('Udhaar par lena hai to supplier chunna zaroori hai');
 
-    let supplier: { id: string } | null = null;
-    if (dto.supplierId) {
-      supplier = await this.prisma.supplier.findFirst({ where: { id: dto.supplierId, tenantId: user.tenantId }, select: { id: true } });
-      if (!supplier) throw new NotFoundException('Supplier nahi mila');
-    }
-    if (credit > 0 && !supplier) throw new BadRequestException('Udhaar par lena hai to supplier chunna zaroori hai');
-    let shopId = dto.shopId ?? scope.shopId ?? undefined;
-    if (dto.shopId) {
-      const shop = await this.prisma.shop.findFirst({ where: { id: dto.shopId, tenantId: user.tenantId }, select: { id: true } });
-      if (!shop) throw new NotFoundException('Branch nahi mili');
-      shopId = shop.id;
-    }
     const vendor = dto.vendorName?.trim() || undefined;
+    const supplierId = dto.supplierId
+      ? (await this.prisma.supplier.findFirst({ where: { id: dto.supplierId, tenantId: user.tenantId }, select: { id: true } }))?.id
+      : await this.cashSupplier(user.tenantId, vendor);
+    if (!supplierId) throw new NotFoundException('Supplier nahi mila');
 
-    return this.prisma.$transaction(async (tx) => {
-      await tx.bakeryIngredientTransaction.create({
-        data: {
-          tenantId: user.tenantId, ingredientId: id, transactionType: 'PURCHASE', quantity: qty, unit: i.unit,
-          costPerUnit: rate, totalCost, notes: dto.notes?.trim() || vendor || null, performedById: user.id,
-        },
-      });
-
-      if (paid > 0) {
-        await tx.expense.create({
-          data: {
-            tenantId: user.tenantId,
-            shopId,
-            createdById: user.id,
-            expenseNumber: `EXP-${Date.now().toString().slice(-8)}`,
-            title: `Saamaan: ${i.name}`,
-            description: `${qty} ${i.unit} × ${rate}` + (vendor ? ` — ${vendor}` : '') + (credit > 0 ? ` (${credit} udhaar)` : ''),
-            amount: paid,
-            paymentMethod: (dto.paymentMethod as never) ?? 'CASH',
-            status: 'PAID',
-          },
-        });
-      }
-
-      if (credit > 0 && supplier) {
-        const updated = await tx.supplier.update({
-          where: { id: supplier.id },
-          data: { outstandingDue: { increment: credit }, totalPurchased: { increment: totalCost } },
-          select: { outstandingDue: true },
-        });
-        await tx.supplierLedger.create({
-          data: {
-            tenantId: user.tenantId, supplierId: supplier.id, createdById: user.id, shopId,
-            type: 'PURCHASE_CREDIT', amount: credit, balanceAfter: Number(updated.outstandingDue),
-            note: `Saamaan udhaar: ${i.name} — ${qty} ${i.unit}`,
-          },
-        });
-      }
-
-      return tx.bakeryIngredient.update({
-        where: { id },
-        data: {
-          currentStock: { increment: qty },
-          totalPurchased: { increment: qty },
-          costPerUnit: rate,
-          lastPurchaseDate: new Date(),
-          lastPurchasePrice: totalCost,
-          ...(vendor && { lastVendorName: vendor }),
-        },
-      });
+    const method = PAY_METHODS.has(String(dto.paymentMethod)) ? (dto.paymentMethod as PaymentMethod) : 'CASH';
+    await this.purchases.create(user, scope, {
+      supplierId,
+      shopId: dto.shopId,
+      paymentMethod: method,
+      paidAmount: paid,
+      notes: (dto.notes?.trim() || (vendor && dto.supplierId ? vendor : undefined))?.slice(0, 500),
+      items: [{ ingredientId: id, quantity: qty, costPrice: rate }],
     });
+    return this.prisma.bakeryIngredient.findUniqueOrThrow({ where: { id } });
+  }
+
+  /** Supplier for a cash buy with no supplier chosen: the named vendor, else one shared "bazaar" supplier. */
+  private async cashSupplier(tenantId: string, vendor?: string) {
+    const name = (vendor || 'Bazaar (naqd khareed)').slice(0, 100);
+    const found = await this.prisma.supplier.findFirst({
+      where: { tenantId, name: { equals: name, mode: 'insensitive' } },
+      select: { id: true },
+    });
+    if (found) return found.id;
+    const created = await this.prisma.supplier.create({ data: { tenantId, name }, select: { id: true } });
+    return created.id;
   }
 
   async recordConsumption(user: AuthenticatedUser, id: string, dto: { quantity: number; productionItemId?: string; cakeOrderId?: string; batchNumber?: string; notes?: string }) {

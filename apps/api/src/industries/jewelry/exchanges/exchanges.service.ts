@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { PURITY_FACTOR, postMetalEntry } from '../common/metal-ledger';
+import { payFromDrawer } from '../common/drawer';
 
-const PURITY_MAP: Record<string, number> = {
-  KARAT_24: 0.9999, KARAT_22: 0.916, KARAT_21: 0.875, KARAT_18: 0.75,
-  KARAT_14: 0.583, KARAT_10: 0.417, KARAT_9: 0.375,
-  STERLING_925: 0.925, SILVER_999: 0.999, SILVER_925: 0.925, SILVER_800: 0.800,
-  PLATINUM_950: 0.95, PLATINUM_900: 0.90,
-};
+const PURITY_MAP = PURITY_FACTOR;
+
+/** Exchange types where metal physically comes into the shop. */
+const METAL_IN = ['OLD_GOLD_EXCHANGE', 'OLD_SILVER_EXCHANGE', 'BROKEN_JEWELRY', 'PURE_METAL_DEPOSIT', 'COIN_EXCHANGE', 'MELT_AND_REMAKE'];
 
 @Injectable()
 export class ExchangesService {
@@ -32,10 +32,11 @@ export class ExchangesService {
     const testingCharges = Number(dto.testingCharges) || 0;
     const netValue = Math.max(grossValue - deductions - meltingCharges - testingCharges, 0);
 
-    return this.prisma.jewelryExchange.create({
+    const { id: _id, tenantId: _t, exchangeNumber: _n, createdById: _c, paidInCash, ...fields } = dto ?? {};
+    const exchange = await this.prisma.jewelryExchange.create({
       data: {
         tenantId: user.tenantId,
-        ...dto,
+        ...fields,
         exchangeNumber,
         exchangeDate: dto.exchangeDate ? new Date(dto.exchangeDate) : new Date(),
         grossWeight,
@@ -51,6 +52,31 @@ export class ExchangesService {
         createdById: user.id,
       },
     });
+
+    // Old metal taken in goes into the metal stock ledger.
+    if (METAL_IN.includes(exchange.exchangeType) && netWeight > 0) {
+      await postMetalEntry(this.prisma, user.tenantId, user.id, {
+        entryType: 'EXCHANGE_IN',
+        metalType: exchange.metalType,
+        purity: exchange.testedPurity ?? exchange.claimedPurity,
+        grams: netWeight,
+        ratePerGram: netWeight > 0 ? netValue / netWeight : null,
+        reference: exchangeNumber,
+        source: exchange.customerName,
+        exchangeId: exchange.id,
+        notes: exchange.itemDescription,
+      });
+    }
+
+    // Old metal bought for cash: the money leaves the drawer.
+    if (paidInCash === true && netValue > 0) {
+      const paid = await payFromDrawer(this.prisma, {
+        tenantId: user.tenantId, userId: user.id, shopId: user.shopId, amount: Math.round(netValue * 100) / 100,
+        reason: `Purana zewar khareeda ${exchangeNumber}`, note: exchange.customerName, reference: `jewelry-exchange:${exchangeNumber}`,
+      });
+      return { ...exchange, paidFromDrawer: paid };
+    }
+    return exchange;
   }
 
   async list(user: AuthenticatedUser, params: { customerId?: string; exchangeType?: string; from?: string; to?: string; search?: string }) {
@@ -86,6 +112,7 @@ export class ExchangesService {
   }
 
   async linkToSale(user: AuthenticatedUser, id: string, saleId: string) {
+    await this.getOne(user, id);
     return this.prisma.jewelryExchange.update({ where: { id }, data: { saleId } });
   }
 

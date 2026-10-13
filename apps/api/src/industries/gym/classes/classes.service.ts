@@ -49,7 +49,7 @@ export class ClassesService {
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
     return this.prisma.gymClass.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: {
         ...dto,
         scheduledStart: dto.scheduledStart ? new Date(dto.scheduledStart) : undefined,
@@ -63,7 +63,7 @@ export class ClassesService {
     if (status === 'IN_PROGRESS') patch.actualStart = new Date();
     if (status === 'COMPLETED') patch.actualEnd = new Date();
     if (status === 'CANCELLED') patch.cancelledReason = cancelledReason;
-    return this.prisma.gymClass.update({ where: { id }, data: patch });
+    return this.prisma.gymClass.update({ where: { id, tenantId: user.tenantId }, data: patch });
   }
 
   async book(user: AuthenticatedUser, classId: string, memberId: string) {
@@ -71,7 +71,10 @@ export class ClassesService {
     if (!cls) throw new NotFoundException('Class not found');
     if (cls.currentEnrolled >= cls.maxParticipants) throw new BadRequestException('Class is full');
 
-    const dup = await this.prisma.gymClassBooking.findFirst({ where: { classId, memberId } });
+    const member = await this.prisma.gymMember.findFirst({ where: { id: memberId, tenantId: user.tenantId }, select: { id: true } });
+    if (!member) throw new NotFoundException('Member not found');
+    // A cancelled booking does not block booking the same class again.
+    const dup = await this.prisma.gymClassBooking.findFirst({ where: { classId, memberId, status: { not: 'CANCELLED' } } });
     if (dup) throw new BadRequestException('Already booked');
 
     const count = await this.prisma.gymClassBooking.count({ where: { tenantId: user.tenantId } });
@@ -98,6 +101,7 @@ export class ClassesService {
   async cancelBooking(user: AuthenticatedUser, bookingId: string, reason?: string) {
     const b = await this.prisma.gymClassBooking.findFirst({ where: { id: bookingId, tenantId: user.tenantId } });
     if (!b) throw new NotFoundException('Booking not found');
+    if (b.status === 'CANCELLED') throw new BadRequestException('Booking pehle hi cancel hai');
     return this.prisma.$transaction(async (tx) => {
       const cancelled = await tx.gymClassBooking.update({
         where: { id: bookingId },
@@ -113,7 +117,7 @@ export class ClassesService {
 
   async checkIn(user: AuthenticatedUser, bookingId: string) {
     return this.prisma.gymClassBooking.update({
-      where: { id: bookingId },
+      where: { id: bookingId, tenantId: user.tenantId },
       data: { status: 'ATTENDED', checkedInAt: new Date(), attended: true },
     });
   }

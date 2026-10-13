@@ -11,11 +11,51 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { AddPaymentDto } from './dto/add-payment.dto';
 import { DeliverRepairDto } from './dto/deliver-repair.dto';
 import { QueryRepairsDto } from './dto/query-repairs.dto';
-import { Prisma, RepairStatus } from '@prisma/client';
+import { PaymentMethod, Prisma, RepairStatus } from '@prisma/client';
+import {
+  ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, resolveIndustryShopId,
+} from '../../_shared/industry-sale.helper';
+
+const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
+
+/** The bill's payment method: the one that brought in the most money. */
+function mainMethod(payments: Array<{ amount: unknown; paymentMethod: string | null }>): PaymentMethod {
+  const valid: PaymentMethod[] = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'];
+  const by = new Map<string, number>();
+  for (const p of payments) {
+    const m = p.paymentMethod === 'BANK' ? 'BANK_TRANSFER' : String(p.paymentMethod || 'CASH');
+    by.set(m, (by.get(m) ?? 0) + Number(p.amount || 0));
+  }
+  const top = [...by.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  return valid.includes(top as PaymentMethod) ? (top as PaymentMethod) : 'CASH';
+}
 
 @Injectable()
 export class RepairsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Money taken before delivery is cash in hand today: it goes on the
+   * customer's khata as an advance and is used up by the repair bill.
+   */
+  private async takeAdvance(
+    tx: Prisma.TransactionClient,
+    user: AuthenticatedUser,
+    ticket: { id: string; ticketNumber: string; shopId: string | null; customerId: string | null; customerName: string; customerPhone: string },
+    amount: number,
+  ) {
+    const shopId = await resolveIndustryShopId(tx, user, ticket.shopId);
+    const customerId = await ensureCustomer(tx, user, {
+      customerId: ticket.customerId, name: ticket.customerName, phone: ticket.customerPhone, shopId,
+    });
+    await recordKhataPayment(tx, user, {
+      customerId, shopId, amount, reference: ticket.ticketNumber, note: `Repair advance ${ticket.ticketNumber}`,
+    });
+    if (customerId !== ticket.customerId || shopId !== ticket.shopId) {
+      await tx.repairTicket.update({ where: { id: ticket.id }, data: { customerId, shopId } });
+    }
+    return customerId;
+  }
 
   // ════════════════════════════════════════════════════════
   // HELPER — Calculate totals
@@ -112,6 +152,8 @@ export class RepairsService {
             createdById: user.id,
           },
         });
+        const customerId = await this.takeAdvance(tx, user, ticket, advance);
+        return { ...ticket, customerId };
       }
 
       return ticket;
@@ -260,6 +302,15 @@ export class RepairsService {
 
   async diagnose(user: AuthenticatedUser, id: string, dto: DiagnoseDto) {
     const ticket = await this.findOne(user, id);
+    if (ticket.saleId || ['DELIVERED', 'CANCELLED'].includes(ticket.status)) {
+      throw new BadRequestException(`${ticket.ticketNumber} band ho chuka hai`);
+    }
+    // Parts already on the ticket are the real bill; the estimate is used only until they are added.
+    const lines = await this.prisma.repairPart.findMany({ where: { ticketId: id } });
+    const laborCost = dto.laborCost ?? 0;
+    const totals = lines.length
+      ? this.recalcTotals(lines.map((p) => ({ quantity: Number(p.quantity), unitPrice: Number(p.unitPrice) })), laborCost, Number(ticket.discount))
+      : { partsCost: dto.partsCost ?? 0, totalCost: dto.estimatedCost };
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.repairTicket.update({
@@ -269,10 +320,10 @@ export class RepairsService {
           diagnosisNotes: dto.diagnosisNotes,
           recommendedActions: dto.recommendedActions,
           estimatedCost: dto.estimatedCost,
-          partsCost: dto.partsCost ?? 0,
-          laborCost: dto.laborCost ?? 0,
-          totalCost: dto.estimatedCost,
-          balanceDue: Math.max(dto.estimatedCost - ticket.paidAmount, 0),
+          partsCost: totals.partsCost,
+          laborCost,
+          totalCost: totals.totalCost,
+          balanceDue: Math.max(totals.totalCost - ticket.paidAmount, 0),
           status: RepairStatus.DIAGNOSED,
           diagnosedAt: new Date(),
         },
@@ -309,6 +360,8 @@ export class RepairsService {
         if (!product) {
           throw new NotFoundException('Linked part product not found');
         }
+        // A part from own stock costs the shop its buying price.
+        if (dto.unitCost === undefined || dto.unitCost === null) dto.unitCost = Number(product.costPrice) || 0;
         if (product.stock < dto.quantity) {
           throw new BadRequestException(
             `${product.name}: insufficient stock (available ${product.stock})`,
@@ -457,112 +510,71 @@ export class RepairsService {
     tx: Prisma.TransactionClient,
     user: AuthenticatedUser,
     ticketId: string,
+    paidNow = 0,
+    method?: PaymentMethod,
   ) {
     const ticket = await tx.repairTicket.findUnique({
       where: { id: ticketId },
-      include: { parts: true, shop: { select: { id: true, name: true } } },
+      include: { parts: true, payments: true },
     });
 
-    // Ek ticket ki ek hi sale — dobara deliver hone par duplicate na bane.
+    // One bill per ticket: a second delivery never makes a duplicate.
     if (!ticket || ticket.saleId) return null;
 
-    const grossTotal = Number(ticket.partsCost) + Number(ticket.laborCost);
-    const discount = Number(ticket.discount) || 0;
     const netTotal = Number(ticket.totalCost) || 0;
-
-    // Bina paise wale ticket (warranty claim, goodwill) ki sale nahi banti.
+    // Free tickets (warranty claim, goodwill) make no bill.
     if (netTotal <= 0) return null;
 
-    // Asli lagat = parts ka cost (jo customer se liya wo unitPrice hai, cost nahi)
-    const costOfGoods = ticket.parts.reduce(
-      (sum, part) => sum + Number(part.quantity) * Number(part.unitCost),
-      0,
-    );
+    // Money taken before advances went on khata counts as paid with this bill.
+    const onKhata = await paidOnKhata(tx, user.tenantId, ticket.ticketNumber);
+    const legacyPaid = r2(Math.max(Number(ticket.paidAmount) - paidNow - onKhata, 0));
+    const paidAtCounter = r2(Math.min(paidNow + legacyPaid, netTotal));
 
-    const paidAmount = Math.min(Number(ticket.paidAmount) || 0, netTotal);
-    const creditAmount = Math.max(netTotal - paidAmount, 0);
-
-    // Udhaar sirf tab jab customer account se juda ho
-    if (creditAmount > 0 && !ticket.customerId) {
-      throw new BadRequestException(
-        `${ticket.ticketNumber}: Rs ${creditAmount} baqi hai. Pehle poora payment lein ya ticket ko customer account se jorein.`,
-      );
-    }
-
-    const cashRegister = await tx.cashRegister.findFirst({
-      where: { tenantId: user.tenantId, shopId: ticket.shopId, status: 'OPEN' },
-    });
-
-    const label = `Repair ${ticket.ticketNumber} — ${ticket.deviceBrand} ${ticket.deviceModel}`;
-    const workDone = ticket.diagnosedIssue || ticket.reportedIssue || 'Repair service';
-
-    const sale = await tx.sale.create({
-      data: {
-        tenantId: user.tenantId,
-        shopId: ticket.shopId,
-        cashRegisterId: cashRegister?.id,
-        customerId: ticket.customerId,
-        createdById: user.id,
-        // ticketNumber tenant ke andar unique hai, is liye saleNumber bhi unique rahega
-        saleNumber: `RPR-${ticket.ticketNumber}`,
-        subtotal: grossTotal,
-        discount,
-        total: netTotal,
-        costOfGoods,
-        paidAmount,
-        changeAmount: 0,
-        creditAmount,
-        paymentMethod: 'CASH',
-        status: 'COMPLETED',
-        soldAt: new Date(),
-        serviceCharges: 0,
-        serviceChargesBreakdown: [
-          { label, amount: Number(ticket.laborCost) || 0, kind: 'REPAIR_LABOR' },
-        ] as unknown as Prisma.InputJsonValue,
-        items: {
-          create: [
-            {
-              // Repair ek service hai — koi product row nahi hoti.
-              // Line ka total discount se PEHLE ka rakhte hain (subtotal ke barabar),
-              // taake sale.discount har report me ek hi dafa kate.
-              productId: null,
-              quantity: 1,
-              price: grossTotal,
-              costPrice: costOfGoods,
-              total: grossTotal,
-              note: `${label} — ${workDone}`,
-            },
-          ],
-        },
-      },
-    });
-
-    if (creditAmount > 0 && ticket.customerId) {
-      const customer = await tx.customer.findUnique({ where: { id: ticket.customerId } });
-      if (customer) {
-        const newBalance = Number(customer.balance) + creditAmount;
-        await tx.customer.update({
-          where: { id: customer.id },
-          data: { balance: newBalance },
-        });
-        await tx.customerLedger.create({
-          data: {
-            tenantId: user.tenantId,
-            customerId: customer.id,
-            createdById: user.id,
-            type: 'SALE_CREDIT',
-            amount: creditAmount,
-            balanceAfter: newBalance,
-            reference: sale.saleNumber,
-            note: `Repair udhaar: ${ticket.ticketNumber}${ticket.shop ? ` (${ticket.shop.name})` : ''}`,
-          },
-        });
+    const shopId = await resolveIndustryShopId(tx, user, ticket.shopId);
+    let customerId = ticket.customerId;
+    if (!customerId && netTotal - paidAtCounter > 0.005) {
+      if (!ticket.customerName?.trim()) {
+        throw new BadRequestException(
+          `${ticket.ticketNumber}: Rs ${r2(netTotal - paidAtCounter)} baqi hai. Poora payment lein ya customer ka naam likhein.`,
+        );
       }
+      customerId = await ensureCustomer(tx, user, { name: ticket.customerName, phone: ticket.customerPhone, shopId });
     }
+
+    const device = `${ticket.deviceBrand} ${ticket.deviceModel}`.trim();
+    const lines = [
+      ...ticket.parts.map((part) => ({
+        label: `Repair ${ticket.ticketNumber} part: ${part.partName}`,
+        amount: r2(Number(part.quantity) * Number(part.unitPrice)),
+        cost: r2(Number(part.quantity) * Number(part.unitCost || 0)),
+        quantity: Number(part.quantity) || 1,
+      })),
+      {
+        label: `Repair ${ticket.ticketNumber} — ${device}: ${ticket.diagnosedIssue || ticket.reportedIssue || 'mazdoori'}`,
+        amount: r2(Number(ticket.laborCost) || 0),
+      },
+    ];
+    // Old tickets whose parts were not itemised still bill their full amount.
+    const itemised = lines.reduce((sum, l) => sum + l.amount, 0);
+    const discount = r2(Number(ticket.discount) || 0);
+    if (itemised - discount < netTotal - 0.005) {
+      lines.push({ label: `Repair ${ticket.ticketNumber} — baqi kaam`, amount: r2(netTotal + discount - itemised) });
+    }
+
+    const sale = await postIndustrySale(tx, user, {
+      saleNumber: `RPR-${ticket.ticketNumber}`,
+      sourceRef: ticket.ticketNumber,
+      shopId,
+      customerId,
+      lines,
+      discount,
+      paidAmount: paidAtCounter,
+      paymentMethod: method ?? mainMethod(ticket.payments),
+    });
 
     await tx.repairTicket.update({
       where: { id: ticket.id },
-      data: { saleId: sale.id },
+      data: { saleId: sale.id, customerId, shopId },
     });
 
     return sale;
@@ -635,8 +647,8 @@ export class RepairsService {
         },
       });
 
-      // Yehi wo qadam hai jo repair ki kamai ko profit tak le jata hai
-      const sale = await this.createSaleForDeliveredTicket(tx, user, id);
+      // This step brings the repair's earning into the books.
+      const sale = await this.createSaleForDeliveredTicket(tx, user, id, amount, dto.paymentMethod);
 
       const updated = await tx.repairTicket.findUnique({
         where: { id },
@@ -715,6 +727,17 @@ export class RepairsService {
 
   async addPayment(user: AuthenticatedUser, ticketId: string, dto: AddPaymentDto) {
     const ticket = await this.findOne(user, ticketId);
+    if (!(Number(dto.amount) > 0)) throw new BadRequestException('Raqam zero se zyada ho');
+    if (ticket.saleId) {
+      // After delivery the balance sits in the customer's khata.
+      throw new BadRequestException(`${ticket.ticketNumber} deliver ho chuka — baqi raqam customer ke Khata se wasool karein`);
+    }
+    if (['CANCELLED', 'UNREPAIRABLE'].includes(ticket.status)) {
+      throw new BadRequestException(`${ticket.ticketNumber} band ho chuka hai`);
+    }
+    if (Number(ticket.totalCost) > 0 && Number(ticket.paidAmount) + Number(dto.amount) > Number(ticket.totalCost) + 0.01) {
+      throw new BadRequestException(`Baqi sirf Rs ${Math.max(Number(ticket.totalCost) - Number(ticket.paidAmount), 0)} hai`);
+    }
     const newPaid = Number(ticket.paidAmount) + dto.amount;
     const newBalance = Math.max(Number(ticket.totalCost) - newPaid, 0);
 
@@ -729,6 +752,7 @@ export class RepairsService {
           createdById: user.id,
         },
       });
+      await this.takeAdvance(tx, user, ticket, dto.amount);
 
       await tx.repairTicket.update({
         where: { id: ticketId },
@@ -749,9 +773,15 @@ export class RepairsService {
 
   async remove(user: AuthenticatedUser, id: string) {
     const ticket = await this.findOne(user, id);
-    if (ticket.status === 'DELIVERED') {
-      throw new BadRequestException('Cannot delete delivered ticket');
+    if (ticket.status === 'DELIVERED' || ticket.saleId) {
+      throw new BadRequestException('Deliver hua ticket mitaya nahi ja sakta');
     }
+    if ((await paidOnKhata(this.prisma, user.tenantId, ticket.ticketNumber)) > 0) {
+      throw new BadRequestException('Is ticket ka advance customer ke khata me hai — mitane ki jagah Cancel karein');
+    }
+    // Parts taken from own stock go back on the shelf.
+    const parts = await this.prisma.repairPart.findMany({ where: { ticketId: id, source: 'OWN_STOCK', productId: { not: null } } });
+    for (const part of parts) await this.removePart(user, id, part.id);
     await this.prisma.repairTicket.delete({ where: { id } });
     return { message: 'Repair ticket deleted', ticketNumber: ticket.ticketNumber };
   }

@@ -342,7 +342,7 @@ export default function NewJobPage() {
                 <select value={form.primaryTechnicianId} onChange={(e) => setForm({ ...form, primaryTechnicianId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">-- Assign later --</option>
                   {technicians.map((t) => {
-                    const nm = t.staff ? ((t.staff.firstName || '') + ' ' + (t.staff.lastName || '')).trim() : '';
+                    const nm = t.staff ? (((t.staff.fullName || t.staff.firstName) || '') + ' ' + (t.staff.lastName || '')).trim() : '';
                     return <option key={t.id} value={t.staffId}>{nm} ({t.level}) - {t.status}</option>;
                   })}
                 </select>

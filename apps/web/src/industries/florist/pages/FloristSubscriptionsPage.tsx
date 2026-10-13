@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Repeat, Plus, Search, X, Calendar, Phone, DollarSign, MapPin,
@@ -69,8 +70,10 @@ export default function FloristSubscriptionsPage() {
 
   const markDelivered = useMutation({
     mutationFn: (id: string) => floristSubscriptionsApi.markDelivered(id),
-    onSuccess: () => {
-      toast.success('Delivery recorded, next date scheduled');
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delivery nahi likhi gayi'),
+    onSuccess: (r: any) => {
+      // Each delivery is billed to the customer's khata.
+      toast.success(r?.sale ? `Delivery likh di — ${r.sale.saleNumber} khate me` : 'Delivery likh di, agli tareekh set');
       qc.invalidateQueries({ queryKey: ['florist-subs-list'] });
       qc.invalidateQueries({ queryKey: ['florist-subs-due-today'] });
     },
@@ -324,7 +327,7 @@ function SubForm({ editing, onClose, onSaved }: any) {
     frequency: editing?.frequency ?? 'WEEKLY',
     bouquetType: editing?.bouquetType ?? '',
     pricePerDelivery: editing?.pricePerDelivery ?? 1500,
-    startDate: editing?.startDate ? editing.startDate.slice(0, 10) : new Date().toISOString().slice(0, 10),
+    startDate: editing?.startDate ? editing.startDate.slice(0, 10) : format(new Date(), 'yyyy-MM-dd'),
     endDate: editing?.endDate ? editing.endDate.slice(0, 10) : '',
     notes: editing?.notes ?? '',
   });

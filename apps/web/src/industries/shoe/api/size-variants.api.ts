@@ -4,6 +4,8 @@ import type { ShoeSizeSystem, ShoeWidth } from './products.api';
 export interface ShoeSizeVariant {
   id: string;
   productId: string;
+  /** Stock row of this size in the stock engine; null for older sizes not yet linked. */
+  variantId?: string | null;
   size: string;
   sizeSystem: ShoeSizeSystem;
   width: ShoeWidth;

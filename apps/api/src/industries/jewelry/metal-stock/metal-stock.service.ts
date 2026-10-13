@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { METAL_IN_TYPES, postMetalEntry } from '../common/metal-ledger';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -7,35 +8,20 @@ export class MetalStockService {
   constructor(private readonly prisma: PrismaService) {}
 
   async addEntry(user: AuthenticatedUser, dto: any) {
-    const count = await this.prisma.jewelryMetalStock.count({ where: { tenantId: user.tenantId } });
-    const entryNumber = 'MS-' + new Date().getFullYear() + '-' + String(count + 1).padStart(6, '0');
-
-    // Get last balance for this metal+purity
-    const last = await this.prisma.jewelryMetalStock.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        metalType: dto.metalType,
-        purity: dto.purity,
-      },
-      orderBy: { entryDate: 'desc' },
-    });
-    const lastBalance = last?.balanceGrams ?? 0;
+    if (!dto?.metalType || !dto?.purity || !dto?.entryType) throw new BadRequestException('Metal, purity aur entry type zaroori hain');
     const grams = Number(dto.grams) || 0;
-    const isCredit = ['PURCHASE', 'RECEIVE', 'RETURN', 'EXCHANGE_IN', 'OPENING'].includes(dto.entryType);
-    const newBalance = isCredit ? lastBalance + grams : lastBalance - grams;
-
-    return this.prisma.jewelryMetalStock.create({
-      data: {
-        tenantId: user.tenantId,
-        ...dto,
-        entryNumber,
-        entryDate: dto.entryDate ? new Date(dto.entryDate) : new Date(),
-        grams,
-        balanceGrams: newBalance,
-        ratePerGram: dto.ratePerGram ? Number(dto.ratePerGram) : null,
-        totalValue: dto.ratePerGram ? Number(dto.ratePerGram) * grams : null,
-        createdById: user.id,
-      },
+    if (grams <= 0) throw new BadRequestException('Grams zero se zyada hon');
+    return postMetalEntry(this.prisma, user.tenantId, user.id, {
+      entryType: dto.entryType,
+      metalType: dto.metalType,
+      purity: dto.purity,
+      grams,
+      entryDate: dto.entryDate ? new Date(dto.entryDate) : undefined,
+      ratePerGram: dto.ratePerGram ? Number(dto.ratePerGram) : null,
+      source: dto.source || null,
+      reference: dto.reference || null,
+      karigarId: dto.karigarId || null,
+      notes: dto.notes || null,
     });
   }
 
@@ -58,28 +44,26 @@ export class MetalStockService {
     });
   }
 
+  /** Balance per metal and purity, summed over every entry. */
   async currentBalance(user: AuthenticatedUser) {
-    const metalTypes: any[] = ['GOLD', 'SILVER', 'PLATINUM', 'PALLADIUM', 'ROSE_GOLD', 'WHITE_GOLD'];
-    const purities: any[] = ['KARAT_24', 'KARAT_22', 'KARAT_21', 'KARAT_18', 'KARAT_14', 'SILVER_999', 'SILVER_925'];
-
-    const balances: any[] = [];
-    for (const mt of metalTypes) {
-      for (const p of purities) {
-        const last = await this.prisma.jewelryMetalStock.findFirst({
-          where: { tenantId: user.tenantId, metalType: mt, purity: p },
-          orderBy: { entryDate: 'desc' },
-        });
-        if (last && last.balanceGrams > 0) {
-          balances.push({
-            metalType: mt,
-            purity: p,
-            balanceGrams: last.balanceGrams,
-            lastEntryDate: last.entryDate,
-          });
-        }
-      }
+    const rows = await this.prisma.jewelryMetalStock.groupBy({
+      by: ['metalType', 'purity', 'entryType'],
+      where: { tenantId: user.tenantId },
+      _sum: { grams: true },
+      _max: { entryDate: true },
+    });
+    const map = new Map<string, { metalType: string; purity: string; balanceGrams: number; lastEntryDate: Date | null }>();
+    for (const r of rows) {
+      const key = `${r.metalType}_${r.purity}`;
+      const cur = map.get(key) ?? { metalType: r.metalType, purity: r.purity, balanceGrams: 0, lastEntryDate: null };
+      cur.balanceGrams += (METAL_IN_TYPES.includes(r.entryType) ? 1 : -1) * (r._sum.grams ?? 0);
+      const last = r._max.entryDate;
+      if (last && (!cur.lastEntryDate || last > cur.lastEntryDate)) cur.lastEntryDate = last;
+      map.set(key, cur);
     }
-    return balances;
+    return [...map.values()]
+      .map((b) => ({ ...b, balanceGrams: Math.round(b.balanceGrams * 1000) / 1000 }))
+      .filter((b) => Math.abs(b.balanceGrams) > 0.0005);
   }
 
   async summary(user: AuthenticatedUser, from?: string, to?: string) {

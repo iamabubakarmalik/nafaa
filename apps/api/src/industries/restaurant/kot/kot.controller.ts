@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { KotService } from './kot.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { CreateKotDto } from './dto/create-kot.dto';
 
 @ApiTags('Restaurant - KOT')
@@ -17,7 +18,7 @@ export class KotController {
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('station') station?: string, @Query('orderId') orderId?: string) {
     return this.service.list(user, { status, station, orderId });
   }
-  @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string }) {
-    return this.service.updateStatus(user, id, body.status);
+  @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { status: string }) {
+    return this.service.updateStatus(user, scope, id, body.status);
   }
 }

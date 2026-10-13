@@ -11,6 +11,13 @@ import { lensOrdersApi } from '../api/lens-orders.api';
 import { formatPKR } from '@core/lib/format';
 
 const STATUS_STEPS = ['ORDERED', 'SENT_TO_LAB', 'AT_LAB', 'RECEIVED', 'QC_PASSED', 'FITTED', 'READY', 'DELIVERED'];
+const PAY_METHODS = [
+  { value: 'CASH', label: 'Cash' },
+  { value: 'CARD', label: 'Card' },
+  { value: 'BANK_TRANSFER', label: 'Bank' },
+  { value: 'JAZZCASH', label: 'JazzCash' },
+  { value: 'EASYPAISA', label: 'Easypaisa' },
+];
 
 export default function LensOrderDetailPage() {
   const { id } = useParams();
@@ -30,7 +37,25 @@ export default function LensOrderDetailPage() {
       toast.success('Status updated');
       qc.invalidateQueries({ queryKey: ['lens-order', id] });
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
   });
+
+  const cancelOrder = useMutation({
+    mutationFn: (refundAdvance: boolean) => lensOrdersApi.updateStatus(id!, { status: 'CANCELLED', refundAdvance, refundMethod: 'CASH' }),
+    onSuccess: () => {
+      toast.success('Order cancel ho gaya');
+      qc.invalidateQueries({ queryKey: ['lens-order', id] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Order cancel nahi hua'),
+  });
+
+  const askCancel = () => {
+    if (!order) return;
+    if (!confirm(`Order ${order.orderNumber} cancel karna hai?`)) return;
+    const refund = order.paidAmount > 0
+      && confirm(`Advance ${formatPKR(order.paidAmount)} customer ko cash wapas dena hai? (OK = haan, Cancel = nahi)`);
+    cancelOrder.mutate(refund);
+  };
 
   const deliver = useMutation({
     mutationFn: () => lensOrdersApi.deliver(id!),
@@ -70,6 +95,12 @@ export default function LensOrderDetailPage() {
             <button onClick={() => setShowPayment(true)}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border-2 border-emerald-200 hover:bg-emerald-100 text-emerald-700 text-sm font-extrabold">
               <DollarSign className="h-4 w-4" /> Record Payment
+            </button>
+          )}
+          {!['DELIVERED', 'CANCELLED'].includes(order.status) && (
+            <button onClick={askCancel} disabled={cancelOrder.isPending}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border-2 border-rose-200 hover:bg-rose-100 text-rose-700 text-sm font-extrabold">
+              <XCircle className="h-4 w-4" /> Cancel Order
             </button>
           )}
           {['FITTED', 'READY'].includes(order.status) && (
@@ -260,11 +291,11 @@ function PaymentModal({ order, onClose, onPaid }: any) {
             onChange={(e) => setAmount(e.target.value)} />
           <div>
             <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Method</label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {['CASH', 'CARD', 'MOBILE', 'CREDIT'].map((m) => (
-                <button key={m} onClick={() => setMethod(m)}
-                  className={`h-11 rounded-xl text-xs font-extrabold ${method === m ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
-                  {m}
+            <div className="grid grid-cols-3 gap-1.5">
+              {PAY_METHODS.map((m) => (
+                <button key={m.value} onClick={() => setMethod(m.value)}
+                  className={`h-11 rounded-xl text-xs font-extrabold ${method === m.value ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
+                  {m.label}
                 </button>
               ))}
             </div>

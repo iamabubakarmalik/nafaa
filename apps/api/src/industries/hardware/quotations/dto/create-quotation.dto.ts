@@ -47,4 +47,5 @@ export class CreateQuotationDto {
 export class UpdateQuotationStatusDto {
   @ApiProperty({ enum: HardwareQuotationStatus }) @IsEnum(HardwareQuotationStatus) status!: HardwareQuotationStatus;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+  @ApiPropertyOptional({ description: 'Bill made from this quotation' }) @IsOptional() @IsString() convertedSaleId?: string;
 }

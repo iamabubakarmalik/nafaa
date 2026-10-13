@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { addVariantOpeningStock, OpeningStockDto, splitLegacyVariantStock } from '../common/opening-stock.helper';
 import { UpsertToyProductDto } from './dto/upsert-toy-product.dto';
 
 /** Map a child's age in years to the matching ToyAgeGroup enum values */
@@ -21,6 +22,14 @@ export function ageGroupsForYears(years: number): string[] {
 @Injectable()
 export class ToyProductsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  openingStock(user: AuthenticatedUser, productId: string, dto: OpeningStockDto, activeShopId?: string | null) {
+    return this.prisma.$transaction((tx) => addVariantOpeningStock(tx, user, productId, dto.items, activeShopId));
+  }
+
+  splitVariantStock(user: AuthenticatedUser, productId: string, activeShopId?: string | null) {
+    return this.prisma.$transaction((tx) => splitLegacyVariantStock(tx, user, productId, activeShopId));
+  }
 
   async upsert(user: AuthenticatedUser, dto: UpsertToyProductDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
@@ -111,11 +120,10 @@ export class ToyProductsService {
           { AND: [{ ageMinYears: { lte: params.years } }, { ageMaxYears: { gte: params.years } }] },
         ],
         ...(params.gender && params.gender !== 'UNISEX'
-          ? { OR2: undefined, genderTarget: { in: [params.gender as any, 'UNISEX'] } }
+          ? { genderTarget: { in: [params.gender as any, 'UNISEX'] } }
           : {}),
         ...(params.educationalOnly ? { isEducational: true } : {}),
         ...(params.safeOnly && params.years < 3 ? { chokingHazard: false, smallPartsWarning: false } : {}),
-        ...(params.maxBudget ? { retailPrice: { lte: params.maxBudget } } : {}),
       },
       orderBy: [{ isBestSeller: 'desc' }, { totalSold: 'desc' }],
       take: 200,
@@ -123,7 +131,11 @@ export class ToyProductsService {
 
     const productIds = profiles.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds }, isActive: true, stock: { gt: 0 } },
+      // Budget is checked on the selling price the counter uses, not the copy on the profile.
+      where: {
+        tenantId: user.tenantId, id: { in: productIds }, isActive: true, stock: { gt: 0 },
+        ...(params.maxBudget ? { price: { lte: params.maxBudget } } : {}),
+      },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const map = new Map(products.map((p) => [p.id, p]));

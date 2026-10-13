@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertBulkPricingDto } from './dto/upsert-bulk-pricing.dto';
@@ -8,9 +8,18 @@ export class BulkPricingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: UpsertBulkPricingDto) {
+    await this.assertTier(user, dto);
     return this.prisma.hardwareBulkPricing.create({
       data: { tenantId: user.tenantId, ...dto },
     });
+  }
+
+  private async assertTier(user: AuthenticatedUser, dto: UpsertBulkPricingDto) {
+    const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId }, select: { id: true } });
+    if (!product) throw new NotFoundException('Product not found');
+    if (!(dto.minQuantity > 0)) throw new BadRequestException('Kam se kam miqdar 0 se zyada honi chahiye');
+    if (!(dto.price > 0)) throw new BadRequestException('Rate 0 se zyada hona chahiye');
+    if (dto.maxQuantity != null && dto.maxQuantity < dto.minQuantity) throw new BadRequestException('Zyada se zyada miqdar kam se kam se chhoti nahi ho sakti');
   }
 
   async listByProduct(user: AuthenticatedUser, productId: string) {
@@ -23,6 +32,7 @@ export class BulkPricingService {
   async update(user: AuthenticatedUser, id: string, dto: UpsertBulkPricingDto) {
     const p = await this.prisma.hardwareBulkPricing.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Pricing not found');
+    await this.assertTier(user, dto);
     return this.prisma.hardwareBulkPricing.update({ where: { id }, data: dto });
   }
 

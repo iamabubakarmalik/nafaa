@@ -112,7 +112,7 @@ export default function DairyProductWizardPage() {
   }, [isEdit, existingProduct, existingDairyProfile, editLoaded, updateBasic, updateComposition, updateAvailability]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveDairyWizard(draft, isEdit ? id : undefined),
+    mutationFn: () => saveDairyWizard(draft, isEdit ? id : undefined, isEdit ? existingProduct?.stock : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['products'] });

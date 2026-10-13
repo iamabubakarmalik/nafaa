@@ -68,7 +68,8 @@ export const quotationsApi = {
   list: (params?: any) => apiClient.get('/hardware/quotations', { params }).then(unwrap<Quotation[]>),
   summary: () => apiClient.get('/hardware/quotations/summary').then(unwrap<any>),
   getOne: (id: string) => apiClient.get('/hardware/quotations/' + id).then(unwrap<Quotation>),
-  updateStatus: (id: string, status: string, notes?: string) => apiClient.patch('/hardware/quotations/' + id + '/status', { status, notes }).then(unwrap<Quotation>),
+  updateStatus: (id: string, status: string, notes?: string, convertedSaleId?: string) =>
+    apiClient.patch('/hardware/quotations/' + id + '/status', { status, notes, convertedSaleId }).then(unwrap<Quotation>),
   revise: (id: string, data: any) => apiClient.post('/hardware/quotations/' + id + '/revise', data).then(unwrap<Quotation>),
   remove: (id: string) => apiClient.delete('/hardware/quotations/' + id).then(unwrap),
 };

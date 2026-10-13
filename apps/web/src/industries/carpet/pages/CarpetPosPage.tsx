@@ -15,6 +15,7 @@ import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProduc
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { withManagerPin } from '@core/security/ManagerPin';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { CarpetRollPicker } from '@/industries/carpet/components/pos-extensions/CarpetRollPicker';
 import { CarpetCutPiecePicker } from '@/industries/carpet/components/pos-extensions/CarpetCutPiecePicker';
@@ -332,21 +333,70 @@ export default function CarpetPosPage() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Add fail'),
   });
 
+  /**
+   * The sale itself does not touch rolls or pieces. After the bill, each roll
+   * line is cut from its roll (its stock goes down, a leftover piece is kept
+   * when the customer took less than the full width) and each piece is marked
+   * sold. Failures are listed so the owner can cut from the roll page.
+   */
+  const settleCarpetStock = async (sale: any, lines: typeof cart) => {
+    const carpetLines = lines.filter((c) => c.rollId || c.cutPieceId);
+    if (carpetLines.length === 0) return;
+    if (String(sale.id).startsWith('local_')) {
+      toast.warning('Bill offline bana — internet aane par roll/piece ko Carpet Rolls page se kaat dein', { duration: 8000 });
+      return;
+    }
+    const saleItems: any[] = Array.isArray(sale.items) ? sale.items : [];
+    const used = new Set<string>();
+    const itemFor = (c: (typeof cart)[number]) => {
+      const it = saleItems.find((i) => !used.has(i.id) && i.productId === c.productId && (i.note ?? '') === (c.note ?? ''));
+      if (it) used.add(it.id);
+      return it?.id as string | undefined;
+    };
+    const failed: string[] = [];
+    for (const c of carpetLines) {
+      const saleItemId = itemFor(c);
+      try {
+        if (c.rollId) {
+          await carpetRollsApi.cut(c.rollId, {
+            lengthFt: Number(c.cutLengthFt || 0),
+            lengthInch: Number(c.cutLengthInch || 0),
+            customerWidthFt: c.rollCustomerWidthFt,
+            createLeftoverPiece: c.createLeftover ?? true,
+            saleId: sale.id,
+            saleItemId,
+            note: `Bill ${sale.saleNumber}: ${c.note ?? ''}`.trim(),
+          });
+        } else if (c.cutPieceId) {
+          await carpetCutPiecesApi.markSold(c.cutPieceId, saleItemId);
+        }
+      } catch (e: any) {
+        failed.push(`${c.rollNumber || c.cutPieceCode}: ${e?.response?.data?.message || 'nahi hua'}`);
+      }
+    }
+    if (failed.length) toast.error(`Bill ban gaya, lekin ye roll/piece stock se nahi kate: ${failed.join(' • ')}`, { duration: 12000 });
+  };
+
   const checkoutMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!currentShopId) throw new Error('Shop required');
-      return offlineSalesApi.create({
+      const lines = cart;
+      // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
+      const sale = await withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+        ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod, paidAmount: effectivePaid,
         discount: Number(globalDiscount) || 0,
         serviceCharges,
-        items: cart.map((c) => ({
+        items: lines.map((c) => ({
           productId: c.productId, quantity: c.quantity,
           priceOverride: c.priceOverride, lineDiscount: c.lineDiscount,
           useWholesale: c.useWholesale, note: c.note,
         })),
-      });
+      }));
+      await settleCarpetStock(sale, lines);
+      return sale;
     },
     onSuccess: (sale) => {
       window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
@@ -358,7 +408,7 @@ export default function CarpetPosPage() {
       queryClient.invalidateQueries({ queryKey: ['sales-list'] });
       toast.success('Sale complete!');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale fail'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Sale fail'),
   });
 
   const handleCheckout = () => {

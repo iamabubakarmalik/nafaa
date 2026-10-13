@@ -116,3 +116,42 @@ export function recipeOf(json: unknown): Recipe | null {
   if (!clean.length) return null;
   return { yieldQty: Number(raw?.yield) > 0 ? Number(raw!.yield) : 1, lines: clean };
 }
+
+/**
+ * Brings live freshness batches in line with branch stock. Counter sales take
+ * pieces off the shelf without touching batches, so when a branch holds fewer
+ * pieces of an item than its live batches say, the oldest batches are marked
+ * sold until the two agree. Without this the freshness page kept showing
+ * bread that had long been sold, and baking suggestions subtracted it.
+ * Batches with no branch (made before branches) are left as they are.
+ */
+export async function syncBatchesWithStock(prisma: PrismaService, tenantId: string, where: Prisma.BakeryFreshnessLogWhereInput = {}) {
+  const live = await prisma.bakeryFreshnessLog.findMany({
+    where: { tenantId, ...where, status: { in: ['FRESH', 'DAY_OLD', 'NEAR_EXPIRY', 'EXPIRED'] }, currentQty: { gt: 0 }, shopId: { not: null } },
+    select: { id: true, productId: true, shopId: true, currentQty: true },
+    orderBy: [{ productionDate: 'asc' }, { createdAt: 'asc' }],
+  });
+  if (!live.length) return;
+  const stock = await prisma.shopStock.findMany({
+    where: { shopId: { in: [...new Set(live.map((b) => b.shopId!))] }, productId: { in: [...new Set(live.map((b) => b.productId))] }, variantId: null },
+    select: { shopId: true, productId: true, stock: true },
+  });
+  const shelf = new Map(stock.map((s) => [`${s.shopId}:${s.productId}`, Math.max(Math.floor(Number(s.stock) || 0), 0)]));
+  const groups = new Map<string, typeof live>();
+  for (const b of live) {
+    const key = `${b.shopId}:${b.productId}`;
+    groups.set(key, [...(groups.get(key) ?? []), b]);
+  }
+  for (const [key, batches] of groups) {
+    let over = batches.reduce((s, b) => s + b.currentQty, 0) - (shelf.get(key) ?? 0);
+    for (const b of batches) {
+      if (over <= 0) break;
+      const take = Math.min(b.currentQty, over);
+      const done = await prisma.bakeryFreshnessLog.updateMany({
+        where: { id: b.id, currentQty: b.currentQty },
+        data: { currentQty: { decrement: take }, soldQty: { increment: take } },
+      });
+      if (done.count) over -= take;
+    }
+  }
+}

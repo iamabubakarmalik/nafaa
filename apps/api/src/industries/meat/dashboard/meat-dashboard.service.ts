@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { saleFigures } from '../../../common/helpers/business-math.helper';
+import { addDaysTz, dayEnd, dayStart } from '../meat-common';
 
 @Injectable()
 export class MeatDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
-    const monthAgo = subDays(new Date(), 30);
+    // Shop-day edges (Pakistan time), not the server's UTC day.
+    const todayStart = dayStart();
+    const todayEnd = dayEnd();
+    const monthAgo = addDaysTz(todayStart, -30);
 
     const [
       liveAnimalCount, totalProducts, activeSubscriptions, activeQurbani, wholesaleAccounts,
@@ -33,42 +36,38 @@ export class MeatDashboardService {
         where: { tenantId: user.tenantId, status: 'OUT_FOR_DELIVERY' },
       }),
 
-      this.prisma.meatWeightOrder.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          status: 'DELIVERED',
-          deliveredAt: { gte: todayStart, lte: todayEnd },
-        },
-        _sum: { total: true },
-      }),
-      this.prisma.meatWeightOrder.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          status: 'DELIVERED',
-          deliveredAt: { gte: monthAgo },
-        },
-        _sum: { total: true, paidAmount: true },
-      }),
+      // Revenue is what the counter billed; weight orders alone left a butcher's sales at 0.
+      saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: todayStart, lt: new Date(todayEnd.getTime() + 1) }),
+      saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthAgo }),
 
       this.calculateHalalPct(user, monthAgo),
     ]);
 
-    // Top selling cuts (30 days)
-    const topSellingRaw = await this.prisma.meatWeightOrderItem.groupBy({
-      by: ['productId', 'productName'],
-      where: {
-        order: {
-          tenantId: user.tenantId,
-          status: 'DELIVERED',
-          deliveredAt: { gte: monthAgo },
-        },
-      },
-      _sum: { actualKg: true, total: true },
+    const creditGiven = (await this.prisma.sale.aggregate({
+      where: { tenantId: user.tenantId, status: { not: 'VOIDED' }, soldAt: { gte: monthAgo } },
+      _sum: { creditAmount: true },
+    }))._sum.creditAmount ?? 0;
+
+    // Top selling cuts (30 days), from the bills.
+    const topSellingRaw = await this.prisma.saleItem.groupBy({
+      by: ['productId'],
+      where: { productId: { not: null }, sale: { tenantId: user.tenantId, status: { not: 'VOIDED' }, soldAt: { gte: monthAgo } } },
+      _sum: { quantity: true, total: true },
       _count: { _all: true },
+      orderBy: { _sum: { total: 'desc' } },
+      take: 5,
     });
-    const topSelling = topSellingRaw
-      .sort((a, b) => (b._sum.total ?? 0) - (a._sum.total ?? 0))
-      .slice(0, 5);
+    const names = await this.prisma.product.findMany({
+      where: { tenantId: user.tenantId, id: { in: topSellingRaw.map((r) => r.productId as string) } },
+      select: { id: true, name: true },
+    });
+    const nameOf = new Map(names.map((p) => [p.id, p.name]));
+    const topSelling = topSellingRaw.map((r) => ({
+      productId: r.productId,
+      productName: nameOf.get(r.productId as string) ?? '',
+      _sum: { actualKg: r._sum.quantity ?? 0, total: r._sum.total ?? 0 },
+      _count: r._count,
+    }));
 
     // Upcoming subscription deliveries
     const upcomingSubs = await this.prisma.meatSubscription.findMany({
@@ -103,9 +102,9 @@ export class MeatDashboardService {
         upcomingDeliveries,
       },
       revenue: {
-        today: todayRevenue._sum.total ?? 0,
-        monthly: monthlyRevenue._sum.total ?? 0,
-        collected: monthlyRevenue._sum.paidAmount ?? 0,
+        today: todayRevenue.net,
+        monthly: monthlyRevenue.net,
+        collected: Math.max(Math.round((monthlyRevenue.net - creditGiven) * 100) / 100, 0),
       },
       halalCompliance: halalPct,
       topSelling,

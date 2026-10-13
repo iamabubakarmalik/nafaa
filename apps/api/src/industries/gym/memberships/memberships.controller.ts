@@ -21,6 +21,6 @@ export class MembershipsController {
   @Post(':id/freeze') freeze(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { days: number; reason?: string }) { return this.service.freeze(user, id, body.days, body.reason); }
   @Post(':id/unfreeze') unfreeze(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.unfreeze(user, id); }
   @Post(':id/cancel') cancel(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { reason?: string; refundAmount?: number }) { return this.service.cancel(user, id, body.reason, body.refundAmount); }
-  @Post(':id/renew') renew(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { paidAmount?: number }) { return this.service.renew(user, id, body.paidAmount); }
+  @Post(':id/renew') renew(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { paidAmount?: number; paymentMethod?: string }) { return this.service.renew(user, id, body.paidAmount, body.paymentMethod); }
   @Post('expire-old') expireOld(@GetUser() user: AuthenticatedUser) { return this.service.expireOldOnes(user); }
 }

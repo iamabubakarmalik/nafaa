@@ -77,14 +77,14 @@ export class GuestsService {
 
   async blacklist(user: AuthenticatedUser, id: string, reason: string) {
     return this.prisma.hotelGuest.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: { isBlacklisted: true, blacklistReason: reason },
     });
   }
 
   async unblacklist(user: AuthenticatedUser, id: string) {
     return this.prisma.hotelGuest.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: { isBlacklisted: false, blacklistReason: null },
     });
   }
@@ -104,7 +104,7 @@ export class GuestsService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.hotelGuest.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.hotelGuest.update({ where: { id, tenantId: user.tenantId }, data: { isActive: false } });
   }
 
   async stats(user: AuthenticatedUser) {

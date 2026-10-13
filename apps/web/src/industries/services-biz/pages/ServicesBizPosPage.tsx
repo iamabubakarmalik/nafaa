@@ -12,9 +12,9 @@ import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { useSharedPosCart } from '@modules/pos/hooks/useSharedPosCart';
 import { catalogApi } from '../api/catalog.api';
+import { jobsApi } from '../api/jobs.api';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const CATEGORIES = [
@@ -108,16 +108,18 @@ export default function ServicesBizPosPage() {
   const checkoutMutation = useMutation({
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
-      return offlineSalesApi.create({
+      // Catalogue services are not stocked products, so they are billed
+      // through the services counter-sale endpoint, not the product POS.
+      return jobsApi.counterSale({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,
         paidAmount: effectivePaid,
         discount: Number(globalDiscount) || 0,
         items: cart.map((c) => ({
-          productId: c.productId,
+          serviceId: c.productId,
           quantity: c.quantity,
-          priceOverride: c.priceOverride,
+          price: c.priceOverride,
           lineDiscount: c.lineDiscount,
           note: c.note,
         })),

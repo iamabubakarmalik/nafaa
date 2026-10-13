@@ -150,13 +150,14 @@ export function QuickEmiFromSaleModal({
           {/* Down payment */}
           <div>
             <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
-              Down Payment (PKR) * <span className="normal-case font-bold text-slate-400 dark:text-ink-500">— default = jo POS pe liya</span>
+              Down Payment (PKR) * <span className="normal-case font-bold text-slate-400 dark:text-ink-500">— jo bill par liya (baqi udhaar hi qiston me jata hai)</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">Rs</span>
               <input
                 type="number"
                 value={downPayment}
+                readOnly
                 onChange={(e) => setDownPayment(e.target.value)}
                 className="h-12 w-full rounded-xl border-2 border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 pl-9 pr-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
               />

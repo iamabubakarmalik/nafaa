@@ -19,7 +19,11 @@ import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import { garmentProductsApi } from '../api/products.api';
+import { apiClient } from '@core/api/client';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
+
+/** Variant products checked this session for stock kept on the product row. */
+const splitChecked = new Set<string>();
 
 const GENDERS = [
   { value: 'all', label: 'All', emoji: '👥' },
@@ -92,6 +96,15 @@ export default function GarmentPosPage() {
 
   const addSimpleProductToCart = (product: Product) => {
     if (product.hasVariants) {
+      // Older variant products kept their units on the product row; the
+      // server moves them to the sizes/colours first (only when exact).
+      if (!splitChecked.has(product.id)) {
+        splitChecked.add(product.id);
+        apiClient.post(`/garments/products/${product.id}/variant-stock-split`)
+          .catch(() => undefined)
+          .finally(() => setVariantPickerProduct(product));
+        return;
+      }
       setVariantPickerProduct(product);
       return;
     }

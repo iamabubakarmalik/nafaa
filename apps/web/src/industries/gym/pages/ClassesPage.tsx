@@ -198,7 +198,7 @@ function ClassCard({ cls, onEdit, onStatusChange }: any) {
           <div className="text-xs">
             <span className="text-slate-500 font-semibold">Trainer: </span>
             <span className="font-extrabold text-violet-700">
-              {cls.trainer.staff ? ((cls.trainer.staff.firstName || '') + ' ' + (cls.trainer.staff.lastName || '')).trim() : 'TBD'}
+              {cls.trainer.staff ? (((cls.trainer.staff.fullName || cls.trainer.staff.firstName) || '') + ' ' + (cls.trainer.staff.lastName || '')).trim() : 'TBD'}
             </span>
           </div>
         )}
@@ -329,7 +329,7 @@ function ClassForm({ editing, onClose, onSaved }: any) {
           <select value={form.trainerId} onChange={(e) => setForm({ ...form, trainerId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
             <option value="">-- Select trainer --</option>
             {trainers.map((t: any) => {
-              const nm = t.staff ? ((t.staff.firstName || '') + ' ' + (t.staff.lastName || '')).trim() : '';
+              const nm = t.staff ? (((t.staff.fullName || t.staff.firstName) || '') + ' ' + (t.staff.lastName || '')).trim() : '';
               return <option key={t.id} value={t.id}>{nm} ({t.role})</option>;
             })}
           </select>

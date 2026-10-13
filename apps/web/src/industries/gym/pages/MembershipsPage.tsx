@@ -46,12 +46,14 @@ export default function MembershipsPage() {
 
   const cancelMutation = useMutation({
     mutationFn: ({ id, reason }: any) => membershipsApi.cancel(id, reason),
-    onSuccess: () => { toast.success('Cancelled'); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); },
+    onSuccess: () => { toast.success('Cancel ho gayi'); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Cancel nahi hui'),
   });
 
   const renewMutation = useMutation({
     mutationFn: ({ id, paidAmount }: any) => membershipsApi.renew(id, paidAmount),
-    onSuccess: () => { toast.success('Renewed'); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); },
+    onSuccess: () => { toast.success('Renew ho gayi'); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Renew nahi hui'),
   });
 
   return (

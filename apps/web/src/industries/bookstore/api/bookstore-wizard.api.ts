@@ -19,11 +19,24 @@ export interface BookstoreWizardSaveResult {
  *
  * Rollback: deletes the product if profile creation fails.
  */
+/**
+ * Stock to send with the product. On edit it goes only when the user
+ * actually changed the number; sending the form's copy every time reset
+ * live stock (sales made while the form was open, or 0 when the form
+ * never loaded it).
+ */
+function stockField(entered: number, existingId?: string, originalStock?: number): { stock?: number } {
+  if (!existingId) return { stock: entered };
+  return originalStock !== undefined && entered !== originalStock ? { stock: entered } : {};
+}
+
 export async function saveBookstoreWizard(
 
   draft: BookstoreWizardDraft,
   /** Diya ho to isi product ko badla jayega, naya nahi banega */
   existingId?: string,
+  /** Stock when the edit form opened; stock is sent only if the user changed it. */
+  originalStock?: number,
 ): Promise<BookstoreWizardSaveResult> {
   const { basic, book, stationery, art } = draft;
 
@@ -43,7 +56,7 @@ export async function saveBookstoreWizard(
     costPrice: Number(basic.costPrice || 0),
     wholesalePrice: basic.wholesalePrice === '' ? undefined : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: Number(basic.stock || 0),
+    ...stockField(Number(basic.stock || 0), existingId, originalStock),
     lowStockAlert: Number(basic.lowStockAlert || 5),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -53,7 +66,7 @@ export async function saveBookstoreWizard(
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
 
@@ -111,7 +124,8 @@ export async function saveBookstoreWizard(
         isRentable: book.isRentable,
         rentalPricePerWeek: book.rentalPricePerWeek === '' ? 0 : Number(book.rentalPricePerWeek),
         rentalDeposit: book.rentalDeposit === '' ? 0 : Number(book.rentalDeposit),
-        authorIds: book.authorIds,
+        // The API takes authors as { authorId } rows; `authorIds` was rejected and every new book failed.
+        authors: book.authorIds.map((authorId: string, i: number) => ({ authorId, displayOrder: i })),
       });
       profileId = profile.id;
       authorCount = book.authorIds.length;

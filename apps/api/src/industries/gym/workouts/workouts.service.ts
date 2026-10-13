@@ -47,7 +47,7 @@ export class WorkoutsService {
   }
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
-    return this.prisma.gymWorkoutSession.update({ where: { id }, data: dto });
+    return this.prisma.gymWorkoutSession.update({ where: { id, tenantId: user.tenantId }, data: dto });
   }
 
   async summary(user: AuthenticatedUser, memberId: string) {
@@ -74,6 +74,6 @@ export class WorkoutsService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.gymWorkoutSession.delete({ where: { id } });
+    return this.prisma.gymWorkoutSession.delete({ where: { id, tenantId: user.tenantId } });
   }
 }

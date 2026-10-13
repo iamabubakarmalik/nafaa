@@ -1,11 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { addVariantOpeningStock, OpeningStockDto, splitLegacyVariantStock } from '../common/opening-stock.helper';
 import { UpsertSportsProductDto } from './dto/upsert-sports-product.dto';
 
 @Injectable()
 export class SportsProductsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  openingStock(user: AuthenticatedUser, productId: string, dto: OpeningStockDto, activeShopId?: string | null) {
+    return this.prisma.$transaction((tx) => addVariantOpeningStock(tx, user, productId, dto.items, activeShopId));
+  }
+
+  splitVariantStock(user: AuthenticatedUser, productId: string, activeShopId?: string | null) {
+    return this.prisma.$transaction((tx) => splitLegacyVariantStock(tx, user, productId, activeShopId));
+  }
 
   async upsert(user: AuthenticatedUser, dto: UpsertSportsProductDto) {
     const product = await this.prisma.product.findFirst({

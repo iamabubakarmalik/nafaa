@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput, parseDay } from '../agri-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -12,12 +13,12 @@ export class AdvisoryService {
 
     return this.prisma.agriCropAdvisory.create({
       data: {
+        ...cleanInput(dto),
         tenantId: user.tenantId,
-        ...dto,
         advisoryNumber,
-        sowingDate: dto.sowingDate ? new Date(dto.sowingDate) : null,
-        expectedHarvest: dto.expectedHarvest ? new Date(dto.expectedHarvest) : null,
-        followUpDate: dto.followUpDate ? new Date(dto.followUpDate) : null,
+        sowingDate: parseDay(dto.sowingDate),
+        expectedHarvest: parseDay(dto.expectedHarvest),
+        followUpDate: parseDay(dto.followUpDate),
         landAreaAcres: dto.landAreaAcres ? Number(dto.landAreaAcres) : null,
       },
     });
@@ -44,18 +45,20 @@ export class AdvisoryService {
   }
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
+    await this.getOne(user, id);
     return this.prisma.agriCropAdvisory.update({
       where: { id },
       data: {
-        ...dto,
-        sowingDate: dto.sowingDate ? new Date(dto.sowingDate) : undefined,
-        expectedHarvest: dto.expectedHarvest ? new Date(dto.expectedHarvest) : undefined,
-        followUpDate: dto.followUpDate ? new Date(dto.followUpDate) : undefined,
+        ...cleanInput(dto),
+        sowingDate: parseDay(dto.sowingDate) ?? undefined,
+        expectedHarvest: parseDay(dto.expectedHarvest) ?? undefined,
+        followUpDate: parseDay(dto.followUpDate) ?? undefined,
       },
     });
   }
 
   async markComplete(user: AuthenticatedUser, id: string) {
+    await this.getOne(user, id);
     return this.prisma.agriCropAdvisory.update({ where: { id }, data: { completed: true } });
   }
 }

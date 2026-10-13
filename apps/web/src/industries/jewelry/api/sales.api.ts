@@ -4,6 +4,8 @@ export type JewelryOrderStatus = 'DRAFT' | 'QUOTED' | 'CONFIRMED' | 'DESIGNING' 
   | 'IN_PRODUCTION' | 'POLISHING' | 'QUALITY_CHECK' | 'HALLMARKING' | 'READY' | 'DELIVERED' | 'CANCELLED' | 'ON_HOLD';
 
 export interface JewelrySale {
+  /** Shared sale behind this bill (stock, khata, reports). */
+  saleId?: string | null;
   id: string;
   invoiceNumber: string;
   customerId?: string;
@@ -53,6 +55,7 @@ export const jewelrySalesApi = {
     apiClient.patch('/jewelry/sales/' + id + '/status', { status, cancellationReason }).then(unwrap<JewelrySale>),
   addPayment: (id: string, amount: number, paymentMethod?: string) =>
     apiClient.post('/jewelry/sales/' + id + '/payment', { amount, paymentMethod }).then(unwrap<JewelrySale>),
-  markReturned: (id: string, reason: string) => apiClient.post('/jewelry/sales/' + id + '/return', { reason }).then(unwrap<JewelrySale>),
+  markReturned: (id: string, reason: string, managerPin?: string) =>
+    apiClient.post('/jewelry/sales/' + id + '/return', { reason, managerPin }).then(unwrap<JewelrySale>),
   markExchanged: (id: string, exchangeType: string) => apiClient.post('/jewelry/sales/' + id + '/exchange', { exchangeType }).then(unwrap<JewelrySale>),
 };

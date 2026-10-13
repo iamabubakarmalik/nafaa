@@ -273,6 +273,7 @@ export default function AutoPartWizardPage() {
         <div className="min-w-0">
           {draft.step === 1 && (
             <AutoPartsWizardStep1Basic
+              isEdit={isEdit}
               basic={draft.basic}
               onChange={updateBasic}
               errors={validation.step1.errors}

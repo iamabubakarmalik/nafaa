@@ -73,6 +73,8 @@ export class LabOrdersService {
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, status: string) {
+    const own = await this.prisma.clinicLabOrder.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true } });
+    if (!own) throw new NotFoundException('Not found');
     const patch: any = { status };
     if (status === 'SAMPLE_COLLECTED') patch.sampleCollectedAt = new Date();
     if (status === 'REPORTED') patch.reportedAt = new Date();
@@ -80,6 +82,8 @@ export class LabOrdersService {
   }
 
   async recordResult(user: AuthenticatedUser, testId: string, dto: { result: string; referenceRange?: string; unit?: string; isAbnormal?: boolean; isCritical?: boolean; performedBy?: string; reportUrl?: string }) {
+    const own = await this.prisma.clinicLabTest.findFirst({ where: { id: testId, order: { tenantId: user.tenantId } }, select: { id: true } });
+    if (!own) throw new NotFoundException('Test nahi mila');
     return this.prisma.clinicLabTest.update({
       where: { id: testId },
       data: {

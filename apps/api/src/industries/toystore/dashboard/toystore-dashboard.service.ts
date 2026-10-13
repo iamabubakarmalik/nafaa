@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz, subDaysTz, tzParts } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 
 function daysUntilNextBirthday(birthDate: Date, from = new Date()): number {
-  const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-  let next = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-  if (next < today) next = new Date(today.getFullYear() + 1, birthDate.getMonth(), birthDate.getDate());
-  return Math.round((next.getTime() - today.getTime()) / 86400000);
+  // "Today" is the shop's day (Pakistan time); the birth date is a calendar date stored at UTC midnight.
+  const t = tzParts(from);
+  const today = Date.UTC(t.year, t.month - 1, t.day);
+  const b = new Date(birthDate);
+  let next = Date.UTC(t.year, b.getUTCMonth(), b.getUTCDate());
+  if (next < today) next = Date.UTC(t.year + 1, b.getUTCMonth(), b.getUTCDate());
+  return Math.round((next - today) / 86400000);
 }
 
 @Injectable()
@@ -146,8 +150,9 @@ export class ToystoreDashboardService {
     from: string,
     to: string,
   ) {
-    const start = new Date(from);
-    const end = new Date(to);
+    // Dates are shop days (Pakistan time); a missing range means the last 30 days.
+    const start = from ? startOfDayTz(new Date(from)) : startOfDayTz(subDaysTz(new Date(), 30));
+    const end = to ? endOfDayTz(new Date(to)) : endOfDayTz();
 
     // Sales come from the core sale tables; here we aggregate toy-profile products sold
     const sales = await this.prisma.sale.findMany({

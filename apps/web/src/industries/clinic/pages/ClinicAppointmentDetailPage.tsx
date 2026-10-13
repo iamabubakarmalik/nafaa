@@ -716,9 +716,15 @@ function LabOrdersPanel({ appointmentId, encounter, patientId, doctorId }: any) 
 
 function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
   const [amount, setAmount] = useState(remaining);
+  const [method, setMethod] = useState<'CASH' | 'CARD' | 'BANK_TRANSFER'>('CASH');
   const payMutation = useMutation({
-    mutationFn: () => appointmentsApi.addPayment(apptId, amount),
-    onSuccess: () => { toast.success('Payment recorded'); onDone(); },
+    mutationFn: () => appointmentsApi.addPayment(apptId, amount, method),
+    onSuccess: (res) => {
+      toast.success(res.sale ? `Fees mil gayi — bill ${res.sale.saleNumber}` : 'Fees mil gayi');
+      if (res.sale?.id) window.open(`/sales/${res.sale.id}/receipt?auto=1`, '_blank');
+      onDone();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Fees save nahi hui'),
   });
 
   return (
@@ -735,9 +741,18 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
             <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
+          <div>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Paise kaise</label>
+            <select value={method} onChange={(e) => setMethod(e.target.value as any)}
+              className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold">
+              <option value="CASH">Cash</option>
+              <option value="CARD">Card</option>
+              <option value="BANK_TRANSFER">Bank / Wallet</option>
+            </select>
+          </div>
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
+            <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0 || amount > remaining}>
               <CheckCircle2 className="h-4 w-4" />
               Confirm
             </Button>

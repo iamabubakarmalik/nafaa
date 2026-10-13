@@ -124,10 +124,16 @@ export default function JobDetailPage() {
                 Assign Technician
               </Button>
             )}
-            {!isFullyPaid && job.status !== 'CANCELLED' && (
+            {(!isFullyPaid || !job.billSale) && job.status !== 'CANCELLED' && (
               <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
                 <DollarSign className="h-4 w-4" />
-                Add Payment
+                {job.billSale ? 'Baqi lein' : 'Bill / Payment'}
+              </Button>
+            )}
+            {job.billSale && (
+              <Button variant="secondary" className="bg-white/15 hover:bg-white/25 text-white border-white/20" onClick={() => window.open(`/sales/${job.billSale!.id}/receipt`, '_blank')}>
+                <CreditCard className="h-4 w-4" />
+                Bill {job.billSale.saleNumber}
               </Button>
             )}
           </div>
@@ -140,7 +146,7 @@ export default function JobDetailPage() {
           <h3 className="text-sm font-extrabold">Job Workflow</h3>
           {nextStatus && !['CANCELLED', 'COMPLETED'].includes(job.status) && (
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => statusMutation.mutate(nextStatus)} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
+              <Button size="sm" onClick={() => (nextStatus === 'COMPLETED' && !job.billSale ? setShowPayment(true) : statusMutation.mutate(nextStatus))} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
                 <ArrowRight className="h-3.5 w-3.5" />
                 Mark {STATUS_CONFIG[nextStatus].label}
               </Button>
@@ -276,11 +282,11 @@ export default function JobDetailPage() {
               </h3>
               <div className="flex items-center gap-3">
                 <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center text-xl font-extrabold shrink-0">
-                  {(job.technician.staff?.firstName || 'T').charAt(0).toUpperCase()}
+                  {((job.technician.staff?.fullName || job.technician.staff?.firstName) || 'T').charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
                   <div className="font-extrabold">
-                    {((job.technician.staff?.firstName || '') + ' ' + (job.technician.staff?.lastName || '')).trim()}
+                    {(((job.technician.staff?.fullName || job.technician.staff?.firstName) || '') + ' ' + (job.technician.staff?.lastName || '')).trim()}
                   </div>
                   {job.technician.staff?.phone && (
                     <a href={'tel:' + job.technician.staff.phone} className="text-xs font-bold text-blue-700 hover:underline">
@@ -461,10 +467,10 @@ export default function JobDetailPage() {
                 </div>
               )}
 
-              {!isFullyPaid && job.status !== 'CANCELLED' && (
+              {(!isFullyPaid || !job.billSale) && job.status !== 'CANCELLED' && (
                 <Button size="lg" className="w-full mt-4 bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
                   <CreditCard className="h-4 w-4" />
-                  Add Payment
+                  {job.billSale ? 'Baqi lein' : 'Bill / Payment'}
                 </Button>
               )}
             </div>
@@ -496,7 +502,11 @@ export default function JobDetailPage() {
       </div>
 
       {showPayment && (
-        <PaymentModal jobId={id!} remaining={remaining} onClose={() => setShowPayment(false)} onDone={() => { setShowPayment(false); refetch(); }} />
+        <PaymentModal jobId={id!} remaining={Math.max(remaining, 0)} billed={!!job.billSale} onClose={() => setShowPayment(false)} onDone={(saleId?: string) => {
+          setShowPayment(false);
+          refetch();
+          if (saleId) window.open(`/sales/${saleId}/receipt?auto=1`, '_blank');
+        }} />
       )}
       {showRating && (
         <RatingModal jobId={id!} onClose={() => setShowRating(false)} onDone={() => { setShowRating(false); refetch(); }} />
@@ -514,25 +524,53 @@ export default function JobDetailPage() {
   );
 }
 
-function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
-  const [amount, setAmount] = useState(remaining);
-  const [isAdvance, setIsAdvance] = useState(false);
+/**
+ * Before the bill: "Bill banayein" completes the job and posts the sale;
+ * "Sirf advance" keeps the money on the customer's khata. After the bill the
+ * same modal takes the remaining udhaar.
+ */
+function PaymentModal({ jobId, remaining, billed, onClose, onDone }: any) {
+  const [amount, setAmount] = useState<number>(remaining);
+  const [method, setMethod] = useState('CASH');
+  const [mode, setMode] = useState<'bill' | 'advance'>(billed ? 'advance' : 'bill');
 
   const payMutation = useMutation({
-    mutationFn: () => jobsApi.addPayment(jobId, amount, isAdvance),
-    onSuccess: () => { toast.success('Payment added'); onDone(); },
+    mutationFn: async () => {
+      if (mode === 'bill' && !billed) {
+        const done = await jobsApi.bill(jobId, { paidAmount: amount, paymentMethod: method });
+        return done.sale?.id;
+      }
+      await jobsApi.addPayment(jobId, amount, !billed);
+      return undefined;
+    },
+    onSuccess: (saleId) => { toast.success(saleId ? 'Bill ban gaya' : 'Payment jama ho gayi'); onDone(saleId); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment nahi hui'),
   });
+  const left = Math.max(remaining - (Number(amount) || 0), 0);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">Add Payment</h3>
+          <h3 className="font-extrabold">{billed ? 'Baqi wasool karein' : 'Bill / Payment'}</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="p-5 space-y-3">
+          {!billed && (
+            <div className="grid grid-cols-2 gap-2">
+              {([['bill', 'Bill banayein', 'Kaam mukammal'], ['advance', 'Sirf advance', 'Khate me jama']] as const).map(([v, label, hint]) => (
+                <button key={v} onClick={() => setMode(v)} className={
+                  'p-2 rounded-lg border-2 text-left ' +
+                  (mode === v ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
+                }>
+                  <div className="text-xs font-extrabold">{label}</div>
+                  <div className="text-[0.6875rem] text-slate-500">{hint}</div>
+                </button>
+              ))}
+            </div>
+          )}
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Amount</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
@@ -543,14 +581,23 @@ function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
                 </button>
               ))}
             </div>
+            {mode === 'bill' && !billed && left > 0.01 && (
+              <div className="mt-1 text-xs font-bold text-amber-700">Baqi {formatPKR(left)} customer ke khate me udhaar jayega</div>
+            )}
           </div>
-          <label className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200 cursor-pointer">
-            <input type="checkbox" checked={isAdvance} onChange={(e) => setIsAdvance(e.target.checked)} className="h-4 w-4 rounded" />
-            <span className="text-xs font-extrabold text-amber-800">This is an advance payment</span>
-          </label>
+          {mode === 'bill' && !billed && (
+            <div className="grid grid-cols-3 gap-2">
+              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'].map((m) => (
+                <button key={m} type="button" onClick={() => setMethod(m)} className={
+                  'p-2 rounded-lg border-2 text-xs font-extrabold ' +
+                  (method === m ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
+                }>{m}</button>
+              ))}
+            </div>
+          )}
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
+            <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount < 0 || (amount <= 0 && (billed || mode === 'advance'))}>
               <CheckCircle2 className="h-4 w-4" />
               Confirm
             </Button>
@@ -655,7 +702,7 @@ function AssignModal({ jobId, onClose, onDone }: any) {
             <div className="text-center py-8 text-slate-500 font-semibold">No technicians available</div>
           ) : (
             suggestions.map((t: any, i: number) => {
-              const name = t.staff ? ((t.staff.firstName || '') + ' ' + (t.staff.lastName || '')).trim() : '';
+              const name = t.staff ? (((t.staff.fullName || t.staff.firstName) || '') + ' ' + (t.staff.lastName || '')).trim() : '';
               return (
                 <button
                   key={t.id}

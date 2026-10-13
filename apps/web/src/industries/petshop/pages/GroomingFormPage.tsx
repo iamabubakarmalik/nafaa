@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { format } from 'date-fns';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -63,7 +64,7 @@ export default function GroomingFormPage() {
     petTemperament: '',
     petAllergies: '',
     petSpecialInstructions: '',
-    scheduledDate: new Date().toISOString().slice(0, 10),
+    scheduledDate: format(new Date(), 'yyyy-MM-dd'),
     scheduledSlot: '',
     serviceType: 'FULL_GROOMING',
     additionalServices: [] as string[],
@@ -139,7 +140,8 @@ export default function GroomingFormPage() {
         petWeightKg: form.petWeightKg === '' ? undefined : Number(form.petWeightKg),
         additionalServices: form.additionalServices as any,
       };
-      return isEdit ? groomingApi.updateStatus(id!, { status: 'SCHEDULED' } as any) : groomingApi.create(payload);
+      // Editing used to only reset the status; the changes themselves were never saved.
+      return isEdit ? groomingApi.update(id!, payload) : groomingApi.create(payload);
     },
     onSuccess: () => {
       toast.success(isEdit ? 'Appointment updated' : 'Appointment booked');
@@ -337,7 +339,7 @@ export default function GroomingFormPage() {
             <SectionHead icon={Calendar} title="Schedule & Groomer" tone="blue" />
 
             <div className="grid sm:grid-cols-2 gap-3">
-              <Input label="Date *" type="date" min={new Date().toISOString().slice(0, 10)}
+              <Input label="Date *" type="date" min={format(new Date(), 'yyyy-MM-dd')}
                 value={form.scheduledDate} onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })} />
 
               <div>

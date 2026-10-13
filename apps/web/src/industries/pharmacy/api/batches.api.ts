@@ -1,20 +1,11 @@
-import { apiClient } from '@core/api/client';
+/**
+ * Medicine batches. Batches are a shared inventory feature, so this client
+ * wraps the shared `/products/:productId/batches` endpoints and keeps the
+ * pharmacy-facing shape (productId inside the payload).
+ */
+import { productBatchesApi, type ProductBatch as SharedBatch } from '@modules/inventory/products/api/product-batches.api';
 
-export interface ProductBatch {
-  id: string;
-  productId: string;
-  variantId?: string | null;
-  batchNumber: string;
-  manufactureDate?: string | null;
-  expiryDate?: string | null;
-  quantity: number;
-  costPrice: number;
-  notes?: string | null;
-  isActive: boolean;
-  createdAt: string;
-  product?: { id: string; name: string; unit: string };
-  variant?: { id: string; name: string };
-}
+export type ProductBatch = SharedBatch;
 
 export interface CreateBatchPayload {
   productId: string;
@@ -27,38 +18,32 @@ export interface CreateBatchPayload {
   notes?: string;
 }
 
-export interface BatchStats {
-  total: number;
-  expiringSoon: number;
-  expired: number;
-  totalQuantity: number;
-}
-
-const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.data : res?.data);
+const toBody = ({ productId: _productId, ...rest }: CreateBatchPayload) => ({
+  ...rest,
+  quantity: Math.max(0, Math.round(Number(rest.quantity) || 0)),
+});
 
 export const batchesApi = {
-  stats: () =>
-    apiClient.get('/industries/pharmacy/batches/stats').then(unwrap) as Promise<BatchStats>,
+  expiringSoon: (days = 30) => productBatchesApi.expiringSoon(days),
 
-  expiringSoon: (days: number = 30) =>
-    apiClient.get('/industries/pharmacy/batches/expiring-soon', { params: { days } }).then(unwrap) as Promise<ProductBatch[]>,
+  expired: () => productBatchesApi.expired(),
 
-  expired: () =>
-    apiClient.get('/industries/pharmacy/batches/expired').then(unwrap) as Promise<ProductBatch[]>,
+  listByProduct: (productId: string) => productBatchesApi.list(productId),
 
-  listByProduct: (productId: string) =>
-    apiClient.get(`/industries/pharmacy/batches/product/${productId}`).then(unwrap) as Promise<ProductBatch[]>,
+  /** Batches with stock left and not yet expired, soonest expiry first. */
+  available: async (productId: string, variantId?: string) => {
+    const now = Date.now();
+    const rows = await productBatchesApi.list(productId);
+    return rows
+      .filter((b) => b.isActive && b.quantity > 0)
+      .filter((b) => !variantId || b.variantId === variantId)
+      .filter((b) => !b.expiryDate || new Date(b.expiryDate).getTime() >= now)
+      .sort((a, b) => (a.expiryDate ? new Date(a.expiryDate).getTime() : Infinity) - (b.expiryDate ? new Date(b.expiryDate).getTime() : Infinity));
+  },
 
-  available: (productId: string, variantId?: string) =>
-    apiClient.get(`/industries/pharmacy/batches/product/${productId}/available`, { params: { variantId } })
-      .then(unwrap) as Promise<ProductBatch[]>,
+  create: (payload: CreateBatchPayload) => productBatchesApi.create(payload.productId, toBody(payload)),
 
-  create: (payload: CreateBatchPayload) =>
-    apiClient.post('/industries/pharmacy/batches', payload).then(unwrap) as Promise<ProductBatch>,
+  update: (id: string, payload: CreateBatchPayload) => productBatchesApi.update(payload.productId, id, toBody(payload)),
 
-  update: (id: string, payload: Partial<CreateBatchPayload>) =>
-    apiClient.patch(`/industries/pharmacy/batches/${id}`, payload).then(unwrap) as Promise<ProductBatch>,
-
-  remove: (id: string) =>
-    apiClient.delete(`/industries/pharmacy/batches/${id}`).then(unwrap),
+  remove: (productId: string, id: string) => productBatchesApi.remove(productId, id),
 };

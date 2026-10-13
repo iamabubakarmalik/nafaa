@@ -48,18 +48,20 @@ export async function saveMobileWizard(
         ? undefined
         : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: 0,
     lowStockAlert: 0,
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
     tagIds: basic.tagIds,
     imageUrls: basic.imageUrls,
-    metaTitle: basic.modelNumber ? `${basic.name} — ${basic.modelNumber}` : undefined,
+    // The product API has no model-number field; it is kept in the short description.
+    shortDescription: basic.modelNumber.trim() ? `Model: ${basic.modelNumber.trim()}` : undefined,
   };
 
+  // Stock comes from IMEIs and accessory counts below; an edit must never
+  // reset it, or every phone of this model would vanish from the POS.
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create({ ..._payload, stock: 0 } as any);
 
   const productId = product.id;
 

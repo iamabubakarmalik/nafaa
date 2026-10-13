@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput, parseDay } from '../meat-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -16,9 +17,9 @@ export class LiveAnimalsService {
 
     return this.prisma.meatLiveAnimal.create({
       data: {
+        ...cleanInput(dto),
         tenantId: user.tenantId,
-        ...dto,
-        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : new Date(),
+        purchaseDate: parseDay(dto.purchaseDate) ?? new Date(),
       },
     });
   }
@@ -56,8 +57,8 @@ export class LiveAnimalsService {
     return this.prisma.meatLiveAnimal.update({
       where: { id },
       data: {
-        ...dto,
-        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : undefined,
+        ...cleanInput(dto),
+        purchaseDate: parseDay(dto.purchaseDate) ?? undefined,
       },
     });
   }
@@ -65,6 +66,9 @@ export class LiveAnimalsService {
   async addFeedCost(user: AuthenticatedUser, id: string, days: number, costPerDay: number) {
     const a = await this.prisma.meatLiveAnimal.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Animal not found');
+    days = Number(days);
+    costPerDay = Number(costPerDay);
+    if (!Number.isInteger(days) || days <= 0 || !(costPerDay >= 0)) throw new BadRequestException('Din aur kharcha sahi likhein');
     return this.prisma.meatLiveAnimal.update({
       where: { id },
       data: {

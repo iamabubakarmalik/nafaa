@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput, parseDay } from '../agri-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -14,12 +15,12 @@ export class SeasonalPlansService {
 
     return this.prisma.agriSeasonalPlan.create({
       data: {
+        ...cleanInput(dto),
         tenantId: user.tenantId,
-        ...dto,
-        sowingStart: new Date(dto.sowingStart),
-        sowingEnd: new Date(dto.sowingEnd),
-        harvestStart: new Date(dto.harvestStart),
-        harvestEnd: new Date(dto.harvestEnd),
+        sowingStart: parseDay(dto.sowingStart) ?? new Date(),
+        sowingEnd: parseDay(dto.sowingEnd) ?? new Date(),
+        harvestStart: parseDay(dto.harvestStart) ?? new Date(),
+        harvestEnd: parseDay(dto.harvestEnd) ?? new Date(),
       },
     });
   }
@@ -43,10 +44,11 @@ export class SeasonalPlansService {
   }
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
+    await this.getOne(user, id);
     return this.prisma.agriSeasonalPlan.update({
       where: { id },
       data: {
-        ...dto,
+        ...cleanInput(dto),
         sowingStart: dto.sowingStart ? new Date(dto.sowingStart) : undefined,
         sowingEnd: dto.sowingEnd ? new Date(dto.sowingEnd) : undefined,
         harvestStart: dto.harvestStart ? new Date(dto.harvestStart) : undefined,
@@ -56,6 +58,7 @@ export class SeasonalPlansService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
+    await this.getOne(user, id);
     return this.prisma.agriSeasonalPlan.update({ where: { id }, data: { isActive: false } });
   }
 }

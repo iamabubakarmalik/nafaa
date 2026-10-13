@@ -206,6 +206,7 @@ function ExchangeForm({ onClose, onSaved }: any) {
     testingMethod: '', testedBy: '', witnessedBy: '',
     photoUrls: [] as string[], cnicPhotoUrl: '',
     notes: '',
+    paidInCash: false,
   });
 
   const saveMutation = useMutation({
@@ -220,7 +221,11 @@ function ExchangeForm({ onClose, onSaved }: any) {
       testingCharges: Number(form.testingCharges) || 0,
       testedPurity: form.testedPurity || undefined,
     }),
-    onSuccess: () => { toast.success('Exchange recorded'); onSaved(); },
+    onSuccess: (ex: any) => {
+      if (form.paidInCash && ex?.paidFromDrawer === false) toast.warning('Koi register khula nahi — galle se nikla paisa darj nahi hua');
+      toast.success('Exchange darj ho gaya');
+      onSaved();
+    },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
   });
 
@@ -289,7 +294,7 @@ function ExchangeForm({ onClose, onSaved }: any) {
             <input type="number" step="0.01" value={form.stoneWeight} onChange={(e) => setForm({ ...form, stoneWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Rate/gram *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Khalis (24K) rate/gram *</label>
             <input type="number" value={form.ratePerGram} onChange={(e) => setForm({ ...form, ratePerGram: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
@@ -317,6 +322,11 @@ function ExchangeForm({ onClose, onSaved }: any) {
             setForm({ ...form, photoUrls: [...form.photoUrls, ...urls] });
           }} />
         </div>
+
+        <label className="flex items-center gap-2 rounded-xl border-2 border-amber-200 bg-amber-50 px-3 py-2.5 text-sm font-bold text-amber-900">
+          <input type="checkbox" checked={form.paidInCash} onChange={(e) => setForm({ ...form, paidInCash: e.target.checked })} className="h-4 w-4" />
+          Customer ko abhi cash diya (galle se nikla)
+        </label>
 
         <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 

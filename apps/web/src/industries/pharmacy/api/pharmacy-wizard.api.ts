@@ -33,8 +33,11 @@ export async function savePharmacyWizard(
 ): Promise<PharmacyWizardSaveResult> {
   const { basic, clinical, inventory } = draft;
 
+  const batchStock = inventory.batches.reduce((a, b) => a + Number(b.quantity || 0), 0);
+  // On edit the batches added here are new stock on top of what is already
+  // on the shelf; replacing the stock with them would wipe the old quantity.
   const baselineStock = inventory.hasBatches
-    ? inventory.batches.reduce((a, b) => a + Number(b.quantity || 0), 0)
+    ? (existingId ? Number(basic.currentStock || 0) + batchStock : batchStock)
     : Number(basic.currentStock || 0);
 
   // ─── 1. CREATE PRODUCT ─────────────────────────────────

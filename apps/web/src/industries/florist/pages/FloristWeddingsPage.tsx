@@ -62,14 +62,16 @@ export default function FloristWeddingsPage() {
       toast.success('Contract deleted');
       qc.invalidateQueries({ queryKey: ['florist-weddings-list'] });
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua'),
   });
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: any) => weddingContractsApi.updateStatus(id, { status }),
-    onSuccess: () => {
-      toast.success('Status updated');
+    onSuccess: (r: any) => {
+      toast.success(r?.sale ? `Mukammal — bill ${r.sale.saleNumber} ban gaya` : 'Status updated');
       qc.invalidateQueries({ queryKey: ['florist-weddings-list'] });
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
   });
 
   return (
@@ -272,6 +274,17 @@ function WeddingCard({ contract: c, onEdit, onPayment, onStatus, onDelete }: any
             <button onClick={() => onStatus('CONFIRMED')}
               className="h-9 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-extrabold inline-flex items-center gap-1">
               <CheckCircle2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {(c.status === 'CONFIRMED' || c.status === 'IN_PROGRESS') && (
+            <button
+              onClick={() => {
+                const owed = Math.max(Number(c.quotedAmount || 0) - Number(c.advanceAmount || 0), 0);
+                // Completing makes the bill; whatever is still owed goes on the family's khata.
+                if (window.confirm(`Shaadi mukammal? ${formatPKR(c.quotedAmount)} ka bill banega${owed > 0 ? `, baqi ${formatPKR(owed)} khate me jayega` : ''}.`)) onStatus('COMPLETED');
+              }}
+              className="h-9 px-2 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-extrabold inline-flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Mukammal
             </button>
           )}
           <button onClick={onEdit}

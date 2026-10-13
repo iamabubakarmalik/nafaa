@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ControlledLogService } from './controlled-log.service';
+import { CreateControlledLogDto } from './dto/create-controlled-log.dto';
 
 @ApiTags('Pharmacy - Controlled Substances')
 @ApiBearerAuth()
@@ -12,7 +13,7 @@ import { ControlledLogService } from './controlled-log.service';
 export class ControlledLogController {
   constructor(private readonly service: ControlledLogService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateControlledLogDto) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('logType') logType?: string, @Query('from') from?: string, @Query('to') to?: string) {
     return this.service.list(user, { productId, logType, from, to });
   }

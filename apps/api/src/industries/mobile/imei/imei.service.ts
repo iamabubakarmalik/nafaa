@@ -119,9 +119,23 @@ export class ImeiService {
     }
   }
 
+  /** The product (and variant) must belong to this shop owner. */
+  private async assertOwnProduct(user: AuthenticatedUser, productId: string, variantId?: string | null) {
+    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId }, select: { id: true } });
+    if (!product) throw new NotFoundException('Product nahi mila');
+    if (variantId) {
+      const v = await this.prisma.productVariant.findFirst({ where: { id: variantId, productId }, select: { id: true } });
+      if (!v) throw new NotFoundException('Variant nahi mila');
+    }
+  }
+
   /** Device kis shop me rakha jaye — dto > user ki shop > pehli active shop. */
   private async resolveShopId(user: AuthenticatedUser, explicit?: string) {
-    if (explicit) return explicit;
+    if (explicit) {
+      const own = await this.prisma.shop.findFirst({ where: { id: explicit, tenantId: user.tenantId }, select: { id: true } });
+      if (!own) throw new NotFoundException('Shop nahi mili');
+      return explicit;
+    }
     if (user.shopId) return user.shopId;
     const shop = await this.prisma.shop.findFirst({
       where: { tenantId: user.tenantId, isActive: true },
@@ -135,6 +149,7 @@ export class ImeiService {
   // CREATE
   // ════════════════════════════════════════════════════════
   async create(user: AuthenticatedUser, dto: CreateImeiDto) {
+    await this.assertOwnProduct(user, dto.productId, dto.variantId);
     const existing = await this.prisma.productImei.findFirst({
       where: { tenantId: user.tenantId, imei1: dto.imei1 },
     });
@@ -180,7 +195,10 @@ export class ImeiService {
   // BULK CREATE
   // ════════════════════════════════════════════════════════
   async bulkCreate(user: AuthenticatedUser, dto: BulkCreateImeiDto) {
+    await this.assertOwnProduct(user, dto.productId, dto.variantId);
     const imeis = dto.imeis.map((i) => i.imei1);
+    const dup = imeis.find((x, i) => imeis.indexOf(x) !== i);
+    if (dup) throw new ConflictException(`IMEI ${dup} list me do dafa hai`);
     const existing = await this.prisma.productImei.findMany({
       where: { tenantId: user.tenantId, imei1: { in: imeis } },
       select: { imei1: true },
@@ -445,21 +463,38 @@ export class ImeiService {
   }
 
   async update(user: AuthenticatedUser, id: string, data: Partial<CreateImeiDto>) {
-    await this.findOne(user, id);
-    const updateData: any = { ...data };
-    if (data.warrantyMonths) {
+    const current = await this.findOne(user, id);
+    // The body is not validated by a DTO class here, so copy only known fields.
+    const FIELDS = ['imei1', 'imei2', 'serialNumber', 'ptaStatus', 'ptaTaxPaid', 'costPrice', 'warrantyMonths', 'color', 'notes', 'status', 'shopId'] as const;
+    const updateData: any = {};
+    for (const k of FIELDS) if ((data as any)?.[k] !== undefined) updateData[k] = (data as any)[k];
+    if (updateData.warrantyMonths) {
       updateData.warrantyExpiry = new Date(
-        Date.now() + data.warrantyMonths * 30 * 24 * 60 * 60 * 1000,
+        new Date(current.purchasedAt ?? Date.now()).getTime() + Number(updateData.warrantyMonths) * 30 * 24 * 60 * 60 * 1000,
       );
     }
-    if (data.ptaTaxDueAt) updateData.ptaTaxDueAt = new Date(data.ptaTaxDueAt);
-    if (data.ptaVerifiedAt) updateData.ptaVerifiedAt = new Date(data.ptaVerifiedAt);
-    delete updateData.productId;
-    delete updateData.variantId;
+    if (data?.ptaTaxDueAt) updateData.ptaTaxDueAt = new Date(data.ptaTaxDueAt);
+    if (data?.ptaVerifiedAt) updateData.ptaVerifiedAt = new Date(data.ptaVerifiedAt);
+    if (updateData.status === 'SOLD' && current.status !== 'SOLD') {
+      throw new BadRequestException('Phone bikri sirf POS se hoti hai');
+    }
+    if (current.status === 'SOLD' && updateData.status && updateData.status !== 'SOLD') {
+      throw new BadRequestException('Bika hua phone wapas lene ke liye Returns istemal karein');
+    }
+    if (updateData.shopId) await this.resolveShopId(user, updateData.shopId);
+    if (updateData.imei1 && updateData.imei1 !== current.imei1) {
+      const taken = await this.prisma.productImei.findFirst({ where: { tenantId: user.tenantId, imei1: updateData.imei1, id: { not: id } } });
+      if (taken) throw new ConflictException(`IMEI ${updateData.imei1} pehle se maujood hai`);
+    }
 
-    return this.prisma.productImei.update({
-      where: { id },
-      data: updateData,
+    const stockChanged = (updateData.status && updateData.status !== current.status)
+      || (updateData.shopId && updateData.shopId !== current.shopId);
+    return this.prisma.$transaction(async (tx) => {
+      const row = await tx.productImei.update({ where: { id }, data: updateData });
+      if (stockChanged) {
+        await this.syncStockFromImeis(tx, user.tenantId, current.productId, current.variantId, [current.shopId, row.shopId]);
+      }
+      return row;
     });
   }
 

@@ -84,6 +84,8 @@ export interface HardwareWizardSpecs {
 
 export interface HardwareWizardBulkTier {
   tempId: string;
+  /** Saved tier id when editing an existing product. */
+  id?: string;
   minQuantity: number;
   maxQuantity?: number;
   price: number;
@@ -186,12 +188,15 @@ export function useHardwareWizard(opts: UseHardwareWizardOpts = {}) {
   }, []);
 
   useEffect(() => {
+    // Editing a product must not overwrite the unsaved "new product" draft.
+    if (!opts.autoLoadDraft) return;
     const t = setTimeout(() => {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, savedAt: Date.now() }));
       } catch {}
     }, 400);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft]);
 
   const goToStep = useCallback((step: WizardStep) => {
@@ -232,6 +237,22 @@ export function useHardwareWizard(opts: UseHardwareWizardOpts = {}) {
 
   const updateReorder = useCallback((patch: Partial<HardwareWizardReorder>) => {
     setDraft((d) => ({ ...d, reorder: { ...d.reorder, ...patch } }));
+  }, []);
+
+  /** Fills the wizard from a saved product (edit mode). */
+  const loadSaved = useCallback((saved: {
+    basic: Partial<HardwareWizardBasic>;
+    specs?: Partial<HardwareWizardSpecs>;
+    bulkTiers?: Omit<HardwareWizardBulkTier, 'tempId'>[];
+    reorder?: Partial<HardwareWizardReorder>;
+  }) => {
+    setDraft((d) => ({
+      ...d,
+      basic: { ...d.basic, ...saved.basic },
+      specs: { ...d.specs, ...saved.specs },
+      bulkTiers: (saved.bulkTiers ?? []).map((t) => ({ ...t, tempId: genId() })),
+      reorder: { ...d.reorder, ...saved.reorder },
+    }));
   }, []);
 
   const toggleTag = useCallback((tagId: string) => {
@@ -311,6 +332,7 @@ export function useHardwareWizard(opts: UseHardwareWizardOpts = {}) {
     addBulkTier, updateBulkTier, removeBulkTier,
     updateReorder,
     toggleTag,
+    loadSaved,
     reset,
   };
 }

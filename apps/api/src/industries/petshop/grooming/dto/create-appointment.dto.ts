@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { PetGroomingServiceType, PetGroomingStatus, PetSpeciesType } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
@@ -27,6 +27,17 @@ export class CreateGroomingAppointmentDto {
   @ApiProperty() @IsNumber() serviceFee!: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() additionalCharges?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() discount?: number;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() photosBeforeUrls?: string[];
+}
+
+/** Editing a booking: any booking field, all optional. */
+export class UpdateGroomingAppointmentDto extends PartialType(CreateGroomingAppointmentDto) {}
+
+/** Taking the pet back: the rest of the bill is settled here. */
+export class PickupGroomingDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
+  /** Money handed over now; missing = the whole balance. Less than the balance goes on the khata. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() paidAmount?: number;
 }
 
 export class CompleteGroomingDto {

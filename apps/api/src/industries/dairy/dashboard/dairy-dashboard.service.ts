@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
+import { dayEnd, dayStart } from '../dairy-common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -8,8 +9,8 @@ export class DairyDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
+    const todayStart = dayStart();
+    const todayEnd = dayEnd();
     const monthAgo = subDays(new Date(), 30);
 
     const [

@@ -8,7 +8,7 @@ export interface ToyGiftPack {
   targetAgeGroup?: string;
   targetGender?: string;
   occasion?: string;
-  items: Array<{ productId: string; quantity: number; unitPrice: number; product?: any }>;
+  items: Array<{ productId: string; variantId?: string; quantity: number; unitPrice: number; product?: any }>;
   itemCount: number;
   originalPrice: number;
   giftPackPrice: number;

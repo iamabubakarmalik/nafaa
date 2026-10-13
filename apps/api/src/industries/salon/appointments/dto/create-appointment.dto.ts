@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { SalonAppointmentStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
 class AppointmentServiceDto {
   @ApiProperty() @IsString() serviceId!: string;
@@ -24,6 +24,8 @@ export class CreateAppointmentDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() taxAmount?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() discount?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
+  /** Group bookings (bridal party etc.); kept in the notes. */
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) numberOfGuests?: number;
   @ApiProperty({ type: [AppointmentServiceDto] }) @IsArray() @ValidateNested({ each: true }) @Type(() => AppointmentServiceDto) services!: AppointmentServiceDto[];
 }
 
@@ -33,7 +35,7 @@ export class UpdateAppointmentStatusDto {
 }
 
 export class AddPaymentDto {
-  @ApiProperty() @IsNumber() amount!: number;
+  @ApiProperty() @IsNumber() @Min(0.01) amount!: number;
   @ApiProperty() @IsString() paymentMethod!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() reference?: string;
 }
@@ -42,4 +44,13 @@ export class RescheduleDto {
   @ApiProperty() @IsString() scheduledStart!: string;
   @ApiProperty() @IsString() scheduledEnd!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
+}
+
+/** Final bill at the counter: completes the appointment and posts the sale. */
+export class CheckoutAppointmentDto {
+  @ApiProperty() @IsNumber() @Min(0) paidAmount!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) tip?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
 import {
   X, Truck, Calendar, Clock, MapPin, User, Phone, MessageCircle,
   CheckCircle2, Zap, Sunrise, Sun, Sunset, Store, Heart,
@@ -68,7 +69,7 @@ const MESSAGE_TEMPLATES = [
 const CITIES = ['Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta'];
 
 export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone, initial, onConfirm, onClose }: Props) {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
 
   const [d, setD] = useState<DeliveryDetails>({
     orderType: initial?.orderType ?? 'DELIVERY',

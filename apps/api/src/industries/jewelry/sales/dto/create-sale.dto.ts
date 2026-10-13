@@ -18,6 +18,8 @@ class JewelrySaleItemDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() makingChargeFixed?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() makingChargePct?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() wastagePct?: number;
+  /** Fixed wastage in grams, charged at the line's rate. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() wastageGrams?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() polishCharges?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() hallmarkCharges?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() stoneValue?: number;
@@ -52,11 +54,14 @@ export class CreateJewelrySaleDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() hasCertificate?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() customerNotes?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() internalNotes?: string;
+  /** Owner's PIN when the shop's counter rules ask for it (big discount, credit limit). */
+  @ApiPropertyOptional() @IsOptional() @IsString() managerPin?: string;
 }
 
 export class UpdateSaleStatusDto {
   @ApiProperty({ enum: JewelryOrderStatus }) @IsEnum(JewelryOrderStatus) status!: JewelryOrderStatus;
   @ApiPropertyOptional() @IsOptional() @IsString() cancellationReason?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() managerPin?: string;
 }
 
 export class AddPaymentDto {

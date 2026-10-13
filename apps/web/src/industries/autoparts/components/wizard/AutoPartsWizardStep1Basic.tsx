@@ -14,6 +14,8 @@ import type { AutoPartsWizardBasic } from '../../hooks/useAutoPartsWizard';
 import type { PartCategory } from '../../api/part-profiles.api';
 
 interface Props {
+  /** Editing a saved part: stock changes go through stock adjustment instead. */
+  isEdit?: boolean;
   basic: AutoPartsWizardBasic;
   onChange: (patch: Partial<AutoPartsWizardBasic>) => void;
   errors: string[];
@@ -60,7 +62,7 @@ const UNIT_PRESETS = [
   { value: 'kg', label: 'Kg', hint: '⚖️' },
 ];
 
-export function AutoPartsWizardStep1Basic({ basic, onChange, errors }: Props) {
+export function AutoPartsWizardStep1Basic({ isEdit, basic, onChange, errors }: Props) {
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
   const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list() });
   const { data: allTags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
@@ -302,7 +304,8 @@ export function AutoPartsWizardStep1Basic({ basic, onChange, errors }: Props) {
             value={basic.stock}
             onChange={(e) => onChange({ stock: e.target.value === '' ? '' : Number(e.target.value) })}
             placeholder="0"
-            hint="Current on-hand"
+            disabled={isEdit}
+            hint={isEdit ? 'Stock badalna ho to Stock Adjustment se karein — wajah ke saath record banta hai' : 'Abhi dukaan me kitna hai'}
           />
           <Input
             label="Low Stock Alert"

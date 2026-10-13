@@ -83,7 +83,7 @@ export default function CalendarViewPage() {
         <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="ml-auto h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-pink-500">
           <option value="">All Staff</option>
           {allStaff.map((s) => {
-            const nm = s.staff ? ((s.staff.firstName || '') + ' ' + (s.staff.lastName || '')).trim() : '';
+            const nm = s.staff ? (((s.staff.fullName || s.staff.firstName) || '') + ' ' + (s.staff.lastName || '')).trim() : '';
             return <option key={s.id} value={s.id}>{nm}</option>;
           })}
         </select>

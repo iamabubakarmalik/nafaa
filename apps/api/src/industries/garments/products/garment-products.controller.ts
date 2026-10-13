@@ -3,6 +3,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { OpeningStockDto } from '../common/opening-stock.helper';
 import { GarmentProductsService } from './garment-products.service';
 import { UpsertGarmentProductDto, UpsertVariantProfileDto } from './dto/upsert-garment-product.dto';
 
@@ -12,6 +14,18 @@ import { UpsertGarmentProductDto, UpsertVariantProfileDto } from './dto/upsert-g
 @Controller('garments/products')
 export class GarmentProductsController {
   constructor(private readonly service: GarmentProductsService) {}
+
+  /** First stock of new variants (sizes/colours), booked as opening stock. */
+  @Post(':productId/opening-stock')
+  openingStock(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') productId: string, @Body() dto: OpeningStockDto) {
+    return this.service.openingStock(user, productId, dto, shop.shopId);
+  }
+
+  /** Moves units of an older variant product from the product row to its variants, when exact. */
+  @Post(':productId/variant-stock-split')
+  splitVariantStock(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') productId: string) {
+    return this.service.splitVariantStock(user, productId, shop.shopId);
+  }
 
   @Post() upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertGarmentProductDto) { return this.service.upsertProfile(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('gender') gender?: string, @Query('categoryType') categoryType?: string, @Query('season') season?: string, @Query('collectionId') collectionId?: string, @Query('featured') featured?: string, @Query('newArrival') newArrival?: string, @Query('bestSeller') bestSeller?: string, @Query('onSale') onSale?: string, @Query('search') search?: string) {

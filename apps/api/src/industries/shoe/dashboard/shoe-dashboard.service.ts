@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { linkedVariants, refreshSizeStock } from '../common/size-stock.helper';
 
 @Injectable()
 export class ShoeDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
+    // Size counts on the shoe rows follow the stock engine (sales, returns, purchases).
+    await refreshSizeStock(this.prisma as any, user.tenantId);
     const [
       totalBrands,
       totalProducts,
@@ -80,17 +83,33 @@ export class ShoeDashboardService {
     };
   }
 
+  /** Pairs sold per size, from completed bills (returns taken off). */
   async sizePopularity(user: AuthenticatedUser) {
-    const variants = await this.prisma.shoeSizeVariant.findMany({
+    const sizes = await this.prisma.shoeSizeVariant.findMany({
       where: { tenantId: user.tenantId },
-      orderBy: { totalSold: 'desc' },
-      take: 30,
+      select: { id: true, productId: true, size: true, sizeSystem: true, width: true },
     });
+    const links = await linkedVariants(this.prisma as any, sizes);
+    const keyOfVariant = new Map<string, string>();
+    for (const sz of sizes) {
+      const link = links.get(sz.id);
+      if (link) keyOfVariant.set(link.id, `${sz.size} (${sz.sizeSystem})`);
+    }
+    const sold = keyOfVariant.size
+      ? await this.prisma.saleItem.findMany({
+        where: {
+          variantLink: { variantId: { in: [...keyOfVariant.keys()] } },
+          sale: { tenantId: user.tenantId, status: { notIn: ['VOIDED'] } },
+        },
+        select: { quantity: true, returnedQty: true, variantLink: { select: { variantId: true } } },
+      })
+      : [];
     const grouped: Record<string, number> = {};
-    variants.forEach((v) => {
-      const key = `${v.size} (${v.sizeSystem})`;
-      grouped[key] = (grouped[key] || 0) + v.totalSold;
-    });
+    for (const it of sold) {
+      const key = keyOfVariant.get(it.variantLink!.variantId);
+      if (!key) continue;
+      grouped[key] = (grouped[key] || 0) + Number(it.quantity) - Number(it.returnedQty || 0);
+    }
     return Object.entries(grouped)
       .map(([size, sold]) => ({ size, sold }))
       .sort((a, b) => b.sold - a.sold);

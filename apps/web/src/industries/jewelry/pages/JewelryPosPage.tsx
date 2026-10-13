@@ -13,6 +13,7 @@ import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { jewelrySalesApi } from '../api/sales.api';
+import { withManagerPin } from '@core/security/ManagerPin';
 import { jewelryProductsApi } from '../api/products.api';
 import { metalRatesApi } from '../api/metal-rates.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
@@ -33,6 +34,11 @@ const METAL_COLORS: Record<string, string> = {
   PALLADIUM: 'from-slate-500 to-slate-600',
 };
 
+const EXCHANGE_PURITIES: Array<[string, string]> = [
+  ['KARAT_24', '24K'], ['KARAT_22', '22K'], ['KARAT_21', '21K'], ['KARAT_18', '18K'],
+  ['KARAT_14', '14K'], ['SILVER_999', 'Chandi 999'], ['SILVER_925', 'Chandi 925'], ['OTHER', 'Doosra'],
+];
+
 interface JewelryCartLine {
   cartLineId: string;
   productId: string;
@@ -49,6 +55,7 @@ interface JewelryCartLine {
   makingChargeFixed: number;
   makingChargePct: number;
   wastagePct: number;
+  wastageGrams: number;
   polishCharges: number;
   hallmarkCharges: number;
   stoneValue: number;
@@ -74,7 +81,7 @@ export default function JewelryPosPage() {
   const [globalDiscount, setGlobalDiscount] = useState('');
   const [gstAmount, setGstAmount] = useState('');
   const [paidAmount, setPaidAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'BANK' | 'MIXED'>('CASH');
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'BANK' | 'JAZZCASH' | 'EASYPAISA'>('CASH');
   const [exchangeGrams, setExchangeGrams] = useState('');
   const [exchangePurity, setExchangePurity] = useState('');
   const [exchangeValue, setExchangeValue] = useState('');
@@ -120,9 +127,18 @@ export default function JewelryPosPage() {
   const addJewelryProduct = (p: any) => {
     const rate = getRate(p.metalType, p.purity);
     if (rate === 0) {
-      toast.error(`Metal rate for ${p.metalType} ${p.purity} not set. Update rates first.`);
+      toast.error(`${p.metalType} ${p.purity} ka aaj ka rate set nahi — pehle Metal Rates me rate daalein`);
       return;
     }
+    if (Number(p.product?.stock ?? 0) <= 0) {
+      toast.error(`${p.product?.name || 'Ye zewar'} stock me nahi (bik chuka hai)`);
+      return;
+    }
+    if (cart.some((c) => c.productId === p.productId)) {
+      toast.info('Ye zewar pehle se bill me hai');
+      return;
+    }
+    const gemValue = (p.gemstones ?? []).reduce((s: number, g: any) => s + (Number(g.totalValue) || 0), 0);
     setCart((prev) => [...prev, {
       cartLineId: cartLineId(),
       productId: p.productId,
@@ -139,9 +155,11 @@ export default function JewelryPosPage() {
       makingChargeFixed: p.makingChargeFixed,
       makingChargePct: p.makingChargePct,
       wastagePct: p.wastagePct,
-      polishCharges: p.polishCharge,
+      wastageGrams: Number(p.wastageGrams) || 0,
+      // Designer and other charges from the catalog ride with polish.
+      polishCharges: (Number(p.polishCharge) || 0) + (Number(p.designerCharge) || 0) + (Number(p.otherCharges) || 0),
       hallmarkCharges: p.hallmarkCharge,
-      stoneValue: 0,
+      stoneValue: gemValue,
       quantity: 1,
       hallmarkNumber: p.hallmarkNumber,
       isCertified: p.isCertified,
@@ -168,7 +186,7 @@ export default function JewelryPosPage() {
   const itemCalcs = useMemo(() => cart.map((it) => {
     const metalValue = it.netWeight * it.ratePerGram;
     const makingCharge = (it.makingChargePerGram * it.netWeight) + it.makingChargeFixed + (metalValue * it.makingChargePct / 100);
-    const wastageValue = (it.wastagePct / 100) * metalValue;
+    const wastageValue = (it.wastagePct / 100) * metalValue + (it.wastageGrams || 0) * it.ratePerGram;
     const itemTotal = (metalValue + makingCharge + wastageValue + it.polishCharges + it.hallmarkCharges + it.stoneValue) * it.quantity;
     return { metalValue, makingCharge, wastageValue, itemTotal };
   }), [cart]);
@@ -196,7 +214,8 @@ export default function JewelryPosPage() {
   const checkoutMutation = useMutation({
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
-      return jewelrySalesApi.create({
+      // Counter rules (big discount or old-gold value, credit limit) may ask for an owner or manager PIN.
+      return withManagerPin('Is bill ki manzoori', (managerPin) => jewelrySalesApi.create({
         customerId: customerId || undefined,
         customerName: customerName || selectedCustomer?.name || 'Walk-in',
         customerPhone: customerPhone || selectedCustomer?.phone || undefined,
@@ -209,6 +228,7 @@ export default function JewelryPosPage() {
         exchangeMetalPurity: exchangePurity || undefined,
         exchangeValue: exchange,
         hallmarkVerified,
+        managerPin,
         items: cart.map((c) => ({
           productId: c.productId,
           productName: c.name,
@@ -222,13 +242,14 @@ export default function JewelryPosPage() {
           makingChargeFixed: c.makingChargeFixed,
           makingChargePct: c.makingChargePct,
           wastagePct: c.wastagePct,
+          wastageGrams: c.wastageGrams,
           polishCharges: c.polishCharges,
           hallmarkCharges: c.hallmarkCharges,
           stoneValue: c.stoneValue,
           quantity: c.quantity,
           hallmarkNumber: c.hallmarkNumber,
         })),
-      });
+      }));
     },
     onSuccess: (sale: any) => {
       window.open(`/jewelry/sales/${sale.id}/receipt?auto=1`, '_blank');
@@ -245,16 +266,21 @@ export default function JewelryPosPage() {
       setExchangeValue('');
       setHallmarkVerified(false);
       queryClient.invalidateQueries({ queryKey: ['jewelry-products'] });
+      queryClient.invalidateQueries({ queryKey: ['jewelry-products-for-pos'] });
+      queryClient.invalidateQueries({ queryKey: ['jewelry-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['metal-stock-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['customers-for-pos'] });
       queryClient.invalidateQueries({ queryKey: ['sales-list'] });
       toast.success('Sale complete! Receipt printing...');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Sale nahi hui'),
   });
 
   const handleCheckout = () => {
     if (cart.length === 0) return toast.error('Cart empty');
     if (!currentShopId) return toast.error('Select shop first');
-    if (!customerName && !selectedCustomer && !customerId) return toast.error('Customer name required');
+    if (!customerName && !selectedCustomer && !customerId) return toast.error('Customer ka naam likhein');
+    if (balance > 0 && !customerId) return toast.error('Baqi raqam udhaar hai — customer list se chunein ya poori raqam likhein');
     if (total > 50000 && !customerCnic && !selectedCustomer?.cnic) {
       if (!confirm('High-value sale (>Rs 50,000) — CNIC recommended. Proceed anyway?')) return;
     }
@@ -587,8 +613,11 @@ export default function JewelryPosPage() {
                 <div className="grid grid-cols-3 gap-2">
                   <input type="number" step="0.01" value={exchangeGrams} onChange={(e) => setExchangeGrams(e.target.value)}
                     placeholder="Grams" className="h-9 rounded-lg border border-violet-300 bg-white px-2 text-xs font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
-                  <input value={exchangePurity} onChange={(e) => setExchangePurity(e.target.value)}
-                    placeholder="Purity" className="h-9 rounded-lg border border-violet-300 bg-white px-2 text-xs font-bold focus:outline-none focus:border-violet-500" />
+                  <select value={exchangePurity} onChange={(e) => setExchangePurity(e.target.value)}
+                    className="h-9 rounded-lg border border-violet-300 bg-white px-2 text-xs font-bold focus:outline-none focus:border-violet-500">
+                    <option value="">Karat</option>
+                    {EXCHANGE_PURITIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
                   <input type="number" value={exchangeValue} onChange={(e) => setExchangeValue(e.target.value)}
                     placeholder="Value (Rs)" className="h-9 rounded-lg border border-emerald-300 bg-emerald-50 px-2 text-xs font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                 </div>
@@ -616,7 +645,8 @@ export default function JewelryPosPage() {
                 <option value="CASH">Cash</option>
                 <option value="CARD">Card</option>
                 <option value="BANK">Bank Transfer</option>
-                <option value="MIXED">Mixed Payment</option>
+                <option value="JAZZCASH">JazzCash</option>
+                <option value="EASYPAISA">Easypaisa</option>
               </select>
 
               <div className="rounded-xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-3 space-y-1 text-xs">

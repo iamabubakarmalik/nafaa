@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { groomingApi, type PetGroomingStatus } from '../api/grooming.api';
+import { PosQuickCash } from '@modules/pos/components';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@/design-system/components';
 
@@ -69,17 +70,36 @@ export default function GroomingPage() {
     },
   });
 
+  // Pickup is the checkout: the rest of the fee is taken here and a bill is made.
+  const [pickupFor, setPickupFor] = useState<any>(null);
   const pickup = useMutation({
-    mutationFn: (id: string) => groomingApi.pickup(id),
-    onSuccess: () => {
-      toast.success('Pet picked up');
+    mutationFn: (v: { id: string; paymentMethod: string; paidAmount: number }) =>
+      groomingApi.pickup(v.id, { paymentMethod: v.paymentMethod, paidAmount: v.paidAmount }),
+    onSuccess: (r) => {
+      toast.success(r.sale ? `Pet de diya — bill ${r.sale.saleNumber}` : 'Pet de diya');
+      setPickupFor(null);
       qc.invalidateQueries({ queryKey: ['grooming-list'] });
+      qc.invalidateQueries({ queryKey: ['grooming-summary'] });
+      if (r.sale && localStorage.getItem('nafaa.pos.auto-open-receipt') !== 'false') {
+        window.open(`/sales/${r.sale.id}/receipt?auto=1`, '_blank');
+      }
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Pickup nahi hua'),
   });
 
   return (
     <div className="space-y-5">
+      {pickupFor && (
+        <PosQuickCash
+          total={Math.max(pickupFor.totalFee - pickupFor.paidAmount, 0)}
+          itemCount={1}
+          loading={pickup.isPending}
+          customerName={pickupFor.customerName}
+          hasCustomer
+          onConfirm={({ paymentMethod, paidAmount }) => pickup.mutate({ id: pickupFor.id, paymentMethod, paidAmount })}
+          onClose={() => setPickupFor(null)}
+        />
+      )}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
@@ -165,7 +185,7 @@ export default function GroomingPage() {
             <AppointmentCard key={a.id} appointment={a}
               onStart={() => start.mutate(a.id)}
               onComplete={() => complete.mutate(a.id)}
-              onPickup={() => pickup.mutate(a.id)}
+              onPickup={() => setPickupFor(a)}
               onEdit={() => navigate(`/petshop/grooming/${a.id}/edit`)} />
           ))}
         </div>
@@ -243,7 +263,7 @@ function AppointmentCard({ appointment: a, onStart, onComplete, onPickup, onEdit
             </div>
           )}
           <div className="mt-2 flex flex-col gap-1">
-            {a.status === 'CONFIRMED' && (
+            {['SCHEDULED', 'CONFIRMED'].includes(a.status) && (
               <button onClick={onStart}
                 className="h-8 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1">
                 <Play className="h-3 w-3" /> Start
@@ -255,7 +275,7 @@ function AppointmentCard({ appointment: a, onStart, onComplete, onPickup, onEdit
                 <CheckCircle2 className="h-3 w-3" /> Ready
               </button>
             )}
-            {a.status === 'READY_FOR_PICKUP' && balance === 0 && (
+            {a.status === 'READY_FOR_PICKUP' && (
               <button onClick={onPickup}
                 className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold inline-flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" /> Pickup

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { saleFigures } from '../../../common/helpers/business-math.helper';
+import { dayEnd, dayKey, dayStart } from '../petshop-common';
 
 @Injectable()
 export class PetshopDashboardService {
@@ -8,9 +10,10 @@ export class PetshopDashboardService {
 
   async overview(user: AuthenticatedUser) {
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
+    // Shop-day edges (Pakistan time), not the server's UTC day.
+    const monthStart = dayStart(dayKey().slice(0, 8) + '01');
+    const todayStart = dayStart();
+    const todayEnd = dayEnd();
     const in90 = new Date(); in90.setDate(in90.getDate() + 90);
 
     const [
@@ -113,6 +116,12 @@ export class PetshopDashboardService {
       }),
     ]);
 
+    // Every bill counts: counter sales, animals and grooming visits all become bills.
+    const [salesToday, salesMonth] = await Promise.all([
+      saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: todayStart, lt: new Date(todayEnd.getTime() + 1) }),
+      saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthStart }),
+    ]);
+
     const groomRev = groomingMonth._sum.paidAmount ?? 0;
     const animalRev = animalsMonth._sum.soldPrice ?? 0;
 
@@ -132,7 +141,8 @@ export class PetshopDashboardService {
         groomingRevenue: groomingToday._sum.paidAmount ?? 0,
         animalSalesCount: animalsToday._count._all,
         animalRevenue: animalsToday._sum.soldPrice ?? 0,
-        totalRevenue: (groomingToday._sum.paidAmount ?? 0) + (animalsToday._sum.soldPrice ?? 0),
+        totalRevenue: salesToday.net,
+        bills: salesToday.bills,
       },
       monthly: {
         grooming: { count: groomingMonth._count._all, billed: groomingMonth._sum.totalFee ?? 0, collected: groomRev },
@@ -142,7 +152,8 @@ export class PetshopDashboardService {
           cost: animalsMonth._sum.costPrice ?? 0,
           profit: animalRev - (animalsMonth._sum.costPrice ?? 0),
         },
-        totalRevenue: groomRev + animalRev,
+        totalRevenue: salesMonth.net,
+        grossProfit: salesMonth.grossProfit,
       },
       todaySchedule,
       pickupList,

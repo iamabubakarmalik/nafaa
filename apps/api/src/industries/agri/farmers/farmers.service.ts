@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput } from '../agri-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -58,6 +59,43 @@ export class FarmersService {
     return created.id;
   }
 
+  /**
+   * Udhaar lives on the farmer's Customer khata — that is where POS credit
+   * sales and khata payments land. The copy on AgriFarmer was never updated
+   * by the counter, so the Farmers page showed 0 owed for farmers who did
+   * owe. Every read overlays the live khata on the farmer row.
+   */
+  private async withKhata<T extends { customerId: string | null; currentBalance: number; totalOutstanding: number; totalPurchases: number; lastPurchaseAt: Date | null }>(
+    tenantId: string,
+    farmers: T[],
+  ): Promise<T[]> {
+    const ids = farmers.map((f) => f.customerId).filter((x): x is string => !!x);
+    if (!ids.length) return farmers;
+    const [customers, lastSales] = await Promise.all([
+      this.prisma.customer.findMany({ where: { tenantId, id: { in: ids } }, select: { id: true, balance: true, totalSpent: true } }),
+      this.prisma.sale.groupBy({
+        by: ['customerId'],
+        where: { tenantId, customerId: { in: ids } },
+        _max: { createdAt: true },
+      }),
+    ]);
+    const balance = new Map(customers.map((c) => [c.id, c.balance]));
+    const spent = new Map(customers.map((c) => [c.id, c.totalSpent]));
+    const last = new Map(lastSales.map((r) => [r.customerId as string, r._max.createdAt]));
+    return farmers.map((f) => {
+      if (!f.customerId || !balance.has(f.customerId)) return f;
+      const owed = Math.max(balance.get(f.customerId) ?? 0, 0);
+      const lastSale = last.get(f.customerId) ?? null;
+      return {
+        ...f,
+        currentBalance: owed,
+        totalOutstanding: owed,
+        totalPurchases: Math.max(spent.get(f.customerId) ?? 0, f.totalPurchases),
+        lastPurchaseAt: lastSale && (!f.lastPurchaseAt || lastSale > f.lastPurchaseAt) ? lastSale : f.lastPurchaseAt,
+      };
+    });
+  }
+
   async create(user: AuthenticatedUser, dto: any) {
     if (!dto.farmerNumber) {
       const count = await this.prisma.agriFarmer.count({ where: { tenantId: user.tenantId } });
@@ -70,7 +108,11 @@ export class FarmersService {
 
     /* shopId sirf Customer ke liye hai — AgriFarmer me aisa koi
        khana nahi, is liye alag kar ke bhejte hain. */
-    const { shopId, customerId: givenCustomerId, ...farmerData } = dto;
+    const { shopId, customerId: givenCustomerId, ...farmerData } = cleanInput(dto);
+    if (givenCustomerId) {
+      const own = await this.prisma.customer.findFirst({ where: { id: givenCustomerId, tenantId: user.tenantId }, select: { id: true } });
+      if (!own) throw new BadRequestException('Customer nahi mila');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const customerId = givenCustomerId
@@ -104,6 +146,10 @@ export class FarmersService {
     if (farmer.customerId) return farmer;
 
     return this.prisma.$transaction(async (tx) => {
+      if (customerId) {
+        const own = await tx.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
+        if (!own) throw new BadRequestException('Customer nahi mila');
+      }
       const linkId = customerId
         ?? await this.linkOrCreateCustomer(tx, user.tenantId, farmer);
       return tx.agriFarmer.update({
@@ -114,7 +160,7 @@ export class FarmersService {
   }
 
   async list(user: AuthenticatedUser, params: { status?: string; district?: string; search?: string }) {
-    return this.prisma.agriFarmer.findMany({
+    const rows = await this.prisma.agriFarmer.findMany({
       where: {
         tenantId: user.tenantId,
         isActive: true,
@@ -133,16 +179,18 @@ export class FarmersService {
       orderBy: { updatedAt: 'desc' },
       take: 200,
     });
+    return this.withKhata(user.tenantId, rows);
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
     const f = await this.prisma.agriFarmer.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!f) throw new NotFoundException('Farmer not found');
-    return f;
+    return (await this.withKhata(user.tenantId, [f]))[0];
   }
 
   async byCustomer(user: AuthenticatedUser, customerId: string) {
-    return this.prisma.agriFarmer.findFirst({ where: { customerId, tenantId: user.tenantId } });
+    const f = await this.prisma.agriFarmer.findFirst({ where: { customerId, tenantId: user.tenantId } });
+    return f ? (await this.withKhata(user.tenantId, [f]))[0] : null;
   }
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
@@ -151,7 +199,7 @@ export class FarmersService {
     return this.prisma.agriFarmer.update({
       where: { id },
       data: {
-        ...dto,
+        ...cleanInput(dto),
         creditLimit: dto.creditLimit !== undefined ? Number(dto.creditLimit) : undefined,
         landAreaAcres: dto.landAreaAcres !== undefined ? Number(dto.landAreaAcres) : undefined,
         landAreaKanals: dto.landAreaKanals !== undefined ? Number(dto.landAreaKanals) : undefined,
@@ -160,6 +208,7 @@ export class FarmersService {
   }
 
   async suspend(user: AuthenticatedUser, id: string, reason: string) {
+    await this.getOne(user, id);
     return this.prisma.agriFarmer.update({
       where: { id },
       data: { status: 'SUSPENDED', suspendedAt: new Date(), suspensionReason: reason },
@@ -167,6 +216,7 @@ export class FarmersService {
   }
 
   async reactivate(user: AuthenticatedUser, id: string) {
+    await this.getOne(user, id);
     return this.prisma.agriFarmer.update({
       where: { id },
       data: { status: 'ACTIVE', suspendedAt: null, suspensionReason: null },
@@ -174,6 +224,7 @@ export class FarmersService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
+    await this.getOne(user, id);
     return this.prisma.agriFarmer.update({ where: { id }, data: { isActive: false } });
   }
 
@@ -206,42 +257,39 @@ export class FarmersService {
   }
 
   async overdueList(user: AuthenticatedUser) {
-    return this.prisma.agriFarmer.findMany({
-      where: {
-        tenantId: user.tenantId,
-        isActive: true,
-        totalOutstanding: { gt: 0 },
-      },
-      orderBy: { totalOutstanding: 'desc' },
-      take: 100,
+    const rows = await this.prisma.agriFarmer.findMany({
+      where: { tenantId: user.tenantId, isActive: true },
     });
+    const live = await this.withKhata(user.tenantId, rows);
+    return live
+      .filter((f) => f.totalOutstanding > 0)
+      .sort((a, b) => b.totalOutstanding - a.totalOutstanding)
+      .slice(0, 100);
   }
 
   async summary(user: AuthenticatedUser) {
-    const [total, active, suspended, byDistrict, totalOutstanding, totalCredit] = await Promise.all([
-      this.prisma.agriFarmer.count({ where: { tenantId: user.tenantId, isActive: true } }),
-      this.prisma.agriFarmer.count({ where: { tenantId: user.tenantId, isActive: true, status: 'ACTIVE' } }),
-      this.prisma.agriFarmer.count({ where: { tenantId: user.tenantId, isActive: true, status: 'SUSPENDED' } }),
+    const [rows, byDistrict] = await Promise.all([
+      this.prisma.agriFarmer.findMany({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.agriFarmer.groupBy({
         by: ['district'],
         where: { tenantId: user.tenantId, isActive: true, district: { not: null } },
         _count: { _all: true },
       }),
-      this.prisma.agriFarmer.aggregate({
-        where: { tenantId: user.tenantId, isActive: true },
-        _sum: { totalOutstanding: true, currentBalance: true, totalPurchases: true, creditLimit: true },
-      }),
-      this.prisma.agriFarmer.count({
-        where: { tenantId: user.tenantId, isActive: true, currentBalance: { gt: 0 } },
-      }),
     ]);
+    const live = await this.withKhata(user.tenantId, rows);
+    const sum = (pick: (f: (typeof live)[number]) => number) => live.reduce((a, f) => a + (pick(f) || 0), 0);
     return {
-      total,
-      active,
-      suspended,
+      total: live.length,
+      active: live.filter((f) => f.status === 'ACTIVE').length,
+      suspended: live.filter((f) => f.status === 'SUSPENDED').length,
       byDistrict,
-      totals: totalOutstanding._sum,
-      farmersWithCredit: totalCredit,
+      totals: {
+        totalOutstanding: sum((f) => f.totalOutstanding),
+        currentBalance: sum((f) => f.currentBalance),
+        totalPurchases: sum((f) => f.totalPurchases),
+        creditLimit: sum((f) => f.creditLimit),
+      },
+      farmersWithCredit: live.filter((f) => f.currentBalance > 0).length,
     };
   }
 }

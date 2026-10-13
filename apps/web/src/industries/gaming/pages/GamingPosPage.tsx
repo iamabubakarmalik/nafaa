@@ -352,19 +352,27 @@ export default function GamingPosPage() {
       }));
 
       const topupLines = cart.filter((l) => l.type === 'topup' && l.topupId);
+      // Each card is billed on its own at full price and paid first; the
+      // product bill gets the discount and whatever money is left.
+      const topupTotal = topupLines.reduce((a, l) => a + l.unitPrice * l.quantity, 0);
+      const productSubtotal = cart.filter((l) => l.type === 'product' && l.productId).reduce((a, l) => a + l.unitPrice * l.quantity, 0);
+      let paidLeft = data.paidAmount;
 
       const sale = productItems.length > 0 ? await offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,
-        paidAmount: data.paidAmount,
-        discount: discountAmount,
+        paidAmount: Math.max(data.paidAmount - topupTotal, 0),
+        discount: Math.min(discountAmount, productSubtotal),
         items: productItems,
       }) : null;
 
       const codesRevealed: Array<{ label: string; code: string; pin?: string }> = [];
+      let topupSaleId: string | null = null;
       for (const t of topupLines) {
         try {
+          const cardPaid = Math.min(Math.max(paidLeft, 0), t.unitPrice);
+          paidLeft -= cardPaid;
           const revealed = await gamingTopupsApi.sell(t.topupId!, {
             customerId: customerId || undefined,
             customerName: selectedCustomer?.name,
@@ -372,7 +380,11 @@ export default function GamingPosPage() {
             deliveredVia: 'POS',
             deliveryReference: sale?.saleNumber,
             actualSellingPrice: t.unitPrice,
+            paidAmount: cardPaid,
+            paymentMethod: data.paymentMethod,
+            shopId: currentShopId,
           });
+          if (!topupSaleId && revealed.sale) topupSaleId = revealed.sale.id;
           if (revealed.cardCode) {
             codesRevealed.push({
               label: t.name,
@@ -385,7 +397,7 @@ export default function GamingPosPage() {
         }
       }
 
-      return { sale, codesRevealed };
+      return { sale: sale ?? (topupSaleId ? { id: topupSaleId, saleNumber: 'TOPUP' } as any : null), codesRevealed };
     },
     onSuccess: ({ sale, codesRevealed }, vars) => {
       const change = Math.max(vars.paidAmount - total, 0);

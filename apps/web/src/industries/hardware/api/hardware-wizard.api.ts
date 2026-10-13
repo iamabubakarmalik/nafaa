@@ -1,7 +1,60 @@
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { bulkPricingApi } from './bulk-pricing.api';
 import { reorderRulesApi } from './reorder-rules.api';
+import { hardwareProductsApi, type HardwareProduct, type Unit } from './products.api';
 import type { HardwareWizardDraft } from '../hooks/useHardwareWizard';
+
+/** Product unit (lowercase, shared catalog) to the hardware profile unit. */
+const PROFILE_UNIT: Record<string, Unit> = {
+  bag: 'BAG', ton: 'TON', kg: 'KG', pcs: 'PIECE', bundle: 'BUNDLE', meter: 'METER', feet: 'FEET',
+  sqft: 'SQFT', sqm: 'SQMETER', cft: 'CUBIC_FEET', liter: 'LITER', gallon: 'GALLON',
+  sheet: 'SHEET', box: 'BOX', trip: 'TRIP',
+};
+
+const num = (v: number | string | '' | undefined) => {
+  if (v === '' || v === undefined || v === null) return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+};
+const text = (v?: string) => (v && v.trim() ? v.trim() : undefined);
+/** "350 sqft per gallon" → 350 */
+const leadingNumber = (v?: string) => {
+  const m = v?.match(/\d+(\.\d+)?/);
+  return m ? Number(m[0]) : undefined;
+};
+
+/** Hardware profile: brand, category type, specs and flags the hardware pages filter on. */
+function buildProfile(productId: string, draft: HardwareWizardDraft): Partial<HardwareProduct> {
+  const { basic, specs } = draft;
+  const profile: Record<string, unknown> = {
+    productId,
+    brandId: basic.hardwareBrandId || undefined,
+    categoryType: basic.categoryType,
+    unit: PROFILE_UNIT[basic.unit] ?? 'PIECE',
+    gradeStrength: text(specs.grade),
+    bagWeight: num(specs.bagWeight),
+    grade: text(specs.steelGrade),
+    diameter: text(specs.diameter),
+    weightPerUnit: num(specs.weightPerPiece),
+    tileSize: text(specs.tileSize),
+    finishType: text(specs.finish),
+    piecesPerBox: num(specs.piecesPerBox) !== undefined ? Math.round(Number(specs.piecesPerBox)) : undefined,
+    sqftPerBox: num(specs.sqftPerBox),
+    colorName: text(specs.colorName),
+    colorCode: text(specs.colorHex),
+    finishSheen: text(specs.paintFinish),
+    coverage: leadingNumber(specs.coverage),
+    litersPerCan: num(specs.litersPerCan),
+    manufacturingLocation: text(specs.originCountry),
+    isFeatured: basic.isFeatured,
+    isBestSeller: basic.isBestSeller,
+    isFastMoving: basic.isFastMoving,
+    requiresTruck: basic.requiresTruck,
+    hasIsoCertification: basic.hasIsoCertification,
+  };
+  // Leave out empty fields so the strict API validation passes.
+  return Object.fromEntries(Object.entries(profile).filter(([, v]) => v !== undefined)) as Partial<HardwareProduct>;
+}
 
 export interface HardwareWizardSaveResult {
   productId: string;
@@ -77,7 +130,9 @@ export async function saveHardwareWizard(
     costPrice: Number(basic.costPrice || 0),
     wholesalePrice: basic.wholesalePrice === '' ? undefined : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: Number(basic.initialStock || 0),
+    // Stock is set only when the product is created; later changes go through
+    // stock adjustment so the movement and its reason are recorded.
+    ...(existingId ? {} : { stock: Number(basic.initialStock || 0) }),
     lowStockAlert: Number(basic.lowStockAlert || 10),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -87,7 +142,7 @@ export async function saveHardwareWizard(
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
 
@@ -99,28 +154,43 @@ export async function saveHardwareWizard(
     throw reason;
   };
 
-  // ─── 2. CREATE BULK PRICING TIERS ──────────────────────
+  // ─── 2. HARDWARE PROFILE ───────────────────────────────
+  // The hardware Products page lists these profiles; without one the product never shows there.
+  try {
+    await hardwareProductsApi.upsert(buildProfile(productId, draft));
+  } catch (e) {
+    await rollback(e);
+  }
+
+  // ─── 3. BULK PRICING TIERS ─────────────────────────────
+  // On edit the saved tiers are updated, removed ones deleted and new ones added,
+  // so saving twice never doubles the tiers.
   let bulkTierCount = 0;
-  if (bulkTiers.length > 0) {
-    for (const tier of bulkTiers) {
-      try {
-        await bulkPricingApi.create({
-          productId,
-          minQuantity: tier.minQuantity,
-          maxQuantity: tier.maxQuantity,
-          price: tier.price,
-          discountPct: tier.discountPct,
-          label: tier.label,
-          isActive: true,
-        });
-        bulkTierCount++;
-      } catch (e) {
-        await rollback(e);
-      }
+  const existingTiers = existingId ? await bulkPricingApi.listByProduct(productId).catch(() => []) : [];
+  const keptIds = new Set(bulkTiers.map((t) => t.id).filter(Boolean));
+  for (const old of existingTiers) {
+    if (!keptIds.has(old.id)) await bulkPricingApi.remove(old.id).catch(() => undefined);
+  }
+  for (const tier of bulkTiers) {
+    const body = {
+      productId,
+      minQuantity: tier.minQuantity,
+      maxQuantity: tier.maxQuantity,
+      price: tier.price,
+      discountPct: tier.discountPct,
+      label: tier.label,
+      isActive: true,
+    };
+    try {
+      if (tier.id && existingTiers.some((t) => t.id === tier.id)) await bulkPricingApi.update(tier.id, body);
+      else await bulkPricingApi.create(body);
+      bulkTierCount++;
+    } catch (e) {
+      await rollback(e);
     }
   }
 
-  // ─── 3. CREATE REORDER RULE ────────────────────────────
+  // ─── 4. REORDER RULE ───────────────────────────────────
   let hasReorderRule = false;
   if (reorder.enabled) {
     try {

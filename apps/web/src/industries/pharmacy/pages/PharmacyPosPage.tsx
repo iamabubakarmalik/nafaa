@@ -18,7 +18,7 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { medicinesApi } from '../api/medicines.api';
-import { batchesApi } from '../api/batches.api';
+import { controlledLogApi } from '../api/controlled-log.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
@@ -183,6 +183,24 @@ export default function PharmacyPosPage() {
       });
     },
     onSuccess: (sale) => {
+      // Narcotic register: one line per controlled medicine on a synced bill.
+      if (sale?.id && !String(sale.id).startsWith('local_')) {
+        for (const c of cart) {
+          if (!medicineMap.get(c.productId)?.isNarcotic) continue;
+          controlledLogApi.create({
+            productId: c.productId,
+            logType: 'SALE',
+            quantity: c.quantity,
+            unit: c.unit,
+            saleId: sale.id,
+            patientName: selectedCustomer?.name,
+            patientPhone: selectedCustomer?.phone || undefined,
+            patientCnic: (selectedCustomer as any)?.cnic || undefined,
+            doctorName: doctorName || undefined,
+            doctorRegNumber: doctorRegNumber || undefined,
+          }).catch(() => toast.warning(`${c.name}: narcotic register me entry nahi hui`));
+        }
+      }
       window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
       clearCart();
       setPrescriptionAttached(false);
@@ -198,6 +216,10 @@ export default function PharmacyPosPage() {
     if (!currentShopId) return toast.error('Select shop first');
     if (needsPrescription && !prescriptionAttached) {
       return toast.error('Prescription required for Rx medicines');
+    }
+    const hasNarcotic = cart.some((item) => medicineMap.get(item.productId)?.isNarcotic);
+    if (hasNarcotic && !customerId) {
+      return toast.error('Narcotic dawai ke liye mareez (customer) chunein — register me naam likha jata hai');
     }
     if (credit > 0 && !customerId) return toast.error('Customer required for credit');
     checkoutMutation.mutate();

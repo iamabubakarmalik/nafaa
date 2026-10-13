@@ -10,8 +10,8 @@ export class SpecialtyService {
   async recordDental(user: AuthenticatedUser, dto: any) {
     return this.prisma.clinicDentalRecord.create({
       data: {
-        tenantId: user.tenantId,
         ...dto,
+        tenantId: user.tenantId,
         performedAt: dto.performedAt ? new Date(dto.performedAt) : new Date(),
       },
     });
@@ -24,11 +24,19 @@ export class SpecialtyService {
     });
   }
 
+  private async ownDental(user: AuthenticatedUser, id: string) {
+    const r = await this.prisma.clinicDentalRecord.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true } });
+    if (!r) throw new NotFoundException('Record nahi mila');
+  }
+
   async updateDental(user: AuthenticatedUser, id: string, dto: any) {
-    return this.prisma.clinicDentalRecord.update({ where: { id }, data: dto });
+    await this.ownDental(user, id);
+    const { tenantId: _t, id: _i, ...data } = dto ?? {};
+    return this.prisma.clinicDentalRecord.update({ where: { id }, data });
   }
 
   async removeDental(user: AuthenticatedUser, id: string) {
+    await this.ownDental(user, id);
     return this.prisma.clinicDentalRecord.delete({ where: { id } });
   }
 
@@ -36,8 +44,8 @@ export class SpecialtyService {
   async createAncVisit(user: AuthenticatedUser, dto: any) {
     return this.prisma.clinicAntenatalVisit.create({
       data: {
-        tenantId: user.tenantId,
         ...dto,
+        tenantId: user.tenantId,
         visitDate: dto.visitDate ? new Date(dto.visitDate) : new Date(),
         nextVisitDate: dto.nextVisitDate ? new Date(dto.nextVisitDate) : undefined,
       },
@@ -55,8 +63,8 @@ export class SpecialtyService {
   async createPhysioSession(user: AuthenticatedUser, dto: any) {
     return this.prisma.clinicPhysioSession.create({
       data: {
-        tenantId: user.tenantId,
         ...dto,
+        tenantId: user.tenantId,
         sessionDate: dto.sessionDate ? new Date(dto.sessionDate) : new Date(),
         nextSessionDate: dto.nextSessionDate ? new Date(dto.nextSessionDate) : undefined,
       },

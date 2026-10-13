@@ -13,6 +13,7 @@ import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProd
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { withManagerPin } from '@core/security/ManagerPin';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import {
@@ -439,7 +440,9 @@ export default function AppliancesPosPage() {
         note: l.note,
       }));
 
-      const sale = await offlineSalesApi.create({
+      // Counter rules (discount limit, credit limit) may ask for an owner or manager PIN.
+      const sale = await withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+        ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,
@@ -447,7 +450,7 @@ export default function AppliancesPosPage() {
         discount: discountAmount,
         ...(serviceCharges ? { serviceCharges } : {}),
         items,
-      });
+      }));
 
       let installationsBooked = 0;
       let queuedOffline = 0;
@@ -491,7 +494,10 @@ export default function AppliancesPosPage() {
               invoiceNumber: sale.saleNumber,
               deliveryAddress: delivery.address || deliveryAddress || undefined,
             } as any);
-          } catch {}
+          } catch (e: any) {
+            // The bill is done; say clearly which unit still shows as in stock.
+            toast.warning(`Serial ${line.serialNumber ?? ''} sold mark nahi hua: ${e?.response?.data?.message || 'dobara koshish karein'}`);
+          }
         }
       }
 
@@ -512,7 +518,7 @@ export default function AppliancesPosPage() {
       const autoOpen = localStorage.getItem('nafaa.pos.auto-open-receipt') !== 'false';
       if (autoOpen) window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Sale nahi hui'),
   });
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {

@@ -4,7 +4,8 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RepairServicesService } from './repair-services.service';
-import { CreateRepairServiceDto, UpdateRepairStatusDto } from './dto/create-repair.dto';
+import { CreateRepairServiceDto, RepairPaymentDto, UpdateRepairStatusDto } from './dto/create-repair.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Sports - Repair Services')
 @ApiBearerAuth()
@@ -14,8 +15,8 @@ export class RepairServicesController {
   constructor(private readonly service: RepairServicesService) {}
 
   @Post()
-  create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateRepairServiceDto) {
-    return this.service.create(user, dto);
+  create(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: CreateRepairServiceDto) {
+    return this.service.create(user, dto, shop.shopId);
   }
 
   @Get()
@@ -48,13 +49,13 @@ export class RepairServicesController {
   }
 
   @Patch(':id/status')
-  updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateRepairStatusDto) {
-    return this.service.updateStatus(user, id, dto);
+  updateStatus(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: UpdateRepairStatusDto) {
+    return this.service.updateStatus(user, id, dto, shop.shopId);
   }
 
   @Post(':id/payment')
-  payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number }) {
-    return this.service.recordPayment(user, id, body.amount);
+  payment(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() body: RepairPaymentDto) {
+    return this.service.recordPayment(user, id, body.amount, shop.shopId);
   }
 
   @Delete(':id')

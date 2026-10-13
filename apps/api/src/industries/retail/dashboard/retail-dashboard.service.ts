@@ -1,22 +1,39 @@
+/**
+ * Retail dashboard figures. Sales numbers come from the shared business-math
+ * helper (net of returns, cash in = paid − change, branch-scoped) so they
+ * match the Reports centre, Profit report and the main dashboard. Alerts are
+ * scoped to the branch in view; low stock and reorders are counted live from
+ * the low-stock service, so they match the Low stock page.
+ */
+
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import {
   startOfDayTz,
-  startOfMonthTz,
   subDaysTz,
   subMonthsTz,
   startOfBusinessDayTz,
-  endOfBusinessDayTz,
   startOfBusinessMonthTz,
-  tzParts
+  tzParts,
 } from '../../../common/helpers/business-time.helper';
+import {
+  KEPT_QTY,
+  LINE_REVENUE,
+  billMathCte,
+  liveSaleSql,
+  saleFigures,
+  type MathScope,
+} from '../../../common/helpers/business-math.helper';
+import { ShopScope } from '../../../common/shop-scope';
 import { BusinessPulseService } from '../../../modules/dashboard/business-pulse.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { LowStockService } from '../../../modules/inventory/low-stock/low-stock.service';
 
-/** Sirf mukammal sales ginti me — draft/cancel nahi. */
+/** Bills that still count for "what sold" lists (not voided, not fully returned). */
 const SOLD_STATUSES = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
+
+const growth = (now: number, before: number) => (before > 0 ? ((now - before) / before) * 100 : now > 0 ? 100 : 0);
 
 @Injectable()
 export class RetailDashboardService {
@@ -24,27 +41,13 @@ export class RetailDashboardService {
     private readonly prisma: PrismaService,
     private readonly pulse: BusinessPulseService,
     private readonly tzService: TenantTimezoneService,
+    private readonly lowStock: LowStockService,
   ) {}
 
   async overview(user: AuthenticatedUser, shopId?: string) {
-    // `Prisma.sql` / `Prisma.empty`, never a plain nested template string: a
-    // nested `${...}` inside $queryRaw becomes a bound parameter, so the SQL
-    // ends up with a stray placeholder where the AND clause should be.
-    const shopFilter = shopId
-      ? Prisma.sql`AND s."shopId" = ${shopId}`
-      : Prisma.empty;
-
-    // Har hadd DUKAAN ke apne waqt par. Server UTC par chalta hai, is
-    // liye `startOfDay(new Date())` se din 5 ghante pehle shuru ho
-    // jata tha — aur timezone har tenant ka apna hai, kyunke Nafaa
-    // sirf Pakistan me nahi chalta.
+    // Business days in the shop's own timezone and day-start hour.
     const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
     const now = new Date();
-    /* Karobari din: dukaan ka apna ghanta. Jo dukaan raat 2 baje band
-       hoti hai wo 4 rakhti hai, phir raat 1 baje ki bikri usi din me
-       girti hai jis din dukaan khuli thi. 0 (default) par hisab bilkul
-       wohi rehta hai jo pehle tha — kisi chalti dukaan ka kuch nahi
-       badalta jab tak wo khud na badle. */
     const todayStart = startOfBusinessDayTz(now, tz, dayStartHour);
     const yesterdayStart = subDaysTz(todayStart, 1, tz);
     const weekAgo = subDaysTz(todayStart, 6, tz);
@@ -53,189 +56,130 @@ export class RetailDashboardService {
     const _lm = tzParts(subMonthsTz(todayStart, 1, tz), tz);
     const lastMonthStart = startOfBusinessMonthTz(_lm.year, _lm.month, tz, dayStartHour);
 
-    const baseWhere = {
-      tenantId: user.tenantId,
-      status: { in: [...SOLD_STATUSES] },
-      ...(shopId && { shopId }),
-    };
+    const math: MathScope = { tenantId: user.tenantId, shopId: shopId ?? null };
+    const weekWhere = liveSaleSql(math, { gte: weekAgo });
+    const todayWhere = liveSaleSql(math, { gte: todayStart });
 
     const [
-      todaySales,
-      yesterdaySales,
-      weekSales,
-      monthSales,
-      lastMonthSales,
-      topProducts,
-      categoryPerformance,
-      lowStockCount,
-      damagesToday,
-      pendingReorders,
+      today, yesterday, week, month, lastMonth,
+      topProducts, categoryPerformance, stockAlerts, damagesToday,
     ] = await Promise.all([
-      // Today's revenue
-      this.prisma.sale.aggregate({
-        where: { ...baseWhere, soldAt: { gte: todayStart } },
-        _sum: { total: true, costOfGoods: true, paidAmount: true, creditAmount: true },
-        _count: { _all: true },
-      }),
+      saleFigures(this.prisma, math, { gte: todayStart }),
+      saleFigures(this.prisma, math, { gte: yesterdayStart, lt: todayStart }),
+      saleFigures(this.prisma, math, { gte: weekAgo }),
+      saleFigures(this.prisma, math, { gte: monthStart }),
+      saleFigures(this.prisma, math, { gte: lastMonthStart, lt: monthStart }),
 
-      // Yesterday for comparison
-      this.prisma.sale.aggregate({
-        where: {
-          ...baseWhere,
-          soldAt: { gte: yesterdayStart, lt: todayStart },
-        },
-        _sum: { total: true },
-        _count: { _all: true },
-      }),
+      // Today's best sellers by what they earned after discounts and returns.
+      this.prisma.$queryRaw<Array<{ productId: string | null; quantity: number; total: number }>>`
+        WITH ${billMathCte(todayWhere)}
+        SELECT si."productId" AS "productId",
+          COALESCE(SUM(${KEPT_QTY}), 0)::float8 AS quantity,
+          COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS total
+        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+        WHERE ${todayWhere} AND si."productId" IS NOT NULL
+        GROUP BY 1
+        HAVING COALESCE(SUM(${KEPT_QTY}), 0) > 0
+        ORDER BY total DESC
+        LIMIT 10`,
 
-      // Last 7 days
-      this.prisma.sale.aggregate({
-        where: { ...baseWhere, soldAt: { gte: weekAgo } },
-        _sum: { total: true, costOfGoods: true },
-        _count: { _all: true },
-      }),
-
-      // Is mahine
-      this.prisma.sale.aggregate({
-        where: { ...baseWhere, soldAt: { gte: monthStart } },
-        _sum: { total: true, costOfGoods: true },
-        _count: { _all: true },
-      }),
-
-      // Pichhle mahine — poora mahina, taake muqabla barabar ka ho
-      this.prisma.sale.aggregate({
-        where: { ...baseWhere, soldAt: { gte: lastMonthStart, lt: monthStart } },
-        _sum: { total: true, costOfGoods: true },
-      }),
-
-      // Top selling products today
-      this.prisma.saleItem.groupBy({
-        by: ['productId'],
-        where: {
-          sale: {
-            tenantId: user.tenantId,
-            status: { in: [...SOLD_STATUSES] },
-            soldAt: { gte: todayStart },
-            ...(shopId && { shopId }),
-          },
-        },
-        _sum: { quantity: true, total: true },
-        orderBy: { _sum: { total: 'desc' } },
-        take: 10,
-      }),
-
-      // Category performance
-      this.prisma.$queryRaw<Array<{ categoryId: string; name: string; total: number; count: number }>>`
-        SELECT
-          c.id as "categoryId",
-          c.name,
-          COALESCE(SUM(si.total), 0)::float as total,
-          COUNT(DISTINCT si.id)::int as count
+      // Category sales of the last 7 business days, net of discounts and returns.
+      this.prisma.$queryRaw<Array<{ categoryId: string | null; name: string | null; total: number; count: number }>>`
+        WITH ${billMathCte(weekWhere)}
+        SELECT c.id AS "categoryId", c.name,
+          COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS total,
+          COUNT(DISTINCT si.id)::int AS count
         FROM "SaleItem" si
+        JOIN "Sale" s ON s.id = si."saleId"
+        JOIN bm ON bm.id = s.id
         JOIN "Product" p ON p.id = si."productId"
         LEFT JOIN "Category" c ON c.id = p."categoryId"
-        JOIN "Sale" s ON s.id = si."saleId"
-        WHERE s."tenantId" = ${user.tenantId}
-          AND s.status IN ('COMPLETED', 'PARTIALLY_RETURNED')
-          AND s."soldAt" >= ${weekAgo}
-          ${shopFilter}
+        WHERE ${weekWhere}
         GROUP BY c.id, c.name
         ORDER BY total DESC
-        LIMIT 8
-      `,
+        LIMIT 8`,
 
-      // Low stock alert
-      this.prisma.product.count({
-        where: {
-          tenantId: user.tenantId,
-          isActive: true,
-          stock: { lte: this.prisma.product.fields.lowStockAlert as any },
-        },
-      }),
+      this.stockAlerts(user, shopId),
 
-      // Damages today
-      this.prisma.damageLog.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          createdAt: { gte: todayStart },
-        },
+      // Damage noted today (rejected ones left out); the loss counts once approved, as in the reports.
+      this.prisma.damageLog.groupBy({
+        by: ['status'],
+        where: { tenantId: user.tenantId, createdAt: { gte: todayStart }, status: { not: 'REJECTED' }, ...(shopId && { shopId }) },
         _sum: { netLoss: true },
         _count: { _all: true },
       }),
 
-      // Pending reorders
-      this.prisma.reorderSuggestion.count({
-        where: {
-          tenantId: user.tenantId,
-          status: 'PENDING',
-        },
-      }),
     ]);
 
-    // Enrich top products with names
-    const productIds = topProducts.map((p) => p.productId);
-    const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds.filter((id): id is string => !!id) } },
-      include: {
-        images: { where: { isPrimary: true }, take: 1 },
-        category: true,
-      },
-    });
+    const productIds = topProducts.map((p) => p.productId).filter((id): id is string => !!id);
+    const products = productIds.length
+      ? await this.prisma.product.findMany({
+          where: { tenantId: user.tenantId, id: { in: productIds } },
+          include: { images: { where: { isPrimary: true }, take: 1 }, category: true },
+        })
+      : [];
+    const byId = new Map(products.map((p) => [p.id, p]));
     const topProductsEnriched = topProducts.map((tp) => ({
-      ...tp,
-      product: products.find((p) => p.id === tp.productId),
+      productId: tp.productId,
+      _sum: { quantity: tp.quantity, total: Math.round(tp.total * 100) / 100 },
+      product: tp.productId ? byId.get(tp.productId) : undefined,
     }));
-
-    const todayRev = todaySales._sum.total ?? 0;
-    const yesterdayRev = yesterdaySales._sum.total ?? 0;
-    const growthPercent =
-      yesterdayRev > 0
-        ? ((todayRev - yesterdayRev) / yesterdayRev) * 100
-        : todayRev > 0 ? 100 : 0;
-
-    const monthRev = monthSales._sum.total ?? 0;
-    const lastMonthRev = lastMonthSales._sum.total ?? 0;
 
     return {
       timezone: tz,
       generatedAt: now.toISOString(),
       today: {
-        revenue: todayRev,
-        profit: todayRev - (todaySales._sum.costOfGoods ?? 0),
-        orders: todaySales._count._all,
-        paid: todaySales._sum.paidAmount ?? 0,
-        credit: todaySales._sum.creditAmount ?? 0,
-        growthPercent,
+        revenue: today.net,
+        profit: today.grossProfit,
+        orders: today.bills,
+        paid: today.cashIn,
+        credit: today.credit,
+        growthPercent: growth(today.net, yesterday.net),
       },
       yesterday: {
-        revenue: yesterdayRev,
-        orders: yesterdaySales._count._all,
+        revenue: yesterday.net,
+        orders: yesterday.bills,
       },
       week: {
-        revenue: weekSales._sum.total ?? 0,
-        profit: (weekSales._sum.total ?? 0) - (weekSales._sum.costOfGoods ?? 0),
-        orders: weekSales._count._all,
+        revenue: week.net,
+        profit: week.grossProfit,
+        orders: week.bills,
       },
       month: {
-        revenue: monthRev,
-        cogs: monthSales._sum.costOfGoods ?? 0,
-        profit: monthRev - (monthSales._sum.costOfGoods ?? 0),
-        orders: monthSales._count._all,
-        lastMonthRevenue: lastMonthRev,
-        growthPercent:
-          lastMonthRev > 0
-            ? ((monthRev - lastMonthRev) / lastMonthRev) * 100
-            : monthRev > 0 ? 100 : 0,
+        revenue: month.net,
+        cogs: month.cost,
+        profit: month.grossProfit,
+        orders: month.bills,
+        lastMonthRevenue: lastMonth.net,
+        growthPercent: growth(month.net, lastMonth.net),
       },
       topProducts: topProductsEnriched,
-      categoryPerformance,
+      categoryPerformance: categoryPerformance.map((c) => ({ ...c, total: Math.round(c.total * 100) / 100 })),
       alerts: {
-        lowStockCount,
-        damagesToday: damagesToday._count._all,
-        damageLossToday: damagesToday._sum.netLoss ?? 0,
-        pendingReorders,
+        lowStockCount: stockAlerts.low,
+        damagesToday: damagesToday.reduce((n, d) => n + d._count._all, 0),
+        damageLossToday: Math.round(damagesToday.filter((d) => d.status === 'APPROVED' || d.status === 'WRITTEN_OFF').reduce((n, d) => n + (d._sum.netLoss ?? 0), 0) * 100) / 100,
+        pendingReorders: stockAlerts.reorders,
       },
     };
+  }
+
+  /**
+   * Low-stock and reorder counts from the same rows as the Low stock page, so
+   * the tiles match that page for one branch and for all branches (where a
+   * product empty in one branch counts there even if another has plenty).
+   */
+  private async stockAlerts(user: AuthenticatedUser, shopId?: string): Promise<{ low: number; reorders: number }> {
+    try {
+      const scope = new ShopScope(shopId ?? null, !shopId);
+      const rows = (await this.lowStock.rows(user, scope, this.lowStock.settings())).filter((r) => !r.ignored);
+      return {
+        low: rows.filter((r) => r.status === 'out' || r.status === 'low').length,
+        reorders: rows.filter((r) => r.suggestQty > 0 && !r.made && (r.status === 'out' || r.status === 'low' || r.status === 'soon')).length,
+      };
+    } catch {
+      return { low: 0, reorders: 0 };
+    }
   }
 
   /**

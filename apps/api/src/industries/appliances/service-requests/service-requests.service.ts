@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ApplianceServiceStatus } from '@prisma/client';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { billJob, billOf, receiveJobMoney } from '../common/books';
 import {
   AddServicePaymentDto,
   CompleteServiceDto,
@@ -23,6 +24,10 @@ const STATUS_RANK: Record<string, number> = {
   SCHEDULED: 4, PENDING_PARTS: 5, REQUESTED: 6,
   UNRESOLVED: 7, COMPLETED: 8, CANCELLED: 9,
 };
+
+/** What the customer still owes; work covered by AMC or warranty owes only what was agreed as paid. */
+const dueOf = (r: { totalCharge: unknown; paidAmount: unknown; coveredUnderAmc?: boolean | null; coveredUnderWarranty?: boolean | null }) =>
+  r.coveredUnderAmc || r.coveredUnderWarranty ? 0 : Math.max(Number(r.totalCharge) - Number(r.paidAmount), 0);
 
 @Injectable()
 export class ServiceRequestsService {
@@ -146,14 +151,14 @@ export class ServiceRequestsService {
     ]);
 
     const rows = params.unpaidOnly
-      ? items.filter((r) => Number(r.totalCharge) - Number(r.paidAmount) > 0)
+      ? items.filter((r) => dueOf(r) > 0)
       : items;
 
     return {
       items: rows.map((r) => ({
         ...r,
         /** Kaam ho gaya lekin paisa baqi */
-        dueAmount: Math.max(Number(r.totalCharge) - Number(r.paidAmount), 0),
+        dueAmount: dueOf(r),
       })),
       meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
     };
@@ -169,7 +174,7 @@ export class ServiceRequestsService {
     return rows
       .map((r) => ({
         ...r,
-        dueAmount: Math.max(Number(r.totalCharge) - Number(r.paidAmount), 0),
+        dueAmount: dueOf(r),
         isOverdue: !!r.scheduledDate && new Date(r.scheduledDate).getTime() < now,
         waitingHours: Math.floor((now - new Date(r.requestedAt).getTime()) / 3_600_000),
       }))
@@ -215,7 +220,7 @@ export class ServiceRequestsService {
 
     return {
       ...r,
-      dueAmount: Math.max(Number(r.totalCharge) - Number(r.paidAmount), 0),
+      dueAmount: dueOf(r),
       history,
       amc,
     };
@@ -361,6 +366,23 @@ export class ServiceRequestsService {
         });
       }
 
+      // The finished job is a bill: visit, labour and parts. Covered work bills only what the customer paid.
+      const covered = coveredUnderAmc || coveredUnderWarranty;
+      const job = { number: r.requestNumber, customerId: r.customerId, customerName: r.customerName, customerPhone: r.customerPhone };
+      const what = `${r.productName}${r.serialNumber ? ` (${r.serialNumber})` : ''}`;
+      const lines = covered
+        ? [{ label: `Service ${r.requestNumber} — ${what}: customer ka hissa`, amount: paidAmount }]
+        : [
+            { label: `Service ${r.requestNumber} — ${what}: visit`, amount: visitCharge },
+            { label: `Service ${r.requestNumber} — ${what}: mazdoori`, amount: laborCharge },
+            // Parts are bought for the job; their price is taken as their cost.
+            { label: `Service ${r.requestNumber} — ${what}: parts`, amount: partsCharge, cost: partsCharge },
+          ];
+      const bill = await billJob(tx, user, job, lines, paidAmount);
+      if (bill?.customerId && bill.customerId !== r.customerId) {
+        await tx.applianceServiceRequest.update({ where: { id }, data: { customerId: bill.customerId } });
+      }
+
       if (r.amcContractNumber && coveredUnderAmc) {
         const amc = await tx.applianceAmcContract.findFirst({
           where: { tenantId: user.tenantId, contractNumber: r.amcContractNumber },
@@ -391,18 +413,28 @@ export class ServiceRequestsService {
     const r = await this.prisma.applianceServiceRequest.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Service request nahi mila');
 
-    const due = Number(r.totalCharge) - Number(r.paidAmount);
+    if (r.status === 'CANCELLED') throw new BadRequestException('Cancel hue kaam par paisa nahi liya ja sakta');
+    const due = dueOf(r);
     if (due <= 0) throw new BadRequestException('Is kaam ka poora paisa mil chuka hai');
     if (dto.amount <= 0) throw new BadRequestException('Raqam 0 se ziyada honi chahiye');
     if (dto.amount > due) throw new BadRequestException(`Sirf ${due} baqi hai`);
 
     const note = `[${new Date().toLocaleString('en-PK')}] Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`;
-    return this.prisma.applianceServiceRequest.update({
-      where: { id },
-      data: {
-        paidAmount: { increment: dto.amount },
-        internalNotes: `${r.internalNotes || ''}\n${note}`.trim(),
-      },
+    return this.prisma.$transaction(async (tx) => {
+      // Before the bill this is an advance; after it, it pays the bill's udhaar on khata.
+      const customerId = await receiveJobMoney(
+        tx, user,
+        { number: r.requestNumber, customerId: r.customerId, customerName: r.customerName, customerPhone: r.customerPhone },
+        dto.amount, `Service ${r.requestNumber} wusooli`,
+      );
+      return tx.applianceServiceRequest.update({
+        where: { id },
+        data: {
+          customerId,
+          paidAmount: { increment: dto.amount },
+          internalNotes: `${r.internalNotes || ''}\n${note}`.trim(),
+        },
+      });
     });
   }
 

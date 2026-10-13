@@ -3,17 +3,38 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import {
   CheckInDto, CompleteGroomingDto, CreateGroomingAppointmentDto,
-  GroomingPaymentDto, RateGroomingDto, UpdateGroomingStatusDto,
+  GroomingPaymentDto, PickupGroomingDto, RateGroomingDto, UpdateGroomingAppointmentDto, UpdateGroomingStatusDto,
 } from './dto/create-appointment.dto';
+import { ShopScope } from '../../../common/shop-scope';
+import {
+  ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, resolveIndustryShopId,
+} from '../../_shared/industry-sale.helper';
+import { dayEnd, dayKey, dayRange, dayStart, parseDay, weekdayInTz } from '../petshop-common';
+
+const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
+
+/** Blank form fields arrive as ''; a blank id is "none", never a link. */
+const blank = (v?: string | null) => (v && String(v).trim() ? v : undefined);
 
 @Injectable()
 export class GroomingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: CreateGroomingAppointmentDto) {
+    dto = { ...dto, customerId: blank(dto.customerId), groomerId: blank(dto.groomerId), scheduledSlot: blank(dto.scheduledSlot) };
+    if (dto.customerId) {
+      const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } });
+      if (!c) throw new NotFoundException('Customer nahi mila');
+    }
     const count = await this.prisma.petGroomingAppointment.count({ where: { tenantId: user.tenantId } });
     const year = new Date().getFullYear();
-    const appointmentNumber = `GRM-${year}-${String(count + 1).padStart(5, '0')}`;
+    // A deleted booking frees a count, so step past numbers already taken.
+    let n = count + 1;
+    let appointmentNumber = `GRM-${year}-${String(n).padStart(5, '0')}`;
+    while (await this.prisma.petGroomingAppointment.findFirst({ where: { tenantId: user.tenantId, appointmentNumber }, select: { id: true } })) {
+      n += 1;
+      appointmentNumber = `GRM-${year}-${String(n).padStart(5, '0')}`;
+    }
 
     let groomerName: string | undefined;
     if (dto.groomerId) {
@@ -23,18 +44,17 @@ export class GroomingService {
       groomerName = g.name;
     }
 
-    const scheduledDate = new Date(dto.scheduledDate);
+    const scheduledDate = parseDay(dto.scheduledDate);
+    if (!scheduledDate) throw new BadRequestException('Tareekh sahi chunein');
 
     // Prevent double booking
     if (dto.groomerId && dto.scheduledSlot) {
-      const dayStart = new Date(scheduledDate); dayStart.setHours(0, 0, 0, 0);
-      const dayEnd = new Date(scheduledDate); dayEnd.setHours(23, 59, 59, 999);
       const clash = await this.prisma.petGroomingAppointment.findFirst({
         where: {
           tenantId: user.tenantId,
           groomerId: dto.groomerId,
           scheduledSlot: dto.scheduledSlot,
-          scheduledDate: { gte: dayStart, lte: dayEnd },
+          scheduledDate: { gte: dayStart(scheduledDate), lte: dayEnd(scheduledDate) },
           status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
         },
       });
@@ -51,6 +71,7 @@ export class GroomingService {
         appointmentNumber,
         ...dto,
         additionalServices: dto.additionalServices ?? [],
+        photosBeforeUrls: dto.photosBeforeUrls ?? [],
         scheduledDate,
         groomerName,
         additionalCharges,
@@ -65,8 +86,9 @@ export class GroomingService {
     status?: string; customerId?: string; groomerId?: string; species?: string;
     today?: boolean; from?: string; to?: string; search?: string;
   }) {
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+    const todayStart = dayStart();
+    const todayEnd = dayEnd();
+    const range = dayRange(params.from, params.to);
 
     return this.prisma.petGroomingAppointment.findMany({
       where: {
@@ -76,12 +98,7 @@ export class GroomingService {
         ...(params.groomerId && { groomerId: params.groomerId }),
         ...(params.species && { petSpecies: params.species as any }),
         ...(params.today ? { scheduledDate: { gte: todayStart, lte: todayEnd } } : {}),
-        ...(!params.today && (params.from || params.to) ? {
-          scheduledDate: {
-            ...(params.from && { gte: new Date(params.from) }),
-            ...(params.to && { lte: new Date(params.to) }),
-          },
-        } : {}),
+        ...(!params.today && range ? { scheduledDate: range } : {}),
         ...(params.search && {
           OR: [
             { appointmentNumber: { contains: params.search, mode: 'insensitive' } },
@@ -147,11 +164,54 @@ export class GroomingService {
   async start(user: AuthenticatedUser, id: string) {
     const a = await this.prisma.petGroomingAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Appointment not found');
-    if (a.status === 'COMPLETED') throw new BadRequestException('Already completed');
+    if (!['SCHEDULED', 'CONFIRMED'].includes(a.status)) throw new BadRequestException(`Ye appointment ${a.status} hai, shuru nahi ho sakti`);
 
     return this.prisma.petGroomingAppointment.update({
       where: { id },
       data: { status: 'IN_PROGRESS', startedAt: new Date(), checkedInAt: a.checkedInAt ?? new Date() },
+    });
+  }
+
+  /** Edit a booking before work starts; the fee is worked out again. */
+  async update(user: AuthenticatedUser, id: string, dto: UpdateGroomingAppointmentDto) {
+    const a = await this.prisma.petGroomingAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!a) throw new NotFoundException('Appointment not found');
+    if (!['SCHEDULED', 'CONFIRMED'].includes(a.status)) throw new BadRequestException('Kaam shuru hone ke baad booking badli nahi ja sakti');
+
+    const customerId = dto.customerId === undefined ? undefined : blank(dto.customerId) ?? null;
+    if (customerId) {
+      const c = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
+      if (!c) throw new NotFoundException('Customer nahi mila');
+    }
+    let groomerName: string | null | undefined;
+    const groomerId = dto.groomerId === undefined ? undefined : blank(dto.groomerId) ?? null;
+    if (groomerId) {
+      const g = await this.prisma.petGroomer.findFirst({ where: { id: groomerId, tenantId: user.tenantId } });
+      if (!g) throw new NotFoundException('Groomer not found');
+      groomerName = g.name;
+    } else if (groomerId === null) {
+      groomerName = null;
+    }
+    const scheduledDate = dto.scheduledDate ? parseDay(dto.scheduledDate) : undefined;
+    if (dto.scheduledDate && !scheduledDate) throw new BadRequestException('Tareekh sahi chunein');
+
+    const serviceFee = dto.serviceFee ?? a.serviceFee;
+    const additionalCharges = dto.additionalCharges ?? a.additionalCharges;
+    const discount = dto.discount ?? a.discount;
+    const totalFee = Math.max(serviceFee + additionalCharges - discount, 0);
+    if (totalFee < a.paidAmount - 0.01) throw new BadRequestException(`Rs ${a.paidAmount} pehle mil chuke hain — fee us se kam nahi ho sakti`);
+
+    return this.prisma.petGroomingAppointment.update({
+      where: { id },
+      data: {
+        ...dto,
+        customerId,
+        groomerId,
+        ...(groomerName !== undefined && { groomerName }),
+        scheduledSlot: dto.scheduledSlot === undefined ? undefined : blank(dto.scheduledSlot) ?? null,
+        scheduledDate: scheduledDate ?? undefined,
+        serviceFee, additionalCharges, discount, totalFee,
+      },
     });
   }
 
@@ -190,29 +250,83 @@ export class GroomingService {
     });
   }
 
-  async pickup(user: AuthenticatedUser, id: string) {
+  /**
+   * The owner takes the pet back and the bill is settled. The visit becomes
+   * a bill (sales, profit, day book and drawer all see it); money paid in
+   * advance was already on the customer's khata and is used up there.
+   * Before, pickup needed the fee to be paid first, but no screen could
+   * take the payment, so no visit could ever be closed.
+   */
+  async pickup(user: AuthenticatedUser, scope: ShopScope, id: string, dto: PickupGroomingDto = {}) {
     const a = await this.prisma.petGroomingAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Appointment not found');
-    if (a.paidAmount < a.totalFee) {
-      throw new BadRequestException(`Outstanding balance of ${a.totalFee - a.paidAmount} must be cleared`);
-    }
+    if (a.status === 'COMPLETED') throw new BadRequestException('Pet pehle hi le jaya ja chuka hai');
+    if (a.status !== 'READY_FOR_PICKUP') throw new BadRequestException('Pehle grooming mukammal (Ready) karein');
 
-    return this.prisma.petGroomingAppointment.update({
-      where: { id },
-      data: { status: 'COMPLETED', pickedUpAt: new Date() },
+    const stillOwed = r2(Math.max(a.totalFee - a.paidAmount, 0));
+    const handed = dto.paidAmount === undefined ? stillOwed : r2(Math.max(Number(dto.paidAmount) || 0, 0));
+    const kept = r2(Math.min(handed, stillOwed));
+    const credit = r2(stillOwed - kept);
+
+    return this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.petGroomingAppointment.updateMany({
+        where: { id, status: 'READY_FOR_PICKUP' },
+        data: { status: 'COMPLETED', pickedUpAt: new Date() },
+      });
+      if (claimed.count === 0) throw new BadRequestException('Appointment abhi badli gayi — dobara koshish karein');
+
+      const shopId = await resolveIndustryShopId(tx, user, scope.shopId);
+      const customerId = a.customerId ?? (credit > 0
+        ? await ensureCustomer(tx, user, { name: a.customerName, phone: a.customerPhone, shopId })
+        : null);
+      // Payments taken before advances went to khata count as paid with this bill.
+      const legacyPaid = r2(Math.max(a.paidAmount - (await paidOnKhata(tx, user.tenantId, a.appointmentNumber)), 0));
+
+      const sale = await postIndustrySale(tx, user, {
+        saleNumber: `PGR-${a.appointmentNumber}`,
+        sourceRef: a.appointmentNumber,
+        shopId,
+        customerId,
+        lines: [
+          { label: `Grooming: ${a.serviceType.replace(/_/g, ' ')} — ${a.petName}`, amount: a.serviceFee },
+          { label: 'Extra services', amount: a.additionalCharges },
+        ],
+        discount: a.discount,
+        paidAmount: r2(kept + legacyPaid),
+        paymentMethod: dto.paymentMethod,
+      });
+
+      const updated = await tx.petGroomingAppointment.update({
+        where: { id },
+        data: {
+          paidAmount: r2(a.paidAmount + kept),
+          customerId: customerId ?? undefined,
+          paymentMethod: dto.paymentMethod ?? a.paymentMethod,
+        },
+      });
+      return { ...updated, sale: { id: sale.id, saleNumber: sale.saleNumber }, change: r2(handed - kept) };
     });
   }
 
-  async recordPayment(user: AuthenticatedUser, id: string, dto: GroomingPaymentDto) {
+  /** Advance taken before pickup: held on the customer's khata until the bill. */
+  async recordPayment(user: AuthenticatedUser, scope: ShopScope, id: string, dto: GroomingPaymentDto) {
     const a = await this.prisma.petGroomingAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Appointment not found');
+    if (a.status === 'COMPLETED' || a.status === 'CANCELLED') throw new BadRequestException('Is appointment par ab raqam nahi li ja sakti');
+    const amount = r2(dto.amount);
+    if (!(amount > 0)) throw new BadRequestException('Raqam sahi likhein');
+    if (a.paidAmount + amount > a.totalFee + 0.01) throw new BadRequestException('Payment exceeds total fee');
 
-    const newPaid = a.paidAmount + dto.amount;
-    if (newPaid > a.totalFee) throw new BadRequestException('Payment exceeds total fee');
-
-    return this.prisma.petGroomingAppointment.update({
-      where: { id },
-      data: { paidAmount: newPaid, paymentMethod: dto.paymentMethod ?? a.paymentMethod },
+    return this.prisma.$transaction(async (tx) => {
+      const shopId = await resolveIndustryShopId(tx, user, scope.shopId);
+      const customerId = await ensureCustomer(tx, user, { customerId: a.customerId, name: a.customerName, phone: a.customerPhone, shopId });
+      await recordKhataPayment(tx, user, {
+        customerId, shopId, amount, reference: a.appointmentNumber, note: `Grooming advance: ${a.petName} (${a.appointmentNumber})`,
+      });
+      return tx.petGroomingAppointment.update({
+        where: { id },
+        data: { paidAmount: r2(a.paidAmount + amount), customerId, paymentMethod: dto.paymentMethod ?? a.paymentMethod },
+      });
     });
   }
 
@@ -266,19 +380,17 @@ export class GroomingService {
     const g = await this.prisma.petGroomer.findFirst({ where: { id: groomerId, tenantId: user.tenantId } });
     if (!g) throw new NotFoundException('Groomer not found');
 
-    const day = new Date(date);
-    if (!g.workingDays.includes(day.getDay())) {
+    const day = parseDay(date);
+    if (!day) throw new BadRequestException('Tareekh sahi chunein');
+    if (!g.workingDays.includes(weekdayInTz(day))) {
       return { available: [], booked: [], reason: 'Groomer not working on this day' };
     }
-
-    const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(day); dayEnd.setHours(23, 59, 59, 999);
 
     const booked = await this.prisma.petGroomingAppointment.findMany({
       where: {
         tenantId: user.tenantId,
         groomerId,
-        scheduledDate: { gte: dayStart, lte: dayEnd },
+        scheduledDate: { gte: dayStart(day), lte: dayEnd(day) },
         status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
       },
       select: { scheduledSlot: true, petName: true, serviceType: true },
@@ -304,18 +416,16 @@ export class GroomingService {
   }
 
   async todaySchedule(user: AuthenticatedUser) {
-    const start = new Date(); start.setHours(0, 0, 0, 0);
-    const end = new Date(); end.setHours(23, 59, 59, 999);
     return this.prisma.petGroomingAppointment.findMany({
-      where: { tenantId: user.tenantId, scheduledDate: { gte: start, lte: end } },
+      where: { tenantId: user.tenantId, scheduledDate: { gte: dayStart(), lte: dayEnd() } },
       orderBy: { scheduledDate: 'asc' },
     });
   }
 
   async summary(user: AuthenticatedUser) {
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const todayStart = dayStart();
+    const todayEnd = dayEnd();
+    const monthStart = dayStart(dayKey().slice(0, 8) + '01');
 
     const [scheduled, inProgress, readyForPickup, todayCount, monthRevenue, unpaid] = await Promise.all([
       this.prisma.petGroomingAppointment.count({ where: { tenantId: user.tenantId, status: { in: ['SCHEDULED', 'CONFIRMED'] } } }),

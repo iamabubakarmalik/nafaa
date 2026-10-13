@@ -76,21 +76,21 @@ export class QuotesService {
 
   async send(user: AuthenticatedUser, id: string) {
     return this.prisma.serviceQuote.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: { status: 'SENT', sentAt: new Date() },
     });
   }
 
   async accept(user: AuthenticatedUser, id: string) {
     return this.prisma.serviceQuote.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: { status: 'ACCEPTED', acceptedAt: new Date(), respondedAt: new Date() },
     });
   }
 
   async reject(user: AuthenticatedUser, id: string, reason?: string) {
     return this.prisma.serviceQuote.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: {
         status: 'REJECTED',
         rejectedAt: new Date(),
@@ -104,9 +104,16 @@ export class QuotesService {
     const q = await this.prisma.serviceQuote.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!q) throw new NotFoundException('Quote not found');
     if (q.status !== 'ACCEPTED') throw new BadRequestException('Quote must be accepted first');
+    if (q.convertedJobId) throw new BadRequestException('Is quote ka job pehle hi ban chuka hai');
 
-    const count = await this.prisma.serviceJob.count({ where: { tenantId: user.tenantId } });
-    const jobNumber = 'JOB-' + new Date().getFullYear() + '-' + String(count + 1).padStart(5, '0');
+    // Same numbering as new jobs: follow the last number so none repeats.
+    const prefix = `JOB-${new Date().getFullYear()}-`;
+    const last = await this.prisma.serviceJob.findFirst({
+      where: { tenantId: user.tenantId, jobNumber: { startsWith: prefix } },
+      orderBy: { jobNumber: 'desc' },
+      select: { jobNumber: true },
+    });
+    const jobNumber = prefix + String((last ? Number(last.jobNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(5, '0');
 
     const job = await this.prisma.serviceJob.create({
       data: {
@@ -118,8 +125,10 @@ export class QuotesService {
         customerEmail: q.customerEmail,
         serviceId: q.serviceId,
         serviceName: q.serviceName,
-        problemDescription: q.problemDescription,
+        problemDescription: q.problemDescription || q.serviceName,
         status: 'CONFIRMED',
+        // Other charges on the quote travel as transport/other on the job.
+        transportCharge: q.otherCharges || 0,
         labourCharge: q.labourCharge,
         partsCharge: q.partsCharge,
         visitCharge: q.visitCharge,

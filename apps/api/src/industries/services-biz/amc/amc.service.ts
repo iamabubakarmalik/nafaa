@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+
+const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
 @Injectable()
 export class AmcService {
@@ -9,18 +12,33 @@ export class AmcService {
   async create(user: AuthenticatedUser, dto: any) {
     if (!dto.numberOfVisits || dto.numberOfVisits < 1) throw new BadRequestException('Visit count required');
 
-    const count = await this.prisma.serviceAmc.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const amcNumber = 'AMC-' + year + '-' + String(count + 1).padStart(4, '0');
+    const prefix = `AMC-${new Date().getFullYear()}-`;
+    const last = await this.prisma.serviceAmc.findFirst({
+      where: { tenantId: user.tenantId, amcNumber: { startsWith: prefix } },
+      orderBy: { amcNumber: 'desc' },
+      select: { amcNumber: true },
+    });
+    const amcNumber = prefix + String((last ? Number(last.amcNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(4, '0');
 
     const startDate = dto.startDate ? new Date(dto.startDate) : new Date();
     const endDate = dto.endDate ? new Date(dto.endDate) : new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000);
+    const contractValue = r2(Math.max(Number(dto.contractValue) || 0, 0));
+    const amountPaid = r2(Math.max(Number(dto.amountPaid) || 0, 0));
+    if (amountPaid > contractValue + 0.01) throw new BadRequestException(`Contract sirf Rs ${contractValue} ka hai`);
+    if (!dto.customerId && !dto.customerName?.trim()) throw new BadRequestException('Customer ka naam likhein');
+    if (!dto.serviceAddress?.trim()) throw new BadRequestException('Service ka address likhein');
 
-    const amc = await this.prisma.serviceAmc.create({
+    const amc = await this.prisma.$transaction(async (tx) => {
+     const shopId = await resolveIndustryShopId(tx, user, dto.shopId);
+     // Contract fee is income on the day it is signed; the unpaid part is udhaar.
+     const customerId = contractValue > amountPaid
+       ? await ensureCustomer(tx, user, { customerId: dto.customerId, name: dto.customerName, phone: dto.customerPhone, shopId })
+       : dto.customerId || null;
+     const created = await tx.serviceAmc.create({
       data: {
         tenantId: user.tenantId,
         amcNumber,
-        customerId: dto.customerId,
+        customerId,
         customerName: dto.customerName,
         customerPhone: dto.customerPhone,
         customerEmail: dto.customerEmail,
@@ -34,8 +52,8 @@ export class AmcService {
         partsCapAmount: dto.partsCapAmount,
         emergencyIncluded: dto.emergencyIncluded ?? false,
         emergencyDiscountPct: Number(dto.emergencyDiscountPct) || 0,
-        contractValue: Number(dto.contractValue),
-        amountPaid: Number(dto.amountPaid) || 0,
+        contractValue,
+        amountPaid,
         paymentMode: dto.paymentMode,
         paymentInstallments: Number(dto.paymentInstallments) || 1,
         startDate,
@@ -51,6 +69,19 @@ export class AmcService {
         createdById: user.id,
         notes: dto.notes,
       },
+     });
+     if (contractValue > 0) {
+       await postIndustrySale(tx, user, {
+         saleNumber: `SVC-${amcNumber}`,
+         sourceRef: amcNumber,
+         shopId,
+         customerId,
+         lines: [{ label: `AMC contract ${amcNumber} (${Number(dto.numberOfVisits)} visits)`, amount: contractValue }],
+         paidAmount: amountPaid,
+         paymentMethod: dto.paymentMode,
+       });
+     }
+     return created;
     });
 
     // Auto-schedule visits
@@ -155,7 +186,7 @@ export class AmcService {
 
   async cancel(user: AuthenticatedUser, id: string, reason?: string, refundAmount?: number) {
     return this.prisma.serviceAmc.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: {
         status: 'CANCELLED',
         cancelledAt: new Date(),

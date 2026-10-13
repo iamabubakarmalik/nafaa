@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import {
+  KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_REVENUE, billMathCte, liveSaleSql, saleFigures,
+} from '../../../common/helpers/business-math.helper';
+import { dateKeyTz, endOfDayTz, startOfDayTz, startOfMonthTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -11,11 +15,8 @@ export class MobileReportsService {
   // ════════════════════════════════════════════════════════
 
   async dashboard(user: AuthenticatedUser, shopId?: string) {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
+    // Business month in Pakistan time; the server clock runs in UTC.
+    const monthStart = startOfMonthTz(new Date());
 
     const [
       newImeis,
@@ -47,16 +48,8 @@ export class MobileReportsService {
         _count: { _all: true },
         _sum: { remainingAmount: true },
       }),
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          ...(shopId && { shopId }),
-          status: 'COMPLETED',
-          soldAt: { gte: monthStart },
-        },
-        _sum: { total: true, costOfGoods: true },
-        _count: { _all: true },
-      }),
+      // Same rules as the day book and reports: live bills, minus returns.
+      saleFigures(this.prisma, { tenantId: user.tenantId, shopId }, { gte: monthStart }),
     ]);
 
     return {
@@ -69,10 +62,10 @@ export class MobileReportsService {
       openRepairTickets: repairs._count._all,
       activeEmiPlans: emiPlans._count._all,
       emiOutstanding: emiPlans._sum.remainingAmount ?? 0,
-      monthRevenue: saleStats._sum.total ?? 0,
-      monthCogs: saleStats._sum.costOfGoods ?? 0,
-      monthProfit: (saleStats._sum.total ?? 0) - (saleStats._sum.costOfGoods ?? 0),
-      monthSalesCount: saleStats._count._all,
+      monthRevenue: saleStats.net,
+      monthCogs: saleStats.cost,
+      monthProfit: saleStats.grossProfit,
+      monthSalesCount: saleStats.bills,
     };
   }
 
@@ -85,9 +78,9 @@ export class MobileReportsService {
   // ════════════════════════════════════════════════════════
 
   private dateRange(from?: string, to?: string) {
-    const gte = from ? new Date(from) : (() => { const d = new Date(); d.setDate(d.getDate() - 30); d.setHours(0,0,0,0); return d; })();
-    const lte = to ? new Date(to) : new Date();
-    if (to) lte.setHours(23, 59, 59, 999);
+    const dateOnly = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v);
+    const gte = from ? (dateOnly(from) ? startOfDayTz(new Date(from)) : new Date(from)) : subDaysTz(startOfDayTz(new Date()), 30);
+    const lte = to ? (dateOnly(to) ? endOfDayTz(new Date(to)) : new Date(to)) : new Date();
     return { gte, lte };
   }
 
@@ -97,42 +90,33 @@ export class MobileReportsService {
   ) {
     const { gte, lte } = this.dateRange(params.from, params.to);
     const tenantId = user.tenantId;
+    const scope = { tenantId, shopId: params.shopId || null };
+    const range = { gte, lt: new Date(lte.getTime() + 1) };
+    const where = liveSaleSql(scope, range);
 
-    const [sales, soldImeis] = await Promise.all([
-      this.prisma.sale.findMany({
-        where: {
-          tenantId,
-          status: 'COMPLETED',
-          soldAt: { gte, lte },
-          ...(params.shopId && { shopId: params.shopId }),
-        },
-        select: {
-          id: true,
-          subtotal: true,
-          discount: true,
-          soldAt: true,
-          repairTicket: { select: { id: true } },
-          items: {
-            select: {
-              id: true,
-              quantity: true,
-              costPrice: true,
-              total: true,
-              usedPhoneId: true,
-              productId: true,
-              product: { select: { id: true, name: true, brand: { select: { name: true } } } },
-            },
-          },
-        },
-      }),
-      // Is arse me bike hue IMEIs — inhi se pata chalta hai kaunsi line naya phone thi
-      this.prisma.productImei.findMany({
-        where: { tenantId, status: 'SOLD', soldAt: { gte, lte }, saleItemId: { not: null } },
-        select: { saleItemId: true },
-      }),
+    // Line revenue and cost by the shared rules (bill discount share, returns, kept quantity).
+    const [lines, figures] = await Promise.all([
+      this.prisma.$queryRaw<Array<{
+        saleId: string; soldAt: Date; productId: string | null; name: string | null; brand: string | null;
+        isRepair: boolean; isUsed: boolean; isImei: boolean; kept: number; revenue: number; cost: number;
+      }>>`
+        WITH ${billMathCte(where)}
+        SELECT s.id AS "saleId", s."soldAt" AS "soldAt", si."productId" AS "productId",
+          bm_p.name AS name, br.name AS brand,
+          EXISTS (SELECT 1 FROM "RepairTicket" rt WHERE rt."saleId" = s.id) AS "isRepair",
+          (si."usedPhoneId" IS NOT NULL) AS "isUsed",
+          EXISTS (SELECT 1 FROM "ProductImei" pi WHERE pi."saleItemId" = si.id) AS "isImei",
+          ${KEPT_QTY}::float8 AS kept,
+          ${LINE_REVENUE}::float8 AS revenue,
+          ${LINE_COST}::float8 AS cost
+        FROM "Sale" s
+        JOIN bm ON bm.id = s.id
+        JOIN "SaleItem" si ON si."saleId" = s.id
+        ${LINE_COST_JOINS}
+        LEFT JOIN "Brand" br ON br.id = bm_p."brandId"
+        WHERE ${where}`,
+      saleFigures(this.prisma, scope, range),
     ]);
-
-    const imeiItemIds = new Set(soldImeis.map((i) => i.saleItemId as string));
 
     type Bucket = { revenue: number; cost: number; profit: number; units: number; sales: number };
     const blank = (): Bucket => ({ revenue: 0, cost: 0, profit: 0, units: 0, sales: 0 });
@@ -147,7 +131,7 @@ export class MobileReportsService {
       NEW_PHONE: new Set(), USED_PHONE: new Set(), ACCESSORY: new Set(), REPAIR: new Set(),
     };
 
-    // Model-level profit (sirf phone + accessory ke liye — inka product hota hai)
+    // Model-level profit (phones and accessories have a product)
     const byProduct = new Map<string, {
       productId: string; name: string; brand: string | null;
       revenue: number; cost: number; profit: number; units: number;
@@ -155,53 +139,45 @@ export class MobileReportsService {
 
     const daily = new Map<string, { date: string; revenue: number; profit: number }>();
 
-    for (const sale of sales) {
-      const isRepairSale = Boolean(sale.repairTicket);
-      // Sale-level discount ko har line par uske hisse ke mutabiq baanto
-      const lineSum = sale.items.reduce((s, i) => s + Number(i.total), 0);
-      const discount = Number(sale.discount) || 0;
+    for (const line of lines) {
+      const revenue = Number(line.revenue) || 0;
+      const cost = Number(line.cost) || 0;
+      const profit = revenue - cost;
+      const units = Number(line.kept) || 0;
 
-      for (const item of sale.items) {
-        const gross = Number(item.total) || 0;
-        const share = lineSum > 0 ? gross / lineSum : 0;
-        const revenue = Math.max(gross - discount * share, 0);
-        const cost = Number(item.costPrice) * Number(item.quantity);
-        const profit = revenue - cost;
+      const key: keyof typeof sources = line.isRepair
+        ? 'REPAIR'
+        : line.isUsed
+          ? 'USED_PHONE'
+          : line.isImei
+            ? 'NEW_PHONE'
+            : 'ACCESSORY';
 
-        const key: keyof typeof sources = isRepairSale
-          ? 'REPAIR'
-          : item.usedPhoneId
-            ? 'USED_PHONE'
-            : imeiItemIds.has(item.id)
-              ? 'NEW_PHONE'
-              : 'ACCESSORY';
+      sources[key].revenue += revenue;
+      sources[key].cost += cost;
+      sources[key].profit += profit;
+      sources[key].units += units;
+      seenSalePerSource[key].add(line.saleId);
 
-        sources[key].revenue += revenue;
-        sources[key].cost += cost;
-        sources[key].profit += profit;
-        sources[key].units += Number(item.quantity);
-        seenSalePerSource[key].add(sale.id);
-
-        if (item.productId && item.product) {
-          const row = byProduct.get(item.productId) ?? {
-            productId: item.productId,
-            name: item.product.name,
-            brand: item.product.brand?.name ?? null,
-            revenue: 0, cost: 0, profit: 0, units: 0,
-          };
-          row.revenue += revenue;
-          row.cost += cost;
-          row.profit += profit;
-          row.units += Number(item.quantity);
-          byProduct.set(item.productId, row);
-        }
-
-        const dayKey = sale.soldAt.toISOString().slice(0, 10);
-        const day = daily.get(dayKey) ?? { date: dayKey, revenue: 0, profit: 0 };
-        day.revenue += revenue;
-        day.profit += profit;
-        daily.set(dayKey, day);
+      if (line.productId && !line.isRepair) {
+        const row = byProduct.get(line.productId) ?? {
+          productId: line.productId,
+          name: line.name ?? 'Product',
+          brand: line.brand ?? null,
+          revenue: 0, cost: 0, profit: 0, units: 0,
+        };
+        row.revenue += revenue;
+        row.cost += cost;
+        row.profit += profit;
+        row.units += units;
+        byProduct.set(line.productId, row);
       }
+
+      const dayKey = dateKeyTz(new Date(line.soldAt));
+      const day = daily.get(dayKey) ?? { date: dayKey, revenue: 0, profit: 0 };
+      day.revenue += revenue;
+      day.profit += profit;
+      daily.set(dayKey, day);
     }
 
     const withMargin = (b: Bucket, key: string) => ({
@@ -210,15 +186,10 @@ export class MobileReportsService {
       margin: b.revenue > 0 ? (b.profit / b.revenue) * 100 : 0,
     });
 
-    const totals = Object.values(sources).reduce(
-      (acc, b) => ({
-        revenue: acc.revenue + b.revenue,
-        cost: acc.cost + b.cost,
-        profit: acc.profit + b.profit,
-        units: acc.units + b.units,
-      }),
-      { revenue: 0, cost: 0, profit: 0, units: 0 },
-    );
+    // Totals come from the shared figures, so they match the day book and
+    // profit report (bill charges and bill-level cost included).
+    const units = Object.values(sources).reduce((a, b) => a + b.units, 0);
+    const totals = { revenue: figures.net, cost: figures.cost, profit: figures.grossProfit, units };
 
     return {
       range: { from: gte.toISOString(), to: lte.toISOString() },
@@ -231,7 +202,7 @@ export class MobileReportsService {
       totals: {
         ...totals,
         margin: totals.revenue > 0 ? (totals.profit / totals.revenue) * 100 : 0,
-        salesCount: sales.length,
+        salesCount: figures.bills,
       },
       topProducts: [...byProduct.values()]
         .sort((a, b) => b.profit - a.profit)
@@ -607,7 +578,7 @@ export class MobileReportsService {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
 
-    const [byStatus, deliveredAgg, topIssues] = await Promise.all([
+    const [byStatus, deliveredAgg, topIssues, usedParts] = await Promise.all([
       this.prisma.repairTicket.groupBy({
         by: ['status'],
         where: { tenantId: user.tenantId, receivedAt: { gte: cutoff } },
@@ -629,7 +600,13 @@ export class MobileReportsService {
         orderBy: { _count: { deviceBrand: 'desc' } },
         take: 10,
       }),
+      // What the parts cost the shop (partsCost on the ticket is the price charged).
+      this.prisma.repairPart.findMany({
+        where: { ticket: { tenantId: user.tenantId, status: 'DELIVERED', deliveredAt: { gte: cutoff } } },
+        select: { quantity: true, unitCost: true },
+      }),
     ]);
+    const partsOwnCost = usedParts.reduce((sum, p) => sum + Number(p.quantity) * Number(p.unitCost || 0), 0);
 
     return {
       byStatus: byStatus.map((s) => ({ status: s.status, count: s._count._all })),
@@ -638,7 +615,8 @@ export class MobileReportsService {
       partsCost: deliveredAgg._sum.partsCost ?? 0,
       laborRevenue: deliveredAgg._sum.laborCost ?? 0,
       collected: deliveredAgg._sum.paidAmount ?? 0,
-      grossProfit: (deliveredAgg._sum.totalCost ?? 0) - (deliveredAgg._sum.partsCost ?? 0),
+      partsOwnCost,
+      grossProfit: (deliveredAgg._sum.totalCost ?? 0) - partsOwnCost,
       topBrands: topIssues.map((b) => ({ brand: b.deviceBrand, count: b._count._all })),
     };
   }
@@ -649,9 +627,7 @@ export class MobileReportsService {
 
   async emiAnalytics(user: AuthenticatedUser) {
     const today = new Date();
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
+    const monthStart = startOfMonthTz(today);
 
     const [byStatus, financingTotals, overdueAgg, collectedAgg] = await Promise.all([
       this.prisma.emiPlan.groupBy({

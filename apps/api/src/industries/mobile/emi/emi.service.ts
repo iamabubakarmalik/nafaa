@@ -7,6 +7,7 @@ import { CreateEmiPlanDto } from './dto/create-emi-plan.dto';
 import { UpdateEmiPlanDto } from './dto/update-emi-plan.dto';
 import { RecordInstallmentPaymentDto } from './dto/record-installment-payment.dto';
 import { QueryEmiPlansDto } from './dto/query-emi.dto';
+import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import {
   Prisma, EmiPlanStatus, EmiInstallmentStatus,
 } from '@prisma/client';
@@ -44,22 +45,31 @@ export class EmiService {
     });
     if (!customer) throw new NotFoundException('Customer not found');
 
-    if (dto.saleId) {
-      const sale = await this.prisma.sale.findFirst({
-        where: { id: dto.saleId, tenantId: user.tenantId },
-      });
-      if (!sale) throw new NotFoundException('Sale not found');
+    // Installments are collected through the khata, so the plan must sit on a
+    // bill whose udhaar is already on that khata, with the same amount.
+    if (!dto.saleId) throw new BadRequestException('EMI sirf kisi udhaar bill par banti hai — pehle bill banayein');
+    const sale = await this.prisma.sale.findFirst({
+      where: { id: dto.saleId, tenantId: user.tenantId },
+    });
+    if (!sale) throw new NotFoundException('Sale not found');
+    if (sale.status === 'VOIDED') throw new BadRequestException('Cancel hue bill par EMI nahi ban sakti');
+    if (sale.customerId !== dto.customerId) throw new BadRequestException('EMI ka customer wohi ho jis ke naam bill hai');
 
-      const existingPlan = await this.prisma.emiPlan.findUnique({
-        where: { saleId: dto.saleId },
-      });
-      if (existingPlan) {
-        throw new BadRequestException('EMI plan already exists for this sale');
-      }
+    const existingPlan = await this.prisma.emiPlan.findUnique({
+      where: { saleId: dto.saleId },
+    });
+    if (existingPlan) {
+      throw new BadRequestException('EMI plan already exists for this sale');
     }
 
     const downPayment = dto.downPayment ?? 0;
     const financedAmount = dto.totalAmount - downPayment;
+    const billCredit = Number(sale.creditAmount) || 0;
+    if (Math.abs(financedAmount - billCredit) > 1) {
+      throw new BadRequestException(
+        `Is bill ka udhaar Rs ${billCredit} hai — EMI me bhi Rs ${billCredit} hi qiston me jaye (down payment Rs ${Math.max(dto.totalAmount - billCredit, 0)} rakhein)`,
+      );
+    }
     if (financedAmount <= 0) {
       throw new BadRequestException('Financed amount must be > 0 (downpayment ≥ total not allowed)');
     }
@@ -351,7 +361,9 @@ export class EmiService {
     planId: string,
     installmentId: string,
     dto: RecordInstallmentPaymentDto,
+    scope?: ShopScope,
   ) {
+    if (!(Number(dto.amount) > 0)) throw new BadRequestException('Raqam zero se zyada ho');
     const plan = await this.prisma.emiPlan.findFirst({
       where: { id: planId, tenantId: user.tenantId },
       include: { installments: true },
@@ -375,6 +387,13 @@ export class EmiService {
       throw new BadRequestException(
         `Amount exceeds installment balance (Rs ${remainingDue.toFixed(2)})`,
       );
+    }
+
+    // The branch that takes the money; falls back to the bill's branch.
+    let shopId: string | null = null;
+    if (scope) shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope).catch(() => null);
+    if (!shopId && plan.saleId) {
+      shopId = (await this.prisma.sale.findFirst({ where: { id: plan.saleId, tenantId: user.tenantId }, select: { shopId: true } }))?.shopId ?? null;
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -414,23 +433,26 @@ export class EmiService {
       // Qist milne par customer ka asli khata bhi kam hona chahiye.
       // Pehle yahan balanceAfter: 0 likha hua tha aur customer.balance
       // chhua hi nahi jata tha — is se khata hamesha poora udhaar dikhata raha.
-      const emiCustomer = await tx.customer.findUnique({ where: { id: plan.customerId } });
-      const newCustomerBalance = Math.max(Number(emiCustomer?.balance ?? 0) - dto.amount, 0);
-
+      // Same shape as a khata payment: negative amount with the branch, so
+      // the khata, day book and customer reports read it the same way.
+      const emiCustomer = await tx.customer.findFirst({ where: { id: plan.customerId, tenantId: user.tenantId } });
+      let newCustomerBalance = Number(emiCustomer?.balance ?? 0);
       if (emiCustomer) {
-        await tx.customer.update({
+        const updated = await tx.customer.update({
           where: { id: emiCustomer.id },
-          data: { balance: newCustomerBalance },
+          data: { balance: { decrement: dto.amount } },
         });
+        newCustomerBalance = Number(updated.balance);
       }
 
       await tx.customerLedger.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           customerId: plan.customerId,
           createdById: user.id,
           type: 'PAYMENT_RECEIVED',
-          amount: dto.amount,
+          amount: -dto.amount,
           balanceAfter: newCustomerBalance,
           reference: plan.planNumber,
           note: `EMI installment ${installment.installmentNumber}/${plan.installmentCount}`,
@@ -482,6 +504,27 @@ export class EmiService {
           status: allDone ? EmiPlanStatus.COMPLETED : plan.status,
         },
       });
+
+      // A forgiven installment leaves the customer's khata too, or the khata
+      // keeps asking for money the shop has let go.
+      if (remainingDue > 0.005) {
+        const customer = await tx.customer.findFirst({ where: { id: plan.customerId, tenantId: user.tenantId } });
+        if (customer) {
+          const { balance } = await tx.customer.update({
+            where: { id: customer.id }, data: { balance: { decrement: remainingDue } }, select: { balance: true },
+          });
+          const shopId = plan.saleId
+            ? (await tx.sale.findFirst({ where: { id: plan.saleId }, select: { shopId: true } }))?.shopId ?? null
+            : null;
+          await tx.customerLedger.create({
+            data: {
+              tenantId: user.tenantId, shopId, customerId: customer.id, createdById: user.id,
+              type: 'ADJUSTMENT', amount: -remainingDue, balanceAfter: balance, reference: plan.planNumber,
+              note: `EMI qist ${installment.installmentNumber}/${plan.installmentCount} maaf${reason ? `: ${reason}` : ''}`,
+            },
+          });
+        }
+      }
       return updated;
     });
   }

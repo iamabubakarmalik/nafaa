@@ -130,7 +130,7 @@ export class UsedPhonesService {
     const refurbish = dto.refurbishCost ?? 0;
     const totalCost = buyback + refurbish;
 
-    return this.prisma.usedPhone.create({
+    const phone = await this.prisma.usedPhone.create({
       data: {
         tenantId: user.tenantId,
         shopId,
@@ -176,6 +176,40 @@ export class UsedPhonesService {
         shop: { select: { id: true, name: true } },
         fromCustomer: { select: { id: true, name: true, phone: true } },
       },
+    });
+
+    if (phone.source === 'CASH_BUYBACK' && buyback > 0) {
+      const paidFromDrawer = await this.payFromDrawer(user, phone.shopId, buyback, phone.usedPhoneCode, `${phone.brand} ${phone.model}`);
+      return { ...phone, paidFromDrawer };
+    }
+    return phone;
+  }
+
+  /**
+   * Cash paid to the seller of a used phone leaves the open drawer, so the
+   * register closes without a false shortage. Without an open register
+   * there is no drawer to correct.
+   */
+  private async payFromDrawer(user: AuthenticatedUser, shopId: string | null, amount: number, code: string, device: string): Promise<boolean> {
+    const register = await this.prisma.cashRegister.findFirst({
+      where: { tenantId: user.tenantId, status: 'OPEN', ...(shopId && { shopId }) },
+      orderBy: { openedAt: 'desc' },
+      select: { id: true },
+    });
+    if (!register) return false;
+    return this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.cashRegister.updateMany({
+        where: { id: register.id, status: 'OPEN' },
+        data: { expectedBalance: { decrement: amount }, totalCashOut: { increment: amount } },
+      });
+      if (!claimed.count) return false;
+      await tx.cashTransaction.create({
+        data: {
+          tenantId: user.tenantId, cashRegisterId: register.id, createdById: user.id,
+          type: 'CASH_OUT', amount, reason: `Used phone khareeda ${code}`, note: device, reference: `usedphone:${code}`,
+        },
+      });
+      return true;
     });
   }
 
@@ -401,6 +435,13 @@ export class UsedPhonesService {
     const phone = await this.findOne(user, id);
     if (phone.status === 'SOLD') {
       throw new BadRequestException('Cannot delete sold phone');
+    }
+    const paid = await this.prisma.cashTransaction.findFirst({
+      where: { tenantId: user.tenantId, reference: `usedphone:${phone.usedPhoneCode}` },
+      select: { id: true },
+    });
+    if (paid) {
+      throw new BadRequestException('Is phone ke paise galle se diye ja chuke hain — mitane ki jagah "Discard" karein');
     }
     await this.prisma.usedPhone.delete({ where: { id } });
     return { message: 'Used phone deleted', usedPhoneCode: phone.usedPhoneCode };

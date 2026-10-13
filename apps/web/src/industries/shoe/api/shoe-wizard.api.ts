@@ -1,6 +1,7 @@
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { shoeProductsApi } from './products.api';
 import { shoeSizeVariantsApi } from './size-variants.api';
+import { stockAdjustmentsApi } from '@modules/inventory/stock-adjustments/api/stock-adjustments.api';
 import type { ShoeWizardDraft } from '../hooks/useShoeWizard';
 
 export interface ShoeWizardSaveResult {
@@ -34,7 +35,9 @@ draft: ShoeWizardDraft,
     costPrice: Number(pricing.costPrice || 0),
     wholesalePrice: pricing.wholesalePrice === '' ? undefined : Number(pricing.wholesalePrice),
     taxRate: Number(pricing.taxRate || 0),
-    stock: totalStock,
+    // Stock lives on the sizes: each size's count is booked as a stock
+    // adjustment when the sizes are saved below, so the product starts at 0.
+    ...(existingId ? {} : { stock: 0 }),
     lowStockAlert: 2,
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -131,6 +134,20 @@ draft: ShoeWizardDraft,
   }
 
   let sizeVariantsCreated = 0;
+  if (existingId && sizeVariants.length > 0) {
+    // A changed count on a size that already has stock is a stock
+    // correction: it goes on record as a stock adjustment first.
+    const live = await shoeSizeVariantsApi.byProduct(productId);
+    const key = (size: string, system: string, width: string) => `${size}|${system}|${width}`;
+    const byKey = new Map(live.map((v) => [key(v.size, v.sizeSystem, v.width), v]));
+    const items = sizeVariants.flatMap((v) => {
+      const cur = byKey.get(key(v.size, sizing.sizeSystem || 'UK', sizing.width || 'REGULAR'));
+      if (!cur?.variantId) return [];
+      const delta = Math.round(Number(v.stock || 0) - Number(cur.stock || 0));
+      return delta === 0 ? [] : [{ productId, variantId: cur.variantId, type: (delta > 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT') as 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT', quantity: Math.abs(delta) }];
+    });
+    if (items.length) await stockAdjustmentsApi.batch({ reason: 'Size ki ginti theek ki', note: 'Joota edit', items });
+  }
   if (sizeVariants.length > 0) {
     try {
       const result = await shoeSizeVariantsApi.bulkUpsert({

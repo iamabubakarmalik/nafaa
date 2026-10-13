@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -9,8 +10,8 @@ export class SportsDashboardService {
 
   async overview(user: AuthenticatedUser) {
     const monthAgo = subDays(new Date(), 30);
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
 
     const [
       totalBrands, totalProducts, teamOrderableCount,
@@ -177,8 +178,9 @@ export class SportsDashboardService {
   }
 
   async salesReport(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    // Dates are shop days (Pakistan time); a missing range means the last 30 days.
+    const start = from ? startOfDayTz(new Date(from)) : startOfDayTz(subDaysTz(new Date(), 30));
+    const end = to ? endOfDayTz(new Date(to)) : endOfDayTz();
 
     const [teamOrders, repairs] = await Promise.all([
       this.prisma.sportsTeamOrder.findMany({

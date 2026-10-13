@@ -42,14 +42,14 @@ export class HousekeepingService {
 
   async assign(user: AuthenticatedUser, id: string, assignedTo: string, assignedName: string) {
     return this.prisma.hotelHousekeepingTask.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: { assignedTo, assignedName, status: 'ASSIGNED' },
     });
   }
 
   async start(user: AuthenticatedUser, id: string) {
     return this.prisma.hotelHousekeepingTask.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: { status: 'IN_PROGRESS', startedAt: new Date() },
     });
   }

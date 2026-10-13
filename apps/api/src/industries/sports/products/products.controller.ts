@@ -3,6 +3,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { OpeningStockDto } from '../common/opening-stock.helper';
 import { SportsProductsService } from './products.service';
 import { UpsertSportsProductDto } from './dto/upsert-sports-product.dto';
 
@@ -12,6 +14,18 @@ import { UpsertSportsProductDto } from './dto/upsert-sports-product.dto';
 @Controller('sports/products')
 export class SportsProductsController {
   constructor(private readonly service: SportsProductsService) {}
+
+  /** First stock of new variants (sizes/colours), booked as opening stock. */
+  @Post(':productId/opening-stock')
+  openingStock(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') productId: string, @Body() dto: OpeningStockDto) {
+    return this.service.openingStock(user, productId, dto, shop.shopId);
+  }
+
+  /** Moves units of an older variant product from the product row to its variants, when exact. */
+  @Post(':productId/variant-stock-split')
+  splitVariantStock(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') productId: string) {
+    return this.service.splitVariantStock(user, productId, shop.shopId);
+  }
 
   @Post()
   upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertSportsProductDto) {

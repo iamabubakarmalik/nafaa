@@ -3,6 +3,17 @@ import { addMonths, differenceInDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RenewAmcDto, UpdateAmcStatusDto, UpsertAmcDto } from './dto/upsert-amc.dto';
+import { billJob, billOf } from '../common/books';
+
+/** An AMC contract is sold like any other item: one bill for its value, paid now or on khata. */
+const amcParty = (c: { contractNumber: string; customerId: string | null; customerName: string; customerPhone: string }) => ({
+  number: c.contractNumber, customerId: c.customerId, customerName: c.customerName, customerPhone: c.customerPhone,
+});
+
+function amcLines(c: { contractNumber: string; amcType: string; productName: string | null; serialNumber: string | null; durationMonths: number; contractValue: number }) {
+  const what = [c.productName, c.serialNumber].filter(Boolean).join(' ');
+  return [{ label: `AMC ${c.contractNumber} (${c.amcType}, ${c.durationMonths} mahine)${what ? ` — ${what}` : ''}`, amount: Number(c.contractValue) || 0 }];
+}
 
 @Injectable()
 export class AmcContractsService {
@@ -16,16 +27,26 @@ export class AmcContractsService {
     const startDate = new Date(dto.startDate);
     const expiryDate = addMonths(startDate, dto.durationMonths);
 
-    return this.prisma.applianceAmcContract.create({
-      data: {
-        tenantId: user.tenantId,
-        contractNumber,
-        ...dto,
-        startDate,
-        expiryDate,
-        status: 'ACTIVE',
-        createdById: user.id,
-      },
+    if ((Number(dto.paidAmount) || 0) > (Number(dto.contractValue) || 0) + 0.01) {
+      throw new BadRequestException('Wusool raqam contract ki qeemat se zyada nahi ho sakti');
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const c = await tx.applianceAmcContract.create({
+        data: {
+          tenantId: user.tenantId,
+          contractNumber,
+          ...dto,
+          startDate,
+          expiryDate,
+          status: 'ACTIVE',
+          createdById: user.id,
+        },
+      });
+      const bill = await billJob(tx, user, amcParty(c), amcLines(c), Number(c.paidAmount) || 0);
+      if (bill?.customerId && bill.customerId !== c.customerId) {
+        return tx.applianceAmcContract.update({ where: { id: c.id }, data: { customerId: bill.customerId } });
+      }
+      return c;
     });
   }
 
@@ -98,6 +119,13 @@ export class AmcContractsService {
     const startDate = new Date(dto.startDate);
     const expiryDate = addMonths(startDate, dto.durationMonths);
 
+    // Once billed, money changes go through the khata, not by editing the contract.
+    const moneyChanged = (dto.contractValue !== undefined && Number(dto.contractValue) !== Number(c.contractValue))
+      || (dto.paidAmount !== undefined && Number(dto.paidAmount) !== Number(c.paidAmount));
+    if (moneyChanged && await billOf(this.prisma, user.tenantId, c.contractNumber)) {
+      throw new BadRequestException('Is contract ka bill ban chuka hai — qeemat ya wusooli customer ke Khata se badlein');
+    }
+
     return this.prisma.applianceAmcContract.update({
       where: { id },
       data: { ...dto, startDate, expiryDate },
@@ -120,51 +148,55 @@ export class AmcContractsService {
   async renew(user: AuthenticatedUser, id: string, dto: RenewAmcDto) {
     const c = await this.prisma.applianceAmcContract.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('AMC contract not found');
+    if ((Number(dto.paidAmount) || 0) > (Number(dto.contractValue) || 0) + 0.01) {
+      throw new BadRequestException('Wusool raqam contract ki qeemat se zyada nahi ho sakti');
+    }
 
-    // Mark current as renewed
-    await this.prisma.applianceAmcContract.update({
-      where: { id },
-      data: { status: 'RENEWED' },
-    });
-
-    // Create new renewal contract
     const count = await this.prisma.applianceAmcContract.count({ where: { tenantId: user.tenantId } });
     const year = new Date().getFullYear();
     const contractNumber = `AMC-${year}-${String(count + 1).padStart(4, '0')}`;
-
     const startDate = new Date();
     const expiryDate = addMonths(startDate, dto.durationMonths);
 
-    return this.prisma.applianceAmcContract.create({
-      data: {
-        tenantId: user.tenantId,
-        contractNumber,
-        amcType: c.amcType,
-        customerId: c.customerId,
-        customerName: c.customerName,
-        customerPhone: c.customerPhone,
-        customerAddress: c.customerAddress,
-        productId: c.productId,
-        productName: c.productName,
-        serialNumber: c.serialNumber,
-        serialTrackingId: c.serialTrackingId,
-        startDate,
-        expiryDate,
-        durationMonths: dto.durationMonths,
-        contractValue: dto.contractValue,
-        paidAmount: dto.paidAmount ?? 0,
-        freeVisitsAllowed: dto.freeVisitsAllowed ?? c.freeVisitsAllowed,
-        freePartsAllowed: c.freePartsAllowed,
-        laborCovered: c.laborCovered,
-        gasRefillCovered: c.gasRefillCovered,
-        emergencyCallsAllowed: c.emergencyCallsAllowed,
-        servicesIncluded: c.servicesIncluded,
-        servicesExcluded: c.servicesExcluded,
-        exclusions: c.exclusions,
-        status: 'ACTIVE',
-        notes: 'Renewed from ' + c.contractNumber,
-        createdById: user.id,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      // The old contract is closed and a new one sold, in one step.
+      await tx.applianceAmcContract.update({ where: { id }, data: { status: 'RENEWED' } });
+      const renewed = await tx.applianceAmcContract.create({
+        data: {
+          tenantId: user.tenantId,
+          contractNumber,
+          amcType: c.amcType,
+          customerId: c.customerId,
+          customerName: c.customerName,
+          customerPhone: c.customerPhone,
+          customerAddress: c.customerAddress,
+          productId: c.productId,
+          productName: c.productName,
+          serialNumber: c.serialNumber,
+          serialTrackingId: c.serialTrackingId,
+          startDate,
+          expiryDate,
+          durationMonths: dto.durationMonths,
+          contractValue: dto.contractValue,
+          paidAmount: dto.paidAmount ?? 0,
+          freeVisitsAllowed: dto.freeVisitsAllowed ?? c.freeVisitsAllowed,
+          freePartsAllowed: c.freePartsAllowed,
+          laborCovered: c.laborCovered,
+          gasRefillCovered: c.gasRefillCovered,
+          emergencyCallsAllowed: c.emergencyCallsAllowed,
+          servicesIncluded: c.servicesIncluded,
+          servicesExcluded: c.servicesExcluded,
+          exclusions: c.exclusions,
+          status: 'ACTIVE',
+          notes: 'Renewed from ' + c.contractNumber,
+          createdById: user.id,
+        },
+      });
+      const bill = await billJob(tx, user, amcParty(renewed), amcLines(renewed), Number(renewed.paidAmount) || 0);
+      if (bill?.customerId && bill.customerId !== renewed.customerId) {
+        return tx.applianceAmcContract.update({ where: { id: renewed.id }, data: { customerId: bill.customerId } });
+      }
+      return renewed;
     });
   }
 

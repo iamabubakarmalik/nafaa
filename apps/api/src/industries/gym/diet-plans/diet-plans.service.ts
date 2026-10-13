@@ -37,7 +37,7 @@ export class DietPlansService {
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
     return this.prisma.gymDietPlan.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: {
         ...dto,
         startDate: dto.startDate ? new Date(dto.startDate) : undefined,
@@ -47,6 +47,6 @@ export class DietPlansService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.gymDietPlan.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.gymDietPlan.update({ where: { id, tenantId: user.tenantId }, data: { isActive: false } });
   }
 }

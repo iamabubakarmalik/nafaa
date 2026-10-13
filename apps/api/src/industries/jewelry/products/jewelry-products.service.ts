@@ -97,6 +97,7 @@ export class JewelryProductsService {
     const products = await this.prisma.product.findMany({
       where: {
         id: { in: productIds },
+        tenantId: user.tenantId,
         ...(params.search && {
           OR: [
             { name: { contains: params.search, mode: 'insensitive' } },
@@ -173,6 +174,8 @@ export class JewelryProductsService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
+    const p = await this.prisma.jewelryProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!p) throw new NotFoundException('Profile not found');
     return this.prisma.jewelryProductProfile.delete({ where: { id } });
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { releaseVoidedSerials } from '../common/serial-upkeep';
 
 /**
  * ElectronicsPosService — POS screen ka poora catalog ek call me.
@@ -25,6 +26,9 @@ export class ElectronicsPosService {
     const tenantId = user.tenantId;
     const search = params.search?.trim() || undefined;
     const shopId = params.shopId || undefined;
+
+    // Units on cancelled bills go back on the shelf before counting.
+    await releaseVoidedSerials(this.prisma, tenantId);
 
     const [products, serials, bundles] = await Promise.all([
       this.findProducts(tenantId, shopId, search, params.categoryType),

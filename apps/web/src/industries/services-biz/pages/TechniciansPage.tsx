@@ -174,7 +174,7 @@ export default function TechniciansPage() {
 function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete }: any) {
   const statusCfg = STATUS_CONFIG[technician.status as TechStatus];
   const level = LEVELS.find((l) => l.value === technician.level);
-  const staffName = technician.staff ? ((technician.staff.firstName || '') + ' ' + (technician.staff.lastName || '')).trim() || 'Technician' : 'Technician';
+  const staffName = technician.staff ? (((technician.staff.fullName || technician.staff.firstName) || '') + ' ' + (technician.staff.lastName || '')).trim() || 'Technician' : 'Technician';
 
   return (
     <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
@@ -380,7 +380,7 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
             <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
               <option value="">-- Pick staff --</option>
               {staffList.map((s: any) => {
-                const nm = ((s.firstName || '') + ' ' + (s.lastName || '')).trim() || s.staffNumber;
+                const nm = (((s.fullName || s.firstName) || '') + ' ' + (s.lastName || '')).trim() || s.staffNumber;
                 return <option key={s.id} value={s.id}>{nm} • {s.phone || ''}</option>;
               })}
             </select>

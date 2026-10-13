@@ -2,6 +2,9 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { EndSessionDto, StartSessionDto } from './dto/start-session.dto';
+import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+
+const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
 @Injectable()
 export class CafeSessionsService {
@@ -17,8 +20,19 @@ export class CafeSessionsService {
     });
     if (existing) throw new BadRequestException('Station already has an active session');
 
-    const count = await this.prisma.gamingCafeSession.count({ where: { tenantId: user.tenantId } });
-    const sessionNumber = `SES-${new Date().getFullYear()}-${String(count + 1).padStart(5, '0')}`;
+    if (dto.customerId) {
+      const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { name: true, phone: true } });
+      if (!c) throw new NotFoundException('Customer nahi mila');
+      dto.customerName = dto.customerName || c.name;
+      dto.customerPhone = dto.customerPhone || c.phone || undefined;
+    }
+    const prefix = `SES-${new Date().getFullYear()}-`;
+    const last = await this.prisma.gamingCafeSession.findFirst({
+      where: { tenantId: user.tenantId, sessionNumber: { startsWith: prefix } },
+      orderBy: { sessionNumber: 'desc' },
+      select: { sessionNumber: true },
+    });
+    const sessionNumber = prefix + String((last ? Number(last.sessionNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(5, '0');
 
     return this.prisma.gamingCafeSession.create({
       data: {
@@ -64,24 +78,70 @@ export class CafeSessionsService {
     });
   }
 
+  /**
+   * Ends the session and posts its bill as a sale (station time plus any
+   * food or extra charges), so the money shows in the day book, cash
+   * register and reports. Unpaid money goes on the player's khata.
+   */
   async end(user: AuthenticatedUser, id: string, dto: EndSessionDto) {
     const s = await this.prisma.gamingCafeSession.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Session not found');
     if (s.status === 'ENDED' || s.status === 'CANCELLED') throw new BadRequestException('Session already ended');
 
-    const station = await this.prisma.gamingStation.findUnique({ where: { id: s.stationId } });
+    const station = await this.prisma.gamingStation.findFirst({ where: { id: s.stationId, tenantId: user.tenantId } });
     const endedAt = new Date();
-    const totalMs = endedAt.getTime() - s.startedAt.getTime();
-    const actualMinutes = Math.floor(totalMs / 60000);
-    const billableMinutes = Math.max(actualMinutes - s.totalPauseMinutes, station?.minimumMinutes ?? 0);
+    // A paused session that is ended counts its running pause too.
+    const openPause = s.status === 'PAUSED' && s.pausedAt ? Math.floor((endedAt.getTime() - s.pausedAt.getTime()) / 60000) : 0;
+    const totalPause = s.totalPauseMinutes + openPause;
+    const actualMinutes = Math.floor((endedAt.getTime() - s.startedAt.getTime()) / 60000);
+    const billableMinutes = Math.max(actualMinutes - totalPause, station?.minimumMinutes ?? 0);
 
-    const baseAmount = (billableMinutes / 60) * s.ratePerHour;
-    const foodCharges = dto.foodCharges ?? 0;
-    const additionalCharges = dto.additionalCharges ?? 0;
-    const discount = dto.discount ?? 0;
-    const totalAmount = Math.max(baseAmount + foodCharges + additionalCharges - discount, 0);
+    const baseAmount = r2((billableMinutes / 60) * s.ratePerHour);
+    const foodCharges = r2(Math.max(dto.foodCharges ?? 0, 0));
+    const additionalCharges = r2(Math.max(dto.additionalCharges ?? 0, 0));
+    let discount = r2(Math.max(dto.discount ?? 0, 0));
+    const gross = r2(baseAmount + foodCharges + additionalCharges);
+    if (discount > gross) throw new BadRequestException('Discount bill se zyada hai');
+    let totalAmount = r2(gross - discount);
+    const paid = r2(Math.max(dto.paidAmount ?? totalAmount, 0));
+    // The counter screen shows the bill a moment before the server ends the
+    // clock; a shortfall of up to two minutes of play is rounded off.
+    const roundOff = r2(Math.max(totalAmount - paid, 0));
+    if (roundOff > 0 && roundOff <= r2((s.ratePerHour / 60) * 2)) {
+      discount = r2(discount + roundOff);
+      totalAmount = r2(gross - discount);
+    }
+    const kept = r2(Math.min(paid, totalAmount));
 
     return this.prisma.$transaction(async (tx) => {
+      const shopId = await resolveIndustryShopId(tx, user, dto.shopId);
+      let customerId = s.customerId;
+      if (!customerId && kept < totalAmount - 0.01) {
+        if (!s.customerName?.trim()) {
+          throw new BadRequestException(`Rs ${r2(totalAmount - kept)} baqi hai — poori raqam lein, ya udhaar ke liye player ka naam likhein`);
+        }
+        customerId = await ensureCustomer(tx, user, { name: s.customerName, phone: s.customerPhone, shopId });
+      }
+
+      let saleId: string | null = null;
+      if (gross > 0) {
+        const sale = await postIndustrySale(tx, user, {
+          saleNumber: `GMS-${s.sessionNumber}`,
+          sourceRef: s.sessionNumber,
+          shopId,
+          customerId,
+          lines: [
+            { label: `${station?.name ?? 'Station'} — ${billableMinutes} min @ ${s.ratePerHour}/ghanta`, amount: baseAmount },
+            { label: 'Food / drinks', amount: foodCharges },
+            { label: 'Extra charges', amount: additionalCharges },
+          ],
+          discount,
+          paidAmount: paid,
+          paymentMethod: dto.paymentMethod,
+        });
+        saleId = sale.id;
+      }
+
       const updated = await tx.gamingCafeSession.update({
         where: { id },
         data: {
@@ -89,33 +149,36 @@ export class CafeSessionsService {
           endedAt,
           actualMinutes,
           billableMinutes,
+          totalPauseMinutes: totalPause,
+          pausedAt: null,
+          customerId,
           baseAmount,
           foodCharges,
           additionalCharges,
           discount,
           totalAmount,
-          paidAmount: dto.paidAmount ?? totalAmount,
+          paidAmount: kept,
           paymentMethod: dto.paymentMethod,
           notes: dto.notes,
         },
       });
 
-      // Update station stats
-      await tx.gamingStation.update({
-        where: { id: s.stationId },
+      await tx.gamingStation.updateMany({
+        where: { id: s.stationId, tenantId: user.tenantId },
         data: {
           totalHoursUsed: { increment: billableMinutes / 60 },
           totalRevenue: { increment: totalAmount },
         },
       });
 
-      return updated;
+      return { ...updated, saleId, change: r2(paid - kept) };
     });
   }
 
   async cancel(user: AuthenticatedUser, id: string, reason?: string) {
     const s = await this.prisma.gamingCafeSession.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Session not found');
+    if (s.status === 'ENDED') throw new BadRequestException('Bill ban chuka hai — session cancel nahi hota');
     return this.prisma.gamingCafeSession.update({
       where: { id },
       data: { status: 'CANCELLED', endedAt: new Date(), notes: reason },
@@ -152,8 +215,9 @@ export class CafeSessionsService {
     if (s.status === 'ACTIVE' || s.status === 'PAUSED') {
       const totalMs = Date.now() - s.startedAt.getTime();
       const actualMinutes = Math.floor(totalMs / 60000);
-      const billableMinutes = Math.max(actualMinutes - s.totalPauseMinutes, 0);
-      const currentAmount = (billableMinutes / 60) * s.ratePerHour;
+      const openPause = s.status === 'PAUSED' && s.pausedAt ? Math.floor((Date.now() - s.pausedAt.getTime()) / 60000) : 0;
+      const billableMinutes = Math.max(actualMinutes - s.totalPauseMinutes - openPause, s.station?.minimumMinutes ?? 0);
+      const currentAmount = r2((billableMinutes / 60) * s.ratePerHour);
       return { ...s, liveBilling: { actualMinutes, billableMinutes, currentAmount } };
     }
 

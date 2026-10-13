@@ -38,6 +38,7 @@ export interface Appointment {
   taxAmount: number;
   discount: number;
   tip: number;
+  saleId?: string | null;
   total: number;
   paidAmount: number;
   paymentStatus: string;
@@ -64,6 +65,9 @@ export const appointmentsApi = {
     apiClient.post('/salon/appointments/' + id + '/reschedule', data).then(unwrap<Appointment>),
   addPayment: (id: string, data: { amount: number; paymentMethod: string; reference?: string }) =>
     apiClient.post('/salon/appointments/' + id + '/payments', data).then(unwrap<Appointment>),
+  /** Final bill: completes the appointment and posts the sale. */
+  checkout: (id: string, data: { paidAmount: number; paymentMethod?: string; discount?: number; tip?: number; shopId?: string }) =>
+    apiClient.post('/salon/appointments/' + id + '/checkout', data).then(unwrap<Appointment & { sale?: { id: string; saleNumber: string }; change?: number }>),
   rate: (id: string, rating: number, feedback?: string) =>
     apiClient.post('/salon/appointments/' + id + '/rating', { rating, feedback }).then(unwrap<Appointment>),
 };

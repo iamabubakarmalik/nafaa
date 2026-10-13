@@ -148,7 +148,8 @@ export default function PetshopPosPage() {
   }, [profiles]);
 
   const filteredProducts = useMemo(() => {
-    let list = products.filter((p) => p.isActive !== false);
+    // Animal lines (one per animal) are sold from the Animals tab, not here.
+    let list = products.filter((p) => p.isActive !== false && (p as { productType?: string | null }).productType !== 'PET_ANIMAL');
     if (speciesFilter) {
       list = list.filter((p) => {
         const pr = profileByProduct.get(p.id);
@@ -335,35 +336,48 @@ export default function PetshopPosPage() {
 
       const animalLines = cart.filter((l) => l.type === 'animal' && l.animalId);
 
-      // Sell animals first
+      /* Every animal rides on the same bill as the products. Before, an
+         animal was only flagged "sold": no bill, no cash in the drawer, no
+         khata, nothing in reports — and in a mixed cart the animal's money
+         was counted as change. Each animal gets its own catalogue line
+         (stock 1) from the server, then everything is billed together. */
+      const animalItems: typeof productItems = [];
       for (const a of animalLines) {
-        try {
-          await liveAnimalsApi.sell(a.animalId!, {
-            soldPrice: a.unitPrice,
-            soldToCustomerId: customerId || undefined,
-            soldToCustomerName: selectedCustomer?.name,
-          });
-        } catch (e: any) {
-          console.error('Animal sell failed', e);
-        }
+        const line = await liveAnimalsApi.counterItem(a.animalId!);
+        animalItems.push({ productId: line.productId, quantity: 1, priceOverride: a.unitPrice, note: a.note });
       }
 
-      const sale = productItems.length > 0 ? await offlineSalesApi.create({
+      const sale = await offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,
         paidAmount: data.paidAmount,
         discount: discountAmount,
-        items: productItems,
-      }) : null;
+        items: [...productItems, ...animalItems],
+      });
+
+      const failed: string[] = [];
+      for (const a of animalLines) {
+        try {
+          await liveAnimalsApi.sell(a.animalId!, {
+            saleId: sale.id,
+            soldPrice: a.unitPrice,
+            soldToCustomerId: customerId || undefined,
+            soldToCustomerName: selectedCustomer?.name,
+          });
+        } catch {
+          failed.push(a.name);
+        }
+      }
+      if (failed.length) toast.error(`Bill ban gaya, magar ${failed.join(', ')} "bik gaya" mark nahi hua — Live Animals se mark karein`);
 
       return sale;
     },
     onSuccess: (sale, vars) => {
       const change = Math.max(vars.paidAmount - total, 0);
       setLastSale({
-        id: sale?.id || 'animal-only',
-        number: sale?.saleNumber || 'ANIMAL-SALE',
+        id: sale.id,
+        number: sale.saleNumber,
         change, total,
       });
       setShowCheckout(false);
@@ -374,7 +388,7 @@ export default function PetshopPosPage() {
       queryClient.invalidateQueries({ queryKey: ['sales-list'] });
 
       const autoOpen = localStorage.getItem('nafaa.pos.auto-open-receipt') !== 'false';
-      if (autoOpen && sale) window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
+      if (autoOpen) window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale failed'),
   });
@@ -426,14 +440,12 @@ export default function PetshopPosPage() {
               </div>
             )}
             <div className="p-4 grid grid-cols-2 gap-2">
-              {lastSale.id !== 'animal-only' && (
-                <button onClick={() => window.open(`/sales/${lastSale.id}/receipt`, '_blank')}
-                  className="h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 font-extrabold text-slate-700 inline-flex items-center justify-center gap-2">
-                  <Printer className="h-5 w-5" /> Receipt
-                </button>
-              )}
+              <button onClick={() => window.open(`/sales/${lastSale.id}/receipt`, '_blank')}
+                className="h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 font-extrabold text-slate-700 inline-flex items-center justify-center gap-2">
+                <Printer className="h-5 w-5" /> Receipt
+              </button>
               <button onClick={() => setLastSale(null)}
-                className={`${lastSale.id !== 'animal-only' ? '' : 'col-span-2'} h-14 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-700 font-extrabold text-white text-lg shadow-lg inline-flex items-center justify-center gap-2`}>
+                className="h-14 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-700 font-extrabold text-white text-lg shadow-lg inline-flex items-center justify-center gap-2">
                 New Sale <ArrowRight className="h-5 w-5" />
               </button>
             </div>

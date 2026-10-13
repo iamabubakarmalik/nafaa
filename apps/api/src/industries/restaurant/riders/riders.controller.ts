@@ -4,7 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RidersService } from './riders.service';
-import { UpsertRiderDto } from './dto/upsert-rider.dto';
+import { UpdateRiderDto, UpsertRiderDto } from './dto/upsert-rider.dto';
 
 @ApiTags('Restaurant - Riders')
 @ApiBearerAuth()
@@ -18,7 +18,7 @@ export class RidersController {
     return this.service.list(user, { status, active: active === 'true' ? true : active === 'false' ? false : undefined });
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertRiderDto) { return this.service.update(user, id, dto); }
+  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateRiderDto) { return this.service.update(user, id, dto); }
   @Post(':id/location') updateLocation(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { lat: number; lng: number }) {
     return this.service.updateLocation(user, id, body.lat, body.lng);
   }

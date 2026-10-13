@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput } from '../agri-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -12,8 +13,8 @@ export class SubsidyService {
 
     return this.prisma.agriSubsidyClaim.create({
       data: {
+        ...cleanInput(dto),
         tenantId: user.tenantId,
-        ...dto,
         claimNumber,
         quantity: Number(dto.quantity) || 0,
         originalPrice: Number(dto.originalPrice) || 0,
@@ -51,6 +52,7 @@ export class SubsidyService {
   }
 
   async approve(user: AuthenticatedUser, id: string, approvedBy?: string) {
+    await this.getOne(user, id);
     return this.prisma.agriSubsidyClaim.update({
       where: { id },
       data: { status: 'APPROVED', approvedBy, approvalDate: new Date() },
@@ -58,6 +60,7 @@ export class SubsidyService {
   }
 
   async reject(user: AuthenticatedUser, id: string, reason: string) {
+    await this.getOne(user, id);
     return this.prisma.agriSubsidyClaim.update({
       where: { id },
       data: { status: 'REJECTED', rejectionReason: reason },
@@ -65,6 +68,7 @@ export class SubsidyService {
   }
 
   async markDisbursed(user: AuthenticatedUser, id: string) {
+    await this.getOne(user, id);
     return this.prisma.agriSubsidyClaim.update({
       where: { id },
       data: { status: 'DISBURSED', disbursementDate: new Date() },

@@ -57,7 +57,7 @@ export const tailoringApi = {
     apiClient.get('/garments/tailoring/summary', { params }).then(unwrap<any>),
   getOne: (id: string) =>
     apiClient.get('/garments/tailoring/' + id).then(unwrap<TailoringOrder>),
-  updateStatus: (id: string, status: string, opts?: { notes?: string; cancellationReason?: string }) =>
+  updateStatus: (id: string, status: string, opts?: { notes?: string; cancellationReason?: string; paidNow?: number; paymentMethod?: string }) =>
     apiClient.patch('/garments/tailoring/' + id + '/status', { status, ...opts }).then(unwrap<TailoringOrder>),
   addPayment: (id: string, data: { amount: number; paymentMethod: string; reference?: string; notes?: string }) =>
     apiClient.post('/garments/tailoring/' + id + '/payments', data).then(unwrap<TailoringOrder>),

@@ -37,7 +37,6 @@ export async function saveJewelryWizard(
     price: Number(certify.estimatedPrice || 0),
     costPrice: Number(certify.costPrice || 0),
     taxRate: 0,
-    stock: 1,
     lowStockAlert: 0,
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -45,9 +44,11 @@ export async function saveJewelryWizard(
     imageUrls: basic.imageUrls,
   };
 
+  // A new piece starts with stock 1; editing never touches stock, or a sold
+  // piece would come back on the shelf.
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create({ ..._payload, stock: 1 } as any);
 
   const productId = product.id;
   const rollback = async (reason: unknown) => {

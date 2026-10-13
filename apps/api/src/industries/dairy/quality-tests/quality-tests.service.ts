@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput, dayRange, parseDay } from '../dairy-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -12,9 +13,10 @@ export class QualityTestsService {
 
     return this.prisma.dairyQualityTest.create({
       data: {
+        ...cleanInput(dto),
         tenantId: user.tenantId,
         testNumber,
-        ...dto,
+        ...(dto?.testedAt && { testedAt: parseDay(dto.testedAt) ?? new Date() }),
         testedByStaffId: user.id,
       },
     });
@@ -27,12 +29,7 @@ export class QualityTestsService {
         ...(params.sourceType && { sourceType: params.sourceType }),
         ...(params.sourceId && { sourceId: params.sourceId }),
         ...(params.failed !== undefined && { passed: !params.failed }),
-        ...(params.from || params.to ? {
-          testedAt: {
-            ...(params.from && { gte: new Date(params.from) }),
-            ...(params.to && { lte: new Date(params.to) }),
-          },
-        } : {}),
+        ...(dayRange(params.from, params.to) && { testedAt: dayRange(params.from, params.to) }),
       },
       orderBy: { testedAt: 'desc' },
       take: 200,

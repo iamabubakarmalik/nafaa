@@ -44,7 +44,10 @@ export default function WorkshopJobDetailPage() {
 
   const statusMutation = useMutation({
     mutationFn: (status: string) => workshopJobsApi.updateStatus(id!, status),
-    onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['workshop-job', id] }); },
+    onSuccess: (_d, status) => {
+      toast.success(status === 'DELIVERED' ? 'Gaari de di — bill ban gaya aur parts stock se nikal gaye' : 'Status badal gaya');
+      queryClient.invalidateQueries({ queryKey: ['workshop-job', id] });
+    },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
   });
 
@@ -90,6 +93,12 @@ export default function WorkshopJobDetailPage() {
               <Printer className="h-4 w-4" />
               Print
             </button>
+            {job.sale && (
+              <a href={`/sales/${job.sale.id}/receipt`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold border border-white/20">
+                <CreditCard className="h-4 w-4" />
+                Bill {job.sale.saleNumber}
+              </a>
+            )}
             {!isFullyPaid && job.status !== 'CANCELLED' && (
               <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
                 <DollarSign className="h-4 w-4" />

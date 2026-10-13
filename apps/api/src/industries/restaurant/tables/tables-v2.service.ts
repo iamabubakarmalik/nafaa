@@ -1,16 +1,27 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { TableStatus } from '@prisma/client';
 import { ReserveTableDto, UpsertTableDto } from './dto/upsert-table.dto';
 
 @Injectable()
 export class TablesV2Service {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: UpsertTableDto) {
+  /** A new table belongs to the branch being viewed, so the branch's floor shows it. */
+  async create(user: AuthenticatedUser, dto: UpsertTableDto, viewShopId?: string) {
+    const shopId = dto.shopId ?? viewShopId ?? null;
+    // Table numbers are unique per business (schema), deleted tables included.
     const dup = await this.prisma.restaurantTableV2.findFirst({ where: { tenantId: user.tenantId, tableNumber: dto.tableNumber } });
-    if (dup) throw new BadRequestException(`Table "${dto.tableNumber}" already exists`);
-    return this.prisma.restaurantTableV2.create({ data: { tenantId: user.tenantId, ...dto } });
+    if (dup?.isActive) throw new BadRequestException(`Table "${dto.tableNumber}" pehle se hai`);
+    if (dup) {
+      // A deleted table with this number comes back instead of failing on the unique key.
+      return this.prisma.restaurantTableV2.update({
+        where: { id: dup.id },
+        data: { ...dto, shopId, isActive: true, status: dto.status ?? 'AVAILABLE', currentOrderId: null, occupiedAt: null },
+      });
+    }
+    return this.prisma.restaurantTableV2.create({ data: { tenantId: user.tenantId, ...dto, shopId } });
   }
 
   async list(user: AuthenticatedUser, params: { status?: string; section?: string; shopId?: string }) {
@@ -20,7 +31,8 @@ export class TablesV2Service {
         isActive: true,
         ...(params.status && { status: params.status as any }),
         ...(params.section && { section: params.section }),
-        ...(params.shopId && { shopId: params.shopId }),
+        // Tables made before branches have no shop; they stay visible everywhere.
+        ...(params.shopId && { OR: [{ shopId: params.shopId }, { shopId: null }] }),
       },
       orderBy: [{ section: 'asc' }, { tableNumber: 'asc' }],
     });
@@ -40,16 +52,21 @@ export class TablesV2Service {
   async update(user: AuthenticatedUser, id: string, dto: UpsertTableDto) {
     const t = await this.prisma.restaurantTableV2.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Table not found');
+    if (dto.tableNumber && dto.tableNumber !== t.tableNumber) {
+      const dup = await this.prisma.restaurantTableV2.findFirst({ where: { tenantId: user.tenantId, tableNumber: dto.tableNumber, NOT: { id } } });
+      if (dup) throw new BadRequestException(`Table "${dto.tableNumber}" pehle se hai`);
+    }
     return this.prisma.restaurantTableV2.update({ where: { id }, data: dto });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const t = await this.prisma.restaurantTableV2.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Table not found');
+    if (t.status === 'OCCUPIED') throw new BadRequestException('Table par order chal raha hai — pehle bill band karein');
     return this.prisma.restaurantTableV2.update({ where: { id }, data: { isActive: false } });
   }
 
-  async changeStatus(user: AuthenticatedUser, id: string, status: string) {
+  async changeStatus(user: AuthenticatedUser, id: string, status: TableStatus) {
     const t = await this.prisma.restaurantTableV2.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Table not found');
     const patch: any = { status };
@@ -67,7 +84,8 @@ export class TablesV2Service {
   async reserve(user: AuthenticatedUser, id: string, dto: ReserveTableDto) {
     const t = await this.prisma.restaurantTableV2.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Table not found');
-    if (!t.isReservable) throw new BadRequestException('Table is not reservable');
+    if (!t.isReservable) throw new BadRequestException('Ye table reserve nahi hoti');
+    if (t.status === 'OCCUPIED') throw new BadRequestException('Table par abhi log baithe hain');
     return this.prisma.restaurantTableV2.update({
       where: { id },
       data: {

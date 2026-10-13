@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ShoeSizeSystem, ShoeWidth } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpsertSizeVariantDto {
   @ApiProperty() @IsString() productId!: string;
@@ -20,7 +21,9 @@ export class UpsertSizeVariantDto {
 
 export class BulkUpsertSizeVariantsDto {
   @ApiProperty() @IsString() productId!: string;
-  @ApiProperty({ type: [UpsertSizeVariantDto] }) @IsArray() variants!: Omit<UpsertSizeVariantDto, 'productId'>[];
+  // Plain objects: without @Type the global implicit conversion turns each
+  // element into an empty array and the rows are saved as [].
+  @ApiProperty({ type: [UpsertSizeVariantDto] }) @IsArray() @Type(() => Object) variants!: Omit<UpsertSizeVariantDto, 'productId'>[];
 }
 
 export class AdjustStockDto {

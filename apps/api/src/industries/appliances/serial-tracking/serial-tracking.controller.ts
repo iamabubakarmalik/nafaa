@@ -4,7 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ApplianceSerialService } from './serial-tracking.service';
-import { BulkSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
+import { BulkSerialDto, UpdateApplianceSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
 
 @ApiTags('Appliances - Serial Tracking')
 @ApiBearerAuth()
@@ -63,7 +63,7 @@ export class ApplianceSerialController {
   }
 
   @Patch(':id')
-  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertApplianceSerialDto) {
+  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateApplianceSerialDto) {
     return this.service.update(user, id, dto);
   }
 

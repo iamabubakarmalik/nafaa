@@ -43,7 +43,8 @@ export default function TailoringDetailPage() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: (status: string) => tailoringApi.updateStatus(id!, status),
+    mutationFn: (v: { status: string; paidNow?: number; paymentMethod?: string }) =>
+      tailoringApi.updateStatus(id!, v.status, { paidNow: v.paidNow, paymentMethod: v.paymentMethod }),
     onSuccess: () => {
       toast.success('Status updated');
       queryClient.invalidateQueries({ queryKey: ['tailoring-order', id] });
@@ -55,6 +56,7 @@ export default function TailoringDetailPage() {
   const cancelMutation = useMutation({
     mutationFn: (reason: string) => tailoringApi.updateStatus(id!, 'CANCELLED', { cancellationReason: reason }),
     onSuccess: () => { toast.success('Order cancelled'); refetch(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Cancel nahi hua'),
   });
 
   if (isLoading || !order) {
@@ -123,7 +125,17 @@ export default function TailoringDetailPage() {
             <div className="flex gap-2">
               <Button
                 size="sm"
-                onClick={() => statusMutation.mutate(nextStatus)}
+                onClick={() => {
+                  if (nextStatus !== 'DELIVERED') { statusMutation.mutate({ status: nextStatus }); return; }
+                  // Delivery makes the bill: ask what is taken now; the rest goes to the khata.
+                  const due = Math.max(0, Math.round(remaining * 100) / 100);
+                  if (due <= 0) { statusMutation.mutate({ status: nextStatus }); return; }
+                  const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh customer ke khate me jayega)`, String(due));
+                  if (input === null) return;
+                  const paidNow = Number(input);
+                  if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Raqam sahi likhein'); return; }
+                  statusMutation.mutate({ status: nextStatus, paidNow, paymentMethod: 'CASH' });
+                }}
                 loading={statusMutation.isPending}
                 className={STATUS_CONFIG[nextStatus].color + ' text-white'}
               >
@@ -461,7 +473,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
             <div className="grid grid-cols-3 gap-2">
-              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
+              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={
                   'p-2 rounded-lg border-2 text-xs font-extrabold ' +
                   (method === m ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')

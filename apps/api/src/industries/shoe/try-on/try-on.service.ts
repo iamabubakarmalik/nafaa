@@ -8,9 +8,15 @@ export class ShoeTryOnService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: CreateTryOnDto) {
-    const count = await this.prisma.shoeTryOnRequest.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const requestNumber = `TR-${year}-${String(count + 1).padStart(4, '0')}`;
+    // Next number after the highest used, so a deleted request never causes a clash.
+    const prefix = `TR-${new Date().getFullYear()}-`;
+    const last = await this.prisma.shoeTryOnRequest.findFirst({
+      where: { tenantId: user.tenantId, requestNumber: { startsWith: prefix } },
+      orderBy: { requestNumber: 'desc' },
+      select: { requestNumber: true },
+    });
+    const n = last ? parseInt(last.requestNumber.slice(prefix.length), 10) || 0 : 0;
+    const requestNumber = `${prefix}${String(n + 1).padStart(4, '0')}`;
 
     return this.prisma.shoeTryOnRequest.create({
       data: {

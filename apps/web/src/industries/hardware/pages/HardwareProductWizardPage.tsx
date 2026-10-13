@@ -15,6 +15,9 @@ import { HardwareWizardStep3BulkReorder } from '../components/wizard/HardwareWiz
 import { HardwareWizardSummary } from '../components/wizard/HardwareWizardSummary';
 import { saveHardwareWizard, type HardwareWizardSaveResult } from '../api/hardware-wizard.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { hardwareProductsApi } from '../api/products.api';
+import { bulkPricingApi } from '../api/bulk-pricing.api';
+import { reorderRulesApi } from '../api/reorder-rules.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 
 export default function HardwareProductWizardPage() {
@@ -30,6 +33,7 @@ export default function HardwareProductWizardPage() {
     addBulkTier, updateBulkTier, removeBulkTier,
     updateReorder,
     toggleTag,
+    loadSaved,
     reset,
   } = useHardwareWizard({ autoLoadDraft: !isEdit });
 
@@ -42,8 +46,61 @@ export default function HardwareProductWizardPage() {
     enabled: isEdit,
   });
 
+  // Hardware extras saved with the product: profile, bulk tiers and reorder rule.
+  const { data: savedExtras } = useQuery({
+    queryKey: ['hardware-product-extras', id],
+    queryFn: async () => {
+      const [profile, tiers, rule] = await Promise.all([
+        hardwareProductsApi.byProduct(id!).catch(() => null),
+        bulkPricingApi.listByProduct(id!).catch(() => []),
+        reorderRulesApi.byProduct(id!).catch(() => null),
+      ]);
+      return { profile, tiers, rule };
+    },
+    enabled: isEdit,
+  });
+
   useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
+    if (!isEdit || !existingProduct || !savedExtras || editLoaded) return;
+    const { profile, tiers, rule } = savedExtras;
+
+    loadSaved({
+      basic: {
+        hardwareBrandId: profile?.brandId ?? '',
+        isBestSeller: profile?.isBestSeller ?? false,
+        isFastMoving: profile?.isFastMoving ?? false,
+        requiresTruck: profile?.requiresTruck ?? false,
+        hasIsoCertification: profile?.hasIsoCertification ?? false,
+      },
+      specs: {
+        grade: profile?.gradeStrength ?? '',
+        bagWeight: profile?.bagWeight ?? '',
+        steelGrade: profile?.grade ?? '',
+        diameter: profile?.diameter ?? '',
+        weightPerPiece: profile?.weightPerUnit ?? '',
+        tileSize: profile?.tileSize ?? '',
+        finish: profile?.finishType ?? '',
+        piecesPerBox: profile?.piecesPerBox ?? '',
+        sqftPerBox: profile?.sqftPerBox ?? '',
+        colorName: profile?.colorName ?? '',
+        colorHex: profile?.colorCode ?? '',
+        paintFinish: profile?.finishSheen ?? '',
+        coverage: profile?.coverage != null ? String(profile.coverage) : '',
+        litersPerCan: profile?.litersPerCan ?? '',
+        originCountry: profile?.manufacturingLocation ?? '',
+      },
+      bulkTiers: tiers.map((t) => ({
+        id: t.id, minQuantity: t.minQuantity, maxQuantity: t.maxQuantity ?? undefined,
+        price: t.price, discountPct: t.discountPct ?? undefined, label: t.label ?? '',
+      })),
+      reorder: rule ? {
+        enabled: true,
+        minStock: rule.minStock, reorderPoint: rule.reorderPoint, reorderQty: rule.reorderQty,
+        maxStock: rule.maxStock ?? '', preferredSupplier: rule.preferredSupplier ?? '',
+        leadTimeDays: rule.leadTimeDays ?? '', emergencyContact: rule.emergencyContact ?? '',
+        autoAlert: rule.autoAlert,
+      } : undefined,
+    });
 
     updateBasic({
       name: existingProduct.name,
@@ -66,7 +123,7 @@ export default function HardwareProductWizardPage() {
     });
 
     setEditLoaded(true);
-  }, [isEdit, existingProduct, editLoaded, updateBasic]);
+  }, [isEdit, existingProduct, savedExtras, editLoaded, updateBasic, loadSaved]);
 
   const saveMutation = useMutation({
     mutationFn: () => saveHardwareWizard(draft, isEdit ? id : undefined),
@@ -219,6 +276,7 @@ export default function HardwareProductWizardPage() {
         <div className="min-w-0">
           {draft.step === 1 && (
             <HardwareWizardStep1Basic
+              isEdit={isEdit}
               basic={draft.basic}
               onChange={updateBasic}
               onToggleTag={toggleTag}

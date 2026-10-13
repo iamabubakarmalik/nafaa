@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShoeExchangesService } from './exchanges.service';
 import { CreateExchangeDto, UpdateExchangeStatusDto } from './dto/create-exchange.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Shoe - Exchanges')
 @ApiBearerAuth()
@@ -24,8 +25,8 @@ export class ShoeExchangesController {
   @Get('summary') summary(@GetUser() u: AuthenticatedUser) { return this.service.summary(u); }
   @Get('by-reason-category') byReason(@GetUser() u: AuthenticatedUser) { return this.service.byReasonCategory(u); }
   @Get(':id') getOne(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(u, id); }
-  @Patch(':id/status') status(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateExchangeStatusDto) {
-    return this.service.updateStatus(u, id, dto);
+  @Patch(':id/status') status(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: UpdateExchangeStatusDto) {
+    return this.service.updateStatus(u, id, dto, shop.shopId);
   }
   @Delete(':id') remove(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(u, id); }
 }

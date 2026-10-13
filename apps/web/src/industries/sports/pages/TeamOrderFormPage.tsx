@@ -17,6 +17,8 @@ import { UploadDropzone } from '@core/components/uploads';
 
 const DISCOUNT_PRESETS = [0, 5, 10, 15, 20, 25];
 const APPAREL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+const PAY_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'];
+
 const STATUSES: TeamOrderStatus[] = ['DRAFT', 'QUOTED', 'CONFIRMED', 'IN_PRODUCTION', 'READY', 'DELIVERED', 'CANCELLED'];
 
 export default function TeamOrderFormPage() {
@@ -76,7 +78,7 @@ export default function TeamOrderFormPage() {
         customizationDetails: existing.customizationDetails || '',
         teamLogoUrl: existing.teamLogoUrl || '',
         advancePaid: existing.advancePaid,
-        paymentMethod: existing.paymentMethod || 'CASH',
+        paymentMethod: PAY_METHODS.includes(existing.paymentMethod as string) ? existing.paymentMethod as string : 'CASH',
         expectedDeliveryDate: existing.expectedDeliveryDate ? existing.expectedDeliveryDate.slice(0, 10) : '',
         poNumber: existing.poNumber || '',
         notes: existing.notes || '',
@@ -122,8 +124,11 @@ export default function TeamOrderFormPage() {
 
   const save = useMutation({
     mutationFn: async () => {
+      // Status and money already taken change through their own buttons.
+      const { status: _status, advancePaid, ...rest } = form;
       const payload: any = {
-        ...form,
+        ...rest,
+        ...(isEdit ? {} : { advancePaid }),
         expectedDeliveryDate: form.expectedDeliveryDate || undefined,
         items,
         playerNames: form.hasCustomJerseys && playerRoster.length > 0
@@ -147,13 +152,32 @@ export default function TeamOrderFormPage() {
   });
 
   const updateStatus = useMutation({
-    mutationFn: (newStatus: TeamOrderStatus) => teamOrdersApi.updateStatus(id!, { status: newStatus }),
+    mutationFn: (v: { status: TeamOrderStatus; paidNow?: number }) =>
+      teamOrdersApi.updateStatus(id!, { status: v.status, paidNow: v.paidNow, paymentMethod: form.paymentMethod }),
     onSuccess: (data) => {
       toast.success(`Status → ${data.status.replace(/_/g, ' ')}`);
-      setForm({ ...form, status: data.status });
+      setForm({ ...form, status: data.status, advancePaid: data.advancePaid });
       qc.invalidateQueries({ queryKey: ['team-order', id] });
+      qc.invalidateQueries({ queryKey: ['team-orders-list'] });
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
   });
+
+  /** Delivery makes the bill: ask how much is taken now, the rest goes to the team's khata. */
+  const changeStatus = (s: TeamOrderStatus) => {
+    if (s === 'CANCELLED' && !window.confirm('Order cancel karein? Liya hua advance team ke khate me jama rahega.')) return;
+    if (s !== 'DELIVERED') { updateStatus.mutate({ status: s }); return; }
+    const due = Math.max(0, Math.round((totalAmount - Number(form.advancePaid || 0)) * 100) / 100);
+    if (due <= 0) {
+      if (window.confirm('Order deliver karein? Bill ban jayega aur stock kam ho jayega.')) updateStatus.mutate({ status: s });
+      return;
+    }
+    const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh team ke khate me jayega)`, String(due));
+    if (input === null) return;
+    const paidNow = Number(input);
+    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Raqam sahi likhein'); return; }
+    updateStatus.mutate({ status: s, paidNow });
+  };
 
   const recordPayment = useMutation({
     mutationFn: (amount: number) => teamOrdersApi.recordPayment(id!, { amount, paymentMethod: form.paymentMethod }),
@@ -162,6 +186,7 @@ export default function TeamOrderFormPage() {
       setForm({ ...form, advancePaid: data.advancePaid });
       qc.invalidateQueries({ queryKey: ['team-order', id] });
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment darj nahi hui'),
   });
 
   const addProduct = (product: any) => {
@@ -251,8 +276,8 @@ export default function TeamOrderFormPage() {
           <div className="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-2">Update Status</div>
           <div className="flex flex-wrap gap-1.5">
             {STATUSES.map((s) => (
-              <button key={s} onClick={() => updateStatus.mutate(s)}
-                disabled={form.status === s}
+              <button key={s} onClick={() => changeStatus(s)}
+                disabled={form.status === s || updateStatus.isPending || form.status === 'DELIVERED' || form.status === 'CANCELLED'}
                 className={`px-3 py-2 rounded-xl border-2 text-xs font-extrabold transition disabled:opacity-100 ${
                   form.status === s
                     ? 'border-emerald-600 bg-emerald-600 text-white shadow-md cursor-default'
@@ -575,7 +600,8 @@ export default function TeamOrderFormPage() {
               </div>
               <div>
                 <Lbl>Advance Paid</Lbl>
-                <input type="number" value={form.advancePaid}
+                <input type="number" value={form.advancePaid} readOnly={isEdit}
+                  title={isEdit ? 'Nayi raqam neeche "Add Payment" se darj karein' : undefined}
                   onChange={(e) => setForm({ ...form, advancePaid: Number(e.target.value) })}
                   className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
               </div>
@@ -606,9 +632,8 @@ export default function TeamOrderFormPage() {
                   <option value="CASH">Cash</option>
                   <option value="CARD">Card</option>
                   <option value="BANK_TRANSFER">Bank Transfer</option>
-                  <option value="CHEQUE">Cheque</option>
-                  <option value="MOBILE">Mobile Wallet</option>
-                  <option value="CREDIT">Credit / Later</option>
+                  <option value="JAZZCASH">JazzCash</option>
+                  <option value="EASYPAISA">Easypaisa</option>
                 </select>
               </div>
               <div>

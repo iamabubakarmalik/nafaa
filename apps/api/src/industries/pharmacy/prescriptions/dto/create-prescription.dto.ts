@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PrescriptionType, RefillFrequency } from '@prisma/client';
-import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { PaymentMethod, PrescriptionType, RefillFrequency } from '@prisma/client';
+import { Transform, Type } from 'class-transformer';
+import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
 class PrescriptionItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() productId?: string;
@@ -55,9 +55,39 @@ export class CreatePrescriptionDto {
   items!: PrescriptionItemDto[];
 }
 
+class DispenseItemDto {
+  @ApiProperty() @IsString() itemId!: string;
+  @ApiProperty() @IsNumber() @Min(0) dispensedQty!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() productId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() batchId?: string | null;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) unitPrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isSubstituted?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() substituteFor?: string;
+}
+
+/**
+ * Dispensing is billed as a normal sale, so it carries the same payment
+ * fields as the counter: method, amount paid now (the rest goes on the
+ * patient's khata) and a bill discount.
+ */
 export class DispenseDto {
-  @ApiProperty()
-  items!: { itemId: string; dispensedQty: number; productId?: string; batchId?: string; unitPrice?: number; isSubstituted?: boolean; substituteFor?: string }[];
+  @ApiProperty({ type: [DispenseItemDto] })
+  @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => DispenseItemDto)
+  items!: DispenseItemDto[];
 
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+
+  @ApiPropertyOptional({ enum: PaymentMethod })
+  @IsOptional()
+  @Transform(({ value }) => (value === 'BANK' ? 'BANK_TRANSFER' : value))
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
+
+  @ApiPropertyOptional({ description: 'Paid now; missing = paid in full' })
+  @IsOptional() @IsNumber() @Min(0)
+  paidAmount?: number;
+
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
 }

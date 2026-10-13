@@ -1,19 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { saleFigures } from '../../../common/helpers/business-math.helper';
+import { addDaysTz, dayEnd, dayStart } from '../agri-common';
 
 @Injectable()
 export class AgriDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
-    const monthAgo = subDays(new Date(), 30);
+    // Shop-day edges (Pakistan time), not the server's UTC day.
+    const todayStart = dayStart();
+    const todayEnd = dayEnd();
+    const monthAgo = addDaysTz(todayStart, -30);
 
     const [
-      totalFarmers, activeFarmers, overdueFarmers,
+      totalFarmers, activeFarmers,
       totalProducts, seasonalProducts, restrictedProducts,
       todayOrders, pendingOrders, deliveringOrders,
       todayRevenue, monthlyRevenue,
@@ -23,7 +26,6 @@ export class AgriDashboardService {
     ] = await Promise.all([
       this.prisma.agriFarmer.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.agriFarmer.count({ where: { tenantId: user.tenantId, isActive: true, status: 'ACTIVE' } }),
-      this.prisma.agriFarmer.count({ where: { tenantId: user.tenantId, isActive: true, totalOutstanding: { gt: 0 } } }),
 
       this.prisma.agriProductProfile.count({ where: { tenantId: user.tenantId } }),
       this.prisma.agriProductProfile.count({ where: { tenantId: user.tenantId, isSeasonal: true } }),
@@ -39,30 +41,18 @@ export class AgriDashboardService {
         where: { tenantId: user.tenantId, status: 'OUT_FOR_DELIVERY' },
       }),
 
-      this.prisma.agriBulkOrder.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          status: 'DELIVERED',
-          orderDate: { gte: todayStart, lte: todayEnd },
-        },
-        _sum: { total: true },
-      }),
-      this.prisma.agriBulkOrder.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          status: 'DELIVERED',
-          orderDate: { gte: monthAgo },
-        },
-        _sum: { total: true, paidAmount: true },
-      }),
+      // Every bill counts: counter sales and delivered bulk orders (which become bills).
+      saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: todayStart, lt: new Date(todayEnd.getTime() + 1) }),
+      saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthAgo }),
 
       this.prisma.agriFarmer.aggregate({
         where: { tenantId: user.tenantId, isActive: true },
-        _sum: { creditLimit: true, currentBalance: true },
+        _sum: { creditLimit: true },
       }),
-      this.prisma.agriFarmer.aggregate({
-        where: { tenantId: user.tenantId, isActive: true },
-        _sum: { totalOutstanding: true },
+      // Udhaar lives on each farmer's customer khata.
+      this.prisma.agriFarmer.findMany({
+        where: { tenantId: user.tenantId, isActive: true, customerId: { not: null } },
+        select: { customerId: true },
       }),
 
       this.prisma.agriSubsidyClaim.count({ where: { tenantId: user.tenantId, status: 'PENDING' } }),
@@ -75,6 +65,22 @@ export class AgriDashboardService {
         },
       }),
     ]);
+
+    const farmerCustomerIds = totalOutstanding.map((f) => f.customerId as string);
+    const khata = farmerCustomerIds.length
+      ? await this.prisma.customer.findMany({
+        where: { tenantId: user.tenantId, id: { in: farmerCustomerIds } },
+        select: { id: true, balance: true, totalSpent: true },
+      })
+      : [];
+    const owed = khata.reduce((s, c) => s + Math.max(c.balance, 0), 0);
+    const farmersOwing = khata.filter((c) => c.balance > 0.01).length;
+    // Money taken on the bills themselves in the last 30 days (udhaar left out).
+    const creditGiven = (await this.prisma.sale.aggregate({
+      where: { tenantId: user.tenantId, status: { not: 'VOIDED' }, soldAt: { gte: monthAgo } },
+      _sum: { creditAmount: true },
+    }))._sum.creditAmount ?? 0;
+    const collected = monthlyRevenue.net - creditGiven;
 
     // Top selling products (30 days)
     const topSellingRaw = await this.prisma.agriBulkOrderItem.groupBy({
@@ -93,12 +99,22 @@ export class AgriDashboardService {
       .sort((a, b) => (b._sum.total ?? 0) - (a._sum.total ?? 0))
       .slice(0, 5);
 
-    // Top farmers (by purchases)
-    const topFarmers = await this.prisma.agriFarmer.findMany({
+    // Top farmers by what they bought, read from their khata.
+    const spent = new Map(khata.map((c) => [c.id, c.totalSpent]));
+    const balance = new Map(khata.map((c) => [c.id, Math.max(c.balance, 0)]));
+    const topFarmers = (await this.prisma.agriFarmer.findMany({
       where: { tenantId: user.tenantId, isActive: true },
-      orderBy: { totalPurchases: 'desc' },
-      take: 5,
-    });
+    }))
+      .map((f) => (f.customerId && spent.has(f.customerId)
+        ? {
+          ...f,
+          totalPurchases: Math.max(spent.get(f.customerId) ?? 0, f.totalPurchases),
+          currentBalance: balance.get(f.customerId) ?? 0,
+          totalOutstanding: balance.get(f.customerId) ?? 0,
+        }
+        : f))
+      .sort((a, b) => b.totalPurchases - a.totalPurchases)
+      .slice(0, 5);
 
     // By category breakdown
     const byCategory = await this.prisma.agriProductProfile.groupBy({
@@ -119,7 +135,7 @@ export class AgriDashboardService {
       farmers: {
         total: totalFarmers,
         active: activeFarmers,
-        overdue: overdueFarmers,
+        overdue: farmersOwing,
       },
       products: {
         total: totalProducts,
@@ -133,14 +149,14 @@ export class AgriDashboardService {
         deliveringOrders,
       },
       revenue: {
-        today: todayRevenue._sum.total ?? 0,
-        monthly: monthlyRevenue._sum.total ?? 0,
-        collected: monthlyRevenue._sum.paidAmount ?? 0,
+        today: todayRevenue.net,
+        monthly: monthlyRevenue.net,
+        collected: Math.max(Math.round(collected * 100) / 100, 0),
       },
       credit: {
         totalLimit: totalCredit._sum.creditLimit ?? 0,
-        totalUsed: totalCredit._sum.currentBalance ?? 0,
-        totalOutstanding: totalOutstanding._sum.totalOutstanding ?? 0,
+        totalUsed: Math.round(owed * 100) / 100,
+        totalOutstanding: Math.round(owed * 100) / 100,
       },
       subsidies: {
         pending: pendingSubsidies,

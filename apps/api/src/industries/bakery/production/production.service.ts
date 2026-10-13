@@ -12,7 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope, applyStockDelta, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
-import { CLOSED_ORDER, DAY_MS, SOLD_STATUSES, isDayKey, r2, r3, recipeOf, shopClock, withNextNumber, writeShopId } from '../bakery-common';
+import { CLOSED_ORDER, DAY_MS, SOLD_STATUSES, isDayKey, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withNextNumber, writeShopId } from '../bakery-common';
 
 export interface PlanItemInput {
   productId?: string;
@@ -295,12 +295,25 @@ export class ProductionService {
         }
       }
 
+      // Cost of one good piece: the raw material used (failed pieces included) over what came out good.
+      const unitCost = recipe && produced > 0 ? r2(ingredientCost / produced) : 0;
+      const before = product && unitCost > 0
+        ? await tx.product.findUnique({ where: { id: product.id }, select: { stock: true, costPrice: true } })
+        : null;
       if (shopId && product) {
         await applyStockDelta({
           tx, tenantId: user.tenantId, shopId, productId: product.id, delta: produced,
           movementType: 'ADJUSTMENT_IN', reference: plan.planNumber, note: `Baking: ${item.productName}`,
-          userId: user.id, unitCost: recipe && produced > 0 ? r2(ingredientCost / produced) : product.costPrice,
+          userId: user.id, unitCost: unitCost || product.costPrice,
         });
+      }
+      // Baked goods carry their recipe cost, so bills and profit see what a piece cost to make
+      // (weighted with pieces already in stock). Without this a baked item sold at cost 0.
+      if (product && before && (shopId || !(Number(before.costPrice) > 0))) {
+        const oldQty = shopId ? Math.max(Number(before.stock) || 0, 0) : 0;
+        const oldCost = Number(before.costPrice) || 0;
+        const avg = oldQty > 0 && oldCost > 0 ? r2((oldQty * oldCost + produced * unitCost) / (oldQty + produced)) : unitCost;
+        await tx.product.update({ where: { id: product.id }, data: { costPrice: avg } });
       }
 
       const hours = Number(dto.freshHours);
@@ -344,6 +357,8 @@ export class ProductionService {
    * fresh stock still good and what is already planned.
    */
   async suggest(user: AuthenticatedUser, scope: ShopScope, date?: string, days = 14) {
+    // Fresh stock still good is read from batches; take counter sales off them first.
+    await syncBatchesWithStock(this.prisma, user.tenantId, scope.whereLoose);
     const clock = await shopClock(this.tz, user.tenantId);
     const key = isDayKey(date) ? date : clock.keyOf(new Date());
     const span = Math.min(Math.max(Math.round(Number(days) || 14), 7), 60);

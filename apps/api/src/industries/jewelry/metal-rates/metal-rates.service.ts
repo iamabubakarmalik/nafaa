@@ -3,6 +3,10 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertMetalRateDto } from './dto/upsert-metal-rate.dto';
 
+const RATE_FIELDS = ['ratePerGram', 'ratePerTola', 'ratePerOunce', 'buyRate', 'sellRate', 'source', 'notes'] as const;
+const pick = (dto: Partial<UpsertMetalRateDto>) =>
+  Object.fromEntries(RATE_FIELDS.filter((k) => dto[k] !== undefined).map((k) => [k, dto[k]]));
+
 @Injectable()
 export class MetalRatesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -71,13 +75,15 @@ export class MetalRatesService {
     return this.prisma.jewelryMetalRate.update({
       where: { id },
       data: {
-        ...dto,
+        ...pick(dto),
         effectiveDate: dto.effectiveDate ? new Date(dto.effectiveDate) : undefined,
       },
     });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
+    const rate = await this.prisma.jewelryMetalRate.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!rate) throw new NotFoundException('Rate not found');
     return this.prisma.jewelryMetalRate.update({ where: { id }, data: { isActive: false } });
   }
 

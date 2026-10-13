@@ -71,7 +71,7 @@ const STATUS: Record<OrderStatus, {
     next: 'DELIVERED', nextLabel: 'Pahunch gaya',
   },
   DELIVERED: {
-    label: 'Pahunch gaya', hint: 'Maal farmer tak pahunch gaya', color: 'bg-green-600',
+    label: 'Pahunch gaya', hint: 'Maal pahunch gaya — bill ban gaya aur stock kam ho gaya', color: 'bg-green-600',
     pill: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300',
   },
   RETURNED: {
@@ -817,6 +817,12 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
             <div className="text-[0.6875rem] font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 inline-flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Poora paisa mil gaya
             </div>
+          )}
+          {order.bill && (
+            <a href={`/sales/${order.bill.id}/receipt`} target="_blank" rel="noreferrer"
+              className="block text-[0.6875rem] font-extrabold text-blue-600 dark:text-blue-400 mt-0.5 hover:underline">
+              Bill {order.bill.saleNumber}
+            </a>
           )}
         </div>
       </div>

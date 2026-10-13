@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertFarmerDto } from './dto/upsert-farmer.dto';
+import { drawerCash } from '../dairy-common';
 
 @Injectable()
 export class FarmersService {
@@ -67,15 +68,48 @@ export class FarmersService {
     const f = await this.prisma.dairyFarmer.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!f) throw new NotFoundException('Farmer not found');
 
-    if (dto.amount <= 0) throw new BadRequestException('Amount must be positive');
+    const amount = Number(dto?.amount);
+    if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('Amount must be positive');
 
-    return this.prisma.dairyFarmer.update({
-      where: { id },
-      data: {
-        currentBalance: { decrement: dto.amount },
-        totalPaid: { increment: dto.amount },
-        lastPaymentDate: new Date(),
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.dairyFarmer.update({
+        where: { id },
+        data: {
+          currentBalance: { decrement: amount },
+          totalPaid: { increment: amount },
+          lastPaymentDate: new Date(),
+        },
+      });
+      await drawerCash(tx, user, {
+        direction: 'OUT', amount, method: dto.paymentMethod,
+        reason: `Kissan ko doodh ki raqam: ${f.name} (${f.farmerNumber})`, reference: dto.reference || f.farmerNumber,
+      });
+
+      /* Settle the oldest collection slips that all payments so far fully
+         cover, so the supplies list shows the same picture as the balance.
+         The balance already moved above; slips only change flags. */
+      const [open, paidSlips] = await Promise.all([
+        tx.dairyFarmerSupply.findMany({
+          where: { tenantId: user.tenantId, farmerId: id, isPaid: false },
+          orderBy: { supplyDate: 'asc' },
+          select: { id: true, totalAmount: true },
+        }),
+        tx.dairyFarmerSupply.aggregate({
+          where: { tenantId: user.tenantId, farmerId: id, isPaid: true },
+          _sum: { totalAmount: true },
+        }),
+      ]);
+      let left = updated.totalPaid - (paidSlips._sum.totalAmount ?? 0) + 0.01;
+      const settled: string[] = [];
+      for (const slip of open) {
+        if (slip.totalAmount > left) break;
+        left -= slip.totalAmount;
+        settled.push(slip.id);
+      }
+      if (settled.length) {
+        await tx.dairyFarmerSupply.updateMany({ where: { id: { in: settled } }, data: { isPaid: true, paidAt: new Date() } });
+      }
+      return updated;
     });
   }
 

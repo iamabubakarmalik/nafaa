@@ -32,6 +32,6 @@ export class ZonesService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.serviceZone.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.serviceZone.update({ where: { id, tenantId: user.tenantId }, data: { isActive: false } });
   }
 }

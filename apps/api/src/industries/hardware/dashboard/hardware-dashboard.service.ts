@@ -1,20 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
+import { loadKhata } from '../common/customer-khata';
 
 @Injectable()
 export class HardwareDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
+    const todayStart = startOfDayTz();
     const monthAgo = subDays(new Date(), 30);
 
     const [
       totalBrands, totalProducts, activeProjects,
       pendingQuotations, pendingDeliveries, todayDeliveries,
-      totalCreditAccounts, overdueAccounts,
     ] = await Promise.all([
       this.prisma.hardwareBrand.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.hardwareProductProfile.count({ where: { tenantId: user.tenantId } }),
@@ -24,18 +25,39 @@ export class HardwareDashboardService {
       this.prisma.hardwareDelivery.count({
         where: {
           tenantId: user.tenantId,
-          scheduledDate: { gte: todayStart, lte: new Date(new Date().setHours(23, 59, 59, 999)) },
+          scheduledDate: { gte: todayStart, lte: endOfDayTz() },
         },
       }),
-      this.prisma.hardwareCreditAccount.count({ where: { tenantId: user.tenantId, status: 'ACTIVE' } }),
-      this.prisma.hardwareCreditAccount.count({ where: { tenantId: user.tenantId, status: 'OVERDUE' } }),
     ]);
 
-    // Credit totals
-    const creditAgg = await this.prisma.hardwareCreditAccount.aggregate({
-      where: { tenantId: user.tenantId, status: 'ACTIVE' },
-      _sum: { currentBalance: true, totalPurchases: true, ageOver90Days: true },
+    // Udhaar comes from the customer khata — the same figures as the khata page and day book.
+    const debtors = await this.prisma.customer.findMany({
+      where: { tenantId: user.tenantId, balance: { gt: 0.009 } },
+      select: { id: true, name: true, phone: true, balance: true, creditLimit: true },
+      orderBy: { balance: 'desc' },
     });
+    const khata = await loadKhata(this.prisma, user.tenantId, debtors.map((d) => d.id));
+    const debtorRows = debtors.map((d) => {
+      const k = khata.get(d.id);
+      return {
+        id: d.id,
+        customerId: d.id,
+        customerName: d.name,
+        customerPhone: d.phone,
+        currentBalance: d.balance,
+        creditLimit: d.creditLimit,
+        age0To30Days: k?.age0To30Days ?? 0,
+        age31To60Days: k?.age31To60Days ?? 0,
+        age61To90Days: k?.age61To90Days ?? 0,
+        ageOver90Days: k?.ageOver90Days ?? 0,
+        lastPurchaseDate: k?.lastPurchaseDate ?? null,
+        lastPaymentDate: k?.lastPaymentDate ?? null,
+      };
+    });
+    const isOverdue = (d: (typeof debtorRows)[number]) =>
+      d.ageOver90Days > 0 || (d.creditLimit > 0 && d.currentBalance > d.creditLimit);
+    const totalCreditAccounts = debtorRows.length;
+    const overdueAccounts = debtorRows.filter(isOverdue).length;
 
     // Monthly business
     const monthlyDeliveries = await this.prisma.hardwareDelivery.aggregate({
@@ -63,12 +85,7 @@ export class HardwareDashboardService {
       take: 10,
     });
 
-    // Top credit debtors
-    const topDebtors = await this.prisma.hardwareCreditAccount.findMany({
-      where: { tenantId: user.tenantId, currentBalance: { gt: 0 } },
-      orderBy: { currentBalance: 'desc' },
-      take: 5,
-    });
+    const topDebtors = debtorRows.slice(0, 5);
 
     // Low stock alerts count
     const reorderRules = await this.prisma.hardwareReorderRule.findMany({
@@ -97,9 +114,9 @@ export class HardwareDashboardService {
       totals: { totalBrands, totalProducts, activeProjects, totalCreditAccounts },
       pending: { quotations: pendingQuotations, deliveries: pendingDeliveries, todayDeliveries, overdueAccounts, lowStockCount },
       creditSummary: {
-        totalOutstanding: creditAgg._sum.currentBalance ?? 0,
-        totalPurchases: creditAgg._sum.totalPurchases ?? 0,
-        totalOverdue90Plus: creditAgg._sum.ageOver90Days ?? 0,
+        totalOutstanding: Math.round(debtorRows.reduce((s, d) => s + d.currentBalance, 0) * 100) / 100,
+        totalPurchases: 0,
+        totalOverdue90Plus: Math.round(debtorRows.reduce((s, d) => s + d.ageOver90Days, 0) * 100) / 100,
       },
       monthlyBusiness: {
         deliveryCount: monthlyDeliveries._count._all,

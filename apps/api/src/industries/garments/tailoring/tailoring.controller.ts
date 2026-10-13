@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { TailoringService } from './tailoring.service';
 import { AddPaymentDto, CreateTailoringOrderDto, UpdateOrderStatusDto } from './dto/create-tailoring-order.dto';
 
@@ -13,7 +14,7 @@ import { AddPaymentDto, CreateTailoringOrderDto, UpdateOrderStatusDto } from './
 export class TailoringController {
   constructor(private readonly service: TailoringService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateTailoringOrderDto) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: CreateTailoringOrderDto) { return this.service.create(user, dto, shop.shopId); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('priority') priority?: string, @Query('customerId') customerId?: string, @Query('tailorId') tailorId?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('search') search?: string) {
     return this.service.list(user, { status, priority, customerId, tailorId, from, to, search });
   }

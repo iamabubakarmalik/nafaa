@@ -3,40 +3,63 @@ import { differenceInDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertCreditAccountDto } from './dto/upsert-credit-account.dto';
+import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
+import { loadKhata, withKhata } from '../common/customer-khata';
 
 @Injectable()
 export class CreditAccountsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: UpsertCreditAccountDto) {
-    if (dto.customerId) {
+  /** Accounts with live khata figures for the ones linked to a customer. */
+  private async live<T extends { customerId: string | null; currentBalance: number; creditLimit: number; status: string }>(tenantId: string, accounts: T[]) {
+    const khata = await loadKhata(this.prisma, tenantId, accounts.map((a) => a.customerId).filter((id): id is string => !!id));
+    return accounts.map((a) => withKhata(a, khata));
+  }
+
+  /**
+   * The form sends "" when no customer is picked. `customerId` is unique across
+   * all shops, so a stored "" blocked every later unlinked account (500).
+   */
+  private async cleanLinks(user: AuthenticatedUser, dto: UpsertCreditAccountDto, accountId?: string) {
+    const customerId = dto.customerId?.trim() || null;
+    if (customerId) {
+      const customer = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
+      if (!customer) throw new NotFoundException('Customer nahi mila');
       const existing = await this.prisma.hardwareCreditAccount.findFirst({
-        where: { tenantId: user.tenantId, customerId: dto.customerId },
+        where: { customerId, ...(accountId && { id: { not: accountId } }) },
+        select: { id: true },
       });
-      if (existing) throw new BadRequestException('Customer already has a credit account');
+      if (existing) throw new BadRequestException('Is customer ka credit account pehle se bana hua hai');
     }
+    return { ...dto, customerId, shopId: dto.shopId?.trim() || null };
+  }
 
-    const count = await this.prisma.hardwareCreditAccount.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const accountNumber = `KHT-${year}-${String(count + 1).padStart(4, '0')}`;
+  async create(user: AuthenticatedUser, input: UpsertCreditAccountDto) {
+    const dto = await this.cleanLinks(user, input);
 
-    return this.prisma.hardwareCreditAccount.create({
-      data: {
-        tenantId: user.tenantId,
-        accountNumber,
-        ...dto,
-        openedByStaffId: user.id,
-      },
+    const prefix = `KHT-${new Date().getFullYear()}-`;
+    return createWithDocNumber({
+      prefix,
+      width: 4,
+      existing: async () => (await this.prisma.hardwareCreditAccount.findMany({
+        where: { tenantId: user.tenantId, accountNumber: { startsWith: prefix } },
+        select: { accountNumber: true }, orderBy: { createdAt: 'desc' }, take: LATEST_NUMBERS,
+      })).map((a) => a.accountNumber),
+      create: (accountNumber) => this.prisma.hardwareCreditAccount.create({
+        data: {
+          tenantId: user.tenantId,
+          accountNumber,
+          ...dto,
+          openedByStaffId: user.id,
+        },
+      }),
     });
   }
 
   async list(user: AuthenticatedUser, params: { status?: string; search?: string; hasBalance?: boolean; overdue?: boolean }) {
-    return this.prisma.hardwareCreditAccount.findMany({
+    const rows = await this.prisma.hardwareCreditAccount.findMany({
       where: {
         tenantId: user.tenantId,
-        ...(params.status && { status: params.status as any }),
-        ...(params.hasBalance && { currentBalance: { gt: 0 } }),
-        ...(params.overdue && { ageOver90Days: { gt: 0 } }),
         ...(params.search && {
           OR: [
             { accountNumber: { contains: params.search, mode: 'insensitive' } },
@@ -48,8 +71,15 @@ export class CreditAccountsService {
         }),
       },
       orderBy: [{ currentBalance: 'desc' }, { customerName: 'asc' }],
-      take: 200,
+      take: 500,
     });
+    // Balance, aging and status come from the khata, so filter and sort after the overlay.
+    return (await this.live(user.tenantId, rows))
+      .filter((a) => !params.status || a.status === params.status)
+      .filter((a) => !params.hasBalance || a.currentBalance > 0)
+      .filter((a) => !params.overdue || a.ageOver90Days > 0)
+      .sort((a, b) => b.currentBalance - a.currentBalance || a.customerName.localeCompare(b.customerName))
+      .slice(0, 200);
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
@@ -62,13 +92,14 @@ export class CreditAccountsService {
       take: 50,
     });
 
-    return { ...a, recentTransactions };
+    const [live] = await this.live(user.tenantId, [a]);
+    return { ...live, recentTransactions };
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertCreditAccountDto) {
     const a = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Account not found');
-    return this.prisma.hardwareCreditAccount.update({ where: { id }, data: dto });
+    return this.prisma.hardwareCreditAccount.update({ where: { id }, data: await this.cleanLinks(user, dto, id) });
   }
 
   async suspend(user: AuthenticatedUser, id: string, reason?: string) {
@@ -87,9 +118,10 @@ export class CreditAccountsService {
   }
 
   async close(user: AuthenticatedUser, id: string, reason?: string) {
-    const a = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Account not found');
-    if (a.currentBalance > 0.01) throw new BadRequestException('Cannot close account with outstanding balance');
+    const found = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!found) throw new NotFoundException('Account not found');
+    const [a] = await this.live(user.tenantId, [found]);
+    if (a.currentBalance > 0.01) throw new BadRequestException('Udhaar baqi hai — pehle wusooli karein, phir khata band karein');
     return this.prisma.hardwareCreditAccount.update({
       where: { id },
       data: { status: 'CLOSED', closedAt: new Date(), notes: ((a.notes || '') + '\nClosed: ' + (reason || '')).trim() },
@@ -99,6 +131,8 @@ export class CreditAccountsService {
   async recalculateAging(user: AuthenticatedUser, id: string) {
     const a = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Account not found');
+    // Linked accounts are aged live from the khata on every read.
+    if (a.customerId) return (await this.live(user.tenantId, [a]))[0];
 
     const transactions = await this.prisma.hardwareCreditTransaction.findMany({
       where: { accountId: id, transactionType: 'SALE' },
@@ -133,9 +167,10 @@ export class CreditAccountsService {
   }
 
   async agingReport(user: AuthenticatedUser) {
-    const accounts = await this.prisma.hardwareCreditAccount.findMany({
-      where: { tenantId: user.tenantId, status: 'ACTIVE', currentBalance: { gt: 0 } },
+    const rows = await this.prisma.hardwareCreditAccount.findMany({
+      where: { tenantId: user.tenantId, status: { in: ['ACTIVE', 'OVERDUE'] } },
     });
+    const accounts = (await this.live(user.tenantId, rows)).filter((a) => a.currentBalance > 0);
 
     const totals = accounts.reduce(
       (acc, a) => ({

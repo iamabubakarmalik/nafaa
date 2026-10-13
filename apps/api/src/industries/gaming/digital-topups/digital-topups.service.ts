@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { BulkCreateTopupDto, CreateTopupDto, SellTopupDto } from './dto/create-topup.dto';
 
 @Injectable()
@@ -8,9 +9,15 @@ export class DigitalTopupsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async generateNumber(user: AuthenticatedUser) {
-    const count = await this.prisma.gamingDigitalTopup.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    return `TOP-${year}-${String(count + 1).padStart(5, '0')}`;
+    // Follows the last number: a deleted card must never free its number,
+    // because the card's sale is posted under it.
+    const prefix = `TOP-${new Date().getFullYear()}-`;
+    const last = await this.prisma.gamingDigitalTopup.findFirst({
+      where: { tenantId: user.tenantId, topupNumber: { startsWith: prefix } },
+      orderBy: { topupNumber: 'desc' },
+      select: { topupNumber: true },
+    });
+    return prefix + String((last ? Number(last.topupNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(5, '0');
   }
 
   async create(user: AuthenticatedUser, dto: CreateTopupDto) {
@@ -104,19 +111,44 @@ export class DigitalTopupsService {
     if (t.soldAt) throw new BadRequestException('Already sold');
     if (t.isRedeemed) throw new BadRequestException('Already redeemed');
 
-    const sellingPrice = dto.actualSellingPrice ?? t.sellingPrice;
-    return this.prisma.gamingDigitalTopup.update({
-      where: { id },
-      data: {
-        soldAt: new Date(),
-        soldToCustomerId: dto.customerId,
-        customerName: dto.customerName,
-        customerPhone: dto.customerPhone,
-        deliveredVia: dto.deliveredVia,
-        deliveryReference: dto.deliveryReference,
-        sellingPrice,
-        profit: sellingPrice - t.costPrice,
-      },
+    const sellingPrice = Math.max(Number(dto.actualSellingPrice ?? t.sellingPrice) || 0, 0);
+    const paid = Math.max(Number(dto.paidAmount ?? sellingPrice) || 0, 0);
+
+    // The card sale is posted as its own bill so it reaches the day book,
+    // cash register and profit (cost = what the shop paid for the card).
+    return this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.gamingDigitalTopup.updateMany({
+        where: { id, tenantId: user.tenantId, soldAt: null, isRedeemed: false },
+        data: { soldAt: new Date() },
+      });
+      if (claimed.count === 0) throw new BadRequestException('Already sold');
+      const shopId = await resolveIndustryShopId(tx, user, dto.shopId);
+      let customerId = dto.customerId || null;
+      if (!customerId && paid < sellingPrice - 0.01) {
+        customerId = await ensureCustomer(tx, user, { name: dto.customerName, phone: dto.customerPhone, shopId });
+      }
+      const sale = await postIndustrySale(tx, user, {
+        saleNumber: `GMT-${t.topupNumber}`,
+        sourceRef: t.topupNumber,
+        shopId,
+        customerId,
+        lines: [{ label: `${t.provider} ${t.topupType} ${t.denominationValue}`, amount: sellingPrice, cost: t.costPrice }],
+        paidAmount: paid,
+        paymentMethod: dto.paymentMethod,
+      });
+      const sold = await tx.gamingDigitalTopup.update({
+        where: { id },
+        data: {
+          soldToCustomerId: customerId,
+          customerName: dto.customerName,
+          customerPhone: dto.customerPhone,
+          deliveredVia: dto.deliveredVia,
+          deliveryReference: dto.deliveryReference || sale.saleNumber,
+          sellingPrice,
+          profit: sellingPrice - t.costPrice,
+        },
+      });
+      return { ...sold, sale: { id: sale.id, saleNumber: sale.saleNumber } };
     });
   }
 

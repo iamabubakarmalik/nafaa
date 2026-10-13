@@ -86,7 +86,7 @@ export default function PTSessionsPage() {
         <section className="grid gap-3">
           {sessions.map((s) => {
             const remaining = s.price - s.paidAmount;
-            const trainerName = s.trainer?.staff ? ((s.trainer.staff.firstName || '') + ' ' + (s.trainer.staff.lastName || '')).trim() : 'Trainer';
+            const trainerName = s.trainer?.staff ? (((s.trainer.staff.fullName || s.trainer.staff.firstName) || '') + ' ' + (s.trainer.staff.lastName || '')).trim() : 'Trainer';
             return (
               <div key={s.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -248,7 +248,7 @@ function PTForm({ onClose, onSaved }: any) {
           }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
             <option value="">-- Select trainer --</option>
             {trainers.map((t: any) => {
-              const nm = t.staff ? ((t.staff.firstName || '') + ' ' + (t.staff.lastName || '')).trim() : '';
+              const nm = t.staff ? (((t.staff.fullName || t.staff.firstName) || '') + ' ' + (t.staff.lastName || '')).trim() : '';
               return <option key={t.id} value={t.id}>{nm} • {formatPKR(t.perSessionRate)}/session</option>;
             })}
           </select>

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, CheckCircle2, X, Ban, Sparkles, User, Phone, Mail,
+  ArrowLeft, CheckCircle2, X, Ban, Sparkles, User, Phone, Mail, Receipt,
   Printer, FileText, Calendar, Package, Building,
 } from 'lucide-react';
 import { quotationsApi } from '../api/quotations.api';
@@ -66,6 +66,11 @@ export default function QuotationDetailPage() {
             {q.status === 'DRAFT' && (
               <Button className="bg-white text-slate-900" onClick={() => statusMutation.mutate('SENT')}>
                 <FileText className="h-4 w-4" />Mark Sent
+              </Button>
+            )}
+            {['DRAFT', 'SENT', 'VIEWED', 'ACCEPTED', 'REVISED'].includes(q.status) && (
+              <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => navigate('/pos', { state: { quotationId: q.id } })}>
+                <Receipt className="h-4 w-4" />Bill banao
               </Button>
             )}
             {['SENT', 'VIEWED'].includes(q.status) && (

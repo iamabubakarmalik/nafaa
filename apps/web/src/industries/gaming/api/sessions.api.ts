@@ -58,7 +58,8 @@ export const gamingSessionsApi = {
   end: (id: string, data: {
     foodCharges?: number; additionalCharges?: number; discount?: number;
     paidAmount?: number; paymentMethod?: string; notes?: string;
-  }) => apiClient.post('/gaming/cafe-sessions/' + id + '/end', data).then(unwrap<GamingCafeSession>),
+  }) => apiClient.post('/gaming/cafe-sessions/' + id + '/end', data)
+    .then(unwrap<GamingCafeSession & { saleId?: string | null; change?: number }>),
 
   cancel: (id: string, reason?: string) =>
     apiClient.post('/gaming/cafe-sessions/' + id + '/cancel', { reason }).then(unwrap<GamingCafeSession>),

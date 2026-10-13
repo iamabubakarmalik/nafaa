@@ -72,6 +72,8 @@ export default function FloristProductWizardPage() {
       tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
       notes: existingProfile?.notes ?? '',
     });
+    // Show the real stock; it is saved only if changed.
+    updateStock({ currentStock: existingProduct.stock ?? 0, lowStockAlert: existingProduct.lowStockAlert ?? 3 });
 
     if (existingProfile) {
       updateDetails({
@@ -103,10 +105,10 @@ export default function FloristProductWizardPage() {
     }
 
     setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateOccasions]);
+  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateOccasions, updateStock]);
 
   const saveMutation = useMutation({
-    mutationFn: () => saveFloristWizard(draft, isEdit ? id : undefined),
+    mutationFn: () => saveFloristWizard(draft, isEdit ? id : undefined, isEdit ? existingProduct?.stock : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['florist-products-list'] });

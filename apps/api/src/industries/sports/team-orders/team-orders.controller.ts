@@ -4,7 +4,8 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TeamOrdersService } from './team-orders.service';
-import { CreateTeamOrderDto, RecordPaymentDto, UpdateTeamOrderStatusDto } from './dto/create-team-order.dto';
+import { CreateTeamOrderDto, RecordPaymentDto, UpdateTeamOrderDto, UpdateTeamOrderStatusDto } from './dto/create-team-order.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Sports - Team Orders')
 @ApiBearerAuth()
@@ -14,8 +15,8 @@ export class TeamOrdersController {
   constructor(private readonly service: TeamOrdersService) {}
 
   @Post()
-  create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateTeamOrderDto) {
-    return this.service.create(user, dto);
+  create(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: CreateTeamOrderDto) {
+    return this.service.create(user, dto, shop);
   }
 
   @Get()
@@ -49,18 +50,18 @@ export class TeamOrdersController {
   }
 
   @Patch(':id')
-  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: Partial<CreateTeamOrderDto>) {
+  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateTeamOrderDto) {
     return this.service.update(user, id, dto);
   }
 
   @Patch(':id/status')
-  updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateTeamOrderStatusDto) {
-    return this.service.updateStatus(user, id, dto);
+  updateStatus(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: UpdateTeamOrderStatusDto) {
+    return this.service.updateStatus(user, id, dto, shop);
   }
 
   @Post(':id/payment')
-  payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: RecordPaymentDto) {
-    return this.service.recordPayment(user, id, dto);
+  payment(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: RecordPaymentDto) {
+    return this.service.recordPayment(user, id, dto, shop);
   }
 
   @Delete(':id')

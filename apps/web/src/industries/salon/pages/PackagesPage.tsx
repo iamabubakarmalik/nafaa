@@ -419,7 +419,7 @@ function PackageForm({ editing, onClose, onSaved }: any) {
 }
 
 function PurchaseForm({ packages, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({ packageId: '', customerId: '', amountPaid: 0, notes: '' });
+  const [form, setForm] = useState<any>({ packageId: '', customerId: '', amountPaid: 0, paymentMethod: 'CASH', notes: '' });
   const [customerSearch, setCustomerSearch] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -435,7 +435,9 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
     mutationFn: () => packagesApi.purchase({
       packageId: form.packageId,
       customerId: form.customerId,
-      amountPaid: Number(form.amountPaid) || (selectedPkg?.price ?? 0),
+      // 0 or less than the price is allowed: the rest goes on the customer's khata.
+      amountPaid: form.amountPaid === '' ? 0 : Math.max(Number(form.amountPaid) || 0, 0),
+      paymentMethod: form.paymentMethod,
       notes: form.notes || undefined,
     }),
     onSuccess: () => { toast.success('Package sold'); onSaved(); },
@@ -513,6 +515,19 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Amount Paid *</label>
             <input type="number" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+            {Number(form.amountPaid || 0) < selectedPkg.price && (
+              <div className="mt-1 text-xs font-bold text-amber-700">
+                Baqi {formatPKR(selectedPkg.price - Number(form.amountPaid || 0))} customer ke khate me udhaar jayega
+              </div>
+            )}
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'].map((m) => (
+                <button key={m} type="button" onClick={() => setForm({ ...form, paymentMethod: m })} className={
+                  'p-2 rounded-lg border-2 text-xs font-extrabold ' +
+                  (form.paymentMethod === m ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
+                }>{m}</button>
+              ))}
+            </div>
           </div>
         )}
 

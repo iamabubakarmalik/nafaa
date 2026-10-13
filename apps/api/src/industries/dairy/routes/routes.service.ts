@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { dayEnd, dayStart } from '../dairy-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertRouteDto } from './dto/upsert-route.dto';
 
@@ -39,13 +40,13 @@ export class RoutesService {
     if (!r) throw new NotFoundException('Route not found');
 
     const customers = await this.prisma.dairyCustomer.findMany({
-      where: { routeId: id, status: 'ACTIVE' },
+      where: { tenantId: user.tenantId, routeId: id, status: 'ACTIVE' },
       orderBy: { name: 'asc' },
     });
 
     let assignedStaff = null;
     if (r.assignedStaffId) {
-      assignedStaff = await this.prisma.staff.findUnique({ where: { id: r.assignedStaffId } });
+      assignedStaff = await this.prisma.staff.findFirst({ where: { id: r.assignedStaffId, tenantId: user.tenantId } });
     }
 
     return { ...r, customers, assignedStaff };
@@ -81,16 +82,11 @@ export class RoutesService {
   }
 
   async todayDeliveries(user: AuthenticatedUser, id: string) {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-
     return this.prisma.dairyDelivery.findMany({
       where: {
         tenantId: user.tenantId,
         routeId: id,
-        deliveryDate: { gte: start, lte: end },
+        deliveryDate: { gte: dayStart(), lte: dayEnd() },
       },
       include: { customer: true },
       orderBy: { deliveryDate: 'asc' },

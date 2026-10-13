@@ -20,6 +20,8 @@ export interface BulkOrderItem {
 export interface BulkOrder {
   id: string;
   orderNumber: string;
+  /** Bill made when the order was marked delivered. */
+  bill?: { id: string; saleNumber: string } | null;
   farmerId?: string;
   customerId?: string;
   customerName?: string;

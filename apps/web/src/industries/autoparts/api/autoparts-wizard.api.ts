@@ -43,7 +43,9 @@ export async function saveAutoPartsWizard(
     costPrice: Number(basic.costPrice || 0),
     wholesalePrice: basic.wholesalePrice === '' ? undefined : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: Number(basic.stock || 0),
+    // Stock is set only when the product is created; later changes go through
+    // stock adjustment so the movement and its reason are recorded.
+    ...(existingId ? {} : { stock: Number(basic.stock || 0) }),
     lowStockAlert: Number(basic.lowStockAlert || 5),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -53,7 +55,7 @@ export async function saveAutoPartsWizard(
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
 

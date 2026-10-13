@@ -8,14 +8,27 @@ export class ServiceRemindersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: any) {
-    const v = await this.prisma.customerVehicle.findFirst({ where: { id: dto.vehicleId, tenantId: user.tenantId } });
+    const v = typeof dto?.vehicleId === 'string'
+      ? await this.prisma.customerVehicle.findFirst({ where: { id: dto.vehicleId, tenantId: user.tenantId } })
+      : null;
     if (!v) throw new NotFoundException('Vehicle not found');
 
+    // The body is untyped: only reminder fields are kept, the shop comes from the login.
+    const text = (x: unknown) => (typeof x === 'string' && x.trim() ? x.trim() : undefined);
+    const km = Number(dto.dueOdometerKm);
+    const due = dto.dueDate ? new Date(dto.dueDate) : null;
+    if (due && Number.isNaN(due.getTime())) throw new BadRequestException('Tareekh sahi likhein');
     return this.prisma.vehicleServiceReminder.create({
       data: {
         tenantId: user.tenantId,
-        ...dto,
-        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+        vehicleId: v.id,
+        reminderType: text(dto.reminderType) ?? 'GENERAL',
+        title: text(dto.title) ?? 'Service reminder',
+        description: text(dto.description),
+        dueDate: due,
+        dueOdometerKm: Number.isFinite(km) && km > 0 ? Math.round(km) : undefined,
+        notes: text(dto.notes),
+        fromJobId: text(dto.fromJobId),
       },
     });
   }
@@ -47,6 +60,7 @@ export class ServiceRemindersService {
   async updateStatus(user: AuthenticatedUser, id: string, status: string) {
     const r = await this.prisma.vehicleServiceReminder.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Reminder not found');
+    if (!['PENDING', 'SENT', 'ACKNOWLEDGED', 'DONE', 'SNOOZED'].includes(status)) throw new BadRequestException('Status sahi nahi');
     const patch: any = { status };
     const now = new Date();
     if (status === 'SENT') patch.sentAt = now;

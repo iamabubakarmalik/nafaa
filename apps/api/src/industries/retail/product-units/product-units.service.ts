@@ -14,13 +14,13 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { ShopScope } from '../../../common/shop-scope';
 import { periodRange } from '../../../modules/inventory/taxonomy/taxonomy.helper';
 import { freshInStoreEan } from '../../../modules/inventory/barcode-labels/barcode.helper';
+import { KEPT_QTY, LINE_REVENUE, billMathCte, liveSaleSql } from '../../../common/helpers/business-math.helper';
 import { assertCodeFree, findCodeClash } from './code-clash.helper';
 import { BulkAddUnitDto, CreateProductUnitDto, UnitsAnalyticsDto, UnitsOverviewDto } from './dto/create-product-unit.dto';
 import { UpdateProductUnitDto } from './dto/update-product-unit.dto';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const DAY = 86_400_000;
-const LIVE_SALES = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
 
 const UNIT_SELECT = {
   id: true, productId: true, variantId: true, unitName: true, unitLabel: true, conversionType: true, conversionRate: true,
@@ -72,7 +72,9 @@ export class ProductUnitsService {
     const variantId = dto.variantId || null;
     const p = await this.product(user.tenantId, dto.productId, variantId);
     await this.checkName(p.id, variantId, dto.unitName);
-    await assertCodeFree(this.prisma, user.tenantId, dto.barcode, { productId: p.id });
+    // Only the base unit may share its product's own code; a pack with that code
+    // would take over the piece scan at the counter (packs are matched first).
+    await assertCodeFree(this.prisma, user.tenantId, dto.barcode, dto.isBase ? { productId: p.id } : {});
     const rate = dto.isBase ? 1 : dto.conversionRate;
 
     return this.prisma.$transaction(async (tx) => {
@@ -148,7 +150,7 @@ export class ProductUnitsService {
         variant: true,
       },
     });
-    if (!unit) throw new NotFoundException(`No unit with barcode ${code}`);
+    if (!unit) throw new NotFoundException(`Barcode ${code} kisi pack par nahi laga`);
     return unit;
   }
 
@@ -176,11 +178,13 @@ export class ProductUnitsService {
     if (dto.unitName && dto.unitName.trim().toLowerCase() !== existing.unitName.trim().toLowerCase()) {
       await this.checkName(existing.productId, existing.variantId, dto.unitName, id);
     }
-    if (dto.barcode && dto.barcode.toLowerCase() !== (existing.barcode ?? '').toLowerCase()) {
-      await assertCodeFree(this.prisma, user.tenantId, dto.barcode, { unitId: id, productId: existing.productId });
+    const isBase = dto.isBase ?? existing.isBase;
+    const code = dto.barcode !== undefined ? dto.barcode : existing.barcode;
+    const codeChanged = !!dto.barcode && dto.barcode.toLowerCase() !== (existing.barcode ?? '').toLowerCase();
+    if (code && (codeChanged || (existing.isBase && !isBase))) {
+      await assertCodeFree(this.prisma, user.tenantId, code, isBase ? { unitId: id, productId: existing.productId } : { unitId: id });
     }
 
-    const isBase = dto.isBase ?? existing.isBase;
     const rate = isBase ? 1 : dto.conversionRate ?? existing.conversionRate;
     const needsBase = (dto.price !== undefined && !(dto.price > 0)) || (dto.costPrice !== undefined && !(dto.costPrice > 0));
     const p = needsBase ? await this.product(user.tenantId, existing.productId, existing.variantId) : null;
@@ -438,18 +442,22 @@ export class ProductUnitsService {
       byUnit.set(key, g);
     }
 
-    const sold = await this.prisma.saleItem.groupBy({
-      by: ['productId'],
-      where: {
-        productId: { not: null, ...(withIds.size && { notIn: [...withIds] }) },
-        sale: { tenantId, ...scope.where, status: { in: [...LIVE_SALES] }, soldAt: range },
-      },
-      _sum: { quantity: true, total: true },
-      orderBy: { _sum: { quantity: 'desc' } },
-      take: 10,
-    });
+    // Best sellers with no packs, net of bill discounts and returns, as in the reports.
+    const where = liveSaleSql({ tenantId, shopId: scope.shopId ?? null }, range);
+    const packed = withIds.size ? Prisma.sql`AND si."productId" NOT IN (${Prisma.join([...withIds])})` : Prisma.empty;
+    const sold = await this.prisma.$queryRaw<Array<{ productId: string; qty: number; revenue: number }>>`
+      WITH ${billMathCte(where)}
+      SELECT si."productId" AS "productId",
+        COALESCE(SUM(${KEPT_QTY}), 0)::float8 AS qty,
+        COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS revenue
+      FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+      WHERE ${where} AND si."productId" IS NOT NULL ${packed}
+      GROUP BY 1
+      HAVING COALESCE(SUM(${KEPT_QTY}), 0) > 0
+      ORDER BY qty DESC
+      LIMIT 10`;
     const soldNames = sold.length
-      ? await this.prisma.product.findMany({ where: { tenantId, id: { in: sold.map((s) => s.productId!) } }, select: { id: true, name: true, unit: true } })
+      ? await this.prisma.product.findMany({ where: { tenantId, id: { in: sold.map((s) => s.productId) } }, select: { id: true, name: true, unit: true } })
       : [];
     const nameOf = new Map(soldNames.map((p) => [p.id, p]));
 
@@ -473,8 +481,8 @@ export class ProductUnitsService {
       issues: issues.sort((a, b) => Number(b.kind === 'loss') - Number(a.kind === 'loss') || Math.abs(b.price - b.loose) - Math.abs(a.price - a.loose)).slice(0, 15),
       bought: [...byUnit.values()].map((g) => ({ ...g, qty: r2(g.qty), baseQty: r2(g.baseQty), value: r2(g.value) })).sort((a, b) => b.value - a.value),
       topWithoutPacks: sold
-        .filter((s) => nameOf.has(s.productId!))
-        .map((s) => ({ id: s.productId!, name: nameOf.get(s.productId!)!.name, unit: nameOf.get(s.productId!)!.unit, qty: r2(Number(s._sum.quantity ?? 0)), revenue: r2(Number(s._sum.total ?? 0)) })),
+        .filter((s) => nameOf.has(s.productId))
+        .map((s) => ({ id: s.productId, name: nameOf.get(s.productId)!.name, unit: nameOf.get(s.productId)!.unit, qty: r2(Number(s.qty)), revenue: r2(Number(s.revenue)) })),
       days: Math.max(1, Math.round((range.lt.getTime() - range.gte.getTime()) / DAY)),
     };
   }

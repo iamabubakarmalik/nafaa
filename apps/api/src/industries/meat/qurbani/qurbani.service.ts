@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput, parseDay } from '../meat-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -13,8 +14,8 @@ export class QurbaniService {
 
     return this.prisma.meatQurbaniBooking.create({
       data: {
+        ...cleanInput(dto),
         tenantId: user.tenantId,
-        ...dto,
         bookingNumber,
         slaughterDate: dto.slaughterDate ? new Date(dto.slaughterDate) : null,
       },
@@ -53,7 +54,7 @@ export class QurbaniService {
     return this.prisma.meatQurbaniBooking.update({
       where: { id },
       data: {
-        ...dto,
+        ...cleanInput(dto),
         slaughterDate: dto.slaughterDate ? new Date(dto.slaughterDate) : undefined,
       },
     });
@@ -72,6 +73,7 @@ export class QurbaniService {
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, status: string, reason?: string) {
+    await this.getOne(user, id);
     const patch: any = { status };
     if (status === 'CANCELLED') { patch.cancelledAt = new Date(); patch.cancellationReason = reason; }
     return this.prisma.meatQurbaniBooking.update({ where: { id }, data: patch });

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Package, Search, X, Plus, Trash2, User, UserPlus, Building,
@@ -15,9 +15,12 @@ import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProduc
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { withManagerPin } from '@core/security/ManagerPin';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { bulkPricingApi } from '../api/bulk-pricing.api';
+import { bulkPricingApi, type BulkPricing } from '../api/bulk-pricing.api';
 import { projectsApi } from '../api/projects.api';
+import { quotationsApi } from '../api/quotations.api';
+import { deliveriesApi } from '../api/deliveries.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
@@ -38,7 +41,17 @@ export default function HardwarePosPage() {
     paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
     saleMode, setSaleMode, globalDiscount, setGlobalDiscount,
     subtotal, total, totalItems, effectivePaid, credit, clearCart,
+    serviceCharges, setServiceCharges, svcTotal,
   } = useSharedPosCart();
+
+  // Site delivery: the charge goes on the bill as a service charge (so it counts
+  // in sales and the drawer), and a delivery slip is made after the bill.
+  const [delivery, setDelivery] = useState({ on: false, address: '', date: '', charge: '' });
+  const setDeliveryCharge = (charge: string) => {
+    setDelivery((d) => ({ ...d, charge }));
+    const amount = Number(charge) || 0;
+    setServiceCharges(amount > 0 ? [{ type: 'DELIVERY', label: 'Delivery', amount }] : []);
+  };
 
   const { data: productsData } = useQuery({
     queryKey: ['products-for-hardware-pos', search],
@@ -72,25 +85,50 @@ export default function HardwarePosPage() {
     return products.filter((p) => p.categoryId === categoryFilter);
   }, [products, categoryFilter]);
 
-  const addProductToCart = async (product: Product) => {
-    if (product.stock <= 0) return toast.error('Out of stock');
+  // Bulk tiers per product, fetched once when the product first goes into the cart.
+  const [tiersByProduct, setTiersByProduct] = useState<Record<string, BulkPricing[]>>({});
 
-    // Get bulk pricing tiers for this product
-    let bulkTiers: any[] = [];
-    try {
-      bulkTiers = await bulkPricingApi.listByProduct(product.id);
-    } catch { /* no tiers */ }
+  /** Line with the bulk rate that fits its quantity (or the normal rate when none fits). */
+  const withTier = <T extends { productId: string; quantity: number; priceOverride?: number; note?: string }>(
+    line: T, tiers: BulkPricing[] | undefined,
+  ): T => {
+    const tier = (tiers ?? [])
+      .filter((t) => line.quantity >= t.minQuantity && (!t.maxQuantity || line.quantity <= t.maxQuantity))
+      .sort((a, b) => a.price - b.price)[0];
+    const wasTier = line.note?.startsWith('Tier: ');
+    if (tier) return { ...line, priceOverride: tier.price, note: `Tier: ${tier.label || `${tier.minQuantity}+`}` };
+    return wasTier ? { ...line, priceOverride: undefined, note: undefined } : line;
+  };
+
+  /** Sets a line's quantity (typed or +/−); keeps the stock limit and the bulk rate in step. */
+  const setLineQty = (lineId: string, next: (current: number) => number) => {
+    setCart((prev) => prev.map((c) => {
+      if (c.cartLineId !== lineId) return c;
+      const wanted = Number(next(c.quantity).toFixed(2));
+      if (!(wanted > 0)) return c;
+      if (wanted > c.stock) {
+        toast.error(`Sirf ${c.stock} ${c.unit ?? ''} stock me hai`);
+        return withTier({ ...c, quantity: c.stock }, tiersByProduct[c.productId]);
+      }
+      return withTier({ ...c, quantity: wanted }, tiersByProduct[c.productId]);
+    }));
+  };
+  const changeQty = (lineId: string, delta: number) => setLineQty(lineId, (q) => Math.max(1, q + delta));
+
+  const addProductToCart = async (product: Product) => {
+    if (product.stock <= 0) return toast.error('Stock khatam hai');
+
+    let bulkTiers = tiersByProduct[product.id];
+    if (!bulkTiers) {
+      bulkTiers = await bulkPricingApi.listByProduct(product.id).catch(() => [] as BulkPricing[]);
+      setTiersByProduct((m) => ({ ...m, [product.id]: bulkTiers! }));
+    }
 
     const existing = cart.find((c) => c.productId === product.id);
     if (existing) {
-      if (existing.quantity >= product.stock) return toast.error('Stock limit');
-      const newQty = existing.quantity + 1;
-      // Auto-apply best tier
-      const applicableTier = bulkTiers
-        .filter((t: any) => newQty >= t.minQuantity && (!t.maxQuantity || newQty <= t.maxQuantity))
-        .sort((a: any, b: any) => a.price - b.price)[0];
+      if (existing.quantity >= product.stock) return toast.error(`Sirf ${product.stock} ${product.unit ?? ''} stock me hai`);
       setCart((prev) => prev.map((c) => c.cartLineId === existing.cartLineId
-        ? { ...c, quantity: newQty, priceOverride: applicableTier ? applicableTier.price : undefined, note: applicableTier ? `Tier: ${applicableTier.label}` : c.note }
+        ? withTier({ ...c, quantity: c.quantity + 1 }, bulkTiers)
         : c));
     } else {
       setCart((prev) => [...prev, {
@@ -110,6 +148,60 @@ export default function HardwarePosPage() {
     }
     toast.success(`${product.name} added`);
   };
+
+  // Quotation → bill: the quotation page opens the POS with its id; its lines
+  // load into the cart at the quoted rates and the quotation is marked billed.
+  const location = useLocation();
+  const [fromQuotation, setFromQuotation] = useState<{ id: string; number: string } | null>(null);
+  const quotationLoaded = useRef(false);
+  useEffect(() => {
+    const quotationId = (location.state as { quotationId?: string } | null)?.quotationId;
+    if (!quotationId || quotationLoaded.current) return;
+    quotationLoaded.current = true;
+    (async () => {
+      try {
+        const q = await quotationsApi.getOne(quotationId);
+        const lines = [];
+        const skipped: string[] = [];
+        for (const it of q.items) {
+          if (!it.productId) { skipped.push(it.itemName); continue; }
+          const p = await productsApi.getOne(it.productId).catch(() => null);
+          if (!p) { skipped.push(it.itemName); continue; }
+          const qty = Math.min(it.quantity, Math.max(p.stock, 0));
+          if (!(qty > 0)) { skipped.push(`${it.itemName} (stock nahi)`); continue; }
+          // Line discount from the quotation, spread to the billed quantity.
+          const rate = it.quantity > 0 ? it.total / it.quantity : it.unitPrice;
+          lines.push({
+            cartLineId: cartLineId(),
+            productId: p.id,
+            name: p.name,
+            variantImage: p.images?.[0]?.url,
+            basePrice: p.price,
+            wholesalePrice: p.wholesalePrice,
+            stock: p.stock,
+            quantity: qty,
+            unit: p.unit,
+            category: p.category,
+            useWholesale: false,
+            priceOverride: Math.round(rate * 100) / 100,
+            lineDiscount: 0,
+            note: `Quotation ${q.quotationNumber}`,
+          });
+        }
+        setCart(lines);
+        if (q.customerId) setCustomerId(q.customerId);
+        if (q.projectId) setSelectedProjectId(q.projectId);
+        setFromQuotation({ id: q.id, number: q.quotationNumber });
+        if (skipped.length) toast.warning(`Ye items bill me nahi aaye: ${skipped.join(', ')}`);
+        else toast.success(`Quotation ${q.quotationNumber} cart me aa gayi`);
+        if (q.discount > 0 || q.taxAmount > 0 || q.deliveryCharges > 0 || q.laborCharges > 0 || q.otherCharges > 0) {
+          toast.info('Quotation ki kul chhoot, tax aur charges bill me khud nahi aate — zaroorat ho to haath se dalein');
+        }
+      } catch {
+        toast.error('Quotation load nahi hui');
+      }
+    })();
+  }, [location.state]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBarcodeScan = async (code: string) => {
     setScannerOpen(false);
@@ -136,13 +228,19 @@ export default function HardwarePosPage() {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       if (!currentShopId) throw new Error('Shop required');
-      const sale = await offlineSalesApi.create({
+      // The bill has no project column, so each line carries the project in its
+      // team-only note; the Projects page totals its billing from that tag.
+      const project = projects.find((p) => p.id === selectedProjectId);
+      const projectTag = project ? `[Project: ${project.projectNumber}] ${project.name}` : undefined;
+      // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
+      const sale = await withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+        ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod,
         paidAmount: effectivePaid,
         discount: Number(globalDiscount) || 0,
-        note: selectedProjectId ? `Project: ${projects.find((p) => p.id === selectedProjectId)?.name}` : undefined,
+        ...(serviceCharges.length > 0 && { serviceCharges }),
         items: cart.map((c) => ({
           productId: c.productId,
           quantity: c.quantity,
@@ -150,23 +248,53 @@ export default function HardwarePosPage() {
           lineDiscount: c.lineDiscount,
           useWholesale: c.useWholesale,
           note: c.note,
+          ...(projectTag && { internalNote: projectTag }),
         })),
-      });
+      }));
+      if (delivery.on && !sale.id.startsWith('local_')) {
+        const customer = customers.find((c) => c.id === customerId);
+        await deliveriesApi.create({
+          saleId: sale.id,
+          projectId: project?.id,
+          customerId: customerId || undefined,
+          customerName: customer?.name || 'Walk-in',
+          customerPhone: customer?.phone || undefined,
+          deliveryAddress: delivery.address.trim(),
+          scheduledDate: delivery.date || undefined,
+          deliveryCharge: Number(delivery.charge) || 0,
+          items: cart.map((c) => ({
+            productId: c.productId,
+            itemName: c.name,
+            orderedQty: c.quantity,
+            unitPrice: c.priceOverride ?? c.basePrice,
+          })),
+        }).then(
+          (d: any) => toast.success(`Delivery ${d.deliveryNumber} ban gayi`),
+          () => toast.error('Bill ban gaya, lekin delivery slip nahi bani — Deliveries me dobara banayein'),
+        );
+      }
       return sale;
     },
     onSuccess: (sale) => {
       window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
+      setDelivery({ on: false, address: '', date: '', charge: '' });
+      setServiceCharges([]);
+      if (fromQuotation) {
+        quotationsApi.updateStatus(fromQuotation.id, 'CONVERTED', `Bill ${sale.saleNumber}`, sale.id.startsWith('local_') ? undefined : sale.id).catch(() => undefined);
+        setFromQuotation(null);
+      }
       clearCart();
       setSelectedProjectId('');
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Bill nahi bana'),
   });
 
   const handleCheckout = () => {
     if (cart.length === 0) return toast.error('Cart empty');
     if (!currentShopId) return toast.error('Select shop first');
-    if (credit > 0 && !customerId) return toast.error('Customer required for credit');
+    if (credit > 0 && !customerId) return toast.error('Udhaar ke liye customer chunein');
+    if (delivery.on && !delivery.address.trim()) return toast.error('Delivery ka pata likhein');
     checkoutMutation.mutate();
   };
 
@@ -406,10 +534,15 @@ export default function HardwarePosPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="inline-flex items-center bg-slate-100 rounded-lg overflow-hidden">
-                        <button onClick={() => setCart((prev) => prev.map((c) => c.cartLineId === item.cartLineId ? { ...c, quantity: Math.max(0.01, c.quantity - 1) } : c))}
+                        <button onClick={() => changeQty(item.cartLineId, -1)}
                           className="h-7 w-7 hover:bg-slate-200 font-extrabold">−</button>
-                        <span className="h-7 w-12 flex items-center justify-center text-xs font-extrabold tabular-nums">{item.quantity}</span>
-                        <button onClick={() => setCart((prev) => prev.map((c) => c.cartLineId === item.cartLineId ? { ...c, quantity: c.quantity + 1 } : c))}
+                        <input
+                          type="number" inputMode="decimal" min={0.01} step="any"
+                          value={item.quantity}
+                          onChange={(e) => { const v = Number(e.target.value); if (v > 0) setLineQty(item.cartLineId, () => v); }}
+                          aria-label="Miqdar"
+                          className="h-7 w-16 bg-transparent text-center text-xs font-extrabold tabular-nums focus:outline-none [appearance:textfield]" />
+                        <button onClick={() => changeQty(item.cartLineId, 1)}
                           className="h-7 w-7 bg-amber-600 text-white hover:bg-amber-700 font-extrabold">+</button>
                       </div>
                       <div className="text-right">
@@ -429,6 +562,22 @@ export default function HardwarePosPage() {
 
           {cart.length > 0 && (
             <div className="shrink-0 border-t-2 border-slate-200 bg-slate-50/50 p-3 space-y-2">
+              <label className="flex items-center gap-2 text-xs font-extrabold text-slate-700">
+                <input type="checkbox" checked={delivery.on}
+                  onChange={(e) => { setDelivery((d) => ({ ...d, on: e.target.checked })); if (!e.target.checked) setDeliveryCharge(''); }} />
+                <Truck className="h-3.5 w-3.5 text-amber-600" />
+                Site par delivery
+              </label>
+              {delivery.on && (
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <input value={delivery.address} onChange={(e) => setDelivery((d) => ({ ...d, address: e.target.value }))}
+                    placeholder="Pata / site *" className="col-span-2 h-9 rounded-lg border border-slate-200 bg-white px-2 font-bold" />
+                  <input type="date" value={delivery.date} onChange={(e) => setDelivery((d) => ({ ...d, date: e.target.value }))}
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2 font-bold" />
+                  <input type="number" min={0} value={delivery.charge} onChange={(e) => setDeliveryCharge(e.target.value)}
+                    placeholder="Kiraya (bill me)" className="h-9 rounded-lg border border-slate-200 bg-white px-2 font-bold tabular-nums" />
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <input type="number" placeholder="Discount" value={globalDiscount} onChange={(e) => setGlobalDiscount(e.target.value)}
                   className="h-9 rounded-lg border border-slate-200 bg-white px-2 font-bold tabular-nums" />
@@ -461,6 +610,9 @@ export default function HardwarePosPage() {
 
               <div className="rounded-xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-3 space-y-1 text-xs">
                 <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(subtotal)}</span></div>
+                {svcTotal > 0 && (
+                  <div className="flex justify-between"><span className="text-white/70">Delivery</span><span className="font-bold tabular-nums">+{formatPKR(svcTotal)}</span></div>
+                )}
                 {Number(globalDiscount) > 0 && (
                   <div className="flex justify-between text-rose-300"><span>Discount</span><span className="font-bold tabular-nums">-{formatPKR(Number(globalDiscount))}</span></div>
                 )}

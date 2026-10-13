@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { postIndustrySale } from '../../_shared/industry-sale.helper';
 
 @Injectable()
 export class MembershipsService {
@@ -36,38 +37,63 @@ export class MembershipsService {
   }
 
   // Subscriptions
-  async subscribe(user: AuthenticatedUser, dto: { planId: string; customerId: string; amountPaid: number; paymentMethod?: string; autoRenew?: boolean; notes?: string }) {
+  async subscribe(user: AuthenticatedUser, dto: { planId: string; customerId: string; amountPaid: number; paymentMethod?: string; autoRenew?: boolean; notes?: string; shopId?: string }) {
     const plan = await this.prisma.salonMembershipPlan.findFirst({ where: { id: dto.planId, tenantId: user.tenantId } });
     if (!plan) throw new NotFoundException('Plan not found');
+    if (!plan.isActive) throw new BadRequestException('Ye plan band hai');
+    const customer = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } });
+    if (!customer) throw new NotFoundException('Customer nahi mila');
+    const amountPaid = Math.max(Number(dto.amountPaid) || 0, 0);
+    if (amountPaid > plan.price + 0.01) throw new BadRequestException(`Plan ki qeemat sirf Rs ${plan.price} hai`);
 
-    const count = await this.prisma.salonMembership.count({ where: { tenantId: user.tenantId } });
     const year = new Date().getFullYear();
-    const membershipNumber = `MEM-${year}-${String(count + 1).padStart(4, '0')}`;
+    const prefix = `MEM-${year}-`;
+    const last = await this.prisma.salonMembership.findFirst({
+      where: { tenantId: user.tenantId, membershipNumber: { startsWith: prefix } },
+      orderBy: { membershipNumber: 'desc' },
+      select: { membershipNumber: true },
+    });
+    const membershipNumber = `${prefix}${String((last ? Number(last.membershipNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(4, '0')}`;
 
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + plan.durationDays);
 
-    const membership = await this.prisma.salonMembership.create({
-      data: {
-        tenantId: user.tenantId,
-        planId: dto.planId,
-        customerId: dto.customerId,
-        membershipNumber,
-        expiryDate,
-        amountPaid: dto.amountPaid,
-        paymentMethod: dto.paymentMethod,
-        autoRenew: dto.autoRenew ?? false,
-        notes: dto.notes,
-        createdById: user.id,
-      },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      const membership = await tx.salonMembership.create({
+        data: {
+          tenantId: user.tenantId,
+          planId: dto.planId,
+          customerId: dto.customerId,
+          membershipNumber,
+          expiryDate,
+          amountPaid,
+          paymentMethod: dto.paymentMethod,
+          autoRenew: dto.autoRenew ?? false,
+          notes: dto.notes,
+          createdById: user.id,
+        },
+      });
 
-    await this.prisma.salonMembershipPlan.update({
-      where: { id: dto.planId },
-      data: { totalSubscribers: { increment: 1 } },
-    });
+      await tx.salonMembershipPlan.update({
+        where: { id: dto.planId },
+        data: { totalSubscribers: { increment: 1 } },
+      });
 
-    return membership;
+      // Membership fee is income on the day it is sold; any unpaid part goes on khata.
+      if (plan.price > 0) {
+        await postIndustrySale(tx, user, {
+          saleNumber: `SLN-${membershipNumber}`,
+          sourceRef: membershipNumber,
+          shopId: dto.shopId,
+          customerId: dto.customerId,
+          lines: [{ label: `Membership: ${plan.name} (${plan.durationDays} din)`, amount: plan.price }],
+          paidAmount: amountPaid,
+          paymentMethod: dto.paymentMethod,
+        });
+      }
+
+      return membership;
+    });
   }
 
   async listMemberships(user: AuthenticatedUser, params: { status?: string; customerId?: string; planId?: string }) {

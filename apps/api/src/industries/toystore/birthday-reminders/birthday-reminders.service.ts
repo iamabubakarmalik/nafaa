@@ -1,15 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { tzParts } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RecordGiftPurchaseDto, UpsertBirthdayReminderDto } from './dto/upsert-birthday.dto';
 import { ageGroupsForYears } from '../products/products.service';
 
 /** Days until the NEXT occurrence of a birthday (ignores year) */
 function daysUntilNextBirthday(birthDate: Date, from = new Date()): number {
-  const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-  let next = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-  if (next < today) next = new Date(today.getFullYear() + 1, birthDate.getMonth(), birthDate.getDate());
-  return Math.round((next.getTime() - today.getTime()) / 86400000);
+  // "Today" is the shop's day (Pakistan time); the birth date is a calendar date stored at UTC midnight.
+  const t = tzParts(from);
+  const today = Date.UTC(t.year, t.month - 1, t.day);
+  const b = new Date(birthDate);
+  let next = Date.UTC(t.year, b.getUTCMonth(), b.getUTCDate());
+  if (next < today) next = Date.UTC(t.year + 1, b.getUTCMonth(), b.getUTCDate());
+  return Math.round((next - today) / 86400000);
 }
 
 function ageInYears(birthDate: Date, at = new Date()): number {
@@ -126,7 +130,6 @@ export class BirthdayRemindersService {
           ? { genderTarget: { in: [r.childGender, 'UNISEX'] as any } }
           : {}),
         ...(r.favoriteCategories.length ? { categoryType: { in: r.favoriteCategories as any } } : {}),
-        ...(maxBudget ? { retailPrice: { lte: maxBudget } } : {}),
         ...(turningAge < 3 ? { chokingHazard: false } : {}),
       },
       orderBy: [{ isBirthdayGift: 'desc' }, { isBestSeller: 'desc' }, { totalSold: 'desc' }],
@@ -134,8 +137,12 @@ export class BirthdayRemindersService {
     });
 
     const productIds = profiles.map((p) => p.productId);
+    // Budget is checked on the selling price the counter uses.
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds }, isActive: true, stock: { gt: 0 } },
+      where: {
+        tenantId: user.tenantId, id: { in: productIds }, isActive: true, stock: { gt: 0 },
+        ...(maxBudget ? { price: { lte: maxBudget } } : {}),
+      },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const map = new Map(products.map((p) => [p.id, p]));

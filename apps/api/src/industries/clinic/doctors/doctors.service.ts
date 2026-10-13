@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz, weekdayInTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertDoctorDto } from './dto/upsert-doctor.dto';
 
@@ -55,11 +56,11 @@ export class DoctorsService {
     const doc = await this.prisma.clinicDoctorProfile.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!doc) throw new NotFoundException('Doctor not found');
 
-    const dow = new Date(date).getDay();
+    const dow = weekdayInTz(new Date(date));
     if (!doc.workingDays.includes(dow)) return { available: false, reason: 'Not a working day', slots: [] };
 
-    const dayStart = new Date(date); dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date); dayEnd.setHours(23, 59, 59, 999);
+    const dayStart = startOfDayTz(new Date(date));
+    const dayEnd = endOfDayTz(new Date(date));
 
     const booked = await this.prisma.clinicAppointment.findMany({
       where: {

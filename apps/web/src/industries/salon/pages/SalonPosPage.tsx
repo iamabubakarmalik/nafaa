@@ -15,9 +15,9 @@ import { salonServicesApi, type SalonService, type ServiceCategory } from '../ap
 import { staffProfilesApi } from '../api/staff-profiles.api';
 import { appointmentsApi } from '../api/appointments.api';
 import { salonCustomerProfilesApi } from '../api/customer-profiles.api';
+import { membershipsApi } from '../api/memberships.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 type Screen = 'customer' | 'services' | 'schedule' | 'checkout';
@@ -104,6 +104,17 @@ export default function SalonPosPage() {
     enabled: !!customerId,
   });
 
+  // Active membership of the chosen customer; its discount is offered at checkout.
+  const { data: activeMemberships = [] } = useQuery({
+    queryKey: ['salon-memberships-active', customerId],
+    queryFn: () => membershipsApi.list({ customerId, status: 'ACTIVE' }),
+    enabled: !!customerId,
+  });
+  const memberPlan = activeMemberships
+    .filter((m) => new Date(m.expiryDate).getTime() >= Date.now() && (m.plan?.discountPct ?? 0) > 0)
+    .map((m) => m.plan!)
+    .sort((a, b) => b.discountPct - a.discountPct)[0];
+
   const categories = useMemo(() => {
     const set = new Set<ServiceCategory>();
     services.forEach((s) => set.add(s.category));
@@ -152,7 +163,7 @@ export default function SalonPosPage() {
       commissionFixed: svc.commissionFixed,
       staffProfileId: customerProfile?.preferredStaffId,
       staffName: allStaff.find((s) => s.id === customerProfile?.preferredStaffId)?.staff
-        ? `${allStaff.find((s) => s.id === customerProfile?.preferredStaffId)?.staff?.firstName || ''} ${allStaff.find((s) => s.id === customerProfile?.preferredStaffId)?.staff?.lastName || ''}`.trim()
+        ? `${(allStaff.find((s) => s.id === customerProfile?.preferredStaffId)?.staff?.fullName || allStaff.find((s) => s.id === customerProfile?.preferredStaffId)?.staff?.firstName) || ''} ${allStaff.find((s) => s.id === customerProfile?.preferredStaffId)?.staff?.lastName || ''}`.trim()
         : undefined,
       lineDiscount: 0,
     }]);
@@ -161,7 +172,7 @@ export default function SalonPosPage() {
 
   const assignStaff = (lineId: string, staffId: string) => {
     const staff = allStaff.find((s) => s.id === staffId);
-    const name = staff?.staff ? `${staff.staff.firstName || ''} ${staff.staff.lastName || ''}`.trim() : '';
+    const name = staff?.staff ? `${(staff.staff.fullName || staff.staff.firstName) || ''} ${staff.staff.lastName || ''}`.trim() : '';
     setCart((prev) => prev.map((c) => c.cartLineId === lineId ? { ...c, staffProfileId: staffId, staffName: name } : c));
   };
 
@@ -180,10 +191,10 @@ export default function SalonPosPage() {
     mutationFn: async () => {
       if (!currentShopId) throw new Error('Shop required');
 
-      // Create appointment first
       const start = new Date(`${scheduledDate}T${scheduledTime}`);
       const end = new Date(start.getTime() + totalDuration * 60_000);
 
+      // The appointment carries the whole bill; the server posts the sale from it.
       const appointment = await appointmentsApi.create({
         customerId: customerId || undefined,
         customerName: !customerId ? walkInName : undefined,
@@ -192,6 +203,10 @@ export default function SalonPosPage() {
         scheduledEnd: end.toISOString(),
         numberOfGuests,
         customerNotes: specialRequests || undefined,
+        serviceCharge: Math.round(svcCharge * 100) / 100,
+        taxAmount: Math.round(tax * 100) / 100,
+        discount: gDiscount,
+        shopId: currentShopId,
         services: cart.map((c) => ({
           serviceId: c.serviceId,
           staffProfileId: c.staffProfileId,
@@ -201,24 +216,14 @@ export default function SalonPosPage() {
         })),
       });
 
-      // If not book-only, create sale
-      if (saleMode !== 'BOOK_ONLY' && effectivePaid > 0) {
-        const sale = await offlineSalesApi.create({
-          shopId: currentShopId,
-          customerId: customerId || undefined,
-          paymentMethod,
-          paidAmount: effectivePaid,
-          discount: gDiscount,
-          items: cart.map((c) => ({
-            productId: c.serviceId,
-            quantity: 1,
-            priceOverride: c.discountPrice && c.discountPrice < c.price ? c.discountPrice : c.price,
-            lineDiscount: c.lineDiscount,
-            useWholesale: false,
-            note: c.staffName ? `Served by: ${c.staffName}` : undefined,
-          })),
+      if (saleMode === 'FULL') {
+        const done = await appointmentsApi.checkout(appointment.id, {
+          paidAmount: total, paymentMethod, tip, shopId: currentShopId,
         });
-        return { appointment, sale };
+        return { appointment, sale: done.sale ?? null };
+      }
+      if (saleMode === 'PARTIAL' && effectivePaid > 0) {
+        await appointmentsApi.addPayment(appointment.id, { amount: effectivePaid, paymentMethod });
       }
       return { appointment, sale: null };
     },
@@ -226,13 +231,13 @@ export default function SalonPosPage() {
       if (sale) {
         window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
       } else {
-        toast.success(`Appointment ${appointment.appointmentNumber} booked`);
+        toast.success(`Appointment ${appointment.appointmentNumber} book ho gayi`);
         navigate(`/salon/appointments/${appointment.id}`);
       }
       resetAll();
       queryClient.invalidateQueries({ queryKey: ['salon-appointments'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Booking failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Booking nahi hui'),
   });
 
   const resetAll = () => {
@@ -572,7 +577,7 @@ export default function SalonPosPage() {
                       className="h-9 w-full rounded-lg border-2 border-violet-200 bg-violet-50 px-2 text-xs font-bold focus:outline-none focus:border-violet-500">
                       <option value="">Assign staff...</option>
                       {allStaff.map((s) => {
-                        const name = s.staff ? `${s.staff.firstName || ''} ${s.staff.lastName || ''}`.trim() : '';
+                        const name = s.staff ? `${(s.staff.fullName || s.staff.firstName) || ''} ${s.staff.lastName || ''}`.trim() : '';
                         return <option key={s.id} value={s.id}>{name} ({s.role})</option>;
                       })}
                     </select>
@@ -740,6 +745,12 @@ export default function SalonPosPage() {
 
         <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-2">
           <h3 className="font-extrabold text-slate-900 mb-2">Adjustments</h3>
+          {memberPlan && subtotal > 0 && (
+            <button type="button" onClick={() => setGlobalDiscount(String(Math.round(subtotal * memberPlan.discountPct) / 100))}
+              className="w-full rounded-lg border-2 border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-left text-xs font-extrabold text-fuchsia-800 hover:border-fuchsia-500">
+              Member chhoot lagayen: {memberPlan.name} {memberPlan.discountPct}% = {formatPKR(Math.round(subtotal * memberPlan.discountPct) / 100)}
+            </button>
+          )}
           <div className="grid grid-cols-2 gap-2 text-xs">
             <input type="number" placeholder="Discount" value={globalDiscount} onChange={(e) => setGlobalDiscount(e.target.value)}
               className="h-10 rounded-lg border-2 border-slate-200 px-2 font-bold tabular-nums focus:border-pink-500 focus:outline-none" />
@@ -785,7 +796,7 @@ export default function SalonPosPage() {
           onClick={() => checkoutMutation.mutate()} loading={checkoutMutation.isPending}
           disabled={!currentShopId || cart.length === 0}>
           <CheckCircle2 className="h-5 w-5" />
-          {saleMode === 'BOOK_ONLY' ? 'Book Appointment' : 'Complete & Print Receipt'}
+          {saleMode === 'BOOK_ONLY' ? 'Book Appointment' : saleMode === 'PARTIAL' ? 'Book karein + advance lein' : 'Complete & Print Receipt'}
         </Button>
       </div>
     </div>

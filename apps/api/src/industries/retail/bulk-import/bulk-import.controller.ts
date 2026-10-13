@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { BulkImportService } from './bulk-import.service';
 import { BulkImportDto } from './dto/bulk-import.dto';
 
@@ -14,8 +15,8 @@ export class BulkImportController {
   constructor(private readonly service: BulkImportService) {}
 
   @Post('products')
-  importProducts(@GetUser() user: AuthenticatedUser, @Body() dto: BulkImportDto) {
-    return this.service.importProducts(user, dto);
+  importProducts(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: BulkImportDto) {
+    return this.service.importProducts(user, shop, dto);
   }
 
   @Get('jobs')

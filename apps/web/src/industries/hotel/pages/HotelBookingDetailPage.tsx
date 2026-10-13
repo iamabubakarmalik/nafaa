@@ -27,6 +27,7 @@ export default function BookingDetailPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [showFolio, setShowFolio] = useState(false);
   const [showExtend, setShowExtend] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const { data: booking, isLoading, refetch } = useQuery({
     queryKey: ['hotel-booking', id],
@@ -38,12 +39,6 @@ export default function BookingDetailPage() {
   const checkInMutation = useMutation({
     mutationFn: () => bookingsApi.checkIn(id!),
     onSuccess: () => { toast.success('Checked in'); refetch(); queryClient.invalidateQueries({ queryKey: ['hotel-rooms'] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const checkOutMutation = useMutation({
-    mutationFn: () => bookingsApi.checkOut(id!),
-    onSuccess: () => { toast.success('Checked out'); refetch(); queryClient.invalidateQueries({ queryKey: ['hotel-rooms'] }); },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
   });
 
@@ -100,7 +95,7 @@ export default function BookingDetailPage() {
                   <Calendar className="h-4 w-4" />
                   Extend
                 </Button>
-                <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => checkOutMutation.mutate()} loading={checkOutMutation.isPending} disabled={booking.balanceAmount > 0}>
+                <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowCheckout(true)}>
                   <LogOut className="h-4 w-4" />
                   Check Out
                 </Button>
@@ -281,6 +276,14 @@ export default function BookingDetailPage() {
         </aside>
       </div>
 
+      {showCheckout && (
+        <CheckoutModal bookingId={id!} balance={booking.balanceAmount} onClose={() => setShowCheckout(false)} onDone={(saleId?: string) => {
+          setShowCheckout(false);
+          refetch();
+          queryClient.invalidateQueries({ queryKey: ['hotel-rooms'] });
+          if (saleId) window.open(`/sales/${saleId}/receipt?auto=1`, '_blank');
+        }} />
+      )}
       {showPayment && (
         <PaymentModal bookingId={id!} balance={booking.balanceAmount} onClose={() => setShowPayment(false)} onDone={() => { setShowPayment(false); refetch(); }} />
       )}
@@ -294,11 +297,62 @@ export default function BookingDetailPage() {
   );
 }
 
+/**
+ * Final bill at check-out. Money taken here is posted with the bill under its
+ * own payment method; anything left goes on the guest's khata as udhaar.
+ */
+function CheckoutModal({ bookingId, balance, onClose, onDone }: any) {
+  const [amount, setAmount] = useState<number>(balance);
+  const [method, setMethod] = useState('CASH');
+  const outMutation = useMutation({
+    mutationFn: () => bookingsApi.checkOut(bookingId, { paidAmount: amount, paymentMethod: method }),
+    onSuccess: (res) => { toast.success('Check-out ho gaya, bill ban gaya'); onDone(res.sale?.id); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Check-out nahi hua'),
+  });
+  const left = Math.max(balance - (Number(amount) || 0), 0);
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
+          <h3 className="font-extrabold">Check Out / Final Bill</h3>
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <div className="text-sm font-bold text-slate-600">Baqi bill: <span className="font-extrabold text-slate-900 dark:text-ink-white">{formatPKR(balance)}</span></div>
+          <div>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Abhi kitne liye</label>
+            <input type="number" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
+            {left > 0.01 && (
+              <div className="mt-1 text-xs font-bold text-amber-700">Baqi {formatPKR(left)} guest ke khate me udhaar jayega</div>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'].map((m) => (
+              <button key={m} type="button" onClick={() => setMethod(m)} className={
+                'p-2 rounded-lg border-2 text-xs font-extrabold ' +
+                (method === m ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
+              }>{m}</button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
+            <Button className="flex-1 bg-blue-600" onClick={() => outMutation.mutate()} loading={outMutation.isPending} disabled={amount < 0}>
+              <CheckCircle2 className="h-4 w-4" />
+              Check Out
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PaymentModal({ bookingId, balance, onClose, onDone }: any) {
   const [amount, setAmount] = useState(balance);
   const payMutation = useMutation({
     mutationFn: () => bookingsApi.addPayment(bookingId, amount),
     onSuccess: () => { toast.success('Payment recorded'); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment nahi hui'),
   });
 
   return (

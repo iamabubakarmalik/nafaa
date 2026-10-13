@@ -9,6 +9,7 @@ import {
 import { toast } from 'sonner';
 import { toyGiftPacksApi } from '../api/gift-packs.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
+import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
@@ -48,7 +49,7 @@ export default function GiftPackFormPage() {
     validFrom: '',
     validUntil: '',
   });
-  const [items, setItems] = useState<Array<{ productId: string; quantity: number; unitPrice: number; product?: any }>>([]);
+  const [items, setItems] = useState<Array<{ productId: string; variantId?: string; quantity: number; unitPrice: number; product?: any }>>([]);
   const [productSearch, setProductSearch] = useState('');
   const [showProductSearch, setShowProductSearch] = useState(false);
 
@@ -114,6 +115,7 @@ export default function GiftPackFormPage() {
         validUntil: form.validUntil || undefined,
         items: items.map((it) => ({
           productId: it.productId,
+          ...(it.variantId ? { variantId: it.variantId } : {}),
           quantity: it.quantity,
           unitPrice: it.unitPrice,
         })),
@@ -149,7 +151,8 @@ export default function GiftPackFormPage() {
     setForm({ ...form, giftPackPrice: Math.round(originalTotal * (1 - pct / 100)) });
   };
 
-  const canSave = form.name.trim() && form.giftPackPrice > 0 && items.length >= 2;
+  const canSave = form.name.trim() && form.giftPackPrice > 0 && items.length >= 2
+    && items.every((it) => !it.product?.hasVariants || it.variantId);
 
   if (isEdit && loadingPack) {
     return (
@@ -288,6 +291,10 @@ export default function GiftPackFormPage() {
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-sm truncate">{item.product?.name || 'Toy'}</div>
                       <div className="text-xs text-slate-500 font-bold">{formatPKR(item.unitPrice)}</div>
+                      {item.product?.hasVariants && (
+                        <VariantSelect productId={item.productId} value={item.variantId}
+                          onChange={(variantId, price) => updateItem(i, { variantId, ...(price ? { unitPrice: price } : {}) })} />
+                      )}
                     </div>
                     <div className="inline-flex items-center bg-slate-100 rounded-lg overflow-hidden shrink-0">
                       <button onClick={() => updateItem(i, { quantity: Math.max(1, item.quantity - 1) })}
@@ -557,5 +564,25 @@ function Chk({ done, label }: { done: boolean; label: string }) {
       </div>
       <span className={`font-bold ${done ? 'text-emerald-800 line-through' : 'text-slate-600'}`}>{label}</span>
     </div>
+  );
+}
+
+/** A gift pack line for a product with variants names the exact one, so the POS knows which stock to take. */
+function VariantSelect({ productId, value, onChange }: { productId: string; value?: string; onChange: (id: string, price?: number) => void }) {
+  const { data: variants = [] } = useQuery({
+    queryKey: ['gift-pack-variants', productId],
+    queryFn: () => productVariantsApi.list(productId),
+  });
+  return (
+    <select value={value ?? ''} onChange={(e) => {
+      const v = (variants as any[]).find((x) => x.id === e.target.value);
+      onChange(e.target.value, v ? Number(v.price) || undefined : undefined);
+    }}
+      className={`mt-1 h-8 w-full rounded-lg border-2 px-2 text-xs font-bold ${value ? 'border-slate-200' : 'border-rose-400 bg-rose-50'}`}>
+      <option value="">Kaunsa? (zaroori)</option>
+      {(variants as any[]).filter((v) => v.isActive !== false).map((v) => (
+        <option key={v.id} value={v.id}>{v.name} ({v.stock})</option>
+      ))}
+    </select>
   );
 }

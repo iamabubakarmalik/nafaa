@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { RiderDeliveryStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -41,7 +42,8 @@ export class DeliveryService {
   }
 
   async updateStatus(user: AuthenticatedUser, orderId: string, status: string, opts?: { customerRating?: number; feedback?: string; proofPhotoUrl?: string; failureReason?: string }) {
-    const t = await this.prisma.deliveryTracking.findUnique({ where: { orderId } });
+    if (!(Object.values(RiderDeliveryStatus) as string[]).includes(status)) throw new BadRequestException('Delivery ka status ghalat hai');
+    const t = await this.prisma.deliveryTracking.findFirst({ where: { orderId, order: { tenantId: user.tenantId } } });
     if (!t) throw new NotFoundException('Delivery not found');
 
     const now = new Date();
@@ -72,7 +74,9 @@ export class DeliveryService {
     };
     if (orderStatusMap[status]) {
       const patch2: any = { deliveryStatus: status };
-      patch2.status = orderStatusMap[status];
+      // A bill already paid stays COMPLETED; only the delivery step moves.
+      const order = await this.prisma.restaurantOrder.findUnique({ where: { id: orderId }, select: { status: true } });
+      if (order && !['COMPLETED', 'CANCELLED'].includes(order.status)) patch2.status = orderStatusMap[status];
       if (status === 'DELIVERED') patch2.deliveredAt = now;
       if (status === 'PICKED_UP' || status === 'ON_THE_WAY') patch2.outForDeliveryAt = now;
       await this.prisma.restaurantOrder.update({ where: { id: orderId }, data: patch2 });

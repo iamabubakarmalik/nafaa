@@ -26,8 +26,8 @@ const minutesTo = (iso?: string | null) => (iso ? (new Date(iso).getTime() - Dat
 export type SalonAppointment = Appointment & { startsIn: number };
 
 export const staffName = (s?: StaffProfile) => {
-  const p = s?.staff as { firstName?: string; lastName?: string; name?: string } | undefined;
-  return `${p?.firstName ?? ''} ${p?.lastName ?? ''}`.trim() || p?.name || 'Staff';
+  const p = s?.staff as { fullName?: string; firstName?: string; lastName?: string; name?: string } | undefined;
+  return `${(p?.fullName || p?.firstName) ?? ''} ${p?.lastName ?? ''}`.trim() || p?.name || 'Staff';
 };
 
 export function useSalonOps() {

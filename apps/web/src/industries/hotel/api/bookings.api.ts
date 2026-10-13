@@ -85,7 +85,9 @@ export const bookingsApi = {
   updateStatus: (id: string, status: string, reason?: string) =>
     apiClient.patch('/hotel/bookings/' + id + '/status', { status, reason }).then(unwrap<HotelBooking>),
   checkIn: (id: string) => apiClient.post('/hotel/bookings/' + id + '/check-in').then(unwrap<HotelBooking>),
-  checkOut: (id: string) => apiClient.post('/hotel/bookings/' + id + '/check-out').then(unwrap<HotelBooking>),
+  checkOut: (id: string, body: { paidAmount?: number; paymentMethod?: string } = {}) =>
+    apiClient.post('/hotel/bookings/' + id + '/check-out', body)
+      .then(unwrap<HotelBooking & { sale?: { id: string; saleNumber: string }; change?: number }>),
   addPayment: (id: string, amount: number) => apiClient.post('/hotel/bookings/' + id + '/payment', { amount }).then(unwrap<HotelBooking>),
   extend: (id: string, newCheckOutDate: string) => apiClient.post('/hotel/bookings/' + id + '/extend', { newCheckOutDate }).then(unwrap<HotelBooking>),
 };

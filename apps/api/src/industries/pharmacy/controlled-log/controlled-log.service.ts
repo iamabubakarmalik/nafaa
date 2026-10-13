@@ -1,50 +1,76 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CreateControlledLogDto, OUTGOING_LOG_TYPES } from './dto/create-controlled-log.dto';
+
+type Db = PrismaService | Prisma.TransactionClient;
 
 @Injectable()
 export class ControlledLogService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: any) {
-    const count = await this.prisma.controlledSubstanceLog.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const logNumber = `CSR-${year}-${String(count + 1).padStart(5, '0')}`;
+  async create(user: AuthenticatedUser, dto: CreateControlledLogDto) {
+    return this.record(this.prisma, user.tenantId, dto, user.email);
+  }
 
-    // Verify product is narcotic
-    const med = await this.prisma.pharmacyMedicine.findFirst({
-      where: { productId: dto.productId, tenantId: user.tenantId },
+  /**
+   * Writes one register line. Entries are made after the stock has already
+   * moved (a sale, a received purchase, a damage write-off), so the closing
+   * balance is the stock on hand now and the opening balance is worked back
+   * from it.
+   */
+  async record(db: Db, tenantId: string, dto: CreateControlledLogDto, dispensedBy?: string) {
+    const quantity = Number(dto.quantity);
+    if (!(quantity > 0)) throw new BadRequestException('Miqdaar 0 se zyada honi chahiye');
+
+    const med = await db.pharmacyMedicine.findFirst({
+      where: { productId: dto.productId, tenantId },
+      include: { product: { select: { stock: true, unit: true } } },
     });
-    if (!med?.isNarcotic) throw new BadRequestException('Product is not a controlled substance');
+    if (!med) throw new NotFoundException('Dawai nahi mili');
+    if (!med.isNarcotic) throw new BadRequestException('Ye dawai narcotic / controlled list me nahi hai');
 
-    // Get current stock as opening balance
-    const product = await this.prisma.product.findUnique({ where: { id: dto.productId } });
-    const opening = product?.stock ?? 0;
-    const closing = dto.logType === 'SALE' || dto.logType === 'DAMAGE' ? opening - dto.quantity : opening + dto.quantity;
+    if (dto.batchId) {
+      const batch = await db.productBatch.findFirst({ where: { id: dto.batchId, productId: dto.productId, tenantId } });
+      if (!batch) throw new NotFoundException('Batch nahi mila');
+    }
 
-    return this.prisma.controlledSubstanceLog.create({
+    const closing = Number(med.product?.stock ?? 0);
+    const outgoing = OUTGOING_LOG_TYPES.includes(dto.logType);
+    const opening = outgoing ? closing + quantity : closing - quantity;
+
+    const year = new Date().getFullYear();
+    let seq = (await db.controlledSubstanceLog.count({ where: { tenantId } })) + 1;
+    let logNumber = `CSR-${year}-${String(seq).padStart(5, '0')}`;
+    while (await db.controlledSubstanceLog.findFirst({ where: { tenantId, logNumber }, select: { id: true } })) {
+      seq += 1;
+      logNumber = `CSR-${year}-${String(seq).padStart(5, '0')}`;
+    }
+
+    return db.controlledSubstanceLog.create({
       data: {
-        tenantId: user.tenantId,
+        tenantId,
         productId: dto.productId,
-        batchId: dto.batchId,
-        saleId: dto.saleId,
-        prescriptionId: dto.prescriptionId,
+        batchId: dto.batchId || undefined,
+        saleId: dto.saleId || undefined,
+        prescriptionId: dto.prescriptionId || undefined,
         logNumber,
         logType: dto.logType,
-        quantity: dto.quantity,
-        unit: dto.unit,
+        quantity,
+        unit: dto.unit || med.product?.unit || 'pcs',
         openingBalance: opening,
         closingBalance: closing,
-        patientName: dto.patientName,
-        patientCnic: dto.patientCnic,
-        patientPhone: dto.patientPhone,
-        patientAddress: dto.patientAddress,
-        doctorName: dto.doctorName,
-        doctorRegNumber: dto.doctorRegNumber,
-        prescriptionNumber: dto.prescriptionNumber,
-        dispensedBy: dto.dispensedBy,
-        supervisedBy: dto.supervisedBy,
-        notes: dto.notes,
+        patientName: dto.patientName || undefined,
+        patientCnic: dto.patientCnic || undefined,
+        patientPhone: dto.patientPhone || undefined,
+        patientAddress: dto.patientAddress || undefined,
+        doctorName: dto.doctorName || undefined,
+        doctorRegNumber: dto.doctorRegNumber || undefined,
+        prescriptionNumber: dto.prescriptionNumber || undefined,
+        dispensedBy: dto.dispensedBy || dispensedBy || undefined,
+        supervisedBy: dto.supervisedBy || undefined,
+        notes: dto.notes || undefined,
         attachmentUrls: dto.attachmentUrls ?? [],
       },
     });

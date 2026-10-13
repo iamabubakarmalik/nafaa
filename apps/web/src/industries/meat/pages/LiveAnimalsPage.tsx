@@ -321,7 +321,7 @@ function AnimalForm({ editing, onClose, onSaved }: any) {
     ageMonths: editing?.ageMonths ?? '',
     weightKg: editing?.weightKg ?? 0,
     purchasePrice: editing?.purchasePrice ?? 0,
-    purchaseDate: editing?.purchaseDate ? editing.purchaseDate.slice(0, 10) : new Date().toISOString().split('T')[0],
+    purchaseDate: editing?.purchaseDate ? editing.purchaseDate.slice(0, 10) : format(new Date(), 'yyyy-MM-dd'),
     vendorName: editing?.vendorName ?? '',
     sourceName: editing?.sourceName ?? '',
     vaccinationStatus: editing?.vaccinationStatus ?? '',

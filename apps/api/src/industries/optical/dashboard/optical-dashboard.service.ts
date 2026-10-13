@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -10,9 +11,9 @@ export class OpticalDashboardService {
   async overview(user: AuthenticatedUser) {
     const now = new Date();
     const monthAgo = subDays(now, 30);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
+    const monthStart = startOfMonthTz(now);
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
     const in60 = new Date(); in60.setDate(in60.getDate() + 60);
 
     const [

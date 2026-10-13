@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, subDays, addDays } from 'date-fns';
+import { subDays, addDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 
@@ -9,7 +10,7 @@ export class PharmacyDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser, scope: ShopScope) {
-    const todayStart = startOfDay(new Date());
+    const todayStart = startOfDayTz();
     const soon = addDays(new Date(), 30);
     const weekAgo = subDays(new Date(), 7);
 

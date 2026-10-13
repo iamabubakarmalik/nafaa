@@ -17,6 +17,7 @@ import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { withManagerPin } from '@core/security/ManagerPin';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import {
   type PtaStatus, PTA_STATUS_COLORS, PTA_STATUS_LABELS,
@@ -437,7 +438,9 @@ export default function MobilePosPage() {
   const checkoutMutation = useMutation({
     mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number; depositExtra?: boolean }) => {
       if (!currentShopId) throw new Error('Shop select karein');
-      return offlineSalesApi.create({
+      // Counter rules (discount limit, credit limit) may ask for an owner or manager PIN.
+      return withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+        ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
         paymentMethod: data.paymentMethod,
@@ -452,7 +455,7 @@ export default function MobilePosPage() {
           priceOverride: c.unitPrice,
           note: c.note,
         })),
-      });
+      }));
     },
     onSuccess: (sale: any, vars: any) => {
       const paid = vars.paidAmount;

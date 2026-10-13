@@ -42,8 +42,9 @@ export async function saveMeatWizard(
     costPrice: Number(basic.costPrice || 0),
     wholesalePrice: basic.wholesalePrice === '' ? undefined : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: 0,
-    lowStockAlert: 0,
+    /* Meat comes in by weight through purchases and adjustments; the
+       wizard has no stock field, so an edit must never touch stock. */
+    ...(existingId ? {} : { stock: 0, lowStockAlert: 0 }),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
     tagIds: basic.tagIds,
@@ -52,7 +53,7 @@ export async function saveMeatWizard(
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
 

@@ -75,6 +75,9 @@ export default function PetshopProductWizardPage() {
       notes: existingProfile?.notes ?? '',
     });
 
+    // Show the real stock; it is saved only if changed.
+    updateStock({ currentStock: existingProduct.stock ?? 0, lowStockAlert: existingProduct.lowStockAlert ?? 5 });
+
     if (existingProfile) {
       updateDetails({
         weightGrams: existingProfile.weightGrams ?? '',
@@ -115,10 +118,10 @@ export default function PetshopProductWizardPage() {
     }
 
     setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateMedicine]);
+  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateMedicine, updateStock]);
 
   const saveMutation = useMutation({
-    mutationFn: () => savePetshopWizard(draft, isEdit ? id : undefined),
+    mutationFn: () => savePetshopWizard(draft, isEdit ? id : undefined, isEdit ? existingProduct?.stock : undefined),
     onSuccess: (result) => {
       setSavedResult(result);
       queryClient.invalidateQueries({ queryKey: ['petshop-products-list'] });

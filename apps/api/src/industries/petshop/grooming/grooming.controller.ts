@@ -6,8 +6,9 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { GroomingService } from './grooming.service';
 import {
   CheckInDto, CompleteGroomingDto, CreateGroomingAppointmentDto,
-  GroomingPaymentDto, RateGroomingDto, UpdateGroomingStatusDto,
+  GroomingPaymentDto, PickupGroomingDto, RateGroomingDto, UpdateGroomingAppointmentDto, UpdateGroomingStatusDto,
 } from './dto/create-appointment.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Pet Shop - Grooming')
 @ApiBearerAuth()
@@ -44,8 +45,13 @@ export class GroomingController {
   @Post(':id/check-in') checkIn(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CheckInDto) { return this.service.checkIn(user, id, dto); }
   @Post(':id/start') start(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.start(user, id); }
   @Post(':id/complete') complete(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CompleteGroomingDto) { return this.service.complete(user, id, dto); }
-  @Post(':id/pickup') pickup(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.pickup(user, id); }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: GroomingPaymentDto) { return this.service.recordPayment(user, id, dto); }
+  @Post(':id/pickup') pickup(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: PickupGroomingDto) {
+    return this.service.pickup(user, scope, id, dto ?? {});
+  }
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: GroomingPaymentDto) {
+    return this.service.recordPayment(user, scope, id, dto);
+  }
+  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateGroomingAppointmentDto) { return this.service.update(user, id, dto); }
   @Post(':id/rate') rate(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: RateGroomingDto) { return this.service.rate(user, id, dto); }
   @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateGroomingStatusDto) { return this.service.updateStatus(user, id, dto); }
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }

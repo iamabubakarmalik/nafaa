@@ -369,9 +369,9 @@ const config: EditorConfig<BakeryExtra> = {
         isPopular: !!a.isPopular, isBestSeller: !!a.isBestSeller, isNewArrival: !!a.isNewArrival, isSeasonal: !!a.isSeasonalItem, seasonName: a.seasonName ?? '',
       };
     },
-    product: (d, payload) => ({
+    // The shared product API does not take productType (400); it is saved with the bakery profile below.
+    product: (d, { productType: _shared, ...payload }) => ({
       ...payload,
-      productType: kindOf(d),
       weight: d.extra.weightGrams ?? undefined,
       weightUnit: d.extra.weightGrams ? 'g' : undefined,
       expiryTracked: !!(d.extra.shelfLifeDays || d.extra.shelfLifeHours),
@@ -386,6 +386,7 @@ const config: EditorConfig<BakeryExtra> = {
       if (priceField[c.unit]) rates[priceField[c.unit]] = c.price;
       await bakeryProductsApi.upsert({
         productId,
+        productType: kindOf(d),
         category: deriveBakeryCategory(cats.find((k) => k.id === c.categoryId)?.name, c.name),
         defaultSize: deriveSize(c.unit, x.weightGrams ?? ''),
         defaultFlavor: made ? x.flavor : undefined, defaultShape: made ? x.shape : undefined, defaultCreamType: made ? x.cream : undefined,

@@ -52,9 +52,38 @@ export default function AlterationsPage() {
     : tickets;
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => alterationsApi.updateStatus(id, status),
+    mutationFn: ({ id, status, paidNow }: { id: string; status: string; paidNow?: number }) =>
+      alterationsApi.updateStatus(id, status, undefined, paidNow === undefined ? undefined : { paidNow, paymentMethod: 'CASH' }),
     onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['alterations'] }); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
   });
+
+  const advanceMutation = useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: number }) => alterationsApi.payment(id, amount, 'CASH'),
+    onSuccess: () => { toast.success('Advance darj ho gaya'); queryClient.invalidateQueries({ queryKey: ['alterations'] }); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Advance darj nahi hua'),
+  });
+
+  /** Delivery makes the bill: ask what is taken now; the rest goes to the khata. */
+  const moveTo = (t: { id: string; charges: number; paidAmount: number }, status: AlterationStatus) => {
+    if (status !== 'DELIVERED') { statusMutation.mutate({ id: t.id, status }); return; }
+    const due = Math.max(0, Math.round((Number(t.charges) - Number(t.paidAmount)) * 100) / 100);
+    if (due <= 0) { statusMutation.mutate({ id: t.id, status }); return; }
+    const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh customer ke khate me jayega)`, String(due));
+    if (input === null) return;
+    const paidNow = Number(input);
+    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Raqam sahi likhein'); return; }
+    statusMutation.mutate({ id: t.id, status, paidNow });
+  };
+
+  const takeAdvance = (t: { id: string; charges: number; paidAmount: number }) => {
+    const due = Math.max(0, Math.round((Number(t.charges) - Number(t.paidAmount)) * 100) / 100);
+    const input = window.prompt(`Advance kitna liya? (baqi Rs ${due})`, String(due));
+    if (input === null) return;
+    const amount = Number(input);
+    if (!Number.isFinite(amount) || amount <= 0) { toast.error('Raqam sahi likhein'); return; }
+    advanceMutation.mutate({ id: t.id, amount });
+  };
 
   return (
     <div className="space-y-6">
@@ -168,12 +197,19 @@ export default function AlterationsPage() {
                     <div>
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(t.charges)}</div>
                       {t.paymentStatus === 'PAID' && <div className="text-[0.6875rem] font-extrabold text-emerald-600">PAID</div>}
-                      {t.paymentStatus === 'PARTIALLY_PAID' && <div className="text-[0.6875rem] font-extrabold text-amber-600">PARTIAL</div>}
+                      {t.paymentStatus === 'PARTIALLY_PAID' && <div className="text-[0.6875rem] font-extrabold text-amber-600">Mila: {formatPKR(t.paidAmount)}</div>}
                     </div>
+                    {!['DELIVERED', 'CANCELLED'].includes(t.status) && Number(t.charges) - Number(t.paidAmount) > 0.01 && (
+                      <Button size="sm" variant="secondary" onClick={() => takeAdvance(t)} loading={advanceMutation.isPending}>
+                        <DollarSign className="h-3 w-3" />
+                        Advance
+                      </Button>
+                    )}
                     {cfg.next && (
                       <Button
                         size="sm"
-                        onClick={() => statusMutation.mutate({ id: t.id, status: cfg.next! })}
+                        onClick={() => moveTo(t, cfg.next!)}
+                        loading={statusMutation.isPending}
                         className={STATUS_CONFIG[cfg.next].color + ' text-white'}
                       >
                         <ArrowRight className="h-3 w-3" />

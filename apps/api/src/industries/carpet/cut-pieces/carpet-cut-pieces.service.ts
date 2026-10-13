@@ -7,6 +7,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { CreateCutPieceDto } from './dto/create-cut-piece.dto';
 import { UpdateCutPieceDto } from './dto/update-cut-piece.dto';
 import { QueryCutPiecesDto } from './dto/query-cut-pieces.dto';
+import { nextCode } from '../common/next-code';
 
 @Injectable()
 export class CarpetCutPiecesService {
@@ -108,20 +109,10 @@ export class CarpetCutPiecesService {
   }
 
   private async generateCode(tenantId: string): Promise<string> {
-    const year = new Date().getFullYear();
-    const prefix = `CP-${year}-`;
-    const last = await this.prisma.carpetCutPiece.findFirst({
+    return nextCode(async (prefix) => (await this.prisma.carpetCutPiece.findMany({
       where: { tenantId, pieceCode: { startsWith: prefix } },
-      orderBy: { pieceCode: 'desc' },
-      select: { pieceCode: true },
-    });
-    let next = 1;
-    if (last?.pieceCode) {
-      const parts = last.pieceCode.split('-');
-      const lastNum = parseInt(parts[parts.length - 1], 10);
-      if (!isNaN(lastNum)) next = lastNum + 1;
-    }
-    return `${prefix}${String(next).padStart(4, '0')}`;
+      select: { pieceCode: true }, orderBy: { createdAt: 'desc' }, take: 500,
+    })).map((p) => p.pieceCode), `CP-${new Date().getFullYear()}-`);
   }
 
   async create(user: AuthenticatedUser, dto: CreateCutPieceDto) {

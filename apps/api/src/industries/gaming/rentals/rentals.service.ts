@@ -2,32 +2,61 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateRentalDto, ReturnRentalDto, UpdateRentalStatusDto } from './dto/create-rental.dto';
+import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+
+const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
 @Injectable()
 export class GamingRentalsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: CreateRentalDto) {
-    const count = await this.prisma.gamingRental.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const rentalNumber = `RENT-${year}-${String(count + 1).padStart(4, '0')}`;
+    const prefix = `RENT-${new Date().getFullYear()}-`;
+    const last = await this.prisma.gamingRental.findFirst({
+      where: { tenantId: user.tenantId, rentalNumber: { startsWith: prefix } },
+      orderBy: { rentalNumber: 'desc' },
+      select: { rentalNumber: true },
+    });
+    const rentalNumber = prefix + String((last ? Number(last.rentalNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(4, '0');
 
-    const totalPrice = dto.daysRented * dto.pricePerDay;
-    const paidAmount = dto.paidAmount ?? 0;
-    const remainingAmount = Math.max(totalPrice - paidAmount, 0);
+    const totalPrice = r2(dto.daysRented * dto.pricePerDay);
+    const paidAmount = r2(Math.max(dto.paidAmount ?? 0, 0));
+    if (paidAmount > totalPrice + 0.01) throw new BadRequestException(`Kiraya sirf Rs ${totalPrice} hai (deposit alag hai)`);
+    const remainingAmount = r2(Math.max(totalPrice - paidAmount, 0));
 
-    return this.prisma.gamingRental.create({
-      data: {
-        tenantId: user.tenantId,
-        rentalNumber,
-        ...dto,
-        rentalStartDate: new Date(dto.rentalStartDate),
-        rentalEndDate: new Date(dto.rentalEndDate),
-        totalPrice,
-        remainingAmount,
-        photosAtCheckout: dto.photosAtCheckout ?? [],
-        status: 'ACTIVE',
-      },
+    // The rent is income on the day the item goes out; the unpaid part is udhaar.
+    // The deposit is the customer's money and is not posted as a sale.
+    return this.prisma.$transaction(async (tx) => {
+      const shopId = await resolveIndustryShopId(tx, user, null);
+      const customerId = remainingAmount > 0 || dto.customerId
+        ? await ensureCustomer(tx, user, { customerId: dto.customerId, name: dto.customerName, phone: dto.customerPhone, shopId })
+        : null;
+      const rental = await tx.gamingRental.create({
+        data: {
+          tenantId: user.tenantId,
+          rentalNumber,
+          ...dto,
+          customerId,
+          paidAmount,
+          rentalStartDate: new Date(dto.rentalStartDate),
+          rentalEndDate: new Date(dto.rentalEndDate),
+          totalPrice,
+          remainingAmount,
+          photosAtCheckout: dto.photosAtCheckout ?? [],
+          status: 'ACTIVE',
+        },
+      });
+      if (totalPrice > 0) {
+        await postIndustrySale(tx, user, {
+          saleNumber: `GMR-${rentalNumber}`,
+          sourceRef: rentalNumber,
+          shopId,
+          customerId,
+          lines: [{ label: `Kiraya: ${dto.productName} × ${dto.daysRented} din`, amount: totalPrice }],
+          paidAmount,
+        });
+      }
+      return rental;
     });
   }
 
@@ -78,6 +107,25 @@ export class GamingRentalsService {
     const damageFee = dto.damageFee ?? 0;
     const lateFee = dto.lateFee ?? (daysLate * r.pricePerDay);
     const depositRefunded = Math.max((dto.depositRefunded ?? r.depositAmount) - damageFee - lateFee, 0);
+
+    // Late and damage fees are kept from the deposit, so they are income
+    // received now; they are posted as a second bill on the rental.
+    const fees = r2(damageFee + lateFee);
+    if (fees > 0) {
+      await this.prisma.$transaction(async (tx) => {
+        await postIndustrySale(tx, user, {
+          saleNumber: `GMR-${r.rentalNumber}-R`,
+          sourceRef: r.rentalNumber,
+          shopId: await resolveIndustryShopId(tx, user, null),
+          customerId: r.customerId,
+          lines: [
+            { label: `Late fee (${daysLate} din)`, amount: lateFee },
+            { label: 'Damage fee', amount: damageFee },
+          ],
+          paidAmount: fees,
+        });
+      });
+    }
 
     return this.prisma.gamingRental.update({
       where: { id },

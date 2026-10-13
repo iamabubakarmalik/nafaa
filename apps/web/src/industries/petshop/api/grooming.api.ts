@@ -83,8 +83,13 @@ export const groomingApi = {
   complete: (id: string, data: { photosAfterUrls?: string[]; additionalCharges?: number; discount?: number; groomerNotes?: string }) =>
     apiClient.post('/petshop/grooming/' + id + '/complete', data).then(unwrap<PetGroomingAppointment>),
 
-  pickup: (id: string) =>
-    apiClient.post('/petshop/grooming/' + id + '/pickup').then(unwrap<PetGroomingAppointment>),
+  /** Pet goes home: settles the rest of the fee and makes the bill. */
+  pickup: (id: string, data: { paymentMethod?: string; paidAmount?: number } = {}) =>
+    apiClient.post('/petshop/grooming/' + id + '/pickup', data)
+      .then(unwrap<PetGroomingAppointment & { sale?: { id: string; saleNumber: string }; change?: number }>),
+
+  update: (id: string, data: Partial<PetGroomingAppointment>) =>
+    apiClient.patch('/petshop/grooming/' + id, data).then(unwrap<PetGroomingAppointment>),
 
   payment: (id: string, data: { amount: number; paymentMethod?: string }) =>
     apiClient.post('/petshop/grooming/' + id + '/payment', data).then(unwrap<PetGroomingAppointment>),

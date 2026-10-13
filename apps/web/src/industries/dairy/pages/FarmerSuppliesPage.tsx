@@ -16,7 +16,7 @@ const QUALITIES = ['A_GRADE', 'B_GRADE', 'C_GRADE', 'REJECTED'];
 
 export default function FarmerSuppliesPage() {
   const queryClient = useQueryClient();
-  const today = new Date().toISOString().split('T')[0];
+  const today = format(new Date(), 'yyyy-MM-dd');
   const [dateFilter, setDateFilter] = useState(today);
   const [farmerFilter, setFarmerFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
@@ -184,7 +184,7 @@ function StatCard({ label, value, icon: Icon, color }: any) {
 function SupplyForm({ farmers, onClose, onSaved }: any) {
   const [form, setForm] = useState<any>({
     farmerId: '',
-    supplyDate: new Date().toISOString().slice(0, 16),
+    supplyDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     slot: 'MORNING',
     quantity: 0,
     fatContent: '',
@@ -200,6 +200,8 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
   const saveMutation = useMutation({
     mutationFn: () => farmerSuppliesApi.create({
       ...form,
+      // The input holds local wall time; send the real moment.
+      supplyDate: form.supplyDate ? new Date(form.supplyDate).toISOString() : undefined,
       quantity: Number(form.quantity),
       fatContent: form.fatContent ? Number(form.fatContent) : undefined,
       snfContent: form.snfContent ? Number(form.snfContent) : undefined,

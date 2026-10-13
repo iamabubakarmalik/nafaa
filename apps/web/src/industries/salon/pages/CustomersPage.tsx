@@ -662,7 +662,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
                 <select value={form.preferredStaffId} onChange={(e) => setForm({ ...form, preferredStaffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">Any staff</option>
                   {staffList.map((s) => {
-                    const nm = s.staff ? ((s.staff.firstName || '') + ' ' + (s.staff.lastName || '')).trim() : '';
+                    const nm = s.staff ? (((s.staff.fullName || s.staff.firstName) || '') + ' ' + (s.staff.lastName || '')).trim() : '';
                     return <option key={s.id} value={s.id}>{nm} ({s.role})</option>;
                   })}
                 </select>

@@ -274,14 +274,14 @@ export default function NewAppointmentPage() {
                         value={svc.staffProfileId || ''}
                         onChange={(e) => {
                           const sp = allStaff.find((s) => s.id === e.target.value);
-                          const nm = sp?.staff ? ((sp.staff.firstName || '') + ' ' + (sp.staff.lastName || '')).trim() : '';
+                          const nm = sp?.staff ? (((sp.staff.fullName || sp.staff.firstName) || '') + ' ' + (sp.staff.lastName || '')).trim() : '';
                           updateService(i, { staffProfileId: e.target.value || undefined, staffName: nm || undefined });
                         }}
                         className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-fuchsia-500"
                       >
                         <option value="">-- Any staff --</option>
                         {allStaff.map((s) => {
-                          const nm = s.staff ? ((s.staff.firstName || '') + ' ' + (s.staff.lastName || '')).trim() : '';
+                          const nm = s.staff ? (((s.staff.fullName || s.staff.firstName) || '') + ' ' + (s.staff.lastName || '')).trim() : '';
                           return <option key={s.id} value={s.id}>{nm} ({s.role})</option>;
                         })}
                       </select>

@@ -135,19 +135,19 @@ export default function CreditAccountsPage() {
         </div>
       ) : (
         <section className="grid gap-3">
-          {accounts.map((a) => <AccountCard key={a.id} a={a} />)}
+          {accounts.map((a) => <AccountCard key={a.id} a={a} onEdit={() => { setEditing(a); setShowForm(true); }} />)}
         </section>
       )}
     </div>
   );
 }
 
-function AccountCard({ a }: any) {
+function AccountCard({ a, onEdit }: { a: any; onEdit: () => void }) {
   const cfg = STATUS_CONFIG[a.status as AccountStatus];
   const utilizationPct = a.creditLimit > 0 ? (a.currentBalance / a.creditLimit) * 100 : 0;
 
   return (
-    <Link to={'/hardware/credit-accounts/' + a.id} className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4">
+    <div className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow shrink-0">
@@ -200,7 +200,18 @@ function AccountCard({ a }: any) {
           </div>
         </div>
       )}
-    </Link>
+
+      <div className="mt-3 flex items-center gap-2 flex-wrap text-xs font-extrabold">
+        {a.customerId ? (
+          <Link to={'/customers/' + a.customerId} className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1.5 hover:bg-emerald-100">
+            Khata dekhein <ArrowRight className="h-3 w-3" />
+          </Link>
+        ) : (
+          <span className="rounded-lg bg-amber-50 text-amber-700 px-3 py-1.5">Khate se nahi jura — badal kar customer chunein</span>
+        )}
+        <button onClick={onEdit} className="rounded-lg bg-slate-100 dark:bg-ink-800 px-3 py-1.5 hover:bg-slate-200">Badlein</button>
+      </div>
+    </div>
   );
 }
 
@@ -223,6 +234,21 @@ function AccountForm({ editing, onClose, onSaved }: any) {
     referredBy: editing?.referredBy ?? '',
     notes: editing?.notes ?? '',
   });
+
+  const { data: customersData } = useQuery({
+    queryKey: ['customers-for-credit-account'],
+    queryFn: () => customersApi.list({ limit: 500 }),
+  });
+  const customers = customersData?.items ?? [];
+
+  const pickCustomer = (id: string) => {
+    const c = customers.find((x) => x.id === id);
+    setForm({
+      ...form,
+      customerId: id,
+      ...(c && { customerName: c.name, customerPhone: c.phone ?? form.customerPhone }),
+    });
+  };
 
   const saveMutation = useMutation({
     mutationFn: () => {
@@ -247,6 +273,18 @@ function AccountForm({ editing, onClose, onSaved }: any) {
         </button>
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
+        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-1">
+          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 block">Customer khata se jorein</label>
+          <select value={form.customerId} onChange={(e) => pickCustomer(e.target.value)} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
+            <option value="">Koi customer nahi</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}{c.phone ? ` • ${c.phone}` : ''}</option>
+            ))}
+          </select>
+          <p className="text-[0.6875rem] font-semibold text-emerald-800 dark:text-emerald-300">
+            Jora hua account POS ke udhaar aur khate ki wusooli se khud chalta hai — wohi raqam har report me aati hai.
+          </p>
+        </div>
         <div className="grid sm:grid-cols-2 gap-3">
           <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
           <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />

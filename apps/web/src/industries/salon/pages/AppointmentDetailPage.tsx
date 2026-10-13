@@ -7,6 +7,7 @@ import {
   Scissors, Award, Timer, MessageSquare, ArrowRight, Zap,
 } from 'lucide-react';
 import { appointmentsApi, type AppointmentStatus } from '../api/appointments.api';
+import { packagesApi } from '../api/packages.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
@@ -111,10 +112,10 @@ export default function AppointmentDetailPage() {
                 Reschedule
               </Button>
             )}
-            {!isFullyPaid && apt.status !== 'CANCELLED' && (
+            {(!isFullyPaid || !apt.saleId) && !['CANCELLED', 'NO_SHOW'].includes(apt.status) && (
               <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
                 <DollarSign className="h-4 w-4" />
-                Add Payment
+                {apt.saleId ? 'Baqi lein' : 'Bill / Payment'}
               </Button>
             )}
           </div>
@@ -127,7 +128,7 @@ export default function AppointmentDetailPage() {
           <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Appointment Progress</h3>
           {nextStatus && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(apt.status) && (
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => statusMutation.mutate(nextStatus)} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
+              <Button size="sm" onClick={() => (nextStatus === 'COMPLETED' ? setShowPayment(true) : statusMutation.mutate(nextStatus))} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
                 <ArrowRight className="h-3.5 w-3.5" />
                 Mark {STATUS_CONFIG[nextStatus].label}
               </Button>
@@ -249,6 +250,10 @@ export default function AppointmentDetailPage() {
               )}
             </div>
           </div>
+
+          {apt.customerId && !apt.saleId && !['CANCELLED', 'NO_SHOW'].includes(apt.status) && (
+            <PackageRedeem apptId={apt.id} customerId={apt.customerId} onDone={() => refetch()} />
+          )}
 
           {/* Services */}
           <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
@@ -373,10 +378,10 @@ export default function AppointmentDetailPage() {
                 )}
               </div>
 
-              {!isFullyPaid && apt.status !== 'CANCELLED' && (
+              {(!isFullyPaid || !apt.saleId) && !['CANCELLED', 'NO_SHOW'].includes(apt.status) && (
                 <Button size="lg" className="w-full mt-4 bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
                   <CreditCard className="h-4 w-4" />
-                  Add Payment
+                  {apt.saleId ? 'Baqi lein' : 'Bill / Payment'}
                 </Button>
               )}
             </div>
@@ -385,7 +390,7 @@ export default function AppointmentDetailPage() {
       </div>
 
       {showPayment && (
-        <PaymentModal apptId={id!} remaining={remaining} onClose={() => setShowPayment(false)} onDone={() => { setShowPayment(false); refetch(); }} />
+        <PaymentModal apptId={id!} remaining={Math.max(remaining, 0)} billed={!!apt.saleId || apt.status === 'COMPLETED'} onClose={() => setShowPayment(false)} onDone={(saleId?: string) => { setShowPayment(false); refetch(); queryClient.invalidateQueries({ queryKey: ['salon-appointments'] }); if (saleId) window.open(`/sales/${saleId}/receipt?auto=1`, '_blank'); }} />
       )}
       {showRating && (
         <RatingModal apptId={id!} onClose={() => setShowRating(false)} onDone={() => { setShowRating(false); refetch(); }} />
@@ -397,27 +402,53 @@ export default function AppointmentDetailPage() {
   );
 }
 
-function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
+/**
+ * Before the bill: "Bill banayein" completes the appointment and posts the sale;
+ * "Sirf advance" keeps the money on the customer's khata. After the bill the
+ * same modal takes the remaining udhaar.
+ */
+function PaymentModal({ apptId, remaining, billed, onClose, onDone }: any) {
   const [amount, setAmount] = useState(remaining);
   const [method, setMethod] = useState('CASH');
   const [reference, setReference] = useState('');
+  const [mode, setMode] = useState<'bill' | 'advance'>(billed ? 'advance' : 'bill');
 
   const payMutation = useMutation({
-    mutationFn: () => appointmentsApi.addPayment(apptId, { amount, paymentMethod: method, reference }),
-    onSuccess: () => { toast.success('Payment added'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    mutationFn: async () => {
+      if (mode === 'bill' && !billed) {
+        const done = await appointmentsApi.checkout(apptId, { paidAmount: amount, paymentMethod: method });
+        return done.sale?.id;
+      }
+      await appointmentsApi.addPayment(apptId, { amount, paymentMethod: method, reference });
+      return undefined;
+    },
+    onSuccess: (saleId) => { toast.success(saleId ? 'Bill ban gaya' : 'Payment jama ho gayi'); onDone(saleId); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment nahi hui'),
   });
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Add Payment</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{billed ? 'Baqi wasool karein' : 'Bill / Payment'}</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="p-5 space-y-3">
+          {!billed && (
+            <div className="grid grid-cols-2 gap-2">
+              {([['bill', 'Bill banayein', 'Kaam mukammal'], ['advance', 'Sirf advance', 'Khate me jama']] as const).map(([v, label, hint]) => (
+                <button key={v} onClick={() => setMode(v)} className={
+                  'p-2 rounded-lg border-2 text-left ' +
+                  (mode === v ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/40 text-pink-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
+                }>
+                  <div className="text-xs font-extrabold">{label}</div>
+                  <div className="text-[0.6875rem] text-slate-500">{hint}</div>
+                </button>
+              ))}
+            </div>
+          )}
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-pink-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 dark:bg-pink-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
@@ -432,7 +463,7 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
             <div className="grid grid-cols-3 gap-2">
-              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
+              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={
                   'p-2 rounded-lg border-2 text-xs font-extrabold ' +
                   (method === m ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/40 text-pink-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
@@ -443,13 +474,49 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
           <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
+            <Button className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount < 0 || (amount <= 0 && (billed || mode === 'advance'))}>
               <CheckCircle2 className="h-4 w-4" />
               Confirm
             </Button>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Prepaid package sessions of this customer; using one zeroes that service on the bill. */
+function PackageRedeem({ apptId, customerId, onDone }: { apptId: string; customerId: string; onDone: () => void }) {
+  const queryClient = useQueryClient();
+  const { data: purchases = [] } = useQuery({
+    queryKey: ['salon-package-purchases', customerId],
+    queryFn: () => packagesApi.purchases({ customerId, status: 'ACTIVE' }),
+  });
+  const useMut = useMutation({
+    mutationFn: (purchaseId: string) => packagesApi.useSession(purchaseId, apptId),
+    onSuccess: () => {
+      toast.success('Package ka ek session laga diya');
+      queryClient.invalidateQueries({ queryKey: ['salon-package-purchases', customerId] });
+      onDone();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Package nahi laga'),
+  });
+  const usable = purchases.filter((p) => p.sessionsRemaining > 0 && new Date(p.expiryDate).getTime() >= Date.now());
+  if (!usable.length) return null;
+  return (
+    <div className="rounded-3xl bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-800 p-4 space-y-2">
+      <div className="text-sm font-extrabold text-emerald-900 dark:text-emerald-200">Customer ke paas package hai</div>
+      {usable.map((p) => (
+        <div key={p.id} className="flex items-center justify-between gap-2 rounded-xl bg-white dark:bg-ink-900 px-3 py-2">
+          <div className="min-w-0">
+            <div className="text-sm font-extrabold truncate">{p.package?.name ?? p.purchaseNumber}</div>
+            <div className="text-xs text-slate-500 font-bold">{p.sessionsRemaining} session baqi · {format(new Date(p.expiryDate), 'dd MMM yyyy')} tak</div>
+          </div>
+          <Button size="sm" onClick={() => useMut.mutate(p.id)} loading={useMut.isPending} className="bg-emerald-600 text-white">
+            Package se adaa
+          </Button>
+        </div>
+      ))}
     </div>
   );
 }

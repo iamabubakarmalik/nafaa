@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { ApplianceInstallationStatus } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
@@ -35,4 +35,16 @@ export class BulkSerialDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() purchasePrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() purchaseDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() supplierRef?: string;
+}
+
+/** Edit or sell one unit. The POS marks a unit sold with the bill's details. */
+export class UpdateApplianceSerialDto extends PartialType(UpsertApplianceSerialDto) {
+  @ApiPropertyOptional() @IsOptional() @IsNumber() soldPrice?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() soldAt?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() soldToCustomerId?: string | null;
+  @ApiPropertyOptional() @IsOptional() @IsString() customerName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() customerPhone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() saleId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() invoiceNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() deliveryAddress?: string;
 }

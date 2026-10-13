@@ -253,7 +253,16 @@ function ModifierForm({ editing, onClose, onSaved }: {
     mutationFn: () => {
       const payload = {
         ...form,
-        options: options.filter((o) => o.name.trim()).map((o, idx) => ({ ...o, displayOrder: idx })),
+        // Only the fields the API takes; saved options keep their id so past orders stay linked.
+        options: options.filter((o) => o.name.trim()).map((o, idx) => ({
+          ...(o.id && { id: o.id }),
+          name: o.name.trim(),
+          priceAdjustment: Number(o.priceAdjustment) || 0,
+          isDefault: !!o.isDefault,
+          isActive: o.isActive ?? true,
+          ...(o.emoji && { emoji: o.emoji }),
+          displayOrder: idx,
+        })),
       };
       return editing ? modifiersApi.update(editing.id, payload) : modifiersApi.create(payload);
     },

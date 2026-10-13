@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -7,19 +7,37 @@ export class MechanicsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async upsert(user: AuthenticatedUser, dto: any) {
-    const staff = await this.prisma.staff.findFirst({ where: { id: dto.staffId, tenantId: user.tenantId } });
-    if (!staff) throw new NotFoundException('Staff not found');
+    const staffId = typeof dto?.staffId === 'string' ? dto.staffId : '';
+    const staff = staffId ? await this.prisma.staff.findFirst({ where: { id: staffId, tenantId: user.tenantId } }) : null;
+    if (!staff) throw new NotFoundException('Staff nahi mila');
 
-    const existing = await this.prisma.mechanicProfile.findUnique({ where: { staffId: dto.staffId } });
-    if (existing) {
-      return this.prisma.mechanicProfile.update({
-        where: { staffId: dto.staffId },
-        data: { ...dto, tenantId: user.tenantId },
-      });
+    // The body is untyped: only the profile fields the form edits may reach the row.
+    const num = (v: unknown) => (v === '' || v === null || v === undefined || !Number.isFinite(Number(v)) ? undefined : Number(v));
+    const list = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string') : undefined);
+    const text = (v: unknown) => (typeof v === 'string' ? v : undefined);
+    const yearsOfExperience = num(dto.yearsOfExperience);
+    const data = {
+      specialization: list(dto.specialization),
+      certifications: list(dto.certifications),
+      yearsOfExperience: yearsOfExperience === undefined ? undefined : Math.round(yearsOfExperience),
+      bio: text(dto.bio),
+      photoUrl: text(dto.photoUrl),
+      hourlyRate: num(dto.hourlyRate),
+      commissionPct: num(dto.commissionPct),
+      workStartTime: text(dto.workStartTime),
+      workEndTime: text(dto.workEndTime),
+      isAvailable: typeof dto.isAvailable === 'boolean' ? dto.isAvailable : undefined,
+    };
+    if ((data.hourlyRate ?? 0) < 0 || (data.commissionPct ?? 0) < 0 || (data.commissionPct ?? 0) > 100) {
+      throw new BadRequestException('Rate ya commission sahi likhein');
     }
-    return this.prisma.mechanicProfile.create({
-      data: { ...dto, tenantId: user.tenantId },
-    });
+
+    const existing = await this.prisma.mechanicProfile.findUnique({ where: { staffId } });
+    if (existing) {
+      if (existing.tenantId !== user.tenantId) throw new NotFoundException('Staff nahi mila');
+      return this.prisma.mechanicProfile.update({ where: { staffId }, data: { ...data, isActive: true } });
+    }
+    return this.prisma.mechanicProfile.create({ data: { ...data, staffId, tenantId: user.tenantId } });
   }
 
   async list(user: AuthenticatedUser, params: { available?: boolean; search?: string }) {

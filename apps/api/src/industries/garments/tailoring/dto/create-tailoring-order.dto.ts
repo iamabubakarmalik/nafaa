@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GarmentCategoryType, GarmentOrderStatus, GarmentPriority } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsIn, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+
+const PAYMENT_METHODS = ['CASH', 'CARD', 'BANK', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'];
 
 class OrderItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() productId?: string;
@@ -47,11 +49,14 @@ export class UpdateOrderStatusDto {
   @ApiProperty({ enum: GarmentOrderStatus }) @IsEnum(GarmentOrderStatus) status!: GarmentOrderStatus;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() cancellationReason?: string;
+  /** Money taken at delivery. Left out, the full remaining amount is taken as collected. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidNow?: number;
+  @ApiPropertyOptional() @IsOptional() @IsIn(PAYMENT_METHODS) paymentMethod?: string;
 }
 
 export class AddPaymentDto {
-  @ApiProperty() @IsNumber() amount!: number;
-  @ApiProperty() @IsString() paymentMethod!: string;
+  @ApiProperty() @IsNumber() @Min(0.01) amount!: number;
+  @ApiProperty() @IsIn(PAYMENT_METHODS) paymentMethod!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() reference?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 }

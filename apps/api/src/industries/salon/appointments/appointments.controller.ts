@@ -4,7 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { AppointmentsService } from './appointments.service';
-import { AddPaymentDto, CreateAppointmentDto, RescheduleDto, UpdateAppointmentStatusDto } from './dto/create-appointment.dto';
+import { AddPaymentDto, CheckoutAppointmentDto, CreateAppointmentDto, RescheduleDto, UpdateAppointmentStatusDto } from './dto/create-appointment.dto';
 
 @ApiTags('Salon - Appointments')
 @ApiBearerAuth()
@@ -23,6 +23,7 @@ export class AppointmentsController {
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateAppointmentStatusDto) { return this.service.updateStatus(user, id, dto); }
   @Post(':id/reschedule') reschedule(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: RescheduleDto) { return this.service.reschedule(user, id, dto); }
+  @Post(':id/checkout') checkout(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CheckoutAppointmentDto) { return this.service.checkout(user, id, dto); }
   @Post(':id/payments') addPayment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: AddPaymentDto) { return this.service.addPayment(user, id, dto); }
   @Post(':id/rating') rate(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { rating: number; feedback?: string }) { return this.service.submitRating(user, id, body.rating, body.feedback); }
 }

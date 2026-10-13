@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GarmentAlterationStatus, GarmentPriority } from '@prisma/client';
-import { IsArray, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateAlterationDto {
   @ApiPropertyOptional() @IsOptional() @IsString() customerId?: string;
@@ -15,8 +15,24 @@ export class CreateAlterationDto {
   @ApiPropertyOptional({ enum: GarmentPriority }) @IsOptional() @IsEnum(GarmentPriority) priority?: GarmentPriority;
   @ApiPropertyOptional() @IsOptional() @IsString() promisedDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() tailorId?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() charges?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) charges?: number;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() beforeImageUrls?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
+}
+
+const METHODS = ['CASH', 'CARD', 'BANK', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'];
+
+export class AlterationStatusDto {
+  @ApiProperty({ enum: GarmentAlterationStatus }) @IsEnum(GarmentAlterationStatus) status!: GarmentAlterationStatus;
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) afterImageUrls?: string[];
+  /** How the money was taken, used for the sale made on delivery. */
+  @ApiPropertyOptional() @IsOptional() @IsIn(METHODS) paymentMethod?: string;
+  /** Money taken at delivery. Left out, the full remaining amount is taken as collected. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidNow?: number;
+}
+
+export class AlterationPaymentDto {
+  @ApiProperty() @IsNumber() @Min(0.01) amount!: number;
+  @ApiPropertyOptional() @IsOptional() @IsIn(METHODS) paymentMethod?: string;
 }

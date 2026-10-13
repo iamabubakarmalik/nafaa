@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -8,8 +8,6 @@ export class GarmentsDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser, shopId?: string) {
-    const todayStart = startOfDay(new Date());
-    const weekAgo = subDays(new Date(), 7);
     const monthAgo = subDays(new Date(), 30);
 
     const [
@@ -20,8 +18,8 @@ export class GarmentsDashboardService {
       this.prisma.garmentCollection.count({ where: { tenantId: user.tenantId } }),
       this.prisma.garmentCollection.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.garmentMeasurementProfile.count({ where: { tenantId: user.tenantId, isActive: true } }),
-      this.prisma.garmentTailoringOrder.count({ where: { tenantId: user.tenantId, orderStatus: { in: ['CONFIRMED', 'FABRIC_PENDING', 'CUTTING', 'STITCHING', 'EMBROIDERY', 'QUALITY_CHECK'] } } }),
-      this.prisma.garmentAlterationTicket.count({ where: { tenantId: user.tenantId, status: { in: ['RECEIVED', 'MEASUREMENT_TAKEN', 'IN_PROGRESS'] } } }),
+      this.prisma.garmentTailoringOrder.count({ where: { tenantId: user.tenantId, orderStatus: { notIn: ['DELIVERED', 'CANCELLED'] }, ...(shopId && { OR: [{ shopId }, { shopId: null }] }) } }),
+      this.prisma.garmentAlterationTicket.count({ where: { tenantId: user.tenantId, status: { notIn: ['DELIVERED', 'CANCELLED'] }, ...(shopId && { OR: [{ shopId }, { shopId: null }] }) } }),
       this.prisma.garmentReservation.count({ where: { tenantId: user.tenantId, status: 'ACTIVE' } }),
       this.prisma.garmentLayawayPlan.count({ where: { tenantId: user.tenantId, status: 'ACTIVE' } }),
       this.prisma.garmentProductProfile.count({ where: { tenantId: user.tenantId, isNewArrival: true } }),
@@ -31,7 +29,7 @@ export class GarmentsDashboardService {
 
     // Tailoring revenue
     const tailoringRevenue = await this.prisma.garmentTailoringOrder.aggregate({
-      where: { tenantId: user.tenantId, orderStatus: 'DELIVERED', createdAt: { gte: monthAgo } },
+      where: { tenantId: user.tenantId, orderStatus: 'DELIVERED', deliveredAt: { gte: monthAgo }, ...(shopId && { OR: [{ shopId }, { shopId: null }] }) },
       _sum: { total: true, paidAmount: true },
       _count: { _all: true },
     });
@@ -41,7 +39,9 @@ export class GarmentsDashboardService {
       where: {
         tenantId: user.tenantId,
         orderStatus: { notIn: ['DELIVERED', 'CANCELLED'] },
-        promisedDate: { gte: new Date(), lte: subDays(new Date(), -7) },
+        // Late orders stay on the list until delivered.
+        promisedDate: { not: null, lte: subDays(new Date(), -7) },
+        ...(shopId && { OR: [{ shopId }, { shopId: null }] }),
       },
       orderBy: { promisedDate: 'asc' },
       take: 10,
@@ -51,7 +51,8 @@ export class GarmentsDashboardService {
       where: {
         tenantId: user.tenantId,
         status: { notIn: ['DELIVERED', 'CANCELLED'] },
-        promisedDate: { gte: new Date(), lte: subDays(new Date(), -7) },
+        promisedDate: { not: null, lte: subDays(new Date(), -7) },
+        ...(shopId && { OR: [{ shopId }, { shopId: null }] }),
       },
       orderBy: { promisedDate: 'asc' },
       take: 10,

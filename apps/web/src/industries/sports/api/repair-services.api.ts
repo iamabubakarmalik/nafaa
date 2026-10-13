@@ -45,7 +45,7 @@ export const repairServicesApi = {
   getOne: (id: string) =>
     apiClient.get('/sports/repair-services/' + id).then(unwrap<SportsRepairService>),
 
-  updateStatus: (id: string, data: { status: string; workDone?: string; partsUsed?: any; finalCost?: number; photosAfterUrls?: string[]; notes?: string }) =>
+  updateStatus: (id: string, data: { status: string; workDone?: string; partsUsed?: any; finalCost?: number; photosAfterUrls?: string[]; notes?: string; paidNow?: number; paymentMethod?: string }) =>
     apiClient.patch('/sports/repair-services/' + id + '/status', data).then(unwrap<SportsRepairService>),
 
   recordPayment: (id: string, amount: number) =>

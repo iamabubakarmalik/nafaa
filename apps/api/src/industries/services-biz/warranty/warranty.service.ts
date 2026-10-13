@@ -56,7 +56,7 @@ export class WarrantyService {
 
   async approve(user: AuthenticatedUser, id: string, resolutionType: string, notes?: string) {
     return this.prisma.serviceWarrantyClaim.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: {
         status: 'APPROVED',
         approvedAt: new Date(),
@@ -70,7 +70,7 @@ export class WarrantyService {
 
   async reject(user: AuthenticatedUser, id: string, reason: string) {
     return this.prisma.serviceWarrantyClaim.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: {
         status: 'REJECTED',
         rejectedAt: new Date(),

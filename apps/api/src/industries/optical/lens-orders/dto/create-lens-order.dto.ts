@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateLensOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() customerId?: string;
@@ -33,12 +33,17 @@ export class CreateLensOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() lensPrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() fittingCharge?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() paidAmount?: number;
+  @ApiPropertyOptional({ description: 'How the advance was paid' }) @IsOptional() @IsString() paymentMethod?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 }
 
 export class UpdateLensOrderStatusDto {
   @ApiProperty() @IsString() status!: string;
+  /** On CANCELLED: give the advance back. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() refundAdvance?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() refundMethod?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(12) managerPin?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() labOrderRef?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() qcNotes?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() fittingNotes?: string;

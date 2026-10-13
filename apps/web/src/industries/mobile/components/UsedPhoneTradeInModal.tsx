@@ -208,8 +208,18 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
   /* ─── Submit ───────────────────────────────────────── */
   const createMutation = useMutation({
     mutationFn: usedPhonesApi.create,
-    onSuccess: (phone) => {
+    onSuccess: async (phone) => {
       toast.success(`✅ ${phone.usedPhoneCode} — trade-in add ho gaya!`);
+      // The server takes the buyback cash out of the open drawer so the till balances.
+      const paid = Number(phone.buybackPrice) || 0;
+      if (phone.source === 'CASH_BUYBACK' && paid > 0) {
+        if ((phone as any).paidFromDrawer) {
+          toast.info(`Drawer se ${formatPKR(paid)} nikale gaye (${phone.usedPhoneCode})`);
+          queryClient.invalidateQueries({ queryKey: ['cash-register'] });
+        } else {
+          toast.warning('Register band hai — customer ko diye paise Cash Register me khud likhein');
+        }
+      }
       queryClient.invalidateQueries({ queryKey: ['used-phones'] });
       queryClient.invalidateQueries({ queryKey: ['used-phones-stats'] });
       onSuccess?.(phone.id);

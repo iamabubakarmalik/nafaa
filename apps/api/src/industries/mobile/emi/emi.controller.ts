@@ -1,3 +1,4 @@
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import {
   Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards,
 } from '@nestjs/common';
@@ -61,8 +62,9 @@ export class EmiController {
     @Param('id') id: string,
     @Param('installmentId') installmentId: string,
     @Body() dto: RecordInstallmentPaymentDto,
+    @CurrentShop() shop: ShopScope,
   ) {
-    return this.service.recordInstallmentPayment(user, id, installmentId, dto);
+    return this.service.recordInstallmentPayment(user, id, installmentId, dto, shop);
   }
 
   @Patch(':id/installments/:installmentId/waive')

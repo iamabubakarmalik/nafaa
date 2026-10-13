@@ -54,7 +54,7 @@ export class RoomsService {
 
   async updateStatus(user: AuthenticatedUser, id: string, status: string, notes?: string) {
     return this.prisma.hotelRoom.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: { status: status as any, customNotes: notes },
     });
   }
@@ -63,11 +63,11 @@ export class RoomsService {
     const patch: any = { housekeepingStatus };
     if (housekeepingStatus === 'CLEAN') patch.lastCleanedAt = new Date();
     if (housekeepingStatus === 'INSPECTED') patch.lastInspectedAt = new Date();
-    return this.prisma.hotelRoom.update({ where: { id }, data: patch });
+    return this.prisma.hotelRoom.update({ where: { id, tenantId: user.tenantId }, data: patch });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.hotelRoom.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.hotelRoom.update({ where: { id, tenantId: user.tenantId }, data: { isActive: false } });
   }
 
   async checkAvailability(user: AuthenticatedUser, params: { checkInDate: string; checkOutDate: string; roomTypeId?: string; adults?: number; children?: number }) {
@@ -80,7 +80,7 @@ export class RoomsService {
       where: {
         booking: {
           tenantId: user.tenantId,
-          status: { in: ['CONFIRMED', 'CHECKED_IN', 'TENTATIVE'] },
+          status: { in: ['CONFIRMED', 'CHECKED_IN', 'TENTATIVE', 'EXTENDED'] },
           checkInDate: { lt: checkOut },
           checkOutDate: { gt: checkIn },
         },

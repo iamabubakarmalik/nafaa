@@ -9,6 +9,7 @@ import { UpdateCarpetRollDto } from './dto/update-carpet-roll.dto';
 import { QueryRollsDto } from './dto/query-rolls.dto';
 import { CutRollDto } from './dto/cut-roll.dto';
 import { AdjustRollDto } from './dto/adjust-roll.dto';
+import { nextCode } from '../common/next-code';
 
 @Injectable()
 export class CarpetRollsService {
@@ -30,41 +31,18 @@ export class CarpetRollsService {
   }
 
   private async generateRollNumber(tenantId: string): Promise<string> {
-    const year = new Date().getFullYear();
-    const prefix = `CR-${year}-`;
-
-    const last = await this.prisma.carpetRoll.findFirst({
+    return nextCode(async (prefix) => (await this.prisma.carpetRoll.findMany({
       where: { tenantId, rollNumber: { startsWith: prefix } },
-      orderBy: { rollNumber: 'desc' },
-      select: { rollNumber: true },
-    });
-
-    let next = 1;
-    if (last?.rollNumber) {
-      const parts = last.rollNumber.split('-');
-      const lastNum = parseInt(parts[parts.length - 1], 10);
-      if (!isNaN(lastNum)) next = lastNum + 1;
-    }
-    return `${prefix}${String(next).padStart(4, '0')}`;
+      select: { rollNumber: true }, orderBy: { createdAt: 'desc' }, take: 500,
+    })).map((r) => r.rollNumber), `CR-${new Date().getFullYear()}-`);
   }
 
   private async generateCutPieceCode(tenantId: string): Promise<string> {
-    const year = new Date().getFullYear();
-    const prefix = `CP-${year}-`;
-    const last = await this.prisma.carpetCutPiece.findFirst({
+    return nextCode(async (prefix) => (await this.prisma.carpetCutPiece.findMany({
       where: { tenantId, pieceCode: { startsWith: prefix } },
-      orderBy: { pieceCode: 'desc' },
-      select: { pieceCode: true },
-    });
-    let next = 1;
-    if (last?.pieceCode) {
-      const parts = last.pieceCode.split('-');
-      const lastNum = parseInt(parts[parts.length - 1], 10);
-      if (!isNaN(lastNum)) next = lastNum + 1;
-    }
-    return `${prefix}${String(next).padStart(4, '0')}`;
+      select: { pieceCode: true }, orderBy: { createdAt: 'desc' }, take: 500,
+    })).map((p) => p.pieceCode), `CP-${new Date().getFullYear()}-`);
   }
-
 
   // ════════════════════════════════════════════════════════
   // SHOP STOCK SYNC HELPERS
@@ -578,9 +556,10 @@ export class CarpetRollsService {
       const widthDiff = rollFullWidth - customerWidth;
       const createLeftover = dto.createLeftoverPiece ?? true;
 
-      if (createLeftover && widthDiff > 0.1 && dto.lengthFt > 0) {
+      if (createLeftover && widthDiff > 0.1 && cutLengthReal > 0) {
         const pieceCode = await this.generateCutPieceCode(user.tenantId);
-        const leftoverSqft = Number((widthDiff * dto.lengthFt).toFixed(2));
+        // Inches of the cut length count too (10ft 6in leaves a 10.5ft long strip).
+        const leftoverSqft = Number((widthDiff * cutLengthReal).toFixed(2));
 
         leftoverPiece = await tx.carpetCutPiece.create({
           data: {
@@ -594,7 +573,7 @@ export class CarpetRollsService {
             widthFt: widthDiff,
             widthInch: 0,
             lengthFt: dto.lengthFt,
-            lengthInch: 0,
+            lengthInch: cutLengthInch,
             totalSqft: leftoverSqft,
             costAmount: Number(roll.costPerSqft) * leftoverSqft,
             salePrice: Number(roll.salePricePerSqft) * leftoverSqft * 0.8, // 20% discount default

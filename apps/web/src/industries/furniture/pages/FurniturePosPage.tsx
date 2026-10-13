@@ -15,6 +15,7 @@ import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProd
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import { withManagerPin } from '@core/security/ManagerPin';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PosQuickCash } from '@modules/pos/components';
@@ -216,12 +217,21 @@ export default function FurniturePosPage() {
   const checkoutMutation = useMutation({
     mutationFn: async (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
       if (!currentShopId) throw new Error('Select shop first');
-      return offlineSalesApi.create({
+      // Delivery and fitting are on the bill as service charges, so the sale,
+      // the drawer and every report carry the same total the customer paid.
+      const serviceCharges = [
+        ...(deliveryCharge > 0 ? [{ type: 'DELIVERY', label: 'Delivery', amount: deliveryCharge }] : []),
+        ...(assemblyCharge > 0 ? [{ type: 'INSTALLATION', label: 'Fitting / assembly', amount: assemblyCharge }] : []),
+      ];
+      // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
+      return withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+        ...(managerPin && { managerPin }),
         shopId: currentShopId, customerId: customerId || undefined,
         paymentMethod: data.paymentMethod, paidAmount: data.paidAmount,
-        discount: discountAmount + deliveryCharge + assemblyCharge > 0 ? discountAmount : 0,
-        items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, priceOverride: l.unitPrice })),
-      });
+        discount: Math.round(discountAmount * 100) / 100,
+        ...(serviceCharges.length > 0 && { serviceCharges }),
+        items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, priceOverride: l.unitPrice, note: l.note })),
+      }));
     },
     onSuccess: (sale, vars) => {
       const change = Math.max(vars.paidAmount - total, 0);
@@ -230,7 +240,7 @@ export default function FurniturePosPage() {
       queryClient.invalidateQueries({ queryKey: ['products-for-furniture-pos'] });
       window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Bill nahi bana'),
   });
 
   return (

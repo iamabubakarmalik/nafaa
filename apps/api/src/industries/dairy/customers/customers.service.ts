@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { dayEnd, dayStart, drawerCash } from '../dairy-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { PauseDeliveryDto, UpsertCustomerDto } from './dto/upsert-customer.dto';
 
@@ -7,13 +8,39 @@ import { PauseDeliveryDto, UpsertCustomerDto } from './dto/upsert-customer.dto';
 export class DairyCustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** A route or core customer from another shop must never be linked. */
+  private async checkLinks(tenantId: string, dto: UpsertCustomerDto) {
+    if (dto.routeId) {
+      const r = await this.prisma.dairyRoute.findFirst({ where: { id: dto.routeId, tenantId }, select: { id: true } });
+      if (!r) throw new BadRequestException('Route nahi mila');
+    }
+    if (dto.customerId) {
+      const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId }, select: { id: true } });
+      if (!c) throw new BadRequestException('Customer nahi mila');
+    }
+  }
+
   async create(user: AuthenticatedUser, dto: UpsertCustomerDto) {
+    await this.checkLinks(user.tenantId, dto);
     const count = await this.prisma.dairyCustomer.count({ where: { tenantId: user.tenantId } });
     const year = new Date().getFullYear();
     const customerNumber = `DC-${year}-${String(count + 1).padStart(4, '0')}`;
 
-    const customer = await this.prisma.dairyCustomer.create({
-      data: { tenantId: user.tenantId, customerNumber, ...dto },
+    // Advance paid at sign-up is money held for the customer: it starts the khata in credit.
+    const advance = Math.max(Number(dto.advancePayment) || 0, 0);
+    const customer = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.dairyCustomer.create({
+        data: {
+          tenantId: user.tenantId, customerNumber, ...dto,
+          ...(advance > 0 && { currentBalance: -advance, totalPayments: advance, lastPaymentDate: new Date() }),
+        },
+      });
+      if (advance > 0) {
+        await drawerCash(tx, user, {
+          direction: 'IN', amount: advance, reason: `Doodh advance: ${created.name} (${customerNumber})`, reference: customerNumber,
+        });
+      }
+      return created;
     });
 
     if (dto.routeId) {
@@ -53,13 +80,13 @@ export class DairyCustomersService {
     if (!c) throw new NotFoundException('Customer not found');
 
     const recentDeliveries = await this.prisma.dairyDelivery.findMany({
-      where: { dairyCustomerId: id },
+      where: { tenantId: user.tenantId, dairyCustomerId: id },
       orderBy: { deliveryDate: 'desc' },
       take: 30,
     });
 
     const bills = await this.prisma.dairyMonthlyBill.findMany({
-      where: { dairyCustomerId: id },
+      where: { tenantId: user.tenantId, dairyCustomerId: id },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
       take: 12,
     });
@@ -70,6 +97,7 @@ export class DairyCustomersService {
   async update(user: AuthenticatedUser, id: string, dto: UpsertCustomerDto) {
     const c = await this.prisma.dairyCustomer.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Customer not found');
+    await this.checkLinks(user.tenantId, dto);
     const oldRouteId = c.routeId;
     const updated = await this.prisma.dairyCustomer.update({ where: { id }, data: dto });
     // Recalculate old + new route
@@ -81,15 +109,48 @@ export class DairyCustomersService {
   async recordPayment(user: AuthenticatedUser, id: string, dto: { amount: number; paymentMethod?: string; reference?: string; notes?: string }) {
     const c = await this.prisma.dairyCustomer.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Customer not found');
-    if (dto.amount <= 0) throw new BadRequestException('Amount must be positive');
+    const amount = Number(dto?.amount);
+    if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('Amount must be positive');
 
-    return this.prisma.dairyCustomer.update({
-      where: { id },
-      data: {
-        currentBalance: { decrement: dto.amount },
-        totalPayments: { increment: dto.amount },
-        lastPaymentDate: new Date(),
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.dairyCustomer.update({
+        where: { id },
+        data: {
+          currentBalance: { decrement: amount },
+          totalPayments: { increment: amount },
+          lastPaymentDate: new Date(),
+        },
+      });
+      await drawerCash(tx, user, {
+        direction: 'IN', amount, method: dto.paymentMethod,
+        reason: `Doodh khata wasooli: ${c.name} (${c.customerNumber})`, reference: dto.reference || c.customerNumber,
+      });
+
+      /* Clear the oldest open monthly bills with this money, so the bills
+         page does not keep chasing a customer who has already paid. */
+      const open = await tx.dairyMonthlyBill.findMany({
+        where: { tenantId: user.tenantId, dairyCustomerId: id, isPaid: false, remainingAmount: { gt: 0 } },
+        orderBy: [{ year: 'asc' }, { month: 'asc' }],
+      });
+      let left = amount;
+      for (const bill of open) {
+        if (left <= 0.009) break;
+        const applied = Math.min(left, bill.remainingAmount);
+        const remaining = Math.max(bill.remainingAmount - applied, 0);
+        const paid = remaining <= 0.01;
+        await tx.dairyMonthlyBill.update({
+          where: { id: bill.id },
+          data: {
+            paidAmount: bill.paidAmount + applied,
+            remainingAmount: paid ? 0 : remaining,
+            isPaid: paid,
+            paidAt: paid ? new Date() : null,
+            ...(dto.paymentMethod && { paymentMethod: dto.paymentMethod }),
+          },
+        });
+        left -= applied;
+      }
+      return updated;
     });
   }
 
@@ -100,8 +161,8 @@ export class DairyCustomersService {
     return this.prisma.dairyCustomer.update({
       where: { id },
       data: {
-        pausedFrom: new Date(dto.pausedFrom),
-        pausedTo: new Date(dto.pausedTo),
+        pausedFrom: dayStart(dto.pausedFrom),
+        pausedTo: dayEnd(dto.pausedTo),
         status: 'SUSPENDED',
         notes: ((c.notes || '') + '\nPaused: ' + (dto.reason || '')).trim(),
       },

@@ -93,9 +93,9 @@ export default function DispatchPage() {
                          'bg-slate-500')
                       }
                       style={{ left: x + '%', top: y + '%' }}
-                      title={t.name?.firstName}
+                      title={(t.name?.fullName || t.name?.firstName)}
                     >
-                      {t.name?.firstName?.charAt(0)?.toUpperCase() || '?'}
+                      {(t.name?.fullName || t.name?.firstName)?.charAt(0)?.toUpperCase() || '?'}
                     </button>
                   );
                 })}
@@ -172,11 +172,11 @@ export default function DispatchPage() {
                          t.status === 'ON_JOB' ? 'bg-amber-500' :
                          'bg-slate-500')
                       }>
-                        {t.name?.firstName?.charAt(0)?.toUpperCase() || '?'}
+                        {(t.name?.fullName || t.name?.firstName)?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm truncate">
-                          {((t.name?.firstName || '') + ' ' + (t.name?.lastName || '')).trim() || 'Technician'}
+                          {(((t.name?.fullName || t.name?.firstName) || '') + ' ' + (t.name?.lastName || '')).trim() || 'Technician'}
                         </div>
                         <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{t.status.replace('_', ' ')}</div>
                         {t.lastLocationAt && (

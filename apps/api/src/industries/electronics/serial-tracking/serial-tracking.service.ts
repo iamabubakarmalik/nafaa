@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { BulkCreateSerialDto, SellSerialDto, UpsertSerialDto } from './dto/upsert-serial.dto';
+import { releaseVoidedSerials, warrantyWindow } from '../common/serial-upkeep';
 
 @Injectable()
 export class SerialTrackingService {
@@ -111,6 +112,7 @@ export class SerialTrackingService {
     user: AuthenticatedUser,
     params: { productId?: string; status?: string; imei?: string; search?: string; shopId?: string },
   ) {
+    await releaseVoidedSerials(this.prisma, user.tenantId);
     const rows = await this.prisma.electronicsSerialTracking.findMany({
       where: {
         tenantId: user.tenantId,
@@ -159,6 +161,7 @@ export class SerialTrackingService {
   }
 
   async lookupBySerialOrImei(user: AuthenticatedUser, code: string) {
+    await releaseVoidedSerials(this.prisma, user.tenantId);
     return this.prisma.electronicsSerialTracking.findFirst({
       where: {
         tenantId: user.tenantId,
@@ -233,22 +236,31 @@ export class SerialTrackingService {
     const s = await this.lookupBySerialOrImei(user, code);
     if (!s) return { found: false };
 
+    // A sold unit's warranty runs from the day of sale for the product's months.
+    const [profile, product] = await Promise.all([
+      this.prisma.electronicsProductProfile.findFirst({
+        where: { tenantId: user.tenantId, productId: s.productId }, select: { warrantyMonths: true },
+      }),
+      this.prisma.product.findFirst({ where: { id: s.productId, tenantId: user.tenantId }, select: { id: true, name: true } }),
+    ]);
+    const w = warrantyWindow(s, profile?.warrantyMonths);
     const now = new Date();
-    const isExpired = s.warrantyEndDate ? new Date(s.warrantyEndDate) < now : true;
-    const daysRemaining = s.warrantyEndDate
-      ? Math.max(0, Math.floor((new Date(s.warrantyEndDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    const isExpired = w.end ? new Date(w.end) < now : true;
+    const daysRemaining = w.end
+      ? Math.max(0, Math.floor((new Date(w.end).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
+    const voidStatus = ['VOID', 'CLAIMED', 'EXPIRED'].includes(String(s.warrantyStatus));
 
     return {
       found: true,
-      serial: s,
+      serial: { ...s, product },
       warranty: {
         status: s.warrantyStatus,
-        startDate: s.warrantyStartDate,
-        endDate: s.warrantyEndDate,
+        startDate: w.start,
+        endDate: w.end,
         isExpired,
         daysRemaining,
-        isValid: !isExpired && s.warrantyStatus === 'ACTIVE',
+        isValid: !isExpired && !voidStatus,
       },
     };
   }

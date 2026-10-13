@@ -29,7 +29,8 @@ function useBakeryCatalog() {
   });
   const { data: logs = [] } = useQuery({
     queryKey: ['bakery-freshness-pos'],
-    queryFn: () => freshnessApi.list({}).catch(() => [] as FreshnessLog[]),
+    // Live batches only, matched to shelf stock on the server, so a sold-out old batch does not flag fresh bread.
+    queryFn: () => freshnessApi.list({ active: 'true' }).catch(() => [] as FreshnessLog[]),
     staleTime: 60_000,
   });
 

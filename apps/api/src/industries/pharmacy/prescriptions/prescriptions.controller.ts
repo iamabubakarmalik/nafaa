@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { PrescriptionsService } from './prescriptions.service';
 import { CreatePrescriptionDto, DispenseDto } from './dto/create-prescription.dto';
 
@@ -29,8 +30,8 @@ export class PrescriptionsController {
   @Post(':id/reject') reject(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { reason: string }) {
     return this.service.reject(user, id, body.reason);
   }
-  @Post(':id/dispense') dispense(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: DispenseDto) {
-    return this.service.dispense(user, id, dto);
+  @Post(':id/dispense') dispense(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: DispenseDto) {
+    return this.service.dispense(user, shop, id, dto);
   }
   @Post(':id/refill') refill(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.service.refill(user, id);

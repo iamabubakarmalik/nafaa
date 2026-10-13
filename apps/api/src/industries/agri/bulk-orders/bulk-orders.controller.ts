@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { BulkOrdersService } from './bulk-orders.service';
 
 @ApiTags('Agri - Bulk Orders')
@@ -17,10 +18,10 @@ export class BulkOrdersController {
     return this.service.list(user, { status: q.status, farmerId: q.farmerId, season: q.season, from: q.from, to: q.to, search: q.search });
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string; cancellationReason?: string }) {
-    return this.service.updateStatus(user, id, body.status, body.cancellationReason);
+  @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { status: string; cancellationReason?: string }) {
+    return this.service.updateStatus(user, scope, id, body.status, body.cancellationReason);
   }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number }) {
-    return this.service.addPayment(user, id, body.amount);
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number; paymentMethod?: string }) {
+    return this.service.addPayment(user, id, Number(body?.amount), body?.paymentMethod);
   }
 }

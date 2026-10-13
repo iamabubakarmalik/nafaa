@@ -14,9 +14,10 @@ export class PartProfilesController {
   constructor(private readonly service: PartProfilesService) {}
 
   @Post() upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertPartProfileDto) { return this.service.upsert(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('category') category?: string, @Query('condition') condition?: string, @Query('brand') brand?: string, @Query('fastMoving') fastMoving?: string, @Query('critical') critical?: string, @Query('search') search?: string, @Query('makeId') makeId?: string, @Query('modelId') modelId?: string) {
+  @Get() list(@GetUser() user: AuthenticatedUser, @Query('category') category?: string, @Query('condition') condition?: string, @Query('brand') brand?: string, @Query('fastMoving') fastMoving?: string, @Query('critical') critical?: string, @Query('search') search?: string, @Query('makeId') makeId?: string, @Query('modelId') modelId?: string, @Query('includeAll') includeAll?: string) {
     return this.service.list(user, {
       category, condition, brand, search, makeId, modelId,
+      includeAll: includeAll === 'true',
       fastMoving: fastMoving === 'true' ? true : undefined,
       critical: critical === 'true' ? true : undefined,
     });

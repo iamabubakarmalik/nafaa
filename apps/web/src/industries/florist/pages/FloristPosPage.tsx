@@ -180,9 +180,17 @@ export default function FloristPosPage() {
   const checkout = useMutation({
     mutationFn: async (d: { paymentMethod: PaymentMethod; paidAmount: number }) => {
       if (!shopId) throw new Error('Select shop first');
+      /* Delivery and wrapping are part of the bill. Before, only the flowers
+         went on it, so these charges were counted as change handed back and
+         the drawer came out over by that much. */
+      const charges = [
+        { type: 'DELIVERY', label: 'Delivery', amount: delivery?.deliveryCharge || 0 },
+        { type: 'PACKAGING', label: 'Wrapping', amount: delivery?.wrappingCharge || 0 },
+      ].filter((c) => c.amount > 0);
       const sale = await offlineSalesApi.create({
         shopId, customerId: customerId || undefined,
         paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, discount: discountAmount,
+        serviceCharges: charges.length ? charges : undefined,
         items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, priceOverride: l.unitPrice, note: l.customization })),
       });
       let orderNumber: string | undefined;
@@ -203,7 +211,7 @@ export default function FloristPosPage() {
               unitPrice: l.unitPrice, total: l.lineTotal, customization: l.customization,
             })),
             discountAmount, deliveryCharge: delivery.deliveryCharge,
-            wrappingCharge: delivery.wrappingCharge, advancePaid: d.paidAmount,
+            wrappingCharge: delivery.wrappingCharge, advancePaid: Math.min(d.paidAmount, total),
             paymentMethod: d.paymentMethod, deliveryTimeSlot: delivery.deliveryTimeSlot as any,
             scheduledDeliveryDate: delivery.scheduledDeliveryDate,
             scheduledDeliveryTime: delivery.scheduledDeliveryTime,

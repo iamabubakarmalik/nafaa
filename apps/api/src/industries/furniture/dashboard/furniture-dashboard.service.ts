@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
 
 @Injectable()
 export class FurnitureDashboardService {
@@ -9,8 +10,9 @@ export class FurnitureDashboardService {
 
   async overview(user: AuthenticatedUser) {
     const monthAgo = subDays(new Date(), 30);
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
+    // Business day (Pakistan time), not the server's UTC day.
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
 
     const [
       totalProducts, totalCarpenters, activeCarpenters,

@@ -70,10 +70,23 @@ export default function CustomOrderFormPage() {
     }
   }, [existing]);
 
+  // Empty pickers and blank numbers are left out: the API only takes real values.
+  const payload = () => {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(form)) {
+      if (v === '' || v === null || v === undefined) continue;
+      out[k] = ['lengthCm', 'widthCm', 'heightCm', 'quotedPrice', 'depositAmount', 'estimatedDays', 'installationCharge', 'warrantyMonths'].includes(k)
+        ? Number(v)
+        : v;
+    }
+    if (isEdit) delete out.carpenterId;
+    return out as any;
+  };
+
   const save = useMutation({
-    mutationFn: () => customOrdersApi.create(form as any),
+    mutationFn: () => (isEdit ? customOrdersApi.update(id!, payload()) : customOrdersApi.create(payload())),
     onSuccess: (result) => {
-      toast.success('Order created');
+      toast.success(isEdit ? 'Order update ho gaya' : 'Order ban gaya');
       qc.invalidateQueries({ queryKey: ['custom-orders-list'] });
       navigate(`/furniture/custom-orders/${result.id}`);
     },
@@ -306,7 +319,7 @@ export default function CustomOrderFormPage() {
               className="h-14 w-full rounded-xl border-2 border-emerald-400 bg-emerald-50 px-3 text-2xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600" />
           </div>
           <div>
-            <Lbl>Deposit Amount</Lbl>
+            <Lbl>Advance kitna lena hai</Lbl>
             <input type="number" value={form.depositAmount}
               onChange={(e) => setForm({ ...form, depositAmount: Number(e.target.value) })}
               className="h-14 w-full rounded-xl border-2 border-slate-200 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
@@ -318,6 +331,7 @@ export default function CustomOrderFormPage() {
                 </button>
               ))}
             </div>
+            <p className="mt-1 text-[0.6875rem] font-semibold text-slate-500">Paisa milne par order kholein aur "Payment" se darj karein — wohi khate aur day book me jata hai.</p>
           </div>
           <div>
             <Lbl>Estimated Days *</Lbl>
@@ -330,9 +344,9 @@ export default function CustomOrderFormPage() {
         {form.quotedPrice > 0 && (
           <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1">
             <div className="flex justify-between text-xs font-bold"><span className="text-slate-600">Quoted</span><span className="tabular-nums">{formatPKR(form.quotedPrice)}</span></div>
-            <div className="flex justify-between text-xs font-bold"><span className="text-slate-600">Deposit</span><span className="text-emerald-700 tabular-nums">-{formatPKR(form.depositAmount)}</span></div>
+            <div className="flex justify-between text-xs font-bold"><span className="text-slate-600">Advance (lena hai)</span><span className="text-emerald-700 tabular-nums">-{formatPKR(form.depositAmount)}</span></div>
             <div className="pt-1 border-t border-slate-200 flex justify-between text-sm font-extrabold">
-              <span>Balance</span>
+              <span>Delivery par baqi</span>
               <span className="text-rose-700 tabular-nums">{formatPKR(balance)}</span>
             </div>
           </div>

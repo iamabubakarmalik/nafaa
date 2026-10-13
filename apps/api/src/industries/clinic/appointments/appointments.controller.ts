@@ -4,6 +4,8 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { AppointmentsService } from './appointments.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { PaymentMethod } from '@prisma/client';
 
 @ApiTags('Clinic - Appointments')
 @ApiBearerAuth()
@@ -24,6 +26,8 @@ export class AppointmentsController {
     return this.service.updateStatus(user, id, body.status, body.cancellationReason);
   }
   @Post(':id/reschedule') reschedule(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.reschedule(user, id, dto); }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number }) { return this.service.addPayment(user, id, body.amount); }
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() body: { amount: number; paymentMethod?: PaymentMethod }) {
+    return this.service.addPayment(user, shop, id, body);
+  }
   @Post(':id/rating') rate(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { rating: number; feedback?: string }) { return this.service.submitRating(user, id, body.rating, body.feedback); }
 }

@@ -23,6 +23,8 @@ interface CartLine {
   id: string;
   productId: string;
   sizeVariantId: string;
+  /** Stock row of the size; empty for older sizes still sold at product level. */
+  variantId?: string | null;
   name: string;
   size: string;
   sizeSystem: string;
@@ -134,6 +136,7 @@ export default function ShoePosPage() {
       id: lineId(),
       productId: product.id,
       sizeVariantId: variant.id,
+      variantId: variant.variantId ?? null,
       name: product.name,
       size: variant.size,
       sizeSystem: variant.sizeSystem,
@@ -189,6 +192,7 @@ export default function ShoePosPage() {
         discount: discountAmount,
         items: cart.map((l) => ({
           productId: l.productId,
+          ...(l.variantId ? { variantId: l.variantId } : {}),
           quantity: l.quantity,
           priceOverride: l.unitPrice,
           note: `Size ${l.size} ${l.sizeSystem}${l.boxNumber ? ` • Box ${l.boxNumber}` : ''}`,
@@ -202,6 +206,7 @@ export default function ShoePosPage() {
       setShowMobileCart(false);
       clearCart();
       queryClient.invalidateQueries({ queryKey: ['products-for-shoe-pos'] });
+      queryClient.invalidateQueries({ queryKey: ['size-variants-picker'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Sale failed'),
   });

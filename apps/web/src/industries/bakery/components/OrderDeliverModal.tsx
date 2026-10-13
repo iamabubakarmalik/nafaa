@@ -26,6 +26,7 @@ import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { printReceipt } from '@core/receipt/print';
+import { withManagerPin } from '@core/security/ManagerPin';
 import { getReceiptSetup, printPaper } from '@core/receipt/setup';
 import type { OrderBill } from '../api/cake-orders.api';
 import { BULK_KEY, CAKE_KEY, apiError, fmtQty } from './meta';
@@ -142,15 +143,18 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
       if (await findBill()) throw new Error('Is order ka bill pehle hi ban chuka hai');
       if (now > 0) { setStep('Paisa order par darj ho raha hai…'); await recordPayment(now); }
       setStep('Bill ban raha hai…');
-      const sale = await offlineSalesApi.create({
+      // A khata above the customer's limit needs the owner's PIN; the dialog asks once and retries.
+      const sale = await withManagerPin('Udhaar ke liye malik ka PIN', (managerPin) => offlineSalesApi.create({
+        ...(managerPin && { managerPin }),
         shopId: shopId!,
         customerId: chosen?.id || undefined,
         paymentMethod: method,
         paidAmount: paidTotal,
         discount,
-        serviceCharges: extra > 0 ? extra : undefined,
+        // The sale takes charges as a list; a bare number crashed the bill (400 / "reduce is not a function").
+        serviceCharges: extra > 0 ? [{ type: 'OTHER', label: 'Order ke izafi charges', amount: Math.round(extra * 100) / 100 }] : undefined,
         items: linked.map((l) => ({ productId: l.productId!, quantity: l.qty, priceOverride: l.rate, note: orderNote(order.orderNumber) })),
-      } as Parameters<typeof offlineSalesApi.create>[0]) as { id?: string; saleNumber?: string };
+      } as Parameters<typeof offlineSalesApi.create>[0]), 'credit') as { id?: string; saleNumber?: string };
       setStep('Order "De diya" ho raha hai…');
       try { await markDelivered(); } catch { toast.warning('Bill ban gaya magar order ki halat nahi badli — order khol kar "De diya" dobara dabayein'); }
       return sale;

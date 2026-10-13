@@ -16,6 +16,8 @@ import type { HardwareWizardBasic, CategoryType } from '../../hooks/useHardwareW
 import { CategoryPicker, makeCategoryTypeResolver } from '@modules/inventory/categories/components/CategoryPicker';
 
 interface Props {
+  /** Editing a saved product: stock is changed through stock adjustment instead. */
+  isEdit?: boolean;
   basic: HardwareWizardBasic;
   onChange: (patch: Partial<HardwareWizardBasic>) => void;
   onToggleTag: (id: string) => void;
@@ -129,7 +131,7 @@ const resolveCategoryType = makeCategoryTypeResolver<string>([
   [/safety/i, "SAFETY_EQUIPMENT"],
 ], 'OTHER');
 
-export function HardwareWizardStep1Basic({ basic, onChange, onToggleTag, errors }: Props) {
+export function HardwareWizardStep1Basic({ isEdit, basic, onChange, onToggleTag, errors }: Props) {
   const { data: catsForType = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
 
   /* Category chunte hi andar wala type khud set ho jata hai */
@@ -354,6 +356,8 @@ export function HardwareWizardStep1Basic({ basic, onChange, onToggleTag, errors 
             value={basic.initialStock}
             onChange={(e) => onChange({ initialStock: e.target.value === '' ? '' : Number(e.target.value) })}
             placeholder="0"
+            disabled={isEdit}
+            hint={isEdit ? 'Stock badalna ho to Stock Adjustment se karein — wajah ke saath record banta hai' : undefined}
           />
           <Input
             label="Low Stock Alert"

@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { LensOrdersService } from './lens-orders.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { CreateLensOrderDto, LensOrderPaymentDto, UpdateLensOrderStatusDto } from './dto/create-lens-order.dto';
 
 @ApiTags('Optical - Lens Orders')
@@ -13,7 +14,7 @@ import { CreateLensOrderDto, LensOrderPaymentDto, UpdateLensOrderStatusDto } fro
 export class LensOrdersController {
   constructor(private readonly service: LensOrdersService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateLensOrderDto) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: CreateLensOrderDto) { return this.service.create(user, shop, dto); }
 
   @Get() list(@GetUser() user: AuthenticatedUser,
     @Query('status') status?: string,

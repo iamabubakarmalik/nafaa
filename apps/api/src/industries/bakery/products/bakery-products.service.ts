@@ -11,11 +11,16 @@ export class BakeryProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product not found');
 
+    const { productType, ...profile } = dto;
+    if (productType && product.productType !== productType) {
+      await this.prisma.product.update({ where: { id: product.id }, data: { productType } });
+    }
+
     const existing = await this.prisma.bakeryProductProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) {
-      return this.prisma.bakeryProductProfile.update({ where: { productId: dto.productId }, data: dto });
+      return this.prisma.bakeryProductProfile.update({ where: { productId: dto.productId }, data: profile });
     }
-    return this.prisma.bakeryProductProfile.create({ data: { ...dto, tenantId: user.tenantId } });
+    return this.prisma.bakeryProductProfile.create({ data: { ...profile, tenantId: user.tenantId } });
   }
 
   async list(user: AuthenticatedUser, params: { category?: string; featured?: boolean; popular?: boolean; bestSeller?: boolean; newArrival?: boolean; seasonal?: boolean; eggless?: boolean; vegan?: boolean; sugarFree?: boolean; search?: string }) {

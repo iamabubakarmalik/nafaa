@@ -117,6 +117,8 @@ export interface ServiceJob {
   statusHistory?: any[];
   customer?: any;
   technician?: any;
+  /** Sale posted when the job was billed. */
+  billSale?: { id: string; saleNumber: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -134,6 +136,13 @@ export const jobsApi = {
     apiClient.post('/services-biz/jobs/' + id + '/assign', { primaryTechnicianId, assistantIds }).then(unwrap<ServiceJob>),
   addPart: (id: string, data: any) => apiClient.post('/services-biz/jobs/' + id + '/parts', data).then(unwrap<JobPart>),
   removePart: (id: string, partId: string) => apiClient.patch('/services-biz/jobs/' + id + '/parts/' + partId + '/remove').then(unwrap<ServiceJob>),
+  bill: (id: string, data: { paidAmount: number; paymentMethod?: string; shopId?: string }) =>
+    apiClient.post('/services-biz/jobs/' + id + '/bill', data)
+      .then(unwrap<ServiceJob & { sale?: { id: string; saleNumber: string } | null; change?: number }>),
+  counterSale: (data: {
+    shopId?: string; customerId?: string; paymentMethod?: string; paidAmount: number; discount?: number;
+    items: { serviceId: string; quantity?: number; price?: number; lineDiscount?: number; note?: string }[];
+  }) => apiClient.post('/services-biz/jobs/counter-sale', data).then(unwrap<{ id: string; saleNumber: string }>),
   addPayment: (id: string, amount: number, isAdvance?: boolean) =>
     apiClient.post('/services-biz/jobs/' + id + '/payments', { amount, isAdvance }).then(unwrap<ServiceJob>),
   rate: (id: string, data: any) => apiClient.post('/services-biz/jobs/' + id + '/rating', data).then(unwrap<ServiceJob>),

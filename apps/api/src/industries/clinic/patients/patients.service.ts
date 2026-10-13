@@ -26,8 +26,8 @@ export class PatientsService {
 
     return this.prisma.clinicPatientProfile.create({
       data: {
-        tenantId: user.tenantId,
         ...dto,
+        tenantId: user.tenantId,
         mrn,
         bmi,
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
@@ -132,6 +132,8 @@ export class PatientsService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
+    const own = await this.prisma.clinicPatientProfile.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true } });
+    if (!own) throw new NotFoundException('Patient not found');
     return this.prisma.clinicPatientProfile.update({ where: { id }, data: { isActive: false } });
   }
 }

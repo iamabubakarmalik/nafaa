@@ -29,7 +29,7 @@ const SLOTS = [
 
 export default function DairyDeliveriesPage() {
   const queryClient = useQueryClient();
-  const today = new Date().toISOString().split('T')[0];
+  const today = format(new Date(), 'yyyy-MM-dd');
   const [dateFilter, setDateFilter] = useState(today);
   const [slotFilter, setSlotFilter] = useState<string>('all');
   const [routeFilter, setRouteFilter] = useState<string>('all');
@@ -264,7 +264,7 @@ function DeliveryRow({ delivery, onConfirm, onSkip }: any) {
 }
 
 function BulkGenerateModal({ routes, onClose, onDone }: any) {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [slot, setSlot] = useState('MORNING');
   const [routeId, setRouteId] = useState('');
 

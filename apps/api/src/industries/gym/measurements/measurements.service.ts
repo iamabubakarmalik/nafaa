@@ -71,6 +71,6 @@ export class MeasurementsService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.gymBodyMeasurement.delete({ where: { id } });
+    return this.prisma.gymBodyMeasurement.delete({ where: { id, tenantId: user.tenantId } });
   }
 }

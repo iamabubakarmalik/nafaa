@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { cleanInput } from '../bookstore-common';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -8,7 +9,7 @@ export class ReadingListsService {
 
   async create(user: AuthenticatedUser, dto: any) {
     return this.prisma.customerReadingList.create({
-      data: { tenantId: user.tenantId, ...dto },
+      data: { ...cleanInput(dto), tenantId: user.tenantId },
     });
   }
 
@@ -25,8 +26,8 @@ export class ReadingListsService {
 
     const item = await this.prisma.customerReadingListItem.upsert({
       where: { listId_productId: { listId, productId: dto.productId } },
-      create: { listId, ...dto },
-      update: { ...dto },
+      create: { ...cleanInput(dto), listId },
+      update: { ...cleanInput(dto), listId },
     });
 
     const total = await this.prisma.customerReadingListItem.count({ where: { listId } });
@@ -36,12 +37,18 @@ export class ReadingListsService {
   }
 
   async removeItem(user: AuthenticatedUser, listId: string, itemId: string) {
+    const list = await this.prisma.customerReadingList.findFirst({ where: { id: listId, tenantId: user.tenantId }, select: { id: true } });
+    if (!list) throw new NotFoundException('Reading list not found');
+    const item = await this.prisma.customerReadingListItem.findFirst({ where: { id: itemId, listId }, select: { id: true } });
+    if (!item) throw new NotFoundException('Item not found');
     await this.prisma.customerReadingListItem.delete({ where: { id: itemId } });
     const total = await this.prisma.customerReadingListItem.count({ where: { listId } });
     return this.prisma.customerReadingList.update({ where: { id: listId }, data: { totalItems: total } });
   }
 
   async markAsRead(user: AuthenticatedUser, itemId: string) {
+    const item = await this.prisma.customerReadingListItem.findFirst({ where: { id: itemId, list: { tenantId: user.tenantId } }, select: { id: true } });
+    if (!item) throw new NotFoundException('Item not found');
     return this.prisma.customerReadingListItem.update({
       where: { id: itemId },
       data: { isRead: true, readAt: new Date() },

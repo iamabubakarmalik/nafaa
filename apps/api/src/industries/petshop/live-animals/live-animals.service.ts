@@ -1,16 +1,89 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ShopScope, applyStockDelta } from '../../../common/shop-scope';
+import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { AddMedicalRecordDto, SellAnimalDto, UpdateAnimalStatusDto, UpsertLiveAnimalDto } from './dto/upsert-live-animal.dto';
 
 @Injectable()
 export class LiveAnimalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sales: SalesService,
+  ) {}
+
+  /** SKU that ties an animal to the catalogue line its bill uses. */
+  private skuFor(animalNumber: string) {
+    return `PET-${animalNumber}`;
+  }
+
+  /**
+   * Catalogue line the counter sells this animal through.
+   *
+   * A bill needs a product. Before this, animals were only flagged "sold",
+   * so the money never reached the cash drawer, the khata or any report.
+   * One product per animal (stock 1, the animal's own cost) keeps sales
+   * and profit right and lets a normal return bring the animal back.
+   */
+  async counterItem(user: AuthenticatedUser, scope: ShopScope, id: string) {
+    const shopId = scope.require('Janwar bechne');
+    const a = await this.prisma.petLiveAnimal.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!a) throw new NotFoundException('Animal not found');
+    if (a.status === 'SOLD') throw new BadRequestException('Ye janwar pehle hi bik chuka hai');
+    if (a.status === 'DECEASED') throw new BadRequestException('Ye janwar zinda nahi');
+
+    const sku = this.skuFor(a.animalNumber);
+    const label = `${[a.name, a.breed || a.species].filter(Boolean).join(' · ')} (${a.animalNumber})`;
+    const cost = a.costPrice ?? 0;
+
+    return this.prisma.$transaction(async (tx) => {
+      let product = await tx.product.findFirst({ where: { tenantId: user.tenantId, sku, productType: 'PET_ANIMAL' } });
+      if (!product) {
+        product = await tx.product.create({
+          data: {
+            tenantId: user.tenantId, name: label, sku, unit: 'pcs', productType: 'PET_ANIMAL',
+            price: a.askingPrice, costPrice: cost, stock: 0, lowStockAlert: 0, isActive: true,
+          },
+        });
+      } else if (product.price !== a.askingPrice || product.costPrice !== cost || !product.isActive) {
+        product = await tx.product.update({
+          where: { id: product.id },
+          data: { price: a.askingPrice, costPrice: cost, isActive: true },
+        });
+      }
+
+      // Exactly one unit, at the branch ringing the bill.
+      const rows = await tx.shopStock.findMany({ where: { productId: product.id, variantId: null }, select: { shopId: true, stock: true } });
+      for (const row of rows) {
+        if (row.shopId !== shopId && row.stock !== 0) {
+          await applyStockDelta({
+            tx, tenantId: user.tenantId, shopId: row.shopId, productId: product.id, delta: -row.stock,
+            movementType: 'OPENING_BALANCE', reference: a.animalNumber, note: 'Janwar dusri branch ke counter par', userId: user.id, unitCost: cost,
+          });
+        }
+      }
+      const here = rows.find((r) => r.shopId === shopId)?.stock ?? 0;
+      if (here !== 1) {
+        await applyStockDelta({
+          tx, tenantId: user.tenantId, shopId, productId: product.id, delta: 1 - here,
+          movementType: 'OPENING_BALANCE', reference: a.animalNumber, note: 'Zinda janwar counter par', userId: user.id, unitCost: cost,
+        });
+      }
+
+      return { animalId: a.id, productId: product.id, name: label, price: a.askingPrice, cost };
+    });
+  }
 
   async create(user: AuthenticatedUser, dto: UpsertLiveAnimalDto) {
     const count = await this.prisma.petLiveAnimal.count({ where: { tenantId: user.tenantId } });
     const prefix = dto.species.slice(0, 3).toUpperCase();
-    const animalNumber = `${prefix}-${String(count + 1).padStart(4, '0')}`;
+    // A deleted record frees a count, so step past numbers already taken.
+    let n = count + 1;
+    let animalNumber = `${prefix}-${String(n).padStart(4, '0')}`;
+    while (await this.prisma.petLiveAnimal.findFirst({ where: { tenantId: user.tenantId, animalNumber }, select: { id: true } })) {
+      n += 1;
+      animalNumber = `${prefix}-${String(n).padStart(4, '0')}`;
+    }
 
     return this.prisma.petLiveAnimal.create({
       data: {
@@ -113,23 +186,65 @@ export class LiveAnimalsService {
     return this.prisma.petLiveAnimal.update({ where: { id }, data: { status: 'AVAILABLE' } });
   }
 
-  async sell(user: AuthenticatedUser, id: string, dto: SellAnimalDto) {
+  /**
+   * Sell an animal. With `saleId` the bill was already rung up at the POS
+   * and only the animal is closed; without it a bill is made here, so the
+   * money always lands in the drawer, khata and reports.
+   */
+  async sell(user: AuthenticatedUser, scope: ShopScope, id: string, dto: SellAnimalDto) {
     const a = await this.prisma.petLiveAnimal.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Animal not found');
     if (a.status === 'SOLD') throw new BadRequestException('Animal already sold');
     if (a.status === 'DECEASED') throw new BadRequestException('Animal is deceased');
 
-    return this.prisma.petLiveAnimal.update({
+    const sku = this.skuFor(a.animalNumber);
+    let billNumber: string | null = null;
+    let soldPrice = dto.soldPrice;
+
+    if (dto.saleId) {
+      const sale = await this.prisma.sale.findFirst({
+        where: { id: dto.saleId, tenantId: user.tenantId },
+        select: { saleNumber: true, items: { select: { total: true, product: { select: { sku: true, productType: true } } } } },
+      });
+      if (!sale) throw new NotFoundException('Bill nahi mila');
+      const line = sale.items.find((i) => i.product?.sku === sku && i.product?.productType === 'PET_ANIMAL');
+      if (!line) throw new BadRequestException('Is bill me ye janwar nahi');
+      billNumber = sale.saleNumber;
+      soldPrice = line.total;
+    } else {
+      const item = await this.counterItem(user, scope, id);
+      const paid = dto.paidAmount ?? dto.soldPrice;
+      const sale: any = await this.sales.create(user, scope, {
+        shopId: scope.shopId ?? undefined,
+        customerId: dto.soldToCustomerId || undefined,
+        paymentMethod: dto.paymentMethod ?? 'CASH',
+        paidAmount: paid,
+        allowCredit: paid < dto.soldPrice - 0.01 ? true : undefined,
+        note: dto.notes || undefined,
+        items: [{ productId: item.productId, quantity: 1, priceOverride: dto.soldPrice }],
+      } as any);
+      billNumber = sale.saleNumber ?? null;
+    }
+
+    const updated = await this.prisma.petLiveAnimal.update({
       where: { id },
       data: {
         status: 'SOLD',
-        soldPrice: dto.soldPrice,
+        soldPrice,
         soldAt: new Date(),
         soldToCustomerId: dto.soldToCustomerId,
         soldToCustomerName: dto.soldToCustomerName,
-        notes: dto.notes ? ((a.notes || '') + '\n' + dto.notes).trim() : a.notes,
+        notes: [a.notes, billNumber ? `Bill ${billNumber}` : null, dto.notes].filter(Boolean).join('\n') || null,
       },
     });
+
+    // The animal's catalogue line has done its job; keep it off lists and alerts.
+    await this.prisma.product.updateMany({
+      where: { tenantId: user.tenantId, sku, productType: 'PET_ANIMAL', stock: { lte: 0 } },
+      data: { isActive: false },
+    });
+
+    return updated;
   }
 
   async addMedicalRecord(user: AuthenticatedUser, id: string, dto: AddMedicalRecordDto) {

@@ -18,4 +18,5 @@ export class EndSessionDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() paidAmount?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
 }

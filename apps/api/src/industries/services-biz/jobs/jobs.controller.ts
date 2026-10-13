@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { JobsService } from './jobs.service';
+import { BillJobInput, CounterSaleInput, JobsService } from './jobs.service';
 
 @ApiTags('Service Business - Jobs')
 @ApiBearerAuth()
@@ -13,6 +13,10 @@ export class JobsController {
   constructor(private readonly service: JobsService) {}
 
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  /** Services sold at the counter without a job card. */
+  @Post('counter-sale') counterSale(@GetUser() user: AuthenticatedUser, @Body() dto: CounterSaleInput) { return this.service.counterSale(user, dto); }
+  /** Final bill: completes the job and posts the sale. */
+  @Post(':id/bill') bill(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: BillJobInput) { return this.service.bill(user, id, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('priority') priority?: string, @Query('customerId') customerId?: string, @Query('technicianId') technicianId?: string, @Query('businessType') businessType?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('search') search?: string) {
     return this.service.list(user, { status, priority, customerId, technicianId, businessType, from, to, search });
   }

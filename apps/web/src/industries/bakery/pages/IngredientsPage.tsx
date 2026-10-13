@@ -251,7 +251,7 @@ export default function IngredientsPage() {
       {guide.isOpen && (
         <PageGuide title="Kachcha maal — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: ArrowDownToLine, color: '#16a34a', title: 'Maal aaya', text: 'Supplier se saamaan aaye to "Maal aaya": kitna, kis rate par aur paisa kaise diya. Diya hua kharche me, udhaar supplier ke khate me jata hai.' },
+            { icon: ArrowDownToLine, color: '#16a34a', title: 'Maal aaya', text: 'Supplier se saamaan aaye to "Maal aaya": kitna, kis rate par aur paisa kaise diya. Is ka supplier bill banta hai: diya hua paisa khareed me, udhaar supplier ke khate me jata hai.' },
             { icon: Wheat, color: '#a16207', title: 'Recipe aur lagat', text: 'Har cheez ki recipe aaj ke rate se: ek piece ki lagat, bechne ki qeemat aur munafa. Rate badla to yahin pata chalta hai.' },
             { icon: Trash2, color: '#e11d48', title: 'Zaya hua', text: 'Kharab ya gira hua saamaan wajah ke saath likhein — Taazgi aur zaya ke record me bhi aata hai.' },
             { icon: Scale, color: '#7c3aed', title: 'Gin kar theek', text: 'Mahine me ek baar gudaam gin kar yahan theek karein — farq wajah ke saath record me rehta hai.' },

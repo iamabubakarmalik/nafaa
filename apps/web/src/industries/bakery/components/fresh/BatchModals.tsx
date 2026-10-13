@@ -24,7 +24,8 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
   const max = Number(log.currentQty) || 0;
   const [qty, setQty] = useState(String(max));
   const [reason, setReason] = useState('');
-  const [damage, setDamage] = useState(() => { try { return localStorage.getItem(DAMAGE_PREF) === '1'; } catch { return false; } });
+  // On by default: without a damage report the thrown pieces stay in stock and the loss never reaches profit.
+  const [damage, setDamage] = useState(() => { try { return localStorage.getItem(DAMAGE_PREF) !== '0'; } catch { return true; } });
   const n = Math.round(Number(qty) || 0);
   const meta = {
     sale: { title: 'Kitne bik gaye?', btn: 'Bikri likhein', icon: CheckCircle2, variant: 'success' as const },

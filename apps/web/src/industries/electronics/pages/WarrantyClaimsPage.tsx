@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, RefreshCw, AlertTriangle, Calendar, Wrench,
   Eye, Trash2, Sparkles, Image as ImageIcon, GraduationCap, Keyboard,
   FileSpreadsheet, Printer, Building2, Wallet, MessageCircle, Loader2,
-  Hash, User, Package, ArrowRight, Send, Barcode, HandCoins,
+  Hash, User, Package, ArrowRight, Send, Barcode, HandCoins, Plus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/design-system/components';
@@ -14,6 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { warrantyClaimsApi, type WarrantyClaim } from '../api/warranty-claims.api';
+import { serialTrackingApi } from '../api/serial-tracking.api';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA ELECTRONICS — WARRANTY CLAIMS
@@ -51,6 +52,7 @@ export default function WarrantyClaimsPage() {
   const [selected, setSelected] = useState<WarrantyClaim | null>(null);
   const [showTeacher, setShowTeacher] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showNew, setShowNew] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const { data: claims = [], isLoading, refetch, isRefetching } = useQuery({
@@ -183,6 +185,16 @@ export default function WarrantyClaimsPage() {
       <PrintStyles orientation="landscape" title="Warranty Claims" subtitle="Customer ke masail ka record" />
       {showTeacher && <ClaimsTeacher onClose={() => setShowTeacher(false)} />}
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+      {showNew && (
+        <NewClaimModal
+          onClose={() => setShowNew(false)}
+          onSaved={() => {
+            setShowNew(false);
+            qc.invalidateQueries({ queryKey: ['warranty-claims-list'] });
+            qc.invalidateQueries({ queryKey: ['warranty-claims-summary'] });
+          }}
+        />
+      )}
       {selected && (
         <ClaimDetailModal
           claim={selected}
@@ -210,6 +222,10 @@ export default function WarrantyClaimsPage() {
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap print:hidden">
+              <button onClick={() => setShowNew(true)}
+                className="h-11 px-3 rounded-xl bg-white text-rose-700 hover:bg-rose-50 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition">
+                <Plus className="h-4 w-4" /> Naya claim
+              </button>
               <button onClick={() => setShowTeacher(true)}
                 className="h-11 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition" title="Guide (G)">
                 <GraduationCap className="h-4 w-4" /> Guide
@@ -934,6 +950,112 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
               <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 border-2 border-slate-200 font-mono text-xs font-extrabold text-slate-700">{key}</kbd>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════════
+   NEW CLAIM — a customer brings a faulty piece back
+   ═════════════════════════════════════════════════════════════ */
+
+function NewClaimModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [code, setCode] = useState('');
+  const [unit, setUnit] = useState<any | null>(null);
+  const [warranty, setWarranty] = useState<any | null>(null);
+  const [looking, setLooking] = useState(false);
+  const [form, setForm] = useState({
+    productName: '', customerName: '', customerPhone: '',
+    purchaseDate: new Date().toISOString().slice(0, 10), invoiceNumber: '', issueDescription: '', issueCategory: '',
+  });
+
+  // Serial or IMEI fills the piece, its bill and warranty in one go.
+  const lookup = async () => {
+    const c = code.trim();
+    if (c.length < 3) return;
+    setLooking(true);
+    try {
+      const res = await serialTrackingApi.warrantyCheck(c);
+      if (!res?.found) { toast.error('Ye serial/IMEI register me nahi — tafseel haath se likhein'); setUnit(null); setWarranty(null); return; }
+      setUnit(res.serial);
+      setWarranty(res.warranty);
+      setForm((f) => ({
+        ...f,
+        productName: res.serial.product?.name ?? f.productName,
+        purchaseDate: (res.serial.soldAt ?? res.serial.purchaseDate ?? f.purchaseDate).slice(0, 10),
+        invoiceNumber: res.serial.invoiceNumber ?? f.invoiceNumber,
+      }));
+    } catch {
+      toast.error('Serial dhoondh nahi saka');
+    } finally {
+      setLooking(false);
+    }
+  };
+
+  const save = useMutation({
+    mutationFn: () => warrantyClaimsApi.create({
+      serialTrackingId: unit?.id,
+      productId: unit?.productId,
+      serialNumber: unit?.serialNumber ?? (code.trim() || undefined),
+      imei: unit?.imei ?? undefined,
+      customerId: unit?.soldToCustomerId ?? undefined,
+      productName: form.productName.trim(),
+      customerName: form.customerName.trim(),
+      customerPhone: form.customerPhone.trim() || undefined,
+      purchaseDate: form.purchaseDate,
+      invoiceNumber: form.invoiceNumber.trim() || undefined,
+      issueDescription: form.issueDescription.trim(),
+      issueCategory: form.issueCategory.trim() || undefined,
+    } as any),
+    onSuccess: (c: any) => { toast.success(`Claim ${c.claimNumber} ban gaya`); onSaved(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Claim nahi bana'),
+  });
+
+  const ok = form.productName.trim() && form.customerName.trim() && form.issueDescription.trim() && form.purchaseDate;
+  const field = 'h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-rose-500';
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+        <div className="px-5 py-4 bg-gradient-to-r from-rose-600 to-red-700 text-white flex items-center justify-between">
+          <div className="font-extrabold flex items-center gap-2"><Shield className="h-5 w-5" /> Naya warranty claim</div>
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white/15 flex items-center justify-center"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="p-5 space-y-3 overflow-y-auto">
+          <div className="flex gap-2">
+            <input autoFocus value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void lookup(); }}
+              placeholder="Serial ya IMEI scan karein" className={field} />
+            <Button onClick={() => void lookup()} loading={looking} className="shrink-0"><Search className="h-4 w-4" /> Dhoondein</Button>
+          </div>
+          {warranty && (
+            <div className={'rounded-xl p-3 text-xs font-bold ' + (warranty.isValid ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800')}>
+              {warranty.isValid
+                ? `Warranty chal rahi hai — ${warranty.daysRemaining} din baqi${warranty.endDate ? ` (${new Date(warranty.endDate).toLocaleDateString('en-PK')} tak)` : ''}`
+                : 'Warranty khatam ya nahi hai — claim phir bhi likh sakte hain'}
+              {unit?.invoiceNumber ? ` · Bill ${unit.invoiceNumber}` : ''}
+            </div>
+          )}
+          <input value={form.productName} onChange={(e) => setForm({ ...form, productName: e.target.value })} placeholder="Cheez ka naam *" className={field} />
+          <div className="grid grid-cols-2 gap-2">
+            <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer ka naam *" className={field} />
+            <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className={field} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-[0.6875rem] font-extrabold text-slate-500">Kab khareeda *
+              <input type="date" value={form.purchaseDate} onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })} className={field} />
+            </label>
+            <label className="text-[0.6875rem] font-extrabold text-slate-500">Bill number
+              <input value={form.invoiceNumber} onChange={(e) => setForm({ ...form, invoiceNumber: e.target.value })} className={field} />
+            </label>
+          </div>
+          <textarea value={form.issueDescription} onChange={(e) => setForm({ ...form, issueDescription: e.target.value })} placeholder="Kya kharabi hai? *" rows={3}
+            className="w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input value={form.issueCategory} onChange={(e) => setForm({ ...form, issueCategory: e.target.value })} placeholder="Kharabi ki qisam (jaise: battery, screen)" className={field} />
+        </div>
+        <div className="px-5 py-4 border-t flex justify-end gap-2">
+          <Button variant="secondary" onClick={onClose}>Band karein</Button>
+          <Button onClick={() => save.mutate()} disabled={!ok} loading={save.isPending}>Claim banayein</Button>
         </div>
       </div>
     </div>

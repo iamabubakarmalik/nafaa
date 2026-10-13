@@ -1,13 +1,40 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { BulkSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
+import { BulkSerialDto, UpdateApplianceSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
 
 const DAY = 86_400_000;
 
 @Injectable()
 export class ApplianceSerialService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * A cancelled (voided) bill puts the goods back in stock, but the shared
+   * void does not touch this register. Units sold on a voided bill go back
+   * on the shelf before any list is read, so the POS and stock agree.
+   */
+  private async releaseVoided(tenantId: string) {
+    const sold = await this.prisma.applianceSerialTracking.findMany({
+      where: { tenantId, status: 'SOLD', saleId: { not: null } },
+      select: { id: true, saleId: true },
+    });
+    if (!sold.length) return;
+    const dead = new Set((await this.prisma.sale.findMany({
+      where: { tenantId, status: 'VOIDED', id: { in: [...new Set(sold.map((x) => x.saleId!))] } },
+      select: { id: true },
+    })).map((x) => x.id));
+    const ids = sold.filter((x) => dead.has(x.saleId!)).map((x) => x.id);
+    if (!ids.length) return;
+    await this.prisma.applianceSerialTracking.updateMany({
+      where: { id: { in: ids }, status: 'SOLD' },
+      data: {
+        status: 'IN_STOCK', saleId: null, invoiceNumber: null, soldAt: null, soldPrice: null,
+        soldToCustomerId: null, customerName: null, customerPhone: null, deliveryAddress: null,
+        warrantyStartDate: null, warrantyEndDate: null, compressorWarrantyEndDate: null, motorWarrantyEndDate: null,
+      },
+    });
+  }
 
   /** Serial ke sath uske product ka naam/brand/warranty — sirf id se page khali lagta hai. */
   private async attachProducts<T extends { productId: string }>(tenantId: string, rows: T[]) {
@@ -198,6 +225,7 @@ export class ApplianceSerialService {
     page?: number;
     limit?: number;
   }) {
+    await this.releaseVoided(user.tenantId);
     const page = Math.max(1, Number(params.page) || 1);
     const limit = Math.min(500, Math.max(1, Number(params.limit) || 100));
 
@@ -285,6 +313,7 @@ export class ApplianceSerialService {
   }
 
   async lookupBySerial(user: AuthenticatedUser, code: string) {
+    await this.releaseVoided(user.tenantId);
     const s = await this.prisma.applianceSerialTracking.findFirst({
       where: { tenantId: user.tenantId, serialNumber: code.trim() },
     });
@@ -294,6 +323,7 @@ export class ApplianceSerialService {
   }
 
   async warrantyCheck(user: AuthenticatedUser, code: string) {
+    await this.releaseVoided(user.tenantId);
     const s = await this.prisma.applianceSerialTracking.findFirst({
       where: { tenantId: user.tenantId, serialNumber: code.trim() },
     });
@@ -341,7 +371,7 @@ export class ApplianceSerialService {
     };
   }
 
-  async update(user: AuthenticatedUser, id: string, dto: UpsertApplianceSerialDto) {
+  async update(user: AuthenticatedUser, id: string, dto: UpdateApplianceSerialDto) {
     const s = await this.prisma.applianceSerialTracking.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Serial nahi mila');
 
@@ -352,10 +382,41 @@ export class ApplianceSerialService {
       if (dup) throw new BadRequestException(`Serial "${dto.serialNumber}" pehle se mojood hai`);
     }
 
+    // A unit sold on one bill cannot be sold again on another.
+    const selling = dto.status === 'SOLD' && s.status !== 'SOLD';
+    if (dto.status === 'SOLD' && s.status === 'SOLD' && dto.saleId && s.saleId && dto.saleId !== s.saleId) {
+      throw new BadRequestException(`Serial ${s.serialNumber} pehle hi bik chuka hai (${s.invoiceNumber ?? 'doosra bill'})`);
+    }
+
+    // Customer warranty runs from the day of sale unless the shop set its own dates.
+    const warranty: Record<string, Date> = {};
+    if (selling && !dto.warrantyStartDate && !dto.warrantyEndDate) {
+      const soldAt = dto.soldAt ? new Date(dto.soldAt) : new Date();
+      const profile = await this.prisma.applianceProductProfile.findFirst({
+        where: { tenantId: user.tenantId, productId: s.productId },
+        select: { warrantyMonths: true, compressorWarrantyMonths: true, motorWarrantyMonths: true },
+      });
+      const plus = (months?: number | null) => {
+        if (!months) return undefined;
+        const d = new Date(soldAt);
+        d.setMonth(d.getMonth() + months);
+        return d;
+      };
+      warranty.warrantyStartDate = soldAt;
+      const end = plus(profile?.warrantyMonths);
+      const comp = plus(profile?.compressorWarrantyMonths);
+      const motor = plus(profile?.motorWarrantyMonths);
+      if (end) warranty.warrantyEndDate = end;
+      if (comp) warranty.compressorWarrantyEndDate = comp;
+      if (motor) warranty.motorWarrantyEndDate = motor;
+    }
+
     return this.prisma.applianceSerialTracking.update({
       where: { id },
       data: {
         ...dto,
+        soldToCustomerId: dto.soldToCustomerId || undefined,
+        soldAt: dto.soldAt ? new Date(dto.soldAt) : selling ? new Date() : undefined,
         manufactureDate: dto.manufactureDate ? new Date(dto.manufactureDate) : undefined,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : undefined,
         installationScheduledFor: dto.installationScheduledFor ? new Date(dto.installationScheduledFor) : undefined,
@@ -363,9 +424,11 @@ export class ApplianceSerialService {
         warrantyEndDate: dto.warrantyEndDate ? new Date(dto.warrantyEndDate) : undefined,
         compressorWarrantyEndDate: dto.compressorWarrantyEndDate ? new Date(dto.compressorWarrantyEndDate) : undefined,
         motorWarrantyEndDate: dto.motorWarrantyEndDate ? new Date(dto.motorWarrantyEndDate) : undefined,
+        ...warranty,
       },
     });
   }
+
 
   async remove(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.applianceSerialTracking.findFirst({ where: { id, tenantId: user.tenantId } });
@@ -379,6 +442,7 @@ export class ApplianceSerialService {
 
   /** Serial register ki ek nazar me haalat. */
   async summary(user: AuthenticatedUser) {
+    await this.releaseVoided(user.tenantId);
     const tenantId = user.tenantId;
     const now = new Date();
     const in30 = new Date(now.getTime() + 30 * DAY);

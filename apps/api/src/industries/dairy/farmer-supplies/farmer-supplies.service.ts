@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { dayEnd, dayKey, dayRange, dayStart, drawerCash, parseDay } from '../dairy-common';
 import { CreateSupplyDto } from './dto/create-supply.dto';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class FarmerSuppliesService {
     const farmer = await this.prisma.dairyFarmer.findFirst({ where: { id: dto.farmerId, tenantId: user.tenantId } });
     if (!farmer) throw new NotFoundException('Farmer not found');
     if (!farmer.isActive) throw new BadRequestException('Farmer is inactive');
+    if (!(dto.quantity > 0)) throw new BadRequestException('Doodh ki miqdar 0 se zyada likhein');
 
     const rate = dto.ratePerLiter ?? farmer.ratePerLiter;
     const fatBonus = dto.fatContent && dto.fatContent > 6 ? (dto.fatContent - 6) * farmer.fatBonusRate * dto.quantity : 0;
@@ -21,7 +23,7 @@ export class FarmerSuppliesService {
         data: {
           tenantId: user.tenantId,
           farmerId: dto.farmerId,
-          supplyDate: dto.supplyDate ? new Date(dto.supplyDate) : new Date(),
+          supplyDate: parseDay(dto.supplyDate) ?? new Date(),
           slot: dto.slot ?? 'MORNING',
           quantity: dto.quantity,
           unit: dto.unit ?? 'LITER',
@@ -38,7 +40,7 @@ export class FarmerSuppliesService {
       });
 
       // Update farmer balances + avg quality
-      const allSupplies = await tx.dairyFarmerSupply.findMany({ where: { farmerId: dto.farmerId }, take: 30, orderBy: { supplyDate: 'desc' } });
+      const allSupplies = await tx.dairyFarmerSupply.findMany({ where: { farmerId: dto.farmerId, tenantId: user.tenantId }, take: 30, orderBy: { supplyDate: 'desc' } });
       const withFat = allSupplies.filter((s) => s.fatContent);
       const withSnf = allSupplies.filter((s) => s.snfContent);
       const avgFat = withFat.length > 0 ? withFat.reduce((s, x) => s + (x.fatContent ?? 0), 0) / withFat.length : null;
@@ -66,12 +68,7 @@ export class FarmerSuppliesService {
         ...(params.farmerId && { farmerId: params.farmerId }),
         ...(params.slot && { slot: params.slot as any }),
         ...(params.quality && { quality: params.quality as any }),
-        ...(params.from || params.to ? {
-          supplyDate: {
-            ...(params.from && { gte: new Date(params.from) }),
-            ...(params.to && { lte: new Date(params.to) }),
-          },
-        } : {}),
+        ...(dayRange(params.from, params.to) && { supplyDate: dayRange(params.from, params.to) }),
       },
       include: { farmer: true },
       orderBy: { supplyDate: 'desc' },
@@ -84,47 +81,66 @@ export class FarmerSuppliesService {
       where: {
         tenantId: user.tenantId,
         farmerId,
-        ...(params.from || params.to ? {
-          supplyDate: {
-            ...(params.from && { gte: new Date(params.from) }),
-            ...(params.to && { lte: new Date(params.to) }),
-          },
-        } : {}),
+        ...(dayRange(params.from, params.to) && { supplyDate: dayRange(params.from, params.to) }),
       },
       orderBy: { supplyDate: 'desc' },
     });
   }
 
+  /**
+   * Paying one collection settles it on the farmer's balance too.
+   * Before, the slip turned "paid" while the farmer still showed the same
+   * amount owed, so the money was counted as unpaid twice.
+   */
   async markPaid(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.dairyFarmerSupply.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Supply not found');
-    return this.prisma.dairyFarmerSupply.update({
-      where: { id },
-      data: { isPaid: true, paidAt: new Date() },
+    if (s.isPaid) return s;
+
+    return this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.dairyFarmerSupply.updateMany({
+        where: { id, isPaid: false },
+        data: { isPaid: true, paidAt: new Date() },
+      });
+      if (claimed.count === 0) return tx.dairyFarmerSupply.findUniqueOrThrow({ where: { id } });
+      await tx.dairyFarmer.update({
+        where: { id: s.farmerId },
+        data: {
+          currentBalance: { decrement: s.totalAmount },
+          totalPaid: { increment: s.totalAmount },
+          lastPaymentDate: new Date(),
+        },
+      });
+      await drawerCash(tx, user, {
+        direction: 'OUT', amount: s.totalAmount,
+        reason: `Kissan ko doodh ki raqam (parchi ${s.quantity} L)`, reference: s.id,
+      });
+      return tx.dairyFarmerSupply.findUniqueOrThrow({ where: { id } });
     });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.dairyFarmerSupply.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Supply not found');
+    // A paid slip is part of money already handed over; deleting it would
+    // leave the farmer's balance and paid total out of step.
+    if (s.isPaid) throw new BadRequestException('Paid entry delete nahi ho sakti — pehle hisaab theek karein');
 
-    // Reverse balances
-    await this.prisma.dairyFarmer.update({
-      where: { id: s.farmerId },
-      data: {
-        currentBalance: { decrement: s.totalAmount },
-        totalSupplied: { decrement: s.quantity },
-      },
+    return this.prisma.$transaction(async (tx) => {
+      await tx.dairyFarmer.update({
+        where: { id: s.farmerId },
+        data: {
+          currentBalance: { decrement: s.totalAmount },
+          totalSupplied: { decrement: s.quantity },
+        },
+      });
+      return tx.dairyFarmerSupply.delete({ where: { id } });
     });
-    return this.prisma.dairyFarmerSupply.delete({ where: { id } });
   }
 
   async dailySummary(user: AuthenticatedUser, date?: string) {
-    const d = date ? new Date(date) : new Date();
-    const start = new Date(d);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(d);
-    end.setHours(23, 59, 59, 999);
+    const start = dayStart(date);
+    const end = dayEnd(date);
 
     const supplies = await this.prisma.dairyFarmerSupply.findMany({
       where: { tenantId: user.tenantId, supplyDate: { gte: start, lte: end } },
@@ -135,7 +151,7 @@ export class FarmerSuppliesService {
     const evening = supplies.filter((s) => s.slot === 'EVENING');
 
     return {
-      date: d.toISOString().split('T')[0],
+      date: dayKey(start),
       totalSupplies: supplies.length,
       totalLiters: supplies.reduce((s, x) => s + x.quantity, 0),
       totalAmount: supplies.reduce((s, x) => s + x.totalAmount, 0),

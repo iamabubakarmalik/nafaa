@@ -2,17 +2,31 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ConfirmDeliveryDto, CreateDeliveryDto, UpdateDeliveryStatusDto } from './dto/create-delivery.dto';
+import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
+import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
 
 @Injectable()
 export class DeliveriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateDeliveryDto) {
+  async create(user: AuthenticatedUser, input: CreateDeliveryDto) {
+    // Links must point at this shop's own records ("" means none).
+    const dto = {
+      ...input,
+      projectId: input.projectId?.trim() || undefined,
+      quotationId: input.quotationId?.trim() || undefined,
+      saleId: input.saleId?.trim() || undefined,
+      customerId: input.customerId?.trim() || undefined,
+      shopId: input.shopId?.trim() || undefined,
+    };
+    const t = user.tenantId;
+    if (dto.projectId && !(await this.prisma.hardwareProject.findFirst({ where: { id: dto.projectId, tenantId: t }, select: { id: true } }))) throw new NotFoundException('Project nahi mila');
+    if (dto.quotationId && !(await this.prisma.hardwareQuotation.findFirst({ where: { id: dto.quotationId, tenantId: t }, select: { id: true } }))) throw new NotFoundException('Quotation nahi mili');
+    if (dto.saleId && !(await this.prisma.sale.findFirst({ where: { id: dto.saleId, tenantId: t }, select: { id: true } }))) throw new NotFoundException('Bill nahi mila');
     if (!dto.items?.length) throw new BadRequestException('At least one item required');
 
-    const count = await this.prisma.hardwareDelivery.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const deliveryNumber = `DEL-${year}-${String(count + 1).padStart(4, '0')}`;
+    if (dto.items.some((it) => !(it.orderedQty > 0))) throw new BadRequestException('Har item ki miqdar 0 se zyada honi chahiye');
+    const prefix = `DEL-${new Date().getFullYear()}-`;
 
     const totalCharges = (dto.deliveryCharge ?? 0) + (dto.loadingCharge ?? 0) + (dto.unloadingCharge ?? 0) + (dto.laborCharge ?? 0) + (dto.tollCharge ?? 0);
 
@@ -29,7 +43,14 @@ export class DeliveriesService {
       displayOrder: idx,
     }));
 
-    return this.prisma.hardwareDelivery.create({
+    return createWithDocNumber({
+      prefix,
+      width: 4,
+      existing: async () => (await this.prisma.hardwareDelivery.findMany({
+        where: { tenantId: user.tenantId, deliveryNumber: { startsWith: prefix } },
+        select: { deliveryNumber: true }, orderBy: { createdAt: 'desc' }, take: LATEST_NUMBERS,
+      })).map((d) => d.deliveryNumber),
+      create: (deliveryNumber) => this.prisma.hardwareDelivery.create({
       data: {
         tenantId: user.tenantId,
         shopId: dto.shopId,
@@ -71,6 +92,7 @@ export class DeliveriesService {
         items: { create: enrichedItems },
       },
       include: { items: true },
+    }),
     });
   }
 
@@ -134,18 +156,26 @@ export class DeliveriesService {
     const d = await this.prisma.hardwareDelivery.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!d) throw new NotFoundException('Delivery not found');
 
+    if (d.status === 'CANCELLED') throw new BadRequestException('Cancel hui delivery confirm nahi ho sakti');
+
     return this.prisma.$transaction(async (tx) => {
-      // Update item quantities if provided
       if (dto.deliveredItems?.length) {
         for (const item of dto.deliveredItems) {
-          await tx.hardwareDeliveryItem.update({
-            where: { id: item.itemId },
+          // Scoped to this delivery so an item id from elsewhere cannot be changed.
+          await tx.hardwareDeliveryItem.updateMany({
+            where: { id: item.itemId, deliveryId: id },
             data: {
               deliveredQty: item.deliveredQty,
               damagedQty: item.damagedQty ?? 0,
               returnedQty: item.returnedQty ?? 0,
             },
           });
+        }
+      } else {
+        // No per-item counts given: everything on the slip reached the site.
+        const pending = await tx.hardwareDeliveryItem.findMany({ where: { deliveryId: id }, select: { id: true, orderedQty: true, deliveredQty: true } });
+        for (const it of pending) {
+          if (it.deliveredQty <= 0) await tx.hardwareDeliveryItem.update({ where: { id: it.id }, data: { deliveredQty: it.orderedQty } });
         }
       }
 
@@ -174,9 +204,22 @@ export class DeliveriesService {
   async assignVehicle(user: AuthenticatedUser, id: string, dto: { vehicleNumber?: string; driverName?: string; driverPhone?: string; driverCnic?: string; helperName?: string }) {
     const d = await this.prisma.hardwareDelivery.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!d) throw new NotFoundException('Delivery not found');
+    if (['DELIVERED', 'PARTIALLY_DELIVERED', 'CANCELLED'].includes(d.status)) {
+      throw new BadRequestException('Ye delivery mukammal ya cancel ho chuki hai');
+    }
+    // Only the driver fields; the body is untyped, so nothing else may reach the row.
+    const pick = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
     return this.prisma.hardwareDelivery.update({
       where: { id },
-      data: { ...dto, status: 'SCHEDULED' },
+      data: {
+        vehicleNumber: pick(dto?.vehicleNumber),
+        driverName: pick(dto?.driverName),
+        driverPhone: pick(dto?.driverPhone),
+        driverCnic: pick(dto?.driverCnic),
+        helperName: pick(dto?.helperName),
+        ...(d.status === 'PENDING' && { status: 'SCHEDULED' }),
+      },
+      include: { items: true },
     });
   }
 
@@ -194,7 +237,7 @@ export class DeliveriesService {
       this.prisma.hardwareDelivery.count({
         where: {
           tenantId: user.tenantId,
-          scheduledDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)), lte: new Date(new Date().setHours(23, 59, 59, 999)) },
+          scheduledDate: { gte: startOfDayTz(), lte: endOfDayTz() },
         },
       }),
     ]);

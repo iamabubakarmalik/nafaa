@@ -2,15 +2,27 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ConfirmDeliveryDto, CreateFurnitureDeliveryDto, UpdateDeliveryStatusDto } from './dto/create-delivery.dto';
+import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
+import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
+import { BILLED, billCustomOrder, orderSaleNumber } from '../custom-orders/order-billing';
 
 @Injectable()
 export class FurnitureDeliveriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateFurnitureDeliveryDto) {
-    const count = await this.prisma.furnitureDelivery.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const deliveryNumber = `FDL-${year}-${String(count + 1).padStart(4, '0')}`;
+  async create(user: AuthenticatedUser, input: CreateFurnitureDeliveryDto) {
+    // Links must point at this shop's own records ("" means none).
+    const dto = {
+      ...input,
+      saleId: input.saleId?.trim() || undefined,
+      customOrderId: input.customOrderId?.trim() || undefined,
+      customerId: input.customerId?.trim() || undefined,
+    };
+    const t = user.tenantId;
+    if (dto.saleId && !(await this.prisma.sale.findFirst({ where: { id: dto.saleId, tenantId: t }, select: { id: true } }))) throw new NotFoundException('Bill nahi mila');
+    if (dto.customOrderId && !(await this.prisma.furnitureCustomOrder.findFirst({ where: { id: dto.customOrderId, tenantId: t }, select: { id: true } }))) throw new NotFoundException('Order nahi mila');
+    if (dto.customerId && !(await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: t }, select: { id: true } }))) throw new NotFoundException('Customer nahi mila');
+    const prefix = `FDL-${new Date().getFullYear()}-`;
 
     let floorCharge = dto.floorCharge ?? 0;
     if (!dto.hasLift && dto.floorNumber && dto.floorNumber > 0 && floorCharge === 0) {
@@ -19,7 +31,14 @@ export class FurnitureDeliveriesService {
 
     const totalCharge = (dto.deliveryCharge ?? 0) + (dto.loadingCharge ?? 0) + (dto.unloadingCharge ?? 0) + floorCharge + (dto.assemblyCharge ?? 0);
 
-    return this.prisma.furnitureDelivery.create({
+    return createWithDocNumber({
+      prefix,
+      width: 4,
+      existing: async () => (await this.prisma.furnitureDelivery.findMany({
+        where: { tenantId: user.tenantId, deliveryNumber: { startsWith: prefix } },
+        select: { deliveryNumber: true }, orderBy: { createdAt: 'desc' }, take: LATEST_NUMBERS,
+      })).map((d) => d.deliveryNumber),
+      create: (deliveryNumber) => this.prisma.furnitureDelivery.create({
       data: {
         tenantId: user.tenantId,
         deliveryNumber,
@@ -35,6 +54,7 @@ export class FurnitureDeliveriesService {
         assemblyIncluded: dto.assemblyIncluded ?? true,
         status: 'PENDING',
       },
+    }),
     });
   }
 
@@ -73,9 +93,20 @@ export class FurnitureDeliveriesService {
   async assignVehicle(user: AuthenticatedUser, id: string, dto: { vehicleType?: string; vehicleNumber: string; driverName: string; driverPhone: string; helpersCount?: number }) {
     const d = await this.prisma.furnitureDelivery.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!d) throw new NotFoundException('Delivery not found');
+    if (['DELIVERED', 'ASSEMBLED', 'RETURNED', 'FAILED'].includes(d.status)) throw new BadRequestException('Ye delivery band ho chuki hai');
+    // Only the vehicle fields; the body is untyped, so nothing else may reach the row.
+    const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+    const helpers = Number(dto?.helpersCount);
     return this.prisma.furnitureDelivery.update({
       where: { id },
-      data: { ...dto, status: 'SCHEDULED' },
+      data: {
+        vehicleType: text(dto?.vehicleType),
+        vehicleNumber: text(dto?.vehicleNumber),
+        driverName: text(dto?.driverName),
+        driverPhone: text(dto?.driverPhone),
+        helpersCount: Number.isFinite(helpers) && helpers >= 0 ? Math.round(helpers) : undefined,
+        ...(d.status === 'PENDING' && { status: 'SCHEDULED' }),
+      },
     });
   }
 
@@ -91,7 +122,10 @@ export class FurnitureDeliveriesService {
     if (dto.status === 'ASSEMBLED') patch.assembledAt = now;
     if (dto.notes) patch.notes = ((d.notes || '') + '\n' + dto.notes).trim();
 
-    return this.prisma.furnitureDelivery.update({ where: { id }, data: patch });
+    return this.prisma.$transaction(async (tx) => {
+      await this.billLinkedOrder(tx, user, d.customOrderId, dto.status);
+      return tx.furnitureDelivery.update({ where: { id }, data: patch });
+    });
   }
 
   async confirmDelivery(user: AuthenticatedUser, id: string, dto: ConfirmDeliveryDto) {
@@ -117,7 +151,27 @@ export class FurnitureDeliveriesService {
       patch.assembledAt = now;
     }
 
-    return this.prisma.furnitureDelivery.update({ where: { id }, data: patch });
+    return this.prisma.$transaction(async (tx) => {
+      await this.billLinkedOrder(tx, user, d.customOrderId, patch.status);
+      return tx.furnitureDelivery.update({ where: { id }, data: patch });
+    });
+  }
+
+  /** A custom order reaching the customer is its sale: bill it with the delivery. */
+  private async billLinkedOrder(tx: any, user: AuthenticatedUser, customOrderId: string | null, status: string) {
+    if (!customOrderId || !['DELIVERED', 'ASSEMBLED'].includes(status)) return;
+    const o = await tx.furnitureCustomOrder.findFirst({ where: { id: customOrderId, tenantId: user.tenantId } });
+    if (!o || BILLED.includes(o.status) || ['CANCELLED', 'REFUNDED'].includes(o.status)) return;
+    const billed = await billCustomOrder(tx, user, o);
+    await tx.furnitureCustomOrder.update({
+      where: { id: o.id },
+      data: {
+        ...billed,
+        status,
+        actualDeliveryDate: o.actualDeliveryDate ?? new Date(),
+        internalNotes: [o.internalNotes, `Bill ${orderSaleNumber(o.orderNumber)}`].filter(Boolean).join('\n'),
+      },
+    });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
@@ -139,10 +193,7 @@ export class FurnitureDeliveriesService {
       this.prisma.furnitureDelivery.count({
         where: {
           tenantId: user.tenantId,
-          scheduledDate: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lte: new Date(new Date().setHours(23, 59, 59, 999)),
-          },
+          scheduledDate: { gte: startOfDayTz(), lte: endOfDayTz() },
         },
       }),
     ]);
@@ -150,8 +201,9 @@ export class FurnitureDeliveriesService {
   }
 
   async todaySchedule(user: AuthenticatedUser) {
-    const start = new Date(); start.setHours(0, 0, 0, 0);
-    const end = new Date(); end.setHours(23, 59, 59, 999);
+    // Business day (Pakistan time), not the server's UTC day.
+    const start = startOfDayTz();
+    const end = endOfDayTz();
     return this.prisma.furnitureDelivery.findMany({
       where: {
         tenantId: user.tenantId,

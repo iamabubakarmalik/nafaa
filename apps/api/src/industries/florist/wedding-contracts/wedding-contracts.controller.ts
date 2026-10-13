@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { WeddingContractsService } from './wedding-contracts.service';
 import { CreateWeddingContractDto, RecordWeddingPaymentDto, UpdateContractStatusDto } from './dto/create-contract.dto';
 
@@ -13,7 +14,7 @@ import { CreateWeddingContractDto, RecordWeddingPaymentDto, UpdateContractStatus
 export class WeddingContractsController {
   constructor(private readonly service: WeddingContractsService) {}
 
-  @Post() create(@GetUser() u: AuthenticatedUser, @Body() dto: CreateWeddingContractDto) { return this.service.create(u, dto); }
+  @Post() create(@GetUser() u: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() dto: CreateWeddingContractDto) { return this.service.create(u, scope, dto); }
   @Get() list(
     @GetUser() u: AuthenticatedUser,
     @Query('status') status?: string,
@@ -25,7 +26,7 @@ export class WeddingContractsController {
   }
   @Get(':id') getOne(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(u, id); }
   @Patch(':id') update(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Body() dto: Partial<CreateWeddingContractDto>) { return this.service.update(u, id, dto); }
-  @Patch(':id/status') status(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateContractStatusDto) { return this.service.updateStatus(u, id, dto); }
-  @Post(':id/payment') payment(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Body() dto: RecordWeddingPaymentDto) { return this.service.recordPayment(u, id, dto); }
+  @Patch(':id/status') status(@GetUser() u: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: UpdateContractStatusDto) { return this.service.updateStatus(u, scope, id, dto); }
+  @Post(':id/payment') payment(@GetUser() u: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: RecordWeddingPaymentDto) { return this.service.recordPayment(u, scope, id, dto); }
   @Delete(':id') remove(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(u, id); }
 }

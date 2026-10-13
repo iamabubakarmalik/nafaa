@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -43,7 +44,7 @@ export default function LiveAnimalFormPage() {
     color: '',
     weightKg: '' as number | '',
     birthDate: '',
-    acquiredDate: new Date().toISOString().slice(0, 10),
+    acquiredDate: format(new Date(), 'yyyy-MM-dd'),
     sourceType: '',
     sourceName: '',
     isVaccinated: false,
@@ -81,7 +82,7 @@ export default function LiveAnimalFormPage() {
         color: existing.color ?? '',
         weightKg: existing.weightKg ?? '',
         birthDate: existing.birthDate ? existing.birthDate.slice(0, 10) : '',
-        acquiredDate: existing.acquiredDate ? existing.acquiredDate.slice(0, 10) : new Date().toISOString().slice(0, 10),
+        acquiredDate: existing.acquiredDate ? existing.acquiredDate.slice(0, 10) : format(new Date(), 'yyyy-MM-dd'),
         sourceType: existing.sourceType ?? '',
         sourceName: existing.sourceName ?? '',
         isVaccinated: existing.isVaccinated,

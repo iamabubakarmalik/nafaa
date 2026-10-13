@@ -65,7 +65,11 @@ export const lensOrdersApi = {
   sendToLab: (id: string, data: { labName: string; labOrderRef?: string; expectedDate?: string }) =>
     apiClient.post('/optical/lens-orders/' + id + '/send-to-lab', data).then(unwrap<OpticalLensOrder>),
 
-  updateStatus: (id: string, data: { status: string; labOrderRef?: string; qcNotes?: string; fittingNotes?: string; notes?: string }) =>
+  /** CANCELLED cancels the order's booking; refundAdvance gives the advance back. */
+  updateStatus: (id: string, data: {
+    status: string; labOrderRef?: string; qcNotes?: string; fittingNotes?: string; notes?: string;
+    refundAdvance?: boolean; refundMethod?: string; managerPin?: string;
+  }) =>
     apiClient.patch('/optical/lens-orders/' + id + '/status', data).then(unwrap<OpticalLensOrder>),
 
   recordPayment: (id: string, data: { amount: number; paymentMethod?: string }) =>

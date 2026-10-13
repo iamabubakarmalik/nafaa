@@ -140,7 +140,7 @@ export function StockModal({ item, mode, onClose }: { item: Ingredient; mode: St
       if (mode === 'waste') return ingredientsApi.waste(item.id, { quantity: n, reason: reason.trim() });
       return ingredientsApi.adjust(item.id, { newStock: Number(newStock) || 0, reason: reason.trim() });
     },
-    onSuccess: () => { toast.success('Darj ho gaya'); qc.invalidateQueries({ queryKey: [RAW_KEY] }); qc.invalidateQueries({ queryKey: ['expenses'] }); onClose(); },
+    onSuccess: () => { toast.success('Darj ho gaya'); qc.invalidateQueries({ queryKey: [RAW_KEY] }); qc.invalidateQueries({ queryKey: ['purchases'] }); onClose(); },
     onError: (e) => toast.error(apiError(e, 'Nahi ho saka')),
   });
   const bad = mode === 'adjust' ? newStock === '' || !reason.trim()
@@ -189,9 +189,9 @@ export function StockModal({ item, mode, onClose }: { item: Ingredient; mode: St
                 options={[{ value: '', label: 'Supplier chunein…' }, ...suppliers.map((s) => ({ value: s.id, label: `${s.name}${Number(s.outstandingDue) > 0 ? ` — ${formatPKR(Number(s.outstandingDue))} dena hai` : ''}` }))]}
                 hint="Baad me pata rahe kis ko dena hai" />}
               <p className="text-[0.75rem] text-slate-600">
-                {paid > 0 && owe > 0 ? <>Diya hua paisa <b>kharche</b> me jayega{payWay === 'CASH' ? ' (cash galle se ghatega)' : ''}, baqi supplier ke <b>khate</b> me.</>
+                {paid > 0 && owe > 0 ? <>Supplier ka <b>bill</b> banega: diya hua paisa{payWay === 'CASH' ? ' galle se ghatega' : ' darj hoga'}, baqi supplier ke <b>khate</b> me.</>
                   : owe > 0 ? <>Poori rakam supplier ke <b>khate</b> me jayegi — galle par asar nahi.</>
-                    : payWay === 'CASH' ? <>Yeh paisa <b>kharche</b> me jayega aur cash galle se khud ghatega.</> : <>Yeh paisa <b>kharche</b> me jayega. Cash nahi diya, is liye galle par asar nahi.</>}
+                    : payWay === 'CASH' ? <>Supplier ka <b>bill</b> banega aur cash galle se khud ghatega.</> : <>Supplier ka <b>bill</b> banega. Cash nahi diya, is liye galle par asar nahi.</>}
               </p>
             </div>
           </>

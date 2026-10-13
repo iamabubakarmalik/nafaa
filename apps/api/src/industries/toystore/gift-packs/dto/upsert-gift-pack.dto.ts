@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ToyAgeGroup, ToyGenderTarget } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpsertGiftPackDto {
   @ApiProperty() @IsString() name!: string;
@@ -12,7 +13,9 @@ export class UpsertGiftPackDto {
   @ApiPropertyOptional() @IsOptional() @IsString() occasion?: string;
 
   @ApiProperty({ description: 'Array of { productId, quantity, unitPrice }' })
-  @IsArray() items!: Array<{ productId: string; quantity: number; unitPrice: number }>;
+  // Plain objects: without @Type the global implicit conversion turns each
+  // element into an empty array and the rows are saved as [].
+  @IsArray() @Type(() => Object) items!: Array<{ productId: string; variantId?: string; quantity: number; unitPrice: number }>;
 
   @ApiProperty() @IsNumber() giftPackPrice!: number;
 

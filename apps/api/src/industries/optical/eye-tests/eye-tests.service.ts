@@ -1,12 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { addMonths } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { startOfDayTz, endOfDayTz, weekdayInTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
+import { SalesService } from '../../../modules/sales/sales/sales.service';
+import { billServiceFee, toPaymentMethod } from '../billing/service-line';
 import { CreateEyeTestDto, RecordTestPaymentDto, RecordTestResultsDto, UpdateTestStatusDto } from './dto/create-eye-test.dto';
 
 @Injectable()
 export class EyeTestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sales: SalesService,
+  ) {}
 
   async create(user: AuthenticatedUser, dto: CreateEyeTestDto) {
     const count = await this.prisma.opticalEyeTest.count({ where: { tenantId: user.tenantId } });
@@ -28,8 +35,8 @@ export class EyeTestsService {
 
     // Prevent double-booking same optometrist on same slot
     if (dto.optometristId && dto.scheduledSlot) {
-      const dayStart = new Date(appointmentDate); dayStart.setHours(0, 0, 0, 0);
-      const dayEnd = new Date(appointmentDate); dayEnd.setHours(23, 59, 59, 999);
+      const dayStart = startOfDayTz(new Date(appointmentDate));
+      const dayEnd = endOfDayTz(new Date(appointmentDate));
       const clash = await this.prisma.opticalEyeTest.findFirst({
         where: {
           tenantId: user.tenantId,
@@ -59,8 +66,8 @@ export class EyeTestsService {
     status?: string; customerId?: string; optometristId?: string;
     from?: string; to?: string; today?: boolean; search?: string;
   }) {
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
 
     return this.prisma.opticalEyeTest.findMany({
       where: {
@@ -193,24 +200,44 @@ export class EyeTestsService {
     });
   }
 
-  async recordPayment(user: AuthenticatedUser, id: string, dto: RecordTestPaymentDto) {
+  /** Takes the test fee and bills it as a sale, so the drawer and reports carry it. */
+  async recordPayment(user: AuthenticatedUser, scope: ShopScope, id: string, dto: RecordTestPaymentDto) {
     const t = await this.prisma.opticalEyeTest.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Eye test not found');
 
     if (dto.waiveOff) {
+      if (t.paidAmount > 0) throw new BadRequestException('Fees pehle li ja chuki hai, ab maaf nahi ho sakti');
       return this.prisma.opticalEyeTest.update({
         where: { id },
         data: { isWaivedOff: true, paidAmount: 0 },
       });
     }
 
-    return this.prisma.opticalEyeTest.update({
+    const amount = Math.round(Number(dto.amount) * 100) / 100;
+    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+    const remaining = Math.round((t.testFee - t.paidAmount) * 100) / 100;
+    if (t.isWaivedOff || amount > remaining + 0.009) {
+      throw new BadRequestException(remaining > 0 && !t.isWaivedOff ? `Sirf Rs ${remaining} baqi hain` : 'Is test ki fees baqi nahi');
+    }
+
+    const sale = await billServiceFee(this.prisma, this.sales, user, scope, {
+      line: 'EYE_TEST',
+      amount,
+      paymentMethod: dto.paymentMethod,
+      customerId: t.customerId,
+      lineNote: [t.testNumber, t.customerName].filter(Boolean).join(' · '),
+      note: `Eye test ${t.testNumber}`,
+    });
+
+    const updated = await this.prisma.opticalEyeTest.update({
       where: { id },
       data: {
-        paidAmount: t.paidAmount + dto.amount,
-        paymentMethod: dto.paymentMethod ?? t.paymentMethod,
+        paidAmount: Math.round((t.paidAmount + amount) * 100) / 100,
+        paymentMethod: toPaymentMethod(dto.paymentMethod),
+        notes: [t.notes, `Bill ${sale.saleNumber}: Rs ${amount}`].filter(Boolean).join('\n'),
       },
     });
+    return { ...updated, sale };
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, dto: UpdateTestStatusDto) {
@@ -240,13 +267,13 @@ export class EyeTestsService {
     if (!o) throw new NotFoundException('Optometrist not found');
 
     const day = new Date(date);
-    const dayOfWeek = day.getDay();
+    const dayOfWeek = weekdayInTz(day);
     if (!o.workingDays.includes(dayOfWeek)) {
       return { available: [], booked: [], reason: 'Optometrist not working on this day' };
     }
 
-    const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(day); dayEnd.setHours(23, 59, 59, 999);
+    const dayStart = startOfDayTz(new Date(day));
+    const dayEnd = endOfDayTz(new Date(day));
 
     const booked = await this.prisma.opticalEyeTest.findMany({
       where: {
@@ -282,8 +309,8 @@ export class EyeTestsService {
   }
 
   async todaySchedule(user: AuthenticatedUser) {
-    const start = new Date(); start.setHours(0, 0, 0, 0);
-    const end = new Date(); end.setHours(23, 59, 59, 999);
+    const start = startOfDayTz();
+    const end = endOfDayTz();
     return this.prisma.opticalEyeTest.findMany({
       where: { tenantId: user.tenantId, appointmentDate: { gte: start, lte: end } },
       orderBy: { appointmentDate: 'asc' },
@@ -291,9 +318,9 @@ export class EyeTestsService {
   }
 
   async summary(user: AuthenticatedUser) {
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
+    const monthStart = startOfMonthTz();
 
     const [scheduled, inProgress, completedToday, monthCount, revenue, followUps] = await Promise.all([
       this.prisma.opticalEyeTest.count({ where: { tenantId: user.tenantId, status: { in: ['SCHEDULED', 'CONFIRMED'] } } }),

@@ -24,6 +24,20 @@ export class AttendanceService {
     }
 
     if (!memberId && !dto.isGuest) throw new NotFoundException('Member not identified');
+    // A guest visit is logged against the member who brought the guest.
+    if (!memberId && dto.isGuest) {
+      if (!dto.invitedByMemberId) throw new BadRequestException('Guest ke liye bulane wala member chunein');
+      const inviter = await this.prisma.gymMember.findFirst({ where: { id: dto.invitedByMemberId, tenantId: user.tenantId }, select: { id: true } });
+      if (!inviter) throw new NotFoundException('Member not found');
+      memberId = inviter.id;
+    }
+    if (memberId && !dto.isGuest) {
+      const inside = await this.prisma.gymAttendance.findFirst({
+        where: { tenantId: user.tenantId, memberId, isGuest: false, checkOutAt: null, checkInAt: { gte: new Date(Date.now() - 16 * 3_600_000) } },
+        select: { id: true },
+      });
+      if (inside) throw new BadRequestException('Ye member pehle se andar hai — pehle check-out karein');
+    }
 
     // Check active membership
     let activeMembership = null;
@@ -35,10 +49,22 @@ export class AttendanceService {
           status: 'ACTIVE',
           startDate: { lte: new Date() },
           endDate: { gte: new Date() },
+          ...(!dto.isGuest && { OR: [{ visitsRemaining: null }, { visitsRemaining: { gt: 0 } }] }),
         },
+        orderBy: { endDate: 'asc' },
       });
       if (!activeMembership && !dto.isGuest) {
-        throw new BadRequestException('No active membership found');
+        const usedUp = await this.prisma.gymMemberMembership.findFirst({
+          where: { memberId, tenantId: user.tenantId, status: 'ACTIVE', endDate: { gte: new Date() }, visitsRemaining: { lte: 0 } },
+          select: { id: true },
+        });
+        if (usedUp) throw new BadRequestException('Is membership ki visits khatam ho chuki hain — renew karein');
+      }
+      if (!activeMembership && !dto.isGuest) {
+        throw new BadRequestException('Koi active membership nahi — pehle renew karein');
+      }
+      if (activeMembership && !dto.isGuest && activeMembership.visitsRemaining !== null && activeMembership.visitsRemaining <= 0) {
+        throw new BadRequestException('Is membership ki visits khatam ho chuki hain — renew karein');
       }
     }
 
@@ -57,9 +83,10 @@ export class AttendanceService {
           checkedInById: user.id,
           notes: dto.notes,
         },
+        include: { member: true },
       });
 
-      if (memberId) {
+      if (memberId && !dto.isGuest) {
         const member = await tx.gymMember.findUnique({ where: { id: memberId } });
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -77,7 +104,7 @@ export class AttendanceService {
           },
         });
 
-        if (activeMembership) {
+        if (activeMembership && !dto.isGuest) {
           await tx.gymMemberMembership.update({
             where: { id: activeMembership.id },
             data: {

@@ -36,7 +36,9 @@ draft: FurnitureWizardDraft,
     costPrice: Number(basic.costPrice || 0),
     wholesalePrice: basic.wholesalePrice === '' ? undefined : Number(basic.wholesalePrice),
     taxRate: Number(basic.taxRate || 0),
-    stock: baselineStock,
+    // Stock is set only when the product is created; later changes go through
+    // stock adjustment so the movement and its reason are recorded.
+    ...(existingId ? {} : { stock: baselineStock }),
     lowStockAlert: Number(stock.lowStockAlert || 2),
     isActive: basic.isActive,
     isFeatured: basic.isFeatured,
@@ -46,7 +48,7 @@ draft: FurnitureWizardDraft,
 
   const product = existingId
     ? await productsApi.update(existingId, _payload as any)
-    : await productsApi.create(_payload as any);;
+    : await productsApi.create(_payload as any);
 
   const productId = product.id;
   const rollback = async (reason: unknown) => {

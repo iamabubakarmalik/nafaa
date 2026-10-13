@@ -469,7 +469,8 @@ export default function NewSalePage() {
                     <option value="CASH">CASH</option>
                     <option value="CARD">CARD</option>
                     <option value="BANK">BANK</option>
-                    <option value="MIXED">MIXED</option>
+                    <option value="JAZZCASH">JAZZCASH</option>
+                    <option value="EASYPAISA">EASYPAISA</option>
                   </select>
                 </div>
               </div>

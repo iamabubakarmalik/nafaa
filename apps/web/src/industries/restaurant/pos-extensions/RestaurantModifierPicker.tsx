@@ -26,7 +26,7 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
   });
 
   const menuItem = menuItems.find((m: any) => m.productId === productId);
-  const groups = menuItem?.modifiers?.map((mm: any) => mm.modifierGroup).filter(Boolean) ?? [];
+  const groups = menuItem?.modifiers?.map((mm: any) => mm.modifierGroup).filter((g: any) => g && g.isActive !== false) ?? [];
 
   const toggle = (groupId: string, optionId: string, maxSel: number) => {
     setSelections((prev) => {
@@ -41,7 +41,7 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
 
   const canConfirm = groups.every((g: any) => {
     const sel = selections[g.id] || [];
-    if (g.isRequired && sel.length < g.minSelections) return false;
+    if (g.isRequired && sel.length < Math.max(1, g.minSelections || 0)) return false;
     return true;
   });
 

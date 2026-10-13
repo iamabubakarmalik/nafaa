@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { Prisma } from '@prisma/client';
+import { startOfDayTz } from '../../../common/helpers/business-time.helper';
 
 @Injectable()
 export class CarpetReportsService {
@@ -296,8 +297,8 @@ export class CarpetReportsService {
   // ════════════════════════════════════════════════════════
 
   async todaysCuts(user: AuthenticatedUser, shopId?: string) {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    // Business day (Pakistan time), not the server's UTC midnight.
+    const startOfDay = startOfDayTz();
 
     const movements = await this.prisma.carpetRollMovement.findMany({
       where: {

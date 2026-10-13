@@ -17,11 +17,11 @@ import { menuItemsApi } from '../api/menu-items.api';
 import { ordersApi, type OrderMode, type OrderItem } from '../api/orders.api';
 import { kotApi } from '../api/kot.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import { offlineSalesApi } from '@core/lib/offline/offlineSales';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { RestaurantModifierPicker } from '@industries/restaurant/pos-extensions/RestaurantModifierPicker';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
+import { withManagerPin } from '@core/security/ManagerPin';
 
 const MODES: { value: OrderMode; label: string; icon: any; gradient: string; desc: string }[] = [
   { value: 'DINE_IN', label: 'Dine-in', icon: Utensils, gradient: 'from-emerald-500 to-green-700', desc: 'Guest bench pe hain' },
@@ -41,6 +41,14 @@ const TABLE_STATUS_CONFIG: Record<TableStatus, { bg: string; border: string; tex
 };
 
 type Screen = 'mode' | 'tables' | 'menu';
+
+const PAY_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'CASH', label: 'Cash' },
+  { value: 'CARD', label: 'Card' },
+  { value: 'JAZZCASH', label: 'JazzCash' },
+  { value: 'EASYPAISA', label: 'Easypaisa' },
+  { value: 'BANK_TRANSFER', label: 'Bank' },
+];
 
 export default function RestaurantPosPage() {
   const navigate = useNavigate();
@@ -69,9 +77,10 @@ export default function RestaurantPosPage() {
   const {
     cart, setCart, customerId, setCustomerId,
     paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
-    saleMode, setSaleMode, globalDiscount, setGlobalDiscount,
-    total: cartSubtotal, totalItems, clearCart,
+    globalDiscount, setGlobalDiscount,
+    totalItems, clearCart,
   } = useSharedPosCart();
+  const [onKhata, setOnKhata] = useState(false);
 
   const { data: tables = [] } = useQuery({
     queryKey: ['restaurant-tables-pos'],
@@ -121,15 +130,17 @@ export default function RestaurantPosPage() {
   }, [menuItems, search, categoryFilter]);
 
   const selectedTable = tables.find((t) => t.id === selectedTableId);
+  // Gross of the lines; the shared cart total already takes the discount off, so it is not used here.
+  const cartSubtotal = cart.reduce((sum, c) => sum + c.basePrice * c.quantity, 0);
   const svc = cartSubtotal * (serviceChargePct / 100);
   const tax = (cartSubtotal + svc) * (taxPct / 100);
   const total = Math.max(cartSubtotal + svc + tax + deliveryFee + packagingFee + tip - (Number(globalDiscount) || 0), 0);
-  const remainingToPay = saleMode === 'FULL_PAYMENT' ? total : saleMode === 'FULL_CREDIT' ? 0 : Number(paidAmount || 0);
-  const changeAmount = Math.max(remainingToPay - total, 0);
+  const remainingToPay = onKhata ? Number(paidAmount || 0) : total;
 
   const addMenuItemToCart = async (menuItem: any) => {
-    const hasRequiredMod = menuItem.modifiers?.some((mm: any) => mm.modifierGroup?.isRequired);
-    if (hasRequiredMod) {
+    // Any active add-on group opens the picker, so optional add-ons can be chosen too.
+    const hasModifiers = menuItem.modifiers?.some((mm: any) => mm.modifierGroup?.isActive !== false);
+    if (hasModifiers) {
       setModifierPickerItem(menuItem);
       return;
     }
@@ -175,14 +186,15 @@ export default function RestaurantPosPage() {
     setModifierPickerItem(null);
   };
 
-  const createOrderMutation = useMutation({
-    mutationFn: async () => {
+  const createOrder = async () => {
+    {
       const items: OrderItem[] = cart.map((c) => ({
         productId: c.productId,
         variantId: c.variantId,
         quantity: c.quantity,
         unit: c.unit,
-        basePrice: c.basePrice,
+        // The cart price includes add-ons; the server prices modifiers itself.
+        basePrice: c.basePrice - (c.modifiers ?? []).reduce((x, m) => x + (m.priceAdjustment || 0) * (m.quantity || 1), 0),
         specialInstructions: c.specialInstructions,
         modifiers: c.modifiers?.map((m) => ({
           modifierOptionId: m.modifierOptionId,
@@ -208,51 +220,58 @@ export default function RestaurantPosPage() {
         tip,
         items,
       });
-      return order;
-    },
-    onSuccess: async (order) => {
-      toast.success(`Order ${order.orderNumber} created`);
       try {
         await kotApi.create({
           orderId: order.id,
           itemIds: order.items?.map((it: any) => it.id) || [],
         });
-        toast.success('KOT sent to kitchen');
       } catch { /* KOT failure non-fatal */ }
       queryClient.invalidateQueries({ queryKey: ['restaurant-orders'] });
       queryClient.invalidateQueries({ queryKey: ['restaurant-tables-pos'] });
+      return order;
+    }
+  };
+
+  const createOrderMutation = useMutation({
+    mutationFn: createOrder,
+    onSuccess: (order) => {
+      toast.success(`Order ${order.orderNumber} kitchen ko chala gaya`);
+      clearCart();
+      resetFlow();
       navigate(`/restaurant/orders/${order.id}`);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Order failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Order nahi bana'),
   });
 
   const completeAndPayMutation = useMutation({
     mutationFn: async () => {
-      if (!currentShopId) throw new Error('Shop required');
-      const order = await createOrderMutation.mutateAsync();
-      const sale = await offlineSalesApi.create({
-        shopId: currentShopId,
-        customerId: customerId || undefined,
-        paymentMethod,
-        paidAmount: remainingToPay,
-        discount: Number(globalDiscount) || 0,
-        items: cart.map((c) => ({
-          productId: c.productId,
-          variantId: c.variantId,
-          quantity: c.quantity,
-          priceOverride: c.priceOverride,
-          lineDiscount: c.lineDiscount,
-          useWholesale: c.useWholesale,
-          note: c.note,
-        })),
-      });
-      return { order, sale };
+      if (onKhata && !customerId) throw new Error('Udhaar ke liye customer chunein');
+      const order = await createOrder();
+      // Paying the order turns it into a bill (Sale): stock, day book, drawer and khata follow.
+      try {
+        // Shop rules may ask for the owner's PIN (big discount, khata limit); the dialog asks once and retries.
+        const paid = await withManagerPin('Bill ke liye malik ka PIN', (managerPin) => ordersApi.addPayment(order.id, {
+          // The server's total is the bill; the cart figure is only a preview.
+          amount: onKhata ? remainingToPay : order.total,
+          paymentMethod,
+          ...(onKhata && { closeOnCredit: true, customerId }),
+          ...(managerPin && { managerPin }),
+        }), onKhata ? 'credit' : 'discount');
+        return paid;
+      } catch (e) {
+        // The order stays open so the bill can be taken from the order page.
+        navigate(`/restaurant/orders/${order.id}`);
+        throw e;
+      }
     },
-    onSuccess: ({ sale }) => {
-      window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
+    onSuccess: (order) => {
+      if (order.saleId) window.open(`/sales/${order.saleId}/receipt?auto=1`, '_blank');
+      toast.success(`Bill ban gaya — ${order.orderNumber}`);
       clearCart();
+      setOnKhata(false);
       resetFlow();
     },
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Payment nahi hui'),
   });
 
   const resetFlow = () => {
@@ -686,7 +705,9 @@ export default function RestaurantPosPage() {
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="inline-flex items-center bg-slate-100 rounded-lg overflow-hidden">
-                    <button onClick={() => setCart((prev) => prev.map((c) => c.cartLineId === item.cartLineId ? { ...c, quantity: Math.max(0.01, c.quantity - 1) } : c))}
+                    <button onClick={() => setCart((prev) => (item.quantity <= 1
+                      ? prev.filter((c) => c.cartLineId !== item.cartLineId)
+                      : prev.map((c) => c.cartLineId === item.cartLineId ? { ...c, quantity: c.quantity - 1 } : c)))}
                       className="h-8 w-8 hover:bg-slate-200 font-extrabold">−</button>
                     <span className="h-8 w-10 flex items-center justify-center text-sm font-extrabold tabular-nums">{item.quantity}</span>
                     <button onClick={() => setCart((prev) => prev.map((c) => c.cartLineId === item.cartLineId ? { ...c, quantity: c.quantity + 1 } : c))}
@@ -735,6 +756,32 @@ export default function RestaurantPosPage() {
               )}
               <input type="number" placeholder="Tip" value={tip || ''} onChange={(e) => setTip(Number(e.target.value))}
                 className="h-9 rounded-lg border border-slate-200 bg-white px-2 font-bold tabular-nums" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="grid grid-cols-5 gap-1">
+                {PAY_METHODS.map((m) => (
+                  <button key={m.value} type="button" onClick={() => setPaymentMethod(m.value)}
+                    className={'h-8 rounded-lg border text-[0.6875rem] font-extrabold ' + (paymentMethod === m.value ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600')}>
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
+                <select value={customerId} onChange={(e) => { setCustomerId(e.target.value); if (!e.target.value) setOnKhata(false); }}
+                  className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-bold">
+                  <option value="">Customer (zaroori nahi)</option>
+                  {customers.map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ''}</option>)}
+                </select>
+                <label className={'inline-flex items-center gap-1 text-xs font-extrabold ' + (customerId ? 'text-slate-700' : 'text-slate-400')}>
+                  <input type="checkbox" disabled={!customerId} checked={onKhata} onChange={(e) => setOnKhata(e.target.checked)} />
+                  Udhaar
+                </label>
+              </div>
+              {onKhata && (
+                <input type="number" placeholder="Abhi kitne diye (baqi khate me)" value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-amber-300 bg-amber-50 px-2 text-xs font-bold tabular-nums" />
+              )}
             </div>
 
             <div className="rounded-xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-3 space-y-1 text-xs">

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TeamOrderStatus } from '@prisma/client';
 import { IsArray, IsBoolean, IsEmail, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateTeamOrderDto {
   @ApiProperty() @IsString() teamName!: string;
@@ -11,7 +12,9 @@ export class CreateTeamOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() city?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() address?: string;
 
-  @ApiProperty() @IsArray() items!: Array<{
+  // Plain objects: without @Type the global implicit conversion turns each
+  // element into an empty array and the rows are saved as [].
+  @ApiProperty() @IsArray() @Type(() => Object) items!: Array<{
     productId: string;
     productName: string;
     quantity: number;

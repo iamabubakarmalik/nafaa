@@ -3,7 +3,9 @@ import { GymGoal, GymMemberStatus } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpsertMemberDto {
-  @ApiProperty() @IsString() customerId!: string;
+  /** Required when creating; ignored on edit. */
+  @ApiPropertyOptional() @IsOptional() @IsString() customerId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() referralCode?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() memberNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() rfidCard?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() biometricId?: string;

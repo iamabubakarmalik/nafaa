@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   Truck, Plus, Search, RefreshCw, Sparkles, Clock, User, Phone, MapPin,
   CheckCircle2, X, ArrowRight, Package, Calendar, AlertCircle,
@@ -133,9 +133,32 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
 function DeliveryCard({ d }: any) {
   const cfg = STATUS_CONFIG[d.status as DeliveryStatus];
   const daysLeft = d.scheduledDate ? differenceInDays(new Date(d.scheduledDate), new Date()) : null;
+  const queryClient = useQueryClient();
+  const done = ['DELIVERED', 'PARTIALLY_DELIVERED', 'CANCELLED', 'RETURNED'].includes(d.status);
+
+  const act = useMutation({
+    mutationFn: async (step: 'DISPATCHED' | 'DELIVERED' | 'CANCELLED') => {
+      if (step === 'DELIVERED') {
+        const receivedByName = window.prompt('Maal kis ne wusool kiya? (naam)') ?? undefined;
+        return deliveriesApi.confirmDelivery(d.id, { receivedByName: receivedByName || undefined });
+      }
+      if (step === 'CANCELLED') {
+        const reason = window.prompt('Cancel ki wajah?');
+        if (reason === null) throw new Error('skip');
+        return deliveriesApi.updateStatus(d.id, 'CANCELLED', { cancellationReason: reason || undefined });
+      }
+      return deliveriesApi.updateStatus(d.id, step);
+    },
+    onSuccess: () => {
+      toast.success('Delivery update ho gayi');
+      queryClient.invalidateQueries({ queryKey: ['hardware-deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['hardware-deliveries-summary'] });
+    },
+    onError: (e: any) => { if (e?.message !== 'skip') toast.error(e?.response?.data?.message || 'Update nahi hua'); },
+  });
 
   return (
-    <Link to={'/hardware/deliveries/' + d.id} className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-emerald-300 transition p-4">
+    <div className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-emerald-300 transition p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow shrink-0">
@@ -169,6 +192,16 @@ function DeliveryCard({ d }: any) {
           )}
         </div>
       </div>
-    </Link>
+
+      {!done && (
+        <div className="mt-3 flex items-center gap-2 flex-wrap text-xs font-extrabold">
+          {!['DISPATCHED', 'IN_TRANSIT'].includes(d.status) && (
+            <button disabled={act.isPending} onClick={() => act.mutate('DISPATCHED')} className="rounded-lg bg-amber-50 text-amber-700 px-3 py-1.5 hover:bg-amber-100">Rawana ho gayi</button>
+          )}
+          <button disabled={act.isPending} onClick={() => act.mutate('DELIVERED')} className="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1.5 hover:bg-emerald-100">Pohanch gayi</button>
+          <button disabled={act.isPending} onClick={() => act.mutate('CANCELLED')} className="rounded-lg bg-rose-50 text-rose-700 px-3 py-1.5 hover:bg-rose-100">Cancel</button>
+        </div>
+      )}
+    </div>
   );
 }

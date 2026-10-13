@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { dateKeyTz, tzParts, weekdayInTz } from '../../../common/helpers/business-time.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertHappyHourDto } from './dto/upsert-happy-hour.dto';
@@ -26,26 +27,24 @@ export class HappyHoursService {
   }
 
   async findActiveNow(user: AuthenticatedUser) {
+    // Shop time, not server time (the server runs on UTC).
     const now = new Date();
-    const day = now.getDay();
-    const timeStr = now.toTimeString().slice(0, 5);
+    const p = tzParts(now);
+    const day = weekdayInTz(now);
+    const timeStr = `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
+    const today = dateKeyTz(now);
 
-    const rules = await this.prisma.happyHourRule.findMany({
-      where: {
-        tenantId: user.tenantId,
-        isActive: true,
-        OR: [
-          { validFrom: null, validTo: null },
-          { validFrom: { lte: now }, validTo: { gte: now } },
-          { validFrom: { lte: now }, validTo: null },
-          { validFrom: null, validTo: { gte: now } },
-        ],
-      },
-    });
+    const rules = await this.prisma.happyHourRule.findMany({ where: { tenantId: user.tenantId, isActive: true } });
 
     return rules.filter((r) => {
+      // Valid dates are whole days in shop time.
+      if (r.validFrom && dateKeyTz(r.validFrom) > today) return false;
+      if (r.validTo && dateKeyTz(r.validTo) < today) return false;
       const dayMatch = !r.daysOfWeek?.length || r.daysOfWeek.includes(day);
-      const timeMatch = timeStr >= r.startTime && timeStr <= r.endTime;
+      // A window like 22:00–02:00 runs past midnight.
+      const timeMatch = r.startTime <= r.endTime
+        ? timeStr >= r.startTime && timeStr <= r.endTime
+        : timeStr >= r.startTime || timeStr <= r.endTime;
       return dayMatch && timeMatch;
     });
   }

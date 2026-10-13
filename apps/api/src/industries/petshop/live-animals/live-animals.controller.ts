@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { LiveAnimalsService } from './live-animals.service';
 import { AddMedicalRecordDto, SellAnimalDto, UpdateAnimalStatusDto, UpsertLiveAnimalDto } from './dto/upsert-live-animal.dto';
 
@@ -47,7 +48,12 @@ export class LiveAnimalsController {
     return this.service.reserve(user, id, body?.customerName);
   }
   @Post(':id/unreserve') unreserve(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.unreserve(user, id); }
-  @Post(':id/sell') sell(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: SellAnimalDto) { return this.service.sell(user, id, dto); }
+  @Post(':id/counter-item') counterItem(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
+    return this.service.counterItem(user, scope, id);
+  }
+  @Post(':id/sell') sell(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: SellAnimalDto) {
+    return this.service.sell(user, scope, id, dto);
+  }
   @Post(':id/medical-record') medical(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: AddMedicalRecordDto) {
     return this.service.addMedicalRecord(user, id, dto);
   }

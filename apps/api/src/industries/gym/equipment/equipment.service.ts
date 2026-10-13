@@ -53,7 +53,7 @@ export class EquipmentService {
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
     return this.prisma.gymEquipment.update({
-      where: { id },
+      where: { id, tenantId: user.tenantId },
       data: {
         ...dto,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : undefined,
@@ -84,7 +84,7 @@ export class EquipmentService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.gymEquipment.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.gymEquipment.update({ where: { id, tenantId: user.tenantId }, data: { isActive: false } });
   }
 
   async summary(user: AuthenticatedUser) {

@@ -40,8 +40,8 @@ export const alterationsApi = {
     apiClient.get('/garments/alterations', { params }).then(unwrap<AlterationTicket[]>),
   getOne: (id: string) =>
     apiClient.get('/garments/alterations/' + id).then(unwrap<AlterationTicket>),
-  updateStatus: (id: string, status: string, afterImageUrls?: string[]) =>
-    apiClient.post('/garments/alterations/' + id + '/status', { status, afterImageUrls }).then(unwrap<AlterationTicket>),
-  payment: (id: string, amount: number) =>
-    apiClient.post('/garments/alterations/' + id + '/payment', { amount }).then(unwrap<AlterationTicket>),
+  updateStatus: (id: string, status: string, afterImageUrls?: string[], money?: { paidNow?: number; paymentMethod?: string }) =>
+    apiClient.post('/garments/alterations/' + id + '/status', { status, afterImageUrls, ...money }).then(unwrap<AlterationTicket>),
+  payment: (id: string, amount: number, paymentMethod?: string) =>
+    apiClient.post('/garments/alterations/' + id + '/payment', { amount, paymentMethod }).then(unwrap<AlterationTicket>),
 };
