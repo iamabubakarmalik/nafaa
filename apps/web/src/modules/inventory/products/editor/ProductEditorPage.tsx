@@ -1,16 +1,18 @@
 /**
  * Shared product create/edit page. Steps come from the industry config; the
  * page gives them a stepper, a live summary, a sticky action bar, a saved
- * draft for new products, and a success screen.
+ * draft for new products, a guide and a success screen. Stock is opening
+ * stock on create and read-only on edit.
  *
- * Keys: Ctrl/Cmd+S save · Alt+→ next step · Alt+← previous step.
+ * Keys: Ctrl/Cmd+S save · Alt+→ next step · Alt+← previous step · G guide.
  */
 
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, History, List, Loader2, Plus, Save } from 'lucide-react';
-import { Button, Kbd, Skeleton } from '@/design-system/components';
+import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, GraduationCap, History, Layers, List, Loader2, Plus, Save, Tag, Wallet } from 'lucide-react';
+import { Button, Kbd, PageShell, Skeleton } from '@/design-system/components';
+import { PageGuide, usePageGuide, type GuideStep } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
@@ -20,9 +22,17 @@ import type { EditorConfig } from './types';
 
 const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
 
+const GUIDE: GuideStep[] = [
+  { icon: Tag, color: '#2563eb', title: 'Pehchaan', text: 'Naam wohi likhein jo grahak bolta hai. Barcode scan karein taake POS par scanner se cheez aaye.' },
+  { icon: Wallet, color: '#16a34a', title: 'Qeemat', text: 'Cost aur bechne ki qeemat likhein — profit khud nikal aata hai. Darjan, dabba ya carton bhi bikta ho to Packing jorein.' },
+  { icon: Layers, color: '#d97706', title: 'Stock', text: 'Naye product ka shuru ka stock yahin likhein. Baad mein stock sirf Adjustment ya Purchase se badalta hai, taake har badlao ka record rahe.' },
+  { icon: Save, color: '#7c3aed', title: 'Save', text: 'Ctrl+S se kisi bhi step par save. Naya product adhoora reh jaye to agli dafa wahin se shuru kar sakte hain.' },
+];
+
 export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
   const e = useProductEditor(config);
   const navigate = useNavigate();
+  const guide = usePageGuide();
   const [busy, setBusy] = useState(false);
   const c = e.draft.core;
 
@@ -51,21 +61,23 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
 
   if (e.isEdit && e.loadError) {
     return (
-      <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center ring-1 ring-slate-200">
-        <AlertCircle className="mx-auto h-8 w-8 text-rose-500" />
-        <p className="mt-3 font-semibold text-slate-900">Product nahi khul saka</p>
-        <p className="mt-1 text-[0.875rem] text-slate-500">{e.loadError.message}</p>
-        <Button className="mt-4" onClick={() => navigate(config.paths.list)}>Maal ki list</Button>
-      </div>
+      <PageShell>
+        <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center ring-1 ring-slate-200">
+          <AlertCircle className="mx-auto h-8 w-8 text-rose-500" />
+          <p className="mt-3 font-semibold text-slate-900">Product nahi khul saka</p>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{e.loadError.message}</p>
+          <Button className="mt-4" onClick={() => navigate(config.paths.list)}>Products ki list</Button>
+        </div>
+      </PageShell>
     );
   }
   if (!e.ready) {
-    return <div className="mx-auto max-w-6xl space-y-4"><Skeleton className="h-16 rounded-2xl" /><Skeleton className="h-[28rem] rounded-2xl" /></div>;
+    return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-[28rem] rounded-2xl" /></PageShell>;
   }
 
   if (e.savedId && !e.isEdit) {
     return (
-      <div className="mx-auto max-w-xl rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
+      <PageShell><div className="mx-auto max-w-xl rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-50 text-success-600"><CheckCircle2 className="h-9 w-9" /></span>
         <h2 className="mt-4 text-xl font-bold text-slate-900">"{c.name}" ban gayi</h2>
         <p className="mt-1 text-[0.875rem] text-slate-500">Ab POS par bik sakti hai.</p>
@@ -77,9 +89,9 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Button leftIcon={<Plus className="h-4 w-4" />} onClick={e.reset}>Aur banayein</Button>
           <Button variant="secondary" leftIcon={<Eye className="h-4 w-4" />} onClick={() => navigate(config.paths.detail(e.savedId!))}>Dekhein</Button>
-          <Button variant="ghost" leftIcon={<List className="h-4 w-4" />} onClick={() => navigate(config.paths.list)}>Maal ki list</Button>
+          <Button variant="ghost" leftIcon={<List className="h-4 w-4" />} onClick={() => navigate(config.paths.list)}>Products ki list</Button>
         </div>
-      </div>
+      </div></PageShell>
     );
   }
 
@@ -96,29 +108,31 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[90rem] pb-28">
+    <PageShell>
       {e.saving && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm">
           <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-2xl"><Loader2 className="h-5 w-5 animate-spin text-brand-600" /><span className="font-medium text-slate-800">{e.saving}…</span></div>
         </div>
       )}
+      {guide.isOpen && (
+        <PageGuide title={e.isEdit ? 'Product badlein' : 'Naya product'} onClose={guide.close} steps={[...GUIDE, ...(config.guide ?? [])]}
+          tips={['Har khane ke neeche likha hai ke woh kahan kaam aata hai.', 'Save hui packing aur variants mitte nahi — band hote hain, taake purane bill theek rahein.']}
+          shortcuts={[['Ctrl+S', 'save'], ['Alt+→', 'agla step'], ['Alt+←', 'pichla step'], ['G', 'guide']]} />
+      )}
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <Link to={e.isEdit && e.id ? config.paths.detail(e.id) : config.paths.list} className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-500 hover:text-slate-900">
-            <ArrowLeft className="h-4 w-4" />{e.isEdit ? 'Wapas product par' : 'Maal ki list'}
-          </Link>
-          <h1 className="mt-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-[1.375rem]">
-            {e.isEdit ? `Badlein: ${c.name || '…'}` : `Naya maal · ${config.label}`}
-          </h1>
+      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
+        <Link to={e.isEdit && e.id ? config.paths.detail(e.id) : config.paths.list} aria-label={e.isEdit ? 'Wapas product par' : 'Products ki list'}
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></Link>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-xl font-bold">{e.isEdit ? `${c.name || '…'} — badlein` : `Naya product · ${config.label}`}</h1>
+          <p className="text-[0.8125rem] text-white/75">{e.isEdit ? 'Naam, qeemat aur details badlein — stock yahan se nahi badalta' : `Naam, qeemat aur shuru ka stock — ${e.steps.length} step mein tayyar`}</p>
         </div>
-        <div className="hidden items-center gap-2 text-[0.75rem] text-slate-500 md:flex">
-          <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Alt</Kbd>+<Kbd>→</Kbd> agla
-        </div>
+        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 md:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Alt</Kbd>+<Kbd>→</Kbd> agla</span>
+        <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
       </div>
 
       {e.stored && (
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-sky-50 px-4 py-3 ring-1 ring-sky-200">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-sky-50 px-4 py-3 ring-1 ring-sky-200">
           <History className="h-5 w-5 text-sky-600" />
           <p className="flex-1 text-[0.875rem] text-sky-900">Pichli dafa <strong>"{e.stored.core.name}"</strong> adhoori reh gayi thi.</p>
           <Button size="sm" onClick={e.restore}>Wahin se shuru</Button>
@@ -127,7 +141,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
       )}
 
       {/* Mobile stepper */}
-      <div className="-mx-1 mb-4 flex gap-1.5 overflow-x-auto px-1 lg:hidden [scrollbar-width:none]">
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 lg:hidden [scrollbar-width:none]">
         {e.steps.map((s, i) => (
           <button key={s.id} type="button" onClick={() => e.goTo(i)}
             className={cn('inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-semibold',
@@ -200,18 +214,16 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
       </div>
 
       {/* Action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto flex max-w-[90rem] items-center gap-2">
-          <Button variant="secondary" onClick={e.back} disabled={e.stepIndex === 0} leftIcon={<ArrowLeft className="h-4 w-4" />}>Peeche</Button>
-          <p className="hidden flex-1 text-center text-[0.8125rem] text-slate-500 sm:block">
-            Step {e.stepIndex + 1} / {e.steps.length} · {e.step.title}
-            {!e.valid && <span className="ml-2 font-medium text-rose-600">· kuch khane baqi</span>}
-          </p>
-          <span className="flex-1 sm:hidden" />
-          {!isLast && <Button variant={e.isEdit ? 'secondary' : 'primary'} onClick={() => e.next()} rightIcon={<ArrowRight className="h-4 w-4" />}>Aage</Button>}
-          {(e.isEdit || isLast) && <Button onClick={() => void doSave()} loading={busy} leftIcon={<Save className="h-4 w-4" />}>{e.isEdit ? 'Save karein' : 'Bana dein'}</Button>}
-        </div>
+      <div className="sticky bottom-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
+        <Button variant="secondary" onClick={e.back} disabled={e.stepIndex === 0} leftIcon={<ArrowLeft className="h-4 w-4" />}>Peeche</Button>
+        <p className="hidden flex-1 text-center text-[0.8125rem] text-slate-500 sm:block">
+          Step {e.stepIndex + 1} / {e.steps.length} · {e.step.title}
+          {!e.valid && <span className="ml-2 font-medium text-rose-600">· kuch khane baqi</span>}
+        </p>
+        <span className="flex-1 sm:hidden" />
+        {!isLast && <Button variant={e.isEdit ? 'secondary' : 'primary'} onClick={() => e.next()} rightIcon={<ArrowRight className="h-4 w-4" />}>Aage</Button>}
+        {(e.isEdit || isLast) && <Button onClick={() => void doSave()} loading={busy} leftIcon={<Save className="h-4 w-4" />}>{e.isEdit ? 'Save karein' : 'Bana dein'}</Button>}
       </div>
-    </div>
+    </PageShell>
   );
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Goal, MemberStatus } from '../api/members.api';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 const DRAFT_KEY = 'nafaa.gym-member-wizard.draft';
 
@@ -51,6 +52,8 @@ export interface GymWizardSubscription {
   planId: string;
   startDate: string;
   paidAmount: number | '';
+  /** How the paid amount came in; older saved drafts have none (cash). */
+  paymentMethod?: PaymentMethod;
   totalPrice: number | '';
   autoRenew: boolean;
   referralCode: string;
@@ -86,7 +89,7 @@ const emptyMedical = (): GymWizardMedical => ({
 
 const emptySubscription = (): GymWizardSubscription => ({
   photoUrl: '', planId: '', startDate: new Date().toISOString().split('T')[0],
-  paidAmount: '', totalPrice: '', autoRenew: false, referralCode: '',
+  paidAmount: '', paymentMethod: 'CASH', totalPrice: '', autoRenew: false, referralCode: '',
 });
 
 const emptyDraft = (): GymWizardDraft => ({

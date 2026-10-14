@@ -64,6 +64,9 @@ export interface PosCartLine {
   warrantyMonths?: number;
   /** Quantity cannot be changed (serial-tracked units). */
   lockQty?: boolean;
+  /** Batch picked at the counter; left out, the sale takes the earliest expiry. */
+  batchId?: string;
+  batchNumber?: string;
 }
 
 export interface PosHeldCart {

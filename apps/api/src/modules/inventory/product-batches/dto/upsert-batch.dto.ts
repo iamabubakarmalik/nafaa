@@ -22,10 +22,11 @@ export class UpsertBatchDto {
   @IsDateString()
   expiryDate?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Starting quantity of a new batch. Left out on update: the quantity follows sales, purchases and adjustments.' })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  quantity!: number;
+  quantity?: number;
 
   @ApiPropertyOptional({ description: 'Branch holding the batch (new batches only). Default: the branch being viewed, else the main shop.' })
   @IsOptional()

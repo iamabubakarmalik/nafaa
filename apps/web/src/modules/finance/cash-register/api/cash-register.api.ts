@@ -172,6 +172,16 @@ export interface CashTransactionPayload {
   requestId: string;
 }
 
+/** Drawer cash before and after a payout; `short` means it would go below zero. */
+export interface PayoutCheck {
+  registerOpen: boolean;
+  registerId?: string;
+  expected: number | null;
+  after: number | null;
+  short: boolean;
+  message: string | null;
+}
+
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const cashRegisterApi = {
@@ -187,6 +197,8 @@ export const cashRegisterApi = {
     apiClient.get<{ data: ShiftList }>('/cash-register/shifts', { params: q }).then(unwrap),
   shift: (id: string) =>
     apiClient.get<{ data: ShiftDetail }>(`/cash-register/shifts/${id}`).then(unwrap),
+  payoutCheck: (amount: number, registerId?: string) =>
+    apiClient.get<{ data: PayoutCheck }>('/cash-register/payout-check', { params: { amount, registerId } }).then(unwrap),
   analytics: (q: Omit<ShiftQuery, 'page' | 'limit' | 'status'>) =>
     apiClient.get<{ data: CashAnalytics }>('/cash-register/analytics', { params: q }).then(unwrap),
 };

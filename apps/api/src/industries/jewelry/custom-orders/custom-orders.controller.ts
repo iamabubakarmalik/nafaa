@@ -30,8 +30,8 @@ export class CustomOrdersController {
   @Post(':id/approve-design') approve(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { designUrl: string }) {
     return this.service.approveDesign(user, id, body.designUrl);
   }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number }) {
-    return this.service.addPayment(user, id, body.amount);
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number; paymentMethod?: string }) {
+    return this.service.addPayment(user, id, body.amount, body.paymentMethod);
   }
   @Post(':id/rate') rate(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { rating: number; feedback?: string }) {
     return this.service.rate(user, id, body.rating, body.feedback);

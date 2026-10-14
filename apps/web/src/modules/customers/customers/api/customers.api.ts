@@ -9,6 +9,8 @@ export interface Customer {
   phone?: string | null;
   email?: string | null;
   cnic?: string | null;
+  /** Tax number of a registered buyer; printed on the bill. */
+  ntn?: string | null;
   address?: string | null;
   city?: string | null;
   area?: string | null;
@@ -104,6 +106,7 @@ export interface UpsertCustomerPayload {
   phone?: string;
   email?: string;
   cnic?: string;
+  ntn?: string;
   address?: string;
   city?: string;
   area?: string;

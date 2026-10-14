@@ -15,6 +15,8 @@ import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 const STATUS_FLOW: JobStatus[] = ['CONFIRMED', 'SCHEDULED', 'ASSIGNED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'QUALITY_CHECK', 'COMPLETED'];
 
@@ -531,7 +533,7 @@ export default function JobDetailPage() {
  */
 function PaymentModal({ jobId, remaining, billed, onClose, onDone }: any) {
   const [amount, setAmount] = useState<number>(remaining);
-  const [method, setMethod] = useState('CASH');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
   const [mode, setMode] = useState<'bill' | 'advance'>(billed ? 'advance' : 'bill');
 
   const payMutation = useMutation({
@@ -540,7 +542,7 @@ function PaymentModal({ jobId, remaining, billed, onClose, onDone }: any) {
         const done = await jobsApi.bill(jobId, { paidAmount: amount, paymentMethod: method });
         return done.sale?.id;
       }
-      await jobsApi.addPayment(jobId, amount, !billed);
+      await jobsApi.addPayment(jobId, amount, !billed, method);
       return undefined;
     },
     onSuccess: (saleId) => { toast.success(saleId ? 'Bill ban gaya' : 'Payment jama ho gayi'); onDone(saleId); },
@@ -585,16 +587,7 @@ function PaymentModal({ jobId, remaining, billed, onClose, onDone }: any) {
               <div className="mt-1 text-xs font-bold text-amber-700">Baqi {formatPKR(left)} customer ke khate me udhaar jayega</div>
             )}
           </div>
-          {mode === 'bill' && !billed && (
-            <div className="grid grid-cols-3 gap-2">
-              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'].map((m) => (
-                <button key={m} type="button" onClick={() => setMethod(m)} className={
-                  'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                  (method === m ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-                }>{m}</button>
-              ))}
-            </div>
-          )}
+          {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount < 0 || (amount <= 0 && (billed || mode === 'advance'))}>

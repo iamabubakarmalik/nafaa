@@ -11,16 +11,16 @@ import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { withManagerPin } from '@core/security/ManagerPin';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import {
-  PosQuickCash, PosDeliveryPanel, PosDiscountBar,
+  PosCheckoutModal, PosDeliveryPanel, PosDiscountBar, type PosCheckoutResult,
   emptyDelivery, deliveryAmount, deliveryServiceCharge,
   type PosDeliveryState,
 } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
 import type { ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
 import { applianceProductsApi } from '../api/products.api';
 import { applianceSerialApi } from '../api/serial-tracking.api';
@@ -430,7 +430,7 @@ export default function AppliancesPosPage() {
   };
 
   const checkoutMutation = useMutation({
-    mutationFn: async (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
+    mutationFn: async (data: PosCheckoutResult) => {
       if (!currentShopId) throw new Error('Select shop first');
 
       const items = cart.map((l) => ({
@@ -445,8 +445,7 @@ export default function AppliancesPosPage() {
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
-        paymentMethod: data.paymentMethod,
-        paidAmount: data.paidAmount,
+        ...salePayment(data, total),
         discount: discountAmount,
         ...(serviceCharges ? { serviceCharges } : {}),
         items,
@@ -504,7 +503,8 @@ export default function AppliancesPosPage() {
       return { sale, installationsBooked, queuedOffline };
     },
     onSuccess: ({ sale, installationsBooked, queuedOffline }, vars) => {
-      const change = Math.max(vars.paidAmount - total, 0);
+      void keepAdvance(vars, total, customerId || undefined, sale.saleNumber);
+      const change = (vars.depositExtra ? 0 : Math.max(vars.paidAmount - total, 0));
       setLastSale({ id: sale.id, number: sale.saleNumber, change, total, installationsBooked });
       setShowCheckout(false);
       setShowMobileCart(false);
@@ -542,14 +542,14 @@ export default function AppliancesPosPage() {
       )}
 
       {showCheckout && (
-        <PosQuickCash
+        <PosCheckoutModal initMode="full"
           total={total}
           itemCount={itemCount}
           loading={checkoutMutation.isPending}
           customerName={selectedCustomer?.name}
           customerBalance={Number(selectedCustomer?.balance || 0)}
           hasCustomer={!!customerId}
-          onConfirm={({ paymentMethod, paidAmount }) => checkoutMutation.mutate({ paymentMethod, paidAmount })}
+          onConfirm={(d) => checkoutMutation.mutate(d)}
           onClose={() => setShowCheckout(false)}
         />
       )}

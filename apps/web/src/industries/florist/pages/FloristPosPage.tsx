@@ -10,11 +10,11 @@ import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { PosQuickCash } from '@modules/pos/components';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
 import { floristProductsApi } from '../api/products.api';
 import { floristOrdersApi } from '../api/orders.api';
 import { DeliverySchedulerModal, type DeliveryDetails } from '../components/pos/DeliverySchedulerModal';
@@ -178,7 +178,7 @@ export default function FloristPosPage() {
   });
 
   const checkout = useMutation({
-    mutationFn: async (d: { paymentMethod: PaymentMethod; paidAmount: number }) => {
+    mutationFn: async (d: PosCheckoutResult) => {
       if (!shopId) throw new Error('Select shop first');
       /* Delivery and wrapping are part of the bill. Before, only the flowers
          went on it, so these charges were counted as change handed back and
@@ -189,7 +189,7 @@ export default function FloristPosPage() {
       ].filter((c) => c.amount > 0);
       const sale = await offlineSalesApi.create({
         shopId, customerId: customerId || undefined,
-        paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, discount: discountAmount,
+        ...salePayment(d, total), discount: discountAmount,
         serviceCharges: charges.length ? charges : undefined,
         items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, priceOverride: l.unitPrice, note: l.customization })),
       });
@@ -225,7 +225,8 @@ export default function FloristPosPage() {
       return { sale, orderNumber };
     },
     onSuccess: ({ sale, orderNumber }, v) => {
-      setLast({ id: sale.id, number: sale.saleNumber, change: Math.max(v.paidAmount - total, 0), orderNumber });
+      void keepAdvance(v, total, customerId || undefined, sale.saleNumber);
+      setLast({ id: sale.id, number: sale.saleNumber, change: (v.depositExtra ? 0 : Math.max(v.paidAmount - total, 0)), orderNumber });
       setShowCheckout(false); setShowMobileCart(false); clearCart();
       ['products-for-florist-pos', 'sales-list', 'florist-orders-list', 'florist-dashboard-overview']
         .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
@@ -248,10 +249,10 @@ export default function FloristPosPage() {
       )}
 
       {showCheckout && (
-        <PosQuickCash total={total} itemCount={cart.length} loading={checkout.isPending}
+        <PosCheckoutModal initMode="full" total={total} itemCount={cart.length} loading={checkout.isPending}
           customerName={customer?.name} customerBalance={Number(customer?.balance || 0)}
           hasCustomer={!!customerId}
-          onConfirm={({ paymentMethod, paidAmount }) => checkout.mutate({ paymentMethod, paidAmount })}
+          onConfirm={(d) => checkout.mutate(d)}
           onClose={() => setShowCheckout(false)} />
       )}
 

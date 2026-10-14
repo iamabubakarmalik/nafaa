@@ -548,7 +548,7 @@ export class ReportsCenterService {
     const summary = (t: SaleFigures, expenses: number, loss: number) => {
       const net = netProfit(t.grossProfit, expenses, loss);
       return {
-        sales: t.net, gross: t.gross, refunds: t.refunds, discount: t.discount, cost: t.cost, grossProfit: t.grossProfit,
+        sales: t.net, gross: t.gross, refunds: t.refunds, discount: t.discount, service: t.service, cost: t.cost, grossProfit: t.grossProfit,
         margin: t.net > 0 ? r2((t.grossProfit / t.net) * 100) : 0,
         expenses: r2(expenses), damage: r2(loss), netProfit: net,
         netMargin: t.net > 0 ? r2((net / t.net) * 100) : 0,

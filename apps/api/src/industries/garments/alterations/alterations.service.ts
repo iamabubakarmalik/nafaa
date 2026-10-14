@@ -143,7 +143,8 @@ export class AlterationsService {
     });
   }
 
-  async recordPayment(user: AuthenticatedUser, id: string, amount: number) {
+  /** Advance before delivery, held on khata. Method left out is cash. */
+  async recordPayment(user: AuthenticatedUser, id: string, amount: number, paymentMethod?: string) {
     const t = await this.prisma.garmentAlterationTicket.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Ticket not found');
     if (t.status === 'DELIVERED' || t.status === 'CANCELLED') {
@@ -161,7 +162,7 @@ export class AlterationsService {
         customerId: t.customerId, name: t.customerName, phone: t.customerPhone, shopId,
       });
       await recordKhataPayment(tx, user, {
-        customerId, shopId, amount, reference: t.ticketNumber, note: `Alteration advance ${t.ticketNumber}`,
+        customerId, shopId, amount, reference: t.ticketNumber, note: `Alteration advance ${t.ticketNumber}`, method: paymentMethod,
       });
       const newPaid = r2(t.paidAmount + amount);
       const paymentStatus = newPaid >= t.charges - 0.01 ? 'PAID' : newPaid > 0 ? 'PARTIALLY_PAID' : 'UNPAID';

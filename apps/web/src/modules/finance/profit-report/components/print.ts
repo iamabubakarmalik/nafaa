@@ -7,11 +7,12 @@
 import { formatPKR } from '@core/lib/format';
 import type { PrintDoc, PrintSection } from '@core/print';
 import type { ProfitItem, ProfitOverview } from '../api';
-import { qty } from './meta';
+import { chargeSplit, qty } from './meta';
 
 export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string, scope: string, showCost: boolean): PrintDoc {
   const t = o.totals;
   const n = o.net;
+  const c = chargeSplit(t);
   const summary: PrintSection = {
     kind: 'rows',
     title: 'Khulasa',
@@ -19,9 +20,11 @@ export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string
       { label: 'List rate par sale', value: formatPKR(t.gross) },
       { label: 'Discount', value: `− ${formatPKR(t.discount)}`, sub: true },
       { label: 'Return', value: `− ${formatPKR(t.refund)}`, sub: true },
+      ...(c.shown ? [{ label: c.bills ? `Service charges (${c.bills} bill)` : 'Service charges', value: `+ ${formatPKR(c.revenue)}`, sub: true }] : []),
       { label: 'Asal sale', value: formatPKR(t.revenue), strong: true },
       ...(showCost ? [
-        { label: 'Maal ki cost', value: `− ${formatPKR(t.cost ?? 0)}`, sub: true },
+        { label: 'Maal ki cost', value: `− ${formatPKR(c.lineCost)}`, sub: true },
+        ...(c.cost ? [{ label: 'Bill par alag cost (rider waghera)', value: `− ${formatPKR(c.cost)}`, sub: true }] : []),
         { label: `Gross profit (${(t.margin ?? 0).toFixed(1)}%)`, value: formatPKR(t.profit ?? 0), strong: true },
         { label: 'Expenses', value: `− ${formatPKR(n.expenses)}`, sub: true },
         { label: 'Kharab / gum maal', value: `− ${formatPKR(n.writeOffCost ?? 0)}`, sub: true },
@@ -45,7 +48,10 @@ export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string
     rows: items.map((r, i) => [
       String(i + 1), r.name, `${qty(r.qty)} ${r.unit}`, formatPKR(r.revenue),
       ...(showCost ? [formatPKR(r.cost ?? 0), formatPKR(r.profit ?? 0), `${(r.margin ?? 0).toFixed(1)}%`] : []),
-    ]),
+    ]).concat(c.shown ? [[
+      '', 'Service charges (bill par)', '', formatPKR(c.revenue),
+      ...(showCost ? [formatPKR(c.cost), formatPKR(c.profit), c.revenue > 0 ? `${((c.profit / c.revenue) * 100).toFixed(1)}%` : ''] : []),
+    ]] : []),
     footer: ['', 'Kul', '', formatPKR(t.revenue), ...(showCost ? [formatPKR(t.cost ?? 0), formatPKR(t.profit ?? 0), `${(t.margin ?? 0).toFixed(1)}%`] : [])],
   };
   const fallback = showCost && o.costBasis && o.costBasis.fallbackLines + o.costBasis.noCostLines > 0

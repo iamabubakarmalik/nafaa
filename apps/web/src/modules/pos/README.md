@@ -33,7 +33,16 @@ flow is rebuilt.
   hold and resume.
 - Checkout: full, part or full credit; tendered amount and change; extra
   money kept as an advance (recorded as a khata payment, not just a label);
-  QR for wallets. F12 = cash and print in one key.
+  QR for wallets. F12 = cash and print in one key. Split payment (cash +
+  card …) sends `payments[]`.
+- Batches: a line whose product has batches in the branch shows the batch
+  and expiry being sold (earliest valid expiry by default, from
+  `GET /sales/batches`); the cashier can pick another, which is sent as
+  `batchId`. Expired batches show in red.
+- Industry POS pages that build their own bill open `PosCheckoutModal` and
+  turn its answer into sale fields with `lib/posCheckout` (`salePayment`,
+  `keepAdvance`). Screens that take money outside a bill (advances, job
+  payments) use `TakePaymentModal` or `PaymentMethodPicker`.
 - Works offline (sales queue), auto-print to the thermal printer, customer
   display, cash drawer, WhatsApp bill.
 

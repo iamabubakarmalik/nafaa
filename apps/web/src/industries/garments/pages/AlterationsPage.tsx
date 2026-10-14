@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { TakePaymentModal } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Ruler, Plus, Search, X, Save, RefreshCw, Sparkles, Clock, User,
@@ -37,6 +39,8 @@ export default function AlterationsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('active');
   const [showForm, setShowForm] = useState(false);
+  /** Money being taken: an advance, or what is paid at delivery. */
+  const [taking, setTaking] = useState<{ id: string; due: number; deliver: boolean; ticket: string } | null>(null);
 
   const { data: tickets = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['alterations', statusFilter, search],
@@ -52,41 +56,45 @@ export default function AlterationsPage() {
     : tickets;
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status, paidNow }: { id: string; status: string; paidNow?: number }) =>
-      alterationsApi.updateStatus(id, status, undefined, paidNow === undefined ? undefined : { paidNow, paymentMethod: 'CASH' }),
-    onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['alterations'] }); },
+    mutationFn: ({ id, status, paidNow, paymentMethod }: { id: string; status: string; paidNow?: number; paymentMethod?: PaymentMethod }) =>
+      alterationsApi.updateStatus(id, status, undefined, paidNow === undefined ? undefined : { paidNow, paymentMethod }),
+    onSuccess: () => { toast.success('Status updated'); setTaking(null); queryClient.invalidateQueries({ queryKey: ['alterations'] }); },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
   });
 
   const advanceMutation = useMutation({
-    mutationFn: ({ id, amount }: { id: string; amount: number }) => alterationsApi.payment(id, amount, 'CASH'),
-    onSuccess: () => { toast.success('Advance darj ho gaya'); queryClient.invalidateQueries({ queryKey: ['alterations'] }); },
+    mutationFn: ({ id, amount, paymentMethod }: { id: string; amount: number; paymentMethod: PaymentMethod }) => alterationsApi.payment(id, amount, paymentMethod),
+    onSuccess: () => { toast.success('Advance darj ho gaya'); setTaking(null); queryClient.invalidateQueries({ queryKey: ['alterations'] }); },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Advance darj nahi hua'),
   });
 
   /** Delivery makes the bill: ask what is taken now; the rest goes to the khata. */
-  const moveTo = (t: { id: string; charges: number; paidAmount: number }, status: AlterationStatus) => {
+  const dueOf = (t: { charges: number; paidAmount: number }) => Math.max(0, Math.round((Number(t.charges) - Number(t.paidAmount)) * 100) / 100);
+
+  const moveTo = (t: { id: string; ticketNumber: string; charges: number; paidAmount: number }, status: AlterationStatus) => {
     if (status !== 'DELIVERED') { statusMutation.mutate({ id: t.id, status }); return; }
-    const due = Math.max(0, Math.round((Number(t.charges) - Number(t.paidAmount)) * 100) / 100);
+    const due = dueOf(t);
     if (due <= 0) { statusMutation.mutate({ id: t.id, status }); return; }
-    const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh customer ke khate me jayega)`, String(due));
-    if (input === null) return;
-    const paidNow = Number(input);
-    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Amount sahi likhein'); return; }
-    statusMutation.mutate({ id: t.id, status, paidNow });
+    setTaking({ id: t.id, due, deliver: true, ticket: t.ticketNumber });
   };
 
-  const takeAdvance = (t: { id: string; charges: number; paidAmount: number }) => {
-    const due = Math.max(0, Math.round((Number(t.charges) - Number(t.paidAmount)) * 100) / 100);
-    const input = window.prompt(`Advance kitna liya? (baqi Rs ${due})`, String(due));
-    if (input === null) return;
-    const amount = Number(input);
-    if (!Number.isFinite(amount) || amount <= 0) { toast.error('Amount sahi likhein'); return; }
-    advanceMutation.mutate({ id: t.id, amount });
-  };
+  const takeAdvance = (t: { id: string; ticketNumber: string; charges: number; paidAmount: number }) =>
+    setTaking({ id: t.id, due: dueOf(t), deliver: false, ticket: t.ticketNumber });
 
   return (
     <div className="space-y-6">
+      {taking && (
+        <TakePaymentModal
+          title={taking.deliver ? `Deliver · ${taking.ticket}` : `Advance · ${taking.ticket}`}
+          description={taking.deliver ? 'Delivery par bill banta hai. Jo abhi nahi mila wo customer ke khate me udhaar jata hai.' : 'Advance customer ke khate me jama rehta hai, delivery ke bill me kat jata hai.'}
+          amount={taking.due} max={taking.due} allowZero={taking.deliver}
+          confirmLabel={taking.deliver ? 'Deliver karein' : 'Advance lein'}
+          loading={statusMutation.isPending || advanceMutation.isPending}
+          onConfirm={(amount, paymentMethod) => (taking.deliver
+            ? statusMutation.mutate({ id: taking.id, status: 'DELIVERED', paidNow: amount, paymentMethod })
+            : advanceMutation.mutate({ id: taking.id, amount, paymentMethod }))}
+          onClose={() => setTaking(null)} />
+      )}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 text-white p-6 sm:p-8 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">

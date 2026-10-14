@@ -16,7 +16,7 @@ import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
 import { useIsAllShops } from '@core/stores/auth.store';
 import { channelMeta, channelPath, useSalesChannels } from '@integrations/online-orders/hooks/useSalesChannels';
 import { cn } from '@core/lib/cn';
-import { allShopsNavGroups, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
+import { allShopsNavGroups, canSeeSettingsItem, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
 
 type Channel = { id: string; type: string; displayName: string; isWebsite: boolean; live: boolean; pendingOrders: number };
 
@@ -54,12 +54,10 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
       .filter((g) => g.items.length > 0);
   }, [industry, isMarketplace, isAllShops, role, permissions, channels]);
 
-  const settingsItems = useMemo(() => {
-    const owner = isOwner(role as never);
-    return SETTINGS_ITEMS.filter((i) => (owner || !isOwnerOnlyPath(i.to)) && (!i.permission || hasPermission(role as never, permissions, i.permission)));
-  }, [role, permissions]);
+  const settingsItems = useMemo(() => SETTINGS_ITEMS.filter((i) => canSeeSettingsItem(i, role, permissions)), [role, permissions]);
 
-  const settingsHome = isMarketplace ? '/marketplace/settings-hub' : settingsItems[0]?.to ?? '/profile';
+  // The gear opens the first page that lives inside Settings, never an everyday page it links to.
+  const settingsHome = isMarketplace ? '/marketplace/settings-hub' : settingsItems.find((i) => !i.external)?.to ?? '/profile';
 
   return { groups, settingsItems, settingsHome, industry, isMarketplace, isAllShops, workspace: WORKSPACES[activeWorkspace], activeWorkspace };
 }

@@ -1,7 +1,7 @@
 /** Small shared helpers for the profit report: quantities, changes and labels. */
 
 import type { FilterOption } from '@/design-system/components';
-import type { ProfitSort, ProfitView } from '../api';
+import type { BillCharges, Figures, ProfitSort, ProfitView } from '../api';
 
 export const qty = (n: number) => Number((n || 0).toFixed(2)).toLocaleString('en-PK');
 export const pct = (n: number | undefined) => `${(n ?? 0).toFixed(1)}%`;
@@ -12,6 +12,26 @@ export function change(now: number | undefined, before: number | undefined): num
   const b = before ?? 0;
   if (!b) return a ? null : 0;
   return ((a - b) / Math.abs(b)) * 100;
+}
+
+/**
+ * Splits bill totals into what the product lines earned and the bill's own
+ * service charges and cost, so line figures plus charges equal the totals.
+ */
+export function chargeSplit(t: Figures & { charges?: BillCharges }) {
+  const c = t.charges;
+  const revenue = c?.revenue ?? 0;
+  const cost = c?.cost ?? 0;
+  return {
+    shown: !!c && (revenue !== 0 || cost !== 0),
+    revenue,
+    cost,
+    profit: c?.profit ?? 0,
+    bills: c?.bills ?? 0,
+    lineRevenue: Math.round((t.revenue - revenue) * 100) / 100,
+    lineCost: Math.round(((t.cost ?? 0) - cost) * 100) / 100,
+    lineProfit: Math.round(((t.profit ?? 0) - (c?.profit ?? 0)) * 100) / 100,
+  };
 }
 
 export const changeText = (c: number | null) => (c === null ? 'naya' : `${c >= 0 ? '+' : ''}${c.toFixed(0)}%`);

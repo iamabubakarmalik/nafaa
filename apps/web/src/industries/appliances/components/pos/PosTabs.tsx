@@ -10,6 +10,8 @@ import { applianceSerialApi, type ApplianceSerial } from '../../api/serial-track
 import { serviceRequestsApi } from '../../api/service-requests.api';
 import { amcContractsApi } from '../../api/amc-contracts.api';
 import { catEmoji, catLabel, svcTypeMeta, AMC_TYPE_META, type ApplianceAmcType } from '../../constants';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 /* ═════════════════════════════════════════════════════════════
    POS TABS — appliance counter par chaar tarah ka kaam
@@ -169,8 +171,8 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
   }, [data, search]);
 
   const payMut = useMutation({
-    mutationFn: ({ id, amount }: { id: string; amount: number }) =>
-      serviceRequestsApi.addPayment(id, { amount, note: 'Counter par receive' }),
+    mutationFn: ({ id, amount, paymentMethod }: { id: string; amount: number; paymentMethod: PaymentMethod }) =>
+      serviceRequestsApi.addPayment(id, { amount, paymentMethod, note: 'Counter par receive' }),
     onSuccess: () => {
       toast.success('Receiving darj ho gayi ✓');
       setCollecting(null);
@@ -204,7 +206,7 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
           due={Math.max(collecting.totalCharge - collecting.paidAmount, 0)}
           pending={payMut.isPending}
           onClose={() => setCollecting(null)}
-          onConfirm={(amount) => payMut.mutate({ id: collecting.id, amount })}
+          onConfirm={(amount, paymentMethod) => payMut.mutate({ id: collecting.id, amount, paymentMethod })}
         />
       )}
 
@@ -409,9 +411,10 @@ function Field({ label, required, hint, children }: any) {
 /* ═════════════ COLLECT MODAL ═════════════ */
 function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
   title: string; subtitle: string; due: number; pending: boolean;
-  onClose: () => void; onConfirm: (amount: number) => void;
+  onClose: () => void; onConfirm: (amount: number, method: PaymentMethod) => void;
 }) {
   const [amount, setAmount] = useState(String(due));
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
   const n = Number(amount) || 0;
   const bad = n <= 0 || n > due;
   const quick = [due, Math.round(due / 2), 1000, 500].filter((v, i, a) => v > 0 && v <= due && a.indexOf(v) === i);
@@ -463,7 +466,9 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
             ))}
           </div>
 
-          <button onClick={() => onConfirm(n)} disabled={bad || pending}
+          <PaymentMethodPicker value={method} onChange={setMethod} />
+
+          <button onClick={() => onConfirm(n, method)} disabled={bad || pending}
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 disabled:opacity-50 text-white font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition active:scale-[0.98]">
             {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
             Receiving Darj Karein

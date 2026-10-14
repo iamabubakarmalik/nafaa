@@ -46,7 +46,7 @@ export function eventLink(e: Pick<AuditEvent, 'ref' | 'type'>): { to: string; la
     case 'damage': return { to: '/damage', label: 'Damage report' };
     case 'transfer': return { to: '/transfers', label: 'Transfers' };
     case 'expense': return { to: '/expenses', label: 'Expenses' };
-    case 'login': return { to: '/settings?tab=security', label: 'Security settings' };
+    case 'login': return { to: '/settings/security', label: 'Security settings' };
     default: return e.type === 'settings' ? { to: '/activity-log', label: 'Activity log' } : null;
   }
 }

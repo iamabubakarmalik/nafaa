@@ -5,9 +5,12 @@
  */
 
 import type { ReactNode } from 'react';
-import { Boxes, CalendarClock, Layers, Package, Plus, Tag, Trash2, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Boxes, CalendarClock, ClipboardList, Layers, Lock, Package, Plus, Tag, Trash2, Wallet } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
 import { BrandField, CategoryField, Chip, CodeFields, ImagesField, MarginCard, NumberField, Section, TagsField, TextField, Tiles, Toggle, inputClass } from './fields';
 import { openingStock } from './save';
 import type { BatchDraft, CoreOptions, Errors, StepContext, StepDef, UnitDraft, VariantDraft } from './types';
@@ -33,10 +36,10 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
           <Section icon={Tag} title="Cheez kya hai" hint="Wohi naam likhein jo grahak bolta hai — POS par isi se milegi">
             <div className="space-y-4">
               <TextField label="Naam" required big autoFocus value={c.name} onChange={(name) => ctx.setCore({ name })} onBlur={() => ctx.touch('name')}
-                error={ctx.errors.name} placeholder={opts.namePlaceholder ?? 'Jaise: Tapal Danedar 95g'} />
+                error={ctx.errors.name} placeholder={opts.namePlaceholder ?? 'Jaise: Tapal Danedar 95g'} hint="POS search, bill aur label par yahi naam aata hai" />
               {opts.extra?.(ctx)}
-              <CategoryField value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} suggestions={opts.categorySuggestions} />
-              <BrandField value={c.brandId} onChange={(brandId) => ctx.setCore({ brandId })} />
+              <CategoryField value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} suggestions={opts.categorySuggestions} hint="POS ke filter aur reports isi se bante hain" />
+              <BrandField value={c.brandId} onChange={(brandId) => ctx.setCore({ brandId })} hint="Marzi hai — brand se dhoondna aur report aasaan" />
               <CodeFields name={c.name} sku={c.sku} barcode={c.barcode} prefix={core.skuPrefix} onSku={(sku) => ctx.setCore({ sku })} onBarcode={(barcode) => ctx.setCore({ barcode })} />
             </div>
           </Section>
@@ -52,6 +55,7 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
                 <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Details</span>
                 <textarea value={c.description} onChange={(e) => ctx.setCore({ description: e.target.value })} rows={3} placeholder="Size, flavour, kis kaam aati hai…"
                   className={cn(inputClass, 'h-auto py-2.5')} />
+                <span className="mt-1.5 block text-xs text-slate-500">Marzi hai — online store aur product ke safhe par dikhti hai</span>
               </label>
               <TagsField value={c.tagIds} onChange={(tagIds) => ctx.setCore({ tagIds })} />
               <div className="grid gap-2 sm:grid-cols-2">
@@ -75,19 +79,29 @@ const PACK_PRESETS: Array<{ name: string; rate: number; type: UnitDraft['convers
   { name: 'Dabba (24)', rate: 24, type: 'BOX' }, { name: 'Carton', rate: 120, type: 'CARTON' }, { name: 'Bori (50)', rate: 50, type: 'CUSTOM' },
 ];
 
+/** Switch for saved packs and variants: they are turned off, never deleted. */
+function OnOff({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button type="button" onClick={() => onChange(!on)} title={on ? 'Band karein — POS par nahi aayega, history rahegi' : 'Chalu karein'}
+      className={cn('inline-flex h-9 shrink-0 items-center rounded-lg px-2.5 text-[0.75rem] font-semibold ring-1', on ? 'bg-success-50 text-success-700 ring-success-200' : 'bg-slate-100 text-slate-500 ring-slate-200')}>
+      {on ? 'Chalu' : 'Band'}
+    </button>
+  );
+}
+
 function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
   const c = ctx.draft.core;
   const units = c.units;
   const set = (units: UnitDraft[]) => ctx.setCore({ units });
-  const base = (): UnitDraft => ({ unitName: c.unit, conversionType: 'BASE', conversionRate: 1, isBase: true, price: c.price, costPrice: c.costPrice, wholesalePrice: c.wholesalePrice, mrpPrice: null, barcode: '', sku: '' });
+  const base = (): UnitDraft => ({ unitName: c.unit, conversionType: 'BASE', conversionRate: 1, isBase: true, price: c.price, costPrice: c.costPrice, wholesalePrice: c.wholesalePrice, mrpPrice: null, barcode: '', sku: '', isActive: true });
   const add = (name: string, rate: number, type: UnitDraft['conversionType']) => {
     const list = units.length ? units : [base()];
-    set([...list, { unitName: name, conversionType: type, conversionRate: rate, isBase: false, price: Math.round(c.price * rate), costPrice: Math.round(c.costPrice * rate), wholesalePrice: c.wholesalePrice ? Math.round(c.wholesalePrice * rate) : null, mrpPrice: null, barcode: '', sku: '' }]);
+    set([...list, { unitName: name, conversionType: type, conversionRate: rate, isBase: false, price: Math.round(c.price * rate), costPrice: Math.round(c.costPrice * rate), wholesalePrice: c.wholesalePrice ? Math.round(c.wholesalePrice * rate) : null, mrpPrice: null, barcode: '', sku: '', isActive: true }]);
   };
   const update = (i: number, patch: Partial<UnitDraft>) => set(units.map((u, x) => (x === i ? { ...u, ...patch } : u)));
   return (
-    <Section icon={Boxes} title="Packing (darjan, dabba, carton)" hint="Ek cheez kai tarah bikti ho to — POS par har packing ka apna rate aur barcode"
-      actions={units.length > 0 ? <button type="button" onClick={() => set([])} className="text-[0.75rem] font-semibold text-rose-700 hover:underline">Sab hatayein</button> : undefined}>
+    <Section icon={Boxes} title="Packing (darjan, dabba, carton)" hint="Ek cheez kai tarah bikti ho to — POS par har packing ka apna rate aur barcode. Save hui packing band hoti hai, mitti nahi."
+      actions={units.length > 0 && units.every((u) => !u.id) ? <button type="button" onClick={() => set([])} className="text-[0.75rem] font-semibold text-rose-700 hover:underline">Sab hatayein</button> : undefined}>
       <div className="flex flex-wrap gap-1.5">
         {PACK_PRESETS.filter((p) => !units.some((u) => u.unitName === p.name)).map((p) => (
           <button key={p.name} type="button" onClick={() => add(p.name, p.rate, p.type)} className="inline-flex h-8 items-center gap-1 rounded-full bg-slate-100 px-3 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-200">
@@ -102,7 +116,7 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
             const perPiece = u.conversionRate ? u.price / u.conversionRate : 0;
             const saving = c.price > 0 && !u.isBase ? ((c.price - perPiece) / c.price) * 100 : 0;
             return (
-              <div key={u.id ?? i} className={cn('rounded-xl border p-3', u.isBase ? 'border-brand-200 bg-brand-50/40' : 'border-slate-200')}>
+              <div key={u.id ?? i} className={cn('rounded-xl border p-3', u.isBase ? 'border-brand-200 bg-brand-50/40' : 'border-slate-200', !u.isActive && 'opacity-60')}>
                 <div className="grid gap-2 sm:grid-cols-[1.4fr_0.8fr_1fr_1fr_1fr_auto] sm:items-end">
                   <label className="text-[0.75rem] font-medium text-slate-500">Naam
                     <input value={u.unitName} disabled={u.isBase} onChange={(e) => update(i, { unitName: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} />
@@ -119,9 +133,9 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
                   <label className="text-[0.75rem] font-medium text-slate-500">Barcode
                     <input value={u.barcode} onChange={(e) => update(i, { barcode: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} />
                   </label>
-                  {!u.isBase ? (
-                    <button type="button" onClick={() => set(units.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
-                  ) : <span className="hidden h-10 w-10 sm:block" />}
+                  {u.isBase ? <span className="hidden h-10 w-10 sm:block" />
+                    : u.id ? <OnOff on={u.isActive} onChange={(isActive) => update(i, { isActive })} />
+                      : <button type="button" onClick={() => set(units.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
                 </div>
                 {!u.isBase && (
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
@@ -167,8 +181,10 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
             <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
               <div className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <NumberField label="Khareed (cost)" prefix="Rs" value={c.costPrice} onChange={(v) => ctx.setCore({ costPrice: v ?? 0 })} allowEmpty error={ctx.errors.costPrice} />
-                  <NumberField label="Bechne ki qeemat" prefix="Rs" required big value={c.price} onChange={(v) => ctx.setCore({ price: v ?? 0 })} onBlur={() => ctx.touch('price')} allowEmpty error={ctx.errors.price} />
+                  <NumberField label="Cost" prefix="Rs" value={c.costPrice} onChange={(v) => ctx.setCore({ costPrice: v ?? 0 })} allowEmpty error={ctx.errors.costPrice}
+                    hint="Ek unit kitne ki aati hai — profit isi se banta hai" />
+                  <NumberField label="Bechne ki qeemat" prefix="Rs" required big value={c.price} onChange={(v) => ctx.setCore({ price: v ?? 0 })} onBlur={() => ctx.touch('price')} allowEmpty error={ctx.errors.price}
+                    hint="POS par isi rate se bikegi" />
                 </div>
                 {c.costPrice > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
@@ -224,17 +240,20 @@ function VariantsEditor<X>({ ctx, presets }: { ctx: StepContext<X>; presets: Arr
             </tr></thead>
             <tbody className="divide-y divide-slate-100">
               {c.variants.map((v, i) => (
-                <tr key={v.id ?? i}>
+                <tr key={v.id ?? i} className={cn(!v.isActive && 'opacity-60')}>
                   <td className="px-3 py-1.5"><input value={v.name} onChange={(e) => update(i, { name: e.target.value })} className={cn(inputClass, 'h-9 text-[0.8125rem]')} /></td>
                   <td className="px-2 py-1.5">
-                    {v.id ? <span className="block w-20 text-center tabular-nums text-slate-600" title="Stock badalne ke liye Maal page par Stock">{fmt(v.stock)}</span>
+                    {v.id ? <span className="block w-20 text-center tabular-nums text-slate-600" title="Stock Adjustment ya Purchase se badlega">{fmt(v.stock)}</span>
                       : <input inputMode="decimal" value={v.stock || ''} placeholder="0" onChange={(e) => update(i, { stock: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'h-9 w-20 text-[0.8125rem] tabular-nums')} />}
                   </td>
                   <td className="px-2 py-1.5"><input inputMode="decimal" value={v.price ?? ''} placeholder={String(c.price || '')} onChange={(e) => update(i, { price: e.target.value === '' ? null : Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'h-9 w-24 text-[0.8125rem] tabular-nums')} /></td>
                   <td className="px-2 py-1.5"><input value={v.sku} onChange={(e) => update(i, { sku: e.target.value })} className={cn(inputClass, 'h-9 w-28 text-[0.8125rem]')} /></td>
                   <td className="px-2 py-1.5"><input value={v.barcode} onChange={(e) => update(i, { barcode: e.target.value })} className={cn(inputClass, 'h-9 w-32 text-[0.8125rem]')} /></td>
                   <td className="px-2 py-1.5"><input type="color" value={v.colorHex || '#94a3b8'} onChange={(e) => update(i, { colorHex: e.target.value })} className="h-9 w-10 cursor-pointer rounded-lg border border-slate-200 bg-white p-1" aria-label="Rang" /></td>
-                  <td className="px-2 py-1.5"><button type="button" onClick={() => set(c.variants.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></td>
+                  <td className="px-2 py-1.5">
+                    {v.id ? <OnOff on={v.isActive} onChange={(isActive) => update(i, { isActive })} />
+                      : <button type="button" onClick={() => set(c.variants.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -265,12 +284,35 @@ function BatchesEditor<X>({ ctx }: { ctx: StepContext<X> }) {
                 : <input inputMode="decimal" value={b.quantity || ''} onChange={(e) => update(i, { quantity: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />}
             </label>
             <label className="text-[0.75rem] font-medium text-slate-500">Cost<input inputMode="decimal" value={b.costPrice || ''} onChange={(e) => update(i, { costPrice: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} /></label>
-            <button type="button" onClick={() => set(c.batches.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+            {b.id ? <span className="hidden h-10 w-10 sm:block" />
+              : <button type="button" onClick={() => set(c.batches.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
           </div>
         );
       })}
-      <button type="button" onClick={() => set([...c.batches, { batchNumber: `B-${String(c.batches.length + 1).padStart(3, '0')}`, manufactureDate: '', expiryDate: '', quantity: 0, costPrice: c.costPrice, notes: '' }])}
-        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />Batch jorein</button>
+      {ctx.isEdit ? (
+        <p className="text-[0.75rem] text-slate-500">{c.batches.length ? 'Batch number, date aur cost yahan theek kar sakte hain. ' : ''}Naya batch Purchase ke saath aata hai — wahan batch number aur expiry likhein.</p>
+      ) : (
+        <button type="button" onClick={() => set([...c.batches, { batchNumber: `B-${String(c.batches.length + 1).padStart(3, '0')}`, manufactureDate: '', expiryDate: '', quantity: 0, costPrice: c.costPrice, notes: '' }])}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />Batch jorein</button>
+      )}
+    </div>
+  );
+}
+
+/** Read-only stock on edit, with the ways to change it. */
+function StockLocked({ stock, unit, productId }: { stock: number; unit: string; productId?: string }) {
+  const canAdjust = usePermission(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE);
+  const canBuy = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const link = 'inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.75rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50';
+  return (
+    <div className="rounded-2xl bg-slate-50 p-4">
+      <p className="text-[0.75rem] font-medium text-slate-500">Is branch mein</p>
+      <p className="text-[1.75rem] font-bold tabular-nums text-slate-900">{fmt(stock)} <span className="text-[0.875rem] font-medium text-slate-500">{unit}</span></p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {canAdjust && <Link to="/stock-adjustments" className={link}><ClipboardList className="h-3.5 w-3.5" />Adjustments</Link>}
+        {canBuy && <Link to="/purchases/new" className={link}><Plus className="h-3.5 w-3.5" />Purchase</Link>}
+      </div>
+      {productId && canAdjust && <p className="mt-2 text-[0.75rem] text-slate-500">Ya product ke safhe par "Stock" button dabayein.</p>}
     </div>
   );
 }
@@ -299,34 +341,44 @@ export function stockStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; title?:
       const batchErr = Object.entries(ctx.errors).find(([k]) => k.startsWith('batch'))?.[1];
       return (
         <div className="space-y-4">
-          <Section icon={Layers} title={ctx.isEdit ? 'Abhi ka stock' : 'Shuru ka stock'}
-            hint={ctx.isEdit ? 'Stock yahan nahi badalta — Maal page par "Stock" button se badlein, taake record bane' : 'Abhi shelf par kitna hai'}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {ctx.isEdit || !simple ? (
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-[0.75rem] font-medium text-slate-500">{ctx.isEdit ? 'Abhi' : 'Variants / batches se'}</p>
-                  <p className="text-[1.75rem] font-bold tabular-nums text-slate-900">{fmt(ctx.isEdit ? c.stock : openingStock(c))} <span className="text-[0.875rem] font-medium text-slate-500">{c.unit}</span></p>
-                </div>
-              ) : (
-                <div>
-                  <NumberField label={`Kitna ${c.unit}`} big value={c.stock} allowEmpty onChange={(v) => ctx.setCore({ stock: v ?? 0 })} />
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {quick.map((q) => <button key={q} type="button" onClick={() => ctx.setCore({ stock: (Number(c.stock) || 0) + q })} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200">+{q}</button>)}
-                    {c.stock > 0 && <button type="button" onClick={() => ctx.setCore({ stock: 0 })} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-rose-700 hover:bg-rose-50">Saaf</button>}
+          {ctx.isEdit ? (
+            <Section icon={Lock} title="Abhi ka stock" hint="Edit karne se stock nahi badalta — Adjustment ya Purchase se badlein, taake har badlao ka record rahe">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <StockLocked stock={c.stock} unit={c.unit} productId={ctx.productId} />
+                <NumberField label="Kam stock ki had" value={c.lowStockAlert} allowEmpty onChange={(v) => ctx.setCore({ lowStockAlert: v ?? 0 })} error={ctx.errors.lowStockAlert}
+                  hint={`Itna ya kam bachne par "Kam" ki patti lagegi`} suffix={c.unit} />
+              </div>
+            </Section>
+          ) : (
+            <Section icon={Layers} title="Shuru ka stock" hint="Sirf pehli dafa — baad mein stock Adjustment ya Purchase se badlega">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {!simple ? (
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <p className="text-[0.75rem] font-medium text-slate-500">Variants / batches se</p>
+                    <p className="text-[1.75rem] font-bold tabular-nums text-slate-900">{fmt(openingStock(c))} <span className="text-[0.875rem] font-medium text-slate-500">{c.unit}</span></p>
+                    <p className="text-[0.75rem] text-slate-500">Neeche har variant ya batch ka stock likhein</p>
                   </div>
-                </div>
+                ) : (
+                  <div>
+                    <NumberField label={`Kitna ${c.unit}`} big value={c.stock} allowEmpty onChange={(v) => ctx.setCore({ stock: v ?? 0 })} hint="Abhi shelf par kitna hai — khali chhorein to 0" />
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {quick.map((q) => <button key={q} type="button" onClick={() => ctx.setCore({ stock: (Number(c.stock) || 0) + q })} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200">+{q}</button>)}
+                      {c.stock > 0 && <button type="button" onClick={() => ctx.setCore({ stock: 0 })} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-rose-700 hover:bg-rose-50">Saaf</button>}
+                    </div>
+                  </div>
+                )}
+                <NumberField label="Kam stock ki had" value={c.lowStockAlert} allowEmpty onChange={(v) => ctx.setCore({ lowStockAlert: v ?? 0 })} error={ctx.errors.lowStockAlert}
+                  hint={`Itna ya kam bachne par "Kam" ki patti lagegi`} suffix={c.unit} />
+              </div>
+              {c.price > 0 && openingStock(c) > 0 && (
+                <p className="mt-3 text-[0.8125rem] text-slate-600">
+                  Is stock ki value: <strong className="tabular-nums">{formatPKR(openingStock(c) * c.costPrice)}</strong> cost · <strong className="tabular-nums">{formatPKR(openingStock(c) * c.price)}</strong> bechne par
+                </p>
               )}
-              <NumberField label="Kam hone ki had" value={c.lowStockAlert} allowEmpty onChange={(v) => ctx.setCore({ lowStockAlert: v ?? 0 })} error={ctx.errors.lowStockAlert}
-                hint={`Itna ya kam bachne par "Kam" ki patti lagegi`} suffix={c.unit} />
-            </div>
-            {!ctx.isEdit && c.price > 0 && openingStock(c) > 0 && (
-              <p className="mt-3 text-[0.8125rem] text-slate-600">
-                Is stock ki qeemat: <strong className="tabular-nums">{formatPKR(openingStock(c) * c.costPrice)}</strong> cost · <strong className="tabular-nums">{formatPKR(openingStock(c) * c.price)}</strong> bechne par
-              </p>
-            )}
-          </Section>
+            </Section>
+          )}
           {core.variants && (
-            <Section icon={Boxes} title="Variants (size, rang, flavour)" hint="Ek hi cheez ki alag qismein — har ek ka apna stock aur rate">
+            <Section icon={Boxes} title="Variants (size, rang, flavour)" hint={ctx.isEdit ? "Naye variant ka shuru ka stock record ke saath judta hai; purane variant band hote hain, mitte nahi" : "Ek hi cheez ke alag size, rang ya flavour — har ek ka apna stock aur rate"}>
               <VariantsEditor ctx={ctx} presets={core.variants.presets} />
               {ctx.errors.variants && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{ctx.errors.variants}</p>}
             </Section>

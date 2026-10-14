@@ -17,9 +17,10 @@ import { menuItemsApi } from '../api/menu-items.api';
 import { ordersApi, type OrderMode, type OrderItem } from '../api/orders.api';
 import { kotApi } from '../api/kot.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { RestaurantModifierPicker } from '@industries/restaurant/pos-extensions/RestaurantModifierPicker';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, partsForTotal } from '@modules/pos/lib/posCheckout';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 import { withManagerPin } from '@core/security/ManagerPin';
 
@@ -41,14 +42,6 @@ const TABLE_STATUS_CONFIG: Record<TableStatus, { bg: string; border: string; tex
 };
 
 type Screen = 'mode' | 'tables' | 'menu';
-
-const PAY_METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: 'CASH', label: 'Cash' },
-  { value: 'CARD', label: 'Card' },
-  { value: 'JAZZCASH', label: 'JazzCash' },
-  { value: 'EASYPAISA', label: 'Easypaisa' },
-  { value: 'BANK_TRANSFER', label: 'Bank' },
-];
 
 export default function RestaurantPosPage() {
   const navigate = useNavigate();
@@ -76,11 +69,10 @@ export default function RestaurantPosPage() {
 
   const {
     cart, setCart, customerId, setCustomerId,
-    paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
     globalDiscount, setGlobalDiscount,
     totalItems, clearCart,
   } = useSharedPosCart();
-  const [onKhata, setOnKhata] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
 
   const { data: tables = [] } = useQuery({
     queryKey: ['restaurant-tables-pos'],
@@ -135,7 +127,6 @@ export default function RestaurantPosPage() {
   const svc = cartSubtotal * (serviceChargePct / 100);
   const tax = (cartSubtotal + svc) * (taxPct / 100);
   const total = Math.max(cartSubtotal + svc + tax + deliveryFee + packagingFee + tip - (Number(globalDiscount) || 0), 0);
-  const remainingToPay = onKhata ? Number(paidAmount || 0) : total;
 
   const addMenuItemToCart = async (menuItem: any) => {
     // Any active add-on group opens the picker, so optional add-ons can be chosen too.
@@ -244,19 +235,31 @@ export default function RestaurantPosPage() {
   });
 
   const completeAndPayMutation = useMutation({
-    mutationFn: async () => {
-      if (onKhata && !customerId) throw new Error('Udhaar ke liye customer chunein');
+    mutationFn: async (d: PosCheckoutResult) => {
+      if (d.isCredit && !customerId) throw new Error('Udhaar ke liye customer chunein');
       const order = await createOrder();
       // Paying the order turns it into a bill (Sale): stock, day book, drawer and khata follow.
       try {
-        // Shop rules may ask for the owner's PIN (big discount, khata limit); the dialog asks once and retries.
-        const paid = await withManagerPin('Bill ke liye malik ka PIN', (managerPin) => ordersApi.addPayment(order.id, {
+        let paid;
+        if (d.payments?.length && !d.isCredit) {
+          // Split bill: the parts are fitted to the server's total (change comes off cash).
+          const splits = partsForTotal(d.payments, order.total).map((p) => ({ paidBy: '', amount: p.amount, paymentMethod: p.method }));
+          paid = await withManagerPin('Bill ke liye malik ka PIN', (managerPin) => ordersApi.splitBill(order.id, splits, managerPin), 'discount');
+        } else {
           // The server's total is the bill; the cart figure is only a preview.
-          amount: onKhata ? remainingToPay : order.total,
-          paymentMethod,
-          ...(onKhata && { closeOnCredit: true, customerId }),
-          ...(managerPin && { managerPin }),
-        }), onKhata ? 'credit' : 'discount');
+          const list = d.payments?.length ? d.payments : [{ method: d.paymentMethod, amount: d.isCredit ? d.paidAmount : order.total }];
+          // A part-paid split: earlier parts are recorded on the order, the last one closes it on khata.
+          for (const p of list.slice(0, -1)) await ordersApi.addPayment(order.id, { amount: p.amount, paymentMethod: p.method });
+          const last = list[list.length - 1];
+          // Shop rules may ask for the owner's PIN (big discount, khata limit); the dialog asks once and retries.
+          paid = await withManagerPin('Bill ke liye malik ka PIN', (managerPin) => ordersApi.addPayment(order.id, {
+            amount: last.amount,
+            paymentMethod: last.method,
+            ...(d.isCredit && { closeOnCredit: true, customerId }),
+            ...(managerPin && { managerPin }),
+          }), d.isCredit ? 'credit' : 'discount');
+        }
+        await keepAdvance(d, order.total, customerId || undefined, order.orderNumber);
         return paid;
       } catch (e) {
         // The order stays open so the bill can be taken from the order page.
@@ -267,8 +270,8 @@ export default function RestaurantPosPage() {
     onSuccess: (order) => {
       if (order.saleId) window.open(`/sales/${order.saleId}/receipt?auto=1`, '_blank');
       toast.success(`Bill ban gaya — ${order.orderNumber}`);
+      setPayOpen(false);
       clearCart();
-      setOnKhata(false);
       resetFlow();
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Payment nahi hui'),
@@ -516,6 +519,14 @@ export default function RestaurantPosPage() {
   // ─── SCREEN C: Menu + Cart ────────────────────────
   return (
     <div className="grid xl:grid-cols-[1fr_460px] gap-4 h-[calc(100dvh-7rem)]">
+      {payOpen && (() => {
+        const customer = customers.find((c: any) => c.id === customerId);
+        return (
+          <PosCheckoutModal total={total} itemCount={cart.length} loading={completeAndPayMutation.isPending} initMode="full"
+            customerName={customer?.name} customerBalance={Number(customer?.balance || 0)} hasCustomer={!!customerId}
+            onConfirm={(d) => completeAndPayMutation.mutate(d)} onClose={() => setPayOpen(false)} />
+        );
+      })()}
       {modifierPickerItem && (
         <RestaurantModifierPicker
           productId={modifierPickerItem.productId}
@@ -758,31 +769,11 @@ export default function RestaurantPosPage() {
                 className="h-9 rounded-lg border border-slate-200 bg-white px-2 font-bold tabular-nums" />
             </div>
 
-            <div className="space-y-2">
-              <div className="grid grid-cols-5 gap-1">
-                {PAY_METHODS.map((m) => (
-                  <button key={m.value} type="button" onClick={() => setPaymentMethod(m.value)}
-                    className={'h-8 rounded-lg border text-[0.6875rem] font-extrabold ' + (paymentMethod === m.value ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600')}>
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-              <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
-                <select value={customerId} onChange={(e) => { setCustomerId(e.target.value); if (!e.target.value) setOnKhata(false); }}
-                  className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-bold">
-                  <option value="">Customer (zaroori nahi)</option>
-                  {customers.map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ''}</option>)}
-                </select>
-                <label className={'inline-flex items-center gap-1 text-xs font-extrabold ' + (customerId ? 'text-slate-700' : 'text-slate-400')}>
-                  <input type="checkbox" disabled={!customerId} checked={onKhata} onChange={(e) => setOnKhata(e.target.checked)} />
-                  Udhaar
-                </label>
-              </div>
-              {onKhata && (
-                <input type="number" placeholder="Abhi kitne diye (baqi khate me)" value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)}
-                  className="h-9 w-full rounded-lg border border-amber-300 bg-amber-50 px-2 text-xs font-bold tabular-nums" />
-              )}
-            </div>
+            <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-bold">
+              <option value="">Customer (udhaar ke liye zaroori)</option>
+              {customers.map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ''}</option>)}
+            </select>
 
             <div className="rounded-xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-3 space-y-1 text-xs">
               <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(cartSubtotal)}</span></div>
@@ -819,7 +810,7 @@ export default function RestaurantPosPage() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-emerald-600 to-emerald-700"
-                onClick={() => completeAndPayMutation.mutate()}
+                onClick={() => { if (!cart.length) { toast.error('Cart khaali hai'); return; } setPayOpen(true); }}
                 loading={completeAndPayMutation.isPending}
                 disabled={!currentShopId}
               >

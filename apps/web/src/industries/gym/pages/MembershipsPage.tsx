@@ -5,6 +5,8 @@ import {
   Snowflake, Play, Ban, RotateCw, CheckCircle2, AlertCircle, Search,
 } from 'lucide-react';
 import { membershipsApi } from '../api/memberships.api';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { membershipPlansApi } from '../api/membership-plans.api';
 import { gymMembersApi } from '../api/members.api';
 import { formatPKR } from '@core/lib/format';
@@ -24,6 +26,7 @@ export default function MembershipsPage() {
   const [showForm, setShowForm] = useState(false);
   const [paying, setPaying] = useState<any>(null);
   const [freezing, setFreezing] = useState<any>(null);
+  const [renewing, setRenewing] = useState<any>(null);
 
   const { data: memberships = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['memberships-list', statusFilter, expiringFilter],
@@ -48,12 +51,6 @@ export default function MembershipsPage() {
     mutationFn: ({ id, reason }: any) => membershipsApi.cancel(id, reason),
     onSuccess: () => { toast.success('Cancel ho gayi'); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Cancel nahi hui'),
-  });
-
-  const renewMutation = useMutation({
-    mutationFn: ({ id, paidAmount }: any) => membershipsApi.renew(id, paidAmount),
-    onSuccess: () => { toast.success('Renew ho gayi'); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Renew nahi hui'),
   });
 
   return (
@@ -111,6 +108,15 @@ export default function MembershipsPage() {
           membership={paying}
           onClose={() => setPaying(null)}
           onDone={() => { setPaying(null); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); }}
+        />
+      )}
+
+      {renewing && (
+        <PaymentModal
+          renew
+          membership={renewing}
+          onClose={() => setRenewing(null)}
+          onDone={() => { setRenewing(null); queryClient.invalidateQueries({ queryKey: ['memberships-list'] }); }}
         />
       )}
 
@@ -224,10 +230,7 @@ export default function MembershipsPage() {
                     </button>
                   )}
                   {['ACTIVE', 'EXPIRED'].includes(m.status) && (
-                    <button onClick={() => {
-                      const paid = prompt('Paid amount for renewal?', String(m.plan?.price || 0));
-                      if (paid !== null) renewMutation.mutate({ id: m.id, paidAmount: Number(paid) });
-                    }} className="flex-1 min-w-[100px] h-9 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
+                    <button onClick={() => setRenewing(m)} className="flex-1 min-w-[100px] h-9 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
                       <RotateCw className="h-3 w-3" />
                       Renew
                     </button>
@@ -256,6 +259,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
     planId: '',
     startDate: new Date().toISOString().split('T')[0],
     paidAmount: 0,
+    paymentMethod: 'CASH',
     autoRenew: false,
     notes: '',
   });
@@ -283,6 +287,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
       planId: form.planId,
       startDate: form.startDate,
       paidAmount: Number(form.paidAmount) || 0,
+      paymentMethod: form.paymentMethod,
       autoRenew: form.autoRenew,
       notes: form.notes || undefined,
     }),
@@ -371,6 +376,10 @@ function SubscribeForm({ onClose, onSaved }: any) {
           </div>
         </div>
 
+        {Number(form.paidAmount) > 0 && (
+          <PaymentMethodPicker value={form.paymentMethod} onChange={(m) => setForm({ ...form, paymentMethod: m })} />
+        )}
+
         <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-blue-200 bg-blue-50 dark:bg-blue-950/30 cursor-pointer">
           <input type="checkbox" checked={form.autoRenew} onChange={(e) => setForm({ ...form, autoRenew: e.target.checked })} className="h-4 w-4 rounded" />
           <RotateCw className={'h-4 w-4 ' + (form.autoRenew ? 'text-blue-600' : 'text-slate-400')} />
@@ -391,32 +400,41 @@ function SubscribeForm({ onClose, onSaved }: any) {
   );
 }
 
-function PaymentModal({ membership, onClose, onDone }: any) {
-  const [amount, setAmount] = useState(membership.balanceDue);
+/** Fee payment on a membership, or the first payment of its renewal (`renew`). */
+function PaymentModal({ membership, renew, onClose, onDone }: any) {
+  const [amount, setAmount] = useState<number>(renew ? Number(membership.plan?.price || 0) : membership.balanceDue);
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
 
   const payMutation = useMutation({
-    mutationFn: () => membershipsApi.payment(membership.id, Number(amount)),
-    onSuccess: () => { toast.success('Payment added'); onDone(); },
+    mutationFn: () => (renew
+      ? membershipsApi.renew(membership.id, Number(amount), method)
+      : membershipsApi.payment(membership.id, Number(amount), method)),
+    onSuccess: () => { toast.success(renew ? 'Renew ho gayi' : 'Payment add ho gayi'); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || (renew ? 'Renew nahi hui' : 'Payment nahi hui')),
   });
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">Add Payment</h3>
+          <h3 className="font-extrabold">{renew ? 'Membership renew' : 'Add Payment'}</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="p-5 space-y-3">
-          <div className="text-xs font-bold text-slate-500">{membership.membershipNumber} • Balance: {formatPKR(membership.balanceDue)}</div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
-            <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+          <div className="text-xs font-bold text-slate-500">
+            {membership.membershipNumber} • {renew ? `Plan fee: ${formatPKR(membership.plan?.price || 0)}` : `Balance: ${formatPKR(membership.balanceDue)}`}
           </div>
+          <div>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">{renew ? 'Abhi kitne mile' : 'Amount *'}</label>
+            <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+            <p className="mt-1 text-[0.6875rem] text-slate-500">{renew ? 'Jo baqi rahe wo member ke khate me udhaar jata hai.' : 'Is membership ka udhaar is se kam hota hai.'}</p>
+          </div>
+          {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
+            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={renew ? amount < 0 : amount <= 0}>
               <CheckCircle2 className="h-4 w-4" />
               Confirm
             </Button>

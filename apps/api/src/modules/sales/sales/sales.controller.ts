@@ -7,6 +7,7 @@ import { CurrentShop, ShopIdParam, ShopScope } from '../../../common/shop-scope'
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { SalesService } from './sales.service';
 import { SalesHistoryService, type SalesHistoryQuery } from './sales-history.service';
+import { SaleBatchesService } from './sale-batches.service';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
@@ -16,6 +17,7 @@ export class SalesController {
   constructor(
     private readonly salesService: SalesService,
     private readonly history: SalesHistoryService,
+    private readonly batches: SaleBatchesService,
   ) {}
 
   @Post()
@@ -73,6 +75,23 @@ export class SalesController {
     @Query('customerId') customerId: string,
   ) {
     return this.salesService.recentReceivers(user, customerId);
+  }
+
+  /** Products with batches in stock in the selling branch. Before `:id`. */
+  @Get('batches/products')
+  batchedProducts(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('shopId') shopId?: string) {
+    return this.batches.batchedProducts(user, shop, shopId);
+  }
+
+  /** Batches in stock of the given products (`productIds=a,b`), in the order a sale uses them. Before `:id`. */
+  @Get('batches')
+  sellableBatches(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Query('productIds') productIds: string,
+    @Query('shopId') shopId?: string,
+  ) {
+    return this.batches.forProducts(user, shop, productIds, shopId);
   }
 
   @Get(':id')

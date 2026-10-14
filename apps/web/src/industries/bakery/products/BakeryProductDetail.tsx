@@ -6,10 +6,12 @@
 
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { CakeSlice, Clock, Leaf, Snowflake, Wheat } from 'lucide-react';
+import { CakeSlice, ChefHat, Clock, Leaf, Snowflake, Wheat } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { ProductDetailPage, type DetailConfig } from '@modules/inventory/products/detail/ProductDetailPage';
 import { bakeryProductsApi } from '../api/products.api';
@@ -43,8 +45,24 @@ function recipeOf(extra?: Extra) {
 const kindOf = (productType: unknown, profile: Record<string, any> | null) =>
   productType === 'MADE' || productType === 'BOUGHT' ? productType : profile?.isCustomizable || profile?.isCakeCustomizable || profile?.ingredients?.lines?.length ? 'MADE' : 'BOUGHT';
 
+/** Raw material and production pages, for those allowed to open them. */
+function RecipeLinks() {
+  const raw = usePermission(PERMISSIONS.BAKERY_INGREDIENTS_VIEW);
+  const make = usePermission(PERMISSIONS.BAKERY_PRODUCTION_VIEW);
+  return (
+    <div className="mt-2 flex flex-wrap gap-3">
+      {raw && <Link to="/bakery/ingredients" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Raw material →</Link>}
+      {make && <Link to="/bakery/production" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><ChefHat className="h-3.5 w-3.5" />Production →</Link>}
+    </div>
+  );
+}
+
 const config: DetailConfig<Extra> = {
   label: 'Bakery',
+  guide: [
+    { icon: Wheat, color: '#a16207', title: 'Recipe', text: 'Recipe tab aaj ke raw material rate se cost aur godown ke maal se kitne ban sakte hain dikhata hai.' },
+    { icon: Clock, color: '#ea580c', title: 'Freshness', text: 'Har banaye hue batch ka hisaab — kitna bika, kitna waste. Purana maal pehle bechein.' },
+  ],
   paths: { list: '/products', edit: (id) => `/bakery-products/${id}/edit` },
   stockChips: [1, 6, 12, 24, 50],
   extra: {
@@ -154,7 +172,7 @@ const config: DetailConfig<Extra> = {
                   <>
                     <p className="text-[1.5rem] font-bold tabular-nums">{fmt(r.canMake)} <span className="text-[0.8125rem] font-medium text-slate-500">{ctx.product.unit}</span></p>
                     {r.limiting && <p className="text-[0.8125rem] text-amber-800">Sab se pehle <strong>{r.limiting.name}</strong> khatam hoga</p>}
-                    <Link to="/bakery/ingredients" className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Raw material →</Link>
+                    <RecipeLinks />
                   </>
                 )}
               </Card>

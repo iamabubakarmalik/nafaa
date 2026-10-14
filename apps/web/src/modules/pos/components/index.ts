@@ -26,3 +26,5 @@ export {
   type PosBadge, type PosBadgeTone,
 } from './PosTiles';
 export type { PosCheckoutResult } from './PosCheckoutModal';
+export { PaymentMethodPicker } from './PaymentMethodPicker';
+export { TakePaymentModal } from './TakePaymentModal';

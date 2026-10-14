@@ -12,13 +12,14 @@ import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { withManagerPin } from '@core/security/ManagerPin';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { partProfilesApi, type PartCategory } from '../api/part-profiles.api';
 import { customerVehiclesApi } from '../api/customer-vehicles.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const PART_CATEGORIES: { value: PartCategory | 'all'; label: string; emoji: string }[] = [
@@ -49,10 +50,10 @@ export default function AutoPartsPosPage() {
 
   const {
     cart, setCart, customerId, setCustomerId,
-    paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
-    saleMode, setSaleMode, globalDiscount, setGlobalDiscount,
-    subtotal, total, totalItems, effectivePaid, credit, clearCart,
+    globalDiscount, setGlobalDiscount,
+    subtotal, total, totalItems, clearCart,
   } = useSharedPosCart();
+  const [payOpen, setPayOpen] = useState(false);
 
   // Load parts with fitment info
   const { data: parts = [] } = useQuery({
@@ -146,7 +147,7 @@ export default function AutoPartsPosPage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (d: PosCheckoutResult) => {
       if (!currentShopId) throw new Error('Shop required');
       // The bill has no vehicle column; each line keeps it in its team-only note.
       const vehicle = (customerVehicles as any[]).find((v) => v.id === selectedVehicleId);
@@ -158,8 +159,7 @@ export default function AutoPartsPosPage() {
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
-        paymentMethod,
-        paidAmount: effectivePaid,
+        ...salePayment(d, total),
         discount: Number(globalDiscount) || 0,
         items: cart.map((c) => ({
           productId: c.productId,
@@ -172,7 +172,9 @@ export default function AutoPartsPosPage() {
         })),
       }));
     },
-    onSuccess: (sale) => {
+    onSuccess: (sale, d) => {
+      void keepAdvance(d, total, customerId || undefined, sale.saleNumber);
+      setPayOpen(false);
       window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
       clearCart();
       setSelectedVehicleId('');
@@ -184,12 +186,19 @@ export default function AutoPartsPosPage() {
   const handleCheckout = () => {
     if (cart.length === 0) return toast.error('Cart empty');
     if (!currentShopId) return toast.error('Select shop first');
-    if (credit > 0 && !customerId) return toast.error('Customer required for credit');
-    checkoutMutation.mutate();
+    setPayOpen(true);
   };
 
   return (
     <>
+      {payOpen && (() => {
+        const customer = customers.find((c) => c.id === customerId);
+        return (
+          <PosCheckoutModal total={total} itemCount={cart.length} loading={checkoutMutation.isPending} initMode="full"
+            customerName={customer?.name} customerBalance={Number(customer?.balance || 0)} hasCustomer={!!customerId}
+            onConfirm={(d) => checkoutMutation.mutate(d)} onClose={() => setPayOpen(false)} />
+        );
+      })()}
       {scannerOpen && <BarcodeScanner onDetected={handleBarcodeScan} onClose={() => setScannerOpen(false)} />}
 
       {showCustomerAdd && (
@@ -463,32 +472,8 @@ export default function AutoPartsPosPage() {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <input type="number" placeholder="Discount" value={globalDiscount} onChange={(e) => setGlobalDiscount(e.target.value)}
                   className="h-9 rounded-lg border border-slate-200 bg-white px-2 font-bold tabular-nums" />
-                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                  className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-bold">
-                  <option value="CASH">Cash</option>
-                  <option value="CARD">Card</option>
-                  <option value="JAZZCASH">JazzCash</option>
-                  <option value="EASYPAISA">EasyPaisa</option>
-                  <option value="BANK_TRANSFER">Bank</option>
-                </select>
               </div>
 
-              <div className="grid grid-cols-3 gap-1">
-                {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
-                  <button key={m} onClick={() => setSaleMode(m)}
-                    className={[
-                      'py-2 rounded-lg text-[0.6875rem] font-extrabold transition',
-                      saleMode === m ? 'bg-slate-800 text-white shadow' : 'bg-white border border-slate-200 text-slate-700',
-                    ].join(' ')}>
-                    {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}
-                  </button>
-                ))}
-              </div>
-
-              {saleMode === 'PARTIAL_CREDIT' && (
-                <input type="number" placeholder="Paid amount" value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)}
-                  className="h-10 w-full rounded-lg border-2 border-amber-300 bg-amber-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-              )}
 
               <div className="rounded-xl bg-gradient-to-br from-slate-950 to-slate-800 text-white p-3 space-y-1 text-xs">
                 <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(subtotal)}</span></div>
@@ -498,12 +483,6 @@ export default function AutoPartsPosPage() {
                   <FbrModeIndicator saleTotal={total} className="mb-2" />
                   <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
                 </div>
-                {credit > 0 && (
-                  <div className="flex justify-between text-amber-300 pt-1 border-t border-white/20 mt-1">
-                    <span className="font-extrabold">Udhaar</span>
-                    <span className="font-extrabold tabular-nums">{formatPKR(credit)}</span>
-                  </div>
-                )}
               </div>
 
               <div className="grid grid-cols-2 gap-2">

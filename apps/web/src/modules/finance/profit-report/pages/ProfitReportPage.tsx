@@ -35,7 +35,7 @@ import { teamApi } from '@modules/organization/team/api/team.api';
 import { PROFIT_KEY, profitApi, type ProfitFilters, type ProfitSort, type ProfitView } from '../api';
 import { useProfitConfig, type ProfitFmt } from '../config';
 import { DayTable, DimTable } from '../components/DimTable';
-import { ProductHeader, ProductRow } from '../components/ProductRows';
+import { ProductHeader, ProductRow, ProductTotals } from '../components/ProductRows';
 import { NetCard, ProfitAnalytics } from '../components/ProfitAnalytics';
 import { COST_SORTS, SORTS, VIEWS, change, changeText, pct } from '../components/meta';
 import { profitCsv, profitDoc } from '../components/print';
@@ -272,6 +272,8 @@ export default function ProfitReportPage() {
           <ul className="divide-y divide-slate-100">
             {itemsQ.data.items.map((r) => <ProductRow key={r.key} r={r} fmt={fmt} />)}
           </ul>
+          {/* Totals only add up for the full list, not a filtered one. */}
+          {t && !filtered && <ProductTotals totals={t} fmt={fmt} />}
         </section>
       )}
 
@@ -289,7 +291,7 @@ export default function ProfitReportPage() {
             { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: '"Date" se aaj, 7 din, is mahine ya apni date. Har number ke saath pichhli utni hi period ka muqabla hai.' },
             { icon: Wallet, color: '#16a34a', title: 'Asal sale aur profit', text: 'Asal sale = list rate − discount − return. Profit = asal sale − maal ki cost. Cost wohi jo bill bante waqt us cheez ki thi.' },
             { icon: Scale, color: '#d97706', title: 'Net profit', text: 'Gross profit me se expenses aur kharab / gum maal (stock adjustment) nikaal kar asal bachat. "Din war" aur "Analytics" me poora hisaab.' },
-            { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal bikri = bill − wapsi (void bill nahi gine jate). Lagat = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net munafa = munafa − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Munafa report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain.' },
+            { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal sale = bill − return (void bill nahi gine jate). Bill par lage service charges (delivery, fitting) bhi sale me judte hain — cheezon ki list ke neeche alag dikhte hain. Cost = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Expenses sirf jo ada ho chuke (pending nahi). Net profit = profit − expenses − kharab, gum ya ginti me kam maal. Return us bill ke din me ginta hai jis ka maal tha. Reports, Profit report, P&L aur Dashboard sab yahi hisaab lagate hain.' },
             { icon: Flame, color: '#e11d48', title: 'Nuqsan aur discount', text: 'Upar ke dabbe dabayein: Discount wali, Return wali, Nuqsan wali cheezein. Sirf wohi list me aa jati hain.' },
             { icon: Layers, color: '#7c3aed', title: 'Kis cheez se kamai', text: 'Tabs: Category, Brand, Supplier, Staff, Din war. Category, brand ya staff par click karein to us ka filter lag jata hai.' },
             { icon: ListChecks, color: '#0891b2', title: 'Variant aur export', text: 'Jis cheez ke variant hon us ke teer par click karein — har size / rang ka profit. CSV aur Print/PDF me poori list.' },

@@ -291,6 +291,8 @@ export class ServiceRequestsService {
   }
 
   async complete(user: AuthenticatedUser, id: string, dto: CompleteServiceDto) {
+    // The payment method goes on the bill, not on the request.
+    const { paymentMethod, ...fields } = dto;
     const r = await this.prisma.applianceServiceRequest.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Service request nahi mila');
 
@@ -320,7 +322,7 @@ export class ServiceRequestsService {
       const updated = await tx.applianceServiceRequest.update({
         where: { id },
         data: {
-          ...dto,
+          ...fields,
           status: 'COMPLETED',
           completedAt: new Date(),
           workStartedAt: r.workStartedAt ?? new Date(),
@@ -378,7 +380,7 @@ export class ServiceRequestsService {
             // Parts are bought for the job; their price is taken as their cost.
             { label: `Service ${r.requestNumber} — ${what}: parts`, amount: partsCharge, cost: partsCharge },
           ];
-      const bill = await billJob(tx, user, job, lines, paidAmount);
+      const bill = await billJob(tx, user, job, lines, paidAmount, paymentMethod);
       if (bill?.customerId && bill.customerId !== r.customerId) {
         await tx.applianceServiceRequest.update({ where: { id }, data: { customerId: bill.customerId } });
       }
@@ -425,7 +427,7 @@ export class ServiceRequestsService {
       const customerId = await receiveJobMoney(
         tx, user,
         { number: r.requestNumber, customerId: r.customerId, customerName: r.customerName, customerPhone: r.customerPhone },
-        dto.amount, `Service ${r.requestNumber} wusooli`,
+        dto.amount, `Service ${r.requestNumber} wusooli`, dto.paymentMethod,
       );
       return tx.applianceServiceRequest.update({
         where: { id },

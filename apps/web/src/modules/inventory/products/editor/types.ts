@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import type { GuideStep } from '@core/components/PageGuide';
 
 export interface ImageDraft { id?: string; url: string }
 
@@ -17,6 +18,8 @@ export interface UnitDraft {
   mrpPrice: number | null;
   barcode: string;
   sku: string;
+  /** Saved packs are switched off, never deleted. */
+  isActive: boolean;
 }
 
 export interface VariantDraft {
@@ -30,6 +33,7 @@ export interface VariantDraft {
   costPrice: number | null;
   /** Opening stock; only for variants added in this session. */
   stock: number;
+  /** Saved variants are switched off, never deleted. */
   isActive: boolean;
 }
 
@@ -38,7 +42,7 @@ export interface BatchDraft {
   batchNumber: string;
   manufactureDate: string;
   expiryDate: string;
-  /** Opening quantity; fixed once saved (changes go through stock adjustments). */
+  /** Opening quantity; never sent again once saved (stock flows keep it). */
   quantity: number;
   costPrice: number;
   notes: string;
@@ -137,4 +141,6 @@ export interface EditorConfig<X> {
   summary?: (draft: EditorDraft<X>) => ReactNode;
   /** Query keys to refresh after save. */
   refresh?: string[];
+  /** Industry lines added to the page guide (G). */
+  guide?: GuideStep[];
 }

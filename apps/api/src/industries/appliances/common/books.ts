@@ -34,15 +34,16 @@ export function billOf(db: Db, tenantId: string, number: string) {
 /**
  * Money received for a job. Before the bill it is an advance on khata; after
  * the bill it pays the bill's udhaar. Returns the customer it was booked to.
+ * Method left out is cash.
  */
-export async function receiveJobMoney(db: Db, user: AuthenticatedUser, job: JobParty, amount: number, note: string) {
+export async function receiveJobMoney(db: Db, user: AuthenticatedUser, job: JobParty, amount: number, note: string, method?: string | null) {
   const value = r2(amount);
   if (value <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
   const shopId = await resolveIndustryShopId(db, user, null);
   const bill = await billOf(db, user.tenantId, job.number);
   const customerId = bill?.customerId
     ?? await ensureCustomer(db, user, { customerId: job.customerId, name: job.customerName, phone: job.customerPhone, shopId });
-  await recordKhataPayment(db, user, { customerId, shopId, amount: value, reference: job.number, note });
+  await recordKhataPayment(db, user, { customerId, shopId, amount: value, reference: job.number, note, method });
   return customerId;
 }
 

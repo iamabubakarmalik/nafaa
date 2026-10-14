@@ -69,7 +69,7 @@ interface AdjustmentAnalytics {
   days: number;
 }
 
-export interface CreateAdjustmentPayload {
+export interface CreateAdjustmentPayload extends AdjustmentBatchFields {
   productId: string;
   /** Branch whose stock changes; the active branch when left out. */
   shopId?: string;
@@ -85,11 +85,23 @@ export interface CreateAdjustmentPayload {
   rollAction?: RollAction;
 }
 
+/**
+ * Batch of expiry-tracked goods. Stock out: `batchId` is taken first.
+ * Stock in: added to `batchId`, or to the batch with this number and expiry
+ * (created when missing).
+ */
+export interface AdjustmentBatchFields {
+  batchId?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  manufactureDate?: string;
+}
+
 interface BatchAdjustmentPayload {
   shopId?: string;
   reason: string;
   note?: string;
-  items: Array<{
+  items: Array<AdjustmentBatchFields & {
     productId: string;
     variantId?: string;
     type: AdjustmentType;

@@ -103,19 +103,6 @@ export interface SecurityScore {
   recommendations: string[];
 }
 
-export interface Integration {
-  type: string;
-  isEnabled: boolean;
-  displayName: string;
-  hasCredentials: boolean;
-  config: Record<string, any>;
-  webhookUrl?: string;
-  notes?: string;
-  updatedAt?: string;
-  lastTestedAt?: string;
-  lastTestResult?: { success: boolean; message: string };
-}
-
 const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.data : res?.data);
 
 /** The shop's rules the POS follows; every staff member can read them. */
@@ -152,14 +139,6 @@ export const settingsApi = {
     if (params.userId) q.set('userId', params.userId);
     return apiClient.get(`/settings/security/activity-log?${q}`).then((r) => unwrap<any[]>(r));
   },
-
-  // Integrations
-  listIntegrations: () => apiClient.get('/settings/integrations').then((r) => unwrap<Integration[]>(r)),
-  getIntegration: (type: string) => apiClient.get(`/settings/integrations/${type}`).then((r) => unwrap<any>(r)),
-  upsertIntegration: (dto: any) => apiClient.patch('/settings/integrations', dto).then((r) => unwrap<any>(r)),
-  disableIntegration: (type: string) => apiClient.post(`/settings/integrations/${type}/disable`).then((r) => r.data),
-  removeIntegration: (type: string) => apiClient.delete(`/settings/integrations/${type}`).then((r) => r.data),
-  testIntegration: (type: string) => apiClient.post('/settings/integrations/test', { type }).then((r) => r.data),
 
   // Notifications
   getNotifPref: () => apiClient.get('/settings/notifications/preferences').then((r) => unwrap<any>(r)),

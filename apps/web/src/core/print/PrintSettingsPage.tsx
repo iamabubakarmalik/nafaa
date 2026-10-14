@@ -7,22 +7,20 @@
  *   Reports ka print — how reports and lists print or save as PDF: default
  *     format, colour, header and footer, thermal text size.
  * Printer connection lives on Settings → Hardware; the bill's design lives
- * on Settings → Raseed.
+ * on Settings → Receipt. The Settings frame supplies the page title; the
+ * page actions go into its header.
  */
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowRight, CheckCircle2, Copy, Download, FileText, GraduationCap, Layers, Palette, Printer, Receipt, ScrollText, Store, Unplug, Usb, Zap,
+  ArrowRight, Copy, Download, Eye, FileText, GraduationCap, Layers, Palette, Printer, Receipt, ScrollText, Store, Unplug, Usb, Zap,
 } from 'lucide-react';
-import {
-  Alert, Badge, Button, Card, Input, PageHero, PageShell, Segmented, Switch, ViewTabs, heroButton, heroIconButton,
-} from '@/design-system/components';
+import { Badge, Button, IconButton, Segmented, ViewTabs } from '@/design-system/components';
 import { useAppearance } from '@/design-system';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { HeroBack } from '@core/components/HeroBack';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -36,9 +34,11 @@ import { sampleReceipt } from '@core/receipt/sample';
 import { RECEIPT_SETUP_KEY, devicePaper, getReceiptSetup, receiptSetupApi, setDevicePaper, useReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptDesign, ReceiptPaper } from '@core/receipt/types';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
+import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
+import { ChoiceGroup, Field, SectionCard, TextInput, Toggle } from '@modules/organization/settings/components/UI';
 import { renderHtml } from './render';
 import { printDoc, renderContext } from './printDoc';
-import { usePrintSettings, FORMAT_LABEL } from './settings';
+import { usePrintSettings, type ColorMode } from './settings';
 import { useBusinessHeader } from './useBusinessHeader';
 import { DOC_KINDS, readDocPref, writeDocPref, type DocKind, type DocPref } from './docPrefs';
 import type { PrintDoc, PrintFormat } from './types';
@@ -97,9 +97,9 @@ function writePos(scope: string, key: 'auto-print' | 'printer-width', value: str
 
 export default function PrintSettingsPage() {
   const guide = usePageGuide();
+  const navigate = useNavigate();
   const hw = useHardwareSettings();
   const printer = useDeviceStatus((x) => x.printer);
-  const fmt = usePrintSettings((x) => x.format);
   const industry = useCurrentIndustry();
   const scope = posScope(industry?.id);
   const setupQ = useReceiptSetup();
@@ -137,81 +137,66 @@ export default function PrintSettingsPage() {
   };
 
   const direct = hw.printMode === 'direct';
-  const printerText = hw.printMode === 'browser' ? 'Browser print' : hw.printMode === 'desktop' ? 'Desktop app' : printer.ready ? 'Direct — jura hua' : 'Direct — jura nahi';
 
   return (
-    <PageShell>
-      <PageHero
-        title={<HeroBack to="/settings" label="Settings">Printing</HeroBack>}
-        chip={<><Printer /> Is computer ke liye</>}
-        meta="Kaunsa kaghaz, kitni copies, khud print — har parchi ke liye"
-        busy={setupQ.isFetching}
-        actions={<>
-          <button type="button" onClick={() => testBill()} title="Test bill (T)" className={heroButton}><Receipt className="h-4 w-4" /> Test bill</button>
-          <Link to="/settings/hardware" className={heroButton}><Usb className="h-4 w-4" /> Hardware</Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-        </>}
-        stats={[
-          { label: 'Bill ka kaghaz', value: PAPER_LABEL[billPaper], hint: devicePaper() ? 'is computer par' : 'dukaan ka' },
-          { label: 'POS par khud print', value: pos ? (pos.autoPrint ? 'On' : 'Off') : 'POS ki apni setting' },
-          { label: 'Bill ki copies', value: String(setup.design.copies) },
-          { label: 'Reports', value: FORMAT_LABEL[fmt] },
-          { label: 'Printer', value: printerText },
-        ]}
-      />
+    <div className="space-y-4">
+      <HeaderActions>
+        <Button size="sm" variant="secondary" title="Test bill (T)" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => testBill()}>
+          <span className="hidden sm:inline">Test bill</span>
+        </Button>
+        <Button size="sm" variant="secondary" leftIcon={<Usb className="h-4 w-4" />} onClick={() => navigate('/settings/hardware')}>
+          <span className="hidden sm:inline">Hardware</span>
+        </Button>
+        <IconButton label="Guide (G)" variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
+      </HeaderActions>
 
       <ViewTabs<Tab> value={tab} onChange={setTab}
         tabs={[{ id: 'docs', label: 'Kaghaz aur copies', icon: Layers }, { id: 'reports', label: 'Reports ka print', icon: FileText }]}
         hint={<>1 / 2 tab badlein · T test bill · G guide</>} />
 
       {tab === 'docs' ? (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
           <div className="min-w-0 space-y-4">
-            <Card className="rounded-2xl" title={<Title icon={Receipt}>Sale ka bill — is computer par</Title>}
-              description="Har counter ka printer alag ho sakta hai, is liye ye is computer par yaad rehta hai.">
-              <div className="divide-y divide-slate-100">
-                <Row title="Kaghaz" help={`Dukaan ka default: ${PAPER_LABEL[setup.design.paper]}. POS par A4 nahi — wahan 80 ya 58 chalta hai.`}>
-                  <Segmented label="Bill ka kaghaz" value={billPaper} onChange={chooseBillPaper} items={PAPER_ITEMS} />
+            <SectionCard title="Sale ka bill — is computer par" icon={Receipt} color="emerald"
+              desc="Har counter ka printer alag ho sakta hai, is liye ye is computer par yaad rehta hai.">
+              <Row title="Kaghaz" help={`Dukaan ka default: ${PAPER_LABEL[setup.design.paper]}. POS par A4 nahi — wahan 80 ya 58 chalta hai.`}>
+                <Segmented label="Bill ka kaghaz" value={billPaper} onChange={chooseBillPaper} items={PAPER_ITEMS} />
+              </Row>
+              {pos && scope ? (
+                <Toggle label="POS par bill khud print ho" desc={`Sale hote hi bill printer par — POS ka kaghaz ${pos.width}mm`} checked={pos.autoPrint}
+                  onChange={(v) => { writePos(scope, 'auto-print', String(v)); setPos({ ...pos, autoPrint: v }); }} />
+              ) : (
+                <Row title="POS par khud print" help="Aap ka POS apni settings rakhta hai — POS screen par settings button se badlein.">
+                  <Badge variant="outline">POS me</Badge>
                 </Row>
-                {pos && scope ? (
-                  <Row title="POS par bill khud print ho" help={`Sale hote hi bill printer par — POS ka kaghaz ${pos.width}mm`}>
-                    <Switch size="sm" aria-label="POS par khud print" checked={pos.autoPrint}
-                      onChange={(e) => { writePos(scope, 'auto-print', String(e.target.checked)); setPos({ ...pos, autoPrint: e.target.checked }); }} />
-                  </Row>
-                ) : (
-                  <Row title="POS par khud print" help="Aap ka POS apni settings rakhta hai — POS screen par settings button se badlein.">
-                    <Badge variant="outline">POS me</Badge>
-                  </Row>
-                )}
-              </div>
-            </Card>
+              )}
+            </SectionCard>
 
             <ShopBillCard design={setup.design} />
 
-            <Card className="rounded-2xl" flush title={<Title icon={ScrollText}>Baqi parchiyan</Title>}
-              description="Har parchi ka default kaghaz aur copies. Print karte waqt badal bhi sakte hain — wahan ki tabdeeli bhi yahan yaad rehti hai.">
+            <SectionCard title="Baqi parchiyan" icon={ScrollText} color="cyan"
+              desc="Har parchi ka default kaghaz aur copies. Print karte waqt badal bhi sakte hain — wahan ki tabdeeli bhi yahan yaad rehti hai.">
               <ul className="divide-y divide-slate-100">
                 {DOC_KINDS.map((k) => (
                   <DocRow key={k.id} kind={k} shopPaper={setup.design.paper}
                     onPreview={(paper) => setPreview({ paper, title: k.title })} onTest={(paper) => testBill(paper, k.title)} />
                 ))}
               </ul>
-            </Card>
+            </SectionCard>
           </div>
 
-          <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-            <Card className="rounded-2xl" title="Preview" flush actions={
-              <Segmented label="Preview kaghaz" value={preview.paper} onChange={(p) => setPreview({ ...preview, paper: p })} items={PAPER_ITEMS} />
-            }>
-              <div className="max-h-[560px] overflow-auto bg-slate-100 p-3">
+          <aside className="min-w-0 space-y-3 xl:sticky xl:top-20 xl:self-start">
+            <PreviewPanel title="Preview"
+              control={<Segmented label="Preview kaghaz" value={preview.paper} onChange={(p) => setPreview({ ...preview, paper: p })} items={PAPER_ITEMS} />}>
+              <div className="max-h-[560px] overflow-auto rounded-xl">
                 <ReceiptPreview doc={sample} setup={previewSetup} paper={preview.paper} zoom={preview.paper === 'A4' ? 0.42 : 0.9} />
               </div>
-            </Card>
+            </PreviewPanel>
             <Button fullWidth variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => testBill(preview.paper, preview.title)}>
               Ye test print karein
             </Button>
-            <p className="text-center text-[0.75rem] text-slate-500">
-              Bill ka design (logo, rang, footer) <Link to="/settings?tab=receipt" className="font-semibold text-brand-700 hover:underline">Settings → Raseed</Link> me
+            <p className="text-center text-xs text-slate-500">
+              Bill ka design (logo, rang, footer) <Link to="/settings/receipt" className="font-semibold text-brand-700 hover:underline">Settings → Receipt</Link> me
             </p>
           </aside>
         </div>
@@ -236,7 +221,7 @@ export default function PrintSettingsPage() {
           shortcuts={[['1', 'kaghaz'], ['2', 'reports'], ['T', 'test bill'], ['G', 'guide']]}
         />
       )}
-    </PageShell>
+    </div>
   );
 }
 
@@ -261,21 +246,25 @@ function ShopBillCard({ design }: { design: ReceiptDesign }) {
   };
 
   return (
-    <Card className="rounded-2xl" title={<Title icon={Store}>Poori dukaan ka bill</Title>}
-      description="Har computer aur har staff par lagta hai — jab tak koi computer apna kaghaz na chune.">
-      {!canEdit && <Alert tone="info" className="mb-3">Ye badalne ke liye "Settings badalna" ki permission chahiye. Aap sirf dekh sakte hain.</Alert>}
-      <fieldset disabled={!canEdit || !!saving} className="divide-y divide-slate-100">
+    <SectionCard title="Poori dukaan ka bill" icon={Store} color="violet"
+      desc="Har computer aur har staff par lagta hai — jab tak koi computer apna kaghaz na chune.">
+      {!canEdit && (
+        <div className="mb-2 flex items-center gap-2.5 rounded-xl bg-slate-100 px-3.5 py-2.5 text-sm text-slate-700">
+          <Eye className="h-4 w-4 shrink-0 text-slate-500" />
+          Ye badalne ke liye "Settings badalna" ki permission chahiye. Aap sirf dekh sakte hain.
+        </div>
+      )}
+      <fieldset disabled={!canEdit || !!saving} className="min-w-0">
         <Row title="Default kaghaz" help="Naye computer par bill isi kaghaz par">
           <Segmented label="Dukaan ka kaghaz" value={design.paper} onChange={(v) => void save({ paper: v })} items={PAPER_ITEMS} />
         </Row>
         <Row title="Copies" help="Har bill kitni dafa chhape — maslan ek customer, ek dukaan">
           <Segmented label="Copies" value={String(design.copies)} onChange={(v) => void save({ copies: Number(v) })} items={COPY_ITEMS} />
         </Row>
-        <Row title="Bill kholte hi print" help="Sale list se bill kholein to khud print window aaye">
-          <Switch size="sm" aria-label="Bill kholte hi print" checked={design.autoPrint} onChange={(e) => void save({ autoPrint: e.target.checked })} />
-        </Row>
+        <Toggle label="Bill kholte hi print" desc="Sale list se bill kholein to khud print window aaye"
+          checked={design.autoPrint} onChange={(v) => void save({ autoPrint: v })} />
       </fieldset>
-    </Card>
+    </SectionCard>
   );
 }
 
@@ -291,14 +280,14 @@ function DocRow({ kind, shopPaper, onPreview, onTest }: {
     if (patch.paper) onPreview(patch.paper);
   };
   return (
-    <li className="flex flex-col gap-2 px-4 py-3 sm:px-5 md:flex-row md:items-center md:justify-between md:gap-4">
+    <li className="flex flex-col gap-2 py-3 first:pt-1 last:pb-1 md:flex-row md:items-center md:justify-between md:gap-4">
       <button type="button" onClick={() => onPreview(pref.paper)} className="min-w-0 text-left">
-        <span className="block text-[0.875rem] font-medium text-slate-900">{kind.label}</span>
-        <span className="block text-[0.75rem] text-slate-500">{kind.where}</span>
+        <span className="block text-sm font-semibold text-slate-900">{kind.label}</span>
+        <span className="mt-0.5 block text-xs text-slate-500">{kind.where}</span>
       </button>
       <div className="flex flex-wrap items-center gap-2">
         <Segmented label={`${kind.label} kaghaz`} value={pref.paper} onChange={(v) => change({ paper: v })} items={PAPER_ITEMS} />
-        <span className="inline-flex items-center gap-1 text-[0.75rem] text-slate-500"><Copy className="h-3.5 w-3.5" />
+        <span className="inline-flex items-center gap-1 text-xs text-slate-500"><Copy className="h-3.5 w-3.5" />
           <Segmented label={`${kind.label} copies`} value={String(pref.copies)} onChange={(v) => change({ copies: Number(v) })} items={COPY_ITEMS} />
         </span>
         <Button size="sm" variant="ghost" leftIcon={<Printer className="h-3.5 w-3.5" />} onClick={() => onTest(pref.paper)}>Test</Button>
@@ -324,72 +313,66 @@ function ReportsTab({ direct, printer }: { direct: boolean; printer: { ready: bo
   const connected = direct && printer.ready;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
       <div className="min-w-0 space-y-4">
-        <Card className="rounded-2xl" title={<Title icon={Printer}>Print button ka default</Title>} description="Ek click par isi tarah print hoga. Arrow se har dafa badal bhi sakte hain.">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {FORMATS.map((f) => (
-              <Choice key={f.id} on={s.format === f.id} onClick={() => { s.set({ format: f.id }); if (f.id !== 'pdf') setPreview(f.id); }}
-                icon={<f.icon className="h-4 w-4" />} label={f.label} hint={f.hint} />
-            ))}
-          </div>
-        </Card>
+        <SectionCard title="Print button ka default" icon={Printer} color="blue" desc="Ek click par isi tarah print hoga. Arrow se har dafa badal bhi sakte hain.">
+          <Field label="Format" hint="PDF chunein to file save hoti hai — WhatsApp ya email par bhej sakte hain.">
+            <ChoiceGroup value={s.format} columns={2}
+              onChange={(v: PrintFormat) => { s.set({ format: v }); if (v !== 'pdf') setPreview(v); }}
+              options={FORMATS.map((f) => ({ value: f.id, label: f.label, desc: f.hint, icon: f.icon }))} />
+          </Field>
+        </SectionCard>
 
-        <Card className="rounded-2xl" title={<Title icon={Palette}>Rang</Title>} description="A4 aur PDF ke liye. Thermal printer hamesha black & white chhapta hai.">
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Choice on={s.colorMode === 'color'} onClick={() => s.set({ colorMode: 'color' })} label="Colour" hint="Headings aur table aap ke brand rang me"
-              icon={<span className="h-4 w-4 rounded" style={{ background: accentHex }} />} />
-            <Choice on={s.colorMode === 'mono'} onClick={() => s.set({ colorMode: 'mono' })} label="Black & white" hint="Laser / photocopy ke liye saaf, ink bachta hai"
-              icon={<span className="h-4 w-4 rounded bg-ink-900" />} />
-          </div>
-        </Card>
+        <SectionCard title="Rang" icon={Palette} color="pink" desc="A4 aur PDF ke liye. Thermal printer hamesha black & white chhapta hai.">
+          <ChoiceGroup value={s.colorMode} columns={2} onChange={(v: ColorMode) => s.set({ colorMode: v })}
+            options={[
+              { value: 'color', label: 'Colour', desc: 'Headings aur table aap ke brand rang me', icon: BrandSwatch },
+              { value: 'mono', label: 'Black & white', desc: 'Laser / photocopy ke liye saaf, ink bachta hai', icon: InkSwatch },
+            ]} />
+        </SectionCard>
 
-        <Card className="rounded-2xl" title={<Title icon={Store}>Header aur footer</Title>}
-          description={<>Dukaan ka naam, address, phone aur logo <Link to="/settings" className="font-semibold text-brand-700 hover:underline">Settings → Dukaan ki maloomat</Link> se aate hain.</>}>
-          <div className="divide-y divide-slate-100">
-            <Row title="Logo" help={biz.logoUrl ? 'Logo laga hua hai' : 'Abhi logo set nahi'}><Switch size="sm" checked={s.showLogo} onChange={(e) => s.set({ showLogo: e.target.checked })} aria-label="Logo" /></Row>
-            <Row title="Address" help={biz.address ?? 'Address set nahi'}><Switch size="sm" checked={s.showAddress} onChange={(e) => s.set({ showAddress: e.target.checked })} aria-label="Address" /></Row>
-            <Row title="Phone" help={biz.phone ?? 'Phone set nahi'}><Switch size="sm" checked={s.showPhone} onChange={(e) => s.set({ showPhone: e.target.checked })} aria-label="Phone" /></Row>
-            <Row title="Kab aur kis ne print kiya" help="Neeche chhota sa likha aata hai"><Switch size="sm" checked={s.showStamp} onChange={(e) => s.set({ showStamp: e.target.checked })} aria-label="Stamp" /></Row>
-            <div className="pt-3">
-              <Input label="Footer line" placeholder="Maslan: Shukriya! Dobara tashreef layein" maxLength={120}
-                value={s.footerNote} onChange={(e) => s.set({ footerNote: e.target.value })} hint="Har report ke neeche — khali chhor dein to kuch nahi aayega" />
+        <SectionCard title="Header aur footer" icon={Store} color="violet"
+          desc={<>Dukaan ka naam, address, phone aur logo <Link to="/settings/store" className="font-semibold text-brand-700 hover:underline">Settings → Store details</Link> se aate hain.</>}>
+          <Toggle label="Logo" desc={biz.logoUrl ? 'Logo laga hua hai' : 'Abhi logo set nahi'} checked={s.showLogo} onChange={(v) => s.set({ showLogo: v })} />
+          <Toggle label="Address" desc={biz.address ?? 'Address set nahi'} checked={s.showAddress} onChange={(v) => s.set({ showAddress: v })} />
+          <Toggle label="Phone" desc={biz.phone ?? 'Phone set nahi'} checked={s.showPhone} onChange={(v) => s.set({ showPhone: v })} />
+          <Toggle label="Kab aur kis ne print kiya" desc="Neeche chhota sa likha aata hai" checked={s.showStamp} onChange={(v) => s.set({ showStamp: v })} />
+          <div className="mt-2">
+            <Field label="Footer line" hint="Har report ke neeche — khali chhor dein to kuch nahi aayega">
+              <TextInput value={s.footerNote} onChange={(v) => s.set({ footerNote: v })} maxLength={120} placeholder="Maslan: Shukriya! Dobara tashreef layein" />
+            </Field>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Thermal printer" icon={Receipt} color="emerald" desc="58mm aur 80mm printer par reports ka print">
+          <Row title="Text ka size" help="Chhota printer ho ya nazar kamzor, to bara rakhein">
+            <Segmented label="Thermal text" value={s.thermalText} onChange={(v) => s.set({ thermalText: v })}
+              items={[{ value: 'sm', label: 'Chhota' }, { value: 'md', label: 'Normal' }, { value: 'lg', label: 'Bara' }]} />
+          </Row>
+          <Row title="Printer connection" help={direct ? (connected ? `Direct: ${printer.label}` : 'Direct on hai magar printer jura nahi') : 'Browser print — har dafa print window khulti hai'}>
+            <div className="flex items-center gap-2">
+              {connected ? <Badge variant="success" size="sm" dot>Jura hua</Badge> : <Badge variant={direct ? 'warning' : 'default'} size="sm">{direct ? <><Unplug className="mr-1 h-3 w-3" />Nahi jura</> : 'Browser'}</Badge>}
+              <Link to="/settings/hardware" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Hardware <ArrowRight className="h-3.5 w-3.5" /></Link>
             </div>
-          </div>
-        </Card>
-
-        <Card className="rounded-2xl" title={<Title icon={Receipt}>Thermal printer</Title>}>
-          <div className="divide-y divide-slate-100">
-            <Row title="Text ka size" help="Chhota printer ho ya nazar kamzor, to bara rakhein">
-              <Segmented label="Thermal text" value={s.thermalText} onChange={(v) => s.set({ thermalText: v })}
-                items={[{ value: 'sm', label: 'Chhota' }, { value: 'md', label: 'Normal' }, { value: 'lg', label: 'Bara' }]} />
-            </Row>
-            <Row title="Printer connection" help={direct ? (connected ? `Direct: ${printer.label}` : 'Direct on hai magar printer jura nahi') : 'Browser print — har dafa print window khulti hai'}>
-              <div className="flex items-center gap-2">
-                {connected ? <Badge variant="success" size="sm" dot>Jura hua</Badge> : <Badge variant={direct ? 'warning' : 'default'} size="sm">{direct ? <><Unplug className="mr-1 h-3 w-3" />Nahi jura</> : 'Browser'}</Badge>}
-                <Link to="/settings/hardware" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Hardware <ArrowRight className="h-3.5 w-3.5" /></Link>
-              </div>
-            </Row>
-          </div>
-        </Card>
+          </Row>
+        </SectionCard>
       </div>
 
-      <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-        <Card className="rounded-2xl" title="Preview" flush actions={
-          <Segmented label="Preview" value={preview} onChange={setPreview} items={[{ value: 'a4', label: 'A4' }, { value: '80', label: '80' }, { value: '58', label: '58' }]} />
-        }>
-          <div className="flex justify-center bg-slate-100 p-3">
+      <aside className="min-w-0 space-y-3 xl:sticky xl:top-20 xl:self-start">
+        <PreviewPanel title="Preview"
+          control={<Segmented label="Preview" value={preview} onChange={setPreview} items={[{ value: 'a4', label: 'A4' }, { value: '80', label: '80' }, { value: '58', label: '58' }]} />}>
+          <div className="flex justify-center">
             <iframe title="Print preview" srcDoc={html} sandbox=""
               className={cn('rounded bg-ink-white shadow-sm', preview === 'a4' ? 'h-[460px] w-full' : preview === '80' ? 'h-[460px] w-[290px]' : 'h-[460px] w-[210px]')} />
           </div>
-        </Card>
-        <Card className="rounded-2xl" title="Test karein" description="Dekh lein printer par kaisa nikalta hai">
+        </PreviewPanel>
+        <SectionCard title="Test karein" desc="Dekh lein printer par kaisa nikalta hai" icon={Printer} color="slate">
           <div className="grid grid-cols-2 gap-2">
             {FORMATS.map((f) => (
               <Button key={f.id} variant="secondary" size="sm" leftIcon={<f.icon className="h-4 w-4" />} onClick={() => void test(f.id)}>{f.label}</Button>
             ))}
           </div>
-        </Card>
+        </SectionCard>
       </aside>
     </div>
   );
@@ -397,37 +380,37 @@ function ReportsTab({ direct, printer }: { direct: boolean; printer: { ready: bo
 
 /* ── Pieces ── */
 
-function Title({ icon: Icon, children }: { icon: typeof Printer; children: ReactNode }) {
+/** Grey panel beside the settings that holds a live preview. */
+function PreviewPanel({ title, control, children }: { title: string; control: ReactNode; children: ReactNode }) {
   return (
-    <span className="flex items-center gap-2">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><Icon className="h-4 w-4" /></span>{children}
-    </span>
+    <div className="rounded-2xl border border-slate-200 bg-slate-100 p-3">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-slate-800">{title}</p>
+        {control}
+      </div>
+      {children}
+    </div>
   );
 }
 
+/** A setting with its control on the right; spaced like the switch rows. */
 function Row({ title, help, children }: { title: string; help?: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+    <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <div className="min-w-0">
-        <div className="text-[0.875rem] font-medium text-slate-900">{title}</div>
-        {help && <div className="text-[0.75rem] text-slate-500">{help}</div>}
+        <div className="text-sm font-semibold text-slate-900">{title}</div>
+        {help && <div className="mt-0.5 text-xs leading-snug text-slate-500">{help}</div>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
   );
 }
 
-function Choice({ on, onClick, icon, label, hint }: { on: boolean; onClick: () => void; icon: ReactNode; label: string; hint: string }) {
-  return (
-    <button type="button" onClick={onClick} aria-pressed={on}
-      className={cn('flex items-center gap-3 rounded-xl border p-3 text-left transition',
-        on ? 'border-brand-500 bg-brand-50/50 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300')}>
-      <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', on ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-600')}>{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[0.875rem] font-medium text-slate-900">{label}</span>
-        <span className="block text-[0.75rem] text-slate-500">{hint}</span>
-      </span>
-      {on && <CheckCircle2 className="h-4 w-4 text-brand-600" />}
-    </button>
-  );
+function BrandSwatch({ className }: { className?: string }) {
+  const { accentHex } = useAppearance();
+  return <span className={cn(className, 'rounded')} style={{ background: accentHex }} />;
+}
+
+function InkSwatch({ className }: { className?: string }) {
+  return <span className={cn(className, 'rounded bg-ink-900')} />;
 }

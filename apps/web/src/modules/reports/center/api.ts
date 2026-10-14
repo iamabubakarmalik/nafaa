@@ -70,7 +70,10 @@ export interface ExpensesReport extends Meta {
 }
 
 export interface ProfitSummary {
-  sales: number; gross: number; refunds: number; discount: number; cost?: number; grossProfit?: number; margin?: number;
+  sales: number; gross: number; refunds: number; discount: number;
+  /** Service charges inside `gross`. */
+  service: number;
+  cost?: number; grossProfit?: number; margin?: number;
   expenses: number; damage: number; netProfit?: number; netMargin: number;
 }
 export interface ProfitReport extends Meta {

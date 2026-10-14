@@ -48,8 +48,8 @@ export const repairServicesApi = {
   updateStatus: (id: string, data: { status: string; workDone?: string; partsUsed?: any; finalCost?: number; photosAfterUrls?: string[]; notes?: string; paidNow?: number; paymentMethod?: string }) =>
     apiClient.patch('/sports/repair-services/' + id + '/status', data).then(unwrap<SportsRepairService>),
 
-  recordPayment: (id: string, amount: number) =>
-    apiClient.post('/sports/repair-services/' + id + '/payment', { amount }).then(unwrap<SportsRepairService>),
+  recordPayment: (id: string, amount: number, paymentMethod?: string) =>
+    apiClient.post('/sports/repair-services/' + id + '/payment', { amount, paymentMethod }).then(unwrap<SportsRepairService>),
 
   remove: (id: string) =>
     apiClient.delete('/sports/repair-services/' + id).then(unwrap),

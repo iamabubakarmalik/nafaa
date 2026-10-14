@@ -228,7 +228,7 @@ export default function AttendancePage() {
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           <Settings2 className="h-4 w-4 shrink-0" />
           Dukaan khulne ka waqt Settings me nahi likha, is liye late 09:00 se gina ja raha hai.
-          <Link to="/settings?tab=localization" className="font-semibold underline">Waqt likhein</Link>
+          <Link to="/settings/language" className="font-semibold underline">Waqt likhein</Link>
         </div>
       )}
 

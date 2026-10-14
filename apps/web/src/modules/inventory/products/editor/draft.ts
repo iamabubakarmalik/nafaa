@@ -38,7 +38,7 @@ export async function loadCore(id: string): Promise<CoreDraft> {
     units: units.map((u): UnitDraft => ({
       id: u.id, unitName: u.unitName, conversionType: (u.conversionType as UnitDraft['conversionType']) ?? 'CUSTOM',
       conversionRate: num(u.conversionRate), isBase: u.isBase, price: num(u.price), costPrice: num(u.costPrice),
-      wholesalePrice: u.wholesalePrice ?? null, mrpPrice: u.mrpPrice ?? null, barcode: u.barcode ?? '', sku: u.sku ?? '',
+      wholesalePrice: u.wholesalePrice ?? null, mrpPrice: u.mrpPrice ?? null, barcode: u.barcode ?? '', sku: u.sku ?? '', isActive: u.isActive !== false,
     })),
     variants: variants.map((v) => {
       const a = v as unknown as Record<string, any>;

@@ -101,12 +101,28 @@ export interface NetFigures {
   netProfit?: number;
 }
 
+/**
+ * Bill money outside the sale lines: service charges (delivery, fitting)
+ * and bill-level cost such as a rider's fare. Zero under a category, brand
+ * or staff filter.
+ */
+export interface BillCharges {
+  revenue: number;
+  cost?: number;
+  profit?: number;
+  /** Service charges as written on the bills. */
+  billed: number;
+  /** Bills that carry service charges. */
+  bills: number;
+}
+
 export interface ProfitOverview {
   range: { from: string; to: string; days: number; prevFrom: string; prevTo: string; byMonth: boolean };
   /** Category, brand or staff filter is on; expenses still cover the whole shop. */
   filtered: boolean;
-  totals: Figures & { products: number };
-  prev: Figures & { products: number };
+  /** Bill totals: line figures plus `charges`. */
+  totals: Figures & { products: number; lineRevenue: number; lineProfit?: number; charges: BillCharges };
+  prev: Figures & { products: number; charges: BillCharges };
   costBasis?: { lines: number; savedLines: number; fallbackLines: number; fallbackRevenue: number; noCostLines: number; noCostProducts: number };
   net: NetFigures;
   prevNet: NetFigures;

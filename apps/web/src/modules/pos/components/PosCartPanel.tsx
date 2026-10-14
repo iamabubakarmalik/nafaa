@@ -73,6 +73,8 @@ interface PosCartPanelProps {
   checkoutPending?: boolean;
   /** Hint shown in the empty cart. */
   emptyHint?: string;
+  /** Extra block under a line's tags (batch and expiry being sold). */
+  lineExtra?: (line: PosCartLine) => ReactNode;
 }
 
 const money = (n: number, hidden?: boolean) => (hidden ? '••••' : formatPKR(n));
@@ -91,7 +93,7 @@ export function PosCartPanel(props: PosCartPanelProps) {
     delivery, onDeliveryChange, deliveryFee = 0, hidePrices,
     customers, customerId, setCustomerId, selectedCustomer, onAddCustomer, receiver, onReceiverChange, customerExtra,
     onHold, onClear, onChangeQty, onSetQty, onRemove, priceEditId, onStartPriceEdit, onSetPrice,
-    onCheckout, onInstantCash, onQuickPay, canCheckout, checkoutPending, emptyHint,
+    onCheckout, onInstantCash, onQuickPay, canCheckout, checkoutPending, emptyHint, lineExtra,
   } = props;
   const hasDiscount = discountAmount > 0;
   const balance = Number(selectedCustomer?.balance || 0);
@@ -166,7 +168,8 @@ export function PosCartPanel(props: PosCartPanelProps) {
             {cart.map((l) => (
               <PosCartRow key={l.id} line={l} hidePrices={hidePrices} editing={priceEditId === l.id}
                 onStartPriceEdit={() => onStartPriceEdit(l.id)} onSetPrice={(p: number) => onSetPrice(l.id, p)} onCancelPriceEdit={() => onStartPriceEdit(null)}
-                onChangeQty={(d: number) => onChangeQty(l.id, d)} onSetQty={(q: number) => onSetQty(l.id, q)} onRemove={() => onRemove(l.id)} />
+                onChangeQty={(d: number) => onChangeQty(l.id, d)} onSetQty={(q: number) => onSetQty(l.id, q)} onRemove={() => onRemove(l.id)}
+                extra={lineExtra?.(l)} />
             ))}
           </ul>
         )}
@@ -250,8 +253,9 @@ export function PosCartPanel(props: PosCartPanelProps) {
 }
 
 /** One bill line: thumbnail, name, rate (editable), quantity stepper, line total. */
-export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, onCancelPriceEdit, onChangeQty, onSetQty, onRemove }: {
+export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, onCancelPriceEdit, onChangeQty, onSetQty, onRemove, extra }: {
   line: PosCartLine;
+  extra?: ReactNode;
   hidePrices?: boolean;
   editing: boolean;
   onStartPriceEdit: () => void;
@@ -328,6 +332,7 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
               {l.warrantyMonths ? <span className="inline-flex items-center gap-0.5 rounded-md bg-sky-50 px-1.5 py-0.5 text-[0.6875rem] font-medium text-sky-700"><Shield className="h-3 w-3" />{l.warrantyMonths}m warranty</span> : null}
             </div>
           )}
+          {extra}
 
           <div className="mt-2 flex items-center gap-2">
             <div className="inline-flex h-8 items-center overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200">

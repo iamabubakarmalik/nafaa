@@ -4,14 +4,17 @@
  * PIN. The POS follows these and the server checks them again on every bill.
  */
 
-import { Ban, CreditCard, KeyRound, Monitor, Percent, RotateCcw, ShieldCheck, Tag, Users } from 'lucide-react';
+import { Ban, CreditCard, KeyRound, Monitor, Percent, Printer, Receipt, RotateCcw, ShieldCheck, Tag, Users } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
-import { Alert, ChoiceGroup, Divider, Field, NumberInput, SectionCard, StatPill, Toggle } from '../components/UI';
+import { Alert, ChoiceGroup, Divider, Field, NumberInput, PageLink, SectionCard, StatPill, Toggle } from '../components/UI';
+import { SettingLink } from '../components/SettingsFrame';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';
 
-export function POSSection({ settings, onOpenSecurity }: { settings: TenantSettings; onOpenSecurity: () => void }) {
+const QUICK_LIMITS = [5, 10, 15, 20, 25];
+
+export function POSSection({ settings }: { settings: TenantSettings }) {
   const { draft, set, saving, dirty } = useAutoSave(settings);
   const hasPin = !!settings.hasManagerPin;
   const max = Number(draft.maxDiscountPercent) || 0;
@@ -20,40 +23,53 @@ export function POSSection({ settings, onOpenSecurity }: { settings: TenantSetti
     <div className="space-y-4">
       <SaveStatusBar saving={saving} dirty={dirty} />
 
-      <SectionCard title="Payment" desc="Checkout khulte hi yeh tareeqa chuna hota hai" icon={CreditCard} color="emerald">
-        <Field label="Pehle se chuna payment">
-          <ChoiceGroup value={draft.defaultPaymentMethod} onChange={(v) => set('defaultPaymentMethod', v)} columns={3}
-            options={[
-              { value: 'CASH', label: 'Cash', emoji: '💵' },
-              { value: 'CARD', label: 'Card', emoji: '💳' },
-              { value: 'JAZZCASH', label: 'JazzCash', emoji: '📱' },
-              { value: 'EASYPAISA', label: 'EasyPaisa', emoji: '💚' },
-              { value: 'BANK_TRANSFER', label: 'Bank', emoji: '🏦' },
-              { value: 'RAAST', label: 'Raast', emoji: '⚡' },
-            ]} />
-        </Field>
-      </SectionCard>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <SectionCard title="Payment" desc="Checkout khulte hi yeh tareeqa chuna hota hai" icon={CreditCard} color="emerald">
+          <Field label="Pehle se chuna payment" hint="Cashier har bill par badal sakta hai; yeh sirf shuru ka chunao hai.">
+            <ChoiceGroup value={draft.defaultPaymentMethod} onChange={(v) => set('defaultPaymentMethod', v)} columns={3}
+              options={[
+                { value: 'CASH', label: 'Cash' },
+                { value: 'CARD', label: 'Card' },
+                { value: 'JAZZCASH', label: 'JazzCash' },
+                { value: 'EASYPAISA', label: 'EasyPaisa' },
+                { value: 'BANK_TRANSFER', label: 'Bank' },
+                { value: 'RAAST', label: 'Raast' },
+              ]} />
+          </Field>
+        </SectionCard>
 
-      <SectionCard title="Bill" desc="Har bill par lagne wale usool" icon={Users} color="blue">
-        <Toggle checked={draft.requireCustomerForSale} onChange={(v) => set('requireCustomerForSale', v)} icon={Users}
-          label="Har bill par customer zaroori"
-          desc="Bagair customer chune bill nahi banega. Walk-in ke liye ek 'Walk-in' customer bana lein." />
-      </SectionCard>
+        <SectionCard title="Bill" desc="Har bill par lagne wale usool" icon={Users} color="blue">
+          <Toggle checked={draft.requireCustomerForSale} onChange={(v) => set('requireCustomerForSale', v)} icon={Users}
+            label="Har bill par customer zaroori"
+            desc="Bagair customer chune bill nahi banega. Walk-in ke liye ek 'Walk-in' customer bana lein." />
+        </SectionCard>
+      </div>
 
-      <SectionCard title="Discount" desc="Cashier haath se kitni discount de sakta hai (codes aur points ke apne usool hain)" icon={Percent} color="amber"
+      <SectionCard title="Discount" desc="Cashier haath se kitna Discount de sakta hai (codes aur points ke apne usool hain)" icon={Percent} color="amber"
         badge={<StatPill label="Had" value={draft.allowDiscount ? `${max}%` : 'Band'} tone={draft.allowDiscount ? 'amber' : 'slate'} />}>
         <Toggle checked={draft.allowDiscount} onChange={(v) => set('allowDiscount', v)} icon={Tag}
-          label="Haath se discount"
-          desc={draft.allowDiscount ? 'Cashier bill par discount de sakta hai' : 'Band — counter par discount ka button kaam nahi karega'} />
+          label="Haath se Discount"
+          desc={draft.allowDiscount ? 'Cashier bill par Discount de sakta hai' : 'Band — counter par Discount ka button kaam nahi karega'} />
         {draft.allowDiscount && (
           <>
             <Divider />
-            <Field label="Zyada se zyada discount" hint={hasPin ? 'Is se zyada sirf malik ke PIN se' : 'Is se zyada bilkul nahi (malik ka PIN lagayein to PIN se ho sakegi)'}>
-              <NumberInput value={draft.maxDiscountPercent} onChange={(v) => set('maxDiscountPercent', v)} min={0} max={100} suffix="%" />
-            </Field>
-            <p className="mt-2 text-xs text-slate-500">
-              Misaal: {formatPKR(1000)} ke bill par {formatPKR((1000 * max) / 100)} tak discount.
-            </p>
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] sm:items-start">
+              <Field label="Zyada se zyada Discount" hint={hasPin ? 'Is se zyada sirf malik ke PIN se' : 'Is se zyada bilkul nahi (malik ka PIN lagayein to PIN se ho sakega)'}>
+                <NumberInput value={draft.maxDiscountPercent} onChange={(v) => set('maxDiscountPercent', v)} min={0} max={100} suffix="%" />
+              </Field>
+              <div>
+                <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">Jaldi chunein</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_LIMITS.map((p) => (
+                    <button key={p} type="button" onClick={() => set('maxDiscountPercent', p)}
+                      className={max === p ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-brand-fg' : 'rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300'}>
+                      {p}%
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Misaal: {formatPKR(1000)} ke bill par {formatPKR((1000 * max) / 100)} tak Discount.</p>
+              </div>
+            </div>
           </>
         )}
       </SectionCard>
@@ -62,8 +78,8 @@ export function POSSection({ settings, onOpenSecurity }: { settings: TenantSetti
         badge={<StatPill label="PIN" value={hasPin ? 'Laga hua' : 'Nahi laga'} tone={hasPin ? 'emerald' : 'rose'} />}>
         {!hasPin && (
           <Alert tone="amber" icon={KeyRound} title="Abhi PIN nahi laga">
-            PIN ke bagair yeh usool kaam nahi karte (sirf discount ki had band rehti hai).{' '}
-            <button type="button" onClick={onOpenSecurity} className="font-semibold underline underline-offset-2">PIN lagayein</button>
+            PIN ke bagair yeh usool kaam nahi karte (sirf Discount ki had band rehti hai).{' '}
+            <SettingLink to="/settings/security" find="Malik ka PIN" className="font-semibold underline underline-offset-2">PIN lagayein</SettingLink>
           </Alert>
         )}
         <div className="mt-1">
@@ -72,14 +88,19 @@ export function POSSection({ settings, onOpenSecurity }: { settings: TenantSetti
           <Toggle checked={draft.requirePinForRefund} onChange={(v) => set('requirePinForRefund', v)} icon={RotateCcw}
             label="Return par PIN" desc="Maal wapas le kar paise lautane se pehle" />
           <Toggle checked={draft.requirePinForDiscount} onChange={(v) => set('requirePinForDiscount', v)} icon={Percent}
-            label="Har discount par PIN" desc="Had ke andar bhi, har haath ki discount par" />
+            label="Har Discount par PIN" desc="Had ke andar bhi, har haath ke Discount par" />
         </div>
         <p className="mt-2 text-xs text-slate-500">Customer ki credit limit se zyada udhaar par bhi PIN maanga jata hai.</p>
       </SectionCard>
 
-      <Alert tone="blue" icon={Monitor} title="Counter ki shakal">
-        Tasveerein, auto-print, printer ki chaudai aur shortcuts har counter ke liye alag hain — POS khol kar ⚙️ se badlein.
-      </Alert>
+      <SectionCard title="Counter se jure pages" desc="Bill, printer aur har counter ki apni settings" icon={Monitor} color="slate">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <PageLink to="/settings/receipt" icon={Receipt} title="Receipt" desc="Bill ka design aur kaghaz" />
+          <PageLink to="/settings/printing" icon={Printer} title="Printing" desc="A4, thermal, colour" />
+          <PageLink to="/settings/hardware" icon={Monitor} title="POS hardware" desc="Printer, drawer, tarazu" />
+        </div>
+        <p className="mt-3 text-xs text-slate-500">Tasveerein, auto-print aur shortcuts har counter ke liye alag hain — POS khol kar ⚙️ se badlein.</p>
+      </SectionCard>
     </div>
   );
 }

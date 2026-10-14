@@ -44,10 +44,10 @@ export function SettingsView() {
   const q = useQuery({ queryKey: [TAX_KEY, 'settings'], queryFn: taxApi.settings });
   const [picked, setPicked] = useState<Authority | null>(null);
   const data = q.data;
-  if (q.isLoading) return <div className="space-y-3"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-28 rounded-3xl" />)}</div><Skeleton className="h-96 rounded-3xl" /></div>;
+  if (q.isLoading) return <div className="space-y-3"><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div><Skeleton className="h-96 rounded-2xl" /></div>;
   if (q.isError || !data) {
     return (
-      <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+      <div className="rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
         <p className="font-semibold text-slate-900">Settings nahi khulin</p>
         <p className="mt-1 text-sm text-slate-500">{apiError(q.error, '')}</p>
         <Button className="mt-3" variant="secondary" onClick={() => q.refetch()}>Dobara koshish</Button>
@@ -67,7 +67,7 @@ export function SettingsView() {
           const act = data.activity[a];
           return (
             <button key={a} type="button" onClick={() => setPicked(a)} aria-pressed={selected === a}
-              className={cn('flex flex-col rounded-3xl bg-white p-4 text-left shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md', selected === a ? 'ring-2 ring-brand-500' : 'ring-slate-200/80')}>
+              className={cn('flex flex-col rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:border-slate-300', selected === a ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200')}>
               <span className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 font-semibold text-slate-900"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: AUTH[a].color }} />{AUTH[a].label}</span>
                 {!p ? <Badge>Set nahi</Badge> : !p.enabled ? <Badge>Band</Badge> : p.env === 'live' ? <Badge variant="success" dot>Live</Badge> : <Badge variant="warning" dot>Test</Badge>}
@@ -153,7 +153,7 @@ function Editor({ authority, data }: { authority: Authority; data: TaxSettings }
   const disable = () => { if (window.confirm(`${authority} band karein?\n\nNaye bill authority ko nahi jayenge. Purana record rehta hai.`)) save.mutate(false); };
 
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">{info.name}</h3>

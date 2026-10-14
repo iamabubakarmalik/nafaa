@@ -272,7 +272,7 @@ function Freshness({ ctx }: { ctx: StepContext<BakeryExtra> }) {
   const bc = useBakeryCategory(ctx.draft);
   return (
     <div className="space-y-4">
-      <Section icon={Clock} title="Kitne din chalti hai" hint={`Is qisam ke liye aam tor par ${defaultShelfLifeDays(bc)} din`}>
+      <Section icon={Clock} title="Kitne din chalti hai" hint={`Is category ke liye aam tor par ${defaultShelfLifeDays(bc)} din`}>
         <div className="space-y-3">
           <div className="flex flex-wrap gap-1.5">
             {SHELF_DAYS.map((d) => <Chip key={d} on={x.shelfLifeDays === d && !x.shelfLifeHours} onClick={() => set({ shelfLifeDays: d, shelfLifeHours: null })}>{d} din</Chip>)}
@@ -281,7 +281,7 @@ function Freshness({ ctx }: { ctx: StepContext<BakeryExtra> }) {
             <NumberField label="Din" allowEmpty value={x.shelfLifeDays} onChange={(shelfLifeDays) => set({ shelfLifeDays })} error={ctx.errors.shelfLife} />
             <NumberField label="Ya ghante" allowEmpty value={x.shelfLifeHours} onChange={(shelfLifeHours) => set({ shelfLifeHours })} hint="Ek din se kam chalne wali cheez" />
           </div>
-          <Toggle on={x.fridge} onChange={(fridge) => set({ fridge })} icon={Snowflake} title="Fridge mein rakhni hai" hint={needsFridge(bc) ? 'Is qisam ke liye aam tor par haan' : undefined} />
+          <Toggle on={x.fridge} onChange={(fridge) => set({ fridge })} icon={Snowflake} title="Fridge mein rakhni hai" hint={needsFridge(bc) ? 'Is category ke liye aam tor par haan' : undefined} />
         </div>
       </Section>
       {made && (
@@ -438,6 +438,10 @@ const config: EditorConfig<BakeryExtra> = {
     </div>
   ),
   refresh: ['bakery-products', 'bakery-profile-by-product', 'bakery-product-detail-extra', 'bakery-all-products', 'bakery-profiles-all'],
+  guide: [
+    { icon: ChefHat, color: '#ea580c', title: 'Khud banti hai ya khareed kar', text: 'Khud bani cheez ki Recipe aur Freshness ka step khulta hai. Recipe bharein to cost raw material ke rate se khud nikal aati hai.' },
+    { icon: Wheat, color: '#a16207', title: 'Raw material', text: 'Atta, cheeni, makhan product nahi — woh Raw material page par jate hain aur recipe mein yahin se chune jate hain.' },
+  ],
 };
 
 export default function BakeryProductEditor() {

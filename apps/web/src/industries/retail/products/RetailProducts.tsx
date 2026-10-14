@@ -29,7 +29,7 @@ const config: ProductsPageConfig = {
     detail: (id) => `/retail-products/${id}`,
     edit: (id) => `/retail-products/${id}/edit`,
     create: '/retail-products/new',
-    bulkImport: '/retail/bulk-import',
+    bulkImport: '/products/bulk-import',
   },
   HeroExtra: QuickSetup,
   filters: ['tags'],

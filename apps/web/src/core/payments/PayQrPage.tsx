@@ -5,6 +5,8 @@
  * display, and on unpaid bills. Money goes straight to the shop's account —
  * Nafaa is not in between and takes no fee. The page shows how the QR looks
  * on the bill, the customer screen and the POS before anything goes live.
+ * The Settings frame supplies the page title; Save and the guide sit in its
+ * header.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -15,13 +17,9 @@ import { BrowserQRCodeReader } from '@zxing/browser';
 import {
   Banknote, GraduationCap, ImageUp, Monitor, QrCode, Receipt, Save, ScanLine, ShieldCheck, Smartphone, Trash2,
 } from 'lucide-react';
-import {
-  Alert, Badge, Button, Card, Input, PageHero, PageShell, Segmented, Skeleton, Switch, heroIconButton, heroPrimaryButton,
-} from '@/design-system/components';
+import { Alert, Badge, Button, IconButton, Input, Segmented, Skeleton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { HeroBack } from '@core/components/HeroBack';
 import { formatPKR } from '@core/lib/format';
-import { cn } from '@core/lib/cn';
 import { isDialogOpen } from '@core/lib/shortcuts';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useDisplaySettings } from '@core/hardware/displaySettings';
@@ -29,14 +27,16 @@ import { ReceiptPreview } from '@core/receipt/ReceiptPreview';
 import { sampleDueReceipt } from '@core/receipt/sample';
 import { getReceiptSetup, useReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptPaper } from '@core/receipt/types';
+import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
+import { Field, SectionCard, TextInput, Toggle } from '@modules/organization/settings/components/UI';
 import { qrWithAmount, readPaymentQr } from './emvQr';
 import { PAY_QR_KEY, payQrApi, payQrQuery, rememberPayQrs, type PayQr, type QrMethod } from './payQr';
 import { qrSvg } from './qrSvg';
 
-const SLOTS: Array<{ method: QrMethod; title: string; short: string; hint: string; color: string }> = [
-  { method: 'BANK_TRANSFER', title: 'Raast / Bank QR', short: 'Raast / Bank', color: '#0891b2', hint: 'Bank app → Raast → "My QR" / "Receive money" ka QR (HBL, Meezan, UBL, Allied…)' },
-  { method: 'JAZZCASH', title: 'JazzCash merchant QR', short: 'JazzCash', color: '#e11d48', hint: 'JazzCash Business app → QR' },
-  { method: 'EASYPAISA', title: 'Easypaisa merchant QR', short: 'Easypaisa', color: '#16a34a', hint: 'Easypaisa Digital Dukaan / Business app → QR' },
+const SLOTS: Array<{ method: QrMethod; title: string; short: string; hint: string; tone: 'cyan' | 'rose' | 'emerald' }> = [
+  { method: 'BANK_TRANSFER', title: 'Raast / Bank QR', short: 'Raast / Bank', tone: 'cyan', hint: 'Bank app → Raast → "My QR" / "Receive money" ka QR (HBL, Meezan, UBL, Allied…)' },
+  { method: 'JAZZCASH', title: 'JazzCash merchant QR', short: 'JazzCash', tone: 'rose', hint: 'JazzCash Business app → QR' },
+  { method: 'EASYPAISA', title: 'Easypaisa merchant QR', short: 'Easypaisa', tone: 'emerald', hint: 'Easypaisa Digital Dukaan / Business app → QR' },
 ];
 
 /* Matches the API: only these roles may change the shop's QR. */
@@ -91,31 +91,16 @@ export default function PayQrPage() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const onBill = saved.find((x) => x.printOnBill && x.method === 'BANK_TRANSFER') ?? saved.find((x) => x.printOnBill);
-  const showQr = useDisplaySettings((x) => x.showQr);
-
   return (
-    <PageShell>
-      <PageHero
-        title={<HeroBack to="/settings" label="Settings">Payment QR</HeroBack>}
-        chip={<><QrCode /> Raast · JazzCash · Easypaisa</>}
-        meta="Paisa seedha aap ke khate me — Nafaa beech me nahi, koi fee nahi"
-        busy={q.isFetching && !q.isLoading}
-        loading={q.isLoading}
-        actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canSave && (
-            <button type="button" disabled={!canSubmit} onClick={() => save.mutate()} title="Save (Ctrl+S)" className={cn(heroPrimaryButton, 'disabled:opacity-60')}>
-              <Save className="h-4 w-4" /> {save.isPending ? 'Save ho raha…' : dirty ? 'Save karein' : 'Saved'}
-            </button>
-          )}
-        </>}
-        stats={[
-          { label: 'Lage hue QR', value: `${saved.length} / ${SLOTS.length}` },
-          { label: 'Udhaar bill par', value: onBill ? onBill.label : 'Nahi' },
-          { label: 'Customer screen par', value: showQr ? 'Haan' : 'Band' },
-        ]}
-      />
+    <div className="space-y-4">
+      <HeaderActions>
+        <IconButton label="Guide (G)" variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
+        {canSave && (
+          <Button size="sm" disabled={!canSubmit} loading={save.isPending} title="Save (Ctrl+S)" leftIcon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>
+            {save.isPending ? 'Save ho raha…' : dirty ? 'Save karein' : 'Saved'}
+          </Button>
+        )}
+      </HeaderActions>
 
       {!canSave && (
         <Alert tone="info" title="Sirf dekh sakte hain">QR sirf malik ya manager laga ya badal sakta hai.</Alert>
@@ -126,9 +111,9 @@ export default function PayQrPage() {
         </Alert>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="min-w-0 space-y-4">
-          <Card className="rounded-2xl" title={<span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-success-600" /> Kaise kaam karta hai</span>}>
+          <SectionCard title="Kaise kaam karta hai" icon={ShieldCheck} color="emerald" desc="Paisa seedha aap ke account me — Nafaa beech me nahi, koi fee nahi">
             <ol className="grid gap-3 text-[0.8125rem] text-slate-700 sm:grid-cols-3">
               {[
                 { icon: ImageUp, text: 'Apne bank / wallet app se apna "receive" QR ka screenshot yahan lagayein.' },
@@ -144,7 +129,7 @@ export default function PayQrPage() {
                 </li>
               ))}
             </ol>
-          </Card>
+          </SectionCard>
 
           {q.isLoading
             ? SLOTS.map((s) => <Skeleton key={s.method} className="h-40 rounded-2xl" />)
@@ -158,7 +143,7 @@ export default function PayQrPage() {
             )}
         </div>
 
-        <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+        <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">
           <QrPreview saved={saved} drafts={list} dirty={dirty} />
         </aside>
       </div>
@@ -175,12 +160,12 @@ export default function PayQrPage() {
           ]}
           tips={[
             'QR sirf malik ya manager laga sakta hai.',
-            'Bill par QR tab chhapta hai jab Settings → Raseed me "Payment QR" on ho aur bill par amount baqi ho.',
+            'Bill par QR tab chhapta hai jab Settings → Receipt me "Payment QR" on ho aur bill par amount baqi ho.',
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['G', 'guide']]}
         />
       )}
-    </PageShell>
+    </div>
   );
 }
 
@@ -219,13 +204,8 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
   };
 
   return (
-    <Card className="rounded-2xl"
-      title={<span className="flex flex-wrap items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: `${slot.color}17`, color: slot.color }}><QrCode className="h-4 w-4" /></span>
-        {slot.title}
-        {draft ? (info?.valid ? <Badge variant="success" dot>Laga hua</Badge> : <Badge variant="danger">Ghalat QR</Badge>) : <Badge>Nahi laga</Badge>}
-      </span>}
-      description={slot.hint}>
+    <SectionCard title={slot.title} icon={QrCode} color={slot.tone} desc={slot.hint}
+      badge={draft ? (info?.valid ? <Badge variant="success" dot>Laga hua</Badge> : <Badge variant="danger">Ghalat QR</Badge>) : <Badge>Nahi laga</Badge>}>
       {!draft ? (
         <div className="space-y-3">
           <input ref={file} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void fromImage(f); e.target.value = ''; }} />
@@ -253,18 +233,23 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
                 <b>{info.merchantName || '—'}</b>{info.city ? `, ${info.city}` : ''} <span className="font-mono text-[0.71875rem] text-slate-500">{info.scheme}</span>
               </div>
             )}
-            <Input label="POS par naam" maxLength={40} value={draft.label} onChange={(e) => onChange({ ...draft, label: e.target.value })}
-              hint="Checkout aur bill par yahi naam" wrapperClassName="max-w-xs" />
-            <Switch size="sm" label="Amount QR me daalein" description="Customer ko amount likhni na pare. Kisi app me QR na chale to band kar dein."
-              checked={draft.amountInQr} onChange={(e) => onChange({ ...draft, amountInQr: e.target.checked })} />
-            <Switch size="sm" label="Udhaar wale bill par chhapein" description="Baqi amount ka QR bill par — customer ghar se bhej de"
-              checked={draft.printOnBill} onChange={(e) => onChange({ ...draft, printOnBill: e.target.checked })} />
-            <p className="text-[0.75rem] text-slate-500">Pehli dafa: doosre phone se test QR scan karke Rs 10 bhejein aur dekhein ke aap ke khate me aaye.</p>
+            <div className="max-w-xs">
+              <Field label="POS par naam" hint="Checkout aur bill par yahi naam">
+                <TextInput value={draft.label} onChange={(v) => onChange({ ...draft, label: v })} maxLength={40} />
+              </Field>
+            </div>
+            <div>
+              <Toggle label="Amount QR me daalein" desc="Customer ko amount likhni na pare. Kisi app me QR na chale to band kar dein."
+                checked={draft.amountInQr} onChange={(v) => onChange({ ...draft, amountInQr: v })} />
+              <Toggle label="Udhaar wale bill par chhapein" desc="Baqi amount ka QR bill par — customer ghar se bhej de"
+                checked={draft.printOnBill} onChange={(v) => onChange({ ...draft, printOnBill: v })} />
+            </div>
+            <p className="text-xs text-slate-500">Pehli dafa: doosre phone se test QR scan karke Rs 10 bhejein aur dekhein ke aap ke khate me aaye.</p>
             <Button size="sm" variant="ghost" className="text-rose-600" leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => onChange(null)}>Hatayein</Button>
           </div>
         </div>
       )}
-    </Card>
+    </SectionCard>
   );
 }
 
@@ -287,15 +272,19 @@ function QrPreview({ saved, drafts, dirty }: { saved: PayQr[]; drafts: Draft[]; 
   const merchant = shown ? readPaymentQr(shown.payload).merchantName : '';
   const savedKey = JSON.stringify(saved.map((x) => [x.method, x.printOnBill, x.amountInQr, x.payload]));
   const onBill = saved.some((x) => x.printOnBill);
+  const showQr = useDisplaySettings((x) => x.showQr);
 
   return (
-    <Card className="rounded-2xl" flush title="Kahan kaisa dikhega"
-      actions={<Segmented label="Preview" value={tab} onChange={setTab}
-        items={[{ value: 'bill', label: 'Bill' }, { value: 'display', label: 'Screen' }, { value: 'pos', label: 'POS' }]} />}>
-      <div className="space-y-3 p-4 pt-0 sm:px-5">
+    <div className="rounded-2xl border border-slate-200 bg-slate-100 p-3">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-slate-800">Kahan kaisa dikhega</p>
+        <Segmented label="Preview" value={tab} onChange={setTab}
+          items={[{ value: 'bill', label: 'Bill' }, { value: 'display', label: 'Screen' }, { value: 'pos', label: 'POS' }]} />
+      </div>
+      <div className="space-y-3">
         {tab === 'bill' ? (<>
           {!setup.design.showPayQr && (
-            <Alert tone="warning">Settings → Raseed me "Payment QR" band hai. <Link to="/settings?tab=receipt" className="font-semibold underline">On karein</Link></Alert>
+            <Alert tone="warning">Settings → Receipt me "Payment QR" band hai. <Link to="/settings/receipt" className="font-semibold underline">On karein</Link></Alert>
           )}
           {!onBill && <Alert tone="info">Kisi QR par "Udhaar wale bill par chhapein" on karein — tab baqi amount ka QR bill par aayega.</Alert>}
           {dirty && <p className="text-[0.75rem] text-amber-700">Preview save shuda QR ka hai — save karne ke baad naya dikhega.</p>}
@@ -303,11 +292,11 @@ function QrPreview({ saved, drafts, dirty }: { saved: PayQr[]; drafts: Draft[]; 
             <span className="text-[0.75rem] text-slate-500">Udhaar bill: baqi {formatPKR(due)}</span>
             <Segmented label="Kaghaz" value={paper} onChange={setPaper} items={[{ value: '58', label: '58' }, { value: '80', label: '80' }, { value: 'A4', label: 'A4' }]} />
           </div>
-          <div className="max-h-[520px] overflow-auto rounded-xl bg-slate-100 p-3">
+          <div className="max-h-[520px] overflow-auto rounded-xl">
             <ReceiptPreview key={savedKey} doc={doc} setup={setup} paper={paper} zoom={paper === 'A4' ? 0.4 : 0.85} />
           </div>
         </>) : !shown || !svg ? (
-          <div className="rounded-xl bg-slate-50 px-4 py-10 text-center text-[0.8125rem] text-slate-500 ring-1 ring-slate-100">
+          <div className="rounded-xl bg-white px-4 py-10 text-center text-[0.8125rem] text-slate-500 ring-1 ring-slate-200">
             <QrCode className="mx-auto mb-2 h-8 w-8 text-slate-300" /> Pehle koi QR lagayein — phir yahan dikhega.
           </div>
         ) : (<>
@@ -333,10 +322,12 @@ function QrPreview({ saved, drafts, dirty }: { saved: PayQr[]; drafts: Draft[]; 
             </div>
           )}
           <p className="text-center text-[0.75rem] text-slate-500">
-            {tab === 'display' ? <>Customer display par bara QR — <Link to="/settings/hardware" className="font-semibold text-brand-700 hover:underline">Hardware</Link> me on / off</> : 'POS checkout me payment chunte hi'}
+            {tab === 'display'
+              ? <>Customer screen par bara QR abhi {showQr ? 'on' : 'band'} hai — <Link to="/settings/hardware" className="font-semibold text-brand-700 hover:underline">Hardware</Link> me badlein</>
+              : 'POS checkout me payment chunte hi'}
           </p>
         </>)}
       </div>
-    </Card>
+    </div>
   );
 }

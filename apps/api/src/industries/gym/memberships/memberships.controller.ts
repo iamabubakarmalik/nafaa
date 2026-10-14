@@ -17,7 +17,7 @@ export class MembershipsController {
     return this.service.list(user, { status, memberId, planId, expiringDays: expiringDays ? Number(expiringDays) : undefined });
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number }) { return this.service.addPayment(user, id, body.amount); }
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number; paymentMethod?: string }) { return this.service.addPayment(user, id, body.amount, body.paymentMethod); }
   @Post(':id/freeze') freeze(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { days: number; reason?: string }) { return this.service.freeze(user, id, body.days, body.reason); }
   @Post(':id/unfreeze') unfreeze(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.unfreeze(user, id); }
   @Post(':id/cancel') cancel(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { reason?: string; refundAmount?: number }) { return this.service.cancel(user, id, body.reason, body.refundAmount); }

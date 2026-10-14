@@ -291,7 +291,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
               }
               const facet = key === 'kind' ? d?.facets.kinds : key === 'condition' ? d?.facets.conditions : key === 'etype' ? d?.facets.etypes : null;
               if (facet && facet.length > 0 && key !== 'tags' && key !== 'serial') {
-                const label = key === 'kind' ? 'Qisam' : key === 'condition' ? 'Halat' : 'Type';
+                const label = key === 'condition' ? 'Halat' : 'Type';
                 return <FilterMenu key={key} icon={Filter} label={label} value={c.f[key] ?? 'all'} active={!!c.f[key]} width="w-64"
                   options={[{ value: 'all', label: `Sab` }, ...facet.map((x) => ({ value: x.id, label: labelOf(key, x.id), hint: `${x.count} ${noun}` }))]}
                   onChange={(v) => c.set(key, v === 'all' ? undefined : v)} />;

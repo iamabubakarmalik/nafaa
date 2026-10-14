@@ -126,7 +126,7 @@ export const serviceRequestsApi = {
   complete: (id: string, data: any) =>
     apiClient.post('/appliances/service-requests/' + id + '/complete', data).then(unwrap<ServiceRequest>),
   /** Repair ka baqi paisa wusool hone par */
-  addPayment: (id: string, data: { amount: number; note?: string }) =>
+  addPayment: (id: string, data: { amount: number; note?: string; paymentMethod?: string }) =>
     apiClient.post('/appliances/service-requests/' + id + '/payment', data).then(unwrap<ServiceRequest>),
   cancel: (id: string, data?: { reason?: string }) =>
     apiClient.post('/appliances/service-requests/' + id + '/cancel', data ?? {}).then(unwrap<ServiceRequest>),

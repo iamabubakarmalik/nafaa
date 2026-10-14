@@ -1,3 +1,9 @@
+/**
+ * Business type and features: the industry the store runs as, switching to
+ * another type, and every feature switch grouped by area. Feature changes
+ * save at once; the data already in the store is never touched.
+ */
+
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -18,6 +24,7 @@ import { BusinessTypeSelector } from '@modules/onboarding/components/BusinessTyp
 import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { SectionCard, Alert } from '../components/UI';
+import { SaveStatusBar } from './_SaveStatus';
 
 interface FeatureMeta {
   key: keyof BusinessFeatures;
@@ -186,9 +193,9 @@ export function BusinessConfigSection() {
       qc.setQueryData(['business-config'], nextConfig);
       updateTenant({ businessFeatures: nextConfig.features as any });
       qc.invalidateQueries({ queryKey: ['business-config'] });
-      toast.success('Feature updated ✅');
+      toast.success('Feature save ho gaya');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update fail'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save nahi hua'),
   });
 
   const changeTypeMutation = useMutation({
@@ -203,9 +210,9 @@ export function BusinessConfigSection() {
       qc.invalidateQueries({ queryKey: ['business-config'] });
       qc.invalidateQueries({ queryKey: ['settings'] });
       setShowTypeSelector(false);
-      toast.success('Business type change ho gaya — features auto-configure ho gaye! ✨');
+      toast.success('Business type badal gaya — features naye type ke hisaab se lag gaye');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Change fail'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Type nahi badla'),
   });
 
   const enabledCount = useMemo(() => {
@@ -257,190 +264,100 @@ export function BusinessConfigSection() {
 
   if (isLoading || !config) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="h-10 w-10 text-violet-600 dark:text-violet-400 animate-spin" />
-        <p className="text-sm font-extrabold text-slate-500 dark:text-ink-400">Business config load ho rahi hai...</p>
+      <div className="space-y-4" aria-busy="true">
+        <div className="h-36 animate-pulse rounded-2xl bg-slate-100" />
+        <div className="h-96 animate-pulse rounded-2xl bg-slate-100" />
       </div>
     );
   }
 
+  const chip = 'inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[0.75rem] font-medium text-slate-700';
+
   return (
     <div className="space-y-4">
-      {/* ═══ HERO — Current business type ═══ */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-ink-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-5 shadow-2xl">
-        <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-violet-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-fuchsia-400/20 blur-3xl pointer-events-none" />
+      <SaveStatusBar saving={updateFeaturesMutation.isPending || changeTypeMutation.isPending} dirty={false} />
 
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-4 min-w-0 flex-1">
-            <div className="text-5xl sm:text-6xl leading-none shrink-0">{config.template?.emoji || '🏬'}</div>
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest">
-                <Store className="h-3 w-3" />
-                Current Business Type
-              </div>
-              <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold leading-tight">
-                {config.template?.label || config.businessType}
-              </h2>
-              {config.template?.labelUrdu && (
-                <div className="text-sm text-white/80 mt-0.5 font-semibold" dir="rtl">
-                  {config.template.labelUrdu}
-                </div>
-              )}
-              <p className="text-xs sm:text-sm text-white/85 mt-1.5 font-semibold leading-relaxed">
-                {config.template?.description}
-              </p>
-              <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-                <span className="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-200 text-[0.6875rem] font-extrabold border border-emerald-400/30">
-                  Unit: {config.defaultUnit}
-                </span>
-                <span className="px-2 py-1 rounded-lg bg-white/10 text-[0.6875rem] font-extrabold border border-white/20">
-                  {enabledCount} / {FEATURE_META.length} features
-                </span>
-                {config.currency && (
-                  <span className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-200 text-[0.6875rem] font-extrabold border border-amber-400/30">
-                    {config.currency}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Button
-            onClick={() => setShowTypeSelector((v) => !v)}
-            className="bg-white/15 hover:bg-white/25 text-white border-2 border-white/20 backdrop-blur font-extrabold shrink-0"
-          >
-            <SettingsIcon className="h-4 w-4" />
-            {showTypeSelector ? 'Close' : 'Change Type'}
-          </Button>
-        </div>
-      </div>
-
-      {/* ═══ Type selector ═══ */}
-      {showTypeSelector && (
-        <SectionCard
-          title="Change Business Type"
-          desc="Naya industry select karo — features auto re-configure ho jayenge"
-          icon={Store}
-          color="violet"
-        >
-          <Alert tone="amber" icon={AlertCircle} title="Kya hoga?">
-            Business type change se feature preset update hoga, lekin aap ka <strong>existing data</strong> (products, sales, customers) safe rahega.
-            Sirf feature toggles adjust hongi.
-          </Alert>
-
-          <div className="mt-4">
-            <BusinessTypeSelector
-              value={config.businessType}
-              options={(options?.businessTypes as any) || []}
-              onSelect={(t) => changeTypeMutation.mutate(t.value)}
-            />
-          </div>
-
-          {changeTypeMutation.isPending && (
-            <div className="mt-3 flex items-center gap-2 text-xs font-extrabold text-violet-700 dark:text-violet-300">
-              <Loader2 className="h-4 w-4 animate-spin" /> Business type update ho raha hai...
-            </div>
-          )}
-        </SectionCard>
-      )}
-
-      {/* ═══ Feature toggles ═══ */}
-      <SectionCard
-        title="Active Features"
-        desc="Individual features on/off karo — jo cheez zaroorat ho, sirf wohi enable"
-        icon={Sparkles}
-        color="violet"
+      <SectionCard title="Aap ka business type" desc="Is se tay hota hai ke menu, product form aur POS me kya kya aata hai" icon={Store} color="violet"
         action={
-          <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border-2 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold tabular-nums">
-            {enabledCount} / {FEATURE_META.length}
-          </span>
-        }
-      >
-        {/* Search */}
-        <div className="space-y-3 mb-4">
+          <Button size="sm" variant={showTypeSelector ? 'secondary' : 'primary'} onClick={() => setShowTypeSelector((v) => !v)}
+            leftIcon={showTypeSelector ? <X className="h-4 w-4" /> : <SettingsIcon className="h-4 w-4" />}>
+            {showTypeSelector ? 'Band karein' : 'Type badlein'}
+          </Button>
+        }>
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-4xl leading-none">{config.template?.emoji || '🏬'}</div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.75rem] font-medium text-slate-500">Abhi ka business type</p>
+            <h3 className="text-xl font-semibold leading-tight text-slate-900">{config.template?.label || config.businessType}</h3>
+            {config.template?.labelUrdu && <p className="mt-0.5 text-sm text-slate-500" dir="rtl">{config.template.labelUrdu}</p>}
+            {config.template?.description && <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{config.template.description}</p>}
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className={chip}>Unit: {config.defaultUnit}</span>
+              <span className={chip}>{enabledCount} / {FEATURE_META.length} features chalu</span>
+              {config.currency && <span className={chip}>{config.currency}</span>}
+            </div>
+          </div>
+        </div>
+
+        {showTypeSelector && (
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <Alert tone="amber" icon={AlertCircle} title="Type badalne se kya hoga?">
+              Features is type ke hisaab se dobara set ho jayenge. Aap ka <strong>purana data</strong> (products, Sales, customers) waise hi rahega.
+            </Alert>
+            <div className="mt-4">
+              <BusinessTypeSelector
+                value={config.businessType}
+                options={(options?.businessTypes as any) || []}
+                onSelect={(t) => changeTypeMutation.mutate(t.value)}
+              />
+            </div>
+            {changeTypeMutation.isPending && (
+              <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-violet-700">
+                <Loader2 className="h-4 w-4 animate-spin" /> Business type badal raha hai…
+              </p>
+            )}
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Features" desc="Jo kaam aap ka store karta hai sirf wohi chalu rakhein — menu aur forms saaf rehte hain" icon={Sparkles} color="violet"
+        badge={<span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums text-emerald-700 ring-1 ring-emerald-200">{enabledCount} / {FEATURE_META.length} chalu</span>}>
+        <div className="mb-4 space-y-3">
           <div className="relative">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search features (IMEI, expiry, warranty, tailoring...)"
-              className="h-11 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition"
-            />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Feature search"
+              placeholder="Feature search karein (IMEI, expiry, warranty, tailoring…)"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15" />
             {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition"
-              >
-                <X className="h-4 w-4 text-slate-400" />
+              <button type="button" onClick={() => setSearch('')} aria-label="Search saaf karein"
+                className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
+          <p className="text-xs text-slate-500">Card dabane se feature foran chalu ya band hota hai. Group chun kar sirf us ke features dekhein.</p>
 
-          {/* Group tabs */}
           <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setActiveGroup(null)}
-              className={[
-                'px-3 py-1.5 rounded-xl text-xs font-extrabold transition inline-flex items-center gap-1.5 active:scale-95',
-                activeGroup === null
-                  ? 'bg-violet-600 text-white shadow-md'
-                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:bg-slate-200 dark:hover:bg-ink-700',
-              ].join(' ')}
-            >
-              All
-              <span className={[
-                'px-1.5 py-0.5 rounded-md text-[0.6875rem] tabular-nums',
-                activeGroup === null ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700',
-              ].join(' ')}>
-                {FEATURE_META.length}
-              </span>
-            </button>
+            <GroupChip label="Sab" count={`${FEATURE_META.length}`} on={activeGroup === null} onClick={() => setActiveGroup(null)} />
             {FEATURE_GROUPS.map((group) => {
               const count = groupCounts[group];
               if (!count) return null;
-              const active = activeGroup === group;
+              const on = activeGroup === group;
               return (
-                <button
-                  key={group}
-                  onClick={() => setActiveGroup(active ? null : group)}
-                  className={[
-                    'px-3 py-1.5 rounded-xl text-xs font-extrabold transition inline-flex items-center gap-1.5 active:scale-95',
-                    active
-                      ? 'bg-violet-600 text-white shadow-md'
-                      : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:bg-slate-200 dark:hover:bg-ink-700',
-                  ].join(' ')}
-                >
-                  {group}
-                  <span className={[
-                    'px-1.5 py-0.5 rounded-md text-[0.6875rem] tabular-nums',
-                    active
-                      ? 'bg-white/25'
-                      : count.enabled > 0
-                        ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-200 dark:bg-ink-700',
-                  ].join(' ')}>
-                    {count.enabled}/{count.total}
-                  </span>
-                </button>
+                <GroupChip key={group} label={group} count={`${count.enabled}/${count.total}`} on={on} lit={count.enabled > 0}
+                  onClick={() => setActiveGroup(on ? null : group)} />
               );
             })}
           </div>
         </div>
 
-        {/* Feature grid */}
         {Object.keys(groupedFeatures).length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
-            <Search className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
-            <div className="font-extrabold text-slate-900 dark:text-ink-white">Kuch nahi mila</div>
-            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">
-              "{search}" ke liye koi feature nahi
-            </div>
-            <button
-              onClick={() => { setSearch(''); setActiveGroup(null); }}
-              className="mt-3 text-xs font-extrabold text-violet-600 dark:text-violet-400 hover:underline"
-            >
-              Clear filters
+          <div className="rounded-2xl border border-dashed border-slate-200 p-10 text-center">
+            <Search className="mx-auto mb-2 h-8 w-8 text-slate-300" />
+            <p className="font-semibold text-slate-900">Kuch nahi mila</p>
+            <p className="mt-1 text-xs text-slate-500">"{search}" se koi feature nahi mila</p>
+            <button type="button" onClick={() => { setSearch(''); setActiveGroup(null); }} className="mt-3 text-xs font-semibold text-brand-700 hover:underline">
+              Filter hatayein
             </button>
           </div>
         ) : (
@@ -448,73 +365,31 @@ export function BusinessConfigSection() {
             {Object.entries(groupedFeatures).map(([group, features]) => (
               <div key={group}>
                 {!activeGroup && (
-                  <div className="mb-3 flex items-center gap-2">
-                    <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400">
-                      {group}
-                    </div>
-                    <div className="flex-1 h-px bg-slate-200 dark:bg-ink-700" />
-                    <span className={[
-                      'text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-full tabular-nums',
-                      groupCounts[group]?.enabled > 0
-                        ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400',
-                    ].join(' ')}>
-                      {groupCounts[group]?.enabled}/{groupCounts[group]?.total}
-                    </span>
+                  <div className="mb-2.5 flex items-center gap-2">
+                    <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{group}</span>
+                    <span className="h-px flex-1 bg-slate-100" />
+                    <span className="text-[0.6875rem] font-semibold tabular-nums text-slate-500">{groupCounts[group]?.enabled}/{groupCounts[group]?.total}</span>
                   </div>
                 )}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                <div className="grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
                   {features.map((f) => {
                     const Icon = f.icon;
                     const enabled = config.features?.[f.key] ?? DEFAULT_BUSINESS_FEATURES[f.key];
                     const cls = colorClasses[f.color] || colorClasses.violet;
                     return (
-                      <button
-                        key={f.key}
-                        onClick={() => toggleFeature(f.key)}
-                        disabled={updateFeaturesMutation.isPending}
-                        className={[
-                          'text-left p-3.5 rounded-2xl border-2 transition-all active:scale-[0.98] disabled:opacity-60 relative overflow-hidden group',
-                          enabled
-                            ? `${cls.border} ${cls.bg} shadow-md ring-2 ${cls.ring}`
-                            : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-slate-300 dark:hover:border-ink-600 hover:shadow-sm',
-                        ].join(' ')}
-                      >
-                        {enabled && (
-                          <div className="absolute -top-6 -right-6 h-16 w-16 rounded-full bg-current opacity-10 blur-xl pointer-events-none" />
-                        )}
-                        <div className="relative flex items-start gap-3">
-                          <div className={[
-                            'h-9 w-9 rounded-xl flex items-center justify-center shrink-0',
-                            enabled ? cls.bg : 'bg-slate-100 dark:bg-ink-700',
-                          ].join(' ')}>
-                            <Icon className={[
-                              'h-4 w-4',
-                              enabled ? cls.text : 'text-slate-500 dark:text-ink-400',
-                            ].join(' ')} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <div className={[
-                                'font-extrabold text-sm truncate',
-                                enabled ? cls.text : 'text-slate-900 dark:text-ink-white',
-                              ].join(' ')}>
-                                {f.label}
-                              </div>
-                              {enabled && (
-                                <div className="h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md">
-                                  <Check className="h-3 w-3" strokeWidth={3} />
-                                </div>
-                              )}
-                            </div>
-                            <p className={[
-                              'text-[0.6875rem] mt-1 font-semibold leading-snug line-clamp-2',
-                              enabled ? 'text-slate-700 dark:text-ink-200' : 'text-slate-500 dark:text-ink-400',
-                            ].join(' ')}>
-                              {f.description}
-                            </p>
-                          </div>
-                        </div>
+                      <button key={f.key} type="button" role="switch" aria-checked={!!enabled} onClick={() => toggleFeature(f.key)} disabled={updateFeaturesMutation.isPending}
+                        className={['flex items-start gap-3 rounded-xl border p-3 text-left transition active:scale-[0.99] disabled:opacity-60',
+                          enabled ? `${cls.border} bg-white ring-1 ${cls.ring}` : 'border-slate-200 bg-white hover:border-slate-300'].join(' ')}>
+                        <span className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', enabled ? `${cls.bg} ${cls.text}` : 'bg-slate-100 text-slate-500'].join(' ')}>
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-slate-900">{f.label}</span>
+                          <span className="mt-0.5 block text-xs leading-snug text-slate-500">{f.description}</span>
+                        </span>
+                        <span className={['mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full', enabled ? 'bg-emerald-500 text-white' : 'border border-slate-300'].join(' ')}>
+                          {enabled && <Check className="h-3 w-3" strokeWidth={3} />}
+                        </span>
                       </button>
                     );
                   })}
@@ -523,82 +398,50 @@ export function BusinessConfigSection() {
             ))}
           </div>
         )}
-
-        {updateFeaturesMutation.isPending && (
-          <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold">
-            <Loader2 className="h-3 w-3 animate-spin" /> Feature update ho raha hai...
-          </div>
-        )}
       </SectionCard>
 
-      {/* ═══ Suggested categories ═══ */}
-      {config.template?.suggestedCategories && config.template.suggestedCategories.length > 0 && (
-        <SectionCard
-          title="Suggested Categories"
-          desc="Aap ke business type ke liye recommended product categories"
-          icon={Grid3x3}
-          color="emerald"
-        >
-          <div className="flex flex-wrap gap-2">
-            {config.template.suggestedCategories.map((cat) => (
-              <span
-                key={cat}
-                className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 border-2 border-emerald-200 dark:border-emerald-500/30 text-xs font-extrabold text-emerald-700 dark:text-emerald-300"
-              >
-                {cat}
-              </span>
-            ))}
-          </div>
-        </SectionCard>
-      )}
-
-      {/* ═══ Quick units ═══ */}
-      {config.template?.quickUnits && config.template.quickUnits.length > 0 && (
-        <SectionCard
-          title="Quick Units"
-          desc="POS me jaldi select karne ke liye pre-configured units"
-          icon={Ruler}
-          color="blue"
-        >
-          <div className="flex flex-wrap gap-2">
-            {config.template.quickUnits.map((unit) => (
-              <span
-                key={unit}
-                className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-xs font-extrabold text-blue-700 dark:text-blue-300"
-              >
-                {unit}
-              </span>
-            ))}
-          </div>
-        </SectionCard>
-      )}
-
-      {/* ═══ Highlights ═══ */}
-      {config.template?.highlights && config.template.highlights.length > 0 && (
-        <SectionCard
-          title="Key Highlights"
-          desc="Aap ke business ke liye best features"
-          icon={Zap}
-          color="pink"
-        >
-          <div className="grid sm:grid-cols-2 gap-2">
-            {config.template.highlights.map((h, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-2 p-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-100 dark:border-ink-700"
-              >
-                <div className="h-6 w-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                  <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                </div>
-                <span className="text-xs text-slate-700 dark:text-ink-200 font-semibold leading-relaxed">{h}</span>
+      {(config.template?.suggestedCategories?.length || config.template?.quickUnits?.length) ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {config.template?.suggestedCategories && config.template.suggestedCategories.length > 0 && (
+            <SectionCard title="Mashwara: categories" desc="Is business type ke liye aam product categories" icon={Grid3x3} color="emerald">
+              <div className="flex flex-wrap gap-1.5">
+                {config.template.suggestedCategories.map((cat) => <span key={cat} className={chip}>{cat}</span>)}
               </div>
+            </SectionCard>
+          )}
+          {config.template?.quickUnits && config.template.quickUnits.length > 0 && (
+            <SectionCard title="Quick units" desc="POS par jaldi chunne wale units" icon={Ruler} color="blue">
+              <div className="flex flex-wrap gap-1.5">
+                {config.template.quickUnits.map((unit) => <span key={unit} className={chip}>{unit}</span>)}
+              </div>
+            </SectionCard>
+          )}
+        </div>
+      ) : null}
+
+      {config.template?.highlights && config.template.highlights.length > 0 && (
+        <SectionCard title="Khaas baatein" desc="Is business type ke liye sab se kaam ke features" icon={Zap} color="pink">
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {config.template.highlights.map((h, i) => (
+              <li key={i} className="flex items-start gap-2 rounded-xl bg-slate-50 p-3">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" strokeWidth={3} />
+                <span className="text-xs leading-relaxed text-slate-700">{h}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </SectionCard>
       )}
     </div>
   );
 }
 
-// Default export bhi (safety)
-export default BusinessConfigSection;
+function GroupChip({ label, count, on, lit, onClick }: { label: string; count: string; on: boolean; lit?: boolean; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} aria-pressed={on}
+      className={['inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition',
+        on ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'].join(' ')}>
+      {label}
+      <span className={['rounded-full px-1.5 text-[0.6875rem] tabular-nums', on ? 'bg-white/20' : lit ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-slate-500'].join(' ')}>{count}</span>
+    </button>
+  );
+}

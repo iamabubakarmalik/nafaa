@@ -3,7 +3,7 @@
  * (financial year, default period, comparison, round-off), which money
  * figures staff may see, and the automatic daily closing summary (time,
  * channels, recipients, lines, preview, send now, WhatsApp).
- * The day start hour lives in "Zubaan aur waqt"; this section links to it.
+ * The day start hour lives in "Language & time"; this page links to it.
  */
 
 import { useState, type ReactNode } from 'react';
@@ -27,6 +27,7 @@ import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { dailySummaryApi, type DailySummary, type DailySummaryStatus } from '../api/daily-summary.api';
 import { reportsConfigApi, type ReportsConfig, type ReportsConfigPatch, type SummaryChannel, type SummaryPart } from '../api/reports-config.api';
+import { SettingLink } from '../components/SettingsFrame';
 import { SaveStatusBar } from './_SaveStatus';
 
 const WEEK_STARTS = [
@@ -47,7 +48,7 @@ const PERIODS = [
 ];
 const COMPARES = [
   { value: 'prev', label: 'Pichli period', desc: 'Itne hi din, is se pehle' },
-  { value: 'year', label: 'Pichla saal', desc: 'Nafa nuqsan me; baaki me pichli muddat' },
+  { value: 'year', label: 'Pichla saal', desc: 'Profit-loss me; baaki me pichli period' },
   { value: 'off', label: 'Muqabla band', desc: 'Report khud on kar sakti hai' },
 ];
 const ROUNDS = [
@@ -135,11 +136,7 @@ function useReportSettings() {
   return { config: query.data, loading: query.isLoading, save: (patch: ReportsConfigPatch) => save.mutate(patch), saving: save.isPending };
 }
 
-export function ReportsSection({ settings, onOpenLocalization, onOpenNotifications }: {
-  settings: TenantSettings;
-  onOpenLocalization: () => void;
-  onOpenNotifications: () => void;
-}) {
+export function ReportsSection({ settings }: { settings: TenantSettings }) {
   const { draft, set, saving, dirty } = useAutoSave(settings);
   const canReports = usePermission(PERMISSIONS.REPORTS_VIEW);
   const canTeam = usePermission(PERMISSIONS.TEAM_VIEW);
@@ -176,10 +173,10 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
               </p>
             </div>
           </div>
-          <button type="button" onClick={onOpenLocalization}
+          <SettingLink to="/settings/language" find="Din kab shuru hota hai"
             className="shrink-0 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
             Badlein →
-          </button>
+          </SettingLink>
         </div>
 
         <Divider />
@@ -232,7 +229,7 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
             <Alert tone="blue" icon={ShieldCheck}>
               Ye sirf dikhane ka usool hai — kisi ko nayi permission nahi deta. Band karne par server hi ye figures nahi bhejta: reports, din ka hisaab,
               rozana report aur un ke print/CSV me. Malik ko hamesha sab dikhta hai. Nigrani me galle ka farq dikhta rehta hai, wo chori pakadne ke liye hai.
-              {canTeam && <> <Link to="/team" className="font-semibold underline underline-offset-2">Permissions Team me</Link></>}
+              {canTeam && <> <Link to="/staff?tab=roles" className="font-semibold underline underline-offset-2">Roles & permissions</Link></>}
             </Alert>
           </>
         )}
@@ -274,7 +271,7 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
 
             <Divider label="Kahan milti hai" />
             {!cfg ? <ConfigSkeleton /> : (
-              <Channels cfg={cfg} emailOn={draft.emailNotifications} onSave={rc.save} onOpenNotifications={onOpenNotifications} />
+              <Channels cfg={cfg} emailOn={draft.emailNotifications} onSave={rc.save} />
             )}
           </>
         )}
@@ -291,11 +288,11 @@ export function ReportsSection({ settings, onOpenLocalization, onOpenNotificatio
         )}
         <Alert tone="blue" icon={ShieldCheck}>
           Profit sirf unhein dikhta hai jin ke paas 'Cost dekhna' ki permission hai aur upar staff ke liye profit chalu hai. Branch se juda manager sirf apni branch ka hisaab paata hai.
-          {canTeam && <> <Link to="/team" className="font-semibold underline underline-offset-2">Team me permission badlein</Link></>}
+          {canTeam && <> <Link to="/staff?tab=roles" className="font-semibold underline underline-offset-2">Permission badlein</Link></>}
         </Alert>
       </SectionCard>
 
-      <SectionCard title="Report me kya ho" desc="Bikri aur bill hamesha; baaki jo aap chunein" icon={ListChecks} color="cyan">
+      <SectionCard title="Report me kya ho" desc="Sale aur bill hamesha; baaki jo aap chunein" icon={ListChecks} color="cyan">
         {!cfg ? <ConfigSkeleton /> : (
           <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
             {PARTS.map((p) => {
@@ -322,8 +319,8 @@ function ConfigSkeleton() {
   return <div className="space-y-2">{[0, 1].map((i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-slate-100" />)}</div>;
 }
 
-function Channels({ cfg, emailOn, onSave, onOpenNotifications }: {
-  cfg: ReportsConfig; emailOn: boolean; onSave: (p: ReportsConfigPatch) => void; onOpenNotifications: () => void;
+function Channels({ cfg, emailOn, onSave }: {
+  cfg: ReportsConfig; emailOn: boolean; onSave: (p: ReportsConfigPatch) => void;
 }) {
   const has = (c: SummaryChannel) => cfg.summary.channels.includes(c);
   const setChannel = (c: SummaryChannel, v: boolean) => onSave({ summary: { channels: toggleIn(cfg.summary.channels, c, v) } });
@@ -332,9 +329,9 @@ function Channels({ cfg, emailOn, onSave, onOpenNotifications }: {
       <Toggle icon={Smartphone} label="App notification" checked disabled onChange={() => undefined}
         desc="Hamesha jaati hai — ghanti me aur mobile app par push." />
       <Toggle icon={Mail} label="Email" checked={has('email')} onChange={(v) => setChannel('email', v)}
-        desc={<>Har chune hue bande ki tasdeeq shuda email par.{has('email') && !emailOn && <> <span className="font-semibold text-amber-700">Dukaan ki email band hai —</span> <button type="button" onClick={onOpenNotifications} className="font-semibold text-brand-700 underline-offset-2 hover:underline">Email settings</button></>}</>} />
+        desc={<>Har chune hue bande ki tasdeeq shuda email par.{has('email') && !emailOn && <> <span className="font-semibold text-amber-700">Dukaan ki email band hai —</span> <Link to="/settings/notifications" className="font-semibold text-brand-700 underline-offset-2 hover:underline">Email settings</Link></>}</>} />
       <Toggle icon={MessageCircle} label="WhatsApp" checked={has('whatsapp')} onChange={(v) => setChannel('whatsapp', v)}
-        desc="App notification me 'WhatsApp par bhejein' ka button aata hai. Dabane par WhatsApp khulta hai, paighaam likha hua milta hai — bhejna aap ke haath me." />
+        desc="App notification me 'WhatsApp par bhejein' ka button aata hai. Dabane par WhatsApp khulta hai, message likha hua milta hai — bhejna aap ke haath me." />
     </>
   );
 }
@@ -368,7 +365,7 @@ function Recipients({ cfg, people, emailOn, onSave }: {
                 {emailOn && <> · {p.hasEmail ? 'email bhi' : 'email tasdeeq nahi'}</>}
               </p>
             </div>
-            <StatPill label="" value={p.seesProfit ? 'Munafa bhi' : 'Munafa nahi'} tone={p.seesProfit ? 'emerald' : 'slate'} />
+            <StatPill label="" value={p.seesProfit ? 'Profit bhi' : 'Profit nahi'} tone={p.seesProfit ? 'emerald' : 'slate'} />
             {!p.seesDrawer && <StatPill label="" value="Galla nahi" tone="slate" />}
           </li>
         ))}
@@ -465,7 +462,7 @@ function PreviewCard({ settings, today, recent }: {
             </>
           )}
 
-          <Divider label="Paighaam" />
+          <Divider label="Message" />
           <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-xl bg-slate-50 p-3 font-sans text-[0.8125rem] leading-relaxed text-slate-800 ring-1 ring-slate-200">
             {body}
           </pre>

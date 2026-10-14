@@ -23,7 +23,8 @@ export interface UpsertBatchPayload {
   variantId?: string;
   manufactureDate?: string;
   expiryDate?: string;
-  quantity: number;
+  /** Required when creating; left out on update so stock-driven quantity is kept. */
+  quantity?: number;
   costPrice?: number;
   notes?: string;
 }

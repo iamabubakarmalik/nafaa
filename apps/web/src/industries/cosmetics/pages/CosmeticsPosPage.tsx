@@ -12,11 +12,11 @@ import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { PosQuickCash } from '@modules/pos/components';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
 import { cosmeticsProductsApi } from '../api/products.api';
 import { cosmeticsLoyaltyApi } from '../api/loyalty.api';
 import { cosmeticsGiftBundlesApi } from '../api/gift-bundles.api';
@@ -210,7 +210,7 @@ export default function CosmeticsPosPage() {
   };
 
   const checkoutMutation = useMutation({
-    mutationFn: async (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
+    mutationFn: async (data: PosCheckoutResult) => {
       if (!currentShopId) throw new Error('Select shop first');
 
       const items: any[] = [];
@@ -232,8 +232,7 @@ export default function CosmeticsPosPage() {
       const sale = await offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
-        paymentMethod: data.paymentMethod,
-        paidAmount: data.paidAmount,
+        ...salePayment(data, total),
         discount: discountAmount + loyaltyRedeem,
         items,
       });
@@ -249,7 +248,8 @@ export default function CosmeticsPosPage() {
       return { sale, updatedMember, pointsEarned: Math.floor(total / 10) };
     },
     onSuccess: ({ sale, updatedMember, pointsEarned }, vars) => {
-      const change = Math.max(vars.paidAmount - total, 0);
+      void keepAdvance(vars, total, customerId || undefined, sale.saleNumber);
+      const change = (vars.depositExtra ? 0 : Math.max(vars.paidAmount - total, 0));
       setLastSale({ ...sale, change, total, pointsEarned, updatedMember });
       setShowCheckout(false);
       clearCart();
@@ -267,13 +267,13 @@ export default function CosmeticsPosPage() {
       {scannerOpen && <BarcodeScanner onDetected={handleBarcode} onClose={() => setScannerOpen(false)} />}
 
       {showCheckout && (
-        <PosQuickCash
+        <PosCheckoutModal initMode="full"
           total={total}
           itemCount={itemCount}
           loading={checkoutMutation.isPending}
           customerName={selectedCustomer?.name}
           hasCustomer={!!customerId}
-          onConfirm={({ paymentMethod, paidAmount }) => checkoutMutation.mutate({ paymentMethod, paidAmount })}
+          onConfirm={(d) => checkoutMutation.mutate(d)}
           onClose={() => setShowCheckout(false)}
         />
       )}

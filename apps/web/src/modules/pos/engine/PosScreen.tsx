@@ -28,6 +28,7 @@ import {
   VariantPicker,
 } from '../components';
 import { PosSellerPicker } from '../components/PosSellerPicker';
+import { PosBatchChip } from '../components/PosBatchPicker';
 import { isWeightUnit } from '../lib/posUnits';
 import { printReceiptDirect } from '../lib/thermalReceipt';
 import type { PosIndustryConfig } from './types';
@@ -415,7 +416,11 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
             priceEditId={e.priceEditId} onStartPriceEdit={e.setPriceEditId} onSetPrice={e.setPrice}
             onCheckout={() => { setMobileCart(false); e.openCheckout('full'); }} onInstantCash={() => { setMobileCart(false); e.instantCash(); }}
             onQuickPay={(q) => { setMobileCart(false); e.openCheckout('mode' in q ? q.mode : 'full', 'method' in q ? q.method : undefined); }}
-            canCheckout={!!e.shopId} checkoutPending={e.checkoutMutation.isPending} />
+            canCheckout={!!e.shopId} checkoutPending={e.checkoutMutation.isPending}
+            lineExtra={(l) => {
+              const info = e.batchOf(l);
+              return info && <PosBatchChip info={info} baseQuantity={l.baseQuantity} unit={l.baseUnit} onPick={(b) => e.setLineBatch(l.id, b)} />;
+            }} />
         )))}
       </div>
 

@@ -16,6 +16,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { CurrentShop, ShopIdParam, ShopScope, notServiceProductSql } from '../../../common/shop-scope';
 import { freshInStoreEan } from '../barcode-labels/barcode.helper';
 import { AssignBarcodesDto } from '../barcode-labels/dto/label-config.dto';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -260,6 +262,17 @@ export class ProductsController {
     @ShopIdParam() shopId?: string,
   ) {
     return this.insights.get(user, id, days, shopId);
+  }
+
+  /** Purchase lines, cost history and suppliers for one product. Shows costs, so it also needs purchases.view. */
+  @Get(':id/purchases')
+  @RequirePermissions(PERMISSIONS.PRODUCTS_VIEW, PERMISSIONS.PURCHASES_VIEW)
+  productPurchases(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @ShopIdParam() shopId?: string,
+  ) {
+    return this.insights.purchases(user, id, shopId);
   }
 
   @Get(':id')

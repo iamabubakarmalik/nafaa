@@ -131,6 +131,7 @@ import ProfitReportPage from '@modules/finance/profit-report/pages/ProfitReportP
 
 // ─── Settings / System ─────────────────────────────────────────
 import SettingsPage from '@modules/organization/settings/pages/SettingsPage';
+import SettingsSectionPage from '@modules/organization/settings/pages/SettingsSectionPage';
 import BarcodeLabelsPage from '@modules/inventory/barcodes/pages/BarcodeLabelsPage';
 import ShopsPage from '@modules/organization/shops/pages/ShopsPage';
 import ShopFormPage from '@modules/organization/shops/pages/ShopFormPage';
@@ -687,7 +688,22 @@ export default function App() {
                   <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportPage />)} />
 
                   {/* ── Settings & System ──────────────────────── */}
+                  {/* Settings: overview, then one page per section. /settings?tab=<old id> redirects inside SettingsPage. */}
                   <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
+                  <Route path="/settings/store" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="store" />)} />
+                  <Route path="/settings/business-type" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="business-type" />)} />
+                  <Route path="/settings/language" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="language" />)} />
+                  <Route path="/settings/tax" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="tax" />)} />
+                  <Route path="/settings/reports" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="reports" />)} />
+                  <Route path="/settings/counter" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="counter" />)} />
+                  <Route path="/settings/receipt" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="receipt" />)} />
+                  <Route path="/settings/stock" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="stock" />)} />
+                  <Route path="/settings/credit-loyalty" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="credit-loyalty" />)} />
+                  <Route path="/settings/notifications" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="notifications" />)} />
+                  <Route path="/settings/whatsapp" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="whatsapp" />)} />
+                  <Route path="/settings/security" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="security" />)} />
+                  <Route path="/settings/data-export" element={secure(PERMISSIONS.SETTINGS_VIEW, secure(PERMISSIONS.BACKUP_MANAGE, <SettingsSectionPage section="data-export" />))} />
+                  <Route path="/settings/danger" element={secure(PERMISSIONS.SETTINGS_VIEW, secure(PERMISSIONS.SETTINGS_MANAGE, <SettingsSectionPage section="danger" />))} />
                   <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
                   <Route path="/integrations" element={secure(PERMISSIONS.SETTINGS_VIEW, <IntegrationHubPage />)} />
                   <Route path="/online-orders" element={secure(PERMISSIONS.SALES_VIEW, <OnlineOrdersPage />)} />

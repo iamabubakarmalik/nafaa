@@ -1,321 +1,418 @@
-import { useState } from 'react';
+/**
+ * Marketplace publishing (/marketplace/settings): how the active branch
+ * shows on the Nafaa marketplace — name, logo, address and contact,
+ * delivery, payment methods and extra features — plus publish / unpublish.
+ * Changes are kept as a draft and saved together; publishing saves first.
+ * Editing needs "Settings badalna".
+ *
+ * Keys: Ctrl+S save · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Globe, Save, Store, MapPin, Truck, CreditCard, Sparkles, BarChart3,
-  ChevronRight, Search, CheckCircle2, AlertCircle, ShoppingBag, Rocket,
+  AlertTriangle, BarChart3, CheckCircle2, Circle, CreditCard, EyeOff, GraduationCap, ImagePlus, Loader2, LocateFixed, Mail,
+  MapPin, MessageCircle, Phone, Rocket, Save, Sparkles, Star, Store, Truck, Users,
 } from 'lucide-react';
+import {
+  Button, Card, Input, KpiCard, KpiRow, PageHero, PageShell, Select, Skeleton, Switch, Textarea, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { AvatarUpload } from '@core/components/uploads';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen } from '@core/lib/shortcuts';
+import { uploadsApi } from '@modules/organization/settings/api/uploads.api';
 import { marketplaceSettingsApi, type MarketplaceProfile } from '../api/marketplace-settings.api';
-import { Button } from '@/design-system/components';
 
-import BasicInfoSection from '../sections/BasicInfoSection';
-import LocationSection from '../sections/LocationSection';
-import DeliverySection from '../sections/DeliverySection';
-import PaymentSection from '../sections/PaymentSection';
-import FeaturesSection from '../sections/FeaturesSection';
-import StatsSection from '../sections/StatsSection';
+type P = MarketplaceProfile;
 
-type SectionId = 'basic' | 'location' | 'delivery' | 'payment' | 'features' | 'stats';
-
-interface SectionDef {
-  id: SectionId; label: string; icon: any; color: string; desc: string; group: string;
-}
-
-const sections: SectionDef[] = [
-  { id: 'basic',    label: 'Basic Info',         icon: Store,       color: 'emerald', desc: 'Name, tagline, logo',       group: 'Profile' },
-  { id: 'location', label: 'Location & Contact', icon: MapPin,      color: 'blue',    desc: 'Address, phone, email',      group: 'Profile' },
-  { id: 'delivery', label: 'Delivery',           icon: Truck,       color: 'amber',   desc: 'Fee, radius, time',          group: 'Business' },
-  { id: 'payment',  label: 'Payment Methods',    icon: CreditCard,  color: 'violet',  desc: 'JazzCash, Card, COD',        group: 'Business' },
-  { id: 'features', label: 'Advanced Features',  icon: Sparkles,    color: 'pink',    desc: 'Bargain, Group Buy',         group: 'Advanced' },
-  { id: 'stats',    label: 'Stats & Level',      icon: BarChart3,   color: 'cyan',    desc: 'Ratings, verification',      group: 'Advanced' },
+/** Fields this page edits; a first save sends all of them so the stored profile matches what the page showed. */
+const EDITABLE: Array<keyof P> = [
+  'publicName', 'tagline', 'description', 'industry', 'logoUrl', 'coverUrl', 'city', 'area', 'address', 'lat', 'lng',
+  'contactPhone', 'contactEmail', 'whatsappNumber', 'offersDelivery', 'offersPickup', 'deliveryFee', 'freeDeliveryAbove', 'minOrderAmount',
+  'estimatedDeliveryMinutes', 'deliveryRadiusKm', 'acceptsCod', 'acceptsCard', 'acceptsJazzcash', 'acceptsEasypaisa', 'acceptsRaast',
+  'acceptsWallet', 'bargainEnabled', 'bargainMinPercent', 'groupBuyEnabled', 'liveShopEnabled', 'auctionEnabled',
 ];
 
-const colorMap: any = {
-  emerald: { bg: 'bg-emerald-600', text: 'text-emerald-700', light: 'bg-emerald-50', border: 'border-emerald-500' },
-  blue:    { bg: 'bg-blue-600',    text: 'text-blue-700',    light: 'bg-blue-50',    border: 'border-blue-500'    },
-  amber:   { bg: 'bg-amber-500',   text: 'text-amber-700',   light: 'bg-amber-50',   border: 'border-amber-500'   },
-  violet:  { bg: 'bg-violet-600',  text: 'text-violet-700',  light: 'bg-violet-50',  border: 'border-violet-500'  },
-  pink:    { bg: 'bg-pink-600',    text: 'text-pink-700',    light: 'bg-pink-50',    border: 'border-pink-500'    },
-  cyan:    { bg: 'bg-cyan-600',    text: 'text-cyan-700',    light: 'bg-cyan-50',    border: 'border-cyan-500'    },
+const INDUSTRIES: Array<[string, string]> = [
+  ['GROCERY', 'Grocery / kiryana'], ['RESTAURANT', 'Restaurant'], ['BAKERY', 'Bakery'], ['PHARMACY', 'Pharmacy'], ['JEWELRY', 'Jewellery'],
+  ['GARMENTS', 'Garments'], ['MOBILE', 'Mobile'], ['ELECTRONICS', 'Electronics'], ['HARDWARE', 'Hardware'], ['BOOKS', 'Books / stationery'],
+  ['DAIRY', 'Dairy'], ['MEAT', 'Meat'], ['CARPET', 'Carpet'], ['SALON', 'Salon'], ['GYM', 'Gym'], ['HOTEL', 'Hotel'], ['CLINIC', 'Clinic'],
+  ['AUTOPARTS', 'Auto parts'], ['AGRI', 'Agri'], ['SERVICES', 'Services'],
+];
+const CITIES = [
+  'Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala', 'Hyderabad',
+  'Sargodha', 'Bahawalpur', 'Sukkur', 'Larkana', 'Gujrat', 'Sahiwal', 'Okara', 'Abbottabad', 'Mardan',
+];
+const PAYMENTS: Array<{ key: keyof P; label: string; hint: string }> = [
+  { key: 'acceptsCod', label: 'Cash on delivery', hint: 'Ghar par paise lein — Pakistan me sab se zyada chalta hai' },
+  { key: 'acceptsJazzcash', label: 'JazzCash', hint: 'Mobile wallet' },
+  { key: 'acceptsEasypaisa', label: 'Easypaisa', hint: 'Mobile wallet' },
+  { key: 'acceptsCard', label: 'Debit / credit card', hint: 'Visa, MasterCard' },
+  { key: 'acceptsRaast', label: 'Raast', hint: 'Bank se foran transfer' },
+  { key: 'acceptsWallet', label: 'Nafaa wallet', hint: 'App ke andar ka balance' },
+];
+const LEVELS: Record<string, { label: string; next: string }> = {
+  UNVERIFIED: { label: 'Abhi verify nahi', next: 'Logo, cover, pata aur phone poora karein aur 5 order mukammal karein' },
+  BRONZE: { label: 'Bronze', next: '25+ order mukammal karein to Silver' },
+  SILVER: { label: 'Silver', next: '100+ order ke baad Gold' },
+  GOLD: { label: 'Gold', next: 'Thori aur growth par Platinum' },
+  PLATINUM: { label: 'Platinum', next: 'Sab se ooncha darja' },
 };
 
-const groups = ['Profile', 'Business', 'Advanced'];
+const digits = (v: unknown) => String(v ?? '').replace(/\D/g, '').replace(/^92/, '0');
+const numOrNull = (v: string) => (v.trim() === '' ? null : Number(v));
+const shown = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
 export default function MarketplaceSettingsPage() {
   const qc = useQueryClient();
-  const [active, setActive] = useState<SectionId>('basic');
-  const [draft, setDraft] = useState<Partial<MarketplaceProfile>>({});
-  const [search, setSearch] = useState('');
+  const guide = usePageGuide();
+  const canEdit = usePermission(PERMISSIONS.SETTINGS_EDIT);
+  const [draft, setDraft] = useState<Partial<P>>({});
+  const [tried, setTried] = useState(false);
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['marketplace-profile'],
-    queryFn: marketplaceSettingsApi.getProfile,
-  });
+  const profileQ = useQuery({ queryKey: ['marketplace-profile'], queryFn: marketplaceSettingsApi.getProfile });
+  const profile = profileQ.data;
+  const m = { ...profile, ...draft } as P;
+  const changed = Object.keys(draft).length;
+  const set = <K extends keyof P>(k: K, v: P[K]) => setDraft((d) => ({ ...d, [k]: v }));
 
-  const updateMutation = useMutation({
-    mutationFn: marketplaceSettingsApi.updateProfile,
+  const errors = useMemo(() => {
+    const e: Partial<Record<keyof P, string>> = {};
+    if (!String(m.publicName ?? '').trim()) e.publicName = 'Dukaan ka naam likhein';
+    if (m.contactPhone && !/^0\d{9,10}$/.test(digits(m.contactPhone))) e.contactPhone = 'Number theek nahi — misaal: 0300-1234567';
+    if (m.whatsappNumber && !/^0\d{9,10}$/.test(digits(m.whatsappNumber))) e.whatsappNumber = 'Number theek nahi — misaal: 0300-1234567';
+    if (m.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(m.contactEmail).trim())) e.contactEmail = 'Email theek nahi';
+    if (m.lat != null && !(Math.abs(Number(m.lat)) <= 90)) e.lat = 'Latitude -90 se 90 ke beech';
+    if (m.lng != null && !(Math.abs(Number(m.lng)) <= 180)) e.lng = 'Longitude -180 se 180 ke beech';
+    if (Number(m.deliveryFee) < 0 || Number.isNaN(Number(m.deliveryFee ?? 0))) e.deliveryFee = 'Fee 0 ya zyada';
+    if (m.estimatedDeliveryMinutes != null && !(Number(m.estimatedDeliveryMinutes) > 0)) e.estimatedDeliveryMinutes = 'Minute 1 ya zyada';
+    if (m.deliveryRadiusKm != null && !(Number(m.deliveryRadiusKm) > 0)) e.deliveryRadiusKm = 'Kilometer 1 ya zyada';
+    if (m.bargainEnabled && m.bargainMinPercent != null && !(Number(m.bargainMinPercent) >= 50 && Number(m.bargainMinPercent) <= 95)) e.bargainMinPercent = '50 se 95 ke beech';
+    return e;
+  }, [m]);
+  const err = (k: keyof P) => (tried || k in draft ? errors[k] : undefined);
+  // Values stored before are not re-checked, so an old record can still be saved.
+  const problems = (Object.entries(errors) as Array<[keyof P, string]>)
+    .filter(([k]) => k === 'publicName' || k in draft || !profile?.slug).map(([, v]) => v);
+
+  /** Draft as the API takes it; a profile not yet stored gets every field the page showed. */
+  const body = () => {
+    const base = (profile?.slug ? {} : Object.fromEntries(EDITABLE.filter((k) => m[k] !== undefined).map((k) => [k, m[k]]))) as Partial<P>;
+    return { ...base, ...draft };
+  };
+
+  const save = useMutation({
+    mutationFn: () => marketplaceSettingsApi.updateProfile(body()),
     onSuccess: () => {
-      toast.success('Marketplace settings save ho gayi ✅');
-      qc.invalidateQueries({ queryKey: ['marketplace-profile'] });
+      toast.success('Save ho gaya');
       setDraft({});
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message?.[0] || e?.response?.data?.message || 'Save fail'),
-  });
-
-  const publishMutation = useMutation({
-    mutationFn: () =>
-      profile?.isListedOnMarketplace
-        ? marketplaceSettingsApi.unpublishShop()
-        : marketplaceSettingsApi.publishShop(),
-    onSuccess: () => {
-      toast.success(
-        profile?.isListedOnMarketplace
-          ? 'Shop unpublish ho gayi'
-          : '🎉 Shop marketplace pe live ho gayi!',
-      );
+      setTried(false);
       qc.invalidateQueries({ queryKey: ['marketplace-profile'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Error'),
+    onError: (e: any) => toast.error(apiMessage(e, 'Save nahi hua')),
   });
 
-  const merged = { ...profile, ...draft } as MarketplaceProfile;
-  const hasChanges = Object.keys(draft).length > 0;
+  const publish = useMutation({
+    mutationFn: async () => {
+      if (profile?.isListedOnMarketplace) return marketplaceSettingsApi.unpublishShop();
+      if (changed || !profile?.slug) await marketplaceSettingsApi.updateProfile(body());
+      return marketplaceSettingsApi.publishShop();
+    },
+    onSuccess: () => {
+      toast.success(profile?.isListedOnMarketplace ? 'Dukaan marketplace se hata di' : 'Dukaan marketplace par live ho gayi');
+      setDraft({});
+      qc.invalidateQueries({ queryKey: ['marketplace-profile'] });
+    },
+    onError: (e: any) => toast.error(apiMessage(e, 'Nahi hua')),
+  });
 
-  const set = <K extends keyof MarketplaceProfile>(key: K, value: MarketplaceProfile[K]) => {
-    setDraft((d) => ({ ...d, [key]: value }));
+  const trySave = () => {
+    if (!canEdit || save.isPending) return;
+    setTried(true);
+    if (!changed) { toast.info('Koi tabdeeli nahi'); return; }
+    if (problems.length) { toast.error(problems[0]); return; }
+    save.mutate();
+  };
+  const tryPublish = () => {
+    if (!canEdit || publish.isPending) return;
+    if (!profile?.isListedOnMarketplace) {
+      setTried(true);
+      if (problems.length) { toast.error(problems[0]); return; }
+      if (!String(m.city ?? '').trim()) { toast.error('Publish se pehle shehar likhein'); return; }
+    }
+    publish.mutate();
   };
 
-  const onSave = () => {
-    if (!hasChanges) { toast.info('Koi changes nahi hain'); return; }
-    updateMutation.mutate(draft);
-  };
+  const saveRef = useRef(trySave);
+  saveRef.current = trySave;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S') && !isDialogOpen()) { e.preventDefault(); saveRef.current(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  useEffect(() => {
+    if (!changed) return;
+    const onUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', onUnload);
+    return () => window.removeEventListener('beforeunload', onUnload);
+  }, [changed]);
 
-  const activeSection = sections.find((s) => s.id === active)!;
-  const colors = colorMap[activeSection.color];
-
-  const filteredSections = search
-    ? sections.filter((s) =>
-        s.label.toLowerCase().includes(search.toLowerCase()) ||
-        s.desc.toLowerCase().includes(search.toLowerCase()),
-      )
-    : sections;
-
-  const hideSaveBar = active === 'stats';
-
-  if (isLoading || !profile) {
+  if (profileQ.isLoading) {
+    return <PageShell><Skeleton className="h-36 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-96 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
+  }
+  if (profileQ.isError || !profile) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-center">
-          <Sparkles className="h-10 w-10 text-emerald-600 animate-pulse mx-auto" />
-          <p className="mt-3 text-sm font-black text-slate-600">Loading marketplace profile...</p>
+      <PageShell>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">Marketplace ki details nahi khulin</p>
+          <p className="mt-1 text-sm text-slate-500">{apiMessage(profileQ.error, 'Internet check karein aur dobara koshish karein')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => profileQ.refetch()}>Dobara koshish</Button>
         </div>
-      </div>
+      </PageShell>
     );
   }
 
-  const isPublished = profile.isListedOnMarketplace;
+  const live = profile.isListedOnMarketplace;
+  const anyPayment = PAYMENTS.some((p) => !!m[p.key]);
+  const ready: Array<{ ok: boolean; label: string }> = [
+    { ok: !!String(m.publicName ?? '').trim(), label: 'Dukaan ka naam' },
+    { ok: !!String(m.city ?? '').trim(), label: 'Shehar' },
+    { ok: !!(m.contactPhone || m.whatsappNumber), label: 'Phone ya WhatsApp' },
+    { ok: !!m.logoUrl, label: 'Logo' },
+    { ok: !!(m.offersDelivery || m.offersPickup), label: 'Delivery ya pickup' },
+    { ok: anyPayment, label: 'Kam se kam ek payment ka tareeqa' },
+  ];
+  const level = LEVELS[profile.verificationLevel || 'UNVERIFIED'] ?? LEVELS.UNVERIFIED;
+  const minPct = Number(m.bargainMinPercent ?? 80);
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Hero */}
-      <section className={`rounded-3xl text-white p-6 shadow-2xl relative overflow-hidden ${
-        isPublished
-          ? 'bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700'
-          : 'bg-gradient-to-br from-slate-950 via-slate-800 to-slate-700'
-      }`}>
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
-
-        <div className="relative flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-black border border-white/20">
-              <Globe className="h-3.5 w-3.5" />
-              {isPublished ? 'LIVE on Nafaa Bazaar' : 'Not Published Yet'}
-            </div>
-            <h2 className="mt-3 text-3xl md:text-4xl font-black">Marketplace Settings</h2>
-            <p className="mt-1 text-sm text-white/80 font-medium">
-              {profile.publicName || 'Aap ki shop'} — Nafaa Bazaar pe apni dukan customize karein
-            </p>
-          </div>
-          {hasChanges && !hideSaveBar && (
-            <Button size="lg" onClick={onSave} loading={updateMutation.isPending} className="bg-white text-slate-900 hover:bg-slate-100 shadow-xl">
-              <Save className="h-4 w-4" />
-              Save {Object.keys(draft).length} Change{Object.keys(draft).length > 1 ? 's' : ''}
-            </Button>
+    <PageShell>
+      <PageHero
+        title="Marketplace publishing"
+        chip={live ? <><CheckCircle2 />Live hai</> : <><EyeOff />Abhi live nahi</>}
+        meta={`${profile.publicName || 'Aap ki dukaan'} — Nafaa marketplace par aap ki dukaan kaise dikhe`}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && (
+            <button type="button" onClick={tryPublish} disabled={publish.isPending} className={heroButton}>
+              {publish.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : live ? <EyeOff className="h-4 w-4" /> : <Rocket className="h-4 w-4" />}
+              {live ? 'Marketplace se hatayein' : 'Publish karein'}
+            </button>
           )}
-        </div>
-      </section>
+          {canEdit && (
+            <button type="button" onClick={trySave} disabled={save.isPending || !changed} title="Save (Ctrl+S)" className={heroPrimaryButton}>
+              {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {changed ? `Save (${changed})` : 'Save'}
+            </button>
+          )}
+        </>}
+      />
 
-      {/* Publish Banner */}
-      <section className={`rounded-2xl p-5 border-2 shadow-sm ${
-        isPublished
-          ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300'
-          : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
-      }`}>
-        <div className="flex items-start gap-4 flex-wrap">
-          <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md ${
-            isPublished ? 'bg-emerald-500' : 'bg-amber-500'
-          }`}>
-            {isPublished ? <CheckCircle2 className="h-7 w-7 text-white" /> : <Rocket className="h-7 w-7 text-white" />}
-          </div>
-          <div className="flex-1 min-w-[240px]">
-            <div className="font-black text-lg text-slate-900">
-              {isPublished ? '✅ Aap ki shop live hai!' : '🚀 Publish karne ke liye tayyar?'}
-            </div>
-            <p className="text-sm text-slate-700 font-medium mt-1">
-              {isPublished
-                ? 'Customers Nafaa Bazaar pe aap ki shop dhoondh sakte hain. Product bhi individually publish karne honge.'
-                : 'Neeche wali details fill karein, phir "Publish" karke aap ki shop marketplace pe live karein.'}
-            </p>
-          </div>
-          <Button
-            size="lg"
-            onClick={() => publishMutation.mutate()}
-            loading={publishMutation.isPending}
-            className={isPublished ? 'bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
-          >
-            {isPublished ? (
-              <><AlertCircle className="h-4 w-4" />Unpublish</>
-            ) : (
-              <><Rocket className="h-4 w-4" />Publish to Marketplace</>
-            )}
-          </Button>
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        <KpiCard icon={Star} color="#d97706" label="Rating" value={profile.ratingCount ? Number(profile.ratingAverage ?? 0).toFixed(1) : '—'} hint={`${profile.ratingCount ?? 0} review`} />
+        <KpiCard icon={Truck} color="#16a34a" label="Online order" value={String(profile.totalOrders ?? 0)} hint="ab tak" />
+        <KpiCard icon={Users} color="#2563eb" label="Followers" value={String(profile.followerCount ?? 0)} hint="customers" />
+        <KpiCard icon={BarChart3} color="#7c3aed" label="Darja" value={level.label} hint={level.next} />
+      </KpiRow>
 
-      {/* Layout */}
-      <div className="grid lg:grid-cols-[300px_1fr] gap-6">
-        {/* Sidebar */}
-        <aside className="lg:sticky lg:top-4 h-fit">
-          <div className="rounded-3xl bg-white border-2 border-slate-100 p-3 shadow-sm">
-            <div className="relative mb-3">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search settings..."
-                className="w-full h-10 pl-9 pr-3 rounded-xl border-2 border-slate-200 text-sm font-medium outline-none focus:border-emerald-500"
-              />
-            </div>
+      {!canEdit && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Badalne ke liye "Settings badalna" ki permission chahiye. Aap sirf dekh sakte hain.</p>}
 
-            {search ? (
-              <div className="space-y-1">
-                {filteredSections.map((s) => {
-                  const Icon = s.icon;
-                  const isActive = active === s.id;
-                  const c = colorMap[s.color];
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => setActive(s.id)}
-                      className={`w-full text-left rounded-xl p-2.5 flex items-center gap-2.5 transition ${
-                        isActive ? `${c.light} ${c.text}` : 'hover:bg-slate-50 text-slate-700'
-                      }`}
-                    >
-                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-                        isActive ? c.bg + ' text-white' : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div className="text-xs font-black truncate">{s.label}</div>
-                    </button>
-                  );
-                })}
-                {filteredSections.length === 0 && (
-                  <div className="p-4 text-center text-xs text-slate-500 font-medium">
-                    "{search}" ke liye kuch nahi mila
-                  </div>
-                )}
-              </div>
-            ) : (
-              groups.map((group) => (
-                <div key={group} className="mb-3 last:mb-0">
-                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-400 px-3 py-1.5">{group}</div>
-                  {sections.filter((s) => s.group === group).map((s) => {
-                    const Icon = s.icon;
-                    const isActive = active === s.id;
-                    const c = colorMap[s.color];
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => setActive(s.id)}
-                        className={`w-full text-left rounded-xl p-2.5 flex items-center gap-2.5 transition mb-1 ${
-                          isActive ? `${c.light} ${c.text}` : 'hover:bg-slate-50 text-slate-700'
-                        }`}
-                      >
-                        <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
-                          isActive ? c.bg + ' text-white shadow' : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-black truncate">{s.label}</div>
-                          <div className="text-[0.6875rem] text-slate-500 truncate font-medium">{s.desc}</div>
-                        </div>
-                        {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
-                      </button>
-                    );
-                  })}
+      <Card className="rounded-2xl" title={<T icon={live ? CheckCircle2 : Rocket}>{live ? 'Dukaan live hai' : 'Publish se pehle'}</T>}
+        description={live ? 'Customers marketplace par aap ki dukaan dhoondh sakte hain. Har product alag se publish hota hai.' : 'Naam aur shehar zaroori hain; baqi cheezein customers ka bharosa barhati hain.'}>
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {ready.map((r) => (
+            <li key={r.label} className="flex items-center gap-2 text-sm">
+              {r.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Circle className="h-4 w-4 text-slate-300" />}
+              <span className={r.ok ? 'text-slate-800' : 'text-slate-500'}>{r.label}</span>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <fieldset disabled={!canEdit} className="grid gap-4 lg:grid-cols-2">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={Store}>Dukaan ki pehchan</T>}>
+            <div className="space-y-3">
+              <Input label="Dukaan ka naam" required value={shown(m.publicName)} onChange={(e) => set('publicName', e.target.value)} maxLength={80}
+                placeholder="Misaal: Ahmad Kiryana Store" error={err('publicName')} hint="Marketplace par customers ko yahi naam dikhta hai" />
+              <Input label="Tagline" value={shown(m.tagline)} onChange={(e) => set('tagline', e.target.value)} maxLength={120}
+                placeholder="Taaza sabzi aur ghar ka saman — 30 minute me" hint="Ek line — search me naam ke neeche aati hai" />
+              <Textarea label="Dukaan ke baare me" value={shown(m.description)} onChange={(e) => set('description', e.target.value)} rows={4} maxLength={1000}
+                placeholder="Kab se hain, kya milta hai, kya khaas hai…" hint="Customers dukaan kholte hain to yeh parhte hain" />
+              <Select label="Category" value={shown(m.industry) || 'GROCERY'} onChange={(e) => set('industry', e.target.value)}
+                options={INDUSTRIES.map(([value, label]) => ({ value, label }))} hint="Isi category me aap ki dukaan nazar aayegi" />
+              <div className="flex flex-wrap items-start gap-4">
+                <div>
+                  <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Logo</p>
+                  <AvatarUpload value={m.logoUrl || null} onChange={(u) => set('logoUrl', u ?? '')} purpose="shop-logo" shape="square" size="md" fallbackText={m.publicName || 'N'} />
+                  <p className="mt-1.5 text-xs text-slate-500">Chokor tasveer behtar</p>
                 </div>
-              ))
-            )}
+                <CoverUpload value={m.coverUrl || ''} onChange={(u) => set('coverUrl', u)} />
+              </div>
+            </div>
+          </Card>
 
-            <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-              <div className="flex items-start gap-2">
-                <ShoppingBag className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="text-xs">
-                  <div className="font-black text-emerald-900">Tip</div>
-                  <div className="text-emerald-700 font-medium mt-0.5">
-                    Shop publish karne ke baad, har product ko alag se publish karna hoga
-                  </div>
+          <Card className="rounded-2xl" title={<T icon={MapPin}>Pata aur rabta</T>}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Shehar" required list="mp-city-options" value={shown(m.city)} onChange={(e) => set('city', e.target.value)} maxLength={80}
+                placeholder="Lahore" error={err('city')} hint="Publish ke liye zaroori — isi shehar ke customers ko dikhegi" />
+              <Input label="Ilaqa" value={shown(m.area)} onChange={(e) => set('area', e.target.value)} maxLength={80} placeholder="Model Town, DHA…" hint="Qareeb ke customers ko pehle dikhane ke liye" />
+              <Textarea label="Poora pata" value={shown(m.address)} onChange={(e) => set('address', e.target.value)} rows={2} maxLength={255} wrapperClassName="sm:col-span-2"
+                placeholder="Shop #5, Main Boulevard, Model Town" hint="Rider ko dukaan dhoondhne me aasani ho" />
+              <Input label="Latitude" inputMode="decimal" value={shown(m.lat)} onChange={(e) => set('lat', numOrNull(e.target.value) as P['lat'])} placeholder="31.5204" error={err('lat')} hint="Google Maps se, ya neeche button dabayein" />
+              <Input label="Longitude" inputMode="decimal" value={shown(m.lng)} onChange={(e) => set('lng', numOrNull(e.target.value) as P['lng'])} placeholder="74.3587" error={err('lng')} hint="Delivery ka faasla isi se nikalta hai" />
+              <div className="sm:col-span-2"><LocateButton onFound={(lat, lng) => setDraft((d) => ({ ...d, lat, lng }))} /></div>
+              <Input label="Phone" inputMode="tel" value={shown(m.contactPhone)} onChange={(e) => set('contactPhone', e.target.value)} maxLength={20}
+                leftIcon={<Phone className="h-4 w-4" />} placeholder="0300-1234567" error={err('contactPhone')} hint="Customers order ke baare me isi par call karenge" />
+              <Input label="WhatsApp" inputMode="tel" value={shown(m.whatsappNumber)} onChange={(e) => set('whatsappNumber', e.target.value)} maxLength={20}
+                leftIcon={<MessageCircle className="h-4 w-4" />} placeholder="0300-1234567" error={err('whatsappNumber')} hint="Khali ho to phone wala number hi dikhta hai" />
+              <Input label="Email" type="email" value={shown(m.contactEmail)} onChange={(e) => set('contactEmail', e.target.value)} wrapperClassName="sm:col-span-2"
+                leftIcon={<Mail className="h-4 w-4" />} placeholder="dukaan@gmail.com" error={err('contactEmail')} hint="Marzi hai — order ki khabar aur sawal ke liye" />
+            </div>
+            <datalist id="mp-city-options">{CITIES.map((c) => <option key={c} value={c} />)}</datalist>
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={Truck}>Delivery</T>}>
+            <div className="space-y-3">
+              <Switch checked={!!m.offersDelivery} onChange={(e) => set('offersDelivery', e.target.checked)} label="Ghar tak delivery" description="Customer ke ghar maal bhejte hain" />
+              <Switch checked={!!m.offersPickup} onChange={(e) => set('offersPickup', e.target.checked)} label="Dukaan se pickup" description="Customer khud aa kar le jaye" />
+              {m.offersDelivery && (
+                <div className="grid gap-3 border-t border-slate-100 pt-3 sm:grid-cols-2">
+                  <Input label="Delivery fee (Rs)" inputMode="decimal" value={shown(m.deliveryFee)} onChange={(e) => set('deliveryFee', Number(e.target.value.replace(/[^\d.]/g, '')) || 0)}
+                    error={err('deliveryFee')} className="text-right tabular-nums" hint="Har order par — 0 = muft delivery" />
+                  <Input label="Is se upar muft (Rs)" inputMode="decimal" value={shown(m.freeDeliveryAbove)} onChange={(e) => set('freeDeliveryAbove', numOrNull(e.target.value.replace(/[^\d.]/g, '')))}
+                    className="text-right tabular-nums" placeholder="Khali = hamesha fee" hint={m.freeDeliveryAbove ? `${formatPKR(Number(m.freeDeliveryAbove))} se bare order par fee nahi` : 'Marzi hai — bara order lene ka tareeqa'} />
+                  <Input label="Kam se kam order (Rs)" inputMode="decimal" value={shown(m.minOrderAmount)} onChange={(e) => set('minOrderAmount', Number(e.target.value.replace(/[^\d.]/g, '')) || 0)}
+                    className="text-right tabular-nums" hint="Is se chhota order nahi aayega — 0 = koi had nahi" />
+                  <Input label="Delivery ka waqt (minute)" inputMode="numeric" value={shown(m.estimatedDeliveryMinutes ?? 30)} onChange={(e) => set('estimatedDeliveryMinutes', Number(e.target.value.replace(/\D/g, '')) || 0)}
+                    error={err('estimatedDeliveryMinutes')} className="text-right tabular-nums" hint="Customer ko andaza dikhta hai" />
+                  <Input label="Kitni door tak (km)" inputMode="decimal" value={shown(m.deliveryRadiusKm ?? 5)} onChange={(e) => set('deliveryRadiusKm', Number(e.target.value.replace(/[^\d.]/g, '')) || 0)}
+                    error={err('deliveryRadiusKm')} className="text-right tabular-nums" wrapperClassName="sm:col-span-2" hint="Is se door ke customers ko delivery nahi dikhegi" />
                 </div>
-              </div>
+              )}
             </div>
-          </div>
-        </aside>
+          </Card>
 
-        {/* Content */}
-        <main>
-          <div className="rounded-3xl bg-slate-50/50 border-2 border-slate-100 overflow-hidden">
-            <div className={`${colors.light} px-6 py-5 border-b-2 border-white flex items-center gap-3`}>
-              <div className={`h-12 w-12 rounded-2xl ${colors.bg} text-white flex items-center justify-center shadow-md`}>
-                <activeSection.icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-black text-slate-900">{activeSection.label}</h3>
-                <p className="text-sm text-slate-600 font-medium">{activeSection.desc}</p>
-              </div>
+          <Card className="rounded-2xl" title={<T icon={CreditCard}>Payment ke tareeqe</T>} description="Jitne zyada tareeqe, utne zyada order">
+            <div className="space-y-3">
+              {PAYMENTS.map((p) => (
+                <Switch key={p.key} checked={!!m[p.key]} onChange={(e) => set(p.key, e.target.checked as never)} label={p.label} description={p.hint} />
+              ))}
+              {!anyPayment && <p className="flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />Koi tareeqa on nahi — customer order nahi de sakega</p>}
             </div>
+          </Card>
 
-            <div className="p-6">
-              {active === 'basic'    && <BasicInfoSection s={merged} set={set} />}
-              {active === 'location' && <LocationSection s={merged} set={set} />}
-              {active === 'delivery' && <DeliverySection s={merged} set={set} />}
-              {active === 'payment'  && <PaymentSection s={merged} set={set} />}
-              {active === 'features' && <FeaturesSection s={merged} set={set} />}
-              {active === 'stats'    && <StatsSection s={merged} />}
+          <Card className="rounded-2xl" title={<T icon={Sparkles}>Aur features</T>}>
+            <div className="space-y-3">
+              <Switch checked={!!m.bargainEnabled} onChange={(e) => set('bargainEnabled', e.target.checked)} label="Mol-bhaav (bargain)"
+                description="Customer kam price ka offer bhej sakta hai — aap maanein, mana karein ya naya price dein" />
+              {m.bargainEnabled && (
+                <Input label="Kam se kam offer (price ka %)" inputMode="numeric" value={shown(m.bargainMinPercent ?? 80)} onChange={(e) => set('bargainMinPercent', Number(e.target.value.replace(/\D/g, '')) || 0)}
+                  error={err('bargainMinPercent')} className="text-right tabular-nums" wrapperClassName="pl-0 sm:pl-6"
+                  hint={`Misaal: ${minPct}% par Rs 1,000 wali cheez ka ${formatPKR((1000 * minPct) / 100)} se kam offer nahi aa sakta`} />
+              )}
+              <Switch checked={!!m.groupBuyEnabled} onChange={(e) => set('groupBuyEnabled', e.target.checked)} label="Group buy"
+                description="Kai customers mil kar khareedein; tadaad poori ho to sab ko Discount" />
+              <Switch checked={!!m.liveShopEnabled} onChange={(e) => set('liveShopEnabled', e.target.checked)} label={<Soon>Live shopping</Soon>} description="Video par live dikha kar bechna" />
+              <Switch checked={!!m.auctionEnabled} onChange={(e) => set('auctionEnabled', e.target.checked)} label={<Soon>Neelami (auction)</Soon>} description="Sab se ooncha bid dene wala cheez le jaye" />
             </div>
-          </div>
-        </main>
-      </div>
+          </Card>
+        </div>
+      </fieldset>
 
-      {/* Sticky save bar */}
-      {hasChanges && !hideSaveBar && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-5 py-3 shadow-2xl flex items-center gap-3 border-2 border-emerald-500">
-          <Sparkles className="h-4 w-4 text-amber-300" />
-          <span className="text-sm font-black">
-            {Object.keys(draft).length} unsaved change{Object.keys(draft).length > 1 ? 's' : ''}
-          </span>
-          <div className="w-px h-6 bg-emerald-400" />
-          <button onClick={() => setDraft({})} className="text-xs font-black text-emerald-100 hover:text-white transition">
-            Discard
-          </button>
-          <Button size="sm" onClick={onSave} loading={updateMutation.isPending} className="bg-white text-emerald-700 hover:bg-slate-100">
-            <Save className="h-4 w-4" />
-            Save All
-          </Button>
+      {changed > 0 && canEdit && (
+        <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
+          {problems.length > 0 && tried
+            ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{problems[0]}</p>
+            : <p className="mr-auto text-[0.8125rem] text-slate-500">{changed} tabdeeli save nahi hui — Ctrl+S dabayein</p>}
+          <Button variant="secondary" onClick={() => { setDraft({}); setTried(false); }}>Chhor dein</Button>
+          <Button onClick={trySave} loading={save.isPending} leftIcon={<Save className="h-4 w-4" />}>Save karein</Button>
         </div>
       )}
+
+      {guide.isOpen && (
+        <PageGuide title="Marketplace par dukaan" onClose={guide.close}
+          steps={[
+            { icon: Store, color: '#16a34a', title: 'Pehchan', text: 'Naam, tagline, logo aur cover lagayein — customer pehli nazar me yahi dekhta hai.' },
+            { icon: MapPin, color: '#2563eb', title: 'Pata aur phone', text: 'Shehar zaroori hai. Location button dabayein to delivery ka faasla theek nikalta hai.' },
+            { icon: Truck, color: '#d97706', title: 'Delivery aur payment', text: 'Fee, muft delivery ki had aur kam se kam order likhein. Cash on delivery on rakhein.' },
+            { icon: Rocket, color: '#7c3aed', title: 'Publish', text: 'Publish dabane se tabdeeliyan save ho kar dukaan live ho jati hai. Phir har product alag se publish karein.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function apiMessage(e: any, fallback: string): string {
+  const m = e?.response?.data?.message;
+  return (Array.isArray(m) ? m[0] : m) || fallback;
+}
+
+const T = ({ icon: Icon, children }: { icon: typeof Store; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
+
+const Soon = ({ children }: { children: ReactNode }) => (
+  <span className="inline-flex items-center gap-2">{children}<span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-500">Jald aa raha hai</span></span>
+);
+
+/** Wide banner image: upload or remove, previewed at its real shape. */
+function CoverUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const pick = async (file: File) => {
+    if (!file.type.startsWith('image/')) { toast.error('Sirf tasveer (JPG, PNG, WebP)'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Tasveer 10 MB se chhoti honi chahiye'); return; }
+    setBusy(true);
+    try {
+      const r = await uploadsApi.single({ file, name: file.name, type: file.type }, { purpose: 'shop-logo' });
+      onChange(r.url);
+    } catch (e: any) {
+      toast.error(apiMessage(e, 'Tasveer upload nahi hui'));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="min-w-[12rem] flex-1">
+      <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Cover</p>
+      <button type="button" onClick={() => ref.current?.click()} disabled={busy}
+        className="relative flex aspect-[16/7] w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-500 transition hover:border-brand-400 disabled:opacity-60">
+        {value ? <img src={value} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <span className="flex items-center gap-1.5 text-[0.8125rem]"><ImagePlus className="h-4 w-4" />Tasveer chunein</span>}
+        {busy && <span className="absolute inset-0 flex items-center justify-center bg-white/70"><Loader2 className="h-5 w-5 animate-spin" /></span>}
+      </button>
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-slate-500">
+        <span>Lambi tasveer (16:9) — dukaan ke safhe ke upar</span>
+        {value && <button type="button" onClick={() => onChange('')} className="font-medium text-rose-600 hover:underline">Hatayein</button>}
+      </div>
+      <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void pick(f); e.target.value = ''; }} />
     </div>
+  );
+}
+
+/** Fills latitude/longitude from the device location. */
+function LocateButton({ onFound }: { onFound: (lat: number, lng: number) => void }) {
+  const [busy, setBusy] = useState(false);
+  const locate = () => {
+    if (!navigator.geolocation) { toast.error('Is device par location nahi milti'); return; }
+    setBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => { setBusy(false); onFound(Number(p.coords.latitude.toFixed(6)), Number(p.coords.longitude.toFixed(6))); toast.success('Location lag gayi — save karein'); },
+      () => { setBusy(false); toast.error('Location nahi mili — browser me ijazat dein ya Google Maps se likhein'); },
+      { enableHighAccuracy: true, timeout: 15_000 },
+    );
+  };
+  return (
+    <Button type="button" variant="secondary" size="sm" onClick={locate} loading={busy} leftIcon={<LocateFixed className="h-4 w-4" />}>
+      Dukaan me hain? Abhi ki location lagayein
+    </Button>
   );
 }

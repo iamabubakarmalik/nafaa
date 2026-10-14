@@ -87,6 +87,8 @@ export function usePurchaseDraft(initialMode: 'receive' | 'order') {
   const total = Math.max(subtotal - bill.discount + bill.otherCharges + bill.taxAmount, 0);
   const paid = bill.mode === 'order' ? 0 : Math.min(bill.paid ?? total, total);
   const due = Math.max(total - paid, 0);
+  /** Cash paid on a bill dated today comes out of the open drawer. */
+  const drawerCash = bill.mode === 'receive' && bill.paymentMethod === 'CASH' && (!bill.date || bill.date === today()) ? paid : 0;
 
   const payload = (shopId?: string): CreatePurchasePayload => ({
     supplierId: bill.supplierId,
@@ -114,5 +116,5 @@ export function usePurchaseDraft(initialMode: 'receive' | 'order') {
     })),
   });
 
-  return { bill, setBill, lines, add, patch, setUnit, remove, reset, subtotal, total, paid, due, payload, restored: !!saved?.lines?.length };
+  return { bill, setBill, lines, add, patch, setUnit, remove, reset, subtotal, total, paid, due, drawerCash, payload, restored: !!saved?.lines?.length };
 }

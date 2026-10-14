@@ -1,14 +1,13 @@
 /**
- * Credit and loyalty rules. Credit can be switched off for the whole shop; new
- * customers start with the default limit, and going past a customer's limit
- * needs the owner's PIN. Loyalty: how points are earned, what they are worth,
- * how many can be used on one bill and when they lapse.
+ * Credit and loyalty rules. Credit can be switched off for the whole store;
+ * new customers start with the default limit, and going past a customer's
+ * limit needs the owner's PIN. Loyalty: how points are earned, what they are
+ * worth, how many can be used on one bill and when they lapse.
  */
 
-import { Link } from 'react-router-dom';
-import { ArrowRight, Award, BookOpen, CreditCard, Hourglass, Sparkles } from 'lucide-react';
+import { Award, BookOpen, CreditCard, Hourglass, Sparkles, Users } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
-import { Divider, Field, NumberInput, SectionCard, StatPill, Toggle } from '../components/UI';
+import { Divider, Field, NumberInput, PageLink, SectionCard, StatPill, Toggle } from '../components/UI';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';
@@ -19,6 +18,7 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
   const rate = Number(draft.loyaltyRedemptionRate) || 0;
   const earned = Math.floor(1000 * perRupee);
   const onOff = (on: boolean) => <StatPill label="" value={on ? 'Chalu' : 'Band'} tone={on ? 'emerald' : 'slate'} />;
+  const limit = Number(draft.defaultCreditLimit) || 0;
 
   return (
     <div className="space-y-4">
@@ -31,15 +31,21 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
         {draft.allowCredit && (
           <>
             <Divider />
-            <Field label="Naye customer ki credit limit" hint="0 = koi had nahi. Har customer ki apni limit uske profile me badal sakte hain; had se zyada udhaar sirf malik ke PIN se.">
-              <NumberInput value={draft.defaultCreditLimit} onChange={(v) => set('defaultCreditLimit', v)} min={0} step={500} prefix="Rs" />
-            </Field>
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] sm:items-start">
+              <Field label="Naye customer ki credit limit" hint="0 = koi had nahi. Har customer ki apni limit us ke profile me badal sakte hain.">
+                <NumberInput value={draft.defaultCreditLimit} onChange={(v) => set('defaultCreditLimit', v)} min={0} step={500} prefix="Rs" />
+              </Field>
+              <p className="rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-900 ring-1 ring-amber-100">
+                {limit > 0
+                  ? <>Naya customer {formatPKR(limit)} tak udhaar le sakta hai. Is se zyada sirf malik ke PIN se.</>
+                  : <>Naye customer par udhaar ki koi had nahi. Had rakhna behtar hai — paisa phansta nahi.</>}
+              </p>
+            </div>
           </>
         )}
       </SectionCard>
 
-      <SectionCard title="Loyalty points" desc="Khareedari par points, agle bill par discount" icon={Award} color="rose" badge={onOff(draft.enableLoyalty)}
-        action={<Link to="/loyalty" className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-brand-700 hover:underline">Members <ArrowRight className="h-3.5 w-3.5" /></Link>}>
+      <SectionCard title="Loyalty points" desc="Khareedari par points, agle bill par Discount" icon={Award} color="rose" badge={onOff(draft.enableLoyalty)}>
         <Toggle checked={draft.enableLoyalty} onChange={(v) => set('enableLoyalty', v)} icon={Sparkles}
           label="Loyalty points" desc="Customer wale har bill par points jurte hain" />
         {draft.enableLoyalty && (
@@ -49,7 +55,7 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
               <Field label="Har rupay par points" hint="0.01 = har Rs 100 par 1 point">
                 <NumberInput value={draft.loyaltyPointsPerRupee} onChange={(v) => set('loyaltyPointsPerRupee', v)} min={0} step={0.01} suffix="pts" />
               </Field>
-              <Field label="1 point ki qeemat" hint="Bill par kitne rupay ki discount">
+              <Field label="1 point ki qeemat" hint="Bill par kitne rupay ka Discount">
                 <NumberInput value={draft.loyaltyRedemptionRate} onChange={(v) => set('loyaltyRedemptionRate', v)} min={0} step={0.5} prefix="Rs" />
               </Field>
               <Field label="Kam se kam points" hint="Is se kam ek bill par istemal nahi honge (0 = koi bhi)">
@@ -60,9 +66,11 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
               </Field>
             </div>
             <Divider label="Period" />
-            <Field label="Points kab khatam hon" hint="Kamane ke itne din baad purane points khatam (0 = kabhi nahi)">
-              <NumberInput value={draft.loyaltyExpiryDays ?? 0} onChange={(v) => set('loyaltyExpiryDays', v)} min={0} max={3650} suffix="din" />
-            </Field>
+            <div className="max-w-xs">
+              <Field label="Points kab khatam hon" hint="Kamane ke itne din baad purane points khatam (0 = kabhi nahi)">
+                <NumberInput value={draft.loyaltyExpiryDays ?? 0} onChange={(v) => set('loyaltyExpiryDays', v)} min={0} max={3650} suffix="din" />
+              </Field>
+            </div>
             <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-rose-50 p-3 text-xs leading-relaxed text-rose-900 ring-1 ring-rose-100">
               <Hourglass className="mt-0.5 h-4 w-4 shrink-0 opacity-70" />
               <p>
@@ -72,6 +80,14 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
             </div>
           </>
         )}
+      </SectionCard>
+
+      <SectionCard title="Customers ke pages" desc="Khata aur loyalty members yahan dekhein" icon={Users} color="slate">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <PageLink to="/khata" icon={BookOpen} title="Khata (credit)" desc="Kis ka kitna baqi hai" />
+          <PageLink to="/loyalty" icon={Award} title="Loyalty members" desc="Points aur inaam" />
+          <PageLink to="/customers" icon={Users} title="Customers" desc="Sab customers ki list" />
+        </div>
       </SectionCard>
     </div>
   );

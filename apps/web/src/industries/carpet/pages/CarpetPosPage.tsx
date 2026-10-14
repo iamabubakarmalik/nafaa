@@ -13,7 +13,6 @@ import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { withManagerPin } from '@core/security/ManagerPin';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
@@ -22,6 +21,8 @@ import { CarpetCutPiecePicker } from '@/industries/carpet/components/pos-extensi
 import { carpetRollsApi } from '../api/carpet-rolls.api';
 import { carpetCutPiecesApi, type CarpetCutPiece } from '../api/carpet-cut-pieces.api';
 import { useSharedPosCart, cartLineId } from '@modules/pos/hooks/useSharedPosCart';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 
 const VIEW_KEY = 'nafaa.carpet-pos.view';
@@ -60,11 +61,11 @@ export default function CarpetPosPage() {
 
   const {
     cart, setCart, customerId, setCustomerId,
-    paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
-    saleMode, setSaleMode, globalDiscount, setGlobalDiscount,
+    globalDiscount, setGlobalDiscount,
     serviceCharges, setServiceCharges,
-    subtotal, total, effectivePaid, credit, clearCart,
+    subtotal, total, clearCart,
   } = useSharedPosCart();
+  const [payOpen, setPayOpen] = useState(false);
 
   useEffect(() => { localStorage.setItem(VIEW_KEY, activeTab); }, [activeTab]);
   useEffect(() => { localStorage.setItem(HIDE_KEY, String(hidePrices)); }, [hidePrices]);
@@ -378,7 +379,7 @@ export default function CarpetPosPage() {
   };
 
   const checkoutMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (d: PosCheckoutResult) => {
       if (!currentShopId) throw new Error('Shop required');
       const lines = cart;
       // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
@@ -386,7 +387,7 @@ export default function CarpetPosPage() {
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
-        paymentMethod, paidAmount: effectivePaid,
+        ...salePayment(d, total),
         discount: Number(globalDiscount) || 0,
         serviceCharges,
         items: lines.map((c) => ({
@@ -395,11 +396,13 @@ export default function CarpetPosPage() {
           useWholesale: c.useWholesale, note: c.note,
         })),
       }));
+      await keepAdvance(d, total, customerId || undefined, sale.saleNumber);
       await settleCarpetStock(sale, lines);
       return sale;
     },
     onSuccess: (sale) => {
       window.open(`/sales/${sale.id}/receipt?auto=1`, '_blank');
+      setPayOpen(false);
       clearCart();
       setShowMobileCart(false);
       queryClient.invalidateQueries({ queryKey: ['carpet-rolls-available'] });
@@ -414,14 +417,18 @@ export default function CarpetPosPage() {
   const handleCheckout = () => {
     if (cart.length === 0) return toast.error('Cart khaali hai');
     if (!currentShopId) return toast.error('Shop select karein');
-    if (credit > 0 && !customerId) return toast.error('Udhaar sale ke liye customer chahiye');
-    checkoutMutation.mutate();
+    setPayOpen(true);
   };
 
   const addServiceCharge = () => setServiceCharges((prev) => [...prev, { type: 'CUSTOM', label: '', amount: 0 }]);
 
   return (
     <>
+      {payOpen && (
+        <PosCheckoutModal total={total} itemCount={cart.length} loading={checkoutMutation.isPending} initMode="full"
+          customerName={selectedCustomer?.name} customerBalance={Number(selectedCustomer?.balance || 0)} hasCustomer={!!customerId}
+          onConfirm={(d) => checkoutMutation.mutate(d)} onClose={() => setPayOpen(false)} />
+      )}
       {scannerOpen && <BarcodeScanner onDetected={handleBarcodeScan} onClose={() => setScannerOpen(false)} />}
 
       {carpetPickerData && (
@@ -718,13 +725,10 @@ export default function CarpetPosPage() {
           onAddCustomer={() => setShowCustomerAdd(true)}
           onHold={holdCart}
           onClear={() => { if (confirm('Cart khaali karein?')) clearCart(); }}
-          paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
-          saleMode={saleMode} setSaleMode={setSaleMode}
-          paidAmount={paidAmount} setPaidAmount={setPaidAmount}
           globalDiscount={globalDiscount} setGlobalDiscount={setGlobalDiscount}
           serviceCharges={serviceCharges} setServiceCharges={setServiceCharges}
           addServiceCharge={addServiceCharge}
-          subtotal={subtotal} total={total} credit={credit}
+          subtotal={subtotal} total={total}
           hidePrices={hidePrices}
           onCheckout={handleCheckout}
           loading={checkoutMutation.isPending}
@@ -925,9 +929,8 @@ function EmptyState({ icon: Icon, title, hint }: any) {
 function CartPanel(props: any) {
   const {
     isMobile, onCloseMobile, cart, setCart, customerId, setCustomerId, customers, selectedCustomer,
-    onAddCustomer, onHold, onClear, paymentMethod, setPaymentMethod, saleMode, setSaleMode,
-    paidAmount, setPaidAmount, globalDiscount, setGlobalDiscount, serviceCharges, setServiceCharges,
-    addServiceCharge, subtotal, total, credit, hidePrices, onCheckout, loading, canCheckout,
+    onAddCustomer, onHold, onClear, globalDiscount, setGlobalDiscount, serviceCharges, setServiceCharges,
+    addServiceCharge, subtotal, total, hidePrices, onCheckout, loading, canCheckout,
   } = props;
 
   const containerClass = isMobile
@@ -1100,34 +1103,8 @@ function CartPanel(props: any) {
       {/* Checkout */}
       {cart.length > 0 && (
         <div className="shrink-0 p-3 border-t-4 border-slate-100 bg-white space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <input type="number" placeholder="Discount" value={globalDiscount} onChange={(e) => setGlobalDiscount(e.target.value)}
-              className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-              className="h-10 rounded-xl border-2 border-slate-200 bg-white px-2 text-xs font-extrabold focus:outline-none focus:border-emerald-500">
-              <option value="CASH">💵 Cash</option>
-              <option value="CARD">💳 Card</option>
-              <option value="JAZZCASH">📱 JazzCash</option>
-              <option value="EASYPAISA">⚡ EasyPaisa</option>
-              <option value="BANK_TRANSFER">🏦 Bank</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-3 gap-1">
-            {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
-              <button key={m} onClick={() => setSaleMode(m)}
-                className={`py-2 rounded-lg text-[0.6875rem] font-extrabold transition active:scale-95 ${
-                  saleMode === m ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}>
-                {m === 'FULL_PAYMENT' ? '💵 Full' : m === 'PARTIAL_CREDIT' ? '📝 Partial' : '📔 Udhaar'}
-              </button>
-            ))}
-          </div>
-
-          {saleMode === 'PARTIAL_CREDIT' && (
-            <input type="number" placeholder="Paid amount" value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)}
-              className="h-11 w-full rounded-xl border-2 border-amber-300 bg-amber-50 px-3 text-base font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
-          )}
+          <input type="number" placeholder="Discount (Rs)" value={globalDiscount} onChange={(e) => setGlobalDiscount(e.target.value)}
+            className="h-10 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
 
           <div className="rounded-xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-3 space-y-1 text-xs">
             <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(subtotal)}</span></div>
@@ -1149,19 +1126,13 @@ function CartPanel(props: any) {
               <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
               <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
             </div>
-            {credit > 0 && (
-              <div className="flex justify-between text-amber-300 pt-1.5 border-t border-white/20">
-                <span className="font-extrabold">Udhaar</span>
-                <span className="font-extrabold tabular-nums">{formatPKR(credit)}</span>
-              </div>
-            )}
           </div>
 
           <button onClick={onCheckout} disabled={!canCheckout || loading}
             className="w-full h-16 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 active:scale-[0.98] text-white font-extrabold shadow-2xl transition disabled:opacity-50 flex items-center justify-between px-5">
             <div className="text-left">
               <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">
-                {loading ? 'Processing...' : 'Complete Sale'}
+                {loading ? 'Processing...' : 'Payment · Complete Sale'}
               </div>
               <div className="text-xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>
             </div>

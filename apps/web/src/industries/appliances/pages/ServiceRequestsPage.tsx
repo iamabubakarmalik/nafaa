@@ -34,6 +34,8 @@ import {
   SERVICE_NEXT, PRIORITY_ORDER, TIME_SLOTS, issuesFor, catLabel,
   type ApplianceServiceStatus,
 } from '../constants';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 /* ═════════════════════════════════════════════════════════════
    SERVICE REQUESTS — repair ka poora register
@@ -1416,6 +1418,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
     laborCharge: String(request.laborCharge || 0),
     partsCharge: String(request.partsCharge || 0),
     paidAmount: '',
+    paymentMethod: 'CASH' as PaymentMethod,
     requiresFollowUp: false,
     followUpDate: '',
     followUpReason: '',
@@ -1473,6 +1476,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
             </div>
           )}
         </Field>
+        {paid > 0 && <PaymentMethodPicker value={f.paymentMethod} onChange={(m) => setF((x) => ({ ...x, paymentMethod: m }))} />}
 
         <ToggleRow
           on={f.requiresFollowUp}
@@ -1528,6 +1532,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
                 laborCharge: Number(f.laborCharge) || 0,
                 partsCharge: Number(f.partsCharge) || 0,
                 paidAmount: paid,
+                ...(paid > 0 && { paymentMethod: f.paymentMethod }),
                 requiresFollowUp: f.requiresFollowUp,
               };
               if (f.diagnosedIssue.trim()) payload.diagnosedIssue = f.diagnosedIssue.trim();
@@ -1553,6 +1558,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
 function PaymentForm({ due, pending, onCancel, onSubmit }: any) {
   const [amount, setAmount] = useState(String(due));
   const [note, setNote] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
   const n = Number(amount) || 0;
   const bad = n <= 0 || n > due;
 
@@ -1572,13 +1578,14 @@ function PaymentForm({ due, pending, onCancel, onSubmit }: any) {
           ))}
         </div>
         <Field label="Note" hint="optional">
-          <input className={inputCls('h-11 font-semibold')} placeholder="Cash • Ali bhai ne diya"
+          <input className={inputCls('h-11 font-semibold')} placeholder="Ali bhai ne diya"
             value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
+        <PaymentMethodPicker value={method} onChange={setMethod} />
         <div className="flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onCancel}>Wapas</Button>
           <Button className="flex-[2] bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold" loading={pending} disabled={bad}
-            onClick={() => onSubmit({ amount: n, ...(note.trim() ? { note: note.trim() } : {}) })}>
+            onClick={() => onSubmit({ amount: n, paymentMethod: method, ...(note.trim() ? { note: note.trim() } : {}) })}>
             <Banknote className="h-4 w-4" /> Darj Karein
           </Button>
         </div>

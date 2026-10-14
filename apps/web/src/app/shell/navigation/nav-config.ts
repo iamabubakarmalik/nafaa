@@ -5,14 +5,15 @@ import {
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
+  Briefcase, Code2, FileSpreadsheet, MapPin,
 } from 'lucide-react';
-import { PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
+import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
 
 /* ═════════════════════════════════════════════════════════════
    NAVIGATION — one source of truth for the sidebar, the mobile
    drawer, the collapsed rail, quick actions search and the
-   Shopify-style settings screen.
+   Settings frame.
    Store-level setup (plan, billing, users, branches, apps, tax,
    data) lives in Settings, not in the everyday sidebar.
    ═════════════════════════════════════════════════════════════ */
@@ -52,6 +53,8 @@ export type SettingsItem = NavItem & {
   desc: string;
   /** Exact paths that belong to this item (instead of prefix matching) */
   match?: string[];
+  /** An everyday app page: Settings links to it, but it keeps the app sidebar. */
+  external?: boolean;
 };
 
 /* ─── POS workspace ─── */
@@ -274,79 +277,253 @@ export const marketplaceNavGroups: NavGroup[] = [
   },
 ];
 
-/* ─── SETTINGS (Shopify style) ─── */
-export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
+/* ─── SETTINGS (Meta Business Suite style) ───
+   One sidebar of folders. Each folder holds its pages; a page either opens
+   inside the Settings frame or, when `external`, is an everyday app page
+   that Settings only links to. */
+
+export type SettingsGroup = {
+  id: string;
+  title: string;
+  icon: any;
+  desc: string;
+  items: SettingsItem[];
+  /** One page shown as a plain link instead of a folder. */
+  flat?: boolean;
+  danger?: boolean;
+};
+
+const VIEW = P.SETTINGS_VIEW;
+
+export const SETTINGS_HOME: SettingsItem = {
+  to: '/settings', label: 'Overview', icon: LayoutDashboard, permission: VIEW,
+  desc: 'Setup ki halat, sab settings ek nazar me', keywords: 'settings home all setup health',
+};
+
+export const SETTINGS_SECTIONS: SettingsGroup[] = [
   {
-    title: 'Store',
+    id: 'business', title: 'Business info', icon: Store, desc: 'Store ki pehchaan, business type, zubaan aur branches',
     items: [
-      { to: '/settings', label: 'General', icon: Store, permission: P.SETTINGS_VIEW, desc: 'Store details, receipts and preferences', keywords: 'shop name receipt currency' },
-      { to: '/shops', label: 'Branches', icon: Building2, permission: P.SHOPS_VIEW, desc: 'Locations, counters and stock points', keywords: 'locations shops' },
-      { to: '/staff?tab=roles', label: 'Users & permissions', icon: ShieldCheck, permission: P.TEAM_VIEW, desc: 'Who can log in and what they can do', keywords: 'roles access staff login' },
+      { to: '/settings/store', label: 'Store details', icon: Store, permission: VIEW, desc: 'Naam, logo, pata, phone — har bill par chhapte hain', keywords: 'shop name logo address phone email website legal banner' },
+      { to: '/settings/business-type', label: 'Business type', icon: Briefcase, permission: VIEW, desc: 'Industry aur us ke features on/off', keywords: 'industry features retail pharmacy bakery grocery type' },
+      { to: '/settings/language', label: 'Language & time', icon: Globe, permission: VIEW, desc: 'Zubaan, currency, time zone, din ka aaghaz, store ke ghante', keywords: 'urdu english currency pkr timezone hours working days business day' },
+      { to: '/shops', label: 'Branches', icon: MapPin, permission: P.SHOPS_VIEW, desc: 'Locations, counters aur stock points', keywords: 'locations shops branch' },
     ],
   },
   {
-    title: 'Plan & billing',
+    id: 'users', title: 'Users', icon: Users, desc: 'Staff, roles, PIN aur aap ka apna account',
     items: [
-      { to: '/plans', label: 'Plan', icon: Sparkles, permission: P.PLANS_VIEW, desc: 'Your subscription and upgrades', keywords: 'subscription upgrade' },
-      { to: '/billing', label: 'Billing', icon: CreditCard, permission: P.BILLING_VIEW, desc: 'Invoices and payment method', keywords: 'invoice pay' },
-      { to: '/plan-usage', label: 'Plan usage', icon: Gauge, permission: P.PLAN_USAGE_VIEW, desc: 'Limits and what you have used', keywords: 'limits quota' },
-      { to: '/referrals', label: 'Referrals', icon: Gift, permission: P.REFERRALS_VIEW, desc: 'Invite shops and earn rewards' },
+      { to: '/staff', label: 'People', icon: UserCog, permission: P.STAFF_VIEW, external: true, desc: 'Staff, login aur haazri', keywords: 'staff employees team people' },
+      { to: '/staff?tab=roles', label: 'Roles & permissions', icon: ShieldCheck, permission: P.TEAM_VIEW, external: true, desc: 'Kaun kya dekh aur kar sakta hai', keywords: 'roles access staff login permission' },
+      { to: '/settings/security', label: 'Security & PIN', icon: Shield, permission: VIEW, desc: 'Malik ka PIN, locked pages, password, devices', keywords: 'pin password session lock device security' },
+      { to: '/profile', label: 'My profile', icon: UserCircle, desc: 'Aap ka naam, password aur PIN', keywords: 'password pin account' },
     ],
   },
   {
-    title: 'Sales channels & apps',
+    id: 'counter', title: 'Counter & POS', icon: ShoppingCart, desc: 'Counter ke usool, receipt, printer aur payment QR',
     items: [
-      { to: '/settings/google', label: 'Google', icon: Search, permission: P.SETTINGS_VIEW, desc: 'Google Shopping, Maps par stock, reviews', keywords: 'google merchant center shopping maps business profile review local inventory feed' },
-      { to: '/settings/payment-qr', label: 'Payment QR (Raast)', icon: QrCode, permission: P.SETTINGS_VIEW, desc: 'Raast, JazzCash, Easypaisa QR — bill ki amount ke saath', keywords: 'raast qr jazzcash easypaisa bank qr code scan pay till' },
-      { to: '/settings/printing', label: 'Printing', icon: FileText, desc: 'A4, PDF, thermal 80/58mm, colour ya black & white, header/footer', keywords: 'print printer pdf a4 thermal receipt colour black white header footer logo' },
+      { to: '/settings/counter', label: 'Counter rules', icon: ShoppingBag, permission: VIEW, desc: 'Payment, Discount ki had, PIN kab maangein', keywords: 'pos discount pin void refund payment customer counter' },
+      { to: '/settings/receipt', label: 'Receipt', icon: Receipt, permission: VIEW, desc: 'Bill ka design, kaghaz, apni likhai, live preview', keywords: 'bill receipt invoice paper 58 80 a4 footer raseed' },
+      { to: '/settings/printing', label: 'Printing', icon: FileText, permission: P.POS_USE, desc: 'A4, PDF, thermal 80/58mm, colour ya black & white, header/footer', keywords: 'print printer pdf a4 thermal receipt colour black white header footer logo' },
       { to: '/settings/hardware', label: 'POS hardware', icon: Printer, permission: P.POS_USE, desc: 'Printer direct, cash drawer, tarazu, customer screen', keywords: 'printer thermal escpos drawer scale tarazu weighing customer display hardware usb bluetooth' },
-      { to: '/settings/developer', label: 'API & Webhooks', icon: Plug, permission: P.SETTINGS_VIEW, desc: 'Zapier, Make, Google Sheets, apna software', keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },
-      { to: '/settings/accounting', label: 'Accounting', icon: Wallet2, permission: P.SETTINGS_VIEW, desc: 'Zoho Books, QuickBooks, Xero, Tally — roz ka hisaab', keywords: 'accounting zoho books quickbooks xero tally tallyprime journal accountant' },
-      { to: '/online-store/foodpanda', label: 'Foodpanda', icon: Bike, permission: P.SETTINGS_VIEW, desc: 'Foodpanda orders seedha Nafaa me — accept, reject, ready', keywords: 'foodpanda delivery hero food order restaurant rider' },
-      { to: '/online-store/payments', label: 'Online payments', icon: Wallet, permission: P.SETTINGS_VIEW, desc: 'Safepay, JazzCash, Easypaisa — advance / poori amount ka link', keywords: 'payment safepay jazzcash easypaisa card link advance' },
-      { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SETTINGS_VIEW, desc: 'PostEx, Leopards — booking, label, tracking', keywords: 'courier postex leopards booking' },
-      { to: '/online-store/channels', label: 'Sales channels', icon: Globe, permission: P.SETTINGS_VIEW, desc: 'WooCommerce, Shopify, your own website', match: ['/online-store/channels', '/online-store/website'], keywords: 'woocommerce shopify online store website' },
-      { to: '/integrations', label: 'Apps & integrations', icon: Plug, desc: 'Foodpanda, Daraz, couriers, payments', keywords: 'foodpanda daraz tcs jazzcash' },
-      { to: '/marketplace/settings', label: 'Marketplace publishing', icon: Send, permission: P.SETTINGS_VIEW, desc: 'What shows on the Nafaa marketplace' },
+      { to: '/settings/payment-qr', label: 'Payment QR', icon: QrCode, permission: VIEW, desc: 'Raast, JazzCash, Easypaisa QR — bill ki Amount ke saath', keywords: 'raast qr jazzcash easypaisa bank qr code scan pay till' },
     ],
   },
   {
-    title: 'Tax & compliance',
+    id: 'stock-customers', title: 'Stock & customers', icon: Package, desc: 'Stock ke usool, udhaar aur loyalty',
     items: [
-      { to: '/tax/settings', label: 'Tax (FBR / PRA / SRB / KPRA)', icon: Landmark, permission: P.SETTINGS_VIEW, desc: 'Har bill authority ko, fiscal number bill par, mahine ki report', match: ['/tax/settings', '/fbr'], keywords: 'tax fbr pra srb kpra pos invoice fiscal' },
+      { to: '/settings/stock', label: 'Stock rules', icon: Package, permission: VIEW, desc: 'Kam stock ki had, minus stock', keywords: 'low stock negative minus inventory' },
+      { to: '/settings/credit-loyalty', label: 'Credit & loyalty', icon: Award, permission: VIEW, desc: 'Udhaar ki limit, loyalty points', keywords: 'udhaar credit khata limit loyalty points rewards' },
     ],
   },
   {
-    title: 'Data',
+    id: 'messages', title: 'Messages & reports', icon: MessageCircle, desc: 'Notifications, WhatsApp messages aur rozana report',
     items: [
-      { to: '/sync', label: 'Sync & offline', icon: Cloud, desc: 'Offline sales and sync status', keywords: 'offline internet' },
-      { to: '/backup', label: 'Backup', icon: Database, permission: P.BACKUP_MANAGE, desc: 'Back up and restore your data' },
-      { to: '/exports', label: 'Exports', icon: Download, permission: P.EXPORTS_VIEW, desc: 'Download data as files', keywords: 'csv excel' },
-      { to: '/activity-log', label: 'Activity log', icon: Activity, permission: P.ACTIVITY_VIEW, desc: 'Who changed what and when', keywords: 'audit history' },
+      { to: '/settings/notifications', label: 'Notifications', icon: Bell, permission: VIEW, desc: 'Email, kam stock, rozana sale', keywords: 'email alert low stock notification' },
+      { to: '/settings/whatsapp', label: 'WhatsApp messages', icon: MessageCircle, permission: VIEW, desc: 'Bill, udhaar aur shukriya ke tayyar message', keywords: 'whatsapp message template bill udhaar shukriya' },
+      { to: '/settings/reports', label: 'Reports & daily summary', icon: BarChart3, permission: VIEW, desc: 'Rozana closing report, hafta, report ka period', keywords: 'daily summary closing report week fiscal year period' },
     ],
   },
   {
-    title: 'Account',
+    id: 'tax', title: 'Tax & compliance', icon: Landmark, desc: 'Tax rate aur FBR / PRA / SRB / KPRA',
     items: [
-      { to: '/settings/appearance', label: 'Appearance', icon: Palette, desc: 'Colors, fonts, dark mode, text size, layout', keywords: 'theme dark light mode color colour brand font urdu text size compact density corners sidebar background' },
-      { to: '/profile', label: 'My profile', icon: UserCircle, desc: 'Your name, password and PIN', keywords: 'password pin account' },
-      { to: '/legal', label: 'Terms & privacy', icon: ScrollText, desc: 'Policies and legal' },
+      { to: '/settings/tax', label: 'Tax rates', icon: Percent, permission: VIEW, desc: 'GST rate, tax number, inclusive ya exclusive', keywords: 'gst sales tax rate ntn inclusive exclusive' },
+      { to: '/tax/settings', label: 'FBR / PRA / SRB / KPRA', icon: Landmark, permission: VIEW, desc: 'Har bill authority ko, fiscal number bill par, mahine ki report', match: ['/tax/settings', '/fbr'], keywords: 'tax fbr pra srb kpra pos invoice fiscal' },
+    ],
+  },
+  {
+    id: 'integrations', title: 'Integrations', icon: Plug, desc: 'Jore hue apps, sales channels, payments aur couriers',
+    items: [
+      { to: '/integrations', label: 'Connected apps', icon: Plug, permission: VIEW, desc: 'Foodpanda, Daraz, couriers, payments — sab ek jagah', keywords: 'apps integrations foodpanda daraz tcs jazzcash connect' },
+      { to: '/online-store/channels', label: 'Sales channels', icon: Globe, permission: VIEW, desc: 'WooCommerce, Shopify, apni website', match: ['/online-store/channels', '/online-store/website'], keywords: 'woocommerce shopify online store website' },
+      { to: '/online-store/foodpanda', label: 'Foodpanda', icon: Bike, permission: VIEW, desc: 'Foodpanda orders seedha Nafaa me — accept, reject, ready', keywords: 'foodpanda delivery hero food order restaurant rider' },
+      { to: '/online-store/payments', label: 'Online payments', icon: Wallet, permission: VIEW, desc: 'Safepay, JazzCash, Easypaisa — advance ya poori Amount ka link', keywords: 'payment safepay jazzcash easypaisa card link advance' },
+      { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: VIEW, desc: 'PostEx, Leopards — booking, label, tracking', keywords: 'courier postex leopards booking' },
+      { to: '/settings/google', label: 'Google', icon: Search, permission: VIEW, desc: 'Google Shopping, Maps par stock, reviews', keywords: 'google merchant center shopping maps business profile review local inventory feed' },
+      { to: '/settings/accounting', label: 'Accounting', icon: Wallet2, permission: VIEW, desc: 'Zoho Books, QuickBooks, Xero, Tally — roz ka hisaab', keywords: 'accounting zoho books quickbooks xero tally tallyprime journal accountant' },
+      { to: '/settings/developer', label: 'API & webhooks', icon: Code2, permission: VIEW, desc: 'Zapier, Make, Google Sheets, apna software', keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },
+      { to: '/marketplace/settings', label: 'Marketplace publishing', icon: Send, permission: VIEW, desc: 'Nafaa marketplace par kya dikhe', keywords: 'marketplace publish online' },
+    ],
+  },
+  {
+    id: 'billing', title: 'Plan & billing', icon: CreditCard, desc: 'Plan, invoices, limits aur referrals',
+    items: [
+      { to: '/plans', label: 'Plan', icon: Sparkles, permission: P.PLANS_VIEW, desc: 'Aap ki subscription aur upgrade', keywords: 'subscription upgrade' },
+      { to: '/billing', label: 'Billing', icon: CreditCard, permission: P.BILLING_VIEW, desc: 'Invoices aur Payment ka tareeqa', keywords: 'invoice pay' },
+      { to: '/plan-usage', label: 'Usage', icon: Gauge, permission: P.PLAN_USAGE_VIEW, desc: 'Limits aur kitna istemal hua', keywords: 'limits quota usage' },
+      { to: '/referrals', label: 'Referrals', icon: Gift, permission: P.REFERRALS_VIEW, desc: 'Doosre stores ko bulayein, inaam paayein', keywords: 'invite refer reward' },
+    ],
+  },
+  {
+    id: 'data', title: 'Data', icon: Database, desc: 'Sync, backup, export aur activity log',
+    items: [
+      { to: '/sync', label: 'Sync & offline', icon: Cloud, desc: 'Offline Sales aur sync ki halat', keywords: 'offline internet sync' },
+      { to: '/backup', label: 'Backup', icon: Database, permission: P.BACKUP_MANAGE, desc: 'Poore data ki ek file — mehfooz rakhein', keywords: 'backup restore json' },
+      { to: '/settings/data-export', label: 'Data download', icon: Download, permission: VIEW, alsoNeeds: P.BACKUP_MANAGE, desc: 'Products, customers, Sales — JSON, CSV ya Excel', keywords: 'export download csv excel json backup' },
+      { to: '/exports', label: 'Exports', icon: FileSpreadsheet, permission: P.EXPORTS_VIEW, desc: 'Kisi bhi period ki Excel files aur un ki history', keywords: 'csv excel export history' },
+      { to: '/activity-log', label: 'Activity log', icon: Activity, permission: P.ACTIVITY_VIEW, desc: 'Kis ne kya aur kab badla', keywords: 'audit history log' },
+    ],
+  },
+  {
+    id: 'account', title: 'Appearance & account', icon: Palette, desc: 'Rang, font, dark mode aur policies',
+    items: [
+      { to: '/settings/appearance', label: 'Appearance', icon: Palette, desc: 'Rang, font, dark mode, text size, layout', keywords: 'theme dark light mode color colour brand font urdu text size compact density corners sidebar background page width' },
+      { to: '/legal', label: 'Terms & privacy', icon: ScrollText, desc: 'Policies aur legal', keywords: 'terms privacy policy legal' },
+    ],
+  },
+  {
+    id: 'danger', title: 'Danger zone', icon: AlertTriangle, desc: 'Ownership transfer aur store delete', flat: true, danger: true,
+    items: [
+      { to: '/settings/danger', label: 'Danger zone', icon: AlertTriangle, permission: VIEW, alsoNeeds: P.SETTINGS_MANAGE, desc: 'Ownership transfer, store delete', keywords: 'delete transfer owner close account' },
     ],
   },
 ];
 
-export const SETTINGS_ITEMS: SettingsItem[] = SETTINGS_SECTIONS.flatMap((s) => s.items);
+export const SETTINGS_ITEMS: SettingsItem[] = [SETTINGS_HOME, ...SETTINGS_SECTIONS.flatMap((g) => g.items)];
+
+/** Single settings the search can find; `find` is text inside the card that holds the control. */
+const SETTINGS_FIELDS: Array<{ to: string; find: string; words?: string }> = [
+  { to: '/settings/store', find: 'Store logo', words: 'logo tasveer image' },
+  { to: '/settings/store', find: 'Banner', words: 'banner header image' },
+  { to: '/settings/store', find: 'Store ka naam', words: 'shop name dukaan' },
+  { to: '/settings/store', find: 'Legal naam', words: 'legal company fbr registered' },
+  { to: '/settings/store', find: 'Phone', words: 'number mobile contact' },
+  { to: '/settings/store', find: 'WhatsApp number', words: 'whatsapp' },
+  { to: '/settings/store', find: 'Email', words: 'email mail' },
+  { to: '/settings/store', find: 'Website', words: 'website facebook instagram' },
+  { to: '/settings/store', find: 'Pata', words: 'address street bazaar city province postal' },
+  { to: '/settings/business-type', find: 'Aap ka business type', words: 'industry type change badlein' },
+  { to: '/settings/business-type', find: 'Features', words: 'features imei expiry warranty variants batches' },
+  { to: '/settings/language', find: 'Zubaan', words: 'language urdu english roman' },
+  { to: '/settings/language', find: 'Currency', words: 'rupay pkr dollar symbol' },
+  { to: '/settings/language', find: 'Time zone', words: 'waqt timezone karachi' },
+  { to: '/settings/language', find: 'Din kab shuru hota hai', words: 'business day raat day start' },
+  { to: '/settings/language', find: 'Store ke ghante', words: 'open close time hours' },
+  { to: '/settings/language', find: 'Kis din khulta hai', words: 'working days chutti off' },
+  { to: '/settings/tax', find: 'Sale par tax', words: 'gst sales tax enable chalu' },
+  { to: '/settings/tax', find: 'Tax rate', words: 'gst percent' },
+  { to: '/settings/tax', find: 'Tax number (NTN)', words: 'ntn strn' },
+  { to: '/settings/tax', find: 'Tax ka hisaab', words: 'inclusive exclusive' },
+  { to: '/settings/reports', find: 'Hafta kis din shuru hota hai', words: 'week start monday hafta' },
+  { to: '/settings/reports', find: 'Maali saal', words: 'fiscal year july' },
+  { to: '/settings/reports', find: 'Report kis period se khule', words: 'default period' },
+  { to: '/settings/reports', find: 'Staff ko kaun se figures dikhein', words: 'profit cost galla staff hide' },
+  { to: '/settings/reports', find: 'Rozana closing report', words: 'daily summary din ka hisaab notification' },
+  { to: '/settings/reports', find: 'Kis ko milti hai', words: 'manager report recipients' },
+  { to: '/settings/reports', find: 'Preview aur abhi bhejein', words: 'whatsapp send now report bhejo' },
+  { to: '/settings/counter', find: 'Pehle se chuna payment', words: 'cash card default payment' },
+  { to: '/settings/counter', find: 'Har bill par customer zaroori', words: 'walk in customer' },
+  { to: '/settings/counter', find: 'Haath se Discount', words: 'discount' },
+  { to: '/settings/counter', find: 'Zyada se zyada Discount', words: 'discount max limit had' },
+  { to: '/settings/counter', find: 'Bill cancel par PIN', words: 'void pin' },
+  { to: '/settings/counter', find: 'Return par PIN', words: 'refund return pin' },
+  { to: '/settings/counter', find: 'Har Discount par PIN', words: 'discount pin' },
+  { to: '/settings/receipt', find: 'Kaghaz', words: 'receipt printer 58 80 a4 size paper' },
+  { to: '/settings/receipt', find: 'Andaaz', words: 'style design modern' },
+  { to: '/settings/receipt', find: 'Naam ke neeche chhoti line', words: 'header tagline' },
+  { to: '/settings/receipt', find: 'Neeche apna message', words: 'footer message' },
+  { to: '/settings/receipt', find: 'Return ke usool', words: 'terms return policy' },
+  { to: '/settings/receipt', find: 'Background par naam', words: 'watermark rang colour' },
+  { to: '/settings/receipt', find: 'Bill khulte hi print', words: 'auto print copies' },
+  { to: '/settings/receipt', find: 'Paise kaise bhejein', words: 'jazzcash easypaisa bank account iban raast payment' },
+  { to: '/settings/receipt', find: 'A4 invoice', words: 'invoice pdf tax invoice due date' },
+  { to: '/settings/receipt', find: 'Peeche ka hissa', words: 'back terms conditions shartein' },
+  { to: '/settings/stock', find: 'Kam stock ki had', words: 'low stock alert' },
+  { to: '/settings/stock', find: 'Stock khatam hone par bhi bechein', words: 'negative minus stock' },
+  { to: '/settings/credit-loyalty', find: 'Udhaar par bechna', words: 'credit khata' },
+  { to: '/settings/credit-loyalty', find: 'Naye customer ki credit limit', words: 'credit limit had' },
+  { to: '/settings/credit-loyalty', find: 'Loyalty points', words: 'points inaam rewards' },
+  { to: '/settings/credit-loyalty', find: 'Points kab khatam hon', words: 'expiry points' },
+  { to: '/settings/notifications', find: 'Email notifications', words: 'email' },
+  { to: '/settings/notifications', find: 'Kam stock ki email', words: 'low stock alert' },
+  { to: '/settings/notifications', find: 'Rozana Sale ki email', words: 'daily summary report' },
+  { to: '/settings/notifications', find: 'Test notification', words: 'test bell ghanti' },
+  { to: '/settings/whatsapp', find: 'WhatsApp messages', words: 'message template bill udhaar shukriya' },
+  { to: '/settings/security', find: 'Security score', words: 'score' },
+  { to: '/settings/security', find: 'Malik ka PIN', words: 'pin owner' },
+  { to: '/settings/security', find: 'Locked pages', words: 'lock page pin' },
+  { to: '/settings/security', find: 'Account password', words: 'password' },
+  { to: '/settings/security', find: 'Active devices', words: 'login device session' },
+  { to: '/settings/data-export', find: 'Data download', words: 'export backup csv excel json' },
+  { to: '/settings/danger', find: 'Ownership transfer', words: 'malik tabdeel transfer owner' },
+  { to: '/settings/danger', find: 'Store delete', words: 'delete band account close' },
+];
 
 /** Paths under a settings prefix that are everyday screens, not setup */
 const SETTINGS_EXCLUDE = ['/shops/overview', '/integrations/orders', '/integrations/shipments'];
 
 const norm = (p: string) => (p.toLowerCase().replace(/\/+$/, '') || '/');
 
+/** Whether this user may see a settings page: owner-only paths, its permission and any second permission. */
+export function canSeeSettingsItem(item: SettingsItem, role?: unknown, permissions?: string[]) {
+  if (!isOwner(role as never) && isOwnerOnlyPath(item.to)) return false;
+  if (item.permission && !hasPermission(role as never, permissions, item.permission)) return false;
+  return !item.alsoNeeds || hasPermission(role as never, permissions, item.alsoNeeds);
+}
+
+/** The settings folders with only the pages this user may open; empty folders are dropped. */
+export function visibleSettingsGroups(role?: unknown, permissions?: string[]): SettingsGroup[] {
+  return SETTINGS_SECTIONS
+    .map((g) => ({ ...g, items: g.items.filter((i) => canSeeSettingsItem(i, role, permissions)) }))
+    .filter((g) => g.items.length > 0);
+}
+
+export type SettingsHit = { to: string; label: string; sub: string; icon: any; find?: string; external?: boolean };
+
+/** Search over the visible pages and single settings. Pages come first. */
+export function searchSettings(query: string, groups: SettingsGroup[]): SettingsHit[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const pages: SettingsHit[] = [];
+  const byPath = new Map<string, { item: SettingsItem; group: SettingsGroup }>();
+  for (const group of groups) {
+    for (const item of group.items) {
+      byPath.set(item.to, { item, group });
+      if (`${item.label} ${item.desc} ${item.keywords ?? ''} ${group.title}`.toLowerCase().includes(q)) {
+        pages.push({ to: item.to, label: item.label, sub: group.title, icon: item.icon, external: item.external });
+      }
+    }
+  }
+  const fields: SettingsHit[] = SETTINGS_FIELDS
+    .filter((f) => byPath.has(f.to) && `${f.find} ${f.words ?? ''}`.toLowerCase().includes(q))
+    .map((f) => {
+      const { item, group } = byPath.get(f.to)!;
+      return { to: f.to, label: f.find, sub: `${group.title} › ${item.label}`, icon: item.icon, find: f.find };
+    });
+  return [...pages, ...fields].slice(0, 12);
+}
+
 export function settingsItemFor(path: string): SettingsItem | undefined {
   const p = norm(path);
   if (SETTINGS_EXCLUDE.some((x) => p === x || p.startsWith(`${x}/`))) return undefined;
-  return SETTINGS_ITEMS.find((i) => (i.match ? i.match.includes(p) : p === i.to || p.startsWith(`${i.to}/`)));
+  const hit = SETTINGS_ITEMS.find((i) => i !== SETTINGS_HOME && !i.external
+    && (i.match ? i.match.includes(p) : p === i.to || p.startsWith(`${i.to}/`)));
+  // Any other /settings path (old links, redirects) still opens in the Settings frame.
+  return hit ?? (p === '/settings' || p.startsWith('/settings/') ? SETTINGS_HOME : undefined);
 }
+
+/** The folder a settings page belongs to. */
+export const settingsGroupFor = (item?: SettingsItem) => (item ? SETTINGS_SECTIONS.find((g) => g.items.includes(item)) : undefined);
 
 export const isSettingsPath = (path: string) => !!settingsItemFor(path);
 

@@ -24,6 +24,8 @@ import {
   SERVICE_TYPE_ORDER, TIME_SLOTS, TIME_SLOTS as SLOTS,
   type ApplianceInstallationStatus,
 } from '../constants';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 /* ═════════════════════════════════════════════════════════════
    INSTALLATIONS — "maal bik gaya, ab lagana hai"
@@ -1159,6 +1161,7 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
     visitCharge: String(install.visitCharge || 0),
     materialText: '',
     paidByCustomer: '',
+    paymentMethod: 'CASH' as PaymentMethod,
     covered_underWarranty: covered,
     hasProperElectricConnection: null as boolean | null,
     hasProperPlumbing: null as boolean | null,
@@ -1221,6 +1224,7 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
             </div>
           )}
         </Field>
+        {paid > 0 && <PaymentMethodPicker value={f.paymentMethod} onChange={(m) => setF((x) => ({ ...x, paymentMethod: m }))} />}
 
         <Field label="Site ki tayyari" hint="jo dekha wahi lagayein">
           <div className="space-y-1.5">
@@ -1280,6 +1284,7 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
                 materialsCharge: Number(f.materialsCharge) || 0,
                 visitCharge: Number(f.visitCharge) || 0,
                 paidByCustomer: paid,
+                ...(paid > 0 && { paymentMethod: f.paymentMethod }),
                 covered_underWarranty: f.covered_underWarranty,
                 demoGiven: f.demoGiven,
               };
@@ -1306,6 +1311,7 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
 function PayPanel({ due, pending, onCancel, onSubmit }: any) {
   const [amount, setAmount] = useState(String(due));
   const [note, setNote] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
   const n = Number(amount) || 0;
   const bad = n <= 0 || n > due;
   return (
@@ -1316,12 +1322,13 @@ function PayPanel({ due, pending, onCancel, onSubmit }: any) {
             value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus />
         </Field>
         <Field label="Note" hint="optional">
-          <input className={inputCls('h-11 font-semibold')} placeholder="Cash" value={note} onChange={(e) => setNote(e.target.value)} />
+          <input className={inputCls('h-11 font-semibold')} placeholder="Kis ne diya" value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
+        <PaymentMethodPicker value={method} onChange={setMethod} />
         <div className="flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onCancel}>Wapas</Button>
           <Button className="flex-[2] bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold" loading={pending} disabled={bad}
-            onClick={() => onSubmit({ amount: n, ...(note.trim() ? { note: note.trim() } : {}) })}>
+            onClick={() => onSubmit({ amount: n, paymentMethod: method, ...(note.trim() ? { note: note.trim() } : {}) })}>
             <Banknote className="h-4 w-4" /> Darj Karein
           </Button>
         </div>

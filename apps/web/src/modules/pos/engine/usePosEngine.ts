@@ -17,7 +17,6 @@ import { offlineProductsApi } from '@core/lib/offline/offlineProducts';
 import { useCustomerDisplayFeed } from '@core/hardware/customerDisplay';
 import { formatPKR } from '@core/lib/format';
 import { hasPermission, PERMISSIONS } from '@core/lib/permissions';
-import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
 import { discountsApi } from '@modules/sales/discounts/api/discounts.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
@@ -27,6 +26,8 @@ import type { VoiceCommand, VoiceFeedback } from '@core/components/voice/VoiceSa
 import { matchScore } from '@core/components/voice/voiceMatch';
 import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
 import { usePosPreferences } from '../hooks/usePosPreferences';
+import { POS_BATCHES_KEY, usePosBatches } from '../hooks/usePosBatches';
+import type { PosBatch } from '../api/batches.api';
 import { emptyDelivery, deliveryAmount, deliveryRiderAmount, deliveryServiceCharge, type PosDeliveryState } from '../components/PosDeliveryPanel';
 import { emptyReceiver, type PosReceiverValue } from '../components/PosReceiverField';
 import type { PosCheckoutResult } from '../components/PosCheckoutModal';
@@ -42,11 +43,12 @@ import { printReceiptDirect, toReceiptDoc, type ReceiptPayload } from '../lib/th
 import { getReceiptSetup } from '@core/receipt/setup';
 import { receiptText } from '@modules/sales/receipt/fromSale';
 import { splitReceiptLines } from '../components/PosSplitTender';
+import { keepAdvance, salePayment } from '../lib/posCheckout';
 import { askManagerPin } from '@core/security/ManagerPin';
 import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem } from './types';
 
 /** Customers refresh after a sale (balances change). */
-const SALE_REFRESH = ['customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
+const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
 
 /** Common Urdu/Roman words for everyday goods, for voice search. */
 const BASE_VOICE_ALIASES: Record<string, string> = {
@@ -431,6 +433,10 @@ export function usePosEngine(config: PosIndustryConfig) {
     setPriceEditId(null);
   };
   const removeLine = (id: string) => setCart((prev) => prev.filter((l) => l.id !== id));
+  /** Sell this line from a chosen batch; null goes back to the earliest expiry. */
+  const setLineBatch = (id: string, batch: PosBatch | null) =>
+    setCart((prev) => prev.map((l) => (l.id === id ? { ...l, batchId: batch?.id, batchNumber: batch?.batchNumber } : l)));
+  const batchOf = usePosBatches(shopId, cart);
   /** One less of a product: its most recent bill line goes down a step. */
   const decrementItem = (productId: string) => {
     const line = [...cart].reverse().find((l) => l.productId === productId);
@@ -587,7 +593,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     lines: cart.map((l) => ({
       name: l.variantName ? `${l.name} (${l.variantName})` : l.name,
       qty: l.quantity, unit: l.unitName, price: l.unitPrice, total: l.lineTotal,
-      note: [l.serialNumber ? `S/N ${l.serialNumber}` : '', l.imei ? `IMEI ${l.imei}` : '', l.warrantyMonths ? `Warranty ${l.warrantyMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined,
+      note: [l.serialNumber ? `S/N ${l.serialNumber}` : '', l.batchNumber ? `Batch ${l.batchNumber}` : '', l.imei ? `IMEI ${l.imei}` : '', l.warrantyMonths ? `Warranty ${l.warrantyMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined,
     })),
     subtotal, discount: discountAmount + codeDiscount + loyaltyDiscount, total,
     deliveryCharge: deliveryFee || undefined,
@@ -665,19 +671,16 @@ export function usePosEngine(config: PosIndustryConfig) {
             priceOverride: l.unitPrice / l.conversionRate,
             note: l.note,
             ...(l.serialId ? { serialId: l.serialId } : {}),
+            ...(l.batchId ? { batchId: l.batchId } : {}),
           });
         }
       }
-      // An advance kept in khata is not change: the sale records the total,
-      // and the extra goes to the customer's ledger as a payment.
-      const paidAmount = d.depositExtra ? Math.min(d.paidAmount, total) : d.paidAmount;
+      const pay = salePayment(d, total);
       const sale = await offlineSalesApi.create({
         shopId,
         customerId: customerId || undefined,
-        paymentMethod: d.paymentMethod,
         soldById,
-        paidAmount,
-        ...(d.payments && { payments: d.payments }),
+        ...pay,
         discount: discountAmount,
         discountCode: promo?.code,
         loyaltyPointsToUse: pointsUsed || undefined,
@@ -687,21 +690,8 @@ export function usePosEngine(config: PosIndustryConfig) {
         items,
         ...(managerPin && { managerPin }),
       }, { codeDiscount, loyaltyDiscount });
-      let deposited = false;
-      if (d.depositExtra && customerId && d.paidAmount > total) {
-        try {
-          await customerLedgerApi.receivePayment(customerId, {
-            amount: Number((d.paidAmount - total).toFixed(2)),
-            paymentMethod: d.paymentMethod,
-            reference: (sale as { saleNumber?: string }).saleNumber,
-            note: `Bill ${(sale as { saleNumber?: string }).saleNumber ?? ''} par zyada diya — advance`,
-          });
-          deposited = true;
-        } catch {
-          toast.error('Advance khate mein jama nahi hua — customer ko wapas dein ya Khata se jama karein');
-        }
-      }
-      return { sale, deposited, paidAmount };
+      const deposited = await keepAdvance(d, total, customerId || undefined, (sale as { saleNumber?: string }).saleNumber);
+      return { sale, deposited, paidAmount: pay.paidAmount };
     },
     onSuccess: ({ sale, deposited, paidAmount }, d) => {
       const s = sale as { id: string; saleNumber: string };
@@ -765,7 +755,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     promo, applyCode, removeCode: () => setPromo(null), codeDiscount,
     loyalty: { on: loyaltyOn, available: pointsAvailable, max: pointsMax, min: pointsMin, rate: pointRate, used: pointsUsed, wanted: pointsWanted, setWanted: setPointsWanted },
     loyaltyDiscount,
-    priceEditId, setPriceEditId, changeQty, setQty, setPrice, removeLine, decrementItem, clearCart,
+    priceEditId, setPriceEditId, changeQty, setQty, setPrice, removeLine, decrementItem, clearCart, batchOf, setLineBatch,
     heldCarts, hold, resume, deleteHeld,
     // actions
     addItem: (it: PosItem, o?: AddOptions) => void addItem(it, o), addBundle, addQuickKey, handleBarcode, onVoice,

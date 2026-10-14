@@ -6,6 +6,10 @@
  *   /tax/settings  per-authority setup: branches, POS IDs, keys, test bill
  *
  * Keys: 1–4 tabs · / search · G guide.
+ *
+ * /tax/settings opens inside the Settings frame, which supplies the title:
+ * there the page drops its hero and tabs and puts its actions in the frame
+ * header. The other tabs are app pages and keep the hero.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -17,9 +21,10 @@ import {
   Store, TrendingDown, TrendingUp,
 } from 'lucide-react';
 import {
-  DateRangeMenu, EmptyState, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
-  heroButton, heroIconButton, resolveRange,
+  Button, DateRangeMenu, EmptyState, FilterBar, FilterChip, FilterMenu, IconButton, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton,
+  ViewTabs, heroButton, heroIconButton, resolveRange,
 } from '@/design-system/components';
+import { isSettingsPath } from '@app/shell/navigation/nav-config';
 import { usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { useBusinessDayStart, businessDayKey } from '@core/lib/business-day';
@@ -28,6 +33,7 @@ import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useAuthStore, useIsAllShops } from '@core/stores/auth.store';
 import { useReportMasked, useReportRange } from '@modules/reports/prefs';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
+import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
 import { TAX_KEY, taxApi, type Authority, type InvoiceQuery, type TaxStatus } from './api';
 import { AUTH, AUTHORITY_ORDER, STATUS, apiError, change, monthName } from './meta';
 import { invoicesDoc, monthlyReturnDoc } from './print';
@@ -46,15 +52,47 @@ const MANAGERS = ['OWNER', 'MANAGER', 'SUPER_ADMIN'];
 
 export default function TaxPage() {
   const role = useAuthStore((s) => s.user?.role);
+  const { pathname } = useLocation();
   if (!role || !MANAGERS.includes(role)) {
-    return (
-      <PageShell>
-        <EmptyState className="min-h-[50vh]" icon={<ShieldAlert className="h-6 w-6" />} title="Tax sirf malik ya manager dekh sakte hain"
-          description="Is safhe par dukaan ki poori sale aur tax ka hisaab hai. Malik se kahein agar aap ko dekhna hai." />
-      </PageShell>
+    const empty = (
+      <EmptyState className="min-h-[50vh]" icon={<ShieldAlert className="h-6 w-6" />} title="Tax sirf malik ya manager dekh sakte hain"
+        description="Is safhe par dukaan ki poori sale aur tax ka hisaab hai. Malik se kahein agar aap ko dekhna hai." />
     );
+    return isSettingsPath(pathname) ? empty : <PageShell>{empty}</PageShell>;
   }
-  return <Tax />;
+  return isSettingsPath(pathname) ? <TaxSettingsFrame /> : <Tax />;
+}
+
+/** /tax/settings inside the Settings frame: the authority setup only. */
+function TaxSettingsFrame() {
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const n = Number(e.key);
+      if (n >= 1 && n <= 3) { e.preventDefault(); navigate(PATH[TABS[n - 1]]); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
+  return (
+    <div className="space-y-4">
+      <HeaderActions>
+        <Button size="sm" variant="secondary" title="Tax overview (1)" leftIcon={<BarChart3 className="h-4 w-4" />} onClick={() => navigate(PATH.overview)}>
+          <span className="hidden sm:inline">Tax overview</span>
+        </Button>
+        <Button size="sm" variant="secondary" title="Invoices (2)" leftIcon={<FileText className="h-4 w-4" />} onClick={() => navigate(PATH.invoices)}>
+          <span className="hidden sm:inline">Invoices</span>
+        </Button>
+        <IconButton label="Guide (G)" variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
+      </HeaderActions>
+      <SettingsView />
+      {guide.isOpen && <TaxGuide onClose={guide.close} />}
+    </div>
+  );
 }
 
 function Tax() {

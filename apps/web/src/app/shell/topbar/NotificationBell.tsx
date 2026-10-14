@@ -168,7 +168,7 @@ export default function NotificationBell() {
             <IconButton label={muted ? 'Turn sound on' : 'Turn sound off'} onClick={toggleSound} className="h-8 w-8">
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </IconButton>
-            <Link to="/settings" onClick={close} aria-label="Notification settings" title="Notification settings"
+            <Link to="/settings/notifications" onClick={close} aria-label="Notification settings" title="Notification settings"
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-900/5 hover:text-slate-900">
               <SettingsIcon className="h-4 w-4" />
             </Link>

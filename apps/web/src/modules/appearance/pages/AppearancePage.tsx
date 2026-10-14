@@ -8,20 +8,23 @@
  *
  * Each block shows where its value comes from (your choice, business default,
  * Nafaa default) and can be reset to the layer below. Shortcuts: D toggles
- * dark mode, G opens the guide.
+ * dark mode, G opens the guide. The Settings frame supplies the page title;
+ * the save state and page actions go into its header.
  */
 
 import { useEffect, useState } from 'react';
 import {
-  Accessibility, Building2, GraduationCap, LayoutGrid, Monitor, Moon, Palette, PanelLeft, PanelLeftClose,
-  PanelLeftOpen, RotateCcw, Sun, Type, User,
+  Accessibility, Building2, GraduationCap, LayoutGrid, Monitor, Moon, MoveHorizontal, Palette, PanelLeft, PanelLeftClose,
+  PanelLeftOpen, RotateCcw, Rows3, SquareRoundCorner, Sun, Type, User,
 } from 'lucide-react';
-import { PageHero, PageShell, Switch, heroButton, heroIconButton } from '@/design-system/components';
+import { Button, IconButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { HeroBack } from '@core/components/HeroBack';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
+import { Toggle } from '@modules/organization/settings/components/UI';
+import { SaveStatusBar } from '@modules/organization/settings/sections/_SaveStatus';
 import {
-  CANVAS_TONES, findLatinFont, industryIdentity, LATIN_FONTS, TEXT_SCALES, URDU_FONTS,
+  CANVAS_TONES, industryIdentity, LATIN_FONTS, TEXT_SCALES, URDU_FONTS,
   type CanvasTone, type Density, type PageWidth, type Radius, type SidebarMode, type SidebarStyle, type TextScale, type ThemeMode,
 } from '@/design-system';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
@@ -99,7 +102,10 @@ function DensityVisual({ density }: { density: Density }) {
   );
 }
 
-const MODE_LABEL: Record<ThemeMode, string> = { light: 'Light', dark: 'Dark', system: 'System' };
+/** Card icon for the Urdu font block. */
+function UrduGlyph({ className }: { className?: string }) {
+  return <span className={cn(className, 'flex items-center justify-center text-[0.9375rem] font-bold leading-none')}>ا</span>;
+}
 
 /* ─── Page ─── */
 
@@ -126,23 +132,14 @@ export default function AppearancePage() {
   });
 
   return (
-    <PageShell>
-      <PageHero
-        title={<HeroBack to="/settings" label="Settings">Appearance</HeroBack>}
-        chip={<>{scope === 'business' ? <Building2 /> : <User />} {scope === 'business' ? 'Business default' : 'Sirf aap ke liye'}</>}
-        meta="Har badlaav foran poori app me lagta hai aur har device par saath chalta hai"
-        busy={ed.saving}
-        actions={<>
-          <button type="button" onClick={resetAll} className={heroButton}><RotateCcw className="h-4 w-4" /> Reset all</button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-        </>}
-        stats={[
-          { label: 'Mode', value: MODE_LABEL[a.mode] },
-          { label: 'Brand color', value: <span className="inline-flex items-center gap-2"><span className="h-4 w-4 rounded-full ring-2 ring-white/40" style={{ backgroundColor: a.accentHex }} />{a.accentHex.toUpperCase()}</span> },
-          { label: 'Text size', value: TEXT_SCALES[a.textScale].label },
-          { label: 'Font', value: findLatinFont(a.latinFont).label },
-        ]}
-      />
+    <div className="space-y-4">
+      <SaveStatusBar saving={ed.saving} dirty={false} />
+      <HeaderActions>
+        <Button size="sm" variant="secondary" leftIcon={<RotateCcw className="h-4 w-4" />} onClick={resetAll}>
+          <span className="hidden sm:inline">Reset all</span>
+        </Button>
+        <IconButton label="Guide (G)" variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
+      </HeaderActions>
 
       {ed.canEditBusiness && (
         <div role="tablist" aria-label="Who this applies to" className="grid gap-2 sm:grid-cols-2">
@@ -173,9 +170,9 @@ export default function AppearancePage() {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="min-w-0 space-y-4">
-          <SettingCard title="Mode" description="Light, dark, ya computer ke hisaab se khud" icon={<Sun className="h-[1.125rem] w-[1.125rem]" />}
+          <SettingCard title="Mode" description="Light, dark, ya computer ke hisaab se khud" icon={Sun} color="amber"
             source={ed.sourceOf('mode')} onReset={resetFor('mode')}>
             <ChoiceGrid<ThemeMode> label="Mode" value={a.mode} onChange={(v) => ed.set('mode', v)} options={[
               { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" />, visual: <ModeVisual mode="light" /> },
@@ -184,7 +181,7 @@ export default function AppearancePage() {
             ]} />
           </SettingCard>
 
-          <SettingCard title="Brand color" description="Buttons, links, active menu aur highlights ka rang" icon={<Palette className="h-[1.125rem] w-[1.125rem]" />}
+          <SettingCard title="Brand color" description="Buttons, links, active menu aur highlights ka rang" icon={Palette} color="pink"
             source={ed.sourceOf('brandColor')} onReset={resetFor('brandColor')}>
             <AccentPicker
               value={ed.layer.brandColor ?? null}
@@ -194,7 +191,7 @@ export default function AppearancePage() {
             />
           </SettingCard>
 
-          <SettingCard title="Background" description="Page ka peechhe wala rang (cards ke peechhe)" icon={<LayoutGrid className="h-[1.125rem] w-[1.125rem]" />}
+          <SettingCard title="Background" description="Page ka peechhe wala rang (cards ke peechhe)" icon={LayoutGrid} color="slate"
             source={ed.sourceOf('canvasTone')} onReset={resetFor('canvasTone')}>
             <ChoiceGrid<CanvasTone> label="Background" columns={5} value={a.canvasTone} onChange={(v) => ed.set('canvasTone', v)}
               options={(Object.entries(CANVAS_TONES) as [CanvasTone, (typeof CANVAS_TONES)[CanvasTone]][]).map(([value, t]) => ({
@@ -209,7 +206,7 @@ export default function AppearancePage() {
               }))} />
           </SettingCard>
 
-          <SettingCard title="Sidebar" description="Menu ka rang aur chaurai" icon={<PanelLeft className="h-[1.125rem] w-[1.125rem]" />}
+          <SettingCard title="Sidebar" description="Menu ka rang aur chaurai" icon={PanelLeft} color="indigo"
             source={ed.sourceOf('sidebarStyle')} onReset={resetFor('sidebarStyle')}>
             <div className="space-y-4">
               <ChoiceGrid<SidebarStyle> label="Sidebar style" value={a.sidebarStyle} onChange={(v) => ed.set('sidebarStyle', v)} options={[
@@ -231,17 +228,17 @@ export default function AppearancePage() {
             </div>
           </SettingCard>
 
-          <SettingCard title="Font" description="Poori app ka font — har ek apne asal andaaz me dikh raha hai" icon={<Type className="h-[1.125rem] w-[1.125rem]" />}
+          <SettingCard title="Font" description="Poori app ka font — har ek apne asal andaaz me dikh raha hai" icon={Type} color="violet"
             source={ed.sourceOf('latinFont')} onReset={resetFor('latinFont')}>
             <FontPicker kind="latin" label="Font" fonts={LATIN_FONTS} value={a.latinFont} sample="Nafaa POS · Rs 12,450" onChange={(v) => ed.set('latinFont', v)} />
           </SettingCard>
 
-          <SettingCard title="Urdu font" description="Urdu likhai ke liye (receipts aur Urdu zabaan)" icon={<span className="text-[0.9375rem] font-bold">ا</span>}
+          <SettingCard title="Urdu font" description="Urdu likhai ke liye (receipts aur Urdu zabaan)" icon={UrduGlyph} color="violet"
             source={ed.sourceOf('urduFont')} onReset={resetFor('urduFont')}>
             <FontPicker kind="urdu" label="Urdu font" fonts={URDU_FONTS} value={a.urduFont} sample="نفع — آپ کا کاروبار" onChange={(v) => ed.set('urduFont', v)} />
           </SettingCard>
 
-          <SettingCard title="Text size" description="Poori app me likhai ka size" icon={<Type className="h-[1.125rem] w-[1.125rem]" />}
+          <SettingCard title="Text size" description="Poori app me likhai ka size" icon={Type} color="blue"
             source={ed.sourceOf('textScale')} onReset={resetFor('textScale')}>
             <ChoiceGrid<TextScale> label="Text size" columns={4} value={a.textScale} onChange={(v) => ed.set('textScale', v)}
               options={(Object.entries(TEXT_SCALES) as [TextScale, (typeof TEXT_SCALES)[TextScale]][]).map(([value, t]) => ({
@@ -251,7 +248,7 @@ export default function AppearancePage() {
               }))} />
           </SettingCard>
 
-          <SettingCard title="Page width" description="Bari screen par page kitna phaile — har page par ek jaisa" source={ed.sourceOf('pageWidth')} onReset={resetFor('pageWidth')}>
+          <SettingCard title="Page width" description="Bari screen par page kitna phaile — har page par ek jaisa" icon={MoveHorizontal} color="cyan" source={ed.sourceOf('pageWidth')} onReset={resetFor('pageWidth')}>
             <ChoiceGrid<PageWidth> label="Page width" columns={3} value={a.pageWidth} onChange={(v) => ed.set('pageWidth', v)} options={[
               { value: 'normal', label: 'Normal', description: 'Parhne me aasaan, beech me', visual: <WidthVisual width="normal" /> },
               { value: 'wide', label: 'Chauri', description: 'Sab se behtar (default)', visual: <WidthVisual width="wide" /> },
@@ -260,13 +257,13 @@ export default function AppearancePage() {
           </SettingCard>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <SettingCard title="Density" description="Cheezon ke beech jagah" source={ed.sourceOf('density')} onReset={resetFor('density')}>
+            <SettingCard title="Density" description="Cheezon ke beech jagah" icon={Rows3} color="sky" source={ed.sourceOf('density')} onReset={resetFor('density')}>
               <ChoiceGrid<Density> label="Density" columns={2} value={a.density} onChange={(v) => ed.set('density', v)} options={[
                 { value: 'comfortable', label: 'Comfortable', visual: <DensityVisual density="comfortable" /> },
                 { value: 'compact', label: 'Compact', description: 'Ek screen par zyada', visual: <DensityVisual density="compact" /> },
               ]} />
             </SettingCard>
-            <SettingCard title="Corners" description="Buttons aur cards ke kone" source={ed.sourceOf('radius')} onReset={resetFor('radius')}>
+            <SettingCard title="Corners" description="Buttons aur cards ke kone" icon={SquareRoundCorner} color="orange" source={ed.sourceOf('radius')} onReset={resetFor('radius')}>
               <ChoiceGrid<Radius> label="Corners" columns={3} value={a.radius} onChange={(v) => ed.set('radius', v)} options={[
                 { value: 'sharp', label: 'Sharp', visual: <CornerVisual radius="sharp" /> },
                 { value: 'default', label: 'Rounded', visual: <CornerVisual radius="default" /> },
@@ -275,28 +272,16 @@ export default function AppearancePage() {
             </SettingCard>
           </div>
 
-          <SettingCard title="Accessibility" description="Aankhon aur aaram ke liye" icon={<Accessibility className="h-[1.125rem] w-[1.125rem]" />}
+          <SettingCard title="Accessibility" description="Aankhon aur aaram ke liye" icon={Accessibility} color="emerald"
             onReset={ed.isSet('contrast') || ed.isSet('reduceMotion') ? () => { ed.reset('contrast'); ed.reset('reduceMotion'); } : undefined}>
-            <div className="space-y-2">
-              <Switch
-                className="rounded-xl border border-slate-200 p-3"
-                label="High contrast"
-                description="Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye"
-                checked={a.contrast === 'high'}
-                onChange={(e) => ed.set('contrast', e.target.checked ? 'high' : 'normal')}
-              />
-              <Switch
-                className="rounded-xl border border-slate-200 p-3"
-                label="Reduce motion"
-                description="Animations aur hilti cheezein band — tez aur pur-sukoon"
-                checked={a.reduceMotion}
-                onChange={(e) => ed.set('reduceMotion', e.target.checked)}
-              />
-            </div>
+            <Toggle label="High contrast" desc="Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye"
+              checked={a.contrast === 'high'} onChange={(v) => ed.set('contrast', v ? 'high' : 'normal')} />
+            <Toggle label="Reduce motion" desc="Animations aur hilti cheezein band — tez aur aaram se"
+              checked={a.reduceMotion} onChange={(v) => ed.set('reduceMotion', v)} />
           </SettingCard>
         </div>
 
-        <aside className="lg:sticky lg:top-4 lg:self-start">
+        <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-400">Live preview</span>
             <span className="text-[0.75rem] text-slate-500">{scope === 'business' ? 'Business default' : 'Aap ka look'}</span>
@@ -323,6 +308,6 @@ export default function AppearancePage() {
           shortcuts={[['D', 'dark / light'], ['G', 'guide']]}
         />
       )}
-    </PageShell>
+    </div>
   );
 }

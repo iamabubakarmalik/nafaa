@@ -4,20 +4,22 @@
  * its own devices, so everything here is stored in the browser). Each
  * device has setup steps and a test button. Nothing changes until the shop
  * picks it: by default bills use browser print and the scanner works as a
- * keyboard.
+ * keyboard. The Settings frame supplies the page title; the page actions go
+ * into its header.
  */
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Archive, ArrowRight, Barcode, Bluetooth, Cable, CheckCircle2, GraduationCap, Monitor, Printer, Receipt, Scale, Send, Unplug, Usb,
 } from 'lucide-react';
 import {
-  Alert, Badge, Button, Card, Input, KpiCard, KpiRow, PageHero, PageShell, Segmented, Select, Switch, Textarea, heroButton, heroIconButton,
+  Alert, Badge, Button, IconButton, Input, KpiCard, KpiRow, Segmented, Select, Textarea,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { HeroBack } from '@core/components/HeroBack';
+import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
+import { Field, SectionCard, Toggle } from '@modules/organization/settings/components/UI';
 import { isElectron } from '@core/lib/desktop/electron';
 import { usePrinterStore } from '@core/lib/desktop/printerStore';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -47,6 +49,7 @@ export default function HardwarePage() {
   const desktop = isElectron();
   const deskPrinter = usePrinterStore((x) => x.enabled && x.config.connectionType !== 'system');
   const guide = usePageGuide();
+  const navigate = useNavigate();
   const [width, setWidth] = useState<'80' | '58'>('80');
   const [busy, setBusy] = useState('');
   const [scanOk, setScanOk] = useState(false);
@@ -92,23 +95,16 @@ export default function HardwarePage() {
   const drawerUsable = s.printMode !== 'browser';
 
   return (
-    <PageShell>
-      <PageHero
-        title={<HeroBack to="/settings" label="Settings">Hardware</HeroBack>}
-        chip={<><Monitor /> Is computer ke liye</>}
-        meta="Har counter ki apni setting — doosre computer par farq nahi parta"
-        actions={<>
-          <button type="button" onClick={sampleBill} title="Sample bill print (T)" className={heroButton}><Receipt className="h-4 w-4" /> Test bill</button>
-          <Link to="/settings/printing" className={heroButton}><Printer className="h-4 w-4" /> Printing</Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-        </>}
-        stats={[
-          { label: 'Receipt printer', value: printerValue, hint: s.printMode === 'direct' && st.printer.ready ? prettyLabel(st.printer.label) : undefined },
-          { label: 'Cash drawer', value: !drawerUsable ? 'Band' : s.drawerOnCash ? 'Cash par khud' : 'Haath se' },
-          { label: 'Tarazu', value: s.scaleEnabled ? (st.scale.ready ? 'Jura hua' : 'Jura nahi') : 'Nahi laga' },
-          { label: 'Customer screen', value: THEMES[display.theme] },
-        ]}
-      />
+    <div className="space-y-4">
+      <HeaderActions>
+        <Button size="sm" variant="secondary" title="Sample bill print (T)" leftIcon={<Receipt className="h-4 w-4" />} onClick={sampleBill}>
+          <span className="hidden sm:inline">Test bill</span>
+        </Button>
+        <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => navigate('/settings/printing')}>
+          <span className="hidden sm:inline">Printing</span>
+        </Button>
+        <IconButton label="Guide (G)" variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
+      </HeaderActions>
 
       {!sup.serial && !sup.usb && !desktop && (
         <Alert tone="warning" title="Ye browser hardware se seedha baat nahi karta">
@@ -127,10 +123,10 @@ export default function HardwarePage() {
           value={s.scaleEnabled ? (st.scale.weightKg != null ? `${st.scale.weightKg.toFixed(3)} kg` : st.scale.ready ? 'Jura hua' : 'Jura nahi') : 'Nahi laga'}
           hint={s.scaleEnabled ? `Speed ${s.scaleBaud}` : 'Wazan wali cheezon ke liye'} onClick={() => goTo('scale')} />
         <KpiCard icon={Monitor} color="#2563eb" label="Customer screen" value={THEMES[display.theme]}
-          hint={display.promos.length ? `${display.promos.length} paighaam` : 'Doosri screen par bill'} onClick={() => goTo('display')} />
+          hint={display.promos.length ? `${display.promos.length} offer` : 'Doosri screen par bill'} onClick={() => goTo('display')} />
       </KpiRow>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 2xl:grid-cols-2">
         {/* ── Printer ── */}
         <DeviceCard id="printer" icon={Printer} title="Receipt printer"
           badge={s.printMode === 'direct' ? (st.printer.ready ? <Badge variant="success" dot>Jura hua</Badge> : <Badge variant="warning" dot>Jura nahi</Badge>) : undefined}
@@ -154,14 +150,13 @@ export default function HardwarePage() {
 
             {s.printMode === 'direct' && (
               <>
-                <div>
-                  <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Printer kaise jura hai?</p>
+                <Field label="Printer kaise jura hai?" hint="Jo tareeqa is browser me nahi chalta woh band dikhta hai.">
                   <div className="grid gap-2 sm:grid-cols-3">
                     <TransportBtn t="usb" cur={s.transport} on={(t) => s.set({ transport: t })} icon={<Usb className="h-4 w-4" />} title="USB" sub="Cable se (Xprinter, Black Copper…)" disabled={!sup.usb} />
                     <TransportBtn t="serial" cur={s.transport} on={(t) => s.set({ transport: t })} icon={<Cable className="h-4 w-4" />} title="Serial / COM" sub="Windows par sab se pakka" disabled={!sup.serial} />
                     <TransportBtn t="bluetooth" cur={s.transport} on={(t) => s.set({ transport: t })} icon={<Bluetooth className="h-4 w-4" />} title="Bluetooth" sub="Chhota 58mm printer" disabled={!sup.bluetooth} />
                   </div>
-                </div>
+                </Field>
 
                 {s.transport === 'serial' && (
                   <Select label="Speed (baud)" hint="Printer ke self-test kaghaz par likha hota hai — aksar 9600 ya 115200." wrapperClassName="max-w-[12rem]"
@@ -189,8 +184,8 @@ export default function HardwarePage() {
                   <p className="text-[0.8125rem] text-amber-700">{st.printer.error ?? 'Pichla printer abhi nahi mila'} — tab tak bill browser print se nikalte rahenge.</p>
                 )}
 
-                <Switch label="Bill par barcode" description="Return par bill scan ho sake. Purana printer barcode na chhape to band kar dein."
-                  checked={s.printBarcode} onChange={(e) => s.set({ printBarcode: e.target.checked })} />
+                <Toggle label="Bill par barcode" desc="Return par bill scan ho sake. Purana printer barcode na chhape to band kar dein."
+                  checked={s.printBarcode} onChange={(v) => s.set({ printBarcode: v })} />
 
                 <Help title="USB printer list me aata hai par jurta nahi? (Windows)">
                   <Steps items={[
@@ -220,8 +215,8 @@ export default function HardwarePage() {
               'Upar printer ko Direct (ya Desktop app) par jorein.',
               '"Abhi kholein" dabayein — drawer khul jaye to sab theek hai.',
             ]} />
-            <Switch label="Cash sale par khud khule" description="Bill chhapte hi drawer khule — sirf jab payment Cash ho."
-              checked={s.drawerOnCash} disabled={!drawerUsable} onChange={(e) => s.set({ drawerOnCash: e.target.checked })} />
+            <Toggle label="Cash sale par khud khule" desc="Bill chhapte hi drawer khule — sirf jab payment Cash ho."
+              checked={s.drawerOnCash} disabled={!drawerUsable} onChange={(v) => s.set({ drawerOnCash: v })} />
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="secondary" disabled={!drawerUsable} loading={busy === 'drawer'} leftIcon={<Archive className="h-4 w-4" />} onClick={() => void openDrawer()}>Abhi kholein (D)</Button>
               {!drawerUsable && <span className="text-[0.75rem] text-slate-500">Browser print se drawer nahi khul sakta — printer ko Direct karein.</span>}
@@ -300,12 +295,12 @@ export default function HardwarePage() {
           tips={[
             'Ye settings sirf is computer ki hain — har counter par alag set karein.',
             'Direct print ke liye Chrome ya Edge chahiye.',
-            'Bill ka design (logo, footer) Settings → Raseed me hai; kaghaz aur copies Printing me.',
+            'Bill ka design (logo, footer) Settings → Receipt me hai; kaghaz aur copies Printing me.',
           ]}
           shortcuts={[['T', 'test bill'], ['D', 'drawer'], ['C', 'customer screen'], ['G', 'guide']]}
         />
       )}
-    </PageShell>
+    </div>
   );
 }
 
@@ -319,7 +314,7 @@ function DisplayCard({ shopName, onOpen }: { shopName: string; onOpen: () => voi
   return (
     <DeviceCard id="display" icon={Monitor} title="Customer display"
       description="Customer ki taraf wali screen par live bill, payment QR aur return ki amount — bharosa barhta hai, jhagra kam.">
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-4">
           <Steps items={[
             'Doosra monitor ya purana LCD computer se HDMI par jorein (ya customer ki taraf screen mor dein).',
@@ -330,23 +325,23 @@ function DisplayCard({ shopName, onOpen }: { shopName: string; onOpen: () => voi
             <Button leftIcon={<Monitor className="h-4 w-4" />} onClick={onOpen}>Display kholein (C)</Button>
             <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} onClick={() => { sendDisplayTest(shopName); toast.success('Test bill display par bheja'); }}>Test bill bhejein</Button>
           </div>
+          <Field label="Screen ka rang" hint='Andhere kamre ya raat ki dukaan me "Kaala" aankhon ko nahi chubhta.'>
+            <div>
+              <Segmented label="Screen ka rang" value={d.theme} onChange={(v) => d.set({ theme: v })}
+                items={(Object.keys(THEMES) as DisplayTheme[]).map((t) => ({ value: t, label: THEMES[t] }))} />
+            </div>
+          </Field>
           <div>
-            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Screen ka rang</p>
-            <Segmented label="Screen ka rang" value={d.theme} onChange={(v) => d.set({ theme: v })}
-              items={(Object.keys(THEMES) as DisplayTheme[]).map((t) => ({ value: t, label: THEMES[t] }))} />
-            <p className="mt-1.5 text-xs text-slate-500">Andhere kamre ya raat ki dukaan me "Kaala" aankhon ko nahi chubhta.</p>
-          </div>
-          <div className="space-y-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
-            <Switch size="sm" label="Logo dikhayein" description="Settings → Dukaan ki maloomat wala logo" checked={d.showLogo} onChange={(e) => d.set({ showLogo: e.target.checked })} />
-            <Switch size="sm" label="Ghari (waqt)" checked={d.showClock} onChange={(e) => d.set({ showClock: e.target.checked })} />
-            <Switch size="sm" label="Payment QR bara dikhayein" description="Raast / JazzCash / Easypaisa se payment par customer seedha scan kare" checked={d.showQr} onChange={(e) => d.set({ showQr: e.target.checked })} />
+            <Toggle label="Logo dikhayein" desc="Settings → Store details wala logo" checked={d.showLogo} onChange={(v) => d.set({ showLogo: v })} />
+            <Toggle label="Ghari (waqt)" checked={d.showClock} onChange={(v) => d.set({ showClock: v })} />
+            <Toggle label="Payment QR bara dikhayein" desc="Raast / JazzCash / Easypaisa se payment par customer seedha scan kare" checked={d.showQr} onChange={(v) => d.set({ showQr: v })} />
           </div>
         </div>
         <div className="space-y-4">
           <Input label="Khush-amdeed line" maxLength={60} value={d.welcome} onChange={(e) => d.set({ welcome: e.target.value })}
             placeholder="Khush-amdeed" hint="Jab koi bill na chal raha ho to bara likha aata hai" />
-          <Textarea label="Dukaan ke paighaam (offers)" rows={5} value={promos} onChange={(e) => setPromos(e.target.value)} onBlur={savePromos}
-            placeholder={'Har line ek paighaam, maslan:\nJumma ko har cheez par 10% discount\nHome delivery: 0300-1234567'}
+          <Textarea label="Dukaan ke offers" rows={5} value={promos} onChange={(e) => setPromos(e.target.value)} onBlur={savePromos}
+            placeholder={'Har line ek offer, maslan:\nJumma ko har cheez par 10% discount\nHome delivery: 0300-1234567'}
             hint={`Har line alag — ${MAX_PROMOS} tak, har ek ${PROMO_LENGTH} harf tak. Bari screen par baari baari aate hain.`} />
           <DisplayPreview theme={d.theme} welcome={d.welcome} promo={cleanPromos(promos.split('\n'))[0]} />
         </div>
@@ -404,15 +399,17 @@ function ScannerTest({ onPass }: { onPass: () => void }) {
 
 /* ── Pieces ── */
 
-function DeviceCard({ id, icon: Icon, title, badge, description, children }: {
+const DEVICE_TONE: Record<Section, 'emerald' | 'cyan' | 'violet' | 'amber' | 'blue'> = {
+  printer: 'emerald', drawer: 'cyan', scanner: 'violet', scale: 'amber', display: 'blue',
+};
+
+function DeviceCard({ id, icon, title, badge, description, children }: {
   id: Section; icon: typeof Printer; title: string; badge?: ReactNode; description: ReactNode; children: ReactNode;
 }) {
   return (
-    <Card id={`hw-${id}`} className="scroll-mt-4 rounded-2xl"
-      title={<span className="flex flex-wrap items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><Icon className="h-4 w-4" /></span>{title}{badge}</span>}
-      description={description}>
+    <SectionCard id={`hw-${id}`} icon={icon} color={DEVICE_TONE[id]} title={title} badge={badge} desc={description}>
       {children}
-    </Card>
+    </SectionCard>
   );
 }
 

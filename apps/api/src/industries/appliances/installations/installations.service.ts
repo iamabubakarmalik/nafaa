@@ -278,6 +278,8 @@ export class InstallationsService {
   }
 
   async complete(user: AuthenticatedUser, id: string, dto: CompleteInstallationDto) {
+    // The payment method goes on the bill, not on the installation.
+    const { paymentMethod, ...fields } = dto;
     const i = await this.prisma.applianceInstallation.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!i) throw new NotFoundException('Installation nahi mili');
 
@@ -304,7 +306,7 @@ export class InstallationsService {
       const updated = await tx.applianceInstallation.update({
         where: { id },
         data: {
-          ...dto,
+          ...fields,
           status: 'COMPLETED',
           completedAt: now,
           arrivedAt: i.arrivedAt ?? now,
@@ -370,7 +372,7 @@ export class InstallationsService {
         const bill = await billJob(
           tx, user,
           { number: i.installationNumber, customerId: i.customerId, customerName: i.customerName, customerPhone: i.customerPhone },
-          lines, paidByCustomer,
+          lines, paidByCustomer, paymentMethod,
         );
         if (bill?.customerId && bill.customerId !== i.customerId) {
           await tx.applianceInstallation.update({ where: { id }, data: { customerId: bill.customerId } });
@@ -408,7 +410,7 @@ export class InstallationsService {
       const customerId = await receiveJobMoney(
         tx, user,
         { number: i.installationNumber, customerId: i.customerId, customerName: i.customerName, customerPhone: i.customerPhone },
-        dto.amount, `Installation ${i.installationNumber} wusooli`,
+        dto.amount, `Installation ${i.installationNumber} wusooli`, dto.paymentMethod,
       );
       return tx.applianceInstallation.update({
         where: { id },

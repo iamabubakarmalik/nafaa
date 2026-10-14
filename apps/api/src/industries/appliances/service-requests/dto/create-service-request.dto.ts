@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApplianceServiceStatus, ApplianceServiceType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateServiceRequestDto {
   @ApiPropertyOptional() @IsOptional() @IsString() serialTrackingId?: string;
@@ -40,6 +40,8 @@ export class CompleteServiceDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() laborCharge?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() partsCharge?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() paidAmount?: number;
+  /** How `paidAmount` came in; left out, cash. */
+  @ApiPropertyOptional() @IsOptional() @IsIn(['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA']) paymentMethod?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() coveredUnderWarranty?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() coveredUnderAmc?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresFollowUp?: boolean;
@@ -79,6 +81,8 @@ export class UpdateServiceRequestDto {
 export class AddServicePaymentDto {
   @ApiProperty({ example: 1500 }) @IsNumber() @Min(1) amount!: number;
   @ApiPropertyOptional() @IsOptional() @IsString() note?: string;
+  /** Left out, cash. */
+  @ApiPropertyOptional() @IsOptional() @IsIn(['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA']) paymentMethod?: string;
 }
 
 /** Kaam cancel karne ki wajah */

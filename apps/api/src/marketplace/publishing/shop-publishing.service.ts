@@ -40,7 +40,7 @@ function mapDtoToSchema(dto: any): any {
   // ─── Frontend name → Schema name mapping ───
   if (dto.contactPhone !== undefined) data.publicPhone = dto.contactPhone;
   if (dto.contactEmail !== undefined) data.publicEmail = dto.contactEmail;
-  // WhatsApp — schema mein alag field nahi, publicPhone fallback ke saath skip
+  if (dto.whatsappNumber !== undefined) data.whatsappNumber = dto.whatsappNumber || null;
   if (dto.address !== undefined) data.addressLine1 = dto.address;
   if (dto.addressLine1 !== undefined) data.addressLine1 = dto.addressLine1;
   if (dto.addressLine2 !== undefined) data.addressLine2 = dto.addressLine2;
@@ -71,7 +71,7 @@ function mapSchemaToDto(profile: any, shopName?: string): any {
     contactPhone: profile.publicPhone || '',
     contactEmail: profile.publicEmail || '',
     address: profile.addressLine1 || '',
-    whatsappNumber: profile.publicPhone || '',
+    whatsappNumber: profile.whatsappNumber || profile.publicPhone || '',
   };
 }
 

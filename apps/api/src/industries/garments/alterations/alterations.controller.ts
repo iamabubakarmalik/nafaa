@@ -20,5 +20,5 @@ export class AlterationsController {
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Post(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: AlterationStatusDto) { return this.service.updateStatus(user, id, body.status, body.afterImageUrls, body.paymentMethod, body.paidNow); }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: AlterationPaymentDto) { return this.service.recordPayment(user, id, body.amount); }
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: AlterationPaymentDto) { return this.service.recordPayment(user, id, body.amount, body.paymentMethod); }
 }

@@ -9,8 +9,8 @@ import { Link } from 'react-router-dom';
 import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
-import type { ProfitItem, ProfitVariant } from '../api';
-import { change, changeText, pct, qty } from './meta';
+import type { ProfitItem, ProfitOverview, ProfitVariant } from '../api';
+import { change, changeText, chargeSplit, pct, qty } from './meta';
 
 const GRID = 'lg:grid-cols-[minmax(0,2.6fr)_minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)]';
 
@@ -85,6 +85,43 @@ export function ProductRow({ r, fmt }: { r: ProfitItem; fmt: Fmt }) {
         </ul>
       )}
     </li>
+  );
+}
+
+/**
+ * Footer of the full product list: the lines' total, the bills' service
+ * charges and the report total, so the list adds up to the figure on top.
+ */
+export function ProductTotals({ totals: t, fmt }: { totals: ProfitOverview['totals']; fmt: Fmt }) {
+  const c = chargeSplit(t);
+  const margin = (profit: number, revenue: number) => (revenue > 0 ? (profit / revenue) * 100 : 0);
+  const rows = [
+    ...(c.shown ? [
+      { label: 'Cheezon ka kul', sub: `${t.products} cheezein`, revenue: c.lineRevenue, cost: c.lineCost, profit: c.lineProfit, strong: false },
+      { label: '+ Service charges', sub: `${c.bills ? `${c.bills} bill par · ` : ''}delivery, fitting waghera${c.cost ? ' aur bill par alag cost' : ''}`, revenue: c.revenue, cost: c.cost, profit: c.profit, strong: false },
+    ] : []),
+    { label: 'Kul (sab safhe)', sub: `${t.bills} bill`, revenue: t.revenue, cost: t.cost ?? 0, profit: t.profit ?? 0, strong: true },
+  ];
+  return (
+    <ul className="divide-y divide-slate-100 border-t border-slate-200 bg-slate-50/70">
+      {rows.map((r) => (
+        <li key={r.label} className={cn('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-2.5 text-[0.8125rem] sm:px-4', GRID)}>
+          <span className="min-w-0 sm:pl-[4.75rem]">
+            <span className={cn('block truncate', r.strong ? 'font-bold text-slate-900' : 'font-medium text-slate-700')}>{r.label}</span>
+            <span className="block truncate text-[0.6875rem] text-slate-500">{r.sub}</span>
+          </span>
+          <span className="text-right lg:hidden">
+            <span className={cn('block tabular-nums', r.strong ? 'font-bold text-slate-900' : 'text-slate-800')}>{fmt.cost(r.profit)}</span>
+            <span className="block text-[0.6875rem] tabular-nums text-slate-500">{fmt.money(r.revenue)} sale</span>
+          </span>
+          <span className="hidden lg:block" />
+          <span className={cn('hidden text-right tabular-nums lg:block', r.strong ? 'font-bold text-slate-900' : 'text-slate-800')}>{fmt.money(r.revenue)}</span>
+          <span className="hidden text-right tabular-nums text-slate-600 lg:block">{fmt.cost(r.cost)}</span>
+          <span className={cn('hidden text-right tabular-nums lg:block', r.strong ? 'font-bold' : 'font-semibold', r.profit < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(r.profit)}</span>
+          <span className="hidden text-right tabular-nums text-slate-600 lg:block">{fmt.costHidden ? '••' : pct(margin(r.profit, r.revenue))}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

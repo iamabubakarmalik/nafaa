@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { Upload, X, Loader2, ImageIcon, Camera, Sparkles } from 'lucide-react';
+import { Upload, X, Loader2, ImageIcon, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';
 
@@ -40,7 +40,7 @@ export default function LogoUploader({
       const url = res.data?.data?.url || res.data?.url;
       if (!url) throw new Error('No URL');
       onChange(url);
-      toast.success('Logo upload ho gaya ✅');
+      toast.success(`${label} upload ho gaya`);
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Upload fail');
     } finally {
@@ -77,11 +77,11 @@ export default function LogoUploader({
           'relative overflow-hidden flex items-center justify-center transition-all shrink-0 group',
           shapeCls,
           value
-            ? 'border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-md'
+            ? 'border border-slate-200 bg-white shadow-sm'
             : 'border-2 border-dashed cursor-pointer',
           dragOver
-            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 scale-105'
-            : value ? '' : 'border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800/60 hover:border-emerald-400 dark:hover:border-emerald-500/60',
+            ? 'border-brand-500 bg-brand-50 scale-105'
+            : value ? '' : 'border-slate-300 bg-slate-50 hover:border-brand-400',
         ].join(' ')}
         onClick={() => !value && !uploading && inputRef.current?.click()}
       >
@@ -150,29 +150,26 @@ export default function LogoUploader({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-2 px-4 h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-sm font-extrabold shadow-md shadow-emerald-500/30 disabled:opacity-50 transition active:scale-95"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-brand-fg shadow-sm transition hover:bg-brand-700 active:scale-95 disabled:opacity-50"
           >
             <Upload className="h-4 w-4" />
-            {uploading ? 'Uploading...' : value ? 'Change' : 'Upload'}
+            {uploading ? 'Upload ho raha hai…' : value ? 'Badlein' : 'Upload karein'}
           </button>
 
           {value && !uploading && (
             <button
               type="button"
               onClick={() => onChange('')}
-              className="inline-flex items-center gap-1.5 px-3 h-11 rounded-xl border-2 border-rose-200 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-sm font-extrabold transition active:scale-95"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-rose-200 px-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 active:scale-95"
             >
-              <X className="h-3.5 w-3.5" /> Remove
+              <X className="h-3.5 w-3.5" /> Hatayein
             </button>
           )}
         </div>
 
-        <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold space-y-0.5">
-          <p className="flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-amber-500" />
-            {hint || 'PNG, JPG, WebP • Max 5MB • Drag & drop supported'}
-          </p>
-          <p className="text-slate-400 dark:text-ink-500">Best size: 512×512 px, transparent background</p>
+        <div className="space-y-0.5 text-xs text-slate-500">
+          <p>PNG, JPG ya WebP · 5MB tak · file yahan kheench kar bhi daal sakte hain</p>
+          {hint && <p className="text-slate-400">{hint}</p>}
         </div>
       </div>
     </div>

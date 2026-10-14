@@ -391,9 +391,10 @@ export class JobsService {
   /**
    * Money taken outside the final bill. Before the bill it is an advance held
    * on the customer's khata; after the bill it pays off udhaar. Either way
-   * the day book and cash register see it on the day it came in.
+   * the day book and cash register see it on the day it came in. Method left
+   * out is cash.
    */
-  async addPayment(user: AuthenticatedUser, id: string, amount: number, isAdvance = false) {
+  async addPayment(user: AuthenticatedUser, id: string, amount: number, isAdvance = false, paymentMethod?: string) {
     const j = await this.prisma.serviceJob.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!j) throw new NotFoundException('Job not found');
     if (j.status === 'CANCELLED') throw new BadRequestException('Cancel job par payment nahi li ja sakti');
@@ -415,6 +416,7 @@ export class JobsService {
         amount: value,
         reference: j.jobNumber,
         note: `${billed ? 'Job baqi wasool' : 'Job advance'}: ${j.jobNumber}`,
+        method: paymentMethod,
       });
       const newPaid = r2(j.paidAmount + value);
       return tx.serviceJob.update({

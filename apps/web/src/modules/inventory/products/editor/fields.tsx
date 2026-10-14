@@ -134,8 +134,8 @@ export function Toggle({ on, onChange, title, hint, icon: Icon }: { on: boolean;
 const CATEGORY_COLORS = ['#2563eb', '#16a34a', '#d97706', '#db2777', '#7c3aed', '#0891b2', '#ea580c', '#65a30d'];
 
 /** Category chips with search and create-in-place. */
-export function CategoryField({ value, onChange, suggestions, error }: {
-  value: string | null; onChange: (id: string | null, name?: string) => void; suggestions?: string[]; error?: string;
+export function CategoryField({ value, onChange, suggestions, error, hint }: {
+  value: string | null; onChange: (id: string | null, name?: string) => void; suggestions?: string[]; error?: string; hint?: ReactNode;
 }) {
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
@@ -151,7 +151,7 @@ export function CategoryField({ value, onChange, suggestions, error }: {
   const exact = data.some((c) => c.name.toLowerCase() === term);
   const missing = (suggestions ?? []).filter((s) => !data.some((c) => c.name.toLowerCase() === s.toLowerCase())).slice(0, 6);
   return (
-    <Field label="Category" error={error}>
+    <Field label="Category" error={error} hint={hint}>
       {() => (
         <div className="space-y-2">
           <div className="relative">
@@ -182,7 +182,7 @@ export function CategoryField({ value, onChange, suggestions, error }: {
   );
 }
 
-export function BrandField({ value, onChange }: { value: string | null; onChange: (id: string | null) => void }) {
+export function BrandField({ value, onChange, hint }: { value: string | null; onChange: (id: string | null) => void; hint?: ReactNode }) {
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list(), staleTime: 5 * 60_000 });
   const [adding, setAdding] = useState('');
@@ -194,7 +194,7 @@ export function BrandField({ value, onChange }: { value: string | null; onChange
   const all = (Array.isArray(data) ? data : (data as { items?: Array<{ id: string; name: string; isActive?: boolean }> }).items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
   const list = all.filter((b) => b.isActive !== false || b.id === value);
   return (
-    <Field label="Brand">
+    <Field label="Brand" hint={hint}>
       {(id) => (
         <div className="flex gap-2">
           <select id={id} value={value ?? ''} onChange={(e) => onChange(e.target.value || null)} className={cn(inputCls, 'flex-1')}>
@@ -281,9 +281,9 @@ export function CodeFields({ name, sku, barcode, prefix, onSku, onBarcode }: {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {scan && <BarcodeScanner onDetected={(c: string) => { onBarcode(c); setScan(false); }} onClose={() => setScan(false)} />}
-      <TextField label="SKU (apna code)" value={sku} onChange={onSku} placeholder="Khali chhorein to khud ban jayega"
+      <TextField label="SKU (apna code)" value={sku} onChange={onSku} placeholder="Khali chhorein to khud ban jayega" hint="Andar ka code — report aur dhoondne ke liye"
         right={<button type="button" onClick={() => onSku(autoSku(name, prefix))} className={btn}><Wand2 className="h-4 w-4" />Auto</button>} />
-      <TextField label="Barcode" value={barcode} onChange={onBarcode} placeholder="Dabbe par likha number"
+      <TextField label="Barcode" value={barcode} onChange={onBarcode} placeholder="Dabbe par likha number" hint="POS scanner isi se cheez uthata hai — do cheezon ka ek barcode nahi ho sakta"
         right={<button type="button" onClick={() => setScan(true)} className={btn}><ScanLine className="h-4 w-4" />Scan</button>} />
     </div>
   );

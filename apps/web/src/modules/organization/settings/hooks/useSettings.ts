@@ -26,29 +26,10 @@ export function useUpdateSettings() {
   });
 }
 
-export function useResetSection() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (section: string) => settingsApi.reset(section),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Reset complete');
-    },
-  });
-}
-
 export function useSecurityScore() {
   return useQuery({
     queryKey: ['security-score'],
     queryFn: settingsApi.securityScore,
     staleTime: 60_000,
-  });
-}
-
-export function useIntegrations() {
-  return useQuery({
-    queryKey: ['integrations'],
-    queryFn: settingsApi.listIntegrations,
-    staleTime: 30_000,
   });
 }

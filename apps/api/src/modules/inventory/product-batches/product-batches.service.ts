@@ -80,7 +80,7 @@ export class ProductBatchesService {
         batchNumber: dto.batchNumber,
         manufactureDate: dto.manufactureDate ? new Date(dto.manufactureDate) : null,
         expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : null,
-        quantity: dto.quantity,
+        quantity: dto.quantity ?? 0,
         costPrice: dto.costPrice ?? 0,
         notes: dto.notes,
       },

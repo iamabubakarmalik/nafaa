@@ -16,6 +16,7 @@ import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
 import { useImageUpload } from '@core/hooks/useImageUpload';
 import { useIsAllShops } from '@core/stores/auth.store';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
+import { PayoutWarning } from '@modules/finance/cash-register/components/PayoutWarning';
 import {
   expenseCategoriesApi, expensesApi, type CreateExpensePayload, type Expense, type ExpenseCategory, type ExpenseMethod,
   type ExpenseOverview, type UpdateExpensePayload,
@@ -122,6 +123,10 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
     const at = new Date(register.openedAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' });
     return { tone: 'emerald', text: `Shift ${register.registerNumber} (${at} se khuli) ke galle se ghatega. Is shift me ab tak ${formatPKR(register.cashExpenses)} cash expense.` };
   }, [cash, date, today, register]);
+
+  // Cash this save takes from today's drawer; an edit only adds the difference.
+  const wasInDrawer = !!editing && editing.paymentMethod === 'CASH' && editing.status === 'PAID' && originalDay === today;
+  const drawerOut = cash && date === today && !allShops ? (wasInDrawer ? value - Number(editing!.amount) : value) : 0;
 
   const seed = useMutation({
     mutationFn: async () => {
@@ -245,6 +250,7 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
               <Wallet className="mt-0.5 h-3.5 w-3.5 shrink-0" />{cashNote.text}
             </p>
           ) : <p className={hintCls}>Cash galle se jata hai; JazzCash, Easypaisa, bank aur card galle ko nahi chhoote.</p>}
+          <PayoutWarning amount={drawerOut} className="mt-1.5" />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">

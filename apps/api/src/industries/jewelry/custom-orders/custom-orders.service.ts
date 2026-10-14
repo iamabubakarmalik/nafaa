@@ -9,7 +9,9 @@ const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
 /** Fields a client may never set directly. */
 const LOCKED = ['id', 'tenantId', 'orderNumber', 'createdById', 'createdAt', 'updatedAt', 'paidAmount', 'paymentStatus', 'status', 'deliveredAt'];
-const clean = (dto: any) => Object.fromEntries(Object.entries(dto ?? {}).filter(([k]) => !LOCKED.includes(k)));
+/** Sent with a payment but not stored on the order. */
+const PAYMENT_ONLY = ['paymentMethod'];
+const clean = (dto: any) => Object.fromEntries(Object.entries(dto ?? {}).filter(([k]) => !LOCKED.includes(k) && !PAYMENT_ONLY.includes(k)));
 
 @Injectable()
 export class CustomOrdersService {
@@ -31,7 +33,7 @@ export class CustomOrdersService {
         const shopId = await resolveIndustryShopId(tx, user, null);
         customerId = await ensureCustomer(tx, user, { customerId, name: dto.customerName, phone: dto.customerPhone, shopId });
         await recordKhataPayment(tx, user, {
-          customerId, shopId, amount: advance, reference: orderNumber, note: `Zewar order advance ${orderNumber}`,
+          customerId, shopId, amount: advance, reference: orderNumber, note: `Zewar order advance ${orderNumber}`, method: dto.paymentMethod,
         });
       }
       return tx.jewelryCustomOrder.create({
@@ -195,7 +197,8 @@ export class CustomOrdersService {
     });
   }
 
-  async addPayment(user: AuthenticatedUser, id: string, amount: number) {
+  /** Payment before delivery, held on khata. Method left out is cash. */
+  async addPayment(user: AuthenticatedUser, id: string, amount: number, paymentMethod?: string) {
     const o = await this.getOne(user, id);
     const amt = r2(Number(amount) || 0);
     if (amt <= 0) throw new BadRequestException('Amount sahi likhein');
@@ -205,7 +208,7 @@ export class CustomOrdersService {
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, null);
       const customerId = await ensureCustomer(tx, user, { customerId: o.customerId, name: o.customerName, phone: o.customerPhone, shopId });
-      await recordKhataPayment(tx, user, { customerId, shopId, amount: amt, reference: o.orderNumber, note: `Zewar order advance ${o.orderNumber}` });
+      await recordKhataPayment(tx, user, { customerId, shopId, amount: amt, reference: o.orderNumber, note: `Zewar order advance ${o.orderNumber}`, method: paymentMethod });
       const newPaid = r2(o.paidAmount + amt);
       const target = o.finalPrice ?? o.estimatedPrice;
       const paymentStatus = target && newPaid >= target - 0.01 ? 'PAID' : 'PARTIAL';

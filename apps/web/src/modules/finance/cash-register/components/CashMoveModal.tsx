@@ -7,12 +7,13 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowDownToLine, ArrowUpFromLine, TriangleAlert } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { Button, Input, Modal, Segmented, Textarea } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { cashRegisterApi, type CashRegister } from '../api/cash-register.api';
 import { CASH_KEY, REASONS, requestKey, tillName } from './meta';
+import { PayoutWarning } from './PayoutWarning';
 
 type Kind = 'CASH_IN' | 'CASH_OUT';
 
@@ -28,7 +29,6 @@ export function CashMoveModal({ register, kind: initial, onClose }: { register: 
   const validAmount = amount.trim() !== '' && Number.isFinite(value) && value > 0;
   const valid = validAmount && reason.trim().length > 0;
   const inDrawer = register.expectedBalance;
-  const tooMuch = kind === 'CASH_OUT' && validAmount && value > inDrawer;
 
   const m = useMutation({
     mutationFn: () => cashRegisterApi.transaction({
@@ -60,11 +60,7 @@ export function CashMoveModal({ register, kind: initial, onClose }: { register: 
           onChange={(e) => setAmount(e.target.value)} placeholder="1000"
           error={amount && !validAmount ? 'Amount 0 se zyada likhein' : undefined}
           hint={kind === 'CASH_IN' ? 'Jo cash sale ke ilawa galle me aaya' : 'Jo cash sale ki return ya kharch ke ilawa galle se gaya'} />
-        {tooMuch && (
-          <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-800 ring-1 ring-amber-200">
-            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />Ye amount galle ke hisaab ({formatPKR(inDrawer)}) se zyada hai. Pehle gin lein, phir nikalein.
-          </p>
-        )}
+        <PayoutWarning kind="cashOut" amount={validAmount ? value : 0} registerId={register.id} enabled={kind === 'CASH_OUT'} />
         <div>
           <Input label="Wajah" required value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200}
             placeholder="Kis liye?" hint="Neeche se chunein ya apni likhein; shift report me yahi dikhegi" />

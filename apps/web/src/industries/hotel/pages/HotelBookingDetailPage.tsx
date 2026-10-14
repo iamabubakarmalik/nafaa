@@ -9,6 +9,8 @@ import { bookingsApi, type BookingStatus } from '../api/bookings.api';
 import { folioApi, type FolioChargeType } from '../api/folio.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@/design-system/components';
+import { TakePaymentModal } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -348,35 +350,16 @@ function CheckoutModal({ bookingId, balance, onClose, onDone }: any) {
 }
 
 function PaymentModal({ bookingId, balance, onClose, onDone }: any) {
-  const [amount, setAmount] = useState(balance);
   const payMutation = useMutation({
-    mutationFn: () => bookingsApi.addPayment(bookingId, amount),
+    mutationFn: ({ amount, paymentMethod }: { amount: number; paymentMethod: PaymentMethod }) => bookingsApi.addPayment(bookingId, amount, paymentMethod),
     onSuccess: () => { toast.success('Payment recorded'); onDone(); },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment nahi hui'),
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-emerald-50 flex items-center justify-between">
-          <h3 className="font-extrabold">Collect Payment</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount</label>
-            <input type="number" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-emerald-600" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
-              <CheckCircle2 className="h-4 w-4" />
-              Confirm
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TakePaymentModal title="Collect Payment" description="Payment guest ke khate me jama hoti hai: checkout se pehle advance, baad me udhaar wasool."
+      amount={Number(balance) || 0} max={Number(balance) || 0} loading={payMutation.isPending}
+      onConfirm={(amount, paymentMethod) => payMutation.mutate({ amount, paymentMethod })} onClose={onClose} />
   );
 }
 

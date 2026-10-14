@@ -17,8 +17,8 @@ import { NAFAA, RECEIPT_SETUP_KEY, getReceiptSetup, receiptSetupApi, useReceiptS
 import type { PayAccount, ReceiptDesign, ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
 import { PAY_KIND_LABEL } from '@core/receipt/html';
 import { ChoiceGroup, Field, NumberInput, SectionCard, Select, TextArea, TextInput, Toggle } from '../components/UI';
+import { HeaderActions } from '../components/SettingsFrame';
 import { SaveStatusBar } from './_SaveStatus';
-import type { TenantSettings } from '../api/settings.api';
 
 const SAMPLE: ReceiptDoc = {
   saleNumber: 'NF-10234', date: new Date(), customerName: 'Ahmed Raza', customerPhone: '0300-1234567', customerAddress: 'House 4, Street 9, Model Town', cashierName: 'Bilal',
@@ -32,7 +32,7 @@ const SAMPLE: ReceiptDoc = {
 
 const ACCENTS = ['#0f766e', '#15803d', '#1d4ed8', '#7c3aed', '#be123c', '#c2410c', '#b45309', '#0f172a'];
 
-export function ReceiptSection(_props: { settings: TenantSettings }) {
+export function ReceiptSection() {
   const qc = useQueryClient();
   const setupQ = useReceiptSetup();
   const base = setupQ.data ?? getReceiptSetup();
@@ -87,16 +87,18 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <SaveStatusBar saving={saving} dirty={waiting} />
-        <Button size="sm" variant="secondary" className="ml-auto" leftIcon={<Printer className="h-4 w-4" />}
-          onClick={() => printReceipt({ ...SAMPLE, date: new Date() }, { setup, paper, copies: 1 })}>Test print</Button>
-      </div>
+      <SaveStatusBar saving={saving} dirty={waiting} />
+      <HeaderActions>
+        <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />}
+          onClick={() => printReceipt({ ...SAMPLE, date: new Date() }, { setup, paper, copies: 1 })}>
+          <span className="hidden sm:inline">Test print</span>
+        </Button>
+      </HeaderActions>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="min-w-0 space-y-4">
           <SectionCard title="Kaghaz aur shakal" desc="Printer ka kaghaz, bill ka andaaz aur harf ka size" icon={LayoutTemplate} color="sky">
-            <Field label="Kaghaz">
+            <Field label="Kaghaz" hint="Jo kaghaz aap ke printer me laga hai. A4 PDF aur WhatsApp ke liye bhi kaam aata hai.">
               <ChoiceGroup value={draft.paper} onChange={(v) => { set('paper', v); setPreviewPaper(null); }} columns={3}
                 options={[
                   { value: '58', label: '58mm', desc: 'Chhota thermal' },
@@ -105,7 +107,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
                 ]} />
             </Field>
             <div className="mt-4">
-              <Field label="Andaaz">
+              <Field label="Andaaz" hint="Bill ki shakal — live bill me foran dikhta hai.">
                 <ChoiceGroup value={draft.style} onChange={(v) => set('style', v)} columns={3}
                   options={[
                     { value: 'classic', label: 'Saada', desc: 'Lakeeron wala bill' },
@@ -115,7 +117,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
               </Field>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Harf ka size">
+              <Field label="Harf ka size" hint="Bare harf door se parhne me aasaan, magar bill lamba hota hai.">
                 <Select value={draft.font} onChange={(v) => set('font', v as ReceiptDesign['font'])}
                   options={[{ value: 'small', label: 'Chhota' }, { value: 'normal', label: 'Normal' }, { value: 'large', label: 'Bara (saaf parhne ke liye)' }]} />
               </Field>
@@ -126,6 +128,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
             </div>
             <div className="mt-4">
               <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">Rang (A4 / PDF)</p>
+              <p className="mb-2 text-xs text-slate-500">Thermal printer sirf kaala chhaapta hai; rang A4 aur PDF par aata hai.</p>
               <div className="flex flex-wrap items-center gap-1.5">
                 {ACCENTS.map((c) => (
                   <button key={c} type="button" onClick={() => set('accent', c)} aria-label={c} aria-pressed={draft.accent === c}
@@ -137,33 +140,33 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
             </div>
           </SectionCard>
 
-          <SectionCard title="Upar ka hissa" desc="Dukaan ka naam, logo aur pata 'Dukaan ki maloomat' se aate hain" icon={ImageIcon} color="violet">
+          <SectionCard title="Upar ka hissa" desc="Store ka naam, logo aur pata 'Store details' se aate hain" icon={ImageIcon} color="violet">
             <Field label="Naam ke neeche chhoti line" hint="Misaal: Taaza aur asli maal · 1985 se">
               <TextInput value={draft.tagline} onChange={(v) => set('tagline', v)} maxLength={80} placeholder="Apni dukaan ki pehchaan" />
             </Field>
             <div className="mt-2">
               <Toggle checked={draft.showLogo} onChange={(v) => set('showLogo', v)} label="Logo"
-                desc={base.shop.logoUrl ? 'Thermal par kaala-safed chhapta hai' : 'Pehle Dukaan ki maloomat me logo lagayein'} />
+                desc={base.shop.logoUrl ? 'Thermal par kaala-safed chhapta hai' : 'Pehle Store details me logo lagayein'} />
               <Toggle checked={draft.showAddress} onChange={(v) => set('showAddress', v)} label="Pata" desc="Branch ka pata ho to woh" />
-              <Toggle checked={draft.showPhone} onChange={(v) => set('showPhone', v)} label="Phone aur WhatsApp" />
+              <Toggle checked={draft.showPhone} onChange={(v) => set('showPhone', v)} label="Phone aur WhatsApp" desc="Store details wale numbers" />
               <Toggle checked={draft.showTaxNumber} onChange={(v) => set('showTaxNumber', v)} label="Tax number (NTN)" desc="Sirf jab Tax chalu ho" />
             </div>
           </SectionCard>
 
           <SectionCard title="Bill me kya dikhe" desc="Har bill par" icon={FileText} color="emerald">
-            <Toggle checked={draft.showCustomer} onChange={(v) => set('showCustomer', v)} label="Customer ka naam aur phone" />
-            <Toggle checked={draft.showCashier} onChange={(v) => set('showCashier', v)} label="Cashier ka naam" />
-            <Toggle checked={draft.showItemNumbers} onChange={(v) => set('showItemNumbers', v)} label="Cheezon par number (1, 2, 3)" />
-            <Toggle checked={draft.showItemDetails} onChange={(v) => set('showItemDetails', v)} label="Details: IMEI, serial, warranty, size" />
+            <Toggle checked={draft.showCustomer} onChange={(v) => set('showCustomer', v)} label="Customer ka naam aur phone" desc="Jab bill par customer chuna ho" />
+            <Toggle checked={draft.showCashier} onChange={(v) => set('showCashier', v)} label="Cashier ka naam" desc="Jis ne bill banaya" />
+            <Toggle checked={draft.showItemNumbers} onChange={(v) => set('showItemNumbers', v)} label="Cheezon par number (1, 2, 3)" desc="Lambe bill ginne me aasaan" />
+            <Toggle checked={draft.showItemDetails} onChange={(v) => set('showItemDetails', v)} label="Details: IMEI, serial, warranty, size" desc="Har cheez ke neeche chhoti line me" />
             <Toggle checked={draft.showSavings} onChange={(v) => set('showSavings', v)} label="'Aap ne itne bachaye'" desc="Discount wale bill par" />
             <Toggle checked={draft.showKhata} onChange={(v) => set('showKhata', v)} label="Khata ka hisaab" desc="Pichla udhaar + is bill ka = kul" />
-            <Toggle checked={draft.showAmountInWords} onChange={(v) => set('showAmountInWords', v)} label="Amount in words (A4)" />
-            <Toggle checked={draft.showSignature} onChange={(v) => set('showSignature', v)} label="Dastkhat ki jagah (A4)" />
+            <Toggle checked={draft.showAmountInWords} onChange={(v) => set('showAmountInWords', v)} label="Amount in words (A4)" desc="Misaal: Five thousand rupees only" />
+            <Toggle checked={draft.showSignature} onChange={(v) => set('showSignature', v)} label="Dastkhat ki jagah (A4)" desc="Neeche dastkhat aur mohar ke liye khaali jagah" />
           </SectionCard>
 
           <SectionCard title="Neeche ka hissa" desc="Aap ke apne alfaaz — har bill ke neeche" icon={MessageSquareText} color="amber">
             <div className="grid gap-4">
-              <Field label="Neeche apna paigham" hint="Misaal: Eid par 10% discount · Home delivery free">
+              <Field label="Neeche apna message" hint="Misaal: Eid par 10% Discount · Home delivery free">
                 <TextArea value={draft.footer} onChange={(v) => set('footer', v)} rows={2} maxLength={300} />
               </Field>
               <Field label="Return ke usool" hint="Har line alag usool ban kar chhapti hai">
@@ -171,8 +174,8 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
                   placeholder={'3 din me return, bill ke saath\nIstemal shuda maal wapas nahi'} />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Shukriya ki line"><TextInput value={draft.thanks} onChange={(v) => set('thanks', v)} maxLength={80} /></Field>
-                <Field label="Facebook / Instagram / website">
+                <Field label="Shukriya ki line" hint="Bill ki aakhri line"><TextInput value={draft.thanks} onChange={(v) => set('thanks', v)} maxLength={80} /></Field>
+                <Field label="Facebook / Instagram / website" hint="Customer aap ko online dhoond sake">
                   <TextInput value={draft.social} onChange={(v) => set('social', v)} maxLength={100} placeholder="fb.com/meridukaan" />
                 </Field>
               </div>
@@ -210,9 +213,10 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
               {accounts.length < 6 && (
                 <Button size="sm" variant="secondary" onClick={addAccount} leftIcon={<Plus className="h-4 w-4" />}>Account jorein</Button>
               )}
+              <p className="text-xs text-slate-500">Number aur title bilkul waise likhein jaise account me hai. 6 accounts tak; khaali number wala account save nahi hota.</p>
             </div>
             <div className="mt-4 grid gap-4">
-              <Field label="Kab chhapein">
+              <Field label="Kab chhapein" hint="Aam taur par sirf baqi wale bill par kaafi hai">
                 <ChoiceGroup value={draft.payWhen} onChange={(v) => set('payWhen', v)} columns={3}
                   options={[
                     { value: 'due', label: 'Jab paise baqi hon', desc: 'Udhaar / online order' },
@@ -236,7 +240,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
               </Field>
             </div>
             <div className="mt-4">
-              <Field label="Header">
+              <Field label="Header" hint="A4 invoice ka upar wala hissa">
                 <ChoiceGroup value={draft.a4Layout} onChange={(v) => { set('a4Layout', v); setPreviewPaper('A4'); }} columns={3}
                   options={[
                     { value: 'band', label: 'Rangeen patti', desc: 'Upar poori rangeen patti' },
@@ -246,9 +250,9 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
               </Field>
             </div>
             <div className="mt-2">
-              <Toggle checked={draft.showStatus} onChange={(v) => set('showStatus', v)} label="PAID / UNPAID ka nishan" />
-              <Toggle checked={draft.showCustomerDetails} onChange={(v) => set('showCustomerDetails', v)} label="Customer ka pata aur NTN / CNIC" />
-              <Toggle checked={draft.showSku} onChange={(v) => set('showSku', v)} label="SKU / code ka khana" />
+              <Toggle checked={draft.showStatus} onChange={(v) => set('showStatus', v)} label="PAID / UNPAID ka nishan" desc="Invoice ke kone par mohar jaisa" />
+              <Toggle checked={draft.showCustomerDetails} onChange={(v) => set('showCustomerDetails', v)} label="Customer ka pata aur NTN / CNIC" desc="Wholesale aur company customers ke liye" />
+              <Toggle checked={draft.showSku} onChange={(v) => set('showSku', v)} label="SKU / code ka khana" desc="Har line par product ka code" />
             </div>
           </SectionCard>
 
@@ -258,7 +262,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
                 placeholder={'Maal 3 din me wapas ho sakta hai, bill ke saath\nElectronics par sirf company warranty\nUdhaar 30 din me ada karein'} />
             </Field>
             <div className="mt-3">
-              <Field label="Kahan chhapein">
+              <Field label="Kahan chhapein" hint="Thermal par kaghaz zyada lagta hai — zaroorat ho to hi chalu karein">
                 <ChoiceGroup value={draft.backPrint} onChange={(v) => set('backPrint', v)} columns={3}
                   options={[
                     { value: 'none', label: 'Nahi' },
@@ -274,7 +278,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
           </SectionCard>
 
           <SectionCard title="Print" desc="Kitni copies aur kab" icon={ScrollText} color="blue">
-            <Field label="Copies">
+            <Field label="Copies" hint="Har print par kitne bill nikalein">
               <ChoiceGroup value={String(draft.copies)} onChange={(v) => set('copies', Number(v))} columns={3}
                 options={[{ value: '1', label: '1', desc: 'Customer' }, { value: '2', label: '2', desc: 'Customer + dukaan' }, { value: '3', label: '3' }]} />
             </Field>
@@ -285,7 +289,7 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
           </SectionCard>
         </div>
 
-        <aside className="min-w-0 xl:sticky xl:top-4 xl:self-start">
+        <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">
           <div className="rounded-2xl border border-slate-200 bg-slate-100 p-3">
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-slate-800">Live bill</p>

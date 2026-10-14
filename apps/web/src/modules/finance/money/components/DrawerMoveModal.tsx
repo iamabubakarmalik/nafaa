@@ -13,6 +13,7 @@ import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { moneyApi, type MoneyDrawer } from '../api/money.api';
+import { PayoutWarning } from '@modules/finance/cash-register/components/PayoutWarning';
 import { MONEY_KEY, apiError, newRequestId } from './meta';
 
 type Kind = 'CASH_IN' | 'CASH_OUT';
@@ -41,7 +42,6 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
 
   const value = Number(amount) || 0;
   const out = kind === 'CASH_OUT';
-  const tooMuch = out && !!drawer && value > drawer.expected;
   const errors = {
     amount: value <= 0 ? 'Amount likhein' : undefined,
     reason: reason.trim().length < 2 ? 'Wajah likhein ya upar se chunein' : undefined,
@@ -109,7 +109,8 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
           <Input label="Amount" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
             onChange={(e) => setAmount(e.target.value)} placeholder="0" size="lg"
             error={tried ? errors.amount : undefined}
-            hint={tooMuch ? `Golak me sirf ${formatPKR(drawer.expected)} hone chahiye. Pehle gin lein.` : out ? 'Jitna cash golak se bahar gaya' : 'Jitna cash golak me aaya'} />
+            hint={out ? 'Jitna cash golak se bahar gaya' : 'Jitna cash golak me aaya'} />
+          <PayoutWarning kind="cashOut" amount={value} registerId={drawer.id} enabled={out} />
 
           <div>
             <Input label="Wajah" required value={reason} onChange={(e) => setReason(e.target.value)} maxLength={120}

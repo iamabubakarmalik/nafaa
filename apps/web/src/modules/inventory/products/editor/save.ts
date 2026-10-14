@@ -1,8 +1,10 @@
 /**
  * Saves the editor draft. On edit it compares with what was loaded and only
- * creates, updates or removes what changed, so images, variants, packs and
- * batches are never duplicated. Stock is sent only when creating; after
- * that it changes through stock adjustments, which keep a record.
+ * creates or updates what changed, so images, variants, packs and batches
+ * are never duplicated. Saved variants, packs and batches are never deleted
+ * here (they carry stock and history); variants and packs are switched off
+ * instead. Stock is sent only when creating; after that it changes through
+ * adjustments and purchases, which keep a record.
  */
 
 import { productsApi } from '@modules/inventory/products/api/products.api';
@@ -62,20 +64,18 @@ const unitPayload = (u: UnitDraft, productId: string, i: number) => ({
   isActive: true, sortOrder: i,
 });
 
-const batchPayload = (b: BatchDraft) => ({
+/** A saved batch's quantity follows sales and purchases, so updates never send it. */
+const batchPayload = (b: BatchDraft, withQuantity: boolean) => ({
   batchNumber: b.batchNumber.trim(), manufactureDate: b.manufactureDate || undefined, expiryDate: b.expiryDate || undefined,
-  quantity: Number(b.quantity) || 0, costPrice: Number(b.costPrice) || 0, notes: b.notes.trim() || undefined,
+  ...(withQuantity ? { quantity: Number(b.quantity) || 0 } : {}), costPrice: Number(b.costPrice) || 0, notes: b.notes.trim() || undefined,
 });
 
-/** Applies create/update/remove for a list of records with optional ids. */
+/** Creates new records and updates changed ones; records missing from the draft are left alone. */
 async function sync<T extends { id?: string }>(next: T[], prev: T[], ops: {
   create: (items: Array<{ item: T; index: number }>) => Promise<unknown>;
   update: (item: T & { id: string }, index: number) => Promise<unknown>;
-  remove: (id: string) => Promise<unknown>;
 }) {
   const before = new Map(prev.filter((p) => p.id).map((p) => [p.id!, p]));
-  const keep = new Set(next.filter((n) => n.id).map((n) => n.id!));
-  for (const id of before.keys()) if (!keep.has(id)) await ops.remove(id);
   const created = next.map((item, index) => ({ item, index })).filter((x) => !x.item.id);
   if (created.length) await ops.create(created);
   for (const [index, item] of next.entries()) {
@@ -121,7 +121,6 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
       await sync(core.variants, prev?.variants ?? [], {
         create: (items) => productVariantsApi.bulkCreate(id, items.map(({ item, index }) => variantPayload(item, core, index, true))),
         update: (v, i) => productVariantsApi.update(id, v.id, variantPayload(v, core, i, false)),
-        remove: (vid) => productVariantsApi.remove(id, vid),
       });
     }
     if (core.units.length || prev?.units.length) {
@@ -129,15 +128,13 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
       await sync(core.units, prev?.units ?? [], {
         create: async (items) => { for (const { item, index } of items) await productUnitsApi.create(unitPayload(item, id, index) as never); },
         update: (u, i) => productUnitsApi.update(u.id, unitPayload(u, id, i) as never),
-        remove: (uid) => productUnitsApi.remove(uid),
       });
     }
     if (core.batches.length || prev?.batches.length) {
       step('Batches');
       await sync(core.batches, prev?.batches ?? [], {
-        create: async (items) => { for (const { item } of items) await productBatchesApi.create(id, batchPayload(item)); },
-        update: (b) => productBatchesApi.update(id, b.id, batchPayload(b)),
-        remove: (bid) => productBatchesApi.remove(id, bid),
+        create: async (items) => { for (const { item } of items) await productBatchesApi.create(id, batchPayload(item, true)); },
+        update: (b) => productBatchesApi.update(id, b.id, batchPayload(b, false)),
       });
     }
     if (config.extra.save) {

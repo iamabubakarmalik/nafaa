@@ -49,7 +49,7 @@ const NOTES = [
 
 export function PosCheckoutModal({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
-  initMode, initAmount, initMethod = 'CASH', receiver, allowCredit = true, tradeIns, onConfirm, onClose,
+  initMode, initAmount, initMethod = 'CASH', receiver, allowCredit = true, allowSplit = true, tradeIns, onConfirm, onClose,
 }: {
   total: number;
   itemCount: number;
@@ -67,6 +67,8 @@ export function PosCheckoutModal({
   allowCredit?: boolean;
   /** Open trade-in phones (mobile shops); offered as a part of a split payment. */
   tradeIns?: PosTradeIn[];
+  /** False where the bill is saved by an endpoint that keeps one method only. */
+  allowSplit?: boolean;
   onReceiverChange?: (v: PosReceiverValue) => void;
   onConfirm: (d: PosCheckoutResult) => void;
   onClose: () => void;
@@ -209,11 +211,11 @@ export function PosCheckoutModal({
             <section>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <h3 className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Payment</h3>
-                <button type="button" onClick={() => (splitting ? setSplit(false) : startSplit())}
+                {allowSplit && <button type="button" onClick={() => (splitting ? setSplit(false) : startSplit())}
                   className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.75rem] font-semibold transition',
                     splitting ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>
                   <Split className="h-3.5 w-3.5" /> {splitting ? 'Ek tareeqa' : tradeIns ? 'Split / Trade-in' : 'Split payment'}
-                </button>
+                </button>}
               </div>
               {splitting ? (
                 <p className="rounded-xl bg-brand-50 px-3 py-2 text-[0.75rem] text-brand-900">

@@ -37,7 +37,7 @@ function useRetailActions(): QuickAction[] {
     { to: '/product-units', icon: Layers, label: 'Multi-units', hint: 'Piece / dozen' },
     { to: '/quick-keys', icon: Zap, label: 'Quick keys', hint: 'POS shortcuts' },
     { to: '/barcode-labels', icon: Tag, label: 'Barcode labels', hint: 'Print karein' },
-    { to: '/retail/bulk-import', icon: Upload, label: 'Bulk import', hint: 'Excel / CSV' },
+    { to: '/products/bulk-import', icon: Upload, label: 'Bulk import', hint: 'Excel / CSV' },
     { to: '/profit-report', icon: PiggyBank, label: 'Profit report', hint: 'Profit-loss' },
   ];
 }

@@ -150,8 +150,8 @@ export class MembershipsService {
     return m;
   }
 
-  /** Later payment on a membership: it clears the udhaar its sale put on khata. */
-  async addPayment(user: AuthenticatedUser, id: string, amount: number) {
+  /** Later payment on a membership: it clears the udhaar its sale put on khata. Method left out is cash. */
+  async addPayment(user: AuthenticatedUser, id: string, amount: number, paymentMethod?: string) {
     const m = await this.prisma.gymMemberMembership.findFirst({ where: { id, tenantId: user.tenantId }, include: { member: true } });
     if (!m) throw new NotFoundException('Membership not found');
     const value = r2(Number(amount));
@@ -173,6 +173,7 @@ export class MembershipsService {
           amount: value,
           reference: m.membershipNumber,
           note: `Gym fee wasool: ${m.membershipNumber}`,
+          method: paymentMethod,
         });
       } else {
         // Memberships sold before fees were posted have no sale: book this payment as income now.
@@ -184,6 +185,7 @@ export class MembershipsService {
           customerId: m.member.customerId,
           lines: [{ label: `Membership fee: ${m.membershipNumber}`, amount: value }],
           paidAmount: value,
+          paymentMethod,
         });
       }
       const newPaid = r2(m.paidAmount + value);

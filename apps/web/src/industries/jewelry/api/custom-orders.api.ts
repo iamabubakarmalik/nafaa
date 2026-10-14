@@ -66,6 +66,6 @@ export const customOrdersApi = {
   issueMetal: (id: string, grams: number) => apiClient.post('/jewelry/custom-orders/' + id + '/issue-metal', { grams }).then(unwrap<CustomOrder>),
   receiveMetal: (id: string, receivedGrams: number, wastageGrams: number) => apiClient.post('/jewelry/custom-orders/' + id + '/receive-metal', { receivedGrams, wastageGrams }).then(unwrap<CustomOrder>),
   approveDesign: (id: string, designUrl: string) => apiClient.post('/jewelry/custom-orders/' + id + '/approve-design', { designUrl }).then(unwrap<CustomOrder>),
-  addPayment: (id: string, amount: number) => apiClient.post('/jewelry/custom-orders/' + id + '/payment', { amount }).then(unwrap<CustomOrder>),
+  addPayment: (id: string, amount: number, paymentMethod?: string) => apiClient.post('/jewelry/custom-orders/' + id + '/payment', { amount, paymentMethod }).then(unwrap<CustomOrder>),
   rate: (id: string, rating: number, feedback?: string) => apiClient.post('/jewelry/custom-orders/' + id + '/rate', { rating, feedback }).then(unwrap<CustomOrder>),
 };

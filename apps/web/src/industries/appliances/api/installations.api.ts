@@ -125,7 +125,7 @@ export const installationsApi = {
   reschedule: (id: string, data: { newDate: string; reason?: string }) =>
     apiClient.post('/appliances/installations/' + id + '/reschedule', data).then(unwrap<Installation>),
   /** Installation ka baqi paisa wusool hone par */
-  addPayment: (id: string, data: { amount: number; note?: string }) =>
+  addPayment: (id: string, data: { amount: number; note?: string; paymentMethod?: string }) =>
     apiClient.post('/appliances/installations/' + id + '/payment', data).then(unwrap<Installation>),
   remove: (id: string) =>
     apiClient.delete('/appliances/installations/' + id).then(unwrap<{ message: string }>),

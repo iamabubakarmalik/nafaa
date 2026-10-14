@@ -30,7 +30,7 @@ export function LoyaltyView({ data: d, f, compare }: { data: Loyalty; f: Formatt
       {!d.enabled && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
           <span>Loyalty points band hain — naye points nahi ban rahe. Purana hisaab neeche hai.</span>
-          <Link to="/settings?tab=customer" className="inline-flex items-center gap-1 font-semibold hover:underline"><Settings2 className="h-4 w-4" />Chalu karein</Link>
+          <Link to="/settings/credit-loyalty" className="inline-flex items-center gap-1 font-semibold hover:underline"><Settings2 className="h-4 w-4" />Chalu karein</Link>
         </div>
       )}
 

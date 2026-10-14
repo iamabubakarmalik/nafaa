@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { PaymentMethodPicker, TakePaymentModal } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Palette, Plus, Search, X, Save, RefreshCw, Sparkles, User, Phone,
@@ -29,6 +31,7 @@ export default function CustomOrdersPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('active');
   const [showForm, setShowForm] = useState(false);
+  const [paying, setPaying] = useState<any>(null);
 
   const { data: orders = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['jewelry-custom-orders', statusFilter, search],
@@ -60,15 +63,12 @@ export default function CustomOrdersPage() {
   });
 
   const paymentMutation = useMutation({
-    mutationFn: ({ id, amount }: { id: string; amount: number }) => customOrdersApi.addPayment(id, amount),
-    onSuccess: () => { toast.success('Amount mil gayi — customer ke khata me jama'); refresh(); },
+    mutationFn: ({ id, amount, paymentMethod }: { id: string; amount: number; paymentMethod: PaymentMethod }) => customOrdersApi.addPayment(id, amount, paymentMethod),
+    onSuccess: () => { toast.success('Amount mil gayi — customer ke khata me jama'); setPaying(null); refresh(); },
     onError: onFail,
   });
 
-  const advance = (order: any) => {
-    const v = Number(window.prompt(`${order.orderNumber}: kitni amount mili?`, '') || 0);
-    if (v > 0) paymentMutation.mutate({ id: order.id, amount: v });
-  };
+  const advance = (order: any) => setPaying(order);
 
   const moveTo = (order: any, status: string) => {
     if (status !== 'DELIVERED') { statusMutation.mutate({ id: order.id, status }); return; }
@@ -86,6 +86,15 @@ export default function CustomOrdersPage() {
 
   return (
     <div className="space-y-6">
+      {paying && (
+        <TakePaymentModal title={`Payment · ${paying.orderNumber}`}
+          description="Amount customer ke khate me advance jama hoti hai aur delivery ke bill me kat jati hai."
+          amount={Math.max(Number(paying.finalPrice ?? paying.estimatedPrice ?? 0) - Number(paying.paidAmount || 0), 0)}
+          hint="Abhi jitni amount mili wo likhein"
+          loading={paymentMutation.isPending}
+          onConfirm={(amount, paymentMethod) => paymentMutation.mutate({ id: paying.id, amount, paymentMethod })}
+          onClose={() => setPaying(null)} />
+      )}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-pink-800 text-white p-6 sm:p-8 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl" />
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
@@ -235,7 +244,7 @@ function CustomOrderForm({ onClose, onSaved }: any) {
     promisedDate: '',
     category: 'RING', metalType: 'GOLD', purity: 'KARAT_22', style: 'CUSTOM',
     expectedGrossWeight: 0, expectedNetWeight: 0, expectedMakingCharges: 0,
-    advancePayment: 0, estimatedPrice: 0,
+    advancePayment: 0, paymentMethod: 'CASH', estimatedPrice: 0,
     designDescription: '',
     referenceImageUrls: [] as string[],
     hasGemstones: false,
@@ -327,6 +336,9 @@ function CustomOrderForm({ onClose, onSaved }: any) {
             <input type="number" value={form.estimatedPrice} onChange={(e) => setForm({ ...form, estimatedPrice: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
+        {Number(form.advancePayment) > 0 && (
+          <PaymentMethodPicker label="Advance kaise mila" value={form.paymentMethod} onChange={(m) => setForm({ ...form, paymentMethod: m })} />
+        )}
 
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Assign Karigar</label>

@@ -16,7 +16,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { ProfitBrief, ProfitOverview } from '../api';
 import { Change } from './ProductRows';
-import { WEEKDAYS, change, dayLabel, pct, qty } from './meta';
+import { WEEKDAYS, change, chargeSplit, dayLabel, pct, qty } from './meta';
 
 const PALETTE = ['#0f766e', '#2563eb', '#7c3aed', '#db2777', '#ea580c', '#ca8a04', '#16a34a', '#0891b2', '#64748b', '#9333ea'];
 
@@ -78,7 +78,7 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war {fmt.costHidden ? 'bikri' : 'munafa'}</span>}>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war {fmt.costHidden ? 'sale' : 'profit'}</span>}>
           {!cats.length ? <Empty text="Koi sale nahi" /> : (
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -179,11 +179,13 @@ export function NetCard({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
   const p = data.prev;
   const n = data.net;
   const pn = data.prevNet;
-  const line = (label: string, now: number, before: number, kind: 'money' | 'cost', opts: { minus?: boolean; strong?: boolean; invert?: boolean } = {}) => {
+  const c = chargeSplit(t);
+  const pc = chargeSplit(p);
+  const line = (label: string, now: number, before: number, kind: 'money' | 'cost', opts: { minus?: boolean; plus?: boolean; strong?: boolean; invert?: boolean } = {}) => {
     const f = kind === 'cost' ? fmt.cost : fmt.money;
     return (
       <li className={cn('flex items-center justify-between gap-3 py-1.5', opts.strong && 'border-t border-slate-200 pt-2 font-semibold')}>
-        <span className={cn('text-[0.8125rem]', opts.strong ? 'text-slate-900' : 'text-slate-600')}>{opts.minus ? '− ' : ''}{label}</span>
+        <span className={cn('text-[0.8125rem]', opts.strong ? 'text-slate-900' : 'text-slate-600')}>{opts.minus ? '− ' : opts.plus ? '+ ' : ''}{label}</span>
         <span className="text-right">
           <span className={cn('block tabular-nums', opts.strong ? 'text-[0.9375rem] text-slate-900' : 'text-[0.8125rem] text-slate-800', opts.strong && now < 0 && !fmt.costHidden && 'text-rose-700')}>{f(now)}</span>
           {!(kind === 'cost' && fmt.costHidden) && <span className="flex items-center justify-end gap-1 text-[0.6875rem] text-slate-400">pehle {f(before)} <Change c={change(now, before)} invert={opts.invert} /></span>}
@@ -198,8 +200,10 @@ export function NetCard({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
         {line('List rate par sale', t.gross, p.gross, 'money')}
         {line('Discount', t.discount, p.discount, 'money', { minus: true, invert: true })}
         {line('Return', t.refund, p.refund, 'money', { minus: true, invert: true })}
+        {c.shown && line(c.bills ? `Service charges · ${c.bills} bill` : 'Service charges', c.revenue, pc.revenue, 'money', { plus: true })}
         {line('Asal sale', t.revenue, p.revenue, 'money', { strong: true })}
-        {line('Maal ki cost', t.cost ?? 0, p.cost ?? 0, 'cost', { minus: true, invert: true })}
+        {line('Maal ki cost', c.lineCost, pc.lineCost, 'cost', { minus: true, invert: true })}
+        {c.cost !== 0 && line('Bill par alag cost (rider waghera)', c.cost, pc.cost, 'cost', { minus: true, invert: true })}
         {line('Gross profit', t.profit ?? 0, p.profit ?? 0, 'cost', { strong: true })}
         {line('Expenses', n.expenses, pn.expenses, 'money', { minus: true, invert: true })}
         {line('Kharab / gum maal', n.writeOffCost ?? 0, pn.writeOffCost ?? 0, 'cost', { minus: true, invert: true })}
@@ -216,7 +220,7 @@ function WeekdayCard({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
   const theme = useChartTheme();
   const key = fmt.costHidden ? 'revenue' : 'profit';
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" />Hafte ke din</span>} description={`Kis din zyada ${fmt.costHidden ? 'bikri' : 'munafa'}`}>
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" />Hafte ke din</span>} description={`Kis din zyada ${fmt.costHidden ? 'sale' : 'profit'}`}>
       <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data.weekday.map((w) => ({ ...w, name: WEEKDAYS[w.day] }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>

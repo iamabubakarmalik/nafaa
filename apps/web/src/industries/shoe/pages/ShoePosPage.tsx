@@ -11,10 +11,10 @@ import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { PosQuickCash } from '@modules/pos/components';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
 import { shoeProductsApi } from '../api/products.api';
 import { shoeSizeVariantsApi } from '../api/size-variants.api';
 import { SizePickerModal } from '../components/pos/SizePickerModal';
@@ -182,13 +182,12 @@ export default function ShoePosPage() {
   };
 
   const checkoutMutation = useMutation({
-    mutationFn: async (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
+    mutationFn: async (data: PosCheckoutResult) => {
       if (!currentShopId) throw new Error('Select shop first');
       return offlineSalesApi.create({
         shopId: currentShopId,
         customerId: customerId || undefined,
-        paymentMethod: data.paymentMethod,
-        paidAmount: data.paidAmount,
+        ...salePayment(data, total),
         discount: discountAmount,
         items: cart.map((l) => ({
           productId: l.productId,
@@ -200,7 +199,8 @@ export default function ShoePosPage() {
       });
     },
     onSuccess: (sale, vars) => {
-      const change = Math.max(vars.paidAmount - total, 0);
+      void keepAdvance(vars, total, customerId || undefined, sale.saleNumber);
+      const change = (vars.depositExtra ? 0 : Math.max(vars.paidAmount - total, 0));
       setLastSale({ id: sale.id, number: sale.saleNumber, change, total });
       setShowCheckout(false);
       setShowMobileCart(false);
@@ -220,10 +220,10 @@ export default function ShoePosPage() {
           onClose={() => setSizePickerProduct(null)} />
       )}
       {showCheckout && (
-        <PosQuickCash total={total} itemCount={itemCount} loading={checkoutMutation.isPending}
+        <PosCheckoutModal initMode="full" total={total} itemCount={itemCount} loading={checkoutMutation.isPending}
           customerName={selectedCustomer?.name} customerBalance={Number(selectedCustomer?.balance || 0)}
           hasCustomer={!!customerId}
-          onConfirm={({ paymentMethod, paidAmount }) => checkoutMutation.mutate({ paymentMethod, paidAmount })}
+          onConfirm={(d) => checkoutMutation.mutate(d)}
           onClose={() => setShowCheckout(false)} />
       )}
       {lastSale && (

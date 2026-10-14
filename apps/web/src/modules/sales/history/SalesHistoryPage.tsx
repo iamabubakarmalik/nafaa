@@ -201,7 +201,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
             <Download className="h-4 w-4" /> {exporting ? 'Ban raha…' : 'CSV'}
           </button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <Link to="/settings?tab=receipt" title="Bill ka design" aria-label="Bill ka design" className={heroIconButton}><Settings2 className="h-4 w-4" /></Link>
+          <Link to="/settings/receipt" title="Bill ka design" aria-label="Bill ka design" className={heroIconButton}><Settings2 className="h-4 w-4" /></Link>
           <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={st ? [

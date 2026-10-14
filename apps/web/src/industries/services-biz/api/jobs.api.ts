@@ -143,8 +143,8 @@ export const jobsApi = {
     shopId?: string; customerId?: string; paymentMethod?: string; paidAmount: number; discount?: number;
     items: { serviceId: string; quantity?: number; price?: number; lineDiscount?: number; note?: string }[];
   }) => apiClient.post('/services-biz/jobs/counter-sale', data).then(unwrap<{ id: string; saleNumber: string }>),
-  addPayment: (id: string, amount: number, isAdvance?: boolean) =>
-    apiClient.post('/services-biz/jobs/' + id + '/payments', { amount, isAdvance }).then(unwrap<ServiceJob>),
+  addPayment: (id: string, amount: number, isAdvance?: boolean, paymentMethod?: string) =>
+    apiClient.post('/services-biz/jobs/' + id + '/payments', { amount, isAdvance, paymentMethod }).then(unwrap<ServiceJob>),
   rate: (id: string, data: any) => apiClient.post('/services-biz/jobs/' + id + '/rating', data).then(unwrap<ServiceJob>),
   signature: (id: string, signatureUrl: string) =>
     apiClient.post('/services-biz/jobs/' + id + '/signature', { signatureUrl }).then(unwrap<ServiceJob>),

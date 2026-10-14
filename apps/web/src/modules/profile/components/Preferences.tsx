@@ -23,7 +23,7 @@ export function Preferences() {
   const links = [
     { to: '/settings/appearance', icon: Palette, title: 'Rang, font aur size', text: 'Apna rang, likhai ka size aur safhe ki chaurai', show: true },
     { to: '/settings/printing', icon: Printer, title: 'Print settings', text: 'Printer, kaghaz ka size aur bill ka design', show: canPrint },
-    { to: '/settings?tab=notifications', icon: Bell, title: 'Notifications', text: 'Kab aur kaise khabar aaye', show: canSettings },
+    { to: '/settings/notifications', icon: Bell, title: 'Notifications', text: 'Kab aur kaise khabar aaye', show: canSettings },
   ].filter((l) => l.show);
 
   return (

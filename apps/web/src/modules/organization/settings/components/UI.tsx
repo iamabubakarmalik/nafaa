@@ -1,11 +1,12 @@
 /**
  * Building blocks for the settings sections: field, switch row, inputs,
- * choice cards, section card, pills and notes. Styled to match the design
+ * choice cards, section card, pills, notes and links to related pages. Styled to match the design
  * system (thin borders, brand colour, auto dark mode through the palette).
  */
 
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 
 type Icon = ComponentType<{ className?: string }>;
@@ -30,16 +31,6 @@ export function Field({ label, hint, required, badge, error, children }: {
       {error ? <p className="text-xs font-medium text-rose-600">{error}</p>
         : hint ? <p className="text-xs leading-snug text-slate-500">{hint}</p> : null}
     </div>
-  );
-}
-
-/* ─── Badge for values that came from onboarding ─── */
-export function SyncedBadge({ label = 'Synced' }: { label?: string }) {
-  return (
-    <span title="Ye aap ke shuru ke setup se aaya hai"
-      className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-brand-200">
-      <Sparkles className="h-2.5 w-2.5" /> {label}
-    </span>
   );
 }
 
@@ -284,5 +275,21 @@ export function Alert({ tone = 'blue', title, children, icon: I }: { tone?: Aler
         {children}
       </div>
     </div>
+  );
+}
+
+/* ─── Link to a related page ─── */
+export function PageLink({ to, icon: I, title, desc }: { to: string; icon: Icon; title: string; desc?: string }) {
+  return (
+    <Link to={to} className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-brand-300 hover:bg-brand-50/40">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition group-hover:bg-brand-100 group-hover:text-brand-700">
+        <I className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold text-slate-900">{title}</span>
+        {desc && <span className="block truncate text-xs text-slate-500">{desc}</span>}
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-brand-600" />
+    </Link>
   );
 }

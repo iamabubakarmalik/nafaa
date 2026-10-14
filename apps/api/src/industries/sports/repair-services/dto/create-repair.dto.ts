@@ -14,6 +14,8 @@ export class CreateRepairServiceDto {
   @ApiPropertyOptional() @IsOptional() @IsString() repairType?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) estimatedCost?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) advancePaid?: number;
+  /** How the advance came in; left out, cash. */
+  @ApiPropertyOptional() @IsOptional() @IsIn(['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA']) paymentMethod?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() estimatedReadyAt?: string;
 
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() photosBeforeUrls?: string[];
@@ -37,4 +39,6 @@ export class UpdateRepairStatusDto {
 
 export class RepairPaymentDto {
   @ApiProperty() @IsNumber() @Min(0.01) amount!: number;
+  /** Left out, cash. */
+  @ApiPropertyOptional() @IsOptional() @IsIn(['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA']) paymentMethod?: string;
 }

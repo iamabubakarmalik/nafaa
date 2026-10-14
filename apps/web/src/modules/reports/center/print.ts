@@ -128,7 +128,7 @@ function sectionsFor<K extends SectionId>(id: K, raw: SectionData[K], f: Formatt
         meta: [['Asal sale', m(t.sales)], ['Expenses', m(t.expenses)], ...maybe<[string, string]>(sc, ['Net profit', c(t.netProfit)])],
         sections: [
           { kind: 'rows', title: 'Profit-loss', rows: [
-            { label: 'Total sale', value: m(t.gross) }, { label: '− Maal wapas', value: m(t.refunds), sub: true }, { label: 'Asal sale', value: m(t.sales), strong: true },
+            { label: 'Total sale', value: m(t.gross) }, ...maybe(!!t.service, { label: 'Is me service charges', value: m(t.service), sub: true }), { label: '− Maal wapas', value: m(t.refunds), sub: true }, { label: 'Asal sale', value: m(t.sales), strong: true },
             ...maybe(sc, { label: '− Maal ki cost', value: c(t.cost), sub: true }), ...maybe(sc, { label: 'Gross profit', value: c(t.grossProfit), strong: true }),
             { label: '− Expenses', value: m(t.expenses), sub: true }, { label: '− Kharab maal', value: m(t.damage), sub: true },
             ...maybe(sc, { label: 'Net profit', value: c(t.netProfit), strong: true }),

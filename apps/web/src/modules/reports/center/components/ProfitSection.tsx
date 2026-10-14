@@ -1,4 +1,4 @@
-/** Munafa: a short profit and loss statement, the same per day or month, and a link to profit by item. */
+/** Profit: a short profit and loss statement, the same per day or month, and a link to profit by item. */
 
 import { Link } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -9,9 +9,11 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { ProfitReport, ProfitSummary } from '../api';
 import { DataTable, Delta, Panel, keyLabel, type Formatter } from './parts';
 
-type Line = { label: string; key: keyof ProfitSummary; sign?: '-' | '='; cost?: boolean; up?: 'good' | 'bad' };
+/** `part` lines show what an amount above already holds; they are left out at zero. */
+type Line = { label: string; key: keyof ProfitSummary; sign?: '-' | '='; cost?: boolean; up?: 'good' | 'bad'; part?: boolean };
 const LINES: Line[] = [
   { label: 'Total sale', key: 'gross' },
+  { label: 'Is me service charges', key: 'service', part: true },
   { label: 'Maal wapas', key: 'refunds', sign: '-', up: 'bad' },
   { label: 'Asal sale', key: 'sales', sign: '=' },
   { label: 'Maal ki cost', key: 'cost', sign: '-', cost: true, up: 'bad' },
@@ -24,7 +26,7 @@ const LINES: Line[] = [
 export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: Formatter; compare: boolean }) {
   const theme = useChartTheme();
   const showCost = !f.costHidden && d.totals.netProfit != null;
-  const lines = LINES.filter((l) => showCost || !l.cost);
+  const lines = LINES.filter((l) => (showCost || !l.cost) && (!l.part || Number(d.totals[l.key] ?? 0) !== 0));
   const t = d.totals;
   return (
     <div className="space-y-4">
@@ -42,8 +44,8 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
               const p = compare && d.previous ? Number(d.previous[l.key] ?? 0) : null;
               const strong = l.sign === '=';
               return (
-                <div key={l.key} className={cn('flex items-start justify-between gap-3 py-2', strong && 'font-semibold')}>
-                  <dt className={cn('text-slate-600', strong && 'text-slate-900')}>{l.sign === '-' ? '− ' : ''}{l.label}</dt>
+                <div key={l.key} className={cn('flex items-start justify-between gap-3 py-2', strong && 'font-semibold', l.part && 'py-1.5 pl-4 text-[0.8125rem] text-slate-500')}>
+                  <dt className={cn('text-slate-600', strong && 'text-slate-900', l.part && 'text-slate-500')}>{l.sign === '-' ? '− ' : ''}{l.label}</dt>
                   <dd className="text-right">
                     <span className={cn('tabular-nums', l.key === 'netProfit' && (v < 0 ? 'text-rose-600' : 'text-emerald-700'))}>{l.cost ? f.cost(v) : f.money(v)}</span>
                     {p != null && <span className="block text-[0.6875rem] font-normal"><Delta now={v} before={p} up={l.up} /></span>}
@@ -54,7 +56,7 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
           </dl>
           {showCost && (
             <p className="mt-2 text-[0.75rem] text-slate-500">
-              Margin {(t.margin ?? 0).toFixed(1)}% · kharchon ke baad {t.netMargin.toFixed(1)}%{t.damageCount ? ` · ${t.damageCount} damage entry` : ''}
+              Margin {(t.margin ?? 0).toFixed(1)}% · expenses ke baad {t.netMargin.toFixed(1)}%{t.damageCount ? ` · ${t.damageCount} damage entry` : ''}
             </p>
           )}
         </Panel>
@@ -65,11 +67,11 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={44} tickFormatter={f.salesHidden ? undefined : axisMoney} />
-                <Tooltip {...theme.tooltip} formatter={(v, n) => [n === 'Bikri' || n === 'Kharche' ? f.money(Number(v)) : f.cost(Number(v)), n]} />
+                <Tooltip {...theme.tooltip} formatter={(v, n) => [n === 'Sale' || n === 'Expenses' ? f.money(Number(v)) : f.cost(Number(v)), n]} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="sales" name="Bikri" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={22} />
-                <Bar dataKey="expenses" name="Kharche" fill="#e11d48" radius={[4, 4, 0, 0]} maxBarSize={22} />
-                {showCost && <Bar dataKey="netProfit" name="Asal munafa" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={22} />}
+                <Bar dataKey="sales" name="Sale" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={22} />
+                <Bar dataKey="expenses" name="Expenses" fill="#e11d48" radius={[4, 4, 0, 0]} maxBarSize={22} />
+                {showCost && <Bar dataKey="netProfit" name="Net profit" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={22} />}
               </BarChart>
             </ResponsiveContainer>
           </div>

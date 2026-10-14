@@ -125,4 +125,70 @@ export class ProductInsightsService {
       customers: customers.map((c) => ({ ...customerName.get(c.customerId!), bills: c._count._all, lastAt: c._max.soldAt })),
     };
   }
+
+  /**
+   * Purchase lines for one product: the latest 50 with supplier and status,
+   * totals over every bill that was not cancelled (in base units), the last
+   * and average cost per base unit, and the suppliers it is bought from most.
+   */
+  async purchases(user: AuthenticatedUser, productId: string, shopId?: string) {
+    const tenantId = user.tenantId;
+    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId }, select: { id: true } });
+    if (!product) throw new NotFoundException('Product nahi mila');
+
+    const purchase = { tenantId, ...(shopId && { shopId }) };
+    const live = { ...purchase, status: { not: 'CANCELLED' as const } };
+    const [recent, all, suppliers] = await Promise.all([
+      this.prisma.purchaseItem.findMany({
+        where: { productId, purchase },
+        orderBy: { purchase: { purchasedAt: 'desc' } },
+        take: 50,
+        select: {
+          id: true, variantId: true, unitName: true, conversionRate: true, quantity: true, baseQuantity: true, costPrice: true, total: true,
+          receivedQty: true, returnedQty: true, batchNo: true, expiryDate: true,
+          purchase: { select: { id: true, purchaseNumber: true, purchasedAt: true, status: true, supplier: { select: { id: true, name: true } }, shop: { select: { name: true } } } },
+        },
+      }),
+      this.prisma.purchaseItem.findMany({
+        where: { productId, purchase: live },
+        select: { quantity: true, conversionRate: true, baseQuantity: true, total: true, returnedQty: true, purchaseId: true },
+      }),
+      this.prisma.purchase.groupBy({
+        by: ['supplierId'],
+        where: { ...live, items: { some: { productId } } },
+        _count: { _all: true },
+        _max: { purchasedAt: true },
+        orderBy: { _count: { supplierId: 'desc' } },
+        take: 5,
+      }),
+    ]);
+
+    // Older lines may lack baseQuantity; quantity × conversionRate is the same figure.
+    const base = (l: { quantity: number; conversionRate: number; baseQuantity: number }) => n(l.baseQuantity) || n(l.quantity) * (n(l.conversionRate) || 1);
+    const qty = all.reduce((s, l) => s + base(l), 0);
+    const amount = all.reduce((s, l) => s + n(l.total), 0);
+    const returned = all.reduce((s, l) => s + n(l.returnedQty), 0);
+    const last = recent.find((l) => l.purchase.status !== 'CANCELLED');
+    const names = suppliers.length
+      ? await this.prisma.supplier.findMany({ where: { id: { in: suppliers.map((x) => x.supplierId) }, tenantId }, select: { id: true, name: true } })
+      : [];
+    const nameOf = new Map(names.map((x) => [x.id, x.name]));
+
+    return {
+      totals: {
+        qty, amount, returned,
+        bills: new Set(all.map((l) => l.purchaseId)).size,
+        avgCost: qty > 0 ? amount / qty : null,
+        lastCost: last ? n(last.costPrice) / (n(last.conversionRate) || 1) : null,
+        lastAt: last?.purchase.purchasedAt ?? null,
+      },
+      suppliers: suppliers.map((x) => ({ id: x.supplierId, name: nameOf.get(x.supplierId) ?? '—', bills: x._count._all, lastAt: x._max.purchasedAt })),
+      recent: recent.map((l) => ({
+        id: l.id, purchaseId: l.purchase.id, purchaseNumber: l.purchase.purchaseNumber, purchasedAt: l.purchase.purchasedAt, status: l.purchase.status,
+        supplier: l.purchase.supplier, shop: l.purchase.shop?.name ?? null, variantId: l.variantId, unitName: l.unitName,
+        conversionRate: n(l.conversionRate) || 1, quantity: n(l.quantity), baseQuantity: base(l), costPrice: n(l.costPrice), total: n(l.total),
+        receivedQty: n(l.receivedQty), returnedQty: n(l.returnedQty), batchNo: l.batchNo, expiryDate: l.expiryDate,
+      })),
+    };
+  }
 }

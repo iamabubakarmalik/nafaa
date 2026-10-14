@@ -25,6 +25,7 @@ import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndus
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
+import { PayoutWarning } from '@modules/finance/cash-register/components/PayoutWarning';
 import { suppliersApi, type Supplier } from '../../suppliers/api/suppliers.api';
 import { purchasesApi } from '../api/purchases.api';
 import { QuickProductModal, QuickSupplierModal } from '../components/QuickAddModals';
@@ -327,6 +328,8 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                 </div>
               </div>
               <Hint>Khali = poora bill diya. Kuch na diya ho to "Udhaar" dabayein; baqi supplier ke khate me chala jayega.</Hint>
+              <PayoutWarning amount={d.drawerCash} enabled={!!shopId} className="mt-3"
+                closedText="Is branch me abhi koi shift khuli nahi — yeh cash kisi galle ke hisaab me nahi aayega." />
               {d.due > 0 && (
                 <div className="mt-3 rounded-xl bg-amber-50 p-2.5 text-[0.8125rem] text-amber-900">
                   <b>{money(d.due)}</b> supplier ke khate me udhaar jayega.

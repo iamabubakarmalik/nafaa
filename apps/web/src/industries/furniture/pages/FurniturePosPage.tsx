@@ -13,12 +13,12 @@ import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { withManagerPin } from '@core/security/ManagerPin';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { PosQuickCash } from '@modules/pos/components';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
 import { furnitureProductsApi } from '../api/products.api';
 
 const HIDE_PRICES_KEY = 'nafaa.furniture-pos.hide-prices';
@@ -215,7 +215,7 @@ export default function FurniturePosPage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: async (data: { paymentMethod: PaymentMethod; paidAmount: number }) => {
+    mutationFn: async (data: PosCheckoutResult) => {
       if (!currentShopId) throw new Error('Select shop first');
       // Delivery and fitting are on the bill as service charges, so the sale,
       // the drawer and every report carry the same total the customer paid.
@@ -227,14 +227,15 @@ export default function FurniturePosPage() {
       return withManagerPin('Is bill ki approval', (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: currentShopId, customerId: customerId || undefined,
-        paymentMethod: data.paymentMethod, paidAmount: data.paidAmount,
+        ...salePayment(data, total),
         discount: Math.round(discountAmount * 100) / 100,
         ...(serviceCharges.length > 0 && { serviceCharges }),
         items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, priceOverride: l.unitPrice, note: l.note })),
       }));
     },
     onSuccess: (sale, vars) => {
-      const change = Math.max(vars.paidAmount - total, 0);
+      void keepAdvance(vars, total, customerId || undefined, sale.saleNumber);
+      const change = (vars.depositExtra ? 0 : Math.max(vars.paidAmount - total, 0));
       setLastSale({ id: sale.id, number: sale.saleNumber, change, total });
       setShowCheckout(false); setShowMobileCart(false); clearCart();
       queryClient.invalidateQueries({ queryKey: ['products-for-furniture-pos'] });
@@ -248,11 +249,11 @@ export default function FurniturePosPage() {
       {scannerOpen && <BarcodeScanner onDetected={handleBarcode} onClose={() => setScannerOpen(false)} />}
 
       {showCheckout && (
-        <PosQuickCash
+        <PosCheckoutModal initMode="full"
           total={total} itemCount={itemCount} loading={checkoutMutation.isPending}
           customerName={selectedCustomer?.name} customerBalance={Number(selectedCustomer?.balance || 0)}
           hasCustomer={!!customerId}
-          onConfirm={({ paymentMethod, paidAmount }) => checkoutMutation.mutate({ paymentMethod, paidAmount })}
+          onConfirm={(d) => checkoutMutation.mutate(d)}
           onClose={() => setShowCheckout(false)}
         />
       )}

@@ -29,8 +29,8 @@ export class BookingsController {
   }
   @Post(':id/check-in') checkIn(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.checkIn(user, id); }
   @Post(':id/check-out') checkOut(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { paidAmount?: number; paymentMethod?: string } = {}) { return this.service.checkOut(user, id, body ?? {}); }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number }) {
-    return this.service.addPayment(user, id, body.amount);
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number; paymentMethod?: string }) {
+    return this.service.addPayment(user, id, body.amount, body.paymentMethod);
   }
   @Post(':id/extend') extend(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { newCheckOutDate: string }) {
     return this.service.extendStay(user, id, body.newCheckOutDate);

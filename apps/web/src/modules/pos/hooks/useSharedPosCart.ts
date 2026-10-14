@@ -1,8 +1,6 @@
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import type { PaymentMethod, ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
-
-export type SaleMode = 'FULL_PAYMENT' | 'PARTIAL_CREDIT' | 'FULL_CREDIT';
+import type { ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
 
 export interface SharedCartItem {
   cartLineId: string;
@@ -61,9 +59,6 @@ export const cartLineId = () => `line-${Date.now()}-${Math.random().toString(36)
 export function useSharedPosCart() {
   const [cart, setCart] = useState<SharedCartItem[]>([]);
   const [customerId, setCustomerId] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
-  const [paidAmount, setPaidAmount] = useState('');
-  const [saleMode, setSaleMode] = useState<SaleMode>('FULL_PAYMENT');
   const [globalDiscount, setGlobalDiscount] = useState('');
   const [serviceCharges, setServiceCharges] = useState<ServiceChargeItem[]>([]);
 
@@ -101,11 +96,8 @@ export function useSharedPosCart() {
   const clearCart = useCallback(() => {
     setCart([]);
     setCustomerId('');
-    setPaymentMethod('CASH');
-    setPaidAmount('');
     setGlobalDiscount('');
     setServiceCharges([]);
-    setSaleMode('FULL_PAYMENT');
   }, []);
 
   const subtotal = cart.reduce((sum, item) => {
@@ -119,21 +111,12 @@ export function useSharedPosCart() {
   const total = Math.max(subtotal - totalLineDiscount - gDiscount + svcTotal, 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const effectivePaid =
-    saleMode === 'FULL_PAYMENT' ? total :
-    saleMode === 'FULL_CREDIT' ? 0 :
-    Number(paidAmount || 0);
-  const credit = Math.max(total - effectivePaid, 0);
-
   return {
     cart, setCart,
     customerId, setCustomerId,
-    paymentMethod, setPaymentMethod,
-    paidAmount, setPaidAmount,
-    saleMode, setSaleMode,
     globalDiscount, setGlobalDiscount,
     serviceCharges, setServiceCharges,
     addLine, updateLine, removeLine, setLineQuantity, clearCart,
-    subtotal, total, totalItems, effectivePaid, credit, gDiscount, svcTotal,
+    subtotal, total, totalItems, gDiscount, svcTotal,
   };
 }

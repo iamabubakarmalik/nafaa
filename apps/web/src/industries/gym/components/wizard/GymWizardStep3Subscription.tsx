@@ -4,6 +4,7 @@ import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { membershipPlansApi } from '../../api/membership-plans.api';
+import { PaymentMethodPicker } from '@modules/pos/components';
 import type { GymWizardSubscription } from '../../hooks/useGymMemberWizard';
 
 interface Props {
@@ -128,6 +129,9 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
                       </div>
                     </div>
                   </div>
+                  {Number(subscription.paidAmount) > 0 && (
+                    <PaymentMethodPicker value={subscription.paymentMethod ?? 'CASH'} onChange={(m) => onChange({ paymentMethod: m })} />
+                  )}
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Start Date</label>

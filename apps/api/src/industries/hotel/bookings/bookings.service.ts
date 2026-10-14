@@ -429,8 +429,8 @@ export class BookingsService {
     }
   }
 
-  /** Payment against a booking: held on the guest's khata (advance before checkout, udhaar after). */
-  async addPayment(user: AuthenticatedUser, id: string, amount: number) {
+  /** Payment against a booking: held on the guest's khata (advance before checkout, udhaar after). Method left out is cash. */
+  async addPayment(user: AuthenticatedUser, id: string, amount: number, paymentMethod?: string) {
     const b = await this.prisma.hotelBooking.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!b) throw new NotFoundException('Booking not found');
     if (b.status === 'CANCELLED' || b.status === 'NO_SHOW') throw new BadRequestException('Cancel booking par payment nahi li ja sakti');
@@ -448,6 +448,7 @@ export class BookingsService {
       await recordKhataPayment(tx, user, {
         customerId: customerId!, shopId, amount: value, reference: b.bookingNumber,
         note: `${b.status === 'CHECKED_OUT' ? 'Hotel baqi wasool' : 'Hotel payment'}: ${b.bookingNumber}`,
+        method: paymentMethod,
       });
       const newPaid = r2(b.paidAmount + value);
       const balance = r2(Math.max(b.grandTotal - newPaid, 0));

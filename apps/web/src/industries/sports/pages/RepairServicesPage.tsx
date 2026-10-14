@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react';
+import { PaymentMethodPicker, TakePaymentModal } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Wrench, Plus, Search, X, Clock, CheckCircle2, XCircle,
@@ -334,6 +336,7 @@ function RepairFormModal({ onClose, onSaved }: any) {
     repairType: '',
     estimatedCost: 0,
     advancePaid: 0,
+    paymentMethod: 'CASH' as PaymentMethod,
     estimatedReadyAt: '',
     notes: '',
     photosBeforeUrls: [] as string[],
@@ -443,6 +446,9 @@ function RepairFormModal({ onClose, onSaved }: any) {
                 onChange={(e) => setForm({ ...form, estimatedReadyAt: e.target.value })}
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
             </div>
+            {form.advancePaid > 0 && (
+              <PaymentMethodPicker className="sm:col-span-3" label="Advance kaise mila" value={form.paymentMethod} onChange={(m) => setForm({ ...form, paymentMethod: m })} />
+            )}
           </div>
 
           <div>
@@ -489,13 +495,16 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
   const [workDone, setWorkDone] = useState(repair.workDone || '');
   const [finalCost, setFinalCost] = useState(Number(repair.finalCost || repair.estimatedCost || 0));
   const [addPayment, setAddPayment] = useState(0);
+  const [payMethod, setPayMethod] = useState<PaymentMethod>('CASH');
+  /** Amount still due when delivery asks what is taken now. */
+  const [deliverDue, setDeliverDue] = useState<number | null>(null);
   const [photosAfter, setPhotosAfter] = useState<string[]>(repair.photosAfterUrls || []);
   const [notes, setNotes] = useState('');
 
   const update = useMutation({
-    mutationFn: (paidNow?: number) => repairServicesApi.updateStatus(repair.id, {
+    mutationFn: (money?: { paidNow: number; paymentMethod: PaymentMethod }) => repairServicesApi.updateStatus(repair.id, {
       status, workDone, finalCost, photosAfterUrls: photosAfter, notes: notes || undefined,
-      ...(paidNow !== undefined ? { paidNow, paymentMethod: 'CASH' } : {}),
+      ...(money ?? {}),
     }),
     onSuccess: () => {
       toast.success('Updated');
@@ -509,15 +518,11 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
     if (status !== 'DELIVERED' || repair.status === 'DELIVERED') { update.mutate(undefined); return; }
     const due = Math.max(0, Math.round((finalCost - Number(repair.advancePaid || 0)) * 100) / 100);
     if (due <= 0) { update.mutate(undefined); return; }
-    const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh customer ke khate me jayega)`, String(due));
-    if (input === null) return;
-    const paidNow = Number(input);
-    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Amount sahi likhein'); return; }
-    update.mutate(paidNow);
+    setDeliverDue(due);
   };
 
   const payment = useMutation({
-    mutationFn: () => repairServicesApi.recordPayment(repair.id, addPayment),
+    mutationFn: () => repairServicesApi.recordPayment(repair.id, addPayment, payMethod),
     onSuccess: () => {
       toast.success(`Payment: ${formatPKR(addPayment)}`);
       setAddPayment(0);
@@ -530,6 +535,13 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      {deliverDue !== null && (
+        <TakePaymentModal title={`Deliver · ${repair.serviceNumber}`}
+          description="Delivery par bill banta hai. Jo abhi nahi mila wo customer ke khate me udhaar jata hai."
+          amount={deliverDue} max={deliverDue} allowZero confirmLabel="Deliver karein" loading={update.isPending}
+          onConfirm={(paidNow, paymentMethod) => { setDeliverDue(null); update.mutate({ paidNow, paymentMethod }); }}
+          onClose={() => setDeliverDue(null)} />
+      )}
       <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white">
           <div className="flex items-center justify-between">
@@ -652,6 +664,7 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
                 </button>
               </div>
             )}
+            {balance > 0 && addPayment > 0 && <PaymentMethodPicker value={payMethod} onChange={setPayMethod} />}
           </div>
 
           <div>

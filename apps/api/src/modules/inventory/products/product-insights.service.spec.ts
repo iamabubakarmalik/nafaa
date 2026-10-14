@@ -41,3 +41,29 @@ describe('ProductInsightsService.get', () => {
     expect((await svc.get({ tenantId: 't1' } as never, 'p1', 'abc')).series).toHaveLength(30);
   });
 });
+
+describe('ProductInsightsService.purchases', () => {
+  it('totals live lines in base units and takes the last cost per base unit', async () => {
+    const recent = [
+      { id: 'l2', variantId: null, unitName: 'Carton', conversionRate: 12, quantity: 2, baseQuantity: 24, costPrice: 1200, total: 2400, receivedQty: 24, returnedQty: 0, batchNo: null, expiryDate: null,
+        purchase: { id: 'b2', purchaseNumber: 'PO-2', purchasedAt: new Date('2026-10-10'), status: 'RECEIVED', supplier: { id: 's1', name: 'Ali Traders' }, shop: null } },
+      { id: 'l1', variantId: null, unitName: 'pcs', conversionRate: 1, quantity: 10, baseQuantity: 0, costPrice: 90, total: 900, receivedQty: 10, returnedQty: 2, batchNo: null, expiryDate: null,
+        purchase: { id: 'b1', purchaseNumber: 'PO-1', purchasedAt: new Date('2026-10-01'), status: 'RECEIVED', supplier: { id: 's1', name: 'Ali Traders' }, shop: null } },
+    ];
+    const prisma = {
+      product: { findFirst: jest.fn().mockResolvedValue({ id: 'p1' }) },
+      purchaseItem: {
+        findMany: jest.fn((args: { take?: number }) => Promise.resolve(args.take ? recent : recent.map((l) => ({ ...l, purchaseId: l.purchase.id })))),
+      },
+      purchase: { groupBy: jest.fn().mockResolvedValue([{ supplierId: 's1', _count: { _all: 2 }, _max: { purchasedAt: new Date('2026-10-10') } }]) },
+      supplier: { findMany: jest.fn().mockResolvedValue([{ id: 's1', name: 'Ali Traders' }]) },
+    };
+    const svc = new ProductInsightsService(prisma as never, {} as never);
+    const res = await svc.purchases({ tenantId: 't1' } as never, 'p1');
+    // 24 from the carton line, 10 from the old line without baseQuantity.
+    expect(res.totals).toMatchObject({ qty: 34, amount: 3300, returned: 2, bills: 2, lastCost: 100 });
+    expect(res.totals.avgCost).toBeCloseTo(3300 / 34);
+    expect(res.suppliers).toEqual([{ id: 's1', name: 'Ali Traders', bills: 2, lastAt: new Date('2026-10-10') }]);
+    expect(res.recent[1]).toMatchObject({ baseQuantity: 10, purchaseNumber: 'PO-1' });
+  });
+});

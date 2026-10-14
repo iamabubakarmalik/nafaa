@@ -55,7 +55,7 @@ export class RepairServicesController {
 
   @Post(':id/payment')
   payment(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() body: RepairPaymentDto) {
-    return this.service.recordPayment(user, id, body.amount, shop.shopId);
+    return this.service.recordPayment(user, id, body.amount, shop.shopId, body.paymentMethod);
   }
 
   @Delete(':id')

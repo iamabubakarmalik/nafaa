@@ -85,6 +85,7 @@ export function useGymMemberWizardSubmit(existingMemberId?: string) {
             planId: draft.subscription.planId,
             startDate: draft.subscription.startDate,
             paidAmount: Number(draft.subscription.paidAmount) || 0,
+            paymentMethod: draft.subscription.paymentMethod ?? 'CASH',
             totalPrice: Number(draft.subscription.totalPrice) || undefined,
             autoRenew: draft.subscription.autoRenew,
           });

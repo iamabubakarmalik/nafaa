@@ -1,232 +1,165 @@
+/**
+ * Data download: how many records the store holds, and a download of the
+ * chosen record types as one JSON file, one Excel workbook (a sheet per type)
+ * or CSV files (one per type). The full backup and dated Excel exports have
+ * their own pages; this one links to them.
+ */
+
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Database, Download, HardDrive, Package, Users, Truck, DollarSign,
-  ShoppingCart, TrendingDown, Tag, Settings as SettingsIcon, FileJson,
-  FileSpreadsheet, FileText, Check, Loader2, CalendarClock,
+  Check, Database, DollarSign, Download, FileJson, FileSpreadsheet, FileText, History, Package, Settings as SettingsIcon,
+  ShoppingCart, Tag, TrendingDown, Truck, Users,
 } from 'lucide-react';
-import { settingsApi } from '@modules/organization/settings/api/settings.api';
+import { cn } from '@core/lib/cn';
+import { downloadCsv, type CsvCell } from '@core/lib/csv';
 import { Button } from '@/design-system/components';
-import { SectionCard, ChoiceGroup, Alert, Divider } from '../components/UI';
+import { settingsApi } from '../api/settings.api';
+import { ChoiceGroup, Divider, Field, PageLink, SectionCard } from '../components/UI';
 
-const ENTITIES: { key: string; label: string; icon: any; color: string; desc: string }[] = [
-  { key: 'products',   label: 'Products',   icon: Package,        color: 'emerald', desc: 'Sab items + variants' },
-  { key: 'customers',  label: 'Customers',  icon: Users,          color: 'blue',    desc: 'Contact + balance' },
-  { key: 'suppliers',  label: 'Suppliers',  icon: Truck,          color: 'violet',  desc: 'Vendor list' },
-  { key: 'sales',      label: 'Sales',      icon: DollarSign,     color: 'amber',   desc: 'Sab receipts' },
-  { key: 'purchases',  label: 'Purchases',  icon: ShoppingCart,   color: 'sky',     desc: 'Purchase orders' },
-  { key: 'expenses',   label: 'Expenses',   icon: TrendingDown,   color: 'rose',    desc: 'Kharch ka record' },
-  { key: 'categories', label: 'Categories', icon: Tag,            color: 'pink',    desc: 'Product categories' },
-  { key: 'settings',   label: 'Settings',   icon: SettingsIcon,   color: 'slate',   desc: 'Poori config' },
+const ENTITIES: Array<{ key: string; label: string; icon: typeof Package; desc: string; counted?: boolean }> = [
+  { key: 'products', label: 'Products', icon: Package, desc: 'Sab items aur variants', counted: true },
+  { key: 'customers', label: 'Customers', icon: Users, desc: 'Contact aur balance', counted: true },
+  { key: 'suppliers', label: 'Suppliers', icon: Truck, desc: 'Suppliers ki list' },
+  { key: 'sales', label: 'Sales', icon: DollarSign, desc: 'Sab bills aur un ki lines', counted: true },
+  { key: 'purchases', label: 'Purchases', icon: ShoppingCart, desc: 'Purchase aur un ki lines', counted: true },
+  { key: 'expenses', label: 'Expenses', icon: TrendingDown, desc: 'Har Expense ka record', counted: true },
+  { key: 'categories', label: 'Categories', icon: Tag, desc: 'Product categories' },
+  { key: 'settings', label: 'Settings', icon: SettingsIcon, desc: 'Store ki saari settings' },
 ];
 
 type Format = 'json' | 'csv' | 'excel';
+type Row = Record<string, unknown>;
+
+/** Nested values (bill lines, settings objects) go into one cell as JSON. */
+const cellOf = (v: unknown): CsvCell => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : (v as CsvCell));
+
+function tableOf(value: unknown): Row[] {
+  if (Array.isArray(value)) return value as Row[];
+  return value && typeof value === 'object' ? [value as Row] : [];
+}
+
+function columnsOf(rows: Row[]) {
+  const cols = new Set<string>();
+  rows.forEach((r) => Object.keys(r).forEach((k) => cols.add(k)));
+  return [...cols];
+}
+
+function saveBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function saveSnapshot(data: Record<string, unknown>, keys: string[], format: Format) {
+  const day = new Date().toISOString().slice(0, 10);
+  if (format === 'json') {
+    saveBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `nafaa-data-${day}.json`);
+    return;
+  }
+  if (format === 'csv') {
+    keys.forEach((k) => {
+      const rows = tableOf(data[k]);
+      const cols = columnsOf(rows);
+      downloadCsv(`nafaa-${k}-${day}.csv`, [cols, ...rows.map((r) => cols.map((c) => cellOf(r[c])))]);
+    });
+    return;
+  }
+  const XLSX = await import('xlsx');
+  const book = XLSX.utils.book_new();
+  keys.forEach((k) => {
+    const rows = tableOf(data[k]).map((r) => Object.fromEntries(Object.entries(r).map(([c, v]) => [c, cellOf(v)])));
+    XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(rows.length ? rows : [{ khaali: '' }]), k.slice(0, 31));
+  });
+  XLSX.writeFile(book, `nafaa-data-${day}.xlsx`);
+}
 
 export function BackupSection() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['backup-stats'],
-    queryFn: settingsApi.backupStats,
-    staleTime: 30_000,
-  });
-
+  const { data: stats, isLoading: statsLoading } = useQuery({ queryKey: ['backup-stats'], queryFn: settingsApi.backupStats, staleTime: 30_000 });
   const [selected, setSelected] = useState<string[]>(ENTITIES.map((e) => e.key));
-  const [format, setFormat] = useState<Format>('json');
+  const [format, setFormat] = useState<Format>('excel');
 
   const exportMutation = useMutation({
-    mutationFn: () => settingsApi.exportData(selected, format),
-    onSuccess: (data: any) => {
-      let blob: Blob;
-      let ext = format;
-      const timestamp = new Date().toISOString().split('T')[0];
-
-      if (format === 'json') {
-        blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      } else if (format === 'csv') {
-        // Backend zip return karta hai; agar string mila to as-is save karo
-        const content = typeof data === 'string' ? data : JSON.stringify(data);
-        blob = new Blob([content], { type: 'text/csv' });
-      } else {
-        blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        ext = 'xlsx' as any;
-      }
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `nafaa-backup-${timestamp}.${ext}`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success(`Backup download ho gaya ✅ (${selected.length} categories)`);
+    mutationFn: async () => {
+      const data = await settingsApi.exportData(selected, format);
+      await saveSnapshot(data ?? {}, selected, format);
     },
-    onError: () => toast.error('Export fail — dobara try karein'),
+    onSuccess: () => toast.success(`Download ho gaya (${selected.length} cheezein)`),
+    onError: () => toast.error('Download nahi hua — dobara koshish karein'),
   });
 
-  const toggle = (key: string) =>
-    setSelected((s) => (s.includes(key) ? s.filter((x) => x !== key) : [...s, key]));
-
-  const selectAll = () => setSelected(ENTITIES.map((e) => e.key));
-  const selectNone = () => setSelected([]);
-
-  const totalRecords = stats
-    ? (stats.products || 0) + (stats.customers || 0) + (stats.sales || 0) + (stats.purchases || 0) + (stats.expenses || 0)
-    : 0;
+  const toggle = (key: string) => setSelected((s) => (s.includes(key) ? s.filter((x) => x !== key) : [...s, key]));
+  const totalRecords = ENTITIES.reduce((sum, e) => sum + (e.counted ? Number(stats?.[e.key]) || 0 : 0), 0);
 
   return (
     <div className="space-y-4">
-      {/* Data overview */}
-      <SectionCard
-        title="Data Overview"
-        desc="Aap ka poora data at a glance"
-        icon={Database}
-        color="blue"
-      >
-        {statsLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="mb-3 flex items-center gap-2 text-xs font-extrabold text-slate-600 dark:text-ink-400">
-              <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                <Check className="h-3 w-3" /> Total {totalRecords.toLocaleString()} records
-              </span>
+      <SectionCard title="Data ka khulasa" desc="Store me kitna record hai" icon={Database} color="blue"
+        badge={!statsLoading ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums text-emerald-700 ring-1 ring-emerald-200">{totalRecords.toLocaleString()} records</span> : undefined}>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+          {ENTITIES.filter((e) => e.counted).map((e) => (
+            <div key={e.key} className="rounded-xl border border-slate-200 p-3">
+              <e.icon className="h-4 w-4 text-slate-400" />
+              {statsLoading
+                ? <div className="mt-2 h-6 w-16 animate-pulse rounded bg-slate-100" />
+                : <p className="mt-1.5 text-xl font-bold tabular-nums leading-none text-slate-900">{(Number(stats?.[e.key]) || 0).toLocaleString()}</p>}
+              <p className="mt-1 text-xs text-slate-500">{e.label}</p>
             </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {ENTITIES.map((e) => {
-                const value = (stats as any)?.[e.key] ?? 0;
-                const Icon = e.icon;
-                return (
-                  <div
-                    key={e.key}
-                    className="rounded-2xl bg-white dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 hover:border-slate-300 dark:hover:border-ink-600 transition"
-                  >
-                    <div className={`h-9 w-9 rounded-xl bg-${e.color}-100 dark:bg-${e.color}-500/20 text-${e.color}-700 dark:text-${e.color}-300 flex items-center justify-center mb-2`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums leading-none">
-                      {typeof value === 'number' ? value.toLocaleString() : value}
-                    </div>
-                    <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-wider mt-1">
-                      {e.label}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
+          ))}
+        </div>
       </SectionCard>
 
-      {/* Export data */}
-      <SectionCard
-        title="Export Data"
-        desc="Apna data download karein — accountant ko bhejo ya safe rakho"
-        icon={Download}
-        color="emerald"
-      >
-        {/* Format */}
-        <div className="mb-4">
-          <div className="text-xs font-extrabold text-slate-700 dark:text-ink-200 mb-2 uppercase tracking-widest">
-            File Format
-          </div>
-          <ChoiceGroup
-            value={format}
-            onChange={(v) => setFormat(v)}
-            columns={3}
+      <SectionCard title="Data download" desc="Apna data file me lein — accountant ko bhejein ya mehfooz rakhein" icon={Download} color="emerald">
+        <Field label="File ki shakal" hint={format === 'csv' ? 'CSV me har cheez ki alag file aati hai — browser poochhe to "Allow" dabayein.' : format === 'excel' ? 'Ek Excel file, har cheez ki alag sheet.' : 'Ek JSON file — developers aur doosre software ke liye.'}>
+          <ChoiceGroup value={format} onChange={(v) => setFormat(v)} columns={3}
             options={[
+              { value: 'excel', label: 'Excel', desc: '.xlsx — har cheez alag sheet', icon: FileSpreadsheet },
+              { value: 'csv', label: 'CSV', desc: 'Har cheez ki alag file', icon: FileText },
               { value: 'json', label: 'JSON', desc: 'Developers ke liye', icon: FileJson },
-              { value: 'csv', label: 'CSV', desc: 'Excel me kholain', icon: FileText },
-              { value: 'excel', label: 'Excel', desc: '.xlsx spreadsheet', icon: FileSpreadsheet },
-            ]}
-          />
-        </div>
+            ]} />
+        </Field>
 
-        <Divider label="Select Data" />
-
-        {/* Quick select */}
-        <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-          <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400">
-            <span className="text-emerald-700 dark:text-emerald-300">{selected.length}</span> / {ENTITIES.length} selected
-          </div>
+        <Divider label="Kya download karein" />
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-slate-500"><span className="font-semibold text-slate-900">{selected.length}</span> / {ENTITIES.length} chuni hain</p>
           <div className="flex gap-1.5">
-            <button
-              onClick={selectAll}
-              className="h-8 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold transition"
-            >
-              Select All
-            </button>
-            <button
-              onClick={selectNone}
-              className="h-8 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-extrabold transition"
-            >
-              None
-            </button>
+            <Button size="xs" variant="secondary" onClick={() => setSelected(ENTITIES.map((e) => e.key))}>Sab chunein</Button>
+            <Button size="xs" variant="ghost" onClick={() => setSelected([])}>Koi nahi</Button>
           </div>
         </div>
-
-        {/* Entity picker */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {ENTITIES.map((e) => {
-            const active = selected.includes(e.key);
-            const Icon = e.icon;
+            const on = selected.includes(e.key);
             return (
-              <button
-                key={e.key}
-                onClick={() => toggle(e.key)}
-                className={[
-                  'relative p-3 rounded-2xl border-2 text-left transition-all active:scale-95',
-                  active
-                    ? 'border-emerald-500 dark:border-emerald-500/60 bg-emerald-50 dark:bg-emerald-500/15 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/20'
-                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300 dark:hover:border-ink-600',
-                ].join(' ')}
-              >
-                {active && (
-                  <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </div>
-                )}
-                <div className={`h-9 w-9 rounded-xl flex items-center justify-center mb-2 ${
-                  active ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
-                }`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className={`text-sm font-extrabold ${active ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-ink-white'}`}>
-                  {e.label}
-                </div>
-                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold mt-0.5">{e.desc}</div>
+              <button key={e.key} type="button" onClick={() => toggle(e.key)} aria-pressed={on}
+                className={cn('relative rounded-xl border p-3 text-left transition active:scale-[0.99]',
+                  on ? 'border-brand-500 bg-brand-50/60 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300')}>
+                {on && <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-brand-fg"><Check className="h-3 w-3" strokeWidth={3} /></span>}
+                <e.icon className={cn('h-5 w-5', on ? 'text-brand-700' : 'text-slate-400')} />
+                <p className="mt-2 text-sm font-semibold text-slate-900">{e.label}</p>
+                <p className="mt-0.5 text-xs text-slate-500">{e.desc}</p>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-4">
-          <Button
-            onClick={() => exportMutation.mutate()}
-            loading={exportMutation.isPending}
-            disabled={selected.length === 0 || exportMutation.isPending}
-            className="w-full sm:w-auto h-12 px-6 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-extrabold shadow-lg shadow-emerald-500/30"
-          >
-            {exportMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Download {selected.length} categor{selected.length === 1 ? 'y' : 'ies'} as {format.toUpperCase()}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button onClick={() => exportMutation.mutate()} loading={exportMutation.isPending} disabled={selected.length === 0}
+            leftIcon={<Download className="h-4 w-4" />}>
+            {selected.length} cheezein {format === 'excel' ? 'Excel' : format.toUpperCase()} me download karein
           </Button>
+          <p className="text-xs text-slate-500">Bari dukaan ka data aane me thora waqt lag sakta hai.</p>
         </div>
       </SectionCard>
 
-      {/* Auto backup */}
-      <SectionCard
-        title="Automatic Backups"
-        desc="Daily cloud backups — coming soon"
-        icon={HardDrive}
-        color="violet"
-      >
-        <Alert tone="violet" icon={CalendarClock} title="🔜 Coming in next release">
-          Automatic daily backups to Google Drive / Dropbox / AWS S3 — poora data safe, kabhi bhi restore.
-          Abhi ke liye manual export use karein — hafta me ek dafa recommend hai.
-        </Alert>
+      <SectionCard title="Backup aur exports" desc="Poora backup aur period wali Excel files alag pages par" icon={History} color="violet">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <PageLink to="/backup" icon={Database} title="Backup" desc="Poore store ki ek file — hafte me ek dafa lein" />
+          <PageLink to="/exports" icon={FileSpreadsheet} title="Exports" desc="Kisi bhi period ki Excel files aur history" />
+        </div>
       </SectionCard>
     </div>
   );

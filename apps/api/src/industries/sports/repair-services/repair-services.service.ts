@@ -38,7 +38,7 @@ export class RepairServicesService {
           customerId, name: dto.customerName, phone: dto.customerPhone, shopId,
         });
         await recordKhataPayment(tx, user, {
-          customerId, shopId, amount: advance, reference: serviceNumber, note: `Repair advance ${serviceNumber}`,
+          customerId, shopId, amount: advance, reference: serviceNumber, note: `Repair advance ${serviceNumber}`, method: dto.paymentMethod,
         });
       }
       return tx.sportsRepairService.create({
@@ -173,7 +173,7 @@ export class RepairServicesService {
     });
   }
 
-  async recordPayment(user: AuthenticatedUser, id: string, amount: number, activeShopId?: string | null) {
+  async recordPayment(user: AuthenticatedUser, id: string, amount: number, activeShopId?: string | null, paymentMethod?: string) {
     const r = await this.prisma.sportsRepairService.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Repair service not found');
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
@@ -194,7 +194,7 @@ export class RepairServicesService {
         customerId: r.customerId, name: r.customerName, phone: r.customerPhone, shopId,
       });
       await recordKhataPayment(tx, user, {
-        customerId, shopId, amount, reference: r.serviceNumber, note: `Repair advance ${r.serviceNumber}`,
+        customerId, shopId, amount, reference: r.serviceNumber, note: `Repair advance ${r.serviceNumber}`, method: paymentMethod,
       });
       return tx.sportsRepairService.update({
         where: { id },

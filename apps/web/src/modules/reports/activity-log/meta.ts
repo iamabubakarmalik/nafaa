@@ -138,9 +138,9 @@ export function linkOf(e: ActivityEntry): { to: string; label: string } | null {
     case 'CommissionPayout': return { to: '/staff/commission', label: 'Commission' };
     case 'TenantSettings':
     case 'Integration': return { to: '/settings', label: 'Settings' };
-    case 'Session': return { to: '/settings?tab=security', label: 'Security' };
+    case 'Session': return { to: '/settings/security', label: 'Security' };
     case 'ChannelOrder': return id ? { to: `/online-orders?order=${id}`, label: 'Order kholein' } : null;
-    default: return e.action.startsWith('PIN_') || e.action === 'PAGE_LOCKS_UPDATED' ? { to: '/settings?tab=security', label: 'Security' } : null;
+    default: return e.action.startsWith('PIN_') || e.action === 'PAGE_LOCKS_UPDATED' ? { to: '/settings/security', label: 'Security' } : null;
   }
 }
 
