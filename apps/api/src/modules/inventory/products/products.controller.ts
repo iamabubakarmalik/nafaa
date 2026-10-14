@@ -386,18 +386,6 @@ export class ProductsController {
   }
 
   /**
-   * One-time repair: tenant ki saari empty/orphan sales delete karo
-   * (dashboard pe "0 items • Rs X" wali ghost sales ke liye).
-   */
-  @Post('cleanup-orphan-sales')
-  cleanupOrphanSales(@GetUser() user: AuthenticatedUser) {
-    if (user.role !== 'OWNER' && user.role !== 'SUPER_ADMIN') {
-      throw new ForbiddenException('Sirf Owner kar sakta hai');
-    }
-    return this.productsService.cleanupOrphanSales(user);
-  }
-
-  /**
    * Quick Setup — GET catalog (Pakistan grocery FMCG products list)
    * Frontend shows this as a picker; user selects items to import.
    */

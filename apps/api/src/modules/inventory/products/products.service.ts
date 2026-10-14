@@ -425,98 +425,6 @@ export class ProductsService {
     await wipe('productVariant'); // variants last among children
   }
 
-  /**
-   * Wipe EVERY record that references a sale — schema-driven.
-   * Prisma DMMF se har model dhundta hai jisme saleId field hai
-   * (payments, khata ledger, notifications, FBR invoices — sab),
-   * taake FK block kabhi sale delete ko fail na kare.
-   */
-  private async wipeSaleRefsTx(tx: any, saleIds: string[]) {
-    if (!saleIds.length) return;
-    const dmmf = (Prisma as any).dmmf ?? (Prisma as any).dMMF;
-    const models = dmmf?.datamodel?.models ?? [];
-    for (const m of models) {
-      if (m.name === 'Sale') continue;
-      const hasSaleId = m.fields?.some((f: any) => f.name === 'saleId');
-      if (!hasSaleId) continue;
-      const delegateName = m.name.charAt(0).toLowerCase() + m.name.slice(1);
-      const delegate = tx[delegateName];
-      if (!delegate || typeof delegate.deleteMany !== 'function') continue;
-      await Promise.resolve(
-        delegate.deleteMany({ where: { saleId: { in: saleIds } } }),
-      ).catch((e: any) =>
-        this.logger.warn(`wipeSaleRefs: ${m.name} skip (${e?.message})`),
-      );
-    }
-  }
-
-  /**
-   * Empty orphan sales delete karo (jinke items wipe ho chuke).
-   * saleItem.saleId se detect karta hai — relation-name independent.
-   */
-  private async cleanupEmptySalesTx(tx: any, tenantId: string, saleIds: string[]) {
-    if (!saleIds.length) return 0;
-    try {
-      const stillHaveItems = await tx.saleItem.findMany({
-        where: { saleId: { in: saleIds } },
-        select: { saleId: true },
-        distinct: ['saleId'],
-      });
-      const withItems = new Set(stillHaveItems.map((r: any) => r.saleId));
-      const emptyIds = saleIds.filter((sid) => !withItems.has(sid));
-      if (!emptyIds.length) return 0;
-
-      // Pehle sab sale references wipe, PHIR sale delete
-      await this.wipeSaleRefsTx(tx, emptyIds);
-      const res = await tx.sale.deleteMany({
-        where: { id: { in: emptyIds }, tenantId },
-      });
-      this.logger.log(`Orphan sales deleted: ${res?.count ?? 0}`);
-      return res?.count ?? 0;
-    } catch (e: any) {
-      this.logger.warn(`cleanupEmptySalesTx failed: ${e?.message}`);
-      return 0;
-    }
-  }
-
-  /**
-   * Tenant ke saare orphan sales (0 items wale) saaf karo — one-time repair.
-   * Dashboard pe "0 items • Rs X" wali ghost sales ke liye.
-   */
-  async cleanupOrphanSales(user: AuthenticatedUser) {
-    const [allSales, withItemsRows] = await Promise.all([
-      this.prisma.sale.findMany({
-        where: { tenantId: user.tenantId },
-        select: { id: true, saleNumber: true },
-      }),
-      this.prisma.saleItem.findMany({
-        where: { sale: { tenantId: user.tenantId } },
-        select: { saleId: true },
-        distinct: ['saleId'],
-      }),
-    ]);
-    const withItems = new Set(withItemsRows.map((r) => r.saleId));
-    const orphans = allSales.filter((s) => !withItems.has(s.id));
-    if (!orphans.length) {
-      return { message: 'Koi empty sale nahi mili — sab saaf hai ✓', deleted: 0 };
-    }
-    const ids = orphans.map((s) => s.id);
-    let deleted = 0;
-    await this.prisma.$transaction(async (tx) => {
-      await this.wipeSaleRefsTx(tx, ids);
-      const res = await tx.sale.deleteMany({
-        where: { id: { in: ids }, tenantId: user.tenantId },
-      });
-      deleted = res?.count ?? 0;
-    });
-    this.logger.log(`Orphan sales cleaned: ${deleted} (${orphans.map((o) => o.saleNumber).join(', ')})`);
-    return {
-      message: `${deleted} empty sales permanently delete ho gayi`,
-      deleted,
-      saleNumbers: orphans.map((o) => o.saleNumber),
-    };
-  }
-
   async remove(user: AuthenticatedUser, id: string, force = false) {
     await this.findOne(user, id);
 
@@ -528,47 +436,27 @@ export class ProductsService {
       where: { productId: id },
     });
 
-    // ═══ FORCE DELETE — cascade EVERYTHING (sales, stock, images, variants…) ═══
-    if (force) {
-      // Capture affected sale ids BEFORE wiping items (for orphan-sale cleanup)
-      const affectedSaleIds = (
-        await this.prisma.saleItem.findMany({
-          where: { productId: id },
-          select: { saleId: true },
-          distinct: ['saleId'],
-        })
-      ).map((r) => r.saleId);
-
-      let removedEmptySales = 0;
-      await this.prisma.$transaction(async (tx) => {
-        await this.cascadeProductRefsTx(tx, id);
-        removedEmptySales = await this.cleanupEmptySalesTx(tx, user.tenantId, affectedSaleIds);
-        await tx.product.delete({ where: { id } });
-      });
-
-      return {
-        message: 'Product + sales + stock permanently delete ho gaya',
-        forced: true,
-        cascadedSaleItems: saleItemCount,
-        cascadedPurchaseItems: purchaseItemCount,
-        removedEmptySales,
-      };
-    }
-
+    // A product that was ever sold or bought is never deleted, whatever `force`
+    // says: deleting it would take bills and stock history with it. It is
+    // switched off instead.
     if (saleItemCount > 0 || purchaseItemCount > 0) {
       await this.prisma.product.update({
         where: { id },
         data: { isActive: false },
       });
       return {
-        message: 'Product deactivated (cannot delete — has sales/purchase history). Use force=true to override.',
+        message: 'Is product ki sale ya purchase history hai, is liye delete nahi hua — band (inactive) kar diya gaya.',
         softDeleted: true,
         saleCount: saleItemCount,
         purchaseCount: purchaseItemCount,
       };
     }
 
-    await this.prisma.product.delete({ where: { id } });
+    // No sales or purchases: remove its stock rows, images and variants, then the product.
+    await this.prisma.$transaction(async (tx) => {
+      if (force) await this.cascadeProductRefsTx(tx, id);
+      await tx.product.delete({ where: { id } });
+    });
     return { message: 'Product deleted successfully', softDeleted: false };
   }
 
@@ -609,31 +497,32 @@ export class ProductsService {
         await this.prisma.product.updateMany({ where, data: { isFeatured: false } });
         break;
       case 'delete': {
-        // Bulk force-delete — full cascade (demo/test data wipes cleanly)
-        const affectedSaleIds = (
-          await this.prisma.saleItem.findMany({
-            where: { productId: { in: productIds } },
-            select: { saleId: true },
-            distinct: ['saleId'],
-          })
-        ).map((r) => r.saleId);
-
-        let removedEmptySales = 0;
+        // Products with any sale or purchase are switched off, never deleted, so
+        // bills and stock history stay complete. Only untouched products go.
+        const [sold, bought] = await Promise.all([
+          this.prisma.saleItem.findMany({ where: { productId: { in: productIds } }, select: { productId: true }, distinct: ['productId'] }),
+          this.prisma.purchaseItem.findMany({ where: { productId: { in: productIds } }, select: { productId: true }, distinct: ['productId'] }),
+        ]);
+        const kept = new Set([...sold, ...bought].map((r) => r.productId).filter((x): x is string => !!x));
+        const keepIds = productIds.filter((pid) => kept.has(pid));
+        const dropIds = productIds.filter((pid) => !kept.has(pid));
         await this.prisma.$transaction(async (tx) => {
-          await this.cascadeProductRefsTx(tx, productIds);
-          removedEmptySales = await this.cleanupEmptySalesTx(tx, user.tenantId, affectedSaleIds);
-          await tx.product.deleteMany({
-            where: { id: { in: productIds }, tenantId: user.tenantId },
-          });
+          if (keepIds.length) {
+            await tx.product.updateMany({ where: { id: { in: keepIds }, tenantId: user.tenantId }, data: { isActive: false } });
+          }
+          if (dropIds.length) {
+            await this.cascadeProductRefsTx(tx, dropIds);
+            await tx.product.deleteMany({ where: { id: { in: dropIds }, tenantId: user.tenantId } });
+          }
         });
 
         return {
           count: productIds.length,
           action,
-          hardDeleted: productIds.length,
-          softDeleted: 0,
-          forced: true,
-          removedEmptySales,
+          hardDeleted: dropIds.length,
+          softDeleted: keepIds.length,
+          forced: false,
+          removedEmptySales: 0,
         };
       }
     }
