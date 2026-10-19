@@ -6,6 +6,10 @@
  *   - money taken before the job is billed sits on the customer's khata as an advance;
  *   - the finished job becomes a product-less Sale numbered like the job;
  *   - money taken after the bill is a khata payment.
+ *
+ * A voided bill frees the job: the next bill takes the job number with a
+ * suffix (INST-2026-0001-2), and everything already paid on khata for the
+ * job counts as paid on it.
  */
 import { BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -26,9 +30,24 @@ export interface JobParty {
   customerPhone?: string | null;
 }
 
-/** The bill already posted for a job, if any. */
+/** Every bill number a job can carry: its own number, then `-2`, `-3`… after voids. */
+const numberWhere = (number: string): Prisma.SaleWhereInput => ({
+  OR: [{ saleNumber: number }, { saleNumber: { startsWith: `${number}-` } }],
+});
+
+/** Job number behind a bill number (`INST-2026-0001-2` → `INST-2026-0001`), or null for other bills. */
+export function jobNumberOfBill(saleNumber: string) {
+  const m = /^((?:INST|SR|AMC|APDL|WC)-\d{4}-\d{4,})(?:-\d+)?$/.exec(saleNumber);
+  return m ? m[1] : null;
+}
+
+/** The live (not voided) bill posted for a job, if any. */
 export function billOf(db: Db, tenantId: string, number: string) {
-  return db.sale.findFirst({ where: { tenantId, saleNumber: number }, select: { id: true, customerId: true, status: true } });
+  return db.sale.findFirst({
+    where: { tenantId, ...numberWhere(number), status: { not: 'VOIDED' } },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, saleNumber: true, customerId: true, status: true },
+  });
 }
 
 /**
@@ -60,9 +79,12 @@ export async function billJob(
   paymentMethod?: string | null,
 ) {
   const total = r2(lines.reduce((s, l) => s + r2(l.amount), 0));
-  if (total <= 0) return null;
+  // A free job still posts a Rs 0 bill when the shop bore a cost (own parts on a warranty job).
+  if (total <= 0 && !lines.some((l) => (Number(l.cost) || 0) > 0)) return null;
   const existing = await billOf(db, user.tenantId, job.number);
   if (existing) return existing;
+  const earlier = await db.sale.count({ where: { tenantId: user.tenantId, ...numberWhere(job.number) } });
+  const saleNumber = earlier ? `${job.number}-${earlier + 1}` : job.number;
 
   const onKhata = await paidOnKhata(db, user.tenantId, job.number);
   const paidAtCounter = r2(Math.min(Math.max(paidSoFar - onKhata, 0), total));
@@ -75,7 +97,7 @@ export async function billJob(
     customerId = await ensureCustomer(db, user, { name: job.customerName, phone: job.customerPhone, shopId });
   }
   return postIndustrySale(db, user, {
-    saleNumber: job.number,
+    saleNumber,
     sourceRef: job.number,
     shopId,
     customerId,

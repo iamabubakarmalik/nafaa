@@ -1,863 +1,358 @@
-import { useState, useMemo, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Barcode, Search, X, RefreshCw, Plus, ShieldCheck, Package, Wallet,
-  Loader2, CheckCircle2, Trash2, FileDown, Printer, HardHat, Wrench,
-  AlertTriangle, ChevronLeft, ChevronRight, Layers, Zap, Boxes, Clock,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { useAuthStore } from '@core/stores/auth.store';
-import { applianceSerialApi, type ApplianceSerial } from '../api/serial-tracking.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import {
-  ApplianceHero, Kpi, Panel, Teacher, Empty, Sheet, Field, inputCls, ChipRow,
-  StatusBadge, useShortcuts, printHtml, downloadCsv, a4Shell, escapeHtml,
-  toDateInput, fmtDate, fmtDateTime, guideAction, printAction, Kbd,
-} from '../components/shared';
-import {
-  serialStatusMeta, instStatusMeta, SERIAL_STATUS_ORDER,
-  catEmoji, catLabel, daysPhrase, svcTypeMeta,
-} from '../constants';
+/**
+ * Serial register: every AC, fridge and LED by its serial number — units on
+ * the shelf, units sold with their customer and warranty, warranties ending
+ * soon, units waiting for installation, and each unit's service history.
+ * New stock from a dealer is entered here in one go (scan or paste).
+ *
+ * Keys: N add serials · W warranty check · / search · 1 list · 2 analytics · G guide.
+ */
 
-/* ═════════════════════════════════════════════════════════════
-   SERIAL REGISTER — har unit ka apna safar
-   ─────────────────────────────────────────────────────────────
-   Appliance me serial sirf ek number nahi — usi se pata chalta
-   hai ke ye unit kab aaya, kis ko bika, kab laga, kitni warranty
-   baqi hai aur is par ab tak kitna kharcha aaya.
-   ═════════════════════════════════════════════════════════════ */
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  ArrowRight, BarChart3, Barcode, Boxes, CheckCircle2, ClipboardPaste, Download, Filter, GraduationCap, HardHat, ListChecks, Package, Plus,
+  Search, ShieldAlert, ShieldCheck, Trash2, Wrench,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Textarea, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { productsApi } from '@modules/inventory/products/api/products.api';
+import { applianceSerialApi, type ApplianceSerial, type SerialSummary } from '../api/serial-tracking.api';
+import { SerialLookup } from '../components/jobDialogs';
+import { Bars, Box, ListState, Pager, Panel, Pill, Strip } from '../components/ui';
+import { SERIAL_KEY, SERIAL_STATUSES, apiError, dayOnly, daysPhrase, installStatusOf, money, serialStatusOf, serviceStatusOf, todayKey } from '../components/meta';
+
+type Tab = 'list' | 'analytics';
+type View = 'stock' | 'sold' | 'expiring' | 'install' | 'all';
+const VIEWS: Array<{ id: View; label: string; icon: typeof Package }> = [
+  { id: 'stock', label: 'Stock me', icon: Boxes },
+  { id: 'sold', label: 'Bik gaye', icon: CheckCircle2 },
+  { id: 'expiring', label: 'Warranty khatam hone wali', icon: ShieldAlert },
+  { id: 'install', label: 'Installation baqi', icon: HardHat },
+  { id: 'all', label: 'Sab', icon: ListChecks },
+];
+const viewLabel = (v: View) => VIEWS.find((x) => x.id === v)?.label ?? v;
+function viewParams(v: View) {
+  if (v === 'stock') return { status: 'IN_STOCK' };
+  if (v === 'sold') return { status: 'SOLD' };
+  if (v === 'expiring') return { warranty: 'expiring' as const };
+  if (v === 'install') return { status: 'SOLD', installationStatus: 'PENDING' };
+  return {};
+}
 
 export default function ApplianceSerialsPage() {
-  const qc = useQueryClient();
-  const shopName = useAuthStore((s) => s.tenant?.name) || 'Meri Dukaan';
-  const shopPhone = useAuthStore((s: any) => s.tenant?.phone || '');
+  const [params, setParams] = useSearchParams();
+  const canManage = usePermission(PERMISSIONS.ELECTRONICS_SERIALS_MANAGE);
+  const { sales, cost } = useMasked();
+  const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
-
-  const [showTeacher, setShowTeacher] = useState(false);
-  const [showBulk, setShowBulk] = useState(false);
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<string | null>(null);
-  const [warranty, setWarranty] = useState<'active' | 'expiring' | 'expired' | null>(null);
+  const [tab, setTab] = useState<Tab>('list');
+  const [view, setView] = useState<View>((params.get('view') as View) || 'stock');
+  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const [query, setQuery] = useState(search.trim());
   const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(params.get('id'));
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [view, status, query]);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (view !== 'stock') next.set('view', view);
+    if (query) next.set('q', query);
+    if (openId) next.set('id', openId);
+    setParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, query, openId]);
 
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['appliance-serials'] });
-    qc.invalidateQueries({ queryKey: ['appliance-serial-summary'] });
-    qc.invalidateQueries({ queryKey: ['appliance-stock-report'] });
-  };
-
-  const { data: summary } = useQuery({
-    queryKey: ['appliance-serial-summary'],
-    queryFn: applianceSerialApi.summary,
-  });
-
-  const params = {
-    search: search.trim() || undefined,
-    status: status ?? undefined,
-    warranty: warranty ?? undefined,
-    page, limit: 60,
-  };
-
-  const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['appliance-serials', params],
-    queryFn: () => applianceSerialApi.list(params),
-  });
-
+  const q = { ...viewParams(view), ...(status && view === 'all' ? { status } : {}), search: query || undefined, page, limit: 50 };
+  const listQ = useQuery({ queryKey: [SERIAL_KEY, 'page', q], queryFn: () => applianceSerialApi.list(q), placeholderData: (p) => p, enabled: tab === 'list' });
+  const statsQ = useQuery({ queryKey: [SERIAL_KEY, 'summary'], queryFn: applianceSerialApi.summary, refetchInterval: 120_000 });
+  const data = listQ.data;
   const rows = data?.items ?? [];
-  const hasFilters = !!(search || status || warranty);
+  const s = statsQ.data;
+  const pick = (v: View) => { setTab('list'); setView(v); };
 
-  const exportCsv = () => {
-    if (!rows.length) return toast.error('Koi serial nahi');
-    downloadCsv(`serials-${toDateInput(new Date())}.csv`, [
-      [`Serial Register — ${shopName}`],
-      [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
-      [],
-      ['Serial', 'Cheez', 'Type', 'Brand', 'Model', 'Batch', 'Halat',
-       'Kharidne ka rate', 'Kharidne ki date', 'Supplier',
-       'Bechne ka rate', 'Bika', 'Customer', 'Phone', 'Invoice',
-       'Installation', 'Laga', 'Warranty tak', 'Din baqi',
-       'Compressor tak', 'Motor tak'],
-      ...rows.map((r) => [
-        r.serialNumber, r.product?.name ?? '', catLabel(r.product?.categoryType), r.product?.brand ?? '',
-        r.modelNumber ?? '', r.batchNumber ?? '', serialStatusMeta(r.status).label,
-        r.purchasePrice ?? '', r.purchaseDate ? fmtDate(r.purchaseDate) : '', r.supplierRef ?? '',
-        r.soldPrice ?? '', r.soldAt ? fmtDate(r.soldAt) : '', r.customerName ?? '', r.customerPhone ?? '',
-        r.invoiceNumber ?? '',
-        instStatusMeta(r.installationStatus).label, r.installedAt ? fmtDate(r.installedAt) : '',
-        r.warrantyEndDate ? fmtDate(r.warrantyEndDate) : '', r.warranty?.mainDaysLeft ?? '',
-        r.compressorWarrantyEndDate ? fmtDate(r.compressorWarrantyEndDate) : '',
-        r.motorWarrantyEndDate ? fmtDate(r.motorWarrantyEndDate) : '',
-      ]),
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); setAdding(true); }
+      if (e.key === 'w' || e.key === 'W') { e.preventDefault(); setChecking(true); }
+      if (e.key === '1') setTab('list');
+      if (e.key === '2') setTab('analytics');
+      if (e.key === '/') { e.preventDefault(); setTab('list'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage]);
+
+  const fetchAll = () => applianceSerialApi.list({ ...q, page: 1, limit: 200 });
+  const printDoc = async (): Promise<PrintDoc> => {
+    const all = await fetchAll();
+    return {
+      title: `Serial register — ${viewLabel(view)}`,
+      meta: [['Units', String(all.meta.total)]],
+      sections: [{ kind: 'table', columns: [{ label: 'Serial' }, { label: 'Product' }, { label: 'Halat' }, { label: 'Customer', wideOnly: true }, { label: 'Bill', wideOnly: true }, { label: 'Warranty' }],
+        rows: all.items.map((u) => [u.serialNumber, u.product?.name ?? '—', serialStatusOf(u.status).label, u.customerName ?? '—', u.invoiceNumber ?? '—', u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—']) }],
+    };
+  };
+  const exportCsv = async () => {
+    const all = await fetchAll();
+    downloadCsv('serials.csv', [
+      ['Serial', 'Model', 'Product', 'Halat', 'Kharida', 'Khareed qeemat', 'Supplier', 'Bika', 'Bill', 'Qeemat', 'Customer', 'Phone', 'Warranty', 'Compressor', 'Motor', 'Installation'],
+      ...all.items.map((u) => [u.serialNumber, u.modelNumber ?? '', u.product?.name ?? '', serialStatusOf(u.status).label, u.purchaseDate ? dayOnly(u.purchaseDate) : '', u.purchasePrice ?? '', u.supplierRef ?? '',
+        u.soldAt ? dayOnly(u.soldAt) : '', u.invoiceNumber ?? '', u.soldPrice ?? '', u.customerName ?? '', u.customerPhone ?? '', u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '',
+        u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '', u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '', installStatusOf(u.installationStatus).label]),
     ]);
-    toast.success(`${rows.length} serial export ho gaye`);
   };
-
-  const printA4 = () => {
-    if (!rows.length) return toast.error('Koi serial nahi');
-    const body = `
-      <h2 class="sec">🔖 Serial Register</h2>
-      <table>
-        <thead><tr>
-          <th>#</th><th>Serial / Cheez</th><th>Brand / Model</th><th class="c">Halat</th>
-          <th class="c">Installation</th><th class="c">Warranty</th><th class="r">Cost</th><th class="r">Bika</th>
-        </tr></thead>
-        <tbody>
-          ${rows.map((r, i) => `
-            <tr>
-              <td class="num">${i + 1}</td>
-              <td><div class="main">${escapeHtml(r.serialNumber)}</div><div class="sub">${escapeHtml(r.product?.name ?? '—')}</div></td>
-              <td>${escapeHtml(r.product?.brand ?? '—')}${r.modelNumber ? `<div class="sub">${escapeHtml(r.modelNumber)}</div>` : ''}</td>
-              <td class="c"><span class="pill">${escapeHtml(serialStatusMeta(r.status).label)}</span></td>
-              <td class="c">${escapeHtml(instStatusMeta(r.installationStatus).label)}</td>
-              <td class="c">${r.warranty?.soonestDays != null ? `${r.warranty.soonestDays} din` : '—'}</td>
-              <td class="r">${r.purchasePrice ? formatPKR(r.purchasePrice) : '—'}</td>
-              <td class="r">${r.soldPrice ? formatPKR(r.soldPrice) : '—'}</td>
-            </tr>`).join('')}
-        </tbody>
-      </table>`;
-
-    const ok = printHtml(a4Shell({
-      title: `Serial Register — ${shopName}`,
-      heading: '🔖 Serial Register',
-      shopName, shopPhone, badge: 'Serial Report',
-      kpis: [
-        { label: '📦 Stock Me', value: String(summary?.inStock?.units ?? 0), sub: formatPKR(summary?.inStock?.value ?? 0), tone: 'blue' },
-        { label: '💰 Bik Chuke', value: String(summary?.sold?.units ?? 0), sub: `profit ${formatPKR(summary?.sold?.profit ?? 0)}`, tone: 'green' },
-        { label: '🔧 Lagana Baqi', value: String(summary?.installation?.pending ?? 0), tone: 'amber' },
-        { label: '🛡️ Warranty Khatam', value: String(summary?.warrantyExpiringSoon ?? 0), sub: '30 din me', tone: 'rose' },
-      ],
-      body,
-    }));
-    if (!ok) toast.error('Popup block hai — allow karein');
-  };
-
-  useShortcuts({
-    '/': () => searchRef.current?.focus(),
-    n: () => setShowBulk(true),
-    t: () => setShowTeacher(true),
-    p: () => printA4(),
-    Escape: () => {
-      if (showBulk) setShowBulk(false);
-      else if (detailId) setDetailId(null);
-      else if (showTeacher) setShowTeacher(false);
-    },
-  }, [showBulk, detailId, showTeacher, rows]);
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10">
-      {showTeacher && <SerialTeacher onClose={() => setShowTeacher(false)} />}
-      {showBulk && <BulkSerialModal onClose={() => setShowBulk(false)} onDone={() => { setShowBulk(false); invalidate(); }} />}
-      {detailId && <SerialDetailSheet id={detailId} onClose={() => setDetailId(null)} onChanged={invalidate} shopName={shopName} shopPhone={shopPhone} />}
-
-      <ApplianceHero
-        badge="Serial Register"
-        badgeIcon={<Barcode className="h-3.5 w-3.5 text-amber-300" />}
-        title="🔖 Serial Tracking"
-        subtitle={
-          summary ? (
-            <>
-              <strong className="text-cyan-200">{summary.inStock.units}</strong> stock me
-              <span className="opacity-50 mx-1.5">•</span>
-              <strong className="text-emerald-300">{summary.sold.units}</strong> bik chuke
-              {summary.installation.pending > 0 && (
-                <><span className="opacity-50 mx-1.5">•</span><strong className="text-amber-300">{summary.installation.pending}</strong> lagana baqi</>
-              )}
-            </>
-          ) : 'Har unit ka apna record — kab aaya, kis ko gaya, kya hua'
-        }
-        actions={[
-          guideAction(() => setShowTeacher(true)),
-          { key: 'refresh', label: 'Refresh', icon: <RefreshCw className="h-4 w-4" />, onClick: () => refetch(), spinning: isFetching, hideLabelOnMobile: true },
-          { key: 'csv', label: 'CSV', icon: <FileDown className="h-4 w-4" />, onClick: exportCsv, disabled: !rows.length, hideLabelOnMobile: true },
-          printAction(printA4, !rows.length),
-          { key: 'bulk', label: 'Shipment Add', icon: <Plus className="h-4 w-4" />, shortcut: 'N', onClick: () => setShowBulk(true), variant: 'solid' },
-        ]}
-        shortcuts={[
-          { keys: '/', label: 'Search' }, { keys: 'N', label: 'Shipment' },
-          { keys: 'P', label: 'Print' }, { keys: 'T', label: 'Guide' },
-        ]}
+    <PageShell>
+      <PageHero
+        title="Serial register"
+        chip={<><Barcode /> Har unit ka number</>}
+        meta="Stock, bika hua unit, customer, warranty aur service — serial se"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={statsQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={() => setChecking(true)} title="Warranty check (W)" className={heroButton}><ShieldCheck className="h-4 w-4" /><span className="hidden sm:inline">Warranty check</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setAdding(true)} title="Serial jorein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Serial jorein</button>}
+        </>}
+        stats={s ? [
+          { label: 'Stock me', value: s.inStock.units, hint: cost(s.inStock.value) },
+          { label: 'Bik gaye', value: s.sold.units },
+          { label: 'Warranty khatam hone wali', value: s.warrantyExpiringSoon },
+        ] : [{ label: 'Stock me', value: '—' }]}
       />
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-        <Kpi icon={Boxes} tone="cyan" label="Stock Me" value={summary?.inStock?.units ?? 0}
-          sub={`cost ${formatPKR(summary?.inStock?.value ?? 0)}`}
-          onClick={() => { setStatus(status === 'IN_STOCK' ? null : 'IN_STOCK'); setPage(1); }}
-          active={status === 'IN_STOCK'} />
-        <Kpi icon={Wallet} tone="emerald" label="Bik Chuke" value={summary?.sold?.units ?? 0}
-          sub={`profit ${formatPKR(summary?.sold?.profit ?? 0)}`}
-          onClick={() => { setStatus(status === 'SOLD' ? null : 'SOLD'); setPage(1); }}
-          active={status === 'SOLD'} />
-        <Kpi icon={HardHat} tone="amber" label="Lagana Baqi" value={summary?.installation?.pending ?? 0}
-          sub="bik gaya, laga nahi" alert={(summary?.installation?.pending ?? 0) > 0} />
-        <Kpi icon={ShieldCheck} tone="violet" label="Warranty Khatam Ho Rahi" value={summary?.warrantyExpiringSoon ?? 0}
-          sub="30 din me" alert={(summary?.warrantyExpiringSoon ?? 0) > 0}
-          onClick={() => { setWarranty(warranty === 'expiring' ? null : 'expiring'); setPage(1); }}
-          active={warranty === 'expiring'} />
-      </section>
+      <KpiRow cols={4}>
+        {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Boxes} color="#2563eb" label="Stock me" value={s.inStock.units} hint={cost(s.inStock.value)} onClick={() => pick('stock')} active={tab === 'list' && view === 'stock'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Bik gaye" value={s.sold.units} hint={`Profit ${sales(s.sold.profit)}`} onClick={() => pick('sold')} active={tab === 'list' && view === 'sold'} />
+          <KpiCard icon={ShieldAlert} color={s.warrantyExpiringSoon ? '#ea580c' : '#64748b'} label="Warranty khatam hone wali" value={s.warrantyExpiringSoon} hint="AMC bechne ka mauqa" onClick={() => pick('expiring')} active={tab === 'list' && view === 'expiring'} />
+          <KpiCard icon={HardHat} color={s.installation.pending ? '#d97706' : '#64748b'} label="Installation baqi" value={s.installation.pending} hint="Bika, laga nahi" onClick={() => pick('install')} active={tab === 'list' && view === 'install'} />
+        </>}
+      </KpiRow>
 
-      {/* Toolbar */}
-      <div className="flex gap-2 flex-wrap items-center">
-        <div className="flex-1 min-w-[240px] relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input ref={searchRef} className={inputCls('h-12 pl-10 pr-10 text-sm font-semibold font-mono')}
-            placeholder="Serial, model, batch, customer, invoice... (/)"
-            value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
-              <X className="h-4 w-4 text-slate-400" />
-            </button>
-          )}
-        </div>
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 h-12">
-          {([['active', '🛡️ Warranty chal rahi'], ['expiring', '⏳ Khatam ho rahi'], ['expired', '❌ Khatam']] as const).map(([v, label]) => (
-            <button key={v} onClick={() => { setWarranty(warranty === v ? null : (v as any)); setPage(1); }}
-              className={`px-2.5 rounded-xl text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
-                warranty === v ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
-              }`}>{label}</button>
-          ))}
-        </div>
-        <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">
-          {data?.meta?.total ?? 0} serials
-        </div>
-      </div>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Serial, model, customer, phone, bill…" label="Search" />}
+        chips={query || status ? <>{query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}{status && <FilterChip onRemove={() => setStatus('')}>{serialStatusOf(status).label}</FilterChip>}</> : undefined}
+        onClear={() => { setSearch(''); setStatus(''); }}>
+        <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'stock'} onChange={setView} width="w-64" options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon }))} />
+        {view === 'all' && <FilterMenu icon={Package} label={status ? serialStatusOf(status).label : 'Halat'} value={status} active={!!status} onChange={setStatus}
+          options={[{ value: '', label: 'Sab' }, ...SERIAL_STATUSES.map((x) => ({ value: x, label: serialStatusOf(x).label }))]} />}
+      </FilterBar>
 
-      <ChipRow
-        options={SERIAL_STATUS_ORDER.map((s) => ({
-          value: s, label: serialStatusMeta(s).label, emoji: serialStatusMeta(s).emoji,
-          count: summary?.byStatus?.[s],
-        }))}
-        value={status} onChange={(v) => { setStatus(v); setPage(1); }} allLabel={`Sab (${summary?.total ?? 0})`} />
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{canManage && <><Kbd>N</Kbd> jorein · </>}<Kbd>W</Kbd> warranty · <Kbd>/</Kbd> search</>}
+        tabs={[{ id: 'list', label: 'Units', icon: ListChecks, count: data?.meta.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
-      {/* List */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : rows.length === 0 ? (
-        <Empty
-          icon={Barcode}
-          title={hasFilters ? 'Koi serial nahi mila' : 'Abhi koi serial register nahi'}
-          hint={
-            hasFilters
-              ? 'Search ya filter badal kar dekhein'
-              : 'Jab shipment aaye to "Shipment Add" se ek sath saare serial daal dein — warranty ki tareekhein khud lag jayengi'
-          }
-          action={
-            hasFilters
-              ? <Button variant="secondary" onClick={() => { setSearch(''); setStatus(null); setWarranty(null); setPage(1); }}>
-                  <X className="h-4 w-4" /> Filter Clear
-                </Button>
-              : <Button className="bg-gradient-to-r from-cyan-600 to-teal-700 font-extrabold shadow-lg shadow-cyan-500/40" onClick={() => setShowBulk(true)}>
-                  <Plus className="h-4 w-4" /> Pehla Shipment
-                </Button>
-          }
+      {tab === 'analytics' ? <Analytics s={s} sales={sales} cost={cost} /> : (<>
+        {data && data.meta.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{data.meta.total} units</span></Strip>}
+        <ListState loading={listQ.isLoading} error={listQ.isError && !data} empty={!rows.length} onRetry={() => listQ.refetch()} icon={Barcode}
+          title={query ? 'Ye serial nahi mila' : view === 'stock' ? 'Stock me koi serial nahi' : 'Kuch nahi'}
+          hint="Dealer se maal aaye to Purchase se stock barhayein, phir yahan har unit ka serial scan ya paste karein."
+          actions={canManage ? <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Serial jorein</Button> : undefined}>
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {rows.map((u) => <UnitRow key={u.id} u={u} onOpen={() => setOpenId(u.id)} />)}
+          </ul>
+        </ListState>
+        {data && <Pager page={page} pages={data.meta.totalPages} onPage={setPage} />}
+      </>)}
+
+      {adding && <AddSerialsModal onClose={() => setAdding(false)} />}
+      {checking && <WarrantyCheckModal onClose={() => setChecking(false)} onOpen={(id) => { setChecking(false); setOpenId(id); }} />}
+      {openId && <UnitCard id={openId} canManage={canManage} onClose={() => setOpenId(null)} />}
+      {guide.isOpen && (
+        <PageGuide title="Serial register — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Package, color: '#2563eb', title: 'Naya maal', text: 'Dealer se maal aaye: pehle Purchase banayein (stock aur dealer ka hisaab), phir "Serial jorein" — product chunein aur sab serial scan ya Excel se paste karein.' },
+            { icon: Barcode, color: '#7c3aed', title: 'Bechna', text: 'POS par AC ya fridge tap karein to stock wale serial dikhte hain — jo unit diya wohi chunein. Warranty bill ki date se shuru hoti hai.' },
+            { icon: ShieldCheck, color: '#16a34a', title: 'Warranty check', text: 'Customer aaye to "Warranty check" (W) me serial likhein — warranty, compressor, motor aur AMC sab ek nazar me.' },
+            { icon: Wrench, color: '#d97706', title: 'Service history', text: 'Unit kholein — us ki installation, har repair aur kharcha. Wapas ya void bill par unit khud stock me aa jata hai.' },
+          ]}
+          tips={['"Warranty khatam hone wali" list se customers ko AMC bechein.', 'Serial jorne ke liye "Serials manage" permission chahiye.']}
+          shortcuts={[['N', 'serial jorein'], ['W', 'warranty check'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
-      ) : (
-        <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-ink-800">
-            {rows.map((r) => <SerialRow key={r.id} r={r} onOpen={() => setDetailId(r.id)} />)}
-          </div>
-        </div>
       )}
-
-      {data && data.meta.totalPages > 1 && (
-        <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-ink-900/80 rounded-2xl border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4">
-          <div className="text-xs sm:text-sm text-slate-600 dark:text-ink-400 font-bold">
-            Page <strong className="text-slate-900 dark:text-ink-white">{data.meta.page}</strong> / <strong className="text-slate-900 dark:text-ink-white">{data.meta.totalPages}</strong>
-            <span className="opacity-50 mx-1">•</span>
-            <strong className="text-slate-900 dark:text-ink-white tabular-nums">{data.meta.total}</strong> serials
-          </div>
-          <div className="flex gap-2">
-            <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
-              <ChevronLeft className="h-4 w-4" /> Pehle
-            </button>
-            <button disabled={page >= data.meta.totalPages} onClick={() => setPage((p) => p + 1)}
-              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
-              Agla <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    </PageShell>
   );
 }
 
-/* ═════════════ ROW ═════════════ */
-function SerialRow({ r, onOpen }: { r: ApplianceSerial; onOpen: () => void }) {
-  const st = serialStatusMeta(r.status);
-  const inst = instStatusMeta(r.installationStatus);
-  const w = r.warranty;
-  const wTone = !w?.isUnderWarranty ? 'text-slate-400'
-    : (w.soonestDays ?? 999) <= 30 ? 'text-amber-600 dark:text-amber-400'
-    : 'text-emerald-600 dark:text-emerald-400';
-
+function UnitRow({ u, onOpen }: { u: ApplianceSerial; onOpen: () => void }) {
+  const w = u.warranty;
   return (
-    <button onClick={onOpen} className="w-full text-left px-3 sm:px-4 py-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition group">
-      <div className="flex items-center gap-3">
-        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-xl shrink-0">
-          {catEmoji(r.product?.categoryType)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-mono text-xs font-extrabold text-cyan-700 dark:text-cyan-400">{r.serialNumber}</span>
-            <StatusBadge meta={st} size="xs" />
-            {r.status === 'SOLD' && inst.isOpen && (
-              <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                LAGANA BAQI
-              </span>
-            )}
-          </div>
-          <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
-            {r.product?.name ?? 'Product'}
-          </div>
-          <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 truncate">
-            {r.product?.brand ? `${r.product.brand} • ` : ''}{catLabel(r.product?.categoryType)}
-            {r.modelNumber ? ` • ${r.modelNumber}` : ''}
-            {r.customerName ? ` • ${r.customerName}` : ''}
-          </div>
-        </div>
-        <div className="hidden sm:block text-right shrink-0">
-          <div className={`text-[0.6875rem] font-extrabold ${wTone}`}>
-            {w?.isUnderWarranty ? `🛡️ ${daysPhrase(w.soonestDays)}` : '⌛ Warranty khatam'}
-          </div>
-          {w?.soonestKind && w.isUnderWarranty && (
-            <div className="text-[0.625rem] font-bold text-slate-400">
-              {w.soonestKind === 'COMPRESSOR' ? 'Compressor' : w.soonestKind === 'MOTOR' ? 'Motor' : 'Main'}
-            </div>
-          )}
-        </div>
-        <div className="text-right shrink-0 w-20 sm:w-24">
-          <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100">
-            {r.soldPrice ? formatPKR(r.soldPrice) : r.purchasePrice ? formatPKR(r.purchasePrice) : '—'}
-          </div>
-          <div className="text-[0.625rem] font-bold text-slate-400">
-            {r.soldAt ? fmtDate(r.soldAt) : r.purchaseDate ? fmtDate(r.purchaseDate) : ''}
-          </div>
-        </div>
-        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-ink-600 shrink-0 group-hover:translate-x-0.5 group-hover:text-cyan-500 transition" />
-      </div>
-    </button>
+    <li>
+      <button type="button" onClick={onOpen} className="flex w-full items-start gap-3 px-3 py-3 text-left hover:bg-slate-50 sm:px-4">
+        <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><Barcode className="h-5 w-5" /></span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="font-mono font-semibold text-slate-900">{u.serialNumber}</span>
+            <Pill meta={serialStatusOf(u.status)} />
+            {u.status === 'SOLD' && u.installationRequired && u.installationStatus !== 'COMPLETED' && <Pill meta={installStatusOf(u.installationStatus)} />}
+          </span>
+          <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{u.product?.name ?? 'Product'}{u.modelNumber ? ` · ${u.modelNumber}` : ''}</span>
+          <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">
+            {u.status === 'SOLD' ? `${u.customerName ?? 'Customer'} · bill ${u.invoiceNumber ?? '—'} · ${dayOnly(u.soldAt)}` : `Aaya ${dayOnly(u.purchaseDate ?? u.createdAt)}${u.supplierRef ? ` · ${u.supplierRef}` : ''}`}
+          </span>
+        </span>
+        <span className="shrink-0 text-right text-[0.75rem]">
+          {u.status === 'SOLD' && w ? <span className={cn('font-medium', w.isUnderWarranty ? (w.soonestDays ?? 99) <= 30 ? 'text-orange-700' : 'text-emerald-700' : 'text-rose-700')}>{w.isUnderWarranty ? `Warranty ${daysPhrase(w.soonestDays)}` : 'Warranty khatam'}</span> : null}
+          <ArrowRight className="ml-auto mt-1 h-3.5 w-3.5 text-slate-400" />
+        </span>
+      </button>
+    </li>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   SHIPMENT ADD — 20 AC ek sath
-   ═════════════════════════════════════════════════════════════ */
-function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
-  const [productId, setProductId] = useState('');
-  const [productSearch, setProductSearch] = useState('');
-  const [serialText, setSerialText] = useState('');
-  const [batchNumber, setBatchNumber] = useState('');
-  const [purchasePrice, setPurchasePrice] = useState('');
-  const [purchaseDate, setPurchaseDate] = useState(toDateInput(new Date()));
-  const [supplierRef, setSupplierRef] = useState('');
-
-  const { data: products } = useQuery({
-    queryKey: ['products-for-serials', productSearch],
-    queryFn: () => productsApi.list({ page: 1, limit: 40, search: productSearch.trim() || undefined }),
-  });
-
-  const serials = useMemo(
-    () => [...new Set(serialText.split(/[\n,;\t]+/).map((s) => s.trim()).filter(Boolean))],
-    [serialText],
-  );
-
-  const picked = (products?.items ?? []).find((p: any) => p.id === productId);
-
-  const mut = useMutation({
-    mutationFn: () => applianceSerialApi.bulkCreate({
-      productId,
-      serialNumbers: serials,
-      ...(batchNumber.trim() ? { batchNumber: batchNumber.trim() } : {}),
-      ...(purchasePrice ? { purchasePrice: Number(purchasePrice) } : {}),
-      ...(purchaseDate ? { purchaseDate } : {}),
-      ...(supplierRef.trim() ? { supplierRef: supplierRef.trim() } : {}),
-    }),
-    onSuccess: (r) => {
-      toast.success(r.message);
-      if (r.skipped > 0) {
-        toast.warning(`${r.skipped} serial pehle se thay: ${r.skippedSerials.slice(0, 5).join(', ')}`);
-      }
-      onDone();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Serial add nahi hue'),
-  });
-
-  const ok = !!productId && serials.length > 0;
-
-  return (
-    <Sheet
-      wide
-      badge="Naya Shipment"
-      icon={<Barcode className="h-3 w-3" />}
-      title="📦 Shipment Ke Serial Daalein"
-      subtitle="Ek sath saare serial — warranty ki tareekhein product profile se khud lag jayengi"
-      onClose={onClose}
-      footer={
-        <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1 h-12" onClick={onClose}><X className="h-4 w-4" /> Cancel</Button>
-          <button onClick={() => mut.mutate()} disabled={!ok || mut.isPending}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-cyan-600 to-teal-700 hover:from-cyan-500 hover:to-teal-600 disabled:opacity-50 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/40 transition active:scale-[0.98]">
-            {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            {serials.length > 0 ? `${serials.length} Serial Add Karein` : 'Serial Add Karein'}
-          </button>
-        </div>
-      }
-    >
-      <div className="space-y-4">
-        <Panel icon={Package} title="Kaunsa Product" tone="blue">
-          <Field label="Product search" required>
-            <div className="relative">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input className={inputCls('h-11 pl-10 font-semibold')} placeholder="Naam ya SKU likhein"
-                value={productSearch} onChange={(e) => setProductSearch(e.target.value)} />
-            </div>
-          </Field>
-          <div className="mt-2 space-y-1 max-h-56 overflow-y-auto">
-            {(products?.items ?? []).map((p: any) => (
-              <button key={p.id} type="button" onClick={() => setProductId(p.id)}
-                className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border-2 transition text-left ${
-                  productId === p.id
-                    ? 'bg-cyan-50 dark:bg-cyan-500/15 border-cyan-400 dark:border-cyan-500/50'
-                    : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-cyan-300'
-                }`}>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{p.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
-                    {p.sku ? `${p.sku} • ` : ''}Stock {p.stock} • Cost {formatPKR(p.costPrice ?? 0)}
-                  </div>
-                </div>
-                {productId === p.id && <CheckCircle2 className="h-4 w-4 text-cyan-600 shrink-0" />}
-              </button>
-            ))}
-            {(products?.items ?? []).length === 0 && (
-              <p className="text-xs font-bold text-slate-400 py-4 text-center">Koi product nahi mila</p>
-            )}
-          </div>
-        </Panel>
-
-        <Panel icon={Barcode} title="Serial Numbers" hint="Har serial nayi line par — ya comma se alag" tone="cyan">
-          <textarea rows={7} className={inputCls('py-2 font-mono text-xs font-bold resize-none')}
-            placeholder={'SN-001\nSN-002\nSN-003\n…'}
-            value={serialText} onChange={(e) => setSerialText(e.target.value)} />
-          <div className="mt-2 flex items-center justify-between">
-            <span className={`text-[0.6875rem] font-extrabold ${serials.length ? 'text-cyan-700 dark:text-cyan-400' : 'text-slate-400'}`}>
-              {serials.length} serial mile
-            </span>
-            {serials.length > 0 && (
-              <button type="button" onClick={() => setSerialText('')}
-                className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 hover:underline">
-                Sab hatao
-              </button>
-            )}
-          </div>
-          {serials.length > 0 && (
-            <div className="mt-2 flex gap-1 flex-wrap max-h-24 overflow-y-auto">
-              {serials.slice(0, 30).map((s) => (
-                <span key={s} className="px-2 py-0.5 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 font-mono text-[0.6875rem] font-extrabold">{s}</span>
-              ))}
-              {serials.length > 30 && (
-                <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-500 text-[0.6875rem] font-extrabold">+{serials.length - 30}</span>
-              )}
-            </div>
-          )}
-        </Panel>
-
-        <Panel icon={Wallet} title="Shipment Ki Details" hint="Sab serials par lag jayegi" tone="emerald">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Kharidne ka rate (per unit)" hint={picked ? `product ki cost ${formatPKR(picked.costPrice ?? 0)}` : 'khali chhorein to product ki cost'}>
-              <input type="number" min={0} className={inputCls('h-11 font-extrabold tabular-nums')}
-                placeholder={String(picked?.costPrice ?? 0)}
-                value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
-            </Field>
-            <Field label="Kharidne ki date" hint="warranty isi se gini jayegi">
-              <input type="date" className={inputCls('h-11 font-bold [color-scheme:light] dark:[color-scheme:dark]')}
-                value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
-            </Field>
-          </div>
-          <div className="mt-3 grid sm:grid-cols-2 gap-3">
-            <Field label="Batch number" hint="optional">
-              <input className={inputCls('h-11 font-bold font-mono')} placeholder="BATCH-2026-04"
-                value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} />
-            </Field>
-            <Field label="Supplier / Invoice ref" hint="optional">
-              <input className={inputCls('h-11 font-bold')} placeholder="Haier Lahore — INV-9981"
-                value={supplierRef} onChange={(e) => setSupplierRef(e.target.value)} />
-            </Field>
-          </div>
-          {picked && serials.length > 0 && (
-            <div className="mt-3 rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3">
-              <div className="flex items-center justify-between text-sm font-extrabold">
-                <span>Shipment ki kul cost</span>
-                <span className="tabular-nums text-cyan-300">
-                  {formatPKR(serials.length * (Number(purchasePrice) || picked.costPrice || 0))}
-                </span>
-              </div>
-              <div className="mt-0.5 text-[0.6875rem] font-bold text-white/60">
-                {serials.length} units × {formatPKR(Number(purchasePrice) || picked.costPrice || 0)}
-              </div>
-            </div>
-          )}
-        </Panel>
-      </div>
-    </Sheet>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   DETAIL — ek unit ka poora safar
-   ═════════════════════════════════════════════════════════════ */
-function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) {
-  const { data: s, isLoading } = useQuery({
-    queryKey: ['appliance-serial', id],
-    queryFn: () => applianceSerialApi.getOne(id),
-  });
-
-  const delMut = useMutation({
-    mutationFn: () => applianceSerialApi.remove(id),
-    onSuccess: () => { toast.success('Serial delete ho gaya'); onChanged(); onClose(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua'),
-  });
-
-  if (isLoading || !s) {
-    return (
-      <Sheet wide badge="Serial" title="Khul raha hai…" onClose={onClose}>
-        <div className="h-64 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-cyan-500" /></div>
-      </Sheet>
-    );
-  }
-
-  const st = serialStatusMeta(s.status);
-  const w = s.warranty;
-
-  /* Warranty card — customer ko dene wala kaghaz */
-  const printWarrantyCard = () => {
-    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>${escapeHtml(s.serialNumber)}</title>
-<style>
-  @page { size: A5 landscape; margin: 8mm; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; font-size: 11px;
-    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .card { border: 3px double #0f766e; border-radius: 10px; padding: 16px; height: 100%; }
-  .head { text-align: center; border-bottom: 2px solid #0f766e; padding-bottom: 8px; margin-bottom: 10px; }
-  .shop { font-size: 18px; font-weight: 800; color: #0f766e; }
-  h1 { font-size: 13px; font-weight: 800; letter-spacing: 3px; margin-top: 6px; text-transform: uppercase; }
-  table { width: 100%; border-collapse: collapse; }
-  td { padding: 4px 3px; border-bottom: 1px solid #e2e8f0; }
-  td.k { width: 30%; font-weight: 700; color: #475569; font-size: 10px; }
-  td.v { font-weight: 700; }
-  .warr { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
-  .wbox { border: 1.5px solid #0f766e; border-radius: 7px; padding: 6px; text-align: center; }
-  .wbox .l { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #64748b; }
-  .wbox .d { font-size: 11px; font-weight: 800; color: #0f766e; }
-  .note { margin-top: 8px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 6px 8px; font-size: 8.5px; }
-  .foot { margin-top: 8px; text-align: center; font-size: 8px; color: #64748b; }
-</style></head><body>
-  <div class="card">
-    <div class="head">
-      <div class="shop">${escapeHtml(shopName)}</div>
-      ${shopPhone ? `<div style="font-size:9px;color:#64748b;">📞 ${escapeHtml(shopPhone)}</div>` : ''}
-      <h1>Warranty Card</h1>
-    </div>
-    <table>
-      <tr><td class="k">Cheez</td><td class="v">${escapeHtml(s.product?.name ?? '—')}</td></tr>
-      <tr><td class="k">Serial Number</td><td class="v" style="font-family:monospace;font-size:12px;">${escapeHtml(s.serialNumber)}</td></tr>
-      ${s.modelNumber ? `<tr><td class="k">Model</td><td class="v">${escapeHtml(s.modelNumber)}</td></tr>` : ''}
-      ${s.customerName ? `<tr><td class="k">Customer</td><td class="v">${escapeHtml(s.customerName)}${s.customerPhone ? ` — ${escapeHtml(s.customerPhone)}` : ''}</td></tr>` : ''}
-      ${s.soldAt ? `<tr><td class="k">Bikne ki date</td><td class="v">${fmtDate(s.soldAt)}</td></tr>` : ''}
-      ${s.installedAt ? `<tr><td class="k">Lagne ki date</td><td class="v">${fmtDate(s.installedAt)}</td></tr>` : ''}
-    </table>
-    <div class="warr">
-      <div class="wbox"><div class="l">Main Warranty</div><div class="d">${s.warrantyEndDate ? fmtDate(s.warrantyEndDate) : '—'}</div></div>
-      <div class="wbox"><div class="l">Compressor</div><div class="d">${s.compressorWarrantyEndDate ? fmtDate(s.compressorWarrantyEndDate) : '—'}</div></div>
-      <div class="wbox"><div class="l">Motor</div><div class="d">${s.motorWarrantyEndDate ? fmtDate(s.motorWarrantyEndDate) : '—'}</div></div>
-    </div>
-    <div class="note">
-      <strong>Zaroori:</strong> Warranty ke liye ye card aur serial number zaroori hai. Khud khol kar
-      theek karne, bijli ke utaar charhao, ya ghair mustanad banday se kaam karwane par warranty khatam
-      ho jati hai. Koi masla ho to pehle hamein phone karein.
-    </div>
-    <div class="foot">${escapeHtml(shopName)} • Powered by Nafaa POS</div>
-  </div>
-  <script>window.onload=function(){setTimeout(function(){window.print();},300);};</script>
-</body></html>`;
-    if (!printHtml(html, { width: 800, height: 600 })) toast.error('Popup block hai — allow karein');
-  };
-
-  const timeline = [
-    { at: s.purchaseDate ?? s.createdAt, label: `Stock me aaya${s.supplierRef ? ` — ${s.supplierRef}` : ''}`, emoji: '📦' },
-    { at: s.soldAt, label: `Bika${s.customerName ? ` — ${s.customerName}` : ''}${s.invoiceNumber ? ` (${s.invoiceNumber})` : ''}`, emoji: '💰' },
-    { at: s.deliveredAt, label: `Ghar pohancha${s.deliveredBy ? ` — ${s.deliveredBy}` : ''}`, emoji: '🚚' },
-    { at: s.installationScheduledFor, label: 'Installation ki date lagi', emoji: '📅' },
-    { at: s.installedAt, label: 'Lag gaya', emoji: '🔧' },
-  ].filter((t) => t.at);
-
-  return (
-    <Sheet
-      wide
-      badge={st.label}
-      icon={<span>{st.emoji}</span>}
-      title={s.serialNumber}
-      subtitle={<span>{s.product?.name ?? 'Product'}{s.product?.brand ? ` • ${s.product.brand}` : ''}</span>}
-      onClose={onClose}
-      footer={
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={printWarrantyCard}
-            className="h-11 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 hover:from-cyan-500 hover:to-teal-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg shadow-cyan-500/30 transition">
-            <ShieldCheck className="h-4 w-4" /> Warranty Card
-          </button>
-          {s.productId && (
-            <Link to={`/appliance-products/${s.productId}`}
-              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-              <Package className="h-4 w-4" /> Product
-            </Link>
-          )}
-          {s.status !== 'SOLD' && (
-            <button onClick={() => { if (confirm(`Serial ${s.serialNumber} delete karein?`)) delMut.mutate(); }}
-              disabled={delMut.isPending}
-              className="h-11 px-4 rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 text-xs font-extrabold inline-flex items-center gap-1.5 ml-auto transition">
-              <Trash2 className="h-4 w-4" /> Delete
-            </button>
-          )}
-        </div>
-      }
-    >
-      <div className="space-y-4">
-        {/* Warranty */}
-        <Panel icon={ShieldCheck} title="Warranty" hint="Teen alag warranty — jo pehle khatam ho wahi asal hai"
-          tone={w?.isUnderWarranty ? 'emerald' : 'rose'}>
-          <div className="grid grid-cols-3 gap-2">
-            <WBox label="Main" end={s.warrantyEndDate} days={w?.mainDaysLeft} />
-            <WBox label="Compressor" end={s.compressorWarrantyEndDate} days={w?.compressorDaysLeft} />
-            <WBox label="Motor" end={s.motorWarrantyEndDate} days={w?.motorDaysLeft} />
-          </div>
-          {w && (
-            <div className={`mt-3 rounded-xl border-2 p-3 text-xs font-bold ${
-              w.isUnderWarranty
-                ? (w.soonestDays ?? 999) <= 30
-                  ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-200'
-                  : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-200'
-                : 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-200'
-            }`}>
-              {w.isUnderWarranty
-                ? `✅ Warranty chal rahi hai — ${w.soonestKind === 'COMPRESSOR' ? 'compressor' : w.soonestKind === 'MOTOR' ? 'motor' : 'main'} me ${daysPhrase(w.soonestDays)}. Is unit ka repair free karna hoga.`
-                : '⌛ Saari warranty khatam ho chuki — ab repair ka paisa customer se lena hai.'}
-            </div>
-          )}
-        </Panel>
-
-        {/* Paisa */}
-        <Panel icon={Wallet} title="Hisab" tone="cyan">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <Box label="Kharidne ka rate" value={s.purchasePrice ? formatPKR(s.purchasePrice) : '—'} />
-            <Box label="Bechne ka rate" value={s.soldPrice ? formatPKR(s.soldPrice) : '—'} tone="emerald" />
-            <Box label="Profit" value={s.soldPrice && s.purchasePrice ? formatPKR(s.soldPrice - s.purchasePrice) : '—'} tone="cyan" />
-            <Box label="Service ka expense" value={formatPKR(s.serviceCost)} tone={s.serviceCost > 0 ? 'rose' : 'slate'} />
-          </div>
-          {s.serviceCost > 0 && s.soldPrice && s.purchasePrice && (
-            <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-              Net profit is unit par: <strong className={s.soldPrice - s.purchasePrice - s.serviceCost >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                {formatPKR(s.soldPrice - s.purchasePrice - s.serviceCost)}
-              </strong> (service ka expense nikal kar)
-            </div>
-          )}
-        </Panel>
-
-        {/* Tafseel */}
-        <Panel icon={Package} title="Details" tone="blue">
-          <div className="grid sm:grid-cols-2 gap-3 text-xs">
-            <Row label="Cheez" value={s.product?.name ?? '—'} />
-            <Row label="Type" value={catLabel(s.product?.categoryType)} />
-            <Row label="Brand" value={s.product?.brand ?? '—'} />
-            <Row label="Model" value={s.modelNumber ?? s.product?.modelNumber ?? '—'} />
-            {s.batchNumber && <Row label="Batch" value={s.batchNumber} />}
-            {s.supplierRef && <Row label="Supplier" value={s.supplierRef} />}
-            {s.customerName && <Row label="Customer" value={`${s.customerName}${s.customerPhone ? ` — ${s.customerPhone}` : ''}`} />}
-            {s.invoiceNumber && <Row label="Invoice" value={s.invoiceNumber} />}
-            {s.deliveryAddress && <Row label="Pata" value={s.deliveryAddress} />}
-          </div>
-          <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <StatusBadge meta={st} size="md" />
-            <StatusBadge meta={instStatusMeta(s.installationStatus)} size="md" />
-          </div>
-        </Panel>
-
-        {/* Timeline */}
-        {timeline.length > 0 && (
-          <Panel icon={Clock} title="Is Unit Ka Safar" tone="violet">
-            <div className="space-y-2">
-              {timeline.map((t, i) => (
-                <div key={i} className="flex items-center gap-2.5">
-                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
-                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-ink-100 truncate">{t.label}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 shrink-0">{fmtDate(t.at)}</div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-        )}
-
-        {/* Installations */}
-        {s.installations.length > 0 && (
-          <Panel icon={HardHat} title={`Installation Ka Record (${s.installations.length})`} tone="blue">
-            <div className="space-y-1.5">
-              {s.installations.map((i) => (
-                <Link key={i.id} to="/appliances/installations"
-                  className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 hover:bg-slate-100 dark:hover:bg-ink-800 px-2.5 py-2 transition">
-                  <span className="text-base shrink-0">{svcTypeMeta(i.serviceType).emoji}</span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{i.installationNumber}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
-                      {fmtDate(i.completedAt || i.scheduledDate)}{i.technicianName ? ` • ${i.technicianName}` : ''}
-                    </div>
-                  </div>
-                  <StatusBadge meta={instStatusMeta(i.status)} size="xs" />
-                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0">{formatPKR(i.totalCharge)}</div>
-                </Link>
-              ))}
-            </div>
-          </Panel>
-        )}
-
-        {/* Services */}
-        {s.services.length > 0 && (
-          <Panel icon={Wrench} title={`Repair Ka Record (${s.services.length})`}
-            hint={s.services.length > 2 ? '⚠️ Ye unit baar baar kharab ho rahi hai' : undefined} tone="amber">
-            <div className="space-y-1.5">
-              {s.services.map((r) => (
-                <Link key={r.id} to="/appliances/service-requests"
-                  className="flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 hover:bg-slate-100 dark:hover:bg-ink-800 px-2.5 py-2 transition">
-                  <span className="text-base shrink-0 mt-0.5">{svcTypeMeta(r.serviceType).emoji}</span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">
-                      {r.requestNumber} — {r.issueCategory || r.reportedIssue}
-                    </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
-                      {fmtDate(r.requestedAt)}{r.technicianName ? ` • ${r.technicianName}` : ''}
-                      {r.workDone ? ` • ${r.workDone}` : ''}
-                    </div>
-                  </div>
-                  {r.coveredUnderWarranty && (
-                    <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0">FREE</span>
-                  )}
-                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0">{formatPKR(r.totalCharge)}</div>
-                </Link>
-              ))}
-            </div>
-          </Panel>
-        )}
-
-        {s.notes && (
-          <Panel icon={Zap} title="Notes" tone="slate">
-            <p className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 whitespace-pre-wrap">{s.notes}</p>
-          </Panel>
-        )}
-      </div>
-    </Sheet>
-  );
-}
-
-function WBox({ label, end, days }: { label: string; end?: string | null; days?: number | null }) {
-  const tone = days == null ? 'slate' : days < 0 ? 'rose' : days <= 30 ? 'amber' : 'emerald';
-  const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-500 dark:text-ink-400',
-    rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
-    amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300',
-    emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
-  };
-  return (
-    <div className={`rounded-xl border-2 px-2 py-2 text-center ${tones[tone]}`}>
-      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
-      <div className="text-[0.6875rem] font-extrabold">{end ? fmtDate(end) : '—'}</div>
-      <div className="text-[0.6875rem] font-bold opacity-80">{days != null ? daysPhrase(days) : ''}</div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
+/** Product search for picking which product the serials belong to. */
+function ProductSearch({ value, onPick }: { value: { id: string; name: string } | null; onPick: (p: { id: string; name: string; costPrice: number } | null) => void }) {
+  const [term, setTerm] = useState('');
+  const q = useQuery({ queryKey: ['appliance-product-search', term], queryFn: () => productsApi.list({ search: term, limit: 8, isActive: true }), enabled: term.trim().length >= 2 });
+  if (value) return <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem] ring-1 ring-slate-200"><span className="font-medium text-slate-900">{value.name}</span><button type="button" className="text-[0.8125rem] text-brand-700 hover:underline" onClick={() => onPick(null)}>Badlein</button></div>;
   return (
     <div>
-      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-ink-500">{label}</div>
-      <div className="text-xs font-semibold text-slate-800 dark:text-ink-100 break-words">{value}</div>
+      <Input label="Product" required value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Model ya naam likhein" leftIcon={<Search className="h-4 w-4" />} autoFocus />
+      {(q.data?.items ?? []).length > 0 && (
+        <ul className="mt-1 divide-y divide-slate-100 overflow-hidden rounded-xl ring-1 ring-slate-200">
+          {q.data!.items.map((p) => <li key={p.id}><button type="button" onClick={() => onPick({ id: p.id, name: p.name, costPrice: Number(p.costPrice) || 0 })} className="flex w-full justify-between px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50"><span>{p.name}</span><span className="text-slate-500">stock {p.stock}</span></button></li>)}
+        </ul>
+      )}
     </div>
   );
 }
 
-function Box({ label, value, tone = 'slate' }: { label: string; value: string; tone?: 'slate' | 'cyan' | 'emerald' | 'rose' }) {
-  const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
-    cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
-    emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
-    rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
-  };
+function AddSerialsModal({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const [product, setProduct] = useState<{ id: string; name: string; costPrice: number } | null>(null);
+  const [text, setText] = useState('');
+  const [model, setModel] = useState('');
+  const [batch, setBatch] = useState('');
+  const [price, setPrice] = useState('');
+  const [date, setDate] = useState(todayKey());
+  const [supplier, setSupplier] = useState('');
+  const list = [...new Set(text.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean))];
+  const dupes = text.split(/[\s,;]+/).filter(Boolean).length - list.length;
+  const save = useMutation({
+    mutationFn: () => applianceSerialApi.bulkCreate({ productId: product!.id, serialNumbers: list, modelNumber: model.trim() || undefined, batchNumber: batch.trim() || undefined,
+      purchasePrice: Number(price) || product!.costPrice || undefined, purchaseDate: date || undefined, supplierRef: supplier.trim() || undefined }),
+    onSuccess: (r) => { toast.success(r.message || `${r.created} serial jur gaye`); if (r.skipped) toast.info(`${r.skipped} pehle se the: ${r.skippedSerials.slice(0, 5).join(', ')}`); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Serial nahi jure')),
+  });
   return (
-    <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
-      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
-      <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
-    </div>
+    <Modal open onClose={onClose} size="lg" title="Serial jorein" description="Ek product ke saare units ek saath — scanner se ek ke baad ek, ya Excel column paste karein"
+      footer={<><span className="mr-auto text-[0.8125rem] text-slate-600">{list.length} serial{dupes > 0 ? ` · ${dupes} do dafa likhe (ek gina)` : ''}</span><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button disabled={!product || !list.length} loading={save.isPending} leftIcon={<Plus className="h-4 w-4" />} onClick={() => save.mutate()}>{list.length} serial jorein</Button></>}>
+      <div className="space-y-4">
+        <ProductSearch value={product} onPick={(p) => { setProduct(p); if (p && !price) setPrice(p.costPrice ? String(p.costPrice) : ''); }} />
+        <Textarea label="Serial numbers" rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder={'SN12345\nSN12346\nSN12347'} hint="Har line me ek — scanner har scan ke baad khud nayi line deta hai" className="font-mono" />
+        <p className="flex items-start gap-1.5 rounded-xl bg-blue-50 px-3 py-2 text-[0.8125rem] text-blue-900 ring-1 ring-blue-200"><ClipboardPaste className="mt-0.5 h-4 w-4 shrink-0" />Ye sirf number likhta hai, stock nahi barhata. Stock Purchase (dealer ka bill) se barhayein.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Model number" value={model} onChange={(e) => setModel(e.target.value)} placeholder="HSU-18HFCM" />
+          <Input label="Batch / lot" value={batch} onChange={(e) => setBatch(e.target.value)} />
+          <Input label="Khareed qeemat (ek unit)" inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} />
+          <Input label="Kab aaya" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </div>
+        <Input label="Dealer / bill number" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Haier distributor · INV-221" />
+      </div>
+    </Modal>
   );
 }
 
-function SerialTeacher({ onClose }: { onClose: () => void }) {
+function WarrantyCheckModal({ onClose, onOpen }: { onClose: () => void; onOpen: (id: string) => void }) {
+  const [code, setCode] = useState('');
+  const [found, setFound] = useState<string | null>(null);
   return (
-    <Teacher
-      title="Serial Register Kyun Zaroori Hai?"
-      intro={
-        <>
-          Appliance me serial sirf ek number nahi. Usi se pata chalta hai ke <strong>ye unit kab aaya,
-          kis ko bika, kab laga, kitni warranty baqi hai</strong> aur is par ab tak kitna expense aaya.
-        </>
-      }
-      blocks={[
-        {
-          title: '📦 Shipment aate hi daal dein',
-          tone: 'cyan',
-          tips: [
-            <><strong>"Shipment Add"</strong> (<Kbd dark>N</Kbd>) — 20 AC ke serial ek sath copy-paste karein, har ek nayi line par</>,
-            <><strong>Warranty ki tareekhein khud lag jati hain</strong> — product profile me jitne mahine likhe hain, purchase date se ginn kar</>,
-            <>Jo serial pehle se register hon wo <strong>khud chhut jate hain</strong> — dobara entry ka dar nahi</>,
-            <><strong>Batch aur supplier ref</strong> likhein — agar poora batch kharab nikle to sab dhoondna asaan ho jata hai</>,
-          ],
-        },
-        {
-          title: '🛡️ Teen warranty — appliance ka khaas masla',
-          tone: 'emerald',
-          tips: [
-            <><strong>Main warranty</strong> aam tor par 1 saal, <strong>compressor</strong> 5–10 saal, <strong>motor</strong> 2–5 saal</>,
-            <>Customer aaye to serial daal kar dekh lein — <strong>kaun si warranty chal rahi hai</strong></>,
-            <>Agar compressor warranty me hai lekin main khatam, to <strong>compressor free, baqi paid</strong></>,
-            <><strong>"Warranty Card"</strong> — A5 par card nikalta hai jo customer ko diya jata hai, teenon tareekhon ke sath</>,
-          ],
-        },
-        {
-          title: '📜 Har unit ka poora safar',
-          tone: 'violet',
-          tips: [
-            <>Kisi bhi serial par click karein — <strong>stock me aane se le kar aaj tak</strong> sab kuch nazar aata hai</>,
-            <><strong>"Service ka expense"</strong> — is unit par ab tak kitna kharch hua. Warranty wale repair dukaan ke kandhe par hote hain</>,
-            <>Neeche <strong>net profit</strong> likha hota hai — bechne ka rate minus cost minus service ka expense</>,
-            <>Agar ek unit par <strong>2 se ziyada repair</strong> ho chuke hain to system tanbeeh de deta hai</>,
-          ],
-        },
-      ]}
-      shortcuts={[
-        { keys: '/', label: 'Search' },
-        { keys: 'N', label: 'Shipment add' },
-        { keys: 'P', label: 'Print' },
-        { keys: 'T', label: 'Ye guide' },
-      ]}
-      golden={
-        <>
-          <strong>Sunahri usool:</strong> Serial <strong>bechne se pehle</strong> register karein, baad me nahi.
-          Warranty ka jhagra hamesha usi unit par hota hai jiska record nahi hota.
-        </>
-      }
-      onClose={onClose}
-    />
+    <Modal open onClose={onClose} size="md" title="Warranty check" description="Customer ka serial likhein ya scan karein"
+      footer={<><Button variant="secondary" onClick={onClose}>Band karein</Button>{found && <Button onClick={() => onOpen(found)}>Unit kholein</Button>}</>}>
+      <SerialLookup value={code} onChange={(v) => { setCode(v); setFound(null); }} onFound={(r) => setFound(r.serial?.id ?? null)} />
+    </Modal>
+  );
+}
+
+function UnitCard({ id, canManage, onClose }: { id: string; canManage: boolean; onClose: () => void }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: [SERIAL_KEY, 'one', id], queryFn: () => applianceSerialApi.getOne(id) });
+  const remove = useMutation({
+    mutationFn: () => applianceSerialApi.remove(id),
+    onSuccess: (r) => { toast.success(r.message || 'Register se hata diya'); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hata')),
+  });
+  const [confirm, setConfirm] = useState(false);
+  const u = q.data;
+  const w = u?.warranty;
+  return (
+    <Modal open onClose={onClose} size="lg" title={u ? u.serialNumber : 'Unit'} description={u ? `${u.product?.name ?? ''}${u.modelNumber ? ` · ${u.modelNumber}` : ''}` : undefined}
+      footer={u && <>
+        {canManage && u.status === 'IN_STOCK' && (confirm
+          ? <><span className="text-[0.8125rem] text-rose-700">Galti se likha tha? Register se hatayein — record mehfooz rehta hai.</span><Button variant="danger" size="sm" loading={remove.isPending} onClick={() => remove.mutate()}>Haan, hatayein</Button></>
+          : <Button variant="ghost" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => setConfirm(true)}>Register se hatayein</Button>)}
+        <span className="flex-1" />
+        {u.status === 'SOLD' && <Link to={`/appliances/service-requests?new=1`} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"><Wrench className="h-4 w-4" />Shikayat darj</Link>}
+        {u.saleId && <Link to={`/sales/${u.saleId}`} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-sm font-medium text-white hover:bg-brand-700">Bill {u.invoiceNumber}</Link>}
+      </>}>
+      {!u ? <Skeleton className="h-52 rounded-2xl" /> : (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2"><Pill meta={serialStatusOf(u.status)} />{u.installationRequired && <Pill meta={installStatusOf(u.installationStatus)} />}</div>
+          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Box label="Warranty" value={u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—'} tone={w?.mainDaysLeft != null && w.mainDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />
+            <Box label="Compressor" value={u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '—'} />
+            <Box label="Motor" value={u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '—'} />
+            <Box label="Service kharcha" value={formatPKR(u.serviceCost || 0)} />
+          </dl>
+          <dl className="grid gap-x-6 gap-y-2 text-[0.875rem] sm:grid-cols-2">
+            <Row k="Aaya" v={`${dayOnly(u.purchaseDate ?? u.createdAt)}${u.supplierRef ? ` · ${u.supplierRef}` : ''}`} />
+            {u.status === 'SOLD' && <Row k="Customer" v={[u.customerName, u.customerPhone].filter(Boolean).join(' · ')} />}
+            {u.status === 'SOLD' && <Row k="Bika" v={`${dayOnly(u.soldAt)} · bill ${u.invoiceNumber ?? '—'}`} />}
+            {u.deliveryAddress && <Row k="Pata" v={u.deliveryAddress} />}
+            {u.installedAt && <Row k="Laga" v={dayOnly(u.installedAt)} />}
+          </dl>
+          <Panel title="Installation aur repair">
+            {u.installations.length + u.services.length === 0 ? <p className="text-[0.8125rem] text-slate-500">Abhi koi kaam nahi</p> : (
+              <ul className="divide-y divide-slate-100 text-[0.8125rem]">
+                {u.installations.map((i) => <li key={i.id} className="flex justify-between gap-2 py-1.5"><Link className="truncate hover:underline" to={`/appliances/installations?id=${i.id}`}>{i.installationNumber} · installation</Link><span className="flex shrink-0 items-center gap-2"><Pill meta={installStatusOf(i.status)} />{dayOnly(i.completedAt ?? i.scheduledDate)}</span></li>)}
+                {u.services.map((r) => <li key={r.id} className="flex justify-between gap-2 py-1.5"><Link className="truncate hover:underline" to={`/appliances/service-requests?id=${r.id}`}>{r.requestNumber} · {r.reportedIssue}</Link><span className="flex shrink-0 items-center gap-2"><Pill meta={serviceStatusOf(r.status)} />{dayOnly(r.completedAt ?? r.requestedAt)}</span></li>)}
+              </ul>
+            )}
+          </Panel>
+          {u.notes && <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 font-sans text-[0.8125rem] text-slate-600">{u.notes}</pre>}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function Row({ k, v }: { k: string; v?: string | null }) {
+  return <div className="flex gap-2"><dt className="w-24 shrink-0 text-slate-500">{k}</dt><dd className="min-w-0 text-slate-900">{v || '—'}</dd></div>;
+}
+
+function Analytics({ s, sales, cost }: { s?: SerialSummary; sales: (n: number) => string; cost: (n: number) => string }) {
+  if (!s) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-60 rounded-3xl" /><Skeleton className="h-60 rounded-3xl" /></div>;
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Panel title="Paisa" hint="Serial wale units ka">
+        <dl className="grid grid-cols-2 gap-3">
+          <Box label="Stock ki qeemat" value={cost(s.inStock.value)} /><Box label="Sale" value={sales(s.sold.revenue)} />
+          <Box label="Bike units ki cost" value={cost(s.sold.cost)} /><Box label="Profit" value={sales(s.sold.profit)} tone="text-emerald-700" />
+        </dl>
+      </Panel>
+      <Panel title="Units kis halat me"><Bars rows={Object.entries(s.byStatus).filter(([, n]) => n > 0).map(([k, n]) => ({ key: k, label: serialStatusOf(k).label, value: n, color: serialStatusOf(k).color }))} /></Panel>
+    </div>
   );
 }

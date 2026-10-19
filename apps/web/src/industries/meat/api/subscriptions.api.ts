@@ -14,7 +14,7 @@ export interface Subscription {
   endDate?: string;
   nextDeliveryDate?: string;
   lastDeliveryDate?: string;
-  standardItems: any;
+  standardItems: Array<{ productId: string; productName: string; kg: number }>;
   totalMonthlyKg: number;
   discountPct: number;
   deliveryAddress: string;
@@ -36,14 +36,15 @@ export interface Subscription {
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const base = '/meat/subscriptions/';
 
 export const subscriptionsApi = {
-  create: (data: any) => apiClient.post('/meat/subscriptions', data).then(unwrap<Subscription>),
-  list: (params?: any) => apiClient.get('/meat/subscriptions', { params }).then(unwrap<Subscription[]>),
-  getOne: (id: string) => apiClient.get('/meat/subscriptions/' + id).then(unwrap<Subscription>),
-  update: (id: string, data: any) => apiClient.patch('/meat/subscriptions/' + id, data).then(unwrap<Subscription>),
-  pause: (id: string, reason?: string) => apiClient.post('/meat/subscriptions/' + id + '/pause', { reason }).then(unwrap<Subscription>),
-  resume: (id: string) => apiClient.post('/meat/subscriptions/' + id + '/resume').then(unwrap<Subscription>),
-  cancel: (id: string, reason?: string) => apiClient.post('/meat/subscriptions/' + id + '/cancel', { reason }).then(unwrap<Subscription>),
-  deliver: (id: string, revenue: number) => apiClient.post('/meat/subscriptions/' + id + '/deliver', { revenue }).then(unwrap<Subscription>),
+  create: (data: Record<string, unknown>) => apiClient.post('/meat/subscriptions', data).then(unwrap<Subscription>),
+  list: (params?: Record<string, string | undefined>) => apiClient.get('/meat/subscriptions', { params }).then(unwrap<Subscription[]>),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(base + id, data).then(unwrap<Subscription>),
+  pause: (id: string, reason?: string) => apiClient.post(base + id + '/pause', { reason }).then(unwrap<Subscription>),
+  resume: (id: string) => apiClient.post(base + id + '/resume').then(unwrap<Subscription>),
+  cancel: (id: string, reason?: string) => apiClient.post(base + id + '/cancel', { reason }).then(unwrap<Subscription>),
+  /** Makes today's delivery as a weight order at today's rates. */
+  deliver: (id: string) => apiClient.post(base + id + '/deliver').then(unwrap<{ id: string; orderNumber: string; total: number }>),
 };

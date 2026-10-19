@@ -2,6 +2,9 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ApplianceClaimStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { postIndustrySale } from '../../_shared/industry-sale.helper';
+import { startOfMonthTz } from '../../../common/helpers/business-time.helper';
+import { dayRange, nextInSequence, r2, stamp, yearPrefix } from '../common/appliance-common';
 import {
   BrandResponseDto, CreateClaimDto, SettleClaimDto, SubmitClaimDto, UpdateClaimDto,
 } from './dto/upsert-claim.dto';
@@ -16,15 +19,13 @@ export class ApplianceWarrantyClaimsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async nextNumber(tenantId: string) {
-    const year = new Date().getFullYear();
-    const prefix = `WC-${year}-`;
+    const prefix = yearPrefix('WC');
     const last = await this.prisma.applianceWarrantyClaim.findFirst({
       where: { tenantId, claimNumber: { startsWith: prefix } },
       orderBy: { claimNumber: 'desc' },
       select: { claimNumber: true },
     });
-    const seq = last ? Number(last.claimNumber.slice(prefix.length)) || 0 : 0;
-    return `${prefix}${String(seq + 1).padStart(4, '0')}`;
+    return nextInSequence(prefix, last?.claimNumber);
   }
 
   /** parts + labor + baqi = dukaan ki kul lagat */
@@ -182,14 +183,7 @@ export class ApplianceWarrantyClaimsService {
       ...(params.status && { status: params.status as ApplianceClaimStatus }),
       ...(params.open && { status: { in: OPEN_STATES } }),
       ...(params.brandId && { brandId: params.brandId }),
-      ...(params.from || params.to
-        ? {
-            claimDate: {
-              ...(params.from && { gte: new Date(params.from) }),
-              ...(params.to && { lte: (() => { const d = new Date(params.to!); d.setHours(23, 59, 59, 999); return d; })() }),
-            },
-          }
-        : {}),
+      ...(dayRange(params.from, params.to) && { claimDate: dayRange(params.from, params.to) }),
       ...(params.search && {
         OR: [
           { claimNumber: { contains: params.search, mode: 'insensitive' } },
@@ -319,7 +313,7 @@ export class ApplianceWarrantyClaimsService {
         brandRef: dto.brandRef ?? c.brandRef,
         brandContact: dto.brandContact ?? c.brandContact,
         notes: dto.notes
-          ? `${c.notes || ''}\n[${new Date().toLocaleString('en-PK')}] Bheja: ${dto.notes}`.trim()
+          ? stamp(c.notes, `Bheja: ${dto.notes}`)
           : c.notes,
       },
     });
@@ -356,21 +350,33 @@ export class ApplianceWarrantyClaimsService {
     if (!c) throw new NotFoundException('Claim nahi mila');
     if (c.status === 'DRAFT') throw new BadRequestException('Pehle claim brand ko bhejein');
 
-    const received = Number(c.receivedAmount) + dto.receivedAmount;
-    if (received > Number(c.claimedAmount)) {
+    if (c.status === 'REJECTED') throw new BadRequestException('Rad hua claim settle nahi hota');
+    const received = r2(Number(c.receivedAmount) + dto.receivedAmount);
+    if (received > Number(c.claimedAmount) + 0.005) {
       throw new BadRequestException('Kul receive claim ki amount se ziyada nahi ho sakti');
     }
 
-    return this.prisma.applianceWarrantyClaim.update({
-      where: { id },
-      data: {
-        receivedAmount: received,
-        status: 'SETTLED',
-        settledAt: new Date(),
-        notes: dto.notes
-          ? `${c.notes || ''}\n[${new Date().toLocaleString('en-PK')}] Wusool: ${dto.receivedAmount} — ${dto.notes}`.trim()
-          : `${c.notes || ''}\n[${new Date().toLocaleString('en-PK')}] Wusool: ${dto.receivedAmount}`.trim(),
-      },
+    // Money from the brand is the shop's income for the free warranty work: each receipt is its own bill.
+    return this.prisma.$transaction(async (tx) => {
+      if (dto.receivedAmount > 0) {
+        const earlier = await tx.sale.count({ where: { tenantId: user.tenantId, OR: [{ saleNumber: c.claimNumber }, { saleNumber: { startsWith: `${c.claimNumber}-` } }] } });
+        await postIndustrySale(tx, user, {
+          saleNumber: earlier ? `${c.claimNumber}-${earlier + 1}` : c.claimNumber,
+          sourceRef: c.claimNumber,
+          lines: [{ label: `Warranty claim ${c.claimNumber} — ${c.brandName ?? 'brand'} se wusool (${c.productName})`, amount: dto.receivedAmount }],
+          paidAmount: dto.receivedAmount,
+          paymentMethod: dto.paymentMethod ?? 'BANK_TRANSFER',
+        });
+      }
+      return tx.applianceWarrantyClaim.update({
+        where: { id },
+        data: {
+          receivedAmount: received,
+          status: 'SETTLED',
+          settledAt: new Date(),
+          notes: stamp(c.notes, `Wusool: ${dto.receivedAmount}${dto.notes ? ` — ${dto.notes}` : ''}`),
+        },
+      });
     });
   }
 
@@ -378,16 +384,20 @@ export class ApplianceWarrantyClaimsService {
     const c = await this.prisma.applianceWarrantyClaim.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Claim nahi mila');
     if (c.status !== 'DRAFT') {
-      throw new BadRequestException('Sirf wo claim delete hota hai jo abhi brand ko bheja na gaya ho');
+      throw new BadRequestException('Sirf wo claim hatta hai jo abhi brand ko bheja na gaya ho');
     }
+    // The draft is kept as a rejected claim with a note, and the job is freed for a new claim.
     if (c.serviceRequestId) {
       await this.prisma.applianceServiceRequest.updateMany({
         where: { id: c.serviceRequestId, tenantId: user.tenantId },
         data: { warrantyClaimNumber: null },
       });
     }
-    await this.prisma.applianceWarrantyClaim.delete({ where: { id } });
-    return { message: 'Claim delete ho gaya' };
+    await this.prisma.applianceWarrantyClaim.update({
+      where: { id },
+      data: { status: 'REJECTED', rejectionReason: 'Dukaan ne claim wapas liya', notes: stamp(c.notes, 'Draft claim hataya gaya') },
+    });
+    return { message: 'Claim hata diya gaya' };
   }
 
   /**
@@ -427,7 +437,7 @@ export class ApplianceWarrantyClaimsService {
   async summary(user: AuthenticatedUser) {
     const tenantId = user.tenantId;
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthStart = startOfMonthTz(now);
 
     const [byStatus, all, monthRows, missing] = await Promise.all([
       this.prisma.applianceWarrantyClaim.groupBy({

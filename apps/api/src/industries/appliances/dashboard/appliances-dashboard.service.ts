@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { subDays } from 'date-fns';
+import { addDaysTz, endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
+import { dayRange } from '../common/appliance-common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -9,10 +11,9 @@ export class AppliancesDashboardService {
 
   async overview(user: AuthenticatedUser) {
     const monthAgo = subDays(new Date(), 30);
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
-    const in30Days = new Date();
-    in30Days.setDate(in30Days.getDate() + 30);
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
+    const in30Days = addDaysTz(todayStart, 31);
 
     const [
       totalBrands, totalProducts, totalSerials, soldSerials,
@@ -164,8 +165,7 @@ export class AppliancesDashboardService {
   }
 
   async salesReport(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    const { gte: start, lte: end } = dayRange(from, to) ?? {};
 
     const sales = await this.prisma.applianceSerialTracking.findMany({
       where: {
@@ -192,8 +192,7 @@ export class AppliancesDashboardService {
   }
 
   async technicianPerformance(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    const { gte: start, lte: end } = dayRange(from, to) ?? {};
 
     const technicians = await this.prisma.applianceTechnician.findMany({
       where: { tenantId: user.tenantId, isActive: true },

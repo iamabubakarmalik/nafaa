@@ -1,384 +1,314 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Heart, Plus, Search, X, Save, RefreshCw, Sparkles, User, Phone,
-  Calendar, DollarSign, CheckCircle2, Ban, Home,
-} from 'lucide-react';
-import { qurbaniApi, type QurbaniBooking } from '../api/qurbani.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Qurbani and aqeeqa bookings: shares of a cow or camel (up to seven) or a
+ * whole goat. Advances go on the customer's khata the day they are paid;
+ * when the meat is handed over the booking becomes one bill (share price,
+ * cost from the linked animal) and the advance cancels it on the khata.
+ * Cancelled bookings can get the advance back in cash.
+ *
+ * Keys: N new booking · / search · 1 bookings · 2 analytics · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { ArrowRight, BarChart3, Ban, Beef, CheckCircle2, FileSpreadsheet, GraduationCap, Pencil, Plus, Receipt, Undo2, Users, Wallet } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  Button, FilterBar, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Switch, ViewTabs,
+  heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { liveAnimalsApi } from '../api/live-animals.api';
+import { qurbaniApi, type QurbaniBooking } from '../api/qurbani.api';
+import { CancelModal, MethodPicker, PayModal, RefundModal } from '../components/money';
+import { FormRow, ListFrame, Pill, inputBox, usePageKeys, useSaveKey, type Tone } from '../components/ui';
+import { KEYS, MONEY_KEYS, animalOf, apiError, dateOnly, decimal, type PayMethod } from '../lib/meta';
 
-const OCCASIONS = [
-  { value: 'QURBANI', label: '🌙 Qurbani (Eid ul Adha)' },
-  { value: 'AQEEQA', label: '👶 Aqeeqa' },
-  { value: 'SADQA', label: '🤲 Sadqa' },
-  { value: 'MANNAT', label: '🕌 Mannat' },
-];
+type View = 'list' | 'analytics';
+const SHARED = ['BEEF', 'CAMEL', 'BUFFALO'];
+const KINDS = [{ value: 'BEEF', label: 'Gaye (hissa)' }, { value: 'CAMEL', label: 'Oont (hissa)' }, { value: 'MUTTON', label: 'Bakra' }, { value: 'LAMB', label: 'Dumba' }, { value: 'GOAT', label: 'Bakri' }];
+const OCCASIONS = [{ value: 'QURBANI', label: 'Qurbani' }, { value: 'AQEEQA', label: 'Aqeeqa' }, { value: 'SADQA', label: 'Sadqa' }, { value: 'NAZAR', label: 'Nazar / niaz' }];
+const STATUS: Record<string, { label: string; tone: Tone }> = {
+  BOOKED: { label: 'Booked', tone: 'sky' }, CONFIRMED: { label: 'Pakki', tone: 'violet' }, SLAUGHTERED: { label: 'Zibah ho gaya', tone: 'amber' },
+  COMPLETED: { label: 'De diya', tone: 'emerald' }, CANCELLED: { label: 'Cancel', tone: 'rose' },
+};
+const occasionLabel = (v: string) => OCCASIONS.find((o) => o.value === v)?.label ?? v;
+const isOpen = (b: QurbaniBooking) => b.status !== 'COMPLETED' && b.status !== 'CANCELLED';
 
-const ANIMAL_TYPES = [
-  { value: 'BEEF', label: 'Cow', emoji: '🐄', shares: 7 },
-  { value: 'BUFFALO', label: 'Buffalo', emoji: '🐃', shares: 7 },
-  { value: 'GOAT', label: 'Goat', emoji: '🐐', shares: 1 },
-  { value: 'MUTTON', label: 'Sheep', emoji: '🐑', shares: 1 },
-  { value: 'LAMB', label: 'Lamb', emoji: '🐏', shares: 1 },
-  { value: 'CAMEL', label: 'Camel', emoji: '🐫', shares: 7 },
-];
-
-export default function QurbaniPage() {
-  const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('active');
-  const [showForm, setShowForm] = useState(false);
-
-  const { data: bookings = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['qurbani-bookings', statusFilter, search],
-    queryFn: () => qurbaniApi.list({
-      status: statusFilter === 'active' || statusFilter === 'all' ? undefined : statusFilter,
-      search: search.trim() || undefined,
-    }),
+function BookingForm({ b, onClose, onDone }: { b: QurbaniBooking | null; onClose: () => void; onDone: () => void }) {
+  const animals = useQuery({ queryKey: [KEYS.animals, { isSlaughtered: 'false' }], queryFn: () => liveAnimalsApi.list({ isSlaughtered: 'false' }) });
+  const [name, setName] = useState(b?.customerName ?? '');
+  const [phone, setPhone] = useState(b?.customerPhone ?? '');
+  const [occasion, setOccasion] = useState(b?.occasion ?? 'QURBANI');
+  const [type, setType] = useState(b?.animalType ?? 'BEEF');
+  const [shares, setShares] = useState(String(b?.shareCount ?? 1));
+  const [price, setPrice] = useState(b?.finalPrice ? String(b.finalPrice) : '');
+  const [animalId, setAnimalId] = useState(b?.liveAnimalId ?? '');
+  const [day, setDay] = useState(String(b?.slaughterDay ?? 1));
+  const [delivery, setDelivery] = useState(b?.deliveryPreference === 'HOME_DELIVERY');
+  const [address, setAddress] = useState(b?.deliveryAddress ?? '');
+  const [skin, setSkin] = useState(b?.wantsSkin ?? false);
+  const [notes, setNotes] = useState(b?.specialInstructions ?? '');
+  const [advance, setAdvance] = useState('');
+  const [method, setMethod] = useState<PayMethod>('CASH');
+  const [tried, setTried] = useState(false);
+  const shared = SHARED.includes(type);
+  const errors: Record<string, string> = {};
+  if (name.trim().length < 2) errors.name = 'Naam likhein';
+  if (!/^[0-9+\-\s]{10,15}$/.test(phone.trim())) errors.phone = 'Phone theek likhein (03xx-xxxxxxx)';
+  if (shared && !(Number(shares) >= 1 && Number(shares) <= 7)) errors.shares = 'Hisse 1 se 7 tak';
+  if (price !== '' && !(Number(price) > 0)) errors.price = 'Qeemat theek likhein';
+  if (b && price !== '' && Number(price) + 0.005 < b.paidAmount) errors.price = `${formatPKR(b.paidAmount)} mil chuka — qeemat is se kam nahi`;
+  if (!b && Number(advance) > 0 && price !== '' && Number(advance) > Number(price)) errors.advance = 'Advance qeemat se zyada nahi';
+  if (delivery && !address.trim()) errors.address = 'Pata likhein';
+  const err = (k: string) => (tried ? errors[k] : undefined);
+  const save = useMutation({
+    mutationFn: () => {
+      const body = {
+        customerName: name.trim(), customerPhone: phone.trim(), occasion, animalType: type, shareCount: shared ? Number(shares) : 1,
+        finalPrice: price === '' ? null : Number(price), liveAnimalId: animalId || null, slaughterDay: Number(day),
+        deliveryPreference: delivery ? 'HOME_DELIVERY' : 'SELF_PICKUP', wantsMeatDelivery: delivery, deliveryAddress: delivery ? address.trim() : null,
+        wantsSkin: skin, specialInstructions: notes.trim() || null,
+      };
+      return b ? qurbaniApi.update(b.id, body) : qurbaniApi.create({ ...body, advanceAmount: Number(advance) || 0, paymentMethod: method });
+    },
+    onSuccess: (r) => { toast.success(b ? 'Booking badal di' : `Booking ${r.bookingNumber} ban gayi`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Booking save nahi hui')),
   });
-
-  const filtered = statusFilter === 'active'
-    ? bookings.filter((b) => !['CANCELLED', 'DELIVERED'].includes(b.status))
-    : bookings;
-
+  const submit = () => { setTried(true); const f = Object.values(errors)[0]; if (f) { toast.error(f); return; } if (!save.isPending) save.mutate(); };
+  useSaveKey(submit);
+  const fit = (animals.data ?? []).filter((a) => a.animalType === type);
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-fuchsia-900 to-purple-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Religious Bookings
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🌙 Qurbani & Aqeeqa</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Eid ul Adha, Aqeeqa, Sadqa bookings</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Booking
-            </Button>
-          </div>
+    <Modal open onClose={onClose} size="lg" title={b ? `${b.bookingNumber} badlein` : 'Nayi booking'} description="Ctrl+S se save"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit}>Save</Button></>}>
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FormRow label="Naam" error={err('name')}><input data-autofocus value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={inputBox} aria-invalid={!!err('name')} /></FormRow>
+          <FormRow label="Phone" error={err('phone')}><input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={inputBox} placeholder="03xx-xxxxxxx" aria-invalid={!!err('phone')} /></FormRow>
         </div>
-      </section>
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search booking #, customer name, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FormRow label="Kis liye"><select value={occasion} onChange={(e) => setOccasion(e.target.value)} className={inputBox}>{OCCASIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></FormRow>
+          <FormRow label="Janwar"><select value={type} onChange={(e) => setType(e.target.value)} className={inputBox}>{KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select></FormRow>
+          <FormRow label="Hisse" error={err('shares')} hint={shared ? '1 se 7' : 'Poora janwar ek hissa'}><input inputMode="numeric" disabled={!shared} value={shared ? shares : '1'} onChange={(e) => setShares(e.target.value.replace(/\D/g, ''))} className={inputBox} /></FormRow>
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {['active', 'all', 'BOOKED', 'CONFIRMED', 'SLAUGHTERED', 'DELIVERED', 'CANCELLED'].map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{s === 'active' ? '🔥 Active' : s === 'all' ? 'All' : s}</button>
-          ))}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FormRow label="Kul qeemat" error={err('price')} hint="Abhi pata na ho to khali — dete waqt zaroori"><input inputMode="decimal" value={price} onChange={(e) => setPrice(decimal(e.target.value))} className={cn(inputBox, 'text-right')} aria-invalid={!!err('price')} /></FormRow>
+          <FormRow label="Janwar (baara se)" hint="Is ki purchase qeemat bill ki cost banti hai">
+            <select value={animalId} onChange={(e) => setAnimalId(e.target.value)} className={inputBox}><option value="">Abhi nahi</option>{fit.map((a) => <option key={a.id} value={a.id}>{a.tagNumber} · {a.weightKg} kg</option>)}</select>
+          </FormRow>
+          <FormRow label="Kaunsa din"><select value={day} onChange={(e) => setDay(e.target.value)} className={inputBox}>{[1, 2, 3].map((d) => <option key={d} value={d}>Eid ka {d === 1 ? 'pehla' : d === 2 ? 'doosra' : 'teesra'} din</option>)}</select></FormRow>
         </div>
-      </section>
-
-      {showForm && (
-        <QurbaniForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['qurbani-bookings'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Switch checked={delivery} onChange={(e) => setDelivery(e.target.checked)} label="Gosht ghar bhejna hai" />
+          <Switch checked={skin} onChange={(e) => setSkin(e.target.checked)} label="Khaal customer ko chahiye" />
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Heart className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No bookings yet</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 gap-3">
-          {filtered.map((b) => <BookingCard key={b.id} booking={b} />)}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function BookingCard({ booking }: { booking: QurbaniBooking }) {
-  const animal = ANIMAL_TYPES.find((a) => a.value === booking.animalType);
-  const remaining = (booking.finalPrice || 0) - booking.paidAmount;
-
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center shadow shrink-0 text-3xl">
-            {animal?.emoji || '🐐'}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{booking.bookingNumber}</span>
-              <span className="px-2 py-0.5 rounded-full bg-fuchsia-500 text-white text-[0.625rem] font-extrabold uppercase">{booking.status}</span>
-              <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950/40 text-purple-700 text-[0.625rem] font-extrabold uppercase">{booking.occasion}</span>
-            </div>
-            <div className="mt-1 text-sm font-bold text-slate-900">{booking.customerName}</div>
-            <div className="text-xs text-slate-600 font-semibold inline-flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {booking.customerPhone}
-            </div>
-            {booking.shareCount > 1 && (
-              <div className="mt-1 text-xs font-extrabold text-fuchsia-700">
-                Share {booking.shareNumber || 1} of {booking.shareCount}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {booking.slaughterDate && (
-        <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 p-2 text-xs">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Slaughter Date</div>
-          <div className="font-extrabold text-amber-900">
-            {format(new Date(booking.slaughterDate), 'dd MMM yyyy')}
-            {booking.slaughterDay && ' (Day ' + booking.slaughterDay + ')'}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-        <div className="text-xs">
-          <span className="text-slate-500 font-semibold">Deliver:</span>{' '}
-          <span className="font-extrabold">
-            {booking.wantsMeatDelivery ? (booking.deliveryPreference === 'SELF_PICKUP' ? '🚶 Pickup' : '🚚 Deliver') : '❌ No'}
-          </span>
-        </div>
-        <div className="text-xs">
-          <span className="text-slate-500 font-semibold">Skin:</span>{' '}
-          <span className="font-extrabold">{booking.wantsSkin ? '✅' : '❌'}</span>
-          <span className="ml-2 text-slate-500 font-semibold">Offal:</span>{' '}
-          <span className="font-extrabold">{booking.wantsOffal ? '✅' : '❌'}</span>
-        </div>
-      </div>
-
-      {booking.needsCharityShare && booking.charityShareKg && (
-        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 p-2 text-xs">
-          <div className="font-extrabold text-emerald-800">🎁 Charity: {booking.charityShareKg}kg to {booking.charityRecipient || 'unknown'}</div>
-        </div>
-      )}
-
-      <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
-        <div>
-          <div className="text-[0.6875rem] font-extrabold text-emerald-700">Paid: {formatPKR(booking.paidAmount)}</div>
-          {remaining > 0 && (
-            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
-          )}
-        </div>
-        <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(booking.finalPrice || booking.advanceAmount)}</div>
-      </div>
-    </div>
-  );
-}
-
-function QurbaniForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerName: '',
-    customerPhone: '',
-    customerCnic: '',
-    customerAddress: '',
-    occasion: 'QURBANI',
-    animalType: 'GOAT',
-    animalPreference: '',
-    shareCount: 1,
-    shareNumber: 1,
-    advanceAmount: 0,
-    finalPrice: '',
-    slaughterDate: '',
-    slaughterDay: '',
-    wantsMeatDelivery: true,
-    deliveryPreference: 'SELF_PICKUP',
-    deliveryAddress: '',
-    needsCharityShare: false,
-    charityShareKg: '',
-    charityRecipient: '',
-    cuttingStyle: '',
-    packagingCount: '',
-    wantsSkin: false,
-    wantsOffal: true,
-    specialInstructions: '',
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => qurbaniApi.create({
-      ...form,
-      advanceAmount: Number(form.advanceAmount) || 0,
-      finalPrice: form.finalPrice ? Number(form.finalPrice) : undefined,
-      shareCount: Number(form.shareCount) || 1,
-      shareNumber: form.shareCount > 1 ? Number(form.shareNumber) || 1 : undefined,
-      slaughterDay: form.slaughterDay ? Number(form.slaughterDay) : undefined,
-      charityShareKg: form.charityShareKg ? Number(form.charityShareKg) : undefined,
-      packagingCount: form.packagingCount ? Number(form.packagingCount) : undefined,
-    }),
-    onSuccess: () => { toast.success('Booking created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const selectedAnimal = ANIMAL_TYPES.find((a) => a.value === form.animalType);
-  const maxShares = selectedAnimal?.shares ?? 1;
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">🌙 New Qurbani/Aqeeqa Booking</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        {/* Customer */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
-          <textarea rows={1} value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })} placeholder="Address" className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
-        </div>
-
-        {/* Occasion + Animal */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Occasion *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {OCCASIONS.map((o) => (
-              <button key={o.value} onClick={() => setForm({ ...form, occasion: o.value })} className={
-                'p-3 rounded-xl border-2 text-xs font-extrabold transition ' +
-                (form.occasion === o.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
-              }>{o.label}</button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Animal *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {ANIMAL_TYPES.map((a) => (
-              <button key={a.value} onClick={() => setForm({ ...form, animalType: a.value, shareCount: a.shares > 1 ? form.shareCount : 1 })} className={
-                'p-3 rounded-xl border-2 text-center transition ' +
-                (form.animalType === a.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
-              }>
-                <div className="text-3xl mb-1">{a.emoji}</div>
-                <div className="text-[0.6875rem] font-extrabold">{a.label}</div>
-                <div className="text-[0.625rem] font-bold text-slate-500">Up to {a.shares} shares</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <input value={form.animalPreference} onChange={(e) => setForm({ ...form, animalPreference: e.target.value })} placeholder="Animal preference (e.g. white color, healthy, 2-year old)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-
-        {/* Shares */}
-        {maxShares > 1 && (
-          <div className="rounded-xl border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 p-4">
-            <div className="text-sm font-extrabold text-purple-900 mb-2">Share Details</div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-1 block">Total Shares (max {maxShares})</label>
-                <input type="number" min="1" max={maxShares} value={form.shareCount} onChange={(e) => setForm({ ...form, shareCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-purple-300 bg-white dark:bg-purple-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-1 block">This customer takes</label>
-                <input type="number" min="1" value={form.shareNumber} onChange={(e) => setForm({ ...form, shareNumber: e.target.value })} className="h-11 w-full rounded-xl border-2 border-purple-300 bg-white dark:bg-purple-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
-              </div>
-            </div>
+        {delivery && <FormRow label="Pata" error={err('address')}><input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={1000} className={inputBox} aria-invalid={!!err('address')} /></FormRow>}
+        <Input label="Hidayat (marzi)" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} placeholder="Teen hisse: ghar, rishtedar, gareeb…" />
+        {!b && (
+          <div className="space-y-2 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+            <FormRow label="Advance (abhi mila)" error={err('advance')} hint="Aaj ke galle aur customer ke khate me jata hai"><input inputMode="decimal" value={advance} onChange={(e) => setAdvance(decimal(e.target.value))} className={cn(inputBox, 'bg-white text-right font-semibold')} placeholder="0" /></FormRow>
+            {Number(advance) > 0 && <MethodPicker value={method} onChange={setMethod} />}
           </div>
         )}
+      </form>
+    </Modal>
+  );
+}
 
-        {/* Pricing + Date */}
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Advance (Rs)</label>
-            <input type="number" value={form.advanceAmount} onChange={(e) => setForm({ ...form, advanceAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Final Price</label>
-            <input type="number" value={form.finalPrice} onChange={(e) => setForm({ ...form, finalPrice: e.target.value })} placeholder="TBD" className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slaughter Date</label>
-            <input type="date" value={form.slaughterDate} onChange={(e) => setForm({ ...form, slaughterDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          </div>
+function CompleteModal({ b, onClose, onDone }: { b: QurbaniBooking; onClose: () => void; onDone: () => void }) {
+  const one = useQuery({ queryKey: [KEYS.qurbani, 'one', b.id], queryFn: () => qurbaniApi.getOne(b.id), staleTime: 0 });
+  const held = (one.data?.khataPaid ?? 0) + (one.data?.legacyPaid ?? 0);
+  const due = Math.max((b.finalPrice ?? 0) - held, 0);
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState<PayMethod>('CASH');
+  useEffect(() => { if (one.data) setAmount(String(due)); }, [one.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  const n = Number(amount) || 0;
+  const save = useMutation({
+    mutationFn: () => qurbaniApi.complete(b.id, n, method),
+    onSuccess: (r) => { toast.success(`${b.bookingNumber} de diya — bill ${r.sale.saleNumber}`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title="Gosht de dein aur bill banayein" description={`${b.bookingNumber} · ${b.customerName} · ${formatPKR(b.finalPrice ?? 0)}`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="success" disabled={!one.data || n > due + 0.005} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Receipt className="h-4 w-4" />}>Bill banayein</Button></>}>
+      {!one.data ? <Skeleton className="h-24 rounded-xl" /> : (
+        <div className="space-y-3">
+          <p className="text-[0.875rem] text-slate-700">Advance mila {formatPKR(held)} · ab lena <strong>{formatPKR(due)}</strong></p>
+          <Input data-autofocus inputMode="decimal" value={amount} onChange={(e) => setAmount(decimal(e.target.value))} size="lg" className="text-center text-2xl font-bold tabular-nums" error={n > due + 0.005 ? `Baqi sirf ${formatPKR(due)}` : undefined} />
+          <MethodPicker value={method} onChange={setMethod} />
+          {due - n > 0.005 && <p className="text-[0.8125rem] text-amber-800">{formatPKR(due - n)} customer ke khate me udhaar jayega.</p>}
         </div>
+      )}
+    </Modal>
+  );
+}
 
-        {/* Delivery */}
-        <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.wantsMeatDelivery} onChange={(e) => setForm({ ...form, wantsMeatDelivery: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold text-blue-900">Wants meat delivered</span>
-          </label>
-          {form.wantsMeatDelivery && (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { v: 'SELF_PICKUP', label: '🚶 Self Pickup' },
-                  { v: 'HOME_DELIVERY', label: '🚚 Home Delivery' },
-                ].map((d) => (
-                  <button key={d.v} onClick={() => setForm({ ...form, deliveryPreference: d.v })} className={
-                    'p-2 rounded-lg border-2 text-sm font-extrabold ' +
-                    (form.deliveryPreference === d.v ? 'border-blue-500 bg-white dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-                  }>{d.label}</button>
-                ))}
-              </div>
-              {form.deliveryPreference === 'HOME_DELIVERY' && (
-                <textarea rows={2} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })} placeholder="Delivery address" className="w-full rounded-lg border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-              )}
-            </>
-          )}
+function RefundDialog({ b, onClose }: { b: QurbaniBooking; onClose: () => void }) {
+  const one = useQuery({ queryKey: [KEYS.qurbani, 'one', b.id], queryFn: () => qurbaniApi.getOne(b.id), staleTime: 0 });
+  if (!one.data) return null;
+  return <RefundModal title={`${b.bookingNumber} · ${b.customerName}`} held={one.data.khataPaid ?? 0} legacy={one.data.legacyPaid ?? 0} onClose={onClose} onRefund={(pin) => qurbaniApi.refund(b.id, pin)} />;
+}
+
+type Dialog = { kind: 'new' } | { kind: 'edit' | 'pay' | 'done' | 'cancel' | 'refund'; b: QurbaniBooking } | null;
+
+export default function QurbaniPage() {
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales } = useMasked();
+  const canPos = usePermission(PERMISSIONS.POS_USE);
+  const canRefund = usePermission(PERMISSIONS.RETURNS_CREATE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<View>('list');
+  const [status, setStatus] = useState('open');
+  const [occasion, setOccasion] = useState('');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [dialog, setDialog] = useState<Dialog>(null);
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+
+  const listQ = useQuery({ queryKey: [KEYS.qurbani, occasion, query], queryFn: () => qurbaniApi.list({ occasion: occasion || undefined, search: query || undefined }), placeholderData: (p) => p });
+  const all = listQ.data ?? [];
+  const rows = all.filter((b) => (status === 'open' ? isOpen(b) : status ? b.status === status : true));
+  const open = all.filter(isOpen);
+  const stats = useMemo(() => ({
+    shares: open.reduce((s, b) => s + b.shareCount, 0),
+    value: open.reduce((s, b) => s + (b.finalPrice ?? 0), 0),
+    paid: open.reduce((s, b) => s + b.paidAmount, 0),
+    noPrice: open.filter((b) => !b.finalPrice).length,
+  }), [open]);
+  const refresh = () => [KEYS.qurbani, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const step = useMutation({
+    mutationFn: ({ b, status: s }: { b: QurbaniBooking; status: string }) => qurbaniApi.updateStatus(b.id, s),
+    onSuccess: () => { toast.success('Halat badal di'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Halat nahi badli')),
+  });
+  usePageKeys({ n: canPos ? () => setDialog({ kind: 'new' }) : undefined, '1': () => setView('list'), '2': () => setView('analytics'), g: guide.open }, searchRef);
+
+  const printDoc = (): PrintDoc => ({
+    title: 'Qurbani / aqeeqa bookings', subtitle: STATUS[status]?.label ?? (status === 'open' ? 'Chal rahi' : 'Sab'),
+    sections: [{ kind: 'table', columns: [{ label: '#' }, { label: 'Naam' }, { label: 'Phone' }, { label: 'Janwar' }, { label: 'Hisse', align: 'right' }, { label: 'Din', align: 'right' }, { label: 'Qeemat', align: 'right' }, { label: 'Mila', align: 'right' }],
+      rows: rows.map((b) => [b.bookingNumber, b.customerName, b.customerPhone, animalOf(b.animalType).label, String(b.shareCount), String(b.slaughterDay ?? ''), formatPKR(b.finalPrice ?? 0), formatPKR(b.paidAmount)]) }],
+  });
+
+  return (
+    <PageShell>
+      <PageHero
+        title="Qurbani aur aqeeqa"
+        chip={<><Beef /> Hisse aur bookings</>}
+        meta="Hissa book karein, advance lein, zibah ke baad gosht de kar bill banayein"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={listQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
+          <button type="button" title="CSV" className={heroIconButton} disabled={!rows.length}
+            onClick={() => downloadCsv('qurbani.csv', [['#', 'Naam', 'Phone', 'Kis liye', 'Janwar', 'Hisse', 'Din', 'Qeemat', 'Mila', 'Halat'], ...rows.map((b) => [b.bookingNumber, b.customerName, b.customerPhone, occasionLabel(b.occasion), animalOf(b.animalType).label, b.shareCount, b.slaughterDay, b.finalPrice, b.paidAmount, STATUS[b.status]?.label])])}>
+            <FileSpreadsheet className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canPos && <button type="button" onClick={() => setDialog({ kind: 'new' })} title="Nayi booking (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi booking</button>}
+        </>}
+        stats={[{ label: 'Chal rahi', value: open.length }, { label: 'Hisse', value: stats.shares }, { label: 'Advance mila', value: sales(stats.paid) }]}
+      />
+
+      <KpiRow cols={4}>
+        {listQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Users} color="#7c3aed" label="Chal rahi" value={open.length} hint={`${stats.shares} hisse`} onClick={() => setStatus('open')} active={status === 'open'} />
+          <KpiCard icon={Beef} color="#d97706" label="Zibah ho gaya" value={all.filter((b) => b.status === 'SLAUGHTERED').length} hint="Gosht dena baqi" onClick={() => setStatus('SLAUGHTERED')} active={status === 'SLAUGHTERED'} />
+          <KpiCard icon={Wallet} color="#0891b2" label="Lena baqi" value={sales(Math.max(stats.value - stats.paid, 0))} hint={stats.noPrice ? `${stats.noPrice} ki qeemat nahi likhi` : 'Chalti bookings par'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="De diya" value={all.filter((b) => b.status === 'COMPLETED').length} onClick={() => setStatus('COMPLETED')} active={status === 'COMPLETED'} />
+        </>}
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Booking #, naam, phone…" label="Search" />}>
+        <FilterMenu icon={Users} label={status === 'open' ? 'Chal rahi' : STATUS[status]?.label ?? 'Sab'} value={status} active={status !== 'open'} onChange={setStatus}
+          options={[{ value: 'open', label: 'Chal rahi' }, ...Object.entries(STATUS).map(([value, s]) => ({ value, label: s.label })), { value: '', label: 'Sab' }]} />
+        <FilterMenu icon={Beef} label={occasion ? occasionLabel(occasion) : 'Sab mauqe'} value={occasion} active={!!occasion} onChange={setOccasion}
+          options={[{ value: '', label: 'Sab mauqe' }, ...OCCASIONS]} />
+      </FilterBar>
+
+      <ViewTabs value={view} onChange={setView} hint={<>{canPos ? 'N nayi · ' : ''}/ search · 1-2 tabs</>}
+        tabs={[{ id: 'list', label: 'Bookings', icon: Users, count: rows.length }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+
+      {view === 'analytics' ? (
+        <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
+          <h3 className="font-semibold text-slate-900">Eid ke din aur janwar ke hisaab se (chalti bookings)</h3>
+          <ul className="mt-3 divide-y divide-slate-100">
+            {Object.entries(open.reduce<Record<string, { n: number; shares: number }>>((acc, b) => {
+              const k = `Din ${b.slaughterDay ?? '—'} · ${animalOf(b.animalType).label}`;
+              const r = acc[k] ?? { n: 0, shares: 0 }; r.n += 1; r.shares += b.shareCount; acc[k] = r; return acc;
+            }, {})).sort().map(([k, r]) => (
+              <li key={k} className="flex justify-between py-2 text-[0.875rem]"><span>{k}</span><span className="font-semibold tabular-nums">{r.n} booking · {r.shares} hisse{SHARED.some((s) => k.includes(animalOf(s).label)) ? ` · ${Math.ceil(r.shares / 7)} janwar` : ''}</span></li>
+            ))}
+            {!open.length && <li className="py-6 text-center text-sm text-slate-500">Koi chalti booking nahi</li>}
+          </ul>
         </div>
+      ) : (
+        <ListFrame loading={listQ.isLoading} error={listQ.isError && !listQ.data} onRetry={() => listQ.refetch()}
+          empty={!rows.length ? { icon: Beef, title: 'Koi booking nahi', text: 'Eid se pehle hisse book karein — naam, phone, kitne hisse aur advance.', actions: canPos ? <Button onClick={() => setDialog({ kind: 'new' })} leftIcon={<Plus className="h-4 w-4" />}>Nayi booking</Button> : undefined } : null}>
+          {rows.map((b) => {
+            const due = Math.max((b.finalPrice ?? 0) - b.paidAmount, 0);
+            const next = b.status === 'BOOKED' ? { s: 'CONFIRMED', l: 'Pakki karein' } : b.status === 'CONFIRMED' ? { s: 'SLAUGHTERED', l: 'Zibah ho gaya' } : null;
+            return (
+              <li key={b.id} className="px-4 py-3 sm:px-5">
+                <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-semibold text-slate-900">{b.customerName}</span>
+                      <span className="text-[0.75rem] text-slate-500">{b.bookingNumber}</span>
+                      <Pill tone={STATUS[b.status]?.tone}>{STATUS[b.status]?.label ?? b.status}</Pill>
+                      <Pill>{occasionLabel(b.occasion)}</Pill>
+                    </div>
+                    <p className="mt-0.5 text-[0.8125rem] text-slate-600">{animalOf(b.animalType).emoji} {animalOf(b.animalType).label} · {b.shareCount} hissa{b.slaughterDay ? ` · Eid din ${b.slaughterDay}` : ''}{b.deliveryPreference === 'HOME_DELIVERY' ? ' · ghar bhejna' : ''}</p>
+                    <p className="text-[0.75rem] text-slate-500">{b.customerPhone} · {dateOnly(b.bookedAt)}{b.cancellationReason ? ` · Wajah: ${b.cancellationReason}` : ''}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold tabular-nums">{b.finalPrice ? sales(b.finalPrice) : <span className="text-amber-700">Qeemat nahi</span>}</p>
+                    <p className="text-[0.75rem] text-slate-500">Mila {sales(b.paidAmount)}</p>
+                    {isOpen(b) && due > 0 && <p className="text-[0.75rem] font-semibold text-amber-700">Baqi {sales(due)}</p>}
+                  </div>
+                </div>
+                {canPos && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {isOpen(b) && <>
+                      {next && <Button size="sm" variant="secondary" rightIcon={<ArrowRight className="h-3.5 w-3.5" />} loading={step.isPending && step.variables?.b.id === b.id} onClick={() => step.mutate({ b, status: next.s })}>{next.l}</Button>}
+                      {(!b.finalPrice || due > 0) && <Button size="sm" variant="secondary" leftIcon={<Wallet className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'pay', b })}>Paisa mila</Button>}
+                      <Button size="sm" variant="success" leftIcon={<Receipt className="h-3.5 w-3.5" />} disabled={!b.finalPrice} title={!b.finalPrice ? 'Pehle qeemat likhein' : undefined} onClick={() => setDialog({ kind: 'done', b })}>Gosht de kar bill</Button>
+                      <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'edit', b })}>Badlein</Button>
+                      <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'cancel', b })}>Cancel</Button>
+                    </>}
+                    {b.status === 'CANCELLED' && b.paidAmount > 0 && canRefund && <Button size="sm" variant="secondary" leftIcon={<Undo2 className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'refund', b })}>Advance wapas</Button>}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ListFrame>
+      )}
 
-        {/* Charity */}
-        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.needsCharityShare} onChange={(e) => setForm({ ...form, needsCharityShare: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold text-emerald-900">🎁 Include charity share</span>
-          </label>
-          {form.needsCharityShare && (
-            <div className="grid grid-cols-2 gap-2">
-              <input type="number" value={form.charityShareKg} onChange={(e) => setForm({ ...form, charityShareKg: e.target.value })} placeholder="Kg for charity" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-              <input value={form.charityRecipient} onChange={(e) => setForm({ ...form, charityRecipient: e.target.value })} placeholder="Recipient (poor, madrasa...)" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            </div>
-          )}
-        </div>
+      {(dialog?.kind === 'new' || dialog?.kind === 'edit') && <BookingForm b={dialog.kind === 'edit' ? dialog.b : null} onClose={() => setDialog(null)} onDone={refresh} />}
+      {dialog?.kind === 'pay' && <PayModal title={`${dialog.b.bookingNumber} · ${dialog.b.customerName}`} due={dialog.b.finalPrice ? Math.max(dialog.b.finalPrice - dialog.b.paidAmount, 0) : 1_000_000} onClose={() => { setDialog(null); refresh(); }} onPay={(a, m) => qurbaniApi.payment(dialog.b.id, a, m)} />}
+      {dialog?.kind === 'done' && <CompleteModal b={dialog.b} onClose={() => setDialog(null)} onDone={refresh} />}
+      {dialog?.kind === 'cancel' && <CancelModal title={`${dialog.b.bookingNumber} · ${dialog.b.customerName}`} paid={dialog.b.paidAmount} onClose={() => { setDialog(null); refresh(); }} onConfirm={(r) => qurbaniApi.updateStatus(dialog.b.id, 'CANCELLED', r)} />}
+      {dialog?.kind === 'refund' && <RefundDialog b={dialog.b} onClose={() => { setDialog(null); refresh(); }} />}
 
-        {/* Preferences */}
-        <div className="grid grid-cols-2 gap-2">
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.wantsSkin ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-ink-700')}>
-            <input type="checkbox" checked={form.wantsSkin} onChange={(e) => setForm({ ...form, wantsSkin: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold">Wants skin (khaal)</span>
-          </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.wantsOffal ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-ink-700')}>
-            <input type="checkbox" checked={form.wantsOffal} onChange={(e) => setForm({ ...form, wantsOffal: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold">Wants offal (kaleji, paye)</span>
-          </label>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.cuttingStyle} onChange={(e) => setForm({ ...form, cuttingStyle: e.target.value })} placeholder="Cutting style" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          <input type="number" value={form.packagingCount} onChange={(e) => setForm({ ...form, packagingCount: e.target.value })} placeholder="Number of packets" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
-        </div>
-
-        <textarea rows={2} value={form.specialInstructions} onChange={(e) => setForm({ ...form, specialInstructions: e.target.value })} placeholder="Special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-fuchsia-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName || !form.customerPhone}>
-            <Save className="h-4 w-4" />
-            Book Qurbani
-          </Button>
-        </div>
-      </div>
-    </section>
+      {guide.isOpen && (
+        <PageGuide title="Qurbani aur aqeeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#7c3aed', title: 'Booking', text: 'Naam, phone, janwar aur hisse (gaye / oont me 7 tak). Advance usi waqt lein — aaj ke galle me aata hai.' },
+            { icon: Beef, color: '#d97706', title: 'Janwar jorein', text: 'Baara ka janwar booking se jorein — us ki qeemat bill ki cost banti hai aur profit sahi aata hai.' },
+            { icon: Receipt, color: '#16a34a', title: 'Gosht de kar bill', text: 'Zibah ke baad "Gosht de kar bill" — ek bill banta hai, advance khate se kat jata hai, baqi ab lein ya udhaar.' },
+            { icon: Undo2, color: '#e11d48', title: 'Cancel', text: 'Cancel ke baad advance khate me rehta hai; "Advance wapas" se cash lautayein.' },
+          ]}
+          tips={['Qeemat likhe baghair bill nahi banta.', 'Bill void karne se booking wapas "Zibah ho gaya" par aa jati hai.']}
+          shortcuts={[['N', 'nayi booking'], ['/', 'dhoondein'], ['1', 'bookings'], ['2', 'analytics'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

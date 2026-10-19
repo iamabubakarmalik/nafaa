@@ -46,10 +46,11 @@ export interface MembershipPlan {
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
+export type PlanInput = Partial<Omit<MembershipPlan, 'id' | 'totalSubscribers' | 'totalRevenue' | 'createdAt' | 'updatedAt' | 'iconUrl'>>;
+
 export const membershipPlansApi = {
-  create: (data: Partial<MembershipPlan>) => apiClient.post('/gym/membership-plans', data).then(unwrap<MembershipPlan>),
-  list: (params?: any) => apiClient.get('/gym/membership-plans', { params }).then(unwrap<MembershipPlan[]>),
-  getOne: (id: string) => apiClient.get('/gym/membership-plans/' + id).then(unwrap<MembershipPlan>),
-  update: (id: string, data: Partial<MembershipPlan>) => apiClient.patch('/gym/membership-plans/' + id, data).then(unwrap<MembershipPlan>),
+  create: (data: PlanInput) => apiClient.post('/gym/membership-plans', data).then(unwrap<MembershipPlan>),
+  list: (params?: { active?: boolean; planType?: string; featured?: boolean }) => apiClient.get('/gym/membership-plans', { params }).then(unwrap<MembershipPlan[]>),
+  update: (id: string, data: PlanInput) => apiClient.patch('/gym/membership-plans/' + id, data).then(unwrap<MembershipPlan>),
   remove: (id: string) => apiClient.delete('/gym/membership-plans/' + id).then(unwrap),
 };

@@ -1,6 +1,10 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { ApplianceInstallationStatus } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+
+/** Unit states the shop sets by hand; SOLD comes from a bill, REMOVED from the remove button. */
+export const SERIAL_STATES = ['IN_STOCK', 'RESERVED', 'SOLD', 'IN_TRANSIT', 'IN_REPAIR', 'RETURNED', 'DEFECTIVE', 'LOST'] as const;
 
 export class UpsertApplianceSerialDto {
   @ApiProperty() @IsString() productId!: string;
@@ -8,8 +12,8 @@ export class UpsertApplianceSerialDto {
   @ApiPropertyOptional() @IsOptional() @IsString() modelNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() batchNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() manufactureDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() purchasePrice?: number;
+  @ApiPropertyOptional({ enum: SERIAL_STATES }) @IsOptional() @IsIn([...SERIAL_STATES]) status?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) purchasePrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() purchaseDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() supplierRef?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() installationRequired?: boolean;
@@ -47,4 +51,14 @@ export class UpdateApplianceSerialDto extends PartialType(UpsertApplianceSerialD
   @ApiPropertyOptional() @IsOptional() @IsString() saleId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() invoiceNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() deliveryAddress?: string;
+}
+
+export class SaleUnitDto {
+  @ApiProperty() @IsString() serialId!: string;
+}
+
+/** The exact units that left on a counter bill, picked right after the sale. */
+export class AssignSaleSerialsDto {
+  @ApiProperty() @IsString() saleId!: string;
+  @ApiProperty({ type: [SaleUnitDto] }) @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => SaleUnitDto) units!: SaleUnitDto[];
 }

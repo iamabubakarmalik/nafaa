@@ -1,314 +1,343 @@
-import { useState } from 'react';
+/**
+ * Service jobs: every job card and where it stands — booked, technician
+ * on the way or working, waiting for parts or the customer's go-ahead,
+ * ready for the bill — what is late, money still owed on billed jobs, and
+ * the month's earnings.
+ *
+ * Keys: N new job · / search · 1 jobs · 2 analytics · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import {
-  Briefcase, Plus, Search, X, RefreshCw, Sparkles, Clock, User, Phone,
-  MapPin, CheckCircle2, AlertCircle, ArrowRight, Zap, Timer, DollarSign,
-  Activity, Flame, Star, Truck, Ban,
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, Briefcase, CalendarClock, CheckCircle2, Clock, Download, FileText, Filter, Flame, GraduationCap,
+  ListChecks, MapPin, MessageCircle, Package, Plus, Printer, Receipt, Truck, UserCog, Wallet, Wrench,
 } from 'lucide-react';
-import { jobsApi, type JobStatus, type Priority } from '../api/jobs.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { format, differenceInMinutes, isToday, isTomorrow } from 'date-fns';
-import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { jobsApi, type JobListParams, type JobSort, type JobStats, type JobView, type Priority, type ServiceJob } from '../api/jobs.api';
+import { techniciansApi } from '../api/technicians.api';
+import { jobMessage, printJobCard } from '../components/slips';
+import { JOB_KEY, PRIORITIES, READY, TECH_KEY, categoryOf, dateTime, dayOnly, isOnSite, itemName, placeOf, priorityOf, statusOf, waLink } from '../components/meta';
 
-const STATUS_CONFIG: Record<JobStatus, { label: string; color: string; icon: any }> = {
-  DRAFT: { label: 'Draft', color: 'bg-slate-500', icon: AlertCircle },
-  ENQUIRY: { label: 'Enquiry', color: 'bg-slate-500', icon: Phone },
-  QUOTED: { label: 'Quoted', color: 'bg-blue-400', icon: DollarSign },
-  CONFIRMED: { label: 'Confirmed', color: 'bg-blue-500', icon: CheckCircle2 },
-  SCHEDULED: { label: 'Scheduled', color: 'bg-cyan-500', icon: Clock },
-  ASSIGNED: { label: 'Assigned', color: 'bg-violet-500', icon: User },
-  DISPATCHED: { label: 'Dispatched', color: 'bg-purple-500', icon: Truck },
-  EN_ROUTE: { label: 'En Route', color: 'bg-indigo-500', icon: Truck },
-  ARRIVED: { label: 'Arrived', color: 'bg-teal-500', icon: MapPin },
-  IN_PROGRESS: { label: 'In Progress', color: 'bg-amber-500', icon: Activity },
-  PAUSED: { label: 'Paused', color: 'bg-orange-500', icon: Timer },
-  AWAITING_PARTS: { label: 'Awaiting Parts', color: 'bg-orange-600', icon: Timer },
-  AWAITING_APPROVAL: { label: 'Awaiting Approval', color: 'bg-yellow-500', icon: Clock },
-  QUALITY_CHECK: { label: 'Quality Check', color: 'bg-fuchsia-500', icon: Star },
-  COMPLETED: { label: 'Completed', color: 'bg-emerald-600', icon: CheckCircle2 },
-  UNABLE_TO_COMPLETE: { label: 'Unable', color: 'bg-red-600', icon: X },
-  RESCHEDULED: { label: 'Rescheduled', color: 'bg-violet-400', icon: Clock },
-  CANCELLED: { label: 'Cancelled', color: 'bg-rose-500', icon: Ban },
-  WARRANTY_HOLD: { label: 'Warranty Hold', color: 'bg-slate-500', icon: Timer },
-  DISPUTED: { label: 'Disputed', color: 'bg-red-500', icon: AlertCircle },
-};
-
-const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; emoji: string }> = {
-  EMERGENCY: { label: 'Emergency', color: 'bg-red-600 animate-pulse', emoji: '🚨' },
-  URGENT: { label: 'Urgent', color: 'bg-red-500', emoji: '🔥' },
-  HIGH: { label: 'High', color: 'bg-amber-500', emoji: '⚡' },
-  NORMAL: { label: 'Normal', color: 'bg-blue-500', emoji: '📌' },
-  LOW: { label: 'Low', color: 'bg-slate-500', emoji: '🐢' },
-};
+type Tab = 'jobs' | 'analytics';
+const VIEWS: Array<{ id: JobView; label: string; icon: typeof Wrench }> = [
+  { id: 'open', label: 'Chaalu jobs', icon: Briefcase },
+  { id: 'booked', label: 'Booked — technician baqi', icon: CalendarClock },
+  { id: 'working', label: 'Kaam chal raha', icon: Wrench },
+  { id: 'waiting', label: 'Parts / haan ka intezar', icon: Package },
+  { id: 'ready', label: 'Tayyar — bill baqi', icon: CheckCircle2 },
+  { id: 'late', label: 'Late', icon: AlertTriangle },
+  { id: 'unpaid', label: 'Udhaar baqi', icon: Wallet },
+  { id: 'closed', label: 'Mukammal / cancel', icon: Receipt },
+  { id: 'all', label: 'Sab', icon: ListChecks },
+];
+const viewLabel = (v: JobView) => VIEWS.find((x) => x.id === v)?.label ?? v;
+const SORTS: Array<{ value: JobSort; label: string }> = [
+  { value: 'due', label: 'Jo pehle karni hai' }, { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' }, { value: 'amount', label: 'Bara bill pehle' },
+];
+const ALL_TIME: DateRangeValue = { preset: 'all', custom: { from: '', to: '' } };
 
 export default function JobsListPage() {
-  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
-     liye raat 1 baje ki bikri abhi "aaj" ki hai */
-  const bdStart = useBusinessDayStart();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('active');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('all');
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const shopId = useShopParam();
+  const startHour = useBusinessDayStart();
+  const canManage = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const { sales } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  useReceiptSetup();
 
-  const getDateRange = () => {
-    if (dateFilter === 'all') return {};
-    const now = new Date();
-    const start = new Date(now);
-    const end = new Date(now);
-    if (dateFilter === 'today') {
-      setToDayStart(start, bdStart);
-      setToDayEnd(end, bdStart);
-    } else if (dateFilter === 'week') {
-      setToDayStart(start, bdStart);
-      end.setDate(end.getDate() + 7);
-      setToDayEnd(end, bdStart);
-    }
-    return { from: start.toISOString(), to: end.toISOString() };
+  const [tab, setTab] = useState<Tab>((params.get('tab') as Tab) || 'jobs');
+  const [view, setView] = useState<JobView>((params.get('view') as JobView) || 'open');
+  const [priority, setPriority] = useState<Priority | ''>('');
+  const [tech, setTech] = useState(params.get('technician') ?? '');
+  const [range, setRange] = useState<DateRangeValue>(ALL_TIME);
+  const [sort, setSort] = useState<JobSort>('due');
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const [query, setQuery] = useState(search.trim());
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [view, priority, tech, range, sort, query]);
+  useEffect(() => {
+    const next = new URLSearchParams(params);
+    if (tab === 'jobs') next.delete('tab'); else next.set('tab', tab);
+    if (view === 'open') next.delete('view'); else next.set('view', view);
+    if (query) next.set('q', query); else next.delete('q');
+    setParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, view, query]);
+
+  const period = resolveRange(range, startHour);
+  const q: JobListParams = {
+    view, shopId: shopId || undefined, page, limit: 40, sort, search: query || undefined, priority: priority || undefined, technicianId: tech || undefined,
+    ...(period && period.from !== 'all' ? { from: period.from, to: period.to } : {}),
   };
+  const listQ = useQuery({ queryKey: [JOB_KEY, 'page', q], queryFn: () => jobsApi.page(q), placeholderData: (p) => p, refetchInterval: 60_000, enabled: tab === 'jobs' });
+  const statsQ = useQuery({ queryKey: [JOB_KEY, 'stats', shopId], queryFn: () => jobsApi.stats(shopId || undefined), refetchInterval: 60_000 });
+  const techQ = useQuery({ queryKey: [TECH_KEY], queryFn: () => techniciansApi.list(), staleTime: 5 * 60_000 });
 
-  const { data: jobs = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['services-jobs', statusFilter, priorityFilter, dateFilter, search],
-    queryFn: () => jobsApi.list({
-      status: statusFilter === 'active' || statusFilter === 'all' ? undefined : statusFilter,
-      priority: priorityFilter === 'all' ? undefined : priorityFilter,
-      search: search.trim() || undefined,
-      ...getDateRange(),
-    }),
-    refetchInterval: 60_000,
-  });
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+  const s = statsQ.data;
+  const techName = (id: string) => techQ.data?.find((t) => t.staffId === id)?.staff?.fullName ?? 'Technician';
+  const filtered = !!priority || !!tech || !!query || range.preset !== 'all';
+  const clear = () => { setPriority(''); setTech(''); setSearch(''); setRange(ALL_TIME); };
+  const pick = (v: JobView) => { setTab('jobs'); setView(v); };
 
-  const filtered = statusFilter === 'active'
-    ? jobs.filter((j) => !['COMPLETED', 'CANCELLED', 'DRAFT'].includes(j.status))
-    : jobs;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); navigate('/services-biz/jobs/new'); }
+      if (e.key === '1') setTab('jobs');
+      if (e.key === '2') setTab('analytics');
+      if (e.key === '/') { e.preventDefault(); setTab('jobs'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage, navigate]);
 
-  const stats = {
-    total: jobs.length,
-    urgent: jobs.filter((j) => ['URGENT', 'EMERGENCY'].includes(j.priority) && !['COMPLETED', 'CANCELLED'].includes(j.status)).length,
-    inProgress: jobs.filter((j) => ['DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS'].includes(j.status)).length,
-    revenue: jobs.filter((j) => j.status === 'COMPLETED').reduce((s, j) => s + j.totalCharge, 0),
+  const fetchAll = () => jobsApi.page({ ...q, page: 1, limit: 200 });
+  const printDoc = async (): Promise<PrintDoc> => {
+    const all = await fetchAll();
+    return {
+      title: `Service jobs — ${viewLabel(view)}`,
+      subtitle: period && period.from !== 'all' ? rangeLabel(period.from, period.to) : 'Sab tareekhen',
+      meta: [['Jobs', String(all.total)], ['Bill', sales(all.totals.bill)], ['Baqi', sales(all.totals.due)]],
+      sections: [{
+        kind: 'table',
+        columns: [{ label: 'Job' }, { label: 'Kaam' }, { label: 'Customer', wideOnly: true }, { label: 'Kahan', wideOnly: true }, { label: 'Halat' }, { label: 'Technician', wideOnly: true }, { label: 'Baqi', align: 'right' }],
+        rows: all.items.map((j) => [j.jobNumber, j.serviceName, [j.customerName, j.customerPhone].filter(Boolean).join(' '), placeOf(j), statusOf(j.status).label, j.technicianName ?? '—', sales(j.due ?? 0)]),
+      }],
+      footer: all.total > all.items.length ? `Pehle ${all.items.length} jobs (kul ${all.total})` : undefined,
+    };
+  };
+  const exportCsv = async () => {
+    const all = await fetchAll();
+    downloadCsv('service-jobs.csv', [
+      ['Job', 'Bani', 'Kaam', 'Category', 'Customer', 'Phone', 'Cheez', 'Kahan', 'Area', 'Waqt', 'Technician', 'Halat', 'Mukammal', 'Visit', 'Labour', 'Parts', 'Transport', 'Discount', 'Bill', 'Mila', 'Baqi'],
+      ...all.items.map((j) => [j.jobNumber, dayOnly(j.createdAt), j.serviceName, categoryOf(j.category), j.customerName ?? '', j.customerPhone ?? '', itemName(j), placeOf(j), j.area ?? '',
+        j.scheduledStart ? dateTime(j.scheduledStart) : '', j.technicianName ?? '', statusOf(j.status).label, j.completedAt ? dayOnly(j.completedAt) : '',
+        j.visitCharge, j.labourCharge, j.partsCharge, j.transportCharge, j.discountAmount, j.totalCharge, j.paidAmount, j.due ?? 0]),
+    ]);
   };
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Job Management
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">💼 Service Jobs</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Track jobs from enquiry to completion</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Link to="/services-biz/jobs/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" />
-                New Job
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Service jobs"
+        chip={<><Wrench /> Job cards</>}
+        meta="Kaam lein, technician bhejein, parts likhein, bill bana kar paisa lein"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={statsQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'jobs' || !rows.length} /></span>
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <Link to="/services-biz/dispatch" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Dispatch</span></Link>
+          <Link to="/services-biz/quotes" className={heroButton}><FileText className="h-4 w-4" /><span className="hidden sm:inline">Quotes</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <Link to="/services-biz/jobs/new" title="Naya job (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya job</Link>}
+        </>}
+        stats={s ? [
+          { label: 'Chaalu jobs', value: s.open, hint: s.late ? `${s.late} late` : undefined },
+          { label: 'Aaj aayi / mukammal', value: `${s.todayIn} / ${s.todayDone}`, hint: s.todayBooked ? `${s.todayBooked} visit aaj` : undefined },
+          { label: 'Is mahine kamai', value: sales(s.monthRevenue), hint: `${s.monthDone} jobs` },
+        ] : [{ label: 'Chaalu jobs', value: '—' }]}
+      />
 
-      {/* Stats */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Jobs" value={stats.total} icon={Briefcase} color="blue" />
-        <StatCard label="Urgent" value={stats.urgent} icon={Flame} color="red" highlight={stats.urgent > 0} />
-        <StatCard label="In Progress" value={stats.inProgress} icon={Activity} color="amber" />
-        <StatCard label="Revenue" value={formatPKR(stats.revenue)} icon={DollarSign} color="emerald" />
-      </section>
+      <KpiRow cols={5}>
+        {!s ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={CalendarClock} color={s.unassigned ? '#0284c7' : '#64748b'} label="Technician baqi" value={s.unassigned} hint={`${s.booked} booked`} onClick={() => pick('booked')} active={tab === 'jobs' && view === 'booked'} />
+          <KpiCard icon={Wrench} color="#7c3aed" label="Kaam chal raha" value={s.working} hint={`${s.onTheWay} raste me · ${s.onSite} site par`} onClick={() => pick('working')} active={tab === 'jobs' && view === 'working'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Tayyar — bill baqi" value={s.ready} hint={s.readyDue ? `${sales(s.readyDue)} lena hai` : 'Customer ko batayein'} onClick={() => pick('ready')} active={tab === 'jobs' && view === 'ready'} />
+          <KpiCard icon={AlertTriangle} color={s.late ? '#e11d48' : '#64748b'} label="Late" value={s.late} hint={s.urgent ? `${s.urgent} urgent` : 'Waqt guzar gaya'} onClick={() => pick('late')} active={tab === 'jobs' && view === 'late'} />
+          <KpiCard icon={Wallet} color={s.unpaidDue ? '#d97706' : '#64748b'} label="Udhaar baqi" value={sales(s.unpaidDue)} hint={`${s.unpaidJobs} job`} onClick={() => pick('unpaid')} active={tab === 'jobs' && view === 'unpaid'} />
+        </>}
+      </KpiRow>
 
-      {/* Filters */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search job#, customer, phone, serial..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {[
-            { v: 'active', label: '🔥 Active' },
-            { v: 'all', label: 'All' },
-            { v: 'ENQUIRY', label: 'Enquiry' },
-            { v: 'CONFIRMED', label: 'Confirmed' },
-            { v: 'ASSIGNED', label: 'Assigned' },
-            { v: 'IN_PROGRESS', label: 'In Progress' },
-            { v: 'AWAITING_PARTS', label: 'Awaiting Parts' },
-            { v: 'COMPLETED', label: 'Completed' },
-            { v: 'CANCELLED', label: 'Cancelled' },
-          ].map((s) => (
-            <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{s.label}</button>
-          ))}
-        </div>
-
-        <div className="flex gap-1.5 flex-wrap">
-          {['all', 'EMERGENCY', 'URGENT', 'HIGH', 'NORMAL', 'LOW'].map((p) => (
-            <button key={p} onClick={() => setPriorityFilter(p)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (priorityFilter === p ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>
-              {p === 'all' ? 'All Priority' : (PRIORITY_CONFIG[p as Priority]?.emoji || '') + ' ' + (PRIORITY_CONFIG[p as Priority]?.label || p)}
-            </button>
-          ))}
-          <div className="w-px bg-slate-200 mx-1" />
-          {[
-            { v: 'all', label: 'All Time' },
-            { v: 'today', label: 'Today' },
-            { v: 'week', label: 'Next 7 days' },
-          ].map((d) => (
-            <button key={d.v} onClick={() => setDateFilter(d.v)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (dateFilter === d.v ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{d.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Briefcase className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No jobs found</p>
-          <Link to="/services-biz/jobs/new">
-            <Button className="mt-4 bg-gradient-to-r from-blue-600 to-cyan-700">
-              <Plus className="h-4 w-4" />
-              Create First Job
-            </Button>
-          </Link>
-        </div>
+      {tab === 'analytics' ? (
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is mahine mukammal jobs — kamai, kaam aur parts</p>} />
       ) : (
-        <section className="grid gap-3">
-          {filtered.map((job) => <JobCard key={job.id} job={job} />)}
-        </section>
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Job #, customer, phone, brand, serial, area…" label="Search" />}
+          chips={filtered ? <>
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+            {priority && <FilterChip onRemove={() => setPriority('')}>{priorityOf(priority).label}</FilterChip>}
+            {tech && <FilterChip onRemove={() => setTech('')}>{techName(tech)}</FilterChip>}
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange(ALL_TIME)}>{view === 'closed' || view === 'unpaid' ? 'Mukammal' : 'Bani'}: {rangeLabel(period.from, period.to)}</FilterChip>}
+          </> : undefined}
+          onClear={clear}>
+          <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'open'} onChange={setView} width="w-64"
+            options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon }))} />
+          <FilterMenu icon={Flame} label={priority ? priorityOf(priority).label : 'Jaldi'} value={priority} active={!!priority} onChange={setPriority}
+            options={[{ value: '' as Priority | '', label: 'Sab' }, ...PRIORITIES.map((p) => ({ value: p as Priority | '', label: priorityOf(p).label }))]} />
+          <FilterMenu icon={UserCog} label={tech ? techName(tech) : 'Technician'} value={tech} active={!!tech} onChange={setTech}
+            options={[{ value: '', label: 'Sab' }, ...(techQ.data ?? []).map((t) => ({ value: t.staffId, label: t.staff?.fullName ?? 'Technician', hint: t.openJobs ? `${t.openJobs} chal rahe` : undefined }))]} />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={view === 'closed' || view === 'unpaid' ? 'Mukammal hone ki date' : 'Banne ki date'} />
+          <FilterMenu icon={ArrowDownWideNarrow} label={SORTS.find((x) => x.value === sort)?.label ?? 'Tarteeb'} value={sort} onChange={setSort} align="right" options={SORTS} />
+        </FilterBar>
       )}
+
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        tabs={[
+          { id: 'jobs', label: 'Jobs', icon: ListChecks, count: data?.total ?? null },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
+
+      {tab === 'analytics' ? <JobAnalytics stats={s} /> : (<>
+        {data && data.total > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
+            <span className="text-slate-500">{viewLabel(view)}</span>
+            <span className="font-semibold text-slate-900">{data.total} jobs · bill {sales(data.totals.bill)}</span>
+            <span className="text-slate-600">mila {sales(data.totals.paid)}</span>
+            {data.totals.due > 0 && <span className="text-amber-700">baqi {sales(data.totals.due)}</span>}
+          </div>
+        )}
+
+        {listQ.isLoading ? (
+          <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
+        ) : listQ.isError && !data ? (
+          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+            <p className="font-semibold text-slate-900">Jobs load nahi hue</p>
+            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+          </div>
+        ) : !rows.length ? (
+          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+            <Briefcase className="mx-auto h-10 w-10 text-slate-300" />
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi job nahi' : view === 'late' ? 'Koi job late nahi — shabash' : view === 'ready' ? 'Koi job bill ke liye tayyar nahi' : 'Koi job nahi'}</p>
+            <p className="mt-1 text-sm text-slate-500">Customer ka phone aaye ya saman aaye to job banayein, parchi dein — tayyar hote hi WhatsApp karein.</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {canManage && <Button onClick={() => navigate('/services-biz/jobs/new')} leftIcon={<Plus className="h-4 w-4" />}>Naya job</Button>}
+              {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+              {!filtered && view !== 'all' && <Button variant="ghost" onClick={() => setView('all')}>Sab jobs dekhein</Button>}
+            </div>
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {rows.map((j) => <JobRow key={j.id} j={j} shopName={shopName} money={sales} />)}
+          </ul>
+        )}
+
+        {data && data.totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2">
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+            <span className="text-sm text-slate-600">Safha {page} / {data.totalPages}</span>
+            <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+          </div>
+        )}
+      </>)}
+
+      {guide.isOpen && (
+        <PageGuide title="Service jobs — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Job banayein', text: '"Naya job": customer, kya kaam hai, cheez (brand/model), dukaan par ya ghar par, waqt aur andaza. Advance ho to wahin likhein — customer ke khata me jama hota hai.' },
+            { icon: Truck, color: '#7c3aed', title: 'Technician bhejein', text: 'Job kholein → "Technician lagayein". Dispatch page par saari booked jobs aur free technician ek saath dikhte hain.' },
+            { icon: Package, color: '#ea580c', title: 'Parts', text: 'Kaam me laga part job par jorein — dukaan ka part bill par stock se nikalta hai; bahar se liya ya customer ka apna bhi likh sakte hain.' },
+            { icon: MessageCircle, color: '#22c55e', title: 'Customer ko batayein', text: 'Har job par WhatsApp — halat, waqt aur baqi paisa khud likha hota hai.' },
+            { icon: Receipt, color: '#16a34a', title: 'Bill', text: '"Bill banayein" par baqi paisa lein (split bhi). Bill Sales, Profit, galla aur khata sab me aata hai. Counter (POS) par "Tayyar jobs" se bhi bill hota hai.' },
+            { icon: Printer, color: '#64748b', title: 'Parchi', text: 'Job card dukaan ke bill design me chhapta hai — customer isi se saman wapas leta hai.' },
+          ]}
+          tips={['"Late" card roz subah dekhein.', 'Bill ghalat ban gaya ho to Sales se void karein — job dobara khul jati hai, theek kar ke dobara bill banayein.', 'Job sambhalne ke liye "Service jobs manage" aur paisa lene ke liye "POS" ki permission chahiye.']}
+          shortcuts={[['N', 'naya job'], ['/', 'dhoondein'], ['1', 'jobs'], ['2', 'analytics'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function JobRow({ j, shopName, money }: { j: ServiceJob; shopName: string; money: (n: number) => string }) {
+  const due = j.due ?? Math.max(j.totalCharge - j.paidAmount, 0);
+  const st = statusOf(j.status);
+  const ready = READY.includes(j.status);
+  const wa = waLink(j.customerPhone, jobMessage(j, shopName));
+  const item = itemName(j);
+  return (
+    <li className="flex items-start gap-3 px-3 py-3 sm:px-4">
+      <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', j.isLate ? 'bg-rose-50 text-rose-600' : ready ? 'bg-emerald-50 text-emerald-600' : 'bg-sky-50 text-sky-600')}>
+        {isOnSite(j.locationType) ? <MapPin className="h-5 w-5" /> : <Wrench className="h-5 w-5" />}
+      </span>
+      <Link to={`/services-biz/jobs/${j.id}`} className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="truncate font-semibold text-slate-900">{j.serviceName}</span>
+          {item && <span className="truncate text-[0.8125rem] text-slate-600">{item}</span>}
+          <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}>{st.label}</span>
+          {j.priority !== 'NORMAL' && <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', priorityOf(j.priority).tone)}>{priorityOf(j.priority).label}</span>}
+          <span className="font-mono text-[0.6875rem] text-slate-400">{j.jobNumber}</span>
+        </div>
+        <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{[j.customerName, j.customerPhone].filter(Boolean).join(' · ') || 'Customer nahi likha'} — {placeOf(j)}</p>
+        <p className={cn('mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.75rem]', j.isLate ? 'font-semibold text-rose-700' : 'text-slate-500')}>
+          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />
+            {j.status === 'COMPLETED' ? `Mukammal ${dayOnly(j.completedAt)}` : j.status === 'CANCELLED' ? `Cancel ${dayOnly(j.cancelledAt)}` : j.scheduledStart ? (j.isLate ? `Late — waqt ${dateTime(j.scheduledEnd ?? j.scheduledStart)}` : dateTime(j.scheduledStart)) : `Bani ${dateTime(j.createdAt)}`}
+          </span>
+          <span className="font-normal text-slate-500">· {j.technicianName ?? 'Technician nahi laga'}</span>
+        </p>
+      </Link>
+      <div className="shrink-0 text-right">
+        <p className="font-semibold tabular-nums text-slate-900">{money(j.totalCharge)}</p>
+        {due > 0 && j.status !== 'CANCELLED' && <p className="text-[0.75rem] font-medium tabular-nums text-amber-700">baqi {money(due)}</p>}
+        <div className="mt-1 flex justify-end gap-1">
+          <button type="button" onClick={() => printJobCard(j, shopName)} aria-label="Parchi" title="Parchi" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Printer className="h-3.5 w-3.5" /></button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" aria-label="WhatsApp" title="WhatsApp" className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></a>}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function JobAnalytics({ stats: s }: { stats?: JobStats }) {
+  const { sales } = useMasked();
+  if (!s) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-60 rounded-3xl" /><Skeleton className="h-60 rounded-3xl" /></div>;
+  const max = Math.max(1, ...s.byStatus.map((b) => b.count));
+  const other = Math.max(s.monthRevenue - s.monthLabour - s.monthParts, 0);
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+        <h3 className="font-semibold text-slate-900">Kamai — is mahine</h3>
+        <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.8125rem]">
+          <Box label="Jobs mukammal" value={String(s.monthDone)} />
+          <Box label="Kul bill" value={sales(s.monthRevenue)} />
+          <Box label="Visit + kaam" value={sales(s.monthLabour)} />
+          <Box label="Parts" value={sales(s.monthParts)} />
+          <Box label="Transport / tax / aur" value={sales(other)} />
+          <Box label="Udhaar baqi" value={sales(s.unpaidDue)} tone={s.unpaidDue > 0 ? 'text-amber-700' : 'text-slate-900'} />
+        </dl>
+        <p className="mt-3 text-[0.75rem] text-slate-500">Profit aur Cost Reports → Profit me — har job ka bill wahan sale ki tarah aata hai.</p>
+      </section>
+      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+        <h3 className="font-semibold text-slate-900">Jobs kis halat me</h3>
+        <ul className="mt-4 space-y-3">
+          {s.byStatus.length === 0 && <li className="text-[0.8125rem] text-slate-500">Abhi koi job nahi</li>}
+          {[...s.byStatus].sort((a, b) => b.count - a.count).map((b) => (
+            <li key={b.status}>
+              <div className="flex justify-between text-[0.8125rem]"><span className="font-medium text-slate-700">{statusOf(b.status).label}</span><span className="tabular-nums text-slate-600">{b.count}</span></div>
+              <div className="mt-1 h-2.5 rounded-full bg-slate-100"><div className="h-2.5 rounded-full" style={{ width: `${(b.count / max) * 100}%`, backgroundColor: statusOf(b.status).color }} /></div>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, highlight }: any) {
-  const colors: Record<string, string> = {
-    blue: 'from-blue-500 to-cyan-600',
-    red: 'from-red-500 to-rose-600',
-    amber: 'from-amber-500 to-orange-600',
-    emerald: 'from-emerald-500 to-green-600',
-  };
-  return (
-    <div className={
-      'rounded-2xl border-2 p-5 shadow-sm ' +
-      (highlight ? 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/40 dark:to-rose-950/40 border-red-300 animate-pulse' : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800')
-    }>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function JobCard({ job }: any) {
-  const statusCfg = STATUS_CONFIG[job.status as JobStatus];
-  const priorityCfg = PRIORITY_CONFIG[job.priority as Priority];
-  const StatusIcon = statusCfg.icon;
-  const remaining = job.totalCharge - job.paidAmount;
-  const scheduled = job.scheduledStart ? new Date(job.scheduledStart) : null;
-  const minsToStart = scheduled ? differenceInMinutes(scheduled, new Date()) : null;
-  const isSoon = minsToStart !== null && minsToStart <= 60 && minsToStart >= 0 && ['CONFIRMED', 'SCHEDULED', 'ASSIGNED', 'DISPATCHED'].includes(job.status);
-
-  return (
-    <Link to={'/services-biz/jobs/' + job.id} className={
-      'block rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 ' +
-      (isSoon ? 'border-amber-400 ring-2 ring-amber-100' :
-       ['EMERGENCY', 'URGENT'].includes(job.priority) && !['COMPLETED', 'CANCELLED'].includes(job.status) ? 'border-red-300' :
-       'border-slate-200 dark:border-ink-800 hover:border-blue-300')
-    }>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={
-            'h-12 w-12 rounded-2xl text-white flex items-center justify-center shadow shrink-0 ' +
-            (job.priority === 'EMERGENCY' ? 'bg-gradient-to-br from-red-500 to-rose-600 animate-pulse' :
-             job.priority === 'URGENT' ? 'bg-gradient-to-br from-red-500 to-orange-600' :
-             'bg-gradient-to-br from-blue-500 to-cyan-600')
-          }>
-            <Briefcase className="h-6 w-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{job.jobNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
-                <StatusIcon className="h-2.5 w-2.5" />
-                {statusCfg.label}
-              </span>
-              <span className={'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' + priorityCfg.color}>
-                {priorityCfg.emoji} {priorityCfg.label}
-              </span>
-              {job.underWarranty && (
-                <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase">
-                  🛡️ WARRANTY
-                </span>
-              )}
-              {job.paymentStatus === 'PAID' && (
-                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">PAID</span>
-              )}
-              {isSoon && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
-                  IN {minsToStart}MIN
-                </span>
-              )}
-            </div>
-
-            <div className="mt-1 text-sm font-bold text-slate-900 dark:text-ink-white">{job.serviceName}</div>
-            <p className="text-xs text-slate-600 dark:text-ink-400 line-clamp-1">{job.problemDescription}</p>
-
-            <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">
-              {job.customerName && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{job.customerName}</span>}
-              {job.customerPhone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{job.customerPhone}</span>}
-              {job.area && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{job.area}</span>}
-              {scheduled && (
-                <span className="inline-flex items-center gap-1 font-extrabold">
-                  <Clock className="h-3 w-3" />
-                  {isToday(scheduled) ? 'Today' : isTomorrow(scheduled) ? 'Tomorrow' : format(scheduled, 'dd MMM')} {format(scheduled, 'HH:mm')}
-                </span>
-              )}
-            </div>
-
-            {job.brand && (
-              <div className="mt-1 text-[0.6875rem] text-slate-500 font-bold">
-                {job.brand} {job.modelNumber && '• ' + job.modelNumber} {job.serialNumber && '• SN: ' + job.serialNumber}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(job.totalCharge)}</div>
-          {remaining > 0 && job.paymentStatus !== 'PAID' && (
-            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
-          )}
-          <div className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600">
-            View <ArrowRight className="h-3 w-3" />
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
+function Box({ label, value, tone = 'text-slate-900' }: { label: string; value: string; tone?: string }) {
+  return <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">{label}</dt><dd className={cn('text-base font-bold tabular-nums', tone)}>{value}</dd></div>;
 }

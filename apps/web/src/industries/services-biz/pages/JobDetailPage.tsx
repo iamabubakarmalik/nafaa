@@ -1,863 +1,389 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, CheckCircle2, X, Ban, Sparkles, User, Phone, Mail, MapPin,
-  Clock, Printer, DollarSign, CreditCard, Star, Calendar, Truck,
-  Camera, ArrowRight, Zap, Package, Activity, Timer, Award, Shield,
-  PenTool, MessageSquare, Plus,
-} from 'lucide-react';
-import { jobsApi, type JobStatus } from '../api/jobs.api';
-import { techniciansApi } from '../api/technicians.api';
-import { dispatchApi } from '../api/dispatch.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * One job card: where the job stands and the next step, who is on it, the
+ * charges and parts (shelf parts leave stock with the bill), the money
+ * (advances, what is due, the bill and later payments), the customer and
+ * the place, warranty, rating and the job's history.
+ *
+ * Keys: P print · E edit · A add part · B bill · G guide · Esc back.
+ */
+
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { PaymentMethodPicker } from '@modules/pos/components';
+import {
+  AlertTriangle, ArrowLeft, Ban, BookOpen, Car, CheckCircle2, Clock, GraduationCap, Hammer, History, MapPin, MessageCircle, Package, PauseCircle, Pencil,
+  PlayCircle, Plus, Printer, Receipt, RotateCcw, ShieldCheck, Star, Trash2, UserCheck, UserRound, Wallet, Wrench,
+} from 'lucide-react';
+import { Button, Card, Input, Modal, PageHero, PageShell, Skeleton, TBody, THead, Table, Td, Th, Tr, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { TakePaymentModal } from '@modules/pos/components';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { jobsApi, type BillInput, type JobStatus, type PartInput } from '../api/jobs.api';
+import { AddPartModal } from '../components/AddPartModal';
+import { AssignModal } from '../components/AssignModal';
+import { BillJobModal } from '../components/BillJobModal';
+import { jobMessage, printJobCard } from '../components/slips';
+import {
+  BOOKED, JOB_KEY, MONEY_KEYS, READY, STEPS, TECH_KEY, WARRANTY_KEY, apiError, categoryOf, dateInput, dateTime, dayOnly, isClosed, isOnSite, itemName,
+  locationOf, priorityOf, statusOf, stepOf, waLink,
+} from '../components/meta';
 
-const STATUS_FLOW: JobStatus[] = ['CONFIRMED', 'SCHEDULED', 'ASSIGNED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'QUALITY_CHECK', 'COMPLETED'];
+type Dialog = null | 'part' | 'assign' | 'bill' | 'pay' | 'cancel' | 'return' | 'rate';
 
-const STATUS_CONFIG: Record<JobStatus, { label: string; color: string; icon: any }> = {
-  DRAFT: { label: 'Draft', color: 'bg-slate-500', icon: Clock },
-  ENQUIRY: { label: 'Enquiry', color: 'bg-slate-500', icon: Phone },
-  QUOTED: { label: 'Quoted', color: 'bg-blue-400', icon: DollarSign },
-  CONFIRMED: { label: 'Confirmed', color: 'bg-blue-500', icon: CheckCircle2 },
-  SCHEDULED: { label: 'Scheduled', color: 'bg-cyan-500', icon: Clock },
-  ASSIGNED: { label: 'Assigned', color: 'bg-violet-500', icon: User },
-  DISPATCHED: { label: 'Dispatched', color: 'bg-purple-500', icon: Truck },
-  EN_ROUTE: { label: 'En Route', color: 'bg-indigo-500', icon: Truck },
-  ARRIVED: { label: 'Arrived', color: 'bg-teal-500', icon: MapPin },
-  IN_PROGRESS: { label: 'In Progress', color: 'bg-amber-500', icon: Activity },
-  PAUSED: { label: 'Paused', color: 'bg-orange-500', icon: Timer },
-  AWAITING_PARTS: { label: 'Awaiting Parts', color: 'bg-orange-600', icon: Package },
-  AWAITING_APPROVAL: { label: 'Awaiting Approval', color: 'bg-yellow-500', icon: Clock },
-  QUALITY_CHECK: { label: 'Quality Check', color: 'bg-fuchsia-500', icon: Star },
-  COMPLETED: { label: 'Completed', color: 'bg-emerald-600', icon: CheckCircle2 },
-  UNABLE_TO_COMPLETE: { label: 'Unable', color: 'bg-red-600', icon: X },
-  RESCHEDULED: { label: 'Rescheduled', color: 'bg-violet-400', icon: Calendar },
-  CANCELLED: { label: 'Cancelled', color: 'bg-rose-500', icon: Ban },
-  WARRANTY_HOLD: { label: 'Warranty Hold', color: 'bg-slate-500', icon: Timer },
-  DISPUTED: { label: 'Disputed', color: 'bg-red-500', icon: MessageSquare },
-};
+const SIDE: Array<{ status: JobStatus; label: string; icon: typeof Clock }> = [
+  { status: 'AWAITING_PARTS', label: 'Parts ka intezar', icon: Package },
+  { status: 'AWAITING_APPROVAL', label: 'Customer ki haan', icon: UserRound },
+  { status: 'PAUSED', label: 'Rok dein', icon: PauseCircle },
+  { status: 'UNABLE_TO_COMPLETE', label: 'Kaam nahi ho saka', icon: AlertTriangle },
+];
 
 export default function JobDetailPage() {
-  const { id } = useParams();
+  const { id = '' } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [showPayment, setShowPayment] = useState(false);
-  const [showRating, setShowRating] = useState(false);
-  const [showAssign, setShowAssign] = useState(false);
-  const [showAddPart, setShowAddPart] = useState(false);
-  const [showPhotos, setShowPhotos] = useState<'before' | 'during' | 'after' | null>(null);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const canManage = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const canMoney = usePermission(PERMISSIONS.POS_USE);
+  useReceiptSetup();
+  const [dialog, setDialog] = useState<Dialog>(null);
+  const [reason, setReason] = useState('');
+  const [visitDate, setVisitDate] = useState(dateInput(new Date(Date.now() + 86_400_000)));
+  const [rating, setRating] = useState(5);
 
-  const { data: job, isLoading, refetch } = useQuery({
-    queryKey: ['services-job', id],
-    queryFn: () => jobsApi.getOne(id!),
-    enabled: !!id,
-    refetchInterval: 30_000,
+  const jobQ = useQuery({ queryKey: [JOB_KEY, 'one', id], queryFn: () => jobsApi.getOne(id), enabled: !!id });
+  const j = jobQ.data;
+  const open = !!j && !isClosed(j.status);
+  const edit = open && canManage;
+
+  const refresh = (money = false) => [JOB_KEY, TECH_KEY, WARRANTY_KEY, 'services-dashboard', 'jobs-dashboard', ...(money ? MONEY_KEYS : [])].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const act = <V,>(fn: (v: V) => Promise<unknown>, ok: string, opts: { money?: boolean; close?: boolean } = {}) => ({
+    mutationFn: fn,
+    onSuccess: () => { toast.success(ok); refresh(opts.money); if (opts.close !== false) setDialog(null); },
+    onError: (e: unknown) => toast.error(apiError(e, 'Nahi hua — dobara koshish karein')),
   });
 
-  const statusMutation = useMutation({
-    mutationFn: (status: string) => jobsApi.updateStatus(id!, { status }),
-    onSuccess: () => { toast.success('Status updated'); refetch(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  const status = useMutation(act((s: JobStatus) => jobsApi.updateStatus(id, s), 'Halat badal di'));
+  const cancel = useMutation(act((r: string) => jobsApi.cancel(id, r), 'Job cancel — advance customer ke khata me jama hai'));
+  const assign = useMutation(act((v: { primary: string; helpers: string[] }) => jobsApi.assign(id, v.primary, v.helpers), 'Technician laga diya'));
+  const addPart = useMutation(act((v: PartInput) => jobsApi.addPart(id, v), 'Part jor diya'));
+  const delPart = useMutation(act((partId: string) => jobsApi.removePart(id, partId), 'Part hata diya', { close: false }));
+  const pay = useMutation(act((v: { amount: number; method: PaymentMethod }) => jobsApi.addPayment(id, v.amount, v.method), 'Payment mil gayi', { money: true }));
+  const returnVisit = useMutation({
+    mutationFn: () => jobsApi.returnVisit(id, { returnVisitDate: new Date(`${visitDate}T10:00`).toISOString(), reason: reason.trim() }),
+    onSuccess: (child) => { toast.success(`Wapsi visit ${child.jobNumber} ban gayi`); refresh(); setDialog(null); navigate(`/services-biz/jobs/${child.id}`); },
+    onError: (e) => toast.error(apiError(e, 'Wapsi visit nahi bani')),
+  });
+  const rate = useMutation(act((v: { rating: number; feedback?: string }) => jobsApi.rate(id, v), 'Rating save ho gayi'));
+  const bill = useMutation({
+    mutationFn: (v: BillInput) => jobsApi.bill(id, v),
+    onSuccess: (r) => {
+      toast.success(r.sale ? `Bill ${r.sale.saleNumber} ban gaya${r.change > 0 ? ` — ${formatPKR(r.change)} wapas dein` : ''}` : 'Job mukammal', { action: { label: 'Print', onClick: () => printJobCard(r, shopName) } });
+      refresh(true);
+      setDialog(null);
+    },
+    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
   });
 
-  const cancelMutation = useMutation({
-    mutationFn: (reason: string) => jobsApi.cancel(id!, reason),
-    onSuccess: () => { toast.success('Cancelled'); refetch(); },
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen() || !j) return;
+      const k = e.key.toLowerCase();
+      if (k === 'p') { e.preventDefault(); printJobCard(j, shopName); }
+      if (k === 'e' && edit) { e.preventDefault(); navigate(`/services-biz/jobs/${j.id}/edit`); }
+      if (k === 'a' && edit) { e.preventDefault(); setDialog('part'); }
+      if (k === 'b' && edit && canMoney) { e.preventDefault(); setDialog('bill'); }
+      if (e.key === 'Escape') navigate('/services-biz/jobs');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [j, edit, canMoney, shopName, navigate]);
 
-  if (isLoading || !job) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
+  if (jobQ.isLoading) return <PageShell><Skeleton className="h-32 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-3"><Skeleton className="h-96 rounded-2xl lg:col-span-2" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
+  if (!j) {
+    return (
+      <PageShell>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">Job nahi mili</p>
+          <Button className="mt-3" variant="secondary" onClick={() => navigate('/services-biz/jobs')}>Jobs par wapas</Button>
+        </div>
+      </PageShell>
+    );
   }
 
-  const statusCfg = STATUS_CONFIG[job.status];
-  const StatusIcon = statusCfg.icon;
-  const currentIdx = STATUS_FLOW.indexOf(job.status);
-  const nextStatus = currentIdx >= 0 && currentIdx < STATUS_FLOW.length - 1 ? STATUS_FLOW[currentIdx + 1] : null;
-  const remaining = job.totalCharge - job.paidAmount;
-  const isFullyPaid = remaining <= 0.01;
+  const st = statusOf(j.status);
+  const step = stepOf(j.status);
+  const onSite = isOnSite(j.locationType);
+  const wa = waLink(j.customerPhone, jobMessage(j, shopName));
+  const ready = READY.includes(j.status);
+  const noTech = !j.primaryTechnicianId;
+  const next: { label: string; icon: typeof Clock; run: () => void } | null = !edit ? null
+    : ready ? (canMoney ? { label: 'Bill banayein', icon: Receipt, run: () => setDialog('bill') } : null)
+      : noTech && BOOKED.includes(j.status) ? { label: 'Technician lagayein', icon: UserCheck, run: () => setDialog('assign') }
+        : j.status === 'IN_PROGRESS' ? { label: 'Kaam mukammal', icon: CheckCircle2, run: () => status.mutate('QUALITY_CHECK') }
+          : onSite && ['ASSIGNED', 'DISPATCHED', ...BOOKED].includes(j.status) ? { label: 'Raste me', icon: Car, run: () => status.mutate('EN_ROUTE') }
+            : onSite && j.status === 'EN_ROUTE' ? { label: 'Pohanch gaya', icon: MapPin, run: () => status.mutate('ARRIVED') }
+              : { label: 'Kaam shuru', icon: PlayCircle, run: () => status.mutate('IN_PROGRESS') };
+  const charges: Array<[string, number]> = ([['Visit charge', j.visitCharge], ['Kaam (labour)', j.labourCharge], ['Transport', j.transportCharge], ['Emergency charge', j.emergencyCharge], ['Tax', j.taxAmount]] as Array<[string, number]>).filter(([, v]) => v > 0);
+  const warrantyLeft = j.jobWarrantyExpiryDate ? Math.ceil((new Date(j.jobWarrantyExpiryDate).getTime() - Date.now()) / 86_400_000) : null;
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className={
-        'relative overflow-hidden rounded-3xl text-white p-6 shadow-2xl ' +
-        (job.priority === 'EMERGENCY' ? 'bg-gradient-to-br from-red-950 via-red-800 to-rose-700' :
-         job.priority === 'URGENT' ? 'bg-gradient-to-br from-slate-950 via-red-900 to-orange-800' :
-         'bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-800')
-      }>
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <button onClick={() => navigate('/services-biz/jobs')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                {job.priority}
-              </div>
-              <h1 className="mt-1 text-3xl font-extrabold">{job.jobNumber}</h1>
-              <div className="mt-1 flex items-center gap-2 flex-wrap text-sm">
-                <span className={'px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase text-white inline-flex items-center gap-1 ' + statusCfg.color}>
-                  <StatusIcon className="h-3 w-3" />
-                  {statusCfg.label}
-                </span>
-                <span className="text-white/80 font-semibold">{job.serviceName}</span>
-                {job.underWarranty && (
-                  <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-xs font-extrabold">🛡️ WARRANTY</span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold border border-white/20">
-              <Printer className="h-4 w-4" />
-              Print
-            </button>
-            {!job.primaryTechnicianId && (
-              <Button onClick={() => setShowAssign(true)} className="bg-violet-500 hover:bg-violet-600 text-white">
-                <User className="h-4 w-4" />
-                Assign Technician
-              </Button>
-            )}
-            {(!isFullyPaid || !job.billSale) && job.status !== 'CANCELLED' && (
-              <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
-                <DollarSign className="h-4 w-4" />
-                {job.billSale ? 'Baqi lein' : 'Bill / Payment'}
-              </Button>
-            )}
-            {job.billSale && (
-              <Button variant="secondary" className="bg-white/15 hover:bg-white/25 text-white border-white/20" onClick={() => window.open(`/sales/${job.billSale!.id}/receipt`, '_blank')}>
-                <CreditCard className="h-4 w-4" />
-                Bill {job.billSale.saleNumber}
-              </Button>
-            )}
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title={j.serviceName}
+        chip={<><Wrench /> {st.label}</>}
+        meta={[j.jobNumber, itemName(j), categoryOf(j.category), `bani ${dateTime(j.createdAt)}`].filter(Boolean).join(' · ')}
+        actions={<>
+          <button type="button" onClick={() => navigate('/services-biz/jobs')} title="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
+          <button type="button" onClick={() => printJobCard(j, shopName)} title="Parchi (P)" className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">Parchi</span></button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">WhatsApp</span></a>}
+          {edit && <Link to={`/services-biz/jobs/${j.id}/edit`} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">Badlein</span></Link>}
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {next && <button type="button" onClick={next.run} disabled={status.isPending} className={heroPrimaryButton}><next.icon className="h-4 w-4" />{next.label}</button>}
+        </>}
+        stats={[
+          { label: 'Bill', value: formatPKR(j.totalCharge) },
+          { label: 'Mila', value: formatPKR(j.paidAmount) },
+          { label: j.status === 'COMPLETED' ? 'Khata me baqi' : 'Baqi', value: formatPKR(j.due) },
+        ]}
+      />
 
-      {/* Status Flow */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h3 className="text-sm font-extrabold">Job Workflow</h3>
-          {nextStatus && !['CANCELLED', 'COMPLETED'].includes(job.status) && (
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => (nextStatus === 'COMPLETED' && !job.billSale ? setShowPayment(true) : statusMutation.mutate(nextStatus))} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
-                <ArrowRight className="h-3.5 w-3.5" />
-                Mark {STATUS_CONFIG[nextStatus].label}
-              </Button>
-              {job.status !== 'COMPLETED' && (
-                <Button size="sm" variant="secondary" onClick={() => {
-                  const reason = prompt('Cancellation reason?');
-                  if (reason) cancelMutation.mutate(reason);
-                }} className="bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100">
-                  <Ban className="h-3.5 w-3.5" />
-                  Cancel
-                </Button>
-              )}
+      {j.isLate && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] font-medium text-rose-900 ring-1 ring-rose-200">
+          <AlertTriangle className="h-4 w-4" />Waqt {dateTime(j.scheduledEnd ?? j.scheduledStart)} tha — customer ko bata dein
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className="ml-auto font-semibold hover:underline">WhatsApp →</a>}
+        </div>
+      )}
+      {j.status === 'CANCELLED' && (
+        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-[0.875rem] text-slate-700">Cancel {dayOnly(j.cancelledAt)} — {j.cancellationReason}{j.advanceOnKhata > 0 && ` · ${formatPKR(j.advanceOnKhata)} advance customer ke khata me jama hai`}</div>
+      )}
+      {j.status === 'COMPLETED' && j.billSale && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-[0.875rem] text-emerald-900 ring-1 ring-emerald-200">
+          <Receipt className="h-4 w-4" />Mukammal {dateTime(j.completedAt)} — bill <strong>{j.billSale.saleNumber}</strong>
+          {j.due > 0 && <span className="text-amber-800">· {formatPKR(j.due)} khata me</span>}
+          <Link to={`/sales?search=${encodeURIComponent(j.billSale.saleNumber)}`} className="ml-auto font-semibold hover:underline">Bill dekhein →</Link>
+        </div>
+      )}
+      {(j.amc || j.warrantyClaim || j.parentJobId) && (
+        <div className="flex flex-wrap gap-2 text-[0.8125rem]">
+          {j.amc && <Link to={`/services-biz/amc?open=${j.amc.id}`} className="rounded-full bg-violet-50 px-3 py-1 font-medium text-violet-800 ring-1 ring-violet-200 hover:underline">AMC {j.amc.amcNumber}{j.amc.includesLabour ? ' · kaam muft' : ''}{j.amc.includesParts ? ' · parts muft' : ''}</Link>}
+          {j.warrantyClaim && <Link to="/services-biz/warranty?tab=claims" className="rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-800 ring-1 ring-amber-200 hover:underline">Warranty claim {j.warrantyClaim.claimNumber}</Link>}
+          {j.parentJobId && <Link to={`/services-biz/jobs/${j.parentJobId}`} className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 ring-1 ring-slate-200 hover:underline">Pichli job dekhein</Link>}
+        </div>
+      )}
+
+      {j.status !== 'CANCELLED' && (
+        <div className="rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
+          <ol className="grid grid-cols-5 gap-2">
+            {STEPS.map((s, i) => (
+              <li key={s} className="min-w-0">
+                <div className={cn('h-1.5 rounded-full', i <= step ? 'bg-brand-600' : 'bg-slate-200')} />
+                <p className={cn('mt-1.5 truncate text-[0.75rem] font-medium', i === step ? 'text-brand-700' : i < step ? 'text-slate-700' : 'text-slate-400')}>{s}</p>
+              </li>
+            ))}
+          </ol>
+          {edit && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+              <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Ya:</span>
+              {SIDE.map((x) => (
+                <button key={x.status} type="button" onClick={() => status.mutate(j.status === x.status ? 'IN_PROGRESS' : x.status)} disabled={status.isPending}
+                  className={cn('inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium ring-1',
+                    j.status === x.status ? 'bg-orange-50 text-orange-800 ring-orange-200' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
+                  <x.icon className="h-3.5 w-3.5" />{j.status === x.status ? `${x.label} — khatam` : x.label}
+                </button>
+              ))}
+              {ready && <button type="button" onClick={() => status.mutate('IN_PROGRESS')} className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Hammer className="h-3.5 w-3.5" />Kaam baqi hai</button>}
+              <button type="button" onClick={() => { setReason(''); setDialog('cancel'); }} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Ban className="h-3.5 w-3.5" />Cancel</button>
             </div>
           )}
-          {job.status === 'COMPLETED' && !job.customerRating && (
-            <Button size="sm" onClick={() => setShowRating(true)} className="bg-gradient-to-r from-amber-500 to-orange-600 text-white">
-              <Star className="h-3.5 w-3.5" />
-              Add Rating
-            </Button>
-          )}
         </div>
+      )}
 
-        <div className="flex items-center gap-1 overflow-x-auto pb-2">
-          {STATUS_FLOW.map((s, i) => {
-            const isActive = i <= currentIdx;
-            const isCurrent = i === currentIdx;
-            const cfg = STATUS_CONFIG[s];
-            const StepIcon = cfg.icon;
-            return (
-              <div key={s} className="flex items-center shrink-0">
-                <div className="flex flex-col items-center gap-1">
-                  <div className={
-                    'h-9 w-9 rounded-full flex items-center justify-center ' +
-                    (isCurrent ? cfg.color + ' text-white ring-4 ring-blue-200 dark:ring-blue-900 shadow' :
-                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-500')
-                  }>
-                    {isActive && !isCurrent ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
-                  </div>
-                  <span className="text-[0.625rem] font-extrabold uppercase text-slate-600">{cfg.label}</span>
-                </div>
-                {i < STATUS_FLOW.length - 1 && (
-                  <div className={'h-0.5 w-6 mx-1 ' + (i < currentIdx ? 'bg-blue-500' : 'bg-slate-200 dark:bg-ink-700')} />
-                )}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title="Kaam" actions={edit ? <Link to={`/services-biz/jobs/${j.id}/edit`}><Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />}>Badlein</Button></Link> : undefined}>
+            <dl className="grid gap-3 text-[0.875rem] sm:grid-cols-2">
+              <Fact label="Kharabi / kya karna hai">{j.problemDescription || '—'}</Fact>
+              <Fact label="Cheez">{itemName(j) || <span className="text-slate-400">Nahi likha</span>}{j.underWarranty && <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200">Company warranty</span>}</Fact>
+              <Fact label="Technician">
+                {j.technician ? <span>{j.technician.staff.fullName}{j.technician.staff.phone ? <span className="text-slate-500"> · {j.technician.staff.phone}</span> : null}</span> : <span className="text-slate-400">Koi nahi</span>}
+                {j.assistantNames.length > 0 && <span className="block text-[0.75rem] text-slate-500">Helper: {j.assistantNames.join(', ')}</span>}
+                {edit && <button type="button" onClick={() => setDialog('assign')} className="ml-2 text-[0.8125rem] font-semibold text-brand-700 hover:underline">{noTech ? 'Lagayein' : 'Badlein'}</button>}
+              </Fact>
+              <Fact label={onSite ? 'Visit ka waqt' : 'Kab tayyar'}>{j.scheduledStart ? dateTime(j.scheduledStart) : '—'}{j.priority !== 'NORMAL' && <span className={cn('ml-2 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', priorityOf(j.priority).tone)}>{priorityOf(j.priority).label}</span>}</Fact>
+              {j.technicianNotes && <Fact label="Technician ke liye">{j.technicianNotes}</Fact>}
+              {j.internalNotes && <Fact label="Andar ka note">{j.internalNotes}</Fact>}
+            </dl>
+          </Card>
+
+          <Card className="rounded-2xl" flush title="Bill"
+            description={open ? 'Dukaan ka part bill banne par stock se nikalta hai' : undefined}
+            actions={edit ? <Button size="sm" leftIcon={<Package className="h-3.5 w-3.5" />} onClick={() => setDialog('part')}>Part (A)</Button> : undefined}>
+            {charges.length + j.parts.length === 0 ? (
+              <div className="px-5 pb-6 pt-4 text-center">
+                <p className="text-[0.875rem] text-slate-600">Abhi koi charge ya part nahi</p>
+                {edit && <div className="mt-3 flex justify-center gap-2"><Link to={`/services-biz/jobs/${j.id}/edit`}><Button size="sm" variant="secondary">Charges likhein</Button></Link><Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setDialog('part')}>Part jorein</Button></div>}
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="grid lg:grid-cols-[1fr_380px] gap-6">
-        <section className="space-y-4">
-          {/* Customer */}
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600" />
-              Customer
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="font-extrabold text-base">{job.customerName || 'Walk-in'}</div>
-              {job.customerPhone && (
-                <a href={'tel:' + job.customerPhone} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
-                  <Phone className="h-3 w-3" />
-                  {job.customerPhone}
-                </a>
-              )}
-              {job.customerAltPhone && (
-                <div className="flex items-center gap-1 text-slate-600 font-bold text-xs">
-                  <Phone className="h-3 w-3" />
-                  Alt: {job.customerAltPhone}
-                </div>
-              )}
-              {job.customerEmail && (
-                <a href={'mailto:' + job.customerEmail} className="flex items-center gap-1 text-blue-700 font-bold hover:underline text-xs">
-                  <Mail className="h-3 w-3" />
-                  {job.customerEmail}
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Problem + Location */}
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div>
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Problem Description</div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-ink-white">{job.problemDescription}</p>
-            </div>
-            {job.customerReportedIssue && (
-              <div>
-                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Customer Reported</div>
-                <p className="text-sm italic text-slate-700">{job.customerReportedIssue}</p>
-              </div>
-            )}
-            {job.urgencyReason && (
-              <div className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 p-2 text-xs">
-                <span className="font-extrabold text-red-800">⚠️ Urgency:</span> {job.urgencyReason}
-              </div>
-            )}
-
-            {(job.brand || job.modelNumber || job.serialNumber) && (
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t">
-                {job.brand && <div><div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Brand</div><div className="text-sm font-extrabold">{job.brand}</div></div>}
-                {job.modelNumber && <div><div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Model</div><div className="text-sm font-extrabold font-mono">{job.modelNumber}</div></div>}
-                {job.serialNumber && <div><div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Serial</div><div className="text-sm font-extrabold font-mono">{job.serialNumber}</div></div>}
-              </div>
-            )}
-
-            {job.serviceAddress && (
-              <div className="pt-3 border-t">
-                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  Service Location
-                </div>
-                <p className="text-sm font-semibold">{job.serviceAddress}</p>
-                {(job.city || job.area) && (
-                  <p className="text-xs text-slate-600 font-bold">{job.area} {job.city && '• ' + job.city}</p>
-                )}
-                {job.landmark && <p className="text-xs italic text-slate-500">📍 {job.landmark}</p>}
-                {job.entryInstructions && (
-                  <div className="mt-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 p-2 text-xs italic">
-                    🚪 {job.entryInstructions}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Technician */}
-          {job.technician && (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-              <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">
-                <User className="h-4 w-4 text-violet-600" />
-                Assigned Technician
-              </h3>
-              <div className="flex items-center gap-3">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center text-xl font-extrabold shrink-0">
-                  {((job.technician.staff?.fullName || job.technician.staff?.firstName) || 'T').charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1">
-                  <div className="font-extrabold">
-                    {(((job.technician.staff?.fullName || job.technician.staff?.firstName) || '') + ' ' + (job.technician.staff?.lastName || '')).trim()}
-                  </div>
-                  {job.technician.staff?.phone && (
-                    <a href={'tel:' + job.technician.staff.phone} className="text-xs font-bold text-blue-700 hover:underline">
-                      📞 {job.technician.staff.phone}
-                    </a>
-                  )}
-                  {job.technician.profile && (
-                    <div className="text-[0.6875rem] font-bold text-violet-700 uppercase">{job.technician.profile.level} • {job.technician.profile.status}</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Parts */}
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b flex items-center justify-between">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <Package className="h-5 w-5 text-orange-600" />
-                Parts Used ({job.parts.length})
-              </h3>
-              {!['COMPLETED', 'CANCELLED'].includes(job.status) && (
-                <Button size="sm" onClick={() => setShowAddPart(true)} className="bg-gradient-to-r from-orange-500 to-red-600">
-                  <Plus className="h-3.5 w-3.5" />
-                  Add Part
-                </Button>
-              )}
-            </div>
-            {job.parts.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500 font-semibold">No parts used</div>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-ink-800">
-                {job.parts.map((p: any) => (
-                  <div key={p.id} className="p-4">
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-lg font-extrabold text-orange-700 tabular-nums">{p.quantity}×</span>
-                          <span className="font-extrabold">{p.partName}</span>
-                          {p.partNumber && <span className="text-[0.6875rem] font-mono text-slate-500">{p.partNumber}</span>}
-                          {p.brand && <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.625rem] font-extrabold">{p.brand}</span>}
-                          {p.isUnderWarranty && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">🛡️ WARRANTY</span>}
-                          {p.isCustomerSupplied && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">CUSTOMER</span>}
-                        </div>
-                        {p.serialNumber && <div className="text-[0.6875rem] font-mono text-slate-500 mt-1">SN: {p.serialNumber}</div>}
-                        {p.warrantyDays > 0 && <div className="text-[0.6875rem] font-extrabold text-emerald-700 mt-0.5">Part warranty: {p.warrantyDays} days</div>}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-sm text-slate-500">{formatPKR(p.unitPrice)} × {p.quantity}</div>
-                        <div className={'text-lg font-extrabold tabular-nums ' + (p.isUnderWarranty ? 'text-emerald-700 line-through' : 'text-emerald-700')}>
-                          {formatPKR(p.total)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Photos */}
-          <div className="grid grid-cols-3 gap-3">
-            {(['before', 'during', 'after'] as const).map((stage) => {
-              const urls = stage === 'before' ? job.beforePhotoUrls : stage === 'during' ? job.duringPhotoUrls : job.afterPhotoUrls;
-              return (
-                <div key={stage} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-extrabold uppercase text-slate-700">📸 {stage}</span>
-                    <button onClick={() => setShowPhotos(stage)} className="h-6 w-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-                  {urls.length === 0 ? (
-                    <div className="text-[0.6875rem] text-slate-400 font-bold text-center py-4">No photos</div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-1">
-                      {urls.slice(0, 4).map((url: string, i: number) => (
-                        <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border">
-                          <img src={url} alt="" className="w-full h-full object-cover" />
-                        </a>
-                      ))}
-                      {urls.length > 4 && (
-                        <div className="aspect-square rounded-lg bg-slate-100 flex items-center justify-center text-xs font-extrabold text-slate-500">
-                          +{urls.length - 4}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Rating */}
-          {job.customerRating && (
-            <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <Star key={n} className={'h-5 w-5 ' + (n <= (job.customerRating || 0) ? 'text-amber-500 fill-amber-500' : 'text-slate-300')} />
+              <Table className="mt-3" minWidth="34rem">
+                <THead><Tr><Th>Cheez</Th><Th align="right">Kitne</Th><Th align="right">Qeemat</Th><Th align="right">Kul</Th>{edit && <Th />}</Tr></THead>
+                <TBody>
+                  {charges.map(([label, v]) => (
+                    <Tr key={label}><Td><span className="font-medium text-slate-900">{label}</span></Td><Td align="right">1</Td><Td align="right">{formatPKR(v)}</Td><Td align="right" className="font-semibold text-slate-900">{formatPKR(v)}</Td>{edit && <Td />}</Tr>
                   ))}
-                </div>
-                <span className="font-extrabold text-amber-900">{job.customerRating}/5</span>
-                {job.wouldRecommend && <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[0.6875rem] font-extrabold">✅ RECOMMENDS</span>}
-              </div>
-              {job.customerFeedback && <p className="text-sm italic text-slate-700">"{job.customerFeedback}"</p>}
-            </div>
-          )}
-
-          {/* Notes */}
-          {(job.technicianNotes || job.internalNotes) && (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {job.technicianNotes && (
-                <div className="rounded-2xl bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 p-4">
-                  <div className="text-xs font-extrabold text-blue-800 mb-1">Technician Notes</div>
-                  <p className="text-sm text-slate-700">{job.technicianNotes}</p>
-                </div>
-              )}
-              {job.internalNotes && (
-                <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 p-4">
-                  <div className="text-xs font-extrabold text-slate-800 mb-1">Internal Notes</div>
-                  <p className="text-sm text-slate-700">{job.internalNotes}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </section>
-
-        {/* Sidebar */}
-        <aside className="space-y-4">
-          <div className="sticky top-4 space-y-4">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
-
-              <div className="space-y-1.5 text-sm">
-                {job.visitCharge > 0 && <div className="flex justify-between"><span className="text-white/70">Visit</span><span className="font-bold tabular-nums">{formatPKR(job.visitCharge)}</span></div>}
-                {job.labourCharge > 0 && <div className="flex justify-between"><span className="text-white/70">Labour</span><span className="font-bold tabular-nums">{formatPKR(job.labourCharge)}</span></div>}
-                {job.partsCharge > 0 && <div className="flex justify-between"><span className="text-white/70">Parts</span><span className="font-bold tabular-nums">{formatPKR(job.partsCharge)}</span></div>}
-                {job.transportCharge > 0 && <div className="flex justify-between"><span className="text-white/70">Transport</span><span className="font-bold tabular-nums">{formatPKR(job.transportCharge)}</span></div>}
-                {job.emergencyCharge > 0 && <div className="flex justify-between text-red-300"><span>Emergency</span><span className="font-bold tabular-nums">{formatPKR(job.emergencyCharge)}</span></div>}
-                {job.taxAmount > 0 && <div className="flex justify-between"><span className="text-white/70">Tax</span><span className="font-bold tabular-nums">{formatPKR(job.taxAmount)}</span></div>}
-                {job.discountAmount > 0 && <div className="flex justify-between text-rose-300"><span>Discount</span><span className="font-bold tabular-nums">-{formatPKR(job.discountAmount)}</span></div>}
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-white/20 flex justify-between items-center">
-                <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
-                <span className="text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(job.totalCharge)}</span>
-              </div>
-
-              <div className="mt-2 space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-white/70">Paid</span>
-                  <span className="font-extrabold text-emerald-300 tabular-nums">{formatPKR(job.paidAmount)}</span>
-                </div>
-                {remaining > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-amber-300 font-extrabold">Remaining</span>
-                    <span className="font-extrabold text-amber-300 tabular-nums">{formatPKR(remaining)}</span>
-                  </div>
-                )}
-                {isFullyPaid && (
-                  <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/30 text-emerald-200 text-xs font-extrabold">
-                    <CheckCircle2 className="h-3 w-3" />
-                    PAID IN FULL
-                  </div>
-                )}
-              </div>
-
-              {job.jobWarrantyDays > 0 && job.jobWarrantyExpiryDate && (
-                <div className="mt-3 pt-3 border-t border-white/20 rounded-lg bg-emerald-500/20 p-2 text-xs">
-                  <div className="text-emerald-200 font-extrabold flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    Warranty: {job.jobWarrantyDays} days
-                  </div>
-                  <div className="text-emerald-300 text-[0.6875rem] font-bold">
-                    Valid until: {format(new Date(job.jobWarrantyExpiryDate), 'dd MMM yyyy')}
-                  </div>
-                </div>
-              )}
-
-              {(!isFullyPaid || !job.billSale) && job.status !== 'CANCELLED' && (
-                <Button size="lg" className="w-full mt-4 bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPayment(true)}>
-                  <CreditCard className="h-4 w-4" />
-                  {job.billSale ? 'Baqi lein' : 'Bill / Payment'}
-                </Button>
-              )}
-            </div>
-
-            {/* Time log */}
-            {job.timeLog && job.timeLog.length > 0 && (
-              <div className="rounded-3xl bg-white dark:bg-ink-900 border shadow-sm overflow-hidden">
-                <div className="px-4 py-3 border-b">
-                  <h3 className="text-sm font-bold">Activity Log</h3>
-                </div>
-                <div className="divide-y max-h-64 overflow-y-auto">
-                  {job.timeLog.slice(0, 10).map((log: any) => (
-                    <div key={log.id} className="p-3 text-xs">
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-3 w-3 text-blue-600" />
-                        <span className="font-extrabold">{log.action}</span>
-                      </div>
-                      <div className="text-slate-500 mt-0.5">{format(new Date(log.timestamp), 'dd MMM, HH:mm')}</div>
-                      {log.latitude && (
-                        <div className="text-[0.6875rem] font-mono text-emerald-700">📍 {log.latitude.toFixed(4)}, {log.longitude.toFixed(4)}</div>
-                      )}
-                    </div>
+                  {j.parts.map((p) => (
+                    <Tr key={p.id}>
+                      <Td>
+                        <span className="font-medium text-slate-900">{p.partName}</span>
+                        <Sub>{[p.isCustomerSupplied ? 'Customer ka apna' : p.productId ? (j.status === 'COMPLETED' ? 'Stock se laga' : 'Bill par stock se niklega') : 'Bahar se liya', p.isUnderWarranty ? 'Warranty me muft' : null, p.serialNumber ? `SN ${p.serialNumber}` : null].filter(Boolean).join(' · ')}</Sub>
+                      </Td>
+                      <Td align="right">{Number(p.quantity)}</Td>
+                      <Td align="right">{formatPKR(p.isUnderWarranty ? 0 : p.unitPrice)}</Td>
+                      <Td align="right" className="font-semibold text-slate-900">{formatPKR(p.isUnderWarranty ? 0 : p.total)}</Td>
+                      {edit && <Td align="right"><button type="button" onClick={() => delPart.mutate(p.id)} disabled={delPart.isPending} aria-label={`${p.partName} hatayein`} title="Hatayein" className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-40"><Trash2 className="h-4 w-4" /></button></Td>}
+                    </Tr>
                   ))}
-                </div>
+                </TBody>
+              </Table>
+            )}
+            <dl className="space-y-1 border-t border-slate-100 px-5 py-4 text-[0.875rem]">
+              {j.partsCharge > 0 && <Line label="Parts" value={j.partsCharge} />}
+              {j.discountAmount > 0 && <Line label="Discount" value={-j.discountAmount} />}
+              <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900"><dt>Kul bill</dt><dd className="tabular-nums">{formatPKR(j.totalCharge)}</dd></div>
+            </dl>
+          </Card>
+
+          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4 text-slate-500" />Job ki history</span>}>
+            <ol className="space-y-3 px-5 pb-5 pt-3">
+              {j.statusHistory.map((l) => (
+                <li key={l.id} className="flex gap-3 text-[0.8125rem]">
+                  <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: statusOf(l.toStatus).color }} />
+                  <span className="min-w-0 flex-1"><span className="font-medium text-slate-900">{statusOf(l.toStatus).label}</span>{(l.reason || l.notes) && <span className="text-slate-600"> — {[l.reason, l.notes].filter(Boolean).join(' · ')}</span>}</span>
+                  <span className="shrink-0 text-slate-500">{dateTime(l.changedAt)}</span>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><UserRound className="h-4 w-4 text-brand-600" />Customer aur jagah</span>}>
+            <dl className="space-y-2 text-[0.875rem]">
+              <Fact label="Customer">
+                {j.customer ? <Link to={`/customers/${j.customer.id}`} className="font-semibold text-brand-700 hover:underline">{j.customer.name}</Link> : j.customerName || '—'}
+                {j.customerPhone && <span className="text-slate-600"> · {j.customerPhone}</span>}
+              </Fact>
+              {j.customer && j.customer.balance !== 0 && (
+                <Fact label="Khata">
+                  <span className={j.customer.balance > 0 ? 'font-semibold text-amber-700' : 'font-semibold text-emerald-700'}>
+                    {j.customer.balance > 0 ? `${formatPKR(j.customer.balance)} udhaar` : `${formatPKR(-j.customer.balance)} jama (advance)`}
+                  </span>
+                </Fact>
+              )}
+              <Fact label="Kahan">{locationOf(j.locationType)}{onSite && <span className="block text-slate-600">{[j.serviceAddress, j.area, j.city].filter(Boolean).join(', ')}{j.landmark ? ` (${j.landmark})` : ''}</span>}</Fact>
+              {j.jobWarrantyDays > 0 && (
+                <Fact label="Kaam ki warranty">
+                  <span className={cn('inline-flex items-center gap-1', warrantyLeft !== null && warrantyLeft < 0 ? 'text-slate-500' : 'text-emerald-700')}><ShieldCheck className="h-3.5 w-3.5" />
+                    {j.jobWarrantyExpiryDate ? (warrantyLeft! < 0 ? `Khatam ${dayOnly(j.jobWarrantyExpiryDate)}` : `${dayOnly(j.jobWarrantyExpiryDate)} tak`) : `${j.jobWarrantyDays} din (bill se)`}
+                  </span>
+                </Fact>
+              )}
+            </dl>
+          </Card>
+
+          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-emerald-600" />Paisa</span>}
+            actions={canManage && canMoney && j.status !== 'CANCELLED' && (j.due > 0 || (open && j.totalCharge <= 0)) ? <Button size="sm" variant="secondary" onClick={() => setDialog('pay')}>{j.status === 'COMPLETED' ? 'Wusooli' : 'Advance lein'}</Button> : undefined}>
+            <dl className="space-y-1 px-5 pb-4 pt-3 text-[0.875rem]">
+              <Line label="Bill" value={j.totalCharge} />
+              <Line label="Mila" value={j.paidAmount} />
+              {j.returned > 0 && <Line label="Return hua" value={-j.returned} />}
+              <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold text-slate-900"><dt>Baqi</dt><dd className={cn('tabular-nums', j.due > 0 && 'text-amber-700')}>{formatPKR(j.due)}</dd></div>
+            </dl>
+            {j.advanceOnKhata > 0 && j.status !== 'COMPLETED' && (
+              <p className="mx-5 mb-4 flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600"><BookOpen className="h-3.5 w-3.5" />{formatPKR(j.advanceOnKhata)} advance khata me jama — bill me katega</p>
+            )}
+            {edit && canMoney && (
+              <div className="border-t border-slate-100 px-5 py-3"><Button className="w-full" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => setDialog('bill')}>Bill banayein (B)</Button></div>
+            )}
+          </Card>
+
+          {j.status === 'COMPLETED' && canManage && (
+            <Card className="rounded-2xl" title="Kaam ke baad">
+              <div className="space-y-2">
+                <Button className="w-full" variant="secondary" leftIcon={<Star className="h-4 w-4" />} onClick={() => setDialog('rate')}>{j.customerRating ? `Rating ${j.customerRating}/5 — badlein` : 'Customer ki rating'}</Button>
+                <Button className="w-full" variant="secondary" leftIcon={<RotateCcw className="h-4 w-4" />} onClick={() => { setReason(''); setDialog('return'); }}>Wapsi visit (muft)</Button>
+                {warrantyLeft !== null && warrantyLeft >= 0 && <Link to={`/services-biz/warranty?claim=${j.id}`}><Button className="mt-2 w-full" variant="secondary" leftIcon={<ShieldCheck className="h-4 w-4" />}>Warranty claim</Button></Link>}
               </div>
-            )}
-          </div>
-        </aside>
-      </div>
-
-      {showPayment && (
-        <PaymentModal jobId={id!} remaining={Math.max(remaining, 0)} billed={!!job.billSale} onClose={() => setShowPayment(false)} onDone={(saleId?: string) => {
-          setShowPayment(false);
-          refetch();
-          if (saleId) window.open(`/sales/${saleId}/receipt?auto=1`, '_blank');
-        }} />
-      )}
-      {showRating && (
-        <RatingModal jobId={id!} onClose={() => setShowRating(false)} onDone={() => { setShowRating(false); refetch(); }} />
-      )}
-      {showAssign && (
-        <AssignModal jobId={id!} onClose={() => setShowAssign(false)} onDone={() => { setShowAssign(false); refetch(); }} />
-      )}
-      {showAddPart && (
-        <AddPartModal jobId={id!} onClose={() => setShowAddPart(false)} onDone={() => { setShowAddPart(false); refetch(); }} />
-      )}
-      {showPhotos && (
-        <PhotosModal jobId={id!} stage={showPhotos} onClose={() => setShowPhotos(null)} onDone={() => { setShowPhotos(null); refetch(); }} />
-      )}
-    </div>
-  );
-}
-
-/**
- * Before the bill: "Bill banayein" completes the job and posts the sale;
- * "Sirf advance" keeps the money on the customer's khata. After the bill the
- * same modal takes the remaining udhaar.
- */
-function PaymentModal({ jobId, remaining, billed, onClose, onDone }: any) {
-  const [amount, setAmount] = useState<number>(remaining);
-  const [method, setMethod] = useState<PaymentMethod>('CASH');
-  const [mode, setMode] = useState<'bill' | 'advance'>(billed ? 'advance' : 'bill');
-
-  const payMutation = useMutation({
-    mutationFn: async () => {
-      if (mode === 'bill' && !billed) {
-        const done = await jobsApi.bill(jobId, { paidAmount: amount, paymentMethod: method });
-        return done.sale?.id;
-      }
-      await jobsApi.addPayment(jobId, amount, !billed, method);
-      return undefined;
-    },
-    onSuccess: (saleId) => { toast.success(saleId ? 'Bill ban gaya' : 'Payment jama ho gayi'); onDone(saleId); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment nahi hui'),
-  });
-  const left = Math.max(remaining - (Number(amount) || 0), 0);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">{billed ? 'Baqi wasool karein' : 'Bill / Payment'}</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          {!billed && (
-            <div className="grid grid-cols-2 gap-2">
-              {([['bill', 'Bill banayein', 'Kaam mukammal'], ['advance', 'Sirf advance', 'Khate me jama']] as const).map(([v, label, hint]) => (
-                <button key={v} onClick={() => setMode(v)} className={
-                  'p-2 rounded-lg border-2 text-left ' +
-                  (mode === v ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-                }>
-                  <div className="text-xs font-extrabold">{label}</div>
-                  <div className="text-[0.6875rem] text-slate-500">{hint}</div>
-                </button>
-              ))}
-            </div>
-          )}
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Amount</label>
-            <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-            <div className="mt-1 flex gap-1">
-              {[0.25, 0.5, 0.75, 1].map((f) => (
-                <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200">
-                  {(f * 100).toFixed(0)}%
-                </button>
-              ))}
-            </div>
-            {mode === 'bill' && !billed && left > 0.01 && (
-              <div className="mt-1 text-xs font-bold text-amber-700">Baqi {formatPKR(left)} customer ke khate me udhaar jayega</div>
-            )}
-          </div>
-          {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount < 0 || (amount <= 0 && (billed || mode === 'advance'))}>
-              <CheckCircle2 className="h-4 w-4" />
-              Confirm
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RatingModal({ jobId, onClose, onDone }: any) {
-  const [rating, setRating] = useState(5);
-  const [feedback, setFeedback] = useState('');
-  const [wouldRecommend, setWouldRecommend] = useState(true);
-  const [satisfaction, setSatisfaction] = useState('SATISFIED');
-
-  const rateMutation = useMutation({
-    mutationFn: () => jobsApi.rate(jobId, { rating, feedback, wouldRecommend, satisfaction }),
-    onSuccess: () => { toast.success('Rating submitted'); onDone(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">Rate Service</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-4">
-          <div className="text-center">
-            <div className="flex justify-center gap-2 mb-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} onClick={() => setRating(n)} className="transition-transform hover:scale-110">
-                  <Star className={'h-12 w-12 ' + (n <= rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300')} />
-                </button>
-              ))}
-            </div>
-            <div className="text-2xl font-extrabold text-amber-700">{rating}/5</div>
-          </div>
-
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Satisfaction</label>
-            <div className="grid grid-cols-4 gap-1">
-              {['VERY_SATISFIED', 'SATISFIED', 'NEUTRAL', 'DISSATISFIED'].map((s) => (
-                <button key={s} onClick={() => setSatisfaction(s)} className={
-                  'py-2 rounded-lg text-[0.6875rem] font-extrabold ' +
-                  (satisfaction === s ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-700')
-                }>{s.replace('_', ' ')}</button>
-              ))}
-            </div>
-          </div>
-
-          <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 cursor-pointer">
-            <input type="checkbox" checked={wouldRecommend} onChange={(e) => setWouldRecommend(e.target.checked)} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold text-emerald-900">✅ Would recommend to others</span>
-          </label>
-
-          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Feedback (optional)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
-
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600" onClick={() => rateMutation.mutate()} loading={rateMutation.isPending}>
-              <Star className="h-4 w-4" />
-              Submit
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AssignModal({ jobId, onClose, onDone }: any) {
-  const [selectedId, setSelectedId] = useState('');
-
-  const { data: suggestions = [] } = useQuery({
-    queryKey: ['dispatch-suggest', jobId],
-    queryFn: () => dispatchApi.suggest(jobId),
-  });
-
-  const assignMutation = useMutation({
-    mutationFn: () => jobsApi.assign(jobId, selectedId),
-    onSuccess: () => { toast.success('Technician assigned'); onDone(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-          <div>
-            <h3 className="font-extrabold">🎯 Smart Dispatch</h3>
-            <p className="text-xs text-slate-500 font-semibold">AI-suggested technicians based on skill, distance & rating</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {suggestions.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 font-semibold">No technicians available</div>
-          ) : (
-            suggestions.map((t: any, i: number) => {
-              const name = t.staff ? (((t.staff.fullName || t.staff.firstName) || '') + ' ' + (t.staff.lastName || '')).trim() : '';
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedId(t.staffId)}
-                  className={
-                    'w-full p-3 rounded-xl border-2 text-left transition ' +
-                    (selectedId === t.staffId ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
-                  }
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={
-                      'h-8 w-8 rounded-lg text-white flex items-center justify-center font-extrabold text-sm shadow shrink-0 ' +
-                      (i === 0 ? 'bg-gradient-to-br from-amber-500 to-yellow-600' : 'bg-gradient-to-br from-slate-300 to-slate-400')
-                    }>
-                      {i === 0 ? '🥇' : i + 1}
-                    </div>
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center font-extrabold shrink-0">
-                      {name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-extrabold truncate">{name}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{t.level} • {t.status}</div>
-                      <div className="flex items-center gap-2 mt-0.5 text-[0.6875rem]">
-                        {t.avgRating && (
-                          <span className="inline-flex items-center gap-0.5 text-amber-700 font-extrabold">
-                            <Star className="h-2 w-2 fill-current" />
-                            {t.avgRating.toFixed(1)}
-                          </span>
-                        )}
-                        {t.distanceKm !== null && (
-                          <span className="inline-flex items-center gap-0.5 text-blue-700 font-extrabold">
-                            <MapPin className="h-2 w-2" />
-                            {t.distanceKm.toFixed(1)}km
-                          </span>
-                        )}
-                        <span className="text-slate-500">Score: {t.matchScore?.toFixed(0)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })
+            </Card>
           )}
         </div>
-        <div className="p-4 border-t flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700" onClick={() => assignMutation.mutate()} loading={assignMutation.isPending} disabled={!selectedId}>
-            <CheckCircle2 className="h-4 w-4" />
-            Assign
-          </Button>
-        </div>
       </div>
-    </div>
+
+      {dialog === 'part' && <AddPartModal pending={addPart.isPending} onAdd={(v) => addPart.mutate(v)} onClose={() => setDialog(null)} />}
+      {dialog === 'assign' && <AssignModal jobId={j.id} jobNumber={j.jobNumber} current={j.primaryTechnicianId} assistants={j.assistantTechnicianIds} pending={assign.isPending}
+        onAssign={(primary, helpers) => assign.mutate({ primary, helpers })} onClose={() => setDialog(null)} />}
+      {dialog === 'bill' && <BillJobModal job={j} pending={bill.isPending} onClose={() => setDialog(null)} onConfirm={(v) => { if (!bill.isPending) bill.mutate(v); }} />}
+      {dialog === 'pay' && (
+        <TakePaymentModal title={j.status === 'COMPLETED' ? `Wusooli — ${j.jobNumber}` : `Advance — ${j.jobNumber}`} description={[j.serviceName, j.customerName].filter(Boolean).join(' · ')}
+          amount={j.due > 0 ? j.due : 0} max={j.totalCharge > 0 ? j.due : undefined} loading={pay.isPending}
+          onConfirm={(amount, method) => pay.mutate({ amount, method })} onClose={() => setDialog(null)} />
+      )}
+      {dialog === 'cancel' && (
+        <Modal open onClose={() => setDialog(null)} size="sm" title={`Job cancel karein — ${j.jobNumber}`} description="Advance customer ke khata me jama rahega — wapas karna ho to khata se dein."
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button variant="danger" disabled={reason.trim().length < 3} loading={cancel.isPending} onClick={() => cancel.mutate(reason.trim())}>Cancel karein</Button></>}>
+          <Input label="Wajah" required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder="Customer ne mana kar diya" error={reason && reason.trim().length < 3 ? 'Thori tafseel likhein' : undefined} />
+        </Modal>
+      )}
+      {dialog === 'return' && (
+        <Modal open onClose={() => setDialog(null)} size="sm" title="Wapsi visit" description="Kaam ke baad shikayat — muft visit ki nayi job banti hai, isi technician ke naam"
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button disabled={reason.trim().length < 3 || !visitDate} loading={returnVisit.isPending} onClick={() => returnVisit.mutate()}>Visit banayein</Button></>}>
+          <div className="space-y-3">
+            <Input label="Shikayat" required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder="Phir se pani tapak raha hai" />
+            <Input label="Kab" type="date" value={visitDate} onChange={(e) => setVisitDate(e.target.value)} />
+          </div>
+        </Modal>
+      )}
+      {dialog === 'rate' && (
+        <Modal open onClose={() => setDialog(null)} size="sm" title="Customer ki rating" description="Technician ki rating me jurti hai"
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button loading={rate.isPending} onClick={() => rate.mutate({ rating, feedback: reason.trim() || undefined })}>Save</Button></>}>
+          <div className="space-y-3">
+            <div className="flex gap-1">{[1, 2, 3, 4, 5].map((r) => <button key={r} type="button" onClick={() => setRating(r)} aria-label={`${r} star`} className={cn('h-10 w-10 rounded-lg', r <= rating ? 'text-amber-500' : 'text-slate-300')}><Star className="mx-auto h-6 w-6 fill-current" /></button>)}</div>
+            <Input label="Customer ne kya kaha" value={reason} onChange={(e) => setReason(e.target.value)} hint="Marzi hai" />
+          </div>
+        </Modal>
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Job card — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: PlayCircle, color: '#7c3aed', title: 'Agla qadam', text: 'Upar wala button job ko aage barhata hai: Technician → Raste me → Pohanch gaya → Kaam shuru → Kaam mukammal → Bill. Parts ya customer ki haan ka intezar ho to neeche "Ya" se.' },
+            { icon: Package, color: '#ea580c', title: 'Parts', text: '"Part" se dukaan ka saman (bill par stock se nikalta hai), bahar se liya ya customer ka apna jorein. Warranty me muft part ka Cost profit me dikhta hai.' },
+            { icon: Receipt, color: '#16a34a', title: 'Bill', text: 'Baqi paisa lein — Cash, Card, JazzCash ya split. Advance khud katta hai, jo baqi rahe khata me. Bill ke saath warranty ke din likhein.' },
+            { icon: Ban, color: '#e11d48', title: 'Ghalti', text: 'Bill ghalat ho to Sales se void karein — job dobara "Tayyar" ho jati hai. Saman wapas ho to Sales se return karein.' },
+          ]}
+          shortcuts={[['P', 'parchi'], ['E', 'badlein'], ['A', 'part'], ['B', 'bill'], ['Esc', 'wapas'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function AddPartModal({ jobId, onClose, onDone }: any) {
-  const [form, setForm] = useState<any>({
-    partName: '', partNumber: '', brand: '', quantity: 1, unitPrice: 0, costPrice: 0,
-    isCustomerSupplied: false, isUnderWarranty: false, warrantyDays: 0, serialNumber: '', notes: '',
-  });
-
-  const addMutation = useMutation({
-    mutationFn: () => jobsApi.addPart(jobId, {
-      ...form,
-      quantity: Number(form.quantity) || 1,
-      unitPrice: Number(form.unitPrice) || 0,
-      costPrice: Number(form.costPrice) || 0,
-      warrantyDays: Number(form.warrantyDays) || 0,
-    }),
-    onSuccess: () => { toast.success('Part added'); onDone(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-orange-50 flex items-center justify-between">
-          <h3 className="font-extrabold">Add Part</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
-          <input autoFocus value={form.partName} onChange={(e) => setForm({ ...form, partName: e.target.value })} placeholder="Part name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-          <div className="grid grid-cols-2 gap-2">
-            <input value={form.partNumber} onChange={(e) => setForm({ ...form, partNumber: e.target.value })} placeholder="Part #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-            <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Brand" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <input type="number" min="0.1" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="Qty" className="h-11 rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-            <input type="number" step="0.01" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} placeholder="Unit Price" className="h-11 rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            <input type="number" value={form.warrantyDays} onChange={(e) => setForm({ ...form, warrantyDays: e.target.value })} placeholder="Warranty days" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-orange-500" />
-          </div>
-          <input value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} placeholder="Serial #" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-
-          <div className="grid grid-cols-2 gap-2">
-            <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isCustomerSupplied ? 'border-blue-500 bg-blue-50' : 'border-slate-200 dark:border-ink-700')}>
-              <input type="checkbox" checked={form.isCustomerSupplied} onChange={(e) => setForm({ ...form, isCustomerSupplied: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">Customer supplied</span>
-            </label>
-            <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isUnderWarranty ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 dark:border-ink-700')}>
-              <input type="checkbox" checked={form.isUnderWarranty} onChange={(e) => setForm({ ...form, isUnderWarranty: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">Under warranty (free)</span>
-            </label>
-          </div>
-
-          <div className="flex gap-2 pt-2 border-t">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-orange-500 to-red-600" onClick={() => addMutation.mutate()} loading={addMutation.isPending} disabled={!form.partName}>
-              <Plus className="h-4 w-4" />
-              Add Part
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return <div><dt className="text-[0.75rem] font-medium text-slate-500">{label}</dt><dd className="mt-0.5 text-slate-800">{children}</dd></div>;
 }
 
-function PhotosModal({ jobId, stage, onClose, onDone }: any) {
-  const [urls, setUrls] = useState<string[]>([]);
+function Line({ label, value }: { label: string; value: number }) {
+  return <div className="flex justify-between text-slate-600"><dt>{label}</dt><dd className="tabular-nums">{formatPKR(value)}</dd></div>;
+}
 
-  const uploadMutation = useMutation({
-    mutationFn: () => jobsApi.addPhotos(jobId, stage, urls),
-    onSuccess: () => { toast.success('Photos added'); onDone(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-fuchsia-50 flex items-center justify-between">
-          <h3 className="font-extrabold">📸 Upload {stage} photos</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          {urls.length > 0 && (
-            <div className="grid grid-cols-4 gap-2">
-              {urls.map((url, i) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setUrls(urls.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 h-5 w-5 rounded-bl bg-rose-600 text-white flex items-center justify-center">
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <UploadDropzone onUploaded={(records) => {
-            const newUrls = Array.isArray(records) ? records.map((r: any) => r.url || r).filter(Boolean) : [(records as any)?.url || records];
-            setUrls([...urls, ...newUrls]);
-          }} />
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-fuchsia-500 to-pink-600" onClick={() => uploadMutation.mutate()} loading={uploadMutation.isPending} disabled={urls.length === 0}>
-              <CheckCircle2 className="h-4 w-4" />
-              Save Photos
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function Sub({ children }: { children: ReactNode }) {
+  return <span className="mt-0.5 block text-[0.75rem] text-slate-500">{children}</span>;
 }

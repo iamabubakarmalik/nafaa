@@ -163,7 +163,7 @@ export const warrantyClaimsApi = {
     brandResponse?: string; rejectionReason?: string; replacementSerialNumber?: string;
   }) => apiClient.post(`/appliances/warranty-claims/${id}/brand-response`, data).then(unwrap<WarrantyClaim>),
 
-  settle: (id: string, data: { receivedAmount: number; notes?: string }) =>
+  settle: (id: string, data: { receivedAmount: number; paymentMethod?: string; notes?: string }) =>
     apiClient.post(`/appliances/warranty-claims/${id}/settle`, data).then(unwrap<WarrantyClaim>),
 
   remove: (id: string) =>

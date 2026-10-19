@@ -141,4 +141,19 @@ export const applianceSerialApi = {
     apiClient.patch('/appliances/serial-tracking/' + id, data).then(unwrap<ApplianceSerial>),
   remove: (id: string) =>
     apiClient.delete('/appliances/serial-tracking/' + id).then(unwrap<{ message: string }>),
+  /** Marks the units that left on a counter bill as sold (warranty starts on the bill date). */
+  assignSale: (saleId: string, serialIds: string[]) =>
+    apiClient.post('/appliances/serial-tracking/assign-sale', { saleId, units: serialIds.map((serialId) => ({ serialId })) }).then(unwrap),
+  /** Units sold on many bills, for the sales history. */
+  forSales: (saleIds: string[]) =>
+    apiClient.get('/appliances/serial-tracking/for-sales', { params: { ids: saleIds.join(',') } })
+      .then(unwrap<Array<{ id: string; saleId: string; productId: string; serialNumber: string; warrantyEndDate?: string | null; installationStatus: string }>>),
+  /** Units sold on one bill, for the warranty card. */
+  forSale: (saleId: string) =>
+    apiClient.get('/appliances/serial-tracking/for-sale/' + saleId).then(unwrap<SaleUnit[]>),
 };
+
+export interface SaleUnit {
+  id: string; productId: string; serialNumber: string; modelNumber?: string | null;
+  warrantyStartDate?: string | null; warrantyEndDate?: string | null; compressorWarrantyEndDate?: string | null; motorWarrantyEndDate?: string | null;
+}

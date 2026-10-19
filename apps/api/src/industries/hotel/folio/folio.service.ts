@@ -1,94 +1,104 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+/**
+ * Folio: room service, restaurant, laundry and other charges on a stay,
+ * billed with the room nights at check-out. A charge for a catalog item
+ * (minibar, food) takes its stock when it is posted; voiding the charge
+ * puts it back. The item and its cost are kept in the charge reference
+ * (`stock:<productId>:<unitCost>:<shopId>`) so the bill carries the cost.
+ */
+
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { applyStockDelta, isServiceProduct } from '../../../common/shop-scope';
+import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+import { IN_HOUSE, found, r2 } from '../common/hotel-common';
+import { FolioChargeDto } from '../common/hotel.dto';
+
+/** Charges can be posted to a stay that is booked or in the hotel. */
+const POSTABLE = ['CONFIRMED', 'TENTATIVE', ...IN_HOUSE];
 
 @Injectable()
 export class FolioService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async addCharge(user: AuthenticatedUser, dto: any) {
-    const booking = await this.prisma.hotelBooking.findFirst({ where: { id: dto.bookingId, tenantId: user.tenantId } });
-    if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.status === 'CHECKED_OUT' || booking.status === 'CANCELLED') {
-      throw new BadRequestException('Cannot add charge to closed booking');
-    }
-
-    const count = await this.prisma.hotelFolioCharge.count({ where: { bookingId: dto.bookingId } });
-    const chargeNumber = 'FC-' + booking.bookingNumber + '-' + String(count + 1).padStart(3, '0');
-
-    const quantity = Number(dto.quantity) || 1;
-    const unitPrice = Number(dto.unitPrice) || 0;
-    const taxAmount = Number(dto.taxAmount) || 0;
-    const discount = Number(dto.discount) || 0;
-    const totalAmount = Math.max((quantity * unitPrice) + taxAmount - discount, 0);
+  async addCharge(user: AuthenticatedUser, dto: FolioChargeDto) {
+    const booking = found(await this.prisma.hotelBooking.findFirst({ where: { id: dto.bookingId, tenantId: user.tenantId } }), 'Booking');
+    if (!POSTABLE.includes(booking.status)) throw new BadRequestException('Band booking par charge nahi lagta');
+    const description = dto.description.trim();
+    if (!description) throw new BadRequestException('Charge ka naam likhein');
+    const quantity = r2(dto.quantity ?? 1);
+    const product = dto.productId
+      ? found(await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId, isActive: true } }), 'Item')
+      : null;
+    const unitPrice = r2(dto.unitPrice ?? product?.price ?? 0);
+    if (!(unitPrice > 0)) throw new BadRequestException('Rate likhein');
+    const taxAmount = r2(dto.taxAmount ?? 0);
+    const discount = r2(dto.discount ?? 0);
+    const totalAmount = r2(quantity * unitPrice + taxAmount - discount);
+    if (!(totalAmount > 0)) throw new BadRequestException('Charge ki amount 0 se zyada honi chahiye');
 
     return this.prisma.$transaction(async (tx) => {
+      let reference: string | null = null;
+      if (product && !isServiceProduct(product)) {
+        const shopId = await resolveIndustryShopId(tx, user, booking.shopId);
+        await applyStockDelta({
+          tx, tenantId: user.tenantId, shopId, productId: product.id, delta: -quantity, movementType: 'SALE_OUT',
+          reference: booking.bookingNumber, note: `Room folio: ${description}`, preventNegative: true, label: product.name, userId: user.id,
+        });
+        reference = `stock:${product.id}:${r2(product.costPrice ?? 0)}:${shopId}`;
+      } else if (product) {
+        reference = `stock:${product.id}:${r2(product.costPrice ?? 0)}:-`;
+      }
+      const count = await tx.hotelFolioCharge.count({ where: { bookingId: booking.id } });
       const charge = await tx.hotelFolioCharge.create({
         data: {
-          bookingId: dto.bookingId,
-          chargeNumber,
-          chargeDate: dto.chargeDate ? new Date(dto.chargeDate) : new Date(),
-          chargeType: dto.chargeType,
-          description: dto.description,
-          quantity,
-          unitPrice,
-          taxAmount,
-          discount,
-          totalAmount,
-          reference: dto.reference,
-          postedById: user.id,
-          notes: dto.notes,
+          bookingId: booking.id, chargeNumber: `FC-${booking.bookingNumber}-${String(count + 1).padStart(3, '0')}`,
+          chargeDate: new Date(), chargeType: dto.chargeType, description, quantity, unitPrice, taxAmount, discount, totalAmount,
+          reference, postedById: user.id, notes: dto.notes?.trim() || null,
         },
       });
-
-      // Update booking totals
-      const newExtraCharges = booking.extraCharges + totalAmount;
-      const newGrandTotal = booking.grandTotal + totalAmount;
-      const newBalance = Math.max(newGrandTotal - booking.paidAmount, 0);
-      await tx.hotelBooking.update({
-        where: { id: dto.bookingId },
-        data: {
-          extraCharges: newExtraCharges,
-          grandTotal: newGrandTotal,
-          balanceAmount: newBalance,
-          paymentStatus: newBalance <= 0 ? 'PAID' : booking.paidAmount > 0 ? 'PARTIAL' : 'UNPAID',
-        },
-      });
-
+      await this.retotal(tx, booking.id, totalAmount);
       return charge;
     });
   }
 
-  async byBooking(user: AuthenticatedUser, bookingId: string) {
-    return this.prisma.hotelFolioCharge.findMany({
-      where: { bookingId, isVoid: false },
-      orderBy: { chargeDate: 'desc' },
+  /** Adds `delta` to the booking's charges and works the totals out again. */
+  private async retotal(tx: any, bookingId: string, delta: number) {
+    const b = await tx.hotelBooking.update({
+      where: { id: bookingId }, data: { extraCharges: { increment: delta }, grandTotal: { increment: delta } },
+      select: { grandTotal: true, paidAmount: true },
+    });
+    const balance = r2(Math.max(b.grandTotal - b.paidAmount, 0));
+    await tx.hotelBooking.update({
+      where: { id: bookingId },
+      data: { balanceAmount: balance, paymentStatus: balance <= 0.009 ? 'PAID' : b.paidAmount > 0 ? 'PARTIAL' : 'UNPAID' },
     });
   }
 
+  async byBooking(user: AuthenticatedUser, bookingId: string) {
+    found(await this.prisma.hotelBooking.findFirst({ where: { id: bookingId, tenantId: user.tenantId }, select: { id: true } }), 'Booking');
+    return this.prisma.hotelFolioCharge.findMany({ where: { bookingId }, orderBy: { chargeDate: 'desc' } });
+  }
+
   async voidCharge(user: AuthenticatedUser, id: string, reason: string) {
-    const c = await this.prisma.hotelFolioCharge.findUnique({ where: { id }, include: { booking: true } });
-    if (!c) throw new NotFoundException('Charge not found');
-    if (c.booking.tenantId !== user.tenantId) throw new NotFoundException('Charge not found');
-    if (c.isVoid) throw new BadRequestException('Already voided');
+    const c = found(await this.prisma.hotelFolioCharge.findFirst({ where: { id, booking: { tenantId: user.tenantId } }, include: { booking: true } }), 'Charge');
+    if (c.isVoid) throw new BadRequestException('Ye charge pehle hi hat chuka');
+    if (!POSTABLE.includes(c.booking.status)) throw new BadRequestException('Bill ban chuka — ab charge nahi hatta (bill void ya return karein)');
+    const why = reason?.trim();
+    if (!why) throw new BadRequestException('Charge hatane ki wajah likhein');
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.hotelFolioCharge.update({
-        where: { id },
-        data: { isVoid: true, voidedAt: new Date(), voidReason: reason },
-      });
-      // Reverse from booking
-      const newExtra = Math.max(c.booking.extraCharges - c.totalAmount, 0);
-      const newGrandTotal = Math.max(c.booking.grandTotal - c.totalAmount, 0);
-      const newBalance = Math.max(newGrandTotal - c.booking.paidAmount, 0);
-      return tx.hotelBooking.update({
-        where: { id: c.bookingId },
-        data: {
-          extraCharges: newExtra,
-          grandTotal: newGrandTotal,
-          balanceAmount: newBalance,
-        },
-      });
+      const done = await tx.hotelFolioCharge.updateMany({ where: { id, isVoid: false }, data: { isVoid: true, voidedAt: new Date(), voidReason: why } });
+      if (!done.count) throw new BadRequestException('Ye charge pehle hi hat chuka');
+      const m = /^stock:([^:]+):[\d.]+:([^:]+)$/.exec(c.reference ?? '');
+      if (m && m[2] !== '-') {
+        await applyStockDelta({
+          tx, tenantId: user.tenantId, shopId: m[2], productId: m[1], delta: c.quantity, movementType: 'RETURN_IN',
+          reference: c.booking.bookingNumber, note: `Folio charge hata: ${c.description}`, userId: user.id,
+        });
+      }
+      await this.retotal(tx, c.bookingId, -c.totalAmount);
+      return tx.hotelFolioCharge.findUniqueOrThrow({ where: { id } });
     });
   }
 }

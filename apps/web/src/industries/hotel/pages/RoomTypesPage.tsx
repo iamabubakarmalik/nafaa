@@ -1,408 +1,148 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Bed, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Wifi, Wind, Tv, Coffee, DollarSign, Users, Home,
-} from 'lucide-react';
-import { roomTypesApi, type RoomType, type BedType, type HotelRoomType } from '../api/room-types.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Room types: the hotel's catalog — rate per night, weekend and season
+ * rates, how many people, extra bed, and its rooms with their state now.
+ * Types are switched off, never deleted.
+ *
+ * Keys: N new type · / search · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
-const ROOM_TYPES: { value: RoomType; label: string; emoji: string }[] = [
-  { value: 'SINGLE', label: 'Single', emoji: '🛏️' },
-  { value: 'DOUBLE', label: 'Double', emoji: '🛌' },
-  { value: 'TWIN', label: 'Twin', emoji: '👥' },
-  { value: 'TRIPLE', label: 'Triple', emoji: '3️⃣' },
-  { value: 'QUAD', label: 'Quad', emoji: '4️⃣' },
-  { value: 'FAMILY', label: 'Family', emoji: '👨‍👩‍👧' },
-  { value: 'SUITE', label: 'Suite', emoji: '🏨' },
-  { value: 'DELUXE', label: 'Deluxe', emoji: '⭐' },
-  { value: 'EXECUTIVE', label: 'Executive', emoji: '💼' },
-  { value: 'PRESIDENTIAL', label: 'Presidential', emoji: '👑' },
-  { value: 'DORMITORY', label: 'Dormitory', emoji: '🛌' },
-  { value: 'STUDIO', label: 'Studio', emoji: '🏠' },
-  { value: 'APARTMENT', label: 'Apartment', emoji: '🏢' },
-  { value: 'VILLA', label: 'Villa', emoji: '🏡' },
-  { value: 'BUNGALOW', label: 'Bungalow', emoji: '🏘️' },
-  { value: 'TENT', label: 'Tent', emoji: '⛺' },
-  { value: 'CABIN', label: 'Cabin', emoji: '🏕️' },
-];
-
-const BED_TYPES: { value: BedType; label: string }[] = [
-  { value: 'SINGLE_BED', label: 'Single Bed' },
-  { value: 'DOUBLE_BED', label: 'Double Bed' },
-  { value: 'QUEEN_BED', label: 'Queen Bed' },
-  { value: 'KING_BED', label: 'King Bed' },
-  { value: 'SOFA_BED', label: 'Sofa Bed' },
-  { value: 'BUNK_BED', label: 'Bunk Bed' },
-  { value: 'TWIN_BEDS', label: 'Twin Beds' },
-];
+import { Award, BedDouble, ChevronRight, DoorOpen, Filter, GraduationCap, Layers, Pencil, Plus, Power, Users } from 'lucide-react';
+import {
+  Button, FilterBar, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { roomTypesApi, type HotelRoomType } from '../api/room-types.api';
+import { useConfirm } from '../components/useConfirm';
+import { ALL_HOTEL_KEYS, HOTEL_KEYS, apiError, roomStatusOf } from '../components/meta';
 
 export default function RoomTypesPage() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const canCreate = usePermission(PERMISSIONS.PRODUCTS_CREATE);
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const canDelete = usePermission(PERMISSIONS.PRODUCTS_DELETE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [ask, confirmDialog] = useConfirm();
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<HotelRoomType | null>(null);
+  const [show, setShow] = useState<'active' | 'off' | 'all'>('active');
 
-  const { data: roomTypes = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['hotel-room-types', typeFilter, search],
-    queryFn: () => roomTypesApi.list({
-      type: typeFilter === 'all' ? undefined : typeFilter,
-      active: true,
-      search: search.trim() || undefined,
-    }),
+  const q = useQuery({ queryKey: [HOTEL_KEYS.roomTypes, 'all'], queryFn: () => roomTypesApi.list() });
+  const toggle = useMutation({
+    mutationFn: (t: HotelRoomType) => (t.isActive ? roomTypesApi.remove(t.id) : roomTypesApi.update(t.id, { isActive: true })),
+    onSuccess: (_, t) => { toast.success(t.isActive ? `${t.name} band` : `${t.name} chalu`); ALL_HOTEL_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => roomTypesApi.remove(id),
-    onSuccess: () => { toast.success('Room type removed'); queryClient.invalidateQueries({ queryKey: ['hotel-room-types'] }); },
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canCreate) { e.preventDefault(); navigate('/hotel-room-types/new'); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canCreate, navigate]);
+
+  const all = q.data ?? [];
+  const active = all.filter((t) => t.isActive);
+  const term = search.trim().toLowerCase();
+  const rows = all.filter((t) => (show === 'all' || (show === 'active' ? t.isActive : !t.isActive)) && (!term || t.name.toLowerCase().includes(term) || t.code.toLowerCase().includes(term)));
+  const rooms = active.reduce((s, t) => s + (t.rooms?.length ?? 0), 0);
+  const free = active.reduce((s, t) => s + (t.rooms?.filter((r) => r.status === 'AVAILABLE').length ?? 0), 0);
+  const avg = active.length ? active.reduce((s, t) => s + t.basePrice, 0) / active.length : 0;
+
+  const off = async (t: HotelRoomType) => {
+    if (t.isActive && !(await ask({ title: `${t.name} band karein?`, text: 'Is type ke room nayi booking nahi lenge. Record rehta hai; baad me chalu kar sakte hain.', yes: 'Band karein', danger: true }))) return;
+    toggle.mutate(t);
+  };
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-purple-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Bed className="h-3.5 w-3.5 text-amber-300" />
-              Room Categories
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🛏️ Room Types</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Categories, amenities, pricing tiers</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              New Room Type
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Room types"
+        chip={<><Layers /> {active.length} types</>}
+        meta="Rate, weekend rate, kitne log aur sahulat"
+        busy={q.isFetching && !q.isLoading}
+        loading={q.isLoading}
+        actions={<>
+          <Link to="/hotel/rate-plans" className={heroButton}><Award className="h-4 w-4" /><span className="hidden sm:inline">Season rates</span></Link>
+          <Link to="/hotel/rooms" className={heroButton}><DoorOpen className="h-4 w-4" /><span className="hidden sm:inline">Room board</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <Link to="/hotel-room-types/new" title="Naya type (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya room type</Link>}
+        </>}
+        stats={[{ label: 'Room', value: rooms }, { label: 'Abhi khaali', value: free }, { label: 'Ausat rate', value: formatPKR(Math.round(avg)) }]}
+      />
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search room types..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setTypeFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (typeFilter === 'all' ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All</button>
-          {ROOM_TYPES.map((t) => (
-            <button key={t.value} onClick={() => setTypeFilter(t.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (typeFilter === t.value ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{t.emoji} {t.label}</button>
-          ))}
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        <KpiCard icon={Layers} color="#4f46e5" label="Types" value={active.length} hint={all.length > active.length ? `${all.length - active.length} band` : 'Sab chalu'} />
+        <KpiCard icon={BedDouble} color="#0891b2" label="Room" value={rooms} />
+        <KpiCard icon={DoorOpen} color="#16a34a" label="Abhi khaali" value={free} />
+        <KpiCard icon={Users} color="#7c3aed" label="Kul jagah" value={active.reduce((s, t) => s + t.maxOccupancy * (t.rooms?.length ?? 0), 0)} hint="Log ek saath" />
+      </KpiRow>
 
-      {showForm && (
-        <RoomTypeForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['hotel-room-types'] }); }}
-        />
-      )}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya code…" label="Search" />}>
+        <FilterMenu icon={Filter} label={show === 'active' ? 'Chalu' : show === 'off' ? 'Band' : 'Sab'} value={show} active={show !== 'active'} onChange={setShow}
+          options={[{ value: 'active', label: 'Chalu' }, { value: 'off', label: 'Band' }, { value: 'all', label: 'Sab' }]} />
+      </FilterBar>
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : roomTypes.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Bed className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No room types yet</p>
-          <Button className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" />
-            Create First Room Type
-          </Button>
+
+      {q.isLoading ? <Skeleton className="h-60 rounded-3xl" /> : !rows.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <Layers className="mx-auto h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-semibold text-slate-900">{all.length ? 'Is filter me kuch nahi' : 'Abhi koi room type nahi'}</p>
+          <p className="mt-1 text-sm text-slate-500">Jaise "Deluxe Double — Rs 8,000 raat, 2 log" — saath hi room numbers bhi likh dein.</p>
+          {canCreate && !all.length && <Button className="mt-4" onClick={() => navigate('/hotel-room-types/new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla room type</Button>}
         </div>
       ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {roomTypes.map((rt) => (
-            <RoomTypeCard
-              key={rt.id}
-              rt={rt}
-              onEdit={() => { setEditing(rt); setShowForm(true); }}
-              onDelete={() => { if (confirm('Remove "' + rt.name + '"?')) removeMutation.mutate(rt.id); }}
-            />
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          {rows.map((t) => (
+            <li key={t.id} className={cn('flex flex-wrap items-center gap-3 px-4 py-3', !t.isActive && 'opacity-60')}>
+              <Link to={`/hotel-room-types/${t.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-[0.75rem] font-bold text-brand-800 ring-1 ring-brand-100">{t.code}</span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{t.name}{!t.isActive && ' · band'}</span>
+                  <span className="block truncate text-[0.75rem] text-slate-500">{t.maxOccupancy} log · {t.rooms?.length ?? 0} room{t.extraBedAllowed ? ` · extra bed ${formatPKR(t.extraBedPrice)}` : ''}</span>
+                  <span className="mt-1 flex flex-wrap gap-1">
+                    {(t.rooms ?? []).slice(0, 14).map((r) => <span key={r.id} title={roomStatusOf(r.status).label} className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-1.5 text-[0.6875rem] font-semibold text-slate-700 ring-1 ring-slate-200"><span className={cn('h-1.5 w-1.5 rounded-full', roomStatusOf(r.status).dot)} />{r.roomNumber}</span>)}
+                  </span>
+                </span>
+              </Link>
+              <span className="text-right">
+                <span className="block text-[0.9375rem] font-bold tabular-nums text-slate-900">{formatPKR(t.basePrice)}</span>
+                <span className="block text-[0.75rem] text-slate-500">{t.weekendPrice ? `Weekend ${formatPKR(t.weekendPrice)}` : 'fi raat'}</span>
+              </span>
+              <span className="flex items-center">
+                {canEdit && <Link to={`/hotel-room-types/${t.id}/edit`} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Badlein"><Pencil className="h-4 w-4" /></Link>}
+                {(t.isActive ? canDelete : canEdit) && <button type="button" onClick={() => off(t)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label={t.isActive ? 'Band' : 'Chalu'}><Power className="h-4 w-4" /></button>}
+                <ChevronRight className="h-4 w-4 text-slate-300" />
+              </span>
+            </li>
           ))}
-        </section>
+        </ul>
       )}
-    </div>
-  );
-}
+      {confirmDialog}
 
-function RoomTypeCard({ rt, onEdit, onDelete }: any) {
-  const type = ROOM_TYPES.find((t) => t.value === rt.type);
-  const roomCount = rt.rooms?.length || 0;
-  const availableCount = rt.rooms?.filter((r: any) => r.status === 'AVAILABLE').length || 0;
-
-  return (
-    <div className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden">
-      <div className="relative aspect-video bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 overflow-hidden">
-        {rt.imageUrls?.[0] ? (
-          <img src={rt.imageUrls[0]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-6xl">{type?.emoji || '🛏️'}</span>
-          </div>
-        )}
-
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          <span className="px-2 py-0.5 rounded bg-slate-900/70 backdrop-blur text-white text-[0.6875rem] font-extrabold uppercase">
-            {type?.emoji} {type?.label}
-          </span>
-        </div>
-
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-slate-900/80 text-white flex items-center justify-center hover:bg-slate-900 shadow">
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="h-8 w-8 rounded-lg bg-rose-600/80 text-white flex items-center justify-center hover:bg-rose-600 shadow">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
-          <div className="text-white">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">{rt.code}</div>
-            <div className="text-xs font-bold">{rt.bedCount}× {rt.bedType?.replace('_', ' ')}</div>
-          </div>
-          <div className="text-right text-white">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Rooms</div>
-            <div className="text-lg font-extrabold tabular-nums">{availableCount}/{roomCount}</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-2">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{rt.name}</h3>
-        {rt.description && <p className="text-xs text-slate-500 font-semibold line-clamp-2">{rt.description}</p>}
-
-        <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-          <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{rt.maxOccupancy}</span>
-          {rt.sizeSqft && <span>{rt.sizeSqft} sqft</span>}
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {rt.hasAC && <span className="p-1 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700" title="AC"><Wind className="h-3 w-3" /></span>}
-          {rt.hasWifi && <span className="p-1 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700" title="WiFi"><Wifi className="h-3 w-3" /></span>}
-          {rt.hasTV && <span className="p-1 rounded bg-purple-100 dark:bg-purple-950/40 text-purple-700" title="TV"><Tv className="h-3 w-3" /></span>}
-          {rt.hasMinibar && <span className="p-1 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700" title="Minibar"><Coffee className="h-3 w-3" /></span>}
-          {rt.hasBalcony && <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase">Balcony</span>}
-          {rt.hasKitchen && <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/40 text-orange-700 text-[0.625rem] font-extrabold uppercase">Kitchen</span>}
-        </div>
-
-        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
-          <div>
-            <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">Base Rate</div>
-            <div className="text-2xl font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(rt.basePrice)}<span className="text-xs font-bold text-slate-500">/night</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RoomTypeForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    code: editing?.code ?? '',
-    name: editing?.name ?? '',
-    type: editing?.type ?? 'DOUBLE',
-    description: editing?.description ?? '',
-    maxAdults: editing?.maxAdults ?? 2,
-    maxChildren: editing?.maxChildren ?? 0,
-    maxOccupancy: editing?.maxOccupancy ?? 2,
-    bedType: editing?.bedType ?? 'DOUBLE_BED',
-    bedCount: editing?.bedCount ?? 1,
-    extraBedAllowed: editing?.extraBedAllowed ?? false,
-    extraBedPrice: editing?.extraBedPrice ?? 0,
-    sizeSqft: editing?.sizeSqft ?? '',
-    basePrice: editing?.basePrice ?? 0,
-    weekendPrice: editing?.weekendPrice ?? '',
-    peakPrice: editing?.peakPrice ?? '',
-    hourlyPrice: editing?.hourlyPrice ?? '',
-    hasAC: editing?.hasAC ?? true,
-    hasHeater: editing?.hasHeater ?? false,
-    hasTV: editing?.hasTV ?? true,
-    hasWifi: editing?.hasWifi ?? true,
-    hasBalcony: editing?.hasBalcony ?? false,
-    hasKitchen: editing?.hasKitchen ?? false,
-    hasBathtub: editing?.hasBathtub ?? false,
-    hasSafe: editing?.hasSafe ?? false,
-    hasMinibar: editing?.hasMinibar ?? false,
-    isPetFriendly: editing?.isPetFriendly ?? false,
-    isSmoking: editing?.isSmoking ?? false,
-    imageUrls: editing?.imageUrls ?? [],
-    amenities: editing?.amenities?.join(', ') ?? '',
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        ...form,
-        basePrice: Number(form.basePrice) || 0,
-        maxAdults: Number(form.maxAdults) || 1,
-        maxChildren: Number(form.maxChildren) || 0,
-        maxOccupancy: Number(form.maxOccupancy) || 1,
-        bedCount: Number(form.bedCount) || 1,
-        extraBedPrice: Number(form.extraBedPrice) || 0,
-        sizeSqft: form.sizeSqft ? Number(form.sizeSqft) : undefined,
-        weekendPrice: form.weekendPrice ? Number(form.weekendPrice) : undefined,
-        peakPrice: form.peakPrice ? Number(form.peakPrice) : undefined,
-        hourlyPrice: form.hourlyPrice ? Number(form.hourlyPrice) : undefined,
-        amenities: form.amenities ? form.amenities.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      };
-      return editing ? roomTypesApi.update(editing.id, payload) : roomTypesApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Updated' : 'Created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-indigo-300 dark:border-indigo-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">{editing ? 'Edit Room Type' : 'New Room Type'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input autoFocus value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (e.g. DLX)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-indigo-500" />
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
-          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500">
-            {ROOM_TYPES.map((t) => <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>)}
-          </select>
-        </div>
-
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500 resize-none" />
-
-        {/* Capacity */}
-        <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-blue-900">Capacity</div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Max Adults</label>
-              <input type="number" value={form.maxAdults} onChange={(e) => setForm({ ...form, maxAdults: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Max Children</label>
-              <input type="number" value={form.maxChildren} onChange={(e) => setForm({ ...form, maxChildren: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Max Occupancy</label>
-              <input type="number" value={form.maxOccupancy} onChange={(e) => setForm({ ...form, maxOccupancy: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Bed */}
-        <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.bedType} onChange={(e) => setForm({ ...form, bedType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500">
-            {BED_TYPES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-          </select>
-          <input type="number" value={form.bedCount} onChange={(e) => setForm({ ...form, bedCount: e.target.value })} placeholder="Bed count" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
-          <input type="number" value={form.sizeSqft} onChange={(e) => setForm({ ...form, sizeSqft: e.target.value })} placeholder="Size (sqft)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
-        </div>
-
-        {/* Pricing */}
-        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-emerald-900 flex items-center gap-2"><DollarSign className="h-4 w-4" />Pricing</div>
-          <div className="grid sm:grid-cols-4 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Base *</label>
-              <input type="number" value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Weekend</label>
-              <input type="number" value={form.weekendPrice} onChange={(e) => setForm({ ...form, weekendPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Peak</label>
-              <input type="number" value={form.peakPrice} onChange={(e) => setForm({ ...form, peakPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Hourly</label>
-              <input type="number" value={form.hourlyPrice} onChange={(e) => setForm({ ...form, hourlyPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Amenities */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Room Amenities</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { key: 'hasAC', label: 'AC', icon: Wind },
-              { key: 'hasHeater', label: 'Heater', icon: Wind },
-              { key: 'hasTV', label: 'TV', icon: Tv },
-              { key: 'hasWifi', label: 'WiFi', icon: Wifi },
-              { key: 'hasBalcony', label: 'Balcony', icon: Home },
-              { key: 'hasKitchen', label: 'Kitchen', icon: Coffee },
-              { key: 'hasBathtub', label: 'Bathtub', icon: Coffee },
-              { key: 'hasSafe', label: 'Safe', icon: Coffee },
-              { key: 'hasMinibar', label: 'Minibar', icon: Coffee },
-              { key: 'isPetFriendly', label: 'Pet OK', icon: Coffee },
-              { key: 'isSmoking', label: 'Smoking', icon: Coffee },
-            ].map((a) => {
-              const Icon = a.icon;
-              return (
-                <label key={a.key} className={
-                  'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition ' +
-                  ((form as any)[a.key] ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-indigo-300')
-                }>
-                  <input type="checkbox" checked={(form as any)[a.key]} onChange={(e) => setForm({ ...form, [a.key]: e.target.checked })} className="h-4 w-4 rounded" />
-                  <Icon className={'h-3.5 w-3.5 ' + ((form as any)[a.key] ? 'text-indigo-600' : 'text-slate-400')} />
-                  <span className="text-xs font-extrabold">{a.label}</span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-
-        <input value={form.amenities} onChange={(e) => setForm({ ...form, amenities: e.target.value })} placeholder="More amenities (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
-
-        {/* Images */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Room Images</label>
-          {form.imageUrls.length > 0 && (
-            <div className="grid grid-cols-4 gap-1 mb-2">
-              {form.imageUrls.map((url: string, i: number) => (
-                <div key={i} className="relative aspect-video rounded-lg overflow-hidden border border-slate-200">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setForm({ ...form, imageUrls: form.imageUrls.filter((_: any, idx: number) => idx !== i) })} className="absolute top-0 right-0 h-5 w-5 rounded-bl bg-rose-600 text-white flex items-center justify-center">
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <UploadDropzone onUploaded={(records) => {
-            const urls = Array.isArray(records) ? records.map((r: any) => r.url || r).filter(Boolean) : [(records as any)?.url || records];
-            setForm({ ...form, imageUrls: [...form.imageUrls, ...urls] });
-          }} />
-        </div>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.code || !form.name || !form.basePrice}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </section>
+      {guide.isOpen && (
+        <PageGuide title="Room types — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Layers, color: '#4f46e5', title: 'Type', text: 'Ek jaise room ek type: naam, rate fi raat, kitne log. Weekend (Juma, Hafta ki raat) ka alag rate de sakte hain.' },
+            { icon: BedDouble, color: '#0891b2', title: 'Room numbers', text: 'Type banate waqt hi 101–110 jaise number likh dein; baad me Room board → setup se bhi.' },
+            { icon: Award, color: '#d97706', title: 'Season rates', text: 'Eid, garmiyon ki chhuttiyan, company rate — "Season rates" me date ke hisaab se.' },
+          ]}
+          tips={['Type band karne se purani bookings par asar nahi hota.', 'Banane / badalne ke liye products ki permission chahiye.']}
+          shortcuts={[['N', 'naya type'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

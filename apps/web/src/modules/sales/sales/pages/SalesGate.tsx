@@ -1,7 +1,8 @@
 /**
  * Picks the sales history for the current industry. Retail, Bakery,
  * Electronics, Pharmacy, Mobile, Restaurant, Garments, Clinic, Jewelry,
- * Hardware, Auto parts, Salon and businesses without an industry use the shared
+ * Hardware, Auto parts, Salon, Gym, Hotel, Dairy, Meat, Services, Appliances
+ * and businesses without an industry use the shared
  * history (modules/sales/history) through their config; the rest keep their
  * own pages for now.
  */
@@ -23,7 +24,7 @@ const ServicesBizSalesPage = lazy(() => import('@industries/services-biz/pages/S
 const PharmacySales = lazy(() => import('@industries/pharmacy/sales/PharmacySales'));
 const JewelrySalesPage = lazy(() => import('@industries/jewelry/pages/JewelrySalesPage'));
 const HardwareSales = lazy(() => import('@industries/hardware/sales/HardwareSales'));
-const DairySalesPage = lazy(() => import('@industries/dairy/pages/DairySalesPage'));
+const DairySales = lazy(() => import('@industries/dairy/sales/DairySales'));
 const MeatSalesPage = lazy(() => import('@industries/meat/pages/MeatSalesPage'));
 const AgriSalesPage = lazy(() => import('@industries/agri/pages/AgriSalesPage'));
 const AutoPartsSalesPage = lazy(() => import('@industries/autoparts/pages/AutoPartsSalesPage'));
@@ -56,7 +57,7 @@ export default function SalesGate() {
   if (industry?.id === 'pharmacy') return <Suspense fallback={<Loader />}><PharmacySales /></Suspense>;
   if (industry?.id === 'jewelry') return <Suspense fallback={<Loader />}><JewelrySalesPage /></Suspense>;
   if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwareSales /></Suspense>;
-  if (industry?.id === 'dairy') return <Suspense fallback={<Loader />}><DairySalesPage /></Suspense>;
+  if (industry?.id === 'dairy') return <Suspense fallback={<Loader />}><DairySales /></Suspense>;
   if (industry?.id === 'meat') return <Suspense fallback={<Loader />}><MeatSalesPage /></Suspense>;
   if (industry?.id === 'agri') return <Suspense fallback={<Loader />}><AgriSalesPage /></Suspense>;
   if (industry?.id === 'autoparts') return <Suspense fallback={<Loader />}><AutoPartsSalesPage /></Suspense>;

@@ -6,6 +6,7 @@
  * the day five hours off. Every day boundary here goes through the shared
  * business-time helper.
  */
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import {
@@ -148,4 +149,151 @@ export async function drawerCash(
     },
   });
   return register.id;
+}
+
+/* ───────────────────────── money and khata ───────────────────────── */
+
+export const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
+export const r3 = (n: number) => Math.round((Number(n) || 0) * 1000) / 1000;
+
+/** Product types that are plain milk; the default product for deliveries and collections. */
+export const MILK_TYPES = ['FRESH_MILK', 'BUFFALO_MILK', 'COW_MILK', 'MIXED_MILK', 'RAW_MILK', 'BOILED_MILK'] as const;
+
+/**
+ * The catalog product a delivery or a milk collection moves: the one asked
+ * for (checked against the tenant), else the shop's main milk product (its
+ * dairy profile marked featured, then by display order). Null when the shop
+ * has no milk product yet.
+ */
+export async function milkProduct(db: Db, tenantId: string, productId?: string | null) {
+  const select = { id: true, name: true, unit: true, price: true, costPrice: true, hasVariants: true } as const;
+  if (productId) {
+    const p = await db.product.findFirst({ where: { id: productId, tenantId, isActive: true }, select });
+    if (p) return p;
+  }
+  const profile = await db.dairyProduct.findFirst({
+    where: { tenantId, productType: { in: [...MILK_TYPES] } },
+    orderBy: [{ isFeatured: 'desc' }, { displayOrder: 'asc' }, { updatedAt: 'desc' }],
+    select: { productId: true },
+  });
+  if (!profile) return null;
+  return db.product.findFirst({ where: { id: profile.productId, tenantId, isActive: true }, select });
+}
+
+/**
+ * Makes sure a delivery customer has a customer khata (the shared one that
+ * Khata, day book and reports read). A customer with the same phone is used,
+ * else a new one is opened. On the first link, whatever the dairy record
+ * still showed as owed (or paid ahead) is carried over once as the khata's
+ * opening balance, so nothing owed before this change is lost.
+ */
+export async function linkKhata(db: Db, user: AuthenticatedUser, dairyCustomerId: string, shopId: string): Promise<string> {
+  const c = await db.dairyCustomer.findFirst({ where: { id: dairyCustomerId, tenantId: user.tenantId } });
+  if (!c) throw new NotFoundException('Customer nahi mila');
+  if (c.customerId) {
+    const ok = await db.customer.findFirst({ where: { id: c.customerId, tenantId: user.tenantId }, select: { id: true } });
+    if (ok) return ok.id;
+  }
+  const phone = c.phone?.trim() || null;
+  const existing = phone ? await db.customer.findFirst({ where: { tenantId: user.tenantId, phone }, select: { id: true } }) : null;
+  const customerId = existing?.id ?? (await db.customer.create({
+    data: { tenantId: user.tenantId, shopId, name: c.name, phone, address: c.address ?? null },
+    select: { id: true },
+  })).id;
+  // Another dairy record may already hold this customer (unique link); then leave it unlinked by phone.
+  const taken = await db.dairyCustomer.findFirst({ where: { customerId, id: { not: c.id } }, select: { id: true } });
+  if (taken) {
+    const own = await db.customer.create({ data: { tenantId: user.tenantId, shopId, name: c.name, phone: null, address: c.address ?? null }, select: { id: true } });
+    return finishLink(db, user, c, own.id, shopId);
+  }
+  return finishLink(db, user, c, customerId, shopId);
+}
+
+async function finishLink(
+  db: Db, user: AuthenticatedUser,
+  c: { id: string; currentBalance: number; customerNumber: string }, customerId: string, shopId: string,
+): Promise<string> {
+  await db.dairyCustomer.update({ where: { id: c.id }, data: { customerId } });
+  const carry = r2(c.currentBalance);
+  if (Math.abs(carry) > 0.009) {
+    const { balance } = await db.customer.update({ where: { id: customerId }, data: { balance: { increment: carry } }, select: { balance: true } });
+    await db.customerLedger.create({
+      data: {
+        tenantId: user.tenantId, shopId, customerId, createdById: user.id,
+        type: 'OPENING_BALANCE', amount: carry, balanceAfter: balance, reference: c.customerNumber,
+        note: carry > 0 ? `Doodh delivery ka purana baqi (${c.customerNumber})` : `Doodh delivery ka purana advance (${c.customerNumber})`,
+      },
+    });
+  }
+  return customerId;
+}
+
+/** Live khata balance per linked customer id. */
+export async function khataBalances(db: Db, tenantId: string, customerIds: Array<string | null | undefined>) {
+  const ids = [...new Set(customerIds.filter((x): x is string => !!x))];
+  if (!ids.length) return new Map<string, number>();
+  const rows = await db.customer.findMany({ where: { tenantId, id: { in: ids } }, select: { id: true, balance: true } });
+  return new Map(rows.map((r) => [r.id, r2(Number(r.balance) || 0)]));
+}
+
+/** A dairy customer with its balance read from the khata when linked. */
+export function withLiveBalance<T extends { customerId: string | null; currentBalance: number }>(row: T, live: Map<string, number>): T & { khataLinked: boolean } {
+  const linked = !!row.customerId && live.has(row.customerId);
+  return { ...row, currentBalance: linked ? live.get(row.customerId!)! : row.currentBalance, khataLinked: linked };
+}
+
+/**
+ * Creates a row with the next free `PREFIX-0001` style number; a clash on the
+ * unique index (two saves at once) retries with the next one.
+ */
+export async function nextNumbered<T>(count: () => Promise<number>, prefix: string, pad: number, create: (n: string) => Promise<T>): Promise<T> {
+  const base = await count();
+  for (let i = 1; i <= 6; i++) {
+    try {
+      return await create(`${prefix}${String(base + i).padStart(pad, '0')}`);
+    } catch (e) {
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+    }
+  }
+  throw new BadRequestException('Number nahi bana — dobara koshish karein');
+}
+
+/** Shop-time year of now. */
+export const shopYear = () => tzParts(new Date()).year;
+
+/**
+ * Brings a customer's monthly bills in line with the khata. Payments are
+ * taken anywhere (this screen, the Khata page, the counter), so what each
+ * bill still shows as due is worked out from the live balance: the oldest
+ * bills count as paid first, and what is owed sits on the newest bills.
+ * Deliveries after the last bill are owed but not billed yet.
+ */
+export async function settleBills(db: Db, tenantId: string, dairyCustomerId: string) {
+  const c = await db.dairyCustomer.findFirst({ where: { id: dairyCustomerId, tenantId }, select: { customerId: true, currentBalance: true } });
+  if (!c) return;
+  const bills = await db.dairyMonthlyBill.findMany({
+    where: { tenantId, dairyCustomerId },
+    orderBy: [{ year: 'desc' }, { month: 'desc' }],
+    select: { id: true, totalAmount: true, discount: true, paidAmount: true, remainingAmount: true, isPaid: true, cycleEndDate: true },
+  });
+  if (!bills.length) return;
+  const live = c.customerId ? (await khataBalances(db, tenantId, [c.customerId])).get(c.customerId) : undefined;
+  const balance = live ?? c.currentBalance;
+  const unbilled = await db.dairyDelivery.aggregate({
+    where: { tenantId, dairyCustomerId, status: 'DELIVERED', deliveryDate: { gt: bills[0].cycleEndDate } },
+    _sum: { totalAmount: true },
+  });
+  let owed = r2(Math.max(balance - (unbilled._sum.totalAmount ?? 0), 0));
+  for (const b of bills) {
+    const due = r2(Math.max(b.totalAmount - b.discount, 0));
+    const remaining = r2(Math.min(due, owed));
+    owed = r2(owed - remaining);
+    const paid = remaining <= 0.009;
+    if (Math.abs(remaining - b.remainingAmount) > 0.009 || paid !== b.isPaid) {
+      await db.dairyMonthlyBill.update({
+        where: { id: b.id },
+        data: { remainingAmount: remaining, paidAmount: r2(due - remaining), isPaid: paid, paidAt: paid ? (b.isPaid ? undefined : new Date()) : null },
+      });
+    }
+  }
 }

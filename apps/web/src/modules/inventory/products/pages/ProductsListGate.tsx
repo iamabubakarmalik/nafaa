@@ -1,6 +1,7 @@
 /**
  * Picks the products page for the current industry. Retail, Bakery,
- * Electronics, Pharmacy, Garments, Mobile, Hardware, Jewelry, Auto parts and
+ * Electronics, Pharmacy, Garments, Mobile, Hardware, Jewelry, Auto parts,
+ * Appliances, Dairy, Meat, Services and
  * businesses without an industry use the shared page (modules/inventory/products/list) through their own config;
  * the rest keep their own pages for now, and industries without one use the
  * shared page with their own editor paths (ProductsListPage).
@@ -17,7 +18,10 @@ const PAGES: Record<string, LazyExoticComponent<ComponentType>> = {
   pharmacy: lazy(() => import('@industries/pharmacy/products/PharmacyProducts')),
   garments: lazy(() => import('@industries/garments/pages/GarmentProductsPage')),
   mobile: lazy(() => import('@industries/mobile/pages/MobileProductsPage')),
-  appliances: lazy(() => import('@industries/appliances/pages/AppliancesProductsPage')),
+  appliances: lazy(() => import('@industries/appliances/products/ApplianceProducts')),
+  dairy: lazy(() => import('@industries/dairy/products/DairyProducts')),
+  meat: lazy(() => import('@industries/meat/pages/MeatProductsPage')),
+  'services-biz': lazy(() => import('@industries/services-biz/products/ServicesBizProducts')),
   agri: lazy(() => import('@industries/agri/pages/AgriProductsListPage')),
   florist: lazy(() => import('@industries/florist/pages/FloristProductsPage')),
   furniture: lazy(() => import('@industries/furniture/pages/FurnitureProductsPage')),

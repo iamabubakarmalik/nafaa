@@ -1,294 +1,233 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Package, Plus, X, Save, RefreshCw, Sparkles, User, Milk, Sunrise, Sunset,
-  CheckCircle2, Beaker, Award,
-} from 'lucide-react';
-import { farmerSuppliesApi } from '../api/farmer-supplies.api';
-import { farmersApi } from '../api/farmers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+/**
+ * Milk bought from gawalas, morning and evening. The entry form stays open
+ * for the next gawala (Enter saves). Each slip puts the litres into the
+ * milk stock at the price paid (fat bonus included) and adds the amount to
+ * the gawala's account; a wrong slip is cancelled, never deleted.
+ */
 
-const SLOTS = ['MORNING', 'AFTERNOON', 'EVENING', 'NIGHT'];
-const QUALITIES = ['A_GRADE', 'B_GRADE', 'C_GRADE', 'REJECTED'];
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Ban, Beaker, ChevronLeft, ChevronRight, Download, Droplets, GraduationCap, Milk, Plus, Sunrise, Sunset, Wallet, Warehouse } from 'lucide-react';
+import {
+  Button, Card, FilterBar, FilterChip, Input, KpiCard, KpiRow, PageHero, PageShell, SearchField, Segmented, Select, Skeleton,
+  heroButton, heroIconButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { farmersApi } from '../api/farmers.api';
+import { farmerSuppliesApi, isCancelledSupply, type FarmerSupply } from '../api/farmer-supplies.api';
+import { Empty, ListCard, ListLoading, Pill, ReasonModal } from '../components/ui';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { DAIRY_KEYS, MONEY_KEYS, QUALITY, dayKey, errorText, liters, numIn, qty, shiftDay, slotLabel, slotNow, type Slot } from '../lib/meta';
+
+/** Fat % the base rate is for (same as the server). */
+const BASE_FAT = 6;
+const longDate = (key: string) => new Intl.DateTimeFormat('en-PK', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${key}T12:00:00`));
 
 export default function FarmerSuppliesPage() {
-  const queryClient = useQueryClient();
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const [dateFilter, setDateFilter] = useState(today);
-  const [farmerFilter, setFarmerFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { cost: money } = useMasked();
+  const canBuy = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const canPay = usePermission(PERMISSIONS.SUPPLIERS_EDIT);
+  const [params] = useSearchParams();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const qtyRef = useRef<HTMLInputElement>(null);
+  const [date, setDate] = useState(dayKey());
+  const [slot, setSlot] = useState<Slot>(slotNow());
+  const [search, setSearch] = useState('');
+  const q = useDebounced(search.trim());
+  const [cancelling, setCancelling] = useState<FarmerSupply | null>(null);
+  const today = dayKey();
 
-  const { data: summary } = useQuery({
-    queryKey: ['dairy-supplies-summary', dateFilter],
-    queryFn: () => farmerSuppliesApi.dailySummary(dateFilter),
-    refetchInterval: 30_000,
-  });
+  const farmersQ = useQuery({ queryKey: [DAIRY_KEYS.farmers, 'active'], queryFn: () => farmersApi.all({ active: true }), staleTime: 60_000 });
+  const listQ = useQuery({ queryKey: [DAIRY_KEYS.supplies, date, slot, q], queryFn: () => farmerSuppliesApi.entries({ from: date, to: date, slot, search: q || undefined }) });
+  const sumQ = useQuery({ queryKey: [DAIRY_KEYS.supplies, 'summary', date], queryFn: () => farmerSuppliesApi.summary(date) });
+  const rows = listQ.data ?? [];
+  const s = sumQ.data;
+  const refresh = () => MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const { data: supplies = [], isLoading, refetch } = useQuery({
-    queryKey: ['dairy-supplies', dateFilter, farmerFilter],
-    queryFn: () => farmerSuppliesApi.list({
-      from: dateFilter, to: dateFilter,
-      farmerId: farmerFilter === 'all' ? undefined : farmerFilter,
+  /* ── entry form ── */
+  const [farmerId, setFarmerId] = useState(params.get('farmer') ?? '');
+  const [form, setForm] = useState({ quantity: '', fat: '', snf: '', rate: '', adjust: '', quality: '', notes: '' });
+  const [err, setErr] = useState<Record<string, string>>({});
+  const farmer = farmersQ.data?.find((f) => f.id === farmerId);
+  useEffect(() => { if (farmer) setForm((x) => ({ ...x, rate: String(farmer.ratePerLiter || '') })); }, [farmer]);
+  const n = numIn(form.quantity) ?? 0;
+  const rate = numIn(form.rate) ?? 0;
+  const fat = numIn(form.fat);
+  const bonus = fat && fat > BASE_FAT && farmer ? Math.round((fat - BASE_FAT) * farmer.fatBonusRate * n * 100) / 100 : 0;
+  const total = form.quality === 'REJECTED' ? 0 : Math.round((rate * n + bonus + (numIn(form.adjust) ?? 0)) * 100) / 100;
+
+  const add = useMutation({
+    mutationFn: () => farmerSuppliesApi.add({
+      farmerId, supplyDate: date, slot, quantity: n, ratePerLiter: rate || undefined, fatContent: fat ?? undefined, snfContent: numIn(form.snf) ?? undefined,
+      otherAdjustment: numIn(form.adjust) ?? undefined, quality: form.quality || undefined, notes: form.notes.trim() || undefined,
     }),
+    onSuccess: (r) => {
+      refresh();
+      toast.success(`${farmer?.name ?? 'Gawala'} — ${liters(r.quantity)} likha${r.stockProduct ? `, ${r.stockProduct.name} stock me` : ''}`,
+        r.stockProduct || form.quality === 'REJECTED' ? undefined : { description: 'Doodh ka product nahi mila — stock nahi barha. Products me doodh par "Asal doodh" lagayein.' });
+      setForm((x) => ({ ...x, quantity: '', fat: '', snf: '', adjust: '', quality: '', notes: '' }));
+      setFarmerId('');
+    },
+    onError: (e) => toast.error(errorText(e, 'Entry save nahi hui')),
   });
-
-  const { data: farmers = [] } = useQuery({
-    queryKey: ['dairy-farmers-for-supply'],
-    queryFn: () => farmersApi.list({ active: true }),
-  });
-
-  const markPaidMutation = useMutation({
-    mutationFn: (id: string) => farmerSuppliesApi.markPaid(id),
-    onSuccess: () => { toast.success('Marked as paid'); queryClient.invalidateQueries({ queryKey: ['dairy-supplies'] }); },
-  });
-
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Farmer Supplies
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">📦 Farmer Supplies</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Daily milk collection from farmers</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className="h-4 w-4" />Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />Record Supply
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatCard label="Supplies" value={summary.totalSupplies} icon={Package} color="amber" />
-          <StatCard label="Total Liters" value={summary.totalLiters.toFixed(1) + 'L'} icon={Milk} color="cyan" />
-          <StatCard label="Morning" value={summary.morningLiters.toFixed(1) + 'L'} icon={Sunrise} color="orange" />
-          <StatCard label="Evening" value={summary.eveningLiters.toFixed(1) + 'L'} icon={Sunset} color="indigo" />
-          <StatCard label="Amount" value={formatPKR(summary.totalAmount)} icon={CheckCircle2} color="emerald" />
-        </section>
-      )}
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 flex gap-3 flex-wrap">
-        <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-        <select value={farmerFilter} onChange={(e) => setFarmerFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-          <option value="all">All Farmers</option>
-          {farmers.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-        </select>
-      </section>
-
-      {showForm && (
-        <SupplyForm
-          farmers={farmers}
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['dairy-supplies'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : supplies.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No supplies recorded</p>
-        </div>
-      ) : (
-        <section className="grid gap-2">
-          {supplies.map((s) => (
-            <div key={s.id} className="rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-extrabold shrink-0">
-                    {s.farmer?.name?.charAt(0).toUpperCase() || '?'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold">{s.farmer?.name}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{s.slot}</span>
-                      {s.quality && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">{s.quality.replace('_', ' ')}</span>}
-                      {s.isPaid && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">PAID</span>}
-                    </div>
-                    <div className="mt-0.5 text-xs text-slate-500 font-semibold">
-                      {format(new Date(s.supplyDate), 'dd MMM HH:mm')}
-                      {s.fatContent && ' • Fat: ' + s.fatContent + '%'}
-                      {s.snfContent && ' • SNF: ' + s.snfContent + '%'}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-center">
-                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</div>
-                    <div className="text-lg font-extrabold text-cyan-700 tabular-nums">{s.quantity}L</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rate</div>
-                    <div className="text-sm font-extrabold tabular-nums">{formatPKR(s.ratePerLiter)}</div>
-                  </div>
-                  {s.fatBonus > 0 && (
-                    <div className="text-center">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Bonus</div>
-                      <div className="text-sm font-extrabold text-amber-700 tabular-nums">{formatPKR(s.fatBonus)}</div>
-                    </div>
-                  )}
-                  <div className="text-center">
-                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
-                    <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(s.totalAmount)}</div>
-                  </div>
-                  {!s.isPaid && (
-                    <button onClick={() => markPaidMutation.mutate(s.id)} className="h-9 px-3 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-xs font-extrabold inline-flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5" />Mark Paid
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    amber: 'from-amber-500 to-orange-600', cyan: 'from-cyan-500 to-blue-600',
-    orange: 'from-orange-500 to-red-600', indigo: 'from-indigo-500 to-violet-600',
-    emerald: 'from-emerald-500 to-green-600',
+  const submit = () => {
+    const e: Record<string, string> = {};
+    if (!farmerId) e.farmer = 'Gawala chunein';
+    if (!(n > 0) || n > 20000) e.quantity = 'Liter likhein';
+    if (!(rate > 0) && form.quality !== 'REJECTED') e.rate = 'Rate likhein';
+    if (fat != null && (fat < 0 || fat > 15)) e.fat = 'Fat 0 se 15';
+    if (total < 0) e.adjust = 'Katauti amount se zyada hai';
+    setErr(e);
+    if (Object.keys(e).length) return;
+    add.mutate();
   };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow shrink-0'}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function SupplyForm({ farmers, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    farmerId: '',
-    supplyDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-    slot: 'MORNING',
-    quantity: 0,
-    fatContent: '',
-    snfContent: '',
-    quality: '',
-    ratePerLiter: '',
-    otherAdjustment: 0,
-    notes: '',
+  const pay = useMutation({ mutationFn: (x: FarmerSupply) => farmerSuppliesApi.pay(x.id, 'CASH'), onSuccess: () => { refresh(); toast.success('Parchi ada — cash drawer se'); }, onError: (e) => toast.error(errorText(e, 'Nahi hua')) });
+  const cancel = useMutation({
+    mutationFn: ({ x, reason }: { x: FarmerSupply; reason: string }) => farmerSuppliesApi.cancel(x.id, reason || undefined),
+    onSuccess: () => { refresh(); setCancelling(null); toast.success('Entry cancel'); },
+    onError: (e) => toast.error(errorText(e, 'Cancel nahi hui')),
   });
+  usePageKeys(searchRef, { n: () => qtyRef.current?.focus(), arrowleft: () => setDate((d) => shiftDay(d, -1)), arrowright: () => setDate((d) => (d < today ? shiftDay(d, 1) : d)) });
 
-  const selectedFarmer = farmers.find((f: any) => f.id === form.farmerId);
-
-  const saveMutation = useMutation({
-    mutationFn: () => farmerSuppliesApi.create({
-      ...form,
-      // The input holds local wall time; send the real moment.
-      supplyDate: form.supplyDate ? new Date(form.supplyDate).toISOString() : undefined,
-      quantity: Number(form.quantity),
-      fatContent: form.fatContent ? Number(form.fatContent) : undefined,
-      snfContent: form.snfContent ? Number(form.snfContent) : undefined,
-      quality: form.quality || undefined,
-      ratePerLiter: form.ratePerLiter ? Number(form.ratePerLiter) : undefined,
-      otherAdjustment: Number(form.otherAdjustment) || 0,
-    }),
-    onSuccess: () => { toast.success('Supply recorded'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  const live = useMemo(() => rows.filter((r) => !isCancelledSupply(r)), [rows]);
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is din koi entry nahi'); return; }
+    downloadCsv(`doodh-aaya-${date}-${slot.toLowerCase()}.csv`, [
+      ['Gawala', 'Number', 'Waqt', 'Liter', 'Fat', 'SNF', 'Rate', 'Bonus', 'Katauti/izafa', 'Amount', 'Quality', 'Ada'],
+      ...rows.map((r) => [r.farmer?.name, r.farmer?.farmerNumber, slotLabel(r.slot), r.quantity, r.fatContent, r.snfContent, r.ratePerLiter, r.fatBonus, r.otherAdjustment, r.totalAmount, r.quality ? QUALITY[r.quality]?.label : '', isCancelledSupply(r) ? 'Cancel' : r.isPaid ? 'Haan' : 'Nahi']),
+    ]);
+  };
+  const printDoc = (): PrintDoc => ({
+    title: `Doodh aaya — ${slotLabel(slot)}`, subtitle: longDate(date),
+    meta: [['Liter', qty(live.reduce((t, r) => t + r.quantity, 0))], ['Amount', money(live.reduce((t, r) => t + r.totalAmount, 0))]],
+    sections: [{
+      kind: 'table', title: 'Parchiyan',
+      columns: [{ label: 'Gawala' }, { label: 'Liter' }, { label: 'Fat', wideOnly: true }, { label: 'Rate', wideOnly: true }, { label: 'Amount', align: 'right' }],
+      rows: live.map((r) => [r.farmer?.name ?? '', qty(r.quantity), r.fatContent ? `${r.fatContent}%` : '', String(r.ratePerLiter), money(r.totalAmount)]),
+    }],
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 bg-amber-50 flex items-center justify-between">
-        <h3 className="font-extrabold">Record Farmer Supply</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4">
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Farmer *</label>
-          <select autoFocus value={form.farmerId} onChange={(e) => {
-            const f = farmers.find((x: any) => x.id === e.target.value);
-            setForm({ ...form, farmerId: e.target.value, ratePerLiter: f?.ratePerLiter || '' });
-          }} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-amber-50 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-            <option value="">-- Select farmer --</option>
-            {farmers.map((f: any) => <option key={f.id} value={f.id}>{f.name} (Rate: {formatPKR(f.ratePerLiter)})</option>)}
-          </select>
-        </div>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Doodh ki entry — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Milk, color: '#0ea5e9', title: 'Har gawala', text: 'Gawala chunein, liter aur fat likhein, Enter dabayein. Rate gawale ka khud lagta hai; aaj alag ho to badal dein.' },
+            { icon: Warehouse, color: '#16a34a', title: 'Stock aur cost', text: 'Doodh "asal doodh" ke stock me jata hai aur us ki cost ausat ho kar profit report me sahi aati hai.' },
+            { icon: Ban, color: '#e11d48', title: 'Wapas kiya', text: 'Doodh kharab tha to Quality "Wapas kiya" chunein — na paisa banta hai na stock.' },
+            { icon: Wallet, color: '#d97706', title: 'Payment', text: 'Hafte ya mahine ki payment Gawale page se — ek parchi abhi ada karni ho to "Cash ada".' },
+          ]}
+          shortcuts={[['N', 'nayi entry'], ['/', 'search'], ['←/→', 'pichla / agla din'], ['G', 'guide']]} />
+      )}
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date/Time *</label>
-            <input type="datetime-local" value={form.supplyDate} onChange={(e) => setForm({ ...form, supplyDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slot</label>
-            <select value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-              {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-        </div>
+      <PageHero title="Doodh ki entry" chip={<>{date === today ? 'Aaj' : longDate(date)}</>} busy={listQ.isFetching && !listQ.isLoading} loading={!s}
+        meta="Gawalon se aya doodh — subah aur shaam"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/dairy/quality-tests" className={heroButton}><Beaker className="h-4 w-4" />Quality</Link>
+          <Link to="/dairy/farmers" className={heroButton}><Wallet className="h-4 w-4" />Gawale</Link>
+        </>}
+        stats={[
+          { label: 'Aaj doodh aaya', value: liters(s?.totalLiters ?? 0) },
+          { label: 'Amount', value: money(s?.totalAmount ?? 0) },
+          { label: 'Ausat rate', value: s?.averageRate ? `${money(s.averageRate)}/L` : '—' },
+        ]} />
 
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Quantity (Liters) *</label>
-          <input type="number" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="h-14 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
-        </div>
+      <KpiRow cols={4}>
+        {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Sunrise} color="#d97706" label="Subah" value={liters(s.morningLiters)} onClick={() => setSlot('MORNING')} active={slot === 'MORNING'} />
+            <KpiCard icon={Sunset} color="#ea580c" label="Shaam" value={liters(s.eveningLiters)} onClick={() => setSlot('EVENING')} active={slot === 'EVENING'} />
+            <KpiCard icon={Droplets} color="#7c3aed" label="Ausat fat" value={s.averageFat ? `${s.averageFat}%` : '—'} />
+            <KpiCard icon={Milk} color="#0ea5e9" label="Gawale" value={s.farmersCount} hint={`${s.totalSupplies} parchi`} />
+          </>
+        )}
+      </KpiRow>
 
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fat %</label>
-            <input type="number" step="0.1" value={form.fatContent} onChange={(e) => setForm({ ...form, fatContent: e.target.value })} placeholder="6.0" className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">SNF %</label>
-            <input type="number" step="0.1" value={form.snfContent} onChange={(e) => setForm({ ...form, snfContent: e.target.value })} placeholder="8.5" className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Quality</label>
-            <select value={form.quality} onChange={(e) => setForm({ ...form, quality: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-              <option value="">-- Auto --</option>
-              {QUALITIES.map((q) => <option key={q} value={q}>{q.replace('_', ' ')}</option>)}
-            </select>
-          </div>
-        </div>
+      {canBuy && date <= today && (
+        <Card className="rounded-3xl" title={<span className="inline-flex items-center gap-2"><Plus className="h-4 w-4 text-brand-600" />Nayi entry — {slotLabel(slot)}</span>} description={total ? `Amount: ${money(total)}${bonus ? ` (fat bonus ${money(bonus)})` : ''}` : 'Enter se save — form agle gawale ke liye khula rehta hai'}>
+          <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))_auto] lg:items-start" onSubmit={(e) => { e.preventDefault(); submit(); }}
+            onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
+            <Select label="Gawala" value={farmerId} onChange={(e) => { setFarmerId(e.target.value); setTimeout(() => qtyRef.current?.focus(), 0); }} error={err.farmer}
+              options={[{ value: '', label: farmersQ.data?.length ? 'Chunein…' : 'Pehle Gawale me jorein' }, ...(farmersQ.data ?? []).map((f) => ({ value: f.id, label: `${f.name}${f.village ? ` — ${f.village}` : ''}` }))]} />
+            <Input ref={qtyRef} label="Liter" inputMode="decimal" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} error={err.quantity} />
+            <Input label="Fat %" inputMode="decimal" value={form.fat} onChange={(e) => setForm({ ...form, fat: e.target.value })} error={err.fat} hint={farmer?.fatBonusRate ? `${BASE_FAT}% se upar bonus` : undefined} />
+            <Input label="Rate" inputMode="decimal" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} error={err.rate} />
+            <Select label="Quality" value={form.quality} onChange={(e) => setForm({ ...form, quality: e.target.value })}
+              options={[{ value: '', label: 'Theek' }, ...Object.entries(QUALITY).map(([value, x]) => ({ value, label: x.label }))]} />
+            <Button type="submit" className="lg:mt-6" loading={add.isPending}>Save</Button>
+            <details className="sm:col-span-2 lg:col-span-6">
+              <summary className="cursor-pointer text-[0.8125rem] font-medium text-slate-600">SNF, katauti ya note</summary>
+              <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                <Input label="SNF %" inputMode="decimal" value={form.snf} onChange={(e) => setForm({ ...form, snf: e.target.value })} />
+                <Input label="Katauti (-) ya izafa (+)" inputMode="decimal" value={form.adjust} onChange={(e) => setForm({ ...form, adjust: e.target.value })} error={err.adjust} hint="Jaise -50 paani ki wajah se" />
+                <Input label="Note" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              </div>
+            </details>
+          </form>
+        </Card>
+      )}
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Rate/Liter (override)</label>
-            <input type="number" step="0.01" value={form.ratePerLiter} onChange={(e) => setForm({ ...form, ratePerLiter: e.target.value })} placeholder={selectedFarmer?.ratePerLiter} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Adjustment</label>
-            <input type="number" step="0.01" value={form.otherAdjustment} onChange={(e) => setForm({ ...form, otherAdjustment: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Gawale ka naam, number ya gaon…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')}>
+        <div className="flex items-center gap-1 rounded-xl ring-1 ring-slate-200">
+          <button type="button" onClick={() => setDate((d) => shiftDay(d, -1))} aria-label="Pichla din" className="flex h-10 w-9 items-center justify-center text-slate-600 hover:bg-slate-50"><ChevronLeft className="h-4 w-4" /></button>
+          <input type="date" value={date} max={today} onChange={(e) => e.target.value && setDate(e.target.value)} className="h-10 bg-transparent text-[0.8125rem] font-semibold text-slate-800 outline-none" />
+          <button type="button" onClick={() => setDate((d) => shiftDay(d, 1))} disabled={date >= today} aria-label="Agla din" className="flex h-10 w-9 items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
         </div>
+        <Segmented value={slot} onChange={(v) => setSlot(v as Slot)} items={[{ value: 'MORNING', label: 'Subah' }, { value: 'EVENING', label: 'Shaam' }]} />
+      </FilterBar>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+      <ListCard>
+        {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
+          <Empty icon={Milk} title={`${slotLabel(slot)} ki koi entry nahi`} text="Upar wale form se har gawale ka doodh likhein." />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {rows.map((r) => {
+              const off = isCancelledSupply(r);
+              return (
+                <li key={r.id} className={cn('grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_8rem_auto] lg:items-center', off && 'opacity-60')}>
+                  <Link to={r.farmer ? `/dairy/farmers/${r.farmer.id}` : '/dairy/farmers'} className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900 hover:underline">{r.farmer?.name ?? 'Gawala'} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{r.farmer?.farmerNumber}</span></p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{r.farmer?.village ?? '—'}</p>
+                  </Link>
+                  <p className="text-[0.8125rem] text-slate-700">{off ? <span className="line-through">{r.notes?.replace('CANCELLED:', '').trim()}</span>
+                    : <>{liters(r.quantity)} @ {money(r.ratePerLiter)}{r.fatContent ? ` · fat ${r.fatContent}%` : ''}{r.fatBonus ? ` · bonus ${money(r.fatBonus)}` : ''}{r.otherAdjustment ? ` · ${money(r.otherAdjustment)}` : ''}</>}</p>
+                  <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{off ? 'Cancel' : money(r.totalAmount)}</p>
+                  <div className="flex flex-wrap justify-end gap-1.5">
+                    {r.quality && <Pill tone={QUALITY[r.quality]?.tone ?? ''}>{QUALITY[r.quality]?.label}</Pill>}
+                    {!off && (r.isPaid ? <Pill tone="bg-success-50 text-success-700 ring-success-200">Ada</Pill> : r.totalAmount > 0 && (
+                      <>
+                        {canPay && <Button size="xs" variant="secondary" loading={pay.isPending && pay.variables?.id === r.id} onClick={() => pay.mutate(r)}>Cash ada</Button>}
+                        {canBuy && <Button size="xs" variant="ghost" aria-label="Cancel" onClick={() => setCancelling(r)}><Ban className="h-3.5 w-3.5" /></Button>}
+                      </>
+                    ))}
+                    {!off && r.quality === 'REJECTED' && canBuy && <Button size="xs" variant="ghost" aria-label="Cancel" onClick={() => setCancelling(r)}><Ban className="h-3.5 w-3.5" /></Button>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </ListCard>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.farmerId || !form.quantity}>
-            <Save className="h-4 w-4" />Record Supply
-          </Button>
-        </div>
-      </div>
-    </section>
+      {cancelling && <ReasonModal title="Entry cancel" danger cta="Cancel karein" busy={cancel.isPending}
+        description={`${cancelling.farmer?.name ?? ''} — ${liters(cancelling.quantity)}, ${money(cancelling.totalAmount)}. Doodh stock se nikal jayega.`}
+        presets={['Ghalat quantity', 'Ghalat gawala', 'Do dafa likha']} onSubmit={(v) => cancel.mutate({ x: cancelling, reason: v.reason })} onClose={() => setCancelling(null)} />}
+    </PageShell>
   );
 }

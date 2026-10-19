@@ -1,289 +1,246 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Flame, Plus, X, Save, RefreshCw, Sparkles, User, Clock, Star,
-  DollarSign, Zap, CheckCircle2, Ban, Award,
-} from 'lucide-react';
-import { ptApi } from '../api/personal-training.api';
-import { gymMembersApi } from '../api/members.api';
-import { trainersApi } from '../api/trainers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format, differenceInMinutes } from 'date-fns';
+/**
+ * Personal training: sessions booked with a trainer, single (billed when
+ * done; unpaid part on khata) or from the member's plan (PT package, no
+ * bill). Completing a session earns the trainer's commission. A voided
+ * session bill cancels the session and takes the commission back.
+ *
+ * Keys: N book · / search · G guide.
+ */
 
-const STATUS_COLORS: Record<string, string> = {
-  SCHEDULED: 'bg-blue-500', IN_PROGRESS: 'bg-amber-500',
-  COMPLETED: 'bg-emerald-600', CANCELLED: 'bg-rose-500', NO_SHOW: 'bg-orange-500',
-};
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Ban, CalendarClock, CheckCircle2, Dumbbell, Flame, GraduationCap, PlayCircle, Plus, UserX, Wallet } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Badge, Button, DateRangeMenu, FilterBar, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Switch,
+  Table, TBody, Td, Textarea, Th, THead, Tr, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { ptApi, type PTSession } from '../api/personal-training.api';
+import { trainersApi } from '../api/trainers.api';
+import { MemberPicker, type PickedMember } from '../components/MemberPicker';
+import { EmptyList, ListSkeleton, LoadFailed, Panel } from '../components/ui';
+import { GYM_KEYS, MONEY_KEYS, PT_STATUS, apiError, num, opt, shortDate, timeOf, toIso, todayInput } from '../lib/meta';
+import { useGymCan } from '../lib/permissions';
 
 export default function PTSessionsPage() {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>('SCHEDULED');
-  const [showForm, setShowForm] = useState(false);
+  const qc = useQueryClient();
+  const can = useGymCan();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'week', custom: { from: '', to: '' } });
+  const [trainerId, setTrainerId] = useState('');
+  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [booking, setBooking] = useState(false);
+  const [done, setDone] = useState<PTSession | null>(null);
+  const [cancel, setCancel] = useState<PTSession | null>(null);
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
 
-  const { data: sessions = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['pt-sessions', statusFilter],
-    queryFn: () => ptApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
-    refetchInterval: 60_000,
+  // "7 din" here means the coming week: sessions are booked ahead.
+  const r = range.preset === 'week' ? { from: todayInput(), to: new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10) } : resolveRange(range, startHour);
+  const listQ = useQuery({
+    queryKey: [GYM_KEYS.pt, r?.from, r?.to, trainerId, status, query],
+    queryFn: () => ptApi.list({ from: r?.from, to: r?.to, trainerId: trainerId || undefined, status: status || undefined, search: query || undefined }),
+    placeholderData: (p) => p,
+  });
+  const trainersQ = useQuery({ queryKey: [GYM_KEYS.trainers, 'list', false], queryFn: () => trainersApi.list() });
+  const rows = listQ.data ?? [];
+  const count = (s: string) => rows.filter((x) => x.status === s).length;
+  const refresh = () => [GYM_KEYS.pt, GYM_KEYS.trainers, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const move = useMutation({
+    mutationFn: ({ id, s }: { id: string; s: string }) => ptApi.updateStatus(id, { status: s }),
+    onSuccess: () => { toast.success('Session update ho gaya'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Update nahi hua')),
   });
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }: any) => ptApi.updateStatus(id, status),
-    onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['pt-sessions'] }); },
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && can.book) { e.preventDefault(); setBooking(true); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-red-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Flame className="h-3.5 w-3.5 text-amber-300" />
-              1-on-1 Training
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔥 PT Sessions</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Personal training with commission tracking</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              Book Session
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Personal training"
+        chip={<><Flame /> Gym</>}
+        meta="Trainer ke saath session — single ya plan ke PT se"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.book && <button type="button" onClick={() => setBooking(true)} title="Session book karein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Session book</button>}
+        </>}
+        stats={[
+          { label: 'Booked', value: count('SCHEDULED') },
+          { label: 'Ho gaye', value: count('COMPLETED') },
+          { label: 'Single ki fee', value: formatPKR(rows.filter((x) => x.status === 'COMPLETED' && !x.isFromPackage).reduce((s, x) => s + x.price, 0)) },
+        ]}
+      />
 
-      <div className="flex gap-1.5 flex-wrap">
-        {['SCHEDULED', 'all', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW'].map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)} className={
-            'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>{s === 'all' ? 'All' : s.replace('_', ' ')}</button>
-        ))}
-      </div>
+      <KpiRow cols={4}>
+        {listQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={CalendarClock} color="#2563eb" label="Booked" value={count('SCHEDULED')} onClick={() => setStatus(status === 'SCHEDULED' ? '' : 'SCHEDULED')} active={status === 'SCHEDULED'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Ho gaye" value={count('COMPLETED')} hint={`Commission ${formatPKR(rows.reduce((s, x) => s + x.commissionAmount, 0))}`} onClick={() => setStatus(status === 'COMPLETED' ? '' : 'COMPLETED')} active={status === 'COMPLETED'} />
+          <KpiCard icon={UserX} color="#64748b" label="Nahi aaye" value={count('NO_SHOW')} onClick={() => setStatus(status === 'NO_SHOW' ? '' : 'NO_SHOW')} active={status === 'NO_SHOW'} />
+          <KpiCard icon={Ban} color="#e11d48" label="Cancel" value={count('CANCELLED')} onClick={() => setStatus(status === 'CANCELLED' ? '' : 'CANCELLED')} active={status === 'CANCELLED'} />
+        </>}
+      </KpiRow>
 
-      {showForm && (
-        <PTForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['pt-sessions'] }); }}
-        />
-      )}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Member ka naam, phone ya PT number…" />}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="week" />
+        <FilterMenu icon={Dumbbell} label={trainersQ.data?.find((t) => t.id === trainerId)?.staff?.fullName ?? 'Trainer'} value={trainerId} active={!!trainerId} onChange={setTrainerId}
+          options={[{ value: '', label: 'Sab trainers' }, ...(trainersQ.data ?? []).map((t) => ({ value: t.id, label: t.staff?.fullName ?? t.trainerNumber }))]} />
+      </FilterBar>
+      <p className="text-[0.75rem] text-slate-500">{can.book && <><Kbd>N</Kbd> book · </>}<Kbd>/</Kbd> search · "7 din" = aane wala hafta</p>
 
-      {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : sessions.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <Flame className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No sessions</p>
-        </div>
+      {listQ.isLoading ? <ListSkeleton /> : listQ.isError ? <LoadFailed what="Sessions" retry={() => listQ.refetch()} /> : !rows.length ? (
+        <EmptyList icon={Flame} title="Is period me koi session nahi" text="Member, trainer aur waqt chun kar session book karein. Har hafte ka same waqt bhi ek sath book ho sakta hai.">
+          {can.book && <Button onClick={() => setBooking(true)} leftIcon={<Plus className="h-4 w-4" />}>Session book</Button>}
+        </EmptyList>
       ) : (
-        <section className="grid gap-3">
-          {sessions.map((s) => {
-            const remaining = s.price - s.paidAmount;
-            const trainerName = s.trainer?.staff ? (((s.trainer.staff.fullName || s.trainer.staff.firstName) || '') + ' ' + (s.trainer.staff.lastName || '')).trim() : 'Trainer';
-            return (
-              <div key={s.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
-                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow shrink-0">
-                      <Flame className="h-6 w-6" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900">{s.sessionNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[s.status]}>
-                          {s.status.replace('_', ' ')}
-                        </span>
-                        {s.memberRating && (
-                          <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
-                            <Star className="h-2 w-2 fill-current" />
-                            {s.memberRating}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-slate-700 font-bold mt-1">
-                        Trainer: <span className="text-violet-700">{trainerName}</span>
-                      </div>
-                      <div className="text-xs text-slate-500 font-semibold">
-                        {format(new Date(s.scheduledStart), 'dd MMM, HH:mm')} • {s.durationMinutes}min
-                      </div>
-                      {s.focusArea && (
-                        <div className="text-xs font-bold text-rose-700 mt-0.5">Focus: {s.focusArea}</div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(s.price)}</div>
-                    {s.commissionAmount > 0 && (
-                      <div className="text-[0.6875rem] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
-                        <Award className="h-2.5 w-2.5" />
-                        Comm: {formatPKR(s.commissionAmount)}
+        <Panel>
+          <Table minWidth="52rem">
+            <THead><Tr><Th>Waqt</Th><Th>Member</Th><Th>Trainer</Th><Th align="right">Fee</Th><Th>Haal</Th><Th /></Tr></THead>
+            <TBody>{rows.map((s) => {
+              const st = PT_STATUS[s.status] ?? { label: s.status, variant: 'default' as const };
+              const open = s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS';
+              return (
+                <Tr key={s.id}>
+                  <Td><p className="font-medium text-slate-900">{shortDate(s.scheduledStart)} · {timeOf(s.scheduledStart)}</p><p className="text-[0.75rem] text-slate-500">{s.sessionNumber} · {s.durationMinutes} min</p></Td>
+                  <Td>{s.member ? <Link to={`/gym/members/${s.member.id}`} className="font-medium text-slate-900 hover:underline">{s.member.customer?.name ?? s.member.memberNumber}</Link> : '—'}{s.focusArea && <p className="text-[0.75rem] text-slate-500">{s.focusArea}</p>}</Td>
+                  <Td>{s.trainer?.staff?.fullName ?? s.trainer?.trainerNumber}</Td>
+                  <Td align="right" className="tabular-nums">{s.isFromPackage ? <Badge size="xs" variant="info">Plan se</Badge> : formatPKR(s.price)}{s.status === 'COMPLETED' && !s.isFromPackage && s.paidAmount < s.price && <p className="text-[0.6875rem] text-amber-700">{formatPKR(s.price - s.paidAmount)} khate me</p>}</Td>
+                  <Td><Badge size="xs" variant={st.variant}>{st.label}</Badge>{s.cancellationReason && <p className="max-w-[12rem] truncate text-[0.6875rem] text-slate-500">{s.cancellationReason}</p>}</Td>
+                  <Td align="right">
+                    {can.book && (
+                      <div className="flex justify-end gap-1.5">
+                        {s.status === 'SCHEDULED' && <Button size="sm" variant="ghost" leftIcon={<PlayCircle className="h-3.5 w-3.5" />} onClick={() => move.mutate({ id: s.id, s: 'IN_PROGRESS' })}>Shuru</Button>}
+                        {open && <Button size="sm" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => (s.isFromPackage || s.price <= 0 ? move.mutate({ id: s.id, s: 'COMPLETED' }) : setDone(s))}>Ho gaya</Button>}
+                        {s.status === 'SCHEDULED' && <Button size="sm" variant="ghost" onClick={() => move.mutate({ id: s.id, s: 'NO_SHOW' })}>Nahi aaya</Button>}
+                        {s.status === 'NO_SHOW' && <Button size="sm" variant="ghost" onClick={() => move.mutate({ id: s.id, s: 'SCHEDULED' })}>Dobara book</Button>}
+                        {(open || s.status === 'NO_SHOW') && <Button size="sm" variant="ghost" onClick={() => setCancel(s)}>Cancel</Button>}
                       </div>
                     )}
-                    {remaining > 0 && <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>}
-                  </div>
-                </div>
-
-                {s.trainerNotes && (
-                  <div className="rounded-lg bg-slate-50 p-2 text-xs italic text-slate-700">
-                    📝 {s.trainerNotes}
-                  </div>
-                )}
-
-                {s.status === 'SCHEDULED' && (
-                  <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-                    <button onClick={() => statusMutation.mutate({ id: s.id, status: 'IN_PROGRESS' })} className="flex-1 h-9 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs font-extrabold">
-                      <Zap className="h-3 w-3 inline mr-1" />
-                      Start
-                    </button>
-                    <button onClick={() => statusMutation.mutate({ id: s.id, status: 'CANCELLED' })} className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                      <Ban className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )}
-                {s.status === 'IN_PROGRESS' && (
-                  <button onClick={() => statusMutation.mutate({ id: s.id, status: 'COMPLETED' })} className="w-full h-9 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-xs font-extrabold">
-                    <CheckCircle2 className="h-3 w-3 inline mr-1" />
-                    Complete
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </section>
+                  </Td>
+                </Tr>
+              );
+            })}</TBody>
+          </Table>
+        </Panel>
       )}
-    </div>
+
+      {booking && <BookModal onClose={() => setBooking(false)} onDone={refresh} />}
+      {done && <CompleteModal session={done} onClose={() => setDone(null)} onDone={refresh} />}
+      {cancel && <CancelSessionModal session={cancel} onClose={() => setCancel(null)} onDone={refresh} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Personal training — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Book', text: 'Member, trainer aur waqt chunein. Plan me PT sessions hon to "Plan se" — alag bill nahi banta. Warna trainer ke rate par single session.' },
+            { icon: CheckCircle2, color: '#16a34a', title: 'Ho gaya', text: 'Single session ka bill isi waqt Sales me banta hai; jo paisa na mile woh khate me. Trainer ki commission bhi isi waqt banti hai.' },
+            { icon: Wallet, color: '#ca8a04', title: 'Commission', text: 'Trainers ke safhe par har trainer ki baqi commission hai; wahan se payout karein (drawer se kharcha).' },
+            { icon: Ban, color: '#e11d48', title: 'Ghalti', text: 'Mukammal session ka bill ghalat ho to Sales me void karein — session cancel aur commission wapas ho jati hai.' },
+          ]}
+          shortcuts={[['N', 'book'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function PTForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    memberId: '',
-    trainerId: '',
-    scheduledDate: new Date().toISOString().split('T')[0],
-    scheduledTime: '18:00',
-    durationMinutes: 60,
-    focusArea: '',
-    price: 0,
+function BookModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const trainersQ = useQuery({ queryKey: [GYM_KEYS.trainers, 'available'], queryFn: () => trainersApi.list({ available: true }) });
+  const trainers = trainersQ.data ?? [];
+  const [member, setMember] = useState<PickedMember | null>(null);
+  const [trainerId, setTrainerId] = useState('');
+  const trainer = trainers.find((t) => t.id === (trainerId || trainers[0]?.id));
+  const [date, setDate] = useState(todayInput());
+  const [time, setTime] = useState('18:00');
+  const [mins, setMins] = useState('60');
+  const [fromPlan, setFromPlan] = useState(false);
+  const [price, setPrice] = useState('');
+  const [weeks, setWeeks] = useState('1');
+  const [focus, setFocus] = useState('');
+  const error = !member ? 'Member chunein' : !trainer ? 'Trainer chunein' : !(Number(mins) >= 15) ? 'Kam se kam 15 min' : undefined;
+  const save = useMutation({
+    mutationFn: () => ptApi.create({
+      memberId: member!.id, trainerId: trainer!.id, scheduledStart: toIso(date, time), durationMinutes: Number(mins), isFromPackage: fromPlan,
+      ...(!fromPlan && price !== '' && { price: Number(price) }), weeks: Number(weeks) || 1, focusArea: opt(focus),
+    }),
+    onSuccess: (r) => { toast.success('count' in r ? `${r.count} sessions book ho gaye` : `${r.sessionNumber} book ho gaya`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Book nahi hua')),
   });
-  const [memberSearch, setMemberSearch] = useState('');
-  const [showMemberPicker, setShowMemberPicker] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<any>(null);
-
-  const { data: members = [] } = useQuery({
-    queryKey: ['members-for-pt', memberSearch],
-    queryFn: () => gymMembersApi.list({ search: memberSearch || undefined, status: 'ACTIVE' }),
-    enabled: showMemberPicker,
-  });
-
-  const { data: trainers = [] } = useQuery({
-    queryKey: ['trainers-for-pt'],
-    queryFn: () => trainersApi.list({ available: true }),
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const start = new Date(form.scheduledDate + 'T' + form.scheduledTime);
-      const end = new Date(start.getTime() + form.durationMinutes * 60 * 1000);
-      return ptApi.create({
-        memberId: form.memberId,
-        trainerId: form.trainerId,
-        scheduledStart: start.toISOString(),
-        scheduledEnd: end.toISOString(),
-        durationMinutes: Number(form.durationMinutes),
-        focusArea: form.focusArea || undefined,
-        price: Number(form.price) || undefined,
-      });
-    },
-    onSuccess: () => { toast.success('Session booked'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">Book PT Session</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        {selectedMember ? (
-          <div className="rounded-xl bg-rose-50 border-2 border-rose-200 p-3 flex items-center gap-3">
-            <User className="h-5 w-5 text-rose-600" />
-            <div className="flex-1">
-              <div className="font-extrabold">{selectedMember.customer?.name}</div>
-              <div className="text-xs text-slate-600 font-mono font-bold">{selectedMember.memberNumber}</div>
-            </div>
-            <button onClick={() => { setSelectedMember(null); setForm({ ...form, memberId: '' }); }} className="text-xs font-extrabold text-rose-600 hover:underline">Change</button>
-          </div>
-        ) : (
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Select Member *</label>
-            <input value={memberSearch} onChange={(e) => { setMemberSearch(e.target.value); setShowMemberPicker(true); }} placeholder="Search member..." className="h-11 w-full rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-            {showMemberPicker && (
-              <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200 p-1">
-                {members.map((m: any) => (
-                  <button key={m.id} onClick={() => { setSelectedMember(m); setForm({ ...form, memberId: m.id }); setShowMemberPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-rose-50 text-left">
-                    <User className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="text-sm font-extrabold flex-1 truncate">{m.customer?.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Trainer *</label>
-          <select value={form.trainerId} onChange={(e) => {
-            const t = trainers.find((x: any) => x.id === e.target.value);
-            setForm({ ...form, trainerId: e.target.value, price: t?.perSessionRate || 0 });
-          }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
-            <option value="">-- Select trainer --</option>
-            {trainers.map((t: any) => {
-              const nm = t.staff ? (((t.staff.fullName || t.staff.firstName) || '') + ' ' + (t.staff.lastName || '')).trim() : '';
-              return <option key={t.id} value={t.id}>{nm} • {formatPKR(t.perSessionRate)}/session</option>;
-            })}
-          </select>
+    <Modal open onClose={onClose} size="md" title="PT session book karein"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>Book karein</Button></>}>
+      <div className="space-y-3">
+        <MemberPicker value={member} onChange={setMember} autoFocus />
+        <Select label="Trainer" value={trainer?.id ?? ''} onChange={(e) => setTrainerId(e.target.value)} options={trainers.map((t) => ({ value: t.id, label: `${t.staff?.fullName ?? t.trainerNumber} · ${formatPKR(t.perSessionRate)} · ${t.workStartTime}–${t.workEndTime}` }))}
+          hint={!trainers.length ? 'Pehle Trainers me trainer jorein' : undefined} />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Din" type="date" value={date} min={todayInput()} onChange={(e) => setDate(e.target.value)} />
+          <Input label="Waqt" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          <Input label="Minute" inputMode="numeric" value={mins} onChange={(e) => setMins(e.target.value.replace(/\D/g, ''))} />
         </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date *</label>
-            <input type="date" value={form.scheduledDate} onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Time *</label>
-            <input type="time" value={form.scheduledTime} onChange={(e) => setForm({ ...form, scheduledTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (min)</label>
-            <input type="number" value={form.durationMinutes} onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
-          </div>
-        </div>
-
-        <input value={form.focusArea} onChange={(e) => setForm({ ...form, focusArea: e.target.value })} placeholder="Focus area (chest & triceps, legs, cardio...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Price</label>
-          <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-        </div>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.memberId || !form.trainerId}>
-            <Save className="h-4 w-4" />
-            Book Session
-          </Button>
+        <Switch checked={fromPlan} onChange={(e) => setFromPlan(e.target.checked)} label="Plan se (PT package)" description="Member ke plan ke PT sessions me se — alag bill nahi" />
+        {!fromPlan && <Input label="Session fee" inputMode="decimal" value={price} placeholder={String(trainer?.perSessionRate ?? 0)} onChange={(e) => setPrice(num(e.target.value))} hint="Khali chhorein to trainer ka rate. Bill session hone par banta hai." />}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Select label="Har hafte dohrayein" value={weeks} onChange={(e) => setWeeks(e.target.value)} options={['1', '2', '4', '8', '12'].map((w) => ({ value: w, label: w === '1' ? 'Sirf ek' : `${w} hafte` }))} />
+          <Input label="Kis par kaam" value={focus} onChange={(e) => setFocus(e.target.value)} placeholder="Chest, legs, wazan kam" hint="Marzi hai" />
         </div>
       </div>
-    </section>
+    </Modal>
+  );
+}
+
+function CompleteModal({ session: s, onClose, onDone }: { session: PTSession; onClose: () => void; onDone: () => void }) {
+  const can = useGymCan();
+  const [paid, setPaid] = useState(String(s.price));
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const amount = Number(paid) || 0;
+  const save = useMutation({
+    mutationFn: () => ptApi.updateStatus(s.id, { status: 'COMPLETED', paidAmount: amount, paymentMethod: method }),
+    onSuccess: () => { toast.success('Session ho gaya — bill Sales me'); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`Session ho gaya · ${s.sessionNumber}`} description={`Fee ${formatPKR(s.price)} ka bill banega`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!can.bill || amount > s.price} onClick={() => save.mutate()} leftIcon={<Wallet className="h-4 w-4" />}>Bill banayein</Button></>}>
+      <div className="space-y-3">
+        {!can.bill && <p className="text-[0.8125rem] text-amber-800">Bill banane ke liye POS ki permission chahiye.</p>}
+        <Input label="Abhi kitna mila" inputMode="decimal" value={paid} onChange={(e) => setPaid(num(e.target.value))} className="text-right font-semibold tabular-nums"
+          hint={amount < s.price ? `${formatPKR(s.price - amount)} member ke khate me udhaar` : 'Poora paisa'} />
+        {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
+      </div>
+    </Modal>
+  );
+}
+
+function CancelSessionModal({ session: s, onClose, onDone }: { session: PTSession; onClose: () => void; onDone: () => void }) {
+  const [reason, setReason] = useState('');
+  const save = useMutation({
+    mutationFn: () => ptApi.updateStatus(s.id, { status: 'CANCELLED', cancellationReason: opt(reason) }),
+    onSuccess: () => { toast.success('Session cancel'); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Cancel nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`Cancel · ${s.sessionNumber}`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={save.isPending} onClick={() => save.mutate()}>Cancel karein</Button></>}>
+      <Textarea label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} hint="Marzi hai" />
+    </Modal>
   );
 }

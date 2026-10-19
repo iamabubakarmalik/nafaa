@@ -1,215 +1,232 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Search, Plus, X, Grid3x3, List as ListIcon, Filter, Dumbbell, Award, Trash2, Edit3, Eye, TrendingUp, Zap, Target, Activity, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
-import { gymMembersApi, type MemberStatus } from '../api/members.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Members: everyone enrolled, by where they stand today (running, ending
+ * soon, ended, fee due, frozen, never joined, left), with the actions the
+ * desk needs on each row: renew, take the due, WhatsApp reminder. The
+ * Analytics tab shows members by plan, goal and gender.
+ *
+ * Keys: N new member · / search · 1-8 views · A analytics · G guide.
+ */
 
-const STATUS_COLORS: Record<MemberStatus, string> = {
-  ACTIVE: 'bg-emerald-500', INACTIVE: 'bg-slate-500', SUSPENDED: 'bg-amber-500', BANNED: 'bg-rose-500',
-};
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import {
+  AlarmClock, BarChart3, Download, Dumbbell, GraduationCap, HandCoins, PauseCircle, Plus, RefreshCw, Target, UserMinus, UserPlus, Users, UserX,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import type { PrintDoc } from '@core/print';
+import {
+  Avatar, Badge, Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton,
+  Table, TBody, Td, Th, THead, Tr, ViewTabs, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { gymMembersApi, type GymMember, type MemberView } from '../api/members.api';
+import type { Membership } from '../api/memberships.api';
+import { PayModal, ReminderLink, RenewModal, SellModal, usePlans } from '../components/MembershipModals';
+import { toPicked, type PickedMember } from '../components/MemberPicker';
+import { EmptyList, HeroPrint, ListSkeleton, LoadFailed, Pager, Panel, RankedBars, StatTile, CardTitle } from '../components/ui';
+import { GYM_KEYS, MEMBER_STATE, dateOf, daysLeft, goalLabel } from '../lib/meta';
+import { useGymCan } from '../lib/permissions';
+
+type Tab = MemberView | 'analytics';
+const VIEWS: Array<{ id: MemberView; label: string; icon: typeof Users }> = [
+  { id: 'running', label: 'Chal rahi', icon: Dumbbell },
+  { id: 'expiring', label: 'Jald khatam', icon: AlarmClock },
+  { id: 'expired', label: 'Khatam', icon: UserX },
+  { id: 'dues', label: 'Fee baqi', icon: HandCoins },
+  { id: 'frozen', label: 'Freeze', icon: PauseCircle },
+  { id: 'none', label: 'Plan nahi', icon: UserPlus },
+  { id: 'all', label: 'Sab', icon: Users },
+  { id: 'left', label: 'Chhor gaye', icon: UserMinus },
+];
+const PAGE = 25;
 
 export default function MembersPage() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const can = useGymCan();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('running');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [goalFilter, setGoalFilter] = useState<string>('all');
+  const [query, setQuery] = useState('');
+  const [planId, setPlanId] = useState('');
+  const [page, setPage] = useState(1);
+  const [sell, setSell] = useState<PickedMember | null | false>(false);
+  const [renew, setRenew] = useState<Membership | null>(null);
+  const [pay, setPay] = useState<Membership | null>(null);
+  useEffect(() => { const t = setTimeout(() => { setQuery(search.trim()); setPage(1); }, 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => setPage(1), [tab, planId]);
 
-  const { data: members = [], isLoading } = useQuery({
-    queryKey: ['gym-members', statusFilter, goalFilter, search],
-    queryFn: () => gymMembersApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      primaryGoal: goalFilter === 'all' ? undefined : goalFilter,
-      search: search.trim() || undefined,
-    }),
+  const view: MemberView = tab === 'analytics' ? 'all' : tab;
+  const listQ = useQuery({
+    queryKey: [GYM_KEYS.members, 'page', view, query, planId, page],
+    queryFn: () => gymMembersApi.page({ view, search: query || undefined, planId: planId || undefined, page, limit: PAGE }),
+    placeholderData: (p) => p,
+    enabled: tab !== 'analytics',
+  });
+  const summaryQ = useQuery({ queryKey: [GYM_KEYS.members, 'summary'], queryFn: gymMembersApi.summary });
+  const plansQ = usePlans();
+  const s = summaryQ.data;
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && can.members) { e.preventDefault(); navigate('/gym/members/new'); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === 'a' || e.key === 'A') setTab('analytics');
+      const i = Number(e.key);
+      if (i >= 1 && i <= VIEWS.length) setTab(VIEWS[i - 1].id);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
-  const { data: summary } = useQuery({
-    queryKey: ['gym-members-summary'],
-    queryFn: () => gymMembersApi.summary(),
+  const viewLabel = VIEWS.find((v) => v.id === view)?.label ?? 'Sab';
+  const line = (m: GymMember) => [m.memberNumber, m.customer?.name ?? '', m.customer?.phone ?? '', m.current?.plan?.name ?? '', m.current ? dateOf(m.current.endDate) : '', MEMBER_STATE[m.state ?? 'NONE'].label, formatPKR(m.due ?? 0)];
+  const printDoc = (): PrintDoc => ({
+    title: 'Members', subtitle: viewLabel, meta: [['Members', String(data?.total ?? rows.length)]],
+    sections: [{ kind: 'table', columns: [{ label: 'Number', wideOnly: true }, { label: 'Naam' }, { label: 'Phone', wideOnly: true }, { label: 'Plan' }, { label: 'Khatam' }, { label: 'Haal' }, { label: 'Baqi', align: 'right' }], rows: rows.map(line) }],
   });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => gymMembersApi.remove(id),
-    onSuccess: () => { toast.success('Member removed'); queryClient.invalidateQueries({ queryKey: ['gym-members'] }); },
-  });
-
-  const stats = useMemo(() => {
-    const active = members.filter((m: any) => m.status === 'ACTIVE').length;
-    const totalStreak = members.reduce((s: number, m: any) => s + (m.currentStreak || 0), 0);
-    const avgStreak = members.length ? Math.round(totalStreak / members.length) : 0;
-    return { total: members.length, active, avgStreak };
-  }, [members]);
+  const exportCsv = () => downloadCsv(`gym-members-${view}.csv`, [['Number', 'Naam', 'Phone', 'Plan', 'Khatam', 'Haal', 'Baqi'], ...rows.map(line)]);
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-red-900 to-orange-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-red-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Users className="h-3.5 w-3.5 text-amber-300" />
-              Gym Members
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">💪 Members</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              {summary?.total ?? members.length} total • {stats.active} active • Avg {stats.avgStreak}d streak
-            </p>
-          </div>
-          <Link to="/gym-members/new">
-            <Button className="bg-white text-slate-900 hover:bg-slate-100 shadow-lg"><Plus className="h-4 w-4" /> Enroll Member</Button>
-          </Link>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Members"
+        chip={<><Dumbbell /> Gym</>}
+        meta="Kaun chal raha hai, kis ki membership khatam ho rahi hai, kis ki fee baqi hai"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={summaryQ.isLoading}
+        actions={<>
+          <HeroPrint doc={printDoc} disabled={!rows.length || tab === 'analytics'} />
+          <button type="button" onClick={exportCsv} disabled={!rows.length} title="Excel (CSV)" className={heroIconButton}><Download className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.members && <Link to="/gym/members/new" title="Naya member (N)" className={heroPrimaryButton}><UserPlus className="h-4 w-4" /> Naya member</Link>}
+        </>}
+        stats={[
+          { label: 'Kul members', value: s?.total ?? 0 },
+          { label: 'Is mahine aaye', value: s?.joinedThisMonth ?? 0 },
+          { label: 'Fee baqi', value: formatPKR(s?.duesAmount ?? 0) },
+        ]}
+      />
 
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="flex-1 min-w-[240px] relative">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search member name, phone, member#..." className="h-11 w-full rounded-xl border-2 border-slate-200 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-red-500" />
-            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-slate-400" /></button>}
-          </div>
-          <div className="inline-flex rounded-xl border-2 border-slate-200 overflow-hidden">
-            <button onClick={() => setViewMode('grid')} className={'px-3 h-11 text-xs font-extrabold ' + (viewMode === 'grid' ? 'bg-red-600 text-white' : 'text-slate-700')}><Grid3x3 className="h-4 w-4" /></button>
-            <button onClick={() => setViewMode('list')} className={'px-3 h-11 text-xs font-extrabold border-l-2 border-slate-200 ' + (viewMode === 'list' ? 'bg-red-600 text-white' : 'text-slate-700')}><ListIcon className="h-4 w-4" /></button>
-          </div>
-        </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {['ACTIVE', 'all', 'INACTIVE', 'SUSPENDED', 'BANNED'].map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={'px-3 py-1.5 rounded-lg text-xs font-extrabold ' + (statusFilter === s ? 'bg-red-600 text-white shadow' : 'bg-slate-100 text-slate-700')}>
-              {s === 'all' ? 'All' : s}
-            </button>
-          ))}
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        {summaryQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Dumbbell} color="#16a34a" label="Chal rahi" value={s?.running ?? 0} hint="Aaj andar aa sakte hain" onClick={() => setTab('running')} active={tab === 'running'} />
+          <KpiCard icon={AlarmClock} color={(s?.expiring ?? 0) ? '#d97706' : '#64748b'} label="7 din me khatam" value={s?.expiring ?? 0} hint="Renew ke liye yaad dilayein" onClick={() => setTab('expiring')} active={tab === 'expiring'} />
+          <KpiCard icon={UserX} color="#e11d48" label="Khatam" value={s?.expired ?? 0} hint="Wapas bulayein" onClick={() => setTab('expired')} active={tab === 'expired'} />
+          <KpiCard icon={HandCoins} color="#ca8a04" label="Fee baqi" value={formatPKR(s?.duesAmount ?? 0)} hint={`${s?.duesCount ?? 0} memberships`} onClick={() => setTab('dues')} active={tab === 'dues'} />
+        </>}
+      </KpiRow>
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : members.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed p-12 text-center">
-          <Dumbbell className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700 text-lg">No members yet</p>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Enroll your first member to start</p>
-          <Link to="/gym-members/new"><Button className="mt-4 bg-gradient-to-r from-red-600 to-orange-600"><Plus className="h-4 w-4" /> Enroll First Member</Button></Link>
-        </div>
-      ) : viewMode === 'grid' ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {members.map((m: any) => (
-            <MemberCard key={m.id} member={m} onDelete={() => { if (confirm('Remove ' + m.customer?.name + '?')) removeMutation.mutate(m.id); }} />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-3xl bg-white border-2 border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b-2 border-slate-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase text-slate-700">Member</th>
-                  <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase text-slate-700">Contact</th>
-                  <th className="px-4 py-3 text-center text-[0.6875rem] font-extrabold uppercase text-slate-700">Goal</th>
-                  <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Streak</th>
-                  <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Visits</th>
-                  <th className="px-4 py-3 text-center text-[0.6875rem] font-extrabold uppercase text-slate-700">Status</th>
-                  <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {members.map((m: any) => (
-                  <tr key={m.id} className="hover:bg-slate-50 transition">
-                    <td className="px-4 py-3">
-                      <Link to={'/gym-members/' + m.id} className="flex items-center gap-3">
-                        {m.photoUrl ? (
-                          <img src={m.photoUrl} alt="" className="h-10 w-10 rounded-xl object-cover" />
-                        ) : (
-                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 text-white flex items-center justify-center font-extrabold">
-                            {m.customer?.name?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-extrabold text-slate-900 text-sm">{m.customer?.name}</div>
-                          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{m.memberNumber}</div>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-xs font-bold text-slate-700">{m.customer?.phone}</td>
-                    <td className="px-4 py-3 text-center text-[0.6875rem] font-extrabold text-fuchsia-700">{m.primaryGoal.replace('_', ' ')}</td>
-                    <td className="px-4 py-3 text-right font-extrabold text-orange-700 tabular-nums">🔥 {m.currentStreak}d</td>
-                    <td className="px-4 py-3 text-right font-extrabold tabular-nums">{m.totalVisits}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={'inline-block px-2 py-0.5 rounded-full text-white text-[0.625rem] font-extrabold uppercase ' + STATUS_COLORS[m.status as MemberStatus]}>
-                        {m.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link to={'/gym-members/' + m.id} className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center"><Eye className="h-3 w-3" /></Link>
-                        <Link to={'/gym-members/' + m.id + '/edit'} className="h-7 w-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center"><Edit3 className="h-3 w-3" /></Link>
-                        <button onClick={() => { if (confirm('Remove?')) removeMutation.mutate(m.id); }} className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center"><Trash2 className="h-3 w-3" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {tab !== 'analytics' && (
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, CNIC, MEM number ya card…" />}
+          chips={query || planId ? <>
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+            {planId && <FilterChip onRemove={() => setPlanId('')}>{plansQ.data?.find((p) => p.id === planId)?.name ?? 'Plan'}</FilterChip>}
+          </> : undefined}
+          onClear={() => { setSearch(''); setPlanId(''); }}>
+          <FilterMenu icon={Target} label={plansQ.data?.find((p) => p.id === planId)?.name ?? 'Plan'} value={planId} active={!!planId} onChange={setPlanId}
+            options={[{ value: '', label: 'Sab plans' }, ...(plansQ.data ?? []).map((p) => ({ value: p.id, label: p.name }))]} />
+        </FilterBar>
       )}
-    </div>
+
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{can.members && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>8</Kbd> · <Kbd>A</Kbd> analytics</>}
+        tabs={[...VIEWS.map((v) => ({ id: v.id as Tab, label: v.label, icon: v.icon, count: data?.counts?.[v.id] ?? null })), { id: 'analytics' as Tab, label: 'Analytics', icon: BarChart3 }]} />
+
+      {tab === 'analytics' ? <Analytics /> : listQ.isLoading ? <ListSkeleton /> : listQ.isError ? <LoadFailed what="Members" retry={() => listQ.refetch()} /> : !rows.length ? (
+        <EmptyList icon={Users} title={query ? 'Is search me koi nahi' : `${viewLabel}: koi member nahi`} text="Naya member banayein: naam, phone, CNIC aur plan. Fee ka bill Sales me jata hai, baqi khate me.">
+          {can.members && <Button onClick={() => navigate('/gym/members/new')} leftIcon={<Plus className="h-4 w-4" />}>Naya member</Button>}
+        </EmptyList>
+      ) : (
+        <>
+          <Panel>
+            <Table minWidth="52rem">
+              <THead><Tr><Th>Member</Th><Th>Plan</Th><Th>Khatam</Th><Th align="right">Baqi fee</Th><Th>Aakhri visit</Th><Th /></Tr></THead>
+              <TBody>
+                {rows.map((m) => {
+                  const st = MEMBER_STATE[m.state ?? 'NONE'];
+                  const cur = m.current ? { ...m.current, member: { id: m.id, memberNumber: m.memberNumber, customerId: m.customerId, customer: m.customer } } : null;
+                  const left = cur ? daysLeft(cur.endDate) : 0;
+                  return (
+                    <Tr key={m.id} interactive onClick={() => navigate(`/gym/members/${m.id}`)}>
+                      <Td>
+                        <div className="flex items-center gap-3">
+                          <Avatar name={m.customer?.name ?? m.memberNumber} url={m.photoUrl} size={36} />
+                          <div className="min-w-0"><p className="truncate font-medium text-slate-900">{m.customer?.name ?? '—'}</p><p className="truncate text-[0.75rem] text-slate-500">{m.memberNumber}{m.customer?.phone ? ` · ${m.customer.phone}` : ''}</p></div>
+                        </div>
+                      </Td>
+                      <Td>{cur?.plan?.name ?? <span className="text-slate-400">—</span>}<p className="text-[0.75rem] text-slate-500">{goalLabel(m.primaryGoal)}</p></Td>
+                      <Td>
+                        {cur ? dateOf(cur.endDate) : '—'}
+                        <div><Badge size="xs" variant={st.variant}>{m.state === 'ACTIVE' || m.state === 'EXPIRING' ? `${left} din baqi` : st.label}</Badge></div>
+                      </Td>
+                      <Td align="right" className="tabular-nums">{(m.due ?? 0) > 0 ? <span className="font-semibold text-amber-700">{formatPKR(m.due ?? 0)}</span> : <span className="text-slate-400">—</span>}</Td>
+                      <Td>{m.lastVisitAt ? dateOf(m.lastVisitAt) : '—'}<p className="text-[0.75rem] text-slate-500">{m.totalVisits} visits</p></Td>
+                      <Td align="right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-end gap-1.5">
+                          {cur && ['EXPIRING', 'EXPIRED'].includes(m.state ?? '') && <ReminderLink membership={cur} compact />}
+                          {can.bill && cur && cur.totalPrice - cur.paidAmount > 0.01 && cur.status !== 'CANCELLED' && <Button size="sm" variant="secondary" onClick={() => setPay(cur)}>Fee lein</Button>}
+                          {can.bill && cur && m.isActive && <Button size="sm" variant="secondary" leftIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => setRenew(cur)}>Renew</Button>}
+                          {can.bill && !cur && m.isActive && <Button size="sm" onClick={() => setSell(toPicked(m))}>Plan bechein</Button>}
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </TBody>
+            </Table>
+          </Panel>
+          <Pager page={data?.page ?? 1} pages={data?.pages ?? 1} onPage={setPage} />
+        </>
+      )}
+
+      {sell !== false && <SellModal member={sell} onClose={() => setSell(false)} />}
+      {renew && <RenewModal membership={renew} onClose={() => setRenew(null)} />}
+      {pay && <PayModal membership={pay} onClose={() => setPay(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Members — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: UserPlus, color: '#2563eb', title: 'Naya member', text: 'Naam, phone, CNIC, emergency contact aur photo. Sath hi plan chunein aur jo paisa mila likhein — baqi khate me udhaar.' },
+            { icon: AlarmClock, color: '#d97706', title: 'Jald khatam', text: '7 din me khatam hone wali memberships. WhatsApp ka button dabayein — yaad dihani ka paigham tayyar milta hai.' },
+            { icon: RefreshCw, color: '#16a34a', title: 'Renew', text: 'Renew pichli membership ke baad se shuru hota hai, is liye jaldi renew karne wale ka koi din zaya nahi hota. Admission dobara nahi lagti.' },
+            { icon: HandCoins, color: '#ca8a04', title: 'Fee baqi', text: '"Fee lein" se baqi paisa lein. Cash drawer me, JazzCash ya bank apne account me ginta hai.' },
+          ]}
+          shortcuts={[['N', 'naya member'], ['/', 'dhoondein'], ['1-8', 'views'], ['A', 'analytics'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function MemberCard({ member, onDelete }: any) {
+function Analytics() {
+  const q = useQuery({ queryKey: [GYM_KEYS.members, 'summary'], queryFn: gymMembersApi.summary });
+  const s = q.data;
+  if (q.isLoading) return <ListSkeleton />;
+  if (!s) return <LoadFailed what="Analytics" retry={() => q.refetch()} />;
+  const gender = (g: string) => (g === 'MALE' ? 'Mard' : g === 'FEMALE' ? 'Aurat' : 'Maloom nahi');
   return (
-    <div className="group rounded-2xl bg-white border-2 border-slate-200 overflow-hidden hover:border-red-400 hover:shadow-xl hover:-translate-y-0.5 transition-all">
-      <div className="relative aspect-square bg-gradient-to-br from-red-100 via-orange-100 to-red-200">
-        {member.photoUrl ? (
-          <img src={member.photoUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-6xl font-extrabold text-red-400">
-            {member.customer?.name?.charAt(0).toUpperCase() ?? '?'}
-          </div>
-        )}
-        <span className={'absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[0.625rem] font-extrabold uppercase ' + STATUS_COLORS[member.status as MemberStatus]}>
-          {member.status}
-        </span>
-        {member.currentStreak >= 7 && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-orange-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow animate-pulse">
-            🔥 {member.currentStreak}d
-          </span>
-        )}
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile icon={Users} label="Kul members" value={s.total} sub={`${s.joinedThisMonth} is mahine`} />
+        <StatTile icon={Dumbbell} label="Chal rahi" value={s.running} sub={s.total ? `${Math.round((s.running / s.total) * 100)}% members` : undefined} tone="green" />
+        <StatTile icon={UserX} label="Khatam" value={s.expired} sub="Wapas bulane ka mauqa" tone="rose" />
+        <StatTile icon={HandCoins} label="Fee baqi" value={formatPKR(s.duesAmount)} sub={`${s.duesCount} memberships`} tone="amber" />
       </div>
-      <div className="p-3 space-y-2">
-        <div>
-          <Link to={'/gym-members/' + member.id}>
-            <h3 className="font-extrabold text-slate-900 line-clamp-1 hover:text-red-600">{member.customer?.name}</h3>
-          </Link>
-          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{member.memberNumber}</div>
-          <div className="text-[0.6875rem] font-extrabold text-fuchsia-600 mt-0.5">🎯 {member.primaryGoal.replace('_', ' ')}</div>
-        </div>
-        <div className="grid grid-cols-3 gap-1 text-center text-xs">
-          <div>
-            <div className="text-[0.625rem] uppercase font-extrabold text-orange-700">Streak</div>
-            <div className="font-extrabold text-orange-700 tabular-nums">{member.currentStreak}d</div>
-          </div>
-          <div>
-            <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Visits</div>
-            <div className="font-extrabold text-blue-700 tabular-nums">{member.totalVisits}</div>
-          </div>
-          <div>
-            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Spent</div>
-            <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(member.totalSpent)}</div>
-          </div>
-        </div>
-        <div className="flex gap-1 pt-2 border-t border-slate-100">
-          <Link to={'/gym-members/' + member.id} className="flex-1 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center justify-center gap-1"><Eye className="h-3 w-3" /> View</Link>
-          <Link to={'/gym-members/' + member.id + '/edit'} className="h-8 w-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center"><Edit3 className="h-3 w-3" /></Link>
-          <button onClick={onDelete} className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center"><Trash2 className="h-3 w-3" /></button>
-        </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Panel className="p-4"><p className="mb-3 font-semibold text-slate-900"><CardTitle icon={Target}>Plan ke hisaab se</CardTitle></p>
+          <RankedBars rows={s.byPlan.map((p) => ({ key: p.planId, label: p.name, value: p.count, display: p.count }))} empty="Koi chalti membership nahi" /></Panel>
+        <Panel className="p-4"><p className="mb-3 font-semibold text-slate-900"><CardTitle icon={Dumbbell}>Maqsad</CardTitle></p>
+          <RankedBars rows={s.byGoal.map((g) => ({ key: g.primaryGoal, label: goalLabel(g.primaryGoal), value: g._count._all, display: g._count._all }))} /></Panel>
+        <Panel className="p-4"><p className="mb-3 font-semibold text-slate-900"><CardTitle icon={Users}>Mard / aurat</CardTitle></p>
+          <RankedBars rows={s.byGender.map((g) => ({ key: g.gender, label: gender(g.gender), value: g.count, display: g.count }))} /></Panel>
       </div>
     </div>
   );

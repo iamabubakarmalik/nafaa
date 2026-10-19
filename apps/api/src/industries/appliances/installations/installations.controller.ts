@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
@@ -18,10 +20,12 @@ const bool = (v?: string) => (v === 'true' ? true : v === 'false' ? false : unde
 @ApiTags('Appliances - Installations')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@RequirePermissions(PERMISSIONS.SERVICE_JOBS_VIEW)
 @Controller('appliances/installations')
 export class InstallationsController {
   constructor(private readonly service: InstallationsService) {}
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post()
   create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateInstallationDto) {
     return this.service.create(user, dto);
@@ -72,31 +76,37 @@ export class InstallationsController {
     return this.service.getOne(user, id);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/assign-technician')
   assign(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: AssignTechnicianDto) {
     return this.service.assignTechnician(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Patch(':id/status')
   updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateInstallationStatusDto) {
     return this.service.updateStatus(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/complete')
   complete(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CompleteInstallationDto) {
     return this.service.complete(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/payment')
   addPayment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: AddInstallationPaymentDto) {
     return this.service.addPayment(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/reschedule')
   reschedule(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: RescheduleInstallationDto) {
     return this.service.reschedule(user, id, dto.newDate, dto.reason);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Delete(':id')
   remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.service.remove(user, id);

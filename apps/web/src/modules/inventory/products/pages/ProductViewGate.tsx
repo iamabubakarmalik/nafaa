@@ -48,8 +48,6 @@ export default function ProductViewGate() {
       return <Navigate to={`/bookstore-products/${id}`} replace />;
     case 'salon':
       return <Navigate to={`/salon-services/${id}`} replace />;
-    case 'hotel':
-      return <Navigate to={`/hotel-room-types/${id}`} replace />;
     case 'clinic':
       return <Navigate to={`/clinic-services/${id}`} replace />;
 
@@ -79,7 +77,7 @@ export default function ProductViewGate() {
       return <GeneralProductDetail />;
 
     default:
-      // gym, services-biz — no detail page yet, use generic edit form
+      // gym, hotel, services-biz — no detail page yet, use generic edit form
       return <Navigate to={`/products/${id}/edit`} replace />;
   }
 }

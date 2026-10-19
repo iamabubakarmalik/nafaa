@@ -1,538 +1,328 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ShieldCheck, Plus, Search, X, Save, RefreshCw, Sparkles, Calendar,
-  User, Camera, FileText, Award, AlertCircle, CheckCircle2, Weight,
-  Thermometer, Building2,
-} from 'lucide-react';
-import { slaughterApi, type SlaughterLog } from '../api/slaughter.api';
-import { liveAnimalsApi } from '../api/live-animals.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Slaughter / dressing log with the halal record. A slaughter takes live kg
+ * out of the live-stock item (birds) or closes a tagged animal, and puts the
+ * dressed meat, offal and bones into stock at the same total cost. Yield and
+ * halal, certificate and vet checks are summed for any period.
+ *
+ * Keys: N new slaughter · / search · 1 log · 2 analytics · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { BarChart3, Bird, Eye, FileSpreadsheet, GraduationCap, Heart, Pencil, Plus, Scale, ShieldCheck, Stethoscope, Trash2 } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  Button, DateRangeMenu, FilterBar, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Skeleton, Switch, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { liveAnimalsApi, type LiveAnimal } from '../api/live-animals.api';
+import { slaughterApi, type SlaughterInput, type SlaughterLog } from '../api/slaughter.api';
+import { ItemPick, PickedChip } from '../components/pickers';
+import { FormRow, ListFrame, Pill, inputBox, usePageKeys } from '../components/ui';
+import { ANIMALS, KEYS, MONEY_KEYS, animalOf, apiError, dateTime, decimal, kg, pct, todayKey } from '../lib/meta';
 
-const ANIMAL_TYPES = [
-  { value: 'BEEF', label: 'Cow/Beef', emoji: '🐄' },
-  { value: 'BUFFALO', label: 'Buffalo', emoji: '🐃' },
-  { value: 'MUTTON', label: 'Sheep/Mutton', emoji: '🐑' },
-  { value: 'GOAT', label: 'Goat', emoji: '🐐' },
-  { value: 'LAMB', label: 'Lamb', emoji: '🐏' },
-  { value: 'CAMEL', label: 'Camel', emoji: '🐫' },
-  { value: 'CHICKEN', label: 'Chicken', emoji: '🐔' },
-  { value: 'DUCK', label: 'Duck', emoji: '🦆' },
-  { value: 'TURKEY', label: 'Turkey', emoji: '🦃' },
-];
+type View = 'log' | 'analytics';
+interface Pick { id: string; name: string }
+interface Extra { item: Pick; kg: string }
 
-const METHODS = [
-  { value: 'HALAL_HAND', label: 'Halal (Hand)', emoji: '🕌' },
-  { value: 'HALAL_MACHINE', label: 'Halal (Machine)', emoji: '⚙️' },
-  { value: 'KOSHER', label: 'Kosher', emoji: '✡️' },
-  { value: 'STANDARD', label: 'Standard', emoji: '📋' },
-  { value: 'ORGANIC', label: 'Organic', emoji: '🌿' },
-  { value: 'FREE_RANGE', label: 'Free Range', emoji: '🌾' },
-];
+const METHODS = [{ value: 'HALAL_HAND', label: 'Halal (haath se)' }, { value: 'HALAL_MACHINE', label: 'Halal (machine)' }, { value: 'STANDARD', label: 'Aam' }];
 
-const GRADES = [
-  { value: 'PREMIUM', label: 'Premium', color: 'bg-amber-500' },
-  { value: 'GRADE_A', label: 'Grade A', color: 'bg-emerald-500' },
-  { value: 'GRADE_B', label: 'Grade B', color: 'bg-blue-500' },
-  { value: 'GRADE_C', label: 'Grade C', color: 'bg-slate-500' },
-  { value: 'STANDARD', label: 'Standard', color: 'bg-slate-400' },
-];
+function NewSlaughter({ animalId, onClose, onDone }: { animalId: string | null; onClose: () => void; onDone: () => void }) {
+  const animals = useQuery({ queryKey: [KEYS.animals, { isSlaughtered: 'false' }], queryFn: () => liveAnimalsApi.list({ isSlaughtered: 'false' }) });
+  const [mode, setMode] = useState<'birds' | 'animal'>(animalId ? 'animal' : 'birds');
+  const [animal, setAnimal] = useState<LiveAnimal | null>(null);
+  const [type, setType] = useState('CHICKEN');
+  const [source, setSource] = useState<Pick | null>(null);
+  const [meat, setMeat] = useState<Pick | null>(null);
+  const [liveKg, setLiveKg] = useState('');
+  const [dressedKg, setDressedKg] = useState('');
+  const [extras, setExtras] = useState<Extra[]>([]);
+  const [method, setMethod] = useState('HALAL_HAND');
+  const [by, setBy] = useState('');
+  const [isHalal, setIsHalal] = useState(true);
+  const [cert, setCert] = useState('');
+  const [vet, setVet] = useState(false);
+  const [date, setDate] = useState(todayKey());
+  const [tried, setTried] = useState(false);
+
+  useEffect(() => {
+    const a = (animals.data ?? []).find((x) => x.id === animalId);
+    if (a) { setAnimal(a); setLiveKg(String(a.weightKg)); }
+  }, [animals.data, animalId]);
+
+  const out = (Number(dressedKg) || 0) + extras.reduce((s, e) => s + (Number(e.kg) || 0), 0);
+  const yieldPct = Number(liveKg) > 0 && Number(dressedKg) > 0 ? (Number(dressedKg) / Number(liveKg)) * 100 : null;
+  const errors: Record<string, string> = {};
+  if (mode === 'animal' && !animal) errors.animal = 'Janwar chunein';
+  if (mode === 'birds' && !source) errors.source = 'Zinda maal ka item chunein — stock usi se nikalta hai';
+  if (!(Number(liveKg) > 0)) errors.liveKg = 'Zinda wazan likhein';
+  if (!meat) errors.meat = 'Gosht kis item me stock me aaye — chunein';
+  if (!(Number(dressedKg) > 0)) errors.dressedKg = 'Gosht ka wazan likhein';
+  if (out > (Number(liveKg) || 0) + 0.0005) errors.out = 'Gosht aur baqi cheezein zinda wazan se zyada nahi ho saktin';
+  if (extras.some((e) => !(Number(e.kg) > 0))) errors.extras = 'Har cheez ka kg likhein ya line hatayein';
+  const err = (k: string) => (tried ? errors[k] : undefined);
+
+  const save = useMutation({
+    mutationFn: () => slaughterApi.create({
+      liveAnimalId: mode === 'animal' ? animal?.id : undefined, animalType: mode === 'animal' ? animal?.animalType : type,
+      sourceProductId: mode === 'birds' ? source?.id : undefined, stockProductId: meat?.id, liveWeightKg: Number(liveKg), dressedWeightKg: Number(dressedKg),
+      extras: extras.map((e) => ({ productId: e.item.id, kg: Number(e.kg) })), slaughterMethod: method, slaughteredBy: by.trim() || undefined,
+      isHalal, halalCertNumber: cert.trim() || undefined, vetInspection: vet, slaughterDate: date,
+    } as SlaughterInput),
+    onSuccess: (r) => { toast.success(`${r.slaughterNumber} — ${kg(Number(dressedKg))} gosht stock me`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Zibah save nahi hua')),
+  });
+  const submit = () => { setTried(true); const first = Object.values(errors)[0]; if (first) { toast.error(first); return; } save.mutate(); };
+
+  return (
+    <Modal open onClose={onClose} size="lg" title="Zibah / dressing" description="Zinda maal stock se nikalta hai, gosht usi cost par stock me aata hai"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit} leftIcon={<ShieldCheck className="h-4 w-4" />}>Save{yieldPct ? ` · yield ${pct(yieldPct)}` : ''}</Button></>}>
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Segmented<'birds' | 'animal'> label="Kya zibah hua" value={mode} onChange={setMode}
+          items={[{ value: 'birds', label: <span className="inline-flex items-center gap-1.5"><Bird className="h-3.5 w-3.5" />Murgi (wazan se)</span> }, { value: 'animal', label: <span className="inline-flex items-center gap-1.5"><Heart className="h-3.5 w-3.5" />Tag wala janwar</span> }]} />
+        {mode === 'animal' ? (
+          <FormRow label="Janwar" error={err('animal')}>
+            <select value={animal?.id ?? ''} onChange={(e) => { const a = (animals.data ?? []).find((x) => x.id === e.target.value) ?? null; setAnimal(a); if (a) setLiveKg(String(a.weightKg)); }} className={inputBox} aria-invalid={!!err('animal')}>
+              <option value="">Baara se chunein…</option>
+              {(animals.data ?? []).map((a) => <option key={a.id} value={a.id}>{a.tagNumber} · {animalOf(a.animalType).label} · {kg(a.weightKg)}</option>)}
+            </select>
+          </FormRow>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <FormRow label="Zinda maal ka item" error={err('source')}>{source ? <PickedChip title={source.name} onClear={() => setSource(null)} /> : <ItemPick onPick={(i) => setSource({ id: i.id, name: i.name })} placeholder="Zinda murgi…" />}</FormRow>
+            <FormRow label="Janwar">
+              <select value={type} onChange={(e) => setType(e.target.value)} className={inputBox}>{ANIMALS.map((a) => <option key={a.value} value={a.value}>{a.emoji} {a.label}</option>)}</select>
+            </FormRow>
+          </div>
+        )}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FormRow label="Zinda wazan (kg)" error={err('liveKg')}><input data-autofocus inputMode="decimal" value={liveKg} onChange={(e) => setLiveKg(decimal(e.target.value))} className={cn(inputBox, 'text-right font-semibold')} aria-invalid={!!err('liveKg')} /></FormRow>
+          <FormRow label="Gosht ka item" error={err('meat')}>{meat ? <PickedChip title={meat.name} onClear={() => setMeat(null)} /> : <ItemPick onPick={(i) => setMeat({ id: i.id, name: i.name })} placeholder="Murgi dressed, bakra gosht…" />}</FormRow>
+          <FormRow label="Gosht (kg)" error={err('dressedKg')} hint={yieldPct ? `Yield ${pct(yieldPct)}` : 'Murgi ~70%, bakra ~50%'}><input inputMode="decimal" value={dressedKg} onChange={(e) => setDressedKg(decimal(e.target.value))} className={cn(inputBox, 'text-right font-semibold')} aria-invalid={!!err('dressedKg')} /></FormRow>
+        </div>
+        <div className="space-y-2">
+          <p className="text-[0.8125rem] font-medium text-slate-700">Aur kya nikla (kaleji, paaye, siri, khaal) — marzi</p>
+          {extras.map((e, i) => (
+            <div key={e.item.id} className="flex items-center gap-2">
+              <span className="min-w-0 flex-1 truncate rounded-lg bg-slate-50 px-3 py-2 text-[0.875rem] ring-1 ring-slate-200">{e.item.name}</span>
+              <input inputMode="decimal" aria-label={`${e.item.name} kg`} value={e.kg} onChange={(ev) => setExtras((xs) => xs.map((x, j) => (j === i ? { ...x, kg: decimal(ev.target.value) } : x)))} placeholder="kg" className="h-10 w-24 rounded-lg bg-slate-100 px-2 text-right outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
+              <button type="button" aria-label="Hatayein" onClick={() => setExtras((xs) => xs.filter((_, j) => j !== i))} className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          ))}
+          <ItemPick onPick={(i) => setExtras((xs) => [...xs, { item: { id: i.id, name: i.name }, kg: '' }])} exclude={[meat?.id ?? '', source?.id ?? '', ...extras.map((e) => e.item.id)]} placeholder="Item jorein: kaleji, paaye…" />
+          {(err('out') || err('extras')) && <p className="text-[0.75rem] font-medium text-rose-600">{err('out') ?? err('extras')}</p>}
+          {Number(liveKg) > 0 && <p className="text-[0.75rem] text-slate-500">Waste (khoon, par, ojhri): {kg(Math.max(Number(liveKg) - out, 0))} — is ki cost gosht me shamil hoti hai.</p>}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FormRow label="Tareeqa"><select value={method} onChange={(e) => setMethod(e.target.value)} className={inputBox}>{METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}</select></FormRow>
+          <FormRow label="Kis ne zibah kiya"><input value={by} onChange={(e) => setBy(e.target.value)} maxLength={120} className={inputBox} placeholder="Qasai ka naam" /></FormRow>
+          <FormRow label="Tareekh"><input type="date" max={todayKey()} value={date} onChange={(e) => setDate(e.target.value)} className={inputBox} /></FormRow>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Switch checked={isHalal} onChange={(e) => setIsHalal(e.target.checked)} label="Halal zabiha" />
+          <Switch checked={vet} onChange={(e) => setVet(e.target.checked)} label="Vet ne dekha" />
+          <input value={cert} onChange={(e) => setCert(e.target.value)} maxLength={80} placeholder="Halal certificate # (marzi)" aria-label="Halal certificate" className={inputBox} />
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function Detail({ id, onClose }: { id: string; onClose: () => void }) {
+  const { cost } = useMasked();
+  const d = useQuery({ queryKey: [KEYS.slaughter, 'one', id], queryFn: () => slaughterApi.getOne(id) });
+  const s = d.data;
+  return (
+    <Modal open onClose={onClose} size="md" title={s ? s.slaughterNumber : 'Zibah'} description={s ? `${animalOf(s.animalType).label}${s.animalTag ? ` · ${s.animalTag}` : ''} · ${dateTime(s.slaughterDate)}` : undefined}
+      footer={<Button variant="secondary" onClick={onClose}>Band karein</Button>}>
+      {!s ? <Skeleton className="h-40 rounded-xl" /> : (
+        <div className="space-y-3 text-[0.875rem]">
+          <p>Zinda {kg(s.liveWeightKg)} → gosht {kg(s.dressedWeightKg)} · yield {pct(s.yieldPct)}</p>
+          <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
+            {s.moves.map((m, i) => (
+              <li key={i} className="flex justify-between px-3 py-2"><span>{m.name}</span><span className={cn('tabular-nums', m.qty < 0 ? 'text-rose-600' : 'text-emerald-700')}>{m.qty > 0 ? '+' : ''}{kg(m.qty, m.unit)} · {cost(m.unitCost)}/{m.unit}</span></li>
+            ))}
+            {!s.moves.length && <li className="px-3 py-3 text-slate-500">Is record se stock nahi badla (sirf halal record)</li>}
+          </ul>
+          <p className="text-slate-600">{[s.isHalal ? 'Halal' : 'Halal nahi likha', s.halalCertNumber && `Certificate ${s.halalCertNumber}`, s.vetInspection && 'Vet ne dekha', s.slaughteredBy && `Qasai: ${s.slaughteredBy}`].filter(Boolean).join(' · ')}</p>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function EditRecord({ s, onClose, onDone }: { s: SlaughterLog; onClose: () => void; onDone: () => void }) {
+  const [cert, setCert] = useState(s.halalCertNumber ?? '');
+  const [authority, setAuthority] = useState(s.religiousAuthority ?? '');
+  const [vetName, setVetName] = useState(s.vetInspectorName ?? '');
+  const [vet, setVet] = useState(s.vetInspection);
+  const [halal, setHalal] = useState(s.isHalal);
+  const [notes, setNotes] = useState(s.notes ?? '');
+  const save = useMutation({
+    mutationFn: () => slaughterApi.update(s.id, { halalCertNumber: cert, religiousAuthority: authority, vetInspectorName: vetName, vetInspection: vet, isHalal: halal, notes }),
+    onSuccess: () => { toast.success('Record save'); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${s.slaughterNumber} — halal record`} description="Wazan aur stock nahi badalte, sirf record"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={() => save.mutate()}>Save</Button></>}>
+      <div className="space-y-3">
+        <Switch checked={halal} onChange={(e) => setHalal(e.target.checked)} label="Halal zabiha" />
+        <Input label="Halal certificate #" value={cert} onChange={(e) => setCert(e.target.value)} maxLength={80} />
+        <Input label="Kis idare ne" value={authority} onChange={(e) => setAuthority(e.target.value)} maxLength={120} />
+        <Switch checked={vet} onChange={(e) => setVet(e.target.checked)} label="Vet ne dekha" />
+        {vet && <Input label="Vet ka naam" value={vetName} onChange={(e) => setVetName(e.target.value)} maxLength={120} />}
+        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} />
+      </div>
+    </Modal>
+  );
+}
 
 export default function SlaughterLogPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const [params, setParams] = useSearchParams();
+  const canWrite = usePermission(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<View>('log');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [type, setType] = useState('');
   const [search, setSearch] = useState('');
-  const [animalFilter, setAnimalFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
+  const [query, setQuery] = useState('');
+  const [creating, setCreating] = useState<{ animalId: string | null } | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [edit, setEdit] = useState<SlaughterLog | null>(null);
 
-  const { data: logs = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['slaughter-logs', animalFilter, search],
-    queryFn: () => slaughterApi.list({
-      animalType: animalFilter === 'all' ? undefined : animalFilter,
-      search: search.trim() || undefined,
-    }),
-  });
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => {
+    const a = params.get('animal');
+    if (a && canWrite) { setCreating({ animalId: a }); params.delete('animal'); setParams(params, { replace: true }); }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { data: compliance } = useQuery({
-    queryKey: ['halal-compliance'],
-    queryFn: () => slaughterApi.halalCompliance(),
+  const period = resolveRange(range, startHour);
+  const q = { animalType: type || undefined, search: query || undefined, from: period?.from, to: period?.to };
+  const listQ = useQuery({ queryKey: [KEYS.slaughter, q], queryFn: () => slaughterApi.list(q), placeholderData: (p) => p });
+  const halalQ = useQuery({ queryKey: ['halal-compliance', period?.from, period?.to], queryFn: () => slaughterApi.halalCompliance(period?.from, period?.to) });
+  const rows = listQ.data ?? [];
+  const h = halalQ.data;
+  const refresh = () => [KEYS.slaughter, 'halal-compliance', KEYS.animals, 'live-animals-summary', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  usePageKeys({ n: canWrite ? () => setCreating({ animalId: null }) : undefined, '1': () => setView('log'), '2': () => setView('analytics'), g: guide.open }, searchRef);
+
+  const printDoc = (): PrintDoc => ({
+    title: 'Zibah aur halal record', subtitle: period ? `${period.from} → ${period.to}` : 'Sab',
+    meta: h ? [['Zibah', String(h.total)], ['Halal', pct(h.halalPct)], ['Yield', pct(h.yieldPct)]] : [],
+    sections: [{ kind: 'table', columns: [{ label: '#' }, { label: 'Tareekh' }, { label: 'Janwar' }, { label: 'Zinda', align: 'right' }, { label: 'Gosht', align: 'right' }, { label: 'Yield', align: 'right' }, { label: 'Halal' }, { label: 'Certificate', wideOnly: true }],
+      rows: rows.map((s) => [s.slaughterNumber, dateTime(s.slaughterDate), `${animalOf(s.animalType).label} ${s.animalTag ?? ''}`, kg(s.liveWeightKg), kg(s.dressedWeightKg), pct(s.yieldPct), s.isHalal ? 'Haan' : 'Nahi', s.halalCertNumber ?? '']) }],
   });
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-green-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <ShieldCheck className="h-3.5 w-3.5 text-amber-300" />
-              Halal Compliance
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🕌 Slaughter Log</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Halal certification, vet inspection, documentation</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Log Entry
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Zibah aur halal record"
+        chip={<><ShieldCheck /> Halal</>}
+        meta="Har zibah ka wazan, yield aur halal record — gosht usi waqt stock me"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={halalQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
+          <button type="button" title="CSV" className={heroIconButton} disabled={!rows.length}
+            onClick={() => downloadCsv('zibah.csv', [['#', 'Tareekh', 'Janwar', 'Tag', 'Zinda kg', 'Gosht kg', 'Yield %', 'Halal', 'Certificate', 'Vet', 'Qasai'], ...rows.map((s) => [s.slaughterNumber, dateTime(s.slaughterDate), animalOf(s.animalType).label, s.animalTag, s.liveWeightKg, s.dressedWeightKg, s.yieldPct, s.isHalal ? 'Haan' : 'Nahi', s.halalCertNumber, s.vetInspection ? 'Haan' : '', s.slaughteredBy])])}>
+            <FileSpreadsheet className="h-4 w-4" />
+          </button>
+          <Link to="/meat/live-animals" className={heroButton}><Heart className="h-4 w-4" /><span className="hidden sm:inline">Zinda maal</span></Link>
+          <Link to="/meat/cutting" className={heroButton}><Scale className="h-4 w-4" /><span className="hidden sm:inline">Cutting</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canWrite && <button type="button" onClick={() => setCreating({ animalId: null })} title="Naya zibah (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Zibah likhein</button>}
+        </>}
+        stats={h ? [{ label: 'Zibah', value: h.total }, { label: 'Zinda → gosht', value: `${kg(h.liveKg)} → ${kg(h.dressedKg)}` }, { label: 'Yield', value: pct(h.yieldPct) }] : [{ label: 'Zibah', value: '—' }]}
+      />
 
-      {/* Compliance Stats */}
-      {compliance && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <ComplianceCard label="Total Slaughters" value={compliance.total} icon={ShieldCheck} color="slate" />
-          <ComplianceCard label="Halal Compliance" value={compliance.halalPct.toFixed(1) + '%'} icon={Award} color="emerald" sub={compliance.halal + ' / ' + compliance.total} />
-          <ComplianceCard label="With Certificate" value={compliance.certPct.toFixed(1) + '%'} icon={FileText} color="blue" sub={compliance.withCert + ' certified'} />
-          <ComplianceCard label="Vet Inspected" value={compliance.vetPct.toFixed(1) + '%'} icon={CheckCircle2} color="violet" sub={compliance.withVet + ' inspected'} />
-        </section>
-      )}
+      <KpiRow cols={4}>
+        {!h ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={ShieldCheck} color="#16a34a" label="Halal" value={pct(h.halalPct)} hint={`${h.halal} / ${h.total}`} />
+          <KpiCard icon={ShieldCheck} color="#0891b2" label="Certificate ke saath" value={pct(h.certPct)} hint={`${h.withCert} record`} />
+          <KpiCard icon={Stethoscope} color="#7c3aed" label="Vet check" value={pct(h.vetPct)} hint={`${h.withVet} record`} />
+          <KpiCard icon={Scale} color="#d97706" label="Yield" value={pct(h.yieldPct)} hint="Gosht / zinda wazan" />
+        </>}
+      </KpiRow>
 
-      {/* Filters */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search log #, tag, slaughterer..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setAnimalFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (animalFilter === 'all' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All</button>
-          {ANIMAL_TYPES.map((a) => (
-            <button key={a.value} onClick={() => setAnimalFilter(a.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (animalFilter === a.value ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{a.emoji} {a.label}</button>
-          ))}
-        </div>
-      </section>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Zibah #, tag, qasai…" label="Search" />}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
+        <FilterMenu icon={Bird} label={type ? animalOf(type).label : 'Sab janwar'} value={type} active={!!type} onChange={setType}
+          options={[{ value: '', label: 'Sab janwar' }, ...ANIMALS.map((a) => ({ value: a.value, label: `${a.emoji} ${a.label}` }))]} />
+      </FilterBar>
 
-      {showForm && (
-        <SlaughterForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => {
-            setShowForm(false);
-            queryClient.invalidateQueries({ queryKey: ['slaughter-logs'] });
-            queryClient.invalidateQueries({ queryKey: ['halal-compliance'] });
-            queryClient.invalidateQueries({ queryKey: ['live-animals'] });
-          }}
-        />
-      )}
+      <ViewTabs value={view} onChange={setView} hint={<>{canWrite ? 'N naya · ' : ''}/ search · 1-2 tabs</>}
+        tabs={[{ id: 'log', label: 'Record', icon: ShieldCheck, count: rows.length }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : logs.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <ShieldCheck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No slaughter logs yet</p>
+      {view === 'analytics' ? (
+        <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
+          <h3 className="font-semibold text-slate-900">Janwar ke hisaab se yield</h3>
+          <ul className="mt-3 divide-y divide-slate-100">
+            {Object.entries(rows.reduce<Record<string, { n: number; live: number; dressed: number }>>((acc, s) => {
+              const r = acc[s.animalType] ?? { n: 0, live: 0, dressed: 0 };
+              r.n += 1; r.live += s.liveWeightKg; r.dressed += s.dressedWeightKg ?? 0; acc[s.animalType] = r; return acc;
+            }, {})).map(([t, r]) => (
+              <li key={t} className="flex items-center justify-between py-2 text-[0.875rem]"><span>{animalOf(t).emoji} {animalOf(t).label} · {r.n}</span><span className="tabular-nums">{kg(r.live)} → {kg(r.dressed)} · <strong>{pct(r.live ? (r.dressed / r.live) * 100 : null)}</strong></span></li>
+            ))}
+            {!rows.length && <li className="py-6 text-center text-sm text-slate-500">Is period me koi zibah nahi</li>}
+          </ul>
         </div>
       ) : (
-        <section className="grid gap-3">
-          {logs.map((log) => <LogCard key={log.id} log={log} />)}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function ComplianceCard({ label, value, sub, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    slate: 'from-slate-500 to-slate-700',
-    emerald: 'from-emerald-500 to-green-600',
-    blue: 'from-blue-500 to-cyan-600',
-    violet: 'from-violet-500 to-purple-600',
-  };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LogCard({ log }: { log: SlaughterLog }) {
-  const method = METHODS.find((m) => m.value === log.slaughterMethod);
-  const animal = ANIMAL_TYPES.find((a) => a.value === log.animalType);
-  const grade = GRADES.find((g) => g.value === log.qualityGrade);
-
-  return (
-    <div className={
-      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
-      (log.isHalal ? 'border-emerald-200 dark:border-emerald-800' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={
-            'h-12 w-12 rounded-2xl text-white flex items-center justify-center shadow shrink-0 text-2xl ' +
-            (log.isHalal ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-slate-500 to-slate-700')
-          }>
-            {animal?.emoji}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{log.slaughterNumber}</span>
-              {log.isHalal && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-                  <ShieldCheck className="h-2.5 w-2.5" />
-                  HALAL
-                </span>
-              )}
-              {method && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
-                  {method.emoji} {method.label}
-                </span>
-              )}
-              {grade && (
-                <span className={'px-2 py-0.5 rounded text-white text-[0.625rem] font-extrabold uppercase ' + grade.color}>
-                  {grade.label}
-                </span>
-              )}
-              {log.vetInspection && (
-                <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-                  <CheckCircle2 className="h-2 w-2" />
-                  VET OK
-                </span>
-              )}
-            </div>
-
-            <div className="mt-2 grid sm:grid-cols-2 gap-1 text-xs">
-              <div className="text-slate-600 font-bold">
-                <Calendar className="h-3 w-3 inline mr-1" />
-                {format(new Date(log.slaughterDate), 'dd MMM yyyy, HH:mm')}
+        <ListFrame loading={listQ.isLoading} error={listQ.isError && !listQ.data} onRetry={() => listQ.refetch()}
+          empty={!rows.length ? { icon: ShieldCheck, title: 'Is period me koi zibah nahi', text: 'Mandi se aayi murgi ya baara ka janwar zibah karein to yahan likhein — gosht stock me aa jata hai.', actions: canWrite ? <Button onClick={() => setCreating({ animalId: null })} leftIcon={<Plus className="h-4 w-4" />}>Zibah likhein</Button> : undefined } : null}>
+          {rows.map((s) => (
+            <li key={s.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
+              <span className="text-2xl" aria-hidden>{animalOf(s.animalType).emoji}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-semibold text-slate-900">{s.slaughterNumber}</span>
+                  <span className="text-[0.8125rem] text-slate-600">{animalOf(s.animalType).label}{s.animalTag ? ` · ${s.animalTag}` : ''}</span>
+                  {s.isHalal ? <Pill tone="emerald">Halal</Pill> : <Pill tone="rose">Halal nahi likha</Pill>}
+                  {s.halalCertNumber && <Pill tone="sky">Cert {s.halalCertNumber}</Pill>}
+                  {s.vetInspection && <Pill tone="violet">Vet</Pill>}
+                </div>
+                <p className="mt-0.5 text-[0.75rem] text-slate-500">{dateTime(s.slaughterDate)}{s.slaughteredBy ? ` · ${s.slaughteredBy}` : ''}</p>
               </div>
-              {log.animalTag && (
-                <div className="text-slate-600 font-bold font-mono">
-                  Tag: {log.animalTag}
-                </div>
-              )}
-              {log.slaughteredBy && (
-                <div className="text-slate-600 font-bold">
-                  <User className="h-3 w-3 inline mr-1" />
-                  By: {log.slaughteredBy}
-                </div>
-              )}
-              {log.facilityName && (
-                <div className="text-slate-600 font-bold truncate">
-                  <Building2 className="h-3 w-3 inline mr-1" />
-                  {log.facilityName}
-                </div>
-              )}
-            </div>
-
-            {log.halalCertNumber && (
-              <div className="mt-1 text-xs font-extrabold text-emerald-700 inline-flex items-center gap-1">
-                <FileText className="h-3 w-3" />
-                Cert: {log.halalCertNumber}
-                {log.religiousAuthority && ' • ' + log.religiousAuthority}
+              <div className="text-right text-[0.8125rem]">
+                <p className="font-semibold tabular-nums">{kg(s.liveWeightKg)} → {kg(s.dressedWeightKg)}</p>
+                <p className="text-slate-500">Yield {pct(s.yieldPct)}</p>
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="text-right shrink-0 space-y-1">
-          <div>
-            <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">Live Wt</div>
-            <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{log.liveWeightKg}kg</div>
-          </div>
-          {log.dressedWeightKg && (
-            <div>
-              <div className="text-[0.6875rem] font-extrabold text-emerald-700 uppercase">Yield</div>
-              <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{log.dressedWeightKg}kg</div>
-              {log.yieldPct && (
-                <div className="text-[0.6875rem] font-bold text-emerald-600">{log.yieldPct.toFixed(1)}%</div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {log.photoUrls?.length > 0 && (
-        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-          {log.photoUrls.slice(0, 5).map((url: string, i: number) => (
-            <a key={i} href={url} target="_blank" rel="noreferrer" className="h-12 w-12 rounded-lg overflow-hidden border border-slate-200">
-              <img src={url} alt="" className="w-full h-full object-cover" />
-            </a>
+              <div className="flex gap-1.5">
+                <Button size="sm" variant="ghost" leftIcon={<Eye className="h-3.5 w-3.5" />} onClick={() => setOpen(s.id)}>Stock</Button>
+                {canWrite && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEdit(s)}>Record</Button>}
+              </div>
+            </li>
           ))}
-        </div>
+        </ListFrame>
       )}
 
-      {log.notes && (
-        <div className="text-xs italic text-slate-500 border-t border-slate-100 dark:border-ink-800 pt-2">
-          📝 {log.notes}
-        </div>
+      {creating && <NewSlaughter animalId={creating.animalId} onClose={() => setCreating(null)} onDone={refresh} />}
+      {open && <Detail id={open} onClose={() => setOpen(null)} />}
+      {edit && <EditRecord s={edit} onClose={() => setEdit(null)} onDone={refresh} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Zibah aur halal record" onClose={guide.close}
+          steps={[
+            { icon: Bird, color: '#d97706', title: 'Murgi', text: '"Zinda murgi" item aur kitne kg zibah hue likhein, phir "Murgi dressed" me kitna gosht nikla. Zinda maal stock se nikalta hai, gosht usi cost par aata hai.' },
+            { icon: Heart, color: '#dc2626', title: 'Tag wala janwar', text: 'Baara ka janwar chunein — us ki purchase qeemat gosht ki cost banti hai. Kaleji, paaye, siri bhi alag item me stock me daal sakte hain.' },
+            { icon: ShieldCheck, color: '#16a34a', title: 'Halal record', text: 'Halal, certificate aur vet check likhein — upar har period ka percentage dikhta hai. Baad me "Record" se badal sakte hain.' },
+          ]}
+          tips={['Cost sale value ke hisaab se lagti hai — boneless par zyada, haddi par kam.', 'Zibah ke liye "Stock adjustment" ki ijazat chahiye.']}
+          shortcuts={[['N', 'naya zibah'], ['/', 'dhoondein'], ['1', 'record'], ['2', 'analytics'], ['G', 'guide']]}
+        />
       )}
-    </div>
-  );
-}
-
-function SlaughterForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    liveAnimalId: '',
-    stockProductId: '',
-    animalType: 'GOAT',
-    animalTag: '',
-    slaughterDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-    slaughterMethod: 'HALAL_HAND',
-    slaughteredBy: '',
-    slaughtererCertNumber: '',
-    witnessedBy: '',
-    liveWeightKg: 0,
-    dressedWeightKg: '',
-    facilityName: '',
-    facilityLicense: '',
-    isHalal: true,
-    halalCertNumber: '',
-    religiousAuthority: '',
-    vetInspection: false,
-    vetInspectorName: '',
-    vetCertNumber: '',
-    postMortemNotes: '',
-    qualityGrade: 'GRADE_A',
-    temperature: '',
-    storageLocation: '',
-    photoUrls: [] as string[],
-    documentUrls: [] as string[],
-    notes: '',
-  });
-
-  const [animalSearch, setAnimalSearch] = useState('');
-  const [showAnimalPicker, setShowAnimalPicker] = useState(false);
-  const [selectedAnimal, setSelectedAnimal] = useState<any>(null);
-
-  const { data: liveAnimals = [] } = useQuery({
-    queryKey: ['live-animals-for-slaughter', animalSearch],
-    queryFn: () => liveAnimalsApi.list({ isSlaughtered: false, search: animalSearch || undefined }),
-    enabled: showAnimalPicker,
-  });
-
-  // Meat items sold by weight; the dressed meat can go straight into one of them.
-  const { data: meatItems = [] } = useQuery({
-    queryKey: ['meat-items-for-slaughter'],
-    queryFn: () => productsApi.list({ page: 1, limit: 300, isActive: true }).then((r) => r.items),
-    staleTime: 60_000,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => slaughterApi.create({
-      ...form,
-      stockProductId: form.stockProductId || undefined,
-      // The input holds local wall time; send the real moment.
-      slaughterDate: form.slaughterDate ? new Date(form.slaughterDate).toISOString() : undefined,
-      liveWeightKg: Number(form.liveWeightKg) || 0,
-      dressedWeightKg: form.dressedWeightKg ? Number(form.dressedWeightKg) : undefined,
-      temperature: form.temperature ? Number(form.temperature) : undefined,
-    }),
-    onSuccess: () => { toast.success('Slaughter log created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">🕌 New Slaughter Log</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        {/* Live animal picker */}
-        {selectedAnimal ? (
-          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 p-3 flex items-center gap-3">
-            <div className="text-2xl">{ANIMAL_TYPES.find((a) => a.value === selectedAnimal.animalType)?.emoji}</div>
-            <div className="flex-1">
-              <div className="font-extrabold">{selectedAnimal.tagNumber}</div>
-              <div className="text-xs text-slate-600 font-bold">{selectedAnimal.animalType} • {selectedAnimal.weightKg}kg</div>
-            </div>
-            <button onClick={() => { setSelectedAnimal(null); setForm({ ...form, liveAnimalId: '' }); }} className="text-xs font-extrabold text-emerald-600 hover:underline">Change</button>
-          </div>
-        ) : (
-          <>
-            <button onClick={() => setShowAnimalPicker(!showAnimalPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-sm font-extrabold text-slate-600 hover:border-emerald-400">
-              <Search className="h-4 w-4 inline mr-1" />
-              Link to Live Animal (optional)
-            </button>
-            {showAnimalPicker && (
-              <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/50 p-3 space-y-2">
-                <input value={animalSearch} onChange={(e) => setAnimalSearch(e.target.value)} placeholder="Search tag #..." className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                <div className="max-h-52 overflow-y-auto space-y-1">
-                  {liveAnimals.map((a) => {
-                    const cfg = ANIMAL_TYPES.find((x) => x.value === a.animalType);
-                    return (
-                      <button
-                        key={a.id}
-                        onClick={() => {
-                          setSelectedAnimal(a);
-                          setForm({ ...form, liveAnimalId: a.id, animalType: a.animalType, animalTag: a.tagNumber, liveWeightKg: a.weightKg });
-                          setShowAnimalPicker(false);
-                        }}
-                        className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left"
-                      >
-                        <span className="text-lg">{cfg?.emoji}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-extrabold truncate">{a.tagNumber}</div>
-                          <div className="text-[0.6875rem] text-slate-500 font-bold">{a.weightKg}kg • {a.breed}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.animalType} onChange={(e) => setForm({ ...form, animalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-            {ANIMAL_TYPES.map((a) => <option key={a.value} value={a.value}>{a.emoji} {a.label}</option>)}
-          </select>
-          <input value={form.animalTag} onChange={(e) => setForm({ ...form, animalTag: e.target.value })} placeholder="Animal Tag" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-          <input type="datetime-local" value={form.slaughterDate} onChange={(e) => setForm({ ...form, slaughterDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Slaughter Method *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {METHODS.map((m) => (
-              <button key={m.value} onClick={() => setForm({ ...form, slaughterMethod: m.value, isHalal: m.value.startsWith('HALAL') })} className={
-                'p-3 rounded-xl border-2 text-center transition ' +
-                (form.slaughterMethod === m.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
-              }>
-                <div className="text-2xl mb-1">{m.emoji}</div>
-                <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Live Weight (kg) *</label>
-            <input type="number" step="0.1" value={form.liveWeightKg} onChange={(e) => setForm({ ...form, liveWeightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Dressed Weight (kg)</label>
-            <input type="number" step="0.1" value={form.dressedWeightKg} onChange={(e) => setForm({ ...form, dressedWeightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Gosht stock me daalein (item)</label>
-          <select value={form.stockProductId} onChange={(e) => setForm({ ...form, stockProductId: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-emerald-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-            <option value="">-- Stock me na daalein --</option>
-            {meatItems.map((p) => (
-              <option key={p.id} value={p.id}>{p.name} ({p.unit}) · stock {Number(p.stock ?? 0)}</option>
-            ))}
-          </select>
-          {form.stockProductId && (
-            <p className="mt-1 text-[0.6875rem] font-semibold text-slate-500">
-              {Number(form.dressedWeightKg) > 0
-                ? `${form.dressedWeightKg} kg is item ke stock me aa jayega, janwar ki qeemat + chara ke hisaab se cost ke saath.`
-                : 'Stock me daalne ke liye gosht ka wazan (Dressed Weight) likhein.'}
-            </p>
-          )}
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.slaughteredBy} onChange={(e) => setForm({ ...form, slaughteredBy: e.target.value })} placeholder="Slaughtered by (name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.slaughtererCertNumber} onChange={(e) => setForm({ ...form, slaughtererCertNumber: e.target.value })} placeholder="Slaughterer Cert #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.witnessedBy} onChange={(e) => setForm({ ...form, witnessedBy: e.target.value })} placeholder="Witnessed by" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <select value={form.qualityGrade} onChange={(e) => setForm({ ...form, qualityGrade: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-            {GRADES.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
-          </select>
-        </div>
-
-        {/* Halal cert */}
-        {form.isHalal && (
-          <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-3">
-            <div className="text-sm font-extrabold text-emerald-900 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              Halal Certification
-            </div>
-            <div className="grid sm:grid-cols-2 gap-2">
-              <input value={form.halalCertNumber} onChange={(e) => setForm({ ...form, halalCertNumber: e.target.value })} placeholder="Halal Cert #" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-              <input value={form.religiousAuthority} onChange={(e) => setForm({ ...form, religiousAuthority: e.target.value })} placeholder="Authority (JAKIM, ISWA...)" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            </div>
-          </div>
-        )}
-
-        {/* Facility */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.facilityName} onChange={(e) => setForm({ ...form, facilityName: e.target.value })} placeholder="Facility name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.facilityLicense} onChange={(e) => setForm({ ...form, facilityLicense: e.target.value })} placeholder="Facility License #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-        </div>
-
-        {/* Vet */}
-        <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.vetInspection} onChange={(e) => setForm({ ...form, vetInspection: e.target.checked })} className="h-5 w-5 rounded" />
-            <CheckCircle2 className={'h-5 w-5 ' + (form.vetInspection ? 'text-blue-600' : 'text-slate-400')} />
-            <span className="text-sm font-extrabold text-blue-900">Vet Inspection Passed</span>
-          </label>
-          {form.vetInspection && (
-            <div className="grid sm:grid-cols-2 gap-2">
-              <input value={form.vetInspectorName} onChange={(e) => setForm({ ...form, vetInspectorName: e.target.value })} placeholder="Vet inspector name" className="h-10 rounded-lg border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <input value={form.vetCertNumber} onChange={(e) => setForm({ ...form, vetCertNumber: e.target.value })} placeholder="Vet Cert #" className="h-10 rounded-lg border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-          )}
-          <textarea rows={2} value={form.postMortemNotes} onChange={(e) => setForm({ ...form, postMortemNotes: e.target.value })} placeholder="Post-mortem notes..." className="w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-        </div>
-
-        {/* Photos */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
-            <Camera className="h-3 w-3" />
-            Photos
-          </label>
-          {form.photoUrls.length > 0 && (
-            <div className="grid grid-cols-4 gap-1 mb-2">
-              {form.photoUrls.map((url: string, i: number) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setForm({ ...form, photoUrls: form.photoUrls.filter((_: any, idx: number) => idx !== i) })} className="absolute top-0 right-0 h-5 w-5 rounded-bl bg-rose-600 text-white flex items-center justify-center">
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <UploadDropzone onUploaded={(records) => {
-            const urls = Array.isArray(records) ? records.map((r: any) => r.url || r).filter(Boolean) : [(records as any)?.url || records];
-            setForm({ ...form, photoUrls: [...form.photoUrls, ...urls] });
-          }} />
-        </div>
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.liveWeightKg}>
-            <Save className="h-4 w-4" />
-            Create Log
-          </Button>
-        </div>
-      </div>
-    </section>
+    </PageShell>
   );
 }

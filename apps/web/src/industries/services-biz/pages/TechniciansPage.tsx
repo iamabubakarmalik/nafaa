@@ -1,624 +1,308 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+/**
+ * Technicians: who is free, on a job or on leave, their open jobs, rating
+ * and pay terms; the commission each earned on billed jobs in a period and
+ * paying it from the drawer (an expense, with a slip to sign); and past
+ * payouts.
+ *
+ * Keys: N new technician · 1-3 tabs · / search · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  UserCheck, Plus, Search, X, Save, Edit3, RefreshCw, Sparkles, Star,
-  Clock, Phone, MapPin, Activity, Award, Briefcase, Zap, Shield,
-} from 'lucide-react';
-import { techniciansApi, type Technician, type TechStatus } from '../api/technicians.api';
-import { catalogApi } from '../api/catalog.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiClient } from '@core/api/client';
+import { Banknote, Briefcase, Download, GraduationCap, History, Pencil, Plus, Power, Printer, Star, UserCog, Users, Wallet, Wrench } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, DateRangeMenu, FilterBar, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, TBody, THead, Table, Td, Th, Tr, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { techniciansApi, type TechStatus, type Technician, type TechnicianInput } from '../api/technicians.api';
+import { TechnicianModal } from '../components/TechnicianModal';
+import { printCommissionSlip } from '../components/slips';
+import { COMMISSION_KEY, MONEY_KEYS, TECH_KEY, TECH_STATUSES, apiError, dateTime, dayOnly, levelOf, techStatusOf, tradeOf } from '../components/meta';
 
-const STATUS_CONFIG: Record<TechStatus, { label: string; color: string; dot: string }> = {
-  AVAILABLE: { label: 'Available', color: 'bg-emerald-600', dot: 'bg-emerald-500' },
-  ON_JOB: { label: 'On Job', color: 'bg-amber-500', dot: 'bg-amber-500' },
-  ON_BREAK: { label: 'On Break', color: 'bg-blue-500', dot: 'bg-blue-500' },
-  OFF_DUTY: { label: 'Off Duty', color: 'bg-slate-500', dot: 'bg-slate-400' },
-  ON_LEAVE: { label: 'On Leave', color: 'bg-violet-500', dot: 'bg-violet-500' },
-  UNAVAILABLE: { label: 'Unavailable', color: 'bg-slate-600', dot: 'bg-slate-500' },
-};
-
-const LEVELS = [
-  { value: 'APPRENTICE', label: 'Apprentice', emoji: '🌱' },
-  { value: 'JUNIOR', label: 'Junior', emoji: '⭐' },
-  { value: 'SENIOR', label: 'Senior', emoji: '⭐⭐' },
-  { value: 'EXPERT', label: 'Expert', emoji: '🏆' },
-  { value: 'MASTER', label: 'Master', emoji: '👑' },
-  { value: 'SUPERVISOR', label: 'Supervisor', emoji: '💼' },
-  { value: 'MANAGER', label: 'Manager', emoji: '📊' },
-];
-
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+type Tab = 'team' | 'commission' | 'payouts';
+const THIS_MONTH: DateRangeValue = { preset: 'thisMonth', custom: { from: '', to: '' } };
 
 export default function TechniciansPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const { sales } = useMasked();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const canStaff = usePermission(PERMISSIONS.STAFF_MANAGE);
+  const canJobs = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const viewPay = usePermission(PERMISSIONS.COMMISSION_VIEW);
+  const managePay = usePermission(PERMISSIONS.COMMISSION_MANAGE);
+  const addExpense = usePermission(PERMISSIONS.EXPENSES_CREATE);
+  const canSeePay = viewPay || managePay;
+  const canPay = managePay && addExpense;
+  useReceiptSetup();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('team');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Technician | null>(null);
-  const [managingSkills, setManagingSkills] = useState<Technician | null>(null);
+  const [editing, setEditing] = useState<Technician | null | 'new'>(null);
+  const [off, setOff] = useState<Technician | null>(null);
+  const [range, setRange] = useState<DateRangeValue>(THIS_MONTH);
+  const [paying, setPaying] = useState<{ technicianId: string; name: string; amount: number } | null>(null);
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const [note, setNote] = useState('');
+  const period = resolveRange(range, startHour) ?? resolveRange(THIS_MONTH, startHour)!;
 
-  const { data: technicians = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['services-technicians', statusFilter, levelFilter, search],
-    queryFn: () => techniciansApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      level: levelFilter === 'all' ? undefined : levelFilter,
-      search: search.trim() || undefined,
-    }),
+  const listQ = useQuery({ queryKey: [TECH_KEY], queryFn: () => techniciansApi.list(), refetchInterval: 60_000 });
+  const statQ = useQuery({ queryKey: [COMMISSION_KEY, period.from, period.to], queryFn: () => techniciansApi.commission(period.from, period.to), enabled: canSeePay });
+  const payoutsQ = useQuery({ queryKey: [COMMISSION_KEY, 'payouts'], queryFn: () => techniciansApi.payouts(), enabled: canSeePay && tab === 'payouts' });
+  const all = listQ.data ?? [];
+  const rows = useMemo(() => {
+    const w = search.trim().toLowerCase();
+    return all.filter((t) => !w || `${t.staff?.fullName ?? ''} ${t.staff?.phone ?? ''} ${t.serviceAreas.join(' ')} ${tradeOf(t.primarySkill)}`.toLowerCase().includes(w));
+  }, [all, search]);
+  const count = (s: TechStatus) => all.filter((t) => t.status === s).length;
+  const st = statQ.data;
+
+  const refresh = () => [TECH_KEY, COMMISSION_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const save = useMutation({
+    mutationFn: (v: TechnicianInput) => techniciansApi.upsert(v),
+    onSuccess: () => { toast.success('Technician save ho gaya'); refresh(); setEditing(null); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
   });
-
-  const removeMutation = useMutation({
+  const status = useMutation({
+    mutationFn: (v: { id: string; status: TechStatus }) => techniciansApi.updateStatus(v.id, v.status),
+    onSuccess: () => { toast.success('Halat badal di'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const remove = useMutation({
     mutationFn: (id: string) => techniciansApi.remove(id),
-    onSuccess: () => { toast.success('Deactivated'); queryClient.invalidateQueries({ queryKey: ['services-technicians'] }); },
+    onSuccess: () => { toast.success('Technician band — purani jobs aur commission wese hi'); refresh(); setOff(null); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
+  const pay = useMutation({
+    mutationFn: () => techniciansApi.pay({ technicianId: paying!.technicianId, from: period.from, to: period.to, paymentMethod: method, note: note.trim() || undefined }),
+    onSuccess: (slip) => {
+      toast.success(`${slip.technicianName} ko ${sales(slip.amount)} commission di — ${slip.ref}`, { action: { label: 'Slip', onClick: () => printCommissionSlip(slip, shopName) } });
+      [COMMISSION_KEY, TECH_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      setPaying(null); setNote('');
+    },
+    onError: (e) => toast.error(apiError(e, 'Commission nahi di gayi')),
+  });
+  const openSlip = async (ref: string) => {
+    try { printCommissionSlip(await techniciansApi.slip(ref), shopName); } catch (e) { toast.error(apiError(e, 'Slip nahi mili')); }
+  };
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => techniciansApi.updateStatus(id, status),
-    onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['services-technicians'] }); },
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canStaff) { e.preventDefault(); setEditing('new'); }
+      if (e.key === '1') setTab('team');
+      if (e.key === '2' && canSeePay) setTab('commission');
+      if (e.key === '3' && canSeePay) setTab('payouts');
+      if (e.key === '/') { e.preventDefault(); setTab('team'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canStaff, canSeePay]);
+
+  const exportCsv = () => {
+    if (tab === 'commission' && st) {
+      downloadCsv(`commission-${period.from}-${period.to}.csv`, [
+        ['Technician', 'Job', 'Bill #', 'Date', 'Customer', 'Kaam', 'Bill', 'Kaam ka hissa', 'Return', 'Commission', 'Di gayi'],
+        ...st.lines.map((l) => [l.technicianName, l.jobNumber, l.saleNumber, dayOnly(l.billedAt), l.customerName ?? '', l.serviceName, l.bill, l.work, l.refunded, l.commission, l.paidRef ?? '']),
+      ]);
+      return;
+    }
+    downloadCsv('technicians.csv', [
+      ['Naam', 'Phone', 'Darja', 'Hunar', 'Halat', 'Chaalu jobs', 'Mukammal jobs', 'Rating', 'Commission', '%', 'Fixed', 'Areas'],
+      ...rows.map((t) => [t.staff?.fullName ?? '', t.staff?.phone ?? '', levelOf(t.level), tradeOf(t.primarySkill), techStatusOf(t.status).label, t.openJobs ?? 0, t.completedJobs, t.avgRating ?? '', t.commissionType, t.commissionPct, t.fixedPerJob, t.serviceAreas.join(' / ')]),
+    ]);
+  };
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Team
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">👷 Technicians</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">GPS tracking, skills, commission, performance</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link to="/services-biz/dispatch" className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <MapPin className="h-4 w-4" />
-              Live Map
-            </Link>
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Technician
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Technicians"
+        chip={<><Users /> Team</>}
+        meta="Kaun free hai, kis ke paas kitna kaam, aur commission ka hisaab"
+        loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={exportCsv} disabled={tab === 'payouts'} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <Link to="/services-biz/dispatch" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">Dispatch</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canStaff && <button type="button" onClick={() => setEditing('new')} title="Naya (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Technician</button>}
+        </>}
+        stats={[
+          { label: 'Technicians', value: all.length },
+          { label: 'Abhi free', value: count('AVAILABLE') },
+          ...(canSeePay && st ? [{ label: `Commission (${rangeLabel(period.from, period.to)})`, value: sales(st.totals.commission), hint: st.totals.unpaid ? `${sales(st.totals.unpaid)} deni hai` : undefined }] : []),
+        ]}
+      />
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search technicians..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-        </div>
+      <KpiRow cols={4}>
+        {listQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Users} color="#16a34a" label="Free" value={count('AVAILABLE')} hint="Kaam de sakte hain" />
+          <KpiCard icon={Wrench} color="#7c3aed" label="Kaam par" value={count('ON_JOB')} hint={`${all.reduce((s, t) => s + (t.openJobs ?? 0), 0)} chaalu jobs`} />
+          <KpiCard icon={Power} color="#64748b" label="Chhutti / duty khatam" value={count('ON_LEAVE') + count('OFF_DUTY') + count('ON_BREAK')} />
+          <KpiCard icon={Wallet} color="#d97706" label="Commission deni hai" value={canSeePay && st ? sales(st.totals.unpaid) : '—'} hint={canSeePay ? rangeLabel(period.from, period.to) : 'Permission nahi'} onClick={canSeePay ? () => setTab('commission') : undefined} active={tab === 'commission'} />
+        </>}
+      </KpiRow>
 
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setStatusFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All</button>
-          {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-            <button key={k} onClick={() => setStatusFilter(k)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === k ? v.color + ' text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>
-              <span className={'inline-block h-2 w-2 rounded-full mr-1 ' + v.dot} />
-              {v.label}
-            </button>
-          ))}
-        </div>
+      {tab === 'team' ? (
+        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, area, hunar…" label="Search" />} />
+      ) : tab === 'commission' ? (
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Bill hui jobs par: kaam (visit + labour) ka hissa, discount aur return ke baad</p>}>
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Period" allowAll={false} defaultPreset="thisMonth" />
+        </FilterBar>
+      ) : <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Di gayi commission — har payout Expense me likha hai</p>} />}
 
-        <div className="flex gap-1.5 overflow-x-auto">
-          <button onClick={() => setLevelFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (levelFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All Levels</button>
-          {LEVELS.map((l) => (
-            <button key={l.value} onClick={() => setLevelFilter(l.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (levelFilter === l.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{l.emoji} {l.label}</button>
-          ))}
-        </div>
-      </section>
+      <ViewTabs value={tab} onChange={setTab} hint={<>{canStaff && <><Kbd>N</Kbd> naya · </>}<Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+        tabs={[
+          { id: 'team', label: 'Team', icon: Users, count: rows.length },
+          ...(canSeePay ? [{ id: 'commission' as Tab, label: 'Commission', icon: Banknote }, { id: 'payouts' as Tab, label: 'Payouts', icon: History }] : []),
+        ]} />
 
-      {showForm && (
-        <TechnicianForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['services-technicians'] }); }}
-        />
-      )}
-
-      {managingSkills && (
-        <SkillsModal
-          technician={managingSkills}
-          onClose={() => setManagingSkills(null)}
-          onSaved={() => { setManagingSkills(null); queryClient.invalidateQueries({ queryKey: ['services-technicians'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : technicians.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <UserCheck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No technicians yet</p>
+      {tab === 'team' && (listQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !rows.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <UserCog className="mx-auto h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-semibold text-slate-900">{search ? 'Koi nahi mila' : 'Abhi koi technician nahi'}</p>
+          <p className="mt-1 text-sm text-slate-500">Pehle HR → Staff me banda jorein, phir yahan technician banayein aur commission likhein.</p>
+          {canStaff && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Technician</Button>}
         </div>
       ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {technicians.map((t) => (
-            <TechnicianCard
-              key={t.id}
-              technician={t}
-              onEdit={() => { setEditing(t); setShowForm(true); }}
-              onSkills={() => setManagingSkills(t)}
-              onStatusChange={(status: any) => statusMutation.mutate({ id: t.id, status })}
-              onDelete={() => { if (confirm('Deactivate this technician?')) removeMutation.mutate(t.id); }}
-            />
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete }: any) {
-  const statusCfg = STATUS_CONFIG[technician.status as TechStatus];
-  const level = LEVELS.find((l) => l.value === technician.level);
-  const staffName = technician.staff ? (((technician.staff.fullName || technician.staff.firstName) || '') + ' ' + (technician.staff.lastName || '')).trim() || 'Technician' : 'Technician';
-
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
-      <div className="flex items-start gap-3">
-        <div className="relative shrink-0">
-          {technician.photoUrl ? (
-            <img src={technician.photoUrl} alt={staffName} className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200" />
-          ) : (
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center text-2xl font-extrabold shadow-lg">
-              {staffName.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div className={'absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white ' + statusCfg.dot} />
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {rows.map((t) => {
+            const s = techStatusOf(t.status);
+            return (
+              <article key={t.id} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-base font-bold text-sky-700">{(t.staff?.fullName ?? 'T').charAt(0)}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-slate-900">{t.staff?.fullName ?? 'Technician'}</p>
+                    <p className="truncate text-[0.8125rem] text-slate-500">{[levelOf(t.level), t.primarySkill ? tradeOf(t.primarySkill) : null, t.staff?.phone].filter(Boolean).join(' · ')}</p>
+                  </div>
+                  <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', s.tone)}>{s.label}</span>
+                </div>
+                <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-[0.75rem]">
+                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">Chaalu</dt><dd className="text-base font-bold text-slate-900">{t.openJobs ?? 0}</dd></div>
+                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">Mukammal</dt><dd className="text-base font-bold text-slate-900">{t.completedJobs}</dd></div>
+                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">Rating</dt><dd className="inline-flex items-center gap-0.5 text-base font-bold text-slate-900">{t.avgRating ? <><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{t.avgRating.toFixed(1)}</> : '—'}</dd></div>
+                </dl>
+                <p className="mt-2 text-[0.75rem] text-slate-500">
+                  {t.commissionType === 'NONE' ? 'Commission nahi' : [t.commissionPct ? `${t.commissionPct}% kaam ka` : null, t.fixedPerJob ? `${sales(t.fixedPerJob)} har job` : null].filter(Boolean).join(' + ') || 'Commission likhi nahi'}
+                  {t.serviceAreas.length > 0 && ` · ${t.serviceAreas.join(', ')}`}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+                  {canJobs && (
+                    <Select aria-label="Halat" value={t.status} wrapperClassName="w-36" size="sm" onChange={(e) => status.mutate({ id: t.id, status: e.target.value as TechStatus })}
+                      options={TECH_STATUSES.map((x) => ({ value: x, label: techStatusOf(x).label }))} />
+                  )}
+                  <Link to={`/services-biz/jobs?technician=${t.staffId}&view=all`} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-sky-700 hover:bg-sky-50"><Briefcase className="h-3.5 w-3.5" />Jobs</Link>
+                  {canStaff && <button type="button" onClick={() => setEditing(t)} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-100"><Pencil className="h-3.5 w-3.5" />Badlein</button>}
+                  {canStaff && <button type="button" onClick={() => setOff(t)} className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Power className="h-3.5 w-3.5" />Band</button>}
+                </div>
+              </article>
+            );
+          })}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{staffName}</div>
-          <div className="flex items-center gap-1 text-xs font-extrabold text-violet-600">
-            <span>{level?.emoji}</span>
-            <span>{level?.label}</span>
-          </div>
-          {technician.experienceYears > 0 && (
-            <div className="text-[0.6875rem] text-slate-500 font-bold">{technician.experienceYears} years exp.</div>
-          )}
-          {technician.staff?.phone && (
-            <a href={'tel:' + technician.staff.phone} className="text-[0.6875rem] text-blue-600 font-bold hover:underline inline-flex items-center gap-0.5">
-              <Phone className="h-2.5 w-2.5" />
-              {technician.staff.phone}
-            </a>
-          )}
-        </div>
-      </div>
+      ))}
 
-      <select
-        value={technician.status}
-        onChange={(e) => onStatusChange(e.target.value)}
-        className={
-          'w-full h-9 rounded-lg border-2 px-2 text-xs font-extrabold uppercase text-white focus:outline-none ' +
-          statusCfg.color
-        }
-      >
-        {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-          <option key={k} value={k} className="bg-white text-slate-900">{v.label}</option>
-        ))}
-      </select>
-
-      {(technician.primarySkill || technician.secondarySkills?.length > 0) && (
-        <div className="flex flex-wrap gap-1">
-          {technician.primarySkill && (
-            <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.625rem] font-extrabold uppercase">
-              ⭐ {technician.primarySkill.replace('_', ' ')}
-            </span>
-          )}
-          {technician.secondarySkills?.slice(0, 2).map((s: string, i: number) => (
-            <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
-              {s.replace('_', ' ')}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="flex items-center gap-3 text-xs text-slate-600 font-bold">
-        <span className="inline-flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          {technician.workStartTime}–{technician.workEndTime}
-        </span>
-        {technician.currentLat && (
-          <span className="inline-flex items-center gap-1 text-emerald-700">
-            <MapPin className="h-3 w-3" />
-            GPS active
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-4 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Jobs</div>
-          <div className="text-sm font-extrabold">{technician.completedJobs}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Revenue</div>
-          <div className="text-xs font-extrabold text-emerald-700 tabular-nums">{formatPKR(technician.totalRevenue).replace('Rs', '').trim()}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
-            <Star className="h-2 w-2 fill-current" />
-            Rating
-          </div>
-          <div className="text-sm font-extrabold text-amber-700">{technician.avgRating ? technician.avgRating.toFixed(1) : '—'}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">On Time</div>
-          <div className="text-sm font-extrabold text-blue-700">{technician.onTimePct?.toFixed(0)}%</div>
-        </div>
-      </div>
-
-      {technician.commissionType !== 'NONE' && (
-        <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 p-2 text-xs">
-          <div className="flex items-center justify-between font-extrabold">
-            <span className="text-amber-800 inline-flex items-center gap-1">
-              <Award className="h-3 w-3" />
-              Commission
-            </span>
-            <span className="text-amber-900 tabular-nums">
-              {technician.commissionPct > 0 && technician.commissionPct + '%'}
-              {technician.fixedPerJob > 0 && ' ' + formatPKR(technician.fixedPerJob)}
-            </span>
-          </div>
-        </div>
-      )}
-
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-        <button onClick={onSkills} className="flex-1 h-9 rounded-lg bg-violet-100 dark:bg-violet-950/40 hover:bg-violet-200 text-violet-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-          <Award className="h-3 w-3" />
-          Skills
-        </button>
-        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-          <Edit3 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TechnicianForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    staffId: editing?.staffId ?? '',
-    employeeCode: editing?.employeeCode ?? '',
-    level: editing?.level ?? 'JUNIOR',
-    primarySkill: editing?.primarySkill ?? '',
-    secondarySkills: editing?.secondarySkills?.join(', ') ?? '',
-    experienceYears: editing?.experienceYears ?? '',
-    bio: editing?.bio ?? '',
-    photoUrl: editing?.photoUrl ?? '',
-    cnicNumber: editing?.cnicNumber ?? '',
-    licenseNumber: editing?.licenseNumber ?? '',
-    licenseExpiryDate: editing?.licenseExpiryDate ? editing.licenseExpiryDate.slice(0, 10) : '',
-    vehicleAssigned: editing?.vehicleAssigned ?? '',
-    vehicleNumber: editing?.vehicleNumber ?? '',
-    emergencyContactName: editing?.emergencyContactName ?? '',
-    emergencyContactPhone: editing?.emergencyContactPhone ?? '',
-    serviceAreas: editing?.serviceAreas?.join(', ') ?? '',
-    homeCity: editing?.homeCity ?? '',
-    maxTravelKm: editing?.maxTravelKm ?? '',
-    workingDays: editing?.workingDays ?? [1, 2, 3, 4, 5, 6],
-    workStartTime: editing?.workStartTime ?? '08:00',
-    workEndTime: editing?.workEndTime ?? '20:00',
-    breakStartTime: editing?.breakStartTime ?? '',
-    breakEndTime: editing?.breakEndTime ?? '',
-    isAvailableForEmergency: editing?.isAvailableForEmergency ?? false,
-    isAvailableWeekends: editing?.isAvailableWeekends ?? true,
-    isAvailableNights: editing?.isAvailableNights ?? false,
-    commissionType: editing?.commissionType ?? 'PERCENTAGE',
-    commissionPct: editing?.commissionPct ?? 0,
-    fixedPerJob: editing?.fixedPerJob ?? 0,
-    monthlySalary: editing?.monthlySalary ?? 0,
-    maxDailyJobs: editing?.maxDailyJobs ?? '',
-    maxOngoingJobs: editing?.maxOngoingJobs ?? 3,
-    bookingBufferMin: editing?.bookingBufferMin ?? 30,
-  });
-
-  const { data: staffList = [] } = useQuery({
-    queryKey: ['staff-list-for-tech'],
-    queryFn: () => apiClient.get('/staff?isActive=true&limit=200').then((r) => r.data?.data?.items ?? r.data?.items ?? r.data ?? []),
-    enabled: !editing,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => techniciansApi.upsert({
-      ...form,
-      secondarySkills: form.secondarySkills ? form.secondarySkills.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      serviceAreas: form.serviceAreas ? form.serviceAreas.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      experienceYears: form.experienceYears ? Number(form.experienceYears) : 0,
-      maxTravelKm: form.maxTravelKm ? Number(form.maxTravelKm) : undefined,
-      maxDailyJobs: form.maxDailyJobs ? Number(form.maxDailyJobs) : undefined,
-      maxOngoingJobs: Number(form.maxOngoingJobs) || 3,
-      bookingBufferMin: Number(form.bookingBufferMin) || 30,
-      commissionPct: Number(form.commissionPct) || 0,
-      fixedPerJob: Number(form.fixedPerJob) || 0,
-      monthlySalary: Number(form.monthlySalary) || 0,
-      primarySkill: form.primarySkill || undefined,
-    }),
-    onSuccess: () => { toast.success(editing ? 'Updated' : 'Created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const toggleDay = (day: number) => {
-    const days = form.workingDays.includes(day) ? form.workingDays.filter((d: number) => d !== day) : [...form.workingDays, day];
-    setForm({ ...form, workingDays: days });
-  };
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">{editing ? 'Edit Technician' : 'New Technician'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        {!editing && (
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
-            <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-              <option value="">-- Pick staff --</option>
-              {staffList.map((s: any) => {
-                const nm = (((s.fullName || s.firstName) || '') + ' ' + (s.lastName || '')).trim() || s.staffNumber;
-                return <option key={s.id} value={s.id}>{nm} • {s.phone || ''}</option>;
-              })}
-            </select>
-          </div>
-        )}
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
-          {form.photoUrl ? (
-            <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200">
-              <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setForm({ ...form, photoUrl: '' })} className="absolute top-1 right-1 h-6 w-6 rounded bg-rose-600 text-white flex items-center justify-center">
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, photoUrl: url });
-            }} />
-          )}
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.employeeCode} onChange={(e) => setForm({ ...form, employeeCode: e.target.value })} placeholder="Employee code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-          <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-            {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.emoji} {l.label}</option>)}
-          </select>
-          <input type="number" value={form.experienceYears} onChange={(e) => setForm({ ...form, experienceYears: e.target.value })} placeholder="Experience (years)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Primary Skill</label>
-          <select value={form.primarySkill} onChange={(e) => setForm({ ...form, primarySkill: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-            <option value="">-- Select --</option>
-            <option value="ELECTRICIAN">⚡ Electrician</option>
-            <option value="PLUMBER">🔧 Plumber</option>
-            <option value="AC_TECHNICIAN">❄️ AC Technician</option>
-            <option value="APPLIANCE_REPAIR">📺 Appliance</option>
-            <option value="MOBILE_REPAIR">📱 Mobile</option>
-            <option value="COMPUTER_REPAIR">💻 Computer</option>
-            <option value="CARPENTRY">🪚 Carpentry</option>
-            <option value="PAINTING">🎨 Painting</option>
-            <option value="CCTV_INSTALLATION">📹 CCTV</option>
-            <option value="SOLAR_INSTALLATION">☀️ Solar</option>
-            <option value="HVAC">🌬️ HVAC</option>
-            <option value="AUTOMOBILE_MECHANIC">🚗 Auto</option>
-            <option value="OTHER">🛠️ Other</option>
-          </select>
-        </div>
-
-        <input value={form.secondarySkills} onChange={(e) => setForm({ ...form, secondarySkills: e.target.value })} placeholder="Secondary skills (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Short bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-
-        {/* Docs */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.cnicNumber} onChange={(e) => setForm({ ...form, cnicNumber: e.target.value })} placeholder="CNIC #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.licenseNumber} onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })} placeholder="License #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-          <input type="date" value={form.licenseExpiryDate} onChange={(e) => setForm({ ...form, licenseExpiryDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.vehicleNumber} onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })} placeholder="Vehicle #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-        </div>
-
-        {/* Service Areas */}
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.serviceAreas} onChange={(e) => setForm({ ...form, serviceAreas: e.target.value })} placeholder="Service areas (comma separated)" className="h-11 sm:col-span-2 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input type="number" value={form.maxTravelKm} onChange={(e) => setForm({ ...form, maxTravelKm: e.target.value })} placeholder="Max travel (km)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
-        </div>
-
-        {/* Working Schedule */}
-        <div className="rounded-xl border-2 border-blue-200 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-blue-900 flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Working Schedule
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Working Days</label>
-            <div className="grid grid-cols-7 gap-1">
-              {DAYS.map((d, i) => (
-                <button key={d} onClick={() => toggleDay(i)} className={
-                  'py-2 rounded-lg text-xs font-extrabold ' +
-                  (form.workingDays.includes(i) ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-ink-800 border border-slate-200 text-slate-600 hover:border-blue-300')
-                }>{d}</button>
+      {tab === 'commission' && (statQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !st?.technicians.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Is period me koi bill hui job nahi</p><p className="mt-1 text-sm text-slate-500">Commission job ka bill banne par banti hai.</p></div>
+      ) : (<>
+        <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <Table minWidth="40rem">
+            <THead><Tr><Th>Technician</Th><Th align="right">Jobs</Th><Th align="right">Bill</Th><Th align="right">Kaam ka hissa</Th><Th align="right">Commission</Th><Th align="right">Di gayi</Th><Th align="right">Deni hai</Th><Th /></Tr></THead>
+            <TBody>
+              {st.technicians.map((t) => (
+                <Tr key={t.technicianId}>
+                  <Td className="font-semibold text-slate-900">{t.name}</Td>
+                  <Td align="right">{t.jobs}</Td>
+                  <Td align="right" className="tabular-nums">{sales(t.bill)}</Td>
+                  <Td align="right" className="tabular-nums">{sales(t.work)}</Td>
+                  <Td align="right" className="font-semibold tabular-nums">{sales(t.commission)}</Td>
+                  <Td align="right" className="tabular-nums text-emerald-700">{sales(t.paid)}</Td>
+                  <Td align="right" className={cn('font-semibold tabular-nums', t.unpaid > 0 ? 'text-amber-700' : 'text-slate-400')}>{sales(t.unpaid)}</Td>
+                  <Td align="right">{canPay && t.unpaid > 0 && <Button size="sm" onClick={() => setPaying({ technicianId: t.technicianId, name: t.name, amount: t.unpaid })}>Dein</Button>}</Td>
+                </Tr>
               ))}
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-4 gap-2">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Start</label>
-              <input type="time" value={form.workStartTime} onChange={(e) => setForm({ ...form, workStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">End</label>
-              <input type="time" value={form.workEndTime} onChange={(e) => setForm({ ...form, workEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break Start</label>
-              <input type="time" value={form.breakStartTime} onChange={(e) => setForm({ ...form, breakStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break End</label>
-              <input type="time" value={form.breakEndTime} onChange={(e) => setForm({ ...form, breakEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-2">
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableForEmergency ? 'border-red-500 bg-red-50' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')}>
-              <input type="checkbox" checked={form.isAvailableForEmergency} onChange={(e) => setForm({ ...form, isAvailableForEmergency: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">🚨 Emergency</span>
-            </label>
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableWeekends ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')}>
-              <input type="checkbox" checked={form.isAvailableWeekends} onChange={(e) => setForm({ ...form, isAvailableWeekends: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">📅 Weekends</span>
-            </label>
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableNights ? 'border-violet-500 bg-violet-50' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')}>
-              <input type="checkbox" checked={form.isAvailableNights} onChange={(e) => setForm({ ...form, isAvailableNights: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">🌙 Nights</span>
-            </label>
-          </div>
+            </TBody>
+          </Table>
         </div>
-
-        {/* Commission */}
-        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-amber-900 flex items-center gap-2">
-            <Award className="h-4 w-4" />
-            Commission
-          </div>
-          <select value={form.commissionType} onChange={(e) => setForm({ ...form, commissionType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-            <option value="NONE">No Commission (salary only)</option>
-            <option value="PERCENTAGE">Percentage %</option>
-            <option value="FIXED_PER_SERVICE">Fixed per job</option>
-            <option value="TIERED">Tiered</option>
-            <option value="HYBRID">Hybrid</option>
-          </select>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Percentage %</label>
-              <input type="number" step="0.1" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fixed / Job</label>
-              <input type="number" value={form.fixedPerJob} onChange={(e) => setForm({ ...form, fixedPerJob: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Monthly Salary</label>
-              <input type="number" value={form.monthlySalary} onChange={(e) => setForm({ ...form, monthlySalary: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-          </div>
+        <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <Table minWidth="44rem">
+            <THead><Tr><Th>Job</Th><Th>Technician</Th><Th>Kaam</Th><Th align="right">Kaam ka hissa</Th><Th align="right">Return</Th><Th align="right">Commission</Th><Th>Payout</Th></Tr></THead>
+            <TBody>
+              {st.lines.map((l) => (
+                <Tr key={l.jobId}>
+                  <Td><Link to={`/services-biz/jobs/${l.jobId}`} className="font-mono text-[0.8125rem] font-semibold text-brand-700 hover:underline">{l.jobNumber}</Link><span className="block text-[0.75rem] text-slate-500">{dayOnly(l.billedAt)}</span></Td>
+                  <Td>{l.technicianName}</Td>
+                  <Td><span className="line-clamp-1">{l.serviceName}</span><span className="block text-[0.75rem] text-slate-500">{l.customerName ?? ''}</span></Td>
+                  <Td align="right" className="tabular-nums">{sales(l.work)}</Td>
+                  <Td align="right" className="tabular-nums">{l.refunded ? sales(l.refunded) : '—'}</Td>
+                  <Td align="right" className="font-semibold tabular-nums">{sales(l.commission)}</Td>
+                  <Td>{l.paidRef && !l.paidRef.startsWith('HOLD-') ? <button type="button" onClick={() => void openSlip(l.paidRef!)} className="font-mono text-[0.75rem] text-emerald-700 hover:underline">{l.paidRef}</button> : <span className="text-[0.75rem] text-amber-700">Baqi</span>}</Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
         </div>
+      </>))}
 
-        {/* Booking rules */}
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max Daily Jobs</label>
-            <input type="number" value={form.maxDailyJobs} onChange={(e) => setForm({ ...form, maxDailyJobs: e.target.value })} placeholder="Unlimited" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+      {tab === 'payouts' && (payoutsQ.isLoading ? <Skeleton className="h-48 rounded-3xl" /> : !payoutsQ.data?.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Abhi koi commission nahi di gayi</p></div>
+      ) : (
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          {payoutsQ.data.map((p) => (
+            <li key={p.ref} className="flex items-center gap-3 px-4 py-3">
+              <Banknote className="h-5 w-5 text-emerald-600" />
+              <span className="min-w-0 flex-1"><span className="block font-semibold text-slate-900">{p.technicianName}</span><span className="text-[0.75rem] text-slate-500">{p.ref} · {dateTime(p.paidAt)} · {p.jobs} jobs · {p.expense?.paymentMethod ?? ''}</span></span>
+              <span className="font-semibold tabular-nums">{sales(p.amount)}</span>
+              <button type="button" onClick={() => void openSlip(p.ref)} aria-label="Slip print" title="Slip" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Printer className="h-4 w-4" /></button>
+            </li>
+          ))}
+        </ul>
+      ))}
+
+      {editing && <TechnicianModal tech={editing === 'new' ? null : editing} taken={all.map((t) => t.staffId)} pending={save.isPending} onSave={(v) => save.mutate(v)} onClose={() => setEditing(null)} />}
+      {off && (
+        <Modal open onClose={() => setOff(null)} size="sm" title={`${off.staff?.fullName ?? 'Technician'} band karein?`} description="Nayi job me nahi aayega. Purani jobs, rating aur commission ka hisaab wese hi rahega."
+          footer={<><Button variant="secondary" onClick={() => setOff(null)}>Rehne dein</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate(off.id)}>Band karein</Button></>}>
+          {(off.openJobs ?? 0) > 0 && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Is ke paas {off.openJobs} chaalu jobs hain — pehle kisi aur ko dein.</p>}
+        </Modal>
+      )}
+      {paying && (
+        <Modal open onClose={() => setPaying(null)} size="sm" title={`Commission dein — ${paying.name}`} description={`${rangeLabel(period.from, period.to)} ki baqi commission: Expense me likhi jayegi`}
+          footer={<><Button variant="secondary" onClick={() => setPaying(null)}>Rehne dein</Button><Button loading={pay.isPending} onClick={() => pay.mutate()} leftIcon={<Banknote className="h-4 w-4" />}>{sales(paying.amount)} dein</Button></>}>
+          <div className="space-y-3">
+            <PaymentMethodPicker value={method} onChange={setMethod} label="Kaise di" hint={method === 'CASH' ? 'Cash drawer se niklega' : 'Bank / wallet se — drawer me nahi'} />
+            <Input label="Note" value={note} onChange={(e) => setNote(e.target.value)} hint="Marzi hai" />
           </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max Ongoing</label>
-            <input type="number" value={form.maxOngoingJobs} onChange={(e) => setForm({ ...form, maxOngoingJobs: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer (min)</label>
-            <input type="number" value={form.bookingBufferMin} onChange={(e) => setForm({ ...form, bookingBufferMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
-          </div>
-        </div>
+        </Modal>
+      )}
 
-        <div className="flex gap-2 pt-2 border-t">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.staffId}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SkillsModal({ technician, onClose, onSaved }: any) {
-  const { data: allServices = [] } = useQuery({
-    queryKey: ['catalog-for-skills'],
-    queryFn: () => catalogApi.list({ active: true }),
-  });
-
-  const [selected, setSelected] = useState<Record<string, any>>(() => {
-    const init: any = {};
-    technician.services?.forEach((s: any) => {
-      init[s.serviceId] = { serviceId: s.serviceId, skillLevel: s.skillLevel, isPrimary: s.isPrimary };
-    });
-    return init;
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => techniciansApi.assignSkills(technician.id, Object.values(selected)),
-    onSuccess: () => { toast.success('Skills updated'); onSaved(); },
-  });
-
-  const toggle = (id: string) => {
-    const copy = { ...selected };
-    if (copy[id]) delete copy[id];
-    else copy[id] = { serviceId: id, skillLevel: 'JUNIOR' };
-    setSelected(copy);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">Assign Services / Skills</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-xs text-slate-500 font-semibold mb-3">Selected: {Object.keys(selected).length} services</div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            {allServices.map((svc) => {
-              const isSelected = !!selected[svc.id];
-              return (
-                <button key={svc.id} onClick={() => toggle(svc.id)} className={
-                  'p-3 rounded-xl border-2 text-left transition ' +
-                  (isSelected ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
-                }>
-                  <div className="font-extrabold text-sm truncate">{svc.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{svc.businessType?.replace('_', ' ')}</div>
-                  <div className="text-xs font-extrabold text-emerald-700 tabular-nums mt-1">{formatPKR(svc.baseCharge)}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="border-t-2 p-4 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}>
-            <Save className="h-4 w-4" />
-            Save
-          </Button>
-        </div>
-      </div>
-    </div>
+      {guide.isOpen && (
+        <PageGuide title="Technicians — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Technician banayein', text: 'HR → Staff me banda ho to yahan "Technician" se us ka hunar, din, waqt, areas aur commission likhein.' },
+            { icon: Wrench, color: '#7c3aed', title: 'Halat', text: 'Kaam par jaate hi khud "Kaam par" ho jata hai; chhutti ya break yahan se lagayein — Dispatch par free wale pehle aate hain.' },
+            { icon: Banknote, color: '#16a34a', title: 'Commission', text: 'Har bill hui job par kaam (visit + labour) ka % ya fixed — parts par nahi. Discount aur return ke baad ka hisaab.' },
+            { icon: Wallet, color: '#d97706', title: 'Commission dena', text: '"Dein" se drawer (ya bank) se paisa — Expense me likha jata hai, day book aur profit me aata hai. Slip print karke sign karwayein.' },
+          ]}
+          tips={['Commission dekhne ke liye "Commission view", dene ke liye "Commission manage" aur "Expense create" ki permission chahiye.']}
+          shortcuts={[['N', 'naya'], ['1-3', 'tabs'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

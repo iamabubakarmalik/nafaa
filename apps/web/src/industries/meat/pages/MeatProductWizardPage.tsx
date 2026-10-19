@@ -1,355 +1,197 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Beef,
-  Plus, AlertTriangle, Trash2, Eye, Edit3,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { useMeatWizard, type WizardStep } from '../hooks/useMeatWizard';
-import { MeatWizardStepper } from '../components/wizard/MeatWizardStepper';
-import { MeatWizardStep1Basic } from '../components/wizard/MeatWizardStep1Basic';
-import { MeatWizardStep2HalalQuality } from '../components/wizard/MeatWizardStep2HalalQuality';
-import { MeatWizardStep3Origin } from '../components/wizard/MeatWizardStep3Origin';
-import { MeatWizardSummary } from '../components/wizard/MeatWizardSummary';
-import { saveMeatWizard, type MeatWizardSaveResult } from '../api/meat-wizard.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { meatProductsApi } from '../api/products.api';
-import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
+/**
+ * Meat item editor on the shared product editor: the animal and cut (they
+ * drive the counter filters and order lines), fresh or frozen, halal
+ * certificate and source, sold by kg with an optional pack ("pao", "1 kg
+ * pack"), and the restaurant rate as the wholesale price.
+ */
 
-export default function MeatProductWizardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+import { Beef, Leaf, ShieldCheck, Snowflake } from 'lucide-react';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { Chip, NumberField, Section, TextField, Toggle } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { meatProductsApi, type AnimalType, type CutCategory, type FreshnessType, type SaleUnit } from '../api/products.api';
+import { ANIMALS, CUTS, KEYS, animalOf, cutLabel } from '../lib/meta';
 
-  const {
-    draft, draftRestored, validation, stats,
-    goToStep, nextStep, prevStep,
-    updateBasic, updateHalalQuality, updateOrigin,
-    addOtherCert,
-    reset,
-  } = useMeatWizard({ autoLoadDraft: !isEdit });
+export interface MeatExtra {
+  animalType: AnimalType | '';
+  cutCategory: CutCategory | '';
+  freshnessType: FreshnessType;
+  isBoneless: boolean;
+  isFrozen: boolean;
+  isMarinated: boolean;
+  isHalalCertified: boolean;
+  halalCertNumber: string;
+  halalCertBy: string;
+  halalCertExpiry: string;
+  farmName: string;
+  slaughterhouseName: string;
+  shelfLifeDays: number | null;
+  minOrderKg: number | null;
+}
 
-  const [savedResult, setSavedResult] = useState<MeatWizardSaveResult | null>(null);
-  const [editLoaded, setEditLoaded] = useState(false);
+const initial: MeatExtra = {
+  animalType: '', cutCategory: '', freshnessType: 'FRESH_SLAUGHTERED', isBoneless: false, isFrozen: false, isMarinated: false,
+  isHalalCertified: true, halalCertNumber: '', halalCertBy: '', halalCertExpiry: '', farmName: '', slaughterhouseName: '',
+  shelfLifeDays: null, minOrderKg: null,
+};
 
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product-for-wizard', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
+const FRESH: Array<{ value: FreshnessType; label: string }> = [
+  { value: 'LIVE', label: 'Zinda' }, { value: 'FRESH_SLAUGHTERED', label: 'Taaza zibah' }, { value: 'FRESH_CHILLED', label: 'Thanda (chiller)' },
+  { value: 'FROZEN', label: 'Frozen' }, { value: 'MARINATED', label: 'Masala laga' }, { value: 'PROCESSED', label: 'Tayyar (kabab, nuggets)' },
+];
+const COMMON_CUTS: CutCategory[] = ['WHOLE_ANIMAL', 'BONELESS', 'WITH_BONE', 'MINCE', 'CHOPS', 'LEG', 'BREAST', 'WING', 'LIVER', 'TROTTERS', 'BONES', 'OFFAL'];
+const opt = (v: string) => v.trim() || undefined;
+const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
+const saleUnitOf = (unit: string): SaleUnit => (['gram', 'g'].includes(unit) ? 'GRAM' : ['pcs', 'piece'].includes(unit) ? 'PIECE' : unit === 'dozen' ? 'DOZEN' : 'KG');
 
-  const { data: existingProfile } = useQuery({
-    queryKey: ['meat-profile-for-wizard', id],
-    queryFn: () => meatProductsApi.byProduct(id!),
-    enabled: isEdit,
-  });
-
-  useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
-
-    updateBasic({
-      name: existingProduct.name,
-      description: existingProduct.description ?? '',
-      categoryId: existingProduct.categoryId ?? '',
-      brandId: existingProduct.brandId ?? '',
-      sku: existingProduct.sku ?? '',
-      barcode: existingProduct.barcode ?? '',
-      pricePerKg: existingProduct.price ?? 0,
-      costPrice: existingProduct.costPrice ?? 0,
-      wholesalePrice: existingProduct.wholesalePrice ?? '',
-      taxRate: existingProduct.taxRate ?? 0,
-      isActive: existingProduct.isActive,
-      isFeatured: existingProduct.isFeatured,
-      imageUrls: (existingProduct.images ?? []).map((img: any) => img?.url).filter(Boolean),
-      tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
-    });
-
-    if (existingProfile) {
-      updateBasic({
-        animalType: existingProfile.animalType,
-        cutCategory: existingProfile.cutCategory,
-        freshnessType: existingProfile.freshnessType,
-        saleUnit: existingProfile.saleUnit,
-        pricePerPiece: existingProfile.pricePerPiece ?? '',
-        minOrderKg: existingProfile.minOrderKg ?? '',
-        maxOrderKg: existingProfile.maxOrderKg ?? '',
-        weightVariancePct: existingProfile.weightVariancePct,
-        isBoneless: existingProfile.isBoneless,
-        isBoneIn: existingProfile.isBoneIn,
-        isSkinless: existingProfile.isSkinless,
-      });
-
-      updateHalalQuality({
-        slaughterMethod: existingProfile.slaughterMethod,
-        qualityGrade: existingProfile.qualityGrade,
-        isHalalCertified: existingProfile.isHalalCertified,
-        halalCertNumber: existingProfile.halalCertNumber ?? '',
-        halalCertBy: existingProfile.halalCertBy ?? '',
-        halalCertExpiry: existingProfile.halalCertExpiry ? existingProfile.halalCertExpiry.slice(0, 10) : '',
-        otherCerts: existingProfile.otherCerts ?? [],
-        isOrganic: existingProfile.isOrganic,
-        isFreeRange: existingProfile.isFreeRange,
-        isGrainFed: existingProfile.isGrainFed,
-        isGrassFed: existingProfile.isGrassFed,
-        isFrozen: existingProfile.isFrozen,
-        isMarinated: existingProfile.isMarinated,
-        marinationType: existingProfile.marinationType ?? '',
-        storageTempMin: existingProfile.storageTempMin ?? '',
-        storageTempMax: existingProfile.storageTempMax ?? '',
-        shelfLifeDays: existingProfile.shelfLifeDays ?? '',
-        packagingType: existingProfile.packagingType ?? '',
-        packagingWeight: existingProfile.packagingWeight ?? '',
-      });
-
-      const n = existingProfile.nutritionInfo || {};
-      updateOrigin({
-        farmName: existingProfile.farmName ?? '',
-        farmLocation: existingProfile.farmLocation ?? '',
-        slaughterhouseName: existingProfile.slaughterhouseName ?? '',
-        slaughterhouseLic: existingProfile.slaughterhouseLic ?? '',
-        countryOfOrigin: existingProfile.countryOfOrigin ?? 'Pakistan',
-        breed: existingProfile.breed ?? '',
-        animalAge: existingProfile.animalAge ?? '',
-        animalSex: existingProfile.animalSex ?? '',
-        batchNumber: existingProfile.batchNumber ?? '',
-        cuttingStyle: existingProfile.cuttingStyle ?? '',
-        cleaningLevel: existingProfile.cleaningLevel ?? '',
-        cookingSuggestions: existingProfile.cookingSuggestions ?? '',
-        descriptionLong: existingProfile.descriptionLong ?? '',
-        isPopular: existingProfile.isPopular,
-        isNewArrival: existingProfile.isNewArrival,
-        isOnSale: existingProfile.isOnSale,
-        nutritionCalories: n.calories ?? '',
-        nutritionProtein: n.protein ?? '',
-        nutritionFat: n.fat ?? '',
-        nutritionCarbs: n.carbs ?? '',
-        nutritionCholesterol: n.cholesterol ?? '',
-        nutritionSodium: n.sodium ?? '',
-      });
-    }
-
-    setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateHalalQuality, updateOrigin]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => saveMeatWizard(draft, isEdit ? id : undefined),
-    onSuccess: (result) => {
-      setSavedResult(result);
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['meat-products'] });
-      forceRefreshProducts().catch(() => {});
-      toast.success(`${result.productName} ${isEdit ? 'updated' : 'created'}`);
-      if (!isEdit) reset();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to save meat product'),
-  });
-
-  const currentValidation =
-    draft.step === 1 ? validation.step1 :
-    draft.step === 2 ? validation.step2 : validation.step3;
-
-  const canGoNext = currentValidation.valid && draft.step < 3;
-  const canSave = validation.step1.valid && validation.step2.valid && validation.step3.valid;
-
-  if (isEdit && !editLoaded && !existingProduct) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-red-200 border-t-red-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (savedResult) {
-    return (
-      <div className="max-w-2xl mx-auto py-12 space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-300 p-8 text-center shadow-xl">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-red-600 to-rose-800 text-white flex items-center justify-center shadow-xl mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-red-900">
-            Meat Product {isEdit ? 'Updated' : 'Created'}!
-          </h1>
-          <p className="text-red-800 font-semibold mt-1">
-            <strong>{savedResult.productName}</strong> catalog par ready hai
-          </p>
-          <div className="grid grid-cols-3 gap-3 mt-6">
-            <SuccessStat label="Halal" value={savedResult.isHalalCertified ? '✓' : '—'} />
-            <SuccessStat label="Certifications" value={savedResult.certCount} />
-            <SuccessStat label="Farm Info" value={savedResult.hasFarmInfo ? '✓' : '—'} />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <button
-            onClick={() => {
-              setSavedResult(null);
-              reset();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              if (isEdit) navigate('/meat-products/new');
-            }}
-            className="rounded-2xl bg-red-600 hover:bg-red-700 text-white p-5 flex flex-col items-center gap-2 shadow-md transition"
-          >
-            <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another</div>
-          </button>
-          <button
-            onClick={() => navigate(`/meat-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-red-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition"
-          >
-            <Eye className="h-6 w-6 text-red-600" />
-            <div className="font-extrabold text-slate-900">View Product</div>
-          </button>
-          <button
-            onClick={() => navigate('/meat/products')}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-red-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition"
-          >
-            <Beef className="h-6 w-6 text-red-600" />
-            <div className="font-extrabold text-slate-900">All Meat Products</div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+function Kind({ ctx }: { ctx: StepContext<MeatExtra> }) {
+  const x = ctx.draft.extra;
   return (
-    <div className="space-y-5 pb-24">
-      {draftRestored && !isEdit && (
-        <div className="rounded-2xl bg-red-50 border-2 border-red-200 p-3 flex items-center gap-3 flex-wrap">
-          <Sparkles className="h-4 w-4 text-red-700" />
-          <div className="text-xs text-red-900 flex-1 min-w-0">
-            <strong>Draft restored</strong> — pichli bar ki values load ho gayi hain
-          </div>
-          <button
-            onClick={() => { if (confirm('Draft delete kar ke naya start karein?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200"
-          >
-            <Trash2 className="h-3 w-3" /> Fresh Start
-          </button>
+    <div className="space-y-3">
+      <div>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Janwar <span className="text-rose-500">*</span></span>
+        <div className="flex flex-wrap gap-1.5">
+          {ANIMALS.map((a) => <Chip key={a.value} on={x.animalType === a.value} onClick={() => ctx.setExtra({ animalType: a.value as AnimalType })}>{a.emoji} {a.label}</Chip>)}
         </div>
-      )}
-
-      {isEdit && (
-        <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-3">
-          <Edit3 className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 flex-1">
-            <div className="font-extrabold mb-0.5">Edit Mode</div>
-            <div className="font-semibold">
-              Product + meat profile dono update honge. Halal cert, quality grade sab edit ho sakti hain.
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <button
-          onClick={() => navigate(isEdit ? `/meat-products/${id}` : '/meat/products')}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-red-600 font-bold transition"
-        >
-          <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Products'}
-        </button>
+        {ctx.errors.animalType && <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{ctx.errors.animalType}</p>}
       </div>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-red-900 to-rose-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-red-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-rose-400/15 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <Beef className="h-3.5 w-3.5 text-amber-300" />
-            {isEdit ? 'Editing Meat Product' : 'Meat Product Wizard'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? draft.basic.name || 'Edit Meat Product' : 'Add New Meat Product'}
-          </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-xl">
-            Product + Halal certification + Origin — sab ek page mein.
-          </p>
+      <div>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Cut <span className="text-rose-500">*</span></span>
+        <div className="flex flex-wrap gap-1.5">
+          {CUTS.filter((c) => COMMON_CUTS.includes(c.value as CutCategory) || c.value === x.cutCategory).map((c) => (
+            <Chip key={c.value} on={x.cutCategory === c.value} onClick={() => ctx.setExtra({ cutCategory: c.value as CutCategory, isBoneless: c.value === 'BONELESS' || c.value === 'MINCE' ? true : x.isBoneless })}>{c.label}</Chip>
+          ))}
         </div>
-      </section>
-
-      <MeatWizardStepper
-        currentStep={draft.step}
-        stepValidation={validation}
-        onStepClick={(s) => {
-          if (s === 1) goToStep(1);
-          else if (s === 2 && validation.step1.valid) goToStep(s as WizardStep);
-          else if (s === 3 && validation.step1.valid && validation.step2.valid) goToStep(s as WizardStep);
-        }}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-        <div className="min-w-0">
-          {draft.step === 1 && (
-            <MeatWizardStep1Basic basic={draft.basic} onChange={updateBasic} errors={validation.step1.errors} />
-          )}
-          {draft.step === 2 && (
-            <MeatWizardStep2HalalQuality
-              halalQuality={draft.halalQuality}
-              onChange={updateHalalQuality}
-              onToggleCert={addOtherCert}
-              errors={validation.step2.errors}
-            />
-          )}
-          {draft.step === 3 && (
-            <MeatWizardStep3Origin origin={draft.origin} onChange={updateOrigin} errors={validation.step3.errors} />
-          )}
-        </div>
-
-        <MeatWizardSummary draft={draft} stats={stats} allValid={canSave} />
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
-          <button
-            onClick={prevStep}
-            disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-extrabold transition disabled:opacity-40"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
-          <div className="text-xs font-extrabold text-slate-500 hidden sm:block">
-            Step {draft.step} of 3
-            {!currentValidation.valid && (
-              <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
-                <AlertTriangle className="h-3 w-3" />
-                {currentValidation.errors[0]}
-              </span>
-            )}
-          </div>
-
-          {draft.step < 3 ? (
-            <button
-              onClick={nextStep}
-              disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-800 hover:from-red-700 hover:to-rose-900 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition"
-            >
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <Button
-              onClick={() => saveMutation.mutate()}
-              loading={saveMutation.isPending}
-              disabled={!canSave}
-              className="bg-gradient-to-r from-red-600 to-rose-800"
-            >
-              <Save className="h-4 w-4" />
-              {isEdit ? 'Save Changes' : 'Save Meat Product'}
-            </Button>
-          )}
-        </div>
+        <select value={x.cutCategory} onChange={(e) => ctx.setExtra({ cutCategory: e.target.value as CutCategory })} aria-label="Baqi cuts"
+          className="mt-2 h-10 rounded-xl bg-slate-100 px-3 text-[0.875rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500">
+          <option value="">Baqi cuts…</option>
+          {CUTS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </select>
+        {ctx.errors.cutCategory && <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{ctx.errors.cutCategory}</p>}
+        <p className="mt-1.5 text-[0.75rem] text-slate-500">Zinda maal (mandi se aayi murgi / bakra) ke liye cut "Poora" rakhein aur halat "Zinda" — zibah aur cutting usi se stock banati hai.</p>
       </div>
     </div>
   );
 }
 
-function SuccessStat({ label, value }: { label: string; value: number | string }) {
+function Details({ ctx }: { ctx: StepContext<MeatExtra> }) {
+  const x = ctx.draft.extra;
+  const set = ctx.setExtra;
   return (
-    <div className="rounded-xl bg-white border-2 border-red-200 p-3">
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-red-700">{label}</div>
-      <div className="text-2xl font-extrabold text-red-900 tabular-nums mt-0.5">{value}</div>
+    <div className="space-y-4">
+      <Section icon={Snowflake} title="Halat" hint="Taaza, frozen ya masala laga — bill aur order par dikhta hai">
+        <div className="flex flex-wrap gap-1.5">{FRESH.map((f) => <Chip key={f.value} on={x.freshnessType === f.value} onClick={() => set({ freshnessType: f.value, isFrozen: f.value === 'FROZEN', isMarinated: f.value === 'MARINATED' })}>{f.label}</Chip>)}</div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Toggle on={x.isBoneless} onChange={(isBoneless) => set({ isBoneless })} title="Boneless" hint="Haddi ke bagair" />
+          <NumberField label="Kitne din chalta hai" suffix="din" allowEmpty value={x.shelfLifeDays} onChange={(shelfLifeDays) => set({ shelfLifeDays })} hint="Frozen ke liye; khali = usi din" />
+        </div>
+      </Section>
+      <Section icon={ShieldCheck} title="Halal" hint="Certificate ho to likhein — halal record aur bill par kaam aata hai">
+        <Toggle on={x.isHalalCertified} onChange={(isHalalCertified) => set({ isHalalCertified })} title="Halal certified" icon={ShieldCheck} />
+        {x.isHalalCertified && (
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <TextField label="Certificate #" value={x.halalCertNumber} onChange={(halalCertNumber) => set({ halalCertNumber })} placeholder="PHA-12345" />
+            <TextField label="Kis ne diya" value={x.halalCertBy} onChange={(halalCertBy) => set({ halalCertBy })} placeholder="PHA, SANHA…" />
+            <label className="block">
+              <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kab tak</span>
+              <input type="date" value={x.halalCertExpiry} onChange={(e) => set({ halalCertExpiry: e.target.value })} className="h-11 w-full rounded-xl bg-slate-100 px-3 text-[0.9375rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
+              {ctx.errors.halalCertExpiry && <span className="mt-1 block text-[0.75rem] font-medium text-rose-600">{ctx.errors.halalCertExpiry}</span>}
+            </label>
+          </div>
+        )}
+      </Section>
+      <Section icon={Leaf} title="Kahan se" hint="Marzi hai">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <TextField label="Farm / mandi" value={x.farmName} onChange={(farmName) => set({ farmName })} placeholder="Shahpur poultry farm" />
+          <TextField label="Zibah khana" value={x.slaughterhouseName} onChange={(slaughterhouseName) => set({ slaughterhouseName })} placeholder="Apni dukaan / municipal" />
+        </div>
+      </Section>
     </div>
   );
+}
+
+function OrderMin({ ctx }: { ctx: StepContext<MeatExtra> }) {
+  return (
+    <NumberField label="Order par kam se kam" suffix="kg" allowEmpty value={ctx.draft.extra.minOrderKg} onChange={(minOrderKg) => ctx.setExtra({ minOrderKg })}
+      hint="Wazan wale order me isse kam likhne par yaad dilata hai — khali chhor dein to koi had nahi" />
+  );
+}
+
+const core: CoreOptions = {
+  units: [
+    { value: 'kg', label: 'Kg' }, { value: 'gram', label: 'Gram' }, { value: 'pcs', label: 'Adad (pcs)' }, { value: 'dozen', label: 'Darjan' },
+  ],
+  skuPrefix: 'MT',
+  packs: true,
+  variants: false,
+  batches: false,
+  markups: [10, 15, 20, 25, 30],
+};
+
+function meatErrors(x: MeatExtra): Errors {
+  const e: Errors = {};
+  if (!x.animalType) e.animalType = 'Janwar chunein — murgi, mutton, beef…';
+  if (!x.cutCategory) e.cutCategory = 'Cut chunein — poora, boneless, qeema…';
+  if (x.isHalalCertified && x.halalCertExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(x.halalCertExpiry)) e.halalCertExpiry = 'Tareekh theek likhein';
+  return e;
+}
+
+const detailsStep: StepDef<MeatExtra> = { id: 'meat', title: 'Gosht', hint: 'Halat, halal, source', icon: Beef, render: (ctx) => <Details ctx={ctx} /> };
+
+const config: EditorConfig<MeatExtra> = {
+  label: 'Meat',
+  draftKey: 'nafaa.product-editor.meat',
+  paths: { list: '/meat/products', detail: (id) => `/meat-products/${id}`, create: '/meat-products/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const p = await meatProductsApi.byProduct(productId).catch(() => null);
+      if (!p) return {};
+      return {
+        animalType: p.animalType, cutCategory: p.cutCategory, freshnessType: p.freshnessType, isBoneless: p.isBoneless, isFrozen: p.isFrozen,
+        isMarinated: p.isMarinated, isHalalCertified: p.isHalalCertified, halalCertNumber: p.halalCertNumber ?? '', halalCertBy: p.halalCertBy ?? '',
+        halalCertExpiry: p.halalCertExpiry ? p.halalCertExpiry.slice(0, 10) : '', farmName: p.farmName ?? '', slaughterhouseName: p.slaughterhouseName ?? '',
+        shelfLifeDays: p.shelfLifeDays ?? null, minOrderKg: p.minOrderKg ?? null,
+      };
+    },
+    save: async (productId, d) => {
+      const x = d.extra;
+      const body = {
+        productId, animalType: x.animalType || undefined, cutCategory: x.cutCategory || undefined, freshnessType: x.freshnessType,
+        saleUnit: saleUnitOf(d.core.unit), pricePerKg: num(d.core.price), isBoneless: x.isBoneless, isBoneIn: !x.isBoneless,
+        isFrozen: x.isFrozen, isMarinated: x.isMarinated, isHalalCertified: x.isHalalCertified,
+        halalCertNumber: x.isHalalCertified ? opt(x.halalCertNumber) : undefined, halalCertBy: x.isHalalCertified ? opt(x.halalCertBy) : undefined,
+        halalCertExpiry: x.isHalalCertified ? opt(x.halalCertExpiry) : undefined, farmName: opt(x.farmName), slaughterhouseName: opt(x.slaughterhouseName),
+        shelfLifeDays: num(x.shelfLifeDays), minOrderKg: num(x.minOrderKg),
+      };
+      await meatProductsApi.upsert(Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined)));
+    },
+  },
+  steps: [
+    { ...basicStep<MeatExtra>(core, {
+      extra: (ctx) => <Kind ctx={ctx} />,
+      namePlaceholder: 'Jaise: Chicken boneless, Mutton qeema, Zinda murgi',
+      categorySuggestions: ['Murgi', 'Mutton', 'Beef', 'Machhli', 'Andar ka maal', 'Zinda maal', 'Frozen'],
+    }) },
+    detailsStep,
+    priceStep<MeatExtra>(core),
+    stockStep<MeatExtra>(core, { quick: [1, 5, 10, 25, 50], extra: (ctx) => <OrderMin ctx={ctx} /> }),
+  ].map((s): StepDef<MeatExtra> => (s.id === 'basic' ? { ...s, validate: (d, e) => ({ ...s.validate?.(d, e), ...meatErrors(d.extra) }) } : s)),
+  summary: (d) => {
+    const x = d.extra;
+    const facts = [x.animalType ? `${animalOf(x.animalType).emoji} ${animalOf(x.animalType).label}` : '', cutLabel(x.cutCategory), FRESH.find((f) => f.value === x.freshnessType)?.label, x.isHalalCertified ? 'Halal' : ''].filter(Boolean);
+    return facts.length ? <p className="mt-3 border-t border-slate-100 pt-3 text-[0.8125rem] text-slate-700">{facts.join(' · ')}</p> : null;
+  },
+  refresh: [KEYS.profiles, 'meat-product-detail', KEYS.daySheet],
+  guide: [
+    { icon: Beef, color: '#dc2626', title: 'Janwar aur cut', text: 'Pehle step me janwar aur cut zaroori hain — POS ke filter, cutting aur orders inhi se chalte hain.' },
+    { icon: ShieldCheck, color: '#16a34a', title: 'Halal', text: 'Certificate number aur tareekh likhein; khatam hone wali tareekh product par yaad dilati hai.' },
+    { icon: Snowflake, color: '#0891b2', title: 'Kg aur pack', text: 'Unit kg rakhein. Qeemat step me "Pao = 0.25" ya "1 kg pack" jorein — dono tarah bikta hai, stock kg me ginta hai. Wholesale qeemat = restaurant rate.' },
+  ],
+};
+
+export default function MeatProductWizardPage() {
+  return <ProductEditorPage config={config} />;
 }

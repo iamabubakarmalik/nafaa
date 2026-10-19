@@ -24,8 +24,8 @@ export interface MonthlyBill {
   sentToCustomer: boolean;
   sentAt?: string;
   notes?: string;
-  customer?: any;
-  deliveries?: any[];
+  customer?: { id: string; name: string; phone?: string | null; customerNumber: string; address?: string | null; route?: { name: string } | null } | null;
+  deliveries?: import('./deliveries.api').DairyDelivery[];
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +33,12 @@ export interface MonthlyBill {
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const monthlyBillsApi = {
+  all: (params: { month?: number; year?: number; isPaid?: boolean; search?: string; customerId?: string }) =>
+    apiClient.get('/dairy/monthly-bills', { params }).then(unwrap<MonthlyBill[]>),
+  make: (data: { dairyCustomerId: string; month: number; year: number; notes?: string }) => apiClient.post('/dairy/monthly-bills', data).then(unwrap<MonthlyBill & { refreshed: boolean }>),
+  makeAll: (data: { month: number; year: number }) =>
+    apiClient.post('/dairy/monthly-bills/bulk-generate', data).then(unwrap<{ total: number; generated: number; updated: number; results: Array<{ name: string; status: string; reason?: string; billNumber?: string }> }>),
+  markPrinted: (id: string) => apiClient.post('/dairy/monthly-bills/' + id + '/mark-printed').then(unwrap<MonthlyBill>),
   generate: (data: { dairyCustomerId: string; month: number; year: number }) =>
     apiClient.post('/dairy/monthly-bills', data).then(unwrap<MonthlyBill>),
   bulkGenerate: (data: { month: number; year: number }) =>

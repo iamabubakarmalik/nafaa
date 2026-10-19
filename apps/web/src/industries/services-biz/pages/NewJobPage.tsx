@@ -1,551 +1,345 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, User, Phone, Search, Sparkles, MapPin, Calendar,
-  Zap, X, Wrench, Briefcase, Package, Plus, Trash2, Home,
-} from 'lucide-react';
-import { jobsApi } from '../api/jobs.api';
-import { catalogApi } from '../api/catalog.api';
-import { techniciansApi } from '../api/technicians.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
+/**
+ * Job card form, for a new job and for changing one that is not billed:
+ * the customer (found by phone), the service from the rate list or typed,
+ * the item worked on, where the work is done and when, who does it, the
+ * estimate, warranty and any advance taken now. Parts are added on the job
+ * itself as they are used.
+ *
+ * Keys: Ctrl+S / Ctrl+Enter save · Esc back · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { ArrowLeft, Box, CalendarClock, ClipboardList, GraduationCap, MapPin, Receipt, ShieldCheck, UserRound, Wallet, Wrench } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen } from '@core/lib/shortcuts';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { customersApi } from '@modules/customers/customers/api/customers.api';
+import { catalogApi } from '../api/catalog.api';
+import { jobsApi, type JobCreateInput, type JobDetail, type LocationType, type Priority } from '../api/jobs.api';
+import { techniciansApi } from '../api/technicians.api';
+import { printJobCard } from '../components/slips';
+import {
+  CATALOG_KEY, CATEGORIES, JOB_KEY, LOCATIONS, MONEY_KEYS, PRIORITIES, TECH_KEY, apiError, atHour, categoryOf, digits, isOnSite, localInput, locationOf,
+  money, priorityOf,
+} from '../components/meta';
 
-const PRIORITIES = [
-  { value: 'LOW', label: 'Low', color: 'bg-slate-500', emoji: '🐢' },
-  { value: 'NORMAL', label: 'Normal', color: 'bg-blue-500', emoji: '📌' },
-  { value: 'HIGH', label: 'High', color: 'bg-amber-500', emoji: '⚡' },
-  { value: 'URGENT', label: 'Urgent', color: 'bg-red-500', emoji: '🔥' },
-  { value: 'EMERGENCY', label: 'Emergency', color: 'bg-red-600', emoji: '🚨' },
-];
-
-const LOCATIONS = [
-  { value: 'CUSTOMER_HOME', label: '🏠 Home', emoji: '🏠' },
-  { value: 'CUSTOMER_OFFICE', label: '🏢 Office', emoji: '🏢' },
-  { value: 'CUSTOMER_SHOP', label: '🏪 Shop', emoji: '🏪' },
-  { value: 'IN_SHOP', label: '🔧 In Our Shop', emoji: '🔧' },
-  { value: 'ONLINE_REMOTE', label: '💻 Remote', emoji: '💻' },
-  { value: 'FIELD_SITE', label: '🚧 Field Site', emoji: '🚧' },
-];
+interface Draft {
+  customerId: string; name: string; phone: string; altPhone: string;
+  serviceId: string; serviceName: string; category: string; problem: string; priority: Priority;
+  brand: string; model: string; serial: string; underWarranty: boolean;
+  location: LocationType; address: string; area: string; city: string; landmark: string;
+  start: string; end: string; technicianId: string;
+  visit: string; labour: string; transport: string; emergency: string; discount: string;
+  warrantyDays: string; warrantyTerms: string; advance: string; method: PaymentMethod; techNotes: string; notes: string;
+}
+const EMPTY: Draft = {
+  customerId: '', name: '', phone: '', altPhone: '', serviceId: '', serviceName: '', category: 'REPAIR', problem: '', priority: 'NORMAL',
+  brand: '', model: '', serial: '', underWarranty: false, location: 'IN_SHOP', address: '', area: '', city: '', landmark: '',
+  start: '', end: '', technicianId: '', visit: '', labour: '', transport: '', emergency: '', discount: '',
+  warrantyDays: '', warrantyTerms: '', advance: '', method: 'CASH', techNotes: '', notes: '',
+};
+const n = (v: string) => Number(v) || 0;
+const str = (v?: number | null) => (v ? String(v) : '');
+const fromJob = (j: JobDetail): Draft => ({
+  customerId: j.customerId ?? '', name: j.customerName ?? '', phone: j.customerPhone ?? '', altPhone: j.customerAltPhone ?? '',
+  serviceId: j.serviceId ?? '', serviceName: j.serviceName, category: j.category, problem: j.problemDescription === j.serviceName ? '' : j.problemDescription, priority: j.priority,
+  brand: j.brand ?? '', model: j.modelNumber ?? '', serial: j.serialNumber ?? '', underWarranty: j.underWarranty,
+  location: j.locationType, address: j.serviceAddress ?? '', area: j.area ?? '', city: j.city ?? '', landmark: j.landmark ?? '',
+  start: j.scheduledStart ? localInput(new Date(j.scheduledStart)) : '', end: j.scheduledEnd ? localInput(new Date(j.scheduledEnd)) : '', technicianId: j.primaryTechnicianId ?? '',
+  visit: str(j.visitCharge), labour: str(j.labourCharge), transport: str(j.transportCharge), emergency: str(j.emergencyCharge), discount: str(j.discountAmount),
+  warrantyDays: str(j.jobWarrantyDays), warrantyTerms: j.jobWarrantyTerms ?? '', advance: '', method: 'CASH', techNotes: j.technicianNotes ?? '', notes: j.internalNotes ?? '',
+});
 
 export default function NewJobPage() {
+  const { id } = useParams();
+  const editing = !!id;
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const shopId = useShopParam();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const canTakeMoney = usePermission(PERMISSIONS.POS_USE);
+  const guide = usePageGuide();
+  useReceiptSetup();
+  const [params] = useSearchParams();
+  const [f, setF] = useState<Draft>(EMPTY);
+  const [touched, setTouched] = useState(false);
+  const [print, setPrint] = useState(!editing);
+  const [phoneQuery, setPhoneQuery] = useState('');
+  const lock = useRef(false);
+  const set = (patch: Partial<Draft>) => setF((x) => ({ ...x, ...patch }));
 
-  const [form, setForm] = useState<any>({
-    customerId: '',
-    customerName: '',
-    customerPhone: '',
-    customerAltPhone: '',
-    customerEmail: '',
-    serviceId: '',
-    serviceName: '',
-    priority: 'NORMAL',
-    problemDescription: '',
-    customerReportedIssue: '',
-    urgencyReason: '',
-    brand: '',
-    modelNumber: '',
-    serialNumber: '',
-    yearPurchased: '',
-    underWarranty: false,
-    warrantyExpiryDate: '',
-    locationType: 'CUSTOMER_HOME',
-    serviceAddress: '',
-    city: '',
-    area: '',
-    landmark: '',
-    entryInstructions: '',
-    scheduledStart: '',
-    scheduledEnd: '',
-    preferredTimeSlot: '',
-    primaryTechnicianId: '',
-    visitCharge: 0,
-    labourCharge: 0,
-    transportCharge: 0,
-    emergencyCharge: 0,
-    discountAmount: 0,
-    taxAmount: 0,
-    advanceRequired: false,
-    advancePct: 0,
-    jobWarrantyDays: 30,
-    jobWarrantyTerms: '',
-    beforePhotoUrls: [] as string[],
-    technicianNotes: '',
-    internalNotes: '',
-  });
+  const jobQ = useQuery({ queryKey: [JOB_KEY, 'one', id], queryFn: () => jobsApi.getOne(id!), enabled: editing });
+  useEffect(() => { if (jobQ.data) setF(fromJob(jobQ.data)); }, [jobQ.data]);
+  const svcQ = useQuery({ queryKey: [CATALOG_KEY, 'active'], queryFn: () => catalogApi.list({ active: true }), staleTime: 5 * 60_000 });
+  const techQ = useQuery({ queryKey: [TECH_KEY], queryFn: () => techniciansApi.list(), staleTime: 5 * 60_000 });
 
-  const [parts, setParts] = useState<any[]>([]);
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
-  const [showServicePicker, setShowServicePicker] = useState(false);
+  // A service preset from the rate list (?service=).
+  useEffect(() => {
+    const sid = params.get('service');
+    const svc = sid ? svcQ.data?.find((s) => s.id === sid) : undefined;
+    if (svc && !editing && !f.serviceId) pickService(svc.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [svcQ.data]);
 
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-service-job', customerSearch],
-    queryFn: () => customersApi.list({ limit: 50, search: customerSearch || undefined }),
-    enabled: showCustomerPicker,
-  });
+  useEffect(() => { const t = setTimeout(() => setPhoneQuery(f.customerId ? '' : digits(f.phone)), 300); return () => clearTimeout(t); }, [f.phone, f.customerId]);
+  const lookQ = useQuery({ queryKey: ['customers', 'lookup', phoneQuery], queryFn: () => customersApi.list({ search: phoneQuery, limit: 5, scope: 'all' }), enabled: phoneQuery.length >= 7, staleTime: 30_000 });
+  const match = lookQ.data?.items?.find((c) => digits(c.phone ?? '').endsWith(phoneQuery.slice(-10)));
 
-  const { data: services = [] } = useQuery({
-    queryKey: ['catalog-for-job'],
-    queryFn: () => catalogApi.list({ active: true }),
-    enabled: showServicePicker,
-  });
-
-  const { data: technicians = [] } = useQuery({
-    queryKey: ['technicians-for-job'],
-    queryFn: () => techniciansApi.list({}),
-  });
-
-  const partsCharge = parts.filter((p) => !p.isUnderWarranty).reduce((s, p) => s + (p.quantity * p.unitPrice), 0);
-  const subtotal = Number(form.visitCharge) + Number(form.labourCharge) + partsCharge + Number(form.transportCharge) + Number(form.emergencyCharge);
-  const total = Math.max(subtotal + Number(form.taxAmount) - Number(form.discountAmount), 0);
-
-  const createMutation = useMutation({
-    mutationFn: () => jobsApi.create({
-      ...form,
-      visitCharge: Number(form.visitCharge) || 0,
-      labourCharge: Number(form.labourCharge) || 0,
-      transportCharge: Number(form.transportCharge) || 0,
-      emergencyCharge: Number(form.emergencyCharge) || 0,
-      discountAmount: Number(form.discountAmount) || 0,
-      taxAmount: Number(form.taxAmount) || 0,
-      yearPurchased: form.yearPurchased ? Number(form.yearPurchased) : undefined,
-      advancePct: Number(form.advancePct) || 0,
-      jobWarrantyDays: Number(form.jobWarrantyDays) || 0,
-      parts: parts.map((p) => ({
-        productId: p.productId,
-        partName: p.partName,
-        partNumber: p.partNumber,
-        brand: p.brand,
-        quantity: Number(p.quantity) || 1,
-        unitPrice: Number(p.unitPrice) || 0,
-        costPrice: Number(p.costPrice) || 0,
-        isCustomerSupplied: p.isCustomerSupplied ?? false,
-        isUnderWarranty: p.isUnderWarranty ?? false,
-        warrantyDays: Number(p.warrantyDays) || 0,
-        serialNumber: p.serialNumber,
-        notes: p.notes,
-      })),
-    }),
-    onSuccess: (job) => {
-      toast.success('Job ' + job.jobNumber + ' created!');
-      navigate('/services-biz/jobs/' + job.id);
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const selectService = (svc: any) => {
-    setForm({
-      ...form,
-      serviceId: svc.id,
-      serviceName: svc.name,
-      businessType: svc.businessType,
-      category: svc.category,
-      visitCharge: svc.visitCharge || 0,
-      labourCharge: svc.baseCharge || 0,
-      jobWarrantyDays: svc.warrantyDays || 0,
+  function pickService(sid: string) {
+    const s = svcQ.data?.find((x) => x.id === sid);
+    if (!s) { set({ serviceId: '' }); return; }
+    set({
+      serviceId: s.id, serviceName: s.name, category: s.category,
+      visit: str(s.visitCharge), labour: str(s.baseCharge || s.hourlyRate), emergency: f.priority === 'EMERGENCY' ? str(s.emergencyCharge) : f.emergency,
+      warrantyDays: str(s.warrantyDays), warrantyTerms: s.warrantyTerms ?? f.warrantyTerms,
+      ...(s.isEmergency && { priority: 'URGENT' as Priority }),
     });
-    setShowServicePicker(false);
+  }
+
+  const partsCharge = jobQ.data?.partsCharge ?? 0;
+  const gross = n(f.visit) + n(f.labour) + n(f.transport) + n(f.emergency) + partsCharge;
+  const total = Math.max(gross - n(f.discount), 0);
+  const svc = svcQ.data?.find((s) => s.id === f.serviceId);
+  const onSite = isOnSite(f.location);
+
+  const problems = useMemo(() => {
+    const out: Record<string, string> = {};
+    if (!f.customerId && !f.name.trim() && !f.phone.trim()) out.name = 'Customer ka naam ya phone likhein';
+    if (f.phone && digits(f.phone).length < 10) out.phone = 'Phone number poora likhein (03xx…)';
+    if (!f.serviceId && !f.serviceName.trim()) out.service = 'Service chunein ya kaam ka naam likhein';
+    if (onSite && !f.address.trim() && !f.area.trim()) out.address = 'Ghar / site ka pata likhein';
+    if (!editing && f.start && new Date(f.start).getTime() < Date.now() - 30 * 60_000) out.start = 'Ye waqt guzar chuka hai';
+    if (f.start && f.end && new Date(f.end) < new Date(f.start)) out.end = 'Khatam ka waqt shuru se pehle nahi ho sakta';
+    if (n(f.discount) > gross + 0.001) out.discount = `Discount ${formatPKR(gross)} se zyada nahi ho sakta`;
+    if (svc?.maxCharge && n(f.labour) > svc.maxCharge) out.labour = `Rate list me zyada se zyada ${formatPKR(svc.maxCharge)} hai`;
+    if (n(f.advance) > 0 && total > 0 && n(f.advance) > total) out.advance = `Advance andaze (${formatPKR(total)}) se zyada hai`;
+    if (n(f.advance) > 0 && !f.name.trim() && !f.customerId) out.advance = 'Advance ke liye customer ka naam likhein';
+    return out;
+  }, [f, gross, total, onSite, editing, svc]);
+  const err = (k: string) => (touched ? problems[k] : undefined);
+
+  const save = useMutation({
+    mutationFn: () => {
+      const opt = (v: string) => v.trim() || undefined;
+      const details = {
+        customerId: f.customerId || match?.id || undefined, customerName: opt(f.name), customerPhone: opt(f.phone), customerAltPhone: opt(f.altPhone),
+        serviceId: f.serviceId || undefined, serviceName: opt(f.serviceName), category: f.category, priority: f.priority, problemDescription: opt(f.problem),
+        brand: opt(f.brand), modelNumber: opt(f.model), serialNumber: opt(f.serial), underWarranty: f.underWarranty,
+        locationType: f.location, serviceAddress: onSite ? opt(f.address) : undefined, area: onSite ? opt(f.area) : undefined, city: onSite ? opt(f.city) : undefined, landmark: onSite ? opt(f.landmark) : undefined,
+        scheduledStart: f.start ? new Date(f.start).toISOString() : undefined, scheduledEnd: f.end ? new Date(f.end).toISOString() : undefined,
+        visitCharge: n(f.visit), labourCharge: n(f.labour), transportCharge: n(f.transport), emergencyCharge: n(f.emergency), discountAmount: n(f.discount),
+        jobWarrantyDays: n(f.warrantyDays), jobWarrantyTerms: opt(f.warrantyTerms), technicianNotes: opt(f.techNotes), internalNotes: opt(f.notes),
+      };
+      if (editing) return jobsApi.update(id!, details);
+      const body: JobCreateInput = {
+        ...details, shopId: shopId || undefined, primaryTechnicianId: f.technicianId || undefined, amcId: params.get('amc') || undefined,
+        ...(n(f.advance) > 0 && { advancePaid: n(f.advance), advanceMethod: f.method }),
+      };
+      return jobsApi.create(body);
+    },
+    onSuccess: (job) => {
+      [JOB_KEY, ...(n(f.advance) > 0 ? MONEY_KEYS : [])].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      toast.success(editing ? `${job.jobNumber} save ho gaya` : `${job.jobNumber} ban gaya`);
+      if (print) printJobCard(job, shopName);
+      navigate(`/services-biz/jobs/${job.id}`, { replace: true });
+    },
+    onError: (e) => toast.error(apiError(e, editing ? 'Save nahi hua' : 'Job nahi bana')),
+    onSettled: () => { lock.current = false; },
+  });
+
+  const submit = () => {
+    setTouched(true);
+    const first = Object.values(problems)[0];
+    if (first) { toast.error(first); return; }
+    if (lock.current) return;
+    lock.current = true;
+    save.mutate();
   };
 
-  const addPart = () => setParts([...parts, {
-    partName: '', quantity: 1, unitPrice: 0, isUnderWarranty: false, warrantyDays: 0,
-  }]);
-  const removePart = (i: number) => setParts(parts.filter((_, idx) => idx !== i));
-  const updatePart = (i: number, patch: any) => setParts(parts.map((p, idx) => idx === i ? { ...p, ...patch } : p));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.key === 's')) { e.preventDefault(); submit(); }
+      if (e.key === 'Escape' && !isDialogOpen()) navigate(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
-  const canSubmit = form.serviceName && form.problemDescription && (form.customerName || form.customerId);
+  if (editing && jobQ.isLoading) return <PageShell><Skeleton className="h-32 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
+
+  const popular = (svcQ.data ?? []).filter((s) => s.isPopular || s.isFeatured).slice(0, 8);
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/services-biz/jobs')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                New Service Job
-              </div>
-              <h1 className="mt-1 text-2xl font-extrabold">🛠️ Create Job</h1>
+    <PageShell>
+      <PageHero
+        title={editing ? `Job badlein — ${jobQ.data?.jobNumber ?? ''}` : 'Naya job card'}
+        chip={<><ClipboardList /> {editing ? 'Badlein' : 'Kaam lein'}</>}
+        meta={editing ? 'Bill banne tak sab kuch badal sakta hai' : 'Customer, kaam, kahan aur kab — parts kaam ke dauran job par jorein'}
+        actions={<>
+          <button type="button" onClick={() => navigate(-1)} title="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}><ClipboardList className="h-4 w-4" />{save.isPending ? 'Save ho raha…' : editing ? 'Save' : 'Job banayein'}</button>
+        </>}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>} description="Phone likhte hi purana customer mil jata hai — udhaar aur advance usi ke khata me">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value, customerId: '' })} placeholder="03001234567" autoFocus={!editing} error={err('phone')}
+                hint={match ? `Purana customer: ${match.name}${Number(match.balance) > 0 ? ` · ${formatPKR(Number(match.balance))} udhaar` : ''}` : 'WhatsApp par khabar isi par jayegi'} />
+              <Input label="Naam" value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder={match?.name ?? 'Bilal Ahmad'} error={err('name')} />
+              <Input label="Doosra phone" inputMode="tel" value={f.altPhone} onChange={(e) => set({ altPhone: e.target.value })} hint="Marzi hai" />
             </div>
-          </div>
-          <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} disabled={!canSubmit} className="bg-white text-slate-900 hover:bg-slate-100">
-            <Save className="h-4 w-4" />
-            Create Job
-          </Button>
-        </div>
-      </section>
+          </Card>
 
-      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
-        <div className="space-y-6">
-          {/* Customer */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600" />
-              Customer
-            </h3>
-
-            {form.customerId ? (
-              <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 p-3 flex items-center gap-3">
-                <User className="h-5 w-5 text-blue-600" />
-                <div className="flex-1">
-                  <div className="font-extrabold">{form.customerName}</div>
-                  {form.customerPhone && <div className="text-xs text-slate-600 font-bold">{form.customerPhone}</div>}
-                </div>
-                <button onClick={() => setForm({ ...form, customerId: '', customerName: '', customerPhone: '', customerEmail: '' })} className="text-xs font-extrabold text-blue-600 hover:underline">Change</button>
+          <Card className="rounded-2xl" title={<T icon={Wrench}>Kaam</T>}>
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select label="Rate list se service" value={f.serviceId} onChange={(e) => pickService(e.target.value)} placeholder="Chunein ya neeche likhein"
+                  options={(svcQ.data ?? []).map((s) => ({ value: s.id, label: s.name }))} hint={svc ? `${categoryOf(svc.category)} · ${svc.estimatedDurationMin} min` : svcQ.data && !svcQ.data.length ? 'Service Catalog me rate list banayein' : undefined} />
+                <Input label="Kaam ka naam" value={f.serviceName} onChange={(e) => set({ serviceName: e.target.value })} placeholder="AC gas refill" error={err('service')} />
               </div>
-            ) : (
-              <>
-                <button onClick={() => setShowCustomerPicker(!showCustomerPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-sm font-extrabold text-slate-600 hover:border-blue-400">
-                  <Search className="h-4 w-4 inline mr-1" />
-                  Search Existing Customer
-                </button>
-                {showCustomerPicker && (
-                  <div className="rounded-xl border-2 border-blue-300 bg-blue-50/50 p-3 space-y-2">
-                    <input autoFocus value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Search..." className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                    <div className="max-h-52 overflow-y-auto space-y-1">
-                      {(customersData?.items ?? []).map((c) => (
-                        <button key={c.id} onClick={() => { setForm({ ...form, customerId: c.id, customerName: c.name, customerPhone: c.phone || '', customerEmail: (c as any).email || '' }); setShowCustomerPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
-                          <User className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                          <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.customerAltPhone} onChange={(e) => setForm({ ...form, customerAltPhone: e.target.value })} placeholder="Alternate phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              {popular.length > 0 && !f.serviceId && (
+                <div className="flex flex-wrap gap-1">
+                  {popular.map((s) => <button key={s.id} type="button" onClick={() => pickService(s.id)} className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] font-medium text-slate-700 hover:bg-slate-200">{s.name}</button>)}
                 </div>
-              </>
-            )}
-          </section>
-
-          {/* Service */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Wrench className="h-4 w-4 text-cyan-600" />
-              Service Details
-            </h3>
-
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Service *</label>
-              <div className="flex gap-2">
-                <input value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} placeholder="Service name" className="h-11 flex-1 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-                <Button variant="secondary" onClick={() => setShowServicePicker(true)}>
-                  <Search className="h-4 w-4" />
-                  Pick
-                </Button>
+              )}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select label="Kis tarah ka kaam" value={f.category} onChange={(e) => set({ category: e.target.value })} options={CATEGORIES.map((c) => ({ value: c, label: categoryOf(c) }))} />
+                <Select label="Jaldi" value={f.priority} onChange={(e) => set({ priority: e.target.value as Priority })} options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} />
               </div>
+              <Textarea label="Kharabi / kya karna hai" rows={3} value={f.problem} onChange={(e) => set({ problem: e.target.value })} placeholder="Customer ne kya bataya — thanda nahi karta, pani tapakta hai…" />
             </div>
+          </Card>
 
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Priority *</label>
-              <div className="grid grid-cols-5 gap-2">
-                {PRIORITIES.map((p) => (
-                  <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
-                    'p-2 rounded-xl border-2 text-center transition ' +
-                    (form.priority === p.value ? p.color + ' border-transparent text-white shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-blue-300')
-                  }>
-                    <div className="text-xl">{p.emoji}</div>
-                    <div className="text-[0.625rem] font-extrabold mt-0.5">{p.label}</div>
-                  </button>
+          <Card className="rounded-2xl" title={<T icon={Box}>Cheez</T>} description="Kis cheez par kaam hai — warranty aur agli dafa pehchan ke liye">
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Input label="Brand" value={f.brand} onChange={(e) => set({ brand: e.target.value })} placeholder="Haier, Dawlance…" />
+                <Input label="Model" value={f.model} onChange={(e) => set({ model: e.target.value })} placeholder="1.5 ton inverter" />
+                <Input label="Serial number" value={f.serial} onChange={(e) => set({ serial: e.target.value })} hint="Marzi hai" />
+              </div>
+              <Switch checked={f.underWarranty} onChange={(e) => set({ underWarranty: e.target.checked })} label="Company warranty me hai" description="Sirf yaad ke liye — bill par asar nahi" />
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={MapPin}>Kahan</T>}>
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                {LOCATIONS.map((l) => (
+                  <button key={l} type="button" onClick={() => set({ location: l })} aria-pressed={f.location === l}
+                    className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium ring-1', f.location === l ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{locationOf(l)}</button>
                 ))}
               </div>
-            </div>
-
-            <textarea rows={3} value={form.problemDescription} onChange={(e) => setForm({ ...form, problemDescription: e.target.value })} placeholder="Problem description * (what's the issue?)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
-
-            {['URGENT', 'EMERGENCY'].includes(form.priority) && (
-              <input value={form.urgencyReason} onChange={(e) => setForm({ ...form, urgencyReason: e.target.value })} placeholder="Why is this urgent?" className="h-11 w-full rounded-xl border-2 border-red-300 bg-red-50 dark:bg-red-950/30 px-3 text-sm font-bold focus:outline-none focus:border-red-500" />
-            )}
-
-            <div className="grid sm:grid-cols-4 gap-2">
-              <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-              <input value={form.modelNumber} onChange={(e) => setForm({ ...form, modelNumber: e.target.value })} placeholder="Model" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-              <input value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} placeholder="Serial #" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-              <input type="number" value={form.yearPurchased} onChange={(e) => setForm({ ...form, yearPurchased: e.target.value })} placeholder="Year" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
-            </div>
-
-            <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 cursor-pointer">
-              <input type="checkbox" checked={form.underWarranty} onChange={(e) => setForm({ ...form, underWarranty: e.target.checked })} className="h-5 w-5 rounded" />
-              <div className="flex-1">
-                <div className="text-sm font-extrabold text-emerald-900">🛡️ Item under warranty?</div>
-                <div className="text-xs text-emerald-700 font-semibold">Manufacturer/dealer warranty active</div>
-              </div>
-            </label>
-            {form.underWarranty && (
-              <input type="date" value={form.warrantyExpiryDate} onChange={(e) => setForm({ ...form, warrantyExpiryDate: e.target.value })} placeholder="Warranty expires" className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            )}
-          </section>
-
-          {/* Location */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-rose-600" />
-              Service Location
-            </h3>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {LOCATIONS.map((l) => (
-                <button key={l.value} onClick={() => setForm({ ...form, locationType: l.value })} className={
-                  'p-3 rounded-xl border-2 text-center transition ' +
-                  (form.locationType === l.value ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-rose-300')
-                }>
-                  <div className="text-2xl mb-1">{l.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold">{l.label.replace(/^[\S]+ /, '')}</div>
-                </button>
-              ))}
-            </div>
-
-            <textarea rows={2} value={form.serviceAddress} onChange={(e) => setForm({ ...form, serviceAddress: e.target.value })} placeholder="Service address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
-
-            <div className="grid sm:grid-cols-3 gap-3">
-              <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              <input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} placeholder="Area / Sector" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              <input value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} placeholder="Landmark" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-            </div>
-
-            <textarea rows={2} value={form.entryInstructions} onChange={(e) => setForm({ ...form, entryInstructions: e.target.value })} placeholder="Entry instructions (gate code, floor, security, pets...)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
-          </section>
-
-          {/* Schedule + Technician */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-violet-600" />
-              Schedule & Assignment
-            </h3>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Scheduled Start</label>
-                <input type="datetime-local" value={form.scheduledStart} onChange={(e) => setForm({ ...form, scheduledStart: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Scheduled End</label>
-                <input type="datetime-local" value={form.scheduledEnd} onChange={(e) => setForm({ ...form, scheduledEnd: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Preferred Time Slot</label>
-                <input value={form.preferredTimeSlot} onChange={(e) => setForm({ ...form, preferredTimeSlot: e.target.value })} placeholder="e.g. Morning 9-12" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Assign Technician</label>
-                <select value={form.primaryTechnicianId} onChange={(e) => setForm({ ...form, primaryTechnicianId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-                  <option value="">-- Assign later --</option>
-                  {technicians.map((t) => {
-                    const nm = t.staff ? (((t.staff.fullName || t.staff.firstName) || '') + ' ' + (t.staff.lastName || '')).trim() : '';
-                    return <option key={t.id} value={t.staffId}>{nm} ({t.level}) - {t.status}</option>;
-                  })}
-                </select>
-              </div>
-            </div>
-          </section>
-
-          {/* Parts */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Package className="h-4 w-4 text-orange-600" />
-                Parts / Materials ({parts.length})
-              </h3>
-              <Button size="sm" onClick={addPart} className="bg-gradient-to-r from-orange-500 to-red-600">
-                <Plus className="h-3.5 w-3.5" />
-                Add Part
-              </Button>
-            </div>
-            {parts.length === 0 ? (
-              <div className="rounded-xl border-2 border-dashed border-slate-300 p-8 text-center">
-                <Package className="h-10 w-10 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm font-extrabold text-slate-700">No parts added</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {parts.map((p, i) => (
-                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Part #{i + 1}</span>
-                      <button onClick={() => removePart(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <div className="grid sm:grid-cols-3 gap-2">
-                      <input value={p.partName} onChange={(e) => updatePart(i, { partName: e.target.value })} placeholder="Part name *" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500" />
-                      <input value={p.partNumber || ''} onChange={(e) => updatePart(i, { partNumber: e.target.value })} placeholder="Part number" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-                      <input value={p.brand || ''} onChange={(e) => updatePart(i, { brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500" />
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      <div>
-                        <label className="text-[0.625rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Qty</label>
-                        <input type="number" min="1" step="0.1" value={p.quantity} onChange={(e) => updatePart(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-                      </div>
-                      <div>
-                        <label className="text-[0.625rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Unit Price</label>
-                        <input type="number" step="0.01" value={p.unitPrice} onChange={(e) => updatePart(i, { unitPrice: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
-                      </div>
-                      <div>
-                        <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Total</label>
-                        <div className="h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-sm font-extrabold text-emerald-800 tabular-nums">
-                          {formatPKR(p.quantity * p.unitPrice)}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Warranty (d)</label>
-                        <input type="number" value={p.warrantyDays} onChange={(e) => updatePart(i, { warrantyDays: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums text-center focus:outline-none focus:border-orange-500" />
-                      </div>
-                    </div>
-                    <div className="flex gap-2 text-xs">
-                      <label className="inline-flex items-center gap-1 font-bold cursor-pointer">
-                        <input type="checkbox" checked={p.isCustomerSupplied ?? false} onChange={(e) => updatePart(i, { isCustomerSupplied: e.target.checked })} className="h-3 w-3 rounded" />
-                        Customer supplied
-                      </label>
-                      <label className="inline-flex items-center gap-1 font-bold cursor-pointer">
-                        <input type="checkbox" checked={p.isUnderWarranty ?? false} onChange={(e) => updatePart(i, { isUnderWarranty: e.target.checked })} className="h-3 w-3 rounded" />
-                        Under warranty (free)
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Notes */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Technician Notes</label>
-                <textarea rows={2} value={form.technicianNotes} onChange={(e) => setForm({ ...form, technicianNotes: e.target.value })} placeholder="Notes for technician..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Internal Notes</label>
-                <textarea rows={2} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} placeholder="Internal only..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Job Warranty Days</label>
-                <input type="number" value={form.jobWarrantyDays} onChange={(e) => setForm({ ...form, jobWarrantyDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Warranty Terms</label>
-                <input value={form.jobWarrantyTerms} onChange={(e) => setForm({ ...form, jobWarrantyTerms: e.target.value })} placeholder="e.g. Parts + Labour" className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* Sticky sidebar */}
-        <aside className="space-y-4">
-          <div className="sticky top-4 space-y-4">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Charges</div>
-
-              <div className="space-y-2">
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Visit Charge</label>
-                  <input type="number" value={form.visitCharge} onChange={(e) => setForm({ ...form, visitCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Labour Charge</label>
-                  <input type="number" value={form.labourCharge} onChange={(e) => setForm({ ...form, labourCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Transport</label>
-                  <input type="number" value={form.transportCharge} onChange={(e) => setForm({ ...form, transportCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-                {['URGENT', 'EMERGENCY'].includes(form.priority) && (
-                  <div>
-                    <label className="text-[0.6875rem] uppercase font-extrabold text-red-300 mb-0.5 block">Emergency Charge</label>
-                    <input type="number" value={form.emergencyCharge} onChange={(e) => setForm({ ...form, emergencyCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-red-500/20 border border-red-400/40 px-2 text-sm font-extrabold tabular-nums text-white focus:outline-none focus:border-red-300" />
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-white/20 space-y-1.5 text-sm">
-                <div className="flex justify-between"><span className="text-white/70">Parts</span><span className="font-bold tabular-nums">{formatPKR(partsCharge)}</span></div>
-                <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(subtotal)}</span></div>
-              </div>
-
-              <div className="mt-3 space-y-2">
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
-                  <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
-                  <input type="number" value={form.discountAmount} onChange={(e) => setForm({ ...form, discountAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-white/20 flex justify-between items-center">
-                <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
-                <span className="text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
-              </div>
-
-              {/* Advance */}
-              <label className="mt-3 flex items-center gap-2 p-2 rounded-lg bg-white/10 cursor-pointer">
-                <input type="checkbox" checked={form.advanceRequired} onChange={(e) => setForm({ ...form, advanceRequired: e.target.checked })} className="h-4 w-4 rounded" />
-                <span className="text-xs font-extrabold">Advance required</span>
-              </label>
-              {form.advanceRequired && (
-                <div className="mt-1">
-                  <input type="number" value={form.advancePct} onChange={(e) => setForm({ ...form, advancePct: e.target.value })} placeholder="Advance %" className="h-9 w-full rounded-lg bg-amber-500/20 border border-amber-400/40 px-2 text-sm font-extrabold tabular-nums text-white focus:outline-none focus:border-amber-300" />
-                  <div className="text-[0.6875rem] text-amber-300 font-extrabold mt-1 text-center">
-                    Advance: {formatPKR((total * Number(form.advancePct)) / 100)}
-                  </div>
+              {onSite && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input label="Pata" value={f.address} onChange={(e) => set({ address: e.target.value })} placeholder="Ghar 12, Street 4" error={err('address')} wrapperClassName="sm:col-span-2" />
+                  <Input label="Area" value={f.area} onChange={(e) => set({ area: e.target.value })} placeholder="DHA Phase 5" />
+                  <Input label="Shehar" value={f.city} onChange={(e) => set({ city: e.target.value })} placeholder="Lahore" />
+                  <Input label="Nishani" value={f.landmark} onChange={(e) => set({ landmark: e.target.value })} placeholder="Masjid ke saath" hint="Technician ko dhoondne me aasani" wrapperClassName="sm:col-span-2" />
                 </div>
               )}
             </div>
+          </Card>
+        </div>
 
-            <Button
-              onClick={() => createMutation.mutate()}
-              loading={createMutation.isPending}
-              disabled={!canSubmit}
-              size="lg"
-              className="w-full bg-gradient-to-r from-blue-600 to-cyan-700"
-            >
-              <Save className="h-5 w-5" />
-              Create Job
-            </Button>
-          </div>
-        </aside>
-      </div>
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={CalendarClock}>Kab aur kaun</T>}>
+            <div className="space-y-3">
+              <div>
+                <Input label={onSite ? 'Visit ka waqt' : 'Kab tayyar karna hai'} type="datetime-local" value={f.start} onChange={(e) => set({ start: e.target.value })} error={err('start')}
+                  hint="Is waqt ke baad job “Late” me aati hai" />
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {([['Aaj shaam', atHour(0, 17)], ['Kal subah', atHour(1, 10)], ['Kal shaam', atHour(1, 17)], ['Parson', atHour(2, 12)]] as Array<[string, Date]>).map(([label, d]) => (
+                    <button key={label} type="button" onClick={() => set({ start: localInput(d) })} className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] font-medium text-slate-700 hover:bg-slate-200">{label}</button>
+                  ))}
+                </div>
+              </div>
+              <Input label="Kaam khatam hone ka waqt" type="datetime-local" value={f.end} onChange={(e) => set({ end: e.target.value })} error={err('end')} hint="Marzi hai" />
+              {!editing && (
+                <Select label="Technician" value={f.technicianId} onChange={(e) => set({ technicianId: e.target.value })} placeholder="Baad me"
+                  options={(techQ.data ?? []).map((t) => ({ value: t.staffId, label: `${t.staff?.fullName ?? 'Technician'}${t.openJobs ? ` (${t.openJobs} haath me)` : ''}` }))}
+                  hint={techQ.data && !techQ.data.length ? 'Technicians page par staff ko technician banayein' : 'Job par baad me bhi laga sakte hain'} />
+              )}
+            </div>
+          </Card>
 
-      {/* Service picker modal */}
-      {showServicePicker && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="px-5 py-3 border-b bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
-              <h3 className="font-extrabold">Pick a Service</h3>
-              <button onClick={() => setShowServicePicker(false)} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
+          <Card className="rounded-2xl" title={<T icon={Receipt}>Andaza</T>} description="Rate list se khud bharta hai — kaam ke baad badal sakte hain">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Money label="Visit charge" value={f.visit} onChange={(v) => set({ visit: v })} />
+                <Money label="Kaam (labour)" value={f.labour} onChange={(v) => set({ labour: v })} error={err('labour')} />
+                <Money label="Transport" value={f.transport} onChange={(v) => set({ transport: v })} />
+                <Money label="Emergency charge" value={f.emergency} onChange={(v) => set({ emergency: v })} />
+                <Money label="Discount" value={f.discount} onChange={(v) => set({ discount: v })} error={err('discount')} />
+              </div>
+              {partsCharge > 0 && <p className="text-[0.8125rem] text-slate-600">Parts (job par jore hue): {formatPKR(partsCharge)}</p>}
+              <p className="flex justify-between border-t border-slate-100 pt-2 text-base font-bold text-slate-900"><span>Kul andaza</span><span className="tabular-nums">{formatPKR(total)}</span></p>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 grid sm:grid-cols-2 gap-2">
-              {services.map((svc) => (
-                <button key={svc.id} onClick={() => selectService(svc)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-cyan-500 hover:shadow-lg text-left">
-                  <div className="font-extrabold text-sm truncate">{svc.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{svc.category.replace('_', ' ')}</div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(svc.baseCharge)}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500">{svc.estimatedDurationMin}min</div>
-                  </div>
-                </button>
-              ))}
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={ShieldCheck}>Kaam ki warranty</T>}>
+            <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
+              <Input label="Din" inputMode="numeric" value={f.warrantyDays} onChange={(e) => set({ warrantyDays: digits(e.target.value).slice(0, 4) })} placeholder="30" hint="Bill ke din se" />
+              <Input label="Shartein" value={f.warrantyTerms} onChange={(e) => set({ warrantyTerms: e.target.value })} placeholder="Sirf kaam ki warranty, parts company ki" />
             </div>
+          </Card>
+
+          {!editing && canTakeMoney && (
+            <Card className="rounded-2xl" title={<T icon={Wallet}>Advance</T>} description="Abhi mila paisa customer ke khata me jama hota hai aur bill me katta hai">
+              <div className="space-y-3">
+                <Money label="Advance (Rs)" value={f.advance} onChange={(v) => set({ advance: v })} error={err('advance')} hint={n(f.advance) ? formatPKR(n(f.advance)) : 'Khali chhorein agar kuch nahi mila'} />
+                {n(f.advance) > 0 && <PaymentMethodPicker value={f.method} onChange={(method) => set({ method })} />}
+              </div>
+            </Card>
+          )}
+
+          <Card className="rounded-2xl">
+            <div className="space-y-3">
+              <Textarea label="Technician ke liye note" rows={2} value={f.techNotes} onChange={(e) => set({ techNotes: e.target.value })} placeholder="Seerhi saath le jayein" hint="Parchi par nahi chhapta" />
+              <Textarea label="Andar ka note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Sirf staff ke liye" />
+              <Switch checked={print} onChange={(e) => setPrint(e.target.checked)} label="Save ke baad parchi print karein" />
+            </div>
+          </Card>
+
+          <div className="flex items-center justify-between gap-3">
+            <span className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Esc</Kbd> wapas</span>
+            <Button onClick={submit} loading={save.isPending} leftIcon={<ClipboardList className="h-4 w-4" />}>{editing ? 'Save' : 'Job banayein'}</Button>
           </div>
         </div>
+      </div>
+
+      {guide.isOpen && (
+        <PageGuide title={editing ? 'Job badlein' : 'Naya job — aasaan tareeqa'} onClose={guide.close}
+          steps={[
+            { icon: UserRound, color: '#2563eb', title: 'Customer', text: 'Phone likhein — purana customer khud mil jata hai. Naya ho to naam bhi likhein; udhaar ya advance par khata khud ban jata hai.' },
+            { icon: Wrench, color: '#7c3aed', title: 'Kaam', text: 'Rate list se service chunein — charges aur warranty khud bhar jate hain. List me na ho to kaam ka naam khud likhein.' },
+            { icon: MapPin, color: '#0891b2', title: 'Kahan', text: '"Dukaan par" (saman aaya) ya "Customer ke ghar" (technician jayega). Ghar ka pata aur nishani likhein.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance customer ke khata me jama hota hai aur bill banate waqt khud kat jata hai.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]}
+        />
       )}
-    </div>
+    </PageShell>
   );
+}
+
+function T({ icon: Icon, children }: { icon: typeof Wrench; children: string }) {
+  return <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
+}
+
+function Money({ label, value, onChange, error, hint }: { label: string; value: string; onChange: (v: string) => void; error?: string; hint?: ReactNode }) {
+  return <Input label={label} inputMode="decimal" value={value} onChange={(e) => onChange(money(e.target.value))} placeholder="0" error={error} hint={hint} className="text-right tabular-nums" />;
 }

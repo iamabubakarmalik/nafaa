@@ -14,7 +14,7 @@ export class CreateServiceRequestDto {
   @ApiPropertyOptional() @IsOptional() @IsString() city?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() area?: string;
   @ApiProperty({ enum: ApplianceServiceType }) @IsEnum(ApplianceServiceType) serviceType!: ApplianceServiceType;
-  @ApiPropertyOptional() @IsOptional() @IsString() priority?: string;
+  @ApiPropertyOptional({ enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'] }) @IsOptional() @IsIn(['LOW', 'NORMAL', 'HIGH', 'URGENT']) priority?: string;
   @ApiProperty() @IsString() reportedIssue!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() issueCategory?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() scheduledDate?: string;
@@ -24,6 +24,8 @@ export class CreateServiceRequestDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() coveredUnderAmc?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() warrantyClaimNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() amcContractNumber?: string;
+  /** Visit fee agreed when the complaint is booked. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) visitCharge?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() internalNotes?: string;
 }
 
@@ -36,10 +38,10 @@ export class CompleteServiceDto {
   @ApiPropertyOptional() @IsOptional() @IsString() diagnosedIssue?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() workDone?: string;
   @ApiPropertyOptional() @IsOptional() partsReplaced?: any;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() visitCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() laborCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() partsCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() paidAmount?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) visitCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) laborCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) partsCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidAmount?: number;
   /** How `paidAmount` came in; left out, cash. */
   @ApiPropertyOptional() @IsOptional() @IsIn(['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA']) paymentMethod?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() coveredUnderWarranty?: boolean;
@@ -65,7 +67,7 @@ export class UpdateServiceRequestDto {
   @ApiPropertyOptional() @IsOptional() @IsString() city?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() area?: string;
   @ApiPropertyOptional({ enum: ApplianceServiceType }) @IsOptional() @IsEnum(ApplianceServiceType) serviceType?: ApplianceServiceType;
-  @ApiPropertyOptional() @IsOptional() @IsString() priority?: string;
+  @ApiPropertyOptional({ enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'] }) @IsOptional() @IsIn(['LOW', 'NORMAL', 'HIGH', 'URGENT']) priority?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() reportedIssue?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() issueCategory?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() scheduledDate?: string;

@@ -1,7 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { BulkSerialDto, UpdateApplianceSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
+import { addMonths } from 'date-fns';
+import { AssignSaleSerialsDto, BulkSerialDto, UpdateApplianceSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
+import { UNSOLD } from '../common/appliance-bill-void.service';
+import { optDate, stamp } from '../common/appliance-common';
 
 const DAY = 86_400_000;
 
@@ -26,14 +29,7 @@ export class ApplianceSerialService {
     })).map((x) => x.id));
     const ids = sold.filter((x) => dead.has(x.saleId!)).map((x) => x.id);
     if (!ids.length) return;
-    await this.prisma.applianceSerialTracking.updateMany({
-      where: { id: { in: ids }, status: 'SOLD' },
-      data: {
-        status: 'IN_STOCK', saleId: null, invoiceNumber: null, soldAt: null, soldPrice: null,
-        soldToCustomerId: null, customerName: null, customerPhone: null, deliveryAddress: null,
-        warrantyStartDate: null, warrantyEndDate: null, compressorWarrantyEndDate: null, motorWarrantyEndDate: null,
-      },
-    });
+    await this.prisma.applianceSerialTracking.updateMany({ where: { id: { in: ids }, status: 'SOLD' }, data: UNSOLD });
   }
 
   /** Serial ke sath uske product ka naam/brand/warranty — sirf id se page khali lagta hai. */
@@ -118,13 +114,21 @@ export class ApplianceSerialService {
     const dup = await this.prisma.applianceSerialTracking.findFirst({
       where: { tenantId: user.tenantId, serialNumber: dto.serialNumber },
     });
-    if (dup) throw new BadRequestException(`Serial "${dto.serialNumber}" pehle se mojood hai`);
+    if (dup && dup.status !== 'REMOVED') throw new BadRequestException(`Serial "${dto.serialNumber}" pehle se mojood hai`);
 
     const product = await this.prisma.product.findFirst({
       where: { id: dto.productId, tenantId: user.tenantId },
       select: { id: true },
     });
     if (!product) throw new NotFoundException('Product nahi mila');
+    if (dup) {
+      // A unit taken off the register by mistake comes back instead of a duplicate.
+      return this.prisma.applianceSerialTracking.update({
+        where: { id: dup.id },
+        data: { productId: dto.productId, status: dto.status && dto.status !== 'SOLD' ? dto.status : 'IN_STOCK', modelNumber: dto.modelNumber, purchasePrice: dto.purchasePrice, purchaseDate: optDate(dto.purchaseDate), notes: stamp(dup.notes, 'Register me wapas') },
+      });
+    }
+    if (dto.status === 'SOLD') throw new BadRequestException('Naya unit "bika hua" darj nahi hota — bill se bechein');
 
     return this.prisma.applianceSerialTracking.create({
       data: {
@@ -180,12 +184,6 @@ export class ApplianceSerialService {
     });
 
     const purchaseDate = dto.purchaseDate ? new Date(dto.purchaseDate) : new Date();
-    const addMonths = (m?: number | null) => {
-      if (!m) return null;
-      const d = new Date(purchaseDate);
-      d.setMonth(d.getMonth() + m);
-      return d;
-    };
 
     await this.prisma.applianceSerialTracking.createMany({
       data: fresh.map((serialNumber) => ({
@@ -199,12 +197,11 @@ export class ApplianceSerialService {
         purchaseDate,
         supplierRef: dto.supplierRef ?? null,
         installationRequired: profile?.requiresInstallation ?? true,
-        // Warranty stock me aate hi shuru nahi hoti — bikne par shuru hogi.
-        // Yahan sirf andaza rakha jata hai taake report me nazar aaye.
+        // Customer warranty starts when the unit is sold, so no dates yet.
         warrantyStartDate: null,
-        warrantyEndDate: addMonths(profile?.warrantyMonths),
-        compressorWarrantyEndDate: addMonths(profile?.compressorWarrantyMonths),
-        motorWarrantyEndDate: addMonths(profile?.motorWarrantyMonths),
+        warrantyEndDate: null,
+        compressorWarrantyEndDate: null,
+        motorWarrantyEndDate: null,
       })),
     });
 
@@ -232,7 +229,7 @@ export class ApplianceSerialService {
     const where: any = {
       tenantId: user.tenantId,
       ...(params.productId && { productId: params.productId }),
-      ...(params.status && { status: params.status }),
+      status: params.status || { not: 'REMOVED' },
       ...(params.installationStatus && { installationStatus: params.installationStatus as any }),
       ...(params.search && {
         OR: [
@@ -374,6 +371,19 @@ export class ApplianceSerialService {
   async update(user: AuthenticatedUser, id: string, dto: UpdateApplianceSerialDto) {
     const s = await this.prisma.applianceSerialTracking.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Serial nahi mila');
+    if (s.status === 'REMOVED') throw new BadRequestException('Ye serial register se hata diya gaya hai');
+    if (dto.saleId && !(await this.prisma.sale.findFirst({ where: { id: dto.saleId, tenantId: user.tenantId, status: { not: 'VOIDED' } }, select: { id: true } }))) {
+      throw new NotFoundException('Bill nahi mila');
+    }
+    if (dto.soldToCustomerId && !(await this.prisma.customer.findFirst({ where: { id: dto.soldToCustomerId, tenantId: user.tenantId }, select: { id: true } }))) {
+      throw new NotFoundException('Customer nahi mila');
+    }
+    if (dto.productId && dto.productId !== s.productId && !(await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId }, select: { id: true } }))) {
+      throw new NotFoundException('Product nahi mila');
+    }
+    if (s.status === 'SOLD' && dto.status && dto.status !== 'SOLD') {
+      throw new BadRequestException('Bika hua unit wapas lene ke liye bill ka Return ya Void karein — register khud theek ho jata hai');
+    }
 
     if (dto.serialNumber && dto.serialNumber !== s.serialNumber) {
       const dup = await this.prisma.applianceSerialTracking.findFirst({
@@ -396,12 +406,7 @@ export class ApplianceSerialService {
         where: { tenantId: user.tenantId, productId: s.productId },
         select: { warrantyMonths: true, compressorWarrantyMonths: true, motorWarrantyMonths: true },
       });
-      const plus = (months?: number | null) => {
-        if (!months) return undefined;
-        const d = new Date(soldAt);
-        d.setMonth(d.getMonth() + months);
-        return d;
-      };
+      const plus = (months?: number | null) => (months ? addMonths(soldAt, months) : undefined);
       warranty.warrantyStartDate = soldAt;
       const end = plus(profile?.warrantyMonths);
       const comp = plus(profile?.compressorWarrantyMonths);
@@ -430,14 +435,92 @@ export class ApplianceSerialService {
   }
 
 
+  /** Takes a unit off the register (wrong entry); the record is kept with status REMOVED. */
   async remove(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.applianceSerialTracking.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Serial nahi mila');
     if (s.status === 'SOLD') {
-      throw new BadRequestException('Bika hua unit delete nahi hota — warranty aur service record isi par chalte hain');
+      throw new BadRequestException('Bika hua unit nahi hatta — warranty aur service record isi par chalte hain');
     }
-    await this.prisma.applianceSerialTracking.delete({ where: { id } });
-    return { message: 'Serial delete ho gaya' };
+    await this.prisma.applianceSerialTracking.update({ where: { id }, data: { status: 'REMOVED', notes: stamp(s.notes, `Register se hataya (pehle ${s.status})`) } });
+    return { message: 'Serial register se hat gaya' };
+  }
+
+  /**
+   * Marks the units that left on a counter bill as sold: each must be in
+   * stock, of a product on the bill, and no more units per product than the
+   * bill sold. Customer warranty starts on the bill date.
+   */
+  async assignSale(user: AuthenticatedUser, dto: AssignSaleSerialsDto) {
+    const sale = await this.prisma.sale.findFirst({
+      where: { id: dto.saleId, tenantId: user.tenantId },
+      select: { id: true, saleNumber: true, status: true, customerId: true, createdAt: true, customer: { select: { name: true, phone: true, address: true } }, items: { select: { productId: true, quantity: true, returnedQty: true, price: true } } },
+    });
+    if (!sale) throw new NotFoundException('Bill nahi mila');
+    if (sale.status === 'VOIDED') throw new BadRequestException('Void bill par serial nahi lagta');
+    const ids = [...new Set(dto.units.map((u) => u.serialId))];
+    if (ids.length !== dto.units.length) throw new BadRequestException('Ek hi serial do dafa chuna gaya hai');
+    const units = await this.prisma.applianceSerialTracking.findMany({ where: { tenantId: user.tenantId, id: { in: ids } } });
+    if (units.length !== ids.length) throw new NotFoundException('Ek ya zyada serial nahi mile');
+
+    const onBill = new Map<string, { qty: number; price: number }>();
+    for (const it of sale.items) {
+      if (!it.productId) continue;
+      const cur = onBill.get(it.productId) ?? { qty: 0, price: Number(it.price) || 0 };
+      cur.qty += Math.max(Number(it.quantity) - Number(it.returnedQty), 0);
+      onBill.set(it.productId, cur);
+    }
+    const already = await this.prisma.applianceSerialTracking.groupBy({ by: ['productId'], where: { tenantId: user.tenantId, saleId: sale.id, status: 'SOLD' }, _count: { _all: true } });
+    const used = new Map(already.map((a) => [a.productId, a._count._all]));
+    for (const u of units) {
+      if (u.status === 'SOLD' && u.saleId === sale.id) continue;
+      if (u.status !== 'IN_STOCK') throw new BadRequestException(`Serial ${u.serialNumber} ${u.status === 'SOLD' ? `pehle hi bill ${u.invoiceNumber ?? ''} par bik chuka` : `ki halat ${u.status} hai`}`);
+      const line = onBill.get(u.productId);
+      if (!line) throw new BadRequestException(`Serial ${u.serialNumber} ka product is bill par nahi`);
+      const n = (used.get(u.productId) ?? 0) + 1;
+      if (n > Math.floor(line.qty)) throw new BadRequestException(`Bill par is product ke sirf ${line.qty} unit hain`);
+      used.set(u.productId, n);
+    }
+
+    const profiles = await this.prisma.applianceProductProfile.findMany({
+      where: { tenantId: user.tenantId, productId: { in: [...new Set(units.map((u) => u.productId))] } },
+      select: { productId: true, warrantyMonths: true, compressorWarrantyMonths: true, motorWarrantyMonths: true },
+    });
+    const prof = new Map(profiles.map((p) => [p.productId, p]));
+    const soldAt = sale.createdAt;
+    const plus = (m?: number | null) => (m ? addMonths(soldAt, m) : null);
+    return this.prisma.$transaction(units.filter((u) => u.saleId !== sale.id).map((u) => {
+      const p = prof.get(u.productId);
+      return this.prisma.applianceSerialTracking.update({
+        where: { id: u.id },
+        data: {
+          status: 'SOLD', saleId: sale.id, invoiceNumber: sale.saleNumber, soldAt, soldPrice: onBill.get(u.productId)?.price ?? null,
+          soldToCustomerId: sale.customerId, customerName: sale.customer?.name ?? null, customerPhone: sale.customer?.phone ?? null,
+          deliveryAddress: u.deliveryAddress ?? sale.customer?.address ?? null,
+          // Dates set by hand on the unit (a start date) are kept; otherwise the warranty runs from the bill.
+          ...(u.warrantyStartDate
+            ? {}
+            : { warrantyStartDate: soldAt, warrantyEndDate: plus(p?.warrantyMonths), compressorWarrantyEndDate: plus(p?.compressorWarrantyMonths), motorWarrantyEndDate: plus(p?.motorWarrantyMonths) }),
+        },
+      });
+    }));
+  }
+
+  /** Units sold on one bill, for the bill page and the warranty card. */
+  forSale(user: AuthenticatedUser, saleId: string) {
+    return this.prisma.applianceSerialTracking.findMany({
+      where: { tenantId: user.tenantId, saleId, status: 'SOLD' },
+      select: { id: true, productId: true, serialNumber: true, modelNumber: true, warrantyStartDate: true, warrantyEndDate: true, compressorWarrantyEndDate: true, motorWarrantyEndDate: true },
+    });
+  }
+
+  /** Units sold on any of the given bills. */
+  forSales(user: AuthenticatedUser, saleIds: string[]) {
+    if (!saleIds.length) return [];
+    return this.prisma.applianceSerialTracking.findMany({
+      where: { tenantId: user.tenantId, saleId: { in: saleIds }, status: 'SOLD' },
+      select: { id: true, saleId: true, productId: true, serialNumber: true, warrantyEndDate: true, installationStatus: true },
+    });
   }
 
   /** Serial register ki ek nazar me haalat. */

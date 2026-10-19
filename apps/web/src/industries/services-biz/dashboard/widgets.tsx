@@ -99,7 +99,7 @@ export function ServicesJobs() {
               to={`/services-biz/jobs/${j.id}`}
               leading={<IconBubble icon={urgent ? Zap : late ? Clock : Wrench} tone={urgent ? 'danger' : late ? 'warning' : 'neutral'} />}
               title={<span className="inline-flex items-center gap-1.5">{j.customerName || j.jobNumber}{urgent && <Badge variant="danger" size="xs">{j.priority === 'EMERGENCY' ? 'Emergency' : 'Urgent'}</Badge>}</span>}
-              meta={`${j.serviceName} · ${when(j.scheduledStart)}${j.area ? ` · ${j.area}` : ''}`}
+              meta={`${j.serviceName} · ${when(j.scheduledStart ?? undefined)}${j.area ? ` · ${j.area}` : ''}`}
               value={s ? <Badge variant={late ? 'warning' : s.variant} size="xs">{late ? 'Late' : s.label}</Badge> : undefined}
               valueHint={left > 0 ? <span className="text-slate-500">{cost(left)}</span> : undefined}
             />

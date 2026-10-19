@@ -35,10 +35,7 @@ export const gymKpis: KpiDef[] = [
     id: 'gym-expiring', label: 'Renewal baqi', icon: RefreshCw, tone: 'warning',
     useValue: () => {
       const { memberships: m, loading } = useGymOps();
-      return {
-        loading, to: '/gym/memberships', value: m.expiring.length + m.lapsed.length, alert: m.lapsed.length > 0,
-        hint: m.lapsed.length ? `${m.lapsed.length} khatam ho chuki` : '7 din me khatam',
-      };
+      return { loading, to: '/gym/members', value: m.expiring, alert: m.expiring > 0, hint: m.expired ? `${m.expired} khatam ho chuki` : '7 din me khatam' };
     },
   },
   {
@@ -53,7 +50,7 @@ export const gymKpis: KpiDef[] = [
     useValue: () => {
       const { memberships: m, loading } = useGymOps();
       const { cost } = useMasked();
-      return { loading, to: '/gym/memberships', value: cost(m.dueTotal), hint: `${m.dues.length} members` };
+      return { loading, to: '/gym/memberships', value: cost(m.dueTotal), hint: `${m.duesCount} memberships` };
     },
   },
 ];
@@ -62,9 +59,9 @@ export function useGymAttention(): AttentionItem[] {
   const { memberships: m, classes, equipment } = useGymOps();
   const items: AttentionItem[] = [];
 
-  if (m.lapsed.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${m.lapsed.length} membership ki period guzar gayi magar abhi active hai — renew karein ya band`, to: '/gym/memberships', cta: 'Memberships' });
-  if (m.expiring.length) items.push({ icon: RefreshCw, level: 'warning', text: `${m.expiring.length} membership agle 7 din me khatam — abhi call karein, renewal asaan hai`, to: '/gym/memberships', cta: 'Renew karwayein' });
-  if (m.dues.length) items.push({ icon: Wallet, level: 'warning', text: `${m.dues.length} members ki fees baqi hai`, to: '/gym/memberships', cta: 'Fees lein' });
+  if (m.expiring) items.push({ icon: RefreshCw, level: 'warning', text: `${m.expiring} members ki membership agle 7 din me khatam — WhatsApp se yaad dilayein`, to: '/gym/members', cta: 'Renew karwayein' });
+  if (m.expired) items.push({ icon: AlertTriangle, level: 'info', text: `${m.expired} members ki membership khatam ho chuki — wapas bulayein`, to: '/gym/members', cta: 'Members' });
+  if (m.duesCount) items.push({ icon: Wallet, level: 'warning', text: `${m.duesCount} memberships ki fee baqi hai`, to: '/gym/memberships', cta: 'Fee lein' });
   if (equipment.broken) items.push({ icon: Wrench, level: 'warning', text: `${equipment.broken} machine kharab ya marammat me — members ko pareshani hogi`, to: '/gym/equipment', cta: 'Equipment' });
   if (equipment.service) items.push({ icon: Wrench, level: 'info', text: `${equipment.service} machine ki servicing ka waqt aa gaya`, to: '/gym/equipment', cta: 'Service karein' });
   if (classes.upcoming) items.push({ icon: Calendar, level: 'info', text: `${classes.upcoming} class aaj abhi honi hai`, to: '/gym/classes', cta: 'Classes' });
@@ -81,7 +78,7 @@ export function GymInside() {
           return (
             <ListRow
               key={a.id}
-              to={a.isGuest ? undefined : `/gym-members/${a.memberId}`}
+              to={a.isGuest ? undefined : `/gym/members/${a.memberId}`}
               leading={<Avatar name={name} url={(a.member as { photoUrl?: string } | undefined)?.photoUrl ?? a.photoUrl} size={36} />}
               title={name}
               meta={`${format(new Date(a.checkInAt), 'h:mm a')} par aaye`}
@@ -130,22 +127,21 @@ export function GymRenewals() {
     <WidgetCard
       title="Renewal aur fees"
       icon={RefreshCw}
-      description={m.dueTotal > 0 && !costHidden ? `${cost(m.dueTotal)} fees baqi · ${m.expiring.length} renewal` : `${m.expiring.length + m.lapsed.length} renewal baqi`}
-      to="/gym/memberships"
+      description={m.dueTotal > 0 && !costHidden ? `${cost(m.dueTotal)} fee baqi · ${m.expiring} renewal` : `${m.expiring} renewal baqi`}
+      to="/gym/members"
       flush
     >
       <RowList empty="Agle 7 din me koi membership khatam nahi" emptyIcon={Award}>
         {m.renewals.map((r) => {
-          const gone = r.left < 0;
           const days = Math.ceil(r.left);
           return (
             <ListRow
               key={r.id}
-              to={`/gym-members/${r.memberId}`}
-              leading={<IconBubble icon={gone ? AlertTriangle : RefreshCw} tone={gone ? 'danger' : 'warning'} />}
-              title={memberName(r.member)}
-              meta={`${(r.plan as { name?: string } | undefined)?.name ?? 'Plan'}${Number(r.balanceDue) > 0 ? ` · baqi ${cost(r.balanceDue)}` : ''}`}
-              value={<Badge variant={gone ? 'danger' : days <= 2 ? 'warning' : 'default'} size="xs">{gone ? 'Khatam' : days <= 0 ? 'Aaj' : `${days} din`}</Badge>}
+              to={`/gym/members/${r.id}`}
+              leading={<IconBubble icon={RefreshCw} tone="warning" />}
+              title={r.name}
+              meta={`${r.plan}${r.due > 0 ? ` · baqi ${cost(r.due)}` : ''}`}
+              value={<Badge variant={days <= 2 ? 'warning' : 'default'} size="xs">{days <= 0 ? 'Aaj' : `${days} din`}</Badge>}
             />
           );
         })}
@@ -162,7 +158,7 @@ export function GymStreaks() {
         {streaks.map((mb) => (
           <ListRow
             key={mb.id}
-            to={`/gym-members/${mb.id}`}
+            to={`/gym/members/${mb.id}`}
             leading={<Avatar name={memberName(mb)} url={mb.photoUrl} size={36} />}
             title={memberName(mb)}
             meta={<span className="font-mono">{mb.memberNumber}</span>}

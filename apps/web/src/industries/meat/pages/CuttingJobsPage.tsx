@@ -1,303 +1,252 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Scissors, Plus, X, Save, RefreshCw, Sparkles, User, Clock, Weight,
-  CheckCircle2, TrendingDown, Activity,
-} from 'lucide-react';
-import { cuttingJobsApi, type CuttingJob } from '../api/cutting-jobs.api';
-import { slaughterApi } from '../api/slaughter.api';
-import { Button } from '@/design-system/components';
+/**
+ * Cutting: a carcass or dressed birds become boneless, qeema, chops and
+ * bones. A job is started with the input kg; on completion the input leaves
+ * stock and each cut comes in with its share of the cost (by sale value).
+ * Waste carries no value. Yield and butcher work are summed per period.
+ *
+ * Keys: N new job · / search · 1 jobs · 2 analytics · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, differenceInMinutes } from 'date-fns';
+import { BarChart3, Ban, CheckCircle2, Clock, FileSpreadsheet, GraduationCap, Plus, Scale, Scissors, ShieldCheck, Trash2 } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  Button, DateRangeMenu, FilterBar, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { cuttingJobsApi, type CuttingJob } from '../api/cutting-jobs.api';
+import { ItemPick, PickedChip, useMeatItems } from '../components/pickers';
+import { FormRow, ListFrame, Pill, inputBox, usePageKeys, type Tone } from '../components/ui';
+import { KEYS, MONEY_KEYS, apiError, dateTime, decimal, kg, pct } from '../lib/meta';
+
+type View = 'jobs' | 'analytics';
+const STATUS: Record<string, { label: string; tone: Tone }> = { IN_PROGRESS: { label: 'Chal raha', tone: 'amber' }, COMPLETED: { label: 'Mukammal', tone: 'emerald' }, CANCELLED: { label: 'Cancel', tone: 'rose' } };
+
+function StartModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [source, setSource] = useState<{ id: string; name: string; stock: number } | null>(null);
+  const [input, setInput] = useState('');
+  const [butcher, setButcher] = useState('');
+  const [tried, setTried] = useState(false);
+  const errors: Record<string, string> = {};
+  if (!source) errors.source = 'Kis item se cutting — chunein (carcass, murgi dressed)';
+  if (!(Number(input) > 0)) errors.input = 'Kitne kg kaatne hain';
+  const save = useMutation({
+    mutationFn: () => cuttingJobsApi.create({ sourceProductId: source!.id, inputWeightKg: Number(input), butcherName: butcher.trim() || undefined }),
+    onSuccess: (j) => { toast.success(`${j.jobNumber} shuru — mukammal hone par cuts likhein`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Kaam shuru nahi hua')),
+  });
+  const submit = () => { setTried(true); const f = Object.values(errors)[0]; if (f) { toast.error(f); return; } save.mutate(); };
+  return (
+    <Modal open onClose={onClose} size="md" title="Cutting shuru karein" description="Stock abhi nahi badalta — mukammal karne par badalta hai"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit} leftIcon={<Scissors className="h-4 w-4" />}>Shuru</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <FormRow label="Kis item se" error={tried ? errors.source : undefined}>{source ? <PickedChip title={source.name} sub={`Stock ${kg(source.stock)}`} onClear={() => setSource(null)} /> : <ItemPick autoFocus onPick={(i) => setSource({ id: i.id, name: i.name, stock: i.stock })} placeholder="Murgi dressed, bakra carcass…" />}</FormRow>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FormRow label="Kitne kg" error={tried ? errors.input : undefined} hint={source && Number(input) > source.stock ? `Stock sirf ${kg(source.stock)} hai` : undefined}>
+            <input inputMode="decimal" value={input} onChange={(e) => setInput(decimal(e.target.value))} className={cn(inputBox, 'text-right font-semibold')} aria-invalid={!!(tried && errors.input)} />
+          </FormRow>
+          <FormRow label="Kaarigar (marzi)"><input value={butcher} onChange={(e) => setButcher(e.target.value)} maxLength={120} className={inputBox} placeholder="Naam" /></FormRow>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+interface CutLine { id: string; name: string; kg: string }
+
+function CompleteModal({ j, onClose, onDone }: { j: CuttingJob; onClose: () => void; onDone: () => void }) {
+  const [cuts, setCuts] = useState<CutLine[]>([]);
+  const [waste, setWaste] = useState('');
+  const out = cuts.reduce((s, c) => s + (Number(c.kg) || 0), 0);
+  const autoWaste = Math.max(j.inputWeightKg - out, 0);
+  const wasteKg = waste === '' ? autoWaste : Number(waste) || 0;
+  const over = out + wasteKg > j.inputWeightKg + 0.0005;
+  const bad = !cuts.length || cuts.some((c) => !(Number(c.kg) > 0)) || over;
+  const save = useMutation({
+    mutationFn: () => cuttingJobsApi.complete(j.id, { cuts: cuts.map((c) => ({ productId: c.id, kg: Number(c.kg) })), wasteWeightKg: waste === '' ? undefined : Number(waste) }),
+    onSuccess: (r) => { toast.success(`${r.jobNumber} mukammal — yield ${pct(r.yieldPct)}`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Mukammal nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="md" title={`${j.jobNumber} — kya nikla`} description={`${j.cutsProduced?.source?.name ?? 'Item'} ${kg(j.inputWeightKg)} se`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="success" disabled={bad} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Mukammal · {kg(out)}</Button></>}>
+      <div className="space-y-3">
+        {cuts.map((c, i) => (
+          <div key={c.id} className="flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate rounded-lg bg-slate-50 px-3 py-2 text-[0.875rem] ring-1 ring-slate-200">{c.name}</span>
+            <input autoFocus={i === cuts.length - 1 && !c.kg} inputMode="decimal" aria-label={`${c.name} kg`} value={c.kg} onChange={(e) => setCuts((cs) => cs.map((x, k) => (k === i ? { ...x, kg: decimal(e.target.value) } : x)))} placeholder="kg"
+              className="h-10 w-24 rounded-lg bg-slate-100 px-2 text-right font-semibold outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
+            <button type="button" aria-label="Hatayein" onClick={() => setCuts((cs) => cs.filter((_, k) => k !== i))} className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+          </div>
+        ))}
+        <ItemPick onPick={(i) => setCuts((cs) => [...cs, { id: i.id, name: i.name, kg: '' }])} exclude={[j.cutsProduced?.source?.productId ?? '', ...cuts.map((c) => c.id)]} placeholder="Cut jorein: boneless, qeema, chaanp, haddi…" />
+        <Input label="Waste (kg)" inputMode="decimal" value={waste} onChange={(e) => setWaste(decimal(e.target.value))} placeholder={`${Math.round(autoWaste * 1000) / 1000} (khud)`} hint="Phenki hui charbi, chhichhra — khali chhorein to baqi wazan waste" error={over ? `Cuts + waste ${kg(j.inputWeightKg)} se zyada` : undefined} />
+        <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">Yield {pct(j.inputWeightKg ? (out / j.inputWeightKg) * 100 : null)} · cost har cut par us ki sale value ke hisaab se lagti hai</p>
+      </div>
+    </Modal>
+  );
+}
+
+function CancelJob({ j, onClose, onDone }: { j: CuttingJob; onClose: () => void; onDone: () => void }) {
+  const [reason, setReason] = useState('');
+  const save = useMutation({
+    mutationFn: () => cuttingJobsApi.cancel(j.id, reason.trim() || undefined),
+    onSuccess: () => { toast.success('Kaam cancel'); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Cancel nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${j.jobNumber} cancel karein?`} description="Stock nahi badla tha, kuch wapas nahi karna"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button></>}>
+      <Input data-autofocus label="Wajah (marzi)" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} />
+    </Modal>
+  );
+}
 
 export default function CuttingJobsPage() {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [completing, setCompleting] = useState<CuttingJob | null>(null);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const { cost } = useMasked();
+  const { byId } = useMeatItems();
+  const canWrite = usePermission(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<View>('jobs');
+  const [status, setStatus] = useState('');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [dialog, setDialog] = useState<{ kind: 'start' } | { kind: 'done' | 'cancel'; j: CuttingJob } | null>(null);
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
 
-  const { data: jobs = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['cutting-jobs', statusFilter],
-    queryFn: () => cuttingJobsApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
+  const period = resolveRange(range, startHour);
+  const q = { status: status || undefined, search: query || undefined, from: period?.from, to: period?.to };
+  const listQ = useQuery({ queryKey: [KEYS.cutting, q], queryFn: () => cuttingJobsApi.list(q), placeholderData: (p) => p });
+  const rows = listQ.data ?? [];
+  const done = rows.filter((j) => j.status === 'COMPLETED');
+  const inKg = done.reduce((s, j) => s + j.inputWeightKg, 0);
+  const outKg = done.reduce((s, j) => s + (j.outputWeightKg ?? 0), 0);
+  const wasteKg = done.reduce((s, j) => s + (j.wasteWeightKg ?? 0), 0);
+  const open = rows.filter((j) => j.status === 'IN_PROGRESS').length;
+  const refresh = () => [KEYS.cutting, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  usePageKeys({ n: canWrite ? () => setDialog({ kind: 'start' }) : undefined, '1': () => setView('jobs'), '2': () => setView('analytics'), g: guide.open }, searchRef);
+
+  const byCut = done.flatMap((j) => j.cutsProduced?.cuts ?? []).reduce<Record<string, { name: string; kg: number }>>((acc, c) => {
+    const r = acc[c.productId] ?? { name: byId.get(c.productId)?.name ?? c.name, kg: 0 };
+    r.kg += c.qty; acc[c.productId] = r; return acc;
+  }, {});
+
+  const printDoc = (): PrintDoc => ({
+    title: 'Cutting ka kaam', subtitle: period ? `${period.from} → ${period.to}` : 'Sab',
+    meta: [['Andar', kg(inKg)], ['Cuts', kg(outKg)], ['Waste', kg(wasteKg)]],
+    sections: [{ kind: 'table', columns: [{ label: '#' }, { label: 'Kab' }, { label: 'Item' }, { label: 'Andar', align: 'right' }, { label: 'Cuts', align: 'right' }, { label: 'Waste', align: 'right' }, { label: 'Kaarigar', wideOnly: true }],
+      rows: rows.map((j) => [j.jobNumber, dateTime(j.startedAt), j.cutsProduced?.source?.name ?? '', kg(j.inputWeightKg), kg(j.outputWeightKg), kg(j.wasteWeightKg), j.butcherName ?? '']) }],
   });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-red-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Butcher Workflow
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">✂️ Cutting Jobs</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Track carcass processing & yield</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              Start New Job
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Cutting"
+        chip={<><Scissors /> Boneless, qeema, chaanp</>}
+        meta="Carcass ya dressed murgi se cuts banayein — har cut apni cost ke saath stock me"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={listQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
+          <button type="button" title="CSV" className={heroIconButton} disabled={!rows.length}
+            onClick={() => downloadCsv('cutting.csv', [['#', 'Kab', 'Item', 'Andar kg', 'Cuts kg', 'Waste kg', 'Yield %', 'Halat', 'Kaarigar', 'Cuts'], ...rows.map((j) => [j.jobNumber, dateTime(j.startedAt), j.cutsProduced?.source?.name, j.inputWeightKg, j.outputWeightKg, j.wasteWeightKg, j.yieldPct, STATUS[j.status]?.label, j.butcherName, (j.cutsProduced?.cuts ?? []).map((c) => `${c.name} ${c.qty}`).join('; ')])])}>
+            <FileSpreadsheet className="h-4 w-4" />
+          </button>
+          <Link to="/meat/slaughter" className={heroButton}><ShieldCheck className="h-4 w-4" /><span className="hidden sm:inline">Zibah</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canWrite && <button type="button" onClick={() => setDialog({ kind: 'start' })} title="Naya kaam (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Cutting shuru</button>}
+        </>}
+        stats={[{ label: 'Chal raha', value: open }, { label: 'Cuts bane', value: kg(outKg) }, { label: 'Yield', value: pct(inKg ? (outKg / inKg) * 100 : null) }]}
+      />
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {['all', 'IN_PROGRESS', 'COMPLETED'].map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>{s === 'all' ? 'All' : s.replace('_', ' ')}</button>
-        ))}
-      </div>
+      <KpiRow cols={4}>
+        {listQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Clock} color="#d97706" label="Chal raha" value={open} hint="Mukammal karna baqi" onClick={() => setStatus('IN_PROGRESS')} active={status === 'IN_PROGRESS'} />
+          <KpiCard icon={Scale} color="#0891b2" label="Andar gaya" value={kg(inKg)} hint={`${done.length} mukammal`} />
+          <KpiCard icon={Scissors} color="#16a34a" label="Cuts bane" value={kg(outKg)} hint={`Yield ${pct(inKg ? (outKg / inKg) * 100 : null)}`} />
+          <KpiCard icon={Trash2} color={wasteKg ? '#e11d48' : '#64748b'} label="Waste" value={kg(wasteKg)} hint="Phenka gaya" />
+        </>}
+      </KpiRow>
 
-      {showForm && (
-        <CuttingJobForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['cutting-jobs'] }); }}
-        />
-      )}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Kaam #, kaarigar…" label="Search" />}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
+        <FilterMenu icon={Clock} label={status ? STATUS[status].label : 'Sab halat'} value={status} active={!!status} onChange={setStatus}
+          options={[{ value: '', label: 'Sab halat' }, ...Object.entries(STATUS).map(([value, s]) => ({ value, label: s.label }))]} />
+      </FilterBar>
 
-      {completing && (
-        <CompleteJobModal
-          job={completing}
-          onClose={() => setCompleting(null)}
-          onDone={() => { setCompleting(null); queryClient.invalidateQueries({ queryKey: ['cutting-jobs'] }); }}
-        />
-      )}
+      <ViewTabs value={view} onChange={setView} hint={<>{canWrite ? 'N naya · ' : ''}/ search · 1-2 tabs</>}
+        tabs={[{ id: 'jobs', label: 'Kaam', icon: Scissors, count: rows.length }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : jobs.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Scissors className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No cutting jobs yet</p>
+      {view === 'analytics' ? (
+        <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
+          <h3 className="font-semibold text-slate-900">Kaunsa cut kitna bana</h3>
+          <ul className="mt-3 divide-y divide-slate-100">
+            {Object.entries(byCut).sort((a, b) => b[1].kg - a[1].kg).map(([id, r]) => (
+              <li key={id} className="flex items-center justify-between py-2 text-[0.875rem]"><span>{r.name}</span><span className="font-semibold tabular-nums">{kg(r.kg)} · {pct(outKg ? (r.kg / outKg) * 100 : null)}</span></li>
+            ))}
+            {!done.length && <li className="py-6 text-center text-sm text-slate-500">Is period me koi mukammal kaam nahi</li>}
+          </ul>
         </div>
       ) : (
-        <section className="grid gap-3">
-          {jobs.map((job) => <JobCard key={job.id} job={job} onComplete={() => setCompleting(job)} />)}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function JobCard({ job, onComplete }: { job: CuttingJob; onComplete: () => void }) {
-  const isCompleted = job.status === 'COMPLETED';
-  const duration = isCompleted && job.durationMin ? job.durationMin : differenceInMinutes(new Date(), new Date(job.startedAt));
-  const waste = job.wasteWeightKg ?? (job.outputWeightKg ? job.inputWeightKg - job.outputWeightKg : 0);
-
-  return (
-    <div className={
-      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
-      (isCompleted ? 'border-emerald-200 dark:border-emerald-800' : 'border-amber-300 ring-2 ring-amber-100 dark:ring-amber-950/40')
-    }>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={
-            'h-12 w-12 rounded-2xl text-white flex items-center justify-center shadow shrink-0 ' +
-            (isCompleted ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-amber-500 to-orange-600')
-          }>
-            <Scissors className="h-6 w-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{job.jobNumber}</span>
-              <span className={
-                'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
-                (isCompleted ? 'bg-emerald-600' : 'bg-amber-500')
-              }>
-                {job.status.replace('_', ' ')}
-              </span>
-            </div>
-            {job.butcherName && (
-              <div className="mt-1 text-xs text-slate-600 font-bold">
-                <User className="h-3 w-3 inline mr-1" />
-                Butcher: {job.butcherName}
+        <ListFrame loading={listQ.isLoading} error={listQ.isError && !listQ.data} onRetry={() => listQ.refetch()}
+          empty={!rows.length ? { icon: Scissors, title: 'Koi cutting ka kaam nahi', text: 'Dressed murgi ya carcass se boneless, qeema banana ho to yahan shuru karein.', actions: canWrite ? <Button onClick={() => setDialog({ kind: 'start' })} leftIcon={<Plus className="h-4 w-4" />}>Cutting shuru</Button> : undefined } : null}>
+          {rows.map((j) => (
+            <li key={j.id} className="px-4 py-3 sm:px-5">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-semibold text-slate-900">{j.jobNumber}</span>
+                    <span className="text-[0.8125rem] text-slate-600">{j.cutsProduced?.source?.name ?? 'Item nahi likha'} · {kg(j.inputWeightKg)}</span>
+                    <Pill tone={STATUS[j.status]?.tone}>{STATUS[j.status]?.label ?? j.status}</Pill>
+                  </div>
+                  <p className="mt-0.5 text-[0.75rem] text-slate-500">{dateTime(j.startedAt)}{j.butcherName ? ` · ${j.butcherName}` : ''}{j.durationMin ? ` · ${j.durationMin} min` : ''}</p>
+                  {!!j.cutsProduced?.cuts?.length && (
+                    <p className="mt-1 text-[0.8125rem] text-slate-700">{j.cutsProduced.cuts.map((c) => `${c.name} ${kg(c.qty)} (${cost(c.unitCost)}/kg)`).join(' · ')}</p>
+                  )}
+                </div>
+                {j.status === 'COMPLETED' && <div className="text-right text-[0.8125rem]"><p className="font-semibold">Yield {pct(j.yieldPct)}</p><p className="text-slate-500">Waste {kg(j.wasteWeightKg)}</p></div>}
+                {j.status === 'IN_PROGRESS' && canWrite && (
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="success" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'done', j })}>Mukammal</Button>
+                    <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'cancel', j })}>Cancel</Button>
+                  </div>
+                )}
               </div>
-            )}
-            <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
-              Started: {format(new Date(job.startedAt), 'dd MMM, HH:mm')}
-              {isCompleted && ' • Duration: ' + duration + 'min'}
-            </div>
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          {isCompleted && job.yieldPct && (
-            <>
-              <div className="text-[0.6875rem] font-extrabold text-emerald-700 uppercase">Yield</div>
-              <div className="text-2xl font-extrabold text-emerald-700 tabular-nums">{job.yieldPct.toFixed(1)}%</div>
-            </>
-          )}
-          {!isCompleted && (
-            <div className="text-xs font-extrabold text-amber-700 animate-pulse">
-              <Activity className="h-3 w-3 inline mr-1" />
-              {duration}min elapsed
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 text-xs">
-        <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Input</div>
-          <div className="text-lg font-extrabold text-blue-800 tabular-nums">{job.inputWeightKg}kg</div>
-        </div>
-        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Output</div>
-          <div className="text-lg font-extrabold text-emerald-800 tabular-nums">{job.outputWeightKg ?? '—'}kg</div>
-        </div>
-        <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Waste</div>
-          <div className="text-lg font-extrabold text-rose-800 tabular-nums">{waste.toFixed(1)}kg</div>
-        </div>
-      </div>
-
-      {job.notes && (
-        <div className="text-xs italic text-slate-500 border-t border-slate-100 dark:border-ink-800 pt-2">
-          📝 {job.notes}
-        </div>
+            </li>
+          ))}
+        </ListFrame>
       )}
 
-      {!isCompleted && (
-        <div className="pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button size="sm" onClick={onComplete} className="w-full bg-gradient-to-r from-emerald-600 to-green-700">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Complete Job
-          </Button>
-        </div>
+      {dialog?.kind === 'start' && <StartModal onClose={() => setDialog(null)} onDone={refresh} />}
+      {dialog?.kind === 'done' && <CompleteModal j={dialog.j} onClose={() => setDialog(null)} onDone={refresh} />}
+      {dialog?.kind === 'cancel' && <CancelJob j={dialog.j} onClose={() => setDialog(null)} onDone={refresh} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Cutting — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#d97706', title: 'Shuru', text: 'Kis item se (murgi dressed, bakra carcass) aur kitne kg kaatne hain. Abhi stock nahi badalta.' },
+            { icon: Scissors, color: '#16a34a', title: 'Mukammal', text: 'Har cut ka wazan likhein: boneless, qeema, chaanp, haddi. Andar wala maal stock se nikalta hai, cuts aa jate hain.' },
+            { icon: Scale, color: '#0891b2', title: 'Cost', text: 'Kul cost cuts me un ki sale value ke hisaab se lagti hai — boneless par zyada, haddi par kam. Waste ki cost baqi cuts me shamil.' },
+          ]}
+          tips={['Yield kam aaye to kaarigar se poochein — analytics me har cut ka hissa dikhta hai.', 'Cutting ke liye "Stock adjustment" ki ijazat chahiye.']}
+          shortcuts={[['N', 'naya kaam'], ['/', 'dhoondein'], ['1', 'kaam'], ['2', 'analytics'], ['G', 'guide']]}
+        />
       )}
-    </div>
-  );
-}
-
-function CuttingJobForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    slaughterLogId: '',
-    butcherName: '',
-    inputWeightKg: 0,
-    notes: '',
-  });
-
-  const { data: slaughterLogs = [] } = useQuery({
-    queryKey: ['slaughter-logs-for-cutting'],
-    queryFn: () => slaughterApi.list({}),
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => cuttingJobsApi.create({
-      ...form,
-      inputWeightKg: Number(form.inputWeightKg) || 0,
-    }),
-    onSuccess: () => { toast.success('Cutting job started'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Start New Cutting Job</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-3">
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Link to Slaughter (optional)</label>
-          <select value={form.slaughterLogId} onChange={(e) => {
-            const log = slaughterLogs.find((l) => l.id === e.target.value);
-            setForm({ ...form, slaughterLogId: e.target.value, inputWeightKg: log?.dressedWeightKg || log?.liveWeightKg || form.inputWeightKg });
-          }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
-            <option value="">-- Independent job --</option>
-            {slaughterLogs.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.slaughterNumber} • {l.animalType} • {l.dressedWeightKg || l.liveWeightKg}kg
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <input value={form.butcherName} onChange={(e) => setForm({ ...form, butcherName: e.target.value })} placeholder="Butcher name" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Input Weight (kg) *</label>
-          <input type="number" step="0.1" value={form.inputWeightKg} onChange={(e) => setForm({ ...form, inputWeightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.inputWeightKg}>
-            <Save className="h-4 w-4" />
-            Start Job
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CompleteJobModal({ job, onClose, onDone }: any) {
-  const [output, setOutput] = useState(job.inputWeightKg * 0.75);
-  const [waste, setWaste] = useState(job.inputWeightKg * 0.25);
-  const [notes, setNotes] = useState('');
-
-  const yieldPct = job.inputWeightKg > 0 ? (output / job.inputWeightKg) * 100 : 0;
-
-  const completeMutation = useMutation({
-    mutationFn: () => cuttingJobsApi.complete(job.id, {
-      outputWeightKg: Number(output),
-      wasteWeightKg: Number(waste),
-      notes,
-    }),
-    onSuccess: () => { toast.success('Job completed'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-          <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Complete Job</h3>
-            <p className="text-xs text-slate-500 font-semibold">{job.jobNumber} • Input: {job.inputWeightKg}kg</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Output Weight (kg) *</label>
-            <input type="number" step="0.1" value={output} onChange={(e) => { setOutput(Number(e.target.value)); setWaste(Math.max(job.inputWeightKg - Number(e.target.value), 0)); }} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Waste (kg)</label>
-            <input type="number" step="0.1" value={waste} onChange={(e) => setWaste(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
-          </div>
-          <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 text-white p-4 text-center">
-            <div className="text-xs uppercase font-extrabold text-white/80">Yield %</div>
-            <div className="text-4xl font-extrabold tabular-nums">{yieldPct.toFixed(1)}%</div>
-          </div>
-          <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Completion notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => completeMutation.mutate()} loading={completeMutation.isPending} disabled={output <= 0}>
-              <CheckCircle2 className="h-4 w-4" />
-              Complete
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </PageShell>
   );
 }

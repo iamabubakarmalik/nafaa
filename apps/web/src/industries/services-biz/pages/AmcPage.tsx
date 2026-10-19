@@ -1,343 +1,267 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Shield, Plus, X, Save, RefreshCw, Sparkles, Calendar, User, Phone,
-  CheckCircle2, DollarSign, Award, AlertCircle,
-} from 'lucide-react';
-import { amcApi, type AmcContract } from '../api/amc.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * AMC contracts: yearly maintenance for a customer's machines — visits
+ * done and due, money still owed on the fee, and contracts ending soon.
+ * Each visit becomes a job card; billing that job marks the visit done.
+ *
+ * Keys: N new contract · / search · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+import { Award, Ban, Briefcase, CalendarClock, CheckCircle2, Download, Filter, GraduationCap, MessageCircle, Plus, RefreshCw, Wallet } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { TakePaymentModal } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { amcApi, type AmcContract, type AmcInput, type AmcStatus } from '../api/amc.api';
+import { AmcModal } from '../components/AmcModal';
+import { AMC_KEY, JOB_KEY, MONEY_KEYS, TONES, apiError, dayOnly, daysTo, statusOf, waLink } from '../components/meta';
 
-const TIERS = [
-  { value: 'BASIC', label: 'Basic', color: 'from-slate-500 to-slate-600', emoji: '🥉' },
-  { value: 'STANDARD', label: 'Standard', color: 'from-blue-500 to-cyan-600', emoji: '🥈' },
-  { value: 'PREMIUM', label: 'Premium', color: 'from-amber-500 to-orange-600', emoji: '🥇' },
-  { value: 'COMPREHENSIVE', label: 'Comprehensive', color: 'from-fuchsia-500 to-purple-600', emoji: '💎' },
-];
-
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: 'bg-emerald-600',
-  EXPIRED: 'bg-slate-500',
-  CANCELLED: 'bg-rose-500',
-  SUSPENDED: 'bg-amber-500',
-  RENEWAL_DUE: 'bg-orange-500',
+const STATUS: Record<AmcStatus, { label: string; tone: string }> = {
+  ACTIVE: { label: 'Chaalu', tone: TONES.green }, RENEWAL_DUE: { label: 'Renew karna hai', tone: TONES.amber }, EXPIRED: { label: 'Khatam', tone: TONES.slate },
+  CANCELLED: { label: 'Cancel', tone: TONES.rose }, SUSPENDED: { label: 'Ruka hua', tone: TONES.slate },
 };
+type Show = 'ACTIVE' | 'ENDING' | 'EXPIRED' | 'CANCELLED' | 'ALL';
 
 export default function AmcPage() {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
-  const [showForm, setShowForm] = useState(false);
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const { sales } = useMasked();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const canManage = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const canMoney = usePermission(PERMISSIONS.POS_USE);
+  const [params, setParams] = useSearchParams();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [show, setShow] = useState<Show>('ACTIVE');
+  const [search, setSearch] = useState('');
+  const [creating, setCreating] = useState(false);
+  const openId = params.get('open');
+  const setOpen = (id: string | null) => { const n = new URLSearchParams(params); if (id) n.set('open', id); else n.delete('open'); setParams(n, { replace: true }); };
 
-  const { data: contracts = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['services-amc', statusFilter],
-    queryFn: () => amcApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
+  const listQ = useQuery({ queryKey: [AMC_KEY, 'all'], queryFn: () => amcApi.list() });
+  const all = listQ.data ?? [];
+  const ending = (a: AmcContract) => ['ACTIVE', 'RENEWAL_DUE'].includes(a.status) && (daysTo(a.endDate) ?? 99) <= 30 && (daysTo(a.endDate) ?? 0) >= 0;
+  const rows = useMemo(() => {
+    const w = search.trim().toLowerCase();
+    return all.filter((a) => (show === 'ALL' || (show === 'ENDING' ? ending(a) : show === 'ACTIVE' ? ['ACTIVE', 'RENEWAL_DUE'].includes(a.status) : a.status === show))
+      && (!w || `${a.amcNumber} ${a.customerName} ${a.customerPhone} ${a.serviceAddress}`.toLowerCase().includes(w)));
+  }, [all, search, show]);
+  const activeAll = all.filter((a) => ['ACTIVE', 'RENEWAL_DUE'].includes(a.status));
+  const visitsDue = activeAll.flatMap((a) => a.visits.filter((v) => v.status !== 'COMPLETED' && !v.serviceJobId && (daysTo(v.scheduledDate) ?? 99) <= 7));
+
+  const create = useMutation({
+    mutationFn: (v: AmcInput) => amcApi.create(v),
+    onSuccess: (a) => { toast.success(`${a.amcNumber} ban gaya${a.sale ? ` — bill ${a.sale.saleNumber}` : ''}`); [AMC_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); setCreating(false); setOpen(a.id); },
+    onError: (e) => toast.error(apiError(e, 'Contract nahi bana')),
   });
 
-  const expireMutation = useMutation({
-    mutationFn: () => amcApi.expireOld(),
-    onSuccess: () => { toast.success('Expired old AMCs'); queryClient.invalidateQueries({ queryKey: ['services-amc'] }); },
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage && canMoney) { e.preventDefault(); setCreating(true); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage, canMoney]);
+
+  const exportCsv = () => downloadCsv('amc.csv', [
+    ['AMC', 'Customer', 'Phone', 'Pata', 'Shuru', 'Khatam', 'Visits', 'Ho chuki', 'Baqi visits', 'Fee', 'Mila', 'Halat'],
+    ...rows.map((a) => [a.amcNumber, a.customerName, a.customerPhone, a.serviceAddress, dayOnly(a.startDate), dayOnly(a.endDate), a.numberOfVisits, a.visitsUsed, a.visitsRemaining, a.contractValue, a.amountPaid, STATUS[a.status].label]),
+  ]);
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Shield className="h-3.5 w-3.5" />
-              Annual Contracts
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🛡️ AMC Contracts</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Recurring maintenance contracts with scheduled visits</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => expireMutation.mutate()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <Calendar className="h-4 w-4" />
-              Expire Old
-            </button>
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Contract
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="AMC contracts"
+        chip={<><Award /> Saal bhar ki service</>}
+        meta="Fee aaj bill, visits saal bhar — har visit ki job, renewal se pehle yaad-dihani"
+        loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={exportCsv} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && canMoney && <button type="button" onClick={() => setCreating(true)} title="Naya (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Contract</button>}
+        </>}
+        stats={[
+          { label: 'Chaalu contracts', value: activeAll.length },
+          { label: 'Saal ki fee', value: sales(activeAll.reduce((s, a) => s + a.contractValue, 0)) },
+          { label: 'Fee baqi', value: sales(activeAll.reduce((s, a) => s + Math.max(a.contractValue - a.amountPaid, 0), 0)) },
+        ]}
+      />
+      <KpiRow cols={4}>
+        {listQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Award} color="#7c3aed" label="Chaalu" value={activeAll.length} onClick={() => setShow('ACTIVE')} active={show === 'ACTIVE'} />
+          <KpiCard icon={CalendarClock} color={visitsDue.length ? '#0284c7' : '#64748b'} label="Visit is hafte" value={visitsDue.length} hint="Job banani hai" />
+          <KpiCard icon={RefreshCw} color={all.filter(ending).length ? '#d97706' : '#64748b'} label="30 din me khatam" value={all.filter(ending).length} hint="Renewal ki baat karein" onClick={() => setShow('ENDING')} active={show === 'ENDING'} />
+          <KpiCard icon={Wallet} color="#e11d48" label="Fee udhaar" value={sales(activeAll.reduce((s, a) => s + Math.max(a.contractValue - a.amountPaid, 0), 0))} />
+        </>}
+      </KpiRow>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="AMC #, customer, phone, pata…" label="Search" />}>
+        <FilterMenu icon={Filter} label={{ ACTIVE: 'Chaalu', ENDING: '30 din me khatam', EXPIRED: 'Khatam', CANCELLED: 'Cancel', ALL: 'Sab' }[show]} value={show} active={show !== 'ACTIVE'} onChange={setShow}
+          options={[{ value: 'ACTIVE' as Show, label: 'Chaalu' }, { value: 'ENDING' as Show, label: '30 din me khatam' }, { value: 'EXPIRED' as Show, label: 'Khatam' }, { value: 'CANCELLED' as Show, label: 'Cancel' }, { value: 'ALL' as Show, label: 'Sab' }]} />
+      </FilterBar>
+      <ViewTabs value="list" onChange={() => undefined} hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search</>} tabs={[{ id: 'list', label: 'Contracts', icon: Award, count: rows.length }]} />
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {['ACTIVE', 'all', 'RENEWAL_DUE', 'EXPIRED', 'CANCELLED', 'SUSPENDED'].map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>{s === 'all' ? 'All' : s.replace('_', ' ')}</button>
-        ))}
-      </div>
-
-      {showForm && (
-        <AmcForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['services-amc'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : contracts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Shield className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No AMC contracts</p>
+      {listQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !rows.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <Award className="mx-auto h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-semibold text-slate-900">Is list me koi contract nahi</p>
+          <p className="mt-1 text-sm text-slate-500">Daftar, school, hospital — saal bhar ki AC / generator service ka contract banayein, kamai pakki hoti hai.</p>
+          {canManage && canMoney && <Button className="mt-4" onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>Contract</Button>}
         </div>
       ) : (
-        <section className="grid gap-4">
-          {contracts.map((c) => <ContractCard key={c.id} contract={c} />)}
-        </section>
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          {rows.map((a) => {
+            const left = daysTo(a.endDate) ?? 0;
+            const due = Math.max(a.contractValue - a.amountPaid, 0);
+            return (
+              <li key={a.id}>
+                <button type="button" onClick={() => setOpen(a.id)} className="flex w-full items-start gap-3 px-3 py-3 text-left hover:bg-slate-50 sm:px-4">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><Award className="h-5 w-5" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <span className="truncate font-semibold text-slate-900">{a.customerName}</span>
+                      <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', STATUS[a.status].tone)}>{STATUS[a.status].label}</span>
+                      {ending(a) && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-medium text-amber-800 ring-1 ring-amber-200">{left} din baqi</span>}
+                      <span className="font-mono text-[0.6875rem] text-slate-400">{a.amcNumber}</span>
+                    </span>
+                    <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{(a.coveredItems ?? []).join(', ') || 'Maintenance'} — {a.serviceAddress}</span>
+                    <span className="mt-1 flex items-center gap-2 text-[0.75rem] text-slate-500">
+                      <span className="h-1.5 w-24 rounded-full bg-slate-100"><span className="block h-1.5 rounded-full bg-violet-500" style={{ width: `${(a.visitsUsed / Math.max(a.numberOfVisits, 1)) * 100}%` }} /></span>
+                      {a.visitsUsed}/{a.numberOfVisits} visits · {dayOnly(a.endDate)} tak
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-right">
+                    <span className="block font-semibold tabular-nums text-slate-900">{sales(a.contractValue)}</span>
+                    {due > 0 && a.status !== 'CANCELLED' && <span className="text-[0.75rem] font-medium tabular-nums text-amber-700">baqi {sales(due)}</span>}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </div>
+
+      {creating && <AmcModal pending={create.isPending} onSave={(v) => create.mutate(v)} onClose={() => setCreating(false)} />}
+      {openId && <AmcDetail id={openId} shopName={shopName} canManage={canManage} canMoney={canMoney} onClose={() => setOpen(null)} onJob={(id) => navigate(`/services-biz/jobs/${id}`)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="AMC — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#7c3aed', title: 'Contract', text: 'Customer, site, kya shamil hai, saal me kitni visits aur fee. Fee aaj ka bill banti hai; jo na mile wo khata me.' },
+            { icon: Briefcase, color: '#0284c7', title: 'Visit = job', text: 'Contract kholein → visit par "Job banayein". Kaam muft ho to job ka bill 0 — parts alag lag sakte hain. Job ka bill banate hi visit mukammal.' },
+            { icon: Wallet, color: '#16a34a', title: 'Baqi fee', text: '"Paisa lein" se baqi fee — khata me jama hoti hai, galla aur day book me aati hai.' },
+            { icon: RefreshCw, color: '#d97706', title: 'Renewal', text: '30 din pehle "khatam" list me aata hai — WhatsApp karein aur "Renew" se naya saal shuru karein.' },
+          ]}
+          tips={['Contract ka bill Sales se void karein to contract khud cancel ho jata hai. Paisa wapas karna ho to Sales → Return.']}
+          shortcuts={[['N', 'naya'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function ContractCard({ contract }: { contract: AmcContract }) {
-  const tier = TIERS.find((t) => t.value === contract.type);
-  const daysLeft = differenceInDays(new Date(contract.endDate), new Date());
-  const isExpiring = daysLeft <= 30 && daysLeft > 0 && contract.status === 'ACTIVE';
-  const visitsPct = contract.numberOfVisits > 0 ? (contract.visitsUsed / contract.numberOfVisits) * 100 : 0;
+function AmcDetail({ id, shopName, canManage, canMoney, onClose, onJob }: { id: string; shopName: string; canManage: boolean; canMoney: boolean; onClose: () => void; onJob: (id: string) => void }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: [AMC_KEY, 'one', id], queryFn: () => amcApi.getOne(id) });
+  const [dialog, setDialog] = useState<null | 'pay' | 'cancel' | 'renew'>(null);
+  const [reason, setReason] = useState('');
+  const [renewPaid, setRenewPaid] = useState('');
+  const a = q.data;
+  const refresh = (money = false) => [AMC_KEY, JOB_KEY, ...(money ? MONEY_KEYS : [])].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const visitJob = useMutation({
+    mutationFn: (visitId: string) => amcApi.visitJob(id, visitId),
+    onSuccess: (j) => { toast.success(`Job ${j.jobNumber} ban gayi`); refresh(); onJob(j.id); },
+    onError: (e) => toast.error(apiError(e, 'Job nahi bani')),
+  });
+  const pay = useMutation({
+    mutationFn: (v: { amount: number; method: PaymentMethod }) => amcApi.pay(id, v.amount, v.method),
+    onSuccess: () => { toast.success('Paisa mil gaya'); refresh(true); setDialog(null); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const cancel = useMutation({
+    mutationFn: () => amcApi.cancel(id, reason.trim()),
+    onSuccess: () => { toast.success('Contract cancel'); refresh(); setDialog(null); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const renew = useMutation({
+    mutationFn: () => amcApi.renew(id, { amountPaid: Number(renewPaid) || 0, paymentMode: 'CASH' }),
+    onSuccess: (n) => { toast.success(`Naya contract ${n.amcNumber}`); refresh(true); setDialog(null); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Renew nahi hua')),
+  });
+  const wa = a ? waLink(a.customerPhone, `Assalam o alaikum ${a.customerName},\n${shopName}: aap ka AMC ${a.amcNumber} ${dayOnly(a.endDate)} ko khatam ho raha hai. ${a.visitsRemaining} visits baqi hain. Renew karwane ke liye jawab dein. Shukriya!`) : undefined;
+  const active = !!a && ['ACTIVE', 'RENEWAL_DUE'].includes(a.status);
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-      <div className={'p-5 text-white bg-gradient-to-br ' + (tier?.color ?? 'from-slate-500 to-slate-700')}>
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-2xl">{tier?.emoji}</span>
-              <span className="font-extrabold">{contract.amcNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[contract.status]}>
-                {contract.status.replace('_', ' ')}
-              </span>
-              {isExpiring && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
-                  Expires in {daysLeft}d
-                </span>
-              )}
-            </div>
-            <div className="mt-2 text-sm font-bold">{contract.customerName}</div>
-            <div className="text-xs font-bold text-white/80 inline-flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {contract.customerPhone}
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-2xl font-extrabold tabular-nums">{formatPKR(contract.contractValue)}</div>
-            <div className="text-[0.6875rem] font-extrabold text-white/70">{tier?.label} • {contract.numberOfVisits} visits/yr</div>
-          </div>
+    <Modal open onClose={onClose} size="lg" title={a ? `${a.amcNumber} — ${a.customerName}` : 'AMC'} description={a ? `${dayOnly(a.startDate)} se ${dayOnly(a.endDate)} · ${a.serviceAddress}` : undefined}
+      footer={a ? <>
+        {canManage && active && <Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => { setReason(''); setDialog('cancel'); }}>Cancel</Button>}
+        {wa && <a href={wa} target="_blank" rel="noreferrer"><Button variant="secondary" leftIcon={<MessageCircle className="h-4 w-4" />}>WhatsApp</Button></a>}
+        {canManage && canMoney && a.status !== 'CANCELLED' && <Button variant="secondary" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => setDialog('renew')}>Renew</Button>}
+        {canMoney && a.due > 0 && <Button leftIcon={<Wallet className="h-4 w-4" />} onClick={() => setDialog('pay')}>Paisa lein</Button>}
+      </> : undefined}>
+      {!a ? <Skeleton className="h-64 rounded-xl" /> : (
+        <div className="space-y-4">
+          <dl className="grid grid-cols-2 gap-3 text-[0.8125rem] sm:grid-cols-4">
+            <Box label="Fee" value={formatPKR(a.contractValue)} />
+            <Box label="Mila" value={formatPKR(a.amountPaid)} />
+            <Box label="Baqi (khata)" value={formatPKR(a.due)} tone={a.due > 0 ? 'text-amber-700' : undefined} />
+            <Box label="Visits" value={`${a.visitsUsed}/${a.numberOfVisits}`} />
+          </dl>
+          <p className="text-[0.8125rem] text-slate-600">{(a.coveredItems ?? []).join(', ') || 'Maintenance'} · {a.includesLabour ? 'kaam muft' : 'kaam ka bill'} · {a.includesParts ? 'parts muft' : 'parts ka bill'}{a.sale && <> · bill <Link to={`/sales?search=${encodeURIComponent(a.sale.saleNumber)}`} className="font-semibold text-brand-700 hover:underline">{a.sale.saleNumber}</Link></>}</p>
+          {a.cancellationReason && <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-900">Cancel: {a.cancellationReason}</p>}
+          <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
+            {a.visits.length === 0 && <li className="px-3 py-4 text-center text-[0.8125rem] text-slate-500">Koi visit tay nahi</li>}
+            {a.visits.map((v) => {
+              const job = a.jobs.find((j) => j.id === v.serviceJobId);
+              return (
+                <li key={v.id} className="flex items-center gap-3 px-3 py-2.5">
+                  <span className={cn('flex h-8 w-8 items-center justify-center rounded-full text-[0.75rem] font-bold', v.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600')}>{v.status === 'COMPLETED' ? <CheckCircle2 className="h-4 w-4" /> : v.visitNumber}</span>
+                  <span className="min-w-0 flex-1 text-[0.8125rem]">
+                    <span className="block font-medium text-slate-900">Visit {v.visitNumber} — {dayOnly(v.scheduledDate)}</span>
+                    <span className="text-slate-500">{v.status === 'COMPLETED' ? `Mukammal ${dayOnly(v.completedAt)}` : job ? `Job ${job.jobNumber} · ${statusOf(job.status).label}` : (daysTo(v.scheduledDate) ?? 0) < 0 ? 'Waqt guzar gaya' : 'Tay hai'}</span>
+                  </span>
+                  {job ? <Button size="sm" variant="ghost" onClick={() => onJob(job.id)}>Job</Button>
+                    : canManage && active && v.status !== 'COMPLETED' && <Button size="sm" leftIcon={<Briefcase className="h-3.5 w-3.5" />} loading={visitJob.isPending && visitJob.variables === v.id} onClick={() => visitJob.mutate(v.id)}>Job banayein</Button>}
+                </li>
+              );
+            })}
+          </ul>
+          {dialog === 'pay' && (
+            <TakePaymentModal title={`Fee — ${a.amcNumber}`} description={a.customerName} amount={a.due} max={a.due} loading={pay.isPending}
+              onConfirm={(amount, method) => pay.mutate({ amount, method })} onClose={() => setDialog(null)} />
+          )}
+          {dialog === 'cancel' && (
+            <Modal open onClose={() => setDialog(null)} size="sm" title="Contract cancel karein?" description="Baqi visits band. Paisa wapas karna ho to Sales me is ke bill par Return karein."
+              footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button variant="danger" disabled={reason.trim().length < 3} loading={cancel.isPending} onClick={() => cancel.mutate()}>Cancel</Button></>}>
+              <Input label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
+            </Modal>
+          )}
+          {dialog === 'renew' && (
+            <Modal open onClose={() => setDialog(null)} size="sm" title="Agle saal ka contract" description={`Usi fee (${formatPKR(a.contractValue)}) aur visits par — ${dayOnly(a.endDate)} ke baad se`}
+              footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button loading={renew.isPending} onClick={() => renew.mutate()}>Renew</Button></>}>
+              <Input label="Abhi cash mila (Rs)" inputMode="decimal" value={renewPaid} onChange={(e) => setRenewPaid(e.target.value.replace(/[^\d.]/g, ''))} hint="Baqi khata me — card / bank ho to baad me 'Paisa lein' se" />
+            </Modal>
+          )}
         </div>
-      </div>
-
-      <div className="p-5 space-y-3">
-        <div>
-          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
-            <span className="text-slate-600">Visit Progress</span>
-            <span>{contract.visitsUsed} / {contract.numberOfVisits} used</span>
-          </div>
-          <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 to-green-600" style={{ width: visitsPct + '%' }} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
-            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Start</div>
-            <div className="text-xs font-extrabold">{format(new Date(contract.startDate), 'dd MMM yyyy')}</div>
-          </div>
-          <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
-            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">End</div>
-            <div className="text-xs font-extrabold">{format(new Date(contract.endDate), 'dd MMM yyyy')}</div>
-          </div>
-          <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Paid</div>
-            <div className="text-xs font-extrabold text-emerald-800">{formatPKR(contract.amountPaid)}</div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-1 text-[0.6875rem]">
-          {contract.includesLabour && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-extrabold">✅ Labour</span>}
-          {contract.includesParts && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-extrabold">✅ Parts</span>}
-          {contract.emergencyIncluded && <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-extrabold">🚨 Emergency</span>}
-          {contract.autoRenew && <span className="px-2 py-0.5 rounded bg-fuchsia-100 text-fuchsia-700 font-extrabold">🔄 Auto-renew</span>}
-        </div>
-
-        {contract.visits && contract.visits.length > 0 && (
-          <div className="pt-2 border-t">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-2">Scheduled Visits</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              {contract.visits.map((v: any) => (
-                <div key={v.id} className={
-                  'rounded-lg p-2 border-2 text-xs ' +
-                  (v.status === 'COMPLETED' ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30' :
-                   'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900')
-                }>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.625rem] font-extrabold text-slate-500">Visit #{v.visitNumber}</span>
-                    {v.status === 'COMPLETED' && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
-                  </div>
-                  <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{format(new Date(v.scheduledDate), 'dd MMM')}</div>
-                  <div className="text-[0.625rem] font-bold text-slate-500 uppercase">{v.status}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }
 
-function AmcForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerName: '', customerPhone: '', customerEmail: '',
-    type: 'STANDARD',
-    numberOfVisits: 4,
-    includesParts: false, includesLabour: true,
-    emergencyIncluded: false, emergencyDiscountPct: 0,
-    contractValue: 0, amountPaid: 0,
-    paymentInstallments: 1,
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '', // will auto-calc
-    autoRenew: false,
-    reminderDaysBefore: 30,
-    serviceAddress: '',
-    city: '',
-    autoScheduleVisits: true,
-    numberOfSites: 1,
-    notes: '',
-  });
-
-  // Auto-calc end date = start + 365 days
-  const computedEndDate = form.endDate || (() => {
-    const d = new Date(form.startDate);
-    d.setDate(d.getDate() + 365);
-    return d.toISOString().split('T')[0];
-  })();
-
-  const saveMutation = useMutation({
-    mutationFn: () => amcApi.create({
-      ...form,
-      endDate: form.endDate || computedEndDate,
-      numberOfVisits: Number(form.numberOfVisits),
-      contractValue: Number(form.contractValue) || 0,
-      amountPaid: Number(form.amountPaid) || 0,
-      emergencyDiscountPct: Number(form.emergencyDiscountPct) || 0,
-      paymentInstallments: Number(form.paymentInstallments) || 1,
-      reminderDaysBefore: Number(form.reminderDaysBefore) || 30,
-      numberOfSites: Number(form.numberOfSites) || 1,
-    }),
-    onSuccess: () => { toast.success('AMC created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">🛡️ New AMC Contract</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Contract Type *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {TIERS.map((t) => (
-              <button key={t.value} onClick={() => setForm({ ...form, type: t.value })} className={
-                'p-4 rounded-xl border-2 text-center transition ' +
-                (form.type === t.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
-              }>
-                <div className="text-3xl mb-1">{t.emoji}</div>
-                <div className="text-sm font-extrabold">{t.label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Visits per year *</label>
-            <input type="number" min="1" value={form.numberOfVisits} onChange={(e) => setForm({ ...form, numberOfVisits: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
-            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">End Date</label>
-            <input type="date" value={form.endDate || computedEndDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Contract Value *</label>
-            <input type="number" value={form.contractValue} onChange={(e) => setForm({ ...form, contractValue: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount Paid</label>
-            <input type="number" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        <div className="rounded-xl border-2 border-blue-200 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-2">
-          <div className="text-sm font-extrabold text-blue-900">Coverage</div>
-          <div className="grid grid-cols-2 gap-2">
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.includesLabour ? 'border-blue-500 bg-white' : 'border-slate-200 bg-white')}>
-              <input type="checkbox" checked={form.includesLabour} onChange={(e) => setForm({ ...form, includesLabour: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">✅ Labour Included</span>
-            </label>
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.includesParts ? 'border-emerald-500 bg-white' : 'border-slate-200 bg-white')}>
-              <input type="checkbox" checked={form.includesParts} onChange={(e) => setForm({ ...form, includesParts: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">✅ Parts Included</span>
-            </label>
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.emergencyIncluded ? 'border-red-500 bg-white' : 'border-slate-200 bg-white')}>
-              <input type="checkbox" checked={form.emergencyIncluded} onChange={(e) => setForm({ ...form, emergencyIncluded: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">🚨 Emergency Included</span>
-            </label>
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.autoRenew ? 'border-fuchsia-500 bg-white' : 'border-slate-200 bg-white')}>
-              <input type="checkbox" checked={form.autoRenew} onChange={(e) => setForm({ ...form, autoRenew: e.target.checked })} className="h-4 w-4 rounded" />
-              <span className="text-xs font-extrabold">🔄 Auto-renew</span>
-            </label>
-          </div>
-        </div>
-
-        <textarea rows={2} value={form.serviceAddress} onChange={(e) => setForm({ ...form, serviceAddress: e.target.value })} placeholder="Service address *" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-
-        <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-violet-200 bg-violet-50 cursor-pointer">
-          <input type="checkbox" checked={form.autoScheduleVisits} onChange={(e) => setForm({ ...form, autoScheduleVisits: e.target.checked })} className="h-5 w-5 rounded" />
-          <div className="flex-1">
-            <div className="text-sm font-extrabold text-violet-900">📅 Auto-schedule {form.numberOfVisits} quarterly visits</div>
-            <div className="text-xs text-violet-700 font-semibold">System will create visit slots automatically</div>
-          </div>
-        </label>
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName || !form.contractValue || !form.serviceAddress}>
-            <Shield className="h-4 w-4" />
-            Create Contract
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
+function Box({ label, value, tone }: { label: string; value: string; tone?: string }) {
+  return <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">{label}</dt><dd className={cn('text-base font-bold tabular-nums text-slate-900', tone)}>{value}</dd></div>;
 }

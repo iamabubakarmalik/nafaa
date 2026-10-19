@@ -33,14 +33,26 @@ export interface DairyFarmer {
   cnicBackUrl?: string;
   notes?: string;
   isActive: boolean;
-  recentSupplies?: any[];
+  recentSupplies?: import('./farmer-supplies.api').FarmerSupply[];
+  cashPayments?: Array<{ id: string; amount: number; reason: string; createdAt: string }>;
   createdAt: string;
   updatedAt: string;
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
+export interface FarmerInput {
+  name: string; fatherName?: string; cnic?: string; phone?: string; address?: string; village?: string; city?: string;
+  buffaloCount?: number; cowCount?: number; totalCapacityLiters?: number; ratePerLiter?: number; fatBonusRate?: number;
+  paymentCycle?: BillingCycle; notes?: string; isActive?: boolean;
+}
+export interface FarmerSummary { totalFarmers: number; activeFarmers: number; totalPayable: number; lifetimeSupplied: number; lifetimePaid: number }
+
 export const farmersApi = {
+  all: (params: { search?: string; active?: boolean }) => apiClient.get('/dairy/farmers', { params }).then(unwrap<DairyFarmer[]>),
+  totals: () => apiClient.get('/dairy/farmers/summary').then(unwrap<FarmerSummary>),
+  save: (id: string | undefined, data: Partial<FarmerInput>) => (id
+    ? apiClient.patch('/dairy/farmers/' + id, data) : apiClient.post('/dairy/farmers', data)).then(unwrap<DairyFarmer>),
   create: (data: Partial<DairyFarmer>) => apiClient.post('/dairy/farmers', data).then(unwrap<DairyFarmer>),
   list: (params?: any) => apiClient.get('/dairy/farmers', { params }).then(unwrap<DairyFarmer[]>),
   summary: () => apiClient.get('/dairy/farmers/summary').then(unwrap<any>),

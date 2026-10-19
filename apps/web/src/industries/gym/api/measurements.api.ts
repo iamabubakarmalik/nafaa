@@ -36,7 +36,4 @@ const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const measurementsApi = {
   create: (data: Partial<BodyMeasurement> & { memberId: string }) => apiClient.post('/gym/measurements', data).then(unwrap<BodyMeasurement>),
-  byMember: (memberId: string) => apiClient.get('/gym/measurements/by-member/' + memberId).then(unwrap<BodyMeasurement[]>),
-  progress: (memberId: string) => apiClient.get('/gym/measurements/progress/' + memberId).then(unwrap<any>),
-  remove: (id: string) => apiClient.delete('/gym/measurements/' + id).then(unwrap),
 };

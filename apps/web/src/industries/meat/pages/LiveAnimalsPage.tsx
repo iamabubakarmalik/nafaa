@@ -1,502 +1,335 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Heart, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  DollarSign, Calendar, Weight, Activity, CheckCircle2, AlertCircle,
-  User, Camera, TrendingUp, Package,
-} from 'lucide-react';
-import { liveAnimalsApi, type LiveAnimal } from '../api/live-animals.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Live stock and mandi purchases. A mandi purchase (birds by weight, or
+ * tagged animals) is a supplier purchase of the shop's live-stock item: the
+ * money reaches the supplier khata, day book and drawer, the live kg come
+ * into stock at cost, and slaughter later turns them into meat. Tagged
+ * animals keep health, feed (paid as an expense) and slaughter details.
+ *
+ * Keys: N mandi purchase · / search · 1 animals · 2 analytics · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+import {
+  BarChart3, Bird, Ban, FileSpreadsheet, GraduationCap, Heart, HeartPulse, Plus, Scale, ShieldCheck, Trash2, Truck, Wheat,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  Button, FilterBar, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { liveAnimalsApi, type LiveAnimal, type MandiInput } from '../api/live-animals.api';
+import { ItemPick, PickedChip, SupplierPick, type PickedSupplier } from '../components/pickers';
+import { MethodPicker } from '../components/money';
+import { FormRow, ListFrame, Pill, inputBox, useConfirm, usePageKeys } from '../components/ui';
+import { ANIMALS, KEYS, MONEY_KEYS, animalOf, apiError, dateOnly, decimal, kg, todayKey, type PayMethod } from '../lib/meta';
 
-const ANIMAL_TYPES = [
-  { value: 'BEEF', label: 'Cow/Beef', emoji: '🐄' },
-  { value: 'BUFFALO', label: 'Buffalo', emoji: '🐃' },
-  { value: 'MUTTON', label: 'Sheep/Mutton', emoji: '🐑' },
-  { value: 'GOAT', label: 'Goat', emoji: '🐐' },
-  { value: 'LAMB', label: 'Lamb', emoji: '🐏' },
-  { value: 'CAMEL', label: 'Camel', emoji: '🐫' },
-  { value: 'CHICKEN', label: 'Chicken', emoji: '🐔' },
-  { value: 'DUCK', label: 'Duck', emoji: '🦆' },
-  { value: 'TURKEY', label: 'Turkey', emoji: '🦃' },
-  { value: 'QUAIL', label: 'Quail', emoji: '🐦' },
-  { value: 'OTHER', label: 'Other', emoji: '🥩' },
-];
+type View = 'animals' | 'analytics';
+type Show = 'alive' | 'slaughtered' | 'all';
 
-export default function LiveAnimalsPage() {
-  const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [animalFilter, setAnimalFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('alive');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<LiveAnimal | null>(null);
-  const [addingFeed, setAddingFeed] = useState<LiveAnimal | null>(null);
+interface AnimalRow { tagNumber: string; animalType: string; breed: string; weightKg: string; price: string }
+const blankAnimal = (type = 'MUTTON'): AnimalRow => ({ tagNumber: '', animalType: type, breed: '', weightKg: '', price: '' });
 
-  const { data: animals = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['live-animals', animalFilter, statusFilter, search],
-    queryFn: () => liveAnimalsApi.list({
-      animalType: animalFilter === 'all' ? undefined : animalFilter,
-      isSlaughtered: statusFilter === 'alive' ? false : statusFilter === 'slaughtered' ? true : undefined,
-      isSold: statusFilter === 'sold' ? true : undefined,
-      search: search.trim() || undefined,
-    }),
+function MandiModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [supplier, setSupplier] = useState<PickedSupplier | null>(null);
+  const [item, setItem] = useState<{ id: string; name: string } | null>(null);
+  const [mode, setMode] = useState<'kg' | 'animals'>('kg');
+  const [kgs, setKgs] = useState('');
+  const [rate, setRate] = useState('');
+  const [birds, setBirds] = useState('');
+  const [animals, setAnimals] = useState<AnimalRow[]>([blankAnimal()]);
+  const [other, setOther] = useState('');
+  const [paid, setPaid] = useState('');
+  const [method, setMethod] = useState<PayMethod>('CASH');
+  const [date, setDate] = useState(todayKey());
+  const [tried, setTried] = useState(false);
+
+  const goods = mode === 'kg' ? (Number(kgs) || 0) * (Number(rate) || 0) : animals.reduce((s, a) => s + (Number(a.price) || 0), 0);
+  const total = goods + (Number(other) || 0);
+  const errors: Record<string, string> = {};
+  if (!supplier) errors.supplier = 'Supplier (beopari / mandi) chunein';
+  if (!item) errors.item = 'Zinda maal ka item chunein (jaise "Zinda murgi")';
+  if (mode === 'kg') {
+    if (!(Number(kgs) > 0)) errors.kg = 'Kitne kg aaya';
+    if (!(Number(rate) > 0)) errors.rate = 'Zinda rate / kg';
+  } else if (animals.some((a) => !(Number(a.weightKg) > 0) || !(Number(a.price) > 0))) errors.animals = 'Har janwar ka wazan aur qeemat likhein';
+  if ((Number(paid) || 0) > total + 0.005) errors.paid = 'Diya hua paisa purchase se zyada nahi';
+  const err = (k: string) => (tried ? errors[k] : undefined);
+
+  const save = useMutation({
+    mutationFn: () => liveAnimalsApi.mandi({
+      supplierId: supplier!.id, productId: item!.id, paymentMethod: method, paidAmount: paid === '' ? 0 : Number(paid), otherCharges: Number(other) || undefined, purchasedAt: date,
+      ...(mode === 'kg'
+        ? { kg: Number(kgs), ratePerKg: Number(rate), birds: Number(birds) || undefined }
+        : { animals: animals.map((a) => ({ tagNumber: a.tagNumber.trim() || undefined, animalType: a.animalType, breed: a.breed.trim() || undefined, weightKg: Number(a.weightKg), price: Number(a.price) })) }),
+    } as MandiInput),
+    onSuccess: (r) => { toast.success(`Purchase ${r.purchaseNumber} ban gayi — ${formatPKR(r.total)}`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Purchase save nahi hui')),
   });
-
-  const { data: summary } = useQuery({
-    queryKey: ['live-animals-summary'],
-    queryFn: () => liveAnimalsApi.summary(),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => liveAnimalsApi.remove(id),
-    onSuccess: () => {
-      toast.success('Animal deactivated');
-      queryClient.invalidateQueries({ queryKey: ['live-animals'] });
-      queryClient.invalidateQueries({ queryKey: ['live-animals-summary'] });
-    },
-  });
-
-  const totalInvestment = (summary?.totalCost?._sum?.purchasePrice ?? 0) + (summary?.totalCost?._sum?.totalFeedCost ?? 0);
+  const submit = () => { setTried(true); const first = Object.values(errors)[0]; if (first) { toast.error(first); return; } save.mutate(); };
+  const setA = (i: number, patch: Partial<AnimalRow>) => setAnimals((as) => as.map((a, j) => (j === i ? { ...a, ...patch } : a)));
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Heart className="h-3.5 w-3.5 text-amber-300" />
-              Livestock Inventory
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🐄 Live Animals</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Purchase → Feeding → Slaughter tracking</p>
+    <Modal open onClose={onClose} size="lg" title="Mandi se maal aaya" description="Supplier purchase banti hai: supplier khata, galla aur stock sab ek saath"
+      footer={<>
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button loading={save.isPending} onClick={submit} leftIcon={<Truck className="h-4 w-4" />}>Purchase save · {formatPKR(total)}</Button>
+      </>}>
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FormRow label="Supplier"><SupplierPick value={supplier} onChange={setSupplier} error={err('supplier')} /></FormRow>
+          <FormRow label="Zinda maal ka item" hint="Kg wala item jo zibah me istemal hota hai">
+            {item ? <PickedChip title={item.name} onClear={() => setItem(null)} /> : <ItemPick onPick={(i) => setItem({ id: i.id, name: i.name })} placeholder="Zinda murgi, bakra zinda…" error={err('item')} />}
+          </FormRow>
+        </div>
+        <Segmented<'kg' | 'animals'> label="Kaise aaya" value={mode} onChange={setMode}
+          items={[{ value: 'kg', label: <span className="inline-flex items-center gap-1.5"><Bird className="h-3.5 w-3.5" />Wazan se (murgi)</span> }, { value: 'animals', label: <span className="inline-flex items-center gap-1.5"><Heart className="h-3.5 w-3.5" />Janwar (tag ke saath)</span> }]} />
+        {mode === 'kg' ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <FormRow label="Kul zinda wazan (kg)" error={err('kg')}><input data-autofocus inputMode="decimal" value={kgs} onChange={(e) => setKgs(decimal(e.target.value))} className={cn(inputBox, 'text-right font-semibold')} aria-invalid={!!err('kg')} /></FormRow>
+            <FormRow label="Zinda rate / kg" error={err('rate')}><input inputMode="decimal" value={rate} onChange={(e) => setRate(decimal(e.target.value))} className={cn(inputBox, 'text-right')} aria-invalid={!!err('rate')} /></FormRow>
+            <FormRow label="Kitne parinde (marzi)"><input inputMode="numeric" value={birds} onChange={(e) => setBirds(e.target.value.replace(/\D/g, ''))} className={cn(inputBox, 'text-right')} /></FormRow>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Animal
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Alive Animals" value={summary?.aliveCount ?? 0} icon={Heart} color="emerald" />
-        <StatCard label="Total Investment" value={formatPKR(totalInvestment)} icon={DollarSign} color="amber" />
-        <StatCard label="Purchase Cost" value={formatPKR(summary?.totalCost?._sum?.purchasePrice ?? 0)} icon={Package} color="blue" />
-        <StatCard label="Feed Cost" value={formatPKR(summary?.totalCost?._sum?.totalFeedCost ?? 0)} icon={Activity} color="orange" />
-      </section>
-
-      {/* Filters */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tag #, breed, vendor..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setAnimalFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (animalFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All</button>
-          {ANIMAL_TYPES.map((a) => (
-            <button key={a.value} onClick={() => setAnimalFilter(a.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (animalFilter === a.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{a.emoji} {a.label}</button>
-          ))}
-        </div>
-        <div className="flex gap-1.5">
-          {[
-            { v: 'alive', label: '🐄 Alive' },
-            { v: 'slaughtered', label: '⚔️ Slaughtered' },
-            { v: 'sold', label: '💰 Sold' },
-            { v: 'all', label: 'All' },
-          ].map((s) => (
-            <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{s.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <AnimalForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false);
-            setEditing(null);
-            queryClient.invalidateQueries({ queryKey: ['live-animals'] });
-            queryClient.invalidateQueries({ queryKey: ['live-animals-summary'] });
-          }}
-        />
-      )}
-
-      {addingFeed && (
-        <FeedCostModal
-          animal={addingFeed}
-          onClose={() => setAddingFeed(null)}
-          onSaved={() => {
-            setAddingFeed(null);
-            queryClient.invalidateQueries({ queryKey: ['live-animals'] });
-          }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : animals.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Heart className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No animals in inventory</p>
-          <Button className="mt-4 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" />
-            Add First Animal
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {animals.map((animal) => (
-            <AnimalCard
-              key={animal.id}
-              animal={animal}
-              onEdit={() => { setEditing(animal); setShowForm(true); }}
-              onAddFeed={() => setAddingFeed(animal)}
-              onDelete={() => { if (confirm('Remove ' + animal.tagNumber + '?')) removeMutation.mutate(animal.id); }}
-            />
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    emerald: 'from-emerald-500 to-green-600',
-    amber: 'from-amber-500 to-orange-600',
-    blue: 'from-blue-500 to-cyan-600',
-    orange: 'from-orange-500 to-red-600',
-  };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
-  const animalCfg = ANIMAL_TYPES.find((a) => a.value === animal.animalType);
-  const daysHeld = differenceInDays(new Date(), new Date(animal.purchaseDate));
-  const totalCost = animal.purchasePrice + animal.totalFeedCost;
-  const costPerKg = animal.weightKg > 0 ? totalCost / animal.weightKg : 0;
-
-  return (
-    <div className={
-      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 ' +
-      (animal.isSlaughtered ? 'border-slate-300 opacity-70' : animal.isSold ? 'border-blue-300' : 'border-emerald-200')
-    }>
-      <div className="flex items-start gap-3">
-        {animal.photoUrls?.[0] ? (
-          <img src={animal.photoUrls[0]} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 shrink-0" />
         ) : (
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center text-3xl shrink-0">
-            {animalCfg?.emoji}
+          <div className="space-y-2">
+            {animals.map((a, i) => (
+              <div key={i} className="grid gap-2 rounded-xl bg-slate-50 p-2.5 ring-1 ring-slate-200 sm:grid-cols-[7rem_8rem_1fr_6rem_7rem_auto]">
+                <input value={a.tagNumber} onChange={(e) => setA(i, { tagNumber: e.target.value })} placeholder="Tag (khud)" aria-label="Tag" className="h-10 rounded-lg bg-white px-2.5 text-[0.875rem] ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-brand-500" />
+                <select value={a.animalType} onChange={(e) => setA(i, { animalType: e.target.value })} aria-label="Janwar" className="h-10 rounded-lg bg-white px-2 text-[0.875rem] ring-1 ring-slate-200">
+                  {ANIMALS.filter((x) => !['FISH', 'PRAWN', 'QUAIL'].includes(x.value)).map((x) => <option key={x.value} value={x.value}>{x.emoji} {x.label}</option>)}
+                </select>
+                <input value={a.breed} onChange={(e) => setA(i, { breed: e.target.value })} placeholder="Nasal (Teddy, Sahiwal…)" aria-label="Nasal" className="h-10 rounded-lg bg-white px-2.5 text-[0.875rem] ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-brand-500" />
+                <input inputMode="decimal" value={a.weightKg} onChange={(e) => setA(i, { weightKg: decimal(e.target.value) })} placeholder="Kg" aria-label="Wazan" className="h-10 rounded-lg bg-white px-2.5 text-right text-[0.875rem] ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-brand-500" />
+                <input inputMode="decimal" value={a.price} onChange={(e) => setA(i, { price: decimal(e.target.value) })} placeholder="Qeemat" aria-label="Qeemat" className="h-10 rounded-lg bg-white px-2.5 text-right text-[0.875rem] ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-brand-500" />
+                <button type="button" aria-label="Hatayein" disabled={animals.length === 1} onClick={() => setAnimals((as) => as.filter((_, j) => j !== i))} className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ))}
+            {err('animals') && <p className="text-[0.75rem] font-medium text-rose-600">{err('animals')}</p>}
+            <Button size="sm" variant="ghost" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAnimals((as) => [...as, blankAnimal(as[as.length - 1]?.animalType)])}>Aur janwar</Button>
+            <p className="text-[0.75rem] text-slate-500">Wazan andaze se bhi chalega — zibah par asal zinda wazan dobara likha jata hai.</p>
           </div>
         )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-ink-white">{animal.tagNumber}</span>
-            {animal.isSlaughtered ? (
-              <span className="px-1.5 py-0.5 rounded bg-slate-600 text-white text-[0.625rem] font-extrabold uppercase">SLAUGHTERED</span>
-            ) : animal.isSold ? (
-              <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[0.625rem] font-extrabold uppercase">SOLD</span>
-            ) : (
-              <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">ALIVE</span>
-            )}
-            {!animal.isHealthy && (
-              <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-                <AlertCircle className="h-2 w-2" />
-                SICK
-              </span>
-            )}
-          </div>
-          <div className="text-xs font-bold text-slate-600 mt-0.5">
-            {animalCfg?.label} {animal.breed && '• ' + animal.breed}
-          </div>
-          {animal.sex && (
-            <div className="text-[0.6875rem] font-bold text-slate-500">
-              {animal.sex} {animal.ageMonths && '• ' + animal.ageMonths + ' months'}
-            </div>
-          )}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FormRow label="Kiraya / mazdoori" hint="Purchase ki cost me judta hai"><input inputMode="decimal" value={other} onChange={(e) => setOther(decimal(e.target.value))} className={cn(inputBox, 'text-right')} placeholder="0" /></FormRow>
+          <FormRow label="Abhi diya" error={err('paid')} hint="Baqi supplier ke khate me"><input inputMode="decimal" value={paid} onChange={(e) => setPaid(decimal(e.target.value))} className={cn(inputBox, 'text-right')} placeholder="0" aria-invalid={!!err('paid')} /></FormRow>
+          <FormRow label="Tareekh"><input type="date" max={todayKey()} value={date} onChange={(e) => setDate(e.target.value)} className={inputBox} /></FormRow>
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Weight</div>
-          <div className="text-lg font-extrabold tabular-nums">{animal.weightKg}kg</div>
-        </div>
-        <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Days Held</div>
-          <div className="text-lg font-extrabold text-blue-800 tabular-nums">{daysHeld || animal.daysHeld}d</div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-1.5 text-xs">
-        <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Purchase</div>
-          <div className="text-xs font-extrabold text-amber-800 tabular-nums">{formatPKR(animal.purchasePrice).replace('Rs', '').trim()}</div>
-        </div>
-        <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 p-2 text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-orange-700">Feed</div>
-          <div className="text-xs font-extrabold text-orange-800 tabular-nums">{formatPKR(animal.totalFeedCost).replace('Rs', '').trim()}</div>
-        </div>
-        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
-          <div className="text-xs font-extrabold text-emerald-800 tabular-nums">{formatPKR(totalCost).replace('Rs', '').trim()}</div>
-        </div>
-      </div>
-
-      {costPerKg > 0 && (
-        <div className="text-center text-xs">
-          <span className="text-slate-500 font-semibold">Cost/kg:</span>{' '}
-          <span className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(costPerKg)}</span>
-        </div>
-      )}
-
-      {animal.vendorName && (
-        <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
-          <User className="h-2.5 w-2.5 inline mr-0.5" />
-          From: {animal.vendorName}
-        </div>
-      )}
-
-      {/* Actions */}
-      {!animal.isSlaughtered && !animal.isSold && (
-        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <button onClick={onAddFeed} className="flex-1 h-9 rounded-lg bg-orange-100 dark:bg-orange-950/40 hover:bg-orange-200 text-orange-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-            <Activity className="h-3 w-3" />
-            Feed Cost
-          </button>
-          <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-    </div>
+        {(Number(paid) || 0) > 0 && <MethodPicker value={method} onChange={setMethod} />}
+        <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">Kul purchase <strong className="tabular-nums">{formatPKR(total)}</strong>{mode === 'kg' && Number(kgs) > 0 ? ` · ${kg(Number(kgs))}` : ''} — baqi supplier ka {formatPKR(Math.max(total - (Number(paid) || 0), 0))}</p>
+      </form>
+    </Modal>
   );
 }
 
-function AnimalForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    tagNumber: editing?.tagNumber ?? '',
-    animalType: editing?.animalType ?? 'GOAT',
-    breed: editing?.breed ?? '',
-    color: editing?.color ?? '',
-    sex: editing?.sex ?? '',
-    ageMonths: editing?.ageMonths ?? '',
-    weightKg: editing?.weightKg ?? 0,
-    purchasePrice: editing?.purchasePrice ?? 0,
-    purchaseDate: editing?.purchaseDate ? editing.purchaseDate.slice(0, 10) : format(new Date(), 'yyyy-MM-dd'),
-    vendorName: editing?.vendorName ?? '',
-    sourceName: editing?.sourceName ?? '',
-    vaccinationStatus: editing?.vaccinationStatus ?? '',
-    isHealthy: editing?.isHealthy ?? true,
-    healthNotes: editing?.healthNotes ?? '',
-    feedingType: editing?.feedingType ?? '',
-    dailyFeedCost: editing?.dailyFeedCost ?? 0,
-    photoUrls: editing?.photoUrls ?? [],
-    notes: editing?.notes ?? '',
+function FeedModal({ a, onClose, onDone }: { a: LiveAnimal; onClose: () => void; onDone: () => void }) {
+  const [days, setDays] = useState('1');
+  const [perDay, setPerDay] = useState(a.dailyFeedCost ? String(a.dailyFeedCost) : '');
+  const [method, setMethod] = useState<PayMethod>('CASH');
+  const amount = (Number(days) || 0) * (Number(perDay) || 0);
+  const save = useMutation({
+    mutationFn: () => liveAnimalsApi.addFeedCost(a.id, Number(days), Number(perDay), method),
+    onSuccess: () => { toast.success(`Chara ${formatPKR(amount)} expense me likh diya`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Chara save nahi hua')),
+  });
+  const bad = !(Number(days) >= 1 && Number(days) <= 365 && Number.isInteger(Number(days))) || !(Number(perDay) > 0);
+  return (
+    <Modal open onClose={onClose} size="sm" title={`Chara — ${a.tagNumber}`} description="Diya hua kharcha: Expense banta hai aur galle se nikalta hai"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={bad} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Wheat className="h-4 w-4" />}>Save · {formatPKR(amount)}</Button></>}>
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Input data-autofocus label="Kitne din" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} />
+          <Input label="Rozana kharcha" inputMode="decimal" value={perDay} onChange={(e) => setPerDay(decimal(e.target.value))} />
+        </div>
+        <MethodPicker value={method} onChange={setMethod} />
+      </div>
+    </Modal>
+  );
+}
+
+function HealthModal({ a, onClose, onDone }: { a: LiveAnimal; onClose: () => void; onDone: () => void }) {
+  const [healthy, setHealthy] = useState(a.isHealthy);
+  const [vacc, setVacc] = useState(a.vaccinationStatus ?? '');
+  const [notes, setNotes] = useState(a.healthNotes ?? '');
+  const [weight, setWeight] = useState(String(a.weightKg));
+  const save = useMutation({
+    mutationFn: () => liveAnimalsApi.update(a.id, { isHealthy: healthy, vaccinationStatus: vacc, healthNotes: notes, ...(Number(weight) !== a.weightKg && { weightKg: Number(weight) }) }),
+    onSuccess: () => { toast.success('Save ho gaya'); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`Sehat — ${a.tagNumber}`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!(Number(weight) > 0)} loading={save.isPending} onClick={() => save.mutate()}>Save</Button></>}>
+      <div className="space-y-3">
+        <Segmented<'yes' | 'no'> label="Sehat" value={healthy ? 'yes' : 'no'} onChange={(v) => setHealthy(v === 'yes')} items={[{ value: 'yes', label: 'Theek' }, { value: 'no', label: 'Bimar' }]} />
+        <Input label="Wazan (kg)" inputMode="decimal" value={weight} onChange={(e) => setWeight(decimal(e.target.value))} />
+        <Input label="Teeke" value={vacc} onChange={(e) => setVacc(e.target.value)} placeholder="FMD lag gaya, deworming…" maxLength={200} />
+        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} />
+      </div>
+    </Modal>
+  );
+}
+
+export default function LiveAnimalsPage() {
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { cost } = useMasked();
+  const canBuy = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const canExpense = usePermission(PERMISSIONS.EXPENSES_CREATE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<View>('animals');
+  const [show, setShow] = useState<Show>('alive');
+  const [type, setType] = useState('');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [mandi, setMandi] = useState(false);
+  const [feed, setFeed] = useState<LiveAnimal | null>(null);
+  const [health, setHealth] = useState<LiveAnimal | null>(null);
+  const [ask, confirmDialog] = useConfirm();
+
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  const params = { animalType: type || undefined, search: query || undefined, isSlaughtered: show === 'all' ? undefined : String(show === 'slaughtered') };
+  const listQ = useQuery({ queryKey: [KEYS.animals, params], queryFn: () => liveAnimalsApi.list(params), placeholderData: (p) => p });
+  const sumQ = useQuery({ queryKey: ['live-animals-summary'], queryFn: () => liveAnimalsApi.summary() });
+  const rows = listQ.data ?? [];
+  const s = sumQ.data;
+  const refresh = () => [KEYS.animals, 'live-animals-summary', 'purchases', 'suppliers', 'expenses', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const remove = useMutation({
+    mutationFn: (a: LiveAnimal) => liveAnimalsApi.remove(a.id),
+    onSuccess: () => { toast.success('List se hata diya'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hata')),
   });
 
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        ...form,
-        weightKg: Number(form.weightKg) || 0,
-        purchasePrice: Number(form.purchasePrice) || 0,
-        ageMonths: form.ageMonths ? Number(form.ageMonths) : undefined,
-        dailyFeedCost: Number(form.dailyFeedCost) || 0,
-      };
-      return editing ? liveAnimalsApi.update(editing.id, payload) : liveAnimalsApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Animal updated' : 'Animal added'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  usePageKeys({ n: canBuy ? () => setMandi(true) : undefined, '1': () => setView('animals'), '2': () => setView('analytics'), g: guide.open }, searchRef);
+
+  const totals = useMemo(() => ({
+    cost: (s?.totalCost._sum.purchasePrice ?? 0) + (s?.totalCost._sum.totalFeedCost ?? 0),
+    kg: (s?.byType ?? []).reduce((t, b) => t + (b._sum.weightKg ?? 0), 0),
+    sick: rows.filter((a) => !a.isHealthy && !a.isSlaughtered).length,
+  }), [s, rows]);
+
+  const printDoc = (): PrintDoc => ({
+    title: 'Zinda janwar', subtitle: show === 'alive' ? 'Baara me' : show === 'slaughtered' ? 'Zibah ho chuke' : 'Sab',
+    sections: [{ kind: 'table', columns: [{ label: 'Tag' }, { label: 'Janwar' }, { label: 'Kg', align: 'right' }, { label: 'Qeemat', align: 'right' }, { label: 'Chara', align: 'right' }, { label: 'Supplier', wideOnly: true }],
+      rows: rows.map((a) => [a.tagNumber, `${animalOf(a.animalType).label} ${a.breed ?? ''}`, String(a.weightKg), formatPKR(a.purchasePrice), formatPKR(a.totalFeedCost), a.vendorName ?? '']) }],
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Animal' : 'Add Live Animal'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.tagNumber} onChange={(e) => setForm({ ...form, tagNumber: e.target.value })} placeholder="Tag # (auto if blank)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
-          <select value={form.animalType} onChange={(e) => setForm({ ...form, animalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-            {ANIMAL_TYPES.map((a) => <option key={a.value} value={a.value}>{a.emoji} {a.label}</option>)}
-          </select>
-          <input value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })} placeholder="Breed (Sahiwal, Beetal, Kajli...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <select value={form.sex} onChange={(e) => setForm({ ...form, sex: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-            <option value="">-- Sex --</option>
-            <option value="Male">♂️ Male</option>
-            <option value="Female">♀️ Female</option>
-          </select>
-          <input type="number" value={form.ageMonths} onChange={(e) => setForm({ ...form, ageMonths: e.target.value })} placeholder="Age (months)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-amber-500" />
-        </div>
+    <PageShell>
+      <PageHero
+        title="Zinda maal aur mandi"
+        chip={<><Heart /> Murgi, bakra, gaye</>}
+        meta="Mandi ka maal purchase banta hai; zibah se gosht stock me aata hai"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={sumQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
+          <button type="button" title="CSV" className={heroIconButton} disabled={!rows.length}
+            onClick={() => downloadCsv('zinda-janwar.csv', [['Tag', 'Janwar', 'Nasal', 'Kg', 'Qeemat', 'Chara', 'Supplier', 'Purchase', 'Zibah'], ...rows.map((a) => [a.tagNumber, animalOf(a.animalType).label, a.breed, a.weightKg, a.purchasePrice, a.totalFeedCost, a.vendorName, a.sourceName, a.isSlaughtered ? 'Haan' : ''])])}>
+            <FileSpreadsheet className="h-4 w-4" />
+          </button>
+          <Link to="/meat/slaughter" className={heroButton}><ShieldCheck className="h-4 w-4" /><span className="hidden sm:inline">Zibah</span></Link>
+          <Link to="/purchases" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Purchases</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canBuy && <button type="button" onClick={() => setMandi(true)} title="Mandi purchase (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Mandi se aaya</button>}
+        </>}
+        stats={s ? [{ label: 'Baara me', value: s.aliveCount }, { label: 'Kul wazan', value: kg(totals.kg) }, { label: 'Cost + chara', value: cost(totals.cost) }] : [{ label: 'Baara me', value: '—' }]}
+      />
 
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Weight (kg) *</label>
-            <input type="number" step="0.1" value={form.weightKg} onChange={(e) => setForm({ ...form, weightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Purchase Price *</label>
-            <input type="number" step="0.01" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Purchase Date</label>
-            <input type="date" value={form.purchaseDate} onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
+      <KpiRow cols={4}>
+        {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Heart} color="#dc2626" label="Baara me" value={s.aliveCount} hint={kg(totals.kg)} onClick={() => setShow('alive')} active={show === 'alive'} />
+          <KpiCard icon={Scale} color="#0891b2" label="Purchase cost" value={cost(s.totalCost._sum.purchasePrice)} hint="Zinda janwar" />
+          <KpiCard icon={Wheat} color="#a16207" label="Chara" value={cost(s.totalCost._sum.totalFeedCost)} hint="Expense me" />
+          <KpiCard icon={HeartPulse} color={totals.sick ? '#e11d48' : '#64748b'} label="Bimar" value={totals.sick} hint={totals.sick ? 'Vet ko dikhayein' : 'Sab theek'} />
+        </>}
+      </KpiRow>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.vendorName} onChange={(e) => setForm({ ...form, vendorName: e.target.value })} placeholder="Vendor / Seller name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} placeholder="Source (Mandi, Farm...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-        </div>
+      {view === 'animals' && (
+        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Tag, nasal, supplier, purchase #…" label="Search" />}>
+          <FilterMenu icon={Heart} label={show === 'alive' ? 'Baara me' : show === 'slaughtered' ? 'Zibah ho gaye' : 'Sab'} value={show} active={show !== 'alive'} onChange={setShow}
+            options={[{ value: 'alive', label: 'Baara me' }, { value: 'slaughtered', label: 'Zibah ho gaye' }, { value: 'all', label: 'Sab' }]} />
+          <FilterMenu icon={Bird} label={type ? animalOf(type).label : 'Sab janwar'} value={type} active={!!type} onChange={setType}
+            options={[{ value: '', label: 'Sab janwar' }, ...ANIMALS.map((a) => ({ value: a.value, label: `${a.emoji} ${a.label}` }))]} />
+        </FilterBar>
+      )}
 
-        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-2">
-          <div className="text-sm font-extrabold text-emerald-900 flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Health & Vaccination
-          </div>
-          <input value={form.vaccinationStatus} onChange={(e) => setForm({ ...form, vaccinationStatus: e.target.value })} placeholder="Vaccination status" className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <label className="flex items-center gap-2 p-2 rounded-lg cursor-pointer">
-            <input type="checkbox" checked={form.isHealthy} onChange={(e) => setForm({ ...form, isHealthy: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold text-emerald-900">Animal is healthy</span>
-          </label>
-          <textarea rows={2} value={form.healthNotes} onChange={(e) => setForm({ ...form, healthNotes: e.target.value })} placeholder="Health notes..." className="w-full rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-        </div>
+      <ViewTabs value={view} onChange={setView} hint={<>{canBuy ? 'N mandi · ' : ''}/ search · 1-2 tabs</>}
+        tabs={[{ id: 'animals', label: 'Tag wale janwar', icon: Heart, count: rows.length }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
-        <div className="rounded-xl border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-4 space-y-2">
-          <div className="text-sm font-extrabold text-orange-900 flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Feeding
-          </div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            <input value={form.feedingType} onChange={(e) => setForm({ ...form, feedingType: e.target.value })} placeholder="Feed type (grass, wanda, khal)" className="h-10 rounded-lg border-2 border-orange-300 bg-white dark:bg-orange-950/40 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            <input type="number" value={form.dailyFeedCost} onChange={(e) => setForm({ ...form, dailyFeedCost: e.target.value })} placeholder="Daily feed cost (Rs)" className="h-10 rounded-lg border-2 border-orange-300 bg-white dark:bg-orange-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
-          </div>
+      {view === 'analytics' ? (
+        <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
+          <h3 className="font-semibold text-slate-900">Baara me janwar — type ke hisaab se</h3>
+          <ul className="mt-3 divide-y divide-slate-100">
+            {(s?.byType ?? []).map((b) => (
+              <li key={b.animalType} className="flex items-center justify-between py-2 text-[0.875rem]"><span>{animalOf(b.animalType).emoji} {animalOf(b.animalType).label}</span><span className="font-semibold tabular-nums">{b._count._all} · {kg(b._sum.weightKg)}</span></li>
+            ))}
+            {!s?.byType.length && <li className="py-6 text-center text-sm text-slate-500">Baara khali hai</li>}
+          </ul>
+          <p className="mt-3 text-[0.75rem] text-slate-500">Murgi jaise wazan se aaye maal ka hisaab "Aaj ka rate → Din ka hisaab" me hai (zinda maal ka stock).</p>
         </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
-            <Camera className="h-3 w-3" />
-            Photos
-          </label>
-          {form.photoUrls.length > 0 && (
-            <div className="grid grid-cols-4 gap-1 mb-2">
-              {form.photoUrls.map((url: string, i: number) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setForm({ ...form, photoUrls: form.photoUrls.filter((_: any, idx: number) => idx !== i) })} className="absolute top-0 right-0 h-5 w-5 rounded-bl bg-rose-600 text-white flex items-center justify-center">
-                    <X className="h-2.5 w-2.5" />
-                  </button>
+      ) : (
+        <ListFrame loading={listQ.isLoading} error={listQ.isError && !listQ.data} onRetry={() => listQ.refetch()}
+          empty={!rows.length ? {
+            icon: Heart, title: query || type ? 'Is filter me koi janwar nahi' : 'Koi tag wala janwar nahi',
+            text: 'Bakra, gaye ya dumba tag ke saath "Mandi se aaya" me likhein. Murgi wazan se aati hai — wo yahan list nahi hoti, stock me jaati hai.',
+            actions: canBuy ? <Button onClick={() => setMandi(true)} leftIcon={<Plus className="h-4 w-4" />}>Mandi se aaya</Button> : undefined,
+          } : null}>
+          {rows.map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
+              <span className="text-2xl" aria-hidden>{animalOf(a.animalType).emoji}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-semibold text-slate-900">{a.tagNumber}</span>
+                  <span className="text-[0.8125rem] text-slate-600">{animalOf(a.animalType).label}{a.breed ? ` · ${a.breed}` : ''}</span>
+                  {a.isSlaughtered ? <Pill tone="violet">Zibah {dateOnly(a.slaughteredAt)}</Pill> : a.isHealthy ? <Pill tone="emerald">Theek</Pill> : <Pill tone="rose">Bimar</Pill>}
                 </div>
-              ))}
-            </div>
-          )}
-          <UploadDropzone onUploaded={(records) => {
-            const urls = Array.isArray(records) ? records.map((r: any) => r.url || r).filter(Boolean) : [(records as any)?.url || records];
-            setForm({ ...form, photoUrls: [...form.photoUrls, ...urls] });
-          }} />
-        </div>
+                <p className="mt-0.5 text-[0.75rem] text-slate-500">{kg(a.weightKg)} · {a.vendorName ?? 'Supplier nahi'} · {a.sourceName ?? ''} · {dateOnly(a.purchaseDate)}{a.isSlaughtered && a.yieldPct ? ` · yield ${a.yieldPct}%` : ''}</p>
+              </div>
+              <div className="text-right text-[0.8125rem]">
+                <p className="font-semibold tabular-nums">{cost(a.purchasePrice)}</p>
+                {a.totalFeedCost > 0 && <p className="text-slate-500">Chara {cost(a.totalFeedCost)} · {a.daysHeld} din</p>}
+              </div>
+              {!a.isSlaughtered && (
+                <div className="flex w-full flex-wrap gap-1.5 sm:w-auto">
+                  <Link to={`/meat/slaughter?animal=${a.id}`} className="inline-flex h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><ShieldCheck className="h-3.5 w-3.5" />Zibah</Link>
+                  {canExpense && <Button size="sm" variant="secondary" leftIcon={<Wheat className="h-3.5 w-3.5" />} onClick={() => setFeed(a)}>Chara</Button>}
+                  {canEdit && <Button size="sm" variant="ghost" leftIcon={<HeartPulse className="h-3.5 w-3.5" />} onClick={() => setHealth(a)}>Sehat</Button>}
+                  {canEdit && <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={async () => {
+                    if (await ask({ title: `${a.tagNumber} list se hatayein?`, text: 'Bik gaya ya mar gaya ho to. Purchase aur hisaab waisa hi rehta hai; stock ke liye Stock adjustment karein.', yes: 'Hatayein', danger: true })) remove.mutate(a);
+                  }}>Hatayein</Button>}
+                </div>
+              )}
+            </li>
+          ))}
+        </ListFrame>
+      )}
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+      {mandi && <MandiModal onClose={() => setMandi(false)} onDone={refresh} />}
+      {feed && <FeedModal a={feed} onClose={() => setFeed(null)} onDone={refresh} />}
+      {health && <HealthModal a={health} onClose={() => setHealth(null)} onDone={refresh} />}
+      {confirmDialog}
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.weightKg || !form.purchasePrice}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Add Animal'}
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeedCostModal({ animal, onClose, onSaved }: any) {
-  const [days, setDays] = useState(1);
-  const [costPerDay, setCostPerDay] = useState(animal.dailyFeedCost || 0);
-
-  const feedMutation = useMutation({
-    mutationFn: () => liveAnimalsApi.addFeedCost(animal.id, days, costPerDay),
-    onSuccess: () => { toast.success('Feed cost added'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
-          <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Add Feed Cost</h3>
-            <p className="text-xs text-slate-500 font-semibold">{animal.tagNumber} • {animal.animalType}</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-1 block">Days</label>
-            <input type="number" min="1" value={days} onChange={(e) => setDays(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-orange-300 bg-orange-50 dark:bg-orange-950/30 px-4 text-2xl font-extrabold tabular-nums text-center focus:outline-none focus:border-orange-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-1 block">Cost per Day (Rs)</label>
-            <input type="number" step="0.01" value={costPerDay} onChange={(e) => setCostPerDay(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-orange-300 bg-orange-50 dark:bg-orange-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
-          </div>
-          <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 p-3 text-center">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Total to add</div>
-            <div className="text-2xl font-extrabold text-emerald-800 tabular-nums">{formatPKR(days * costPerDay)}</div>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-orange-600 to-red-700" onClick={() => feedMutation.mutate()} loading={feedMutation.isPending} disabled={days <= 0 || costPerDay <= 0}>
-              <CheckCircle2 className="h-4 w-4" />
-              Add Cost
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      {guide.isOpen && (
+        <PageGuide title="Zinda maal aur mandi" onClose={guide.close}
+          steps={[
+            { icon: Truck, color: '#0891b2', title: 'Mandi se aaya', text: 'Supplier, zinda maal ka item, kitne kg aur rate (murgi), ya har janwar ka tag, wazan aur qeemat. Diya hua paisa galle se, baqi supplier ke khate me.' },
+            { icon: ShieldCheck, color: '#16a34a', title: 'Zibah', text: 'Zibah ke page par zinda wazan aur gosht ka wazan likhein — zinda maal stock se nikalta hai aur gosht usi cost par stock me aata hai.' },
+            { icon: Wheat, color: '#a16207', title: 'Chara', text: 'Baara me rakhe janwar ka chara "Chara" se likhein — Expense banta hai aur profit me ghatta hai.' },
+          ]}
+          tips={['Zinda maal ke liye ek kg wala item banayein: "Zinda murgi" ya "Bakra zinda" (cut: Poora, halat: Zinda).', 'Purchase ke liye Purchases ki ijazat chahiye; chare ke liye Expenses ki.']}
+          shortcuts={[['N', 'mandi purchase'], ['/', 'dhoondein'], ['1', 'janwar'], ['2', 'analytics'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

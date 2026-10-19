@@ -86,7 +86,8 @@ async function salon(sale: any, doc: ReceiptDoc) {
 
 async function hotel(sale: any, doc: ReceiptDoc) {
   const { bookingsApi } = await import('@industries/hotel/api/bookings.api');
-  const b = list(await safe(bookingsApi.list())).find((x) => x.saleId === sale.id);
+  // Server-side lookup by bill: works past the 300-row list cap and for voided bills.
+  const b = list(await safe(bookingsApi.list({ saleId: sale.id })))[0];
   if (!b) return;
   const rooms = list(b.bookedRooms).map((r) => `${r.roomNumber || 'Room'}${r.roomTypeName ? ` ${r.roomTypeName}` : ''}`).join(', ');
   addInfo(doc, [

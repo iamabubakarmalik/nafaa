@@ -36,12 +36,26 @@ export interface SlaughterLog {
   updatedAt: string;
 }
 
+export interface SlaughterInput {
+  liveAnimalId?: string; animalType?: string; animalTag?: string; liveWeightKg: number; dressedWeightKg?: number;
+  sourceProductId?: string; stockProductId?: string; extras?: Array<{ productId: string; kg: number }>;
+  slaughterMethod?: string; slaughterDate?: string; slaughteredBy?: string; isHalal?: boolean; halalCertNumber?: string;
+  vetInspection?: boolean; vetInspectorName?: string; qualityGrade?: string; notes?: string;
+}
+
+export interface SlaughterMove { productId: string; name: string; unit: string; qty: number; unitCost: number; type: string }
+
+export interface HalalStats {
+  total: number; halal: number; halalPct: number; withCert: number; certPct: number; withVet: number; vetPct: number;
+  liveKg: number; dressedKg: number; yieldPct: number;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const slaughterApi = {
-  create: (data: Partial<SlaughterLog>) => apiClient.post('/meat/slaughter', data).then(unwrap<SlaughterLog>),
-  list: (params?: any) => apiClient.get('/meat/slaughter', { params }).then(unwrap<SlaughterLog[]>),
-  halalCompliance: (from?: string, to?: string) => apiClient.get('/meat/slaughter/halal-compliance', { params: { from, to } }).then(unwrap<any>),
-  getOne: (id: string) => apiClient.get('/meat/slaughter/' + id).then(unwrap<SlaughterLog>),
+  create: (data: SlaughterInput) => apiClient.post('/meat/slaughter', data).then(unwrap<SlaughterLog>),
+  list: (params?: Record<string, string | undefined>) => apiClient.get('/meat/slaughter', { params }).then(unwrap<SlaughterLog[]>),
+  halalCompliance: (from?: string, to?: string) => apiClient.get('/meat/slaughter/halal-compliance', { params: { from, to } }).then(unwrap<HalalStats>),
+  getOne: (id: string) => apiClient.get('/meat/slaughter/' + id).then(unwrap<SlaughterLog & { moves: SlaughterMove[] }>),
   update: (id: string, data: Partial<SlaughterLog>) => apiClient.patch('/meat/slaughter/' + id, data).then(unwrap<SlaughterLog>),
 };

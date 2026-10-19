@@ -44,7 +44,7 @@ export const appliancesKpis: KpiDef[] = [
     useValue: () => {
       const { streams, loading } = useAppliancesOps();
       const { sales } = useMasked();
-      return { loading: loading && !streams.total, to: '/appliances/profit-report', value: `${streams.servicesShare.toFixed(0)}%`, hint: `${sales(streams.services)} · 30 din` };
+      return { loading: loading && !streams.total, to: '/profit-report', value: `${streams.servicesShare.toFixed(0)}%`, hint: `${sales(streams.services)} · 30 din` };
     },
   },
   {
@@ -136,7 +136,7 @@ export function AppliancesStreams() {
       title="Kamai kahan se"
       icon={Percent}
       description={`30 din · ${streams.servicesShare.toFixed(0)}% services se`}
-      to="/appliances/profit-report"
+      to="/profit-report"
     >
       {streams.list.length === 0 ? (
         <p className="py-6 text-center text-[0.8125rem] text-slate-500">30 din me abhi koi sale nahi</p>

@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApplianceClaimStatus } from '@prisma/client';
 import {
-  IsArray, IsEnum, IsNumber, IsOptional, IsString, Min,
+  IsArray, IsEnum, IsIn, IsNumber, IsOptional, IsString, Min,
 } from 'class-validator';
 
 export class CreateClaimDto {
@@ -88,5 +88,7 @@ export class BrandResponseDto {
 export class SettleClaimDto {
   @ApiProperty({ description: 'Brand se jitna paisa mila' })
   @IsNumber() @Min(0) receivedAmount!: number;
+  /** How the brand paid; left out, bank transfer. */
+  @ApiPropertyOptional() @IsOptional() @IsIn(['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA']) paymentMethod?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 }

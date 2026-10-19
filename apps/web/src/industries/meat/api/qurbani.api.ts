@@ -39,14 +39,23 @@ export interface QurbaniBooking {
   updatedAt: string;
 }
 
+export interface QurbaniMoney {
+  khataPaid?: number; legacyPaid?: number;
+  bill?: { id: string; saleNumber: string; total: number; paidAmount: number; creditAmount: number; soldAt: string } | null;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const base = '/meat/qurbani/';
 
 export const qurbaniApi = {
-  create: (data: any) => apiClient.post('/meat/qurbani', data).then(unwrap<QurbaniBooking>),
-  list: (params?: any) => apiClient.get('/meat/qurbani', { params }).then(unwrap<QurbaniBooking[]>),
-  getOne: (id: string) => apiClient.get('/meat/qurbani/' + id).then(unwrap<QurbaniBooking>),
-  update: (id: string, data: any) => apiClient.patch('/meat/qurbani/' + id, data).then(unwrap<QurbaniBooking>),
-  payment: (id: string, amount: number) => apiClient.post('/meat/qurbani/' + id + '/payment', { amount }).then(unwrap<QurbaniBooking>),
-  updateStatus: (id: string, status: string, reason?: string) =>
-    apiClient.post('/meat/qurbani/' + id + '/status', { status, reason }).then(unwrap<QurbaniBooking>),
+  create: (data: Record<string, unknown>) => apiClient.post('/meat/qurbani', data).then(unwrap<QurbaniBooking>),
+  list: (params?: Record<string, string | undefined>) => apiClient.get('/meat/qurbani', { params }).then(unwrap<QurbaniBooking[]>),
+  getOne: (id: string) => apiClient.get(base + id).then(unwrap<QurbaniBooking & QurbaniMoney>),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(base + id, data).then(unwrap<QurbaniBooking>),
+  payment: (id: string, amount: number, paymentMethod: string) => apiClient.post(base + id + '/payment', { amount, paymentMethod }).then(unwrap<QurbaniBooking>),
+  updateStatus: (id: string, status: string, reason?: string) => apiClient.post(base + id + '/status', { status, reason }).then(unwrap<QurbaniBooking>),
+  /** Hand-over: one bill for the share; the advance on khata cancels it. */
+  complete: (id: string, paidNow: number, paymentMethod: string) =>
+    apiClient.post(base + id + '/complete', { paidNow, paymentMethod }).then(unwrap<{ booking: QurbaniBooking; sale: { id: string; saleNumber: string; total: number } }>),
+  refund: (id: string, managerPin?: string) => apiClient.post(base + id + '/refund', { managerPin }).then(unwrap<QurbaniBooking>),
 };

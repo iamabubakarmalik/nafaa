@@ -2,6 +2,7 @@ import {
   Dumbbell, LayoutDashboard, Users, LogIn, Award, Target, Calendar,
   Flame, Activity, UserPlus,
 } from 'lucide-react';
+import { PERMISSIONS } from '@core/lib/permissions';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import GymDashboard from './dashboard/GymDashboard';
@@ -14,13 +15,13 @@ import TrainersPage from './pages/TrainersPage';
 import ClassesPage from './pages/ClassesPage';
 import PTSessionsPage from './pages/PTSessionsPage';
 import EquipmentPage from './pages/EquipmentPage';
-import GymMemberWizardPage from './pages/GymMemberWizardPage';
-import GymMemberDetailPage from './pages/GymMemberDetailPage';
+import MemberFormPage from './pages/MemberFormPage';
 
 /**
- * Gym / Fitness Studio industry pack.
- * Member management, check-in/attendance, membership plans,
- * personal training, group classes, equipment tracking.
+ * Gym / fitness industry pack: members and joining, check-in at the desk,
+ * memberships (renew, freeze, dues), plans, personal training with trainer
+ * commission, group classes and machines. Supplements, shakes, day passes
+ * and locker rent sell on the shared POS.
  */
 export const GymPack: IndustryPack = {
   id: 'gym',
@@ -29,7 +30,7 @@ export const GymPack: IndustryPack = {
   emoji: '💪',
   priority: 54,
   description:
-    'Members, check-in attendance, membership plans, personal training sessions, group classes, equipment.',
+    'Members, check-in, memberships aur renewal, PT aur trainer commission, classes, machines.',
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -47,22 +48,22 @@ export const GymPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Gym Industry',
+      label: 'Gym',
       icon: Dumbbell,
       emoji: '💪',
       color: '#dc2626',
       order: 20,
       items: [
-        { to: '/gym/dashboard', label: 'Gym Dashboard', icon: LayoutDashboard, badge: 'NEW' },
-        { to: '/gym-members/new', label: '+ Enroll Member', icon: UserPlus, badge: 'FAST' },
+        { to: '/gym/dashboard', label: 'Gym dashboard', icon: LayoutDashboard },
+        { to: '/gym/attendance', label: 'Check-in', icon: LogIn, badge: 'FAST' },
+        { to: '/gym/members/new', label: 'Naya member', icon: UserPlus },
         { to: '/gym/members', label: 'Members', icon: Users },
-        { to: '/gym/attendance', label: 'Check-in / Attendance', icon: LogIn, badge: 'FAST' },
         { to: '/gym/memberships', label: 'Memberships', icon: Award },
-        { to: '/gym/plans', label: 'Membership Plans', icon: Target },
+        { to: '/gym/plans', label: 'Plans', icon: Target },
+        { to: '/gym/personal-training', label: 'Personal training', icon: Flame },
         { to: '/gym/trainers', label: 'Trainers', icon: Dumbbell },
-        { to: '/gym/classes', label: 'Group Classes', icon: Calendar },
-        { to: '/gym/personal-training', label: 'PT Sessions', icon: Flame },
-        { to: '/gym/equipment', label: 'Equipment', icon: Activity },
+        { to: '/gym/classes', label: 'Group classes', icon: Calendar },
+        { to: '/gym/equipment', label: 'Machines', icon: Activity },
       ],
     },
   ],
@@ -70,43 +71,43 @@ export const GymPack: IndustryPack = {
   routes: [
     { path: '/gym', element: GymDashboard },
     { path: '/gym/dashboard', element: GymDashboard },
-    { path: '/gym/members/:id', element: MemberDetailPage },
-    { path: '/gym/members', element: MembersPage },
-    { path: '/gym/attendance', element: AttendancePage },
-    { path: '/gym/memberships', element: MembershipsPage },
+    { path: '/gym/members/new', element: MemberFormPage, permission: PERMISSIONS.CUSTOMERS_EDIT },
+    { path: '/gym/members/:id/edit', element: MemberFormPage, permission: PERMISSIONS.CUSTOMERS_EDIT },
+    { path: '/gym/members/:id', element: MemberDetailPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/gym/members', element: MembersPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/gym/attendance', element: AttendancePage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/gym/memberships', element: MembershipsPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
     { path: '/gym/plans', element: PlansPage },
     { path: '/gym/trainers', element: TrainersPage },
     { path: '/gym/classes', element: ClassesPage },
     { path: '/gym/personal-training', element: PTSessionsPage },
-    { path: '/gym/equipment', element: EquipmentPage },
+    { path: '/gym/equipment', element: EquipmentPage, permission: PERMISSIONS.PRODUCTS_VIEW },
   ],
 
   dashboardComponent: GymDashboard,
 
+  // Memberships are sold from Plans; products are what the counter sells.
   productForm: {
-    defaultUnit: 'month',
+    defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'month', label: 'Month (membership)', hint: '📅', group: 'Membership' },
-      { value: 'quarter', label: 'Quarter (3 mo)', hint: '📅', group: 'Membership' },
-      { value: 'half-year', label: 'Half Year (6 mo)', hint: '📅', group: 'Membership' },
-      { value: 'year', label: 'Year (12 mo)', hint: '📅', group: 'Membership' },
-      { value: 'session', label: 'Session (PT)', hint: '💪', group: 'Training' },
-      { value: 'class', label: 'Class', hint: '🏋️', group: 'Training' },
-      { value: 'visit', label: 'Visit / Drop-in', hint: '🚪', group: 'Access' },
-      { value: 'day-pass', label: 'Day Pass', hint: '🎟️', group: 'Access' },
-      { value: 'pcs', label: 'Piece (supplements)', hint: '🔢', group: 'Retail' },
-      { value: 'bottle', label: 'Bottle', hint: '🍶', group: 'Retail' },
-      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Retail' },
-      { value: 'hour', label: 'Hour', hint: '⏰', group: 'Time' },
+      { value: 'pcs', label: 'Piece (supplement, bottle)', hint: '🔢', group: 'Saman' },
+      { value: 'bottle', label: 'Bottle', hint: '🍶', group: 'Saman' },
+      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Saman' },
+      { value: 'day-pass', label: 'Day pass', hint: '🎟️', group: 'Service' },
+      { value: 'visit', label: 'Ek visit', hint: '🚪', group: 'Service' },
+      { value: 'month', label: 'Mahina (locker rent)', hint: '🔐', group: 'Service' },
+      { value: 'session', label: 'Session', hint: '💪', group: 'Service' },
+      { value: 'class', label: 'Class', hint: '🏋️', group: 'Service' },
+      { value: 'hour', label: 'Ghanta', hint: '⏰', group: 'Service' },
     ],
   },
 
   featureFlags: [
-    { key: 'gymMembers', label: 'Member Management', defaultEnabled: true },
-    { key: 'gymAttendance', label: 'Check-in / Attendance', defaultEnabled: true },
-    { key: 'gymPT', label: 'Personal Training', defaultEnabled: true },
-    { key: 'gymClasses', label: 'Group Classes', defaultEnabled: true },
-    { key: 'gymEquipment', label: 'Equipment Tracking', defaultEnabled: false },
+    { key: 'gymMembers', label: 'Members', defaultEnabled: true },
+    { key: 'gymAttendance', label: 'Check-in', defaultEnabled: true },
+    { key: 'gymPT', label: 'Personal training', defaultEnabled: true },
+    { key: 'gymClasses', label: 'Group classes', defaultEnabled: true },
+    { key: 'gymEquipment', label: 'Machines', defaultEnabled: false },
     { key: 'gymDietPlans', label: 'Diet Plans', defaultEnabled: false },
   ],
 };

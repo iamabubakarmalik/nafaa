@@ -1,12 +1,9 @@
-import {
-  LayoutDashboard, Wrench, Award, Shield, Home, Package,
-  Truck, CalendarClock, HardHat, FileSignature, Zap,
-  Barcode, BarChart3, PackageX, Boxes, TrendingUp,
-} from 'lucide-react';
+import { createElement } from 'react';
+import { Navigate } from 'react-router-dom';
+import { Barcode, BarChart3, CreditCard, FileSignature, HardHat, Home, Shield, Truck, Wrench, Zap } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import AppliancesDashboard from './dashboard/AppliancesDashboard';
-import AppliancesPosPage from './pages/AppliancesPosPage';
 import InstallationsPage from './pages/InstallationsPage';
 import ServiceRequestsPage from './pages/ServiceRequestsPage';
 import TechniciansPage from './pages/TechniciansPage';
@@ -17,7 +14,18 @@ import DeliveriesPage from './pages/DeliveriesPage';
 import ApplianceSerialsPage from './pages/ApplianceSerialsPage';
 import ApplianceWarrantyClaimsPage from './pages/ApplianceWarrantyClaimsPage';
 import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
-import AppliancesProfitReportPage from './pages/AppliancesProfitReportPage';
+// Qist plans run on the shared /emi-plans API; their pages live with the mobile pack for now.
+import EmiPlansPage from '@industries/mobile/pages/EmiPlansPage';
+import EmiPlanDetailPage from '@industries/mobile/pages/EmiPlanDetailPage';
+
+const JOBS_VIEW = 'service.jobs.view';
+const JOBS_MANAGE = 'service.jobs.manage';
+const SERIALS_VIEW = 'electronics.serials.view';
+const WARRANTY_VIEW = 'electronics.warranty.view';
+const KHATA_VIEW = 'khata.view';
+
+/** The old appliance profit page now opens the shared profit report. */
+const ProfitRedirect = () => createElement(Navigate, { to: '/profit-report', replace: true });
 
 export const AppliancesPack: IndustryPack = {
   id: 'appliances',
@@ -26,16 +34,12 @@ export const AppliancesPack: IndustryPack = {
   emoji: '🏠',
   priority: 82,
   description:
-    'Installation scheduling, service requests, technician management, AMC contracts, heavy delivery tracking, warranty & serial tracking.',
+    'Serial and warranty, installations, repairs, technicians, AMC contracts, heavy delivery, qist plans and brand warranty claims.',
 
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
-    return (
-      type.includes('APPLIANCE') ||
-      type.includes('HOME_APPLIANCE') ||
-      type.includes('WHITE_GOODS')
-    );
+    return type.includes('APPLIANCE') || type.includes('HOME_APPLIANCE') || type.includes('WHITE_GOODS');
   },
 
   navGroups: [
@@ -46,52 +50,37 @@ export const AppliancesPack: IndustryPack = {
       color: '#0891b2',
       order: 20,
       items: [
-        // Brands yahan se hata diya gaya (2026-09-14) — ab global
-        // /brands page hai. Do alag brand tables ki wajah se ek hi
-        // "Haier" do jagah alag record ban jati thi.
-        { to: '/appliances/installations', label: 'Installations', icon: HardHat, badge: 'LIVE' },
-        { to: '/appliances/service-requests', label: 'Service Requests', icon: Wrench },
-        { to: '/appliances/technicians', label: 'Technicians', icon: Zap },
-        { to: '/appliances/amc-contracts', label: 'AMC Contracts', icon: FileSignature },
-        { to: '/appliances/deliveries', label: 'Deliveries', icon: Truck },
-        { to: '/appliances/serials', label: 'Serial Register', icon: Barcode },
-        { to: '/appliances/warranty-claims', label: 'Warranty Claims', icon: Shield, badge: 'NEW' },
+        { to: '/appliances/installations', label: 'Installations', icon: HardHat, permission: JOBS_VIEW },
+        { to: '/appliances/service-requests', label: 'Repairs', icon: Wrench, permission: JOBS_VIEW },
+        { to: '/appliances/deliveries', label: 'Deliveries', icon: Truck, permission: JOBS_VIEW },
+        { to: '/appliances/technicians', label: 'Technicians', icon: Zap, permission: JOBS_VIEW },
+        { to: '/appliances/amc-contracts', label: 'AMC contracts', icon: FileSignature, permission: JOBS_VIEW },
+        { to: '/emi-plans', label: 'Qist plans', icon: CreditCard, permission: KHATA_VIEW },
+        { to: '/appliances/serials', label: 'Serial register', icon: Barcode, permission: SERIALS_VIEW },
+        { to: '/appliances/warranty-claims', label: 'Warranty claims', icon: Shield, permission: WARRANTY_VIEW },
         { to: '/reports', label: 'Reports', icon: BarChart3 },
       ],
     },
   ],
 
   routes: [
-    { path: '/pos', element: AppliancesPosPage },
-
-    // Product ke raaste App.tsx me hain — wahan permission ka
-    // pehra (`secure(PERMISSIONS.PRODUCTS_VIEW, …)`) laga hua hai.
-    // Yahan se dobara register karne par wohi safha BIN-PEHRA bhi
-    // khul jata tha: cashier cost price dekh sakta tha.
-
+    // Product pages are registered in App.tsx behind the products permissions.
     { path: '/appliances', element: AppliancesDashboard },
     { path: '/appliances/dashboard', element: AppliancesDashboard },
-
-    // /appliances/brands hata diya gaya — global /brands istemal hota hai.
-    // ApplianceBrandsPage file apni jagah pari hai, sirf route nahi raha.
-
-    { path: '/appliances/installations', element: InstallationsPage },
-    { path: '/appliances/service-requests', element: ServiceRequestsPage },
-
-    { path: '/appliances/technicians', element: TechniciansPage },
-    { path: '/appliances/technicians/:id', element: TechnicianDetailPage },
-
-    { path: '/appliances/amc-contracts', element: AmcContractsPage },
-    { path: '/appliances/amc-contracts/new', element: AmcContractFormPage },
-    { path: '/appliances/amc-contracts/:id/edit', element: AmcContractFormPage },
-
-    { path: '/appliances/deliveries', element: DeliveriesPage },
-
-    { path: '/appliances/serials', element: ApplianceSerialsPage },
-    { path: '/appliances/warranty-claims', element: ApplianceWarrantyClaimsPage },
-
+    { path: '/appliances/installations', element: InstallationsPage, permission: JOBS_VIEW },
+    { path: '/appliances/service-requests', element: ServiceRequestsPage, permission: JOBS_VIEW },
+    { path: '/appliances/technicians', element: TechniciansPage, permission: JOBS_VIEW },
+    { path: '/appliances/technicians/:id', element: TechnicianDetailPage, permission: JOBS_VIEW },
+    { path: '/appliances/amc-contracts', element: AmcContractsPage, permission: JOBS_VIEW },
+    { path: '/appliances/amc-contracts/new', element: AmcContractFormPage, permission: JOBS_MANAGE },
+    { path: '/appliances/amc-contracts/:id/edit', element: AmcContractFormPage, permission: JOBS_MANAGE },
+    { path: '/appliances/deliveries', element: DeliveriesPage, permission: JOBS_VIEW },
+    { path: '/appliances/serials', element: ApplianceSerialsPage, permission: SERIALS_VIEW },
+    { path: '/appliances/warranty-claims', element: ApplianceWarrantyClaimsPage, permission: WARRANTY_VIEW },
+    { path: '/emi-plans', element: EmiPlansPage, permission: KHATA_VIEW },
+    { path: '/emi-plans/:id', element: EmiPlanDetailPage, permission: KHATA_VIEW },
     { path: '/appliances/low-stock', element: LowStockPage },
-    { path: '/appliances/profit-report', element: AppliancesProfitReportPage },
+    { path: '/appliances/profit-report', element: ProfitRedirect },
   ],
 
   dashboardComponent: AppliancesDashboard,

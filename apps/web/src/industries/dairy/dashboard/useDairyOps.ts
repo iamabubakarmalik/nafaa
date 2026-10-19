@@ -86,7 +86,7 @@ export function useDairyOps() {
   }), [o.monthly]);
 
   const farmers = useMemo(() => (o.topFarmers ?? []).map((f) => ({
-    id: f.farmer?.id ?? '', name: f.farmer?.name ?? 'Kisan', liters: n(f.liters), amount: n(f.amount),
+    id: f.farmer?.id ?? '', name: f.farmer?.name ?? 'Gawala', liters: n(f.liters), amount: n(f.amount),
   })), [o.topFarmers]);
 
   const debtors = useMemo(() => (o.topDebtors ?? []).map((d) => ({

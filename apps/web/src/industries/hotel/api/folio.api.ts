@@ -16,18 +16,30 @@ export interface FolioCharge {
   taxAmount: number;
   discount: number;
   totalAmount: number;
-  reference?: string;
+  reference?: string | null;
   isVoid: boolean;
-  voidedAt?: string;
-  voidReason?: string;
-  notes?: string;
+  voidedAt?: string | null;
+  voidReason?: string | null;
+  notes?: string | null;
   createdAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface FolioChargeInput {
+  bookingId: string;
+  chargeType: FolioChargeType;
+  description: string;
+  quantity?: number;
+  unitPrice?: number;
+  discount?: number;
+  /** Catalog item served; its stock is taken now. */
+  productId?: string;
+  notes?: string;
+}
+
+const unwrap = <T,>(res: { data: unknown }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
 export const folioApi = {
-  addCharge: (data: any) => apiClient.post('/hotel/folio', data).then(unwrap<FolioCharge>),
+  addCharge: (data: FolioChargeInput) => apiClient.post('/hotel/folio', data).then(unwrap<FolioCharge>),
   byBooking: (bookingId: string) => apiClient.get('/hotel/folio/by-booking/' + bookingId).then(unwrap<FolioCharge[]>),
-  void: (id: string, reason: string) => apiClient.post('/hotel/folio/' + id + '/void', { reason }).then(unwrap),
+  void: (id: string, reason: string) => apiClient.post('/hotel/folio/' + id + '/void', { reason }).then(unwrap<FolioCharge>),
 };

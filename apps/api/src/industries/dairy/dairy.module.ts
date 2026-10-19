@@ -3,6 +3,7 @@ import { DairyCustomersModule } from './customers/customers.module';
 import { DairyDashboardModule } from './dashboard/dairy-dashboard.module';
 import { DairyDeliveriesModule } from './deliveries/deliveries.module';
 import { DairyProductsModule } from './products/products.module';
+import { DairyProductionModule } from './production/production.module';
 import { DairyRoutesModule } from './routes/routes.module';
 import { FarmerSuppliesModule } from './farmer-supplies/farmer-supplies.module';
 import { FarmersModule } from './farmers/farmers.module';
@@ -20,6 +21,7 @@ import { QualityTestsModule } from './quality-tests/quality-tests.module';
     MonthlyBillsModule,
     QualityTestsModule,
     DairyDashboardModule,
+    DairyProductionModule,
   ],
   exports: [
     DairyProductsModule,

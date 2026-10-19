@@ -1,449 +1,228 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Target, Plus, X, Save, Edit3, Trash2, RefreshCw, Sparkles, Award,
-  Clock, Users, Check, Star, Zap, DollarSign, Snowflake,
-} from 'lucide-react';
-import { membershipPlansApi, type PlanType, type MembershipPlan } from '../api/membership-plans.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
+/**
+ * Membership plans: monthly, quarterly, yearly, couple, student or a PT
+ * package (a plan with PT sessions). Each plan has its price, admission fee
+ * (first membership only), security deposit, visit limit, gym hours,
+ * freeze rules and what it includes. Price changes apply to the next sale.
+ *
+ * Keys: N new plan · G guide.
+ */
 
-const PLAN_TYPES: { value: PlanType; label: string; emoji: string; gradient: string }[] = [
-  { value: 'DAILY', label: 'Daily Pass', emoji: '☀️', gradient: 'from-amber-400 to-orange-500' },
-  { value: 'WEEKLY', label: 'Weekly', emoji: '📅', gradient: 'from-blue-400 to-cyan-500' },
-  { value: 'MONTHLY', label: 'Monthly', emoji: '📆', gradient: 'from-emerald-400 to-teal-500' },
-  { value: 'QUARTERLY', label: 'Quarterly', emoji: '🗓️', gradient: 'from-violet-400 to-purple-500' },
-  { value: 'HALF_YEARLY', label: 'Half-Year', emoji: '📊', gradient: 'from-pink-400 to-fuchsia-500' },
-  { value: 'YEARLY', label: 'Yearly', emoji: '🏆', gradient: 'from-amber-500 to-yellow-600' },
-  { value: 'LIFETIME', label: 'Lifetime', emoji: '💎', gradient: 'from-cyan-500 to-blue-600' },
-  { value: 'PAY_PER_VISIT', label: 'Pay per Visit', emoji: '🎟️', gradient: 'from-slate-400 to-slate-600' },
-  { value: 'CUSTOM', label: 'Custom', emoji: '⭐', gradient: 'from-rose-500 to-pink-600' },
-];
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Award, Clock, Dumbbell, Flame, GraduationCap, Pencil, Plus, Snowflake, Star, Target } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Badge, Button, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, Select, Skeleton, Switch, Textarea, ViewTabs, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { membershipPlansApi, type MembershipPlan, type PlanInput, type PlanType } from '../api/membership-plans.api';
+import { EmptyList, ListSkeleton, LoadFailed } from '../components/ui';
+import { GYM_KEYS, PLAN_TYPES, WEEKDAYS, apiError, num, planTypeLabel } from '../lib/meta';
+import { useGymCan } from '../lib/permissions';
+
+type Tab = 'active' | 'off';
 
 export default function PlansPage() {
-  const queryClient = useQueryClient();
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<MembershipPlan | null>(null);
+  const can = useGymCan();
+  const guide = usePageGuide();
+  const [tab, setTab] = useState<Tab>('active');
+  const [edit, setEdit] = useState<MembershipPlan | 'new' | null>(null);
+  const q = useQuery({ queryKey: [GYM_KEYS.plans, 'all'], queryFn: () => membershipPlansApi.list() });
+  const all = q.data ?? [];
+  const live = all.filter((p) => p.isActive);
+  const rows = tab === 'active' ? live : all.filter((p) => !p.isActive);
 
-  const { data: plans = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['gym-plans', typeFilter],
-    queryFn: () => membershipPlansApi.list({
-      planType: typeFilter === 'all' ? undefined : typeFilter,
-      active: true,
-    }),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => membershipPlansApi.remove(id),
-    onSuccess: () => { toast.success('Plan removed'); queryClient.invalidateQueries({ queryKey: ['gym-plans'] }); },
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && can.newPlan) { e.preventDefault(); setEdit('new'); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-fuchsia-900 to-pink-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Target className="h-3.5 w-3.5 text-amber-300" />
-              Pricing Plans
+    <PageShell>
+      <PageHero
+        title="Plans"
+        chip={<><Target /> Gym</>}
+        meta="Mahana, 3 mahine, saalana, couple, student aur PT package"
+        busy={q.isFetching && !q.isLoading}
+        loading={q.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.newPlan && <button type="button" onClick={() => setEdit('new')} title="Naya plan (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya plan</button>}
+        </>}
+        stats={[
+          { label: 'Chalu plans', value: live.length },
+          { label: 'Kul bike', value: all.reduce((s, p) => s + p.totalSubscribers, 0) },
+          { label: 'Plans se Sale', value: formatPKR(all.reduce((s, p) => s + p.totalRevenue, 0)) },
+        ]}
+      />
+
+      <KpiRow cols={3}>
+        {q.isLoading ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Award} color="#16a34a" label="Chalu" value={live.length} hint="Counter par bikte hain" onClick={() => setTab('active')} active={tab === 'active'} />
+          <KpiCard icon={Flame} color="#e11d48" label="PT wale" value={live.filter((p) => p.includesPersonalTraining).length} hint="Plan me PT sessions" />
+          <KpiCard icon={Snowflake} color="#64748b" label="Band" value={all.length - live.length} hint="Purane members chalte rehte hain" onClick={() => setTab('off')} active={tab === 'off'} />
+        </>}
+      </KpiRow>
+
+      <ViewTabs value={tab} onChange={setTab} tabs={[{ id: 'active', label: 'Chalu', icon: Award, count: live.length }, { id: 'off', label: 'Band', icon: Snowflake, count: all.length - live.length }]} />
+
+      {q.isLoading ? <ListSkeleton /> : q.isError ? <LoadFailed what="Plans" retry={() => q.refetch()} /> : !rows.length ? (
+        <EmptyList icon={Target} title={tab === 'active' ? 'Koi chalu plan nahi' : 'Koi band plan nahi'} text="Pehla plan banayein: maslan Mahana — Rs 3,000, admission Rs 1,000, 30 din.">
+          {can.newPlan && tab === 'active' && <Button onClick={() => setEdit('new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla plan banayein</Button>}
+        </EmptyList>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map((p) => (
+            <div key={p.id} className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80" style={{ borderTop: `4px solid ${p.colorTheme || 'rgb(var(--brand-500))'}` }}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-1.5 truncate font-semibold text-slate-900">{p.isFeatured && <Star className="h-4 w-4 text-amber-500" />}{p.name}</p>
+                  <p className="text-[0.8125rem] text-slate-500">{planTypeLabel(p.planType)} · {p.durationDays} din{p.code ? ` · ${p.code}` : ''}</p>
+                </div>
+                {!p.isActive && <Badge size="xs">Band</Badge>}
+              </div>
+              <p className="mt-3 text-2xl font-bold tabular-nums text-slate-900">{formatPKR(p.price)}</p>
+              <p className="text-[0.8125rem] text-slate-600">{p.registrationFee > 0 ? `+ admission ${formatPKR(p.registrationFee)}` : 'Admission nahi'}{p.securityDeposit > 0 ? ` · security ${formatPKR(p.securityDeposit)}` : ''}</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                <Badge size="xs" variant="info">{p.isUnlimited ? 'Jitni dafa chahein' : `${p.visitLimit ?? 0} visits`}</Badge>
+                {!p.accessAllHours && p.accessTimeStart && <Badge size="xs"><Clock className="h-3 w-3" /> {p.accessTimeStart}–{p.accessTimeEnd}</Badge>}
+                {p.includesPersonalTraining && <Badge size="xs" variant="danger">{p.personalTrainingSessions} PT</Badge>}
+                {p.allowFreeze && <Badge size="xs" variant="ghost">Freeze {p.maxFreezeDays} din</Badge>}
+                {p.includesLockerFacility && <Badge size="xs" variant="ghost">Locker</Badge>}
+                {p.includesGuestPasses > 0 && <Badge size="xs" variant="ghost">{p.includesGuestPasses} mehmaan</Badge>}
+              </div>
+              {!!p.benefits.length && <ul className="mt-2 list-inside list-disc text-[0.8125rem] text-slate-600">{p.benefits.slice(0, 3).map((b) => <li key={b}>{b}</li>)}</ul>}
+              <p className="mt-2 text-[0.75rem] text-slate-500">{p.totalSubscribers} dafa bika · {formatPKR(p.totalRevenue)}</p>
+              {can.plans && <Button className="mt-3" size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setEdit(p)}>Badlein</Button>}
             </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🎯 Membership Plans</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Daily/monthly/yearly plans with benefits & access</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              New Plan
-            </Button>
-          </div>
+          ))}
         </div>
-      </section>
+      )}
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        <button onClick={() => setTypeFilter('all')} className={
-          'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-          (typeFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-        }>All Plans</button>
-        {PLAN_TYPES.map((t) => (
-          <button key={t.value} onClick={() => setTypeFilter(t.value)} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (typeFilter === t.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>{t.emoji} {t.label}</button>
-        ))}
-      </div>
+      {edit && <PlanModal plan={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
 
-      {showForm && (
-        <PlanForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['gym-plans'] }); }}
+      {guide.isOpen && (
+        <PageGuide title="Plans — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Target, color: '#2563eb', title: 'Plan', text: 'Naam, qeemat aur kitne din. Couple ya student plan ke liye "Apna" chunein aur naam me likh dein.' },
+            { icon: Award, color: '#16a34a', title: 'Admission', text: 'Admission fee sirf pehli membership par lagti hai; renew par nahi. Security deposit bhi sirf pehli dafa.' },
+            { icon: Flame, color: '#e11d48', title: 'PT package', text: 'PT sessions plan me daal dein (maslan 12). PT book karte waqt "Plan se" chunein — session ka alag bill nahi banta, trainer ki commission banti hai.' },
+            { icon: Dumbbell, color: '#7c3aed', title: 'Qeemat badalna', text: 'Nayi qeemat agli sale se lagti hai. Purane members apni qeemat par chalte rehte hain. Band plan bikta nahi.' },
+          ]}
+          shortcuts={[['N', 'naya plan'], ['G', 'guide']]}
         />
       )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => <div key={i} className="h-96 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : plans.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <Target className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No plans yet</p>
-          <Button className="mt-4 bg-gradient-to-r from-fuchsia-600 to-pink-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" />
-            Create First Plan
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {plans.map((plan) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              onEdit={() => { setEditing(plan); setShowForm(true); }}
-              onDelete={() => { if (confirm('Remove "' + plan.name + '"?')) removeMutation.mutate(plan.id); }}
-            />
-          ))}
-        </section>
-      )}
-    </div>
+    </PageShell>
   );
 }
 
-function PlanCard({ plan, onEdit, onDelete }: any) {
-  const typeCfg = PLAN_TYPES.find((t) => t.value === plan.planType);
-
-  return (
-    <div className={
-      'group rounded-3xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition overflow-hidden ' +
-      (plan.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className={'relative p-6 text-white bg-gradient-to-br ' + (typeCfg?.gradient ?? 'from-slate-500 to-slate-700')}>
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center">
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="h-8 w-8 rounded-lg bg-white/20 hover:bg-rose-500 flex items-center justify-center">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        {plan.isFeatured && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-            <Star className="h-2 w-2 fill-current" /> Featured
-          </div>
-        )}
-
-        <div className="text-5xl mb-2">{typeCfg?.emoji}</div>
-        <div className="text-xs uppercase tracking-wider font-extrabold text-white/80">{typeCfg?.label}</div>
-        <h3 className="text-2xl font-extrabold mt-1">{plan.name}</h3>
-        {plan.code && <div className="text-[0.6875rem] font-mono text-white/70">{plan.code}</div>}
-
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-4xl font-extrabold tabular-nums">{formatPKR(plan.price)}</span>
-          <span className="text-xs font-bold text-white/70">/ {plan.durationDays}d</span>
-        </div>
-        {plan.registrationFee > 0 && (
-          <div className="text-xs font-bold text-white/70">+ {formatPKR(plan.registrationFee)} registration</div>
-        )}
-      </div>
-
-      <div className="p-5 space-y-3">
-        {plan.description && (
-          <p className="text-xs text-slate-500 font-semibold line-clamp-2">{plan.description}</p>
-        )}
-
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-            <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Access</div>
-            <div className="font-extrabold text-blue-800">
-              {plan.accessAllHours ? '24/7' : plan.accessTimeStart + '-' + plan.accessTimeEnd}
-            </div>
-          </div>
-          <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Visits</div>
-            <div className="font-extrabold text-emerald-800">
-              {plan.isUnlimited ? 'Unlimited' : plan.visitLimit + ' visits'}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          {plan.includesPersonalTraining && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              {plan.personalTrainingSessions} PT sessions
-            </div>
-          )}
-          {plan.includesClasses && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              Group classes {plan.classesLimit ? '(' + plan.classesLimit + '/month)' : '(unlimited)'}
-            </div>
-          )}
-          {plan.includesNutritionPlan && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              Nutrition plan
-            </div>
-          )}
-          {plan.includesLockerFacility && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              Locker facility
-            </div>
-          )}
-          {plan.includesTowelService && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              Towel service
-            </div>
-          )}
-          {plan.includesSteamSauna && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              Steam & sauna
-            </div>
-          )}
-          {plan.includesSwimmingPool && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              Swimming pool
-            </div>
-          )}
-          {plan.includesGuestPasses > 0 && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Check className="h-3 w-3 text-emerald-600" />
-              {plan.includesGuestPasses} guest passes
-            </div>
-          )}
-          {plan.allowFreeze && (
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Snowflake className="h-3 w-3 text-blue-600" />
-              Freeze up to {plan.maxFreezeDays} days
-            </div>
-          )}
-        </div>
-
-        <div className="pt-3 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
-          <span className="inline-flex items-center gap-1 text-xs text-slate-500 font-extrabold">
-            <Users className="h-3 w-3" />
-            {plan.totalSubscribers} subscribers
-          </span>
-          <span className="text-xs font-extrabold text-emerald-700">
-            {formatPKR(plan.totalRevenue)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PlanForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    name: editing?.name ?? '',
-    code: editing?.code ?? '',
-    description: editing?.description ?? '',
-    planType: editing?.planType ?? 'MONTHLY',
-    price: editing?.price ?? 0,
-    registrationFee: editing?.registrationFee ?? 0,
-    securityDeposit: editing?.securityDeposit ?? 0,
-    durationDays: editing?.durationDays ?? 30,
-    visitLimit: editing?.visitLimit ?? '',
-    isUnlimited: editing?.isUnlimited ?? true,
-    accessAllHours: editing?.accessAllHours ?? false,
-    accessTimeStart: editing?.accessTimeStart ?? '06:00',
-    accessTimeEnd: editing?.accessTimeEnd ?? '22:00',
-    includesPersonalTraining: editing?.includesPersonalTraining ?? false,
-    personalTrainingSessions: editing?.personalTrainingSessions ?? 0,
-    includesClasses: editing?.includesClasses ?? true,
-    classesLimit: editing?.classesLimit ?? '',
-    includesNutritionPlan: editing?.includesNutritionPlan ?? false,
-    includesLockerFacility: editing?.includesLockerFacility ?? false,
-    includesTowelService: editing?.includesTowelService ?? false,
-    includesSteamSauna: editing?.includesSteamSauna ?? false,
-    includesSwimmingPool: editing?.includesSwimmingPool ?? false,
-    includesGuestPasses: editing?.includesGuestPasses ?? 0,
-    allowFreeze: editing?.allowFreeze ?? false,
-    maxFreezeDays: editing?.maxFreezeDays ?? 0,
-    freezeFee: editing?.freezeFee ?? 0,
-    isFeatured: editing?.isFeatured ?? false,
-    benefits: editing?.benefits?.join('\n') ?? '',
+function PlanModal({ plan, onClose }: { plan: MembershipPlan | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const s = (v?: number | string | null) => (v == null ? '' : String(v));
+  const [f, setF] = useState({
+    name: plan?.name ?? '', code: plan?.code ?? '', planType: (plan?.planType ?? 'MONTHLY') as PlanType, durationDays: s(plan?.durationDays ?? 30),
+    price: s(plan?.price), registrationFee: s(plan?.registrationFee ?? ''), securityDeposit: s(plan?.securityDeposit ?? ''),
+    isUnlimited: plan?.isUnlimited ?? true, visitLimit: s(plan?.visitLimit), accessAllHours: plan?.accessAllHours ?? true,
+    accessTimeStart: plan?.accessTimeStart ?? '06:00', accessTimeEnd: plan?.accessTimeEnd ?? '22:00', accessDays: plan?.accessDays ?? [0, 1, 2, 3, 4, 5, 6],
+    allowFreeze: plan?.allowFreeze ?? false, maxFreezeDays: s(plan?.maxFreezeDays || 15), freezeFee: s(plan?.freezeFee || ''),
+    includesPersonalTraining: plan?.includesPersonalTraining ?? false, personalTrainingSessions: s(plan?.personalTrainingSessions || ''),
+    includesClasses: plan?.includesClasses ?? false, includesLockerFacility: plan?.includesLockerFacility ?? false, includesTowelService: plan?.includesTowelService ?? false,
+    includesSteamSauna: plan?.includesSteamSauna ?? false, includesNutritionPlan: plan?.includesNutritionPlan ?? false, includesGuestPasses: s(plan?.includesGuestPasses || ''),
+    benefits: (plan?.benefits ?? []).join('\n'), description: plan?.description ?? '', isFeatured: plan?.isFeatured ?? false, isActive: plan?.isActive ?? true,
   });
-
-  const saveMutation = useMutation({
+  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
+  const error = f.name.trim().length < 2 ? 'Plan ka naam likhein'
+    : f.price === '' ? 'Qeemat likhein'
+      : !(Number(f.durationDays) >= 1) ? 'Kitne din likhein'
+        : !f.isUnlimited && !(Number(f.visitLimit) >= 1) ? 'Visits ki tadaad likhein'
+          : f.allowFreeze && !(Number(f.maxFreezeDays) >= 1) ? 'Freeze ke din likhein'
+            : f.includesPersonalTraining && !(Number(f.personalTrainingSessions) >= 1) ? 'PT sessions ki tadaad likhein'
+              : !f.accessAllHours && f.accessTimeStart >= f.accessTimeEnd ? 'Gym ka waqt sahi likhein'
+                : undefined;
+  const save = useMutation({
     mutationFn: () => {
-      const payload: any = {
-        ...form,
-        price: Number(form.price),
-        registrationFee: Number(form.registrationFee) || 0,
-        securityDeposit: Number(form.securityDeposit) || 0,
-        durationDays: Number(form.durationDays),
-        visitLimit: form.visitLimit ? Number(form.visitLimit) : undefined,
-        personalTrainingSessions: Number(form.personalTrainingSessions) || 0,
-        classesLimit: form.classesLimit ? Number(form.classesLimit) : undefined,
-        includesGuestPasses: Number(form.includesGuestPasses) || 0,
-        maxFreezeDays: Number(form.maxFreezeDays) || 0,
-        freezeFee: Number(form.freezeFee) || 0,
-        benefits: form.benefits ? form.benefits.split('\n').map((b: string) => b.trim()).filter(Boolean) : [],
+      const body: PlanInput = {
+        name: f.name.trim(), code: f.code.trim() || undefined, planType: f.planType, durationDays: Number(f.durationDays), price: Number(f.price),
+        registrationFee: Number(f.registrationFee) || 0, securityDeposit: Number(f.securityDeposit) || 0,
+        isUnlimited: f.isUnlimited, ...(f.isUnlimited ? {} : { visitLimit: Number(f.visitLimit) }),
+        accessAllHours: f.accessAllHours, ...(f.accessAllHours ? {} : { accessTimeStart: f.accessTimeStart, accessTimeEnd: f.accessTimeEnd }), accessDays: f.accessDays,
+        allowFreeze: f.allowFreeze, ...(f.allowFreeze && { maxFreezeDays: Number(f.maxFreezeDays), freezeFee: Number(f.freezeFee) || 0 }),
+        includesPersonalTraining: f.includesPersonalTraining, ...(f.includesPersonalTraining && { personalTrainingSessions: Number(f.personalTrainingSessions) }),
+        includesClasses: f.includesClasses, includesLockerFacility: f.includesLockerFacility, includesTowelService: f.includesTowelService,
+        includesSteamSauna: f.includesSteamSauna, includesNutritionPlan: f.includesNutritionPlan, includesGuestPasses: Number(f.includesGuestPasses) || 0,
+        benefits: f.benefits.split('\n').map((b) => b.trim()).filter(Boolean).slice(0, 20), description: f.description.trim() || undefined,
+        isFeatured: f.isFeatured, isActive: f.isActive,
       };
-      return editing ? membershipPlansApi.update(editing.id, payload) : membershipPlansApi.create(payload);
+      return plan ? membershipPlansApi.update(plan.id, body) : membershipPlansApi.create(body);
     },
-    onSuccess: () => { toast.success(editing ? 'Plan updated' : 'Plan created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: () => { toast.success('Plan save ho gaya'); qc.invalidateQueries({ queryKey: [GYM_KEYS.plans] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Plan save nahi hua')),
   });
-
+  const toggleDay = (d: number) => set('accessDays', f.accessDays.includes(d) ? f.accessDays.filter((x) => x !== d) : [...f.accessDays, d].sort());
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">{editing ? 'Edit Plan' : 'New Membership Plan'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Plan Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
-          <select value={form.planType} onChange={(e) => setForm({ ...form, planType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
-            {PLAN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>)}
-          </select>
+    <Modal open onClose={onClose} size="lg" title={plan ? `${plan.name} — badlein` : 'Naya plan'} description={plan ? 'Nayi qeemat agli sale se lagegi' : undefined}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>Save</Button></>}>
+      <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input wrapperClassName="sm:col-span-2" label="Naam" value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="Mahana / Couple / Student" maxLength={80} />
+          <Input label="Code" value={f.code} onChange={(e) => set('code', e.target.value)} placeholder="M1" hint="Marzi hai" maxLength={30} />
+          <Select label="Plan type" value={f.planType} onChange={(e) => { const t = e.target.value as PlanType; set('planType', t); set('durationDays', String(PLAN_TYPES.find((x) => x.value === t)?.days ?? 30)); }}
+            options={PLAN_TYPES.map((t) => ({ value: t.value, label: t.label }))} hint="Din khud bhar jate hain" />
+          <Input label="Kitne din" inputMode="numeric" value={f.durationDays} onChange={(e) => set('durationDays', e.target.value.replace(/\D/g, ''))} />
+          <Input label="Qeemat (Rs)" inputMode="decimal" value={f.price} onChange={(e) => set('price', num(e.target.value))} placeholder="3000" />
+          <Input label="Admission fee" inputMode="decimal" value={f.registrationFee} onChange={(e) => set('registrationFee', num(e.target.value))} placeholder="0" hint="Sirf pehli dafa" />
+          <Input label="Security deposit" inputMode="decimal" value={f.securityDeposit} onChange={(e) => set('securityDeposit', num(e.target.value))} placeholder="0" hint="Locker / card ki" />
+          <Input label="Mehmaan pass" inputMode="numeric" value={f.includesGuestPasses} onChange={(e) => set('includesGuestPasses', e.target.value.replace(/\D/g, ''))} placeholder="0" hint="Dost saath la sakta hai" />
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
-
-        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4">
-          <div className="text-sm font-extrabold text-emerald-900 mb-3 flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Pricing
-          </div>
-          <div className="grid sm:grid-cols-4 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Price *</label>
-              <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Registration Fee</label>
-              <input type="number" value={form.registrationFee} onChange={(e) => setForm({ ...form, registrationFee: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Security Deposit</label>
-              <input type="number" value={form.securityDeposit} onChange={(e) => setForm({ ...form, securityDeposit: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (days) *</label>
-              <input type="number" value={form.durationDays} onChange={(e) => setForm({ ...form, durationDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Access */}
-        <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-blue-900 flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Access & Visits
-          </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.accessAllHours} onChange={(e) => setForm({ ...form, accessAllHours: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold">24/7 Access</span>
-          </label>
-          {!form.accessAllHours && (
+        <div className="grid gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200 sm:grid-cols-2">
+          <Switch checked={f.isUnlimited} onChange={(e) => set('isUnlimited', e.target.checked)} label="Jitni dafa chahein" description="Off karein to visits gin kar" />
+          {!f.isUnlimited && <Input label="Kitni visits" inputMode="numeric" value={f.visitLimit} onChange={(e) => set('visitLimit', e.target.value.replace(/\D/g, ''))} placeholder="12" />}
+          <Switch checked={f.accessAllHours} onChange={(e) => set('accessAllHours', e.target.checked)} label="Gym ke poore waqt" description="Off karein to sirf subah / ladies timing" />
+          {!f.accessAllHours && (
             <div className="grid grid-cols-2 gap-2">
-              <input type="time" value={form.accessTimeStart} onChange={(e) => setForm({ ...form, accessTimeStart: e.target.value })} className="h-11 rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <input type="time" value={form.accessTimeEnd} onChange={(e) => setForm({ ...form, accessTimeEnd: e.target.value })} className="h-11 rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <Input label="Se" type="time" value={f.accessTimeStart} onChange={(e) => set('accessTimeStart', e.target.value)} />
+              <Input label="Tak" type="time" value={f.accessTimeEnd} onChange={(e) => set('accessTimeEnd', e.target.value)} />
             </div>
           )}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.isUnlimited} onChange={(e) => setForm({ ...form, isUnlimited: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold">Unlimited visits</span>
-          </label>
-          {!form.isUnlimited && (
-            <input type="number" value={form.visitLimit} onChange={(e) => setForm({ ...form, visitLimit: e.target.value })} placeholder="Visit limit" className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          )}
-        </div>
-
-        {/* Features */}
-        <div className="rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-4 space-y-2">
-          <div className="text-sm font-extrabold text-violet-900 mb-2 flex items-center gap-2">
-            <Award className="h-4 w-4" />
-            Included Features
-          </div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            {[
-              { key: 'includesClasses', label: 'Group Classes' },
-              { key: 'includesNutritionPlan', label: 'Nutrition Plan' },
-              { key: 'includesLockerFacility', label: 'Locker Facility' },
-              { key: 'includesTowelService', label: 'Towel Service' },
-              { key: 'includesSteamSauna', label: 'Steam & Sauna' },
-              { key: 'includesSwimmingPool', label: 'Swimming Pool' },
-            ].map((f) => (
-              <label key={f.key} className={
-                'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' +
-                ((form as any)[f.key] ? 'border-violet-500 bg-white dark:bg-violet-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-              }>
-                <input type="checkbox" checked={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.checked })} className="h-4 w-4 rounded" />
-                <span className="text-xs font-extrabold">{f.label}</span>
-              </label>
-            ))}
-          </div>
-
-          <label className={
-            'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' +
-            (form.includesPersonalTraining ? 'border-violet-500 bg-white' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-          }>
-            <input type="checkbox" checked={form.includesPersonalTraining} onChange={(e) => setForm({ ...form, includesPersonalTraining: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-xs font-extrabold flex-1">Personal Training</span>
-            {form.includesPersonalTraining && (
-              <input type="number" value={form.personalTrainingSessions} onChange={(e) => setForm({ ...form, personalTrainingSessions: e.target.value })} placeholder="Sessions" className="w-20 h-8 rounded border border-violet-300 px-2 text-xs font-extrabold tabular-nums text-center" onClick={(e) => e.stopPropagation()} />
-            )}
-          </label>
-
-          <div className="grid grid-cols-2 gap-2">
-            <input type="number" value={form.classesLimit} onChange={(e) => setForm({ ...form, classesLimit: e.target.value })} placeholder="Classes/month limit" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
-            <input type="number" value={form.includesGuestPasses} onChange={(e) => setForm({ ...form, includesGuestPasses: e.target.value })} placeholder="Guest passes" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
+          <div className="sm:col-span-2">
+            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kin dinon</p>
+            <div className="flex flex-wrap gap-1">{WEEKDAYS.map((d, i) => (
+              <button key={d} type="button" onClick={() => toggleDay(i)} className={`h-8 rounded-lg px-2.5 text-[0.75rem] font-medium ring-1 ${f.accessDays.includes(i) ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-600 ring-slate-200'}`}>{d}</button>
+            ))}</div>
           </div>
         </div>
 
-        {/* Freeze */}
-        <div className="rounded-xl border-2 border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-950/30 p-4 space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.allowFreeze} onChange={(e) => setForm({ ...form, allowFreeze: e.target.checked })} className="h-5 w-5 rounded" />
-            <Snowflake className={'h-5 w-5 ' + (form.allowFreeze ? 'text-cyan-600' : 'text-slate-400')} />
-            <span className="text-sm font-extrabold text-cyan-900">Allow Membership Freeze</span>
-          </label>
-          {form.allowFreeze && (
+        <div className="grid gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200 sm:grid-cols-2">
+          <Switch checked={f.allowFreeze} onChange={(e) => set('allowFreeze', e.target.checked)} label="Freeze ki ijazat" description="Safar / beemari me din rok sakein" />
+          {f.allowFreeze && (
             <div className="grid grid-cols-2 gap-2">
-              <input type="number" value={form.maxFreezeDays} onChange={(e) => setForm({ ...form, maxFreezeDays: e.target.value })} placeholder="Max freeze days" className="h-10 rounded-lg border-2 border-cyan-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
-              <input type="number" value={form.freezeFee} onChange={(e) => setForm({ ...form, freezeFee: e.target.value })} placeholder="Freeze fee (Rs)" className="h-10 rounded-lg border-2 border-cyan-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
+              <Input label="Zyada se zyada din" inputMode="numeric" value={f.maxFreezeDays} onChange={(e) => set('maxFreezeDays', e.target.value.replace(/\D/g, ''))} />
+              <Input label="Freeze fee" inputMode="decimal" value={f.freezeFee} onChange={(e) => set('freezeFee', num(e.target.value))} placeholder="0" />
             </div>
           )}
+          <Switch checked={f.includesPersonalTraining} onChange={(e) => set('includesPersonalTraining', e.target.checked)} label="PT sessions shamil" description="PT package" />
+          {f.includesPersonalTraining && <Input label="PT sessions" inputMode="numeric" value={f.personalTrainingSessions} onChange={(e) => set('personalTrainingSessions', e.target.value.replace(/\D/g, ''))} placeholder="12" />}
         </div>
 
-        <textarea rows={3} value={form.benefits} onChange={(e) => setForm({ ...form, benefits: e.target.value })} placeholder="Extra benefits (one per line)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
-
-        <label className={
-          'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' +
-          (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')
-        }>
-          <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
-          <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
-          <span className="text-sm font-extrabold">Featured Plan</span>
-        </label>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name || !form.price}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create Plan'}
-          </Button>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Switch checked={f.includesClasses} onChange={(e) => set('includesClasses', e.target.checked)} label="Group classes" />
+          <Switch checked={f.includesLockerFacility} onChange={(e) => set('includesLockerFacility', e.target.checked)} label="Locker" />
+          <Switch checked={f.includesTowelService} onChange={(e) => set('includesTowelService', e.target.checked)} label="Towel" />
+          <Switch checked={f.includesSteamSauna} onChange={(e) => set('includesSteamSauna', e.target.checked)} label="Steam / sauna" />
+          <Switch checked={f.includesNutritionPlan} onChange={(e) => set('includesNutritionPlan', e.target.checked)} label="Diet plan" />
+          <Switch checked={f.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} label="Upar dikhayein" />
         </div>
+        <Textarea label="Faide (har line ek)" value={f.benefits} onChange={(e) => set('benefits', e.target.value)} rows={3} placeholder={'Free diet chart\nMahine me ek body check'} />
+        <Switch checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} label="Chalu" description="Band plan bikta nahi; is ke members chalte rehte hain" />
+        {error && <p className="text-[0.8125rem] text-rose-600">{error}</p>}
       </div>
-    </section>
+    </Modal>
   );
 }

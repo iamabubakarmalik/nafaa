@@ -21,6 +21,11 @@ export class CreateInstallationDto {
   @ApiPropertyOptional() @IsOptional() @IsString() scheduledDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() scheduledTimeSlot?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() technicianId?: string;
+  /** Agreed charges at booking; they can change when the job is completed. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) laborCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) visitCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) materialsCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() covered_underWarranty?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() internalNotes?: string;
 }
 
@@ -43,10 +48,10 @@ export class CompleteInstallationDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() wallSpaceAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() drainageAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() additionalMaterialUsed?: any;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() materialsCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() laborCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() visitCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() paidByCustomer?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) materialsCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) laborCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) visitCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidByCustomer?: number;
   /** How `paidByCustomer` came in; left out, cash. */
   @ApiPropertyOptional() @IsOptional() @IsIn(['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA']) paymentMethod?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() covered_underWarranty?: boolean;

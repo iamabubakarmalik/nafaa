@@ -1,6 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { cleanInput, parseDay } from '../meat-common';
+import { parseDay } from '../meat-common';
+import { ShopScope } from '../../../common/shop-scope';
+import { recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+import { payMethod, positive, r2, str } from '../meat-money';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 /**
@@ -10,8 +14,24 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- request bodies here are untyped
 function accountFields(dto: any) {
-  const { customerId: _c, accountNumber: _n, currentBalance: _b, totalOutstanding: _o, totalPurchases: _p, totalOrders: _t, ...rest } = cleanInput(dto);
-  return rest;
+  const out: Record<string, unknown> = {};
+  for (const k of ['businessName', 'businessType', 'deliveryTimeSlot', 'contactPerson', 'contactPhone', 'contactEmail', 'billingAddress', 'deliveryAddress', 'gstNumber', 'ntnNumber', 'notes'] as const) {
+    if (dto?.[k] !== undefined) out[k] = str(dto[k], 1000);
+  }
+  if (dto?.businessName !== undefined && !out.businessName) throw new BadRequestException('Business ka naam likhein');
+  if (dto?.businessType !== undefined && !out.businessType) throw new BadRequestException('Business ka type chunein');
+  if (dto?.creditLimit !== undefined) out.creditLimit = r2(Math.max(Number(dto.creditLimit) || 0, 0));
+  if (dto?.creditDays !== undefined) out.creditDays = Math.max(Math.round(Number(dto.creditDays) || 0), 0);
+  if (dto?.discountPct !== undefined) {
+    const d = Number(dto.discountPct) || 0;
+    if (d < 0 || d > 50) throw new BadRequestException('Discount 0 se 50% tak');
+    out.discountPct = r2(d);
+  }
+  if (dto?.requiresDelivery !== undefined) out.requiresDelivery = !!dto.requiresDelivery;
+  if (dto?.isActive !== undefined) out.isActive = !!dto.isActive;
+  if (dto?.deliveryDays !== undefined) out.deliveryDays = (Array.isArray(dto.deliveryDays) ? dto.deliveryDays : []).map(Number).filter((d: number) => Number.isInteger(d) && d >= 0 && d <= 6);
+  if (dto?.specialPricing !== undefined) out.specialPricing = dto.specialPricing ?? null;
+  return out;
 }
 
 @Injectable()
@@ -19,11 +39,13 @@ export class WholesaleService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: any) {
-    const customer = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId } });
-    if (!customer) throw new NotFoundException('Customer not found');
+    const customer = await this.prisma.customer.findFirst({ where: { id: String(dto?.customerId ?? ''), tenantId: user.tenantId } });
+    if (!customer) throw new NotFoundException('Customer chunein');
+    if (!str(dto?.businessName)) throw new BadRequestException('Business ka naam likhein');
+    if (!str(dto?.businessType)) throw new BadRequestException('Business ka type chunein (hotel, restaurant…)');
 
     const existing = await this.prisma.meatWholesaleAccount.findUnique({ where: { customerId: dto.customerId } });
-    if (existing) throw new BadRequestException('Wholesale account already exists for this customer');
+    if (existing) throw new BadRequestException('Is customer ka wholesale account pehle se hai');
 
     const count = await this.prisma.meatWholesaleAccount.count({ where: { tenantId: user.tenantId } });
     const accountNumber = 'WS-' + String(count + 1).padStart(5, '0');
@@ -31,12 +53,12 @@ export class WholesaleService {
     return this.prisma.$transaction(async (tx) => {
       const account = await tx.meatWholesaleAccount.create({
         data: {
-          ...accountFields(dto),
+          ...(accountFields(dto) as Omit<Prisma.MeatWholesaleAccountUncheckedCreateInput, 'customerId' | 'tenantId' | 'accountNumber'>),
           customerId: customer.id,
           tenantId: user.tenantId,
           accountNumber,
-          contractStart: dto.contractStart ? new Date(dto.contractStart) : null,
-          contractEnd: dto.contractEnd ? new Date(dto.contractEnd) : null,
+          contractStart: parseDay(dto.contractStart),
+          contractEnd: parseDay(dto.contractEnd),
         },
       });
       await this.syncCreditLimit(tx, customer.id, dto.creditLimit);
@@ -97,7 +119,7 @@ export class WholesaleService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const a = await this.prisma.meatWholesaleAccount.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Account not found');
+    if (!a) throw new NotFoundException('Account nahi mila');
     return (await this.withKhata(user.tenantId, [a]))[0];
   }
 
@@ -108,14 +130,14 @@ export class WholesaleService {
 
   async update(user: AuthenticatedUser, id: string, dto: any) {
     const a = await this.prisma.meatWholesaleAccount.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Account not found');
+    if (!a) throw new NotFoundException('Account nahi mila');
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.meatWholesaleAccount.update({
         where: { id },
         data: {
           ...accountFields(dto),
-          contractStart: dto.contractStart ? new Date(dto.contractStart) : undefined,
-          contractEnd: dto.contractEnd ? new Date(dto.contractEnd) : undefined,
+          contractStart: dto.contractStart !== undefined ? parseDay(dto.contractStart) : undefined,
+          contractEnd: dto.contractEnd !== undefined ? parseDay(dto.contractEnd) : undefined,
         },
       });
       await this.syncCreditLimit(tx, a.customerId, dto.creditLimit);
@@ -123,30 +145,23 @@ export class WholesaleService {
     });
   }
 
-  async recordPurchase(user: AuthenticatedUser, id: string, amount: number) {
+  /**
+   * Payment from a wholesale buyer: a real khata payment (drawer for cash,
+   * bank or wallet otherwise), the same as taking it on the Khata page.
+   */
+  async recordPayment(user: AuthenticatedUser, scope: ShopScope, id: string, body: { amount?: unknown; paymentMethod?: unknown; note?: unknown }) {
     const a = await this.prisma.meatWholesaleAccount.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Account not found');
-    return this.prisma.meatWholesaleAccount.update({
-      where: { id },
-      data: {
-        totalPurchases: a.totalPurchases + amount,
-        totalOrders: a.totalOrders + 1,
-        currentBalance: a.currentBalance + amount,
-        totalOutstanding: a.totalOutstanding + amount,
-      },
+    if (!a) throw new NotFoundException('Account nahi mila');
+    const amount = r2(positive(body?.amount, 'Amount likhein'));
+    const method = payMethod(body?.paymentMethod);
+    await this.prisma.$transaction(async (tx) => {
+      const shopId = await resolveIndustryShopId(tx, user, scope.shopId);
+      await recordKhataPayment(tx, user, {
+        customerId: a.customerId, shopId, amount, method, reference: a.accountNumber,
+        note: str(body?.note, 200) ?? `Wholesale payment: ${a.businessName}`,
+      });
     });
-  }
-
-  async recordPayment(user: AuthenticatedUser, id: string, amount: number) {
-    const a = await this.prisma.meatWholesaleAccount.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Account not found');
-    return this.prisma.meatWholesaleAccount.update({
-      where: { id },
-      data: {
-        currentBalance: Math.max(a.currentBalance - amount, 0),
-        totalOutstanding: Math.max(a.totalOutstanding - amount, 0),
-      },
-    });
+    return this.getOne(user, id);
   }
 
   async remove(user: AuthenticatedUser, id: string) {

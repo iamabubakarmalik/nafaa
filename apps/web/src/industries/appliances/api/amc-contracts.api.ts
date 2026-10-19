@@ -74,7 +74,7 @@ export interface AmcSummary {
 }
 
 export const amcContractsApi = {
-  create: (data: Partial<AmcContract>) =>
+  create: (data: Partial<AmcContract> & { paymentMethod?: string }) =>
     apiClient.post('/appliances/amc-contracts', data).then(unwrap<AmcContract>),
   list: (params?: {
     status?: string; amcType?: string; customerId?: string;
@@ -90,8 +90,10 @@ export const amcContractsApi = {
     apiClient.patch('/appliances/amc-contracts/' + id, data).then(unwrap<AmcContract>),
   updateStatus: (id: string, data: { status: ApplianceAmcStatus; reason?: string }) =>
     apiClient.patch('/appliances/amc-contracts/' + id + '/status', data).then(unwrap<AmcContract>),
-  renew: (id: string, data: { durationMonths: number; contractValue: number; paidAmount?: number; freeVisitsAllowed?: number }) =>
+  renew: (id: string, data: { durationMonths: number; contractValue: number; paidAmount?: number; paymentMethod?: string; freeVisitsAllowed?: number }) =>
     apiClient.post('/appliances/amc-contracts/' + id + '/renew', data).then(unwrap<AmcContract>),
+  addPayment: (id: string, data: { amount: number; paymentMethod?: string; note?: string }) =>
+    apiClient.post('/appliances/amc-contracts/' + id + '/payment', data).then(unwrap<AmcContract>),
   sendReminder: (id: string) =>
     apiClient.post('/appliances/amc-contracts/' + id + '/send-reminder').then(unwrap<AmcContract>),
 };

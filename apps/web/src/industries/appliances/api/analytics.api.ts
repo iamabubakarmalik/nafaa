@@ -38,7 +38,7 @@ export interface AppliancesProfit {
     revenue: number; cost: number; profit: number; margin: number;
     units: number; salesCount: number;
   };
-  /** Sirf maal ka munafa — services alag */
+  /** Profit on goods only; services are separate. */
   goods: ProfitBucket;
   /** Paanch kamai ke raste */
   streams: RevenueStream[];
@@ -166,73 +166,6 @@ export interface AppliancesStockReport {
   };
 }
 
-/* ═══════════ SERVICE DESK ═══════════ */
-export interface TechnicianPerf {
-  id: string;
-  name: string;
-  phone: string;
-  employeeCode: string;
-  isActive: boolean;
-  zone: string | null;
-  specializations: string[];
-  serviceJobs: number;
-  installJobs: number;
-  totalJobs: number;
-  completed: number;
-  open: number;
-  revenue: number;
-  partsCost: number;
-  profit: number;
-  commission: number;
-  unpaid: number;
-  avgRating: number | null;
-  avgHours: number;
-  completionRate: number;
-}
-
-export interface AppliancesServiceAnalytics {
-  range: { from: string; to: string };
-  totals: {
-    serviceJobs: number; installJobs: number; completed: number;
-    open: number; overdue: number; unresolved: number;
-    revenue: number; collected: number; outstanding: number;
-    cost: number; profit: number;
-  };
-  quality: {
-    avgResolutionHours: number;
-    sameDayFixes: number;
-    sameDayRate: number;
-    firstVisitFix: number;
-    firstVisitFixRate: number;
-    avgRating: number | null;
-    ratingCount: number;
-    warrantyJobs: number;
-    amcJobs: number;
-    paidJobs: number;
-  };
-  statusFunnel: { status: string; count: number }[];
-  technicians: TechnicianPerf[];
-  topIssues: { issue: string; jobs: number; revenue: number; avgHours: number }[];
-  problemProducts: { productName: string; jobs: number; revenue: number; warrantyJobs: number }[];
-  repeatCustomers: { phone: string; name: string; jobs: number; revenue: number; lastAt: string }[];
-  zones: { zone: string; jobs: number; revenue: number }[];
-  daily: { date: string; requested: number; completed: number; revenue: number }[];
-  pendingFollowUps: {
-    id: string; requestNumber: string; customerName: string; customerPhone: string;
-    productName: string; followUpDate: string; followUpReason: string | null; isDue: boolean;
-  }[];
-  overdueJobs: {
-    id: string; requestNumber: string; customerName: string; customerPhone: string;
-    productName: string; status: string; scheduledDate: string;
-    technicianName: string | null; daysLate: number;
-  }[];
-  amcExpiring: {
-    id: string; contractNumber: string; customerName: string; customerPhone: string;
-    expiryDate: string; daysLeft: number; visitsLeft: number; pending: number;
-    freeVisitsAllowed: number; freeVisitsUsed: number; contractValue: number; paidAmount: number;
-  }[];
-}
-
 export interface RangeParams { from?: string; to?: string }
 
 export const appliancesAnalyticsApi = {
@@ -244,7 +177,4 @@ export const appliancesAnalyticsApi = {
 
   stock: () =>
     apiClient.get('/appliances/analytics/stock').then(unwrap<AppliancesStockReport>),
-
-  serviceDesk: (params?: RangeParams) =>
-    apiClient.get('/appliances/analytics/service', { params }).then(unwrap<AppliancesServiceAnalytics>),
 };

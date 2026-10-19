@@ -3,6 +3,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { ApplianceInstallationStatus } from '@prisma/client';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { billJob, receiveJobMoney } from '../common/books';
+import { activeTechnician, checkLinks, dayRange, nextInSequence, optDate, r2, stamp, yearPrefix } from '../common/appliance-common';
+import { endOfDayTz, startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
 import {
   AddInstallationPaymentDto,
   AssignTechnicianDto,
@@ -19,38 +21,31 @@ const STATUS_RANK: Record<string, number> = {
   COMPLETED: 5, FAILED: 6, CANCELLED: 7,
 };
 
+/** Money still owed on a job; a warranty job owes only what the customer agreed to pay, already billed. */
+const dueOf = (r: { totalCharge: unknown; paidByCustomer: unknown; covered_underWarranty?: boolean | null; status?: string }) =>
+  r.covered_underWarranty && r.status === 'COMPLETED' ? 0 : Math.max(r2(Number(r.totalCharge) - Number(r.paidByCustomer)), 0);
+
 @Injectable()
 export class InstallationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Agla installation number — `count() + 1` se nahi.
-   * Purana record delete hone par wohi number dobara banta tha aur
-   * `[tenantId, installationNumber]` unique constraint tut jata tha.
-   */
+  /** Next installation number after the highest used this year (a count would repeat numbers). */
   private async nextNumber(tenantId: string) {
-    const year = new Date().getFullYear();
-    const prefix = `INST-${year}-`;
+    const prefix = yearPrefix('INST');
     const last = await this.prisma.applianceInstallation.findFirst({
       where: { tenantId, installationNumber: { startsWith: prefix } },
       orderBy: { installationNumber: 'desc' },
       select: { installationNumber: true },
     });
-    const seq = last ? Number(last.installationNumber.slice(prefix.length)) || 0 : 0;
-    return `${prefix}${String(seq + 1).padStart(4, '0')}`;
+    return nextInSequence(prefix, last?.installationNumber);
   }
 
   async create(user: AuthenticatedUser, dto: CreateInstallationDto) {
-    let technicianName: string | undefined;
-    let technicianPhone: string | undefined;
-    if (dto.technicianId) {
-      const tech = await this.prisma.applianceTechnician.findFirst({
-        where: { id: dto.technicianId, tenantId: user.tenantId },
-      });
-      if (!tech) throw new NotFoundException('Technician nahi mila');
-      technicianName = tech.name;
-      technicianPhone = tech.phone;
-    }
+    await checkLinks(this.prisma, user.tenantId, dto);
+    const tech = dto.technicianId ? await activeTechnician(this.prisma, user.tenantId, dto.technicianId) : null;
+    const technicianName = tech?.name;
+    const technicianPhone = tech?.phone;
+    const scheduledDate = optDate(dto.scheduledDate);
 
     const installationNumber = await this.nextNumber(user.tenantId);
 
@@ -61,7 +56,8 @@ export class InstallationsService {
           installationNumber,
           ...dto,
           serviceType: dto.serviceType ?? 'INSTALLATION',
-          scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : null,
+          scheduledDate,
+          totalCharge: r2((dto.laborCharge ?? 0) + (dto.visitCharge ?? 0) + (dto.materialsCharge ?? 0)),
           technicianName,
           technicianPhone,
           status: dto.technicianId ? 'ASSIGNED' : dto.scheduledDate ? 'SCHEDULED' : 'PENDING',
@@ -109,14 +105,11 @@ export class InstallationsService {
       ...(params.serviceType && { serviceType: params.serviceType as any }),
       ...(params.technicianId && { technicianId: params.technicianId }),
       ...(params.customerId && { customerId: params.customerId }),
-      ...(params.from || params.to
-        ? {
-            scheduledDate: {
-              ...(params.from && { gte: new Date(params.from) }),
-              ...(params.to && { lte: (() => { const d = new Date(params.to!); d.setHours(23, 59, 59, 999); return d; })() }),
-            },
-          }
-        : {}),
+      ...(dayRange(params.from, params.to) && { scheduledDate: dayRange(params.from, params.to) }),
+      // Unpaid is filtered in the query, so paging and the total count agree.
+      ...(params.unpaidOnly && {
+        AND: [{ status: { not: 'CANCELLED' } }, { covered_underWarranty: false }, { paidByCustomer: { lt: this.prisma.applianceInstallation.fields.totalCharge } }],
+      }),
       ...(params.search && {
         OR: [
           { installationNumber: { contains: params.search, mode: 'insensitive' } },
@@ -143,11 +136,10 @@ export class InstallationsService {
     const rows = items
       .map((r) => ({
         ...r,
-        dueAmount: Math.max(Number(r.totalCharge) - Number(r.paidByCustomer), 0),
+        dueAmount: dueOf(r),
         isOverdue: (OPEN_STATES).includes(r.status)
           && !!r.scheduledDate && new Date(r.scheduledDate).getTime() < now,
-      }))
-      .filter((r) => (params.unpaidOnly ? r.dueAmount > 0 : true));
+      }));
 
     return {
       items: rows,
@@ -186,7 +178,7 @@ export class InstallationsService {
 
     return {
       ...i,
-      dueAmount: Math.max(Number(i.totalCharge) - Number(i.paidByCustomer), 0),
+      dueAmount: dueOf(i),
       history,
       serial,
     };
@@ -218,13 +210,8 @@ export class InstallationsService {
   async assignTechnician(user: AuthenticatedUser, id: string, dto: AssignTechnicianDto) {
     const i = await this.prisma.applianceInstallation.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!i) throw new NotFoundException('Installation nahi mili');
-    if (i.status === 'COMPLETED') throw new BadRequestException('Mukammal kaam par technician nahi badalta');
-
-    const tech = await this.prisma.applianceTechnician.findFirst({
-      where: { id: dto.technicianId, tenantId: user.tenantId },
-    });
-    if (!tech) throw new NotFoundException('Technician nahi mila');
-    if (!tech.isActive) throw new BadRequestException(`${tech.name} abhi active nahi hai`);
+    if (!OPEN_STATES.includes(i.status)) throw new BadRequestException('Band kaam par technician nahi badalta');
+    const tech = await activeTechnician(this.prisma, user.tenantId, dto.technicianId);
 
     return this.prisma.applianceInstallation.update({
       where: { id },
@@ -232,7 +219,7 @@ export class InstallationsService {
         technicianId: tech.id,
         technicianName: tech.name,
         technicianPhone: tech.phone,
-        scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : undefined,
+        scheduledDate: optDate(dto.scheduledDate) ?? undefined,
         scheduledTimeSlot: dto.scheduledTimeSlot,
         // Kaam shuru ho chuka ho to peeche na le jayein
         status: i.status === 'IN_PROGRESS' ? i.status : 'ASSIGNED',
@@ -249,6 +236,10 @@ export class InstallationsService {
         'Mukammal karne ke liye "complete" istemal karein — warna charges aur serial ka record adhoora reh jata hai',
       );
     }
+    if (i.status === 'COMPLETED') throw new BadRequestException('Mukammal kaam ki halat nahi badalti — bill galat ho to Sales se void karein');
+    if ((dto.status === 'CANCELLED' || dto.status === 'FAILED') && !dto.cancellationReason?.trim()) {
+      throw new BadRequestException('Cancel ki wajah likhein');
+    }
 
     const patch: any = { status: dto.status };
     const now = new Date();
@@ -262,7 +253,7 @@ export class InstallationsService {
       patch.cancellationReason = dto.cancellationReason;
     }
     if (dto.notes) {
-      patch.internalNotes = `${i.internalNotes || ''}\n[${now.toLocaleString('en-PK')}] ${dto.notes}`.trim();
+      patch.internalNotes = stamp(i.internalNotes, dto.notes);
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -285,6 +276,7 @@ export class InstallationsService {
 
     // Dobara complete karne par technician ke totals do bar barh jate thay
     if (i.status === 'COMPLETED') throw new BadRequestException('Ye installation pehle hi mukammal ho chuki hai');
+    if (i.status === 'CANCELLED' || i.status === 'FAILED') throw new BadRequestException('Cancel hui installation mukammal nahi hoti — pehle dobara kholein');
 
     const materialsCharge = dto.materialsCharge ?? Number(i.materialsCharge) ?? 0;
     const laborCharge = dto.laborCharge ?? Number(i.laborCharge) ?? 0;
@@ -296,8 +288,12 @@ export class InstallationsService {
       ? (dto.paidByCustomer ?? 0)
       : (dto.paidByCustomer ?? totalCharge);
 
-    if (paidByCustomer > totalCharge) {
+    if (paidByCustomer > totalCharge + 0.005) {
       throw new BadRequestException('Receive shuda amount kul bill se ziyada nahi ho sakti');
+    }
+    // `paidByCustomer` is everything paid on the job, so it cannot be below the advance already taken.
+    if (paidByCustomer + 0.005 < r2(i.paidByCustomer)) {
+      throw new BadRequestException(`Is kaam par Rs ${r2(i.paidByCustomer)} advance pehle mil chuka hai — kul mila is se kam nahi ho sakta`);
     }
 
     const now = new Date();
@@ -323,8 +319,8 @@ export class InstallationsService {
       });
 
       if (i.technicianId) {
-        const tech = await tx.applianceTechnician.findUnique({
-          where: { id: i.technicianId },
+        const tech = await tx.applianceTechnician.findFirst({
+          where: { id: i.technicianId, tenantId: user.tenantId },
           select: { commissionPct: true, totalReviews: true, avgRating: true },
         });
         const commission = totalCharge * ((Number(tech?.commissionPct) || 0) / 100);
@@ -362,7 +358,7 @@ export class InstallationsService {
       } else {
         const what = `${i.productName}${i.serialNumber ? ` (${i.serialNumber})` : ''}`;
         const lines = coveredUnderWarranty
-          ? [{ label: `Installation ${i.installationNumber} — ${what}: customer ka hissa`, amount: paidByCustomer }]
+          ? [{ label: `Installation ${i.installationNumber} — ${what}: customer ka hissa`, amount: paidByCustomer, cost: materialsCharge }]
           : [
               // Material is bought for the job; its price is taken as its cost.
               { label: `Installation ${i.installationNumber} — ${what}: saman`, amount: materialsCharge, cost: materialsCharge },
@@ -399,12 +395,11 @@ export class InstallationsService {
     const i = await this.prisma.applianceInstallation.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!i) throw new NotFoundException('Installation nahi mili');
 
-    const due = Number(i.totalCharge) - Number(i.paidByCustomer);
+    const due = dueOf(i);
     if (due <= 0) throw new BadRequestException('Is kaam ka poora paisa mil chuka hai');
     if (dto.amount <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
-    if (dto.amount > due) throw new BadRequestException(`Sirf ${due} baqi hai`);
-
-    if (i.status === 'CANCELLED') throw new BadRequestException('Cancel hui installation par paisa nahi liya ja sakta');
+    if (dto.amount > due + 0.005) throw new BadRequestException(`Sirf ${r2(due)} baqi hai`);
+    if (i.status === 'CANCELLED' || i.status === 'FAILED') throw new BadRequestException('Cancel hui installation par paisa nahi liya ja sakta');
     return this.prisma.$transaction(async (tx) => {
       // Before the bill this is an advance; after it, it pays the bill's udhaar on khata.
       const customerId = await receiveJobMoney(
@@ -417,7 +412,7 @@ export class InstallationsService {
         data: {
           customerId,
           paidByCustomer: { increment: dto.amount },
-          internalNotes: `${i.internalNotes || ''}\n[${new Date().toLocaleString('en-PK')}] Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`.trim(),
+          internalNotes: stamp(i.internalNotes, `Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`),
         },
       });
     });
@@ -426,10 +421,10 @@ export class InstallationsService {
   async reschedule(user: AuthenticatedUser, id: string, newDate: string, reason?: string) {
     const i = await this.prisma.applianceInstallation.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!i) throw new NotFoundException('Installation nahi mili');
-    if (i.status === 'COMPLETED') throw new BadRequestException('Mukammal kaam reschedule nahi hota');
+    if (!OPEN_STATES.includes(i.status)) throw new BadRequestException('Band kaam reschedule nahi hota');
 
-    const when = new Date(newDate);
-    if (isNaN(when.getTime())) throw new BadRequestException('Date sahi nahi hai');
+    const when = optDate(newDate);
+    if (!when) throw new BadRequestException('Nayi tareekh chunein');
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.applianceInstallation.update({
@@ -437,7 +432,7 @@ export class InstallationsService {
         data: {
           scheduledDate: when,
           status: 'RESCHEDULED',
-          internalNotes: `${i.internalNotes || ''}\n[${new Date().toLocaleString('en-PK')}] Reschedule ${when.toLocaleDateString('en-PK')}: ${reason || 'wajah nahi likhi'}`.trim(),
+          internalNotes: stamp(i.internalNotes, `Reschedule ${when.toLocaleDateString('en-PK', { timeZone: 'Asia/Karachi' })}: ${reason || 'wajah nahi likhi'}`),
         },
       });
       if (i.serialTrackingId) {
@@ -450,19 +445,22 @@ export class InstallationsService {
     });
   }
 
+  /** Old delete route: the record is kept and cancelled, money on khata stays as the customer's advance. */
   async remove(user: AuthenticatedUser, id: string) {
     const i = await this.prisma.applianceInstallation.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!i) throw new NotFoundException('Installation nahi mili');
     if (i.status === 'COMPLETED') {
-      throw new BadRequestException('Mukammal installation ka record delete nahi hota — warranty isi par chalti hai');
+      throw new BadRequestException('Mukammal installation ka record nahi hatta — warranty isi par chalti hai');
     }
-    await this.prisma.applianceInstallation.delete({ where: { id } });
-    return { message: 'Installation delete ho gayi' };
+    if (i.status !== 'CANCELLED') {
+      await this.updateStatus(user, id, { status: 'CANCELLED', cancellationReason: 'Record hataya gaya' } as UpdateInstallationStatusDto);
+    }
+    return { message: 'Installation cancel ho gayi' };
   }
 
   async todaySchedule(user: AuthenticatedUser) {
-    const start = new Date(); start.setHours(0, 0, 0, 0);
-    const end = new Date(); end.setHours(23, 59, 59, 999);
+    const start = startOfDayTz();
+    const end = endOfDayTz();
 
     return this.prisma.applianceInstallation.findMany({
       where: {
@@ -477,10 +475,9 @@ export class InstallationsService {
   /** Summary — ginti ke sath paisa bhi, warna page adha khali lagta hai. */
   async summary(user: AuthenticatedUser) {
     const tenantId = user.tenantId;
-    const now = new Date();
-    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(now); todayEnd.setHours(23, 59, 59, 999);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStart = startOfDayTz();
+    const todayEnd = endOfDayTz();
+    const monthStart = startOfMonthTz();
 
     const [counts, openRows, doneMonth, todayJobs] = await Promise.all([
       this.prisma.applianceInstallation.groupBy({

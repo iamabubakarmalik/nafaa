@@ -1,24 +1,26 @@
 import {
-  Beef, Sparkles, Heart, ShieldCheck, Scissors, Users, Building2,
-  LayoutDashboard, Package, Calendar, RefreshCw,
+  Beef, Building2, CalendarClock, Gauge, Heart, LayoutDashboard, Package, Plus, Scissors, ShieldCheck,
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
-
-// Existing pages
+import { PERMISSIONS } from '@core/lib/permissions';
 import MeatProductsPage from './pages/MeatProductsPage';
+import MeatProductWizardPage from './pages/MeatProductWizardPage';
+import MeatProductDetailPage from './pages/MeatProductDetailPage';
+import MeatRatesPage from './pages/MeatRatesPage';
 import LiveAnimalsPage from './pages/LiveAnimalsPage';
 import SlaughterLogPage from './pages/SlaughterLogPage';
 import CuttingJobsPage from './pages/CuttingJobsPage';
+import WeightOrdersPage from './pages/WeightOrdersPage';
+import NewWeightOrderPage from './pages/NewWeightOrderPage';
+import QurbaniPage from './pages/QurbaniPage';
+import SubscriptionsPage from './pages/SubscriptionsPage';
 import WholesalePage from './pages/WholesalePage';
-
-// Wizard + Detail
-import MeatProductWizardPage from './pages/MeatProductWizardPage';
-import MeatProductDetailPage from './pages/MeatProductDetailPage';
 import MeatDashboard from './dashboard/MeatDashboard';
 
 /**
- * Meat / Butcher / Halal industry pack.
- * Livestock, slaughter, halal certification, cutting jobs, weight-based orders.
+ * Meat shop, butcher and chicken shop: mandi purchase, slaughter and
+ * cutting into stock, sale by kg, daily rates, weight orders and delivery,
+ * restaurant khata, qurbani bookings and supply plans.
  */
 export const MeatPack: IndustryPack = {
   id: 'meat',
@@ -43,37 +45,46 @@ export const MeatPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Meat Industry',
+      label: 'Gosht ki dukaan',
       icon: Beef,
       emoji: '🥩',
       color: '#dc2626',
       order: 20,
       items: [
-        { to: '/meat-products/new', label: '+ Add Meat Product', icon: Sparkles, badge: 'FAST' },
-        { to: '/meat/products', label: 'Meat Products', icon: Beef },
-        { to: '/meat/live-animals', label: 'Live Animals', icon: Heart },
-        { to: '/meat/slaughter', label: 'Slaughter Log', icon: ShieldCheck },
-        { to: '/meat/cutting', label: 'Cutting Jobs', icon: Scissors },
-        { to: '/meat/wholesale', label: 'Wholesale Accounts', icon: Building2 },
+        { to: '/meat/dashboard', label: 'Meat dashboard', icon: LayoutDashboard },
+        { to: '/meat/rates', label: 'Aaj ka rate', icon: Gauge, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+        { to: '/meat/weight-orders', label: 'Wazan wale order', icon: Package, permission: PERMISSIONS.SALES_VIEW },
+        { to: '/meat/weight-orders/new', label: 'Naya order', icon: Plus, permission: PERMISSIONS.POS_USE },
+        { to: '/meat/live-animals', label: 'Zinda maal / mandi', icon: Heart, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/meat/slaughter', label: 'Zibah (halal)', icon: ShieldCheck, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/meat/cutting', label: 'Cutting', icon: Scissors, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/meat/wholesale', label: 'Restaurant / hotel', icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/meat/subscriptions', label: 'Supply plans', icon: CalendarClock, permission: PERMISSIONS.CUSTOMERS_VIEW, featureFlag: 'meatSubscriptions' },
+        { to: '/meat/qurbani', label: 'Qurbani / aqeeqa', icon: Beef, permission: PERMISSIONS.SALES_VIEW, featureFlag: 'meatQurbani' },
+        { to: '/meat/products', label: 'Maal (items)', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
       ],
     },
   ],
 
   routes: [
-    // Wizard + Detail — highest priority meat routes
-    { path: '/meat-products/new', element: MeatProductWizardPage },
-    { path: '/meat-products/:id/edit', element: MeatProductWizardPage },
-    { path: '/meat-products/:id', element: MeatProductDetailPage },
+    { path: '/meat-products/new', element: MeatProductWizardPage, permission: PERMISSIONS.PRODUCTS_CREATE },
+    { path: '/meat-products/:id/edit', element: MeatProductWizardPage, permission: PERMISSIONS.PRODUCTS_EDIT },
+    { path: '/meat-products/:id', element: MeatProductDetailPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/meat/products', element: MeatProductsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
 
     { path: '/meat', element: MeatDashboard },
     { path: '/meat/dashboard', element: MeatDashboard },
 
-    // Existing pages
-    { path: '/meat/products', element: MeatProductsPage },
-    { path: '/meat/live-animals', element: LiveAnimalsPage },
-    { path: '/meat/slaughter', element: SlaughterLogPage },
-    { path: '/meat/cutting', element: CuttingJobsPage },
-    { path: '/meat/wholesale', element: WholesalePage },
+    { path: '/meat/rates', element: MeatRatesPage, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+    { path: '/meat/weight-orders/new', element: NewWeightOrderPage, permission: PERMISSIONS.POS_USE },
+    { path: '/meat/weight-orders', element: WeightOrdersPage, permission: PERMISSIONS.SALES_VIEW },
+    { path: '/meat/live-animals', element: LiveAnimalsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/meat/slaughter', element: SlaughterLogPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/meat/cutting', element: CuttingJobsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/meat/cutting-jobs', element: CuttingJobsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/meat/wholesale', element: WholesalePage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/meat/subscriptions', element: SubscriptionsPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/meat/qurbani', element: QurbaniPage, permission: PERMISSIONS.SALES_VIEW },
   ],
 
   dashboardComponent: MeatDashboard,
@@ -97,8 +108,8 @@ export const MeatPack: IndustryPack = {
     { key: 'meatLivestock', label: 'Live Animals', defaultEnabled: true },
     { key: 'meatSlaughter', label: 'Slaughter Logs', defaultEnabled: true },
     { key: 'meatCutting', label: 'Cutting Jobs', defaultEnabled: true },
-    { key: 'meatWholesale', label: 'Wholesale Accounts', defaultEnabled: false },
+    { key: 'meatWholesale', label: 'Wholesale Accounts', defaultEnabled: true },
     { key: 'meatQurbani', label: 'Qurbani Bookings', defaultEnabled: false },
-    { key: 'meatSubscriptions', label: 'Meat Subscriptions', defaultEnabled: false },
+    { key: 'meatSubscriptions', label: 'Meat Subscriptions', defaultEnabled: true },
   ],
 };

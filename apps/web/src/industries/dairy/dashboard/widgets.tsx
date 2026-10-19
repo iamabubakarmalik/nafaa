@@ -24,7 +24,7 @@ export const dairyKpis: KpiDef[] = [
     },
   },
   {
-    id: 'dairy-milk-in', label: 'Kisan se doodh', icon: Warehouse, tone: 'success',
+    id: 'dairy-milk-in', label: 'Gawale se doodh', icon: Warehouse, tone: 'success',
     useValue: () => {
       const { today: t, loading } = useDairyOps();
       const { cost } = useMasked();
@@ -58,11 +58,11 @@ export const dairyKpis: KpiDef[] = [
     },
   },
   {
-    id: 'dairy-farmer-payable', label: 'Kisanon ko dena', icon: Warehouse, tone: 'warning', sensitive: true,
+    id: 'dairy-farmer-payable', label: 'Gawalon ko dena', icon: Warehouse, tone: 'warning', sensitive: true,
     useValue: () => {
       const { money, totals, loading } = useDairyOps();
       const { cost } = useMasked();
-      return { loading, to: '/dairy/farmers', value: cost(money.farmerPayable), hint: `${totals.farmers} kisan` };
+      return { loading, to: '/dairy/farmers', value: cost(money.farmerPayable), hint: `${totals.farmers} gawale` };
     },
   },
 ];
@@ -75,8 +75,8 @@ export function useDairyAttention(): AttentionItem[] {
 
   if (today.pending > 0) items.push({ icon: Truck, level: 'warning', text: `${today.pending} delivery abhi baqi hai — rider se pata karein`, to: '/dairy/deliveries', cta: 'Delivery dekhein' });
   if (money.debtorCount > 0 && money.receivable > 0) items.push({ icon: BookOpen, level: 'warning', text: `${money.debtorCount} customers ka ${cost(money.receivable)} baqi hai — mahine ka bill bhejein`, to: '/dairy/bills', cta: 'Bill banayein' });
-  if (totals.farmers > 0 && today.supplies === 0) items.push({ icon: Warehouse, level: 'info', text: 'Aaj kisanon se aaya doodh abhi tak darj nahi hua', to: '/dairy/supplies', cta: 'Darj karein' });
-  if (money.farmerPayable > 0) items.push({ icon: Warehouse, level: 'neutral', text: `Kisanon ko ${cost(money.farmerPayable)} dena hai`, to: '/dairy/farmers', cta: 'Kisan dekhein' });
+  if (totals.farmers > 0 && today.supplies === 0) items.push({ icon: Warehouse, level: 'info', text: 'Aaj gawalon se aaya doodh abhi tak darj nahi hua', to: '/dairy/supplies', cta: 'Darj karein' });
+  if (money.farmerPayable > 0) items.push({ icon: Warehouse, level: 'neutral', text: `Gawalon ko ${cost(money.farmerPayable)} dena hai`, to: '/dairy/farmers', cta: 'Gawale dekhein' });
   if (subscribers.paused > 0) items.push({ icon: Users, level: 'neutral', text: `${subscribers.paused} customer ki delivery ruki hui hai`, to: '/dairy/customers', cta: 'Dekhein' });
   return items;
 }
@@ -122,14 +122,14 @@ export function DairyCollection() {
   const { cost } = useMasked();
   return (
     <WidgetCard
-      title="Kisanon se doodh"
+      title="Gawalon se doodh"
       icon={Warehouse}
       description={t.supplies ? `Aaj ${liters(t.suppliedLiters)} aaya · ${cost(t.suppliedAmount)}` : 'Aaj abhi kuch darj nahi hua'}
       to="/dairy/supplies"
       flush
     >
       {farmers.length === 0 ? (
-        <EmptyHint icon={Warehouse} text="30 din me kisi kisan se doodh darj nahi hua" />
+        <EmptyHint icon={Warehouse} text="30 din me kisi gawale se doodh darj nahi hua" />
       ) : (
         <>
           <p className="px-4 pt-1 text-[0.75rem] font-medium text-slate-500 sm:px-5">Sab se zyada dene wale · 30 din</p>
@@ -187,8 +187,8 @@ export function useDairyMoneyTiles(): MoneyTileProps[] {
       value: formatPKR(money.receivable), hint: `${money.debtorCount} customers se lena`,
     },
     {
-      key: 'dairy-farmers', icon: Warehouse, tone: 'warning', to: '/dairy/farmers', label: 'Kisanon ko dena',
-      value: formatPKR(money.farmerPayable), hint: `${totals.farmers} kisan`,
+      key: 'dairy-farmers', icon: Warehouse, tone: 'warning', to: '/dairy/farmers', label: 'Gawalon ko dena',
+      value: formatPKR(money.farmerPayable), hint: `${totals.farmers} gawale`,
     },
   ];
 }

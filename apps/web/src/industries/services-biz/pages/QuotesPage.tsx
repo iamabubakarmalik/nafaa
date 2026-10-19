@@ -1,293 +1,217 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  FileText, Plus, Search, X, Save, RefreshCw, Sparkles, Send,
-  CheckCircle2, Ban, DollarSign, ArrowRight, User, Phone,
-} from 'lucide-react';
-import { quotesApi, type Quote } from '../api/quotes.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+/**
+ * Quotes (estimates): what was offered, sent, accepted or turned down, and
+ * which became a job. A quote is sent on WhatsApp or printed; once the
+ * customer agrees it becomes a job card with the same lines.
+ *
+ * Keys: N new quote · / search · G guide.
+ */
 
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-slate-500', SENT: 'bg-blue-500',
-  ACCEPTED: 'bg-emerald-600', REJECTED: 'bg-rose-500',
-  EXPIRED: 'bg-slate-500', REVISED: 'bg-amber-500',
-};
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Briefcase, CheckCircle2, Clock, Download, FileText, Filter, GraduationCap, MessageCircle, Pencil, Plus, Printer, Send, XCircle } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { quotesApi, type Quote, type QuoteInput, type QuoteView } from '../api/quotes.api';
+import { QuoteModal } from '../components/QuoteModal';
+import { printQuote, quoteMessage } from '../components/slips';
+import { JOB_KEY, QUOTE_KEY, TONES, apiError, dayOnly, waLink } from '../components/meta';
+
+const VIEWS: Array<{ id: QuoteView; label: string }> = [
+  { id: 'open', label: 'Jawab ka intezar' }, { id: 'draft', label: 'Kacha' }, { id: 'sent', label: 'Bheja gaya' }, { id: 'accepted', label: 'Haan — job baqi' },
+  { id: 'converted', label: 'Job ban gayi' }, { id: 'rejected', label: 'Mana' }, { id: 'expired', label: 'Purana' }, { id: 'all', label: 'Sab' },
+];
+const stateOf = (q: Quote) =>
+  q.convertedJobId ? { label: 'Job ban gayi', tone: TONES.slate }
+    : q.isExpired ? { label: 'Purana', tone: TONES.slate }
+      : q.status === 'ACCEPTED' ? { label: 'Haan', tone: TONES.green }
+        : q.status === 'REJECTED' ? { label: 'Mana', tone: TONES.rose }
+          : q.status === 'DRAFT' ? { label: 'Kacha', tone: TONES.slate }
+            : { label: q.status === 'REVISED' ? 'Badal kar bheja' : 'Bheja gaya', tone: TONES.blue };
 
 export default function QuotesPage() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales } = useMasked();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const canManage = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  useReceiptSetup();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<QuoteView>('open');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
+  const [query, setQuery] = useState('');
+  const [editing, setEditing] = useState<Quote | null | 'new'>(null);
+  const [rejecting, setRejecting] = useState<Quote | null>(null);
+  const [reason, setReason] = useState('');
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
 
-  const { data: quotes = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['services-quotes', statusFilter, search],
-    queryFn: () => quotesApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      search: search.trim() || undefined,
-    }),
-  });
+  const listQ = useQuery({ queryKey: [QUOTE_KEY, view, query], queryFn: () => quotesApi.list({ view, search: query || undefined }), placeholderData: (p) => p });
+  const allQ = useQuery({ queryKey: [QUOTE_KEY, 'all'], queryFn: () => quotesApi.list({ view: 'all' }), staleTime: 30_000 });
+  const rows = listQ.data ?? [];
+  const all = allQ.data ?? [];
+  const waiting = all.filter((q) => ['SENT', 'REVISED', 'DRAFT'].includes(q.status) && !q.convertedJobId && !q.isExpired);
+  const won = all.filter((q) => q.status === 'ACCEPTED');
+  const decided = won.length + all.filter((q) => q.status === 'REJECTED').length;
 
-  const sendMutation = useMutation({
-    mutationFn: (id: string) => quotesApi.send(id),
-    onSuccess: () => { toast.success('Quote sent'); queryClient.invalidateQueries({ queryKey: ['services-quotes'] }); },
+  const refresh = () => qc.invalidateQueries({ queryKey: [QUOTE_KEY] });
+  const run = <V,>(fn: (v: V) => Promise<unknown>, ok: string) => ({
+    mutationFn: fn, onSuccess: () => { toast.success(ok); refresh(); }, onError: (e: unknown) => toast.error(apiError(e, 'Nahi hua')),
   });
+  const save = useMutation({
+    mutationFn: (v: QuoteInput) => (editing && editing !== 'new' ? quotesApi.update(editing.id, v) : quotesApi.create(v)),
+    onSuccess: (q) => { toast.success(`${q.quoteNumber} save ho gaya`); refresh(); setEditing(null); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+  });
+  const send = useMutation(run((q: Quote) => quotesApi.send(q.id), 'Bheja gaya likh diya'));
+  const accept = useMutation(run((q: Quote) => quotesApi.accept(q.id), 'Customer ne haan kar di'));
+  const reject = useMutation({
+    mutationFn: () => quotesApi.reject(rejecting!.id, reason.trim() || undefined),
+    onSuccess: () => { toast.success('Mana likh diya'); refresh(); setRejecting(null); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const convert = useMutation({
+    mutationFn: (q: Quote) => quotesApi.convert(q.id),
+    onSuccess: (job) => { toast.success(`Job ${job.jobNumber} ban gayi`); refresh(); qc.invalidateQueries({ queryKey: [JOB_KEY] }); navigate(`/services-biz/jobs/${job.id}`); },
+    onError: (e) => toast.error(apiError(e, 'Job nahi bani')),
+  });
+  const shareWa = (q: Quote) => {
+    const link = waLink(q.customerPhone, quoteMessage(q, shopName));
+    if (!link) { toast.error('Customer ka phone nahi'); return; }
+    window.open(link, '_blank', 'noreferrer');
+    if (['DRAFT', 'REVISED'].includes(q.status)) send.mutate(q);
+  };
 
-  const acceptMutation = useMutation({
-    mutationFn: (id: string) => quotesApi.accept(id),
-    onSuccess: () => { toast.success('Quote accepted'); queryClient.invalidateQueries({ queryKey: ['services-quotes'] }); },
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); setEditing('new'); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage]);
 
-  const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }: any) => quotesApi.reject(id, reason),
-    onSuccess: () => { toast.success('Quote rejected'); queryClient.invalidateQueries({ queryKey: ['services-quotes'] }); },
-  });
-
-  const convertMutation = useMutation({
-    mutationFn: (id: string) => quotesApi.convert(id),
-    onSuccess: (job) => { toast.success('Converted to job ' + job.jobNumber); queryClient.invalidateQueries({ queryKey: ['services-quotes'] }); },
-  });
+  const exportCsv = () => downloadCsv('quotes.csv', [
+    ['Quote', 'Date', 'Customer', 'Phone', 'Kaam', 'Visit', 'Kaam', 'Parts', 'Aur', 'Discount', 'Kul', 'Halat', 'Kab tak'],
+    ...rows.map((q) => [q.quoteNumber, dayOnly(q.createdAt), q.customerName, q.customerPhone, q.serviceName, q.visitCharge, q.labourCharge, q.partsCharge, q.otherCharges, q.discount, q.totalAmount, stateOf(q).label, q.validUntil ? dayOnly(q.validUntil) : '']),
+  ]);
+  const editable = (q: Quote) => canManage && !q.convertedJobId && ['DRAFT', 'SENT', 'REVISED'].includes(q.status);
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <FileText className="h-3.5 w-3.5" />
-              Estimates
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">📝 Quotes / Estimates</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Send estimates, accept, convert to job</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Quote
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Quotes"
+        chip={<><FileText /> Andaza</>}
+        meta="Kaam se pehle kharcha batayein — haan ho to ek click me job"
+        loading={allQ.isLoading}
+        busy={listQ.isFetching && !listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={exportCsv} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setEditing('new')} title="Naya (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya quote</button>}
+        </>}
+        stats={[
+          { label: 'Jawab ka intezar', value: waiting.length, hint: waiting.length ? sales(waiting.reduce((s, q) => s + q.totalAmount, 0)) : undefined },
+          { label: 'Haan', value: won.length },
+          { label: 'Kitne % haan', value: decided ? `${Math.round((won.length / decided) * 100)}%` : '—' },
+        ]}
+      />
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search quotes..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {['all', 'DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'].map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{s === 'all' ? 'All' : s}</button>
-          ))}
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        {allQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Send} color="#2563eb" label="Bheja — jawab baqi" value={all.filter((q) => ['SENT', 'REVISED'].includes(q.status) && !q.isExpired && !q.convertedJobId).length} onClick={() => setView('sent')} active={view === 'sent'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Haan — job baqi" value={all.filter((q) => q.status === 'ACCEPTED' && !q.convertedJobId).length} onClick={() => setView('accepted')} active={view === 'accepted'} />
+          <KpiCard icon={Briefcase} color="#7c3aed" label="Job ban gayi" value={all.filter((q) => q.convertedJobId).length} onClick={() => setView('converted')} active={view === 'converted'} />
+          <KpiCard icon={Clock} color="#64748b" label="Purane" value={all.filter((q) => q.isExpired).length} hint="Dobara baat karein" onClick={() => setView('expired')} active={view === 'expired'} />
+        </>}
+      </KpiRow>
 
-      {showForm && (
-        <QuoteForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['services-quotes'] }); }}
-        />
-      )}
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Quote #, customer, phone, kaam…" label="Search" />}
+        chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined}
+        onClear={() => setSearch('')}>
+        <FilterMenu icon={Filter} label={VIEWS.find((v) => v.id === view)?.label ?? 'Halat'} value={view} active={view !== 'open'} onChange={setView} options={VIEWS.map((v) => ({ value: v.id, label: v.label }))} />
+      </FilterBar>
+      <ViewTabs value="list" onChange={() => undefined} hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search</>} tabs={[{ id: 'list', label: 'Quotes', icon: FileText, count: rows.length }]} />
 
-      {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : quotes.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <FileText className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No quotes yet</p>
+      {listQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !rows.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <FileText className="mx-auto h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-semibold text-slate-900">{query ? 'Kuch nahi mila' : 'Is list me koi quote nahi'}</p>
+          <p className="mt-1 text-sm text-slate-500">Bara kaam ho (installation, wiring, plumbing) to pehle quote dein — customer ko yaqeen hota hai.</p>
+          {canManage && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya quote</Button>}
         </div>
       ) : (
-        <section className="grid gap-3">
-          {quotes.map((q) => (
-            <div key={q.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div className="flex items-start gap-3 min-w-0 flex-1">
-                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0">
-                    <FileText className="h-6 w-6" />
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          {rows.map((q) => {
+            const s = stateOf(q);
+            return (
+              <li key={q.id} className="flex flex-wrap items-start gap-3 px-3 py-3 sm:px-4">
+                <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><FileText className="h-5 w-5" /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="truncate font-semibold text-slate-900">{q.serviceName}</span>
+                    <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', s.tone)}>{s.label}</span>
+                    <span className="font-mono text-[0.6875rem] text-slate-400">{q.quoteNumber}</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold">{q.quoteNumber}</span>
-                      <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[q.status]}>
-                        {q.status}
-                      </span>
-                      {q.siteVisitRequired && (
-                        <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">
-                          Site Visit {q.siteVisitCompleted ? '✅' : 'Required'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-1 text-sm font-bold">{q.serviceName}</div>
-                    <p className="text-xs text-slate-600 line-clamp-2">{q.problemDescription}</p>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">
-                      <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{q.customerName}</span>
-                      <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{q.customerPhone}</span>
-                      {q.validUntil && <span className="inline-flex items-center gap-1">Valid: {format(new Date(q.validUntil), 'dd MMM')}</span>}
-                    </div>
+                  <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{[q.customerName, q.customerPhone].filter(Boolean).join(' · ')}</p>
+                  <p className="mt-0.5 text-[0.75rem] text-slate-500">{dayOnly(q.createdAt)}{q.validUntil ? ` · ${dayOnly(q.validUntil)} tak` : ''}{q.rejectionReason ? ` · ${q.rejectionReason}` : ''}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-semibold tabular-nums text-slate-900">{sales(q.totalAmount)}</p>
+                  <div className="mt-1 flex flex-wrap justify-end gap-1">
+                    <button type="button" onClick={() => printQuote(q, shopName)} aria-label="Print" title="Print" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Printer className="h-3.5 w-3.5" /></button>
+                    {q.customerPhone && <button type="button" onClick={() => shareWa(q)} aria-label="WhatsApp" title="WhatsApp par bhejein" className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></button>}
+                    {editable(q) && <button type="button" onClick={() => setEditing(q)} aria-label="Badlein" title="Badlein" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-3.5 w-3.5" /></button>}
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <div className="text-xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(q.totalAmount)}</div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800 flex-wrap">
-                {q.status === 'DRAFT' && (
-                  <Button size="sm" onClick={() => sendMutation.mutate(q.id)} className="bg-gradient-to-r from-blue-500 to-cyan-600">
-                    <Send className="h-3.5 w-3.5" />
-                    Send Quote
-                  </Button>
+                {canManage && !q.convertedJobId && !['REJECTED', 'EXPIRED'].includes(q.status) && (
+                  <div className="flex w-full flex-wrap justify-end gap-1.5 border-t border-slate-100 pt-2 sm:w-auto sm:border-0 sm:pt-0">
+                    {q.status === 'DRAFT' && <Button size="sm" variant="ghost" leftIcon={<Send className="h-3.5 w-3.5" />} onClick={() => send.mutate(q)}>Bheja</Button>}
+                    {q.status !== 'ACCEPTED' && <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-3.5 w-3.5" />} onClick={() => { setReason(''); setRejecting(q); }}>Mana</Button>}
+                    {q.status !== 'ACCEPTED' && <Button size="sm" variant="secondary" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => accept.mutate(q)}>Haan</Button>}
+                    <Button size="sm" leftIcon={<Briefcase className="h-3.5 w-3.5" />} loading={convert.isPending && convert.variables?.id === q.id} onClick={() => convert.mutate(q)}>Job banayein</Button>
+                  </div>
                 )}
-                {q.status === 'SENT' && (
-                  <>
-                    <Button size="sm" onClick={() => acceptMutation.mutate(q.id)} className="bg-gradient-to-r from-emerald-500 to-green-600">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Mark Accepted
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={() => {
-                      const reason = prompt('Rejection reason?');
-                      if (reason !== null) rejectMutation.mutate({ id: q.id, reason });
-                    }} className="bg-rose-50 text-rose-700 border-rose-300">
-                      <Ban className="h-3.5 w-3.5" />
-                      Reject
-                    </Button>
-                  </>
-                )}
-                {q.status === 'ACCEPTED' && !q.convertedJobId && (
-                  <Button size="sm" onClick={() => convertMutation.mutate(q.id)} className="bg-gradient-to-r from-violet-500 to-purple-600">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                    Convert to Job
-                  </Button>
-                )}
-                {q.convertedJobId && (
-                  <span className="px-3 py-1 rounded bg-emerald-100 text-emerald-700 text-xs font-extrabold">
-                    ✅ Converted to Job
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </section>
+                {q.convertedJobId && <Link to={`/services-biz/jobs/${q.convertedJobId}`} className="w-full text-right text-[0.8125rem] font-semibold text-brand-700 hover:underline sm:w-auto">Job dekhein →</Link>}
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </div>
-  );
-}
 
-function QuoteForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerName: '', customerPhone: '', customerEmail: '',
-    serviceName: '', problemDescription: '',
-    siteVisitRequired: false,
-    labourCharge: 0, partsCharge: 0, visitCharge: 0, otherCharges: 0,
-    discount: 0, taxAmount: 0,
-    validUntil: '',
-    termsConditions: '',
-    notes: '',
-  });
+      {editing && <QuoteModal quote={editing === 'new' ? null : editing} pending={save.isPending} onSave={(v) => save.mutate(v)} onClose={() => setEditing(null)} />}
+      {rejecting && (
+        <Modal open onClose={() => setRejecting(null)} size="sm" title={`Mana — ${rejecting.quoteNumber}`}
+          footer={<><Button variant="secondary" onClick={() => setRejecting(null)}>Rehne dein</Button><Button variant="danger" loading={reject.isPending} onClick={() => reject.mutate()}>Mana likhein</Button></>}>
+          <Input label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder="Mehnga laga" hint="Agli dafa ke liye — marzi hai" />
+        </Modal>
+      )}
 
-  const total = Math.max(
-    Number(form.labourCharge) + Number(form.partsCharge) + Number(form.visitCharge) + Number(form.otherCharges) +
-    Number(form.taxAmount) - Number(form.discount),
-    0
-  );
-
-  const saveMutation = useMutation({
-    mutationFn: () => quotesApi.create({
-      ...form,
-      labourCharge: Number(form.labourCharge) || 0,
-      partsCharge: Number(form.partsCharge) || 0,
-      visitCharge: Number(form.visitCharge) || 0,
-      otherCharges: Number(form.otherCharges) || 0,
-      discount: Number(form.discount) || 0,
-      taxAmount: Number(form.taxAmount) || 0,
-    }),
-    onSuccess: () => { toast.success('Quote created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">📝 New Quote</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-        </div>
-
-        <input value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} placeholder="Service name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-        <textarea rows={3} value={form.problemDescription} onChange={(e) => setForm({ ...form, problemDescription: e.target.value })} placeholder="Problem description *" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
-
-        <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-blue-200 bg-blue-50 cursor-pointer">
-          <input type="checkbox" checked={form.siteVisitRequired} onChange={(e) => setForm({ ...form, siteVisitRequired: e.target.checked })} className="h-5 w-5 rounded" />
-          <span className="text-sm font-extrabold text-blue-900">Site visit required to confirm quote</span>
-        </label>
-
-        <div className="grid sm:grid-cols-4 gap-2">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Labour</label>
-            <input type="number" value={form.labourCharge} onChange={(e) => setForm({ ...form, labourCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Parts</label>
-            <input type="number" value={form.partsCharge} onChange={(e) => setForm({ ...form, partsCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Visit</label>
-            <input type="number" value={form.visitCharge} onChange={(e) => setForm({ ...form, visitCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Other</label>
-            <input type="number" value={form.otherCharges} onChange={(e) => setForm({ ...form, otherCharges: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-2">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Tax</label>
-            <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Discount</label>
-            <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Valid Until</label>
-            <input type="date" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-
-        <div className="rounded-xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-4 flex justify-between items-center">
-          <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
-          <span className="text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
-        </div>
-
-        <textarea rows={2} value={form.termsConditions} onChange={(e) => setForm({ ...form, termsConditions: e.target.value })} placeholder="Terms & Conditions" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName || !form.customerPhone || !form.serviceName}>
-            <Save className="h-4 w-4" />
-            Create Quote
-          </Button>
-        </div>
-      </div>
-    </section>
+      {guide.isOpen && (
+        <PageGuide title="Quotes — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Quote banayein', text: 'Rate list se kaam chunein — visit aur kaam ki line khud ban jati hai. Parts aur aur kharcha line se jorein.' },
+            { icon: MessageCircle, color: '#22c55e', title: 'Bhejein', text: 'WhatsApp button se poora quote customer ko jata hai aur "Bheja gaya" likh jata hai. Print bhi kar sakte hain.' },
+            { icon: Briefcase, color: '#7c3aed', title: 'Haan ho to job', text: '"Job banayein" se isi kharche ki job card banti hai — parts bhi saath. Advance job par lein.' },
+          ]}
+          tips={['Quote paisa nahi — Sales ya galla me nahi aata. Paisa job ke advance ya bill par.']}
+          shortcuts={[['N', 'naya quote'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

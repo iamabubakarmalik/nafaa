@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
@@ -9,11 +11,12 @@ import { UpsertTechnicianDto } from './dto/upsert-technician.dto';
 @ApiTags('Appliances - Technicians')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@RequirePermissions(PERMISSIONS.SERVICE_JOBS_VIEW)
 @Controller('appliances/technicians')
 export class TechniciansController {
   constructor(private readonly service: TechniciansService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertTechnicianDto) { return this.service.create(user, dto); }
+  @RequirePermissions(PERMISSIONS.STAFF_MANAGE) @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertTechnicianDto) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('active') active?: string, @Query('zone') zone?: string, @Query('category') category?: string, @Query('brand') brand?: string, @Query('search') search?: string) {
     return this.service.list(user, {
       zone, category, brand, search,
@@ -26,6 +29,6 @@ export class TechniciansController {
   @Get(':id/workload') workload(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('from') from: string, @Query('to') to: string) {
     return this.service.workload(user, id, from, to);
   }
-  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertTechnicianDto) { return this.service.update(user, id, dto); }
-  @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
+  @RequirePermissions(PERMISSIONS.STAFF_MANAGE) @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertTechnicianDto) { return this.service.update(user, id, dto); }
+  @RequirePermissions(PERMISSIONS.STAFF_MANAGE) @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

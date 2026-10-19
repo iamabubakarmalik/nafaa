@@ -1,279 +1,186 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Beaker, Plus, X, Save, RefreshCw, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
-import { qualityTestsApi } from '../api/quality-tests.api';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+/**
+ * Milk tests: fat, SNF, water and adulteration at collection, in the tank
+ * or after a complaint. A test is a record only; milk sent back is marked
+ * on the collection slip itself.
+ */
 
-const QUALITIES = ['A_GRADE', 'B_GRADE', 'C_GRADE', 'REJECTED'];
-const ADULTERATIONS = ['Water', 'Starch', 'Detergent', 'Urea', 'Sugar', 'Formalin', 'Neutralizer'];
-const SOURCE_TYPES = ['FARMER', 'CUSTOMER_COMPLAINT', 'INCOMING_BATCH', 'RANDOM', 'STORAGE_TANK'];
+import { useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AlertTriangle, Beaker, CheckCircle2, Download, Droplets, GraduationCap, ListChecks, Plus, XCircle } from 'lucide-react';
+import {
+  Button, Checkbox, DateRangeMenu, FilterBar, FilterChip, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { downloadCsv } from '@core/lib/csv';
+import { rangeLabel } from '@core/lib/dateRange';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { farmersApi } from '../api/farmers.api';
+import { qualityTestsApi, type QualityTest } from '../api/quality-tests.api';
+import { Empty, ListCard, ListLoading, Pill } from '../components/ui';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { DAIRY_KEYS, QUALITY, dateTime, errorText, numIn } from '../lib/meta';
+
+type Tab = 'all' | 'failed' | 'passed';
+const SOURCES: Record<string, string> = { FARMER: 'Gawale ka doodh', INCOMING_BATCH: 'Aaya hua doodh', STORAGE_TANK: 'Tanki / stock', CUSTOMER_COMPLAINT: 'Customer ki shikayat', RANDOM: 'Achanak check' };
+const ADULTERATION = ['Paani', 'Starch', 'Urea', 'Detergent', 'Cheeni', 'Formalin'];
 
 export default function QualityTestsPage() {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const canAdd = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('all');
+  const [search, setSearch] = useState('');
+  const q = useDebounced(search.trim());
+  const [period, setPeriod] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [adding, setAdding] = useState(false);
+  const range = resolveRange(period, startHour);
 
-  const { data: tests = [], isLoading, refetch } = useQuery({
-    queryKey: ['dairy-quality-tests'],
-    queryFn: () => qualityTestsApi.list({}),
-  });
+  const listQ = useQuery({ queryKey: [DAIRY_KEYS.tests, range?.from, range?.to, q], queryFn: () => qualityTestsApi.all({ from: range?.from, to: range?.to, search: q || undefined }) });
+  const sumQ = useQuery({ queryKey: [DAIRY_KEYS.tests, 'summary', range?.from, range?.to], queryFn: () => qualityTestsApi.totals({ from: range?.from, to: range?.to }) });
+  const all = useMemo(() => listQ.data ?? [], [listQ.data]);
+  const rows = all.filter((t) => (tab === 'all' ? true : tab === 'failed' ? !t.passed : t.passed));
+  const s = sumQ.data;
+  usePageKeys(searchRef, canAdd ? { n: () => setAdding(true) } : {});
+  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
 
-  const { data: summary } = useQuery({
-    queryKey: ['dairy-quality-summary'],
-    queryFn: () => qualityTestsApi.summary(),
-  });
-
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-red-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Lab Testing
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔬 Quality Tests</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Fat/SNF/adulteration testing</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className="h-4 w-4" />Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />New Test
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Tests" value={summary.total} icon={Beaker} color="rose" />
-          <StatCard label="Passed" value={summary.passed} icon={CheckCircle2} color="emerald" />
-          <StatCard label="Failed" value={summary.failed} icon={AlertCircle} color="amber" />
-          <StatCard label="Adulteration" value={summary.adulteration} icon={AlertCircle} color="red" />
-        </section>
-      )}
-
-      {showForm && (
-        <TestForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['dairy-quality-tests'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : tests.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <Beaker className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No quality tests recorded</p>
-        </div>
-      ) : (
-        <section className="grid gap-2">
-          {tests.map((t) => (
-            <div key={t.id} className={
-              'rounded-xl bg-white dark:bg-ink-900 border-2 shadow-sm p-3 ' +
-              (t.passed ? 'border-emerald-200' : 'border-rose-300')
-            }>
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className={
-                    'h-10 w-10 rounded-xl text-white flex items-center justify-center shrink-0 ' +
-                    (t.passed ? 'bg-emerald-500' : 'bg-rose-500')
-                  }>
-                    <Beaker className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold">{t.testNumber}</span>
-                      <span className={
-                        'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
-                        (t.passed ? 'bg-emerald-600' : 'bg-rose-500')
-                      }>{t.passed ? 'PASSED' : 'FAILED'}</span>
-                      {t.quality && <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">{t.quality.replace('_', ' ')}</span>}
-                      {t.adulterationDetected && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">ADULTERATION!</span>}
-                    </div>
-                    <div className="text-xs text-slate-500 font-semibold">
-                      {t.sourceType} {t.sourceName ? '• ' + t.sourceName : ''} • {format(new Date(t.testedAt), 'dd MMM HH:mm')}
-                    </div>
-                    {t.adulterationTypes.length > 0 && (
-                      <div className="text-xs text-red-700 font-extrabold mt-0.5">🚨 {t.adulterationTypes.join(', ')}</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  {t.fatContent && (
-                    <div className="text-center rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Fat</div>
-                      <div className="text-sm font-extrabold text-amber-900 tabular-nums">{t.fatContent}%</div>
-                    </div>
-                  )}
-                  {t.snfContent && (
-                    <div className="text-center rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">SNF</div>
-                      <div className="text-sm font-extrabold text-blue-900 tabular-nums">{t.snfContent}%</div>
-                    </div>
-                  )}
-                  {t.waterContent && (
-                    <div className="text-center rounded-lg bg-cyan-50 dark:bg-cyan-950/30 p-2">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-cyan-700">Water</div>
-                      <div className="text-sm font-extrabold text-cyan-900 tabular-nums">{t.waterContent}%</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    rose: 'from-rose-500 to-red-600', emerald: 'from-emerald-500 to-green-600',
-    amber: 'from-amber-500 to-orange-600', red: 'from-red-600 to-red-800',
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is filter me koi test nahi'); return; }
+    downloadCsv('doodh-tests.csv', [
+      ['Test', 'Waqt', 'Kahan se', 'Naam', 'Fat', 'SNF', 'Paani %', 'Temp', 'Milawat', 'Quality', 'Pass', 'Kya kiya'],
+      ...rows.map((t) => [t.testNumber, t.testedAt, SOURCES[t.sourceType] ?? t.sourceType, t.sourceName, t.fatContent, t.snfContent, t.waterContent, t.temperature, t.adulterationTypes.join(' '), t.quality ? QUALITY[t.quality]?.label : '', t.passed ? 'Haan' : 'Nahi', t.actionTaken]),
+    ]);
   };
+
   return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Doodh ki quality — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Droplets, color: '#0ea5e9', title: 'Fat aur SNF', text: 'Lactometer ya machine se fat aur SNF likhein. Gawale ka ausat fat us ke page par dikhta hai.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Milawat', text: 'Paani ya kuch aur mila ho to nishan lagayein — test fail likha jata hai.' },
+            { icon: XCircle, color: '#64748b', title: 'Doodh wapas', text: 'Doodh wapas kiya to Doodh ki entry me Quality "Wapas kiya" chunein — paisa aur stock nahi banta.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya test'], ['G', 'guide']]} />
+      )}
+
+      <PageHero title="Doodh ki quality" chip={<>{label}</>} busy={listQ.isFetching && !listQ.isLoading} loading={!s}
+        meta="Fat, SNF, paani aur milawat ke test"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canAdd && <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya test</button>}
+        </>}
+        stats={[
+          { label: 'Test', value: String(s?.total ?? 0) },
+          { label: 'Ausat fat', value: s?.avgFat ? `${s.avgFat.toFixed(1)}%` : '—' },
+          { label: 'Ausat SNF', value: s?.avgSnf ? `${s.avgSnf.toFixed(1)}%` : '—' },
+        ]} />
+
+      <KpiRow cols={4}>
+        {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Beaker} color="#2563eb" label="Sab test" value={s.total} onClick={() => setTab('all')} active={tab === 'all'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Pass" value={s.passed} onClick={() => setTab('passed')} active={tab === 'passed'} />
+            <KpiCard icon={XCircle} color="#e11d48" label="Fail" value={s.failed} onClick={() => setTab('failed')} active={tab === 'failed'} />
+            <KpiCard icon={AlertTriangle} color="#d97706" label="Milawat mili" value={s.adulteration} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Test number ya gawale ka naam…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')}>
+        <DateRangeMenu value={period} onChange={setPeriod} startHour={startHour} label="Date" />
+      </FilterBar>
+      <ViewTabs value={tab} onChange={setTab} tabs={[{ id: 'all', label: 'Sab', icon: ListChecks, count: all.length }, { id: 'failed', label: 'Fail', icon: XCircle, count: all.filter((t) => !t.passed).length }, { id: 'passed', label: 'Pass', icon: CheckCircle2, count: all.filter((t) => t.passed).length }]} />
+
+      <ListCard>
+        {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
+          <Empty icon={Beaker} title="Is filter me koi test nahi" text="Gawale ka doodh aate waqt fat aur SNF check kar ke likhein." action={canAdd ? <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAdding(true)}>Naya test</Button> : undefined} />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {rows.map((t) => (
+              <li key={t.id} className="grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto] lg:items-center">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-slate-900">{t.sourceName || SOURCES[t.sourceType] || t.sourceType} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{t.testNumber}</span></p>
+                  <p className="truncate text-[0.75rem] text-slate-500">{SOURCES[t.sourceType] ?? t.sourceType} · {dateTime(t.testedAt)}</p>
+                </div>
+                <p className="text-[0.8125rem] tabular-nums text-slate-700">{[t.fatContent != null && `Fat ${t.fatContent}%`, t.snfContent != null && `SNF ${t.snfContent}%`, t.waterContent != null && `Paani ${t.waterContent}%`, t.temperature != null && `${t.temperature}°C`].filter(Boolean).join(' · ') || '—'}</p>
+                <p className="truncate text-[0.8125rem] text-slate-600">{t.adulterationDetected ? <span className="font-semibold text-rose-700">Milawat: {t.adulterationTypes.join(', ') || 'haan'}</span> : t.actionTaken || '—'}</p>
+                <div className="flex justify-end gap-1.5">
+                  {t.quality && <Pill tone={QUALITY[t.quality]?.tone ?? ''}>{QUALITY[t.quality]?.label}</Pill>}
+                  <Pill tone={t.passed ? 'bg-success-50 text-success-700 ring-success-200' : 'bg-rose-50 text-rose-700 ring-rose-200'}>{t.passed ? 'Pass' : 'Fail'}</Pill>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </ListCard>
+
+      {adding && <TestModal onClose={() => setAdding(false)} />}
+    </PageShell>
   );
 }
 
-function TestForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    sourceType: 'FARMER',
-    sourceName: '',
-    fatContent: '',
-    snfContent: '',
-    proteinContent: '',
-    waterContent: '',
-    phLevel: '',
-    temperature: '',
-    adulterationDetected: false,
-    adulterationTypes: [] as string[],
-    quality: '',
-    passed: true,
-    actionTaken: '',
-    testMethod: '',
-    notes: '',
-  });
-
-  const saveMutation = useMutation({
+function TestModal({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const farmersQ = useQuery({ queryKey: [DAIRY_KEYS.farmers, 'active'], queryFn: () => farmersApi.all({ active: true }), staleTime: 60_000 });
+  const [f, setF] = useState({ sourceType: 'FARMER', sourceId: '', sourceName: '', fat: '', snf: '', water: '', temp: '', quality: '', action: '', notes: '' });
+  const [types, setTypes] = useState<string[]>([]);
+  const [err, setErr] = useState<Record<string, string>>({});
+  const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
+  const save = useMutation({
     mutationFn: () => qualityTestsApi.create({
-      ...form,
-      fatContent: form.fatContent ? Number(form.fatContent) : undefined,
-      snfContent: form.snfContent ? Number(form.snfContent) : undefined,
-      proteinContent: form.proteinContent ? Number(form.proteinContent) : undefined,
-      waterContent: form.waterContent ? Number(form.waterContent) : undefined,
-      phLevel: form.phLevel ? Number(form.phLevel) : undefined,
-      temperature: form.temperature ? Number(form.temperature) : undefined,
-      quality: form.quality || undefined,
-    }),
-    onSuccess: () => { toast.success('Test recorded'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+      sourceType: f.sourceType, sourceId: f.sourceType === 'FARMER' ? f.sourceId || undefined : undefined, sourceName: f.sourceName.trim() || undefined,
+      fatContent: numIn(f.fat) ?? undefined, snfContent: numIn(f.snf) ?? undefined, waterContent: numIn(f.water) ?? undefined, temperature: numIn(f.temp) ?? undefined,
+      adulterationDetected: types.length > 0, adulterationTypes: types, quality: f.quality || undefined, actionTaken: f.action.trim() || undefined, notes: f.notes.trim() || undefined,
+    } as Partial<QualityTest>),
+    onSuccess: (t) => { qc.invalidateQueries({ queryKey: [DAIRY_KEYS.tests] }); toast.success(t.passed ? 'Test pass likha' : 'Test fail likha'); onClose(); },
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
   });
-
-  const toggleAdulteration = (a: string) => {
-    const types = form.adulterationTypes.includes(a) ? form.adulterationTypes.filter((x: string) => x !== a) : [...form.adulterationTypes, a];
-    setForm({ ...form, adulterationTypes: types, adulterationDetected: types.length > 0 });
+  const submit = () => {
+    const e: Record<string, string> = {};
+    const fat = numIn(f.fat); const snf = numIn(f.snf); const water = numIn(f.water);
+    if (fat != null && (fat < 0 || fat > 15)) e.fat = '0 se 15';
+    if (snf != null && (snf < 0 || snf > 15)) e.snf = '0 se 15';
+    if (water != null && (water < 0 || water > 100)) e.water = '0 se 100';
+    if (f.sourceType === 'FARMER' && !f.sourceId) e.source = 'Gawala chunein';
+    if (fat == null && snf == null && water == null && !types.length && !f.quality) e.fat = 'Kam se kam fat, SNF ya milawat likhein';
+    setErr(e);
+    if (Object.keys(e).length) return;
+    save.mutate();
   };
-
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 bg-rose-50 flex items-center justify-between">
-        <h3 className="font-extrabold">New Quality Test</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Source Type *</label>
-            <select value={form.sourceType} onChange={(e) => setForm({ ...form, sourceType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
-              {SOURCE_TYPES.map((s) => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
-            </select>
-          </div>
-          <input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} placeholder="Source name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+    <Modal open onClose={onClose} size="lg" title="Naya quality test"
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={submit}>Save</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}
+        onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Select label="Kahan se" value={f.sourceType} onChange={(e) => set({ sourceType: e.target.value })} options={Object.entries(SOURCES).map(([value, label]) => ({ value, label }))} />
+          {f.sourceType === 'FARMER'
+            ? <Select label="Gawala" value={f.sourceId} onChange={(e) => set({ sourceId: e.target.value })} error={err.source} options={[{ value: '', label: 'Chunein…' }, ...(farmersQ.data ?? []).map((x) => ({ value: x.id, label: x.name }))]} />
+            : <Input label="Naam / detail" value={f.sourceName} onChange={(e) => set({ sourceName: e.target.value })} placeholder="Tanki 1, customer ka naam" />}
         </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">Fat %</label>
-            <input type="number" step="0.1" value={form.fatContent} onChange={(e) => setForm({ ...form, fatContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">SNF %</label>
-            <input type="number" step="0.1" value={form.snfContent} onChange={(e) => setForm({ ...form, snfContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Protein %</label>
-            <input type="number" step="0.1" value={form.proteinContent} onChange={(e) => setForm({ ...form, proteinContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-0.5 block">Water %</label>
-            <input type="number" step="0.1" value={form.waterContent} onChange={(e) => setForm({ ...form, waterContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-cyan-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">pH</label>
-            <input type="number" step="0.1" value={form.phLevel} onChange={(e) => setForm({ ...form, phLevel: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-slate-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Temp °C</label>
-            <input type="number" step="0.1" value={form.temperature} onChange={(e) => setForm({ ...form, temperature: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-slate-500" />
-          </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Input label="Fat %" inputMode="decimal" autoFocus value={f.fat} onChange={(e) => set({ fat: e.target.value })} error={err.fat} />
+          <Input label="SNF %" inputMode="decimal" value={f.snf} onChange={(e) => set({ snf: e.target.value })} error={err.snf} />
+          <Input label="Paani %" inputMode="decimal" value={f.water} onChange={(e) => set({ water: e.target.value })} error={err.water} />
+          <Input label="Temp °C" inputMode="decimal" value={f.temp} onChange={(e) => set({ temp: e.target.value })} />
         </div>
-
         <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Quality Grade</label>
-          <div className="grid grid-cols-4 gap-2">
-            {QUALITIES.map((q) => (
-              <button key={q} onClick={() => setForm({ ...form, quality: q, passed: q !== 'REJECTED' })} className={
-                'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                (form.quality === q ? 'border-rose-500 bg-rose-50 text-rose-800' : 'border-slate-200 bg-white text-slate-700')
-              }>{q.replace('_', ' ')}</button>
-            ))}
-          </div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Milawat mili?</span>
+          <div className="flex flex-wrap gap-3">{ADULTERATION.map((a) => <Checkbox key={a} label={a} checked={types.includes(a)} onChange={(e) => setTypes((x) => (e.target.checked ? [...x, a] : x.filter((y) => y !== a)))} />)}</div>
         </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-red-700 mb-2 block">Adulteration (check if detected)</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {ADULTERATIONS.map((a) => (
-              <button key={a} onClick={() => toggleAdulteration(a)} className={
-                'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                (form.adulterationTypes.includes(a) ? 'border-red-500 bg-red-50 text-red-800' : 'border-slate-200 bg-white text-slate-700')
-              }>⚠️ {a}</button>
-            ))}
-          </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Select label="Grade" value={f.quality} onChange={(e) => set({ quality: e.target.value })} options={[{ value: '', label: '—' }, ...Object.entries(QUALITY).map(([value, x]) => ({ value, label: x.label }))]} />
+          <Input label="Kya kiya" value={f.action} onChange={(e) => set({ action: e.target.value })} placeholder="Rate kam kiya, doodh wapas" />
         </div>
-
-        <input value={form.actionTaken} onChange={(e) => setForm({ ...form, actionTaken: e.target.value })} placeholder="Action taken (rejected, accepted with warning...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <input value={form.testMethod} onChange={(e) => setForm({ ...form, testMethod: e.target.value })} placeholder="Test method (Lactometer, Gerber, Milk Analyzer)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}>
-            <Save className="h-4 w-4" />Record Test
-          </Button>
-        </div>
-      </div>
-    </section>
+        <Textarea label="Note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
+      </form>
+    </Modal>
   );
 }

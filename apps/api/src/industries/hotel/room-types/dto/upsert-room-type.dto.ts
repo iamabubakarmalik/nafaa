@@ -1,46 +1,67 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { BedType, RoomType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested,
+} from 'class-validator';
 
-export class UpsertRoomTypeDto {
-  @ApiProperty() @IsString() code!: string;
-  @ApiProperty() @IsString() name!: string;
-  @ApiProperty({ enum: RoomType }) @IsEnum(RoomType) type!: RoomType;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
+/** One room made with a new room type. */
+export class NewRoomDto {
+  @IsString() @MaxLength(20) roomNumber!: string;
+  @IsOptional() @IsString() @MaxLength(20) floor?: string;
+  @IsOptional() @IsString() @MaxLength(60) building?: string;
+  @IsOptional() @IsString() @MaxLength(60) wing?: string;
+  @IsOptional() @IsString() @MaxLength(60) viewType?: string;
+  @IsOptional() @IsString() @MaxLength(60) facing?: string;
+  @IsOptional() @IsNumber() @Min(0) customPrice?: number;
+  @IsOptional() @IsString() @MaxLength(300) customNotes?: string;
+}
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() maxAdults?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() maxChildren?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() maxOccupancy?: number;
+/** Room type fields; on update every field is optional. */
+export class UpdateRoomTypeDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) code?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) name?: string;
+  @ApiPropertyOptional({ enum: RoomType }) @IsOptional() @IsEnum(RoomType) type?: RoomType;
+  @IsOptional() @IsString() @MaxLength(2000) description?: string;
 
-  @ApiPropertyOptional({ enum: BedType }) @IsOptional() @IsEnum(BedType) bedType?: BedType;
-  @ApiPropertyOptional() @IsOptional() @IsInt() bedCount?: number;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() extraBedAllowed?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() extraBedPrice?: number;
+  @IsOptional() @IsInt() @Min(1) @Max(50) maxAdults?: number;
+  @IsOptional() @IsInt() @Min(0) @Max(50) maxChildren?: number;
+  @IsOptional() @IsInt() @Min(1) @Max(100) maxOccupancy?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsNumber() sizeSqft?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() sizeSqm?: number;
+  @IsOptional() @IsEnum(BedType) bedType?: BedType;
+  @IsOptional() @IsInt() @Min(1) @Max(50) bedCount?: number;
+  @IsOptional() @IsBoolean() extraBedAllowed?: boolean;
+  @IsOptional() @IsNumber() @Min(0) extraBedPrice?: number;
 
-  @ApiProperty() @IsNumber() basePrice!: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() weekendPrice?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() peakPrice?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() offSeasonPrice?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() hourlyPrice?: number;
+  @IsOptional() @IsNumber() @Min(0) sizeSqft?: number;
+  @IsOptional() @IsNumber() @Min(0) sizeSqm?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasAC?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasHeater?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasTV?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasWifi?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasBalcony?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasKitchen?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasBathtub?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasSafe?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasMinibar?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isPetFriendly?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isSmoking?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) basePrice?: number;
+  @IsOptional() @IsNumber() @Min(0) weekendPrice?: number | null;
+  @IsOptional() @IsNumber() @Min(0) peakPrice?: number | null;
+  @IsOptional() @IsNumber() @Min(0) offSeasonPrice?: number | null;
+  @IsOptional() @IsNumber() @Min(0) hourlyPrice?: number | null;
 
-  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() amenities?: string[];
-  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() imageUrls?: string[];
+  @IsOptional() @IsBoolean() hasAC?: boolean;
+  @IsOptional() @IsBoolean() hasHeater?: boolean;
+  @IsOptional() @IsBoolean() hasTV?: boolean;
+  @IsOptional() @IsBoolean() hasWifi?: boolean;
+  @IsOptional() @IsBoolean() hasBalcony?: boolean;
+  @IsOptional() @IsBoolean() hasKitchen?: boolean;
+  @IsOptional() @IsBoolean() hasBathtub?: boolean;
+  @IsOptional() @IsBoolean() hasSafe?: boolean;
+  @IsOptional() @IsBoolean() hasMinibar?: boolean;
+  @IsOptional() @IsBoolean() isPetFriendly?: boolean;
+  @IsOptional() @IsBoolean() isSmoking?: boolean;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() displayOrder?: number;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  @IsOptional() @IsArray() @ArrayMaxSize(40) @IsString({ each: true }) @MaxLength(60, { each: true }) amenities?: string[];
+  @IsOptional() @IsArray() @ArrayMaxSize(12) @IsString({ each: true }) imageUrls?: string[];
+
+  @IsOptional() @IsInt() displayOrder?: number;
+  @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
+export class CreateRoomTypeDto extends UpdateRoomTypeDto {
+  /** Rooms of this type, made in the same step. */
+  @IsOptional() @IsArray() @ArrayMaxSize(300) @ValidateNested({ each: true }) @Type(() => NewRoomDto) rooms?: NewRoomDto[];
 }

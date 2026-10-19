@@ -1,326 +1,329 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  LogIn, LogOut, Sparkles, RefreshCw, User, Clock, Scan, Zap, Activity,
-  Search, CheckCircle2, AlertCircle, Users,
-} from 'lucide-react';
-import { attendanceApi } from '../api/attendance.api';
-import { gymMembersApi } from '../api/members.api';
-import { Button } from '@/design-system/components';
+/**
+ * The front desk. Scan a card or QR, or type the member number or phone:
+ * the member's card shows with membership, days left and fee due. A
+ * running member goes in with one key; an ended, used-up or frozen card is
+ * stopped with the reason and a Renew button (someone with members edit
+ * may still let them in with a note). Guests are logged against the member
+ * who brought them. Tabs: who is inside now (check out, or everyone at day
+ * close), every visit, and rush hours.
+ *
+ * Keys: / scan box · Enter look up / let in · M guest · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, differenceInMinutes } from 'date-fns';
+import { AlertTriangle, BarChart3, CalendarCheck, Clock, Download, GraduationCap, ListChecks, LogIn, LogOut, ScanLine, UserPlus, Users } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import type { PrintDoc } from '@core/print';
+import {
+  Avatar, Badge, Button, DateRangeMenu, FilterBar, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Skeleton,
+  Table, TBody, Td, Textarea, Th, THead, Tr, ViewTabs, heroIconButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { downloadCsv } from '@core/lib/csv';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { attendanceApi, type Attendance, type CheckInMethod, type DeskLookup } from '../api/attendance.api';
+import type { Membership } from '../api/memberships.api';
+import { RenewModal, SellModal } from '../components/MembershipModals';
+import { MemberPicker, type PickedMember } from '../components/MemberPicker';
+import { CardTitle, Columns, EmptyList, HeroPrint, ListSkeleton, LoadFailed, Pager, Panel, StatTile } from '../components/ui';
+import { GYM_KEYS, apiError, dateOf, daysLeft, minutes, timeOf } from '../lib/meta';
+import { useGymCan } from '../lib/permissions';
+
+type Tab = 'inside' | 'visits' | 'analytics';
+const METHOD_LABEL: Record<string, string> = { MANUAL: 'Haath se', QR_CODE: 'QR', RFID_CARD: 'Card', BIOMETRIC: 'Ungli', MOBILE_APP: 'App', FACIAL_RECOGNITION: 'Chehra' };
+const nameOf = (a: Attendance) => (a.isGuest ? a.guestName ?? 'Mehmaan' : a.member?.customer?.name ?? a.member?.memberNumber ?? '—');
 
 export default function AttendancePage() {
-  const queryClient = useQueryClient();
-  const [scanInput, setScanInput] = useState('');
-  const [scanMethod, setScanMethod] = useState<string>('QR_CODE');
-  const [foundMember, setFoundMember] = useState<any>(null);
-  const [memberSearch, setMemberSearch] = useState('');
-  const [showManualSearch, setShowManualSearch] = useState(false);
+  const qc = useQueryClient();
+  const can = useGymCan();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const scanRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('inside');
+  const [code, setCode] = useState('');
+  const [method, setMethod] = useState<CheckInMethod>('MANUAL');
+  const [found, setFound] = useState<DeskLookup | null>(null);
+  const [override, setOverride] = useState(false);
+  const [guest, setGuest] = useState(false);
+  const [closeDay, setCloseDay] = useState(false);
+  const [renew, setRenew] = useState<Membership | null>(null);
+  const [sell, setSell] = useState<PickedMember | null>(null);
+  const refresh = () => [GYM_KEYS.attendance, GYM_KEYS.members, 'currently-inside', 'gym-dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const { data: currentlyInside = [], refetch: refetchInside } = useQuery({
-    queryKey: ['currently-inside'],
-    queryFn: () => attendanceApi.currentlyInside(),
-    refetchInterval: 15_000,
+  const insideQ = useQuery({ queryKey: [GYM_KEYS.attendance, 'inside'], queryFn: attendanceApi.currentlyInside, refetchInterval: 30_000 });
+  const todayKey = resolveRange({ preset: 'today', custom: { from: '', to: '' } }, startHour);
+  const todayQ = useQuery({ queryKey: [GYM_KEYS.attendance, 'today-stats', todayKey?.from], queryFn: () => attendanceApi.dailyStats(todayKey?.from, todayKey?.to), refetchInterval: 60_000 });
+  const inside = insideQ.data ?? [];
+
+  const lookup = useMutation({
+    mutationFn: (c: string) => attendanceApi.lookup(c),
+    onSuccess: (r) => setFound(r),
+    onError: (e) => { setFound(null); toast.error(apiError(e, 'Member nahi mila')); },
   });
-
-  const { data: todayAttendance = [], isLoading, refetch } = useQuery({
-    queryKey: ['todays-attendance'],
-    queryFn: () => {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const end = new Date();
-      end.setHours(23, 59, 59, 999);
-      return attendanceApi.list({ from: start.toISOString(), to: end.toISOString() });
+  const letIn = useMutation({
+    mutationFn: (body: { allowExpired?: boolean; notes?: string }) => attendanceApi.checkIn({ memberId: found!.member.id, method, ...body }),
+    onSuccess: (r) => {
+      toast.success(`${found?.member.customer?.name ?? 'Member'} andar${r.warnings.length ? ` · ${r.warnings.join(' · ')}` : ''}`);
+      setFound(null); setCode(''); setOverride(false); refresh();
+      window.setTimeout(() => scanRef.current?.focus(), 0);
     },
-    refetchInterval: 30_000,
+    onError: (e) => toast.error(apiError(e, 'Check-in nahi hua')),
   });
-
-  const { data: manualSearchResults = [] } = useQuery({
-    queryKey: ['members-manual-search', memberSearch],
-    queryFn: () => gymMembersApi.list({ search: memberSearch, status: 'ACTIVE' }),
-    enabled: showManualSearch && memberSearch.length >= 2,
-  });
-
-  const checkInMutation = useMutation({
-    mutationFn: (data: any) => attendanceApi.checkIn(data),
-    onSuccess: () => {
-      toast.success('✅ Check-in successful!');
-      setScanInput('');
-      setFoundMember(null);
-      queryClient.invalidateQueries({ queryKey: ['currently-inside'] });
-      queryClient.invalidateQueries({ queryKey: ['todays-attendance'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Check-in failed'),
-  });
-
-  const checkOutMutation = useMutation({
+  const checkOut = useMutation({
     mutationFn: (id: string) => attendanceApi.checkOut(id),
-    onSuccess: () => {
-      toast.success('👋 Check-out successful');
-      queryClient.invalidateQueries({ queryKey: ['currently-inside'] });
-      queryClient.invalidateQueries({ queryKey: ['todays-attendance'] });
-    },
+    onSuccess: () => { toast.success('Check-out ho gaya'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Check-out nahi hua')),
   });
 
-  const handleScan = async () => {
-    if (!scanInput.trim()) return;
-    try {
-      let member;
-      if (scanMethod === 'QR_CODE') member = await gymMembersApi.byQr(scanInput.trim());
-      else if (scanMethod === 'RFID_CARD') member = await gymMembersApi.byRfid(scanInput.trim());
-      if (member) {
-        setFoundMember(member);
-      }
-    } catch {
-      toast.error('Member not found');
-      setFoundMember(null);
-    }
+  const submit = () => {
+    const c = code.trim();
+    if (found && !found.block && !found.inside && !letIn.isPending) { letIn.mutate({}); return; }
+    if (c) lookup.mutate(c);
   };
 
-  const confirmCheckIn = (memberId?: string) => {
-    checkInMutation.mutate({
-      memberId: memberId ?? foundMember?.id,
-      method: scanMethod,
-      entryPoint: 'Main Entrance',
-    });
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isDialogOpen()) return;
+      if (isTyping()) return;
+      if (e.key === '/') { e.preventDefault(); scanRef.current?.focus(); }
+      if (e.key === 'm' || e.key === 'M') { e.preventDefault(); setGuest(true); }
+      if (e.key === 'Enter' && found && !found.block && !found.inside) { e.preventDefault(); letIn.mutate({}); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+  useEffect(() => { scanRef.current?.focus(); }, []);
 
+  const t = todayQ.data;
+  const ms = found?.membership;
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-green-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Scan className="h-3.5 w-3.5 text-amber-300" />
-              Check-in Kiosk
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">✅ Attendance</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">QR code, RFID, biometric, or manual check-in</p>
-          </div>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 px-6 py-3 text-center">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Currently Inside</div>
-              <div className="text-4xl font-extrabold tabular-nums text-emerald-300">{currentlyInside.length}</div>
-            </div>
-          </div>
+    <PageShell>
+      <PageHero
+        title="Check-in"
+        chip={<><LogIn /> Gym</>}
+        meta="Card, QR, member number ya phone — scan karein aur Enter"
+        busy={insideQ.isFetching && !insideQ.isLoading}
+        loading={todayQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setGuest(true)} title="Mehmaan (M)" className={heroIconButton}><UserPlus className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Aaj aaye', value: t?.total ?? 0 },
+          { label: 'Abhi andar', value: inside.length },
+          { label: 'Mehmaan', value: t?.guests ?? 0 },
+        ]}
+      />
+
+      <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+        <div className="flex flex-wrap items-end gap-3">
+          <form className="min-w-[16rem] flex-1" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+            <Input ref={scanRef} label="Scan ya likhein" value={code} onChange={(e) => { setCode(e.target.value); setFound(null); setOverride(false); }} leftIcon={<ScanLine className="h-4 w-4" />}
+              placeholder="MEM-00012, card, QR ya 03001234567" hint={<>Enter dabayein{found && !found.block ? ' — dobara Enter se andar' : ''}</>} className="h-12 text-lg" />
+          </form>
+          <Segmented label="Tareeqa" value={method} onChange={setMethod} items={[{ value: 'MANUAL', label: 'Haath se' }, { value: 'RFID_CARD', label: 'Card' }, { value: 'QR_CODE', label: 'QR' }]} />
+          <Button onClick={submit} loading={lookup.isPending} leftIcon={<LogIn className="h-4 w-4" />}>{found && !found.block && !found.inside ? 'Andar bhejein' : 'Dhoondein'}</Button>
         </div>
-      </section>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* CHECK-IN KIOSK */}
-        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b bg-emerald-50 dark:bg-emerald-950/30">
-            <h3 className="text-lg font-extrabold text-emerald-900 flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Quick Check-in
-            </h3>
-          </div>
-          <div className="p-6 space-y-4">
-            {/* Method selector */}
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { v: 'QR_CODE', label: 'QR Code', emoji: '📱' },
-                { v: 'RFID_CARD', label: 'RFID', emoji: '💳' },
-                { v: 'BIOMETRIC', label: 'Fingerprint', emoji: '👆' },
-                { v: 'MANUAL', label: 'Manual', emoji: '✍️' },
-              ].map((m) => (
-                <button key={m.v} onClick={() => { setScanMethod(m.v); setFoundMember(null); setShowManualSearch(m.v === 'MANUAL'); }} className={
-                  'p-3 rounded-xl border-2 text-center transition ' +
-                  (scanMethod === m.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
-                }>
-                  <div className="text-2xl mb-1">{m.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
-                </button>
-              ))}
-            </div>
-
-            {/* Scanner */}
-            {scanMethod !== 'MANUAL' ? (
-              <>
-                <div className="text-center">
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-2">
-                    {scanMethod === 'QR_CODE' && '📱 Scan QR Code'}
-                    {scanMethod === 'RFID_CARD' && '💳 Tap RFID Card'}
-                    {scanMethod === 'BIOMETRIC' && '👆 Place Finger on Scanner'}
-                  </div>
-                  <input
-                    autoFocus
-                    value={scanInput}
-                    onChange={(e) => setScanInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleScan()}
-                    placeholder="Scan or enter code..."
-                    className="h-16 w-full rounded-2xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-xl font-extrabold text-center focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <Button size="lg" className="w-full bg-gradient-to-r from-emerald-600 to-green-700" onClick={handleScan} disabled={!scanInput.trim()}>
-                  <Scan className="h-5 w-5" />
-                  Scan Now
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="relative">
-                  <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    autoFocus
-                    value={memberSearch}
-                    onChange={(e) => setMemberSearch(e.target.value)}
-                    placeholder="Search member by name or phone..."
-                    className="h-14 w-full rounded-2xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 pl-10 pr-3 text-lg font-bold focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                {memberSearch.length >= 2 && (
-                  <div className="max-h-60 overflow-y-auto space-y-1">
-                    {manualSearchResults.map((m: any) => (
-                      <button key={m.id} onClick={() => confirmCheckIn(m.id)} className="w-full p-3 rounded-xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-3 text-left transition">
-                        {m.photoUrl ? (
-                          <img src={m.photoUrl} className="h-10 w-10 rounded-xl object-cover" />
-                        ) : (
-                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 text-white flex items-center justify-center font-extrabold">
-                            {m.customer?.name?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-extrabold truncate">{m.customer?.name}</div>
-                          <div className="text-xs font-mono font-bold text-slate-500">{m.memberNumber}</div>
-                        </div>
-                        <LogIn className="h-5 w-5 text-emerald-600" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Found member preview */}
-            {foundMember && (
-              <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-green-700 text-white p-5">
-                <div className="flex items-center gap-3">
-                  {foundMember.photoUrl ? (
-                    <img src={foundMember.photoUrl} className="h-16 w-16 rounded-2xl object-cover ring-4 ring-white/20" />
-                  ) : (
-                    <div className="h-16 w-16 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-extrabold">
-                      {foundMember.customer?.name?.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="text-lg font-extrabold">{foundMember.customer?.name}</div>
-                    <div className="text-xs font-mono font-bold text-white/80">{foundMember.memberNumber}</div>
-                    {foundMember.currentStreak > 0 && (
-                      <div className="mt-1 inline-flex items-center gap-1 text-xs font-extrabold">
-                        🔥 {foundMember.currentStreak} day streak!
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <Button size="lg" className="w-full mt-4 bg-white text-emerald-700 hover:bg-emerald-50" onClick={() => confirmCheckIn()} loading={checkInMutation.isPending}>
-                  <CheckCircle2 className="h-5 w-5" />
-                  Confirm Check-in
-                </Button>
+        {found && (
+          <div className={`mt-4 rounded-2xl p-4 ring-1 ${found.block ? 'bg-rose-50 ring-rose-200' : found.warnings.length ? 'bg-amber-50 ring-amber-200' : 'bg-success-50 ring-success-200'}`}>
+            <div className="flex flex-wrap items-start gap-4">
+              <Avatar name={found.member.customer?.name ?? found.member.memberNumber} url={found.member.photoUrl} size={64} />
+              <div className="min-w-0 flex-1">
+                <Link to={`/gym/members/${found.member.id}`} className="text-lg font-bold text-slate-900 hover:underline">{found.member.customer?.name ?? '—'}</Link>
+                <p className="text-[0.8125rem] text-slate-600">{found.member.memberNumber}{found.member.customer?.phone ? ` · ${found.member.customer.phone}` : ''}</p>
+                {ms && <p className="mt-1 text-[0.875rem] text-slate-800">{ms.plan?.name ?? 'Membership'} · {dateOf(ms.endDate)} tak{daysLeft(ms.endDate) >= 0 ? ` (${daysLeft(ms.endDate)} din)` : ''}{ms.visitsRemaining != null ? ` · ${ms.visitsRemaining} visits` : ''}</p>}
+                {found.block && <p className="mt-2 flex items-center gap-1.5 font-semibold text-rose-700"><AlertTriangle className="h-4 w-4" />{found.message}</p>}
+                {found.inside && <p className="mt-2 font-semibold text-amber-800">Pehle se andar hai — {timeOf(found.inside.checkInAt)} se</p>}
+                {!!found.warnings.length && <ul className="mt-1 text-[0.8125rem] text-amber-900">{found.warnings.map((w) => <li key={w}>• {w}</li>)}</ul>}
               </div>
-            )}
-          </div>
-        </section>
-
-        {/* CURRENTLY INSIDE */}
-        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <Activity className="h-5 w-5 text-emerald-600 animate-pulse" />
-                Currently Inside ({currentlyInside.length})
-              </h3>
-              <p className="text-xs text-slate-500 font-semibold">Live count</p>
-            </div>
-            <button onClick={() => refetchInside()} className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
-              <RefreshCw className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[500px] overflow-y-auto">
-            {currentlyInside.length === 0 ? (
-              <div className="py-12 text-center text-sm text-slate-500 font-semibold">
-                <Users className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                No one currently inside
+              <div className="flex flex-wrap gap-2">
+                {!found.block && !found.inside && <Button size="lg" loading={letIn.isPending} onClick={() => letIn.mutate({})} leftIcon={<LogIn className="h-5 w-5" />}>Andar (Enter)</Button>}
+                {found.inside && <Button variant="secondary" loading={checkOut.isPending} onClick={() => checkOut.mutate(found.inside!.id)} leftIcon={<LogOut className="h-4 w-4" />}>Check-out</Button>}
+                {found.block && can.bill && ms && ms.status !== 'CANCELLED' && <Button onClick={() => setRenew({ ...ms, member: { id: found.member.id, memberNumber: found.member.memberNumber, customerId: found.member.customer?.id ?? '', customer: found.member.customer } })}>Renew</Button>}
+                {found.block === 'NO_MEMBERSHIP' && can.bill && <Button onClick={() => setSell({ id: found.member.id, name: found.member.customer?.name ?? found.member.memberNumber, phone: found.member.customer?.phone, memberNumber: found.member.memberNumber })}>Plan bechein</Button>}
+                {found.block && found.block !== 'MEMBER_INACTIVE' && can.members && !found.inside && <Button variant="ghost" onClick={() => setOverride(true)}>Phir bhi andar</Button>}
               </div>
-            ) : (
-              currentlyInside.map((att: any) => {
-                const duration = differenceInMinutes(new Date(), new Date(att.checkInAt));
-                return (
-                  <div key={att.id} className="px-6 py-3 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shrink-0 shadow">
-                      <LogIn className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-sm truncate">
-                        {att.member?.memberNumber || att.guestName || 'Guest'}
-                      </div>
-                      <div className="text-xs text-slate-500 font-semibold">
-                        In since {format(new Date(att.checkInAt), 'HH:mm')} • {duration}min
-                      </div>
-                    </div>
-                    <button onClick={() => checkOutMutation.mutate(att.id)} className="h-9 px-3 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1">
-                      <LogOut className="h-3.5 w-3.5" />
-                      Check-out
-                    </button>
-                  </div>
-                );
-              })
-            )}
+            </div>
           </div>
-        </section>
+        )}
       </div>
 
-      {/* TODAY'S HISTORY */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
-          <h3 className="text-lg font-bold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-600" />
-            Today's Activity ({todayAttendance.length})
-          </h3>
-        </div>
-        <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
-          {isLoading ? (
-            <div className="p-6 text-center text-sm text-slate-500 font-semibold">Loading...</div>
-          ) : todayAttendance.length === 0 ? (
-            <div className="py-12 text-center text-sm text-slate-500 font-semibold">
-              <Clock className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-              No check-ins yet today
-            </div>
-          ) : (
-            todayAttendance.map((att: any) => {
-              const isInside = !att.checkOutAt;
-              const duration = att.checkOutAt
-                ? differenceInMinutes(new Date(att.checkOutAt), new Date(att.checkInAt))
-                : differenceInMinutes(new Date(), new Date(att.checkInAt));
-              return (
-                <div key={att.id} className="px-6 py-3 flex items-center gap-3">
-                  <div className={
-                    'h-9 w-9 rounded-lg text-white flex items-center justify-center shrink-0 ' +
-                    (isInside ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-slate-400 to-slate-600')
-                  }>
-                    {isInside ? <LogIn className="h-4 w-4" /> : <LogOut className="h-4 w-4" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-sm">{att.member?.memberNumber || att.guestName || 'Guest'}</span>
-                      {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">INSIDE</span>}
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">{att.method}</span>
-                    </div>
-                    <div className="text-xs text-slate-500 font-semibold">
-                      {format(new Date(att.checkInAt), 'HH:mm')}
-                      {att.checkOutAt && ' → ' + format(new Date(att.checkOutAt), 'HH:mm')}
-                      {' • ' + duration + 'min' + (isInside ? ' (ongoing)' : '')}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        {todayQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Users} color="#16a34a" label="Abhi andar" value={inside.length} hint="Pichhle 16 ghante me aaye" onClick={() => setTab('inside')} active={tab === 'inside'} />
+          <KpiCard icon={CalendarCheck} color="#2563eb" label="Aaj ki visits" value={t?.total ?? 0} hint={`${t?.members ?? 0} alag members`} onClick={() => setTab('visits')} active={tab === 'visits'} />
+          <KpiCard icon={UserPlus} color="#7c3aed" label="Mehmaan" value={t?.guests ?? 0} hint="Member ke saath" />
+          <KpiCard icon={Clock} color="#ca8a04" label="Aam waqt" value={minutes(t?.avgMinutes)} hint="Andar kitni der" onClick={() => setTab('analytics')} active={tab === 'analytics'} />
+        </>}
+      </KpiRow>
+
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>/</Kbd> scan · <Kbd>Enter</Kbd> andar · <Kbd>M</Kbd> mehmaan</>}
+        right={tab === 'inside' && inside.length > 0 ? <Button size="sm" variant="secondary" onClick={() => setCloseDay(true)} leftIcon={<LogOut className="h-4 w-4" />}>Sab ko bahar (din band)</Button> : undefined}
+        tabs={[{ id: 'inside', label: 'Andar', icon: Users, count: inside.length }, { id: 'visits', label: 'Visits', icon: ListChecks }, { id: 'analytics', label: 'Rush ka waqt', icon: BarChart3 }]} />
+
+      {tab === 'inside' && (insideQ.isLoading ? <ListSkeleton /> : !inside.length ? (
+        <EmptyList icon={Users} title="Abhi koi andar nahi" text="Member ka card scan karein ya number likh kar Enter dabayein." />
+      ) : (
+        <Panel>
+          <Table minWidth="34rem">
+            <THead><Tr><Th>Kaun</Th><Th>Kab se</Th><Th>Kitni der</Th><Th>Tareeqa</Th><Th /></Tr></THead>
+            <TBody>{inside.map((a) => (
+              <Tr key={a.id}>
+                <Td><p className="font-medium text-slate-900">{nameOf(a)}</p><p className="text-[0.75rem] text-slate-500">{a.isGuest ? `Mehmaan · ${a.member?.customer?.name ?? ''} ke saath` : a.member?.memberNumber}</p></Td>
+                <Td>{timeOf(a.checkInAt)}</Td>
+                <Td>{minutes(Math.round((Date.now() - new Date(a.checkInAt).getTime()) / 60000))}</Td>
+                <Td>{METHOD_LABEL[a.method] ?? a.method}{a.notes && <p className="max-w-[14rem] truncate text-[0.6875rem] text-amber-700">{a.notes}</p>}</Td>
+                <Td align="right"><Button size="sm" variant="secondary" loading={checkOut.isPending && checkOut.variables === a.id} onClick={() => checkOut.mutate(a.id)} leftIcon={<LogOut className="h-3.5 w-3.5" />}>Bahar</Button></Td>
+              </Tr>
+            ))}</TBody>
+          </Table>
+        </Panel>
+      ))}
+      {tab === 'visits' && <Visits startHour={startHour} />}
+      {tab === 'analytics' && <Rush startHour={startHour} />}
+
+      {override && found && <OverrideModal name={found.member.customer?.name ?? found.member.memberNumber} reason={found.message ?? ''} busy={letIn.isPending}
+        onConfirm={(notes) => letIn.mutate({ allowExpired: true, notes })} onClose={() => setOverride(false)} />}
+      {guest && <GuestModal onClose={() => setGuest(false)} onDone={refresh} />}
+      {closeDay && <CloseDayModal count={inside.length} onClose={() => setCloseDay(false)} onDone={refresh} />}
+      {renew && <RenewModal membership={renew} onClose={() => { setRenew(null); setFound(null); }} />}
+      {sell && <SellModal member={sell} onClose={() => { setSell(null); setFound(null); }} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Check-in — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: ScanLine, color: '#2563eb', title: 'Scan', text: 'Card ya QR scan karein, ya member number / phone likh kar Enter. Member ka card khulta hai: plan, kitne din baqi, fee baqi.' },
+            { icon: LogIn, color: '#16a34a', title: 'Andar', text: 'Sab theek ho to dobara Enter — member andar. Fee baqi ho ya membership khatam hone wali ho to peela nishan aata hai.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Ruk gaya', text: 'Membership khatam, visits khatam ya freeze ho to laal nishan aur Renew ka button. "Phir bhi andar" sirf members edit wala kar sakta hai, wajah likh kar.' },
+            { icon: LogOut, color: '#7c3aed', title: 'Din band', text: 'Gym band karte waqt "Sab ko bahar" dabayein taake kal ki ginti saaf ho.' },
+          ]}
+          shortcuts={[['/', 'scan box'], ['Enter', 'dhoondein / andar'], ['M', 'mehmaan'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function Visits({ startHour }: { startHour: number }) {
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'today', custom: { from: '', to: '' } });
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [kind, setKind] = useState<'' | 'member' | 'guest'>('');
+  const [page, setPage] = useState(1);
+  useEffect(() => { const t = setTimeout(() => { setQuery(search.trim()); setPage(1); }, 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => setPage(1), [range, kind]);
+  const r = resolveRange(range, startHour);
+  const q = useQuery({
+    queryKey: [GYM_KEYS.attendance, 'page', r?.from, r?.to, query, kind, page],
+    queryFn: () => attendanceApi.page({ from: r?.from, to: r?.to, search: query || undefined, isGuest: kind === '' ? undefined : kind === 'guest', page, limit: 50 }),
+    placeholderData: (p) => p,
+  });
+  const rows = q.data?.items ?? [];
+  const line = (a: Attendance) => [dateOf(a.checkInAt), timeOf(a.checkInAt), a.checkOutAt ? timeOf(a.checkOutAt) : 'Andar', nameOf(a), a.isGuest ? 'Mehmaan' : a.member?.memberNumber ?? '', minutes(a.durationMinutes), METHOD_LABEL[a.method] ?? a.method];
+  const head = ['Din', 'Andar', 'Bahar', 'Kaun', 'Number', 'Waqt', 'Tareeqa'];
+  const doc = (): PrintDoc => ({ title: 'Gym visits', subtitle: r ? `${r.from} – ${r.to}` : 'Sab', meta: [['Visits', String(q.data?.total ?? 0)]], sections: [{ kind: 'table', columns: head.map((label) => ({ label })), rows: rows.map(line) }] });
+  return (
+    <div className="space-y-3">
+      <FilterBar search={<SearchField value={search} onChange={setSearch} placeholder="Naam, phone ya MEM number…" />}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="today" />
+        <FilterMenu icon={Users} label={kind === 'guest' ? 'Mehmaan' : kind === 'member' ? 'Members' : 'Sab'} value={kind} active={!!kind} onChange={setKind}
+          options={[{ value: '', label: 'Sab' }, { value: 'member', label: 'Members' }, { value: 'guest', label: 'Mehmaan' }]} />
+        <HeroPrint doc={doc} disabled={!rows.length} />
+        <Button size="sm" variant="secondary" disabled={!rows.length} onClick={() => downloadCsv('gym-visits.csv', [head, ...rows.map(line)])} leftIcon={<Download className="h-4 w-4" />}>Excel</Button>
+      </FilterBar>
+      {q.isLoading ? <ListSkeleton /> : q.isError ? <LoadFailed what="Visits" retry={() => q.refetch()} /> : !rows.length ? <EmptyList icon={CalendarCheck} title="Is period me koi visit nahi" text="Period badal kar dekhein." /> : (
+        <>
+          <Panel>
+            <Table minWidth="40rem">
+              <THead><Tr>{head.map((h) => <Th key={h}>{h}</Th>)}</Tr></THead>
+              <TBody>{rows.map((a) => {
+                const l = line(a);
+                return <Tr key={a.id}>{l.map((c, i) => <Td key={i} className={i === 3 ? 'font-medium text-slate-900' : undefined}>{c}</Td>)}</Tr>;
+              })}</TBody>
+            </Table>
+          </Panel>
+          <Pager page={q.data?.page ?? 1} pages={q.data?.pages ?? 1} onPage={setPage} />
+        </>
+      )}
     </div>
+  );
+}
+
+function Rush({ startHour }: { startHour: number }) {
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const r = resolveRange(range, startHour);
+  const q = useQuery({ queryKey: [GYM_KEYS.attendance, 'stats', r?.from, r?.to], queryFn: () => attendanceApi.dailyStats(r?.from, r?.to) });
+  const s = q.data;
+  const hours = (s?.byHour ?? []).filter((h) => h.hour >= 5 || h.count > 0);
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end"><DateRangeMenu value={range} onChange={setRange} startHour={startHour} allowAll={false} defaultPreset="month" /></div>
+      {q.isLoading ? <ListSkeleton /> : !s ? <LoadFailed what="Analytics" retry={() => q.refetch()} /> : (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <StatTile icon={CalendarCheck} label="Kul visits" value={s.total} sub={`${s.byDay.length} din`} />
+            <StatTile icon={Users} label="Alag members" value={s.members} tone="green" />
+            <StatTile icon={UserPlus} label="Mehmaan" value={s.guests} tone="violet" />
+            <StatTile icon={Clock} label="Aam waqt andar" value={minutes(s.avgMinutes)} tone="amber" />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Panel className="p-4"><p className="mb-3 font-semibold text-slate-900"><CardTitle icon={Clock}>Ghante ke hisaab se</CardTitle></p>
+              <Columns items={hours.map((h) => ({ key: String(h.hour), label: `${h.hour % 12 || 12}${h.hour < 12 ? 'a' : 'p'}`, value: h.count }))} /></Panel>
+            <Panel className="p-4"><p className="mb-3 font-semibold text-slate-900"><CardTitle icon={CalendarCheck}>Roz ki visits</CardTitle></p>
+              <Columns items={s.byDay.slice(-31).map((d) => ({ key: d.day, label: d.day.slice(8), value: d.count, title: `${d.day}: ${d.count}` }))} /></Panel>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function OverrideModal({ name, reason, busy, onConfirm, onClose }: { name: string; reason: string; busy: boolean; onConfirm: (notes: string) => void; onClose: () => void }) {
+  const [notes, setNotes] = useState('');
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${name} ko phir bhi andar?`} description={reason}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={busy} disabled={notes.trim().length < 3} onClick={() => onConfirm(notes.trim())}>Andar bhejein</Button></>}>
+      <Textarea label="Wajah" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={300} autoFocus placeholder="Kal fee de ga / malik ne kaha" hint="Zaroori — visit par likhi rehti hai" />
+    </Modal>
+  );
+}
+
+function GuestModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [host, setHost] = useState<PickedMember | null>(null);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const save = useMutation({
+    mutationFn: () => attendanceApi.checkIn({ isGuest: true, invitedByMemberId: host!.id, guestName: name.trim(), guestPhone: phone.trim() || undefined }),
+    onSuccess: () => { toast.success(`${name} andar (mehmaan)`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Mehmaan andar nahi gaya')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title="Mehmaan" description="Member ke saath aaya dost. Plan ke mehmaan pass se ginta hai."
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!host || name.trim().length < 2} onClick={() => save.mutate()}>Andar bhejein</Button></>}>
+      <div className="space-y-3">
+        <MemberPicker label="Kis ke saath" value={host} onChange={setHost} autoFocus />
+        <Input label="Mehmaan ka naam" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
+        <Input label="Phone" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} hint="Marzi hai — baad me member banane ke liye" />
+        <p className="text-[0.75rem] text-slate-500">Mehmaan se paisa lena ho to POS par "Day pass" bechein.</p>
+      </div>
+    </Modal>
+  );
+}
+
+function CloseDayModal({ count, onClose, onDone }: { count: number; onClose: () => void; onDone: () => void }) {
+  const save = useMutation({
+    mutationFn: attendanceApi.checkOutAll,
+    onSuccess: (r) => { toast.success(`${r.count} log bahar`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title="Din band — sab ko bahar?" description={`${count} log abhi andar likhe hain. Sab ka check-out abhi ke waqt par hoga; purane din ke khule visits check-in se 2 ghante baad band honge.`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={() => save.mutate()} leftIcon={<LogOut className="h-4 w-4" />}>Sab ko bahar</Button></>}>
+      <p className="text-[0.8125rem] text-slate-600">Paise ka hisaab (drawer ginna aur band karna) <Link to="/cash-register" className="font-semibold text-brand-700 hover:underline">Cash register</Link> par hota hai; aaj ki fees aur kharche Day book me.</p>
+    </Modal>
   );
 }

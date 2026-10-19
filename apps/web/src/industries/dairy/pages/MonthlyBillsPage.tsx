@@ -1,245 +1,223 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  FileText, Zap, X, Save, RefreshCw, Sparkles, DollarSign, CheckCircle2,
-  Send, Printer,
-} from 'lucide-react';
-import { monthlyBillsApi } from '../api/monthly-bills.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+/**
+ * Monthly milk bills: a statement of one month's deliveries with the khata
+ * balance before and after. Deliveries are already on the khata, so a bill
+ * books no money; payments taken here go on the khata and every bill's
+ * "baqi" follows it. Print or send on WhatsApp.
+ */
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+import { useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { CheckCircle2, Download, FileText, GraduationCap, ListChecks, MessageCircle, Wallet } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { monthlyBillsApi, type MonthlyBill } from '../api/monthly-bills.api';
+import { Empty, ListCard, ListLoading, MoneyModal, Pill } from '../components/ui';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { MONEY_KEYS, MONTHS, errorText, liters, monthLabel, qty, shortDate, slotLabel } from '../lib/meta';
+
+type Tab = 'unpaid' | 'paid' | 'all';
+
+function billDoc(b: MonthlyBill, money: (n: number) => string): PrintDoc {
+  const days = (b.deliveries ?? []).map((d) => [shortDate(d.deliveryDate), slotLabel(d.slot), d.status === 'DELIVERED' ? qty(d.deliveredQty) : 'Naga', d.status === 'DELIVERED' ? money(d.totalAmount) : '']);
+  return {
+    title: `Doodh ka bill — ${monthLabel(b.month, b.year)}`, subtitle: `${b.customer?.name ?? ''} (${b.customer?.customerNumber ?? ''})`,
+    meta: [['Bill', b.billNumber], ['Phone', b.customer?.phone ?? '—']],
+    sections: [
+      { kind: 'table', title: 'Delivery', columns: [{ label: 'Tareekh' }, { label: 'Waqt' }, { label: 'Liter' }, { label: 'Amount', align: 'right' }], rows: days,
+        footer: ['Kul', '', qty(b.totalLiters), money(b.totalAmount)] },
+      { kind: 'rows', rows: [
+        { label: 'Pichla baqi', value: money(b.openingBalance) },
+        { label: `Is mahine (${liters(b.totalLiters)})`, value: money(b.totalAmount) },
+        { label: 'Is mahine jama / doosre hisaab', value: money(Math.round((b.openingBalance + b.totalAmount - b.closingBalance) * 100) / 100), sub: true },
+        { label: 'Mahine ke aakhir tak kul', value: money(b.closingBalance), strong: true },
+        { label: 'Is bill par abhi baqi', value: money(b.remainingAmount), strong: true },
+      ] },
+    ],
+    footer: 'Shukriya — doodh ka hisaab',
+  };
+}
 
 export default function MonthlyBillsPage() {
-  const queryClient = useQueryClient();
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
-  const [paidFilter, setPaidFilter] = useState<string>('all');
-  const [showBulk, setShowBulk] = useState(false);
-  const [showPayment, setShowPayment] = useState<any>(null);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canKhata = usePermission(PERMISSIONS.KHATA_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [params, setParams] = useSearchParams();
+  const last = useMemo(() => { const d = new Date(); d.setDate(0); return { month: d.getMonth() + 1, year: d.getFullYear() }; }, []);
+  const [period, setPeriod] = useState(last);
+  const [tab, setTab] = useState<Tab>('unpaid');
+  const [search, setSearch] = useState('');
+  const q = useDebounced(search.trim());
+  const openId = params.get('bill');
 
-  const { data: bills = [], isLoading, refetch } = useQuery({
-    queryKey: ['monthly-bills', month, year, paidFilter],
-    queryFn: () => monthlyBillsApi.list({
-      month, year,
-      isPaid: paidFilter === 'paid' ? true : paidFilter === 'unpaid' ? false : undefined,
-    }),
+  const listQ = useQuery({ queryKey: ['dairy-bills', period, q], queryFn: () => monthlyBillsApi.all({ ...period, search: q || undefined }) });
+  const all = useMemo(() => listQ.data ?? [], [listQ.data]);
+  const rows = all.filter((b) => (tab === 'all' ? true : tab === 'paid' ? b.isPaid : !b.isPaid));
+  const totals = useMemo(() => ({
+    billed: all.reduce((s, b) => s + b.totalAmount, 0), due: all.reduce((s, b) => s + b.remainingAmount, 0),
+    liters: all.reduce((s, b) => s + b.totalLiters, 0), paid: all.filter((b) => b.isPaid).length,
+  }), [all]);
+  usePageKeys(searchRef);
+
+  const makeAll = useMutation({
+    mutationFn: () => monthlyBillsApi.makeAll(period),
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['dairy-bills'] }); toast.success(`${r.generated} naye bill bane${r.updated ? `, ${r.updated} purane bill naye hisaab se theek` : ''}`, { description: r.total - r.generated - r.updated ? `${r.total - r.generated - r.updated} customers ki is mahine koi delivery nahi` : undefined }); },
+    onError: (e) => toast.error(errorText(e, 'Bill nahi bane')),
+  });
+
+  const years = [last.year - 1, last.year, new Date().getFullYear()].filter((v, i, a) => a.indexOf(v) === i);
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is filter me koi bill nahi'); return; }
+    downloadCsv(`doodh-bill-${period.year}-${period.month}.csv`, [
+      ['Bill', 'Customer', 'Number', 'Phone', 'Liter', 'Delivery', 'Amount', 'Pichla baqi', 'Kul', 'Abhi baqi', 'Ada'],
+      ...rows.map((b) => [b.billNumber, b.customer?.name, b.customer?.customerNumber, b.customer?.phone, b.totalLiters, b.totalDeliveries, b.totalAmount, b.openingBalance, b.closingBalance, b.remainingAmount, b.isPaid ? 'Haan' : 'Nahi']),
+    ]);
+  };
+  const listDoc = (): PrintDoc => ({
+    title: `Doodh ke bill — ${monthLabel(period.month, period.year)}`, subtitle: tab === 'unpaid' ? 'Baqi' : tab === 'paid' ? 'Ada' : 'Sab',
+    meta: [['Bill', String(rows.length)], ['Baqi', money(rows.reduce((s, b) => s + b.remainingAmount, 0))]],
+    sections: [{ kind: 'table', title: 'Bill', columns: [{ label: 'Customer' }, { label: 'Liter' }, { label: 'Amount', align: 'right' }, { label: 'Baqi', align: 'right' }],
+      rows: rows.map((b) => [`${b.customer?.name ?? ''} (${b.billNumber})`, qty(b.totalLiters), money(b.totalAmount), money(b.remainingAmount)]) }],
   });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Monthly Khata
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">📄 Monthly Bills</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Auto-generated monthly khata bills</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className="h-4 w-4" />Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowBulk(true)}>
-              <Zap className="h-4 w-4" />Generate All Bills
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 flex gap-3 flex-wrap items-end">
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Month</label>
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500">
-            {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Year</label>
-          <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-10 w-24 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
-        </div>
-        <div className="flex gap-1.5">
-          {[
-            { v: 'all', label: 'All' },
-            { v: 'unpaid', label: 'Unpaid' },
-            { v: 'paid', label: 'Paid' },
-          ].map((f) => (
-            <button key={f.v} onClick={() => setPaidFilter(f.v)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (paidFilter === f.v ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{f.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {showBulk && (
-        <BulkGenModal
-          month={month} year={year}
-          onClose={() => setShowBulk(false)}
-          onDone={() => { setShowBulk(false); queryClient.invalidateQueries({ queryKey: ['monthly-bills'] }); }}
-        />
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Mahine ke bill — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: FileText, color: '#7c3aed', title: 'Bill banayein', text: 'Mahina chun kar "Sab ke bill banayein" — har customer ki poore mahine ki delivery ka statement banta hai. Dobara dabane se pehle bane bill naye hisaab se theek ho jate hain.' },
+            { icon: MessageCircle, color: '#16a34a', title: 'Bhejein', text: 'Bill khol kar Print karein ya WhatsApp par bhejein.' },
+            { icon: Wallet, color: '#d97706', title: 'Payment', text: 'Paise mile to bill par "Payment lein" — khate me jama hote hain. Khata page se li payment bhi yahan khud dikhti hai.' },
+          ]}
+          shortcuts={[['/', 'search'], ['G', 'guide']]} />
       )}
 
-      {showPayment && (
-        <PayBillModal
-          bill={showPayment}
-          onClose={() => setShowPayment(null)}
-          onDone={() => { setShowPayment(null); queryClient.invalidateQueries({ queryKey: ['monthly-bills'] }); }}
-        />
-      )}
+      <PageHero title="Mahine ke bill" chip={<>{monthLabel(period.month, period.year)}</>} busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading}
+        meta="Ghar delivery ka mahina-war hisaab — print ya WhatsApp"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={listDoc} label="List print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canKhata && <button type="button" onClick={() => makeAll.mutate()} disabled={makeAll.isPending} className={heroPrimaryButton}><FileText className="h-4 w-4" />{makeAll.isPending ? 'Ban rahe…' : 'Sab ke bill banayein'}</button>}
+        </>}
+        stats={[
+          { label: 'Kul bill', value: money(totals.billed) },
+          { label: 'Abhi baqi', value: money(totals.due) },
+          { label: 'Doodh', value: liters(totals.liters) },
+        ]} />
 
-      {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : bills.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <FileText className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No bills generated for {MONTHS[month - 1]} {year}</p>
-          <Button className="mt-4 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => setShowBulk(true)}>
-            <Zap className="h-4 w-4" />Generate Bills
-          </Button>
-        </div>
-      ) : (
-        <section className="grid gap-2">
-          {bills.map((b) => (
-            <div key={b.id} className={
-              'rounded-xl bg-white dark:bg-ink-900 border-2 shadow-sm p-3 ' +
-              (b.isPaid ? 'border-emerald-300' : b.remainingAmount > 0 ? 'border-amber-300' : 'border-slate-200')
-            }>
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className={
-                    'h-10 w-10 rounded-xl text-white flex items-center justify-center shrink-0 ' +
-                    (b.isPaid ? 'bg-emerald-500' : 'bg-pink-500')
-                  }>
-                    <FileText className="h-5 w-5" />
-                  </div>
+      <KpiRow cols={3}>
+        {listQ.isLoading ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Wallet} color="#e11d48" label="Baqi" value={all.length - totals.paid} hint={money(totals.due)} onClick={() => setTab('unpaid')} active={tab === 'unpaid'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Ada" value={totals.paid} onClick={() => setTab('paid')} active={tab === 'paid'} />
+            <KpiCard icon={FileText} color="#7c3aed" label="Sab bill" value={all.length} onClick={() => setTab('all')} active={tab === 'all'} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer ka naam, number, phone ya bill number…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')}>
+        <Select aria-label="Mahina" value={String(period.month)} onChange={(e) => setPeriod((p) => ({ ...p, month: Number(e.target.value) }))} options={MONTHS.map((m, i) => ({ value: String(i + 1), label: m }))} />
+        <Select aria-label="Saal" value={String(period.year)} onChange={(e) => setPeriod((p) => ({ ...p, year: Number(e.target.value) }))} options={years.map((y) => ({ value: String(y), label: String(y) }))} />
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} hint="Bill par click kar ke kholein"
+        tabs={[{ id: 'unpaid', label: 'Baqi', icon: Wallet, count: all.length - totals.paid }, { id: 'paid', label: 'Ada', icon: CheckCircle2, count: totals.paid }, { id: 'all', label: 'Sab', icon: ListChecks, count: all.length }]} />
+
+      <ListCard>
+        {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
+          <Empty icon={FileText} title={all.length ? 'Is tab me koi bill nahi' : `${monthLabel(period.month, period.year)} ke bill abhi nahi bane`}
+            text="Mahina khatam hone par sab customers ke bill ek saath banayein."
+            action={canKhata && !all.length ? <Button leftIcon={<FileText className="h-4 w-4" />} loading={makeAll.isPending} onClick={() => makeAll.mutate()}>Sab ke bill banayein</Button> : undefined} />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {rows.map((b) => (
+              <li key={b.id}>
+                <button type="button" onClick={() => setParams({ bill: b.id })} className="grid w-full gap-2 px-4 py-3 text-left hover:bg-slate-50 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_9rem_9rem_9rem_auto] lg:items-center">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold">{b.billNumber}</span>
-                      <span className={
-                        'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
-                        (b.isPaid ? 'bg-emerald-600' : 'bg-amber-500')
-                      }>{b.isPaid ? 'PAID' : 'PENDING'}</span>
-                      {b.sentToCustomer && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">SENT</span>}
-                    </div>
-                    <div className="text-xs text-slate-500 font-semibold">{MONTHS[b.month - 1]} {b.year} • {b.totalDeliveries} deliveries • {b.totalLiters.toFixed(1)}L</div>
+                    <p className="truncate font-semibold text-slate-900">{b.customer?.name ?? 'Customer'} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{b.billNumber}</span></p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[b.customer?.phone, b.customer?.route?.name].filter(Boolean).join(' · ') || '—'}</p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-center">
-                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total</div>
-                    <div className="text-lg font-extrabold tabular-nums">{formatPKR(b.totalAmount)}</div>
-                  </div>
-                  {b.paidAmount > 0 && (
-                    <div className="text-center">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Paid</div>
-                      <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(b.paidAmount)}</div>
-                    </div>
-                  )}
-                  {b.remainingAmount > 0 && (
-                    <div className="text-center">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Due</div>
-                      <div className="text-sm font-extrabold text-rose-700 tabular-nums">{formatPKR(b.remainingAmount)}</div>
-                    </div>
-                  )}
-                  {!b.isPaid && (
-                    <button onClick={() => setShowPayment(b)} className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold inline-flex items-center gap-1">
-                      <DollarSign className="h-3.5 w-3.5" />Pay
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function BulkGenModal({ month, year, onClose, onDone }: any) {
-  const genMutation = useMutation({
-    mutationFn: () => monthlyBillsApi.bulkGenerate({ month, year }),
-    onSuccess: (r) => { toast.success('Generated ' + r.generated + ' bills of ' + r.total + ' customers'); onDone(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 bg-pink-50 flex items-center justify-between">
-          <h3 className="font-extrabold">Bulk Generate Monthly Bills</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div className="rounded-xl bg-pink-50 border-2 border-pink-200 p-4 text-center">
-            <div className="text-xs uppercase font-extrabold text-pink-700">Generating for</div>
-            <div className="text-2xl font-extrabold text-pink-900 mt-1">{MONTHS[month - 1]} {year}</div>
-          </div>
-          <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 text-xs text-slate-700 font-bold">
-            ℹ️ Auto-generates bills for all active customers based on their delivered milk for this month.
-          </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => genMutation.mutate()} loading={genMutation.isPending}>
-              <Zap className="h-4 w-4" />Generate All
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PayBillModal({ bill, onClose, onDone }: any) {
-  const [amount, setAmount] = useState(bill.remainingAmount);
-  const [method, setMethod] = useState('CASH');
-  const [reference, setReference] = useState('');
-
-  const payMutation = useMutation({
-    mutationFn: () => monthlyBillsApi.payment(bill.id, { amount, paymentMethod: method, reference }),
-    onSuccess: () => { toast.success('Payment recorded'); onDone(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 bg-emerald-50 flex items-center justify-between">
-          <div>
-            <h3 className="font-extrabold">Pay Bill</h3>
-            <p className="text-xs text-slate-500 font-semibold">{bill.billNumber} • Due: {formatPKR(bill.remainingAmount)}</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          <div className="grid grid-cols-3 gap-2">
-            {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
-              <button key={m} onClick={() => setMethod(m)} className={
-                'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                (method === m ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white')
-              }>{m}</button>
+                  <p className="text-[0.8125rem] text-slate-700">{liters(b.totalLiters)} · {b.totalDeliveries} delivery</p>
+                  <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(b.totalAmount)}</p>
+                  <p className={cn('text-[0.875rem] font-semibold tabular-nums', b.remainingAmount > 0.009 ? 'text-rose-700' : 'text-success-700')}>{b.remainingAmount > 0.009 ? `${money(b.remainingAmount)} baqi` : 'Ada'}</p>
+                  <div className="flex justify-end gap-1.5">{b.sentToCustomer && <Pill tone="bg-blue-50 text-blue-700 ring-blue-200">Bheja</Pill>}{b.isPrinted && <Pill tone="bg-slate-100 text-slate-600 ring-slate-200">Print</Pill>}</div>
+                </button>
+              </li>
             ))}
-          </div>
-          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending}>
-              <CheckCircle2 className="h-4 w-4" />Pay
-            </Button>
-          </div>
+          </ul>
+        )}
+      </ListCard>
+
+      {openId && <BillModal id={openId} canKhata={canKhata} onClose={() => setParams({})} onChanged={() => MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }))} />}
+    </PageShell>
+  );
+}
+
+function BillModal({ id, canKhata, onClose, onChanged }: { id: string; canKhata: boolean; onClose: () => void; onChanged: () => void }) {
+  const { sales: money } = useMasked();
+  const [paying, setPaying] = useState(false);
+  const q = useQuery({ queryKey: ['dairy-bills', 'one', id], queryFn: () => monthlyBillsApi.getOne(id) });
+  const b = q.data;
+  const pay = useMutation({
+    mutationFn: (v: { amount: number; paymentMethod: string; reference?: string }) => monthlyBillsApi.payment(id, v),
+    onSuccess: () => { onChanged(); setPaying(false); void q.refetch(); toast.success('Payment khate me jama'); },
+    onError: (e) => toast.error(errorText(e, 'Payment save nahi hui')),
+  });
+  const sent = useMutation({ mutationFn: () => monthlyBillsApi.markSent(id), onSuccess: () => { onChanged(); void q.refetch(); } });
+  const printed = useMutation({ mutationFn: () => monthlyBillsApi.markPrinted(id), onSuccess: () => onChanged() });
+
+  const whatsapp = () => {
+    if (!b) return;
+    const phone = (b.customer?.phone ?? '').replace(/\D/g, '').replace(/^0/, '92');
+    const text = `${b.customer?.name ?? ''} sahib, ${monthLabel(b.month, b.year)} ka doodh: ${liters(b.totalLiters)} — ${money(b.totalAmount)}.\nPichla baqi ${money(b.openingBalance)}, kul ${money(b.closingBalance)}.\nAbhi baqi: ${money(b.remainingAmount)}. Bill ${b.billNumber}`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+    sent.mutate();
+  };
+
+  return (
+    <Modal open onClose={onClose} size="lg" title={b ? `${b.customer?.name ?? ''} — ${monthLabel(b.month, b.year)}` : 'Bill'} description={b ? `${b.billNumber} · ${liters(b.totalLiters)} · ${b.totalDeliveries} delivery` : undefined}
+      footer={b && <>
+        <Button variant="secondary" onClick={onClose}>Band</Button>
+        {b.customer?.phone && <Button variant="secondary" leftIcon={<MessageCircle className="h-4 w-4" />} onClick={whatsapp}>WhatsApp</Button>}
+        <span onClickCapture={() => printed.mutate()}><PrintButton doc={() => billDoc(b, money)} label="Print" /></span>
+        {canKhata && b.remainingAmount > 0.009 && <Button leftIcon={<Wallet className="h-4 w-4" />} onClick={() => setPaying(true)}>Payment lein</Button>}
+      </>}>
+      {!b ? <Skeleton className="h-64 rounded-xl" /> : (
+        <div className="space-y-4">
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            {([['Pichla baqi', b.openingBalance], ['Is mahine', b.totalAmount], ['Jama hua', b.openingBalance + b.totalAmount - b.closingBalance], ['Mahine ke aakhir', b.closingBalance], ['Is bill par baqi', b.remainingAmount]] as Array<[string, number]>).map(([k, v]) => (
+              <div key={k} className="rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200"><dt className="text-[0.75rem] text-slate-500">{k}</dt><dd className="font-semibold tabular-nums text-slate-900">{money(v)}</dd></div>
+            ))}
+          </dl>
+          <ul className="max-h-80 divide-y divide-slate-100 overflow-auto rounded-xl ring-1 ring-slate-200">
+            {(b.deliveries ?? []).map((d) => (
+              <li key={d.id} className="grid grid-cols-[6rem_5rem_1fr_auto] gap-2 px-3 py-2 text-[0.8125rem]">
+                <span className="text-slate-700">{shortDate(d.deliveryDate)}</span>
+                <span className="text-slate-500">{slotLabel(d.slot)}</span>
+                <span className="tabular-nums text-slate-800">{d.status === 'DELIVERED' ? liters(d.deliveredQty) : 'Naga'}</span>
+                <span className="text-right font-semibold tabular-nums">{d.status === 'DELIVERED' ? money(d.totalAmount) : ''}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
-    </div>
+      )}
+      {paying && b && <MoneyModal title="Bill ki payment" description={`Is bill par ${money(b.remainingAmount)} baqi`} due={b.remainingAmount} max={b.remainingAmount} busy={pay.isPending} cta="Jama karein"
+        hint="Zyada paise customer ke page par Payment se lein" onSubmit={(v) => pay.mutate(v)} onClose={() => setPaying(false)} />}
+    </Modal>
   );
 }

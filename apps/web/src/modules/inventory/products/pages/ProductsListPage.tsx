@@ -17,7 +17,7 @@ import type { ProductsPageConfig } from '../list/types';
 const PREFIX: Record<string, string> = {
   carpet: '/carpet-products', jewelry: '/jewelry-items', hardware: '/hardware-products', dairy: '/dairy-products',
   meat: '/meat-products', autoparts: '/autoparts-parts', bookstore: '/bookstore-products', salon: '/salon-services',
-  hotel: '/hotel-room-types', clinic: '/clinic-services',
+  clinic: '/clinic-services',
 };
 
 const pathsFor = (prefix: string | undefined): ProductsPageConfig['paths'] => prefix

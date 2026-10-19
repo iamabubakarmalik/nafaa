@@ -1,443 +1,333 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, Plus, Trash2, User, Phone, Search, Sparkles,
-  Bed, X, Users, Calendar, Star,
-} from 'lucide-react';
-import { bookingsApi, type BookingSource, type MealPlan } from '../api/bookings.api';
-import { roomsApi } from '../api/rooms.api';
-import { roomTypesApi } from '../api/room-types.api';
-import { guestsApi } from '../api/guests.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * New booking or walk-in: stay dates, rooms picked from what is free on
+ * every night (with the nightly rate, weekend and season plans included),
+ * the guest (an old guest found by name, phone or CNIC), a company that
+ * books or pays, and the advance taken now. A walk-in is checked in at
+ * once with the guest's ID.
+ *
+ * Opened from the room board as ?roomId=…&checkIn=YYYY-MM-DD.
+ * Keys: Ctrl+S save · G guide.
+ */
+
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { differenceInDays } from 'date-fns';
+import { ArrowLeft, BedDouble, Building2, CalendarDays, GraduationCap, IdCard, LogIn, Search, Star, Trash2, UserRound, Wallet, X } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { CustomerPicker } from '@modules/customers/directory/components/KhataTools';
+import { bookingsApi, type BookingSource, type MealPlan, type PayMethod, type QuoteType } from '../api/bookings.api';
+import { guestsApi, type HotelGuest } from '../api/guests.api';
+import { MethodPicker } from '../components/MethodPicker';
+import {
+  ALL_HOTEL_KEYS, HK_STATUS, ID_TYPES, MEAL_PLANS, SOURCES, addDaysKey, apiError, cnicOk, formatCnic, moneyInput, nightsBetween, num, phoneOk, stayDay, todayKey,
+} from '../components/meta';
 
-const SOURCES: { value: BookingSource; label: string; emoji: string }[] = [
-  { value: 'DIRECT', label: 'Direct', emoji: '🎯' },
-  { value: 'WALK_IN', label: 'Walk-in', emoji: '🚶' },
-  { value: 'PHONE', label: 'Phone', emoji: '📞' },
-  { value: 'WEBSITE', label: 'Website', emoji: '🌐' },
-  { value: 'BOOKING_COM', label: 'Booking.com', emoji: '🔵' },
-  { value: 'AGODA', label: 'Agoda', emoji: '🟣' },
-  { value: 'EXPEDIA', label: 'Expedia', emoji: '🟡' },
-  { value: 'AIRBNB', label: 'Airbnb', emoji: '🔴' },
-  { value: 'TRAVEL_AGENT', label: 'Agent', emoji: '✈️' },
-  { value: 'CORPORATE', label: 'Corporate', emoji: '🏢' },
-  { value: 'GOVT', label: 'Govt', emoji: '🏛️' },
-];
-
-const MEAL_PLANS: { value: MealPlan; label: string }[] = [
-  { value: 'ROOM_ONLY', label: 'Room Only' },
-  { value: 'BED_BREAKFAST', label: 'Bed & Breakfast' },
-  { value: 'HALF_BOARD', label: 'Half Board' },
-  { value: 'FULL_BOARD', label: 'Full Board' },
-  { value: 'ALL_INCLUSIVE', label: 'All-Inclusive' },
-];
-
-interface SelectedRoom {
-  roomId?: string;
-  roomTypeId: string;
-  roomNumber?: string;
-  roomTypeName: string;
-  ratePerNight: number;
-  adults: number;
-  children: number;
-  extraBeds: number;
-  discount: number;
-}
+interface Line { roomId: string; roomNumber: string; roomTypeId: string; typeName: string; quoted: number; rate: string; custom: boolean; adults: string; children: string; extraBeds: string }
 
 export default function NewBookingPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const [params] = useSearchParams();
+  const today = todayKey();
 
-  const today = new Date().toISOString().split('T')[0];
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const [checkIn, setCheckIn] = useState(params.get('checkIn') || today);
+  const [checkOut, setCheckOut] = useState(addDaysKey(params.get('checkIn') || today, 1));
+  const [source, setSource] = useState<BookingSource>(params.get('walkin') === '1' ? 'WALK_IN' : 'PHONE');
+  const [lines, setLines] = useState<Line[]>([]);
+  const [guest, setGuest] = useState<HotelGuest | null>(null);
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [find, setFind] = useState('');
+  const [findQ, setFindQ] = useState('');
+  const [checkInNow, setCheckInNow] = useState(params.get('walkin') === '1');
+  const [idType, setIdType] = useState('CNIC');
+  const [idNumber, setIdNumber] = useState('');
+  const [city, setCity] = useState('');
+  const [bookedBy, setBookedBy] = useState('');
+  const [company, setCompany] = useState<{ id: string; name: string } | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [mealPlan, setMealPlan] = useState<MealPlan>('ROOM_ONLY');
+  const [status, setStatus] = useState<'CONFIRMED' | 'TENTATIVE'>('CONFIRMED');
+  const [discount, setDiscount] = useState('');
+  const [tax, setTax] = useState('');
+  const [advance, setAdvance] = useState('');
+  const [method, setMethod] = useState<PayMethod>('CASH');
+  const [arrivalTime, setArrivalTime] = useState('');
+  const [requests, setRequests] = useState('');
+  const [sourceRef, setSourceRef] = useState('');
+  const [tried, setTried] = useState(false);
 
-  const [form, setForm] = useState<any>({
-    primaryGuestId: '',
-    guestName: '',
-    guestPhone: '',
-    guestEmail: '',
-    totalAdults: 1,
-    totalChildren: 0,
-    checkInDate: today,
-    checkOutDate: tomorrow,
-    source: 'DIRECT',
-    sourceRef: '',
-    mealPlan: 'ROOM_ONLY',
-    specialRequests: '',
-    arrivalTime: '',
-    purposeOfVisit: '',
-    taxAmount: 0,
-    serviceCharge: 0,
-    discount: 0,
-    advancePaid: 0,
-    earlyCheckIn: false,
-    lateCheckOut: false,
+  const nights = nightsBetween(checkIn, checkOut);
+  const datesOk = nights >= 1 && checkIn >= addDaysKey(today, -1);
+  useEffect(() => { if (checkIn !== today) setCheckInNow(false); }, [checkIn, today]);
+  useEffect(() => { const t = setTimeout(() => setFindQ(find.trim()), 250); return () => clearTimeout(t); }, [find]);
+
+  const quote = useQuery({
+    queryKey: ['hotel-quote', checkIn, checkOut, source],
+    queryFn: () => bookingsApi.quote({ checkInDate: checkIn, checkOutDate: checkOut, source }),
+    enabled: datesOk,
+    placeholderData: (p) => p,
   });
+  const guests = useQuery({ queryKey: ['hotel-guest-find', findQ], queryFn: () => guestsApi.list({ search: findQ }), enabled: findQ.length >= 3 && !guest });
 
-  const [rooms, setRooms] = useState<SelectedRoom[]>([]);
-  const [guestSearch, setGuestSearch] = useState('');
-  const [showGuestPicker, setShowGuestPicker] = useState(false);
-  const [showRoomPicker, setShowRoomPicker] = useState(false);
-  const [selectedGuest, setSelectedGuest] = useState<any>(null);
+  // Dates changed: drop rooms no longer free, refresh the quoted price of the rest.
+  useEffect(() => {
+    if (!quote.data) return;
+    setLines((ls) => ls.flatMap((l) => {
+      const free = quote.data.types.find((t) => t.roomTypeId === l.roomTypeId)?.free.find((r) => r.id === l.roomId);
+      return free ? [{ ...l, quoted: free.total, rate: l.custom ? l.rate : String(Math.round(free.total / quote.data.nights)) }] : [];
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quote.data]);
 
-  const { data: guests = [] } = useQuery({
-    queryKey: ['guests-for-booking', guestSearch],
-    queryFn: () => guestsApi.list({ search: guestSearch || undefined }),
-    enabled: showGuestPicker,
-  });
+  // Room board link: pick the room once the quote arrives.
+  const wanted = params.get('roomId');
+  useEffect(() => {
+    if (!wanted || !quote.data || lines.length) return;
+    for (const t of quote.data.types) { const r = t.free.find((x) => x.id === wanted); if (r) { toggle(t, r); break; } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quote.data, wanted]);
 
-  const nights = differenceInDays(new Date(form.checkOutDate), new Date(form.checkInDate)) || 1;
-
-  const { data: availability } = useQuery({
-    queryKey: ['availability', form.checkInDate, form.checkOutDate],
-    queryFn: () => roomsApi.availability({
-      checkInDate: form.checkInDate,
-      checkOutDate: form.checkOutDate,
-    }),
-    enabled: showRoomPicker,
-  });
-
-  const roomTotal = rooms.reduce((s, r) => s + (r.ratePerNight * nights) - r.discount, 0);
-  const grandTotal = Math.max(roomTotal + Number(form.taxAmount) + Number(form.serviceCharge) - Number(form.discount), 0);
-  const balance = Math.max(grandTotal - Number(form.advancePaid), 0);
-
-  const createMutation = useMutation({
-    mutationFn: () => bookingsApi.create({
-      ...form,
-      totalAdults: Number(form.totalAdults) || 1,
-      totalChildren: Number(form.totalChildren) || 0,
-      taxAmount: Number(form.taxAmount) || 0,
-      serviceCharge: Number(form.serviceCharge) || 0,
-      discount: Number(form.discount) || 0,
-      advancePaid: Number(form.advancePaid) || 0,
-      rooms: rooms.map((r) => ({
-        roomId: r.roomId,
-        roomTypeId: r.roomTypeId,
-        roomNumber: r.roomNumber,
-        ratePerNight: r.ratePerNight,
-        adults: r.adults,
-        children: r.children,
-        extraBeds: r.extraBeds,
-        discount: r.discount,
-      })),
-    }),
-    onSuccess: (booking) => {
-      toast.success('Booking ' + booking.bookingNumber + ' created');
-      navigate('/hotel/bookings/' + booking.id);
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const addRoom = (roomTypeGroup: any, roomToPick?: any) => {
-    setRooms([...rooms, {
-      roomId: roomToPick?.id,
-      roomTypeId: roomTypeGroup.roomType.id,
-      roomNumber: roomToPick?.roomNumber,
-      roomTypeName: roomTypeGroup.roomType.name,
-      ratePerNight: roomTypeGroup.roomType.basePrice,
-      adults: 2,
-      children: 0,
-      extraBeds: 0,
-      discount: 0,
+  const toggle = (t: QuoteType, r: QuoteType['free'][number]) => {
+    setLines((ls) => ls.some((l) => l.roomId === r.id) ? ls.filter((l) => l.roomId !== r.id) : [...ls, {
+      roomId: r.id, roomNumber: r.roomNumber, roomTypeId: t.roomTypeId, typeName: t.name, quoted: r.total,
+      rate: String(Math.round(r.total / Math.max(nights, 1))), custom: false, adults: String(Math.min(t.maxAdults, 2)), children: '0', extraBeds: '0',
     }]);
-    setShowRoomPicker(false);
   };
+  const setLine = (id: string, k: 'rate' | 'adults' | 'children' | 'extraBeds', v: string) => setLines((ls) => ls.map((l) => (l.roomId === id ? { ...l, [k]: v, ...(k === 'rate' && { custom: true }) } : l)));
+  const typeOf = (id: string) => quote.data?.types.find((t) => t.roomTypeId === id);
 
-  const removeRoom = (i: number) => setRooms(rooms.filter((_, idx) => idx !== i));
-  const updateRoom = (i: number, patch: Partial<SelectedRoom>) => setRooms(rooms.map((r, idx) => idx === i ? { ...r, ...patch } : r));
+  const roomTotal = lines.reduce((s, l) => {
+    const t = typeOf(l.roomTypeId);
+    return s + (l.custom ? num(l.rate) * nights : l.quoted) + num(l.extraBeds) * (t?.extraBedPrice ?? 0) * nights;
+  }, 0);
+  const total = Math.max(roomTotal + num(tax) - num(discount), 0);
+  const adv = num(advance);
+  const people = lines.reduce((s, l) => s + (num(l.adults) || 1) + num(l.children), 0);
 
-  const canSubmit = rooms.length > 0 && form.guestName && form.guestPhone && form.checkInDate && form.checkOutDate;
+  const name = guest?.fullName ?? guestName.trim();
+  const phone = guest?.phone ?? guestPhone.trim();
+  const errors = {
+    dates: !datesOk ? (nights < 1 ? 'Check-out, check-in ke baad ki date honi chahiye' : 'Guzri hui date par booking nahi banti') : null,
+    rooms: !lines.length ? 'Kam az kam ek room chunein' : null,
+    name: !name ? 'Guest ka naam likhein' : null,
+    phone: !phoneOk(phone) ? 'Phone number sahi likhein (kam az kam 10 hindse)' : null,
+    id: checkInNow && !guest?.idNumber ? (!idNumber.trim() ? 'Check-in ke liye CNIC ya passport number likhein' : idType === 'CNIC' && !cnicOk(idNumber) ? 'CNIC 13 hindson ka hota hai' : null) : null,
+    advance: adv > total + 0.005 ? `Advance kul bill (${formatPKR(total)}) se zyada hai` : null,
+    occupancy: lines.find((l) => { const t = typeOf(l.roomTypeId); return t && (num(l.adults) || 1) + num(l.children) > t.maxOccupancy + num(l.extraBeds); }) ? 'Kisi room me zyada log likhe hain — extra bed lagayein ya doosra room' : null,
+  };
+  const firstError = Object.values(errors).find(Boolean) ?? null;
+
+  const save = useMutation({
+    mutationFn: () => bookingsApi.create({
+      primaryGuestId: guest?.id, guestName: name, guestPhone: phone, checkInDate: checkIn, checkOutDate: checkOut,
+      rooms: lines.map((l) => ({
+        roomId: l.roomId, roomTypeId: l.roomTypeId, adults: num(l.adults) || 1, children: num(l.children), extraBeds: num(l.extraBeds),
+        ...(l.custom && { ratePerNight: num(l.rate) }),
+      })),
+      source, sourceRef: sourceRef.trim() || undefined, bookedBy: (company?.name ?? bookedBy.trim()) || undefined, mealPlan, status,
+      taxAmount: num(tax) || undefined, discount: num(discount) || undefined, specialRequests: requests.trim() || undefined, arrivalTime: arrivalTime.trim() || undefined,
+      advancePaid: adv || undefined, paymentMethod: adv ? method : undefined, customerId: company?.id,
+      ...(checkInNow && { checkInNow: true, idType, idNumber: idNumber.trim() || undefined, city: city.trim() || undefined, adults: people || undefined }),
+    }),
+    onSuccess: (b) => {
+      ALL_HOTEL_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      toast.success(checkInNow ? `${b.guestName} check-in ho gaya` : `Booking ${b.bookingNumber} ban gayi`);
+      navigate(`/hotel/bookings/${b.id}`);
+    },
+    onError: (e) => toast.error(apiError(e, 'Booking nahi bani')),
+  });
+  const submit = () => { setTried(true); if (firstError) { toast.error(firstError); return; } save.mutate(); };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  const types = useMemo(() => quote.data?.types ?? [], [quote.data]);
+  const err = (k: keyof typeof errors) => (tried ? errors[k] ?? undefined : undefined);
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/hotel/bookings')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                New Booking
-              </div>
-              <h1 className="mt-1 text-2xl font-extrabold">📅 Create Booking</h1>
-            </div>
+    <PageShell>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Link to="/hotel/bookings" className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Wapas"><ArrowLeft className="h-5 w-5" /></Link>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">{checkInNow ? 'Walk-in check-in' : 'Nayi booking'}</h1>
+            <p className="text-[0.8125rem] text-slate-500">Dates → room → guest → advance. <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> se save, <Kbd>G</Kbd> guide.</p>
           </div>
-          <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} disabled={!canSubmit} className="bg-white text-slate-900 hover:bg-slate-100">
-            <Save className="h-4 w-4" />
-            Create Booking
-          </Button>
         </div>
-      </section>
-
-      <div className="grid lg:grid-cols-[1fr_380px] gap-6">
-        <div className="space-y-6">
-          {/* Guest */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600" />
-              Primary Guest
-            </h3>
-            {selectedGuest ? (
-              <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3 flex items-center gap-3">
-                <User className="h-5 w-5 text-blue-600" />
-                <div className="flex-1">
-                  <div className="font-extrabold">{selectedGuest.fullName}</div>
-                  <div className="text-xs text-slate-600 font-bold">{selectedGuest.phone} • {selectedGuest.guestNumber}</div>
-                  {selectedGuest.isVIP && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 mt-1"><Star className="h-2 w-2 fill-current" />VIP</span>}
-                </div>
-                <button onClick={() => { setSelectedGuest(null); setForm({ ...form, primaryGuestId: '', guestName: '', guestPhone: '', guestEmail: '' }); }} className="text-xs font-extrabold text-blue-600 hover:underline">Change</button>
-              </div>
-            ) : (
-              <>
-                <button onClick={() => setShowGuestPicker(!showGuestPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-sm font-extrabold text-slate-600 hover:border-blue-400">
-                  <Search className="h-4 w-4 inline mr-1" />
-                  Search Existing Guest
-                </button>
-                {showGuestPicker && (
-                  <div className="rounded-xl border-2 border-blue-300 bg-blue-50/50 p-3 space-y-2">
-                    <input autoFocus value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} placeholder="Search name, phone, CNIC..." className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                    <div className="max-h-52 overflow-y-auto space-y-1">
-                      {guests.map((g) => (
-                        <button key={g.id} onClick={() => { setSelectedGuest(g); setForm({ ...form, primaryGuestId: g.id, guestName: g.fullName, guestPhone: g.phone, guestEmail: g.email || '' }); setShowGuestPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
-                          <User className="h-3.5 w-3.5 text-slate-400" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-extrabold truncate">{g.fullName}</div>
-                            <div className="text-[0.6875rem] text-slate-500 font-bold">{g.phone} • {g.guestNumber}</div>
-                          </div>
-                          {g.isVIP && <Star className="h-3 w-3 text-amber-500 fill-current" />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.guestName} onChange={(e) => setForm({ ...form, guestName: e.target.value })} placeholder="Guest name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.guestPhone} onChange={(e) => setForm({ ...form, guestPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                </div>
-              </>
-            )}
-            <div className="grid sm:grid-cols-3 gap-3">
-              <input value={form.guestEmail} onChange={(e) => setForm({ ...form, guestEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Adults</label>
-                <input type="number" value={form.totalAdults} onChange={(e) => setForm({ ...form, totalAdults: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Children</label>
-                <input type="number" value={form.totalChildren} onChange={(e) => setForm({ ...form, totalChildren: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-              </div>
-            </div>
-          </section>
-
-          {/* Dates */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-cyan-600" />
-              Dates & Stay Details
-            </h3>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Check-in *</label>
-                <input type="date" value={form.checkInDate} onChange={(e) => setForm({ ...form, checkInDate: e.target.value })} min={today} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Check-out *</label>
-                <input type="date" value={form.checkOutDate} onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })} min={form.checkInDate} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              </div>
-            </div>
-            <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-3 text-center">
-              <div className="text-xs font-bold text-slate-500">Total Stay</div>
-              <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white">{nights} night{nights > 1 ? 's' : ''}</div>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-3">
-              <select value={form.mealPlan} onChange={(e) => setForm({ ...form, mealPlan: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-                {MEAL_PLANS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-              </select>
-              <input type="time" value={form.arrivalTime} onChange={(e) => setForm({ ...form, arrivalTime: e.target.value })} placeholder="Arrival Time" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <input value={form.purposeOfVisit} onChange={(e) => setForm({ ...form, purposeOfVisit: e.target.value })} placeholder="Purpose (Business, Leisure...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-          </section>
-
-          {/* Rooms */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Bed className="h-4 w-4 text-indigo-600" />
-                Rooms ({rooms.length})
-              </h3>
-              <Button size="sm" onClick={() => setShowRoomPicker(true)} className="bg-gradient-to-r from-indigo-600 to-purple-700">
-                <Bed className="h-3.5 w-3.5" />
-                Add Room
-              </Button>
-            </div>
-            {rooms.length === 0 ? (
-              <div className="rounded-xl border-2 border-dashed border-slate-300 p-8 text-center">
-                <Bed className="h-10 w-10 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm font-extrabold text-slate-700">No rooms added</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {rooms.map((room, i) => (
-                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-extrabold">{room.roomTypeName}</div>
-                        {room.roomNumber && <div className="text-[0.6875rem] font-bold text-slate-500">Room {room.roomNumber}</div>}
-                      </div>
-                      <button onClick={() => removeRoom(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      <div>
-                        <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Rate/night</label>
-                        <input type="number" value={room.ratePerNight} onChange={(e) => updateRoom(i, { ratePerNight: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
-                      </div>
-                      <div>
-                        <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Adults</label>
-                        <input type="number" value={room.adults} onChange={(e) => updateRoom(i, { adults: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-blue-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-                      </div>
-                      <div>
-                        <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-0.5 block">Children</label>
-                        <input type="number" value={room.children} onChange={(e) => updateRoom(i, { children: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-cyan-300 bg-cyan-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
-                      </div>
-                      <div>
-                        <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-0.5 block">Discount</label>
-                        <input type="number" value={room.discount} onChange={(e) => updateRoom(i, { discount: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-rose-200 bg-rose-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-rose-500" />
-                      </div>
-                    </div>
-                    <div className="text-right text-sm font-extrabold text-emerald-700 tabular-nums">
-                      = {formatPKR((room.ratePerNight * nights) - room.discount)} for {nights} nights
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Source */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Booking Source</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {SOURCES.map((s) => (
-                <button key={s.value} onClick={() => setForm({ ...form, source: s.value })} className={
-                  'p-2 rounded-xl border-2 text-center transition ' +
-                  (form.source === s.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-ink-700 hover:border-blue-300')
-                }>
-                  <div className="text-xl">{s.emoji}</div>
-                  <div className="text-[0.625rem] font-extrabold">{s.label}</div>
-                </button>
-              ))}
-            </div>
-            {form.source !== 'DIRECT' && form.source !== 'WALK_IN' && (
-              <input value={form.sourceRef} onChange={(e) => setForm({ ...form, sourceRef: e.target.value })} placeholder="Reference # (OTA booking ID, agent name...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            )}
-          </section>
-
-          <textarea rows={3} value={form.specialRequests} onChange={(e) => setForm({ ...form, specialRequests: e.target.value })} placeholder="Special requests..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-        </div>
-
-        {/* Sidebar */}
-        <aside className="space-y-4">
-          <div className="sticky top-4 space-y-4">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between"><span className="text-white/70">Nights</span><span className="font-bold tabular-nums">{nights}</span></div>
-                <div className="flex justify-between"><span className="text-white/70">Rooms</span><span className="font-bold tabular-nums">{rooms.length}</span></div>
-                <div className="flex justify-between"><span className="text-white/70">Room Total</span><span className="font-bold tabular-nums">{formatPKR(roomTotal)}</span></div>
-              </div>
-              <div className="mt-3 space-y-2">
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
-                  <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Service Charge</label>
-                  <input type="number" value={form.serviceCharge} onChange={(e) => setForm({ ...form, serviceCharge: e.target.value })} className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
-                  <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
-                </div>
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-300 mb-0.5 block">Advance Paid</label>
-                  <input type="number" value={form.advancePaid} onChange={(e) => setForm({ ...form, advancePaid: e.target.value })} className="h-9 w-full rounded-lg bg-emerald-500/20 border border-emerald-400/40 px-2 text-sm font-extrabold tabular-nums text-emerald-100 focus:outline-none focus:border-emerald-400" />
-                </div>
-              </div>
-              <div className="mt-3 pt-3 border-t border-white/20 space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-extrabold text-emerald-300">GRAND TOTAL</span>
-                  <span className="text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(grandTotal)}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-white/70">Balance</span>
-                  <span className={'font-extrabold tabular-nums ' + (balance > 0 ? 'text-amber-300' : 'text-emerald-300')}>{formatPKR(balance)}</span>
-                </div>
-              </div>
-            </div>
-            <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} disabled={!canSubmit} size="lg" className="w-full bg-gradient-to-r from-blue-600 to-cyan-700">
-              <Save className="h-5 w-5" />
-              Create Booking
-            </Button>
-          </div>
-        </aside>
+        <Button variant="ghost" leftIcon={<GraduationCap className="h-4 w-4" />} onClick={guide.open}>Guide</Button>
       </div>
 
-      {/* Room picker modal */}
-      {showRoomPicker && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="px-5 py-3 border-b bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-between">
-              <div>
-                <h3 className="font-extrabold">Select Room</h3>
-                <p className="text-xs text-slate-500 font-semibold">
-                  Available for {nights} nights ({form.checkInDate} → {form.checkOutDate})
-                </p>
-              </div>
-              <button onClick={() => setShowRoomPicker(false)} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
+      <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
+        <div className="space-y-4">
+          <Card className="space-y-3 p-4">
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><CalendarDays className="h-4 w-4 text-slate-400" />Kab se kab tak</h2>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Input type="date" label="Check-in" value={checkIn} min={addDaysKey(today, -1)} onChange={(e) => { setCheckIn(e.target.value); if (e.target.value >= checkOut) setCheckOut(addDaysKey(e.target.value, 1)); }} />
+              <Input type="date" label="Check-out" value={checkOut} min={addDaysKey(checkIn, 1)} onChange={(e) => setCheckOut(e.target.value)} error={err('dates')} hint={nights >= 1 ? `${nights} raat · ${stayDay(checkIn, { day: true })} se` : undefined} />
+              <Select label="Booking kahan se" value={source} onChange={(e) => setSource(e.target.value as BookingSource)} options={SOURCES.map((s) => ({ value: s.id, label: s.label }))} />
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {!availability || availability.totalAvailable === 0 ? (
-                <p className="text-center text-slate-500 font-semibold py-8">No rooms available for selected dates</p>
-              ) : (
-                availability.byRoomType.map((group: any) => (
-                  <div key={group.roomType.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <div className="font-extrabold">{group.roomType.name}</div>
-                        <div className="text-xs text-slate-500 font-bold">{group.count} available • Max {group.roomType.maxOccupancy} guests</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(group.roomType.basePrice)}</div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500">per night</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-1">
-                      <button onClick={() => addRoom(group)} className="col-span-2 h-9 rounded-lg bg-indigo-600 text-white text-xs font-extrabold hover:bg-indigo-700">
-                        + Any Room ({group.count})
+            <div className="flex flex-wrap gap-1.5">
+              {[1, 2, 3, 7].map((n) => <Button key={n} size="sm" variant={nights === n ? 'primary' : 'secondary'} onClick={() => setCheckOut(addDaysKey(checkIn, n))}>{n} raat</Button>)}
+            </div>
+            {checkIn === today && (
+              <Switch checked={checkInNow} onChange={(e) => { setCheckInNow(e.target.checked); if (e.target.checked) setSource('WALK_IN'); }} label="Guest saamne hai — abhi check-in karein" description="Walk-in: booking ke saath check-in bhi; CNIC abhi likhna hoga" />
+            )}
+          </Card>
+
+          <Card className="space-y-3 p-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><BedDouble className="h-4 w-4 text-slate-400" />Room chunein</h2>
+              <p className="text-[0.75rem] text-slate-500">Sirf wo room jo har raat khaali hain · weekend aur season rate shamil</p>
+            </div>
+            {err('rooms') && <p className="text-[0.8125rem] text-rose-600">{err('rooms')}</p>}
+            {!datesOk ? <p className="text-[0.8125rem] text-slate-500">Pehle sahi dates chunein.</p> : quote.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : !types.length ? (
+              <p className="text-[0.8125rem] text-slate-500">Koi room type nahi. <Link to="/hotel-room-types/new" className="text-brand-700 hover:underline">Room type banayein</Link></p>
+            ) : types.map((t) => (
+              <div key={t.roomTypeId} className="rounded-2xl p-3 ring-1 ring-slate-200">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="text-[0.875rem] font-semibold text-slate-900">{t.name} <span className="font-normal text-slate-500">· {t.maxOccupancy} log</span></p>
+                  <p className="text-[0.8125rem] text-slate-600"><b className="tabular-nums text-slate-900">{formatPKR(t.avgRate)}</b> fi raat · {nights} raat {formatPKR(t.total)}
+                    {t.nightly.some((n) => n.label !== 'Normal') && <span className="ml-1 text-[0.75rem] text-amber-700">({[...new Set(t.nightly.filter((n) => n.label !== 'Normal').map((n) => n.label))].join(', ')})</span>}
+                  </p>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {t.free.length ? t.free.map((r) => {
+                    const on = lines.some((l) => l.roomId === r.id);
+                    return (
+                      <button key={r.id} type="button" onClick={() => toggle(t, r)} title={`${HK_STATUS[r.housekeepingStatus as keyof typeof HK_STATUS]?.label ?? ''}${r.total !== t.total ? ` · is room ka rate ${formatPKR(r.total)}` : ''}`}
+                        className={cn('min-w-[3.5rem] rounded-xl px-3 py-1.5 text-[0.875rem] font-bold ring-1 transition', on ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-800 ring-slate-200 hover:bg-slate-50', r.housekeepingStatus === 'DIRTY' && !on && 'ring-amber-300')}>
+                        {r.roomNumber}
                       </button>
-                      {group.rooms.slice(0, 10).map((r: any) => (
-                        <button key={r.id} onClick={() => addRoom(group, r)} className="h-9 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 text-xs font-extrabold">
-                          {r.roomNumber}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))
+                    );
+                  }) : <span className="text-[0.8125rem] text-slate-500">In dates me is type ka koi room khaali nahi ({t.roomsTotal} me se)</span>}
+                </div>
+              </div>
+            ))}
+
+            {lines.length > 0 && (
+              <ul className="divide-y divide-slate-100 rounded-2xl bg-slate-50 ring-1 ring-slate-200">
+                {lines.map((l) => {
+                  const t = typeOf(l.roomTypeId);
+                  return (
+                    <li key={l.roomId} className="grid grid-cols-2 items-end gap-2 p-3 sm:grid-cols-[5rem_1fr_5rem_5rem_5rem_auto]">
+                      <div className="col-span-2 sm:col-span-1"><p className="text-[1rem] font-bold text-slate-900">{l.roomNumber}</p><p className="truncate text-[0.6875rem] text-slate-500">{l.typeName}</p></div>
+                      <Input size="sm" label="Rate fi raat" inputMode="decimal" value={l.rate} onChange={(e) => setLine(l.roomId, 'rate', moneyInput(e.target.value))} hint={l.custom ? `System rate ${formatPKR(Math.round(l.quoted / Math.max(nights, 1)))}` : undefined} />
+                      <Input size="sm" label="Bade" inputMode="numeric" value={l.adults} onChange={(e) => setLine(l.roomId, 'adults', e.target.value.replace(/\D/g, ''))} />
+                      <Input size="sm" label="Bachay" inputMode="numeric" value={l.children} onChange={(e) => setLine(l.roomId, 'children', e.target.value.replace(/\D/g, ''))} />
+                      {t?.extraBedAllowed ? <Input size="sm" label="Extra bed" inputMode="numeric" value={l.extraBeds} onChange={(e) => setLine(l.roomId, 'extraBeds', e.target.value.replace(/\D/g, ''))} hint={formatPKR(t.extraBedPrice)} /> : <span />}
+                      <button type="button" onClick={() => setLines((ls) => ls.filter((x) => x.roomId !== l.roomId))} className="mb-1 justify-self-end rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Hatayein"><Trash2 className="h-4 w-4" /></button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {err('occupancy') && <p className="text-[0.8125rem] text-rose-600">{err('occupancy')}</p>}
+          </Card>
+
+          <Card className="space-y-3 p-4">
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><UserRound className="h-4 w-4 text-slate-400" />Guest</h2>
+            {guest ? (
+              <div className="flex items-center gap-3 rounded-xl bg-brand-50 px-3 py-2.5 ring-1 ring-brand-100">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[0.875rem] font-semibold text-slate-900">{guest.fullName} {guest.isVIP && <Star className="inline h-3.5 w-3.5 fill-amber-400 text-amber-500" />}</span>
+                  <span className="block text-[0.75rem] text-slate-600">{guest.phone} · {guest.idNumber ?? 'ID nahi'} · {guest.totalStays} stays</span>
+                  {guest.isBlacklisted && <span className="block text-[0.75rem] font-semibold text-rose-700">Blacklist: {guest.blacklistReason}</span>}
+                </span>
+                <button type="button" onClick={() => setGuest(null)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white" aria-label="Hatayein"><X className="h-4 w-4" /></button>
+              </div>
+            ) : (<>
+              <Input leftIcon={<Search className="h-4 w-4" />} label="Purana guest dhoondein" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Naam, phone ya CNIC" hint="Pehle aa chuka ho to us ka ID aur khata khud jur jata hai" />
+              {findQ.length >= 3 && (guests.data ?? []).length > 0 && (
+                <ul className="max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-xl ring-1 ring-slate-200">
+                  {(guests.data ?? []).slice(0, 8).map((g) => (
+                    <li key={g.id}><button type="button" onClick={() => { setGuest(g); setFind(''); if (g.companyName) setBookedBy(g.companyName); }} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50">
+                      <span>{g.fullName} <span className="text-slate-500">· {g.phone}</span></span><span className="text-slate-500">{g.totalStays} stays</span>
+                    </button></li>
+                  ))}
+                </ul>
               )}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Naam" required value={guestName} onChange={(e) => setGuestName(e.target.value)} error={err('name')} placeholder="Ali Raza" />
+                <Input label="Phone" required inputMode="tel" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} error={err('phone')} placeholder="0300 1234567" />
+              </div>
+            </>)}
+            {checkInNow && !guest?.idNumber && (
+              <div className="grid gap-3 sm:grid-cols-[9rem_1fr_1fr]">
+                <Select label="ID" value={idType} onChange={(e) => setIdType(e.target.value)} options={ID_TYPES.map((t) => ({ value: t.id, label: t.label }))} />
+                <Input label="ID number" required leftIcon={<IdCard className="h-4 w-4" />} value={idNumber} error={err('id')} placeholder="35202-1234567-1"
+                  onChange={(e) => setIdNumber(idType === 'CNIC' ? formatCnic(e.target.value) : e.target.value.toUpperCase())} hint="Police record ke liye zaroori" />
+                <Input label="Shehar" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Lahore" />
+              </div>
+            )}
+          </Card>
+
+          <Card className="space-y-3 p-4">
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Building2 className="h-4 w-4 text-slate-400" />Company aur baqi tafseel</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Input label="Company / agent (bill par)" value={company?.name ?? bookedBy} disabled={!!company} onChange={(e) => setBookedBy(e.target.value)} placeholder="Engro, Travel agent…" />
+                <div className="mt-1.5 flex gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => setPicking(true)}>{company ? 'Khata badlein' : 'Company ka khata jorein'}</Button>
+                  {company && <Button size="sm" variant="ghost" onClick={() => setCompany(null)}>Hatayein</Button>}
+                </div>
+                <p className="mt-1 text-[0.75rem] text-slate-500">Company advance de ya baad me bill bhare to us ka khata jorein.</p>
+              </div>
+              <Input label="Online booking ID" value={sourceRef} onChange={(e) => setSourceRef(e.target.value)} placeholder="Booking.com / Agoda number" />
+              <Select label="Khana" value={mealPlan} onChange={(e) => setMealPlan(e.target.value as MealPlan)} options={MEAL_PLANS.map((m) => ({ value: m.id, label: m.label }))} />
+              {!checkInNow && <Select label="Booking" value={status} onChange={(e) => setStatus(e.target.value as 'CONFIRMED' | 'TENTATIVE')} options={[{ value: 'CONFIRMED', label: 'Pakki' }, { value: 'TENTATIVE', label: 'Kachi (abhi tay nahi)' }]} />}
+              {!checkInNow && <Input label="Aane ka waqt" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} placeholder="Shaam 6 baje" />}
+              <Textarea wrapperClassName="sm:col-span-2" label="Guest ki farmaish" rows={2} value={requests} onChange={(e) => setRequests(e.target.value)} placeholder="Neeche wali manzil, extra takiya…" />
             </div>
-          </div>
+          </Card>
         </div>
+
+        <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <Card className="space-y-3 p-4">
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Wallet className="h-4 w-4 text-slate-400" />Paisa</h2>
+            <div className="space-y-1 text-[0.8125rem]">
+              <div className="flex justify-between"><span className="text-slate-500">{lines.length} room · {Math.max(nights, 0)} raat</span><span className="tabular-nums">{formatPKR(roomTotal)}</span></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input size="sm" label="Discount" inputMode="decimal" value={discount} onChange={(e) => setDiscount(moneyInput(e.target.value))} />
+              <Input size="sm" label="Tax" inputMode="decimal" value={tax} onChange={(e) => setTax(moneyInput(e.target.value))} hint="Bed tax" />
+            </div>
+            <div className="flex justify-between border-t border-slate-100 pt-2 text-[1rem] font-bold"><span>Kul</span><span className="tabular-nums">{formatPKR(total)}</span></div>
+            <Input label="Advance abhi liya" inputMode="decimal" value={advance} onChange={(e) => setAdvance(moneyInput(e.target.value))} error={err('advance')} hint="Khate me jama hota hai; check-out ke bill me kat jata hai" />
+            {adv > 0 && <MethodPicker value={method} onChange={setMethod} />}
+            <div className="flex justify-between text-[0.875rem] font-semibold"><span>Check-out par baqi</span><span className="tabular-nums">{formatPKR(Math.max(total - adv, 0))}</span></div>
+            <Button fullWidth size="lg" loading={save.isPending} onClick={submit} leftIcon={checkInNow ? <LogIn className="h-4 w-4" /> : <CalendarDays className="h-4 w-4" />}>
+              {checkInNow ? 'Booking + check-in' : 'Booking save karein'}
+            </Button>
+            {tried && firstError && <p className="text-center text-[0.8125rem] text-rose-600">{firstError}</p>}
+          </Card>
+        </div>
+      </div>
+
+      {picking && <CustomerPicker title="Company ka khata" money={formatPKR} onClose={() => setPicking(false)} onPick={(c) => { setCompany({ id: c.id, name: c.name }); setPicking(false); if (source === 'PHONE') setSource('CORPORATE'); }} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Nayi booking — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: CalendarDays, color: '#4f46e5', title: 'Dates', text: 'Check-in aur check-out ki date. Raat ka hisaab khud lagta hai; Juma aur Hafta ki raat weekend rate.' },
+            { icon: BedDouble, color: '#0891b2', title: 'Room', text: 'Sirf wo room dikhte hain jo har raat khaali hain. Ek se zyada room bhi chun sakte hain. Rate badalna ho to line me likhein.' },
+            { icon: UserRound, color: '#16a34a', title: 'Guest', text: 'Purana guest dhoondein to ID aur khata jur jata hai. Naya ho to naam aur phone.' },
+            { icon: Wallet, color: '#ea580c', title: 'Advance', text: 'Advance usi din drawer / bank aur guest (ya company) ke khate me jata hai. Check-out par bill se kat jata hai.' },
+            { icon: LogIn, color: '#7c3aed', title: 'Walk-in', text: '"Abhi check-in" chunein to CNIC likh kar guest seedha room me.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['G', 'guide']]}
+        />
       )}
-    </div>
+    </PageShell>
   );
 }

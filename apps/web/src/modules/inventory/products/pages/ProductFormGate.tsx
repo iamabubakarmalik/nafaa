@@ -45,8 +45,6 @@ export default function ProductFormGate() {
       return <Navigate to={edit ? `/bookstore-products/${id}/edit` : '/bookstore-products/new'} replace />;
     case 'salon':
       return <Navigate to={edit ? `/salon-services/${id}/edit` : '/salon-services/new'} replace />;
-    case 'hotel':
-      return <Navigate to={edit ? `/hotel-room-types/${id}/edit` : '/hotel-room-types/new'} replace />;
     case 'clinic':
       return <Navigate to={edit ? `/clinic-services/${id}/edit` : '/clinic-services/new'} replace />;
 

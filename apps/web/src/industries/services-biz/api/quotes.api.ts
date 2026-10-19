@@ -1,47 +1,55 @@
 import { apiClient } from '@core/api/client';
+import type { ServiceJob } from './jobs.api';
+
+export type QuoteStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'REVISED';
+export type QuoteView = 'open' | 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'converted' | 'all';
+export type QuoteLineKind = 'VISIT' | 'LABOUR' | 'PART' | 'OTHER';
+export interface QuoteLine { kind: QuoteLineKind; description: string; quantity: number; unitPrice: number; total: number; productId?: string | null }
 
 export interface Quote {
   id: string;
   quoteNumber: string;
-  customerId?: string;
+  customerId?: string | null;
   customerName: string;
   customerPhone: string;
-  customerEmail?: string;
-  serviceId?: string;
+  serviceId?: string | null;
   serviceName: string;
   problemDescription: string;
   siteVisitRequired: boolean;
-  siteVisitCompleted: boolean;
-  status: 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'REVISED';
+  status: QuoteStatus;
+  visitCharge: number;
   labourCharge: number;
   partsCharge: number;
-  visitCharge: number;
   otherCharges: number;
   discount: number;
   taxAmount: number;
   totalAmount: number;
-  lineItems?: any;
-  validUntil?: string;
-  termsConditions?: string;
-  sentAt?: string;
-  respondedAt?: string;
-  acceptedAt?: string;
-  rejectedAt?: string;
-  rejectionReason?: string;
-  convertedJobId?: string;
-  notes?: string;
+  lines: QuoteLine[];
+  validUntil?: string | null;
+  termsConditions?: string | null;
+  notes?: string | null;
+  sentAt?: string | null;
+  rejectionReason?: string | null;
+  convertedJobId?: string | null;
+  isExpired: boolean;
   createdAt: string;
-  updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface QuoteInput {
+  customerId?: string; customerName?: string; customerPhone?: string; serviceId?: string; serviceName?: string; problemDescription?: string;
+  siteVisitRequired?: boolean; lines?: Array<Omit<QuoteLine, 'total'>>; discount?: number; taxAmount?: number; validUntil?: string;
+  termsConditions?: string; notes?: string;
+}
+
+const unwrap = <T,>(res: { data: unknown }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
+const base = '/services-biz/quotes';
 
 export const quotesApi = {
-  create: (data: any) => apiClient.post('/services-biz/quotes', data).then(unwrap<Quote>),
-  list: (params?: any) => apiClient.get('/services-biz/quotes', { params }).then(unwrap<Quote[]>),
-  getOne: (id: string) => apiClient.get('/services-biz/quotes/' + id).then(unwrap<Quote>),
-  send: (id: string) => apiClient.post('/services-biz/quotes/' + id + '/send').then(unwrap<Quote>),
-  accept: (id: string) => apiClient.post('/services-biz/quotes/' + id + '/accept').then(unwrap<Quote>),
-  reject: (id: string, reason?: string) => apiClient.post('/services-biz/quotes/' + id + '/reject', { reason }).then(unwrap<Quote>),
-  convert: (id: string) => apiClient.post('/services-biz/quotes/' + id + '/convert').then(unwrap<any>),
+  create: (data: QuoteInput) => apiClient.post(base, data).then(unwrap<Quote>),
+  update: (id: string, data: QuoteInput) => apiClient.patch(`${base}/${id}`, data).then(unwrap<Quote>),
+  list: (params?: { view?: QuoteView; search?: string; customerId?: string }) => apiClient.get(base, { params }).then(unwrap<Quote[]>),
+  send: (id: string) => apiClient.post(`${base}/${id}/send`).then(unwrap<Quote>),
+  accept: (id: string) => apiClient.post(`${base}/${id}/accept`).then(unwrap<Quote>),
+  reject: (id: string, reason?: string) => apiClient.post(`${base}/${id}/reject`, { reason }).then(unwrap<Quote>),
+  convert: (id: string, data: { scheduledStart?: string; primaryTechnicianId?: string } = {}) => apiClient.post(`${base}/${id}/convert`, data).then(unwrap<ServiceJob>),
 };

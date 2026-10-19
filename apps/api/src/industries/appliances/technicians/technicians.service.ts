@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertTechnicianDto } from './dto/upsert-technician.dto';
+import { endOfDayTz, startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
 
 const OPEN_SERVICE = ['REQUESTED', 'SCHEDULED', 'TECHNICIAN_ASSIGNED', 'EN_ROUTE', 'ON_SITE', 'IN_PROGRESS', 'PENDING_PARTS'];
 const OPEN_INSTALL = ['PENDING', 'SCHEDULED', 'ASSIGNED', 'IN_PROGRESS', 'RESCHEDULED'];
@@ -78,8 +79,7 @@ export class TechniciansService {
     const t = await this.prisma.applianceTechnician.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Technician nahi mila');
 
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthStart = startOfMonthTz();
 
     const [recentJobs, activeServiceRequests, recentServices, monthServices, monthInstalls] = await Promise.all([
       this.prisma.applianceInstallation.findMany({
@@ -188,12 +188,11 @@ export class TechniciansService {
     const t = await this.prisma.applianceTechnician.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Technician nahi mila');
 
-    const start = new Date(from);
-    const end = new Date(to);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    if (isNaN(new Date(from).getTime()) || isNaN(new Date(to).getTime())) {
       throw new BadRequestException('Date sahi nahi hai');
     }
-    end.setHours(23, 59, 59, 999);
+    const start = startOfDayTz(new Date(from));
+    const end = endOfDayTz(new Date(to));
 
     const [installations, serviceRequests] = await Promise.all([
       this.prisma.applianceInstallation.findMany({
@@ -257,8 +256,7 @@ export class TechniciansService {
   /** Team ki ek nazar me haalat — page ke KPI cards ke liye. */
   async summary(user: AuthenticatedUser) {
     const tenantId = user.tenantId;
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthStart = startOfMonthTz();
 
     const [techs, openSvc, openInst, monthSvc, monthInst] = await Promise.all([
       this.prisma.applianceTechnician.findMany({

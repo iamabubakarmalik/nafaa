@@ -1,32 +1,37 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CreateWorkoutDto, UpdateWorkoutDto } from './dto/workout.dto';
+
+/** Sets, reps and lifted weight (weight x reps) across the exercises. */
+function totals(exercises?: CreateWorkoutDto['exercises']) {
+  let totalSets = 0;
+  let totalReps = 0;
+  let totalWeight = 0;
+  for (const ex of exercises ?? []) {
+    for (const set of ex?.sets ?? []) {
+      totalSets += 1;
+      totalReps += Number(set?.reps) || 0;
+      totalWeight += (Number(set?.weight) || 0) * (Number(set?.reps) || 0);
+    }
+  }
+  return { totalSets, totalReps, totalWeight };
+}
 
 @Injectable()
 export class WorkoutsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: any) {
-    let totalSets = 0, totalReps = 0, totalWeight = 0;
-    if (dto.exercises && Array.isArray(dto.exercises)) {
-      for (const ex of dto.exercises) {
-        if (ex.sets) {
-          totalSets += ex.sets.length;
-          for (const s of ex.sets) {
-            totalReps += Number(s.reps) || 0;
-            totalWeight += (Number(s.weight) || 0) * (Number(s.reps) || 0);
-          }
-        }
-      }
-    }
-
+  async create(user: AuthenticatedUser, dto: CreateWorkoutDto) {
+    const member = await this.prisma.gymMember.findFirst({ where: { id: dto.memberId, tenantId: user.tenantId }, select: { id: true } });
+    if (!member) throw new NotFoundException('Member nahi mila');
     return this.prisma.gymWorkoutSession.create({
       data: {
-        tenantId: user.tenantId,
         ...dto,
-        totalSets,
-        totalReps,
-        totalWeight,
+        ...totals(dto.exercises),
+        exercises: (dto.exercises ?? undefined) as Prisma.InputJsonValue | undefined,
+        tenantId: user.tenantId,
         sessionDate: dto.sessionDate ? new Date(dto.sessionDate) : new Date(),
       },
     });
@@ -42,12 +47,20 @@ export class WorkoutsService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.gymWorkoutSession.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!s) throw new NotFoundException('Session not found');
+    if (!s) throw new NotFoundException('Workout nahi mila');
     return s;
   }
 
-  async update(user: AuthenticatedUser, id: string, dto: any) {
-    return this.prisma.gymWorkoutSession.update({ where: { id, tenantId: user.tenantId }, data: dto });
+  async update(user: AuthenticatedUser, id: string, dto: UpdateWorkoutDto) {
+    await this.getOne(user, id);
+    return this.prisma.gymWorkoutSession.update({
+      where: { id },
+      data: {
+        ...dto,
+        ...(dto.exercises !== undefined && { ...totals(dto.exercises), exercises: dto.exercises as Prisma.InputJsonValue }),
+        ...(dto.sessionDate !== undefined && { sessionDate: new Date(dto.sessionDate) }),
+      },
+    });
   }
 
   async summary(user: AuthenticatedUser, memberId: string) {
@@ -61,7 +74,7 @@ export class WorkoutsService {
         where: {
           memberId,
           tenantId: user.tenantId,
-          sessionDate: { gte: new Date(new Date().setDate(1)) },
+          sessionDate: { gte: new Date(Date.now() - 30 * 86_400_000) },
         },
       }),
       this.prisma.gymWorkoutSession.groupBy({
@@ -73,7 +86,8 @@ export class WorkoutsService {
     return { total, thisMonth, byType };
   }
 
-  async remove(user: AuthenticatedUser, id: string) {
-    return this.prisma.gymWorkoutSession.delete({ where: { id, tenantId: user.tenantId } });
+  /** Workout logs are the member's history and are kept. */
+  remove(): never {
+    throw new BadRequestException('Workout record mitaya nahi jata — ghalti ho to usi ko badlein');
   }
 }

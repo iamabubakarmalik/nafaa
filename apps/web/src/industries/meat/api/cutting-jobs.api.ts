@@ -14,17 +14,25 @@ export interface CuttingJob {
   completedAt?: string;
   durationMin?: number;
   status: string;
-  cutsProduced?: any;
+  cutsProduced?: CutsJson | null;
   notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface CutsJson {
+  source?: { productId: string; name: string } | null;
+  cuts?: Array<{ productId: string; name: string; qty: number; unitCost: number }>;
+  value?: number;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const cuttingJobsApi = {
-  create: (data: Partial<CuttingJob>) => apiClient.post('/meat/cutting-jobs', data).then(unwrap<CuttingJob>),
-  list: (params?: any) => apiClient.get('/meat/cutting-jobs', { params }).then(unwrap<CuttingJob[]>),
-  getOne: (id: string) => apiClient.get('/meat/cutting-jobs/' + id).then(unwrap<CuttingJob>),
-  complete: (id: string, data: any) => apiClient.post('/meat/cutting-jobs/' + id + '/complete', data).then(unwrap<CuttingJob>),
+  create: (data: { inputWeightKg: number; sourceProductId: string; slaughterLogId?: string; butcherName?: string; notes?: string }) =>
+    apiClient.post('/meat/cutting-jobs', data).then(unwrap<CuttingJob>),
+  list: (params?: Record<string, string | undefined>) => apiClient.get('/meat/cutting-jobs', { params }).then(unwrap<CuttingJob[]>),
+  complete: (id: string, data: { cuts: Array<{ productId: string; kg: number }>; wasteWeightKg?: number; notes?: string }) =>
+    apiClient.post('/meat/cutting-jobs/' + id + '/complete', data).then(unwrap<CuttingJob>),
+  cancel: (id: string, reason?: string) => apiClient.post('/meat/cutting-jobs/' + id + '/cancel', { reason }).then(unwrap<CuttingJob>),
 };

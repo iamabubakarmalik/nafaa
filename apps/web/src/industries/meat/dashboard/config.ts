@@ -4,7 +4,7 @@
  */
 
 import {
-  BarChart3, Beef, BookOpen, Building2, CalendarClock, Heart, Package, Plus, Receipt, Scissors, ShieldCheck, ShoppingCart, Weight,
+  BarChart3, Beef, Gauge, BookOpen, Building2, CalendarClock, Heart, Package, Plus, Receipt, Scissors, ShieldCheck, ShoppingCart, Weight,
 } from 'lucide-react';
 import { createDashboard } from '@modules/dashboard/createDashboard';
 import { ANY_SIZE, type QuickAction } from '@modules/dashboard/widgets';
@@ -24,6 +24,7 @@ function useMeatActions(): QuickAction[] {
   const s = data?.stats;
   return [
     { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
+    { to: '/meat/rates', icon: Gauge, label: 'Aaj ka rate', hint: 'Rate aur bacha maal' },
     { to: '/meat/weight-orders/new', icon: Weight, label: 'Naya order', hint: 'Wazan se order' },
     { to: '/meat/weight-orders', icon: Package, label: 'Orders', hint: orders.late.length ? `${orders.late.length} late` : `${orders.open.length} chaalu` },
     { to: '/meat/live-animals', icon: Heart, label: 'Zinda janwar', hint: `${livestock.alive} janwar` },
@@ -50,7 +51,7 @@ export const meatDashboard = createDashboard({
   useAttention: useMeatAttention,
   widgets: [
     { id: 'meat-orders', title: 'Wazan wale order', description: 'Chaalu order, dene ke waqt ke hisaab se', size: 'half', sizes: ANY_SIZE, Component: MeatOrders },
-    { id: 'meat-livestock', title: 'Zinda janwar', description: 'Baara me janwar, qisam aur un par cost', size: 'half', sizes: ANY_SIZE, sensitive: true, Component: MeatLivestock },
+    { id: 'meat-livestock', title: 'Zinda janwar', description: 'Baara me janwar, type aur un par cost', size: 'half', sizes: ANY_SIZE, sensitive: true, Component: MeatLivestock },
   ],
   lateWidgets: [
     { id: 'meat-halal', title: 'Halal record', description: '30 din me halal zabiha, certificate aur vet check', size: 'third', sizes: ['third', 'half'], Component: MeatHalal },

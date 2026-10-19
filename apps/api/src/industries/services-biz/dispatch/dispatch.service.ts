@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { weekdayInTz } from '../../../common/helpers/business-time.helper';
+import { OPEN, WORKING } from '../jobs/job-rules';
 
 @Injectable()
 export class DispatchService {
@@ -8,18 +10,17 @@ export class DispatchService {
 
   async suggestTechnicians(user: AuthenticatedUser, jobId: string) {
     const job = await this.prisma.serviceJob.findFirst({ where: { id: jobId, tenantId: user.tenantId } });
-    if (!job) throw new NotFoundException('Job not found');
+    if (!job) throw new NotFoundException('Job nahi mili');
 
-    const now = new Date();
-    const dayOfWeek = now.getDay();
+    // Working days are shop weekdays.
+    const dayOfWeek = weekdayInTz(new Date());
 
-    // Find technicians matching business type + city
-    const candidates = await this.prisma.serviceTechnicianProfile.findMany({
+    // Technicians on duty today with the job's skill and area; a small shop that
+    // has not filled skills or areas gets everyone on duty instead.
+    const onDuty = { tenantId: user.tenantId, isActive: true, workingDays: { has: dayOfWeek }, status: { in: ['AVAILABLE' as const, 'ON_JOB' as const] } };
+    let candidates = await this.prisma.serviceTechnicianProfile.findMany({
       where: {
-        tenantId: user.tenantId,
-        isActive: true,
-        workingDays: { has: dayOfWeek },
-        status: { in: ['AVAILABLE', 'ON_JOB'] },
+        ...onDuty,
         ...(job.businessType && {
           OR: [
             { primarySkill: job.businessType },
@@ -29,10 +30,17 @@ export class DispatchService {
         ...(job.city && { serviceAreas: { has: job.city } }),
       },
     });
+    if (!candidates.length) candidates = await this.prisma.serviceTechnicianProfile.findMany({ where: onDuty });
 
     const staffIds = candidates.map((c) => c.staffId);
-    const staffs = await this.prisma.staff.findMany({ where: { id: { in: staffIds } } });
+    const [staffs, load] = await Promise.all([
+      this.prisma.staff.findMany({ where: { tenantId: user.tenantId, id: { in: staffIds } }, select: { id: true, fullName: true, phone: true } }),
+      staffIds.length
+        ? this.prisma.serviceJob.groupBy({ by: ['primaryTechnicianId'], where: { tenantId: user.tenantId, primaryTechnicianId: { in: staffIds }, status: { in: OPEN } }, _count: { _all: true } })
+        : [],
+    ]);
     const staffMap = new Map(staffs.map((s) => [s.id, s]));
+    const openOf = new Map(load.map((l) => [l.primaryTechnicianId, l._count._all]));
 
     // Score each: availability + rating + distance
     const scored = candidates.map((c) => {
@@ -41,6 +49,8 @@ export class DispatchService {
       score += (c.avgRating ?? 0) * 10;
       score += c.onTimePct * 0.3;
       score += c.completionPct * 0.2;
+      const openJobs = openOf.get(c.staffId) ?? 0;
+      score -= openJobs * 8;
 
       // Distance if we have GPS on both
       let distanceKm = null;
@@ -52,7 +62,8 @@ export class DispatchService {
       return {
         ...c,
         staff: staffMap.get(c.staffId),
-        matchScore: Math.max(score, 0),
+        openJobs,
+        matchScore: Math.max(Math.round(score), 0),
         distanceKm,
       };
     });
@@ -83,13 +94,13 @@ export class DispatchService {
       this.prisma.serviceJob.findMany({
         where: {
           tenantId: user.tenantId,
-          status: { in: ['ASSIGNED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS'] },
+          status: { in: WORKING },
         },
       }),
     ]);
 
     const staffIds = technicians.map((t) => t.staffId);
-    const staffs = await this.prisma.staff.findMany({ where: { id: { in: staffIds } } });
+    const staffs = await this.prisma.staff.findMany({ where: { tenantId: user.tenantId, id: { in: staffIds } }, select: { id: true, fullName: true, phone: true } });
     const staffMap = new Map(staffs.map((s) => [s.id, s]));
 
     return {

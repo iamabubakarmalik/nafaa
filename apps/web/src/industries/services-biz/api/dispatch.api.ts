@@ -1,8 +1,10 @@
 import { apiClient } from '@core/api/client';
+import type { Technician } from './technicians.api';
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export type Suggestion = Technician & { matchScore: number; distanceKm: number | null; openJobs: number };
+
+const unwrap = <T,>(res: { data: unknown }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
 export const dispatchApi = {
-  suggest: (jobId: string) => apiClient.get('/services-biz/dispatch/suggest/' + jobId).then(unwrap<any[]>),
-  liveMap: () => apiClient.get('/services-biz/dispatch/live-map').then(unwrap<{ technicians: any[]; activeJobs: any[] }>),
+  suggest: (jobId: string) => apiClient.get(`/services-biz/dispatch/suggest/${jobId}`).then(unwrap<Suggestion[]>),
 };

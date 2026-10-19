@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { endOfDay, startOfDay, subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { addDaysTz, endOfDayTz, startOfDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 
 @Injectable()
 export class ServicesDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
-    const monthAgo = subDays(new Date(), 30);
+    // Shop days (PKT), not server days.
+    const todayStart = startOfDayTz(new Date());
+    const todayEnd = endOfDayTz(new Date());
+    const monthAgo = subDaysTz(todayStart, 30);
 
     const [
       totalServices, totalTechnicians, availableTechnicians,
@@ -82,12 +83,11 @@ export class ServicesDashboardService {
     });
 
     // AMC renewal due
-    const renewalCutoff = new Date();
-    renewalCutoff.setDate(renewalCutoff.getDate() + 30);
+    const renewalCutoff = addDaysTz(new Date(), 30);
     const renewalDue = await this.prisma.serviceAmc.findMany({
       where: {
         tenantId: user.tenantId,
-        status: 'ACTIVE',
+        status: { in: ['ACTIVE', 'RENEWAL_DUE'] },
         endDate: { gte: new Date(), lte: renewalCutoff },
       },
       orderBy: { endDate: 'asc' },
@@ -111,7 +111,7 @@ export class ServicesDashboardService {
       .slice(0, 5);
 
     const techStaffIds = sortedTopTech.map((t) => t.primaryTechnicianId).filter(Boolean) as string[];
-    const techStaff = await this.prisma.staff.findMany({ where: { id: { in: techStaffIds } } });
+    const techStaff = await this.prisma.staff.findMany({ where: { tenantId: user.tenantId, id: { in: techStaffIds } }, select: { id: true, fullName: true } });
     const techMap = new Map(techStaff.map((s) => [s.id, s]));
 
     const topTechnicians = sortedTopTech.map((t) => ({

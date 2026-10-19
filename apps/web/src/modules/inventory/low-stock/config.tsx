@@ -9,7 +9,7 @@ import { lazy, type ComponentType } from 'react';
 import { Barcode, ChefHat, Croissant, Leaf, ShieldAlert, Smartphone, Snowflake, Wheat, type LucideIcon } from 'lucide-react';
 import type { GuideStep } from '@core/components/PageGuide';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import { catLabel } from '@industries/appliances/constants';
+import { catLabel } from '@industries/appliances/components/meta';
 import { CATEGORY_META as ELECTRONICS_TYPES } from '@industries/electronics/constants';
 import { prettyAgriKind, type AgriKind } from '@industries/agri/lib/agriCategory';
 import type { LowList, LowSettings, LowStatusFilter } from './api';

@@ -1,7 +1,4 @@
-import {
-  Sparkles, Wrench, LayoutDashboard, Briefcase, Package, FileText, Users,
-  Truck, ShieldCheck, MapPin, Award,
-} from 'lucide-react';
+import { Award, Briefcase, FileText, LayoutDashboard, MapPin, Package, Plus, ShieldCheck, Users, Wrench } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import ServicesBizDashboard from './dashboard/ServicesBizDashboard';
@@ -18,11 +15,11 @@ import AmcPage from './pages/AmcPage';
 import WarrantyPage from './pages/WarrantyPage';
 
 /**
- * Services Business industry pack — plumber, electrician, AC tech,
- * IT support, home cleaning, appliance repair, event services, etc.
- *
- * Field jobs, technicians, quotes, dispatch by zone, AMC contracts,
- * warranty tracking.
+ * Services business pack: repair shops, AC / electrician / plumber
+ * services, printing and job shops. Job cards from intake to bill,
+ * technicians and commission, quotes, dispatch, AMC contracts and
+ * work warranty; the counter, products and sales history run on the
+ * shared pages with this industry's config.
  */
 export const ServicesBizPack: IndustryPack = {
   id: 'services-biz',
@@ -61,16 +58,15 @@ export const ServicesBizPack: IndustryPack = {
       color: '#0ea5e9',
       order: 20,
       items: [
-        { to: '/services-biz-services/new', label: '+ Add Service', icon: Sparkles, badge: 'FAST' },
-        { to: '/services-biz/dashboard', label: 'Services Dashboard', icon: LayoutDashboard, badge: 'NEW' },
-        { to: '/services-biz/jobs/new', label: 'New Job', icon: Briefcase, badge: 'FAST' },
-        { to: '/services-biz/jobs', label: 'Jobs / Work Orders', icon: Briefcase },
-        { to: '/services-biz/dispatch', label: 'Dispatch Board', icon: MapPin },
+        { to: '/services-biz/jobs/new', label: 'Naya job', icon: Plus, badge: 'FAST' },
+        { to: '/services-biz/jobs', label: 'Jobs', icon: Briefcase },
+        { to: '/services-biz/dispatch', label: 'Dispatch', icon: MapPin },
+        { to: '/services-biz/quotes', label: 'Quotes', icon: FileText },
         { to: '/services-biz/catalog', label: 'Service Catalog', icon: Package },
-        { to: '/services-biz/quotes', label: 'Quotes / Estimates', icon: FileText },
         { to: '/services-biz/technicians', label: 'Technicians', icon: Users },
-        { to: '/services-biz/amc', label: 'AMC Contracts', icon: Award },
-        { to: '/services-biz/warranty', label: 'Warranty Register', icon: ShieldCheck },
+        { to: '/services-biz/amc', label: 'AMC contracts', icon: Award },
+        { to: '/services-biz/warranty', label: 'Warranty', icon: ShieldCheck },
+        { to: '/services-biz/dashboard', label: 'Services dashboard', icon: LayoutDashboard },
       ],
     },
   ],
@@ -82,6 +78,7 @@ export const ServicesBizPack: IndustryPack = {
     { path: '/services-biz', element: ServicesBizDashboard },
     { path: '/services-biz/dashboard', element: ServicesBizDashboard },
     { path: '/services-biz/jobs/new', element: NewJobPage },
+    { path: '/services-biz/jobs/:id/edit', element: NewJobPage },
     { path: '/services-biz/jobs/:id', element: JobDetailPage },
     { path: '/services-biz/jobs', element: JobsListPage },
     { path: '/services-biz/dispatch', element: DispatchPage },

@@ -15,62 +15,63 @@ export type ServiceCategory = 'INSTALLATION' | 'REPAIR' | 'MAINTENANCE' | 'INSPE
 export type ChargeType = 'FIXED' | 'HOURLY' | 'PER_VISIT' | 'DISTANCE_BASED'
   | 'COMPLEXITY_BASED' | 'QUOTE_BASED' | 'FREE_UNDER_WARRANTY' | 'FREE_UNDER_AMC';
 
-export type TechLevel = 'APPRENTICE' | 'JUNIOR' | 'SENIOR' | 'EXPERT' | 'MASTER' | 'SUPERVISOR' | 'MANAGER';
-export type WarrantyType = 'MANUFACTURER' | 'SERVICE_PROVIDER' | 'EXTENDED' | 'PARTS_ONLY' | 'LABOR_ONLY' | 'FULL' | 'NONE';
-
 export interface ServiceCatalogItem {
   id: string;
   name: string;
-  code?: string;
-  description?: string;
+  code?: string | null;
+  description?: string | null;
   category: ServiceCategory;
-  businessType?: BusinessType;
+  businessType?: BusinessType | null;
   chargeType: ChargeType;
   baseCharge: number;
   hourlyRate: number;
   visitCharge: number;
   minCharge: number;
-  maxCharge?: number;
+  maxCharge?: number | null;
   emergencyCharge: number;
   weekendCharge: number;
   nightCharge: number;
   outOfCityCharge: number;
   estimatedDurationMin: number;
-  requiredSkillLevel: TechLevel;
-  requiredTools: string[];
-  requiredParts: string[];
-  requiresLicense: boolean;
-  licenseType?: string;
   warrantyDays: number;
-  warrantyType: WarrantyType;
-  warrantyTerms?: string;
+  warrantyTerms?: string | null;
   isEmergency: boolean;
-  isRemoteAvailable: boolean;
   requiresQuote: boolean;
   requiresAdvance: boolean;
   advancePct: number;
-  imageUrl?: string;
-  imageUrls: string[];
-  videoUrl?: string;
-  displayOrder: number;
   isPopular: boolean;
   isFeatured: boolean;
   isActive: boolean;
   totalJobs: number;
   totalRevenue: number;
-  avgRating?: number;
+  /** The matching counter product (unit "service"). */
+  productId?: string | null;
   createdAt: string;
-  updatedAt: string;
+  /** Returned by the API but not edited from the service form; read by the shared catalog. */
+  requiredSkillLevel: string;
+  requiresLicense: boolean;
+  licenseType?: string | null;
+  warrantyType: string;
+  isRemoteAvailable: boolean;
+  imageUrl?: string | null;
+  imageUrls: string[];
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface ServiceDetail extends ServiceCatalogItem {
+  jobsByStatus: Array<{ status: string; count: number }>;
+  recentJobs: Array<{ id: string; jobNumber: string; customerName?: string | null; status: string; totalCharge: number; createdAt: string }>;
+}
+
+export type ServiceInput = Partial<Omit<ServiceCatalogItem, 'id' | 'totalJobs' | 'totalRevenue' | 'productId' | 'createdAt'>> & { name: string };
+
+const unwrap = <T,>(res: { data: unknown }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
 export const catalogApi = {
-  create: (data: Partial<ServiceCatalogItem>) => apiClient.post('/services-biz/catalog', data).then(unwrap<ServiceCatalogItem>),
-  list: (params?: any) => apiClient.get('/services-biz/catalog', { params }).then(unwrap<ServiceCatalogItem[]>),
-  byCategory: () => apiClient.get('/services-biz/catalog/by-category').then(unwrap<Record<string, ServiceCatalogItem[]>>),
-  byBusinessType: () => apiClient.get('/services-biz/catalog/by-business-type').then(unwrap<Record<string, ServiceCatalogItem[]>>),
-  getOne: (id: string) => apiClient.get('/services-biz/catalog/' + id).then(unwrap<ServiceCatalogItem>),
-  update: (id: string, data: Partial<ServiceCatalogItem>) => apiClient.patch('/services-biz/catalog/' + id, data).then(unwrap<ServiceCatalogItem>),
-  remove: (id: string) => apiClient.delete('/services-biz/catalog/' + id).then(unwrap),
+  create: (data: ServiceInput) => apiClient.post('/services-biz/catalog', data).then(unwrap<ServiceCatalogItem>),
+  list: (params?: { search?: string; category?: string; businessType?: string; active?: boolean }) =>
+    apiClient.get('/services-biz/catalog', { params }).then(unwrap<ServiceCatalogItem[]>),
+  getOne: (id: string) => apiClient.get(`/services-biz/catalog/${id}`).then(unwrap<ServiceDetail>),
+  update: (id: string, data: ServiceInput) => apiClient.patch(`/services-biz/catalog/${id}`, data).then(unwrap<ServiceCatalogItem>),
+  remove: (id: string) => apiClient.delete(`/services-biz/catalog/${id}`).then(unwrap<ServiceCatalogItem>),
+  syncProducts: () => apiClient.post('/services-biz/catalog/sync-products').then(unwrap<{ created: number; total: number }>),
 };

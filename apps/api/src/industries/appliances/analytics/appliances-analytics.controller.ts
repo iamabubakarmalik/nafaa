@@ -1,4 +1,6 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
@@ -35,6 +37,7 @@ export class AppliancesAnalyticsController {
 
   /** Stock value, maal ki umar, dead stock, khatam hoti warranty. */
   @Get('stock')
+  @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
   stock(
     @GetUser() user: AuthenticatedUser,
     @ShopIdParam() shopId?: string,
@@ -44,6 +47,7 @@ export class AppliancesAnalyticsController {
 
   /** Service desk — technician performance, resolution time, baqi paisa. */
   @Get('service')
+  @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
   serviceDesk(
     @GetUser() user: AuthenticatedUser,
     @Query('from') from?: string,

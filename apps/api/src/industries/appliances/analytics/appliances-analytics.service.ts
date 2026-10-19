@@ -726,7 +726,7 @@ export class AppliancesAnalyticsService {
       : 0;
     const sameDayFixes = completed.filter(
       (s) => s.completedAt &&
-        new Date(s.completedAt).toDateString() === new Date(s.requestedAt).toDateString(),
+        dateKeyTz(new Date(s.completedAt)) === dateKeyTz(new Date(s.requestedAt)),
     ).length;
 
     /* Pehli hi visit me theek ho gaya? (parts ka intezar nahi karna para) */
@@ -875,7 +875,7 @@ export class AppliancesAnalyticsService {
     /* ── Rozana trend ──────────────────────────────────────── */
     const daily = new Map<string, { date: string; requested: number; completed: number; revenue: number }>();
     const touch = (d: Date) => {
-      const key = new Date(d).toISOString().slice(0, 10);
+      const key = dateKeyTz(new Date(d));
       const row = daily.get(key) ?? { date: key, requested: 0, completed: 0, revenue: 0 };
       daily.set(key, row);
       return row;

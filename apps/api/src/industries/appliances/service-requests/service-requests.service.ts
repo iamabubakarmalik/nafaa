@@ -2,7 +2,9 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ApplianceServiceStatus } from '@prisma/client';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { billJob, billOf, receiveJobMoney } from '../common/books';
+import { billJob, receiveJobMoney } from '../common/books';
+import { activeTechnician, checkLinks, dayRange, nextInSequence, optDate, r2, stamp, yearPrefix } from '../common/appliance-common';
+import { startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
 import {
   AddServicePaymentDto,
   CompleteServiceDto,
@@ -33,37 +35,22 @@ const dueOf = (r: { totalCharge: unknown; paidAmount: unknown; coveredUnderAmc?:
 export class ServiceRequestsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Agla request number.
-   *
-   * Pehle `count() + 1` chalta tha — agar koi purana request delete ho jaye
-   * to wohi number dobara ban jata tha aur `[tenantId, requestNumber]` ka
-   * unique constraint tut kar 500 de deta tha. Ab sab se bara mojooda
-   * number dekh kar uske aage barhte hain.
-   */
+  /** Next request number after the highest used this year (a count would repeat numbers). */
   private async nextNumber(tenantId: string) {
-    const year = new Date().getFullYear();
-    const prefix = `SR-${year}-`;
+    const prefix = yearPrefix('SR');
     const last = await this.prisma.applianceServiceRequest.findFirst({
       where: { tenantId, requestNumber: { startsWith: prefix } },
       orderBy: { requestNumber: 'desc' },
       select: { requestNumber: true },
     });
-    const seq = last ? Number(last.requestNumber.slice(prefix.length)) || 0 : 0;
-    return `${prefix}${String(seq + 1).padStart(4, '0')}`;
+    return nextInSequence(prefix, last?.requestNumber);
   }
 
   async create(user: AuthenticatedUser, dto: CreateServiceRequestDto) {
-    let technicianName: string | undefined;
-    let technicianPhone: string | undefined;
-    if (dto.technicianId) {
-      const tech = await this.prisma.applianceTechnician.findFirst({
-        where: { id: dto.technicianId, tenantId: user.tenantId },
-      });
-      if (!tech) throw new NotFoundException('Technician nahi mila');
-      technicianName = tech.name;
-      technicianPhone = tech.phone;
-    }
+    await checkLinks(this.prisma, user.tenantId, dto);
+    const tech = dto.technicianId ? await activeTechnician(this.prisma, user.tenantId, dto.technicianId) : null;
+    const technicianName = tech?.name;
+    const technicianPhone = tech?.phone;
 
     if (dto.amcContractNumber) {
       const amc = await this.prisma.applianceAmcContract.findFirst({
@@ -82,7 +69,8 @@ export class ServiceRequestsService {
         tenantId: user.tenantId,
         requestNumber,
         ...dto,
-        scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : null,
+        scheduledDate: optDate(dto.scheduledDate),
+        totalCharge: r2(dto.visitCharge),
         technicianName,
         technicianPhone,
         status: dto.technicianId ? 'TECHNICIAN_ASSIGNED' : dto.scheduledDate ? 'SCHEDULED' : 'REQUESTED',
@@ -120,14 +108,14 @@ export class ServiceRequestsService {
       ...(params.priority && { priority: params.priority }),
       ...(params.coveredUnderWarranty !== undefined && { coveredUnderWarranty: params.coveredUnderWarranty }),
       ...(params.coveredUnderAmc !== undefined && { coveredUnderAmc: params.coveredUnderAmc }),
-      ...(params.from || params.to
-        ? {
-            requestedAt: {
-              ...(params.from && { gte: new Date(params.from) }),
-              ...(params.to && { lte: (() => { const d = new Date(params.to!); d.setHours(23, 59, 59, 999); return d; })() }),
-            },
-          }
-        : {}),
+      ...(dayRange(params.from, params.to) && { requestedAt: dayRange(params.from, params.to) }),
+      // Unpaid is filtered in the query, so paging and the total count agree.
+      ...(params.unpaidOnly && {
+        AND: [
+          { status: { not: 'CANCELLED' } }, { coveredUnderAmc: false }, { coveredUnderWarranty: false },
+          { paidAmount: { lt: this.prisma.applianceServiceRequest.fields.totalCharge } },
+        ],
+      }),
       ...(params.search && {
         OR: [
           { requestNumber: { contains: params.search, mode: 'insensitive' } },
@@ -150,12 +138,8 @@ export class ServiceRequestsService {
       this.prisma.applianceServiceRequest.count({ where }),
     ]);
 
-    const rows = params.unpaidOnly
-      ? items.filter((r) => dueOf(r) > 0)
-      : items;
-
     return {
-      items: rows.map((r) => ({
+      items: items.map((r) => ({
         ...r,
         /** Kaam ho gaya lekin paisa baqi */
         dueAmount: dueOf(r),
@@ -229,14 +213,14 @@ export class ServiceRequestsService {
   async update(user: AuthenticatedUser, id: string, dto: UpdateServiceRequestDto) {
     const r = await this.prisma.applianceServiceRequest.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Service request nahi mila');
-    if (r.status === 'COMPLETED') {
-      throw new BadRequestException('Mukammal kaam edit nahi hota — nayi request banayein');
+    if (r.status === 'COMPLETED' || r.status === 'CANCELLED') {
+      throw new BadRequestException('Band kaam edit nahi hota — nayi request banayein');
     }
     return this.prisma.applianceServiceRequest.update({
       where: { id },
       data: {
         ...dto,
-        scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : undefined,
+        scheduledDate: optDate(dto.scheduledDate) ?? undefined,
       },
     });
   }
@@ -245,11 +229,8 @@ export class ServiceRequestsService {
     const r = await this.prisma.applianceServiceRequest.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Service request nahi mila');
 
-    const tech = await this.prisma.applianceTechnician.findFirst({
-      where: { id: technicianId, tenantId: user.tenantId },
-    });
-    if (!tech) throw new NotFoundException('Technician nahi mila');
-    if (!tech.isActive) throw new BadRequestException(`${tech.name} abhi active nahi hai`);
+    if (!OPEN_STATES.includes(r.status)) throw new BadRequestException('Band kaam par technician nahi badalta');
+    const tech = await activeTechnician(this.prisma, user.tenantId, technicianId);
 
     return this.prisma.applianceServiceRequest.update({
       where: { id },
@@ -257,7 +238,7 @@ export class ServiceRequestsService {
         technicianId: tech.id,
         technicianName: tech.name,
         technicianPhone: tech.phone,
-        scheduledDate: scheduledDate ? new Date(scheduledDate) : undefined,
+        scheduledDate: optDate(scheduledDate) ?? undefined,
         scheduledTimeSlot: timeSlot,
         // Agar technician pehle se raaste me ya site par hai to peeche na le jayein
         status: (['EN_ROUTE', 'ON_SITE', 'IN_PROGRESS'] as string[]).includes(r.status)
@@ -277,6 +258,9 @@ export class ServiceRequestsService {
       );
     }
 
+    if (r.status === 'COMPLETED') throw new BadRequestException('Mukammal kaam ki halat nahi badalti — bill galat ho to Sales se void karein');
+    if (dto.status === 'CANCELLED') return this.cancel(user, id, dto.notes);
+
     const patch: any = { status: dto.status };
     const now = new Date();
     if (dto.status === 'EN_ROUTE') patch.enRouteAt = r.enRouteAt ?? now;
@@ -284,7 +268,7 @@ export class ServiceRequestsService {
     // Pehla waqt hi asli hota hai — dobara IN_PROGRESS karne par reset nahi hona chahiye
     if (dto.status === 'IN_PROGRESS') patch.workStartedAt = r.workStartedAt ?? now;
     if (dto.notes) {
-      patch.internalNotes = `${r.internalNotes || ''}\n[${now.toLocaleString('en-PK')}] ${dto.notes}`.trim();
+      patch.internalNotes = stamp(r.internalNotes, dto.notes);
     }
 
     return this.prisma.applianceServiceRequest.update({ where: { id }, data: patch });
@@ -300,6 +284,7 @@ export class ServiceRequestsService {
     if (r.status === 'COMPLETED') {
       throw new BadRequestException('Ye kaam pehle hi mukammal ho chuka hai');
     }
+    if (r.status === 'CANCELLED') throw new BadRequestException('Cancel hua kaam mukammal nahi hota');
 
     const visitCharge = dto.visitCharge ?? Number(r.visitCharge) ?? 0;
     const laborCharge = dto.laborCharge ?? Number(r.laborCharge) ?? 0;
@@ -314,8 +299,12 @@ export class ServiceRequestsService {
       ? (dto.paidAmount ?? 0)
       : (dto.paidAmount ?? totalCharge);
 
-    if (paidAmount > totalCharge) {
+    if (paidAmount > totalCharge + 0.005) {
       throw new BadRequestException('Receive shuda amount kul bill se ziyada nahi ho sakti');
+    }
+    // `paidAmount` is everything paid on the job, so it cannot be below the advance already taken.
+    if (paidAmount + 0.005 < r2(r.paidAmount)) {
+      throw new BadRequestException(`Is kaam par Rs ${r2(r.paidAmount)} advance pehle mil chuka hai — kul mila is se kam nahi ho sakta`);
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -326,7 +315,7 @@ export class ServiceRequestsService {
           status: 'COMPLETED',
           completedAt: new Date(),
           workStartedAt: r.workStartedAt ?? new Date(),
-          followUpDate: dto.followUpDate ? new Date(dto.followUpDate) : undefined,
+          followUpDate: optDate(dto.followUpDate) ?? undefined,
           visitCharge,
           laborCharge,
           partsCharge,
@@ -338,8 +327,8 @@ export class ServiceRequestsService {
       });
 
       if (r.technicianId) {
-        const tech = await tx.applianceTechnician.findUnique({
-          where: { id: r.technicianId },
+        const tech = await tx.applianceTechnician.findFirst({
+          where: { id: r.technicianId, tenantId: user.tenantId },
           select: { commissionPct: true, totalReviews: true, avgRating: true },
         });
         const commission = totalCharge * ((Number(tech?.commissionPct) || 0) / 100);
@@ -373,7 +362,7 @@ export class ServiceRequestsService {
       const job = { number: r.requestNumber, customerId: r.customerId, customerName: r.customerName, customerPhone: r.customerPhone };
       const what = `${r.productName}${r.serialNumber ? ` (${r.serialNumber})` : ''}`;
       const lines = covered
-        ? [{ label: `Service ${r.requestNumber} — ${what}: customer ka hissa`, amount: paidAmount }]
+        ? [{ label: `Service ${r.requestNumber} — ${what}: customer ka hissa`, amount: paidAmount, cost: partsCharge }]
         : [
             { label: `Service ${r.requestNumber} — ${what}: visit`, amount: visitCharge },
             { label: `Service ${r.requestNumber} — ${what}: mazdoori`, amount: laborCharge },
@@ -419,9 +408,9 @@ export class ServiceRequestsService {
     const due = dueOf(r);
     if (due <= 0) throw new BadRequestException('Is kaam ka poora paisa mil chuka hai');
     if (dto.amount <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
-    if (dto.amount > due) throw new BadRequestException(`Sirf ${due} baqi hai`);
+    if (dto.amount > due + 0.005) throw new BadRequestException(`Sirf ${r2(due)} baqi hai`);
 
-    const note = `[${new Date().toLocaleString('en-PK')}] Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`;
+    const note = `Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`;
     return this.prisma.$transaction(async (tx) => {
       // Before the bill this is an advance; after it, it pays the bill's udhaar on khata.
       const customerId = await receiveJobMoney(
@@ -434,7 +423,7 @@ export class ServiceRequestsService {
         data: {
           customerId,
           paidAmount: { increment: dto.amount },
-          internalNotes: `${r.internalNotes || ''}\n${note}`.trim(),
+          internalNotes: stamp(r.internalNotes, note),
         },
       });
     });
@@ -443,24 +432,22 @@ export class ServiceRequestsService {
   async cancel(user: AuthenticatedUser, id: string, reason?: string) {
     const r = await this.prisma.applianceServiceRequest.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Service request nahi mila');
-    if (r.status === 'COMPLETED') throw new BadRequestException('Mukammal kaam cancel nahi hota');
+    if (r.status === 'COMPLETED') throw new BadRequestException('Mukammal kaam cancel nahi hota — bill galat ho to Sales se void karein');
+    if (r.status === 'CANCELLED') return r;
+    if (!reason?.trim()) throw new BadRequestException('Cancel ki wajah likhein');
     return this.prisma.applianceServiceRequest.update({
       where: { id },
       data: {
         status: 'CANCELLED',
-        internalNotes: `${r.internalNotes || ''}\n[${new Date().toLocaleString('en-PK')}] Cancel: ${reason || 'wajah nahi likhi'}`.trim(),
+        internalNotes: stamp(r.internalNotes, `Cancel: ${reason.trim()}${r2(r.paidAmount) > 0 ? ` — Rs ${r2(r.paidAmount)} advance customer ke khate me hai` : ''}`),
       },
     });
   }
 
+  /** Old delete route: the request is kept and cancelled. */
   async remove(user: AuthenticatedUser, id: string) {
-    const r = await this.prisma.applianceServiceRequest.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!r) throw new NotFoundException('Service request nahi mila');
-    if (r.status === 'COMPLETED') {
-      throw new BadRequestException('Mukammal kaam ka record delete nahi hota — hisab kitab isi par chalta hai');
-    }
-    await this.prisma.applianceServiceRequest.delete({ where: { id } });
-    return { message: 'Service request delete ho gaya' };
+    await this.cancel(user, id, 'Record hataya gaya');
+    return { message: 'Service request cancel ho gaya' };
   }
 
   /**
@@ -472,8 +459,8 @@ export class ServiceRequestsService {
   async summary(user: AuthenticatedUser) {
     const tenantId = user.tenantId;
     const now = new Date();
-    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStart = startOfDayTz();
+    const monthStart = startOfMonthTz();
 
     const [counts, openRows, completedMonth, completedToday, followUps] = await Promise.all([
       this.prisma.applianceServiceRequest.groupBy({

@@ -1,838 +1,264 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+/**
+ * Heavy delivery: fridges, ACs and washing machines going to homes — trips
+ * booked today, trips with no vehicle, late ones, charges still to collect,
+ * and the month's delivery earnings.
+ *
+ * Keys: N new delivery · / search · 1 list · 2 analytics · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
-  ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
-  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
-} from 'recharts';
-import {
-  Truck, Search, X, RefreshCw, CheckCircle2, Clock, AlertTriangle,
-  Phone, MessageCircle, MapPin, Package, Plus, FileSpreadsheet, Printer,
-  BarChart3, Wrench, Navigation, User, Building2, ArrowUpDown, Loader2,
-  Wallet, CalendarClock, ClipboardCheck, Layers, Send, Camera,
+  AlertTriangle, ArrowRight, BarChart3, CalendarClock, CheckCircle2, Clock, Download, Filter, GraduationCap, ListChecks, MapPin, MessageCircle,
+  Navigation, Plus, Receipt, Truck, Wallet,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { useAuthStore } from '@core/stores/auth.store';
-import { useCostHidden, PrivacyToggle } from '@core/security/HiddenValue';
-import { deliveriesApi, type ApplianceDelivery } from '../api/deliveries.api';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
 import {
-  ApplianceHero, Kpi, Panel, StatusBadge, Teacher, Empty, Sheet, Field,
-  inputCls, ChipRow, useShortcuts, printHtml, downloadCsv, a4Shell,
-  fmtDate, fmtDateTime, printAction, guideAction, escapeHtml,
-} from '../components/shared';
-import { DELIVERY_STATUS_META, delStatusMeta, DELIVERY_NEXT, TIME_SLOTS } from '../constants';
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { deliveriesApi, type ApplianceDelivery, type DeliverySummary, type DeliveryView } from '../api/deliveries.api';
+import { DeliveryCard, NewDeliveryModal, deliveryMessage } from '../components/deliveryDialogs';
+import { Box, Bars, ListState, Pager, Panel, Pill, Strip } from '../components/ui';
+import { DELIVERY_KEY, dayOnly, deliveryStatusOf, slotLabel, waLink } from '../components/meta';
 
-/* ═════════════════════════════════════════════════════════════
-   DELIVERY — BARA MAAL GHAR TAK
-   ─────────────────────────────────────────────────────────────
-   Fridge, AC, washing machine — customer ye khud le kar nahi
-   ja sakta. Delivery isi liye bikti hai: gaari, do banday,
-   seerhiyan. Har cheez ka alag paisa hai.
-
-   Safha teen khatron par nazar rakhta hai:
-   • Tareekh guzar gayi aur maal abhi tak nahi pohancha
-   • Gaari abhi tak lagi hi nahi
-   • Maal pohanch gaya magar installation book nahi hui
-     (yehi sab se zyada paisa zaya karti hai)
-   ═════════════════════════════════════════════════════════════ */
-
-type Tab = 'board' | 'list' | 'analytics';
-
-/** ChipRow apna "Sab" button khud deta hai */
-const STATUS_CHIPS = Object.entries(DELIVERY_STATUS_META)
-  .map(([k, m]) => ({ value: k, label: `${m.emoji} ${m.label}` }));
+type Tab = 'list' | 'analytics';
+const VIEWS: Array<{ id: DeliveryView; label: string; icon: typeof Truck }> = [
+  { id: 'open', label: 'Raaste ka kaam', icon: Truck },
+  { id: 'today', label: 'Aaj ki delivery', icon: CalendarClock },
+  { id: 'novehicle', label: 'Gaari nahi lagi', icon: AlertTriangle },
+  { id: 'late', label: 'Late', icon: Clock },
+  { id: 'unpaid', label: 'Charges baqi', icon: Wallet },
+  { id: 'delivered', label: 'De diya', icon: CheckCircle2 },
+  { id: 'closed', label: 'Band / cancel', icon: Receipt },
+  { id: 'all', label: 'Sab', icon: ListChecks },
+];
+const viewLabel = (v: DeliveryView) => VIEWS.find((x) => x.id === v)?.label ?? v;
+const ALL_TIME: DateRangeValue = { preset: 'all', custom: { from: '', to: '' } };
 
 export default function DeliveriesPage() {
-  const qc = useQueryClient();
-  const hideCost = useCostHidden();
-  const shopName = useAuthStore((s: any) => s.tenant?.name) || 'Meri Dukaan';
-  const shopPhone = useAuthStore((s: any) => s.tenant?.phone || '');
+  const [params, setParams] = useSearchParams();
+  const startHour = useBusinessDayStart();
+  const canManage = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const { sales } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const [tab, setTab] = useState<Tab>('board');
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showGuide, setShowGuide] = useState(false);
-  const [vehicleFor, setVehicleFor] = useState<ApplianceDelivery | null>(null);
-  const [confirmFor, setConfirmFor] = useState<ApplianceDelivery | null>(null);
+  const [tab, setTab] = useState<Tab>((params.get('tab') as Tab) || 'list');
+  const [view, setView] = useState<DeliveryView>((params.get('view') as DeliveryView) || 'open');
+  const [range, setRange] = useState<DateRangeValue>(ALL_TIME);
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const [query, setQuery] = useState(search.trim());
+  const [page, setPage] = useState(1);
+  const [creating, setCreating] = useState(params.get('new') === '1');
+  const [openId, setOpenId] = useState<string | null>(params.get('id'));
 
-  const { data: deliveries = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['appliance-deliveries', statusFilter],
-    queryFn: () => deliveriesApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
-  });
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [view, range, query]);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (tab !== 'list') next.set('tab', tab);
+    if (view !== 'open') next.set('view', view);
+    if (query) next.set('q', query);
+    if (openId) next.set('id', openId);
+    setParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, view, query, openId]);
 
-  const { data: summary } = useQuery({
-    queryKey: ['appliance-deliveries-summary'],
-    queryFn: () => deliveriesApi.summary(),
-  });
+  const period = resolveRange(range, startHour);
+  const q = { view, page, limit: 40, search: query || undefined, ...(period && period.from !== 'all' && view !== 'today' ? { from: period.from, to: period.to } : {}) };
+  const listQ = useQuery({ queryKey: [DELIVERY_KEY, 'page', q], queryFn: () => deliveriesApi.page(q), placeholderData: (p) => p, refetchInterval: 60_000, enabled: tab === 'list' });
+  const statsQ = useQuery({ queryKey: [DELIVERY_KEY, 'summary'], queryFn: deliveriesApi.summary, refetchInterval: 60_000 });
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+  const s = statsQ.data;
+  const filtered = !!query || range.preset !== 'all';
+  const clear = () => { setSearch(''); setRange(ALL_TIME); };
+  const pick = (v: DeliveryView) => { setTab('list'); setView(v); };
 
-  const money = (n: number) => (hideCost ? '•••' : formatPKR(n));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); setCreating(true); }
+      if (e.key === '1') setTab('list');
+      if (e.key === '2') setTab('analytics');
+      if (e.key === '/') { e.preventDefault(); setTab('list'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage]);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return deliveries;
-    return deliveries.filter((d) =>
-      d.deliveryNumber.toLowerCase().includes(q) ||
-      d.customerName.toLowerCase().includes(q) ||
-      (d.customerPhone ?? '').includes(q) ||
-      (d.deliveryAddress ?? '').toLowerCase().includes(q) ||
-      (d.city ?? '').toLowerCase().includes(q) ||
-      (d.area ?? '').toLowerCase().includes(q) ||
-      (d.driverName ?? '').toLowerCase().includes(q) ||
-      (d.vehicleNumber ?? '').toLowerCase().includes(q));
-  }, [deliveries, search]);
-
-  /* ─── Board: har halat ka apna column ─── */
-  const board = useMemo(() => {
-    const cols: Record<string, ApplianceDelivery[]> = {};
-    for (const k of Object.keys(DELIVERY_STATUS_META)) cols[k] = [];
-    for (const d of filtered) (cols[d.status] ??= []).push(d);
-    return cols;
-  }, [filtered]);
-
-  /* ─── Khatray: tareekh guzri, gaari nahi, installation baqi ─── */
-  const alerts = useMemo(() => {
-    const now = Date.now();
-    const overdue = filtered.filter((d) =>
-      d.scheduledDate && new Date(d.scheduledDate).getTime() < now &&
-      !['DELIVERED', 'CANCELLED'].includes(d.status));
-    const noVehicle = filtered.filter((d) =>
-      !d.vehicleNumber && !['DELIVERED', 'CANCELLED'].includes(d.status));
-    const installPending = filtered.filter((d) =>
-      d.status === 'DELIVERED' && d.requiresInstallation && !d.installationLinked);
-    return { overdue, noVehicle, installPending };
-  }, [filtered]);
-
-  const statusMut = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      deliveriesApi.updateStatus(id, { status }),
-    onSuccess: () => {
-      toast.success('Halat badal di');
-      qc.invalidateQueries({ queryKey: ['appliance-deliveries'] });
-      qc.invalidateQueries({ queryKey: ['appliance-deliveries-summary'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update nahi hua'),
-  });
-
-  const vehicleMut = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => deliveriesApi.assignVehicle(id, data),
-    onSuccess: () => {
-      toast.success('Gaari lag gayi ✓');
-      setVehicleFor(null);
-      qc.invalidateQueries({ queryKey: ['appliance-deliveries'] });
-      qc.invalidateQueries({ queryKey: ['appliance-deliveries-summary'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Gaari nahi lagi'),
-  });
-
-  const confirmMut = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => deliveriesApi.confirm(id, data),
-    onSuccess: () => {
-      toast.success('Delivery mukammal ✓');
-      setConfirmFor(null);
-      qc.invalidateQueries({ queryKey: ['appliance-deliveries'] });
-      qc.invalidateQueries({ queryKey: ['appliance-deliveries-summary'] });
-      qc.invalidateQueries({ queryKey: ['appliance-serials'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Confirm nahi hua'),
-  });
-
-  /* ─── Print + CSV ─── */
-  const doPrint = () => {
-    if (!filtered.length) return toast.error('Print ke liye kuch nahi');
-    const body = `<table>
-      <thead><tr>
-        <th>Delivery</th><th>Customer</th><th>Phone</th><th>Pata</th>
-        <th>Date</th><th>Gaari</th><th>Driver</th><th>Halat</th><th class="r">Paisa</th>
-      </tr></thead>
-      <tbody>${filtered.map((d) => `<tr>
-        <td><strong>${escapeHtml(d.deliveryNumber)}</strong></td>
-        <td>${escapeHtml(d.customerName)}</td>
-        <td>${escapeHtml(d.customerPhone ?? '')}</td>
-        <td>${escapeHtml([d.deliveryAddress, d.area, d.city].filter(Boolean).join(', '))}</td>
-        <td>${d.scheduledDate ? fmtDate(d.scheduledDate) : '—'}${d.scheduledSlot ? ` ${escapeHtml(d.scheduledSlot)}` : ''}</td>
-        <td>${escapeHtml(d.vehicleNumber ?? '—')}</td>
-        <td>${escapeHtml(d.driverName ?? '—')}</td>
-        <td>${escapeHtml(delStatusMeta(d.status).label)}</td>
-        <td class="r">${formatPKR(Number(d.totalCharge ?? 0))}</td>
-      </tr>`).join('')}</tbody></table>`;
-
-    printHtml(a4Shell({
-      title: 'Deliveries',
-      heading: 'Delivery Ki List',
-      shopName, shopPhone,
-      badge: `${filtered.length} delivery`,
-      kpis: [
-        { label: 'Aaj ki', value: String(summary?.todayScheduled ?? 0), tone: 'blue' },
-        { label: 'Chal rahi', value: String(summary?.open ?? 0), tone: 'amber' },
-        { label: 'Date guzri', value: String(summary?.overdue ?? 0), tone: 'rose' },
-        { label: 'Mahine ki aamdan', value: formatPKR(summary?.month?.revenue ?? 0), tone: 'green' },
-      ],
-      body,
-    }));
+  const fetchAll = () => deliveriesApi.page({ ...q, page: 1, limit: 200 });
+  const printDoc = async (): Promise<PrintDoc> => {
+    const all = await fetchAll();
+    return {
+      title: `Deliveries — ${viewLabel(view)}`,
+      subtitle: period && period.from !== 'all' ? rangeLabel(period.from, period.to) : 'Sab tareekhen',
+      meta: [['Trips', String(all.total)], ['Charges', sales(all.totals.charges)]],
+      sections: [{
+        kind: 'table',
+        columns: [{ label: '#' }, { label: 'Customer' }, { label: 'Pata' }, { label: 'Date', wideOnly: true }, { label: 'Gaari', wideOnly: true }, { label: 'Halat' }, { label: 'Baqi', align: 'right' }],
+        rows: all.items.map((d) => [d.deliveryNumber, `${d.customerName} ${d.customerPhone}`, [d.deliveryAddress, d.area].filter(Boolean).join(', '),
+          d.scheduledDate ? `${dayOnly(d.scheduledDate)} ${slotLabel(d.scheduledSlot)}` : '—', [d.vehicleNumber, d.driverName].filter(Boolean).join(' · ') || '—', deliveryStatusOf(d.status).label, sales(d.dueAmount ?? 0)]),
+      }],
+    };
   };
-
-  const doCsv = () => {
-    if (!filtered.length) return toast.error('CSV ke liye kuch nahi');
-    downloadCsv(`deliveries-${new Date().toISOString().slice(0, 10)}.csv`, [
-      ['Delivery', 'Halat', 'Customer', 'Phone', 'Pata', 'Ilaqa', 'Sheher', 'Manzil', 'Lift',
-       'Date', 'Waqt', 'Gaari', 'Driver', 'Driver phone', 'Helper',
-       'Delivery', 'Loading', 'Unloading', 'Floor', 'Kul', 'Installation chahiye', 'Installation book',
-       'Nikla', 'Pohancha', 'Diya', 'Wasool karne wala'],
-      ...filtered.map((d) => [
-        d.deliveryNumber, delStatusMeta(d.status).label, d.customerName, d.customerPhone,
-        d.deliveryAddress, d.area, d.city, d.floorNumber, d.hasLift ? 'Haan' : 'Nahi',
-        d.scheduledDate ? fmtDate(d.scheduledDate) : '', d.scheduledSlot,
-        d.vehicleNumber, d.driverName, d.driverPhone, d.helperCount,
-        Number(d.deliveryCharge ?? 0), Number(d.loadingCharge ?? 0),
-        Number(d.unloadingCharge ?? 0), Number(d.floorCharge ?? 0), Number(d.totalCharge ?? 0),
-        d.requiresInstallation ? 'Haan' : 'Nahi', d.installationLinked ? 'Haan' : 'Nahi',
-        d.dispatchedAt ? fmtDateTime(d.dispatchedAt) : '',
-        d.arrivedAt ? fmtDateTime(d.arrivedAt) : '',
-        d.deliveredAt ? fmtDateTime(d.deliveredAt) : '',
-        d.receivedByName,
-      ]),
+  const exportCsv = async () => {
+    const all = await fetchAll();
+    downloadCsv('deliveries.csv', [
+      ['Number', 'Customer', 'Phone', 'Pata', 'Ilaqa', 'Manzil', 'Lift', 'Date', 'Waqt', 'Gaari', 'Driver', 'Halat', 'Charges', 'Mila', 'Baqi'],
+      ...all.items.map((d) => [d.deliveryNumber, d.customerName, d.customerPhone, d.deliveryAddress, d.area ?? '', d.floorNumber ?? '', d.hasLift ? 'Haan' : '',
+        d.scheduledDate ? dayOnly(d.scheduledDate) : '', slotLabel(d.scheduledSlot), d.vehicleNumber ?? '', d.driverName ?? '', deliveryStatusOf(d.status).label, d.totalCharge, d.paidAmount ?? 0, d.dueAmount ?? 0]),
     ]);
-    toast.success(`${filtered.length} delivery CSV me`);
   };
-
-  useShortcuts({
-    '/': () => (document.getElementById('del-search') as HTMLInputElement)?.focus(),
-    b: () => setTab('board'),
-    l: () => setTab('list'),
-    a: () => setTab('analytics'),
-    p: doPrint,
-    g: () => setShowGuide(true),
-    Escape: () => {
-      if (showGuide) return setShowGuide(false);
-      if (vehicleFor) return setVehicleFor(null);
-      if (confirmFor) return setConfirmFor(null);
-      if (search) return setSearch('');
-    },
-  }, [filtered, showGuide, vehicleFor, confirmFor, search]);
-
-  /* ─── Analytics data ─── */
-  const chargeData = useMemo(() => {
-    const b = summary?.month?.breakdown;
-    if (!b) return [];
-    return [
-      { name: 'Delivery', value: b.delivery, hex: '#06b6d4' },
-      { name: 'Loading', value: b.loading, hex: '#6366f1' },
-      { name: 'Unloading', value: b.unloading, hex: '#f59e0b' },
-      { name: 'Seerhi/Manzil', value: b.floor, hex: '#e11d48' },
-    ].filter((r) => r.value > 0);
-  }, [summary]);
-
-  const statusData = useMemo(
-    () => Object.entries(DELIVERY_STATUS_META).map(([k, m]) => ({
-      name: m.label,
-      count: (board[k] ?? []).length,
-      hex: m.hex,
-    })),
-    [board],
-  );
-
-  /* ─── Ilaqe ka bojh — kahan sab se zyada jana parta hai ─── */
-  const areaData = useMemo(() => {
-    const map = new Map<string, { area: string; count: number; revenue: number }>();
-    for (const d of deliveries) {
-      const key = d.area?.trim() || d.city?.trim() || 'Pata nahi';
-      const hit = map.get(key) ?? { area: key, count: 0, revenue: 0 };
-      hit.count += 1;
-      hit.revenue += Number(d.totalCharge ?? 0);
-      map.set(key, hit);
-    }
-    return [...map.values()].sort((a, b) => b.count - a.count).slice(0, 8);
-  }, [deliveries]);
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-20">
-      <ApplianceHero
-        badge="Delivery — Bara Maal Ghar Tak"
-        badgeIcon={<Truck className="h-3.5 w-3.5" />}
-        title="🚚 Deliveries"
-        subtitle={
-          <>
-            Aaj {summary?.todayScheduled ?? 0} · {summary?.open ?? 0} chal rahi ·{' '}
-            {money(summary?.month?.revenue ?? 0)} mahine ki aamdan
-            {(summary?.overdue ?? 0) > 0 && <span className="text-rose-200"> · ⚠️ {summary?.overdue} ki date guzri</span>}
-          </>
-        }
-        actions={[
-          { key: 'refresh', label: 'Taaza', icon: <RefreshCw className="h-4 w-4" />, onClick: () => refetch(), spinning: isRefetching, hideLabelOnMobile: true },
-          { key: 'csv', label: 'CSV', icon: <FileSpreadsheet className="h-4 w-4" />, onClick: doCsv, hideLabelOnMobile: true },
-          printAction(doPrint),
-          guideAction(() => setShowGuide(true)),
-        ]}
-        shortcuts={[
-          { keys: '/', label: 'search' }, { keys: 'B', label: 'board' },
-          { keys: 'L', label: 'list' }, { keys: 'A', label: 'analytics' },
-          { keys: 'P', label: 'print' }, { keys: 'G', label: 'guide' },
-        ]}
-      >
-        <PrivacyToggle />
-      </ApplianceHero>
+    <PageShell>
+      <PageHero
+        title="Deliveries"
+        chip={<><Truck /> Bhari saman</>}
+        meta="Gaari, driver, ghar tak saman aur delivery ke charges"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={statsQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'list' || !rows.length} /></span>
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setCreating(true)} title="Nayi delivery (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi delivery</button>}
+        </>}
+        stats={s ? [
+          { label: 'Raaste ka kaam', value: s.open, hint: s.overdue ? `${s.overdue} late` : undefined },
+          { label: 'Aaj', value: s.todayScheduled },
+          { label: 'Is mahine charges', value: sales(s.month.revenue), hint: `${s.month.trips} trips` },
+        ] : [{ label: 'Raaste ka kaam', value: '—' }]}
+      />
 
-      {/* ─── Khatray ─── */}
-      {(alerts.overdue.length > 0 || alerts.installPending.length > 0 || alerts.noVehicle.length > 0) && (
-        <div className="grid sm:grid-cols-3 gap-2.5">
-          {alerts.overdue.length > 0 && (
-            <AlertBox tone="rose" icon={AlertTriangle} n={alerts.overdue.length}
-              title="Date guzar gayi"
-              desc="Maal abhi tak nahi pohancha — customer ka phone aane se pehle khud rabta karein." />
-          )}
-          {alerts.noVehicle.length > 0 && (
-            <AlertBox tone="amber" icon={Truck} n={alerts.noVehicle.length}
-              title="Gaari nahi lagi"
-              desc="In par abhi tak koi driver aur gaari muqarrar nahi hui." />
-          )}
-          {alerts.installPending.length > 0 && (
-            <AlertBox tone="violet" icon={Wrench} n={alerts.installPending.length}
-              title="Installation baqi"
-              desc="Maal pohanch gaya magar installation book nahi hui — ye paisa aksar waste ho jata hai." />
-          )}
-        </div>
+      <KpiRow cols={5}>
+        {!s ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={CalendarClock} color="#2563eb" label="Aaj ki delivery" value={s.todayScheduled} hint={`${s.open} kul baqi`} onClick={() => pick('today')} active={tab === 'list' && view === 'today'} />
+          <KpiCard icon={AlertTriangle} color={s.noVehicle ? '#ea580c' : '#64748b'} label="Gaari nahi lagi" value={s.noVehicle} hint="Driver lagayein" onClick={() => pick('novehicle')} active={tab === 'list' && view === 'novehicle'} />
+          <KpiCard icon={Navigation} color="#7c3aed" label="Raaste me" value={s.dispatched + s.arrived} hint="Nikal gaye / pohanch gaye" onClick={() => pick('open')} active={tab === 'list' && view === 'open'} />
+          <KpiCard icon={Clock} color={s.overdue ? '#e11d48' : '#64748b'} label="Late" value={s.overdue} hint={s.overdue ? 'Date guzar gayi' : 'Koi late nahi'} onClick={() => pick('late')} active={tab === 'list' && view === 'late'} />
+          <KpiCard icon={Wallet} color="#d97706" label="Installation baqi" value={s.installationPending} hint="Saman pohancha, fitting book nahi" onClick={() => pick('delivered')} />
+        </>}
+      </KpiRow>
+
+      {tab === 'analytics' ? (
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is mahine ki deliveries — trips aur charges</p>} />
+      ) : (
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Number, customer, phone, pata, gaari, driver…" label="Search" />}
+          chips={filtered ? <>
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange(ALL_TIME)}>Date: {rangeLabel(period.from, period.to)}</FilterChip>}
+          </> : undefined}
+          onClear={clear}>
+          <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'open'} onChange={setView} width="w-60" options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon }))} />
+          {view !== 'today' && <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Delivery ki date" />}
+        </FilterBar>
       )}
 
-      {/* ─── KPI ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2.5 sm:gap-3">
-        <Kpi icon={CalendarClock} label="Aaj ki delivery" tone="blue" value={summary?.todayScheduled ?? 0}
-          sub="Aaj gaari nikalni hai" />
-        <Kpi icon={Package} label="Date baqi" tone="slate" value={summary?.pending ?? 0}
-          sub="Abhi date nahi mili"
-          active={statusFilter === 'PENDING'}
-          onClick={() => setStatusFilter(statusFilter === 'PENDING' ? 'all' : 'PENDING')} />
-        <Kpi icon={Truck} label="Raste me" tone="cyan" value={summary?.dispatched ?? 0}
-          sub={`${summary?.arrived ?? 0} pohanch chuki`}
-          active={statusFilter === 'DISPATCHED'}
-          onClick={() => setStatusFilter(statusFilter === 'DISPATCHED' ? 'all' : 'DISPATCHED')} />
-        <Kpi icon={CheckCircle2} label="De di" tone="emerald" value={summary?.delivered ?? 0}
-          sub="Mukammal"
-          active={statusFilter === 'DELIVERED'}
-          onClick={() => setStatusFilter(statusFilter === 'DELIVERED' ? 'all' : 'DELIVERED')} />
-        <Kpi icon={AlertTriangle} label="Date guzri" tone="rose" value={summary?.overdue ?? 0}
-          sub="Abhi tak nahi pohancha" alert={(summary?.overdue ?? 0) > 0} />
-        <Kpi icon={Navigation} label="Gaari nahi lagi" tone="amber" value={summary?.noVehicle ?? 0}
-          sub="Driver muqarrar karein" alert={(summary?.noVehicle ?? 0) > 0} />
-        <Kpi icon={Wrench} label="Installation baqi" tone="violet" value={summary?.installationPending ?? 0}
-          sub="Maal pohancha, kaam baqi" alert={(summary?.installationPending ?? 0) > 0} />
-        <Kpi icon={Wallet} label="Mahine ki aamdan" tone="teal" value={money(summary?.month?.revenue ?? 0)}
-          sub={`${summary?.month?.trips ?? 0} trip · ausat ${money(summary?.month?.avgTrip ?? 0)}`} />
-      </div>
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{canManage && <><Kbd>N</Kbd> nayi · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        tabs={[{ id: 'list', label: 'Trips', icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
-      {/* ─── TABS ─── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {([
-          { v: 'board' as Tab, label: 'Board', icon: Layers },
-          { v: 'list' as Tab, label: 'List', icon: Package, n: filtered.length },
-          { v: 'analytics' as Tab, label: 'Analytics', icon: BarChart3 },
-        ]).map((t) => (
-          <button key={t.v} onClick={() => setTab(t.v)}
-            className={`h-11 px-4 rounded-2xl text-sm font-extrabold inline-flex items-center gap-2 shrink-0 transition ${
-              tab === t.v
-                ? 'bg-gradient-to-r from-cyan-600 to-teal-700 text-white shadow-lg shadow-cyan-500/30'
-                : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
-            }`}>
-            <t.icon className="h-4 w-4" /> {t.label}
-            {t.n !== undefined && t.n > 0 && (
-              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-ink-800'}`}>{t.n}</span>
-            )}
-          </button>
-        ))}
-      </div>
+      {tab === 'analytics' ? <Analytics s={s} money={sales} /> : (<>
+        {data && data.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{data.total} trips · charges {sales(data.totals.charges)}</span></Strip>}
+        <ListState loading={listQ.isLoading} error={listQ.isError && !data} empty={!rows.length} onRetry={() => listQ.refetch()} icon={Truck}
+          title={filtered ? 'Is filter me kuch nahi' : view === 'today' ? 'Aaj koi delivery nahi' : 'Koi delivery nahi'}
+          hint="POS par bhari saman bechte waqt delivery book karein, ya yahan se nayi trip likhein."
+          actions={<>{canManage && <Button onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>Nayi delivery</Button>}{filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}</>}>
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {rows.map((d) => <TripRow key={d.id} d={d} shopName={shopName} money={sales} onOpen={() => setOpenId(d.id)} />)}
+          </ul>
+        </ListState>
+        {data && <Pager page={page} pages={data.totalPages} onPage={setPage} />}
+      </>)}
 
-      {/* ─── SEARCH ─── */}
-      {tab !== 'analytics' && (
-        <Panel tone="cyan">
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input id="del-search" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Delivery #, customer, pata, driver ya gaari… (/)"
-                className={inputCls('h-12 pl-9 pr-9')} />
-              {search && (
-                <button onClick={() => setSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center">
-                  <X className="h-3.5 w-3.5 text-slate-500" />
-                </button>
-              )}
-            </div>
-            <ChipRow value={statusFilter === 'all' ? null : statusFilter}
-              onChange={(v) => setStatusFilter(v ?? 'all')} options={STATUS_CHIPS} />
-          </div>
-        </Panel>
-      )}
+      {creating && <NewDeliveryModal onClose={() => setCreating(false)} onCreated={(d) => { setCreating(false); setOpenId(d.id); }} />}
+      {openId && <DeliveryCard id={openId} shopName={shopName} canManage={canManage} onClose={() => setOpenId(null)} />}
 
-      {/* ══════════ BOARD ══════════ */}
-      {tab === 'board' && (
-        isLoading ? (
-          <Panel tone="cyan">
-            <div className="py-16 text-center">
-              <Loader2 className="h-6 w-6 animate-spin mx-auto text-cyan-600 mb-2" />
-              <p className="text-sm font-bold text-slate-500">Deliveries aa rahi hain…</p>
-            </div>
-          </Panel>
-        ) : filtered.length === 0 ? (
-          <Panel tone="cyan">
-            <Empty icon={Truck} title="Koi delivery nahi"
-              hint="POS par bara maal bechte waqt delivery ka khana bharein — delivery yahin khud aa jayegi." />
-          </Panel>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-            {Object.entries(DELIVERY_STATUS_META).map(([k, m]) => {
-              const items = board[k] ?? [];
-              return (
-                <div key={k} className="rounded-2xl bg-slate-50 dark:bg-ink-900/60 border-2 border-slate-200 dark:border-ink-800 overflow-hidden">
-                  <div className="px-3 py-2.5 flex items-center justify-between gap-2 border-b-2 border-slate-200 dark:border-ink-800"
-                    style={{ background: `${m.hex}18` }}>
-                    <span className="text-xs font-black text-slate-800 dark:text-ink-100">{m.emoji} {m.label}</span>
-                    <span className="h-6 min-w-[24px] px-1.5 rounded-lg text-[0.6875rem] font-black text-white flex items-center justify-center tabular-nums"
-                      style={{ background: m.hex }}>{items.length}</span>
-                  </div>
-                  <div className="p-2 space-y-2 max-h-[560px] overflow-y-auto">
-                    {items.length === 0 ? (
-                      <div className="py-8 text-center text-[0.6875rem] font-bold text-slate-400">Khali</div>
-                    ) : items.map((d) => (
-                      <DeliveryCard key={d.id} d={d} money={money} compact
-                        onVehicle={() => setVehicleFor(d)}
-                        onConfirm={() => setConfirmFor(d)}
-                        onStatus={(st) => statusMut.mutate({ id: d.id, status: st })} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )
-      )}
-
-      {/* ══════════ LIST ══════════ */}
-      {tab === 'list' && (
-        isLoading ? (
-          <Panel tone="cyan">
-            <div className="py-16 text-center">
-              <Loader2 className="h-6 w-6 animate-spin mx-auto text-cyan-600 mb-2" />
-            </div>
-          </Panel>
-        ) : filtered.length === 0 ? (
-          <Panel tone="cyan"><Empty icon={Truck} title="Koi delivery nahi mili" /></Panel>
-        ) : (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {filtered.map((d) => (
-              <DeliveryCard key={d.id} d={d} money={money}
-                onVehicle={() => setVehicleFor(d)}
-                onConfirm={() => setConfirmFor(d)}
-                onStatus={(st) => statusMut.mutate({ id: d.id, status: st })} />
-            ))}
-          </div>
-        )
-      )}
-
-      {/* ══════════ ANALYTICS ══════════ */}
-      {tab === 'analytics' && (
-        <div className="space-y-4">
-          <div className="grid lg:grid-cols-2 gap-4">
-            <Panel icon={Wallet} title="Is Mahine Ka Paisa Kahan Se" hint="Delivery ke alag alag charges" tone="teal">
-              {chargeData.length === 0 ? (
-                <Empty icon={Wallet} title="Is mahine abhi koi delivery nahi" />
-              ) : (
-                <>
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={chargeData} dataKey="value" nameKey="name" cx="50%" cy="50%"
-                          innerRadius={50} outerRadius={80} paddingAngle={3}>
-                          {chargeData.map((d, i) => <Cell key={i} fill={d.hex} />)}
-                        </Pie>
-                        <Tooltip formatter={(v: any, n: any) => [formatPKR(Number(v)), n]}
-                          contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5 mt-2">
-                    {chargeData.map((c) => (
-                      <div key={c.name} className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 flex items-center justify-between">
-                        <span className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300">{c.name}</span>
-                        <span className="text-xs font-black tabular-nums" style={{ color: c.hex }}>{money(c.value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </Panel>
-
-            <Panel icon={Layers} title="Har Halat Me Kitni" hint="Abhi kahan atki hui hain" tone="blue">
-              <div className="h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={statusData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                    <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                      {statusData.map((d, i) => <Cell key={i} fill={d.hex} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Panel>
-          </div>
-
-          <Panel icon={MapPin} title="Kis Ilaqe Me Sab Se Zyada Jana Parta Hai" hint="Gaari ka rasta yahan se samajh aata hai" tone="violet">
-            {areaData.length === 0 ? (
-              <Empty icon={MapPin} title="Abhi koi delivery nahi" />
-            ) : (
-              <div className="h-60">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={areaData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="area" width={110} tick={{ fontSize: 10, fontWeight: 700 }} />
-                    <Tooltip formatter={(v: any, n: any) => [n === 'revenue' ? formatPKR(Number(v)) : v, n === 'revenue' ? 'Aamdan' : 'Trips']}
-                      contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                    <Legend formatter={(v) => (v === 'revenue' ? 'Aamdan' : 'Trips')} />
-                    <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </Panel>
-
-          <Panel icon={Wrench} title="Installation Baqi" hint="Maal pohanch gaya magar kaam book nahi hua — yahi paisa waste hota hai" tone="rose">
-            {alerts.installPending.length === 0 ? (
-              <Empty icon={CheckCircle2} title="Sab installation book ho chuki hain" />
-            ) : (
-              <div className="space-y-1.5">
-                {alerts.installPending.map((d) => (
-                  <div key={d.id} className="flex items-center gap-3 rounded-2xl bg-rose-50 dark:bg-rose-500/10 p-2.5">
-                    <div className="h-9 w-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
-                      <Wrench className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{d.customerName}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 font-mono truncate">
-                        {d.deliveryNumber} · di gayi {d.deliveredAt ? fmtDate(d.deliveredAt) : '—'}
-                      </div>
-                    </div>
-                    {d.customerPhone && (
-                      <a href={`tel:${d.customerPhone}`}
-                        className="h-9 px-3 rounded-xl bg-white dark:bg-ink-900 border-2 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
-                        <Phone className="h-3.5 w-3.5" /> Call
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </Panel>
-        </div>
-      )}
-
-      {/* ─── MODALS ─── */}
-      {vehicleFor && (
-        <VehicleSheet d={vehicleFor} pending={vehicleMut.isPending}
-          onClose={() => setVehicleFor(null)}
-          onSubmit={(data) => vehicleMut.mutate({ id: vehicleFor.id, data })} />
-      )}
-
-      {confirmFor && (
-        <ConfirmSheet d={confirmFor} pending={confirmMut.isPending}
-          onClose={() => setConfirmFor(null)}
-          onSubmit={(data) => confirmMut.mutate({ id: confirmFor.id, data })} />
-      )}
-
-      {showGuide && (
-        <Teacher onClose={() => setShowGuide(false)}
-          title="Delivery ka safha"
-          intro="Fridge, AC ya washing machine customer khud le kar nahi ja sakta. Delivery isi liye alag bikti hai — gaari, banday aur seerhiyon ka paisa alag alag. Yahan se har delivery ka safar shuru se aakhir tak nazar aata hai."
-          blocks={[
-            {
-              title: 'Board — delivery ka safar',
-              tone: 'cyan',
-              tips: [
-                'Har column ek halat hai: date baqi → gaari lag gayi → nikal gaya → pohanch gaya → de diya.',
-                'Card ke neeche wale button se agli halat par le jayein — waqt khud darj hota hai.',
-                'Board se turant nazar aa jata hai ke kitni gaari raste me hai aur kitni khari hai.',
-              ],
-            },
-            {
-              title: 'Teen khatray',
-              tone: 'rose',
-              tips: [
-                'Date guzar gayi aur maal nahi pohancha — customer ka phone aane se pehle khud rabta karein.',
-                'Gaari abhi tak lagi hi nahi — driver aur gaari muqarrar karein warna subah bhaag-daur hogi.',
-                'Maal pohanch gaya magar installation book nahi hui — yehi sab se zyada paisa waste karti hai.',
-              ],
-            },
-            {
-              title: 'Paisa kahan se',
-              tone: 'emerald',
-              tips: [
-                'Delivery, loading, unloading aur seerhi ka paisa alag alag ginn hota hai.',
-                'Analytics me nazar aata hai ke mahine ka paisa kis hisse se aaya — lift na hone par manzil ka charge aksar sab se bara nikalta hai.',
-                'Ilaqe wala chart batata hai kahan sab se zyada jana parta hai — gaari ka rasta wahin se banayein.',
-              ],
-            },
-            {
-              title: 'Delivery mukammal karna',
-              tone: 'violet',
-              tips: [
-                '"De Diya" karte waqt lene wale ka naam aur CNIC darj karein — baad me kisi jhagre me yehi kaam aata hai.',
-                'Confirm karte hi serial number us customer ke naam ho jata hai aur warranty ki ginti shuru.',
-              ],
-            },
+      {guide.isOpen && (
+        <PageGuide title="Deliveries — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Booking', text: 'POS par bill ke saath "Delivery" book karein, ya yahan "Nayi delivery": pata, manzil, lift aur charges.' },
+            { icon: Truck, color: '#7c3aed', title: 'Gaari aur driver', text: 'Trip kholein → gaari ka number, driver aur helper. Customer ko WhatsApp par waqt bhejein.' },
+            { icon: Navigation, color: '#0891b2', title: 'Nikal gaya → pohanch gaya', text: 'Gaari nikle to "Nikal gaya", pohanche to "Pohanch gaya" — sab ko pata rehta hai saman kahan hai.' },
+            { icon: CheckCircle2, color: '#16a34a', title: 'De diya = bill', text: '"De diya" par lene wale ka naam (aur CNIC) aur driver ne jo paisa liya. Charges ka bill Sales, galla aur khata me aata hai.' },
+            { icon: MapPin, color: '#64748b', title: 'Map', text: 'Trip me "Map" se pata Google Maps par khulta hai — driver ko bhej dein.' },
           ]}
-          shortcuts={[
-            { keys: '/', label: 'Search' }, { keys: 'B', label: 'Board' },
-            { keys: 'L', label: 'List' }, { keys: 'A', label: 'Analytics' },
-            { keys: 'P', label: 'Print' }, { keys: 'G', label: 'Ye guide' },
-            { keys: 'Esc', label: 'Band karein' },
-          ]}
-          golden="Har raat gaari nikalne se pehle board dekh lein — jo card 'gaari nahi lagi' me hai, subah wohi bhaag-daur banata hai."
+          tips={['Counter bill me delivery charge pehle le liya ho to alag bill nahi banta.', 'Saman pohanch jaye aur installation chahiye ho to wahin se booking karein.']}
+          shortcuts={[['N', 'nayi delivery'], ['/', 'dhoondein'], ['1', 'trips'], ['2', 'analytics'], ['G', 'guide']]}
         />
       )}
+    </PageShell>
+  );
+}
+
+function TripRow({ d, shopName, money, onOpen }: { d: ApplianceDelivery; shopName: string; money: (n: number) => string; onOpen: () => void }) {
+  const wa = waLink(d.customerPhone, deliveryMessage(d, shopName));
+  const due = d.dueAmount ?? 0;
+  return (
+    <li className="flex items-start gap-3 px-3 py-3 sm:px-4">
+      <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', d.status === 'DELIVERED' ? 'bg-emerald-50 text-emerald-600' : !d.vehicleNumber ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600')}>
+        <Truck className="h-5 w-5" />
+      </span>
+      <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="truncate font-semibold text-slate-900">{d.customerName}</span>
+          <Pill meta={deliveryStatusOf(d.status)} />
+          {d.requiresInstallation && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[0.6875rem] text-blue-700 ring-1 ring-blue-200">Installation</span>}
+          <span className="font-mono text-[0.6875rem] text-slate-400">{d.deliveryNumber}</span>
+        </div>
+        <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{d.customerPhone} — {[d.deliveryAddress, d.area].filter(Boolean).join(', ')}{d.floorNumber ? ` · ${d.floorNumber} manzil${d.hasLift ? '' : ', lift nahi'}` : ''}</p>
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.75rem] text-slate-500">
+          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{d.status === 'DELIVERED' ? `Diya ${dayOnly(d.deliveredAt)}` : d.scheduledDate ? `${dayOnly(d.scheduledDate)} ${slotLabel(d.scheduledSlot)}` : 'Date baqi'}</span>
+          <span>· {d.vehicleNumber ? `${d.vehicleNumber} · ${d.driverName ?? ''}` : 'Gaari nahi lagi'}</span>
+        </p>
+      </button>
+      <div className="shrink-0 text-right">
+        <p className="font-semibold tabular-nums text-slate-900">{money(Number(d.totalCharge) || 0)}</p>
+        {due > 0 && <p className="text-[0.75rem] font-medium tabular-nums text-amber-700">baqi {money(due)}</p>}
+        <div className="mt-1 flex justify-end gap-1">
+          {wa && <a href={wa} target="_blank" rel="noreferrer" aria-label="WhatsApp" title="WhatsApp" className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></a>}
+          <button type="button" onClick={onOpen} aria-label="Kholein" title="Kholein" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><ArrowRight className="h-3.5 w-3.5" /></button>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function Analytics({ s, money }: { s?: DeliverySummary; money: (n: number) => string }) {
+  if (!s) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-60 rounded-3xl" /><Skeleton className="h-60 rounded-3xl" /></div>;
+  const b = s.month.breakdown;
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Panel title="Is mahine" hint="Delivery ke bill Sales aur Profit me hain">
+        <dl className="grid grid-cols-2 gap-3">
+          <Box label="Trips" value={s.month.trips} /><Box label="Charges" value={money(s.month.revenue)} />
+          <Box label="Ek trip ausat" value={money(s.month.avgTrip)} /><Box label="De diya (kul)" value={s.delivered} />
+        </dl>
+      </Panel>
+      <Panel title="Charges kis cheez ke">
+        <Bars rows={[
+          { key: 'd', label: 'Gaari', value: b.delivery, color: '#2563eb', hint: money(b.delivery) },
+          { key: 'l', label: 'Load', value: b.loading, color: '#7c3aed', hint: money(b.loading) },
+          { key: 'u', label: 'Utarna', value: b.unloading, color: '#0891b2', hint: money(b.unloading) },
+          { key: 'f', label: 'Manzil', value: b.floor, color: '#d97706', hint: money(b.floor) },
+        ].filter((r) => r.value > 0)} />
+      </Panel>
     </div>
-  );
-}
-
-/* ─────────────── purzay ─────────────── */
-function AlertBox({ tone, icon: Icon, n, title, desc }: {
-  tone: 'rose' | 'amber' | 'violet'; icon: any; n: number; title: string; desc: string;
-}) {
-  const tones: Record<string, string> = {
-    rose: 'border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 text-rose-900 dark:text-rose-200',
-    amber: 'border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-200',
-    violet: 'border-violet-300 dark:border-violet-500/40 bg-violet-50 dark:bg-violet-500/10 text-violet-900 dark:text-violet-200',
-  };
-  const badges: Record<string, string> = { rose: 'bg-rose-600', amber: 'bg-amber-500', violet: 'bg-violet-600' };
-  return (
-    <div className={`rounded-2xl border-2 p-3 ${tones[tone]}`}>
-      <div className="flex items-start gap-2.5">
-        <div className={`h-9 w-9 rounded-xl ${badges[tone]} text-white flex items-center justify-center shrink-0`}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <div className="min-w-0">
-          <div className="font-black text-sm">{n} · {title}</div>
-          <p className="text-[0.6875rem] font-bold opacity-80 mt-0.5">{desc}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
-  d: ApplianceDelivery; money: (n: number) => string; compact?: boolean;
-  onVehicle: () => void; onConfirm: () => void; onStatus: (s: string) => void;
-}) {
-  const meta = delStatusMeta(d.status);
-  const next = DELIVERY_NEXT[d.status] ?? [];
-  const overdue = d.scheduledDate && new Date(d.scheduledDate).getTime() < Date.now()
-    && !['DELIVERED', 'CANCELLED'].includes(d.status);
-  const wa = (d.customerPhone ?? '').replace(/\D/g, '').replace(/^0/, '92');
-
-  return (
-    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 overflow-hidden transition hover:shadow-lg ${
-      overdue ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800'
-    }`}>
-      <div className="h-1.5" style={{ background: meta.hex }} />
-      <div className={compact ? 'p-2.5 space-y-2' : 'p-4 space-y-3'}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="font-mono text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400">{d.deliveryNumber}</div>
-            <div className={`font-black text-slate-900 dark:text-ink-white truncate ${compact ? 'text-sm' : ''}`}>{d.customerName}</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{d.customerPhone}</div>
-          </div>
-          {!compact && <StatusBadge meta={meta} size="xs" />}
-        </div>
-
-        <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-          <div className="flex items-start gap-1.5">
-            <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-slate-400" />
-            <span className="min-w-0">{[d.deliveryAddress, d.area, d.city].filter(Boolean).join(', ') || 'Pata darj nahi'}</span>
-          </div>
-          {(d.floorNumber || d.hasLift !== undefined) && (
-            <div className="flex items-center gap-2 mt-1 pl-5 flex-wrap">
-              {!!d.floorNumber && (
-                <span className="px-1.5 rounded bg-white dark:bg-ink-900 inline-flex items-center gap-0.5">
-                  <Building2 className="h-3 w-3" /> {d.floorNumber} manzil
-                </span>
-              )}
-              <span className={`px-1.5 rounded ${d.hasLift ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'}`}>
-                {d.hasLift ? 'Lift hai' : 'Lift nahi — seerhi'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap text-[0.6875rem] font-extrabold">
-          {d.scheduledDate && (
-            <span className={`px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
-              overdue ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                      : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
-            }`}>
-              <Clock className="h-3 w-3" /> {fmtDate(d.scheduledDate)}{d.scheduledSlot ? ` · ${d.scheduledSlot}` : ''}
-            </span>
-          )}
-          {d.vehicleNumber ? (
-            <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 inline-flex items-center gap-1">
-              <Truck className="h-3 w-3" /> {d.vehicleNumber}{d.driverName ? ` · ${d.driverName}` : ''}
-            </span>
-          ) : (
-            <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
-              Gaari nahi lagi
-            </span>
-          )}
-          {d.requiresInstallation && (
-            <span className={`px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
-              d.installationLinked
-                ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                : 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300'
-            }`}>
-              <Wrench className="h-3 w-3" /> {d.installationLinked ? 'Install book' : 'Install baqi'}
-            </span>
-          )}
-          {Number(d.totalCharge ?? 0) > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 tabular-nums">
-              {money(Number(d.totalCharge))}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {!d.vehicleNumber && !['DELIVERED', 'CANCELLED'].includes(d.status) && (
-            <button onClick={onVehicle}
-              className="flex-1 min-w-[110px] h-9 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow transition">
-              <Truck className="h-3.5 w-3.5" /> Gaari Lagayein
-            </button>
-          )}
-          {d.status === 'ARRIVED' && (
-            <button onClick={onConfirm}
-              className="flex-1 min-w-[110px] h-9 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow transition">
-              <ClipboardCheck className="h-3.5 w-3.5" /> De Diya
-            </button>
-          )}
-          {next.map((st) => {
-            const m = delStatusMeta(st);
-            return (
-              <button key={st} onClick={() => onStatus(st)}
-                className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold transition">
-                {m.emoji} {m.label}
-              </button>
-            );
-          })}
-          {wa && (
-            <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" title="WhatsApp"
-              className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 transition">
-              <MessageCircle className="h-4 w-4" />
-            </a>
-          )}
-          {d.customerPhone && (
-            <a href={`tel:${d.customerPhone}`} title="Call"
-              className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0 transition">
-              <Phone className="h-4 w-4" />
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function VehicleSheet({ d, pending, onClose, onSubmit }: {
-  d: ApplianceDelivery; pending: boolean; onClose: () => void; onSubmit: (v: any) => void;
-}) {
-  const [vehicleNumber, setVehicleNumber] = useState(d.vehicleNumber ?? '');
-  const [driverName, setDriverName] = useState(d.driverName ?? '');
-  const [driverPhone, setDriverPhone] = useState(d.driverPhone ?? '');
-  const [helperCount, setHelperCount] = useState(String(d.helperCount ?? 1));
-
-  const ok = vehicleNumber.trim() && driverName.trim() && driverPhone.trim();
-
-  return (
-    <Sheet title="Gaari aur Driver" subtitle={`${d.deliveryNumber} · ${d.customerName}`} onClose={onClose}>
-      <div className="space-y-3">
-        {!d.hasLift && !!d.floorNumber && (
-          <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-            ⚠️ {d.floorNumber} manzil aur lift nahi — do banday kam par sakte hain. Helper ki quantity barha dein.
-          </div>
-        )}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Gaari ka number" hint="jo bill par likha jayega">
-            <input value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
-              placeholder="LEA-1234" className={inputCls('h-12 text-base font-mono')} />
-          </Field>
-          <Field label="Helper kitne">
-            <input type="number" min={0} value={helperCount} onChange={(e) => setHelperCount(e.target.value)}
-              className={inputCls('h-12 text-base tabular-nums')} />
-          </Field>
-          <Field label="Driver ka naam">
-            <input value={driverName} onChange={(e) => setDriverName(e.target.value)}
-              placeholder="Ashraf" className={inputCls()} />
-          </Field>
-          <Field label="Driver ka phone">
-            <input value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)}
-              placeholder="0300-1234567" className={inputCls('font-mono')} />
-          </Field>
-        </div>
-        <div className="flex gap-2 pt-1">
-          <Button variant="secondary" className="flex-1 h-12" onClick={onClose}><X className="h-4 w-4" /> Cancel</Button>
-          <button disabled={!ok || pending}
-            onClick={() => onSubmit({
-              vehicleNumber: vehicleNumber.trim(),
-              driverName: driverName.trim(),
-              driverPhone: driverPhone.trim(),
-              helperCount: Number(helperCount) || 0,
-            })}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-700 disabled:opacity-40 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition">
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Truck className="h-4 w-4" />}
-            Gaari Lagayein
-          </button>
-        </div>
-      </div>
-    </Sheet>
-  );
-}
-
-function ConfirmSheet({ d, pending, onClose, onSubmit }: {
-  d: ApplianceDelivery; pending: boolean; onClose: () => void; onSubmit: (v: any) => void;
-}) {
-  const [receivedByName, setName] = useState(d.customerName ?? '');
-  const [receivedByCnic, setCnic] = useState('');
-
-  return (
-    <Sheet title="Delivery Mukammal" subtitle={`${d.deliveryNumber} · ${d.customerName}`} onClose={onClose}>
-      <div className="space-y-3">
-        <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200">
-          Confirm karte hi serial number is customer ke naam ho jayega aur warranty ki ginti shuru ho jayegi.
-          Lene wale ka naam aur CNIC darj karein — baad me kisi jhagre me yehi kaam aata hai.
-        </div>
-        <Field label="Kis ne wasool kiya" hint="jo ghar par mojood tha">
-          <input value={receivedByName} onChange={(e) => setName(e.target.value)}
-            placeholder="Customer ka naam" className={inputCls('h-12 text-base')} />
-        </Field>
-        <Field label="CNIC" hint="optional magar behtar">
-          <input value={receivedByCnic} onChange={(e) => setCnic(e.target.value)}
-            placeholder="35202-1234567-1" className={inputCls('font-mono')} />
-        </Field>
-        {d.requiresInstallation && !d.installationLinked && (
-          <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 text-[0.75rem] font-bold text-violet-900 dark:text-violet-200">
-            🔧 Is par installation bhi honi hai. Delivery ke foran baad installation book kar dein — warna ye paisa aksar waste ho jata hai.
-          </div>
-        )}
-        <div className="flex gap-2 pt-1">
-          <Button variant="secondary" className="flex-1 h-12" onClick={onClose}><X className="h-4 w-4" /> Cancel</Button>
-          <button disabled={pending || !receivedByName.trim()}
-            onClick={() => onSubmit({
-              receivedByName: receivedByName.trim(),
-              receivedByCnic: receivedByCnic.trim() || undefined,
-            })}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 disabled:opacity-40 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition">
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}
-            De Diya — Mukammal
-          </button>
-        </div>
-      </div>
-    </Sheet>
   );
 }

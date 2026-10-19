@@ -14,8 +14,8 @@ import { amcApi, type AmcContract } from '../api/amc.api';
 const MINUTE = 60_000;
 const DAY = 86_400_000;
 
-const ACTIVE = ['SCHEDULED', 'ASSIGNED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS'];
-const NOT_STARTED = ['SCHEDULED', 'ASSIGNED'];
+const ACTIVE = ['CONFIRMED', 'SCHEDULED', 'ASSIGNED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS'];
+const NOT_STARTED = ['CONFIRMED', 'SCHEDULED', 'ASSIGNED'];
 const URGENT = ['EMERGENCY', 'URGENT'];
 
 /** Shape of GET /services-biz/dashboard/overview (fields the dashboard reads). */
@@ -25,7 +25,7 @@ interface ServicesOverview {
   topTechnicians?: Array<{ technicianId: string; name?: { fullName?: string } | null; revenue: number; completedJobs: number }>;
 }
 
-const sameDay = (iso: string | undefined, ref: Date) => !!iso && new Date(iso).toDateString() === ref.toDateString();
+const sameDay = (iso: string | null | undefined, ref: Date) => !!iso && new Date(iso).toDateString() === ref.toDateString();
 
 export function useServicesOps() {
   const overview = useQuery({
@@ -35,7 +35,7 @@ export function useServicesOps() {
   });
   const jobs = useQuery({
     queryKey: ['jobs-dashboard'],
-    queryFn: () => jobsApi.list({ statusIn: ACTIVE }).catch(() => [] as ServiceJob[]),
+    queryFn: () => jobsApi.list({ view: 'open' }).catch(() => [] as ServiceJob[]),
     refetchInterval: MINUTE,
   });
   const renewals = useQuery({
@@ -57,7 +57,7 @@ export function useServicesOps() {
       active: list.length,
       onSite: list.filter((j) => ['ARRIVED', 'IN_PROGRESS'].includes(j.status)).length,
       onTheWay: list.filter((j) => ['DISPATCHED', 'EN_ROUTE'].includes(j.status)).length,
-      unassigned: list.filter((j) => j.status === 'SCHEDULED').length,
+      unassigned: list.filter((j) => !j.primaryTechnicianId && ['CONFIRMED', 'SCHEDULED'].includes(j.status)).length,
       today: todays.length,
       urgent,
       late,

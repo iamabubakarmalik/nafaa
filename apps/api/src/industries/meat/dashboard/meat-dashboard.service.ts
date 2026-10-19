@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { saleFigures } from '../../../common/helpers/business-math.helper';
@@ -74,7 +73,7 @@ export class MeatDashboardService {
       where: {
         tenantId: user.tenantId,
         status: 'ACTIVE',
-        nextDeliveryDate: { gte: new Date(), lte: subDays(new Date(), -3) },
+        nextDeliveryDate: { lte: dayEnd(addDaysTz(todayStart, 3)) },
       },
       orderBy: { nextDeliveryDate: 'asc' },
       take: 10,

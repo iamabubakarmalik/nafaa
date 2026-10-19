@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertApplianceProductDto } from './dto/upsert-product.dto';
@@ -79,6 +79,7 @@ export class ApplianceProductsService {
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.applianceProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Profile not found');
-    return this.prisma.applianceProductProfile.delete({ where: { id } });
+    // Warranty and installation details stay with the product; switching the product off hides it.
+    throw new BadRequestException('Product ki details nahi mitti — product band karna ho to Products se band karein');
   }
 }

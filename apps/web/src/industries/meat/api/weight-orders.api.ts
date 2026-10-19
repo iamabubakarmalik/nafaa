@@ -49,16 +49,45 @@ export interface WeightOrder {
   updatedAt: string;
 }
 
+export type OrderTab = 'all' | 'open' | 'today' | 'ready' | 'delivery' | 'delivered' | 'cancelled';
+
+export interface OrderPage {
+  items: WeightOrder[]; total: number; page: number; limit: number;
+  counts: Record<OrderTab, number>; openValue: number; advances: number;
+}
+
+/** Money of one order split by where it sits (see the API). */
+export interface OrderMoney { khataPaid: number; legacyPaid: number }
+
+export interface OrderInput {
+  customerId?: string | null; customerName?: string; customerPhone?: string;
+  neededBy?: string | null; isDelivery: boolean; deliveryAddress?: string; deliveryCharges?: number; discount?: number;
+  occasion?: string; specialInstructions?: string; cuttingStyle?: string; packagingPref?: string; numberOfPackets?: number | null;
+  advance?: number; paymentMethod?: string;
+  items: Array<{ productId: string; requestedKg: number; pricePerKg: number; cuttingInstructions?: string }>;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
+const base = '/meat/weight-orders/';
+
 export const weightOrdersApi = {
-  create: (data: any) => apiClient.post('/meat/weight-orders', data).then(unwrap<WeightOrder>),
-  list: (params?: any) => apiClient.get('/meat/weight-orders', { params }).then(unwrap<WeightOrder[]>),
-  getOne: (id: string) => apiClient.get('/meat/weight-orders/' + id).then(unwrap<WeightOrder>),
+  create: (data: OrderInput) => apiClient.post('/meat/weight-orders', data).then(unwrap<WeightOrder>),
+  list: (params?: Record<string, string | undefined>) => apiClient.get('/meat/weight-orders', { params }).then(unwrap<WeightOrder[]>),
+  page: (params: Record<string, string | number | undefined>) => apiClient.get(base + 'page', { params }).then(unwrap<OrderPage>),
+  getOne: (id: string) => apiClient.get(base + id).then(unwrap<WeightOrder & OrderMoney>),
+  update: (id: string, data: Partial<OrderInput>) => apiClient.patch(base + id, data).then(unwrap<WeightOrder & OrderMoney>),
   updateStatus: (id: string, status: string, cancellationReason?: string) =>
-    apiClient.patch('/meat/weight-orders/' + id + '/status', { status, cancellationReason }).then(unwrap<WeightOrder>),
+    apiClient.patch(base + id + '/status', { status, cancellationReason }).then(unwrap<WeightOrder>),
   updateActualWeights: (id: string, items: { itemId: string; actualKg: number }[]) =>
-    apiClient.patch('/meat/weight-orders/' + id + '/actual-weights', { items }).then(unwrap<WeightOrder>),
-  addPayment: (id: string, amount: number) =>
-    apiClient.post('/meat/weight-orders/' + id + '/payment', { amount }).then(unwrap<WeightOrder>),
+    apiClient.patch(base + id + '/actual-weights', { items }).then(unwrap<WeightOrder>),
+  addPayment: (id: string, amount: number, paymentMethod: string, expectedPaid: number) =>
+    apiClient.post(base + id + '/payment', { amount, paymentMethod, expectedPaid }).then(unwrap<WeightOrder>),
+  /** Makes the bill (stock, sale, khata) and marks the order handed over. */
+  checkout: (id: string, body: { payments: Array<{ method: string; amount: number }>; expectedTotal: number; managerPin?: string }) =>
+    apiClient.post(base + id + '/checkout', body).then(unwrap<WeightOrder & OrderMoney>),
+  refund: (id: string, managerPin?: string) => apiClient.post(base + id + '/refund', { managerPin }).then(unwrap<WeightOrder & OrderMoney>),
+  bySales: (ids: string[]) => apiClient.get(base + 'by-sales', { params: { ids: ids.join(',') } })
+    .then(unwrap<Record<string, { id: string; orderNumber: string; isDelivery: boolean; occasion: string | null }>>),
+  bill: (id: string) => apiClient.get(base + id + '/bill').then(unwrap<{ id: string; saleNumber: string; total: number; creditAmount: number } | null>),
 };

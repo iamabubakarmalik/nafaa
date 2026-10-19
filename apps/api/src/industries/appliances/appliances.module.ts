@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ReturnsModule } from '../../modules/sales/returns/returns.module';
+import { SalesModule } from '../../modules/sales/sales/sales.module';
+import { ApplianceBillVoidService } from './common/appliance-bill-void.service';
 import { AmcContractsModule } from './amc-contracts/amc-contracts.module';
 import { AppliancesAnalyticsModule } from './analytics/appliances-analytics.module';
 // ApplianceBrandsModule yahan se nikal diya gaya (2026-09-14).
@@ -16,6 +19,8 @@ import { ApplianceWarrantyClaimsModule } from './warranty-claims/warranty-claims
 
 @Module({
   imports: [
+    SalesModule,
+    ReturnsModule,
     ApplianceProductsModule,
     ApplianceSerialModule,
     InstallationsModule,
@@ -27,6 +32,7 @@ import { ApplianceWarrantyClaimsModule } from './warranty-claims/warranty-claims
     AppliancesAnalyticsModule,
     ApplianceWarrantyClaimsModule,
   ],
+  providers: [ApplianceBillVoidService],
   exports: [
     ApplianceProductsModule,
     ApplianceSerialModule,

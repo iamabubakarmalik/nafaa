@@ -1,31 +1,20 @@
-import {
-  LayoutDashboard,
-  Bed,
-  Home,
-  Calendar,
-  Sparkles,
-  Users,
-  Sparkle,
-  Award,
-} from 'lucide-react';
+import { Award, BarChart3, Bed, CalendarDays, CalendarPlus, Home, LayoutDashboard, Sparkle, Users } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 import { useIsHotelBusiness } from './hooks/useIsHotelBusiness';
 
-// ── Pages ─────────────────────────────────────────────────────
 import HotelDashboard from './dashboard/HotelDashboard';
 import RoomTypesPage from './pages/RoomTypesPage';
 import RoomsPage from './pages/RoomsPage';
 import GuestsPage from './pages/GuestsPage';
+import GuestDetailPage from './pages/GuestDetailPage';
 import BookingsPage from './pages/BookingsPage';
 import NewBookingPage from './pages/NewBookingPage';
 import HotelBookingDetailPage from './pages/HotelBookingDetailPage';
 import HousekeepingPage from './pages/HousekeepingPage';
 import HotelRoomTypeWizardPage from './pages/HotelRoomTypeWizardPage';
 import HotelRoomTypeDetailPage from './pages/HotelRoomTypeDetailPage';
-
-// ── Extensions ────────────────────────────────────────────────
-import { HotelPosCheckoutExtension } from './pos-extensions/HotelPosCheckoutExtension';
-import { HotelGuestExtension } from './customer-form/HotelGuestExtension';
+import RatePlansPage from './pages/RatePlansPage';
+import HotelReportsPage from './pages/HotelReportsPage';
 
 /**
  * Hotel / Guest House / Motel / Resort industry pack.
@@ -66,47 +55,39 @@ export const HotelPack: IndustryPack = {
       color: '#4f46e5',
       order: 20,
       items: [
-        { to: '/hotel-room-types/new', label: '+ Add Room Type', icon: Sparkles, badge: 'FAST' },
-        { to: '/hotel/dashboard', label: 'Hotel Dashboard', icon: LayoutDashboard },
-        { to: '/hotel/room-types', label: 'Room Types', icon: Bed },
-        { to: '/hotel/rooms', label: 'Rooms', icon: Home },
-        { to: '/hotel/bookings', label: 'Bookings', icon: Calendar },
-        { to: '/hotel/bookings/new', label: 'New Booking', icon: Sparkles },
+        { to: '/hotel/bookings/new', label: 'Nayi booking', icon: CalendarPlus, badge: 'FAST' },
+        { to: '/hotel/dashboard', label: 'Hotel dashboard', icon: LayoutDashboard },
+        { to: '/hotel/rooms', label: 'Room board', icon: Home },
+        { to: '/hotel/bookings', label: 'Bookings', icon: CalendarDays },
         { to: '/hotel/guests', label: 'Guests', icon: Users },
         { to: '/hotel/housekeeping', label: 'Housekeeping', icon: Sparkle },
-        { to: '/hotel/rate-plans', label: 'Rate Plans', icon: Award },
+        { to: '/hotel/room-types', label: 'Room types', icon: Bed },
+        { to: '/hotel/rate-plans', label: 'Season rates', icon: Award },
+        { to: '/hotel/reports', label: 'Night audit', icon: BarChart3 },
       ],
     },
   ],
 
-  // Order matters — put more specific paths BEFORE dynamic ones.
+  // Specific paths before dynamic ones.
   routes: [
-    // Wizard + Detail — highest priority room-type routes
     { path: '/hotel-room-types/new', element: HotelRoomTypeWizardPage },
     { path: '/hotel-room-types/:id/edit', element: HotelRoomTypeWizardPage },
     { path: '/hotel-room-types/:id', element: HotelRoomTypeDetailPage },
-
-    // Existing pages
     { path: '/hotel', element: HotelDashboard },
     { path: '/hotel/dashboard', element: HotelDashboard },
     { path: '/hotel/room-types', element: RoomTypesPage },
     { path: '/hotel/rooms', element: RoomsPage },
+    { path: '/hotel/guests/:id', element: GuestDetailPage },
     { path: '/hotel/guests', element: GuestsPage },
     { path: '/hotel/bookings/new', element: NewBookingPage },
     { path: '/hotel/bookings/:id', element: HotelBookingDetailPage },
     { path: '/hotel/bookings', element: BookingsPage },
     { path: '/hotel/housekeeping', element: HousekeepingPage },
+    { path: '/hotel/rate-plans', element: RatePlansPage },
+    { path: '/hotel/reports', element: HotelReportsPage },
   ],
 
   dashboardComponent: HotelDashboard,
-
-  pos: {
-    checkoutExtension: HotelPosCheckoutExtension,
-  },
-
-  customerForm: {
-    extraFields: HotelGuestExtension,
-  },
 
   featureFlags: [
     {

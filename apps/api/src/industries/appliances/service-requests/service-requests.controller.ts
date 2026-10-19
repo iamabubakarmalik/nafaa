@@ -1,8 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { AssignTechnicianDto } from '../installations/dto/create-installation.dto';
 import { ServiceRequestsService } from './service-requests.service';
 import {
   AddServicePaymentDto,
@@ -18,10 +21,12 @@ const bool = (v?: string) => (v === 'true' ? true : v === 'false' ? false : unde
 @ApiTags('Appliances - Service Requests')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@RequirePermissions(PERMISSIONS.SERVICE_JOBS_VIEW)
 @Controller('appliances/service-requests')
 export class ServiceRequestsController {
   constructor(private readonly service: ServiceRequestsService) {}
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post()
   create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateServiceRequestDto) {
     return this.service.create(user, dto);
@@ -72,40 +77,47 @@ export class ServiceRequestsController {
     return this.service.getOne(user, id);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Patch(':id')
   update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateServiceRequestDto) {
     return this.service.update(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/assign-technician')
   assign(
     @GetUser() user: AuthenticatedUser,
     @Param('id') id: string,
-    @Body() body: { technicianId: string; scheduledDate?: string; scheduledTimeSlot?: string },
+    @Body() body: AssignTechnicianDto,
   ) {
     return this.service.assignTechnician(user, id, body.technicianId, body.scheduledDate, body.scheduledTimeSlot);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Patch(':id/status')
   updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateServiceStatusDto) {
     return this.service.updateStatus(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/complete')
   complete(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CompleteServiceDto) {
     return this.service.complete(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/payment')
   addPayment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: AddServicePaymentDto) {
     return this.service.addPayment(user, id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Post(':id/cancel')
   cancel(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CancelServiceDto) {
     return this.service.cancel(user, id, dto?.reason);
   }
 
+  @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE)
   @Delete(':id')
   remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.service.remove(user, id);

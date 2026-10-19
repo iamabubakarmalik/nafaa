@@ -46,6 +46,17 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/restaurant\/(kot|stations|recipes)/, P.RESTAURANT_KITCHEN_VIEW],
   [/^\/restaurant\/(menu|modifiers|happy-hours)/, P.RESTAURANT_MENU_VIEW],
 
+  // Hotel (bookings are covered by the general rule below)
+  [/^\/hotel\/(housekeeping|rooms)/, P.SERVICE_BOOKINGS_VIEW],
+  [/^\/hotel\/reports/, P.REPORTS_VIEW],
+
+  // Services business
+  [/^\/services-biz\/warranty/, P.ELECTRONICS_WARRANTY_VIEW],
+  [/^\/services-biz\/(technicians|amc)/, P.SERVICE_JOBS_VIEW],
+  [/^\/services-biz-services\/new$/, P.PRODUCTS_CREATE],
+  [/^\/services-biz-services\/[^/]+\/edit$/, P.PRODUCTS_EDIT],
+  [/^\/(services-biz\/catalog|services-biz-services)/, P.PRODUCTS_VIEW],
+
   // Services / workshop
   [/\/(jobs|workshop-jobs|service-requests|dispatch|quotes)/, P.SERVICE_JOBS_VIEW],
   [/\/(bookings|appointments)/, P.SERVICE_BOOKINGS_VIEW],

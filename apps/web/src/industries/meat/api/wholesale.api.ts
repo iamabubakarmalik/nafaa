@@ -12,7 +12,7 @@ export interface WholesaleAccount {
   currentBalance: number;
   creditDays: number;
   discountPct: number;
-  specialPricing?: any;
+  specialPricing?: unknown;
   requiresDelivery: boolean;
   deliveryDays: number[];
   deliveryTimeSlot?: string;
@@ -33,14 +33,15 @@ export interface WholesaleAccount {
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const base = '/meat/wholesale/';
 
 export const wholesaleApi = {
   create: (data: Partial<WholesaleAccount>) => apiClient.post('/meat/wholesale', data).then(unwrap<WholesaleAccount>),
-  list: (params?: any) => apiClient.get('/meat/wholesale', { params }).then(unwrap<WholesaleAccount[]>),
-  byCustomer: (customerId: string) => apiClient.get('/meat/wholesale/by-customer/' + customerId).then(unwrap<WholesaleAccount | null>),
-  getOne: (id: string) => apiClient.get('/meat/wholesale/' + id).then(unwrap<WholesaleAccount>),
-  update: (id: string, data: Partial<WholesaleAccount>) => apiClient.patch('/meat/wholesale/' + id, data).then(unwrap<WholesaleAccount>),
-  purchase: (id: string, amount: number) => apiClient.post('/meat/wholesale/' + id + '/purchase', { amount }).then(unwrap<WholesaleAccount>),
-  payment: (id: string, amount: number) => apiClient.post('/meat/wholesale/' + id + '/payment', { amount }).then(unwrap<WholesaleAccount>),
-  remove: (id: string) => apiClient.delete('/meat/wholesale/' + id).then(unwrap),
+  list: (params?: Record<string, string | undefined>) => apiClient.get('/meat/wholesale', { params }).then(unwrap<WholesaleAccount[]>),
+  byCustomer: (customerId: string) => apiClient.get(base + 'by-customer/' + customerId).then(unwrap<WholesaleAccount | null>),
+  update: (id: string, data: Partial<WholesaleAccount>) => apiClient.patch(base + id, data).then(unwrap<WholesaleAccount>),
+  /** A khata payment from the buyer (drawer for cash). */
+  payment: (id: string, amount: number, paymentMethod: string, note?: string) =>
+    apiClient.post(base + id + '/payment', { amount, paymentMethod, note }).then(unwrap<WholesaleAccount>),
+  remove: (id: string) => apiClient.delete(base + id).then(unwrap),
 };

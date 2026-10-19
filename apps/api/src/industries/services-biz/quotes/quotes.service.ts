@@ -1,149 +1,211 @@
+/**
+ * Quotes (estimates) given before the work: visit, labour, parts and other
+ * lines, sent to the customer, accepted or turned down, and turned into a
+ * job card. A quote is never money; the job it becomes takes the advance
+ * and the bill.
+ */
+
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma, QuoteStatus, ServiceQuote } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { JobsService } from '../jobs/jobs.service';
+import { blank, nextDocNumber, r2 } from '../jobs/job-rules';
+import type { ConvertQuoteDto, ListQuotesQuery, QuoteLineDto, UpsertQuoteDto } from './dto/quote.dto';
+
+export interface StoredLine { kind: QuoteLineDto['kind']; description: string; quantity: number; unitPrice: number; total: number; productId?: string | null }
+
+const EDITABLE: QuoteStatus[] = ['DRAFT', 'SENT', 'REVISED'];
 
 @Injectable()
 export class QuotesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jobs: JobsService,
+  ) {}
 
-  async create(user: AuthenticatedUser, dto: any) {
-    const count = await this.prisma.serviceQuote.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const quoteNumber = 'QT-' + year + '-' + String(count + 1).padStart(4, '0');
-
-    const labour = Number(dto.labourCharge) || 0;
-    const parts = Number(dto.partsCharge) || 0;
-    const visit = Number(dto.visitCharge) || 0;
-    const other = Number(dto.otherCharges) || 0;
-    const discount = Number(dto.discount) || 0;
-    const tax = Number(dto.taxAmount) || 0;
-    const totalAmount = Math.max(labour + parts + visit + other + tax - discount, 0);
-
-    return this.prisma.serviceQuote.create({
-      data: {
-        tenantId: user.tenantId,
-        quoteNumber,
-        customerId: dto.customerId,
-        customerName: dto.customerName,
-        customerPhone: dto.customerPhone,
-        customerEmail: dto.customerEmail,
-        serviceId: dto.serviceId,
-        serviceName: dto.serviceName,
-        problemDescription: dto.problemDescription,
-        siteVisitRequired: dto.siteVisitRequired ?? false,
-        siteVisitCompleted: dto.siteVisitCompleted ?? false,
-        status: dto.status ?? 'DRAFT',
-        labourCharge: labour,
-        partsCharge: parts,
-        visitCharge: visit,
-        otherCharges: other,
-        discount,
-        taxAmount: tax,
-        totalAmount,
-        lineItems: dto.lineItems,
-        validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
-        termsConditions: dto.termsConditions,
-        notes: dto.notes,
-        createdById: user.id,
-      },
-    });
+  private linesOf(q: Pick<ServiceQuote, 'lineItems'>): StoredLine[] {
+    return Array.isArray(q.lineItems) ? (q.lineItems as unknown as StoredLine[]) : [];
   }
 
-  async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; search?: string }) {
-    return this.prisma.serviceQuote.findMany({
+  private async values(user: AuthenticatedUser, dto: UpsertQuoteDto, prev?: ServiceQuote) {
+    const lines: StoredLine[] | undefined = dto.lines?.map((l) => {
+      const quantity = Number(l.quantity) > 0 ? Number(l.quantity) : 1;
+      const description = l.description?.trim();
+      if (!description) throw new BadRequestException('Har line ka naam likhein');
+      return { kind: l.kind, description, quantity, unitPrice: r2(l.unitPrice), total: r2(quantity * l.unitPrice), productId: l.productId ?? null };
+    });
+    const ids = [...new Set((lines ?? []).map((l) => l.productId).filter((x): x is string => !!x))];
+    if (ids.length && (await this.prisma.product.count({ where: { tenantId: user.tenantId, id: { in: ids } } })) !== ids.length) {
+      throw new NotFoundException('Kuch parts ka product nahi mila');
+    }
+    const sum = (k: StoredLine['kind']) => r2((lines ?? []).filter((l) => l.kind === k).reduce((s, l) => s + l.total, 0));
+    const charges = lines
+      ? { visitCharge: sum('VISIT'), labourCharge: sum('LABOUR'), partsCharge: sum('PART'), otherCharges: sum('OTHER') }
+      : {
+        visitCharge: r2(dto.visitCharge ?? prev?.visitCharge ?? 0), labourCharge: r2(dto.labourCharge ?? prev?.labourCharge ?? 0),
+        partsCharge: r2(dto.partsCharge ?? prev?.partsCharge ?? 0), otherCharges: r2(dto.otherCharges ?? prev?.otherCharges ?? 0),
+      };
+    const discount = r2(dto.discount ?? prev?.discount ?? 0);
+    const taxAmount = r2(dto.taxAmount ?? prev?.taxAmount ?? 0);
+    const gross = r2(charges.visitCharge + charges.labourCharge + charges.partsCharge + charges.otherCharges + taxAmount);
+    if (discount > gross + 0.001) throw new BadRequestException(`Discount quote (Rs ${gross}) se zyada nahi ho sakta`);
+
+    let customerName = blank(dto.customerName) ?? prev?.customerName;
+    let customerPhone = blank(dto.customerPhone) ?? prev?.customerPhone;
+    const customerId = dto.customerId ?? prev?.customerId ?? null;
+    if (dto.customerId) {
+      const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { name: true, phone: true } });
+      if (!c) throw new NotFoundException('Customer nahi mila');
+      customerName = customerName ?? c.name;
+      customerPhone = customerPhone ?? c.phone ?? undefined;
+    }
+    if (!customerName) throw new BadRequestException('Customer ka naam likhein');
+    let serviceName = blank(dto.serviceName) ?? prev?.serviceName;
+    if (dto.serviceId) {
+      const svc = await this.prisma.serviceCatalog.findFirst({ where: { id: dto.serviceId, tenantId: user.tenantId }, select: { name: true } });
+      if (!svc) throw new NotFoundException('Service nahi mili');
+      serviceName = serviceName ?? svc.name;
+    }
+    if (!serviceName) throw new BadRequestException('Kaam ka naam likhein');
+    const validUntil = dto.validUntil !== undefined ? (dto.validUntil ? new Date(dto.validUntil) : null) : prev?.validUntil ?? null;
+
+    return {
+      customerId, customerName, customerPhone: customerPhone ?? '', customerEmail: blank(dto.customerEmail) ?? prev?.customerEmail ?? null,
+      serviceId: dto.serviceId ?? prev?.serviceId ?? null, serviceName,
+      problemDescription: blank(dto.problemDescription) ?? prev?.problemDescription ?? serviceName,
+      siteVisitRequired: dto.siteVisitRequired ?? prev?.siteVisitRequired ?? false,
+      siteVisitCompleted: dto.siteVisitCompleted ?? prev?.siteVisitCompleted ?? false,
+      ...charges, discount, taxAmount, totalAmount: r2(Math.max(gross - discount, 0)),
+      ...(lines && { lineItems: lines as unknown as Prisma.InputJsonValue }),
+      validUntil,
+      termsConditions: dto.termsConditions !== undefined ? blank(dto.termsConditions) ?? null : prev?.termsConditions ?? null,
+      notes: dto.notes !== undefined ? blank(dto.notes) ?? null : prev?.notes ?? null,
+    };
+  }
+
+  async create(user: AuthenticatedUser, dto: UpsertQuoteDto) {
+    const data = await this.values(user, dto);
+    for (let attempt = 0; ; attempt++) {
+      const quoteNumber = await nextDocNumber(async (prefix) => (await this.prisma.serviceQuote.findFirst({
+        where: { tenantId: user.tenantId, quoteNumber: { startsWith: prefix } }, orderBy: { quoteNumber: 'desc' }, select: { quoteNumber: true },
+      }))?.quoteNumber, 'QT');
+      try {
+        const q = await this.prisma.serviceQuote.create({ data: { tenantId: user.tenantId, quoteNumber, status: 'DRAFT', createdById: user.id, ...data } });
+        return this.shape(q);
+      } catch (e) {
+        if (attempt < 3 && (e as { code?: string }).code === 'P2002') continue;
+        throw e;
+      }
+    }
+  }
+
+  async update(user: AuthenticatedUser, id: string, dto: UpsertQuoteDto) {
+    const q = await this.find(user, id);
+    if (!EDITABLE.includes(q.status)) throw new BadRequestException(`${q.quoteNumber} ${q.status === 'ACCEPTED' ? 'maan liya gaya' : 'band hai'} — badla nahi ja sakta`);
+    const data = await this.values(user, dto, q);
+    // A quote changed after sending goes back to the customer as revised.
+    const status: QuoteStatus = q.status === 'SENT' ? 'REVISED' : q.status;
+    return this.shape(await this.prisma.serviceQuote.update({ where: { id }, data: { ...data, status } }));
+  }
+
+  private shape(q: ServiceQuote) {
+    const expired = !!q.validUntil && q.validUntil.getTime() < Date.now() && EDITABLE.includes(q.status);
+    return { ...q, lines: this.linesOf(q), isExpired: expired };
+  }
+
+  async list(user: AuthenticatedUser, p: ListQuotesQuery) {
+    const now = new Date();
+    const view: Prisma.ServiceQuoteWhereInput =
+      p.view === 'open' ? { status: { in: EDITABLE }, convertedJobId: null, OR: [{ validUntil: null }, { validUntil: { gte: now } }] }
+        : p.view === 'draft' ? { status: 'DRAFT' }
+          : p.view === 'sent' ? { status: { in: ['SENT', 'REVISED'] } }
+            : p.view === 'accepted' ? { status: 'ACCEPTED', convertedJobId: null }
+              : p.view === 'converted' ? { convertedJobId: { not: null } }
+                : p.view === 'rejected' ? { status: 'REJECTED' }
+                  : p.view === 'expired' ? { status: { in: EDITABLE }, validUntil: { lt: now } }
+                    : {};
+    const s = p.search?.trim();
+    const rows = await this.prisma.serviceQuote.findMany({
       where: {
-        tenantId: user.tenantId,
-        ...(params.status && { status: params.status as any }),
-        ...(params.customerId && { customerId: params.customerId }),
-        ...(params.search && {
+        tenantId: user.tenantId, ...view,
+        ...(p.status && { status: p.status as QuoteStatus }),
+        ...(p.customerId && { customerId: p.customerId }),
+        ...(s && {
           OR: [
-            { quoteNumber: { contains: params.search, mode: 'insensitive' } },
-            { customerName: { contains: params.search, mode: 'insensitive' } },
-            { customerPhone: { contains: params.search } },
+            { quoteNumber: { contains: s, mode: 'insensitive' } },
+            { customerName: { contains: s, mode: 'insensitive' } },
+            { customerPhone: { contains: s } },
+            { serviceName: { contains: s, mode: 'insensitive' } },
           ],
         }),
       },
       orderBy: { createdAt: 'desc' },
-      take: 200,
+      take: 300,
     });
+    return rows.map((q) => this.shape(q));
   }
 
-  async getOne(user: AuthenticatedUser, id: string) {
+  private async find(user: AuthenticatedUser, id: string) {
     const q = await this.prisma.serviceQuote.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!q) throw new NotFoundException('Quote not found');
+    if (!q) throw new NotFoundException('Quote nahi mila');
     return q;
   }
 
+  async getOne(user: AuthenticatedUser, id: string) {
+    const q = await this.find(user, id);
+    const job = q.convertedJobId
+      ? await this.prisma.serviceJob.findFirst({ where: { id: q.convertedJobId, tenantId: user.tenantId }, select: { id: true, jobNumber: true, status: true } })
+      : null;
+    return { ...this.shape(q), job };
+  }
+
   async send(user: AuthenticatedUser, id: string) {
-    return this.prisma.serviceQuote.update({
-      where: { id, tenantId: user.tenantId },
-      data: { status: 'SENT', sentAt: new Date() },
-    });
+    const q = await this.find(user, id);
+    if (!EDITABLE.includes(q.status)) throw new BadRequestException('Ye quote bheja nahi ja sakta');
+    return this.shape(await this.prisma.serviceQuote.update({ where: { id }, data: { status: 'SENT', sentAt: new Date() } }));
   }
 
   async accept(user: AuthenticatedUser, id: string) {
-    return this.prisma.serviceQuote.update({
-      where: { id, tenantId: user.tenantId },
-      data: { status: 'ACCEPTED', acceptedAt: new Date(), respondedAt: new Date() },
-    });
+    const q = await this.find(user, id);
+    if (!EDITABLE.includes(q.status)) throw new BadRequestException(`${q.quoteNumber} pehle hi ${q.status === 'ACCEPTED' ? 'maan liya gaya' : 'band hai'}`);
+    const now = new Date();
+    return this.shape(await this.prisma.serviceQuote.update({ where: { id }, data: { status: 'ACCEPTED', acceptedAt: now, respondedAt: now } }));
   }
 
   async reject(user: AuthenticatedUser, id: string, reason?: string) {
-    return this.prisma.serviceQuote.update({
-      where: { id, tenantId: user.tenantId },
-      data: {
-        status: 'REJECTED',
-        rejectedAt: new Date(),
-        respondedAt: new Date(),
-        rejectionReason: reason,
-      },
-    });
+    const q = await this.find(user, id);
+    if (!EDITABLE.includes(q.status)) throw new BadRequestException('Ye quote band hai');
+    const now = new Date();
+    return this.shape(await this.prisma.serviceQuote.update({ where: { id }, data: { status: 'REJECTED', rejectedAt: now, respondedAt: now, rejectionReason: blank(reason) ?? null } }));
   }
 
-  async convertToJob(user: AuthenticatedUser, id: string) {
-    const q = await this.prisma.serviceQuote.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!q) throw new NotFoundException('Quote not found');
-    if (q.status !== 'ACCEPTED') throw new BadRequestException('Quote must be accepted first');
+  /**
+   * Turns the quote into a job card with the same charges; part lines
+   * become job parts (shelf parts leave stock when the job is billed).
+   * Converting an open quote also marks it accepted.
+   */
+  async convertToJob(user: AuthenticatedUser, id: string, dto: ConvertQuoteDto = {}) {
+    const q = await this.find(user, id);
     if (q.convertedJobId) throw new BadRequestException('Is quote ka job pehle hi ban chuka hai');
-
-    // Same numbering as new jobs: follow the last number so none repeats.
-    const prefix = `JOB-${new Date().getFullYear()}-`;
-    const last = await this.prisma.serviceJob.findFirst({
-      where: { tenantId: user.tenantId, jobNumber: { startsWith: prefix } },
-      orderBy: { jobNumber: 'desc' },
-      select: { jobNumber: true },
+    if (q.status === 'REJECTED' || q.status === 'EXPIRED') throw new BadRequestException('Mana kiya hua quote job nahi banta — naya quote banayein');
+    const lines = this.linesOf(q);
+    const parts = lines.filter((l) => l.kind === 'PART');
+    const job = await this.jobs.create(user, {
+      shopId: dto.shopId, customerId: q.customerId ?? undefined, customerName: q.customerName, customerPhone: q.customerPhone || undefined,
+      customerEmail: q.customerEmail ?? undefined, serviceId: q.serviceId ?? undefined, serviceName: q.serviceName,
+      problemDescription: q.problemDescription, scheduledStart: dto.scheduledStart, primaryTechnicianId: dto.primaryTechnicianId,
+      visitCharge: q.visitCharge, labourCharge: q.labourCharge, transportCharge: q.otherCharges, discountAmount: q.discount, taxAmount: q.taxAmount,
+      parts: parts.length
+        ? parts.map((p) => ({ productId: p.productId ?? undefined, partName: p.description, quantity: p.quantity, unitPrice: p.unitPrice }))
+        : q.partsCharge > 0 ? [{ partName: 'Parts (quote ke mutabiq)', quantity: 1, unitPrice: q.partsCharge }] : [],
+      internalNotes: `Quote ${q.quoteNumber} se`,
     });
-    const jobNumber = prefix + String((last ? Number(last.jobNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(5, '0');
-
-    const job = await this.prisma.serviceJob.create({
-      data: {
-        tenantId: user.tenantId,
-        jobNumber,
-        customerId: q.customerId,
-        customerName: q.customerName,
-        customerPhone: q.customerPhone,
-        customerEmail: q.customerEmail,
-        serviceId: q.serviceId,
-        serviceName: q.serviceName,
-        problemDescription: q.problemDescription || q.serviceName,
-        status: 'CONFIRMED',
-        // Other charges on the quote travel as transport/other on the job.
-        transportCharge: q.otherCharges || 0,
-        labourCharge: q.labourCharge,
-        partsCharge: q.partsCharge,
-        visitCharge: q.visitCharge,
-        discountAmount: q.discount,
-        taxAmount: q.taxAmount,
-        totalCharge: q.totalAmount,
-        createdById: user.id,
-      },
-    });
-
+    const now = new Date();
     await this.prisma.serviceQuote.update({
       where: { id },
-      data: { convertedJobId: job.id },
+      data: { convertedJobId: job.id, ...(q.status !== 'ACCEPTED' && { status: 'ACCEPTED', acceptedAt: now, respondedAt: now }) },
     });
-
     return job;
   }
 }

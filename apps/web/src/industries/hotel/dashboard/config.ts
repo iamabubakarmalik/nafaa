@@ -24,7 +24,7 @@ function useHotelActions(): QuickAction[] {
     { to: '/hotel/rooms', icon: Home, label: 'Kamre', hint: `${rooms.occupied}/${rooms.total} bhare` },
     { to: '/hotel/housekeeping', icon: Sparkle, label: 'Housekeeping', hint: pendingHK ? `${pendingHK} kaam` : 'Sab saaf' },
     { to: '/hotel/guests', icon: Users, label: 'Mehmaan', hint: `${guests.inHouse} andar` },
-    { to: '/hotel/room-types', icon: Bed, label: 'Room types', hint: `${s?.totalProducts ?? 0} qisam` },
+    { to: '/hotel/room-types', icon: Bed, label: 'Room types', hint: 'Rate aur room' },
     { to: '/hotel-room-types/new', icon: Plus, label: 'Naya room type', hint: 'Rate aur sahulat' },
     { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Extras aur F&B' },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },

@@ -63,25 +63,36 @@ export interface MeatProductProfile {
   imageUrls: string[];
   descriptionLong?: string;
   cookingSuggestions?: string;
-  nutritionInfo?: any;
+  nutritionInfo?: unknown;
   isPopular: boolean;
   isFeatured: boolean;
   isNewArrival: boolean;
   isOnSale: boolean;
   totalSoldKg: number;
   totalRevenue: number;
-  product?: any;
+  product?: { id: string; name: string; price: number; unit: string } | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DaySheetRow {
+  productId: string; name: string; unit: string; animalType: string | null; cutCategory: string | null;
+  price: number; wholesalePrice: number | null; costPrice: number;
+  opening: number; bought: number; madeIn: number; returned: number; sold: number; cutOut: number; waste: number; otherIn: number; otherOut: number;
+  closing: number; closingValue: number; now: number;
+}
+
+export interface DaySheet {
+  date: string;
+  rows: DaySheetRow[];
+  totals: { bought: number; madeIn: number; sold: number; cutOut: number; waste: number; closing: number; closingValue: number } | null;
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const meatProductsApi = {
   upsert: (data: Partial<MeatProductProfile>) => apiClient.post('/meat/products', data).then(unwrap<MeatProductProfile>),
-  list: (params?: any) => apiClient.get('/meat/products', { params }).then(unwrap<MeatProductProfile[]>),
+  list: (params?: Record<string, string | undefined>) => apiClient.get('/meat/products', { params }).then(unwrap<MeatProductProfile[]>),
   byProduct: (productId: string) => apiClient.get('/meat/products/by-product/' + productId).then(unwrap<MeatProductProfile | null>),
-  getOne: (id: string) => apiClient.get('/meat/products/' + id).then(unwrap<MeatProductProfile>),
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/meat/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
+  daySheet: (date?: string) => apiClient.get('/meat/products/day-sheet', { params: { date } }).then(unwrap<DaySheet>),
 };
