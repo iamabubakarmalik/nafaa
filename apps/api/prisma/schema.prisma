@@ -1873,6 +1873,10 @@ model Expense {
   // Bill / receipt ki tasveer — pehle UI me option tha lekin
   // column na hone ki wajah se kabhi save nahi hoti thi
   attachmentUrl String?
+  // The record that raised this expense, e.g. sourceType "GYM_TRAINER_PAYOUT"
+  // with the trainer id. Null for expenses entered by hand.
+  sourceType    String?
+  sourceId      String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -1887,6 +1891,7 @@ model Expense {
   @@index([categoryId])
   @@index([shopId])
   @@index([tenantId, shopId])
+  @@index([tenantId, sourceType, sourceId])
 }
 
 model CashRegister {
@@ -3062,6 +3067,12 @@ model EmiPlan {
 
   status EmiPlanStatus @default(ACTIVE)
   notes  String?       @db.Text
+
+  // Guarantor (zamin) for the plan
+  guarantorName    String?
+  guarantorPhone   String?
+  guarantorCnic    String?
+  guarantorAddress String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -10058,6 +10069,25 @@ model DairyFarmerSupply {
   @@index([supplyDate])
 }
 
+// ─── Payments to Farmers (cash, bank, JazzCash) ───
+model DairyFarmerPayment {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  farmerId  String
+  amount    Float
+  method    String
+  reference String?
+  note      String?
+
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([farmerId])
+}
+
 // ─── Delivery Routes ───
 model DairyRoute {
   id       String  @id @default(uuid())
@@ -11140,8 +11170,9 @@ model HotelRoomType {
 
 // ─── Individual Rooms ───
 model HotelRoom {
-  id         String @id @default(uuid())
+  id         String  @id @default(uuid())
   tenantId   String
+  shopId     String?
   roomTypeId String
 
   roomNumber String
@@ -11177,6 +11208,7 @@ model HotelRoom {
   @@index([tenantId])
   @@index([tenantId, status])
   @@index([roomTypeId])
+  @@index([shopId])
 }
 
 // ─── Guest Master ───
@@ -11270,6 +11302,8 @@ model HotelBooking {
 
   // Guest
   primaryGuestId String?
+  // Khata the stay is billed to, e.g. a company account, set at booking time
+  customerId     String?
   guestName      String
   guestPhone     String
   guestEmail     String?
@@ -11337,6 +11371,7 @@ model HotelBooking {
   @@index([tenantId])
   @@index([tenantId, status])
   @@index([primaryGuestId])
+  @@index([customerId])
   @@index([checkInDate])
   @@index([checkOutDate])
 }
@@ -11393,6 +11428,12 @@ model HotelFolioCharge {
   reference  String?
   postedById String?
 
+  // Stock item charges (minibar, food): the product, its cost at posting
+  // time and the branch whose stock was used.
+  productId String?
+  unitCost  Float?
+  shopId    String?
+
   isVoid     Boolean   @default(false)
   voidedAt   DateTime?
   voidReason String?
@@ -11405,6 +11446,28 @@ model HotelFolioCharge {
 
   @@index([bookingId])
   @@index([chargeDate])
+}
+
+// ─── Night Audit (day close) ───
+// One row per closed business day and branch. businessDate is the
+// Pakistan calendar day, stored as a plain date.
+model HotelNightAudit {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  businessDate  DateTime @db.Date
+  occupiedRooms Int      @default(0)
+  revenue       Float    @default(0)
+  roomRevenue   Float    @default(0)
+  adr           Float    @default(0)
+  occupancyPct  Float    @default(0)
+  notes         String?
+
+  closedById String?
+  createdAt  DateTime @default(now())
+
+  @@unique([tenantId, shopId, businessDate])
 }
 
 // ─── Housekeeping Task ───
@@ -12268,6 +12331,19 @@ enum BodyMeasurementType {
   RESTING_HEART_RATE
 }
 
+enum GymLockerStatus {
+  FREE
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum GymPersonalTrainingPackageStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
 // ─── Gym Member Profile (extends Customer) ───
 model GymMember {
   id         String  @id @default(uuid())
@@ -12438,6 +12514,7 @@ model GymMemberMembership {
   paidAmount    Float  @default(0)
   balanceDue    Float  @default(0)
   paymentStatus String @default("UNPAID")
+  saleId        String?
 
   // Usage
   visitsUsed      Int  @default(0)
@@ -12477,6 +12554,7 @@ model GymMemberMembership {
   @@index([memberId])
   @@index([tenantId, status])
   @@index([endDate])
+  @@index([saleId])
 }
 
 // ─── Trainers ───
@@ -12611,8 +12689,9 @@ model GymClassBooking {
   cancelledAt        DateTime?
   cancellationReason String?
 
-  price      Float @default(0)
-  paidAmount Float @default(0)
+  price      Float   @default(0)
+  paidAmount Float   @default(0)
+  saleId     String?
 
   attended Boolean @default(false)
   rating   Int?
@@ -12627,6 +12706,7 @@ model GymClassBooking {
   @@unique([classId, memberId])
   @@index([tenantId])
   @@index([memberId])
+  @@index([saleId])
 }
 
 // ─── Personal Training Sessions ───
@@ -12659,6 +12739,7 @@ model GymPersonalTraining {
   paidAmount       Float   @default(0)
   isFromPackage    Boolean @default(false)
   commissionAmount Float   @default(0)
+  saleId           String?
 
   // Feedback
   memberRating   Int?
@@ -12674,6 +12755,60 @@ model GymPersonalTraining {
   @@index([tenantId])
   @@index([memberId])
   @@index([trainerId])
+  @@index([saleId])
+}
+
+// ─── Personal Training Packages (a block of sessions sold together) ───
+model GymPersonalTrainingPackage {
+  id        String  @id @default(uuid())
+  tenantId  String
+  shopId    String?
+  memberId  String
+  trainerId String?
+
+  packageNumber String
+  sessionsTotal Int
+  sessionsUsed  Int    @default(0)
+  price         Float
+  saleId        String?
+
+  status    GymPersonalTrainingPackageStatus @default(ACTIVE)
+  startDate DateTime                         @default(now())
+  endDate   DateTime?
+
+  notes       String?
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, packageNumber])
+  @@index([tenantId])
+  @@index([memberId])
+  @@index([trainerId])
+  @@index([saleId])
+}
+
+// ─── Lockers ───
+model GymLocker {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  number      String
+  memberId    String?
+  monthlyRent Float
+  startDate   DateTime?
+  endDate     DateTime?
+  status      GymLockerStatus @default(FREE)
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  @@index([memberId])
 }
 
 // ─── Attendance / Check-in ───
@@ -12752,6 +12887,8 @@ model GymBodyMeasurement {
 
   notes String? @db.Text
 
+  isVoided Boolean @default(false)
+
   createdAt DateTime @default(now())
 
   member GymMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
@@ -12782,6 +12919,8 @@ model GymWorkoutSession {
 
   notes        String? @db.Text
   memberRating Int?
+
+  isVoided Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -14131,6 +14270,8 @@ model ServiceJob {
   taxAmount       Float  @default(0)
   totalCharge     Float  @default(0)
   paidAmount      Float  @default(0)
+  // Refunded through returns on the job's bill; due = total - paid - returned
+  returnedAmount  Float  @default(0)
   paymentStatus   String @default("UNPAID")
 
   // Advance
@@ -14203,6 +14344,11 @@ model ServiceJobPart {
   unitPrice  Float   @default(0)
   costPrice  Float   @default(0)
   total      Float   @default(0)
+
+  // Returned from this line, so a returned part is taken out of this line
+  // only and not out of the technician's labour commission.
+  returnedQty    Float @default(0)
+  returnedAmount Float @default(0)
 
   isCustomerSupplied Boolean @default(false)
   isUnderWarranty    Boolean @default(false)
@@ -18091,6 +18237,8 @@ model ApplianceProductProfile {
   compressorWarrantyMonths Int?
   motorWarrantyMonths      Int?
   warrantyType             String?
+  // Extra warranty the shop gives on top of the company's
+  shopWarrantyMonths       Int?
 
   // Installation
   requiresInstallation  Boolean @default(true)
@@ -18143,8 +18291,9 @@ model ApplianceProductProfile {
 }
 
 model ApplianceSerialTracking {
-  id        String @id @default(uuid())
+  id        String  @id @default(uuid())
   tenantId  String
+  shopId    String?
   productId String
 
   serialNumber    String
@@ -18193,6 +18342,41 @@ model ApplianceSerialTracking {
   @@unique([tenantId, serialNumber])
   @@index([tenantId])
   @@index([productId])
+  @@index([shopId])
+}
+
+enum ApplianceTradeInStatus {
+  HELD
+  SOLD
+  SCRAPPED
+  RETURNED
+}
+
+// ─── Old appliances taken in trade against a new sale ───
+model ApplianceTradeIn {
+  id       String  @id @default(uuid())
+  tenantId String
+  shopId   String?
+
+  code        String
+  description String
+  brand       String?
+  model       String?
+  condition   String?
+  value       Float
+  status      ApplianceTradeInStatus @default(HELD)
+
+  saleId      String?
+  customerId  String?
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([saleId])
+  @@index([customerId])
 }
 
 model ApplianceInstallation {
