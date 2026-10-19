@@ -3,8 +3,9 @@
  * memberships, hotel stays, service jobs, gaming sessions) into the books.
  *
  * These records are services, not stocked products, so they cannot go
- * through the POS sale engine. Each finished bill becomes a Sale with
- * product-less lines (same pattern as mobile repair delivery), so it shows
+ * through the POS sale engine. Each finished bill becomes a Sale whose
+ * lines are product-less unless the caller names the product a line sold
+ * (same pattern as mobile repair delivery), so it shows
  * in the day book, cash register, profit and every sales report. Money
  * taken before the bill is final is held on the customer's khata as an
  * advance and is used up when the bill is posted: the unpaid part of the
@@ -42,6 +43,13 @@ export interface IndustrySaleLine {
   /** Shop's own cost for this line (product used, rider, etc.). */
   cost?: number;
   quantity?: number;
+  /**
+   * The catalog product this line sold, so it shows in product reports and a
+   * return can put it back on the shelf. The helper never moves stock: the
+   * caller has already taken it. A void puts it back like any bill line.
+   */
+  productId?: string | null;
+  variantId?: string | null;
 }
 
 export interface IndustrySaleInput {
@@ -186,12 +194,13 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
         create: lines.map((l) => {
           const qty = Number(l.quantity) > 0 ? Number(l.quantity) : 1;
           return {
-            productId: null,
+            productId: l.productId || null,
             quantity: qty,
             price: r2(r2(l.amount) / qty),
             costPrice: r2(r2(l.cost ?? 0) / qty),
             total: r2(l.amount),
             note: l.label,
+            ...(l.productId && l.variantId && { variantLink: { create: { variantId: l.variantId } } }),
           };
         }),
       },

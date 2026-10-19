@@ -83,6 +83,42 @@ export async function loadExtensions(prisma: PrismaService, tenantId: string, sh
   };
 }
 
+type Fitment = { makeName?: string | null; modelName?: string | null; yearFrom?: number | null; yearTo?: number | null };
+
+/**
+ * Extra words the text search matches per product, from industry profiles:
+ * part, OEM and alternate numbers plus fitment ("Toyota Corolla 2014-2020")
+ * for auto parts; generic (salt) names and schedule for medicines. Loaded only
+ * when there is a search term.
+ */
+export async function loadSearchWords(prisma: PrismaService, tenantId: string): Promise<Map<string, string>> {
+  const [parts, salts, medicines] = await Promise.all([
+    prisma.autoPartProfile.findMany({
+      where: { tenantId },
+      select: { productId: true, partNumber: true, oemNumber: true, alternateNumbers: true, compatibility: true },
+    }),
+    prisma.productSalt.findMany({
+      where: { product: { tenantId } },
+      select: { productId: true, salt: { select: { name: true, genericName: true } } },
+    }),
+    prisma.pharmacyMedicine.findMany({ where: { tenantId }, select: { productId: true, scheduleClass: true } }),
+  ]);
+  const words = new Map<string, string[]>();
+  const add = (id: string, ...w: Array<string | null | undefined>) => {
+    const clean = w.filter((x): x is string => !!x && !!x.trim());
+    if (clean.length) words.set(id, [...(words.get(id) ?? []), ...clean]);
+  };
+  for (const p of parts) {
+    const c = p.compatibility as { fitments?: Fitment[] } | Fitment[] | null;
+    const fits: Fitment[] = Array.isArray(c) ? c : Array.isArray(c?.fitments) ? c.fitments : [];
+    add(p.productId, p.partNumber, p.oemNumber, ...p.alternateNumbers,
+      ...fits.map((f) => [f.makeName, f.modelName, f.yearFrom && f.yearTo ? `${f.yearFrom}-${f.yearTo}` : f.yearFrom ?? f.yearTo ?? null].filter(Boolean).join(' ')));
+  }
+  for (const s of salts) add(s.productId, s.salt.name, s.salt.genericName);
+  for (const m of medicines) add(m.productId, m.scheduleClass);
+  return new Map([...words].map(([id, w]) => [id, w.join(' ').toLowerCase()]));
+}
+
 /** Industry filters accepted by the catalog. Each narrows to products whose profile matches. */
 export interface ExtensionQuery {
   tagId?: string;

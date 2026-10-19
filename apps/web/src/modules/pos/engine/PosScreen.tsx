@@ -355,7 +355,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
                       {e.filtered.slice(0, e.visible).map((it) => {
                         const Item = layout === 'grid' ? PosItemCard : PosItemRow;
                         return (
-                          <Item key={it.id} name={it.name} image={it.image} price={it.price} unit={it.unit} stock={it.stock}
+                          <Item key={it.id} name={it.name} image={it.image} price={it.price} unit={it.unit} stock={it.meta?.service ? undefined : it.stock}
                             lowStock={it.lowStock} inCart={e.inCartBy.get(it.id) ?? 0} featured={it.featured} badges={it.badges}
                             subline={it.subline} dim={it.dim} hidePrices={hidePrices}
                             fallback={config.cardFallback?.(it) ?? <span>{productEmoji(it.name, it.categoryName)}</span>}
@@ -411,7 +411,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
             delivery={e.delivery} onDeliveryChange={e.setDelivery} deliveryFee={e.deliveryFee} hidePrices={hidePrices}
             customers={e.customers} customerId={e.customerId} setCustomerId={e.setCustomerId} selectedCustomer={e.selectedCustomer}
             onAddCustomer={() => setNewCustomer({ name: '', phone: '' })} receiver={e.receiver} onReceiverChange={e.setReceiver}
-            customerExtra={<>{CartExtra && <CartExtra />}<PosSellerPicker value={e.soldById} onChange={e.setSoldById} compact /></>}
+            customerExtra={<>{CartExtra && <CartExtra customerId={e.customerId} />}<PosSellerPicker value={e.soldById} onChange={e.setSoldById} compact /></>}
             onHold={e.hold} onClear={() => { if (confirm('Bill khaali karein?')) e.clearCart(); }}
             onChangeQty={e.changeQty} onSetQty={e.setQty} onRemove={e.removeLine}
             priceEditId={e.priceEditId} onStartPriceEdit={e.setPriceEditId} onSetPrice={e.setPrice}

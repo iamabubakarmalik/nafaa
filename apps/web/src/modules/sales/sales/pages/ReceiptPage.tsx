@@ -86,11 +86,13 @@ export default function ReceiptPage() {
   const doc = data?.doc;
   const sale = data?.sale;
 
-  const voided = sale?.status === 'VOIDED';
   const offline = doc?.stamp === 'OFFLINE';
   const isJewelry = !!sale?.invoiceNumber && !sale?.saleNumber;
+  // A jewelry receipt is the jewelry row; its bill is the linked sale, and a voided bill shows as CANCELLED.
+  const billId: string | undefined = isJewelry ? sale?.saleId ?? undefined : sale?.id;
+  const voided = sale?.status === 'VOIDED' || (isJewelry && sale?.status === 'CANCELLED');
   const mayReturn = !!sale && !isJewelry && !voided && !offline && canReturn;
-  const mayVoid = !!sale && !isJewelry && !voided && !offline && canVoid;
+  const mayVoid = !!billId && !voided && !offline && canVoid;
 
   const print = (p: ReceiptPaper = shownPaper) => {
     if (!doc) return;
@@ -263,7 +265,7 @@ export default function ReceiptPage() {
         />
       )}
       {returning && <ReturnModal sale={sale} onClose={() => setReturning(false)} onDone={() => { setReturning(false); refresh(); }} />}
-      {voiding && <VoidModal id={sale.id} onClose={() => setVoiding(false)} onDone={() => { setVoiding(false); refresh(); }} />}
+      {voiding && billId && <VoidModal id={billId} onClose={() => setVoiding(false)} onDone={() => { setVoiding(false); refresh(); }} />}
     </PageShell>
   );
 }

@@ -11,12 +11,12 @@ import { VitalsService } from './vitals.service';
 @ApiTags('Clinic - Vitals')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_VIEW)
+@RequirePermissions(PERMISSIONS.CLINIC_RECORDS_VIEW)
 @Controller('clinic/vitals')
 export class VitalsController {
   constructor(private readonly service: VitalsService) {}
 
-  @Post('appointment/:appointmentId') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post('appointment/:appointmentId') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   record(@GetUser() user: AuthenticatedUser, @Param('appointmentId') appointmentId: string, @Body() dto: any) {
     return this.service.record(user, appointmentId, dto);
   }

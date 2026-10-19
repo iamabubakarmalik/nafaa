@@ -77,13 +77,10 @@ async function restaurant(sale: any, doc: ReceiptDoc, actions: ReceiptAction[], 
 
 async function salon(sale: any, doc: ReceiptDoc) {
   const { appointmentsApi } = await import('@industries/salon/api/appointments.api');
-  const apt = list(await safe(appointmentsApi.list({}))).find((a) => a.saleId === sale.id);
+  // The stylist is already in each line's note, so only the appointment number is added.
+  const apt = list(await safe(appointmentsApi.list({ saleId: sale.id })))[0];
   if (!apt) return;
   addInfo(doc, [{ label: 'Appointment', value: apt.appointmentNumber }]);
-  addDetails(doc, sale, (it) => {
-    const s = list(apt.services).find((x) => x.serviceId === it.product?.id || x.serviceId === it.productId);
-    return [s?.staffName ? `Kaam kiya: ${s.staffName}` : ''];
-  });
   note(doc, 'Agli dafa ke liye pehle se waqt le lein.');
 }
 

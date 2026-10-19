@@ -100,7 +100,7 @@ export default function VaccinationsPage() {
   const qc = useQueryClient();
   const guide = usePageGuide();
   const [params] = useSearchParams();
-  const canManage = usePermission(PERMISSIONS.SERVICE_BOOKINGS_MANAGE);
+  const canManage = usePermission(PERMISSIONS.CLINIC_RECORDS_MANAGE);
   const searchRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<Tab>('OVERDUE');
   const [search, setSearch] = useState('');

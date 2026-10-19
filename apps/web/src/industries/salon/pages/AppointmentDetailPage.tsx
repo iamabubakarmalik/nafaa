@@ -137,7 +137,7 @@ export default function AppointmentDetailPage() {
                 {can.book && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="secondary" leftIcon={<UserCheck className="h-4 w-4" />} onClick={() => act.arrived(a)} disabled={act.busy}>Customer aa gaye</Button>}
                 {can.book && (a.status === 'ARRIVED' || a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="secondary" leftIcon={<Armchair className="h-4 w-4" />} onClick={() => act.start(a)} disabled={act.busy}>Chair par — kaam shuru</Button>}
                 {can.bill && <Button leftIcon={<Receipt className="h-4 w-4" />} onClick={() => act.bill(a)}>Kaam ho gaya — bill banayein</Button>}
-                {can.book && due > 0 && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => act.pay(a)}>Advance lein</Button>}
+                {can.bill && due > 0 && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => act.pay(a)}>Advance lein</Button>}
                 {can.book && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="ghost" leftIcon={<CalendarClock className="h-4 w-4" />} onClick={() => act.move(a)}>Waqt badlein</Button>}
                 {can.book && lateBy(a) > 0 && <Button variant="ghost" leftIcon={<UserX className="h-4 w-4" />} onClick={() => act.noShow(a)}>Nahi aaye (no-show)</Button>}
                 {can.book && <Button variant="critical" leftIcon={<X className="h-4 w-4" />} onClick={() => act.cancel(a)}>Cancel</Button>}

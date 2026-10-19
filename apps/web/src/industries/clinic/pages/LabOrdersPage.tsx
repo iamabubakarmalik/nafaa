@@ -35,7 +35,7 @@ export default function LabOrdersPage() {
   const qc = useQueryClient();
   const guide = usePageGuide();
   const { sales: money } = useMasked();
-  const canManage = usePermission(PERMISSIONS.SERVICE_BOOKINGS_MANAGE);
+  const canManage = usePermission(PERMISSIONS.CLINIC_RECORDS_MANAGE);
   const canBill = usePermission(PERMISSIONS.POS_USE);
   const searchRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<Tab>('PENDING');

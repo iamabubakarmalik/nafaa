@@ -1,6 +1,7 @@
 /**
  * Picks the POS for the current industry. Retail, Bakery, Electronics,
- * Pharmacy, Mobile and businesses without an industry run on the shared POS engine
+ * Pharmacy, Mobile, Garments, Clinic, Jewelry, Hardware, Auto parts, Sports,
+ * Toy store and businesses without an industry run on the shared POS engine
  * (modules/pos/engine); the rest still use their own pages until their
  * industry flow is rebuilt.
  */
@@ -19,7 +20,7 @@ const ClinicPosPage = lazy(() => import('@industries/clinic/pages/ClinicPosPage'
 const ServicesBizPosPage = lazy(() => import('@industries/services-biz/pages/ServicesBizPosPage'));
 const PharmacyPos = lazy(() => import('@industries/pharmacy/pos/PharmacyPos'));
 const JewelryPosPage = lazy(() => import('@industries/jewelry/pages/JewelryPosPage'));
-const HardwarePosPage = lazy(() => import('@industries/hardware/pages/HardwarePosPage'));
+const HardwarePos = lazy(() => import('@industries/hardware/pos/HardwarePos'));
 const DairyPosPage = lazy(() => import('@industries/dairy/pages/DairyPosPage'));
 const MeatPosPage = lazy(() => import('@industries/meat/pages/MeatPosPage'));
 const AgriPosPage = lazy(() => import('@industries/agri/pages/AgriPosPage'));
@@ -63,7 +64,7 @@ export default function PosGate() {
   if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizPosPage /></Suspense>;
   if (industry?.id === 'pharmacy') return <Suspense fallback={<Loader />}><PharmacyPos /></Suspense>;
   if (industry?.id === 'jewelry') return <Suspense fallback={<Loader />}><JewelryPosPage /></Suspense>;
-  if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwarePosPage /></Suspense>;
+  if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwarePos /></Suspense>;
   if (industry?.id === 'dairy') return <Suspense fallback={<Loader />}><DairyPosPage /></Suspense>;
   if (industry?.id === 'meat') return <Suspense fallback={<Loader />}><MeatPosPage /></Suspense>;
   if (industry?.id === 'agri') return <Suspense fallback={<Loader />}><AgriPosPage /></Suspense>;

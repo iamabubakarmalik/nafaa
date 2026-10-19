@@ -448,6 +448,13 @@ export function usePosEngine(config: PosIndustryConfig) {
   };
 
   /* ── Line edits ── */
+  /** The line at a new quantity, with the industry's rate for that quantity when it has one. */
+  const atQty = (l: PosCartLine, quantity: number, baseQuantity: number): PosCartLine => {
+    const item = l.type === 'product' && l.productId ? itemsById.get(l.productId) : undefined;
+    const next = item ? config.repriceLine?.({ ...l, quantity, baseQuantity }, item) : undefined;
+    const unitPrice = next !== undefined && next >= 0 ? next : l.unitPrice;
+    return { ...l, quantity, baseQuantity, unitPrice, lineTotal: quantity * unitPrice };
+  };
   const changeQty = (id: string, delta: number) => setCart((prev) => prev.flatMap((l) => {
     if (l.id !== id) return [l];
     if (l.lockQty && delta > 0) { toast.error('Serial / IMEI wala item — ek hi'); return [l]; }
@@ -455,7 +462,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (nq <= 0) return [];
     const nb = nq * l.conversionRate;
     if (l.type === 'product' && nb > l.baseStock) { toast.error(`Stock sirf ${l.baseStock} ${l.baseUnit}`); return [l]; }
-    return [{ ...l, quantity: nq, baseQuantity: nb, lineTotal: nq * l.unitPrice }];
+    return [atQty(l, nq, nb)];
   }));
   const setQty = (id: string, qty: number) => setCart((prev) => prev.flatMap((l) => {
     if (l.id !== id) return [l];
@@ -463,7 +470,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (l.lockQty && qty > 1) { toast.error('Serial / IMEI wala item — ek hi'); return [l]; }
     const nb = qty * l.conversionRate;
     if (l.type === 'product' && nb > l.baseStock) { toast.error(`Stock sirf ${l.baseStock} ${l.baseUnit}`); return [l]; }
-    return [{ ...l, quantity: qty, baseQuantity: nb, lineTotal: qty * l.unitPrice }];
+    return [atQty(l, qty, nb)];
   }));
   const setPrice = (id: string, price: number) => {
     setCart((prev) => prev.map((l) => (l.id === id ? { ...l, unitPrice: Math.max(price, 0), lineTotal: l.quantity * Math.max(price, 0) } : l)));

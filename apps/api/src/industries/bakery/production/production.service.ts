@@ -12,7 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope, applyStockDelta, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
-import { CLOSED_ORDER, DAY_MS, SOLD_STATUSES, isDayKey, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withNextNumber, writeShopId } from '../bakery-common';
+import { CLOSED_ORDER, DAY_MS, SOLD_STATUSES, isDayKey, planNumbers, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withNextNumber, writeShopId } from '../bakery-common';
 
 export interface PlanItemInput {
   productId?: string;
@@ -88,7 +88,7 @@ export class ProductionService {
           items: { create: items.map((it, idx) => ({ ...it, displayOrder: idx })) },
         },
         include: { items: { orderBy: { displayOrder: 'asc' } } },
-      }),
+      }).then(planNumbers),
     );
   }
 
@@ -106,7 +106,7 @@ export class ProductionService {
       include: { items: { orderBy: { displayOrder: 'asc' } } },
       orderBy: { planDate: 'desc' },
       take: 200,
-    });
+    }).then((plans) => plans.map(planNumbers));
   }
 
   /** Plans of the current business day in the shop's own timezone. */
@@ -116,7 +116,7 @@ export class ProductionService {
       where: { tenantId: user.tenantId, ...scope.whereLoose, planDate: { gte: day.gte, lt: day.lt } },
       include: { items: { orderBy: { displayOrder: 'asc' } } },
       orderBy: { createdAt: 'desc' },
-    });
+    }).then((plans) => plans.map(planNumbers));
   }
 
   async getPlan(user: AuthenticatedUser, id: string) {
@@ -342,7 +342,7 @@ export class ProductionService {
         },
       });
       await tx.bakeryProductionPlan.updateMany({ where: { id: plan.id, status: 'PLANNED' }, data: { status: 'IN_PROGRESS', startedAt: new Date() } });
-      return tx.bakeryProductionItem.findUniqueOrThrow({ where: { id: item.id } });
+      return qtyNumbers(await tx.bakeryProductionItem.findUniqueOrThrow({ where: { id: item.id } }));
     });
 
     return { ...result, warnings, stockAdded: shopId ? produced : 0 };
@@ -388,11 +388,11 @@ export class ProductionService {
       this.prisma.bakeryProductionItem.findMany({
         where: { plan: { tenantId: user.tenantId, ...scope.whereLoose, planDate: day }, status: { not: 'FAILED' } },
         select: { productId: true, plannedQty: true, producedQty: true, status: true },
-      }),
+      }).then((rows) => rows.map(qtyNumbers)),
       this.prisma.bakeryFreshnessLog.findMany({
         where: { tenantId: user.tenantId, ...scope.whereLoose, status: { in: ['FRESH', 'DAY_OLD', 'NEAR_EXPIRY'] }, currentQty: { gt: 0 }, bestBefore: { gte: new Date(dayStart.getTime() + 12 * 3_600_000) } },
         select: { productId: true, currentQty: true },
-      }),
+      }).then((rows) => rows.map(qtyNumbers)),
       this.prisma.bakeryFreshnessLog.groupBy({
         by: ['productId'],
         where: { tenantId: user.tenantId, ...scope.whereLoose, productionDate: { gte: histFrom, lt: dayStart } },
@@ -486,7 +486,7 @@ export class ProductionService {
       where: { tenantId: user.tenantId, ...scope.whereLoose, planDate: { gte: range.gte, lt: range.lt } },
       select: { id: true, planDate: true, shift: true, status: true, items: { select: { productId: true, productName: true, plannedQty: true, producedQty: true, failedQty: true, status: true, totalCost: true, bakerName: true, bakingDurationMin: true } } },
       take: 2000,
-    });
+    }).then((rows) => rows.map(planNumbers));
 
     type Agg = { planned: number; produced: number; failed: number };
     const zero = (): Agg => ({ planned: 0, produced: 0, failed: 0 });
@@ -563,7 +563,7 @@ export class ProductionService {
       include: { items: { orderBy: { displayOrder: 'asc' } } },
     });
     if (!plan) throw new NotFoundException('Plan nahi mila');
-    return plan;
+    return planNumbers(plan);
   }
 
   private async mustItem(user: AuthenticatedUser, itemId: string) {
@@ -572,6 +572,6 @@ export class ProductionService {
       include: { plan: { select: { id: true, planNumber: true, shopId: true, status: true } } },
     });
     if (!item) throw new NotFoundException('Plan ki cheez nahi mili');
-    return item;
+    return qtyNumbers(item);
   }
 }

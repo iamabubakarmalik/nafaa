@@ -33,7 +33,7 @@ export class PatientsController {
   @Get('by-mrn/:mrn') byMrn(@GetUser() user: AuthenticatedUser, @Param('mrn') mrn: string) { return this.service.byMrn(user, mrn); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
 
-  @Get(':id/history') @RequirePermissions(PERMISSIONS.CUSTOMERS_VIEW, PERMISSIONS.SERVICE_BOOKINGS_VIEW)
+  @Get(':id/history') @RequirePermissions(PERMISSIONS.CUSTOMERS_VIEW, PERMISSIONS.CLINIC_RECORDS_VIEW)
   history(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.history(user, id); }
 
   @Patch(':id') @RequirePermissions(PERMISSIONS.CUSTOMERS_EDIT)

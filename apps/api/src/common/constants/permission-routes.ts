@@ -79,6 +79,24 @@ export const ROUTE_RULES: RouteRule[] = [
   /* Retail reorder list: reading is the low-stock view, acting on it is buying. */
   { match: /^retail\/reorder(\/|$)/, GET: P.LOW_STOCK_VIEW, write: P.PURCHASES_CREATE },
 
+  /* Salon. Placed before the general staff, commission and bookings rules. Bills,
+     checkout, advances and package or membership sales take money at the counter;
+     services, plans and packages are catalog setup; stylist setup is staff work. */
+  { match: /^salon\/bills(\/|$)/, GET: P.POS_USE, POST: P.POS_USE },
+  { match: /^salon\/appointments\/[^/]+\/(checkout|payments)$/, POST: P.POS_USE },
+  { match: /^salon\/(memberships\/subscribe|packages\/purchase|memberships\/[^/]+\/cancel|packages\/purchases\/[^/]+\/cancel)$/, POST: P.POS_USE },
+  { match: /^salon\/(memberships|packages)(\/|$)/, GET: [P.POS_USE, P.PRODUCTS_VIEW, P.CUSTOMERS_VIEW], write: P.PRODUCTS_EDIT },
+  { match: /^salon\/services(\/|$)/, GET: [P.PRODUCTS_VIEW, P.POS_USE, P.SERVICE_BOOKINGS_VIEW], POST: P.PRODUCTS_CREATE, PATCH: P.PRODUCTS_EDIT, DELETE: P.PRODUCTS_DELETE },
+  { match: /^salon\/staff-profiles\/commission$/, GET: [P.COMMISSION_VIEW, P.COMMISSION_MANAGE] },
+  { match: /^salon\/staff-profiles(\/|$)/, GET: [P.STAFF_VIEW, P.POS_USE, P.SERVICE_BOOKINGS_VIEW], write: P.STAFF_MANAGE },
+  { match: /^salon\/customer-profiles(\/|$)/, GET: P.CUSTOMERS_VIEW, write: P.CUSTOMERS_EDIT },
+
+  /* Auto parts. Vehicles and reminders are customer records, part details and
+     makes/models are catalog data, mechanics are staff seen from the job board. */
+  { match: /^autoparts\/(customer-vehicles|service-reminders)(\/|$)/, GET: P.CUSTOMERS_VIEW, write: P.CUSTOMERS_EDIT },
+  { match: /^autoparts\/(part-profiles|vehicle-makes|vehicle-models)(\/|$)/, GET: P.PRODUCTS_VIEW, write: P.PRODUCTS_EDIT },
+  { match: /^autoparts\/mechanics(\/|$)/, GET: P.SERVICE_JOBS_VIEW, write: P.STAFF_MANAGE },
+
   /* ── Bikri aur counter ── */
   { match: /(^|\/)pos(\/|$)/, GET: P.POS_USE, write: P.POS_USE },
   /* Cancelling a bill always needs the void permission, whatever the PIN setting. */

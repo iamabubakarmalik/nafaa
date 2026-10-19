@@ -12,7 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope } from '../../../common/shop-scope';
-import { DAY_MS, positive, r2, r3, recipeOf, shopClock, syncBatchesWithStock, writeShopId } from '../bakery-common';
+import { DAY_MS, positive, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, writeShopId } from '../bakery-common';
 
 export type WasteSource = 'BATCH' | 'BAKING' | 'RAW' | 'DAMAGE';
 
@@ -63,7 +63,7 @@ export class FreshnessService {
         initialQty: qty,
         currentQty: Math.min(Math.max(Math.round(Number(dto.currentQty ?? qty)), 0), qty),
       },
-    });
+    }).then(qtyNumbers);
   }
 
   async list(user: AuthenticatedUser, scope: ShopScope, params: { status?: string; productId?: string; active?: string }) {
@@ -79,7 +79,7 @@ export class FreshnessService {
       },
       orderBy: active ? { bestBefore: 'asc' } : { createdAt: 'desc' },
       take: active ? 500 : 300,
-    });
+    }).then((rows) => rows.map(qtyNumbers));
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
@@ -152,7 +152,7 @@ export class FreshnessService {
       this.prisma.bakeryFreshnessLog.count({ where: { ...base, status: 'EXPIRED', currentQty: { gt: 0 } } }),
       this.prisma.bakeryFreshnessLog.aggregate({ where: { ...base, discardedAt: { gte: today.gte, lt: today.lt } }, _sum: { wastedQty: true } }),
     ]);
-    return { fresh, dayOld, nearExpiry, expired, todayWasteQty: todayWaste._sum.wastedQty ?? 0 };
+    return { fresh, dayOld, nearExpiry, expired, todayWasteQty: Number(todayWaste._sum.wastedQty ?? 0) };
   }
 
   /**
@@ -172,12 +172,12 @@ export class FreshnessService {
         where: { ...base, wastedQty: { gt: 0 }, discardedAt: when },
         select: { id: true, productId: true, productName: true, batchNumber: true, wastedQty: true, discardReason: true, discardedAt: true },
         take: 2000,
-      }),
+      }).then((rows) => rows.map(qtyNumbers)),
       this.prisma.bakeryProductionItem.findMany({
         where: { failedQty: { gt: 0 }, bakingEndTime: when, plan: base },
         select: { id: true, productId: true, productName: true, failedQty: true, qualityNotes: true, bakingEndTime: true, plan: { select: { planNumber: true } } },
         take: 2000,
-      }),
+      }).then((rows) => rows.map(qtyNumbers)),
       this.prisma.bakeryIngredientTransaction.findMany({
         where: { tenantId: user.tenantId, transactionType: 'WASTE', createdAt: when },
         select: { id: true, quantity: true, unit: true, totalCost: true, reason: true, createdAt: true, ingredient: { select: { name: true } } },
@@ -270,6 +270,6 @@ export class FreshnessService {
   private async mustFind(user: AuthenticatedUser, id: string) {
     const log = await this.prisma.bakeryFreshnessLog.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!log) throw new NotFoundException('Batch nahi mila');
-    return log;
+    return qtyNumbers(log);
   }
 }

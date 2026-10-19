@@ -149,7 +149,7 @@ export function AppointmentRow({ a, act, canBook, canBill }: { a: Appointment; a
           {canBook && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button size="sm" variant="secondary" leftIcon={<UserCheck className="h-4 w-4" />} onClick={() => act.arrived(a)} disabled={act.busy}>Aa gaye</Button>}
           {canBook && a.status === 'ARRIVED' && <Button size="sm" variant="secondary" leftIcon={<Armchair className="h-4 w-4" />} onClick={() => act.start(a)} disabled={act.busy}>Chair par</Button>}
           {canBill && <Button size="sm" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => act.bill(a)}>Bill</Button>}
-          {canBook && due > 0 && <IconBtn title="Advance lein" onClick={() => act.pay(a)}><Wallet className="h-4 w-4" /></IconBtn>}
+          {canBill && due > 0 && <IconBtn title="Advance lein" onClick={() => act.pay(a)}><Wallet className="h-4 w-4" /></IconBtn>}
           {a.customerPhone && <IconBtn title="WhatsApp yaad dihani" onClick={() => act.remind(a)}><MessageCircle className="h-4 w-4" /></IconBtn>}
           {canBook && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <IconBtn title="Waqt badlein" onClick={() => act.move(a)}><CalendarClock className="h-4 w-4" /></IconBtn>}
           {canBook && lateBy(a) > 15 && <IconBtn title="Nahi aaye (no-show)" onClick={() => act.noShow(a)}><UserX className="h-4 w-4" /></IconBtn>}

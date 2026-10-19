@@ -43,7 +43,7 @@ export interface PosItem {
   dim?: boolean;
   /** Open the variant picker before adding. */
   hasVariants?: boolean;
-  /** Anything the industry wants to carry for its own hooks. */
+  /** Anything the industry wants to carry for its own hooks; `service: true` hides the stock count. */
   meta?: Record<string, unknown>;
 }
 
@@ -156,8 +156,10 @@ export interface PosIndustryConfig {
   searchHint?: string;
   /** Text at the bottom of every receipt. */
   receiptFooter?: string;
-  /** Optional extra block under the customer picker. */
-  CartExtra?: ComponentType;
+  /** Optional extra block under the customer picker; gets the customer on the bill. */
+  CartExtra?: ComponentType<{ customerId?: string | null }>;
+  /** Rate for a product line after its quantity changes (bulk rates); undefined keeps the current rate. */
+  repriceLine?: (line: PosCartLine, item: PosItem) => number | undefined;
   /** Show voice billing. */
   voice?: boolean;
   /** Goods taken toward the bill (used phones), offered as a payment at checkout. */

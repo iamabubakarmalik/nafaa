@@ -55,8 +55,18 @@ function refundRates(sale: SaleWithItems) {
   return { unit, goodsValue: Math.max(0, lines - billDiscount) };
 }
 
+/** Runs after a return commits; an industry that keeps its own records for a bill settles them here. */
+type ReturnListener = (tenantId: string, saleId: string) => Promise<unknown>;
+
 @Injectable()
 export class ReturnsService {
+  private readonly returnListeners: ReturnListener[] = [];
+
+  /** Industry flows register here to react to a committed return; their errors never fail the return. */
+  onReturn(fn: ReturnListener) {
+    this.returnListeners.push(fn);
+  }
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
@@ -615,6 +625,7 @@ export class ReturnsService {
     });
 
     void this.fbr.submitCreditNote(tenantId, result.id).catch(() => undefined);
+    for (const fn of this.returnListeners) void fn(tenantId, sale.id).catch(() => undefined);
     return result;
   }
 

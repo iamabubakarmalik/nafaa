@@ -685,12 +685,17 @@ export class WorkshopJobsService implements OnModuleInit {
     const vehicle = [job.registrationNumber, job.makeName, job.modelName].filter(Boolean).join(' ');
     const lines: IndustrySaleLine[] = [
       ...job.laborItems.map((l) => ({ label: `Mazdoori: ${l.description}${l.mechanicName ? ` (${l.mechanicName})` : ''}`, amount: r2(l.total) })),
-      ...job.partsUsed.map((p) => ({
-        label: `${p.partName}${p.partNumber ? ` (${p.partNumber})` : ''}${p.isCustomerSupplied ? ' — customer ka part' : ''}`,
-        amount: r2(p.total),
-        cost: p.productId && !p.isCustomerSupplied ? costOf(p) : 0,
-        quantity: p.quantity,
-      })),
+      // Shelf parts carry their product so they show in product reports and a return can restock them.
+      ...job.partsUsed.map((p) => {
+        const shelf = !!p.productId && !p.isCustomerSupplied && productOf.has(p.productId);
+        return {
+          label: `${p.partName}${p.partNumber ? ` (${p.partNumber})` : ''}${p.isCustomerSupplied ? ' — customer ka part' : ''}`,
+          amount: r2(p.total),
+          cost: shelf ? costOf(p) : 0,
+          quantity: p.quantity,
+          ...(shelf && { productId: p.productId, variantId: p.variantId }),
+        };
+      }),
       // Paying the outside shop is an expense from the drawer, so its cost is not counted again here.
       ...job.externalWork.map((e) => ({ label: `Bahar ka kaam: ${e.description}${e.vendorName ? ` (${e.vendorName})` : ''}`, amount: r2(e.total) })),
       { label: 'Tax', amount: r2(job.taxAmount) },
@@ -751,7 +756,7 @@ export class WorkshopJobsService implements OnModuleInit {
    */
   async reopenAfterVoid(tenantId: string, saleId: string) {
     try {
-      const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { id: true, saleNumber: true, status: true, paidAmount: true, changeAmount: true } });
+      const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { id: true, shopId: true, saleNumber: true, status: true, paidAmount: true, changeAmount: true } });
       if (!sale || sale.status !== 'VOIDED' || !sale.saleNumber.startsWith('WSJ-')) return null;
       const raw = sale.saleNumber.slice(4);
       const again = raw.match(/^(.+)-\d+$/);
@@ -770,6 +775,19 @@ export class WorkshopJobsService implements OnModuleInit {
         const back = r2(atDelivery._sum.amount ?? 0);
         if (back > 0) {
           await tx.workshopJobPayment.create({ data: { jobId: job.id, amount: -back, paymentMethod: 'CASH', reference: sale.saleNumber, notes: `Bill ${sale.saleNumber} void — paisa wapas`, receivedById: voidBy?.userId ?? null } });
+        }
+        // The void put the bill's shelf parts back in stock, but they are still in the vehicle.
+        const parts = await tx.saleItem.findMany({
+          where: { saleId: sale.id, productId: { not: null } },
+          select: { productId: true, quantity: true, variantLink: { select: { variantId: true } }, product: { select: { name: true, productType: true, unit: true } } },
+        });
+        for (const p of parts) {
+          if (!p.productId || !sale.shopId || isServiceProduct(p.product)) continue;
+          await applyStockDelta({
+            tx, tenantId, shopId: sale.shopId, productId: p.productId, variantId: p.variantLink?.variantId ?? null,
+            delta: -p.quantity, movementType: 'SALE_OUT', reference: job.jobNumber,
+            note: `Bill ${sale.saleNumber} void — part abhi gaari me laga hai`, label: p.product?.name, userId: voidBy?.userId ?? undefined,
+          });
         }
         const paid = r2(Math.max(fresh.paidAmount - back, 0));
         await tx.workshopJob.update({

@@ -17,6 +17,7 @@ import VaccinationsPage from './pages/VaccinationsPage';
 import QueuePage from './pages/QueuePage';
 
 const BOOKINGS = PERMISSIONS.SERVICE_BOOKINGS_VIEW;
+const RECORDS = PERMISSIONS.CLINIC_RECORDS_VIEW;
 
 /**
  * Clinic / Doctor / Dental / Lab pack: reception and tokens, live line,
@@ -63,9 +64,9 @@ export const ClinicPack: IndustryPack = {
         { to: '/clinic/appointments', label: 'Appointments', icon: Calendar, permission: BOOKINGS },
         { to: '/clinic/patients', label: 'Mareez', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
         { to: '/clinic/doctors', label: 'Doctors', icon: UserCog, permission: BOOKINGS },
-        { to: '/clinic/prescriptions', label: 'Nuskhe', icon: Pill, permission: BOOKINGS },
-        { to: '/clinic/lab-orders', label: 'Lab', icon: TestTube, permission: BOOKINGS },
-        { to: '/clinic/vaccinations', label: 'Vaccines', icon: Syringe, permission: BOOKINGS },
+        { to: '/clinic/prescriptions', label: 'Nuskhe', icon: Pill, permission: RECORDS },
+        { to: '/clinic/lab-orders', label: 'Lab', icon: TestTube, permission: RECORDS },
+        { to: '/clinic/vaccinations', label: 'Vaccines', icon: Syringe, permission: RECORDS },
       ],
     },
   ],
@@ -80,9 +81,9 @@ export const ClinicPack: IndustryPack = {
     { path: '/clinic/doctors', element: DoctorsPage, permission: BOOKINGS },
     { path: '/clinic/patients/:id', element: PatientDetailPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
     { path: '/clinic/patients', element: PatientsPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
-    { path: '/clinic/prescriptions', element: ClinicPrescriptionsPage, permission: BOOKINGS },
-    { path: '/clinic/lab-orders', element: LabOrdersPage, permission: BOOKINGS },
-    { path: '/clinic/vaccinations', element: VaccinationsPage, permission: BOOKINGS },
+    { path: '/clinic/prescriptions', element: ClinicPrescriptionsPage, permission: RECORDS },
+    { path: '/clinic/lab-orders', element: LabOrdersPage, permission: RECORDS },
+    { path: '/clinic/vaccinations', element: VaccinationsPage, permission: RECORDS },
   ],
 
   dashboardComponent: ClinicDashboard,

@@ -50,7 +50,7 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const loyaltyApi = {
   overview: (range?: { from?: string; to?: string }) => apiClient.get<{ data: LoyaltyOverview }>('/loyalty/overview', { params: range }).then(unwrap),
-  members: (q: { search?: string; sort?: string; page?: number; limit?: number }) =>
+  members: (q: { search?: string; sort?: string; min?: string | number; page?: number; limit?: number }) =>
     apiClient.get<{ data: { page: number; count: number; hasMore: boolean; items: LoyaltyMember[] } }>('/loyalty/members', { params: q }).then(unwrap),
   leaderboard: () => apiClient.get<{ data: LoyaltyLeaderboard }>('/loyalty/leaderboard').then(unwrap),
   history: (customerId: string) =>

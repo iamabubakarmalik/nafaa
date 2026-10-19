@@ -11,12 +11,12 @@ import { PrescriptionsService } from './prescriptions.service';
 @ApiTags('Clinic - Prescriptions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_VIEW)
+@RequirePermissions(PERMISSIONS.CLINIC_RECORDS_VIEW)
 @Controller('clinic/prescriptions')
 export class PrescriptionsController {
   constructor(private readonly service: PrescriptionsService) {}
 
-  @Post() @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post() @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
 
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: Record<string, string | undefined>) {
@@ -25,6 +25,6 @@ export class PrescriptionsController {
 
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
 
-  @Patch(':id/status') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Patch(':id/status') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   status(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string }) { return this.service.updateStatus(user, id, body?.status); }
 }

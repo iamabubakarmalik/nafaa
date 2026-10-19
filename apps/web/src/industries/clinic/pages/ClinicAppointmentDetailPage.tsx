@@ -44,6 +44,7 @@ export default function ClinicAppointmentDetailPage() {
   const guide = usePageGuide();
   const { sales: money } = useMasked();
   const canManage = usePermission(PERMISSIONS.SERVICE_BOOKINGS_MANAGE);
+  const canRecords = usePermission(PERMISSIONS.CLINIC_RECORDS_MANAGE);
   const canBill = usePermission(PERMISSIONS.POS_USE);
   const [tab, setTab] = useState<Tab>('checkup');
   const [paying, setPaying] = useState<'apt' | LabOrder | null>(null);
@@ -186,11 +187,11 @@ export default function ClinicAppointmentDetailPage() {
           { id: 'history', label: 'Purani visits', icon: History },
         ]} />
 
-      {tab === 'checkup' && <VisitCheckup key={apt.updatedAt} apt={apt} canEdit={canManage && !closed} onSaved={refresh} />}
+      {tab === 'checkup' && <VisitCheckup key={apt.updatedAt} apt={apt} canEdit={canRecords && !closed} onSaved={refresh} />}
 
       {tab === 'rx' && (
         <Card title="Nuskhe" description="Save ke baad print; dawai counter par di jaye to 'Dawai de di'"
-          actions={canManage && !closed && <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setWritingRx(true)}>Nuskha likhein</Button>}>
+          actions={canRecords && !closed && <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setWritingRx(true)}>Nuskha likhein</Button>}>
           {rxs.length === 0 ? <EmptyState icon={<Pill className="h-6 w-6" />} title="Abhi koi nuskha nahi" description="Checkup ke baad dawai likhein — A4 par print hota hai." /> : (
             <ul className="divide-y divide-slate-100">
               {rxs.map((rx) => (
@@ -200,7 +201,7 @@ export default function ClinicAppointmentDetailPage() {
                     <Badge variant={rx.status === 'DISPENSED' ? 'success' : rx.status === 'CANCELLED' ? 'danger' : 'info'}>{rx.status === 'DISPENSED' ? 'Dawai de di' : rx.status === 'CANCELLED' ? 'Cancel' : 'Chalu'}</Badge>
                     <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => printRx(rx)}>Print</Button>
                     {canBill && rx.status === 'ACTIVE' && <Link to="/pos" className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50"><ShoppingCart className="h-4 w-4" />Counter</Link>}
-                    {canManage && rx.status === 'ACTIVE' && <Button size="sm" variant="ghost" loading={rxStatus.isPending} onClick={() => rxStatus.mutate(rx)}>Dawai de di</Button>}
+                    {canRecords && rx.status === 'ACTIVE' && <Button size="sm" variant="ghost" loading={rxStatus.isPending} onClick={() => rxStatus.mutate(rx)}>Dawai de di</Button>}
                   </div>
                   <ol className="mt-2 space-y-1 text-[0.875rem] text-slate-700">
                     {rx.items.map((it, i) => <li key={it.id ?? i}>{i + 1}. <b>{[it.form, it.drugName, it.strength].filter(Boolean).join(' ')}</b> — {[it.dose, it.frequency, it.durationDays ? `${it.durationDays} din` : null, it.afterMeal ? 'khane ke baad' : it.beforeMeal ? 'khane se pehle' : null].filter(Boolean).join(' · ')}</li>)}
@@ -214,7 +215,7 @@ export default function ClinicAppointmentDetailPage() {
 
       {tab === 'lab' && (
         <Card title="Lab tests" description="Fees, sample, result aur report — sab yahin"
-          actions={canManage && !closed && <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setNewLab(true)}>Test likhein</Button>}>
+          actions={canRecords && !closed && <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setNewLab(true)}>Test likhein</Button>}>
           {labs.length === 0 ? <EmptyState icon={<FlaskConical className="h-6 w-6" />} title="Koi test nahi likha" /> : (
             <Table minWidth="44rem">
               <THead><Tr><Th>Order</Th><Th>Test</Th><Th>Status</Th><Th align="right">Fees</Th><Th align="right" /></Tr></THead>
@@ -230,7 +231,7 @@ export default function ClinicAppointmentDetailPage() {
                       <Td align="right">
                         <div className="flex justify-end gap-1">
                           {canBill && due > 0 && o.status !== 'CANCELLED' && <Button size="xs" variant="secondary" onClick={() => setPaying(o)}>Fees</Button>}
-                          {canManage && o.status !== 'CANCELLED' && <Button size="xs" onClick={() => setResults(o)}>Result</Button>}
+                          {canRecords && o.status !== 'CANCELLED' && <Button size="xs" onClick={() => setResults(o)}>Result</Button>}
                         </div>
                       </Td>
                     </Tr>

@@ -23,7 +23,6 @@ const unwrap = <T,>(res: { data: { data?: T } & T }): T => (res.data?.data ?? re
 export const bulkPricingApi = {
   all: () => apiClient.get('/hardware/bulk-pricing').then(unwrap<Tier[]>),
   create: (data: Partial<BulkPricing>) => apiClient.post('/hardware/bulk-pricing', data).then(unwrap<BulkPricing>),
-  listByProduct: (productId: string) => apiClient.get('/hardware/bulk-pricing/by-product/' + productId).then(unwrap<BulkPricing[]>),
   update: (id: string, data: Partial<BulkPricing>) => apiClient.patch('/hardware/bulk-pricing/' + id, data).then(unwrap<BulkPricing>),
   remove: (id: string) => apiClient.delete('/hardware/bulk-pricing/' + id).then(unwrap),
 };

@@ -34,7 +34,7 @@ const STATUS: Record<Prescription['status'], { label: string; variant: 'info' | 
 export default function ClinicPrescriptionsPage() {
   const qc = useQueryClient();
   const guide = usePageGuide();
-  const canManage = usePermission(PERMISSIONS.SERVICE_BOOKINGS_MANAGE);
+  const canManage = usePermission(PERMISSIONS.CLINIC_RECORDS_MANAGE);
   const canSell = usePermission(PERMISSIONS.POS_USE);
   const searchRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<Tab>('all');

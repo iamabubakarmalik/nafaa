@@ -27,6 +27,20 @@ interface DayRange { gte: Date; lt: Date }
 export const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 export const r3 = (n: number) => Math.round((Number(n) || 0) * 1000) / 1000;
 
+type Numbered<T> = { [K in keyof T]: T[K] extends Prisma.Decimal ? number : T[K] };
+
+/** Production and batch quantities are DECIMAL in the database; services and the API use plain numbers. */
+export function qtyNumbers<T extends object>(row: T): Numbered<T> {
+  const out: Record<string, unknown> = { ...(row as Record<string, unknown>) };
+  for (const [k, v] of Object.entries(out)) if (v instanceof Prisma.Decimal) out[k] = v.toNumber();
+  return out as Numbered<T>;
+}
+
+/** A production plan with its line quantities as numbers. */
+export function planNumbers<P extends { items: object[] }>(plan: P): Omit<P, 'items'> & { items: Numbered<P['items'][number]>[] } {
+  return { ...plan, items: plan.items.map((it) => qtyNumbers(it)) } as Omit<P, 'items'> & { items: Numbered<P['items'][number]>[] };
+}
+
 /** The shop's clock plus helpers bound to it. */
 export async function shopClock(tz: TenantTimezoneService, tenantId: string) {
   const { tz: zone, dayStartHour } = await tz.clock(tenantId);
@@ -132,7 +146,7 @@ export async function syncBatchesWithStock(prisma: PrismaService, tenantId: stri
     where: { tenantId, ...where, status: { in: ['FRESH', 'DAY_OLD', 'NEAR_EXPIRY', 'EXPIRED'] }, currentQty: { gt: 0 }, shopId: { not: null } },
     select: { id: true, productId: true, shopId: true, currentQty: true },
     orderBy: [{ productionDate: 'asc' }, { createdAt: 'asc' }],
-  });
+  }).then((rows) => rows.map(qtyNumbers));
   if (!live.length) return;
   const stock = await prisma.shopStock.findMany({
     where: { shopId: { in: [...new Set(live.map((b) => b.shopId!))] }, productId: { in: [...new Set(live.map((b) => b.productId))] }, variantId: null },

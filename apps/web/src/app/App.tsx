@@ -216,18 +216,6 @@ import PackagesPage from '@industries/salon/pages/PackagesPage';
 import CalendarViewPage from '@industries/salon/pages/CalendarViewPage';
 import CustomersPage from '@industries/salon/pages/CustomersPage';
 
-// ─── Hardware Industry ─────────────────────────────────────────
-import HardwareDashboard from '@industries/hardware/dashboard/HardwareDashboard';
-import HardwareBrandsPage from '@industries/hardware/pages/BrandsPage';
-import HardwareProductsPage from '@industries/hardware/pages/ProductsPage';
-import HardwareProjectsPage from '@industries/hardware/pages/ProjectsPage';
-import HardwareQuotationsPage from '@industries/hardware/pages/QuotationsPage';
-import HardwareNewQuotationPage from '@industries/hardware/pages/NewQuotationPage';
-import HardwareQuotationDetailPage from '@industries/hardware/pages/QuotationDetailPage';
-import HardwareDeliveriesPage from '@industries/hardware/pages/DeliveriesPage';
-import HardwareCreditAccountsPage from '@industries/hardware/pages/CreditAccountsPage';
-import HardwareReorderRulesPage from '@industries/hardware/pages/ReorderRulesPage';
-
 // ─── Dairy Industry ────────────────────────────────────────────
 import DairyDashboard from '@industries/dairy/dashboard/DairyDashboard';
 import DairyFarmersPage from '@industries/dairy/pages/FarmersPage';
@@ -250,18 +238,6 @@ import NewWeightOrderPage from '@industries/meat/pages/NewWeightOrderPage';
 import QurbaniPage from '@industries/meat/pages/QurbaniPage';
 import SubscriptionsPage from '@industries/meat/pages/SubscriptionsPage';
 import WholesalePage from '@industries/meat/pages/WholesalePage';
-
-// ─── Clinic Industry ───────────────────────────────────────────
-import ClinicDashboard from '@industries/clinic/dashboard/ClinicDashboard';
-import DoctorsPage from '@industries/clinic/pages/DoctorsPage';
-import PatientsPage from '@industries/clinic/pages/PatientsPage';
-import ClinicAppointmentsPage from '@industries/clinic/pages/ClinicAppointmentsPage';
-import QueuePage from '@industries/clinic/pages/QueuePage';
-import ClinicNewAppointmentPage from '@industries/clinic/pages/ClinicNewAppointmentPage';
-import ClinicAppointmentDetailPage from '@industries/clinic/pages/ClinicAppointmentDetailPage';
-import ClinicPrescriptionsPage from '@industries/clinic/pages/ClinicPrescriptionsPage';
-import LabOrdersPage from '@industries/clinic/pages/LabOrdersPage';
-import VaccinationsPage from '@industries/clinic/pages/VaccinationsPage';
 
 // ─── Gym Industry ──────────────────────────────────────────────
 import GymDashboard from '@industries/gym/dashboard/GymDashboard';
@@ -323,23 +299,10 @@ import JewelryDashboard from '@industries/jewelry/dashboard/JewelryDashboard';
 import MetalRatesPage from '@industries/jewelry/pages/MetalRatesPage';
 import JewelryProductsPage from '@industries/jewelry/pages/JewelryProductsPage';
 import JewelrySalesPage from '@industries/jewelry/pages/JewelrySalesPage';
-import NewSalePage from '@industries/jewelry/pages/NewSalePage';
 import CustomOrdersPage from '@industries/jewelry/pages/CustomOrdersPage';
 import ExchangesPage from '@industries/jewelry/pages/ExchangesPage';
 import KarigarsPage from '@industries/jewelry/pages/KarigarsPage';
 import MetalStockPage from '@industries/jewelry/pages/MetalStockPage';
-
-// ─── Auto Parts Industry ───────────────────────────────────────
-import AutoPartsDashboard from '@industries/autoparts/dashboard/AutoPartsDashboard';
-import VehicleMakesPage from '@industries/autoparts/pages/VehicleMakesPage';
-import VehicleModelsPage from '@industries/autoparts/pages/VehicleModelsPage';
-import CustomerVehiclesPage from '@industries/autoparts/pages/CustomerVehiclesPage';
-import PartsPage from '@industries/autoparts/pages/PartsPage';
-import WorkshopJobsPage from '@industries/autoparts/pages/WorkshopJobsPage';
-import NewWorkshopJobPage from '@industries/autoparts/pages/NewWorkshopJobPage';
-import WorkshopJobDetailPage from '@industries/autoparts/pages/WorkshopJobDetailPage';
-import MechanicsPage from '@industries/autoparts/pages/MechanicsPage';
-import ServiceRemindersPage from '@industries/autoparts/pages/ServiceRemindersPage';
 
 // ─── Bookstore Industry ────────────────────────────────────────
 import BookstoreDashboard from '@industries/bookstore/dashboard/BookstoreDashboard';
@@ -365,16 +328,12 @@ import GarmentProductWizardPage from '@industries/garments/pages/GarmentProductW
 import GarmentProductDetailPage from '@industries/garments/pages/GarmentProductDetailPage';
 import JewelryItemWizardPage from '@industries/jewelry/pages/JewelryItemWizardPage';
 import JewelryItemDetailPage from '@industries/jewelry/pages/JewelryItemDetailPage';
-import HardwareProductWizardPage from '@industries/hardware/pages/HardwareProductWizardPage';
-import HardwareProductDetailPage from '@industries/hardware/pages/HardwareProductDetailPage';
 import DairyProductWizardPage from '@industries/dairy/pages/DairyProductWizardPage';
 import DairyProductDetailPage from '@industries/dairy/pages/DairyProductDetailPage';
 import MeatProductWizardPage from '@industries/meat/pages/MeatProductWizardPage';
 import MeatProductDetailPage from '@industries/meat/pages/MeatProductDetailPage';
 import AgriProductWizardPage from '@industries/agri/pages/AgriProductWizardPage';
 import AgriProductDetailPage from '@industries/agri/pages/AgriProductDetailPage';
-import AutoPartWizardPage from '@industries/autoparts/pages/AutoPartWizardPage';
-import AutoPartDetailPage from '@industries/autoparts/pages/AutoPartDetailPage';
 import BookstoreProductWizardPage from '@industries/bookstore/pages/BookstoreProductWizardPage';
 import BookstoreProductDetailPage from '@industries/bookstore/pages/BookstoreProductDetailPage';
 import SalonServiceWizardPage from '@industries/salon/pages/SalonServiceWizardPage';
@@ -849,19 +808,6 @@ export default function App() {
                   <Route path="/salon/calendar" element={<CalendarViewPage />} />
                   <Route path="/salon/customers" element={<CustomersPage />} />
 
-                  {/* Hardware */}
-                  <Route path="/hardware" element={<HardwareDashboard />} />
-                  <Route path="/hardware/dashboard" element={<HardwareDashboard />} />
-                  <Route path="/hardware/brands" element={<HardwareBrandsPage />} />
-                  <Route path="/hardware/products" element={<HardwareProductsPage />} />
-                  <Route path="/hardware/projects" element={<HardwareProjectsPage />} />
-                  <Route path="/hardware/quotations/new" element={<HardwareNewQuotationPage />} />
-                  <Route path="/hardware/quotations/:id" element={<HardwareQuotationDetailPage />} />
-                  <Route path="/hardware/quotations" element={<HardwareQuotationsPage />} />
-                  <Route path="/hardware/deliveries" element={<HardwareDeliveriesPage />} />
-                  <Route path="/hardware/credit-accounts" element={<HardwareCreditAccountsPage />} />
-                  <Route path="/hardware/reorder-rules" element={<HardwareReorderRulesPage />} />
-
                   {/* Dairy */}
                   <Route path="/dairy" element={<DairyDashboard />} />
                   <Route path="/dairy/dashboard" element={<DairyDashboard />} />
@@ -886,19 +832,6 @@ export default function App() {
                   <Route path="/meat/subscriptions" element={<SubscriptionsPage />} />
                   <Route path="/meat/qurbani" element={<QurbaniPage />} />
                   <Route path="/meat/wholesale" element={<WholesalePage />} />
-
-                  {/* Clinic */}
-                  <Route path="/clinic" element={<ClinicDashboard />} />
-                  <Route path="/clinic/dashboard" element={<ClinicDashboard />} />
-                  <Route path="/clinic/doctors" element={<DoctorsPage />} />
-                  <Route path="/clinic/patients" element={<PatientsPage />} />
-                  <Route path="/clinic/appointments/new" element={<ClinicNewAppointmentPage />} />
-                  <Route path="/clinic/appointments/:id" element={<ClinicAppointmentDetailPage />} />
-                  <Route path="/clinic/appointments" element={<ClinicAppointmentsPage />} />
-                  <Route path="/clinic/prescriptions" element={<ClinicPrescriptionsPage />} />
-                  <Route path="/clinic/lab-orders" element={<LabOrdersPage />} />
-                  <Route path="/clinic/vaccinations" element={<VaccinationsPage />} />
-                  <Route path="/clinic/queue" element={<QueuePage />} />
 
                   {/* Gym */}
                   <Route path="/gym" element={<GymDashboard />} />
@@ -959,25 +892,11 @@ export default function App() {
                   <Route path="/jewelry/dashboard" element={<JewelryDashboard />} />
                   <Route path="/jewelry/metal-rates" element={<MetalRatesPage />} />
                   <Route path="/jewelry/products" element={<JewelryProductsPage />} />
-                  <Route path="/jewelry/sales/new" element={<NewSalePage />} />
                   <Route path="/jewelry/sales" element={<JewelrySalesPage />} />
                   <Route path="/jewelry/custom-orders" element={<CustomOrdersPage />} />
                   <Route path="/jewelry/exchanges" element={<ExchangesPage />} />
                   <Route path="/jewelry/karigars" element={<KarigarsPage />} />
                   <Route path="/jewelry/metal-stock" element={<MetalStockPage />} />
-
-                  {/* AutoParts */}
-                  <Route path="/autoparts" element={<AutoPartsDashboard />} />
-                  <Route path="/autoparts/dashboard" element={<AutoPartsDashboard />} />
-                  <Route path="/autoparts/makes" element={<VehicleMakesPage />} />
-                  <Route path="/autoparts/models" element={<VehicleModelsPage />} />
-                  <Route path="/autoparts/vehicles" element={<CustomerVehiclesPage />} />
-                  <Route path="/autoparts/parts" element={<PartsPage />} />
-                  <Route path="/autoparts/jobs/new" element={<NewWorkshopJobPage />} />
-                  <Route path="/autoparts/jobs/:id" element={<WorkshopJobDetailPage />} />
-                  <Route path="/autoparts/jobs" element={<WorkshopJobsPage />} />
-                  <Route path="/autoparts/mechanics" element={<MechanicsPage />} />
-                  <Route path="/autoparts/reminders" element={<ServiceRemindersPage />} />
 
                   {/* Bookstore */}
                   <Route path="/bookstore" element={<BookstoreDashboard />} />
@@ -1153,11 +1072,6 @@ export default function App() {
                   <Route path="/jewelry-items/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <JewelryItemWizardPage />)} />
                   <Route path="/jewelry-items/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <JewelryItemDetailPage />)} />
 
-                  {/* Hardware */}
-                  <Route path="/hardware-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <HardwareProductWizardPage />)} />
-                  <Route path="/hardware-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <HardwareProductWizardPage />)} />
-                  <Route path="/hardware-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <HardwareProductDetailPage />)} />
-
                   {/* Dairy */}
                   <Route path="/dairy-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <DairyProductWizardPage />)} />
                   <Route path="/dairy-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <DairyProductWizardPage />)} />
@@ -1172,11 +1086,6 @@ export default function App() {
                   <Route path="/agri-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <AgriProductWizardPage />)} />
                   <Route path="/agri-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <AgriProductWizardPage />)} />
                   <Route path="/agri-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AgriProductDetailPage />)} />
-
-                  {/* AutoParts */}
-                  <Route path="/autoparts-parts/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <AutoPartWizardPage />)} />
-                  <Route path="/autoparts-parts/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <AutoPartWizardPage />)} />
-                  <Route path="/autoparts-parts/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AutoPartDetailPage />)} />
 
                   {/* Bookstore */}
                   <Route path="/bookstore-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <BookstoreProductWizardPage />)} />

@@ -33,7 +33,7 @@ export default function PatientDetailPage() {
   const guide = usePageGuide();
   const { sales: money } = useMasked();
   const canEdit = usePermission(PERMISSIONS.CUSTOMERS_EDIT);
-  const canManage = usePermission(PERMISSIONS.SERVICE_BOOKINGS_MANAGE);
+  const canManage = usePermission(PERMISSIONS.CLINIC_RECORDS_MANAGE);
   const [tab, setTab] = useState<Tab>('visits');
   const [editing, setEditing] = useState(false);
   const [results, setResults] = useState<LabOrder | null>(null);

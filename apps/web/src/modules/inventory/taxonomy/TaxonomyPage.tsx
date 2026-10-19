@@ -6,18 +6,19 @@
  * `TaxonomyConfig`.
  */
 
-import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowDownUp, ArrowRight, Check, CheckSquare, Download, Eye, EyeOff, Filter, GitMerge,
+  type LucideIcon, AlertTriangle, ArrowDownUp, ArrowRight, Check, CheckSquare, Download, Eye, EyeOff, Filter, GitMerge,
   GraduationCap, Inbox, LayoutGrid, List, MoreHorizontal, Package, Pencil, Plus, Sparkles, Trash2,
 } from 'lucide-react';
 import {
-  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
-  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+  Button, Checkbox, DateRangeMenu, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
+  Table, TBody, Td, Th, THead, Tr, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { useBusinessDayStart } from '@core/lib/business-day';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -32,7 +33,7 @@ export interface TaxonomyConfig {
   title: string;
   /** One item in a sentence, e.g. "category". */
   one: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   /** Query param the products page filters by. */
   productParam: 'categoryId' | 'brandId' | 'tagId';
   /** The products page can list products that have none. */
@@ -55,6 +56,7 @@ export interface TaxonomyConfig {
 }
 
 type Sort = 'sales' | 'products' | 'stock' | 'name' | 'new';
+const GUIDE_COLORS = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#e11d48'];
 type Show = 'all' | 'used' | 'unused' | 'off' | 'low';
 type View = 'grid' | 'list';
 
@@ -91,7 +93,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
   const [merging, setMerging] = useState<TaxonomyItem | null>(null);
   const [deleting, setDeleting] = useState<TaxonomyItem[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [guide, setGuide] = useState(false);
+  const guide = usePageGuide();
 
   useEffect(() => { try { localStorage.setItem(`taxonomy-view-${config.kind}`, view); } catch { /* storage blocked */ } }, [view, config.kind]);
 
@@ -209,7 +211,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
         loading={isLoading}
         actions={<>
           <button type="button" className={heroButton} onClick={exportCsv} disabled={!list.length}><Download className="h-4 w-4" /> CSV</button>
-          <button type="button" className={heroIconButton} onClick={() => setGuide(true)} title="Guide" aria-label="Guide"><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" className={heroIconButton} onClick={guide.open} title="Guide" aria-label="Guide"><GraduationCap className="h-4 w-4" /></button>
           <button type="button" className={heroPrimaryButton} onClick={() => setEditing('new')}><Plus className="h-4 w-4" /> Nayi {config.one}</button>
         </>}
         stats={totals ? [
@@ -340,34 +342,34 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
           })}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-          <table className="w-full min-w-[40rem] text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="w-10 px-3 py-2"><span className="sr-only">Chunein</span></th>
-                <th className="px-3 py-2">Naam</th><th className="px-3 py-2 text-right">Products</th><th className="px-3 py-2 text-right">Sale</th>
-                <th className="px-3 py-2 text-right">Profit</th><th className="px-3 py-2 text-right">Stock</th><th className="w-10 px-3 py-2" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <Table minWidth="40rem">
+            <THead>
+              <Tr>
+                <Th className="w-10 px-3"><span className="sr-only">Chunein</span></Th>
+                <Th className="px-3">Naam</Th><Th align="right" className="px-3">Products</Th><Th align="right" className="px-3">Sale</Th>
+                <Th align="right" className="px-3">Profit</Th><Th align="right" className="px-3">Stock</Th><Th className="w-10 px-3" />
+              </Tr>
+            </THead>
+            <TBody>
               {list.map((i) => {
                 const s = i.stats;
                 return (
-                  <tr key={i.id} className={cn('transition hover:bg-slate-50', selected.has(i.id) && 'bg-brand-50/50', !i.isActive && 'opacity-70')}>
-                    <td className="px-3 py-2"><input type="checkbox" checked={selected.has(i.id)} onChange={() => pick(i.id)} aria-label={`${i.name} chunein`} className="h-4 w-4 accent-brand-600" /></td>
-                    <td className="px-3 py-2">
+                  <Tr key={i.id} className={cn('transition hover:bg-slate-50', selected.has(i.id) && 'bg-brand-50/50', !i.isActive && 'opacity-70')}>
+                    <Td className="px-3 py-2"><Checkbox checked={selected.has(i.id)} onChange={() => pick(i.id)} aria-label={`${i.name} chunein`} /></Td>
+                    <Td className="px-3 py-2">
                       <div className="flex items-center gap-2.5"><Avatar item={i} /><span className="font-medium text-slate-900">{i.name}</span>{!i.isActive && <span className="rounded-full bg-slate-100 px-1.5 text-[0.6875rem] text-slate-600">Band</span>}</div>
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{s?.products ?? 0}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{money(s?.revenue ?? 0)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{cost(s?.profit ?? 0)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{cost(s?.stockValue ?? 0)}</td>
-                    <td className="px-3 py-2"><RowMenu item={i} config={config} onEdit={() => setEditing(i)} onMerge={() => setMerging(i)} onDelete={() => setDeleting([i])} onToggle={() => toggle.mutate(i)} productsLink={productsLink(i)} /></td>
-                  </tr>
+                    </Td>
+                    <Td align="right" className="px-3 py-2">{s?.products ?? 0}</Td>
+                    <Td align="right" className="px-3 py-2">{money(s?.revenue ?? 0)}</Td>
+                    <Td align="right" className="px-3 py-2">{cost(s?.profit ?? 0)}</Td>
+                    <Td align="right" className="px-3 py-2">{cost(s?.stockValue ?? 0)}</Td>
+                    <Td className="px-3 py-2"><RowMenu item={i} config={config} onEdit={() => setEditing(i)} onMerge={() => setMerging(i)} onDelete={() => setDeleting([i])} onToggle={() => toggle.mutate(i)} productsLink={productsLink(i)} /></Td>
+                  </Tr>
                 );
               })}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </div>
       )}
 
@@ -388,18 +390,10 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       )}
       {merging && <MergeModal config={config} from={merging} items={items} onClose={() => setMerging(null)} onDone={() => { setMerging(null); refresh(); }} />}
       {deleting && <DeleteModal config={config} list={deleting} onClose={() => setDeleting(null)} onDone={() => { setDeleting(null); setSelected(new Set()); refresh(); }} />}
-      {guide && (
-        <Modal open onClose={() => setGuide(false)} title={`${config.title} — kaise chalayein`} size="md">
-          <ol className="space-y-3">
-            {config.guide.map((g, n) => (
-              <li key={g.title} className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-brand-700">{n + 1}</span>
-                <div><p className="font-semibold text-slate-900">{g.title}</p><p className="text-sm text-slate-600">{g.body}</p></div>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-4 text-[0.8125rem] text-slate-500">Shortcuts: <b>/</b> search · <b>N</b> nayi {config.one}</p>
-        </Modal>
+      {guide.isOpen && (
+        <PageGuide title={`${config.title} — kaise chalayein`} onClose={guide.close}
+          steps={config.guide.map((g, n) => ({ icon: config.icon, color: GUIDE_COLORS[n % GUIDE_COLORS.length], title: g.title, text: g.body }))}
+          shortcuts={[['/', 'Search'], ['N', `Nayi ${config.one}`], ['G', 'Guide']]} />
       )}
     </PageShell>
   );

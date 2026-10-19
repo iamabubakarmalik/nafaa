@@ -90,7 +90,7 @@ export default function LoyaltyPage() {
   const overview = useQuery({ queryKey: ['loyalty-overview', period?.from, period?.to], queryFn: () => loyaltyApi.overview(period ?? undefined), placeholderData: (p) => p });
   const members = useInfiniteQuery({
     queryKey: ['loyalty-members', query, sort, min],
-    queryFn: ({ pageParam }) => { const params = { ...filter, page: pageParam, limit: 30 }; return loyaltyApi.members(params); },
+    queryFn: ({ pageParam }) => loyaltyApi.members({ ...filter, page: pageParam, limit: 30 }),
     initialPageParam: 1,
     getNextPageParam: (l) => (l.hasMore ? l.page + 1 : undefined),
     placeholderData: (p) => p,

@@ -12,12 +12,12 @@ import { LabOrdersService } from './lab-orders.service';
 @ApiTags('Clinic - Lab Orders')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_VIEW)
+@RequirePermissions(PERMISSIONS.CLINIC_RECORDS_VIEW)
 @Controller('clinic/lab-orders')
 export class LabOrdersController {
   constructor(private readonly service: LabOrdersService) {}
 
-  @Post() @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post() @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
 
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: Record<string, string | undefined>) {
@@ -28,13 +28,13 @@ export class LabOrdersController {
 
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
 
-  @Patch(':id/status') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Patch(':id/status') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   status(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string }) { return this.service.updateStatus(user, id, body?.status); }
 
-  @Patch('tests/:testId/result') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Patch('tests/:testId/result') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   result(@GetUser() user: AuthenticatedUser, @Param('testId') testId: string, @Body() dto: any) { return this.service.recordResult(user, testId, dto); }
 
-  @Post(':id/attach-report') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post(':id/attach-report') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   attach(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { reportUrl: string }) { return this.service.attachReport(user, id, body?.reportUrl); }
 
   @Post(':id/payment') @RequirePermissions(PERMISSIONS.POS_USE)

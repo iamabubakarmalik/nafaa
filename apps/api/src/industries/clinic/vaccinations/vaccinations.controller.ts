@@ -11,23 +11,23 @@ import { VaccinationsService } from './vaccinations.service';
 @ApiTags('Clinic - Vaccinations')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_VIEW)
+@RequirePermissions(PERMISSIONS.CLINIC_RECORDS_VIEW)
 @Controller('clinic/vaccinations')
 export class VaccinationsController {
   constructor(private readonly service: VaccinationsService) {}
 
-  @Post() @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post() @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   schedule(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.schedule(user, dto); }
 
-  @Post('bulk-epi') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post('bulk-epi') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   bulkEpi(@GetUser() user: AuthenticatedUser, @Body() body: { patientId: string; birthDate: string }) {
     return this.service.bulkScheduleEPI(user, body?.patientId, body?.birthDate);
   }
 
-  @Post(':id/administer') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post(':id/administer') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   administer(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.administer(user, id, dto); }
 
-  @Patch(':id/status') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Patch(':id/status') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   setStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string; notes?: string; dueDate?: string }) {
     return this.service.setStatus(user, id, body ?? ({} as { status: string }));
   }

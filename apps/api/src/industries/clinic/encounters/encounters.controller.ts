@@ -11,12 +11,12 @@ import { EncountersService } from './encounters.service';
 @ApiTags('Clinic - Encounters (SOAP)')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_VIEW)
+@RequirePermissions(PERMISSIONS.CLINIC_RECORDS_VIEW)
 @Controller('clinic/encounters')
 export class EncountersController {
   constructor(private readonly service: EncountersService) {}
 
-  @Post('appointment/:appointmentId') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  @Post('appointment/:appointmentId') @RequirePermissions(PERMISSIONS.CLINIC_RECORDS_MANAGE)
   upsert(@GetUser() user: AuthenticatedUser, @Param('appointmentId') appointmentId: string, @Body() dto: any) {
     return this.service.upsert(user, appointmentId, dto);
   }

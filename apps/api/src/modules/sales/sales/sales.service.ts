@@ -1106,36 +1106,55 @@ export class SalesService {
   }
 
   /**
-   * A trade-in from the till must be a used phone taken in as an exchange
-   * (Used phones → Trade-in, type Exchange), worth at least the amount, and
-   * not already used on another live bill. Its code is kept as the reference.
+   * A trade-in from the till is goods taken toward the bill, worth at least the
+   * amount and not already used on another live bill. It is either a used phone
+   * taken in as an exchange (Used phones → Trade-in, type Exchange) or old gold
+   * a jewelry counter took for a bill (JEX-…, purpose SALE, not yet on a bill).
+   * Its code is kept as the reference.
    */
   private async checkTradeIns(tenantId: string, rows: PaymentPart[]) {
     const seen = new Set<string>();
     for (const row of rows) {
       if (row.method !== 'TRADE_IN') continue;
       const code = row.reference?.trim();
-      if (!code) throw new BadRequestException('Trade-in ke liye used phone chunein');
-      const phone = await this.prisma.usedPhone.findFirst({
-        where: { tenantId, OR: [{ usedPhoneCode: code }, { id: code }] },
-        select: { id: true, usedPhoneCode: true, brand: true, model: true, source: true, status: true, buybackPrice: true },
-      });
-      if (!phone || phone.source !== 'EXCHANGE' || phone.status === 'DISCARDED') {
-        throw new BadRequestException(`Trade-in phone ${code} nahi mila (Used phones me "Exchange" wala phone chahiye)`);
-      }
-      if (seen.has(phone.usedPhoneCode)) throw new BadRequestException(`${phone.usedPhoneCode} bill me do dafa hai`);
-      seen.add(phone.usedPhoneCode);
-      if (row.amount > Number(phone.buybackPrice) + 0.01) {
-        throw new BadRequestException(`${phone.usedPhoneCode} ki trade-in qeemat Rs ${phone.buybackPrice} hai — is se zyada nahi`);
+      if (!code) throw new BadRequestException('Trade-in ke liye used phone ya purana zewar chunein');
+      const goods = /^JEX-/i.test(code) ? await this.oldGoldTradeIn(tenantId, code) : await this.usedPhoneTradeIn(tenantId, code);
+      if (seen.has(goods.code)) throw new BadRequestException(`${goods.code} bill me do dafa hai`);
+      seen.add(goods.code);
+      if (row.amount > goods.value + 0.01) {
+        throw new BadRequestException(`${goods.code} ki trade-in qeemat Rs ${goods.value} hai — is se zyada nahi`);
       }
       const used = await this.prisma.salePayment.findFirst({
-        where: { tenantId, method: 'TRADE_IN', reference: phone.usedPhoneCode, sale: { status: { not: 'VOIDED' } } },
+        where: { tenantId, method: 'TRADE_IN', reference: goods.code, sale: { status: { not: 'VOIDED' } } },
         select: { sale: { select: { saleNumber: true } } },
       });
-      if (used) throw new BadRequestException(`${phone.usedPhoneCode} pehle hi bill ${used.sale.saleNumber} me lag chuka hai`);
-      row.reference = phone.usedPhoneCode;
-      row.note = row.note || `${phone.brand} ${phone.model} (${phone.usedPhoneCode})`;
+      if (used) throw new BadRequestException(`${goods.code} pehle hi bill ${used.sale.saleNumber} me lag chuka hai`);
+      row.reference = goods.code;
+      row.note = row.note || goods.label;
     }
+  }
+
+  private async usedPhoneTradeIn(tenantId: string, code: string) {
+    const phone = await this.prisma.usedPhone.findFirst({
+      where: { tenantId, OR: [{ usedPhoneCode: code }, { id: code }] },
+      select: { usedPhoneCode: true, brand: true, model: true, source: true, status: true, buybackPrice: true },
+    });
+    if (!phone || phone.source !== 'EXCHANGE' || phone.status === 'DISCARDED') {
+      throw new BadRequestException(`Trade-in phone ${code} nahi mila (Used phones me "Exchange" wala phone chahiye)`);
+    }
+    return { code: phone.usedPhoneCode, value: Number(phone.buybackPrice), label: `${phone.brand} ${phone.model} (${phone.usedPhoneCode})` };
+  }
+
+  private async oldGoldTradeIn(tenantId: string, code: string) {
+    const ex = await this.prisma.jewelryExchange.findFirst({
+      where: { tenantId, exchangeNumber: { equals: code, mode: 'insensitive' } },
+      select: { exchangeNumber: true, purpose: true, saleId: true, netValue: true, netWeight: true, grossWeight: true },
+    });
+    if (!ex || ex.purpose !== 'SALE' || ex.saleId) {
+      throw new BadRequestException(`Purana zewar ${code} nahi mila — bill ke liye liya gaya zewar chunein jo abhi kisi bill par na laga ho`);
+    }
+    const grams = Number(ex.netWeight ?? ex.grossWeight) || 0;
+    return { code: ex.exchangeNumber, value: Number(ex.netValue), label: `Purana zewar ${grams.toFixed(3)}g (${ex.exchangeNumber})` };
   }
 
   /**
@@ -1172,11 +1191,15 @@ export class SalesService {
       }
     }
     if (bill.creditAmount > 0) {
-      if (!s.allowCredit) throw new BadRequestException('Is dukaan me udhaar band hai (Settings)');
       const c = await this.prisma.customer.findFirst({
         where: { id: dto.customerId!, tenantId: user.tenantId },
         select: { creditLimit: true, balance: true },
       });
+      // With credit off, a bill may still use up the advance the customer holds.
+      const held = Math.max(-(c?.balance ?? 0), 0);
+      if (!s.allowCredit && bill.creditAmount > held + 0.01) {
+        throw new BadRequestException('Is dukaan me udhaar band hai (Settings)');
+      }
       if (c && c.creditLimit > 0 && c.balance + bill.creditAmount > c.creditLimit + 0.01) {
         await requireManagerPin(this.prisma, user, dto.managerPin, `Credit limit (Rs ${c.creditLimit}) se zyada udhaar`, true, PIN_NEEDS.credit);
       }
@@ -1441,9 +1464,17 @@ export class SalesService {
       if (sale.creditAmount > 0 && sale.customerId) {
         const customer = await tx.customer.findUnique({ where: { id: sale.customerId } });
         if (customer) {
-          // The balance never goes below zero on a void; the ledger records the
-          // change that actually happened so its sum always equals the balance.
-          const removed = Math.min(sale.creditAmount, Math.max(customer.balance, 0));
+          // The void takes back exactly what the bill put on the khata. An advance
+          // the credit used up, or a payment made against it later, stays with the
+          // customer as an advance. Old bills with no ledger row keep the capped rule.
+          const written = await tx.customerLedger.aggregate({
+            where: { tenantId: user.tenantId, customerId: sale.customerId, reference: sale.saleNumber, type: 'SALE_CREDIT' },
+            _sum: { amount: true },
+            _count: true,
+          });
+          const removed = written._count
+            ? Math.max(Number(written._sum.amount ?? 0), 0)
+            : Math.min(sale.creditAmount, Math.max(customer.balance, 0));
           const { balance: raw } = await tx.customer.update({
             where: { id: sale.customerId },
             data: { balance: { decrement: removed } },

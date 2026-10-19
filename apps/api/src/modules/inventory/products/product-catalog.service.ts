@@ -9,7 +9,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { isServiceProduct } from '../../../common/shop-scope';
-import { extensionFacets, itemExtensions, loadExtensions, matchesExtensions, type ExtensionQuery } from './catalog-extensions';
+import { extensionFacets, itemExtensions, loadExtensions, loadSearchWords, matchesExtensions, type ExtensionQuery } from './catalog-extensions';
 
 export type CatalogStock = 'all' | 'in' | 'low' | 'out' | 'dead' | 'expiring';
 export type CatalogSort =
@@ -166,7 +166,9 @@ export class ProductCatalogService {
     // Search also matches variant barcodes and SKUs.
     const term = q.search?.trim().toLowerCase();
     let variantHits = new Set<string>();
+    let words = new Map<string, string>();
     if (term) {
+      words = await loadSearchWords(this.prisma, tenantId);
       const vs = await this.prisma.productVariant.findMany({
         where: {
           product: { tenantId },
@@ -177,7 +179,7 @@ export class ProductCatalogService {
       variantHits = new Set(vs.map((v) => v.productId));
     }
     const matchesText = (r: Row) => !term || variantHits.has(r.id)
-      || [r.name, r.sku, r.barcode, r.description, ext.electronics.get(r.id)?.model].some((v) => v?.toLowerCase().includes(term));
+      || [r.name, r.sku, r.barcode, r.description, ext.electronics.get(r.id)?.model, words.get(r.id)].some((v) => v?.toLowerCase().includes(term));
     const matchesActive = (r: Row) => (q.active === 'inactive' ? !r.isActive : q.active === 'all' ? true : r.isActive);
 
     // Everything except the stock filter, so the stock tabs can show their counts.

@@ -1,7 +1,7 @@
 /**
  * Picks the products page for the current industry. Retail, Bakery,
- * Electronics, Pharmacy, Garments and businesses without an industry use the
- * shared page (modules/inventory/products/list) through their own config;
+ * Electronics, Pharmacy, Garments, Mobile, Hardware, Jewelry, Auto parts and
+ * businesses without an industry use the shared page (modules/inventory/products/list) through their own config;
  * the rest keep their own pages for now, and industries without one use the
  * shared page with their own editor paths (ProductsListPage).
  */
@@ -29,6 +29,9 @@ const PAGES: Record<string, LazyExoticComponent<ComponentType>> = {
   toystore: lazy(() => import('@industries/toystore/pages/ToyProductsPage')),
   // A restaurant's "stock" is its menu: whether a dish can be made, not a count.
   restaurant: lazy(() => import('@industries/restaurant/pages/RestaurantProductsListPage')),
+  hardware: lazy(() => import('@industries/hardware/products/HardwareProducts')),
+  jewelry: lazy(() => import('@industries/jewelry/pages/JewelryProductsPage')),
+  autoparts: lazy(() => import('@industries/autoparts/pages/PartsPage')),
 };
 
 const GeneralProducts = lazy(() => import('../list/general/GeneralProducts'));

@@ -8,12 +8,14 @@
  *   customer totals are taken back out. It can then be billed again.
  * - Membership or package sale: that membership or package is cancelled.
  *
- * Nothing is deleted; package usage entries are marked as voided.
+ * A membership or package bill that comes back in full (a return) cancels
+ * it the same way. Nothing is deleted; package usage entries are marked as voided.
  */
 
 import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ReturnsService } from '../../../modules/sales/returns/returns.service';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { paidOnKhata } from '../../_shared/industry-sale.helper';
 import { r2 } from '../common/salon-common';
@@ -26,6 +28,7 @@ export class SalonBillVoidService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sales: SalesService,
+    private readonly returns: ReturnsService,
     private readonly bills: SalonBillsService,
   ) {}
 
@@ -33,6 +36,33 @@ export class SalonBillVoidService implements OnModuleInit {
     this.sales.onVoid((tenantId, saleId) => this.handleSale(tenantId, saleId).catch((e) => {
       this.log.warn(`Voided salon bill ${saleId} not settled: ${(e as Error).message}`);
     }));
+    this.returns.onReturn((tenantId, saleId) => this.handleReturn(tenantId, saleId).catch((e) => {
+      this.log.warn(`Returned salon bill ${saleId} not settled: ${(e as Error).message}`);
+    }));
+  }
+
+  /** A membership or package bill returned in full cancels what it sold. */
+  async handleReturn(tenantId: string, saleId: string) {
+    const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { saleNumber: true, status: true } });
+    if (!sale || sale.status !== 'FULLY_RETURNED') return null;
+    return this.cancelSold(tenantId, sale.saleNumber, `Bill ${sale.saleNumber} wapas`);
+  }
+
+  /** Cancels the membership or package a SLN-MEM-/SLN-PKG- bill sold; null for other bills. */
+  private cancelSold(tenantId: string, saleNumber: string, note: string) {
+    if (saleNumber.startsWith('SLN-MEM-')) {
+      return this.prisma.salonMembership.updateMany({
+        where: { tenantId, membershipNumber: saleNumber.slice(4), status: { not: 'CANCELLED' } },
+        data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: note },
+      });
+    }
+    if (saleNumber.startsWith('SLN-PKG-')) {
+      return this.prisma.salonPackagePurchase.updateMany({
+        where: { tenantId, purchaseNumber: saleNumber.slice(4), status: { not: 'CANCELLED' } },
+        data: { status: 'CANCELLED', notes: note },
+      });
+    }
+    return null;
   }
 
   async handleSale(tenantId: string, saleId: string) {
@@ -40,18 +70,8 @@ export class SalonBillVoidService implements OnModuleInit {
     if (!sale || sale.status !== 'VOIDED') return null;
     const note = `Bill ${sale.saleNumber} void`;
 
-    if (sale.saleNumber.startsWith('SLN-MEM-')) {
-      return this.prisma.salonMembership.updateMany({
-        where: { tenantId, membershipNumber: sale.saleNumber.slice(4), status: { not: 'CANCELLED' } },
-        data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: note },
-      });
-    }
-    if (sale.saleNumber.startsWith('SLN-PKG-')) {
-      return this.prisma.salonPackagePurchase.updateMany({
-        where: { tenantId, purchaseNumber: sale.saleNumber.slice(4), status: { not: 'CANCELLED' } },
-        data: { status: 'CANCELLED', notes: note },
-      });
-    }
+    const sold = this.cancelSold(tenantId, sale.saleNumber, note);
+    if (sold) return sold;
 
     const apt = await this.prisma.salonAppointment.findFirst({ where: { tenantId, saleId: sale.id }, include: { services: true } });
     if (!apt) return null;
