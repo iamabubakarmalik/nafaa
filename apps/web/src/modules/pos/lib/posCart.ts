@@ -20,6 +20,14 @@ export type PosViewMode = 'products' | 'combos' | 'quickkeys';
 export type PosDiscountMode = 'pct' | 'rs';
 export type PosCheckoutMode = 'full' | 'partial' | 'credit';
 
+/** A serial unit picked for one product inside a combo. */
+export interface PosComboSerial {
+  productId: string;
+  id: string;
+  serialNumber: string;
+  imei?: string | null;
+}
+
 export interface PosCartLine {
   id: string;
   type: 'product' | 'combo';
@@ -53,6 +61,8 @@ export interface PosCartLine {
 
   comboItems?: any[];
   savings?: number;
+  /** Serial units picked for products inside this combo; such a line is one combo. */
+  comboSerials?: PosComboSerial[];
 
   /** Size/colour variant of the product, when it has variants. */
   variantId?: string;

@@ -12,7 +12,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, Barcode, CalendarClock, Eye, EyeOff, Filter, GraduationCap, Layers, Package, Pencil, Plus, ShoppingCart, Star,
+  Barcode, CalendarClock, Eye, EyeOff, Filter, GraduationCap, Layers, Package, Pencil, Plus, ShoppingCart, Star,
   Trash2, TrendingUp,
 } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -136,7 +136,7 @@ export default function ElectronicsBundlesPage() {
             { icon: Plus, color: '#2563eb', title: 'Bundle banayein', text: 'Cheezein chunein, har ek ki quantity, phir deal ka rate. Alag alag rate aur bachat khud nikal aati hai.' },
             { icon: ShoppingCart, color: '#059669', title: 'POS par', text: 'POS ke Combos tab (F8) mein bundle dikhta hai. Click karein — bill par ek line, checkout par har cheez apne hisse ke rate se stock se nikalti hai.' },
             { icon: TrendingUp, color: '#7c3aed', title: 'Profit', text: 'Card par deal ka profit aur kitni deals stock se ban sakti hain likha hai. Profit kam ho to rate badlein.' },
-            { icon: Barcode, color: '#e11d48', title: 'Serial wali cheez', text: 'Bundle se bikne wali serial cheez bill par bina serial ke jati hai. Mehngi serial cheez POS par alag se bechein aur accessory ka bundle banayein.' },
+            { icon: Barcode, color: '#e11d48', title: 'Serial wali cheez', text: 'Bundle mein serial wali cheez ho to POS par bundle dabate hi us ka unit chunna hota hai (tap ya scan). Bill par serial aur warranty usi unit par lagti hai.' },
           ]}
           tips={['Bika hua bundle hataya nahi jata — band ho jata hai taake purane bill parhe ja sakein.', 'Date khatam hone par bundle POS se khud hat jata hai.']}
           shortcuts={[['N', 'naya bundle'], ['/', 'dhoondein'], ['G', 'guide']]}
@@ -195,7 +195,7 @@ function BundleCard({ b, money, canEdit, canDelete }: { b: ElectronicsBundle; mo
         <div><dt className="text-slate-500">Profit</dt><dd className={cn('font-semibold tabular-nums', (b.profit ?? 0) < 0 ? 'text-rose-600' : 'text-slate-900')}>{money(b.profit ?? 0)}</dd></div>
         <div><dt className="text-slate-500">Ban sakti</dt><dd className="font-semibold tabular-nums text-slate-900">{b.canMake ?? 0}</dd></div>
       </dl>
-      {serial && <p className="mt-2 flex items-start gap-1.5 text-[0.75rem] text-violet-800"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />Serial wali cheez bundle se bina serial ke bikegi</p>}
+      {serial && <p className="mt-2 flex items-start gap-1.5 text-[0.75rem] text-violet-800"><Barcode className="mt-0.5 h-3.5 w-3.5 shrink-0" />POS par serial wali cheez ka unit chunna hoga</p>}
       <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3">
         <span className="mr-auto text-[0.75rem] text-slate-500">{b.soldBills ?? 0} bills{b.validUntil ? ` · ${shortDate(b.validUntil)} tak` : ''}</span>
         {canEdit && <>

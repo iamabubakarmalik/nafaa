@@ -1,5 +1,6 @@
 /** Labels shared by the menu, add-on and happy-hour screens. */
 
+import { formatTime } from '@core/lib/format';
 import type { DietaryTag, SpiceLevel } from '../api/menu-items.api';
 import type { ModifierType } from '../api/modifiers.api';
 import type { OrderMode } from '../api/happy-hours.api';
@@ -63,3 +64,6 @@ export function foodCostTone(pct: number | null | undefined): 'good' | 'warn' | 
   if (pct == null) return null;
   return pct > 45 ? 'bad' : pct > 35 ? 'warn' : 'good';
 }
+
+/** A branch "86" label: when it comes back by itself, or that it waits to be switched on. */
+export const offLabel = (until?: string | null) => (until ? `Band · ${formatTime(until)} tak` : 'Band (86)');

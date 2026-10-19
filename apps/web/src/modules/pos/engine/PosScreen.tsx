@@ -33,6 +33,7 @@ import { isWeightUnit } from '../lib/posUnits';
 import { printReceiptDirect } from '../lib/thermalReceipt';
 import type { PosIndustryConfig } from './types';
 import { usePosEngine } from './usePosEngine';
+import { freeVariantStock } from '@modules/inventory/products/api/product-variants.api';
 import { isDialogOpen } from '@core/lib/shortcuts';
 
 function useOnline() {
@@ -179,7 +180,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
           onSelect={(v) => {
             const vp = e.variantPicker!;
             e.setVariantPicker(null);
-            e.addItem(vp.item, { ...vp.opts, variant: { id: v.id, name: v.name, price: v.price, stock: v.stock } });
+            e.addItem(vp.item, { ...vp.opts, variant: { id: v.id, name: v.name, price: v.price, stock: freeVariantStock(v), reserved: v.reserved ?? null } });
           }}
           onClose={() => e.setVariantPicker(null)} />
       )}

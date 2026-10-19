@@ -3,18 +3,22 @@
  * deposit. The deposit goes on the customer's khata the day it is taken;
  * "Sell" makes the bill (stock leaves, the deposit pays part of it).
  * Cancelled or expired holds leave the deposit on the khata as an advance.
+ * An open hold counts in the branch's reserved pieces (see held-stock),
+ * so it cannot be held twice and the POS can warn before selling it.
  */
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { GarmentReservationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { ShopScope, readShopStock } from '../../../common/shop-scope';
+import { ShopScope } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { ensureCustomer, paidOnKhata, recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { DAY_MS, findBill, garmentClock, opt, ownCustomer, ownProduct, paging, parseDay, r2, withNextNumber } from '../common/garments-common';
 import { billHeldGoods } from '../common/held-goods';
+import { HoldKey, keyOf, requireFree, resyncRecord, sweepHeld, syncReserved } from '../common/held-stock';
 import { CreateReservationDto, SellReservationDto } from './dto/reservation.dto';
 
 type Db = Prisma.TransactionClient;
@@ -25,6 +29,8 @@ export interface ReservationQuery { view?: string; page?: string; limit?: string
 
 @Injectable()
 export class ReservationsService {
+  private readonly logger = new Logger(ReservationsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly tz: TenantTimezoneService,
@@ -33,13 +39,36 @@ export class ReservationsService {
 
   private get db() { return this.prisma as unknown as Db; }
 
-  /** Pieces of a product/variant already held in a branch. */
-  private async held(shopId: string, productId: string, variantId: string | null, exceptId?: string) {
-    const agg = await this.prisma.garmentReservation.aggregate({
-      where: { shopId, productId, variantId, status: 'ACTIVE', expiresAt: { gt: new Date() }, ...(exceptId && { id: { not: exceptId } }) },
-      _sum: { quantity: true },
+  /** Every 10 minutes: holds past their date expire and free their pieces. */
+  @Cron('0 */10 * * * *')
+  async sweep() {
+    try {
+      const r = await sweepHeld(this.prisma);
+      if (r.expired || r.fixed) this.logger.log(`Holds: ${r.expired} expired, ${r.fixed} items recounted`);
+    } catch (e) {
+      this.logger.warn(`Hold sweep failed: ${(e as Error).message}`);
+    }
+  }
+
+  /**
+   * Pieces held per item in the branch being viewed (all branches added up
+   * in the all-shops view). The POS sells only stock − reserved.
+   */
+  async heldStock(user: AuthenticatedUser, scope: ShopScope) {
+    await sweepHeld(this.prisma, user.tenantId);
+    const rows = await this.prisma.shopStock.findMany({
+      where: { tenantId: user.tenantId, reserved: { gt: 0 }, ...scope.where },
+      select: { productId: true, variantId: true, stock: true, reserved: true },
     });
-    return Number(agg._sum.quantity ?? 0);
+    const out = new Map<string, { productId: string; variantId: string | null; stock: number; reserved: number }>();
+    for (const r of rows) {
+      const k = `${r.productId}:${r.variantId ?? ''}`;
+      const cur = out.get(k) ?? { productId: r.productId, variantId: r.variantId ?? null, stock: 0, reserved: 0 };
+      cur.stock = r2(cur.stock + Number(r.stock));
+      cur.reserved = r2(cur.reserved + Number(r.reserved));
+      out.set(k, cur);
+    }
+    return { items: [...out.values()] };
   }
 
   async create(user: AuthenticatedUser, dto: CreateReservationDto, activeShopId?: string | null) {
@@ -54,12 +83,7 @@ export class ReservationsService {
     const deposit = r2(dto.depositAmount ?? 0);
     if (deposit > unitPrice * quantity + 0.01) throw new BadRequestException('Deposit kul amount se zyada nahi ho sakta');
     const shopId = await resolveIndustryShopId(this.db, user, dto.shopId || activeShopId);
-
-    const stock = await readShopStock(this.prisma, shopId, product.id, variant?.id ?? null);
-    const held = await this.held(shopId, product.id, variant?.id ?? null);
-    if (stock - held < quantity) {
-      throw new BadRequestException(`Is branch me ${Math.max(stock - held, 0)} hi khaali hain${held ? ` (${held} pehle se hold par)` : ''}`);
-    }
+    const key: HoldKey = { tenantId: user.tenantId, shopId, productId: product.id, variantId: variant?.id ?? null };
     const expiresAt = parseDay(clock, dto.expiresAt)
       ?? new Date(clock.today().lt.getTime() + ((dto.holdDays ?? 7) - 1) * DAY_MS - 1);
 
@@ -70,6 +94,7 @@ export class ReservationsService {
       }))?.reservationNumber,
       `RES-${clock.year()}-`,
       (reservationNumber) => this.prisma.$transaction(async (tx) => {
+        await requireFree(tx, key, quantity);
         const customerId = deposit > 0 || customer
           ? await ensureCustomer(tx, user, { customerId: customer?.id, name, phone: dto.customerPhone, shopId })
           : null;
@@ -86,6 +111,7 @@ export class ReservationsService {
             customerId, shopId, amount: deposit, reference: reservationNumber, note: `Hold deposit ${reservationNumber}`, method: dto.paymentMethod,
           });
         }
+        await syncReserved(tx, key);
         return created;
       }),
     );
@@ -205,15 +231,25 @@ export class ReservationsService {
       customerId = await ensureCustomer(this.db, user, { name: r.customerName, phone: r.customerPhone, shopId });
     }
     const legacyPaid = r2(Math.max(deposit - (await paidOnKhata(this.db, user.tenantId, r.reservationNumber)), 0));
-    const sale = await billHeldGoods(this.db, this.sales, user, {
-      ref: r.reservationNumber, shopId, customerId, productId: r.productId, variantId: r.variantId,
-      quantity: r.quantity, amount: total, paidAmount: r2(paidNow + legacyPaid), method: dto.paymentMethod,
-      note: `Hold ${r.reservationNumber}`,
-    });
+    // The held pieces are freed before the bill, so its stock check can use
+    // them; if the bill fails they are held again.
+    await resyncRecord(this.prisma, r, { reservationId: r.id });
+    let sale: { id: string };
+    try {
+      sale = await billHeldGoods(this.db, this.sales, user, {
+        ref: r.reservationNumber, shopId, customerId, productId: r.productId, variantId: r.variantId,
+        quantity: r.quantity, amount: total, paidAmount: r2(paidNow + legacyPaid), method: dto.paymentMethod,
+        note: `Hold ${r.reservationNumber}`,
+      });
+    } catch (e) {
+      await resyncRecord(this.prisma, r);
+      throw e;
+    }
     await this.prisma.garmentReservation.update({
       where: { id },
       data: { status: 'CONVERTED_TO_SALE', convertedSaleId: sale.id, customerId },
     });
+    await resyncRecord(this.prisma, r);
     return this.getOne(user, id);
   }
 
@@ -227,6 +263,7 @@ export class ReservationsService {
       where: { id },
       data: { status: 'CANCELLED', notes: [r.notes, opt(reason) && `Cancel: ${reason!.trim()}`].filter(Boolean).join('\n') || null },
     });
+    await resyncRecord(this.prisma, r);
     return this.getOne(user, id);
   }
 
@@ -241,6 +278,7 @@ export class ReservationsService {
     });
     if (!sale) throw new BadRequestException('Is bill me hold wala product nahi');
     await this.prisma.garmentReservation.update({ where: { id }, data: { status: 'CONVERTED_TO_SALE', convertedSaleId: sale.id } });
+    await resyncRecord(this.prisma, r);
     return this.getOne(user, id);
   }
 
@@ -250,14 +288,19 @@ export class ReservationsService {
     if (!r) throw new NotFoundException('Hold nahi mila');
     if (r.status !== 'ACTIVE' && r.status !== 'EXPIRED') throw new BadRequestException('Ye hold band ho chuka hai');
     const from = Math.max(r.expiresAt.getTime(), Date.now());
-    await this.prisma.garmentReservation.update({ where: { id }, data: { status: 'ACTIVE', expiresAt: new Date(from + days * DAY_MS) } });
+    // A hold that had lapsed is not counted any more: its pieces must still be free.
+    const lapsed = r.status === 'EXPIRED' || r.expiresAt.getTime() <= Date.now();
+    const key = await keyOf(this.db, r);
+    await this.prisma.$transaction(async (tx) => {
+      if (key && lapsed) await requireFree(tx, key, r.quantity, { reservationId: r.id });
+      await tx.garmentReservation.update({ where: { id }, data: { status: 'ACTIVE', expiresAt: new Date(from + days * DAY_MS) } });
+      if (key) await syncReserved(tx, key);
+    });
     return this.getOne(user, id);
   }
 
   async expireOldOnes(user: AuthenticatedUser) {
-    return this.prisma.garmentReservation.updateMany({
-      where: { tenantId: user.tenantId, status: 'ACTIVE', expiresAt: { lt: new Date() } },
-      data: { status: 'EXPIRED' },
-    });
+    const r = await sweepHeld(this.prisma, user.tenantId);
+    return { count: r.expired };
   }
 }

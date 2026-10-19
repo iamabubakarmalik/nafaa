@@ -11,7 +11,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Ban, BadgeCheck, CheckCircle2, ClipboardCheck, IdCard, MessageCircle, Pencil, Printer, Receipt, Recycle, ShoppingCart, Smartphone, Wallet, XCircle,
+  ArrowLeft, Ban, BadgeCheck, CheckCircle2, ClipboardCheck, History, IdCard, MessageCircle, Pencil, Printer, Receipt, Recycle, ShoppingCart, Smartphone, Wallet, XCircle,
 } from 'lucide-react';
 import { Button, Card, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
@@ -191,6 +191,21 @@ export default function UsedPhoneDetailPage() {
               {p.sale && <Trail icon={ShoppingCart} tone="text-violet-700" label={`Bika: ${p.sale.saleNumber}${p.sale.customer ? ` · ${p.sale.customer.name}` : ''}`} value={formatPKR(p.sale.total)} />}
             </ul>
           </Card>
+
+          {(p.history ?? []).length > 0 && (
+            <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4 text-brand-600" />Is phone ki history</span>}
+              description="Same IMEI — pehle khareeda, becha ya baad me wapas liya">
+              <ul className="space-y-1.5 text-[0.8125rem]">
+                {p.history.map((h) => (
+                  <li key={h.id} className="flex items-center justify-between gap-2">
+                    <Link to={`/used-phones/${h.id}`} className="font-mono font-semibold text-brand-700 hover:underline">{h.usedPhoneCode}</Link>
+                    <span className="min-w-0 flex-1 truncate text-slate-600">{dayOnly(h.receivedAt)}{h.fromCustomerName ? ` · ${h.fromCustomerName}` : ''}{h.soldAt ? ` · bika ${dayOnly(h.soldAt)}` : ''}</span>
+                    <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', usedStatusOf(h.status).tone)}>{usedStatusOf(h.status).label}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
           {p.notes && <Card className="rounded-2xl" title="Note"><p className="whitespace-pre-line text-[0.8125rem] text-slate-700">{p.notes}</p></Card>}
         </div>

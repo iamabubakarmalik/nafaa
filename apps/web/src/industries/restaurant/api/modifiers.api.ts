@@ -16,6 +16,12 @@ export interface ModifierOption {
   displayOrder?: number;
   isActive?: boolean;
   emoji?: string;
+  /** Raw material one portion uses (extra cheese 30 g); null clears it. */
+  ingredientProductId?: string | null;
+  ingredientQty?: number | null;
+  ingredientUnit?: string | null;
+  /** Set by the list and detail endpoints. */
+  ingredient?: { id: string; name: string; unit: string } | null;
 }
 
 export interface ModifierGroup {

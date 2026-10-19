@@ -3,6 +3,10 @@ import { ModifierType } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertModifierGroupDto } from './dto/upsert-modifier-group.dto';
+import { unitsCompatible } from '../recipes/recipe-units';
+
+type OptionInput = UpsertModifierGroupDto['options'][number];
+type Ingredient = { ingredientProductId: string | null; ingredientQty: number | null; ingredientUnit: string | null };
 
 @Injectable()
 export class ModifiersService {
@@ -31,8 +35,35 @@ export class ModifiersService {
     return { type, isRequired, minSelections: min, maxSelections: max };
   }
 
+  /**
+   * The raw material each option uses: a product of this business with a
+   * quantity above zero in a unit its stock unit can take (gram for kg, ml
+   * for litres). Null or empty clears it; an option that does not send the
+   * field (older screens) keeps what it has.
+   */
+  private async ingredients(user: AuthenticatedUser, options: OptionInput[]): Promise<Array<Partial<Ingredient>>> {
+    const ids = [...new Set(options.map((o) => o.ingredientProductId).filter(Boolean) as string[])];
+    const products = ids.length
+      ? await this.prisma.product.findMany({ where: { id: { in: ids }, tenantId: user.tenantId }, select: { id: true, name: true, unit: true } })
+      : [];
+    if (products.length !== ids.length) throw new NotFoundException('Add-on ka saamaan nahi mila');
+    const byId = new Map(products.map((p) => [p.id, p]));
+    return options.map((o) => {
+      if (o.ingredientProductId === undefined) return {};
+      const p = o.ingredientProductId ? byId.get(o.ingredientProductId) : undefined;
+      if (!p) return { ingredientProductId: null, ingredientQty: null, ingredientUnit: null };
+      if (!(Number(o.ingredientQty) > 0)) throw new BadRequestException(`${o.name.trim()}: ${p.name} kitna lagta hai — 0 se zyada likhein`);
+      const unit = o.ingredientUnit?.trim() || p.unit;
+      if (!unitsCompatible(unit, p.unit)) {
+        throw new BadRequestException(`${p.name} ka stock "${p.unit}" me hai — add-on me "${unit}" nahi chalega`);
+      }
+      return { ingredientProductId: p.id, ingredientQty: Number(o.ingredientQty), ingredientUnit: unit };
+    });
+  }
+
   async create(user: AuthenticatedUser, dto: UpsertModifierGroupDto) {
     const rules = this.check(dto);
+    const used = await this.ingredients(user, dto.options);
     return this.prisma.modifierGroup.create({
       data: {
         tenantId: user.tenantId,
@@ -50,6 +81,7 @@ export class ModifiersService {
             displayOrder: o.displayOrder ?? idx,
             isActive: o.isActive ?? true,
             emoji: o.emoji || null,
+            ...used[idx],
           })),
         },
       },
@@ -61,6 +93,7 @@ export class ModifiersService {
     const group = await this.prisma.modifierGroup.findFirst({ where: { id, tenantId: user.tenantId }, include: { options: true } });
     if (!group) throw new NotFoundException('Add-on group nahi mila');
     const rules = this.check(dto, group);
+    const used = await this.ingredients(user, dto.options);
 
     // Options are edited in place: past orders point at them, so an option
     // already used on an order is switched off instead of deleted.
@@ -85,6 +118,7 @@ export class ModifiersService {
           displayOrder: o.displayOrder ?? idx,
           isActive: o.isActive ?? true,
           emoji: o.emoji || null,
+          ...used[idx],
         };
         if (o.id && group.options.some((g) => g.id === o.id)) {
           await tx.modifierOption.update({ where: { id: o.id }, data });
@@ -109,7 +143,7 @@ export class ModifiersService {
   async list(user: AuthenticatedUser) {
     return this.prisma.modifierGroup.findMany({
       where: { tenantId: user.tenantId },
-      include: { options: { orderBy: { displayOrder: 'asc' } }, _count: { select: { menuItems: true } }, menuItems: { select: { menuItemId: true } } },
+      include: { options: { orderBy: { displayOrder: 'asc' }, include: { ingredient: { select: { id: true, name: true, unit: true } } } }, _count: { select: { menuItems: true } }, menuItems: { select: { menuItemId: true } } },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
     });
   }
@@ -117,7 +151,7 @@ export class ModifiersService {
   async getOne(user: AuthenticatedUser, id: string) {
     const g = await this.prisma.modifierGroup.findFirst({
       where: { id, tenantId: user.tenantId },
-      include: { options: { orderBy: { displayOrder: 'asc' } }, menuItems: { include: { menuItem: { include: { product: true } } } } },
+      include: { options: { orderBy: { displayOrder: 'asc' }, include: { ingredient: { select: { id: true, name: true, unit: true } } } }, menuItems: { include: { menuItem: { include: { product: true } } } } },
     });
     if (!g) throw new NotFoundException('Add-on group nahi mila');
     return g;

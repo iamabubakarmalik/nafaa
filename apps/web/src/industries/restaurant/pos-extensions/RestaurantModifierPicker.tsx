@@ -9,10 +9,10 @@ import { Check, Minus, Plus } from 'lucide-react';
 import { Button, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
-import type { MenuEntry } from '../hooks/useMenu';
+import type { MenuEntry, MenuSize } from '../hooks/useMenu';
 
 export interface PickedModifier { modifierOptionId: string; name: string; quantity: number; priceAdjustment: number }
-export interface PickedDish { quantity: number; modifiers: PickedModifier[]; note: string }
+export interface PickedDish { quantity: number; size?: MenuSize; modifiers: PickedModifier[]; note: string }
 
 const NOTES = ['Kam mirch', 'Zyada mirch', 'Kam tel', 'Pyaz ke bagair', 'Jaldi', 'Alag pack'];
 
@@ -24,6 +24,7 @@ export function RestaurantModifierPicker({ item, onConfirm, onClose }: {
   const [picked, setPicked] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(item.groups.map((g) => [g.id, g.options.filter((o) => o.isDefault).slice(0, g.maxSelections).map((o) => o.id)])));
   const [qty, setQty] = useState(1);
+  const [size, setSize] = useState<MenuSize | undefined>(() => (item.sizes.length === 1 ? item.sizes[0] : undefined));
   const [note, setNote] = useState('');
 
   const toggle = (groupId: string, optionId: string, max: number) => setPicked((prev) => {
@@ -34,14 +35,18 @@ export function RestaurantModifierPicker({ item, onConfirm, onClose }: {
     return { ...prev, [groupId]: [...cur, optionId] };
   });
 
-  const missing = item.groups.filter((g) => (picked[g.id]?.length ?? 0) < (g.isRequired ? Math.max(1, g.minSelections) : g.minSelections));
+  const missing = [
+    ...(item.sizes.length && !size ? [{ name: 'Size' }] : []),
+    ...item.groups.filter((g) => (picked[g.id]?.length ?? 0) < (g.isRequired ? Math.max(1, g.minSelections) : g.minSelections)),
+  ];
   const chosen = useMemo(() => item.groups.flatMap((g) => (picked[g.id] ?? []).map((id) => g.options.find((o) => o.id === id)!).filter(Boolean)), [item.groups, picked]);
-  const unit = item.price + chosen.reduce((s, o) => s + o.priceAdjustment, 0);
+  const unit = (size?.price ?? item.price) + chosen.reduce((s, o) => s + o.priceAdjustment, 0);
 
   const confirm = () => {
     if (missing.length) return;
     onConfirm({
       quantity: qty,
+      size,
       note: note.trim(),
       modifiers: chosen.map((o) => ({ modifierOptionId: o.id, name: o.name, quantity: 1, priceAdjustment: o.priceAdjustment })),
     });
@@ -62,6 +67,27 @@ export function RestaurantModifierPicker({ item, onConfirm, onClose }: {
         </div>
       }>
       <div className="space-y-5">
+        {item.sizes.length > 0 && (
+          <section>
+            <div className="mb-2 flex items-baseline justify-between gap-2">
+              <h3 className="text-[0.875rem] font-semibold text-slate-900">Size</h3>
+              <span className={cn('text-[0.75rem]', size ? 'text-slate-500' : 'font-semibold text-rose-600')}>Zaroori · ek</span>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {item.sizes.map((z) => {
+                const on = size?.id === z.id;
+                return (
+                  <button key={z.id} type="button" onClick={() => setSize(z)} aria-pressed={on}
+                    className={cn('flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left ring-1 transition',
+                      on ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:ring-slate-300')}>
+                    <span className="truncate text-[0.875rem] font-semibold text-slate-800">{z.name}</span>
+                    <span className="shrink-0 text-[0.8125rem] font-semibold tabular-nums text-slate-600">{formatPKR(z.price)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
         {item.groups.map((g) => {
           const sel = picked[g.id] ?? [];
           const need = g.isRequired ? Math.max(1, g.minSelections) : g.minSelections;

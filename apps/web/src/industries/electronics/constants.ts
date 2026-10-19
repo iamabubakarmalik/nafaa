@@ -7,7 +7,7 @@
  * banaya gaya har product save par fail ho jata tha.
  */
 
-export const CATEGORY_TYPES = [
+const CATEGORY_TYPES = [
   'CABLE', 'CHARGER', 'POWER_BANK', 'HEADPHONE', 'EARBUD', 'SPEAKER',
   'BLUETOOTH_SPEAKER', 'SMARTWATCH', 'FITNESS_BAND', 'DRONE', 'CAMERA',
   'DSLR', 'ACTION_CAMERA', 'WEBCAM', 'KEYBOARD', 'MOUSE', 'MONITOR',
@@ -15,7 +15,8 @@ export const CATEGORY_TYPES = [
   'LED_LIGHT', 'ROUTER', 'MEMORY_CARD', 'USB_DRIVE', 'HARD_DRIVE', 'SSD',
   'ADAPTER', 'CONVERTER', 'SCREEN_PROTECTOR', 'MOBILE_CASE',
   'TABLET_ACCESSORY', 'VR_HEADSET', 'PROJECTOR', 'MICROPHONE', 'TRIPOD',
-  'GIMBAL', 'OTHER',
+  'GIMBAL', 'TV', 'LAPTOP', 'TABLET', 'DESKTOP', 'PRINTER', 'GAMING_CONSOLE',
+  'HOME_THEATER', 'UPS', 'OTHER',
 ] as const;
 
 export type CategoryType = typeof CATEGORY_TYPES[number];
@@ -28,6 +29,14 @@ export type ConditionType = typeof CONDITION_TYPES[number];
 
 /** Har category ka aasaan naam + emoji (Pakistan me jo bola jata hai) */
 export const CATEGORY_META: Record<CategoryType, { label: string; emoji: string; urdu?: string }> = {
+  TV:               { label: 'TV / LED',         emoji: '📺', urdu: 'LED' },
+  HOME_THEATER:     { label: 'Home Theater',     emoji: '🔈', urdu: 'Sound system' },
+  LAPTOP:           { label: 'Laptop',           emoji: '💻' },
+  DESKTOP:          { label: 'Desktop / PC',     emoji: '🖥️', urdu: 'Computer' },
+  TABLET:           { label: 'Tablet',           emoji: '📲', urdu: 'Tab' },
+  PRINTER:          { label: 'Printer',          emoji: '🖨️' },
+  GAMING_CONSOLE:   { label: 'Gaming Console',   emoji: '🎮', urdu: 'PlayStation / Xbox' },
+  UPS:              { label: 'UPS / Inverter',   emoji: '🔋', urdu: 'UPS' },
   CABLE:            { label: 'Cable',            emoji: '🔌', urdu: 'Taar' },
   CHARGER:          { label: 'Charger',          emoji: '⚡', urdu: 'Charger' },
   POWER_BANK:       { label: 'Power Bank',       emoji: '🔋' },
@@ -70,14 +79,16 @@ export const CATEGORY_META: Record<CategoryType, { label: string; emoji: string;
 
 /** Picker me categories khandaan ke hisab se — dhoondna aasan ho jata hai */
 export const CATEGORY_GROUPS: { label: string; emoji: string; items: CategoryType[] }[] = [
+  { label: 'TV & Home Theater', emoji: '📺', items: ['TV', 'HOME_THEATER', 'PROJECTOR'] },
+  { label: 'Computer', emoji: '💻', items: ['LAPTOP', 'DESKTOP', 'PRINTER', 'MONITOR', 'KEYBOARD', 'MOUSE', 'LAPTOP_ACCESSORY', 'WEBCAM', 'ROUTER'] },
+  { label: 'Gaming', emoji: '🎮', items: ['GAMING_CONSOLE', 'VR_HEADSET'] },
   { label: 'Audio', emoji: '🎧', items: ['HEADPHONE', 'EARBUD', 'SPEAKER', 'BLUETOOTH_SPEAKER', 'MICROPHONE'] },
-  { label: 'Power & Cables', emoji: '⚡', items: ['CHARGER', 'POWER_BANK', 'CABLE', 'ADAPTER', 'CONVERTER'] },
-  { label: 'Phone & Tablet', emoji: '📱', items: ['PHONE_ACCESSORY', 'MOBILE_CASE', 'SCREEN_PROTECTOR', 'TABLET_ACCESSORY'] },
-  { label: 'Computer', emoji: '💻', items: ['KEYBOARD', 'MOUSE', 'MONITOR', 'LAPTOP_ACCESSORY', 'WEBCAM', 'ROUTER'] },
+  { label: 'Power & Cables', emoji: '⚡', items: ['UPS', 'CHARGER', 'POWER_BANK', 'CABLE', 'ADAPTER', 'CONVERTER'] },
+  { label: 'Phone & Tablet', emoji: '📱', items: ['TABLET', 'PHONE_ACCESSORY', 'MOBILE_CASE', 'SCREEN_PROTECTOR', 'TABLET_ACCESSORY'] },
   { label: 'Storage', emoji: '💾', items: ['MEMORY_CARD', 'USB_DRIVE', 'HARD_DRIVE', 'SSD'] },
   { label: 'Camera', emoji: '📷', items: ['CAMERA', 'DSLR', 'ACTION_CAMERA', 'DRONE', 'TRIPOD', 'GIMBAL'] },
-  { label: 'Wearable', emoji: '⌚', items: ['SMARTWATCH', 'FITNESS_BAND', 'VR_HEADSET'] },
-  { label: 'Home & Car', emoji: '🏠', items: ['SMART_HOME', 'LED_LIGHT', 'PROJECTOR', 'CAR_ACCESSORY'] },
+  { label: 'Wearable', emoji: '⌚', items: ['SMARTWATCH', 'FITNESS_BAND'] },
+  { label: 'Home & Car', emoji: '🏠', items: ['SMART_HOME', 'LED_LIGHT', 'CAR_ACCESSORY'] },
   { label: 'Baqi', emoji: '📦', items: ['OTHER'] },
 ];
 
@@ -112,6 +123,7 @@ export const CONDITION_META: Record<ConditionType, {
 
 /** Jin categories me aam tor par serial/IMEI rakha jata hai */
 export const SERIAL_SUGGESTED: CategoryType[] = [
+  'TV', 'LAPTOP', 'TABLET', 'DESKTOP', 'PRINTER', 'GAMING_CONSOLE', 'HOME_THEATER', 'UPS',
   'SMARTWATCH', 'DRONE', 'CAMERA', 'DSLR', 'ACTION_CAMERA', 'MONITOR',
   'PROJECTOR', 'ROUTER', 'HARD_DRIVE', 'SSD', 'VR_HEADSET', 'GIMBAL',
 ];
@@ -148,6 +160,19 @@ export const BOX_CONTENT_OPTIONS = [
  * Match na ho to `OTHER` — koi nuqsan nahi, sirf grouping aam ho jati hai.
  */
 const NAME_HINTS: [RegExp, CategoryType][] = [
+  // Accessories first, so "laptop bag" or "tablet cover" is not taken for the device.
+  [/screen\s?(protector|guard)|glass|tempered/i, 'SCREEN_PROTECTOR'],
+  [/laptop\s?(bag|stand|skin|cooler|sleeve|charger|adapter|accessor)/i, 'LAPTOP_ACCESSORY'],
+  [/(tablet|ipad|tab)\s?(cover|case|pen|stand|accessor)/i, 'TABLET_ACCESSORY'],
+  // "LED" on its own is what people call a TV here; LED lights and monitors are not.
+  [/\btv\b|television|\bleds?\b(?!\s*(lights?|bulbs?|lamps?|strips?|monitors?))/i, 'TV'],
+  [/home\s?theat(er|re)|sound\s?system/i, 'HOME_THEATER'],
+  [/play\s?station|\bps[45]\b|x\s?box|nintendo|console/i, 'GAMING_CONSOLE'],
+  [/\bups\b|inverter/i, 'UPS'],
+  [/printer|scanner|photocopier/i, 'PRINTER'],
+  [/desktop|all.?in.?one|\bpc\b|\bcpu\b|\bcomputers?\b(?!\s*(accessor|parts))/i, 'DESKTOP'],
+  [/laptop|notebook|macbook|chromebook/i, 'LAPTOP'],
+  [/tablet|ipad|\btab\b/i, 'TABLET'],
   [/head\s?phone|headset(?!.*vr)|over.?ear/i, 'HEADPHONE'],
   [/ear\s?bud|ear\s?phone|handsfree|air\s?pod|tws/i, 'EARBUD'],
   [/bluetooth.*speak|bt.*speak/i, 'BLUETOOTH_SPEAKER'],
@@ -170,17 +195,14 @@ const NAME_HINTS: [RegExp, CategoryType][] = [
   [/gimbal|stabilizer/i, 'GIMBAL'],
   [/key\s?board/i, 'KEYBOARD'],
   [/mouse|mice/i, 'MOUSE'],
-  [/monitor|screen|display|led\s?tv/i, 'MONITOR'],
+  [/monitor|screen|display/i, 'MONITOR'],
   [/projector/i, 'PROJECTOR'],
-  [/laptop|notebook|macbook/i, 'LAPTOP_ACCESSORY'],
   [/router|wi.?fi|modem|net\s?gear/i, 'ROUTER'],
   [/memory\s?card|sd\s?card|micro\s?sd/i, 'MEMORY_CARD'],
   [/usb\s?(drive|stick)|flash\s?drive|pen\s?drive/i, 'USB_DRIVE'],
   [/hard\s?(disk|drive)|hdd|external\s?drive/i, 'HARD_DRIVE'],
   [/ssd|solid\s?state/i, 'SSD'],
-  [/screen\s?(protector|guard)|glass|tempered/i, 'SCREEN_PROTECTOR'],
   [/cover|case\b|pouch|back\s?cover/i, 'MOBILE_CASE'],
-  [/tablet|ipad/i, 'TABLET_ACCESSORY'],
   [/car\b|gari|dash\s?cam/i, 'CAR_ACCESSORY'],
   [/smart\s?home|alexa|google\s?home/i, 'SMART_HOME'],
   [/led|light|bulb|lamp/i, 'LED_LIGHT'],

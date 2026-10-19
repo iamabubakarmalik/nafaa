@@ -35,7 +35,7 @@ export interface PosPhone extends Omit<ProductImei, 'product' | 'variant'> {
 }
 
 /** Non-IMEI product (charger, cover, handsfree...) — stock current shop ka. */
-export interface PosAccessory {
+interface PosAccessory {
   id: string;
   name: string;
   sku?: string | null;
@@ -55,6 +55,8 @@ export interface MobilePosCatalog {
   phones: PosPhone[];
   usedPhones: UsedPhone[];
   accessories: PosAccessory[];
+  /** Products sold by IMEI (any status), so they are never sold as plain products. */
+  phoneProductIds: string[];
   /** Trade-in ho chuke lekin inspection me atke phones — ye POS me nahi bikte */
   usedPhonesPendingInspection: number;
   counts: { phones: number; usedPhones: number; accessories: number };

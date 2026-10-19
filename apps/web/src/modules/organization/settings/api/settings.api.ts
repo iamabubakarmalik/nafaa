@@ -57,6 +57,10 @@ export interface TenantSettings {
   showProductImages: boolean;
   enableBarcodeScanner: boolean;
   enableQuickKeys: boolean;
+  /** Dine-in service charge the order screen starts with; 0 = none. */
+  serviceChargePct: number;
+  /** Days after a sale within which goods may be exchanged; 0 = no limit set. */
+  exchangeDays: number;
   defaultLowStockAlert: number;
   trackExpiry: boolean;
   expiryWarningDays: number;
@@ -110,7 +114,8 @@ export type CounterRules = Pick<TenantSettings,
   | 'defaultPaymentMethod' | 'allowNegativeStock' | 'confirmBeforeCheckout' | 'requireCustomerForSale'
   | 'allowDiscount' | 'maxDiscountPercent' | 'roundTotal' | 'allowCredit'
   | 'requirePinForVoid' | 'requirePinForDiscount' | 'requirePinForRefund' | 'hasManagerPin'
-  | 'enableLoyalty' | 'loyaltyPointsPerRupee' | 'loyaltyRedemptionRate' | 'loyaltyMinRedeem' | 'loyaltyMaxRedeemPercent'>;
+  | 'enableLoyalty' | 'loyaltyPointsPerRupee' | 'loyaltyRedemptionRate' | 'loyaltyMinRedeem' | 'loyaltyMaxRedeemPercent'
+  | 'serviceChargePct' | 'exchangeDays'>;
 
 export const settingsApi = {
   counter: () => apiClient.get('/settings/counter').then((r) => unwrap<CounterRules | null>(r)),

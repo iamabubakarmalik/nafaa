@@ -160,6 +160,7 @@ interface ImeiLookup {
   repairs: Array<{
     id: string; ticketNumber: string; status: string; deviceBrand: string; deviceModel: string; reportedIssue: string; diagnosedIssue: string | null;
     receivedAt: string; deliveredAt: string | null; warrantyEnds: string | null; warrantyActive: boolean; totalCost: number; customerName: string; customerPhone: string;
+    warrantyOf: { id: string; ticketNumber: string } | null;
   }>;
 }
 

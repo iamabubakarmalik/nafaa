@@ -17,17 +17,7 @@ import { customersApi, type Customer } from '@modules/customers/customers/api/cu
 import { salesHistoryApi, type HistorySale } from '@modules/sales/history/api';
 import { emiApi } from '../../api/emi.api';
 import { imeiApi } from '../../api/imei.api';
-import { EMI_KEY, apiError, dayOnly, todayKey } from '../meta';
-
-const COUNTS = [2, 3, 4, 6, 9, 12];
-
-/** yyyy-MM-dd `months` after `key`, the day clamped to the month's end. */
-function addMonths(key: string, months: number) {
-  const [y, m, d] = key.split('-').map(Number);
-  const first = new Date(Date.UTC(y, m - 1 + months, 1));
-  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
-  return `${first.getUTCFullYear()}-${String(first.getUTCMonth() + 1).padStart(2, '0')}-${String(Math.min(d, last)).padStart(2, '0')}`;
-}
+import { EMI_KEY, QIST_COUNTS, addMonths, apiError, dayOnly, todayKey } from '../meta';
 
 export function CreateEmiPlanModal({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
@@ -124,7 +114,7 @@ export function CreateEmiPlanModal({ onClose }: { onClose: () => void }) {
           <section className="space-y-3">
             <p className="text-[0.8125rem] font-semibold text-slate-700">3. Qistein</p>
             <div className="flex flex-wrap gap-1.5">
-              {COUNTS.map((c) => (
+              {QIST_COUNTS.map((c) => (
                 <button key={c} type="button" onClick={() => setCount(c)} className={cn('h-9 rounded-lg px-3 text-[0.8125rem] font-semibold ring-1', count === c ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{c} mahine</button>
               ))}
             </div>

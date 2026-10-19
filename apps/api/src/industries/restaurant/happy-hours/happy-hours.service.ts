@@ -12,6 +12,13 @@ import { UpsertHappyHourDto } from './dto/upsert-happy-hour.dto';
 /** A bill line to price: menu price per plate before any discount. */
 export interface HappyLine { productId: string; quantity: number; unitPrice: number }
 
+/** A rule's own discount on one line, before its per-bill cap. */
+function lineSaving(r: Pick<HappyHourRule, 'discountType' | 'discountValue'>, l: HappyLine) {
+  if (r.discountType === 'FIXED') return Math.min(r.discountValue, l.unitPrice) * l.quantity;
+  if (r.discountType === 'BUY_ONE_GET_ONE') return Math.floor(l.quantity / 2) * l.unitPrice;
+  return (l.unitPrice * l.quantity * r.discountValue) / 100;
+}
+
 /** Date-only input kept at midday UTC, so it reads as the same day in any shop timezone. */
 const asDay = (v?: string | null) => (v ? new Date(`${v.slice(0, 10)}T12:00:00.000Z`) : null);
 
@@ -143,12 +150,6 @@ export class HappyHoursService {
       const cat = category.get(productId);
       return r.productIds.includes(productId) || (!!cat && r.categoryIds.includes(cat));
     };
-    const saving = (r: HappyHourRule, l: HappyLine) => {
-      const gross = l.unitPrice * l.quantity;
-      if (r.discountType === 'FIXED') return Math.min(r.discountValue, l.unitPrice) * l.quantity;
-      if (r.discountType === 'BUY_ONE_GET_ONE') return Math.floor(l.quantity / 2) * l.unitPrice;
-      return (gross * r.discountValue) / 100;
-    };
 
     // Best rule per line, then each rule's cap shared over its lines.
     const pick = lines.map((l) => {
@@ -156,7 +157,7 @@ export class HappyHoursService {
       for (const r of rules) {
         if (r.minOrderAmount && billTotal < r.minOrderAmount) continue;
         if (!covers(r, l.productId)) continue;
-        const amount = saving(r, l);
+        const amount = lineSaving(r, l);
         if (amount > (best?.amount ?? 0)) best = { r, amount };
       }
       return best;
@@ -182,11 +183,38 @@ export class HappyHoursService {
     return { lines: priced, discount: round2(priced.reduce((s, l) => s + l.discount, 0)), rules: [...used.values()] };
   }
 
-  /** Prices given products at their menu price, for the counter screen. */
-  async quote(user: AuthenticatedUser, items: Array<{ productId: string; quantity: number }>, mode?: RestaurantOrderMode) {
-    const products = await this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: [...new Set(items.map((i) => i.productId))] } }, select: { id: true, price: true } });
-    const price = new Map(products.map((p) => [p.id, Number(p.price || 0)]));
-    return this.priceLines(user.tenantId, items.filter((i) => price.has(i.productId)).map((i) => ({ ...i, unitPrice: price.get(i.productId)! })), { mode });
+  /**
+   * What each rule saved on a bill, for its usage counters. A bill line
+   * keeps the rule that priced it, not the amount, so a line's saving is
+   * the rule's own discount on it, never more than the line's discount;
+   * the rule's cap holds per bill.
+   */
+  async billSavings(tenantId: string, lines: Array<{ happyHourRuleId: string | null; basePrice: number; quantity: number; itemDiscount: number }>) {
+    const ids = [...new Set(lines.map((l) => l.happyHourRuleId).filter(Boolean) as string[])];
+    if (!ids.length) return [];
+    const rules = await this.prisma.happyHourRule.findMany({ where: { id: { in: ids }, tenantId } });
+    return rules.map((r) => {
+      let saved = lines
+        .filter((l) => l.happyHourRuleId === r.id)
+        .reduce((sum, l) => sum + Math.min(l.itemDiscount, lineSaving(r, { productId: '', quantity: l.quantity, unitPrice: l.basePrice })), 0);
+      if (r.maxDiscount) saved = Math.min(saved, r.maxDiscount);
+      return { id: r.id, saved: round2(saved) };
+    }).filter((r) => r.saved > 0);
+  }
+
+  /** Prices given products at their menu (or size) price, for the counter screen. */
+  async quote(user: AuthenticatedUser, items: Array<{ productId: string; quantity: number; variantId?: string }>, mode?: RestaurantOrderMode) {
+    const products = await this.prisma.product.findMany({
+      where: { tenantId: user.tenantId, id: { in: [...new Set(items.map((i) => i.productId))] } },
+      select: { id: true, price: true, variants: { select: { id: true, price: true } } },
+    });
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const priceOf = (i: { productId: string; variantId?: string }) => {
+      const p = byId.get(i.productId)!;
+      return Number((i.variantId && p.variants.find((v) => v.id === i.variantId)?.price) || p.price || 0);
+    };
+    return this.priceLines(user.tenantId, items.filter((i) => byId.has(i.productId))
+      .map((i) => ({ productId: i.productId, quantity: i.quantity, unitPrice: priceOf(i) })), { mode });
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertHappyHourDto) {
@@ -199,8 +227,9 @@ export class HappyHoursService {
   async remove(user: AuthenticatedUser, id: string) {
     const r = await this.prisma.happyHourRule.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Happy hour nahi mila');
-    // A rule that already gave discounts is switched off, so its totals stay.
-    if (r.totalUsage > 0) return this.prisma.happyHourRule.update({ where: { id }, data: { isActive: false } });
+    // A rule that already gave discounts (or priced a line still open) is switched off, so its totals stay.
+    const priced = r.totalUsage > 0 || (await this.prisma.restaurantOrderItem.count({ where: { happyHourRuleId: id } })) > 0;
+    if (priced) return this.prisma.happyHourRule.update({ where: { id }, data: { isActive: false } });
     return this.prisma.happyHourRule.delete({ where: { id } });
   }
 

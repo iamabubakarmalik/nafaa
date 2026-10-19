@@ -6,13 +6,16 @@ import { UpsertRecipeDto } from './dto/upsert-recipe.dto';
 import { applyStockDelta } from '../../../common/shop-scope';
 import { startOfBusinessDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
-import { convertQty, round2, round3, unitsCompatible } from './recipe-units';
+import { convertQty, round2, round3, unitsCompatible, withWastage } from './recipe-units';
 import { stockOf } from './branch-stock';
+import { menuBranch, offAtBranch } from '../menu-items/branch-availability';
 
 /** One order line to cook. */
 export interface CookLine {
   id: string;
   productId: string;
+  /** Size sold; its recipe factor scales the ingredients. */
+  variantId?: string | null;
   quantity: number;
 }
 
@@ -35,7 +38,10 @@ export interface PlateFacts {
   unitProblems: string[];
 }
 
-const RECIPE_INCLUDE = { ingredients: { include: { ingredient: true }, orderBy: { displayOrder: 'asc' } } } satisfies Prisma.RecipeInclude;
+const RECIPE_INCLUDE = {
+  ingredients: { include: { ingredient: true }, orderBy: { displayOrder: 'asc' } },
+  sizeFactors: { select: { id: true, variantId: true, factor: true, variant: { select: { name: true } } } },
+} satisfies Prisma.RecipeInclude;
 
 @Injectable()
 export class RecipesService {
@@ -68,12 +74,14 @@ export class RecipesService {
       // Cost is per unit of the stocked ingredient at today's rate; a typed
       // rate is used only while the ingredient has no cost of its own.
       const costPer = product.costPrice || ing.costPerUnit || 0;
-      const lineTotal = round2(costPer * convertQty(ing.quantity, unit, product.unit));
+      const wastagePercent = round2(ing.wastagePercent ?? 0);
+      const lineTotal = round2(costPer * convertQty(withWastage(ing.quantity, wastagePercent), unit, product.unit));
       if (!ing.isOptional) total += lineTotal;
       return {
         ingredientProductId: ing.ingredientProductId,
         quantity: round3(ing.quantity),
         unit,
+        wastagePercent,
         costPerUnit: costPer,
         totalCost: lineTotal,
         isOptional: ing.isOptional ?? false,
@@ -84,10 +92,34 @@ export class RecipesService {
     return { total: round2(total), enriched };
   }
 
-  /** Keep the dish's cost price equal to its recipe cost per portion, so profit reports see food cost. */
-  private async syncDishCost(tx: Prisma.TransactionClient, productId: string, total: number, yieldQuantity: number) {
+  /**
+   * Keep the dish's cost price equal to its recipe cost per portion, so
+   * profit reports see food cost. Once a recipe has size factors, every
+   * size costs the plate times its factor (a size without one uses the
+   * full recipe); a recipe without factors leaves the sizes' typed costs.
+   */
+  private async syncDishCost(
+    tx: Prisma.TransactionClient, productId: string, total: number, yieldQuantity: number,
+    sizeFactors: Array<{ variantId: string; factor: number }> = [],
+  ) {
     if (!(total > 0)) return;
-    await tx.product.update({ where: { id: productId }, data: { costPrice: round2(total / (yieldQuantity || 1)) } });
+    const perPlate = round2(total / (yieldQuantity || 1));
+    await tx.product.update({ where: { id: productId }, data: { costPrice: perPlate } });
+    if (!sizeFactors.length) return;
+    const sizes = await tx.productVariant.findMany({ where: { productId }, select: { id: true, costPrice: true } });
+    for (const v of sizes) {
+      const cost = round2(perPlate * (sizeFactors.find((f) => f.variantId === v.id)?.factor ?? 1));
+      if (Math.abs(cost - v.costPrice) >= 0.01) await tx.productVariant.update({ where: { id: v.id }, data: { costPrice: cost } });
+    }
+  }
+
+  /** Size factors must belong to the dish's own sizes, each once. */
+  private async checkSizes(productId: string, sizeFactors: NonNullable<UpsertRecipeDto['sizeFactors']>) {
+    const ids = sizeFactors.map((f) => f.variantId);
+    if (new Set(ids).size !== ids.length) throw new BadRequestException('Ek size do dafa likha hai');
+    if (!ids.length) return;
+    const found = await this.prisma.productVariant.count({ where: { id: { in: ids }, productId } });
+    if (found !== ids.length) throw new NotFoundException('Ek ya zyada size is dish ka nahi');
   }
 
   async upsert(user: AuthenticatedUser, dto: UpsertRecipeDto) {
@@ -97,7 +129,8 @@ export class RecipesService {
     if (dto.yieldQuantity !== undefined && !(dto.yieldQuantity > 0)) throw new BadRequestException('Kitni plate banti hain — 0 se zyada likhein');
 
     const { total, enriched } = await this.computeCost(user, menuItem.productId, dto.ingredients);
-    const existing = await this.prisma.recipe.findUnique({ where: { menuItemId: dto.menuItemId } });
+    if (dto.sizeFactors) await this.checkSizes(menuItem.productId, dto.sizeFactors);
+    const existing = await this.prisma.recipe.findUnique({ where: { menuItemId: dto.menuItemId }, include: { sizeFactors: true } });
     const yieldQuantity = dto.yieldQuantity ?? existing?.yieldQuantity ?? 1;
 
     return this.prisma.$transaction(async (tx) => {
@@ -108,22 +141,32 @@ export class RecipesService {
         cookingTime: dto.cookingTime ?? null,
         totalCost: total,
       };
-      let recipe;
+      let recipeId: string;
       if (existing) {
         await tx.recipeIngredient.deleteMany({ where: { recipeId: existing.id } });
-        recipe = await tx.recipe.update({
-          where: { id: existing.id },
-          data: { ...base, ingredients: { create: enriched } },
-          include: RECIPE_INCLUDE,
-        });
+        await tx.recipe.update({ where: { id: existing.id }, data: { ...base, ingredients: { create: enriched } } });
+        recipeId = existing.id;
       } else {
-        recipe = await tx.recipe.create({
+        recipeId = (await tx.recipe.create({
           data: { ...base, tenantId: user.tenantId, menuItemId: dto.menuItemId, ingredients: { create: enriched } },
-          include: RECIPE_INCLUDE,
-        });
+          select: { id: true },
+        })).id;
       }
-      await this.syncDishCost(tx, menuItem.productId, total, yieldQuantity);
-      return recipe;
+      // Sizes are replaced only when sent; an older screen leaves them as saved.
+      if (dto.sizeFactors) {
+        const keep = dto.sizeFactors.map((f) => f.variantId);
+        await tx.recipeSizeFactor.deleteMany({ where: { recipeId, variantId: { notIn: keep } } });
+        for (const f of dto.sizeFactors) {
+          await tx.recipeSizeFactor.upsert({
+            where: { recipeId_variantId: { recipeId, variantId: f.variantId } },
+            update: { factor: f.factor },
+            create: { tenantId: user.tenantId, recipeId, variantId: f.variantId, factor: f.factor },
+          });
+        }
+      }
+      const sizes = dto.sizeFactors ?? existing?.sizeFactors ?? [];
+      await this.syncDishCost(tx, menuItem.productId, total, yieldQuantity, sizes);
+      return tx.recipe.findUniqueOrThrow({ where: { id: recipeId }, include: RECIPE_INCLUDE });
     });
   }
 
@@ -139,7 +182,8 @@ export class RecipesService {
       where: { tenantId, ...(productIds && { menuItem: { productId: { in: productIds } } }) },
       include: {
         ingredients: { include: { ingredient: { select: { costPrice: true, unit: true } } } },
-        menuItem: { select: { productId: true, product: { select: { costPrice: true } } } },
+        sizeFactors: { select: { variantId: true, factor: true } },
+        menuItem: { select: { productId: true, product: { select: { costPrice: true, variants: { select: { id: true, costPrice: true } } } } } },
       },
     });
     for (const r of recipes) {
@@ -147,16 +191,18 @@ export class RecipesService {
       for (const ing of r.ingredients) {
         if (ing.isOptional) continue;
         const rate = ing.ingredient?.costPrice || ing.costPerUnit || 0;
-        total += rate * convertQty(ing.quantity, ing.unit, ing.ingredient?.unit);
+        total += rate * convertQty(withWastage(ing.quantity, ing.wastagePercent), ing.unit, ing.ingredient?.unit);
       }
       total = round2(total);
       if (!(total > 0)) continue;
       const perPlate = round2(total / (r.yieldQuantity || 1));
-      if (Math.abs(perPlate - (r.menuItem.product?.costPrice ?? 0)) < 0.01 && Math.abs(total - r.totalCost) < 0.01) continue;
-      await this.prisma.$transaction([
-        this.prisma.recipe.update({ where: { id: r.id }, data: { totalCost: total } }),
-        this.prisma.product.update({ where: { id: r.menuItem.productId }, data: { costPrice: perPlate } }),
-      ]);
+      const sizesStale = r.sizeFactors.length > 0 && (r.menuItem.product?.variants ?? []).some((v) =>
+        Math.abs(round2(perPlate * (r.sizeFactors.find((f) => f.variantId === v.id)?.factor ?? 1)) - v.costPrice) >= 0.01);
+      if (!sizesStale && Math.abs(perPlate - (r.menuItem.product?.costPrice ?? 0)) < 0.01 && Math.abs(total - r.totalCost) < 0.01) continue;
+      await this.prisma.$transaction(async (tx) => {
+        await tx.recipe.update({ where: { id: r.id }, data: { totalCost: total } });
+        await this.syncDishCost(tx, r.menuItem.productId, total, r.yieldQuantity, r.sizeFactors);
+      });
       changed += 1;
     }
     return changed;
@@ -176,7 +222,9 @@ export class RecipesService {
   }
 
   /**
-   * Take the ingredients of the given order lines out of the branch stock.
+   * Take the ingredients of the given order lines out of the branch stock:
+   * the dish's recipe (with wastage, times the size factor of the size sold)
+   * and the raw material of each add-on picked (extra cheese).
    *
    * Each line is claimed through its `cookingStartedAt` stamp, so a line is
    * never deducted twice (kitchen marking COOKING, then the bill being paid).
@@ -187,13 +235,23 @@ export class RecipesService {
   async consumeForLines(user: AuthenticatedUser, shopId: string, lines: CookLine[], orderNumber: string) {
     if (!lines.length) return;
     const productIds = [...new Set(lines.map((l) => l.productId))];
-    const recipes = await this.prisma.recipe.findMany({
-      where: { tenantId: user.tenantId, menuItem: { productId: { in: productIds } } },
-      include: {
-        ingredients: { include: { ingredient: { select: { id: true, name: true, unit: true } } } },
-        menuItem: { select: { productId: true } },
-      },
-    });
+    const [recipes, addOns] = await Promise.all([
+      this.prisma.recipe.findMany({
+        where: { tenantId: user.tenantId, menuItem: { productId: { in: productIds } } },
+        include: {
+          ingredients: { include: { ingredient: { select: { id: true, name: true, unit: true } } } },
+          sizeFactors: { select: { variantId: true, factor: true } },
+          menuItem: { select: { productId: true } },
+        },
+      }),
+      this.prisma.restaurantOrderItemModifier.findMany({
+        where: { orderItemId: { in: lines.map((l) => l.id) }, modifierOption: { ingredientProductId: { not: null } } },
+        select: {
+          orderItemId: true, quantity: true,
+          modifierOption: { select: { name: true, ingredientProductId: true, ingredientQty: true, ingredientUnit: true, ingredient: { select: { unit: true } } } },
+        },
+      }),
+    ]);
     const byProduct = new Map(recipes.map((r) => [r.menuItem.productId, r]));
     const now = new Date();
 
@@ -204,24 +262,45 @@ export class RecipesService {
       });
       if (!claimed.count) continue;
       const recipe = byProduct.get(line.productId);
-      if (!recipe) continue;
+      const extras = addOns.filter((m) => m.orderItemId === line.id);
 
-      const factor = line.quantity / (recipe.yieldQuantity || 1);
-      await this.prisma.$transaction(async (tx) => {
+      const take: Array<{ productId: string; used: number; note: string }> = [];
+      if (recipe) {
+        // A size without a factor uses the full recipe.
+        const size = line.variantId ? recipe.sizeFactors.find((f) => f.variantId === line.variantId)?.factor ?? 1 : 1;
+        const factor = (line.quantity / (recipe.yieldQuantity || 1)) * size;
         for (const ing of recipe.ingredients) {
           if (ing.isOptional || !ing.ingredient) continue;
-          const used = round3(convertQty(ing.quantity * factor, ing.unit, ing.ingredient.unit));
-          if (!(used > 0)) continue;
+          take.push({
+            productId: ing.ingredientProductId,
+            used: round3(convertQty(withWastage(ing.quantity, ing.wastagePercent) * factor, ing.unit, ing.ingredient.unit)),
+            note: `Kitchen use × ${line.quantity}`,
+          });
+        }
+      }
+      for (const m of extras) {
+        const o = m.modifierOption;
+        if (!o.ingredientProductId || !(Number(o.ingredientQty) > 0)) continue;
+        take.push({
+          productId: o.ingredientProductId,
+          used: round3(convertQty(Number(o.ingredientQty) * m.quantity * line.quantity, o.ingredientUnit, o.ingredient?.unit)),
+          note: `Add-on ${o.name} × ${m.quantity * line.quantity}`,
+        });
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+        for (const t of take) {
+          if (!(t.used > 0)) continue;
           await applyStockDelta({
             tx,
             tenantId: user.tenantId,
             shopId,
-            productId: ing.ingredientProductId,
-            delta: -used,
+            productId: t.productId,
+            delta: -t.used,
             movementType: 'ADJUSTMENT_OUT',
             // Low-stock reads "Recipe:" movements as kitchen use.
             reference: `Recipe: ${orderNumber}`,
-            note: `Kitchen use × ${line.quantity}`,
+            note: t.note,
             userId: user.id,
           });
         }
@@ -257,7 +336,7 @@ export class RecipesService {
         const name = ing.ingredient?.name ?? 'Saamaan';
         if (!unitsCompatible(ing.unit, stockUnit)) unitProblems.push(name);
         // Per plate, in the unit the ingredient is stocked in.
-        const need = round3(convertQty((Number(ing.quantity) || 0) / portions, ing.unit, stockUnit));
+        const need = round3(convertQty(withWastage(Number(ing.quantity) || 0, ing.wastagePercent) / portions, ing.unit, stockUnit));
         if (!ing.isOptional) cost += need * (ing.ingredient?.costPrice || ing.costPerUnit || 0);
         // An optional line does not stop the dish.
         if (ing.isOptional || need <= 0) continue;
@@ -288,7 +367,10 @@ export class RecipesService {
    * four plates left lets the counter take it off the menu or buy stock first.
    */
   async cookability(user: AuthenticatedUser, shopId: string | null = null) {
-    const facts = await this.plateFacts(user.tenantId, shopId);
+    const [facts, off] = await Promise.all([
+      this.plateFacts(user.tenantId, shopId),
+      menuBranch(this.prisma, user.tenantId, shopId).then((b) => offAtBranch(this.prisma, user.tenantId, b)),
+    ]);
     const items = await this.prisma.restaurantMenuItem.findMany({
       where: { tenantId: user.tenantId, productId: { in: [...facts.keys()] } },
       select: {
@@ -306,7 +388,10 @@ export class RecipesService {
         menuItemId: m.id,
         productId: m.product.id,
         name: m.product.name,
-        isAvailable: m.isAvailable,
+        /** On the menu and not "86" at this branch. */
+        isAvailable: m.isAvailable && !off.has(m.id),
+        offHere: m.isAvailable && off.has(m.id),
+        offUntil: off.get(m.id) ?? null,
         prepTimeMinutes: m.prepTimeMinutes ?? null,
         totalOrdered: m.totalOrdered ?? 0,
         price,

@@ -18,7 +18,7 @@ import { ProductDetailPage, type DetailConfig, type DetailContext } from '@modul
 import { menuItemsApi, type RestaurantMenuItem } from '../api/menu-items.api';
 import { recipesApi, type Cookability, type RecipeRow } from '../api/recipes.api';
 import { convertQty } from '../lib/recipeUnits';
-import { clock12, daysLabel, dietLabel, foodCostTone, modifierTypeOf, spiceOf } from '../lib/menuMeta';
+import { clock12, daysLabel, dietLabel, foodCostTone, modifierTypeOf, offLabel, spiceOf } from '../lib/menuMeta';
 
 interface Extra {
   menu: RestaurantMenuItem | null;
@@ -44,7 +44,9 @@ function MenuTab({ ctx }: { ctx: Ctx }) {
   const qc = useQueryClient();
   const canManage = usePermission(PERMISSIONS.RESTAURANT_MENU_MANAGE);
   const [busy, setBusy] = useState(false);
+  const [choosing, setChoosing] = useState(false);
   const m = ctx.extra?.menu;
+  const inHours = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString();
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     setBusy(true);
@@ -70,25 +72,44 @@ function MenuTab({ ctx }: { ctx: Ctx }) {
     );
   }
   const spice = m.isSpicy ? spiceOf(m.spiceLevel) : null;
+  const onNow = m.isAvailable && !m.offHere;
   const groups = [...(m.modifiers ?? [])].sort((a, b) => a.displayOrder - b.displayOrder);
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Card className="rounded-2xl" title="Aaj">
-        <div className={cn('flex items-center gap-3 rounded-xl p-3 ring-1', m.isAvailable ? 'bg-success-50 ring-success-200' : 'bg-rose-50 ring-rose-200')}>
-          <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl', m.isAvailable ? 'bg-success-600 text-white' : 'bg-rose-600 text-white')}>
-            {m.isAvailable ? <Power className="h-5 w-5" /> : <CircleSlash className="h-5 w-5" />}
+        <div className={cn('flex items-center gap-3 rounded-xl p-3 ring-1', onNow ? 'bg-success-50 ring-success-200' : 'bg-rose-50 ring-rose-200')}>
+          <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl', onNow ? 'bg-success-600 text-white' : 'bg-rose-600 text-white')}>
+            {onNow ? <Power className="h-5 w-5" /> : <CircleSlash className="h-5 w-5" />}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-slate-900">{m.isAvailable ? 'Mil rahi hai' : 'Band hai (86)'}</p>
-            <p className="text-[0.75rem] text-slate-600">{m.isAvailable ? 'Counter aur online menu par dikh rahi hai' : 'Counter par nahi aati — khatam ho gayi thi'}</p>
+            <p className="font-semibold text-slate-900">{onNow ? 'Mil rahi hai' : m.offHere ? offLabel(m.offUntil) : 'Menu se band hai'}</p>
+            <p className="text-[0.75rem] text-slate-600">
+              {onNow ? 'Counter par dikh rahi hai'
+                : m.offHere ? (m.offUntil ? 'Is branch me khatam — waqt poora hote hi khud chalu ho jayegi' : 'Is branch me khatam — jab tak chalu na karein')
+                : 'Har branch me band — counter par nahi aati'}
+            </p>
           </div>
-          {canManage && (
-            <Button size="sm" variant={m.isAvailable ? 'critical' : 'success'} loading={busy}
-              onClick={() => void run(() => menuItemsApi.setAvailable(m.id, !m.isAvailable), m.isAvailable ? 'Band kar di — khatam' : 'Chalu kar di')}>
-              {m.isAvailable ? 'Khatam (86)' : 'Chalu karein'}
-            </Button>
-          )}
+          {canManage && (onNow
+            ? <Button size="sm" variant="critical" loading={busy} onClick={() => setChoosing((v) => !v)}>Khatam (86)</Button>
+            : <Button size="sm" variant="success" loading={busy}
+                onClick={() => void run(() => (m.offHere ? menuItemsApi.setBranch([m.id], true) : menuItemsApi.setAvailable(m.id, true)), 'Chalu kar di')}>Chalu karein</Button>)}
         </div>
+        {canManage && onNow && choosing && (
+          <div className="mt-2 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
+            <p className="text-[0.8125rem] font-semibold text-slate-800">Kab tak band rahe?</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {([['Aaj din khatam tak', undefined], ['1 ghanta', 1], ['2 ghante', 2], ['Jab tak chalu na karein', null]] as Array<[string, number | null | undefined]>).map(([label, h]) => (
+                <Button key={label} size="xs" variant={h === undefined ? 'critical' : 'secondary'} disabled={busy}
+                  onClick={() => { setChoosing(false); void run(() => menuItemsApi.setBranch([m.id], false, h === undefined ? undefined : h === null ? null : inHours(h)), `Band (86) — ${label.toLowerCase()}`); }}>
+                  {label}
+                </Button>
+              ))}
+            </div>
+            <p className="mt-2 text-[0.75rem] text-slate-500">Sirf is branch me band hoti hai (sab branch dekh rahe hon to har branch me). Waqt poora hote hi khud chalu.</p>
+            <button type="button" disabled={busy} onClick={() => { setChoosing(false); void run(() => menuItemsApi.setAvailable(m.id, false), 'Menu se band — har branch me'); }}
+              className="mt-1 text-[0.75rem] font-semibold text-rose-700 hover:underline">Menu se hi band karein (har branch, khud chalu nahi hogi)</button>
+          </div>
+        )}
         <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.8125rem]">
           <div><dt className="text-slate-500">Kab milti hai</dt><dd className="font-medium text-slate-900">{hoursText(m)}</dd></div>
           <div><dt className="text-slate-500">Banne me</dt><dd className="font-medium text-slate-900">{m.prepTimeMinutes ? `${m.prepTimeMinutes} min` : '—'}</dd></div>
@@ -140,10 +161,12 @@ function RecipeTab({ ctx }: { ctx: Ctx }) {
   const rows = lines.map((l: any) => {
     const unit = l.ingredient?.unit ?? l.unit;
     const rate = Number(l.ingredient?.costPrice) || Number(l.costPerUnit) || 0;
-    const per = convertQty(Number(l.quantity) || 0, l.unit, unit) / portions;
+    const waste = Number(l.wastagePercent) || 0;
+    // Wastage comes out of stock on top of the recipe quantity.
+    const per = convertQty((Number(l.quantity) || 0) * (1 + waste / 100), l.unit, unit) / portions;
     const cost = per * rate;
     if (!l.isOptional) plate += cost;
-    return { id: l.id as string, name: l.ingredient?.name ?? 'Saamaan', qty: Number(l.quantity), unit: l.unit as string, stockUnit: unit as string, per, cost, optional: !!l.isOptional, notes: l.notes as string | null };
+    return { id: l.id as string, name: l.ingredient?.name ?? 'Saamaan', qty: Number(l.quantity), unit: l.unit as string, stockUnit: unit as string, per, cost, waste, optional: !!l.isOptional, notes: l.notes as string | null };
   });
   const price = Number(ctx.product.price) || 0;
   const pct = price > 0 ? (plate / price) * 100 : null;
@@ -160,7 +183,7 @@ function RecipeTab({ ctx }: { ctx: Ctx }) {
             {rows.map((x) => (
               <tr key={x.id}>
                 <td className="px-4 py-2.5"><span className="font-medium text-slate-900">{x.name}</span>{x.optional && <span className="ml-1.5 text-[0.6875rem] text-slate-500">(marzi ka)</span>}{x.notes && <span className="block text-[0.6875rem] text-slate-500">{x.notes}</span>}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums">{fmt(x.qty)} {x.unit}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums">{fmt(x.qty)} {x.unit}{x.waste > 0 && <span className="block text-[0.6875rem] text-amber-700">+{fmt(x.waste)}% wastage</span>}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{fmt(x.per)} {x.stockUnit}</td>
                 <td className="px-4 py-2.5 text-right tabular-nums">{x.optional ? '—' : ctx.cost(x.cost)}</td>
               </tr>
@@ -193,7 +216,7 @@ function UsedInTab({ ctx }: { ctx: Ctx }) {
       <ul className="divide-y divide-slate-100">
         {rows.map((r) => {
           const line = r.ingredients.find((i) => i.ingredientProductId === id);
-          const per = line ? convertQty(Number(line.quantity) || 0, line.unit, ctx.product.unit) / (Number(r.yieldQuantity) || 1) : 0;
+          const per = line ? convertQty((Number(line.quantity) || 0) * (1 + (Number(line.wastagePercent) || 0) / 100), line.unit, ctx.product.unit) / (Number(r.yieldQuantity) || 1) : 0;
           return (
             <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-[0.8125rem]">
               <Link to={`/restaurant-menu-items/${r.menuItem.productId}`} className="min-w-0 truncate font-medium text-slate-900 hover:text-brand-700">{r.menuItem.product.name}</Link>
@@ -231,8 +254,8 @@ const config: DetailConfig<Extra> = {
     return (
       <>
         {!m ? <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-slate-600">Menu par nahi</span>
-          : m.isAvailable ? <span className="rounded-md bg-success-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-success-700">Menu par</span>
-            : <span className="rounded-md bg-rose-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-rose-700">Band (86)</span>}
+          : m.isAvailable && !m.offHere ? <span className="rounded-md bg-success-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-success-700">Menu par</span>
+            : <span className="rounded-md bg-rose-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-rose-700">{m.offHere ? offLabel(m.offUntil) : 'Band (86)'}</span>}
         {m?.chefSpecial && <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-amber-800">Chef special</span>}
         {m?.bestSeller && <span className="rounded-md bg-brand-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-brand-800">Best seller</span>}
       </>
@@ -259,7 +282,7 @@ const config: DetailConfig<Extra> = {
     if (isRaw(c)) return null;
     const m = c.extra?.menu;
     const cook = c.extra?.cook;
-    if (m?.isAvailable && cook?.canMake === 0) {
+    if (m?.isAvailable && !m.offHere && cook?.canMake === 0) {
       return (
         <p className="flex items-start gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Menu par hai magar ab nahi ban sakti — {cook.blocker?.name ?? 'saamaan'} khatam. Purchase karein ya "Khatam (86)" dabayein.
@@ -284,7 +307,7 @@ const config: DetailConfig<Extra> = {
     { id: 'used', label: 'Recipes me', icon: ChefHat, when: (c) => isRaw(c), render: (c) => <UsedInTab ctx={c} /> },
   ],
   guide: [
-    { icon: Power, color: '#e11d48', title: 'Khatam ho gayi?', text: 'Menu tab me "Khatam (86)" dabayein — counter par nahi aayegi. Kal subah "Chalu karein".' },
+    { icon: Power, color: '#e11d48', title: 'Khatam ho gayi?', text: 'Menu tab me "Khatam (86)" dabayein aur waqt chunein — is branch ke counter par nahi aayegi, aur waqt poora hote hi khud chalu ho jayegi.' },
     { icon: Wheat, color: '#a16207', title: 'Recipe', text: 'Aaj ke raw material rate se plate ki cost, food cost % aur is branch ke stock se kitni plate ban sakti hain.' },
     { icon: Clock, color: '#16a34a', title: 'Waqt', text: 'Nashta ya BBQ jaisi dish ka waqt edit me likhein — us waqt ke bahar counter par nahi aati.' },
   ],

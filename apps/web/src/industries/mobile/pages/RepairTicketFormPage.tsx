@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -48,6 +48,8 @@ const EMPTY: Draft = {
 export default function RepairTicketFormPage() {
   const { id } = useParams();
   const editing = !!id;
+  // "Warranty claim" on a delivered job opens this form with that job's id.
+  const claimOfId = useSearchParams()[0].get('warrantyOf') ?? '';
   const navigate = useNavigate();
   const qc = useQueryClient();
   const shopId = useShopParam();
@@ -76,6 +78,19 @@ export default function RepairTicketFormPage() {
     setPerson({ customerId: t.customerId ?? '', name: t.customerName, phone: t.customerPhone, cnic: t.customerCnic ?? '', address: t.customerAddress ?? '' });
     setLoaded(true);
   }, [t, loaded]);
+
+  const claimQ = useQuery({ queryKey: [REPAIR_KEY, 'one', claimOfId], queryFn: () => repairsApi.getOne(claimOfId), enabled: !editing && !!claimOfId });
+  const claimOf = claimQ.data;
+  useEffect(() => {
+    if (!claimOf || loaded) return;
+    setF({
+      ...EMPTY, brand: claimOf.deviceBrand, model: claimOf.deviceModel, color: claimOf.deviceColor ?? '', imei1: claimOf.imei1 ?? '', imei2: claimOf.imei2 ?? '',
+      passcode: claimOf.passcode ?? '', issue: claimOf.diagnosedIssue || claimOf.reportedIssue, technician: claimOf.technicianName ?? '',
+      warrantyOf: claimOf.ticketNumber, estimate: '0', warrantyDays: claimOf.warrantyDays,
+    });
+    setPerson({ customerId: claimOf.customerId ?? '', name: claimOf.customerName, phone: claimOf.customerPhone, cnic: claimOf.customerCnic ?? '', address: claimOf.customerAddress ?? '' });
+    setLoaded(true);
+  }, [claimOf, loaded]);
 
   // What this shop knows about the IMEI: sold here, repaired before.
   const imeiQ = useQuery({ queryKey: ['mobile-imei-lookup', f.imei1], queryFn: () => imeiApi.lookup(f.imei1), enabled: !editing && f.imei1.length === 15, retry: false });
@@ -154,7 +169,7 @@ export default function RepairTicketFormPage() {
       <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
         <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${t?.ticketNumber} — badlein` : 'Naya repair job'}</h1>
+          <h1 className="truncate text-xl font-bold">{editing ? `${t?.ticketNumber} — badlein` : claimOf ? `Warranty claim — ${claimOf.ticketNumber}` : 'Naya repair job'}</h1>
           <p className="text-[0.8125rem] text-white/75">{closed ? 'Band job — sirf note aur customer ki tafseel badalti hai' : editing ? 'Paise yahan se nahi badalte — job ke safhe par "Advance" aur "Part" se' : 'Phone lein, parchi dein — tayyar hone par customer ko batayein'}</p>
         </div>
         <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
@@ -183,6 +198,10 @@ export default function RepairTicketFormPage() {
               {soldHere?.warranty.active && !claimable && !editing && (
                 <Switch checked={f.phoneClaim} onChange={(e) => set(e.target.checked ? { phoneClaim: true, estimate: '0' } : { phoneClaim: false })}
                   label={`Phone ki warranty — bill ${soldHere.sale?.saleNumber ?? ''}`} description={`Dukaan ki warranty ${soldHere.warranty.daysLeft} din baqi — kaam muft, job card par likha jayega`} />
+              )}
+              {claimOf && !editing && claimOf.ticketNumber !== claimable?.ticketNumber && (
+                <Switch checked={f.warrantyOf === claimOf.ticketNumber} onChange={(e) => set(e.target.checked ? { warrantyOf: claimOf.ticketNumber, estimate: '0' } : { warrantyOf: '' })}
+                  label={`Warranty claim — ${claimOf.ticketNumber}`} description={claimOf.warrantyEnds ? `Repair warranty ${dayOnly(claimOf.warrantyEnds)} tak — wahi kharabi muft theek hogi` : 'Is job ki warranty nahi thi'} />
               )}
               {claimable && !editing && (
                 <Switch checked={f.warrantyOf === claimable.ticketNumber} onChange={(e) => set(e.target.checked ? { warrantyOf: claimable.ticketNumber, estimate: '0' } : { warrantyOf: '' })}

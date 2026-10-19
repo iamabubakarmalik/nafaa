@@ -33,10 +33,10 @@ import { PrivacyToggle } from '@core/security/HiddenValue';
 import { useShopParam } from '@core/stores/auth.store';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
-import { menuItemsApi, type RestaurantMenuItem } from '../api/menu-items.api';
+import { menuItemsApi, switchDishes, type RestaurantMenuItem } from '../api/menu-items.api';
 import { recipesApi, type Cookability, type RecipeRow } from '../api/recipes.api';
 import { RecipeLinesEditor, recipeFromApi, recipeInput, recipeProblem, recipeTotals, type RecipeDraft } from '../components/RecipeLinesEditor';
-import { foodCostTone } from '../lib/menuMeta';
+import { foodCostTone, offLabel } from '../lib/menuMeta';
 
 type Tab = 'recipes' | 'cook' | 'usage';
 const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
@@ -76,8 +76,8 @@ export default function RecipesPage() {
   });
   const runRefresh = refreshCosts.mutate as () => void;
   const setAvailable = useMutation({
-    mutationFn: ({ id, on }: { id: string; on: boolean }) => menuItemsApi.setAvailable(id, on),
-    onSuccess: (_r, v) => { toast.success(v.on ? 'Chalu' : 'Band (86) — counter par nahi aayegi'); refresh(); },
+    mutationFn: ({ r, on }: { r: Cookability; on: boolean }) => switchDishes([{ menuItemId: r.menuItemId, offHere: r.offHere }], on),
+    onSuccess: (_r, v) => { toast.success(v.on ? 'Chalu' : 'Aaj ke liye band (86) — kal khud chalu ho jayegi'); refresh(); },
     onError: (e) => toast.error(errText(e, 'Nahi badla')),
   });
 
@@ -118,7 +118,7 @@ export default function RecipesPage() {
         .concat(shown.map((r) => {
           const c = cookBy.get(r.menuItemId);
           return [r.menuItem.product.name, r.menuItem.product.category?.name ?? '', String(r.menuItem.product.price), ...(costHidden ? [] : [String(c?.cost ?? ''), String(c?.foodCostPct ?? '')]),
-            String(c?.canMake ?? ''), c?.blocker?.name ?? '', r.ingredients.map((i) => `${i.ingredient?.name} ${fmt(i.quantity)} ${i.unit}`).join('; ')];
+            String(c?.canMake ?? ''), c?.blocker?.name ?? '', r.ingredients.map((i) => `${i.ingredient?.name} ${fmt(i.quantity)} ${i.unit}${i.wastagePercent ? ` +${fmt(i.wastagePercent)}%` : ''}`).join('; ')];
         })));
     }
   };
@@ -129,7 +129,7 @@ export default function RecipesPage() {
       kind: 'table' as const,
       title: `${r.menuItem.product.name} — ${fmt(r.yieldQuantity)} plate`,
       columns: [{ label: 'Saamaan' }, { label: 'Quantity', align: 'right' as const }, ...(costHidden ? [] : [{ label: 'Cost', align: 'right' as const }])],
-      rows: r.ingredients.map((i) => [`${i.ingredient?.name ?? ''}${i.isOptional ? ' (marzi)' : ''}`, `${fmt(i.quantity)} ${i.unit}`, ...(costHidden ? [] : [String(i.totalCost ?? '')])]),
+      rows: r.ingredients.map((i) => [`${i.ingredient?.name ?? ''}${i.isOptional ? ' (marzi)' : ''}`, `${fmt(i.quantity)} ${i.unit}${i.wastagePercent ? ` +${fmt(i.wastagePercent)}% wastage` : ''}`, ...(costHidden ? [] : [String(i.totalCost ?? '')])]),
     })),
   });
 
@@ -232,7 +232,7 @@ export default function RecipesPage() {
             <p className="px-6 py-12 text-center text-[0.875rem] text-slate-500">Koi recipe nahi — pehle dishes ki recipe banayein</p>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {cookRows.map((r) => <CookRow key={r.recipeId} r={r} canMenu={can.menu} canBuy={can.buy} busy={setAvailable.isPending} onToggle={(on) => setAvailable.mutate({ id: r.menuItemId, on })} />)}
+              {cookRows.map((r) => <CookRow key={r.recipeId} r={r} canMenu={can.menu} canBuy={can.buy} busy={setAvailable.isPending} onToggle={(on) => setAvailable.mutate({ r, on })} />)}
             </ul>
           )}
         </section>
@@ -324,7 +324,7 @@ function CookRow({ r, canMenu, canBuy, busy, onToggle }: { r: Cookability; canMe
       {canMenu ? (
         <button type="button" disabled={busy} onClick={() => onToggle(!r.isAvailable)}
           className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.75rem] font-semibold ring-1', r.isAvailable ? (out ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-success-50 text-success-700 ring-success-200') : 'bg-rose-50 text-rose-700 ring-rose-200')}>
-          <Power className="h-3.5 w-3.5" />{r.isAvailable ? (out ? 'Menu par — band karein' : 'Menu par') : 'Band (86)'}
+          <Power className="h-3.5 w-3.5" />{r.isAvailable ? (out ? 'Menu par — aaj band karein' : 'Menu par') : r.offHere ? offLabel(r.offUntil) : 'Band (86)'}
         </button>
       ) : <span className="text-[0.75rem] text-slate-500">{r.isAvailable ? 'Menu par' : 'Band'}</span>}
     </li>
@@ -356,6 +356,8 @@ function PickDish({ dishes, onClose, onPick }: { dishes: RestaurantMenuItem[]; o
 
 function RecipeModal({ target, canSave, onClose, onSaved }: { target: Target; canSave: boolean; onClose: () => void; onSaved: () => void }) {
   const q = useQuery({ queryKey: ['restaurant-recipe', target.menuItemId], queryFn: () => recipesApi.getByMenuItem(target.menuItemId) });
+  const dishQ = useQuery({ queryKey: ['restaurant-menu-item', target.menuItemId], queryFn: () => menuItemsApi.getOne(target.menuItemId) });
+  const sizes: Array<{ id: string; name: string; price: number; isActive: boolean }> = (dishQ.data?.product?.variants ?? []).filter((v: { isActive: boolean }) => v.isActive);
   const [draft, setDraft] = useState<RecipeDraft | null>(null);
   const [tried, setTried] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -363,7 +365,7 @@ function RecipeModal({ target, canSave, onClose, onSaved }: { target: Target; ca
   const problem = draft ? (draft.lines.length ? recipeProblem(draft) : 'Kam se kam ek cheez recipe me daalein') : null;
 
   const save = useMutation({
-    mutationFn: () => recipesApi.upsert(recipeInput(target.menuItemId, draft!)),
+    mutationFn: () => recipesApi.upsert(recipeInput(target.menuItemId, draft!, dishQ.isSuccess ? sizes : undefined)),
     onSuccess: () => { toast.success(`${target.name} ki recipe save — plate ${recipeTotals(draft!).perPlate.toFixed(0)} Rs`); onSaved(); },
     onError: (e) => toast.error(errText(e, 'Save nahi hui')),
   });
@@ -392,7 +394,8 @@ function RecipeModal({ target, canSave, onClose, onSaved }: { target: Target; ca
       {!draft ? <Skeleton className="h-72 rounded-2xl" /> : (
         <div className="space-y-4">
           {!canSave && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Recipe badalne ke liye "Kitchen sambhalna" ki permission chahiye.</p>}
-          <RecipeLinesEditor value={draft} onChange={setDraft} price={target.price} dishProductId={target.productId} />
+          <RecipeLinesEditor value={draft} onChange={setDraft} price={target.price} dishProductId={target.productId}
+            sizes={sizes.map((v) => ({ name: v.name, price: Number(v.price) || target.price }))} />
           {draft.lines.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
               <label className="block text-[0.8125rem] font-medium text-slate-700">Banane ka tareeqa (marzi)

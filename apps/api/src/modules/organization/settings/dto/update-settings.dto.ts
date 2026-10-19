@@ -83,6 +83,10 @@ export class UpdateSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() showProductImages?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() enableBarcodeScanner?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() enableQuickKeys?: boolean;
+  /** Dine-in service charge the order screen starts with; 0 = none. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0, { message: 'Service charge 0 se 100% ke beech' }) @Max(100, { message: 'Service charge 0 se 100% ke beech' }) serviceChargePct?: number;
+  /** Days after a sale within which goods may be exchanged; 0 = no limit set. */
+  @ApiPropertyOptional() @IsOptional() @IsInt({ message: 'Exchange ke din poore adad me' }) @Min(0, { message: 'Exchange ke din 0 se 365 ke beech' }) @Max(365, { message: 'Exchange ke din 0 se 365 ke beech' }) exchangeDays?: number;
 
   // ═══ 6. INVENTORY ═══
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) defaultLowStockAlert?: number;

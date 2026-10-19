@@ -73,6 +73,8 @@ export const DEFAULT_SETTINGS: Record<string, any> = {
     showProductImages: true,
     enableBarcodeScanner: true,
     enableQuickKeys: true,
+    serviceChargePct: 0,
+    exchangeDays: 0,
   },
   notifications: {
     emailNotifications: true,

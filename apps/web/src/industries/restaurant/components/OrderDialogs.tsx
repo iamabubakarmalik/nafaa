@@ -13,7 +13,7 @@ import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { teamApi } from '@modules/organization/team/api/team.api';
 import { ordersApi, type OrderCharges, type OrderItem, type RestaurantOrder } from '../api/orders.api';
-import { lineExtras, orderTitle } from '../lib/orderMeta';
+import { itemName, lineExtras, orderTitle } from '../lib/orderMeta';
 
 const VOID_REASONS = ['Customer ne mana kar diya', 'Ghalat order likha', 'Der ho gayi', 'Khana kharab tha', 'Item khatam'];
 
@@ -216,7 +216,7 @@ export function SplitItemsDialog({ order, saving, onConfirm, onClose }: {
           return (
             <li key={it.id} className="flex items-center gap-3 py-2">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[0.875rem] font-semibold text-slate-900">{it.quantity}× {it.product?.name}</p>
+                <p className="truncate text-[0.875rem] font-semibold text-slate-900">{it.quantity}× {itemName(it)}</p>
                 {lineExtras(it) && <p className="truncate text-[0.75rem] text-slate-500">{lineExtras(it)}</p>}
               </div>
               <div className="inline-flex items-center rounded-xl bg-slate-100 p-0.5">

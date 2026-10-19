@@ -11,7 +11,7 @@ import { getReceiptSetup, printPaper } from '@core/receipt/setup';
 import type { ReceiptDoc, ReceiptLineDoc, ReceiptRowDoc } from '@core/receipt/types';
 import type { RestaurantOrder } from '../api/orders.api';
 import type { Kot } from '../api/kot.api';
-import { MODE_META, lineExtras } from './orderMeta';
+import { MODE_META, itemName, lineExtras } from './orderMeta';
 
 const row = (label: string, value?: string | number | null): ReceiptRowDoc[] => (value || value === 0 ? [{ label, value: String(value) }] : []);
 
@@ -33,7 +33,7 @@ export function printPreBill(o: RestaurantOrder, shopName: string) {
     const unit = (it.basePrice ?? 0) + (it.modifierTotal ?? 0);
     const extras = lineExtras(it);
     return {
-      name: it.product?.name ?? 'Item',
+      name: itemName(it),
       qty: it.quantity,
       unit: '',
       price: unit,

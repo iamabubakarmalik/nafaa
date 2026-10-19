@@ -1,8 +1,10 @@
 /**
  * Collections (Summer Lawn, Eid, Winter): which products belong to each
  * season, what is left on the shelf of this branch and how each sells in
- * the last 30 days. Mark a whole collection "Sale" (the POS shows those
- * pieces under Sale), add or take out products, and switch old ones off.
+ * the last 30 days. A Sale on a whole collection takes a percent off every
+ * price (and each size) and puts the regular prices back when it ends; the
+ * POS shows those pieces under Sale. Add or take out products, and switch
+ * old collections off.
  *
  * Keys: N new · / search · G guide.
  */
@@ -20,13 +22,15 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
-import { collectionsApi, type CollectionInput, type GarmentCollection, type GarmentSeason } from '../api/collections.api';
+import { collectionsApi, type CollectionInput, type CollectionSaleResult, type GarmentCollection, type GarmentSeason } from '../api/collections.api';
 import { EmptyList, LoadFailed } from '../components/charts';
 import { COLLECTION_KEY, META_KEY, SEASONS, apiError, dayFull, dayInput, opt, seasonLabel } from '../components/meta';
 import { useGarmentsCan } from '../components/permissions';
 import { ProductPick, type PickedProduct } from '../components/ProductPick';
 
 type Show = 'active' | 'all' | 'off';
+/** A percent sale answers with its counts; the plain "Sale" mark only with how many products. */
+type SaleOutcome = CollectionSaleResult | { updated: number };
 
 export default function CollectionsPage() {
   const qc = useQueryClient();
@@ -39,15 +43,20 @@ export default function CollectionsPage() {
   const [show, setShow] = useState<Show>('active');
   const [form, setForm] = useState<{ c: GarmentCollection | null } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [saleOn, setSaleOn] = useState<GarmentCollection | null>(null);
 
   const listQ = useQuery({ queryKey: [COLLECTION_KEY, 'list'], queryFn: () => collectionsApi.list() });
   const statsQ = useQuery({ queryKey: [COLLECTION_KEY, 'stats'], queryFn: () => collectionsApi.stats(30) });
   const statOf = useMemo(() => new Map((statsQ.data?.items ?? []).map((s) => [s.collectionId, s])), [statsQ.data]);
   const refresh = () => [COLLECTION_KEY, META_KEY, 'products-for-pos', 'catalog'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const onSale = useMutation({
-    mutationFn: ({ c, on }: { c: GarmentCollection; on: boolean }) => collectionsApi.setOnSale(c.id, on),
-    onSuccess: (r, v) => { toast.success(v.on ? `${r.updated} products "Sale" par` : 'Sale hata di'); refresh(); },
+  const endSale = useMutation({
+    mutationFn: (c: GarmentCollection): Promise<SaleOutcome> => (c.salePercent != null ? collectionsApi.setSale(c.id, null) : collectionsApi.setOnSale(c.id, false)),
+    onSuccess: (r) => {
+      const changed = 'changed' in r ? r.changed : 0;
+      toast.success(changed ? `Sale khatam — ${changed} rate pehle jaise ho gaye` : 'Sale hata di');
+      refresh();
+    },
     onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
   const toggleActive = useMutation({
@@ -113,6 +122,7 @@ export default function CollectionsPage() {
                 const s = statOf.get(c.id);
                 const sell = s && s.stock + s.soldQty > 0 ? Math.round((s.soldQty / (s.stock + s.soldQty)) * 100) : null;
                 const allOnSale = !!s && s.products > 0 && s.onSale === s.products;
+                const saleRuns = c.salePercent != null || allOnSale;
                 return (
                   <article key={c.id} className={cn('flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80', !c.isActive && 'opacity-70')}>
                     <div className="h-2" style={{ background: c.colorTheme || '#ec4899' }} />
@@ -122,7 +132,7 @@ export default function CollectionsPage() {
                           <p className="truncate font-semibold text-slate-900">{c.name}{c.isFeatured && <Star className="ml-1 inline h-3.5 w-3.5 fill-amber-400 text-amber-400" />}</p>
                           <p className="text-[0.75rem] text-slate-500">{seasonLabel(c.season)}{c.year ? ` ${c.year}` : ''}{c.code ? ` · ${c.code}` : ''}{!c.isActive ? ' · band' : ''}</p>
                         </div>
-                        {allOnSale && <span className="shrink-0 rounded-full bg-rose-600 px-2 py-0.5 text-[0.6875rem] font-bold text-white">SALE</span>}
+                        {saleRuns && <span className="shrink-0 rounded-full bg-rose-600 px-2 py-0.5 text-[0.6875rem] font-bold text-white">{c.salePercent != null ? `${c.salePercent}% OFF` : 'SALE'}</span>}
                       </div>
                       <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
                         <div className="rounded-xl bg-slate-50 py-2"><dt className="text-[0.6875rem] text-slate-500">Products</dt><dd className="font-bold tabular-nums">{s?.products ?? c.productCount ?? 0}</dd></div>
@@ -137,9 +147,12 @@ export default function CollectionsPage() {
                       <div className="mt-auto flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
                         <Button size="sm" variant="secondary" onClick={() => setOpenId(c.id)} leftIcon={<Package className="h-4 w-4" />}>Products</Button>
                         {canEdit && c.isActive && (
-                          <Button size="sm" variant={allOnSale ? 'secondary' : 'danger'} loading={onSale.isPending && onSale.variables?.c.id === c.id} onClick={() => onSale.mutate({ c, on: !allOnSale })} leftIcon={<BadgePercent className="h-4 w-4" />}>
-                            {allOnSale ? 'Sale hatayein' : 'Sale lagayein'}
+                          <Button size="sm" variant={saleRuns ? 'secondary' : 'danger'} onClick={() => setSaleOn(c)} leftIcon={<BadgePercent className="h-4 w-4" />}>
+                            {saleRuns ? 'Sale badlein' : 'Sale lagayein'}
                           </Button>
+                        )}
+                        {canEdit && saleRuns && (
+                          <Button size="sm" variant="secondary" loading={endSale.isPending && endSale.variables?.id === c.id} onClick={() => endSale.mutate(c)}>Sale hatayein</Button>
                         )}
                         {canEdit && <Button size="sm" variant="ghost" onClick={() => setForm({ c })} aria-label="Badlein"><Pencil className="h-4 w-4" /></Button>}
                         {canEdit && <Button size="sm" variant="ghost" className="ml-auto" onClick={() => toggleActive.mutate(c)}>{c.isActive ? 'Band karein' : 'Chalu karein'}</Button>}
@@ -153,13 +166,14 @@ export default function CollectionsPage() {
 
       {form && <CollectionForm c={form.c} onClose={() => setForm(null)} onDone={refresh} />}
       {openId && <CollectionProducts id={openId} canEdit={canEdit} onClose={() => setOpenId(null)} onChanged={refresh} />}
+      {saleOn && <SaleModal c={saleOn} onClose={() => setSaleOn(null)} onDone={refresh} />}
 
       {guide.isOpen && (
         <PageGuide title="Collections — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Plus, color: '#ec4899', title: 'Nayi collection', text: 'Naam, season aur saal. Product banate waqt collection chunein, ya yahan "Products" se jorein.' },
             { icon: TrendingUp, color: '#16a34a', title: 'Kitna bika', text: 'Har card par shelf ka stock aur 30 din ki Sale. "% bik gaya" kam ho to us maal par Sale lagayein.' },
-            { icon: BadgePercent, color: '#e11d48', title: 'Sale', text: '"Sale lagayein" se poori collection POS par "Sale" filter me aa jati hai. Rate product me hi kam karein — Discount bill par bhi de sakte hain.' },
+            { icon: BadgePercent, color: '#e11d48', title: 'Sale', text: '"Sale lagayein" me % likhein: har product aur har size ka rate utna kam ho jata hai aur POS par "Sale" filter me aata hai. "Sale hatayein" se pehle wale rate wapas. Har rate ki tabdeeli Activity log me likhi jati hai.' },
             { icon: Archive, color: '#64748b', title: 'Band karein', text: 'Purani collection band karne se products, stock aur bill waise hi rehte hain.' },
           ]}
           shortcuts={[['N', 'nayi'], ['/', 'dhoondein'], ['G', 'guide']]} />
@@ -253,12 +267,59 @@ function CollectionProducts({ id, canEdit, onClose, onChanged }: { id: string; c
                 <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-slate-100">{p.images[0]?.url ? <img src={p.images[0].url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="m-3 h-4 w-4 text-slate-300" />}</span>
                 <div className="min-w-0 flex-1">
                   <Link to={`/garment-products/${p.id}`} className="block truncate text-[0.875rem] font-medium text-slate-900 hover:text-brand-700">{p.name}</Link>
-                  <p className="text-[0.75rem] text-slate-500">{formatPKR(p.price)} · stock {Math.round(p.stock)}{p.isOnSale ? ' · Sale' : ''}{!p.isActive ? ' · band' : ''}</p>
+                  <p className="text-[0.75rem] text-slate-500">
+                    {p.regularPrice != null && p.regularPrice !== p.price && <span className="mr-1 line-through">{formatPKR(p.regularPrice)}</span>}
+                    <span className={cn(p.regularPrice != null && p.regularPrice !== p.price && 'font-semibold text-rose-700')}>{formatPKR(p.price)}</span>
+                    {' '}· stock {Math.round(p.stock)}{p.isOnSale ? ' · Sale' : ''}{!p.isActive ? ' · band' : ''}
+                  </p>
                 </div>
                 {canEdit && <button type="button" onClick={() => remove.mutate(p.id)} aria-label="Collection se nikalein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="h-4 w-4" /></button>}
               </li>
             ))}
           </ul>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+/** Percent off the whole collection; left blank, only the "Sale" mark (prices stay). */
+function SaleModal({ c, onClose, onDone }: { c: GarmentCollection; onClose: () => void; onDone: () => void }) {
+  const [text, setText] = useState(c.salePercent != null ? String(c.salePercent) : '');
+  const pct = Number(text);
+  const blank = !text.trim();
+  const problem = !blank && !(pct >= 1 && pct <= 90) ? '1 se 90 tak likhein' : null;
+  const example = 2500;
+  const save = useMutation({
+    mutationFn: (): Promise<SaleOutcome> => (blank ? collectionsApi.setOnSale(c.id, true) : collectionsApi.setSale(c.id, pct)),
+    onSuccess: (r) => {
+      if ('changed' in r) {
+        const notes = [
+          r.keptByHand ? `${r.keptByHand} haath se badle rate waise hi rahe` : '',
+          r.branchPriced ? `${r.branchPriced} branch rate nahi badle` : '',
+        ].filter(Boolean).join(' · ');
+        toast.success(r.repeated ? `Sale pehle hi ${r.salePercent}% hai` : `${r.salePercent}% Sale — ${r.changed} rate badle${notes ? ` (${notes})` : ''}`);
+      } else toast.success(`${r.updated} products "Sale" par — rate nahi badle`);
+      onDone();
+      onClose();
+    },
+    onError: (e) => toast.error(apiError(e, 'Sale nahi lagi')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${c.name} — Sale`}
+      description={c.salePercent != null ? `Abhi ${c.salePercent}% Sale chal rahi hai` : 'Poori collection ke rate ek saath kam karein'}
+      footer={<>
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()}>{blank ? 'Sirf Sale ka nishan' : `${pct}% Sale lagayein`}</Button>
+      </>}>
+      <div className="space-y-3">
+        <Input label="Sale %" inputMode="decimal" value={text} autoFocus error={problem ?? undefined}
+          onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, '').slice(0, 5))} placeholder="20"
+          hint="Har product aur har size ka rate itna % kam hoga. Khali chhorein to sirf 'Sale' ka nishan lagega, rate nahi badlega." />
+        {!blank && !problem && (
+          <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800">
+            Misaal: <span className="line-through">{formatPKR(example)}</span> → <b>{formatPKR(Math.round((example * (100 - pct)) / 100))}</b>. Sale hatane par pehle wala rate wapas aa jayega.
+          </p>
         )}
       </div>
     </Modal>

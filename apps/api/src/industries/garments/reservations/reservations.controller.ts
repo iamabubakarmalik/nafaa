@@ -19,6 +19,8 @@ export class ReservationsController {
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('customerId') customerId?: string, @Query('productId') productId?: string) { return this.service.list(user, { status, customerId, productId }); }
   /** One page of a view (active, today, expired, sold, cancelled, all) with counts. */
   @Get('page') page(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query() q: ReservationQuery) { return this.service.page(user, shop, q); }
+  /** Pieces held per item in this branch; available to sell = stock − reserved. */
+  @Get('held') held(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) { return this.service.heldStock(user, shop); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Post(':id/sell') sell(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: SellReservationDto) { return this.service.sell(user, id, body); }
   @Post(':id/extend') extend(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: ExtendReservationDto) { return this.service.extend(user, id, body.days); }

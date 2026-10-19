@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AlterationsModule } from './alterations/alterations.module';
 import { CollectionsModule } from './collections/collections.module';
+import { ExchangeModule } from './exchange/exchange.module';
 import { GarmentProductsModule } from './products/garment-products.module';
 import { GarmentsDashboardModule } from './dashboard/garments-dashboard.module';
 import { LayawayModule } from './layaway/layaway.module';
@@ -20,6 +21,7 @@ import { TailoringModule } from './tailoring/tailoring.module';
     ReservationsModule,
     LayawayModule,
     GarmentsDashboardModule,
+    ExchangeModule,
   ],
   exports: [
     CollectionsModule,

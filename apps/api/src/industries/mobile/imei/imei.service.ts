@@ -547,6 +547,7 @@ export class ImeiService {
         select: {
           id: true, ticketNumber: true, status: true, deviceBrand: true, deviceModel: true, reportedIssue: true, diagnosedIssue: true,
           receivedAt: true, deliveredAt: true, warrantyDays: true, warrantyEnds: true, totalCost: true, customerName: true, customerPhone: true,
+          warrantyOf: { select: { id: true, ticketNumber: true } },
         },
         orderBy: { receivedAt: 'desc' },
         take: 20,

@@ -1,7 +1,8 @@
 /**
  * Garment product detail on the shared page: who it is for, type, season,
- * collection and marks; a size × colour grid with stock in this branch,
- * every branch and what sold in 30 days; and a warning for empty sizes.
+ * collection and marks; a size × colour grid with stock in this branch
+ * (and how many pieces are held for customers), every branch and what sold
+ * in 30 days; and a warning for empty sizes.
  */
 
 import type { ReactNode } from 'react';
@@ -28,7 +29,7 @@ function GridTable({ grid }: { grid: SizeGrid }) {
         {grid.variants.map((v) => (
           <li key={v.id} className="flex items-center justify-between gap-3 px-4 py-2 text-[0.8125rem] sm:px-5">
             <span className="font-medium text-slate-800">{v.name}{v.barcode && <span className="ml-2 font-mono text-[0.6875rem] text-slate-400">{v.barcode}</span>}</span>
-            <span className={cn('tabular-nums font-semibold', v.stock <= 0 ? 'text-rose-600' : v.stock <= v.lowStockAlert ? 'text-amber-700' : 'text-slate-900')}>{Math.round(v.stock)} · {Math.round(v.sold30)} bike</span>
+            <span className={cn('tabular-nums font-semibold', v.stock <= 0 ? 'text-rose-600' : v.stock <= v.lowStockAlert ? 'text-amber-700' : 'text-slate-900')}>{Math.round(v.stock)}{v.reserved > 0 ? ` (${Math.round(v.reserved)} hold)` : ''} · {Math.round(v.sold30)} bike</span>
           </li>
         ))}
       </ul>
@@ -50,7 +51,7 @@ function GridTable({ grid }: { grid: SizeGrid }) {
                 return (
                   <td key={c} className="px-3 py-2 text-center" title={v.byShop.map((b) => `${b.name}: ${b.stock}`).join(' · ')}>
                     <span className={cn('inline-block min-w-[2.5rem] rounded-lg px-2 py-1 font-bold tabular-nums', v.stock <= 0 ? 'bg-rose-50 text-rose-700' : v.stock <= v.lowStockAlert ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>{Math.round(v.stock)}</span>
-                    <span className="block text-[0.6875rem] text-slate-500">{Math.round(v.sold30)} bike{grid.shops.length > 1 ? ` · kul ${Math.round(v.allStock)}` : ''}</span>
+                    <span className="block text-[0.6875rem] text-slate-500">{Math.round(v.sold30)} bike{v.reserved > 0 ? ` · ${Math.round(v.reserved)} hold` : ''}{grid.shops.length > 1 ? ` · kul ${Math.round(v.allStock)}` : ''}</span>
                   </td>
                 );
               })}
@@ -131,7 +132,7 @@ const config: DetailConfig<Extra> = {
     },
   ],
   guide: [
-    { icon: Grid3x3, color: '#7c3aed', title: 'Size × rang', text: 'Har size aur rang ka stock is branch me — laal khatam, peela kam. Doosri branch se Transfer kar sakte hain.' },
+    { icon: Grid3x3, color: '#7c3aed', title: 'Size × rang', text: 'Har size aur rang ka stock is branch me — laal khatam, peela kam. "hold" wale piece customer ke liye rakhe hain, POS par nahi bikte. Doosri branch se Transfer kar sakte hain.' },
   ],
 };
 

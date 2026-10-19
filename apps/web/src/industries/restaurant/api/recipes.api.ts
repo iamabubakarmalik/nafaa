@@ -11,12 +11,21 @@ export interface RecipeIngredient {
   ingredientProductId: string;
   quantity: number;
   unit: string;
+  /** Percent lost in cleaning or cooking, taken from stock on top of the quantity. */
+  wastagePercent?: number;
   costPerUnit?: number;
   totalCost?: number;
   isOptional?: boolean;
   notes?: string;
   displayOrder?: number;
   ingredient?: { id: string; name: string; unit: string; costPrice: number; stock?: number } | any;
+}
+
+export interface SizeFactor {
+  variantId: string;
+  factor: number;
+  /** Set when read from the API. */
+  variant?: { name: string };
 }
 
 export interface Recipe {
@@ -28,6 +37,8 @@ export interface Recipe {
   preparationSteps?: string;
   cookingTime?: number;
   ingredients: RecipeIngredient[];
+  /** Share of the recipe each size uses (half = 0.5); a size not listed uses the full recipe. */
+  sizeFactors?: SizeFactor[];
   menuItem?: any;
   createdAt: string;
   updatedAt: string;
@@ -55,7 +66,11 @@ export interface Cookability {
   menuItemId: string;
   productId: string | null;
   name: string;
+  /** On the menu and not "86" at this branch. */
   isAvailable: boolean;
+  /** Off at this branch only, back on at `offUntil` (null = until switched on). */
+  offHere?: boolean;
+  offUntil?: string | null;
   prepTimeMinutes: number | null;
   totalOrdered: number;
   price: number;
@@ -95,7 +110,9 @@ export interface RecipeInput {
   yieldUnit?: string;
   preparationSteps?: string;
   cookingTime?: number;
-  ingredients: Array<Pick<RecipeIngredient, 'ingredientProductId' | 'quantity' | 'unit' | 'costPerUnit' | 'isOptional' | 'notes' | 'displayOrder'>>;
+  ingredients: Array<Pick<RecipeIngredient, 'ingredientProductId' | 'quantity' | 'unit' | 'wastagePercent' | 'costPerUnit' | 'isOptional' | 'notes' | 'displayOrder'>>;
+  /** When sent, replaces the saved list. */
+  sizeFactors?: SizeFactor[];
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;

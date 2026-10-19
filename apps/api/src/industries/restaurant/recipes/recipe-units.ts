@@ -60,5 +60,10 @@ export function unitsCompatible(lineUnit?: string | null, stockUnit?: string | n
   return familyOf(a) === familyOf(b);
 }
 
+/** Quantity the store gives out for a line: the recipe quantity plus its wastage percent. */
+export function withWastage(qty: number, wastagePercent?: number | null): number {
+  return qty * (1 + (Number(wastagePercent) || 0) / 100);
+}
+
 export const round3 = (v: number) => Math.round(v * 1000) / 1000;
 export const round2 = (v: number) => Math.round(v * 100) / 100;

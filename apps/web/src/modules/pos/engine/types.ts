@@ -13,7 +13,7 @@ import type { ComponentType, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import type { PosBadge } from '../components/PosTiles';
-import type { PosCartLine } from '../lib/posCart';
+import type { PosCartLine, PosComboSerial } from '../lib/posCart';
 import type { PosUnitOption } from '../lib/posUnits';
 import type { PosTradeIn } from '../components/PosSplitTender';
 
@@ -75,7 +75,8 @@ export interface AddOptions {
   oversell?: boolean;
   /** Skip the industry's beforeAdd checks already answered by the user. */
   confirmed?: string[];
-  variant?: { id: string; name: string; price?: number | null; stock?: number | null };
+  /** `stock` is what may be sold; `reserved` set means held pieces are already taken out of it. */
+  variant?: { id: string; name: string; price?: number | null; stock?: number | null; reserved?: number | null };
   serial?: { id: string; serialNumber: string; imei?: string | null };
   /** The exact phone sold (mobile shops): quantity stays 1 and the sale carries its IMEI. */
   imei?: { id: string; imei1: string; imei2?: string | null };
@@ -107,12 +108,26 @@ export interface PosEngineApi {
   findItemByCode: (code: string) => PosItem | undefined;
   /** Puts a used phone on the bill (no catalog product, quantity 1). */
   addUsedPhone: (line: PosUsedPhoneLine) => void;
+  /** Puts a combo on the bill; `serials` are the units picked for its serial products. */
+  addBundle: (bundle: PosBundle, qty?: number, serials?: PosComboSerial[]) => void;
   /** The whole counter catalog, for industry scans that match on item details (IMEI). */
   items: PosItem[];
   cart: PosCartLine[];
 }
 
 export type BeforeAddResult = 'continue' | 'handled';
+
+/** A bill the server has saved, as `POST /sales` returns it. Bills queued offline never arrive here. */
+export interface PosSavedSale {
+  id: string;
+  saleNumber: string;
+  status?: string;
+  total?: number;
+  creditAmount?: number;
+  customerId?: string | null;
+  customer?: { id: string; name: string; phone?: string | null } | null;
+  items?: Array<{ productId?: string | null; usedPhoneId?: string | null; imeiId?: string | null }>;
+}
 
 export interface PosIndustryConfig {
   id: string;
@@ -127,6 +142,8 @@ export interface PosIndustryConfig {
   filters?: PosFilter[];
   /** Industry step before an item goes on the bill. */
   beforeAdd?: (item: PosItem, opts: AddOptions, api: PosEngineApi) => BeforeAddResult;
+  /** Industry step before a combo goes on the bill (pick serial units inside it). */
+  beforeAddBundle?: (bundle: PosBundle, qty: number, api: PosEngineApi) => BeforeAddResult;
   /** Extra units on top of base + multi-units (bakery slice/pound rates). */
   extraUnits?: (item: PosItem, units: PosUnitOption[]) => PosUnitOption[];
   /** Industry barcode handling, tried first (serial/IMEI lookup). Return true when handled. */
@@ -145,4 +162,8 @@ export interface PosIndustryConfig {
   voice?: boolean;
   /** Goods taken toward the bill (used phones), offered as a payment at checkout. */
   useTradeIns?: () => PosTradeIn[] | undefined;
+  /** Checked before checkout opens and before the bill is sent; a message stops checkout and is shown. */
+  beforeCheckout?: (cart: PosCartLine[]) => string | null | undefined;
+  /** Runs after the server saves a bill; not for bills queued offline. */
+  onSale?: (sale: PosSavedSale) => void;
 }

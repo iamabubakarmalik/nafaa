@@ -11,19 +11,14 @@ import { toast } from 'sonner';
 import { Award, Barcode, Recycle, Sparkles } from 'lucide-react';
 import { useShopParam } from '@core/stores/auth.store';
 import type { Product } from '@modules/inventory/products/api/products.api';
-import { useProductCatalog, type PosBundle, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
+import { useProductCatalog, type PosBundle, type PosEngineApi, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
 import { electronicsPosApi, type PosElectronicsProduct } from '../api/electronics-pos.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
+import { BundleSerialPickerModal, type BundleSerialNeed } from '../components/pos/BundleSerialPickerModal';
 import { SerialPickerModal } from '../components/pos/SerialPickerModal';
+import { CATEGORY_GROUPS, CATEGORY_META } from '../constants';
 
 const CATALOG_KEY = 'electronics-pos-catalog';
-
-const CATEGORY_CHIPS: Array<[string, string]> = [
-  ['HEADPHONE', 'Headphones'], ['EARBUD', 'Earbuds'], ['BLUETOOTH_SPEAKER', 'Speakers'], ['CHARGER', 'Chargers'],
-  ['POWER_BANK', 'Power bank'], ['CABLE', 'Cables'], ['SMARTWATCH', 'Watches'], ['MOBILE_CASE', 'Covers'],
-  ['SCREEN_PROTECTOR', 'Glass'], ['MONITOR', 'Screens'], ['MOUSE', 'Mouse'], ['KEYBOARD', 'Keyboard'],
-  ['MEMORY_CARD', 'Memory card'], ['USB_DRIVE', 'USB'], ['ROUTER', 'Router'],
-];
 
 function toItem(p: PosElectronicsProduct): PosItem {
   const product = {
@@ -59,6 +54,11 @@ function toItem(p: PosElectronicsProduct): PosItem {
   };
 }
 
+/** Serial units already on the bill, so a picker does not offer them twice. */
+function takenSerials(cart: PosEngineApi['cart']) {
+  return new Set(cart.flatMap((l) => [...(l.serialId ? [l.serialId] : []), ...(l.comboSerials ?? []).map((s) => s.id)]));
+}
+
 function useElectronicsQuery() {
   const shopId = useShopParam();
   return useQuery({
@@ -87,7 +87,10 @@ function useElectronicsBundles(): PosBundle[] {
   })), [data]);
 }
 
-const filters: PosFilter[] = CATEGORY_CHIPS.map(([v, label]) => ({ id: v, label, match: (i) => i.meta?.categoryType === v }));
+// One chip per product type, big items first; the counter hides types with no products.
+const filters: PosFilter[] = CATEGORY_GROUPS.flatMap((g) => g.items)
+  .filter((t) => t !== 'OTHER')
+  .map((t) => ({ id: t, label: CATEGORY_META[t].label, match: (i) => i.meta?.categoryType === t }));
 
 export const electronicsPos: PosIndustryConfig = {
   id: 'electronics',
@@ -106,7 +109,7 @@ export const electronicsPos: PosIndustryConfig = {
       if (item.stock <= 0) { toast.error(`${item.name} — koi unit stock mein nahi`); return 'handled'; }
       api.openPicker(createElement(SerialPickerModal, {
         product: item.product,
-        profile: { warrantyMonths: item.meta.warrantyMonths },
+        taken: takenSerials(api.cart),
         onConfirm: (serial: { id: string; serialNumber: string; imei?: string | null }) => {
           api.closePicker();
           api.addItem(item, { ...opts, serial, warrantyMonths: item.meta?.warrantyMonths as number | undefined });
@@ -120,6 +123,26 @@ export const electronicsPos: PosIndustryConfig = {
       return 'handled';
     }
     return 'continue';
+  },
+  beforeAddBundle: (bundle, qty, api) => {
+    // Serial products inside the bundle need their exact units, like a single sale.
+    const needs = new Map<string, BundleSerialNeed>();
+    for (const it of bundle.items) {
+      const item = api.itemById(it.productId);
+      if (!item?.meta?.serial) continue;
+      const n = needs.get(item.id) ?? { productId: item.id, name: item.name, count: 0 };
+      n.count += Number(it.quantity) * qty;
+      needs.set(item.id, n);
+    }
+    if (!needs.size) return 'continue';
+    api.openPicker(createElement(BundleSerialPickerModal, {
+      bundleName: bundle.name,
+      needs: [...needs.values()],
+      taken: takenSerials(api.cart),
+      onConfirm: (serials) => { api.closePicker(); api.addBundle(bundle, qty, serials); },
+      onClose: api.closePicker,
+    }));
+    return 'handled';
   },
   scan: async (code, api) => {
     // Product barcodes are handled by the engine; only unknown codes go to the serial lookup.

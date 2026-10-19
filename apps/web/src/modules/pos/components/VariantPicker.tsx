@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import type { Product } from '@modules/inventory/products/api/products.api';
-import type { ProductVariant } from '@modules/inventory/products/api/product-variants.api';
+import { freeVariantStock, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
 
 interface Props {
   product: Product;
@@ -42,7 +42,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
 
   const totalStock = useMemo(() => {
     if (ignoreStock) return 0;
-    return variants.filter((v) => v.isActive).reduce((s, v) => s + v.stock, 0);
+    return variants.filter((v) => v.isActive).reduce((s, v) => s + Math.max(freeVariantStock(v), 0), 0);
   }, [variants, ignoreStock]);
 
   return (
@@ -114,8 +114,11 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {filtered.map((v) => {
-                const outOfStock = ignoreStock ? false : v.stock <= 0;
-                const lowStock = ignoreStock ? false : v.stock > 0 && v.stock <= (v.lowStockAlert || 5);
+                // Pieces held for customers are not offered for sale.
+                const free = freeVariantStock(v);
+                const held = Math.max(Number(v.reserved ?? 0), 0);
+                const outOfStock = ignoreStock ? false : free <= 0;
+                const lowStock = ignoreStock ? false : free > 0 && free <= (v.lowStockAlert || 5);
 
                 return (
                   <button
@@ -198,12 +201,15 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                             <span className="text-rose-700">0</span>
                           ) : lowStock ? (
                             <span className="text-amber-700">
-                              {v.stock.toFixed(v.stock % 1 === 0 ? 0 : 1)}
+                              {free.toFixed(free % 1 === 0 ? 0 : 1)}
                             </span>
                           ) : (
                             <span className="text-slate-700">
-                              {v.stock.toFixed(v.stock % 1 === 0 ? 0 : 1)} {v.unit || product.unit}
+                              {free.toFixed(free % 1 === 0 ? 0 : 1)} {v.unit || product.unit}
                             </span>
+                          )}
+                          {!ignoreStock && held > 0 && (
+                            <div className="text-[0.6875rem] text-amber-700">{held} hold par</div>
                           )}
                         </div>
                       </div>

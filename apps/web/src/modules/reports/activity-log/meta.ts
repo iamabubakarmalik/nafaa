@@ -41,6 +41,10 @@ const ACTION_TEXT: Record<string, string> = {
   TENANT_DELETION_REQUESTED: 'account band karne ki darkhwast di',
   INTEGRATION_UPDATED: 'integration badli',
   ONLINE_ORDER_VIEWED: 'online order dekha',
+  COLLECTION_SALE_STARTED: 'collection par Sale lagayi',
+  COLLECTION_SALE_CHANGED: 'collection ki Sale badli',
+  COLLECTION_SALE_ENDED: 'collection ki Sale khatam ki',
+  GARMENT_EXCHANGE: 'exchange kiya',
 };
 
 /** Short labels for the action filter. */
@@ -54,12 +58,14 @@ const ACTION_LABEL: Record<string, string> = {
   PAGE_LOCKS_UPDATED: 'Page locks', SESSION_REVOKED: 'Device logout', DATA_EXPORTED: 'Data download', BACKUP_DOWNLOADED: 'Backup download',
   SETTINGS_UPDATED: 'Settings badlin', SETTINGS_RESET: 'Settings reset', OWNERSHIP_TRANSFERRED: 'Malikana diya',
   TENANT_DELETION_REQUESTED: 'Account band', INTEGRATION_UPDATED: 'Integration', ONLINE_ORDER_VIEWED: 'Online order dekha',
+  COLLECTION_SALE_STARTED: 'Collection Sale shuru', COLLECTION_SALE_CHANGED: 'Collection Sale badli', COLLECTION_SALE_ENDED: 'Collection Sale khatam',
+  GARMENT_EXCHANGE: 'Exchange',
 };
 
 const ENTITY_LABEL: Record<string, string> = {
   Shop: 'branch', TeamMember: 'login', Staff: 'staff', Sale: 'bill', SaleReturn: 'wapsi', Expense: 'kharcha', StaffLeave: 'chhutti',
   SalaryPayment: 'tankhwah', CommissionPayout: 'commission', TenantSettings: 'settings', Integration: 'integration', Session: 'session',
-  backup: 'backup', ChannelOrder: 'online order', Tenant: 'account', Attendance: 'haazri',
+  backup: 'backup', ChannelOrder: 'online order', Tenant: 'account', Attendance: 'haazri', GarmentCollection: 'collection',
 };
 
 const VERB: Record<string, string> = {

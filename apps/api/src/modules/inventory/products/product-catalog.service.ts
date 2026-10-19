@@ -75,7 +75,7 @@ export class ProductCatalogService {
         },
       }),
       shopId
-        ? this.prisma.shopStock.findMany({ where: { tenantId, shopId }, select: { productId: true, variantId: true, stock: true, lowStockAlert: true, shopPrice: true, shopCostPrice: true } })
+        ? this.prisma.shopStock.findMany({ where: { tenantId, shopId }, select: { productId: true, variantId: true, stock: true, reserved: true, lowStockAlert: true, shopPrice: true, shopCostPrice: true } })
         : Promise.resolve([]),
       this.prisma.saleItem.groupBy({
         by: ['productId'],
@@ -100,12 +100,18 @@ export class ProductCatalogService {
 
     // On a branch, stock and prices are that shelf's own numbers. Variant rows add
     // up to the product's stock; the alert and branch prices come from the base row.
-    const branch = new Map<string, { stock: number; alert: number | null; price: number | null; cost: number | null }>();
+    // `reserved` (pieces held for customers) is passed along as is; stock shown stays the shelf count.
+    const branch = new Map<string, { stock: number; reserved: number; alert: number | null; price: number | null; cost: number | null }>();
     const variantStock = new Map<string, number>();
+    const variantReserved = new Map<string, number>();
     for (const r of shopRows) {
-      const cur = branch.get(r.productId) ?? { stock: 0, alert: null, price: null, cost: null };
+      const cur = branch.get(r.productId) ?? { stock: 0, reserved: 0, alert: null, price: null, cost: null };
       cur.stock += n(r.stock);
-      if (r.variantId) variantStock.set(r.variantId, (variantStock.get(r.variantId) ?? 0) + n(r.stock));
+      cur.reserved += n(r.reserved);
+      if (r.variantId) {
+        variantStock.set(r.variantId, (variantStock.get(r.variantId) ?? 0) + n(r.stock));
+        variantReserved.set(r.variantId, (variantReserved.get(r.variantId) ?? 0) + n(r.reserved));
+      }
       else { cur.alert = n(r.lowStockAlert); cur.price = r.shopPrice; cur.cost = r.shopCostPrice; }
       branch.set(r.productId, cur);
     }
@@ -142,7 +148,8 @@ export class ProductCatalogService {
       const b = ext.bakery.get(r.id);
       if (b && (r.productType === 'MADE' || r.productType === 'BOUGHT')) b.kind = r.productType === 'MADE' ? 'made' : 'bought';
     }
-    return { rows, ext, variantStock: shopId ? variantStock : null };
+    const reserved = shopId ? new Map([...branch].map(([id, b]) => [id, b.reserved])) : null;
+    return { rows, ext, variantStock: shopId ? variantStock : null, variantReserved: shopId ? variantReserved : null, reserved };
 
   }
 
@@ -154,7 +161,7 @@ export class ProductCatalogService {
     const page = Math.max(1, Number(q.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(q.limit) || 40));
     const tenantId = user.tenantId;
-    const { rows, ext, variantStock } = await this.load(tenantId, shopId);
+    const { rows, ext, variantStock, variantReserved, reserved } = await this.load(tenantId, shopId);
 
     // Search also matches variant barcodes and SKUs.
     const term = q.search?.trim().toLowerCase();
@@ -234,7 +241,9 @@ export class ProductCatalogService {
         hasVariants: r.hasVariants, expiryTracked: r.expiryTracked, createdAt: r.createdAt,
         category: d?.category ?? null, brand: d?.brand ?? null, image: d?.images[0]?.url ?? null,
         // On a branch each size shows that shelf's stock, not the all-branch total.
-        variants: (d?.variants ?? []).map((v) => (variantStock ? { ...v, stock: variantStock.get(v.id) ?? 0 } : v)), counts: { variants: d?._count.variants ?? 0, batches: d?._count.batches ?? 0, imeis: d?._count.productImeis ?? 0 },
+        variants: (d?.variants ?? []).map((v) => (variantStock ? { ...v, stock: variantStock.get(v.id) ?? 0, reserved: variantReserved?.get(v.id) ?? 0 } : v)),
+        ...(reserved && { reserved: reserved.get(r.id) ?? 0 }),
+        counts: { variants: d?._count.variants ?? 0, batches: d?._count.batches ?? 0, imeis: d?._count.productImeis ?? 0 },
         status: isOut(r) ? 'out' : isLow(r) ? 'low' : 'in',
         isService: isSvc(r),
         sold30: r.sold, revenue30: r.revenue, lastSoldAt: r.lastSoldAt,

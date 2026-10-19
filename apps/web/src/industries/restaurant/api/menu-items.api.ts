@@ -40,6 +40,9 @@ export interface RestaurantMenuItem {
   totalReviews: number;
   /** Inside its serving hours right now (shop time); set by the list endpoint. */
   servingNow?: boolean;
+  /** "86" at this branch; back on at `offUntil` (null = until switched on). Set by the list endpoint. */
+  offHere?: boolean;
+  offUntil?: string | null;
   product?: any;
   modifiers?: Array<{ modifierGroupId: string; displayOrder: number; modifierGroup?: any }>;
   recipe?: any;
@@ -92,8 +95,12 @@ export interface BoardItem {
   kind: BoardKind;
   /** Has a menu profile, so the restaurant counter lists it. */
   onPos: boolean;
-  /** Switched on for the menu (not "86"). */
+  /** On the menu and not "86" at this branch. */
   available: boolean;
+  /** Off at this branch only (the shop-wide switch is on). */
+  offHere: boolean;
+  /** When a branch "86" ends by itself; null = until switched on. */
+  offUntil: string | null;
   servingNow: boolean;
   hours: { from: string | null; to: string | null; days: number[] };
   chefSpecial: boolean;
@@ -201,6 +208,14 @@ export const menuItemsApi = {
   setAvailableMany: (menuItemIds: string[], available: boolean) =>
     apiClient.post('/restaurant/menu-items/availability', { menuItemIds, available }).then(unwrap<{ updated: number }>),
 
+  /**
+   * "86" at this branch (every branch when all are seen together), or back
+   * on. `until` left out = end of the business day; null = until switched on.
+   */
+  setBranch: (menuItemIds: string[], available: boolean, until?: string | null) =>
+    apiClient.post('/restaurant/menu-items/branch-availability', { menuItemIds, available, ...(until !== undefined && { until }) })
+      .then(unwrap<{ updated: number; branches: number; until: string | null }>),
+
   /** Gives products a menu profile so the restaurant counter lists them. */
   addToMenu: (productIds: string[]) =>
     apiClient.post('/restaurant/menu-items/add-to-menu', { productIds }).then(unwrap<{ added: number }>),
@@ -208,3 +223,20 @@ export const menuItemsApi = {
   remove: (id: string) =>
     apiClient.delete('/restaurant/menu-items/' + id).then(unwrap),
 };
+
+/**
+ * Switches dishes for the counter. Off is "86" at this branch until the
+ * business day ends (or `until`); on brings a branch "86" back, and a dish
+ * switched off for every branch back on for every branch.
+ */
+export async function switchDishes(items: Array<{ menuItemId: string; offHere?: boolean }>, on: boolean, until?: string | null) {
+  const ids = items.map((i) => i.menuItemId);
+  if (!on) return (await menuItemsApi.setBranch(ids, false, until)).updated;
+  const here = items.filter((i) => i.offHere).map((i) => i.menuItemId);
+  const everywhere = items.filter((i) => !i.offHere).map((i) => i.menuItemId);
+  const [a, b] = await Promise.all([
+    here.length ? menuItemsApi.setBranch(here, true) : null,
+    everywhere.length ? menuItemsApi.setAvailableMany(everywhere, true) : null,
+  ]);
+  return (a?.updated ?? 0) + (b?.updated ?? 0);
+}

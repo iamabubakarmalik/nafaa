@@ -31,7 +31,7 @@ export class MobilePosService {
     const search = params.search?.trim() || undefined;
     const shopId = params.shopId || undefined;
 
-    const [phones, usedPhones, accessories, pendingInspection] = await Promise.all([
+    const [phones, usedPhones, accessories, pendingInspection, tracked] = await Promise.all([
       this.findPhones(tenantId, shopId, search),
       this.findUsedPhones(tenantId, shopId, search),
       this.findAccessories(tenantId, shopId, search),
@@ -44,12 +44,16 @@ export class MobilePosService {
           ...(shopId && { OR: [{ shopId }, { shopId: null }] }),
         },
       }),
+      // Every product sold by IMEI, in stock or not, so the counter never
+      // offers a phone model as a plain product.
+      this.prisma.productImei.findMany({ where: { tenantId }, distinct: ['productId'], select: { productId: true } }),
     ]);
 
     return {
       phones,
       usedPhones,
       accessories,
+      phoneProductIds: tracked.map((t) => t.productId),
       usedPhonesPendingInspection: pendingInspection,
       counts: {
         phones: phones.length,

@@ -3,7 +3,7 @@ import { Transform } from 'class-transformer';
 import { IsEnum, IsIn, IsInt, IsOptional, IsString, Matches, Min } from 'class-validator';
 import { RepairPriority, RepairStatus } from '@prisma/client';
 
-export const REPAIR_VIEWS = ['open', 'working', 'ready', 'late', 'unpaid', 'closed', 'warranty', 'all'] as const;
+export const REPAIR_VIEWS = ['open', 'working', 'ready', 'handover', 'late', 'unpaid', 'closed', 'warranty', 'all'] as const;
 export type RepairView = (typeof REPAIR_VIEWS)[number];
 
 export class QueryRepairsDto {
@@ -23,7 +23,7 @@ export class QueryRepairsDto {
   @IsEnum(RepairPriority)
   priority?: RepairPriority;
 
-  @ApiPropertyOptional({ enum: REPAIR_VIEWS, description: 'open, working, ready, late, unpaid, closed, warranty, all' })
+  @ApiPropertyOptional({ enum: REPAIR_VIEWS, description: 'open, working, ready, handover (ready or unrepairable, waiting at the counter), late, unpaid, closed, warranty, all' })
   @IsOptional()
   @IsIn(REPAIR_VIEWS)
   view?: RepairView;

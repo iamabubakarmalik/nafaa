@@ -47,12 +47,16 @@ interface ReservationPage {
   totals: { pieces: number; value: number; deposits: number };
 }
 
+/** Pieces held for customers per item in the branch (holds and instalment plans). */
+interface HeldItem { productId: string; variantId: string | null; stock: number; reserved: number }
+
 const unwrap = <T,>(res: { data: { data: T } }): T => res.data.data;
 
 export const reservationsApi = {
   create: (data: ReservationInput) => apiClient.post('/garments/reservations', data).then(unwrap<Reservation>),
   page: (q: { view?: ReservationView; page?: number; limit?: number; search?: string }) =>
     apiClient.get('/garments/reservations/page', { params: q }).then(unwrap<ReservationPage>),
+  held: () => apiClient.get('/garments/reservations/held').then(unwrap<{ items: HeldItem[] }>),
   sell: (id: string, data: { paidNow?: number; paymentMethod?: PaymentMethod }) =>
     apiClient.post('/garments/reservations/' + id + '/sell', data).then(unwrap<Reservation>),
   extend: (id: string, days: number) => apiClient.post('/garments/reservations/' + id + '/extend', { days }).then(unwrap<Reservation>),

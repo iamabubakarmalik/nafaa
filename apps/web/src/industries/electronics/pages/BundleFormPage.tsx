@@ -185,7 +185,7 @@ export default function BundleFormPage() {
               )}
               {serial && (
                 <p className="flex items-start gap-2 rounded-xl bg-violet-50 px-3 py-2 text-[0.75rem] text-violet-900 ring-1 ring-violet-200">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Is bundle mein serial wali cheez hai. Bundle se bikne par bill par us ka serial nahi hoga — warranty ke saboot ke liye mehngi cheez POS par alag bechein.
+                  <Barcode className="mt-0.5 h-4 w-4 shrink-0" />Is bundle mein serial wali cheez hai. POS par bundle dabane par us ka unit chunna hoga, aur warranty usi unit par lagegi.
                 </p>
               )}
             </div>

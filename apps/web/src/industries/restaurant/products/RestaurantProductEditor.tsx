@@ -247,7 +247,7 @@ function SizesAndAddOns({ ctx }: { ctx: StepContext<RestaurantExtra> }) {
           )}
           {ctx.errors.variants && <p className="text-[0.8125rem] font-medium text-rose-600">{ctx.errors.variants}</p>}
           {c.variants.length > 0 && kindOf(ctx.draft) === 'dish' && (
-            <p className="text-[0.75rem] text-slate-500">Rate khali = dish ka rate ({formatPKR(c.price)}). Abhi har size par recipe ka poora saamaan stock se nikalta hai — chhote size ki cost alag likh dein taake profit sahi aaye.</p>
+            <p className="text-[0.75rem] text-slate-500">Rate khali = dish ka rate ({formatPKR(c.price)}). Har size me recipe ka kitna hissa lagta hai (Half = 0.5) woh Recipe step me likhein — phir har size ka saamaan aur cost recipe se banti hai, upar likhi cost nahi.</p>
           )}
         </div>
       </Section>
@@ -295,7 +295,8 @@ function RecipeStep({ ctx }: { ctx: StepContext<RestaurantExtra> }) {
       <Section icon={Wheat} title={`"${ctx.draft.core.name || 'Is dish'}" me kya lagta hai`}
         hint="Dish bikne par yahi saamaan stock se nikalta hai aur isi se plate ki cost aur profit banta hai">
         {!kitchen && <p className="mb-3 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">Recipe save karne ke liye "Kitchen sambhalna" ki permission chahiye — aap dekh sakte hain, badal nahi sakte.</p>}
-        <RecipeLinesEditor value={x.recipe} onChange={(recipe) => ctx.setExtra({ recipe })} price={ctx.draft.core.price} dishProductId={ctx.productId} />
+        <RecipeLinesEditor value={x.recipe} onChange={(recipe) => ctx.setExtra({ recipe })} price={ctx.draft.core.price} dishProductId={ctx.productId}
+          sizes={ctx.draft.core.variants.filter((v) => v.isActive && v.name.trim()).map((v) => ({ name: v.name.trim(), price: v.price ?? ctx.draft.core.price }))} />
         {ctx.errors.recipe && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{ctx.errors.recipe}</p>}
       </Section>
       {x.recipe.lines.length > 0 && (
@@ -396,7 +397,11 @@ const config: EditorConfig<RestaurantExtra> = {
         if (x.recipe.lines.length) toast.warning('Recipe save nahi hui — "Kitchen sambhalna" ki permission chahiye');
         return;
       }
-      if (x.recipe.lines.length) await recipesApi.upsert(recipeInput(m.id, x.recipe));
+      if (x.recipe.lines.length) {
+        // Size factors need the saved sizes' ids, which new sizes only have now.
+        const sizes = (await menuItemsApi.getOne(m.id)).product?.variants ?? [];
+        await recipesApi.upsert(recipeInput(m.id, x.recipe, sizes.map((v: { id: string; name: string }) => ({ id: v.id, name: v.name }))));
+      }
       else if (x.recipeId) await recipesApi.remove(x.recipeId);
     },
   },

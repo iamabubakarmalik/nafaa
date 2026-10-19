@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { CollectionsService } from './collections.service';
-import { CollectionProductsDto, CollectionSaleDto, UpsertCollectionDto } from './dto/upsert-collection.dto';
+import { CollectionProductsDto, CollectionSaleDto, CollectionSalePercentDto, UpsertCollectionDto } from './dto/upsert-collection.dto';
 
 @ApiTags('Garments - Collections')
 @ApiBearerAuth()
@@ -28,6 +28,8 @@ export class CollectionsController {
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertCollectionDto) { return this.service.update(user, id, dto); }
   @Post(':id/toggle-featured') toggle(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.toggleFeatured(user, id); }
+  /** Percent off every price of the collection; null ends the sale and puts the regular prices back. */
+  @Post(':id/sale') sale(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CollectionSalePercentDto) { return this.service.setSale(user, id, body.percent ?? null); }
   @Post(':id/on-sale') onSale(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CollectionSaleDto) { return this.service.setOnSale(user, id, body.onSale); }
   @Post(':id/products') addProducts(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CollectionProductsDto) { return this.service.addProducts(user, id, body.productIds); }
   @Post(':id/products/remove') removeProducts(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CollectionProductsDto) { return this.service.removeProducts(user, id, body.productIds); }

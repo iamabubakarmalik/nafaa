@@ -1,8 +1,9 @@
 /**
  * Recipe editor used by the menu item editor and the recipes page: pick raw
  * material, write each line in a unit that fits its stock unit (gram for a
- * kg item, ml for litres, pcs or dozen), add wastage, set how many plates
- * the batch makes, and see the plate cost and food cost live.
+ * kg item, ml for litres, pcs or dozen), add a wastage percent on top, set
+ * how many plates the batch makes, how much of the recipe each size uses,
+ * and see the plate cost and food cost live.
  *
  * The draft helpers turn an API recipe into a draft and back.
  */
@@ -11,7 +12,7 @@ import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, Percent, Plus, Search, Trash2, Wheat, X } from 'lucide-react';
+import { AlertTriangle, Layers, Percent, Plus, Search, Trash2, Wheat, X } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { catalogApi } from '@modules/inventory/products/list/api';
@@ -29,9 +30,14 @@ export interface RecipeLine {
   stock: number | null;
   quantity: number;
   unit: string;
+  /** Percent lost in cleaning or cooking, taken from stock on top of the quantity. */
+  wastagePercent: number;
   isOptional: boolean;
   notes: string;
 }
+
+/** A size of the dish (Half, Full) as the recipe editor needs it. */
+export interface RecipeSize { name: string; price: number }
 
 export interface RecipeDraft {
   lines: RecipeLine[];
@@ -39,12 +45,17 @@ export interface RecipeDraft {
   yieldQuantity: number;
   preparationSteps: string;
   cookingTime: number | null;
+  /** Size name (lower case) → share of the recipe one plate of it uses; a size not listed uses the full recipe. */
+  sizeFactors: Record<string, number>;
 }
 
-export const emptyRecipe = (): RecipeDraft => ({ lines: [], yieldQuantity: 1, preparationSteps: '', cookingTime: null });
+export const emptyRecipe = (): RecipeDraft => ({ lines: [], yieldQuantity: 1, preparationSteps: '', cookingTime: null, sizeFactors: {} });
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const fmtQty = (n: number) => String(Number(Number(n).toFixed(3)));
+const sizeKey = (name: string) => name.trim().toLowerCase();
+/** Quantity the store gives out for a line: the recipe quantity plus wastage. */
+const grossQty = (l: Pick<RecipeLine, 'quantity' | 'wastagePercent'>) => l.quantity * (1 + (l.wastagePercent || 0) / 100);
 
 export function recipeFromApi(r: Recipe | null | undefined): RecipeDraft {
   if (!r) return emptyRecipe();
@@ -52,6 +63,9 @@ export function recipeFromApi(r: Recipe | null | undefined): RecipeDraft {
     yieldQuantity: Number(r.yieldQuantity) || 1,
     preparationSteps: r.preparationSteps ?? '',
     cookingTime: r.cookingTime ?? null,
+    sizeFactors: Object.fromEntries((r.sizeFactors ?? [])
+      .filter((f) => f.variant?.name)
+      .map((f) => [sizeKey(f.variant!.name), Number(f.factor) || 1])),
     lines: [...r.ingredients]
       .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
       .map((i) => ({
@@ -62,6 +76,7 @@ export function recipeFromApi(r: Recipe | null | undefined): RecipeDraft {
         stock: i.ingredient?.stock != null ? Number(i.ingredient.stock) : null,
         quantity: Number(i.quantity) || 0,
         unit: i.unit,
+        wastagePercent: Number(i.wastagePercent) || 0,
         isOptional: !!i.isOptional,
         notes: i.notes ?? '',
       })),
@@ -70,7 +85,7 @@ export function recipeFromApi(r: Recipe | null | undefined): RecipeDraft {
 
 /** Batch cost (optional lines left out) and cost of one plate. */
 export function recipeTotals(d: RecipeDraft) {
-  const batch = d.lines.reduce((s, l) => s + (l.isOptional ? 0 : convertQty(l.quantity, l.unit, l.stockUnit) * l.rate), 0);
+  const batch = d.lines.reduce((s, l) => s + (l.isOptional ? 0 : convertQty(grossQty(l), l.unit, l.stockUnit) * l.rate), 0);
   return { batch: r2(batch), perPlate: r2(batch / (d.yieldQuantity || 1)) };
 }
 
@@ -80,11 +95,22 @@ export function recipeProblem(d: RecipeDraft): string | null {
   const empty = d.lines.find((l) => !(l.quantity > 0));
   if (empty) return `${empty.name}: quantity likhein`;
   if (!(d.yieldQuantity > 0)) return 'Kitni plate banti hain — 0 se zyada likhein';
+  const waste = d.lines.find((l) => l.wastagePercent < 0 || l.wastagePercent > 100);
+  if (waste) return `${waste.name}: wastage 0 se 100% ke beech`;
   return null;
 }
 
-export function recipeInput(menuItemId: string, d: RecipeDraft): RecipeInput {
+/**
+ * The API payload. With `sizes` (the dish's saved sizes) the size factors
+ * are sent and replace the saved ones; without it they stay as saved.
+ */
+export function recipeInput(menuItemId: string, d: RecipeDraft, sizes?: Array<{ id: string; name: string }>): RecipeInput {
   return {
+    ...(sizes && {
+      sizeFactors: sizes
+        .filter((s) => d.sizeFactors[sizeKey(s.name)] > 0)
+        .map((s) => ({ variantId: s.id, factor: d.sizeFactors[sizeKey(s.name)] })),
+    }),
     menuItemId,
     yieldQuantity: d.yieldQuantity || 1,
     yieldUnit: 'portion',
@@ -94,6 +120,7 @@ export function recipeInput(menuItemId: string, d: RecipeDraft): RecipeInput {
       ingredientProductId: l.ingredientProductId,
       quantity: l.quantity,
       unit: l.unit,
+      wastagePercent: l.wastagePercent || 0,
       costPerUnit: l.rate,
       isOptional: l.isOptional,
       notes: l.notes.trim() || undefined,
@@ -106,13 +133,15 @@ const UNIT_LABEL: Record<string, string> = { gram: 'gram', kg: 'kg', liter: 'lit
 const unitLabel = (u: string) => UNIT_LABEL[u] ?? u;
 const fieldCls = 'h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-[0.875rem] text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
 
-export function RecipeLinesEditor({ value, onChange, price, dishProductId }: {
+export function RecipeLinesEditor({ value, onChange, price, dishProductId, sizes = [] }: {
   value: RecipeDraft;
   onChange: (d: RecipeDraft) => void;
   /** Menu price of one plate, for food cost %. */
   price?: number;
   /** The dish itself, kept out of the ingredient search. */
   dishProductId?: string;
+  /** Sizes of the dish; each can use a share of the recipe. */
+  sizes?: RecipeSize[];
 }) {
   const [q, setQ] = useState('');
   const [all, setAll] = useState(false);
@@ -133,7 +162,7 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId }: {
   const add = (item: { id: string; name: string; unit: string; costPrice: number; stock: number }) => {
     setLines([...value.lines, {
       ingredientProductId: item.id, name: item.name, stockUnit: item.unit, rate: Number(item.costPrice) || 0, stock: Number(item.stock),
-      quantity: 0, unit: cookUnit(item.unit), isOptional: false, notes: '',
+      quantity: 0, unit: cookUnit(item.unit), wastagePercent: 0, isOptional: false, notes: '',
     }]);
     setQ('');
   };
@@ -187,7 +216,7 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId }: {
           {value.lines.map((l, i) => {
             const units = unitChoices(l.stockUnit);
             const fits = units.includes(l.unit);
-            const used = convertQty(l.quantity, l.unit, l.stockUnit);
+            const used = convertQty(grossQty(l), l.unit, l.stockUnit);
             const cost = used * l.rate;
             const perPlate = used / (value.yieldQuantity || 1);
             const plates = l.stock != null && perPlate > 0 ? Math.floor(l.stock / perPlate) : null;
@@ -210,8 +239,9 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId }: {
                   </select>
                   <span className="w-20 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-800">{l.isOptional ? '—' : formatPKR(cost)}</span>
                   <button type="button" onClick={() => setWasteAt(wasteAt === i ? null : i)} title="Wastage jorein" aria-label="Wastage"
-                    className={cn('flex h-9 w-9 items-center justify-center rounded-lg ring-1', wasteAt === i ? 'bg-amber-100 text-amber-800 ring-amber-200' : 'text-slate-500 ring-slate-200 hover:bg-slate-50')}>
-                    <Percent className="h-4 w-4" />
+                    className={cn('inline-flex h-9 min-w-9 items-center justify-center gap-0.5 rounded-lg px-1.5 text-[0.75rem] font-semibold ring-1',
+                      wasteAt === i || l.wastagePercent > 0 ? 'bg-amber-100 text-amber-800 ring-amber-200' : 'text-slate-500 ring-slate-200 hover:bg-slate-50')}>
+                    {l.wastagePercent > 0 ? `${fmtQty(l.wastagePercent)}` : null}<Percent className="h-4 w-4" />
                   </button>
                   <button type="button" onClick={() => setLines(value.lines.filter((_, j) => j !== i))} aria-label="Hatayein"
                     className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
@@ -225,7 +255,10 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId }: {
                     className={cn(fieldCls, 'h-8 min-w-[10rem] flex-1 text-[0.75rem]')} />
                 </div>
                 {!fits && <p className="mt-1.5 text-[0.75rem] font-medium text-rose-700">Stock {unitLabel(l.stockUnit)} me hai — {units.map(unitLabel).join(' ya ')} chunein</p>}
-                {wasteAt === i && <WastageRow line={l} onApply={(qty, note) => { patch(i, { quantity: qty, notes: note }); setWasteAt(null); }} />}
+                {wasteAt === i && <WastageRow line={l} onChange={(wastagePercent) => patch(i, { wastagePercent })} onDone={() => setWasteAt(null)} />}
+                {wasteAt !== i && l.wastagePercent > 0 && l.quantity > 0 && (
+                  <p className="mt-1.5 text-[0.75rem] text-amber-800">{fmtQty(l.wastagePercent)}% wastage — stock se {fmtQty(grossQty(l))} {unitLabel(l.unit)} nikalta hai</p>
+                )}
               </li>
             );
           })}
@@ -249,6 +282,9 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId }: {
           </div>
         </div>
       )}
+      {value.lines.length > 0 && sizes.length > 0 && (
+        <SizeFactors sizes={sizes} perPlate={totals.perPlate} value={value.sizeFactors} onChange={(sizeFactors) => onChange({ ...value, sizeFactors })} />
+      )}
       {value.lines.some((l) => !(l.rate > 0) && !l.isOptional) && (
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Kuch saamaan ki cost nahi likhi — plate ki cost kam dikhegi. Purchase karne par cost khud aa jati hai.
@@ -269,24 +305,69 @@ function Fact({ label, value, hint, strong, tone }: { label: string; value: stri
   );
 }
 
-/** Net quantity plus wastage %, written back as the gross quantity the store gives out. */
-function WastageRow({ line, onApply }: { line: RecipeLine; onApply: (qty: number, note: string) => void }) {
-  const [net, setNet] = useState(line.quantity ? String(line.quantity) : '');
-  const [pct, setPct] = useState('10');
-  const n = Number(net) || 0;
-  const p = Number(pct) || 0;
-  const gross = Math.round(n * (1 + p / 100) * 1000) / 1000;
+/** Wastage % on top of the line's quantity: the store gives out the quantity plus this share. */
+function WastageRow({ line, onChange, onDone }: { line: RecipeLine; onChange: (pct: number) => void; onDone: () => void }) {
   return (
     <div className="mt-2 flex flex-wrap items-end gap-2 rounded-lg bg-amber-50 p-2.5 ring-1 ring-amber-200">
-      <label className="text-[0.6875rem] font-semibold text-amber-900">Saaf maal ({unitLabel(line.unit)})
-        <input inputMode="decimal" value={net} onChange={(e) => setNet(e.target.value.replace(/[^\d.]/g, ''))} className={cn(fieldCls, 'mt-1 block w-24 text-right')} />
-      </label>
       <label className="text-[0.6875rem] font-semibold text-amber-900">Wastage %
-        <input inputMode="decimal" value={pct} onChange={(e) => setPct(e.target.value.replace(/[^\d.]/g, ''))} className={cn(fieldCls, 'mt-1 block w-20 text-right')} />
+        <input autoFocus inputMode="decimal" value={line.wastagePercent || ''} placeholder="0"
+          onChange={(e) => onChange(Math.min(Number(e.target.value.replace(/[^\d.]/g, '')) || 0, 100))}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') onDone(); }}
+          className={cn(fieldCls, 'mt-1 block w-20 text-right')} />
       </label>
-      <p className="pb-2 text-[0.75rem] text-amber-900">Stock se niklega: <strong className="tabular-nums">{fmtQty(gross)} {unitLabel(line.unit)}</strong></p>
-      <button type="button" disabled={!(n > 0)} onClick={() => onApply(gross, `Saaf ${fmtQty(n)} ${unitLabel(line.unit)} + ${fmtQty(p)}% wastage`)}
-        className="ml-auto h-9 rounded-lg bg-amber-600 px-3 text-[0.8125rem] font-semibold text-white disabled:opacity-50">Laga dein</button>
+      <div className="flex gap-1 pb-0.5">
+        {[5, 10, 15, 20].map((p) => (
+          <button key={p} type="button" onClick={() => onChange(p)} className={cn('h-8 rounded-full px-2.5 text-[0.75rem] font-semibold', line.wastagePercent === p ? 'bg-amber-600 text-white' : 'bg-white text-amber-900 ring-1 ring-amber-200')}>{p}%</button>
+        ))}
+      </div>
+      <p className="pb-2 text-[0.75rem] text-amber-900">
+        Recipe me {fmtQty(line.quantity)} {unitLabel(line.unit)} · stock se niklega <strong className="tabular-nums">{fmtQty(grossQty(line))} {unitLabel(line.unit)}</strong>
+      </p>
+      <span className="w-full text-[0.6875rem] text-amber-800">Saaf karne ya pakane me jo zaya hota hai (chhilka, haddi, tel). Quantity saaf maal ki likhein, wastage upar se katega.</span>
+    </div>
+  );
+}
+
+/** How much of the recipe one plate of each size uses: Half = 0.5, Full = 1. */
+function SizeFactors({ sizes, perPlate, value, onChange }: {
+  sizes: RecipeSize[]; perPlate: number; value: Record<string, number>; onChange: (v: Record<string, number>) => void;
+}) {
+  const set = (name: string, f: number | null) => {
+    const next = { ...value };
+    if (f && f > 0) next[sizeKey(name)] = f; else delete next[sizeKey(name)];
+    onChange(next);
+  };
+  return (
+    <div className="rounded-2xl bg-slate-50 p-3.5">
+      <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-800"><Layers className="h-4 w-4 text-slate-500" />Har size me kitna saamaan</p>
+      <p className="mt-0.5 text-[0.75rem] text-slate-500">Upar wali recipe ek poori plate ki hai. Half plate me aadha lagta hai to 0.5 likhein — bikne par utna hi saamaan katega aur size ki cost bhi isi se banegi. Khali = poori recipe.</p>
+      <ul className="mt-2.5 grid gap-2 sm:grid-cols-2">
+        {sizes.map((sz) => {
+          const f = value[sizeKey(sz.name)];
+          const cost = r2(perPlate * (f || 1));
+          const pct = sz.price > 0 ? (cost / sz.price) * 100 : null;
+          return (
+            <li key={sz.name} className="rounded-xl bg-white p-2.5 ring-1 ring-slate-200">
+              <div className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-[0.875rem] font-semibold text-slate-900">{sz.name}</span>
+                <input inputMode="decimal" value={f ?? ''} placeholder="1" aria-label={`${sz.name} ka hissa`}
+                  onChange={(e) => set(sz.name, Number(e.target.value.replace(/[^\d.]/g, '')) || null)}
+                  className={cn(fieldCls, 'w-20 text-right tabular-nums')} />
+                <span className="text-[0.75rem] text-slate-500">× recipe</span>
+              </div>
+              <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                {[0.25, 0.5, 0.75, 1, 1.5, 2].map((x) => (
+                  <button key={x} type="button" onClick={() => set(sz.name, x)}
+                    className={cn('h-7 rounded-full px-2 text-[0.6875rem] font-semibold', (f || 1) === x ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>{x}</button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[0.75rem] text-slate-600">
+                Cost {formatPKR(cost)}{pct !== null && <> · food cost <span className={cn('font-semibold', pct > 45 ? 'text-rose-700' : pct > 35 ? 'text-amber-700' : 'text-success-700')}>{pct.toFixed(0)}%</span></>}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

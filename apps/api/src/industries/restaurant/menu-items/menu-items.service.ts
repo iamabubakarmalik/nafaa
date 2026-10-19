@@ -3,12 +3,19 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { endOfBusinessDayTz } from '../../../common/helpers/business-time.helper';
 import { UpsertMenuItemDto } from './dto/upsert-menu-item.dto';
 import { servedAt } from './time-window';
+import { menuBranch, offAtBranch } from './branch-availability';
 
 const ITEM_INCLUDE = {
   modifiers: { include: { modifierGroup: { include: { options: true } } }, orderBy: { displayOrder: 'asc' } },
-  recipe: { include: { ingredients: { include: { ingredient: true } } } },
+  recipe: {
+    include: {
+      ingredients: { include: { ingredient: true } },
+      sizeFactors: { select: { variantId: true, factor: true, variant: { select: { name: true } } } },
+    },
+  },
 } satisfies Prisma.RestaurantMenuItemInclude;
 
 @Injectable()
@@ -47,11 +54,13 @@ export class MenuItemsService {
   }
 
   /**
-   * Menu items with their dish. `available` keeps only dishes on the menu
-   * whose product is switched on. Each item carries `servingNow` for its
-   * serving hours in shop time; `serving` keeps only those.
+   * Menu items with their dish and its active sizes. `available` keeps only
+   * dishes on the menu whose product is switched on and that are not "86"
+   * at this branch. Each item carries `servingNow` for its serving hours in
+   * shop time (`serving` keeps only those) and `offUntil` when it is off at
+   * this branch.
    */
-  async list(user: AuthenticatedUser, params: { available?: boolean; bestSeller?: boolean; chefSpecial?: boolean; search?: string; serving?: boolean }) {
+  async list(user: AuthenticatedUser, shopId: string | null, params: { available?: boolean; bestSeller?: boolean; chefSpecial?: boolean; search?: string; serving?: boolean }) {
     const items = await this.prisma.restaurantMenuItem.findMany({
       where: {
         tenantId: user.tenantId,
@@ -70,15 +79,58 @@ export class MenuItemsService {
         }),
       },
       include: {
-        product: { include: { category: true, images: { orderBy: { sortOrder: 'asc' } } } },
+        product: {
+          include: {
+            category: true,
+            images: { orderBy: { sortOrder: 'asc' } },
+            variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, price: true } },
+          },
+        },
         ...ITEM_INCLUDE,
       },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
     });
     const { tz } = await this.clock.clock(user.tenantId);
     const now = new Date();
-    const rows = items.map((i) => ({ ...i, servingNow: servedAt(i, now, tz) }));
+    const off = await offAtBranch(this.prisma, user.tenantId, await menuBranch(this.prisma, user.tenantId, shopId), items.map((i) => i.id));
+    const rows = items
+      .map((i) => ({ ...i, servingNow: servedAt(i, now, tz), offHere: off.has(i.id), offUntil: off.get(i.id) ?? null }))
+      .filter((r) => params.available !== true || !r.offHere);
     return params.serving ? rows.filter((r) => r.servingNow) : rows;
+  }
+
+  /**
+   * "86" at a branch: switched off until `until` (by default the end of the
+   * business day, so it is back on next morning; null keeps it off until
+   * switched on), or back on. With several branches seen together it
+   * applies to each of them. The shop-wide menu switch is not touched.
+   */
+  async setBranchAvailability(user: AuthenticatedUser, shopId: string | null, menuItemIds: string[], available: boolean, until?: string | null) {
+    const ids = [...new Set(menuItemIds)];
+    const items = await this.prisma.restaurantMenuItem.findMany({ where: { id: { in: ids }, tenantId: user.tenantId }, select: { id: true } });
+    if (items.length !== ids.length) throw new NotFoundException('Ek ya zyada dish nahi mili');
+    const branch = await menuBranch(this.prisma, user.tenantId, shopId);
+    const shops = branch ? [branch] : (await this.prisma.shop.findMany({ where: { tenantId: user.tenantId, isActive: true }, select: { id: true } })).map((s) => s.id);
+    if (!shops.length) throw new BadRequestException('Koi branch nahi mili');
+
+    let backAt: Date | null = null;
+    if (!available) {
+      if (until === undefined) {
+        const { tz, dayStartHour } = await this.clock.clock(user.tenantId);
+        backAt = endOfBusinessDayTz(new Date(), tz, dayStartHour);
+      } else if (until !== null) {
+        backAt = new Date(until);
+        if (!(backAt.getTime() > Date.now())) throw new BadRequestException('Wapas chalu hone ka waqt guzar chuka hai — aage ka waqt chunein');
+        if (backAt.getTime() > Date.now() + 31 * 86_400_000) throw new BadRequestException('Zyada se zyada ek mahine ke liye band ho sakti hai — us se zyada ke liye Menu se band karein');
+      }
+    }
+    const data = { isAvailable: available, until: available ? null : backAt, updatedById: user.id };
+    await this.prisma.$transaction(shops.flatMap((shop) => ids.map((menuItemId) => this.prisma.restaurantMenuAvailability.upsert({
+      where: { shopId_menuItemId: { shopId: shop, menuItemId } },
+      update: data,
+      create: { tenantId: user.tenantId, shopId: shop, menuItemId, ...data },
+    }))));
+    return { updated: ids.length, branches: shops.length, until: data.until };
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
@@ -93,12 +145,15 @@ export class MenuItemsService {
     return item;
   }
 
-  /** The menu profile of a product, or null when it has none. */
-  async byProduct(user: AuthenticatedUser, productId: string) {
-    return this.prisma.restaurantMenuItem.findFirst({
+  /** The menu profile of a product, or null when it has none; `offHere` / `offUntil` tell a branch "86". */
+  async byProduct(user: AuthenticatedUser, shopId: string | null, productId: string) {
+    const item = await this.prisma.restaurantMenuItem.findFirst({
       where: { productId, tenantId: user.tenantId },
       include: ITEM_INCLUDE,
     });
+    if (!item) return null;
+    const off = await offAtBranch(this.prisma, user.tenantId, await menuBranch(this.prisma, user.tenantId, shopId), [item.id]);
+    return { ...item, offHere: off.has(item.id), offUntil: off.get(item.id) ?? null };
   }
 
   async attachModifiers(user: AuthenticatedUser, id: string, modifierGroupIds: string[]) {

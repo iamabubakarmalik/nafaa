@@ -7,5 +7,6 @@ import { ReturnsService } from './returns.service';
 @Module({
   controllers: [ReturnsController],
   providers: [ReturnsService, ReturnsRecordsService, TenantTimezoneService],
+  exports: [ReturnsService],
 })
 export class ReturnsModule {}

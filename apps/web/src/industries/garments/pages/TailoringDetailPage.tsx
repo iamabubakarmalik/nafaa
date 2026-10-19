@@ -22,7 +22,6 @@ import { waLink } from '@core/lib/whatsapp/templates';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useReceiptSetup } from '@core/receipt/setup';
 import { tailoringApi } from '../api/tailoring.api';
-import { Pill } from '../components/fields';
 import {
   TAILORING_FLOW, TAILORING_KEY, TAILORING_PREV, dayFull, dueOf, flowIndex, garmentLabel, isClosed, priorityOf, tailoringNext, tailoringStatus, whenText,
 } from '../components/meta';

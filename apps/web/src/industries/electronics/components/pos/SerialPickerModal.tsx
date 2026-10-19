@@ -7,20 +7,22 @@ import type { Product } from '@modules/inventory/products/api/products.api';
 
 interface Props {
   product: Product;
-  profile?: any;
+  /** Serial ids already on the bill; they are not offered again. */
+  taken?: Set<string>;
   onConfirm: (serial: any) => void;
   onClose: () => void;
 }
 
-export function SerialPickerModal({ product, profile, onConfirm, onClose }: Props) {
+export function SerialPickerModal({ product, taken, onConfirm, onClose }: Props) {
   const [search, setSearch] = useState('');
 
-  const { data: serials = [], isLoading } = useQuery({
+  const { data: all = [], isLoading } = useQuery({
     queryKey: ['serials-for-pos', product.id],
     // Counter par har dafa taaza list chahiye — bika hua unit na dikhe
     staleTime: 0,
     queryFn: () => serialTrackingApi.list({ productId: product.id, status: 'IN_STOCK' }),
   });
+  const serials = taken?.size ? all.filter((s) => !taken.has(s.id)) : all;
 
   const filtered = search.trim()
     ? serials.filter((s: any) =>
@@ -44,14 +46,14 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs uppercase font-semibold text-white/70 tracking-wider inline-flex items-center gap-1">
-              <Barcode className="h-3 w-3" /> Select Serial / IMEI
+              <Barcode className="h-3 w-3" /> Serial / IMEI chunein
             </div>
             <h3 className="text-xl sm:text-2xl font-semibold leading-tight truncate">{product.name}</h3>
             <div className="text-sm font-bold text-cyan-200">
-              Available: {serials.length} pcs • {formatPKR(product.price)}
+              Mojood: {serials.length} pcs • {formatPKR(product.price)}
             </div>
           </div>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition">
+          <button onClick={onClose} aria-label="Band karein" className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -60,19 +62,19 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
           <div className="relative">
             <Search className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by serial / IMEI / MAC..."
+              placeholder="Serial / IMEI / MAC se dhoondein"
               className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3">
           {isLoading ? (
-            <div className="text-center py-12 text-sm text-slate-500 font-semibold">Loading...</div>
+            <div className="text-center py-12 text-sm text-slate-500 font-semibold">Aa rahe hain…</div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-12">
               <Barcode className="h-12 w-12 text-slate-300 mx-auto mb-2" />
-              <p className="font-semibold text-slate-700">No serials available</p>
-              <p className="text-xs text-slate-500 font-semibold mt-1">Add serials from product page</p>
+              <p className="font-semibold text-slate-700">Koi serial stock mein nahi</p>
+              <p className="text-xs text-slate-500 font-semibold mt-1">Purchase ya product page se serial daalein</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -94,7 +96,7 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
                     </div>
                     {s.warrantyEndDate && (
                       <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-blue-700">
-                        <Shield className="h-2.5 w-2.5" /> Warranty until {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')}
+                        <Shield className="h-2.5 w-2.5" /> Warranty {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')} tak
                       </div>
                     )}
                   </div>

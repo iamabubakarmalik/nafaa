@@ -96,6 +96,12 @@ export interface TradeInPayload {
   notes?: string;
 }
 
+/** Serial units on a set of bills, for sales history. */
+export interface SalesSerials {
+  serials: Array<{ id: string; saleId: string; saleItemId: string | null; productId: string; serialNumber: string; imei: string | null; status: SerialStatus }>;
+  trackedProductIds: string[];
+}
+
 export const serialTrackingApi = {
   /** Paged register with counts per view (serials page). */
   page: (params: { view?: SerialView; search?: string; productId?: string; sort?: SerialSort; page?: number; limit?: number }) =>
@@ -128,6 +134,11 @@ export const serialTrackingApi = {
 
   list: (params?: { productId?: string; status?: string; imei?: string; search?: string; shopId?: string }) =>
     apiClient.get('/electronics/serial-tracking', { params }).then(unwrap<SerialWithProduct[]>),
+
+  /** Units on the given bills (up to 100) and the products on them that need a serial. */
+  forSales: (saleIds: string[]) =>
+    apiClient.get('/electronics/serial-tracking/for-sales', { params: { saleIds: saleIds.join(',') } })
+      .then(unwrap<SalesSerials>),
 
   lookup: (code: string) =>
     apiClient.get('/electronics/serial-tracking/lookup/' + encodeURIComponent(code)).then(unwrap<ElectronicsSerial | null>),

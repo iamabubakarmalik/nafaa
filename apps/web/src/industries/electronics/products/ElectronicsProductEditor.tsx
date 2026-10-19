@@ -18,7 +18,7 @@ import { stockAdjustmentsApi } from '@modules/inventory/stock-adjustments/api/st
 import { electronicsProductsApi } from '../api/products.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
 import {
-  BOX_CONTENT_OPTIONS, CATEGORY_META, CATEGORY_TYPES, CONDITION_META, CONDITION_TYPES, SERIAL_SUGGESTED,
+  BOX_CONTENT_OPTIONS, CATEGORY_GROUPS, CATEGORY_META, CONDITION_META, CONDITION_TYPES, SERIAL_SUGGESTED,
   categoryTypeFromName, type CategoryType, type ConditionType,
 } from '../constants';
 
@@ -64,6 +64,9 @@ const RELEVANT: Partial<Record<CategoryType, Spec[]>> = {
   PHONE_ACCESSORY: ['compat', 'durability', 'size'], MOBILE_CASE: ['compat', 'durability', 'size'],
   SCREEN_PROTECTOR: ['compat', 'durability', 'size'], TABLET_ACCESSORY: ['compat', 'durability', 'size'],
   CAR_ACCESSORY: ['battery', 'connectivity', 'size'], SMART_HOME: ['connectivity', 'compat', 'battery'], LED_LIGHT: ['connectivity', 'battery', 'size'],
+  TV: ['display', 'connectivity', 'size'], HOME_THEATER: ['battery', 'connectivity', 'size'],
+  LAPTOP: ['battery', 'connectivity', 'display', 'compat', 'size'], TABLET: ALL, DESKTOP: ['connectivity', 'display', 'compat', 'size'],
+  PRINTER: ['connectivity', 'compat', 'size'], GAMING_CONSOLE: ['connectivity', 'compat', 'size'], UPS: ['battery', 'size'],
 };
 const CONNECTIVITY = ['WiFi', 'WiFi 6', 'WiFi 6E', 'Bluetooth 5.0', 'Bluetooth 5.3', '4G LTE', '5G', 'NFC', 'GPS', 'USB-C', 'USB-A', 'USB 3.0', 'Lightning', 'Micro USB', 'HDMI', 'DisplayPort', 'Thunderbolt', 'Ethernet', '3.5mm Jack', 'AUX', 'Wireless', 'Type-C PD', 'SD Card'];
 const OS = ['iOS', 'Android', 'Windows', 'macOS', 'Linux', 'Chrome OS', 'HarmonyOS', 'watchOS', 'wearOS', 'iPadOS'];
@@ -89,6 +92,12 @@ const addMonths = (iso: string, months: number) => {
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 const opt = (v: string) => v.trim() || undefined;
 
+/** Type name plus the local word for it when that word adds something ("Glass", "Sound system"). */
+const typeName = (t: CategoryType) => {
+  const { label, urdu } = CATEGORY_META[t];
+  return urdu && !label.toLowerCase().includes(urdu.toLowerCase()) ? `${label} (${urdu})` : label;
+};
+
 /* ── Basic step additions: model, type, condition, colour ── */
 function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
   const x = ctx.draft.extra;
@@ -107,11 +116,16 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
         <TextField label="Part number" value={x.partNumber} onChange={(partNumber) => ctx.setExtra({ partNumber })} />
       </div>
       <label className="block">
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Qisam (reports aur specs isi se)</span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Product type</span>
         <select value={x.categoryType} onChange={(e) => ctx.setExtra({ categoryType: e.target.value as CategoryType })} className={inputClass}>
-          {CATEGORY_TYPES.map((t) => <option key={t} value={t}>{CATEGORY_META[t].emoji} {CATEGORY_META[t].label}</option>)}
+          {CATEGORY_GROUPS.map((g) => (
+            <optgroup key={g.label} label={`${g.emoji} ${g.label}`}>
+              {g.items.map((t) => <option key={t} value={t}>{CATEGORY_META[t].emoji} {typeName(t)}</option>)}
+            </optgroup>
+          ))}
         </select>
-        {SERIAL_SUGGESTED.includes(x.categoryType) && !x.tracked && <span className="mt-1 block text-[0.75rem] text-violet-700">Is qisam ka aam tor par serial/IMEI rakha jata hai — Stock step mein chalu karein.</span>}
+        <span className="mt-1 block text-[0.75rem] text-slate-500">POS ke filter, specs aur reports isi type se bante hain.</span>
+        {SERIAL_SUGGESTED.includes(x.categoryType) && !x.tracked && <span className="mt-1 block text-[0.75rem] text-violet-700">Is type ke har piece ka serial/IMEI aam tor par rakha jata hai — Stock step mein chalu karein.</span>}
       </label>
       <div>
         <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Halat</span>
@@ -333,7 +347,7 @@ const core: CoreOptions = {
 
 const specsStep: StepDef<ElectronicsExtra> = { id: 'specs', title: 'Specs', hint: 'Battery, screen, connectivity', icon: Cpu, render: (ctx) => <Specs ctx={ctx} /> };
 const warrantyStep: StepDef<ElectronicsExtra> = {
-  id: 'warranty', title: 'Warranty', hint: 'Mahine, qisam, dabba', icon: ShieldCheck, render: (ctx) => <Warranty ctx={ctx} />,
+  id: 'warranty', title: 'Warranty', hint: 'Mahine, type, dabba', icon: ShieldCheck, render: (ctx) => <Warranty ctx={ctx} />,
   validate: (d): Record<string, string> => (d.extra.warrantyMonths < 0 ? { warranty: 'Mahine ulte nahi ho sakte' } : {}),
 };
 const stock = stockStep<ElectronicsExtra>(core, { extra: (ctx) => <Serials ctx={ctx} />, quick: [1, 5, 10, 25, 50, 100] });

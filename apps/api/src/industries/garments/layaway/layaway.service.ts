@@ -2,6 +2,8 @@
  * Layaway (qist) plans: a garment kept aside and paid in instalments.
  * Every rupee taken sits on the customer's khata until the plan is paid
  * off; the last payment makes the bill, and the garment leaves stock then.
+ * Until then the piece (one per plan) counts in the branch's reserved
+ * pieces, so it is not sold or held for someone else.
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
@@ -16,6 +18,7 @@ import {
 } from '../../_shared/industry-sale.helper';
 import { DAY_MS, findBill, garmentClock, opt, ownCustomer, ownProduct, paging, parseDay, payStatus, r2, withNextNumber } from '../common/garments-common';
 import { billHeldGoods } from '../common/held-goods';
+import { HoldKey, requireFree, resyncRecord, syncReserved } from '../common/held-stock';
 import { CreateLayawayDto, PayInstallmentDto } from './dto/layaway.dto';
 
 type Db = Prisma.TransactionClient;
@@ -70,6 +73,9 @@ export class LayawayService {
       return clock.dayStart(key);
     };
     const shopId = await resolveIndustryShopId(this.db, user, dto.shopId || activeShopId);
+    const key: HoldKey | null = opt(dto.productId)
+      ? { tenantId: user.tenantId, shopId, productId: dto.productId!, variantId: opt(dto.variantId) ?? null }
+      : null;
 
     const plan = await withNextNumber(
       async (prefix) => (await this.prisma.garmentLayawayPlan.findFirst({
@@ -78,6 +84,7 @@ export class LayawayService {
       }))?.planNumber,
       `LAY-${clock.year()}-`,
       (planNumber) => this.prisma.$transaction(async (tx) => {
+        if (key) await requireFree(tx, key, 1);
         const customerId = await ensureCustomer(tx, user, { customerId: customer?.id, name, phone: dto.customerPhone, shopId });
         const created = await tx.garmentLayawayPlan.create({
           data: {
@@ -97,6 +104,7 @@ export class LayawayService {
             customerId, shopId, amount: deposit, reference: planNumber, note: `Layaway deposit ${planNumber}`, method: dto.paymentMethod,
           });
         }
+        if (key) await syncReserved(tx, key);
         return created;
       }),
     );
@@ -240,6 +248,11 @@ export class LayawayService {
       });
     });
 
+    // A plan saved without a branch now has one: its piece is held there.
+    if (!plan.shopId) {
+      await resyncRecord(this.prisma, plan);
+      await resyncRecord(this.prisma, updated);
+    }
     if (updated.remainingAmount <= 0.01) await this.finish(user, updated.id, dto.paymentMethod);
     return this.getOne(user, planId);
   }
@@ -260,10 +273,17 @@ export class LayawayService {
     const legacyPaid = r2(Math.max(plan.paidAmount - (await paidOnKhata(this.db, user.tenantId, plan.planNumber)), 0));
     const label = `Layaway ${plan.planNumber}${plan.notes ? ` — ${plan.notes}` : ''}`;
     if (plan.productId) {
-      await billHeldGoods(this.db, this.sales, user, {
-        ref: plan.planNumber, shopId, customerId: plan.customerId, productId: plan.productId, variantId: plan.variantId,
-        quantity: 1, amount: plan.totalAmount, paidAmount: legacyPaid, method, note: label,
-      });
+      // The held piece is freed before the bill, and held again if the bill fails.
+      await resyncRecord(this.prisma, plan, { planId: plan.id });
+      try {
+        await billHeldGoods(this.db, this.sales, user, {
+          ref: plan.planNumber, shopId, customerId: plan.customerId, productId: plan.productId, variantId: plan.variantId,
+          quantity: 1, amount: plan.totalAmount, paidAmount: legacyPaid, method, note: label,
+        });
+      } catch (e) {
+        await resyncRecord(this.prisma, plan);
+        throw e;
+      }
     } else {
       await this.prisma.$transaction((tx) => postIndustrySale(tx, user, {
         saleNumber: plan.planNumber, sourceRef: plan.planNumber, shopId, customerId: plan.customerId,
@@ -271,6 +291,7 @@ export class LayawayService {
       }));
     }
     await this.prisma.garmentLayawayPlan.update({ where: { id }, data: { status: 'COMPLETED', completedAt: new Date(), nextDueDate: null } });
+    await resyncRecord(this.prisma, plan);
   }
 
   async cancel(user: AuthenticatedUser, id: string, reason?: string) {
@@ -282,6 +303,7 @@ export class LayawayService {
       where: { id },
       data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: opt(reason), nextDueDate: null },
     });
+    await resyncRecord(this.prisma, plan);
     return this.getOne(user, id);
   }
 }

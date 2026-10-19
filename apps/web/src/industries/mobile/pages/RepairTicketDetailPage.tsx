@@ -109,6 +109,7 @@ export default function RepairTicketDetailPage() {
     if (can('READY')) next.push({ label: 'Tayyar hai', icon: CheckCircle2, onClick: () => move.mutate({ to: 'READY' }), primary: true, busy: move.isPending });
   }
   if (canManage && can('DELIVERED')) next.push({ label: 'Wapas dein (W)', icon: Receipt, onClick: () => setPop('deliver'), primary: true });
+  const claimable = t.status === 'DELIVERED' && warrantyLeft !== null && warrantyLeft >= 0;
 
   return (
     <PageShell>
@@ -126,6 +127,7 @@ export default function RepairTicketDetailPage() {
           <div className="flex flex-wrap gap-1.5">
             <HeroBtn onClick={() => printJobCard(t, shopName)} icon={Printer}>Parchi</HeroBtn>
             {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+            {canManage && claimable && <Link to={`/repair-tickets/new?warrantyOf=${t.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-2.5 text-[0.8125rem] font-semibold text-brand-800 hover:bg-white/90"><ShieldCheck className="h-4 w-4" />Warranty claim</Link>}
             {canManage && <Link to={`/repair-tickets/${t.id}/edit`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Pencil className="h-4 w-4" />Badlein</Link>}
           </div>
         </div>
@@ -138,6 +140,23 @@ export default function RepairTicketDetailPage() {
             : <Stat label={late ? 'Late' : 'Tayyar hoga'} value={t.estimatedReadyAt ? (left === 0 ? 'Aaj' : left! < 0 ? `${-left!} din late` : `${left} din`) : '—'} hint={t.estimatedReadyAt ? dateTime(t.estimatedReadyAt) : undefined} />}
         </div>
       </div>
+
+      {(t.warrantyOf || (t.warrantyRepairs ?? []).length > 0) && (
+        <div className="space-y-1 rounded-2xl bg-cyan-50 px-4 py-3 text-[0.8125rem] text-cyan-900 ring-1 ring-cyan-200">
+          {t.warrantyOf && (
+            <p className="flex flex-wrap items-center gap-1.5"><ShieldCheck className="h-4 w-4" />Warranty claim — pehla job
+              <Link to={`/repair-tickets/${t.warrantyOf.id}`} className="font-mono font-semibold hover:underline">{t.warrantyOf.ticketNumber}</Link>
+              <span className="text-cyan-800/80">({t.warrantyOf.diagnosedIssue || t.warrantyOf.reportedIssue}{t.warrantyOf.deliveredAt ? ` · wapas ${dayOnly(t.warrantyOf.deliveredAt)}` : ''})</span>
+            </p>
+          )}
+          {(t.warrantyRepairs ?? []).map((w) => (
+            <p key={w.id} className="flex flex-wrap items-center gap-1.5"><ShieldCheck className="h-4 w-4" />Is job par warranty claim
+              <Link to={`/repair-tickets/${w.id}`} className="font-mono font-semibold hover:underline">{w.ticketNumber}</Link>
+              <span className="text-cyan-800/80">({dayOnly(w.receivedAt)} · {repairStatusOf(w.status).label})</span>
+            </p>
+          ))}
+        </div>
+      )}
 
       {t.status !== 'CANCELLED' && (
         <ol className="grid grid-cols-5 gap-1 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">

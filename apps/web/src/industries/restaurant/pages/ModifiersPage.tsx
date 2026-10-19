@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, CheckCircle2, ChefHat, CircleSlash, Copy, GraduationCap, Layers, ListChecks, ListFilter, MinusCircle, Pencil, Plus,
+  AlertTriangle, CheckCircle2, ChefHat, CircleSlash, Copy, GraduationCap, Layers, ListChecks, ListFilter, MinusCircle, Package, Pencil, Plus,
   PlusCircle, Power, Search, Sparkles, Trash2, UtensilsCrossed,
 } from 'lucide-react';
 import {
@@ -29,6 +29,7 @@ import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { menuItemsApi } from '../api/menu-items.api';
 import { modifiersApi, type ModifierGroup, type ModifierGroupInput, type ModifierOption, type ModifierType } from '../api/modifiers.api';
 import { MODIFIER_TYPES, modifierTypeOf } from '../lib/menuMeta';
+import { AddOnIngredient } from '../components/AddOnIngredient';
 
 const KEY = 'restaurant-modifiers';
 type Status = 'all' | 'on' | 'off';
@@ -178,7 +179,8 @@ export default function ModifiersPage() {
                 <ul className="mt-3 flex-1 space-y-1">
                   {opts.slice(0, 6).map((o) => (
                     <li key={o.id ?? o.name} className="flex items-center justify-between gap-2 text-[0.8125rem]">
-                      <span className="truncate text-slate-700">{o.emoji ? `${o.emoji} ` : ''}{o.name}{o.isDefault && <span className="ml-1 text-[0.6875rem] text-brand-700">(pehle se)</span>}</span>
+                      <span className="truncate text-slate-700">{o.emoji ? `${o.emoji} ` : ''}{o.name}{o.isDefault && <span className="ml-1 text-[0.6875rem] text-brand-700">(pehle se)</span>}
+                        {o.ingredient && o.ingredientQty ? <span className="ml-1 text-[0.6875rem] text-amber-700">· {o.ingredientQty} {o.ingredientUnit ?? o.ingredient.unit} {o.ingredient.name}</span> : null}</span>
                       <span className={cn('shrink-0 tabular-nums', (o.priceAdjustment ?? 0) > 0 ? 'text-slate-900' : (o.priceAdjustment ?? 0) < 0 ? 'text-success-700' : 'text-slate-400')}>
                         {o.priceAdjustment ? `${o.priceAdjustment > 0 ? '+' : '−'}${formatPKR(Math.abs(o.priceAdjustment))}` : 'free'}
                       </span>
@@ -211,7 +213,10 @@ export default function ModifiersPage() {
 const blank = (): ModifierGroupInput => ({ name: '', type: 'ADDON', isRequired: false, minSelections: 0, maxSelections: 3, options: [{ name: '', priceAdjustment: 0 }] });
 const copyOf = (g: ModifierGroup): ModifierGroupInput => ({
   name: `${g.name} (copy)`, description: g.description, type: g.type, isRequired: g.isRequired, minSelections: g.minSelections, maxSelections: g.maxSelections,
-  options: g.options.filter((o) => o.isActive !== false).map((o) => ({ name: o.name, priceAdjustment: o.priceAdjustment, isDefault: o.isDefault, emoji: o.emoji })),
+  options: g.options.filter((o) => o.isActive !== false).map((o) => ({
+    name: o.name, priceAdjustment: o.priceAdjustment, isDefault: o.isDefault, emoji: o.emoji,
+    ingredientProductId: o.ingredientProductId ?? null, ingredientQty: o.ingredientQty ?? null, ingredientUnit: o.ingredientUnit ?? null, ingredient: o.ingredient ?? null,
+  })),
 });
 
 /** Mirrors the API rules so the cashier never meets a group that cannot be filled. */
@@ -228,6 +233,8 @@ function problemOf(f: ModifierGroupInput): string | null {
   if (f.type !== 'NOTE' && min > live.length) return `Sirf ${live.length} option hain — kam se kam ${min} nahi chune ja sakte`;
   if ((f.type === 'VARIATION' || f.type === 'SPICE_LEVEL') && max > 1) return 'Size ya teekhapan me ek hi chuna jata hai';
   if (live.filter((o) => o.isDefault).length > max) return 'Pehle se chune option zyada se zyada se barh gaye';
+  const noQty = f.options.find((o) => o.ingredientProductId && !(Number(o.ingredientQty) > 0));
+  if (noQty) return `${noQty.name.trim() || 'Option'}: saamaan kitna lagta hai likhein`;
   return null;
 }
 
@@ -236,8 +243,12 @@ function GroupForm({ initial, onClose, onSaved }: { initial: ModifierGroup | Mod
   const [f, setF] = useState<ModifierGroupInput>(() => ({
     name: initial.name, description: initial.description ?? '', type: initial.type ?? 'ADDON', isRequired: !!initial.isRequired,
     minSelections: initial.minSelections ?? 0, maxSelections: initial.maxSelections ?? 1,
-    options: initial.options.map((o) => ({ id: o.id, name: o.name, priceAdjustment: o.priceAdjustment ?? 0, isDefault: !!o.isDefault, isActive: o.isActive !== false, emoji: o.emoji ?? '' })),
+    options: initial.options.map((o) => ({
+      id: o.id, name: o.name, priceAdjustment: o.priceAdjustment ?? 0, isDefault: !!o.isDefault, isActive: o.isActive !== false, emoji: o.emoji ?? '',
+      ingredientProductId: o.ingredientProductId ?? null, ingredientQty: o.ingredientQty ?? null, ingredientUnit: o.ingredientUnit ?? null, ingredient: o.ingredient ?? null,
+    })),
   }));
+  const [stockAt, setStockAt] = useState<number | null>(null);
   const set = (p: Partial<ModifierGroupInput>) => setF((x) => ({ ...x, ...p }));
   const setOpt = (i: number, p: Partial<ModifierOption>) => set({ options: f.options.map((o, j) => (j === i ? { ...o, ...p } : o)) });
   const single = f.type === 'VARIATION' || f.type === 'SPICE_LEVEL';
@@ -249,7 +260,7 @@ function GroupForm({ initial, onClose, onSaved }: { initial: ModifierGroup | Mod
       const body: ModifierGroupInput = {
         ...f, name: f.name.trim(), description: f.description?.trim() || undefined,
         minSelections: f.isRequired ? Math.max(f.minSelections ?? 0, 1) : f.minSelections, maxSelections: single ? 1 : f.maxSelections,
-        options: f.options.map((o, i) => ({ ...o, name: o.name.trim(), emoji: o.emoji || undefined, displayOrder: i })),
+        options: f.options.map(({ ingredient: _shown, ...o }, i) => ({ ...o, name: o.name.trim(), emoji: o.emoji || undefined, displayOrder: i })),
       };
       return id ? modifiersApi.update(id, body) : modifiersApi.create(body);
     },
@@ -314,14 +325,26 @@ function GroupForm({ initial, onClose, onSaved }: { initial: ModifierGroup | Mod
                     <button type="button" onClick={() => setOpt(i, { priceAdjustment: Math.abs(o.priceAdjustment ?? 0) })} aria-label="Mehnga" className={cn('flex h-9 w-8 items-center justify-center rounded-r-lg border border-l-0', (o.priceAdjustment ?? 0) > 0 ? 'bg-brand-50 text-brand-700' : 'text-slate-400')}><PlusCircle className="h-4 w-4" /></button>
                   </div>
                   <label className="inline-flex items-center gap-1 text-[0.75rem] text-slate-600"><input type="checkbox" checked={!!o.isDefault} onChange={(e) => setOpt(i, { isDefault: e.target.checked })} className="h-4 w-4 rounded border-slate-300" />Pehle se</label>
+                  <button type="button" onClick={() => setStockAt(stockAt === i ? null : i)} title="Bikne par kaunsa saamaan stock se nikle" aria-label="Saamaan"
+                    className={cn('inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.6875rem] font-semibold ring-1', o.ingredientProductId ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'text-slate-500 ring-slate-200 hover:bg-slate-50')}>
+                    <Package className="h-3.5 w-3.5" />{o.ingredient && o.ingredientQty ? `${o.ingredientQty} ${o.ingredientUnit ?? o.ingredient.unit}` : 'Saamaan'}
+                  </button>
                   {o.id
                     ? <button type="button" onClick={() => setOpt(i, { isActive: o.isActive === false })} className={cn('h-8 rounded-lg px-2 text-[0.6875rem] font-semibold ring-1', o.isActive === false ? 'bg-slate-100 text-slate-500 ring-slate-200' : 'bg-success-50 text-success-700 ring-success-200')}>{o.isActive === false ? 'Band' : 'Chalu'}</button>
                     : <button type="button" onClick={() => set({ options: f.options.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+                  {(stockAt === i || (tried && o.ingredientProductId && !(Number(o.ingredientQty) > 0))) && (
+                    <div className="w-full rounded-lg bg-slate-50 p-2">
+                      <AddOnIngredient invalid={tried && !!o.ingredientProductId && !(Number(o.ingredientQty) > 0)}
+                        value={{ ingredient: o.ingredient ?? null, qty: o.ingredientQty ?? null, unit: o.ingredientUnit ?? null }}
+                        onChange={(v) => setOpt(i, { ingredient: v.ingredient, ingredientProductId: v.ingredient?.id ?? null, ingredientQty: v.qty, ingredientUnit: v.unit })} />
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
             <Button className="mt-2" size="sm" variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => set({ options: [...f.options, { name: '', priceAdjustment: 0 }] })}>Option jorein</Button>
-            {id && <p className="mt-2 text-[0.6875rem] text-slate-500">Purane option hatte nahi, band hote hain — jin bills me lage the woh waise rahenge.</p>}
+            <p className="mt-2 text-[0.6875rem] text-slate-500">"Saamaan": extra cheese jaisa add-on bikne par us ka raw material (maslan 30 gram cheese) stock se nikalta hai.</p>
+            {id && <p className="mt-1 text-[0.6875rem] text-slate-500">Purane option hatte nahi, band hote hain — jin bills me lage the woh waise rahenge.</p>}
           </div>
         )}
       </div>

@@ -34,8 +34,8 @@ import { PrivacyToggle } from '@core/security/HiddenValue';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
-import { menuItemsApi, type BoardItem, type BoardQuery, type BoardSort, type BoardState, type DishClass, type MenuAnalytics } from '../api/menu-items.api';
-import { clock12, foodCostTone, spiceOf } from '../lib/menuMeta';
+import { menuItemsApi, switchDishes, type BoardItem, type BoardQuery, type BoardSort, type BoardState, type DishClass, type MenuAnalytics } from '../api/menu-items.api';
+import { clock12, foodCostTone, offLabel, spiceOf } from '../lib/menuMeta';
 
 const LIMIT = 48;
 const fmt = (n: number) => String(Number(Number(n).toFixed(2)));
@@ -112,16 +112,19 @@ export default function RestaurantProductsListPage() {
   const refresh = () => ['restaurant-menu-board', 'restaurant-menu-items', 'restaurant-cookability', 'restaurant-product-extra', 'products-for-pos']
     .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
+  // Off = "86" at this branch till the business day ends; it comes back by itself next day.
   const setOne = useMutation({
-    mutationFn: ({ id, on }: { id: string; on: boolean }) => menuItemsApi.setAvailable(id, on),
-    onSuccess: (_r, v) => { toast.success(v.on ? 'Chalu — counter par aa gayi' : 'Band (86) — counter par nahi aayegi'); refresh(); },
+    mutationFn: ({ item, on }: { item: BoardItem; on: boolean }) => switchDishes([{ menuItemId: item.menuItemId!, offHere: item.offHere }], on),
+    onSuccess: (_r, v) => { toast.success(v.on ? 'Chalu — counter par aa gayi' : 'Aaj ke liye band (86) — kal khud chalu ho jayegi'); refresh(); },
     onError: (e) => toast.error(errText(e, 'Nahi badla')),
   });
   const setMany = useMutation({
-    mutationFn: ({ ids, on }: { ids: string[]; on: boolean }) => menuItemsApi.setAvailableMany(ids, on),
-    onSuccess: (r, v) => { toast.success(`${r.updated} ${v.on ? 'chalu' : 'band (86)'}`); setPicked(new Set()); refresh(); },
+    mutationFn: ({ items: list, on }: { items: Array<{ menuItemId: string; offHere?: boolean }>; on: boolean }) => switchDishes(list, on),
+    onSuccess: (n, v) => { toast.success(`${n} ${v.on ? 'chalu' : 'aaj ke liye band (86)'}`); setPicked(new Set()); refresh(); },
     onError: (e) => toast.error(errText(e, 'Nahi badla')),
   });
+  const dishesOf = (list: Array<{ menuItemId: string | null; offHere?: boolean }>) =>
+    list.filter((i): i is { menuItemId: string; offHere?: boolean } => !!i.menuItemId);
   const addToMenu = useMutation({
     mutationFn: (productIds: string[]) => menuItemsApi.addToMenu(productIds),
     onSuccess: (r) => { toast.success(r.added ? `${r.added} cheez menu par aa gayi` : 'Pehle se menu par thi'); setPicked(new Set()); refresh(); },
@@ -248,7 +251,7 @@ export default function RestaurantProductsListPage() {
               </p>
               {can.menu && (
                 <Button size="sm" variant="critical" loading={setMany.isPending}
-                  onClick={() => setMany.mutate({ ids: st.liveButCantMake.map((x) => x.menuItemId).filter(Boolean) as string[], on: false })}>Sab band karein (86)</Button>
+                  onClick={() => setMany.mutate({ items: dishesOf(st.liveButCantMake), on: false })}>Sab aaj band karein (86)</Button>
               )}
               {can.buy && <Link to="/purchases/new" className="text-[0.8125rem] font-semibold text-rose-800 underline">Purchase karein</Link>}
             </div>
@@ -288,8 +291,8 @@ export default function RestaurantProductsListPage() {
                 <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-brand-50/60 px-4 py-2.5 text-[0.8125rem]">
                   <span className="font-semibold text-slate-900">{picked.size} chuni</span>
                   {can.menu && pickedItems.some((i) => i.menuItemId) && <>
-                    <Button size="xs" variant="success" onClick={() => setMany.mutate({ ids: pickedItems.map((i) => i.menuItemId).filter(Boolean) as string[], on: true })}>Chalu karein</Button>
-                    <Button size="xs" variant="critical" onClick={() => setMany.mutate({ ids: pickedItems.map((i) => i.menuItemId).filter(Boolean) as string[], on: false })}>Band (86)</Button>
+                    <Button size="xs" variant="success" onClick={() => setMany.mutate({ items: dishesOf(pickedItems), on: true })}>Chalu karein</Button>
+                    <Button size="xs" variant="critical" onClick={() => setMany.mutate({ items: dishesOf(pickedItems), on: false })}>Aaj band (86)</Button>
                   </>}
                   {can.menu && pickedItems.some((i) => !i.onPos && i.kind !== 'raw') && (
                     <Button size="xs" variant="secondary" onClick={() => addToMenu.mutate(pickedItems.filter((i) => !i.onPos && i.kind !== 'raw').map((i) => i.productId))}>Menu par daalein</Button>
@@ -310,7 +313,7 @@ export default function RestaurantProductsListPage() {
                   {items.map((i) => (
                     <Row key={i.productId} item={i} money={money} cost={cost} costHidden={costHidden} canMenu={can.menu} canEdit={can.edit} canBuy={can.buy}
                       picked={picked.has(i.productId)} onPick={() => setPicked((p) => { const n = new Set(p); if (n.has(i.productId)) n.delete(i.productId); else n.add(i.productId); return n; })}
-                      onToggle={(on) => i.menuItemId && setOne.mutate({ id: i.menuItemId, on })} onAdd={() => addToMenu.mutate([i.productId])} busy={setOne.isPending || addToMenu.isPending} />
+                      onToggle={(on) => i.menuItemId && setOne.mutate({ item: i, on })} onAdd={() => addToMenu.mutate([i.productId])} busy={setOne.isPending || addToMenu.isPending} />
                   ))}
                 </ul>
               )}
@@ -403,10 +406,10 @@ function MenuSwitch({ item: i, canMenu, onToggle, onAdd, busy }: { item: BoardIt
       ? <button type="button" disabled={busy} onClick={onAdd} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.75rem] font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-800">+ Menu</button>
       : <span className="text-[0.75rem] text-slate-400">Menu se bahar</span>;
   }
-  const label = i.available ? (i.canMake === 0 ? 'Mil rahi?' : 'Mil rahi') : 'Band (86)';
+  const label = i.available ? (i.canMake === 0 ? 'Mil rahi?' : 'Mil rahi') : i.offHere ? offLabel(i.offUntil) : 'Band (86)';
   return (
     <button type="button" role="switch" aria-checked={i.available} disabled={!canMenu || busy} onClick={() => onToggle(!i.available)}
-      title={canMenu ? (i.available ? 'Khatam ho gayi? Band karein (86)' : 'Chalu karein') : 'Badalne ki permission nahi'}
+      title={canMenu ? (i.available ? 'Khatam ho gayi? Aaj ke liye band karein (86) — kal khud chalu' : 'Chalu karein') : 'Badalne ki permission nahi'}
       className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.75rem] font-semibold ring-1 transition disabled:cursor-not-allowed',
         i.available ? (i.canMake === 0 ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-success-50 text-success-700 ring-success-200') : 'bg-rose-50 text-rose-700 ring-rose-200')}>
       <span className={cn('h-2 w-2 rounded-full', i.available ? (i.canMake === 0 ? 'bg-amber-500' : 'bg-success-500') : 'bg-rose-500')} />{label}
@@ -516,7 +519,7 @@ function MenuEngineering({ data, loading, days, setDays, money, cost, costHidden
 }
 
 const GUIDE: GuideStep[] = [
-  { icon: Power, color: '#16a34a', title: 'Khatam? Band karein', text: '"Mil rahi" dabane se dish band (86) ho jati hai — counter par nahi aati. Kal subah wapas chalu karein. Kai dishes chun kar ek saath bhi.' },
+  { icon: Power, color: '#16a34a', title: 'Khatam? Band karein', text: '"Mil rahi" dabane se dish is branch me aaj ke liye band (86) ho jati hai — counter par nahi aati, aur karobari din khatam hote hi khud chalu ho jati hai. Kai dishes chun kar ek saath bhi.' },
   { icon: AlertTriangle, color: '#e11d48', title: 'Ban nahi sakti', text: 'Recipe ka koi saamaan khatam ho to dish laal dikhti hai. Purchase karein ya band kar dein, taake waiter order na le.' },
   { icon: Flame, color: '#ea580c', title: 'Food cost', text: 'Rate ka kitna hissa saamaan me gaya. 30–35% theek; 45% se upar ho to rate barhayein ya recipe dekhein.' },
   { icon: Wheat, color: '#a16207', title: 'Raw material', text: 'Chicken, chawal, oil ka stock aur value. Purchase se stock aata hai, dish bikne par recipe ke hisaab se katta hai.' },

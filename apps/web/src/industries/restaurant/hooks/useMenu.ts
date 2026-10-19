@@ -1,6 +1,7 @@
 /**
- * The menu for taking orders: dishes on the menu and served at this hour,
- * with their add-on groups, grouped by category.
+ * The menu for taking orders: dishes on the menu, not "86" at this branch
+ * and served at this hour, with their sizes and add-on groups, grouped by
+ * category.
  */
 
 import { useMemo } from 'react';
@@ -8,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { menuItemsApi, type RestaurantMenuItem } from '../api/menu-items.api';
 
 export interface MenuOption { id: string; name: string; priceAdjustment: number; isDefault: boolean }
+export interface MenuSize { id: string; name: string; price: number }
 export interface MenuGroup { id: string; name: string; type: string; isRequired: boolean; minSelections: number; maxSelections: number; options: MenuOption[] }
 export interface MenuEntry {
   id: string;
@@ -18,6 +20,8 @@ export interface MenuEntry {
   unit: string;
   image: string | null;
   category: { id: string; name: string; color: string } | null;
+  /** Sizes with their own rate (Half / Full); one must be picked when there are any. */
+  sizes: MenuSize[];
   groups: MenuGroup[];
   chefSpecial: boolean;
   bestSeller: boolean;
@@ -47,6 +51,7 @@ function toEntry(m: RestaurantMenuItem): MenuEntry {
     unit: p.unit ?? 'plate',
     image: m.imageUrl || p.images?.[0]?.url || null,
     category: p.category ? { id: p.category.id, name: p.category.name, color: p.category.color || '#64748b' } : null,
+    sizes: (p.variants ?? []).map((v: { id: string; name: string; price?: number }) => ({ id: v.id, name: v.name, price: Number(v.price ?? 0) || Number(p.price ?? 0) })),
     groups,
     chefSpecial: m.chefSpecial,
     bestSeller: m.bestSeller,

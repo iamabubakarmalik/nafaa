@@ -2,9 +2,10 @@
  * Garments POS on the shared engine: the full catalog with gender, garment
  * type and Sale/New marks; filter chips for Gents, Ladies, Bachay, Sale and
  * unstitched fabric; scanning a size/colour barcode puts that exact variant
- * on the bill; pieces kept on hold for a customer are pointed out before
- * they are sold to someone else; and older variant products whose units sat
- * on the product row are moved to their sizes once, before the size picker.
+ * on the bill; pieces held for a customer (holds, instalment plans) are not
+ * sold: the counter sells only stock − held, per product and per size; and
+ * older variant products whose units sat on the product row are moved to
+ * their sizes once, before the size picker.
  */
 
 import { useMemo } from 'react';
@@ -17,25 +18,32 @@ import { productsApi, type Product } from '@modules/inventory/products/api/produ
 import { useComboBundles, useProductCatalog, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
 import { garmentProductsApi, type GarmentMeta } from '../api/products.api';
 import { reservationsApi } from '../api/reservations.api';
-import { HOLD_KEY, META_KEY, garmentLabel, genderLabel } from '../components/meta';
+import { HOLD_KEY, META_KEY, garmentLabel, genderLabel, r2 } from '../components/meta';
 
 const KIDS = ['BOYS', 'GIRLS', 'KIDS', 'BABY'];
 
 function useGarmentsCatalog() {
   const metaQ = useQuery({ queryKey: [META_KEY], queryFn: garmentProductsApi.meta, staleTime: 5 * 60_000, retry: 1 });
-  const holdsQ = useQuery({ queryKey: [HOLD_KEY, 'pos'], queryFn: () => reservationsApi.page({ view: 'active', limit: 100 }), staleTime: 60_000, retry: 1 });
+  const heldQ = useQuery({ queryKey: [HOLD_KEY, 'held'], queryFn: reservationsApi.held, staleTime: 60_000, retry: 1 });
   const byId = useMemo(() => new Map<string, GarmentMeta>((metaQ.data?.items ?? []).map((m) => [m.productId, m])), [metaQ.data]);
+  /** Held pieces per product (all sizes) and per size. */
   const held = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const r of holdsQ.data?.items ?? []) m.set(r.productId, (m.get(r.productId) ?? 0) + r.quantity);
-    return m;
-  }, [holdsQ.data]);
+    const product = new Map<string, number>();
+    const size = new Map<string, number>();
+    for (const r of heldQ.data?.items ?? []) {
+      product.set(r.productId, (product.get(r.productId) ?? 0) + r.reserved);
+      if (r.variantId) size.set(`${r.productId}:${r.variantId}`, r.reserved);
+    }
+    return { product, size };
+  }, [heldQ.data]);
 
   const catalog = useProductCatalog((it): PosItem => {
     const g = byId.get(it.id);
-    const onHold = held.get(it.id) ?? 0;
+    const onHold = held.product.get(it.id) ?? 0;
     return {
       ...it,
+      // Sizes are checked one by one when picked; a plain product sells only what is not held.
+      stock: it.hasVariants ? it.stock : Math.max(r2(it.stock - onHold), 0),
       badges: [
         ...(g?.isOnSale ? [{ label: 'Sale', tone: 'danger' as const, icon: BadgePercent }] : []),
         ...(g?.isNewArrival ? [{ label: 'Naya', tone: 'info' as const, icon: Sparkles }] : []),
@@ -45,7 +53,7 @@ function useGarmentsCatalog() {
       subline: g ? [genderLabel(g.gender) !== '—' ? genderLabel(g.gender) : null, g.categoryType && g.categoryType !== 'FABRIC' ? garmentLabel(g.categoryType) : null].filter(Boolean).join(' · ') || undefined : undefined,
       searchText: [it.searchText, g?.styleCode, g?.categoryType ? garmentLabel(g.categoryType) : null].filter(Boolean).join(' '),
       rank: g?.isOnSale || g?.isNewArrival ? 0 : 1,
-      meta: { garment: g, onHold },
+      meta: { garment: g, onHold, heldSizes: held.size },
     };
   }, [byId, held]);
   return { ...catalog, refreshKeys: [...catalog.refreshKeys, META_KEY, HOLD_KEY] };
@@ -75,8 +83,23 @@ export const garmentsPos: PosIndustryConfig = {
   receiptFooter: 'Badalne (exchange) ke liye yeh bill saath laayein.',
   beforeAdd: (item, opts, api) => {
     const onHold = Number(item.meta?.onHold ?? 0);
-    if (onHold && !opts.confirmed?.includes('hold')) {
-      toast.warning(`${item.name}: ${onHold} piece customer ke liye hold par hain — hold wala piece na dein`, { duration: 4000 });
+    // A picked size: only its stock − held may go on the bill.
+    if (opts.variant && !opts.confirmed?.includes('hold-size')) {
+      const sizes = item.meta?.heldSizes as Map<string, number> | undefined;
+      const heldHere = sizes?.get(`${item.id}:${opts.variant.id}`) ?? 0;
+      // The size picker already sends stock − held (`reserved` set); take holds off only once.
+      const alreadyFree = opts.variant.reserved != null;
+      if (heldHere > 0) {
+        const free = opts.variant.stock == null ? null
+          : alreadyFree ? Math.max(r2(Number(opts.variant.stock)), 0)
+            : Math.max(r2(Number(opts.variant.stock) - heldHere), 0);
+        toast.warning(`${item.name} · ${opts.variant.name}: ${heldHere} hold par${free != null ? ` — ${free} bech sakte hain` : ''}`, { duration: 4000 });
+        api.addItem(item, { ...opts, variant: { ...opts.variant, ...(free != null && { stock: free }) }, confirmed: [...(opts.confirmed ?? []), 'hold-size'] });
+        return 'handled';
+      }
+    }
+    if (onHold && !opts.variant && !opts.confirmed?.includes('hold')) {
+      toast.warning(`${item.name}: ${onHold} piece customer ke liye hold par hain — wo is stock me nahi gine`, { duration: 4000 });
     }
     // Older variant products kept their units on the product row; the server
     // moves them to the sizes once (only when the numbers are exact).

@@ -13,6 +13,10 @@ class OptionDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) displayOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(8) emoji?: string;
+  /** Raw material one portion of this add-on uses; empty or null clears it. */
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() @MaxLength(60) ingredientProductId?: string | null;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(100000) ingredientQty?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) ingredientUnit?: string;
 }
 
 export class UpsertModifierGroupDto {

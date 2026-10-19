@@ -7,7 +7,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { ShopScope, applyStockDelta, resolveWriteShopId } from '../../../common/shop-scope';
 import { RecipesService } from '../recipes/recipes.service';
-import { round2 } from '../recipes/recipe-units';
+import { convertQty, round2 } from '../recipes/recipe-units';
 import { KotService, OPEN_KOT } from '../kot/kot.service';
 import { HappyHoursService } from '../happy-hours/happy-hours.service';
 import { CreateOrderDto, OrderItemDto } from './dto/create-order.dto';
@@ -15,6 +15,7 @@ import {
   AddPaymentDto, CheckoutDto, SplitBillDto, SplitItemsDto, UpdateOrderDto, UpdateOrderStatusDto, VoidItemDto,
 } from './dto/update-status.dto';
 import { approveKitchenVoid } from './void-approval';
+import { menuBranch, offAtBranch } from '../menu-items/branch-availability';
 import { OPEN_ORDER, withTokens } from './order-tokens';
 
 const MODE_LABEL: Record<string, string> = {
@@ -46,7 +47,7 @@ export const orderDetailInclude = {
   items: {
     orderBy: { createdAt: 'asc' },
     include: {
-      product: { include: { images: true, category: true } },
+      product: { include: { images: true, category: true, variants: { select: { id: true, name: true } } } },
       modifiers: { include: { modifierOption: { include: { modifierGroup: true } } } },
     },
   },
@@ -89,20 +90,28 @@ export class OrdersService {
    * Prices new lines: menu or size price, add-ons, the typed line discount
    * and any happy hour running now for this order type. `existing` are the
    * order's live lines, so a happy hour's minimum bill and cap see the
-   * whole order when dishes are added later.
+   * whole order when dishes are added later. A dish "86" at the order's
+   * branch is refused first, then one switched off shop-wide.
    */
   private async priceItems(
-    user: AuthenticatedUser, items: OrderItemDto[], mode: RestaurantOrderMode,
+    user: AuthenticatedUser, items: OrderItemDto[], mode: RestaurantOrderMode, shopId: string | null,
     existing: Array<{ productId: string; quantity: number; basePrice: number }> = [],
   ) {
     const productIds = [...new Set(items.map((i) => i.productId))];
     const products = await this.prisma.product.findMany({
       where: { id: { in: productIds }, tenantId: user.tenantId, isActive: true },
-      select: { id: true, price: true, costPrice: true, unit: true, isRawMaterial: true, name: true, menuItem: { select: { isAvailable: true } } },
+      select: { id: true, price: true, costPrice: true, unit: true, isRawMaterial: true, name: true, menuItem: { select: { id: true, isAvailable: true } } },
     });
     if (products.length !== productIds.length) throw new NotFoundException('Menu ka ek ya zyada item nahi mila (band ya mita hua)');
     const raw = products.find((p) => p.isRawMaterial);
     if (raw) throw new BadRequestException(`"${raw.name}" kachcha maal hai — menu par nahi bikta`);
+    const menuIds = products.map((p) => p.menuItem?.id).filter(Boolean) as string[];
+    const offHere = await offAtBranch(this.prisma, user.tenantId, await menuBranch(this.prisma, user.tenantId, shopId), menuIds);
+    const branchOff = products.find((p) => p.menuItem && offHere.has(p.menuItem.id));
+    if (branchOff) {
+      const until = offHere.get(branchOff.menuItem!.id);
+      throw new BadRequestException(`"${branchOff.name}" is branch me abhi khatam hai (86)${until ? ' — waqt poora hone par khud chalu ho jayegi' : ''}. Menu se chalu karein`);
+    }
     const off = products.find((p) => p.menuItem && !p.menuItem.isAvailable);
     if (off) throw new BadRequestException(`"${off.name}" abhi khatam hai (86) — Menu se dobara chalu karein`);
     const productMap = new Map(products.map((p) => [p.id, p]));
@@ -160,11 +169,11 @@ export class OrdersService {
 
     const cuts = await this.happyHourCuts(user.tenantId, mode, lines, existing);
     return lines.map((l, i) => {
-      const cut = cuts[i];
+      const { cut, ruleId } = cuts[i];
       if (!(cut > 0)) return l;
       const gross = (l.basePrice + l.modifierTotal) * l.quantity;
       const itemDiscount = round2(Math.min(l.itemDiscount + cut, Math.max(gross, 0)));
-      return { ...l, itemDiscount, total: round2(Math.max(gross - itemDiscount, 0)) };
+      return { ...l, itemDiscount, total: round2(Math.max(gross - itemDiscount, 0)), happyHourRuleId: ruleId ?? undefined };
     });
   }
 
@@ -179,8 +188,8 @@ export class OrdersService {
     tenantId: string, mode: RestaurantOrderMode,
     lines: Array<{ productId: string; quantity: number; basePrice: number }>,
     existing: Array<{ productId: string; quantity: number; basePrice: number }>,
-  ): Promise<number[]> {
-    const none = lines.map(() => 0);
+  ): Promise<Array<{ cut: number; ruleId: string | null }>> {
+    const none = lines.map(() => ({ cut: 0, ruleId: null }));
     const settings = await this.prisma.tenantSettings.findUnique({ where: { tenantId }, select: { allowDiscount: true } });
     if (settings && !settings.allowDiscount) return none;
     const at = new Date();
@@ -188,7 +197,7 @@ export class OrdersService {
     const all = await this.happy.priceLines(tenantId, [...existing, ...lines].map(asHappy), { mode, at });
     if (!(all.discount > 0)) return none;
     const fresh = all.lines.slice(existing.length);
-    if (!existing.length) return fresh.map((l) => l.discount);
+    if (!existing.length) return fresh.map((l) => ({ cut: l.discount, ruleId: l.ruleId }));
 
     const before = await this.happy.priceLines(tenantId, existing.map(asHappy), { mode, at });
     const cuts = fresh.map((l) => l.discount);
@@ -200,7 +209,7 @@ export class OrdersService {
       const k = mine > 0 ? budget / mine : 0;
       fresh.forEach((l, i) => { if (l.ruleId === rule.id) cuts[i] = round2(l.discount * k); });
     }
-    return cuts;
+    return cuts.map((cut, i) => ({ cut, ruleId: cut > 0 ? fresh[i].ruleId : null }));
   }
 
   private totals(o: Charges, subtotal: number) {
@@ -279,9 +288,13 @@ export class OrdersService {
     await this.checkCustomer(user.tenantId, dto.customerId);
     await this.checkWaiter(user.tenantId, dto.waiterId);
 
-    const lines = await this.priceItems(user, dto.items, dto.mode);
+    const lines = await this.priceItems(user, dto.items, dto.mode, shopId);
+    // A dine-in order takes the shop's service charge unless the counter sends its own.
+    const shopService = dto.serviceChargePct === undefined && dto.mode === 'DINE_IN'
+      ? (await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { serviceChargePct: true } }))?.serviceChargePct ?? 0
+      : 0;
     const charges: Charges = {
-      serviceChargePct: dto.serviceChargePct ?? 0,
+      serviceChargePct: dto.serviceChargePct ?? shopService,
       taxPct: dto.taxPct ?? 0,
       discount: dto.discount ?? 0,
       deliveryFee: dto.mode === 'DELIVERY' ? dto.deliveryFee ?? 0 : 0,
@@ -619,7 +632,18 @@ export class OrdersService {
     const order = await this.prisma.restaurantOrder.findFirst({
       where: { id: orderId, tenantId: user.tenantId },
       include: {
-        items: { where: { isReturned: false }, include: { modifiers: { include: { modifierOption: { select: { name: true } } } } } },
+        items: {
+          where: { isReturned: false },
+          include: {
+            modifiers: {
+              include: {
+                modifierOption: {
+                  select: { name: true, ingredientQty: true, ingredientUnit: true, ingredient: { select: { unit: true, costPrice: true } } },
+                },
+              },
+            },
+          },
+        },
         payments: true,
         table: { select: { tableNumber: true } },
       },
@@ -643,6 +667,7 @@ export class OrdersService {
     await this.recipes.consumeForLines(user, shopId, order.items, order.orderNumber);
     await this.recipes.refreshDishCosts(user.tenantId, [...new Set(order.items.map((i) => i.productId))]);
     const made = await this.makeDishes(user, shopId, order.orderNumber, order.items);
+    const unitCosts = await this.plateCosts(order.items);
 
     // Each method is kept on the bill (cash + card on a split bill); the sale
     // picks the largest as its main method.
@@ -691,13 +716,14 @@ export class OrdersService {
             note: note || undefined,
           };
         }),
-      } as Parameters<SalesService['create']>[2]);
+      } as Parameters<SalesService['create']>[2], undefined, { unitCosts });
     } catch (e) {
       await this.unmakeDishes(user, shopId, order.orderNumber, made);
       throw e;
     }
 
     const now = new Date();
+    const happy = await this.happy.billSavings(user.tenantId, order.items);
     await this.prisma.$transaction(async (tx) => {
       for (const p of newPayments) {
         await tx.restaurantOrderPayment.create({ data: { orderId, ...p } });
@@ -708,6 +734,10 @@ export class OrdersService {
       });
       for (const it of order.items) {
         await tx.restaurantMenuItem.updateMany({ where: { productId: it.productId, tenantId: user.tenantId }, data: { totalOrdered: { increment: Math.round(it.quantity) } } });
+      }
+      // Each bill a happy hour priced counts once, with what it saved.
+      for (const h of happy) {
+        await tx.happyHourRule.update({ where: { id: h.id }, data: { totalUsage: { increment: 1 }, totalSaved: { increment: h.saved } } });
       }
       if (order.tableId) {
         await tx.restaurantTableV2.update({
@@ -723,6 +753,36 @@ export class OrdersService {
     });
     if (order.tableId) await this.freeTable(order.tableId, order.id);
     return sale;
+  }
+
+  /**
+   * Cost per plate for lines with add-ons that use raw material (extra
+   * cheese): the dish's own cost plus those ingredients at today's cost, so
+   * the bill's cost of goods includes them. Other lines keep the dish cost
+   * the sale reads itself (undefined). Run after the dish costs are refreshed.
+   */
+  private async plateCosts(items: Array<{
+    productId: string; variantId: string | null;
+    modifiers: Array<{ quantity: number; modifierOption: { ingredientQty: number | null; ingredientUnit: string | null; ingredient: { unit: string; costPrice: number } | null } }>;
+  }>): Promise<Array<number | undefined>> {
+    const addOn = items.map((it) => round2(it.modifiers.reduce((s, m) => {
+      const o = m.modifierOption;
+      if (!o.ingredient || !(Number(o.ingredientQty) > 0)) return s;
+      return s + convertQty(Number(o.ingredientQty) * m.quantity, o.ingredientUnit, o.ingredient.unit) * (Number(o.ingredient.costPrice) || 0);
+    }, 0)));
+    if (!addOn.some((c) => c > 0)) return items.map(() => undefined);
+    const productIds = [...new Set(items.map((i) => i.productId))];
+    const variantIds = [...new Set(items.map((i) => i.variantId).filter((v): v is string => !!v))];
+    const [products, variants] = await Promise.all([
+      this.prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, costPrice: true } }),
+      variantIds.length ? this.prisma.productVariant.findMany({ where: { id: { in: variantIds } }, select: { id: true, costPrice: true } }) : [],
+    ]);
+    const productCost = new Map(products.map((p) => [p.id, Number(p.costPrice) || 0]));
+    const variantCost = new Map(variants.map((v) => [v.id, Number(v.costPrice) || 0]));
+    // Same plate cost the sale would use: the size's cost when a size was sold, else the dish's.
+    return items.map((it, i) => (addOn[i] > 0
+      ? round2((it.variantId && variantCost.has(it.variantId) ? variantCost.get(it.variantId)! : productCost.get(it.productId) ?? 0) + addOn[i])
+      : undefined));
   }
 
   /**
@@ -808,7 +868,7 @@ export class OrdersService {
     const live = await this.prisma.restaurantOrderItem.findMany({
       where: { orderId: id, isReturned: false }, select: { productId: true, quantity: true, basePrice: true },
     });
-    const lines = await this.priceItems(user, items, o.mode, live);
+    const lines = await this.priceItems(user, items, o.mode, o.shopId, live);
     const ids: string[] = [];
     for (const { modifiers, ...l } of lines) {
       const row = await this.prisma.restaurantOrderItem.create({

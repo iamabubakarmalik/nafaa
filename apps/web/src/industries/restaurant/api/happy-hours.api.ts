@@ -72,9 +72,9 @@ export const happyHoursApi = {
     apiClient.get('/restaurant/happy-hours/active-now', { params: { mode } }).then(unwrap<HappyHourRule[]>),
 
   /** Happy-hour discount for a cart right now, at menu prices. */
-  quote: (items: Array<{ productId: string; quantity: number }>, mode?: OrderMode) =>
+  quote: (items: Array<{ productId: string; quantity: number; variantId?: string }>, mode?: OrderMode) =>
     apiClient.get('/restaurant/happy-hours/quote', {
-      params: { items: items.map((i) => `${i.productId}:${i.quantity}`).join(','), mode },
+      params: { items: items.map((i) => `${i.productId}:${i.quantity}${i.variantId ? `:${i.variantId}` : ''}`).join(','), mode },
     }).then(unwrap<HappyQuote>),
 
   update: (id: string, data: HappyHourInput) =>

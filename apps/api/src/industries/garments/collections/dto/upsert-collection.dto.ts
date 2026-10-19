@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GarmentSeason } from '@prisma/client';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class UpsertCollectionDto {
   @ApiProperty() @IsString() @MaxLength(80) name!: string;
@@ -25,4 +25,9 @@ export class CollectionProductsDto {
 
 export class CollectionSaleDto {
   @ApiProperty() @IsBoolean() onSale!: boolean;
+}
+
+export class CollectionSalePercentDto {
+  /** Percent off the regular price; null or left out ends the sale. */
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsNumber() @Min(1) @Max(90) percent?: number | null;
 }

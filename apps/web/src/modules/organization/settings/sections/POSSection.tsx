@@ -1,11 +1,14 @@
 /**
  * Counter rules: the payment method checkout opens with, a customer on every
- * bill, hand discounts and their ceiling, and which actions need the owner's
- * PIN. The POS follows these and the server checks them again on every bill.
+ * bill, hand discounts and their ceiling, which actions need the owner's PIN,
+ * and the industry rules a counter needs (dine-in service charge for a
+ * restaurant, exchange days for garments). The POS follows these and the
+ * server checks them again on every bill.
  */
 
-import { Ban, CreditCard, KeyRound, Monitor, Percent, Printer, Receipt, RotateCcw, ShieldCheck, Tag, Users } from 'lucide-react';
+import { ArrowLeftRight, Ban, CreditCard, KeyRound, Monitor, Percent, Printer, Receipt, RotateCcw, ShieldCheck, Tag, Users, UtensilsCrossed } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
+import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { Alert, ChoiceGroup, Divider, Field, NumberInput, PageLink, SectionCard, StatPill, Toggle } from '../components/UI';
 import { SettingLink } from '../components/SettingsFrame';
 import { useAutoSave } from '../hooks/useAutoSave';
@@ -18,6 +21,9 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
   const { draft, set, saving, dirty } = useAutoSave(settings);
   const hasPin = !!settings.hasManagerPin;
   const max = Number(draft.maxDiscountPercent) || 0;
+  const industry = useCurrentIndustry()?.id;
+  const service = Number(draft.serviceChargePct) || 0;
+  const exchange = Number(draft.exchangeDays) || 0;
 
   return (
     <div className="space-y-4">
@@ -73,6 +79,28 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
           </>
         )}
       </SectionCard>
+
+      {(industry === 'restaurant' || industry === 'garments') && (
+        <div className="grid gap-4 xl:grid-cols-2">
+          {industry === 'restaurant' && (
+            <SectionCard title="Service charge" desc="Table par khane (dine-in) ke bill par lagta hai" icon={UtensilsCrossed} color="emerald"
+              badge={<StatPill label="Ab" value={service ? `${service}%` : 'Nahi'} tone={service ? 'emerald' : 'slate'} />}>
+              <Field label="Dine-in service charge" hint="Har naya dine-in order isi % se shuru hota hai; waiter ek order par badal sakta hai. 0 = koi service charge nahi.">
+                <NumberInput value={draft.serviceChargePct} onChange={(v) => set('serviceChargePct', v)} min={0} max={100} step={0.5} suffix="%" />
+              </Field>
+              {service > 0 && <p className="mt-2 text-xs text-slate-500">Misaal: {formatPKR(1000)} ke khane par {formatPKR((1000 * service) / 100)} service charge.</p>}
+            </SectionCard>
+          )}
+          {industry === 'garments' && (
+            <SectionCard title="Exchange" desc="Bika hua maal kitne din tak badla ja sakta hai" icon={ArrowLeftRight} color="blue"
+              badge={<StatPill label="Had" value={exchange ? `${exchange} din` : 'Nahi'} tone={exchange ? 'blue' : 'slate'} />}>
+              <Field label="Exchange ke din" hint="Bill ke itne din baad tak maal badla ja sakta hai. 0 = koi had nahi.">
+                <NumberInput value={draft.exchangeDays} onChange={(v) => set('exchangeDays', Math.round(v))} min={0} max={365} suffix="din" />
+              </Field>
+            </SectionCard>
+          )}
+        </div>
+      )}
 
       <SectionCard title="Malik ka PIN kab maangein" desc="In kaamon se pehle counter par malik ka PIN maanga jayega" icon={ShieldCheck} color="violet"
         badge={<StatPill label="PIN" value={hasPin ? 'Laga hua' : 'Nahi laga'} tone={hasPin ? 'emerald' : 'rose'} />}>

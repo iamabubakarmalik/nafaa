@@ -20,7 +20,7 @@ import { hasPermission, PERMISSIONS } from '@core/lib/permissions';
 import { discountsApi } from '@modules/sales/discounts/api/discounts.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
-import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
+import { freeVariantStock, productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
 import type { PaymentMethod, SalePaymentPart } from '@modules/sales/sales/api/sales.api';
 import type { VoiceCommand, VoiceFeedback } from '@core/components/voice/VoiceSaleButton';
 import { matchScore } from '@core/components/voice/voiceMatch';
@@ -34,7 +34,7 @@ import type { PosCheckoutResult } from '../components/PosCheckoutModal';
 import type { PosLastSale } from '../components/PosSuccessModal';
 import {
   POS_PAYMENT_METHODS, posHeldId, posLineId,
-  type PosCartLine, type PosCheckoutMode, type PosDiscountMode, type PosHeldCart,
+  type PosCartLine, type PosCheckoutMode, type PosComboSerial, type PosDiscountMode, type PosHeldCart,
 } from '../lib/posCart';
 import {
   buildUnitScanIndex, derivePosUnits, isWeightUnit, qtyStep, unitEmoji, unitKeyOf, type PosUnitOption,
@@ -45,7 +45,8 @@ import { receiptText } from '@modules/sales/receipt/fromSale';
 import { splitReceiptLines } from '../components/PosSplitTender';
 import { keepAdvance, salePayment } from '../lib/posCheckout';
 import { askManagerPin } from '@core/security/ManagerPin';
-import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem, PosUsedPhoneLine } from './types';
+import { isTempId } from '@core/lib/offline/db';
+import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem, PosSavedSale, PosUsedPhoneLine } from './types';
 
 /** Customers refresh after a sale (balances change). */
 const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
@@ -385,13 +386,16 @@ export function usePosEngine(config: PosIndustryConfig) {
     placeUnit(item, units[0], opts, opts.qty ?? 1);
   }, [config, placeUnit, unitsFor]);
 
-  const addBundle = useCallback((b: PosBundle, qty = 1) => {
+  const addBundle = useCallback((b: PosBundle, qty = 1, serials?: PosComboSerial[]) => {
+    if (!serials && config.beforeAddBundle && config.beforeAddBundle(b, qty, engineApiRef.current) === 'handled') return;
     for (const it of b.items) {
       const p = itemsById.get(it.productId);
       if (p && !rulesRef.current.negativeStock && p.stock < it.quantity * qty) { toast.error(`${p.name} — stock sirf ${p.stock}, chahiye ${it.quantity * qty}`); return; }
     }
+    // A combo with picked serial units stays its own line, so its units stay with it.
+    const picked = serials?.length ? serials : undefined;
     setCart((prev) => {
-      const existing = prev.find((l) => l.comboId === b.id);
+      const existing = !picked && prev.find((l) => l.comboId === b.id && !l.comboSerials);
       if (existing) {
         toast.success(`${b.name} +${qty}`, { duration: 800 });
         return prev.map((l) => (l.id === existing.id ? { ...l, quantity: l.quantity + qty, lineTotal: (l.quantity + qty) * l.unitPrice } : l));
@@ -402,10 +406,14 @@ export function usePosEngine(config: PosIndustryConfig) {
         unitName: 'combo', unitLabel: 'COMBO', emoji: '🎁',
         unitPrice: b.price, basePrice: b.price, quantity: qty, baseQuantity: qty, conversionRate: 1, baseUnit: 'combo', baseStock: 9999,
         lineTotal: qty * b.price, comboItems: b.items, savings: b.savings ?? 0,
-        note: `${b.items.length} cheezein${b.savings ? ` · bachat ${formatPKR(b.savings)}` : ''}`,
+        comboSerials: picked, lockQty: !!picked,
+        note: [
+          `${b.items.length} cheezein${b.savings ? ` · bachat ${formatPKR(b.savings)}` : ''}`,
+          ...(picked ?? []).map((s) => `S/N: ${s.serialNumber}${s.imei ? ` · IMEI: ${s.imei}` : ''}`),
+        ].join(' • '),
       }];
     });
-  }, [itemsById]);
+  }, [config, itemsById]);
 
   const addQuickKey = useCallback(async (qk: QuickKey) => {
     if (qk.comboId) { const b = bundles.find((x) => x.id === qk.comboId); return b ? addBundle(b) : toast.error('Combo nahi mila'); }
@@ -418,7 +426,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (qk.variantId) {
       try {
         const v = (await productVariantsApi.list(it.id)).find((x) => x.id === qk.variantId && x.isActive);
-        if (v) variant = { id: v.id, name: v.name, price: v.price, stock: v.stock };
+        if (v) variant = { id: v.id, name: v.name, price: v.price, stock: freeVariantStock(v), reserved: v.reserved ?? null };
       } catch { /* offline: fall back to the variant picker */ }
     }
     return addItem(it, { ...(unit && { unit }), ...(variant && { variant }) });
@@ -434,6 +442,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       return items.find((i) => (i.product.barcode ?? '').toLowerCase() === c || (i.product.sku ?? '').toLowerCase() === c);
     },
     addUsedPhone,
+    addBundle: (b, qty, serials) => addBundle(b, qty, serials),
     items,
     cart,
   };
@@ -630,7 +639,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     lines: cart.map((l) => ({
       name: l.variantName ? `${l.name} (${l.variantName})` : l.name,
       qty: l.quantity, unit: l.unitName, price: l.unitPrice, total: l.lineTotal,
-      note: [l.serialNumber ? `S/N ${l.serialNumber}` : '', l.batchNumber ? `Batch ${l.batchNumber}` : '', l.imei ? `IMEI ${l.imei}` : '', l.warrantyMonths ? `Warranty ${l.warrantyMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined,
+      note: [l.serialNumber ? `S/N ${l.serialNumber}` : '', ...(l.comboSerials ?? []).map((u) => `S/N ${u.serialNumber}`), l.batchNumber ? `Batch ${l.batchNumber}` : '', l.imei ? `IMEI ${l.imei}` : '', l.warrantyMonths ? `Warranty ${l.warrantyMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined,
     })),
     subtotal, discount: discountAmount + codeDiscount + loyaltyDiscount, total,
     deliveryCharge: deliveryFee || undefined,
@@ -675,10 +684,18 @@ export function usePosEngine(config: PosIndustryConfig) {
     return null;
   };
 
+  /** The industry's own stop before checkout; shows its message and returns false. */
+  const industryAllowsCheckout = () => {
+    const stop = config.beforeCheckout?.(cart);
+    if (stop) { toast.error(stop); return false; }
+    return true;
+  };
+
   const checkoutMutation = useMutation({
     mutationFn: async (d: PosCheckoutResult) => {
       if (!shopId) throw new Error('Pehle shop chunein');
       if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); throw new Error('Cancelled'); }
+      if (!industryAllowsCheckout()) throw new Error('Cancelled');
       const credit = Math.max(total - d.paidAmount, 0);
       const why = pinReason(credit);
       if (why === false) throw new Error('Cancelled');
@@ -694,11 +711,20 @@ export function usePosEngine(config: PosIndustryConfig) {
           // Spread the combo price over its products in proportion to their normal prices.
           const orig = l.comboItems.reduce((s: number, it: any) => s + Number(it.quantity || 0) * (Number(it.originalPrice) || 0), 0);
           const factor = orig > 0 ? l.unitPrice / orig : 1;
+          // Serial units picked for the combo leave as their own lines of one.
+          const picks = [...(l.comboSerials ?? [])];
           for (const ci of l.comboItems as any[]) {
             const op = Number(ci.originalPrice) || 0;
             const dp = op * factor;
-            items.push({ productId: ci.productId, variantId: ci.variantId || undefined, quantity: Number(ci.quantity) * l.quantity,
-              priceOverride: Number.isFinite(dp) && dp > 0 ? dp : op, note: `Combo: ${l.name}` });
+            const line = { productId: ci.productId, variantId: ci.variantId || undefined, priceOverride: Number.isFinite(dp) && dp > 0 ? dp : op, note: `Combo: ${l.name}` };
+            let qty = Number(ci.quantity) * l.quantity;
+            while (qty >= 1) {
+              const at = picks.findIndex((p) => p.productId === ci.productId);
+              if (at < 0) break;
+              items.push({ ...line, quantity: 1, serialId: picks.splice(at, 1)[0].id });
+              qty -= 1;
+            }
+            if (qty > 0) items.push({ ...line, quantity: qty });
           }
         } else if (l.productId) {
           items.push({
@@ -744,6 +770,11 @@ export function usePosEngine(config: PosIndustryConfig) {
       [...refreshKeys, ...SALE_REFRESH].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       if (prefs.autoPrint && !printReceiptDirect(printPayload, prefs.printerWidth)) toast.error('Popup band hai — browser mein popups allow karein');
       if (prefs.autoClose) successTimer.current = setTimeout(() => setLastSale(null), 3500);
+      // Industry follow-up (qist offer…) only for bills the server saved, never for a queued offline one.
+      const queued = isTempId(String(s.id ?? '')) || (sale as { status?: string }).status === 'pending';
+      if (config.onSale && !queued) {
+        try { config.onSale(sale as PosSavedSale); } catch (err) { console.error('[pos] onSale failed', err); }
+      }
     },
     onError: (e: unknown) => {
       if ((e as Error)?.message === 'Cancelled') return;
@@ -757,15 +788,17 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (!shopId) { toast.error('Pehle shop chunein'); return; }
     if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); return; }
     if (checkoutMutation.isPending) return;
+    if (!industryAllowsCheckout()) return;
     checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total, isCredit: false, depositExtra: false });
-  }, [cart.length, shopId, checkoutMutation, total, rules.requireCustomer, customerId]);
+  }, [cart.length, shopId, checkoutMutation, total, rules.requireCustomer, customerId, config, cart]);
 
   const openCheckout = useCallback((mode: PosCheckoutMode = 'full', method?: PaymentMethod) => {
     if (!cart.length) return;
     if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); return; }
     if (mode !== 'full' && !rules.allowCredit) { toast.error('Is dukaan me udhaar band hai'); return; }
+    if (!industryAllowsCheckout()) return;
     setCheckout({ mode, method: method ?? rules.defaultMethod });
-  }, [cart.length, rules, customerId]);
+  }, [cart.length, rules, customerId, config, cart]);
 
   const closeSuccess = useCallback(() => { clearTimeout(successTimer.current); setLastSale(null); }, []);
   useEffect(() => () => clearTimeout(successTimer.current), []);

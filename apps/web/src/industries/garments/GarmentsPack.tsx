@@ -1,4 +1,4 @@
-import { Shirt, LayoutDashboard, Sparkles, Palette, Ruler, Scissors, Bookmark, CreditCard, Package } from 'lucide-react';
+import { Shirt, LayoutDashboard, Sparkles, Palette, Ruler, Scissors, Bookmark, CreditCard, Package, ArrowLeftRight } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import GarmentsDashboard from './dashboard/GarmentsDashboard';
@@ -11,6 +11,7 @@ import NewTailoringOrderPage from './pages/NewTailoringOrderPage';
 import AlterationsPage from './pages/AlterationsPage';
 import ReservationsPage from './pages/ReservationsPage';
 import LayawayPage from './pages/LayawayPage';
+import ExchangePage from './pages/ExchangePage';
 import SizeChartsPage from './pages/SizeChartsPage';
 import GarmentProductWizardPage from './pages/GarmentProductWizardPage';
 import GarmentProductDetailPage from './pages/GarmentProductDetailPage';
@@ -58,6 +59,7 @@ export const GarmentsPack: IndustryPack = {
         { to: '/garments/measurements', label: 'Naap', icon: Ruler },
         { to: '/garments/reservations', label: 'Hold', icon: Bookmark },
         { to: '/garments/layaway', label: 'Qist plan', icon: CreditCard },
+        { to: '/garments/exchange', label: 'Exchange', icon: ArrowLeftRight, permission: 'returns.create' },
         { to: '/garments/collections', label: 'Collections', icon: Palette },
         { to: '/garments/size-charts', label: 'Size charts', icon: Package },
       ],
@@ -81,6 +83,7 @@ export const GarmentsPack: IndustryPack = {
     { path: '/garments/alterations', element: AlterationsPage },
     { path: '/garments/reservations', element: ReservationsPage },
     { path: '/garments/layaway', element: LayawayPage },
+    { path: '/garments/exchange', element: ExchangePage },
     { path: '/garments/size-charts', element: SizeChartsPage },
   ],
 

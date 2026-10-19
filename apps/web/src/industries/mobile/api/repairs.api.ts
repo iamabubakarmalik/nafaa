@@ -14,7 +14,7 @@ export type RepairStatus =
 
 export type RepairPriority = 'NORMAL' | 'URGENT' | 'EMERGENCY';
 export type RepairPaymentStatus = 'PENDING' | 'ADVANCE_PAID' | 'FULLY_PAID';
-export type RepairView = 'open' | 'working' | 'ready' | 'late' | 'unpaid' | 'closed' | 'warranty' | 'all';
+export type RepairView = 'open' | 'working' | 'ready' | 'handover' | 'late' | 'unpaid' | 'closed' | 'warranty' | 'all';
 export type RepairSort = 'new' | 'old' | 'due' | 'amount';
 export type PartSource = 'OWN_STOCK' | 'PURCHASED_FOR_REPAIR' | 'CUSTOMER_PROVIDED';
 
@@ -117,6 +117,10 @@ export interface RepairTicket {
   parts?: RepairPart[];
   statusLog?: RepairStatusLog[];
   payments?: RepairPaymentRecord[];
+  /** Detail only: the earlier job this one is a warranty claim of. */
+  warrantyOf?: { id: string; ticketNumber: string; status: RepairStatus; deliveredAt: string | null; warrantyEnds: string | null; reportedIssue: string; diagnosedIssue: string | null } | null;
+  /** Detail only: warranty claims made on this job. */
+  warrantyRepairs?: Array<{ id: string; ticketNumber: string; status: RepairStatus; receivedAt: string; reportedIssue: string }>;
   _count?: { parts: number; payments: number };
   /** List only. */
   isLate?: boolean;

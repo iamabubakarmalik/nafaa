@@ -164,6 +164,7 @@ export default function HappyHoursPage() {
                     <div><dt className="text-slate-500">Order</dt><dd className="font-medium text-slate-900">{r.orderModes.length ? r.orderModes.map(orderModeLabel).join(', ') : 'Har order'}</dd></div>
                     {(r.validFrom || r.validTo) && <div className="col-span-2"><dt className="text-slate-500">Tareekh</dt><dd className="font-medium text-slate-900">{r.validFrom?.slice(0, 10) ?? 'shuru se'} → {r.validTo?.slice(0, 10) ?? 'aage tak'}</dd></div>}
                     {r.minOrderAmount ? <div className="col-span-2"><dt className="text-slate-500">Kam se kam bill</dt><dd className="font-medium text-slate-900">{formatPKR(r.minOrderAmount)}</dd></div> : null}
+                    <div className="col-span-2"><dt className="text-slate-500">Ab tak</dt><dd className="font-medium text-slate-900">{r.totalUsage ? `${r.totalUsage} bill · ${formatPKR(r.totalSaved)} Discount` : 'Abhi kisi bill par nahi laga'}</dd></div>
                   </dl>
                   {canManage && (
                     <footer className="mt-3 flex gap-1.5 border-t border-slate-100 pt-3">

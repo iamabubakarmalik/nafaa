@@ -79,12 +79,9 @@ export class UsedPhonesService {
 
   async create(user: AuthenticatedUser, dto: CreateUsedPhoneDto) {
     if (dto.imei2 && dto.imei2 === dto.imei1) throw new BadRequestException('IMEI 1 aur IMEI 2 ek jaise nahi ho sakte');
-    const existing = await this.prisma.usedPhone.findFirst({
-      where: { tenantId: user.tenantId, imei1: dto.imei1 },
-      select: { usedPhoneCode: true, status: true },
-    });
-    if (existing) {
-      throw new ConflictException(`IMEI ${dto.imei1} pehle se used phone ${existing.usedPhoneCode} me hai — usi record ko kholein`);
+    const held = await this.heldWithImei(user.tenantId, dto.imei1);
+    if (held) {
+      throw new ConflictException(`IMEI ${dto.imei1} abhi dukaan me hai (used phone ${held.usedPhoneCode}) — usi record ko kholein`);
     }
     // A phone still on our shelf as new stock cannot be bought in again;
     // one we sold earlier can (a customer selling it back is normal).
@@ -182,6 +179,34 @@ export class UsedPhonesService {
       return { ...phone, paidFromDrawer };
     }
     return phone;
+  }
+
+  /**
+   * The used-phone record that still holds this IMEI: anything not sold or
+   * discarded. A phone sold earlier can be bought back as a new record.
+   */
+  private heldWithImei(tenantId: string, imei: string, exceptId?: string) {
+    return this.prisma.usedPhone.findFirst({
+      where: {
+        tenantId,
+        OR: [{ imei1: imei }, { imei2: imei }],
+        status: { notIn: ['SOLD', 'DISCARDED'] },
+        ...(exceptId && { id: { not: exceptId } }),
+      },
+      select: { id: true, usedPhoneCode: true, status: true },
+    });
+  }
+
+  /** Earlier and later records of the same phone (bought back after a sale). */
+  private async history(tenantId: string, phone: { id: string; imei1: string }) {
+    return this.prisma.usedPhone.findMany({
+      where: { tenantId, imei1: phone.imei1, id: { not: phone.id } },
+      select: {
+        id: true, usedPhoneCode: true, status: true, source: true, receivedAt: true, soldAt: true,
+        buybackPrice: true, finalSoldPrice: true, fromCustomerName: true, soldSaleId: true,
+      },
+      orderBy: { receivedAt: 'asc' },
+    });
   }
 
   /**
@@ -357,7 +382,7 @@ export class UsedPhonesService {
   /** Detail plus where the money went: drawer payment, trade-in bill, resale bill. */
   async detail(user: AuthenticatedUser, id: string) {
     const phone = await this.findOne(user, id);
-    const [paid, tradeIn, sale] = await Promise.all([
+    const [paid, tradeIn, sale, history] = await Promise.all([
       this.paidFromDrawer(user.tenantId, phone.usedPhoneCode),
       this.tradeInBill(user.tenantId, phone.usedPhoneCode),
       phone.soldSaleId
@@ -366,8 +391,9 @@ export class UsedPhonesService {
             select: { id: true, saleNumber: true, status: true, createdAt: true, total: true, customer: { select: { id: true, name: true, phone: true } } },
           })
         : null,
+      this.history(user.tenantId, phone),
     ]);
-    return { ...phone, paidFromDrawer: paid, tradeInBill: tradeIn, sale };
+    return { ...phone, paidFromDrawer: paid, tradeInBill: tradeIn, sale, history };
   }
 
   async stats(user: AuthenticatedUser) {
@@ -437,8 +463,8 @@ export class UsedPhonesService {
       if (bill) throw new BadRequestException(`Ye phone bill ${bill.saleNumber} me trade-in laga hai — qeemat nahi badal sakti`);
     }
     if (dto.imei1 && dto.imei1 !== phone.imei1) {
-      const taken = await this.prisma.usedPhone.findFirst({ where: { tenantId: user.tenantId, imei1: dto.imei1, id: { not: id } }, select: { usedPhoneCode: true } });
-      if (taken) throw new ConflictException(`IMEI ${dto.imei1} pehle se ${taken.usedPhoneCode} me hai`);
+      const held = await this.heldWithImei(user.tenantId, dto.imei1, id);
+      if (held) throw new ConflictException(`IMEI ${dto.imei1} abhi dukaan me hai (used phone ${held.usedPhoneCode})`);
     }
     if (dto.shopId !== undefined) await assertOwnShop(this.prisma, user, dto.shopId);
     if (dto.fromCustomerId !== undefined) await assertOwnCustomer(this.prisma, user, dto.fromCustomerId);

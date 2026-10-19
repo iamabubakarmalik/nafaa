@@ -1,20 +1,10 @@
 import { apiClient } from '@core/api/client';
+import type { CategoryType, ConditionType } from '../constants';
 
 /**
  * Electronics POS catalog — ek hi call me poora counter data.
  * Backend: apps/api/src/industries/electronics/pos/electronics-pos.service.ts
  */
-
-export type ElectronicsCategoryType =
-  | 'CABLE' | 'CHARGER' | 'POWER_BANK' | 'HEADPHONE' | 'EARBUD' | 'SPEAKER'
-  | 'BLUETOOTH_SPEAKER' | 'SMARTWATCH' | 'FITNESS_BAND' | 'DRONE' | 'CAMERA'
-  | 'DSLR' | 'ACTION_CAMERA' | 'WEBCAM' | 'KEYBOARD' | 'MOUSE' | 'MONITOR'
-  | 'LAPTOP_ACCESSORY' | 'PHONE_ACCESSORY' | 'CAR_ACCESSORY' | 'SMART_HOME'
-  | 'LED_LIGHT' | 'ROUTER' | 'MEMORY_CARD' | 'USB_DRIVE' | 'HARD_DRIVE'
-  | 'SSD' | 'ADAPTER' | 'CONVERTER' | 'SCREEN_PROTECTOR' | (string & {});
-
-export type ElectronicsConditionType =
-  | 'BRAND_NEW' | 'OPEN_BOX' | 'REFURBISHED' | 'USED' | 'DAMAGED' | 'FOR_PARTS';
 
 /** POS par dikhne wala ek serial/IMEI-tracked unit */
 export interface PosSerial {
@@ -55,8 +45,8 @@ export interface PosElectronicsProduct {
   categoryName: string | null;
 
   // Electronics ki apni cheezein
-  categoryType: ElectronicsCategoryType | null;
-  conditionType: ElectronicsConditionType | null;
+  categoryType: CategoryType | null;
+  conditionType: ConditionType | null;
   modelNumber: string | null;
   colorName: string | null;
   colorHex: string | null;
@@ -113,56 +103,4 @@ export const electronicsPosApi = {
     apiClient
       .get('/electronics/pos/catalog', { params })
       .then(unwrap) as Promise<ElectronicsPosCatalog>,
-};
-
-/* ── Category labels — POS filters aur reports dono me ── */
-export const CATEGORY_TYPE_LABELS: Record<string, string> = {
-  CABLE: 'Cable',
-  CHARGER: 'Charger',
-  POWER_BANK: 'Power Bank',
-  HEADPHONE: 'Headphones',
-  EARBUD: 'Earbuds',
-  SPEAKER: 'Speaker',
-  BLUETOOTH_SPEAKER: 'Bluetooth Speaker',
-  SMARTWATCH: 'Smart Watch',
-  FITNESS_BAND: 'Fitness Band',
-  DRONE: 'Drone',
-  CAMERA: 'Camera',
-  DSLR: 'DSLR',
-  ACTION_CAMERA: 'Action Camera',
-  WEBCAM: 'Webcam',
-  KEYBOARD: 'Keyboard',
-  MOUSE: 'Mouse',
-  MONITOR: 'Monitor / Screen',
-  LAPTOP_ACCESSORY: 'Laptop Accessory',
-  PHONE_ACCESSORY: 'Phone Accessory',
-  CAR_ACCESSORY: 'Car Accessory',
-  SMART_HOME: 'Smart Home',
-  LED_LIGHT: 'LED Light',
-  ROUTER: 'Router',
-  MEMORY_CARD: 'Memory Card',
-  USB_DRIVE: 'USB Drive',
-  HARD_DRIVE: 'Hard Drive',
-  SSD: 'SSD',
-  ADAPTER: 'Adapter',
-  CONVERTER: 'Converter',
-  SCREEN_PROTECTOR: 'Screen Protector',
-};
-
-export const CONDITION_LABELS: Record<ElectronicsConditionType, string> = {
-  BRAND_NEW: 'Brand New',
-  OPEN_BOX: 'Open Box',
-  REFURBISHED: 'Refurbished',
-  USED: 'Used',
-  DAMAGED: 'Damaged',
-  FOR_PARTS: 'For Parts',
-};
-
-export const CONDITION_COLORS: Record<ElectronicsConditionType, string> = {
-  BRAND_NEW: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-  OPEN_BOX: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
-  REFURBISHED: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
-  USED: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
-  DAMAGED: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
-  FOR_PARTS: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300',
 };

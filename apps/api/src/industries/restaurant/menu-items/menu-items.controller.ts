@@ -7,7 +7,7 @@ import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { MenuItemsService } from './menu-items.service';
 import { MenuBoardService } from './menu-board.service';
 import {
-  AddToMenuDto, AttachModifiersDto, BulkAvailabilityDto, MenuBoardQueryDto, SetAvailabilityDto, UpsertMenuItemDto,
+  AddToMenuDto, AttachModifiersDto, BranchAvailabilityDto, BulkAvailabilityDto, MenuBoardQueryDto, SetAvailabilityDto, UpsertMenuItemDto,
 } from './dto/upsert-menu-item.dto';
 
 @ApiTags('Restaurant - Menu Items')
@@ -25,13 +25,14 @@ export class MenuItemsController {
   @Get()
   list(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
     @Query('available') available?: string,
     @Query('bestSeller') bestSeller?: string,
     @Query('chefSpecial') chefSpecial?: string,
     @Query('search') search?: string,
     @Query('serving') serving?: string,
   ) {
-    return this.service.list(user, {
+    return this.service.list(user, scope.shopId, {
       available: available === 'true' ? true : available === 'false' ? false : undefined,
       bestSeller: bestSeller === 'true' ? true : undefined,
       chefSpecial: chefSpecial === 'true' ? true : undefined,
@@ -54,11 +55,19 @@ export class MenuItemsController {
   }
 
   @Get('by-product/:productId')
-  byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) { return this.service.byProduct(user, productId); }
+  byProduct(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('productId') productId: string) {
+    return this.service.byProduct(user, scope.shopId, productId);
+  }
 
   /** Several dishes on or off the menu at once (sold out, back in the morning). */
   @Post('availability')
   setMany(@GetUser() user: AuthenticatedUser, @Body() dto: BulkAvailabilityDto) { return this.service.setAvailableMany(user, dto.menuItemIds, dto.available); }
+
+  /** "86" at this branch until a time (default: end of the business day), or back on. */
+  @Post('branch-availability')
+  setBranch(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() dto: BranchAvailabilityDto) {
+    return this.service.setBranchAvailability(user, scope.shopId, dto.menuItemIds, dto.available, dto.until);
+  }
 
   /** Gives products a menu profile so the restaurant POS lists them. */
   @Post('add-to-menu')

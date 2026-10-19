@@ -38,6 +38,13 @@ export const OPEN_STATUSES: OrderStatus[] = ['DRAFT', 'PLACED', 'CONFIRMED', 'CO
 
 export const isOpenOrder = (o: Pick<RestaurantOrder, 'status' | 'saleId'>) => OPEN_STATUSES.includes(o.status) && !o.saleId;
 
+/** Dish name with its size ("Biryani · Half") when the order detail carries the dish's sizes. */
+export function itemName(it: { variantId?: string | null; product?: { name?: string; variants?: Array<{ id: string; name: string }> } | null }) {
+  const name = it.product?.name ?? 'Item';
+  const size = it.variantId ? it.product?.variants?.find((v) => v.id === it.variantId)?.name : undefined;
+  return size ? `${name} · ${size}` : name;
+}
+
 export const TABLE_META: Record<TableStatus, { label: string; color: string; ring: string; bg: string }> = {
   AVAILABLE: { label: 'Khaali', color: '#16a34a', ring: 'ring-emerald-300', bg: 'bg-emerald-50' },
   OCCUPIED: { label: 'Bhari', color: '#e11d48', ring: 'ring-rose-300', bg: 'bg-rose-50' },

@@ -66,8 +66,11 @@ export class SalesService {
      * `counter`: the request came from a till (POST /sales), not an industry flow.
      * `tradeInChecked`: the caller already accounted for its trade-in parts
      * (jewelry old gold), so they need no used phone behind them.
+     * `unitCosts`: cost per base unit for the item at the same index, used
+     * instead of the product's cost (a dish plus its add-on ingredients).
+     * Server callers only; never read from the request body.
      */
-    opts: { counter?: boolean; tradeInChecked?: boolean } = {},
+    opts: { counter?: boolean; tradeInChecked?: boolean; unitCosts?: Array<number | null | undefined> } = {},
   ) {
     // A sale happens at exactly one counter. The body may name the branch
     // (offline queue replays carry it); otherwise use the one being viewed.
@@ -353,10 +356,13 @@ export class SalesService {
         unitPrice = variant?.price ?? product!.price;
       }
 
-      // Cost: IMEI cost > used-phone total cost > variant/product cost
-      const unitCost = isUsedPhoneItem
-        ? Number(usedPhone!.totalCost) || 0
-        : imei?.costPrice ?? variant?.costPrice ?? product?.costPrice ?? 0;
+      // Cost: trusted caller's figure > IMEI cost > used-phone total cost > variant/product cost
+      const givenCost = opts.unitCosts?.[idx];
+      const unitCost = givenCost != null && Number.isFinite(givenCost) && givenCost >= 0
+        ? givenCost
+        : isUsedPhoneItem
+          ? Number(usedPhone!.totalCost) || 0
+          : imei?.costPrice ?? variant?.costPrice ?? product?.costPrice ?? 0;
 
       const quantity = Number(item.quantity);
 
@@ -384,7 +390,9 @@ export class SalesService {
           );
         }
 
-        addCartNeed(wantByKey, stockKey, quantity, allowNegativeStock ? Infinity : Number(shopStock.stock), { item: itemName, shop: shop.name });
+        // Pieces held for customers (garment hold / layaway) are not free to sell.
+        const free = Number(shopStock.stock) - Math.max(Number(shopStock.reserved) || 0, 0);
+        addCartNeed(wantByKey, stockKey, quantity, allowNegativeStock ? Infinity : free, { item: itemName, shop: shop.name });
       }
 
       // Money is kept to paisa: a strip at 260 sold as 6 x 43.333 must total 260, not 259.9999998.
@@ -1175,6 +1183,29 @@ export class SalesService {
     }
   }
 
+  /**
+   * Refuses a void when another used-phone record for the same IMEI is still
+   * held by the shop (any status but SOLD or DISCARDED).
+   */
+  private async refuseIfBoughtBack(tx: any, tenantId: string, code: string, imeis: (string | null | undefined)[], exceptId?: string) {
+    const list = [...new Set(imeis.map((x) => x?.trim()).filter((x): x is string => !!x))];
+    if (!list.length) return;
+    const held = await tx.usedPhone.findFirst({
+      where: {
+        tenantId,
+        ...(exceptId && { id: { not: exceptId } }),
+        status: { notIn: ['SOLD', 'DISCARDED'] },
+        OR: [{ imei1: { in: list } }, { imei2: { in: list } }],
+      },
+      select: { usedPhoneCode: true },
+    });
+    if (held) {
+      throw new BadRequestException(
+        `${code} wala phone dobara khareeda ja chuka (${held.usedPhoneCode}) — pehle wo record discard karein, phir ye bill cancel karein`,
+      );
+    }
+  }
+
   async voidSale(
     user: AuthenticatedUser,
     scope: ShopScope,
@@ -1224,6 +1255,14 @@ export class SalesService {
       // ─── Restore used phones (mark IN_STOCK again) ────────────
       const usedPhoneItems = sale.items.filter((i) => (i as any).usedPhoneId);
       for (const item of usedPhoneItems) {
+        // The shop may have bought this phone back since; two live records for one IMEI is not allowed.
+        const phone = await tx.usedPhone.findUnique({
+          where: { id: (item as any).usedPhoneId },
+          select: { id: true, usedPhoneCode: true, imei1: true, imei2: true },
+        });
+        if (phone) {
+          await this.refuseIfBoughtBack(tx, user.tenantId, phone.usedPhoneCode, [phone.imei1, phone.imei2], phone.id);
+        }
         await tx.usedPhone.update({
           where: { id: (item as any).usedPhoneId },
           data: {
@@ -1247,6 +1286,8 @@ export class SalesService {
           },
         });
         for (const imei of imeis) {
+          // A sold phone that came back as a used phone cannot also return to new stock.
+          await this.refuseIfBoughtBack(tx, user.tenantId, `IMEI ${imei.imei1}`, [imei.imei1, imei.imei2]);
           if (imei.saleItemId) imeiLineIds.add(imei.saleItemId);
           await tx.productImei.update({
             where: { id: imei.id },

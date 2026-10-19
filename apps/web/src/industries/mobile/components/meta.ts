@@ -158,6 +158,15 @@ export const todayKey = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
+/** Installment counts offered for a plan. */
+export const QIST_COUNTS = [2, 3, 4, 6, 9, 12];
+/** yyyy-MM-dd `months` after `key`, the day clamped to the month's end. */
+export function addMonths(key: string, months: number) {
+  const [y, m, d] = key.split('-').map(Number);
+  const first = new Date(Date.UTC(y, m - 1 + months, 1));
+  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  return `${first.getUTCFullYear()}-${String(first.getUTCMonth() + 1).padStart(2, '0')}-${String(Math.min(d, last)).padStart(2, '0')}`;
+}
 /** Whole days from now to `iso` (negative when past). */
 export const daysTo = (iso?: string | null) => (iso ? Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000) : null);
 export const ageText = (days?: number | null) => (days == null ? '—' : days === 0 ? 'Aaj' : days === 1 ? '1 din' : `${days} din`);

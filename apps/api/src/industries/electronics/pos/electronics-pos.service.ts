@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { categoryTypeParam } from '../common/category-type';
 import { releaseVoidedSerials } from '../common/serial-upkeep';
 
 /**
@@ -73,15 +74,16 @@ export class ElectronicsPosService {
     tenantId: string,
     shopId?: string,
     search?: string,
-    categoryType?: string,
+    typeFilter?: string,
   ) {
+    const categoryType = categoryTypeParam(typeFilter);
     // Electronics profile ka Product se Prisma relation nahi hai (sirf
     // productId rakha hai), is liye pehle profiles laate hain aur phir
     // JS me jorte hain. Isi se model/part number par search bhi chalti hai.
     const profiles = await this.prisma.electronicsProductProfile.findMany({
       where: {
         tenantId,
-        ...(categoryType && { categoryType: categoryType as any }),
+        ...(categoryType && { categoryType }),
       },
       select: {
         productId: true,

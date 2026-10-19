@@ -23,10 +23,10 @@ import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
 import { useShopParam } from '@core/stores/auth.store';
 import { usedPhonesApi, type CreateUsedPhonePayload, type TradeInSource, type UsedPhoneCondition } from '../api/used-phones.api';
-import type { PtaStatus } from '../api/imei.api';
+import { imeiApi, type PtaStatus } from '../api/imei.api';
 import { EMPTY_PERSON, PersonFields, personErrors, type Person } from '../components/PersonFields';
 import {
-  CONDITIONS, MONEY_KEYS, PTA_LIST, SOURCES, USED_KEY, apiError, conditionOf, digits, isLuhnValid, money, ptaOf, sourceOf,
+  CONDITIONS, MONEY_KEYS, PTA_LIST, SOURCES, USED_KEY, apiError, conditionOf, dayOnly, digits, imeiStatusOf, isLuhnValid, money, ptaOf, sourceOf, usedStatusOf,
 } from '../components/meta';
 
 const BRANDS = ['Apple', 'Samsung', 'Xiaomi', 'Oppo', 'Vivo', 'Infinix', 'Tecno', 'Realme', 'OnePlus', 'Google', 'Huawei', 'Nokia'];
@@ -98,6 +98,24 @@ export default function UsedPhoneFormPage() {
     onError: (e) => toast.error(apiError(e, 'Andaza nahi bana')),
   });
 
+  // What the shop already knows about this IMEI: a phone still with us blocks
+  // the intake; one sold earlier is a buy-back and its history is shown.
+  const imeiChanged = !editing || (!!d && f.imei1 !== d.imei1);
+  const imeiQ = useQuery({ queryKey: ['mobile-imei-lookup', f.imei1], queryFn: () => imeiApi.lookup(f.imei1), enabled: imeiChanged && f.imei1.length === 15, retry: false });
+  const known = imeiChanged && f.imei1.length === 15 ? imeiQ.data : undefined;
+  const heldUsed = known?.usedPhones.find((u) => u.id !== id && u.status !== 'SOLD' && u.status !== 'DISCARDED');
+  const onShelf = known?.newPhones.find((p) => p.status !== 'SOLD');
+  const pastUsed = known?.usedPhones.filter((u) => u.id !== id && u.status === 'SOLD') ?? [];
+  const soldNew = known?.newPhones.filter((p) => p.status === 'SOLD') ?? [];
+  useEffect(() => {
+    const prev = known?.usedPhones[0];
+    const prevNew = soldNew[0];
+    if (editing || f.brand || f.model) return;
+    if (prev) set({ brand: prev.brand, model: prev.model, storage: prev.storage ?? '' });
+    else if (prevNew) set({ brand: prevNew.product.brand?.name ?? '', model: prevNew.product.name });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [known?.code]);
+
   const sellerErr = personErrors(seller, needCnic);
   const problems = useMemo(() => {
     const out: string[] = [];
@@ -106,13 +124,15 @@ export default function UsedPhoneFormPage() {
     if (!/^\d{15}$/.test(f.imei1)) out.push('IMEI 1 me 15 number hon');
     if (f.imei2 && !/^\d{15}$/.test(f.imei2)) out.push('IMEI 2 me 15 number hon');
     if (f.imei2 && f.imei2 === f.imei1) out.push('IMEI 1 aur 2 ek jaise nahi ho sakte');
+    if (heldUsed) out.push(`Ye phone abhi dukaan me hai (${heldUsed.usedPhoneCode}) — usi record ko kholein`);
+    if (onShelf) out.push('Ye IMEI naye phone ke stock me hai — wapas khareeda nahi ja sakta');
     const se = Object.values(sellerErr)[0];
     if (se) out.push(`Bechne wala: ${se}`);
     if (f.source !== 'CONSIGNMENT' && !(n(f.buybackPrice) > 0)) out.push(f.source === 'EXCHANGE' ? 'Exchange me phone kitne ka liya — likhein' : 'Kitne me khareeda — likhein');
     if (n(f.modelYear) && (n(f.modelYear) < 2000 || n(f.modelYear) > new Date().getFullYear())) out.push('Saal sahi likhein');
     if (f.resalePrice && n(f.resalePrice) > 0 && n(f.resalePrice) < cost) out.push(`Bechne ki qeemat cost (${formatPKR(cost)}) se kam hai`);
     return out;
-  }, [f, sellerErr, closed, cost]);
+  }, [f, sellerErr, closed, cost, heldUsed, onShelf]);
   const warnLuhn = /^\d{15}$/.test(f.imei1) && !isLuhnValid(f.imei1);
 
   const save = useMutation({
@@ -225,6 +245,23 @@ export default function UsedPhoneFormPage() {
                   rightIcon={<button type="button" onClick={() => setScan('imei2')} aria-label="Scan"><ScanLine className="h-4 w-4" /></button>} hint="Dual SIM ho to" />
                 <Input label="Kis saal ka" inputMode="numeric" maxLength={4} value={f.modelYear} onChange={(e) => set({ modelYear: digits(e.target.value) })} placeholder="2022" hint="Andaze me kaam aata hai" />
               </div>
+              {(heldUsed || onShelf) && (
+                <p className="flex items-start gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  {heldUsed
+                    ? <span>Ye phone abhi dukaan me hai: <button type="button" className="font-mono font-semibold underline" onClick={() => navigate(`/used-phones/${heldUsed.id}`)}>{heldUsed.usedPhoneCode}</button> ({usedStatusOf(heldUsed.status).label}). Naya record nahi banega.</span>
+                    : <span>Ye IMEI naye phone ke stock me hai ({imeiStatusOf(onShelf!.status).label}) — wapas nahi khareeda ja sakta.</span>}
+                </p>
+              )}
+              {!heldUsed && !onShelf && (pastUsed.length > 0 || soldNew.length > 0) && (
+                <div className="space-y-1 rounded-xl bg-sky-50 px-3 py-2 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
+                  <p className="font-semibold">Ye phone pehle bhi is dukaan me tha — wapas khareed (buy-back)</p>
+                  {soldNew.map((p) => <p key={p.id}>Naya phone bika: {p.sale?.saleNumber ?? '—'} · {dayOnly(p.soldAt)}{p.sale?.customer ? ` · ${p.sale.customer.name}` : ''}</p>)}
+                  {pastUsed.map((u) => (
+                    <p key={u.id}>Used <button type="button" className="font-mono font-semibold underline" onClick={() => navigate(`/used-phones/${u.id}`)}>{u.usedPhoneCode}</button>: liya {dayOnly(u.receivedAt)}, bika {dayOnly(u.soldAt)}{u.sale?.customer ? ` · ${u.sale.customer.name}` : ''}</p>
+                  ))}
+                </div>
+              )}
               <div>
                 <span className="text-[0.8125rem] font-medium text-slate-700">PTA</span>
                 <div className="mt-1.5 flex flex-wrap gap-1">{PTA_LIST.map((p) => <button key={p} type="button" onClick={() => set({ ptaStatus: p })} className={chip(f.ptaStatus === p)}>{ptaOf(p).label}</button>)}</div>

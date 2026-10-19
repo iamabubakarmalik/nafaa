@@ -5,10 +5,12 @@
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { DAY_MS, r2 } from '../common/garments-common';
+import { moveSale } from '../common/collection-sale';
 import { addVariantOpeningStock, OpeningStockDto, splitLegacyVariantStock } from '../common/opening-stock.helper';
 import { UpsertGarmentProductDto, UpsertVariantProfileDto, VariantProfilesDto } from './dto/upsert-garment-product.dto';
 
@@ -44,14 +46,27 @@ export class GarmentProductsService {
     }
   }
 
+  /** Saves the garment details; a product changing collection takes on that collection's sale price (or loses the old one). */
   async upsertProfile(user: AuthenticatedUser, dto: UpsertGarmentProductDto) {
     await this.ownProduct(user, dto.productId);
     const data = { ...dto, collectionId: dto.collectionId || null, sizeChartId: dto.sizeChartId || null };
     await this.checkLinks(user, data);
-    return this.prisma.garmentProductProfile.upsert({
-      where: { productId: dto.productId },
-      update: { ...data, tenantId: user.tenantId },
-      create: { ...data, tenantId: user.tenantId },
+    return this.prisma.$transaction(async (tx) => {
+      const moved = await moveSale(tx, user.tenantId, [dto.productId], data.collectionId);
+      const onSale = data.collectionId
+        ? (await tx.garmentCollection.findFirst({ where: { id: data.collectionId }, select: { salePercent: true } }))?.salePercent != null
+        : false;
+      if (moved.changes.length) {
+        await tx.activityLog.create({
+          data: {
+            tenantId: user.tenantId, userId: user.id, action: 'COLLECTION_SALE_CHANGED', entityType: 'GarmentCollection', entityId: data.collectionId,
+            description: `Collection badalne par ${moved.changes.length} rate badle`,
+            metadata: { total: moved.changes.length, changes: moved.changes } as unknown as Prisma.InputJsonValue,
+          },
+        });
+      }
+      const row = { ...data, ...(onSale && { isOnSale: true }), tenantId: user.tenantId };
+      return tx.garmentProductProfile.upsert({ where: { productId: dto.productId }, update: row, create: row });
     });
   }
 
@@ -173,8 +188,8 @@ export class GarmentProductsService {
 
   /**
    * Size × colour grid of one product: each active variant with its size and
-   * colour, stock in the branch being viewed, stock in every branch and
-   * pieces sold in the last 30 days.
+   * colour, stock and held pieces in the branch being viewed, stock in every
+   * branch and pieces sold in the last 30 days.
    */
   async sizeGrid(user: AuthenticatedUser, scope: ShopScope, productId: string) {
     const product = await this.prisma.product.findFirst({
@@ -186,7 +201,7 @@ export class GarmentProductsService {
     const since = new Date(Date.now() - 30 * DAY_MS);
     const [profiles, stocks, sold, shops] = await Promise.all([
       this.prisma.garmentVariantProfile.findMany({ where: { tenantId: user.tenantId, variantId: { in: ids } } }),
-      this.prisma.shopStock.findMany({ where: { tenantId: user.tenantId, productId, variantId: { in: ids } }, select: { shopId: true, variantId: true, stock: true } }),
+      this.prisma.shopStock.findMany({ where: { tenantId: user.tenantId, productId, variantId: { in: ids } }, select: { shopId: true, variantId: true, stock: true, reserved: true } }),
       this.prisma.saleItemVariant.findMany({
         where: { variantId: { in: ids }, saleItem: { sale: { tenantId: user.tenantId, status: { in: [...SOLD] }, createdAt: { gte: since }, ...scope.where } } },
         select: { variantId: true, saleItem: { select: { quantity: true, returnedQty: true } } },
@@ -205,6 +220,8 @@ export class GarmentProductsService {
         size: p?.size ?? v.size ?? null, colorName: p?.colorName ?? v.color ?? null, colorHex: p?.colorHex ?? v.colorHex ?? null,
         lowStockAlert: Number(v.lowStockAlert ?? product.lowStockAlert ?? 0),
         stock: r2(here.reduce((s, r) => s + Number(r.stock), 0)),
+        /** Pieces held for customers in the branch (holds, instalment plans). */
+        reserved: r2(here.reduce((s, r) => s + Number(r.reserved), 0)),
         allStock: r2(rows.reduce((s, r) => s + Number(r.stock), 0)),
         byShop: shops.map((sh) => ({ shopId: sh.id, name: sh.name, stock: r2(rows.filter((r) => r.shopId === sh.id).reduce((s, r) => s + Number(r.stock), 0)) })),
         sold30: r2(soldOf.get(v.id) ?? 0),

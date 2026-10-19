@@ -91,10 +91,20 @@ export class ProductVariantsService {
 
   async list(user: AuthenticatedUser, productId: string) {
     await this.ensureProduct(user, productId);
-    return this.prisma.productVariant.findMany({
-      where: { productId },
-      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-    });
+    const [variants, held] = await Promise.all([
+      this.prisma.productVariant.findMany({
+        where: { productId },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      }),
+      this.prisma.shopStock.groupBy({
+        by: ['variantId'],
+        where: { tenantId: user.tenantId, productId, variantId: { not: null }, reserved: { gt: 0 } },
+        _sum: { reserved: true },
+      }),
+    ]);
+    // Pieces held for customers, over all branches like `stock`; the counter sells stock − reserved.
+    const reserved = new Map(held.map((h) => [h.variantId, Number(h._sum.reserved ?? 0)]));
+    return variants.map((v) => ({ ...v, reserved: reserved.get(v.id) ?? 0 }));
   }
 
   async create(user: AuthenticatedUser, productId: string, dto: UpsertVariantDto, scope?: ShopScope) {

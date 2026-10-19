@@ -29,9 +29,10 @@ export class HappyHoursController {
    * menu prices, optionally for one order mode.
    */
   @Get('quote') quote(@GetUser() user: AuthenticatedUser, @Query('items') items?: string, @Query('mode') mode?: string) {
+    // Each item is productId:qty, or productId:qty:sizeId for a dish sold by size.
     const list = (items ?? '').split(',').filter(Boolean).slice(0, 200).map((x) => {
-      const [productId, qty] = x.split(':');
-      return { productId: productId.trim(), quantity: Math.max(Number(qty) || 1, 0) };
+      const [productId, qty, variantId] = x.split(':');
+      return { productId: productId.trim(), quantity: Math.max(Number(qty) || 1, 0), variantId: variantId?.trim() || undefined };
     }).filter((i) => i.productId && i.quantity > 0);
     return this.service.quote(user, list, modeOf(mode));
   }

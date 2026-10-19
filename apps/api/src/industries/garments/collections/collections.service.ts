@@ -1,17 +1,23 @@
 /**
  * Collections (Summer Lawn 2026, Eid, Winter): which products belong to
- * which season, what is left on the shelf and how each one sells, plus
- * marking a whole collection "on sale".
+ * which season, what is left on the shelf and how each one sells, plus a
+ * sale on the whole collection: a percent off every price that can be
+ * changed or ended, with each price change written to the activity log.
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { DAY_MS, duplicateName, opt, r2 } from '../common/garments-common';
+import { SaleResult, applySale, endSale, moveSale } from '../common/collection-sale';
 import { UpsertCollectionDto } from './dto/upsert-collection.dto';
 
 const SOLD = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
+/** Price changes kept in one activity-log row. */
+const LOG_CHANGES = 1000;
+const TX = { timeout: 60_000, maxWait: 10_000 };
 
 const day = (v: string) => {
   const d = new Date(v);
@@ -109,7 +115,7 @@ export class CollectionsService {
     if (!c) throw new NotFoundException('Collection nahi mili');
     const profiles = await this.prisma.garmentProductProfile.findMany({
       where: { tenantId: user.tenantId, collectionId: id },
-      select: { productId: true, isOnSale: true, categoryType: true, gender: true },
+      select: { productId: true, isOnSale: true, regularPrice: true, categoryType: true, gender: true },
       take: 500,
     });
     const products = await this.prisma.product.findMany({
@@ -117,8 +123,12 @@ export class CollectionsService {
       select: { id: true, name: true, sku: true, price: true, stock: true, isActive: true, images: { where: { isPrimary: true }, take: 1, select: { url: true } } },
       orderBy: { name: 'asc' },
     });
-    const sale = new Map(profiles.map((p) => [p.productId, p.isOnSale]));
-    return { ...c, products: products.map((p) => ({ ...p, isOnSale: !!sale.get(p.id) })), productCount: profiles.length };
+    const byId = new Map(profiles.map((p) => [p.productId, p]));
+    return {
+      ...c,
+      products: products.map((p) => ({ ...p, isOnSale: !!byId.get(p.id)?.isOnSale, regularPrice: byId.get(p.id)?.regularPrice ?? null })),
+      productCount: profiles.length,
+    };
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertCollectionDto) {
@@ -134,34 +144,128 @@ export class CollectionsService {
     return this.prisma.garmentCollection.update({ where: { id }, data: { isFeatured: !c.isFeatured } });
   }
 
-  /** Marks (or unmarks) every product of the collection as on sale; the POS shows them under "Sale". */
+  /**
+   * Marks (or unmarks) every product of the collection as on sale; the POS
+   * shows them under "Sale". Unmarking also ends a percent sale, so no
+   * product is left at a lowered price.
+   */
   async setOnSale(user: AuthenticatedUser, id: string, onSale: boolean) {
     const c = await this.prisma.garmentCollection.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Collection nahi mili');
+    if (!onSale && c.salePercent != null) {
+      const r = await this.setSale(user, id, null);
+      return { updated: r.products, onSale };
+    }
     const res = await this.prisma.garmentProductProfile.updateMany({ where: { tenantId: user.tenantId, collectionId: id }, data: { isOnSale: onSale } });
     return { updated: res.count, onSale };
   }
 
-  /** Puts products into the collection (their garment details are created when missing). */
+  /**
+   * Starts, changes or ends (`percent` null) the sale on a collection. The
+   * new price is always worked out from the regular price, so the same
+   * percent twice changes nothing and a new percent never stacks on the old.
+   */
+  async setSale(user: AuthenticatedUser, id: string, percent: number | null) {
+    const c = await this.prisma.garmentCollection.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!c) throw new NotFoundException('Collection nahi mili');
+    const next = percent ? Math.round(percent * 100) / 100 : null;
+    if (next != null && !c.isActive) throw new BadRequestException('Band collection par Sale nahi lagti — pehle chalu karein');
+    const previous = c.salePercent ?? null;
+    const profiles = await this.prisma.garmentProductProfile.findMany({ where: { tenantId: user.tenantId, collectionId: id }, select: { productId: true } });
+    const ids = profiles.map((p) => p.productId);
+    if (next === previous) return { salePercent: next, products: ids.length, changed: 0, keptByHand: 0, branchPriced: 0, repeated: true };
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      // One sale change per collection at a time; a double click waits and then sees the first.
+      await tx.$queryRaw`SELECT id FROM "GarmentCollection" WHERE id = ${id} FOR UPDATE`;
+      const now = await tx.garmentCollection.findUniqueOrThrow({ where: { id }, select: { salePercent: true } });
+      if ((now.salePercent ?? null) === next) return null;
+      const r = next != null
+        ? await applySale(tx, user.tenantId, ids, next, now.salePercent ?? null)
+        : await endSale(tx, user.tenantId, ids, now.salePercent ?? null);
+      await tx.garmentCollection.update({ where: { id }, data: { salePercent: next } });
+      await this.logSale(tx, user, c, now.salePercent ?? null, next, r);
+      return r;
+    }, TX);
+
+    // Branch prices (set per branch) are not touched by the sale.
+    const branchPriced = ids.length
+      ? await this.prisma.shopStock.count({ where: { tenantId: user.tenantId, productId: { in: ids }, shopPrice: { not: null } } })
+      : 0;
+    return {
+      salePercent: next, products: ids.length, changed: result?.changes.length ?? 0, keptByHand: result?.keptByHand ?? 0,
+      branchPriced, repeated: !result,
+    };
+  }
+
+  /** Every price the sale changed, in the activity log (the products module keeps no price history). */
+  private async logSale(
+    tx: Prisma.TransactionClient, user: AuthenticatedUser, c: { id: string; name: string },
+    previous: number | null, next: number | null, r: SaleResult,
+  ) {
+    const action = next == null ? 'COLLECTION_SALE_ENDED' : previous == null ? 'COLLECTION_SALE_STARTED' : 'COLLECTION_SALE_CHANGED';
+    const what = next == null ? `${previous}% Sale khatam` : previous == null ? `${next}% Sale shuru` : `Sale ${previous}% se ${next}%`;
+    await tx.activityLog.create({
+      data: {
+        tenantId: user.tenantId, userId: user.id, action, entityType: 'GarmentCollection', entityId: c.id,
+        description: `${c.name}: ${what} — ${r.changes.length} rate badle${r.keptByHand ? `, ${r.keptByHand} haath se badle rate waise hi rahe` : ''}`,
+        metadata: {
+          previous, percent: next, keptByHand: r.keptByHand, total: r.changes.length,
+          changes: r.changes.slice(0, LOG_CHANGES),
+        } as unknown as Prisma.InputJsonValue,
+      },
+    });
+  }
+
+  /**
+   * Puts products into the collection (their garment details are created
+   * when missing). A product leaving a collection on sale gets its regular
+   * price back; one joining a collection on sale gets the sale price.
+   */
   async addProducts(user: AuthenticatedUser, id: string, productIds: string[]) {
     const c = await this.prisma.garmentCollection.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Collection nahi mili');
     const own = await this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: productIds } }, select: { id: true } });
-    await this.prisma.$transaction(own.map((p) => this.prisma.garmentProductProfile.upsert({
-      where: { productId: p.id },
-      update: { collectionId: id },
-      create: { tenantId: user.tenantId, productId: p.id, collectionId: id, season: c.season },
-    })));
+    const ids = own.map((p) => p.id);
+    await this.prisma.$transaction(async (tx) => {
+      const have = new Set((await tx.garmentProductProfile.findMany({ where: { productId: { in: ids } }, select: { productId: true } })).map((p) => p.productId));
+      const missing = ids.filter((pid) => !have.has(pid));
+      if (missing.length) {
+        await tx.garmentProductProfile.createMany({ data: missing.map((productId) => ({ tenantId: user.tenantId, productId, season: c.season })) });
+      }
+      await this.moveWithSale(tx, user, ids, c.id);
+      await tx.garmentProductProfile.updateMany({ where: { tenantId: user.tenantId, productId: { in: ids } }, data: { collectionId: id } });
+    }, TX);
     return { added: own.length };
   }
 
-  /** Takes products out of the collection; the products themselves stay. */
+  /** Takes products out of the collection; the products stay, at their regular price. */
   async removeProducts(user: AuthenticatedUser, id: string, productIds: string[]) {
-    const res = await this.prisma.garmentProductProfile.updateMany({
-      where: { tenantId: user.tenantId, collectionId: id, productId: { in: productIds } },
-      data: { collectionId: null },
+    return this.prisma.$transaction(async (tx) => {
+      const inside = await tx.garmentProductProfile.findMany({
+        where: { tenantId: user.tenantId, collectionId: id, productId: { in: productIds } },
+        select: { productId: true },
+      });
+      await this.moveWithSale(tx, user, inside.map((p) => p.productId), null);
+      const res = await tx.garmentProductProfile.updateMany({
+        where: { tenantId: user.tenantId, collectionId: id, productId: { in: productIds } },
+        data: { collectionId: null },
+      });
+      return { removed: res.count };
+    }, TX);
+  }
+
+  /** Sale prices follow products that change collection; the changes are logged. */
+  private async moveWithSale(tx: Prisma.TransactionClient, user: AuthenticatedUser, productIds: string[], toCollectionId: string | null) {
+    const r = await moveSale(tx, user.tenantId, productIds, toCollectionId);
+    if (!r.changes.length) return;
+    await tx.activityLog.create({
+      data: {
+        tenantId: user.tenantId, userId: user.id, action: 'COLLECTION_SALE_CHANGED', entityType: 'GarmentCollection', entityId: toCollectionId,
+        description: `Collection badalne par ${r.changes.length} rate badle`,
+        metadata: { total: r.changes.length, changes: r.changes.slice(0, LOG_CHANGES) } as unknown as Prisma.InputJsonValue,
+      },
     });
-    return { removed: res.count };
   }
 
   /** Switched off, never deleted: products keep their link for history. */

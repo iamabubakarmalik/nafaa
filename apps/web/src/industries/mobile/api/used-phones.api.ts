@@ -14,14 +14,6 @@ export const CONDITION_LABELS: Record<UsedPhoneCondition, string> = {
   POOR: 'Poor (<6/10)',
 };
 
-export const CONDITION_COLORS: Record<UsedPhoneCondition, { bg: string; text: string; border: string }> = {
-  EXCELLENT: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300' },
-  VERY_GOOD: { bg: 'bg-teal-100', text: 'text-teal-700', border: 'border-teal-300' },
-  GOOD: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
-  FAIR: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' },
-  POOR: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-300' },
-};
-
 export interface UsedPhone {
   id: string;
   tenantId: string;
@@ -80,6 +72,11 @@ interface UsedPhoneDetail extends UsedPhone {
   paidFromDrawer: boolean;
   tradeInBill: { id: string; saleNumber: string } | null;
   sale: { id: string; saleNumber: string; status: string; createdAt: string; total: number; customer: { id: string; name: string; phone: string | null } | null } | null;
+  /** Other records of the same IMEI: the phone bought, sold and bought back. */
+  history: Array<{
+    id: string; usedPhoneCode: string; status: UsedPhoneStatus; source: TradeInSource; receivedAt: string; soldAt: string | null;
+    buybackPrice: number; finalSoldPrice: number | null; fromCustomerName: string | null; soldSaleId: string | null;
+  }>;
 }
 
 export interface UsedPhoneListParams {

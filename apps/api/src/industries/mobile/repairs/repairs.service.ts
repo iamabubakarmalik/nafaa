@@ -124,16 +124,18 @@ export class RepairsService {
     }
 
     let warrantyNote: string | null = null;
+    let warrantyOfId: string | null = null;
     if (dto.warrantyOf) {
       const prior = await this.prisma.repairTicket.findFirst({
         where: { tenantId: user.tenantId, ticketNumber: dto.warrantyOf.trim() },
-        select: { ticketNumber: true, status: true, warrantyEnds: true },
+        select: { id: true, ticketNumber: true, status: true, warrantyEnds: true },
       });
       if (!prior) throw new BadRequestException(`Purana ticket ${dto.warrantyOf} nahi mila`);
       if (prior.status !== 'DELIVERED' || !prior.warrantyEnds || prior.warrantyEnds < new Date()) {
         throw new BadRequestException(`${prior.ticketNumber} ki repair warranty khatam ho chuki hai`);
       }
       warrantyNote = `Warranty claim: ${prior.ticketNumber}`;
+      warrantyOfId = prior.id;
     }
 
     const year = new Date().getFullYear();
@@ -184,6 +186,7 @@ export class RepairsService {
           beforePhotos: dto.beforePhotos ?? [],
           notes: [warrantyNote, dto.notes?.trim()].filter(Boolean).join('\n') || null,
           warrantyDays: dto.warrantyDays ?? 7,
+          warrantyOfId,
           createdById: user.id,
         },
       });
@@ -242,6 +245,7 @@ export class RepairsService {
       const now = new Date();
       if (query.view === 'open') and.push({ status: { in: OPEN } });
       if (query.view === 'ready') and.push({ status: 'READY' });
+      if (query.view === 'handover') and.push({ status: { in: ['READY', 'UNREPAIRABLE'] }, saleId: null });
       if (query.view === 'working') and.push({ status: { in: ['RECEIVED', 'DIAGNOSED', 'AWAITING_APPROVAL', 'AWAITING_PARTS', 'IN_PROGRESS'] } });
       if (query.view === 'late') and.push({ status: { in: OPEN.filter((s) => s !== 'READY') }, estimatedReadyAt: { lt: now } });
       if (query.view === 'unpaid') and.push({ status: { in: OPEN }, balanceDue: { gt: 0 } });
@@ -323,6 +327,8 @@ export class RepairsService {
         },
         statusLog: { orderBy: { changedAt: 'desc' } },
         payments: { orderBy: { paidAt: 'desc' } },
+        warrantyOf: { select: { id: true, ticketNumber: true, status: true, deliveredAt: true, warrantyEnds: true, reportedIssue: true, diagnosedIssue: true } },
+        warrantyRepairs: { select: { id: true, ticketNumber: true, status: true, receivedAt: true, reportedIssue: true }, orderBy: { receivedAt: 'asc' } },
       },
     });
     if (!ticket) throw new NotFoundException('Repair ticket nahi mila');

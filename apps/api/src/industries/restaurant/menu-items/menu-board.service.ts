@@ -19,6 +19,7 @@ import { stockOf } from '../recipes/branch-stock';
 import { round2, round3 } from '../recipes/recipe-units';
 import type { BoardSort, BoardState, MenuBoardQueryDto } from './dto/upsert-menu-item.dto';
 import { servedAt } from './time-window';
+import { menuBranch, offAtBranch } from './branch-availability';
 
 const WINDOW_DAYS = 30;
 
@@ -38,7 +39,11 @@ export interface BoardItem {
   isActive: boolean;
   kind: Kind;
   onPos: boolean;
+  /** On the menu and not "86" at this branch. */
   available: boolean;
+  /** Off at this branch only (the shop-wide switch is on); `offUntil` is when it comes back. */
+  offHere: boolean;
+  offUntil: Date | null;
   servingNow: boolean;
   hours: { from: string | null; to: string | null; days: number[] };
   chefSpecial: boolean;
@@ -103,9 +108,10 @@ export class MenuBoardService {
       this.since(user.tenantId, WINDOW_DAYS),
     ]);
     const counted = products.filter((p) => !facts.has(p.id)).map((p) => p.id);
-    const [stock, sold] = await Promise.all([
+    const [stock, sold, off] = await Promise.all([
       stockOf(this.prisma, user.tenantId, shopId, counted),
       this.soldBy(user.tenantId, shopId, from),
+      menuBranch(this.prisma, user.tenantId, shopId).then((b) => offAtBranch(this.prisma, user.tenantId, b)),
     ]);
     const now = new Date();
 
@@ -129,7 +135,9 @@ export class MenuBoardService {
         isActive: p.isActive,
         kind,
         onPos: !!m,
-        available: m?.isAvailable ?? false,
+        available: !!m?.isAvailable && !off.has(m.id),
+        offHere: !!m?.isAvailable && off.has(m.id),
+        offUntil: (m && off.get(m.id)) ?? null,
         servingNow: m ? servedAt(m, now, tz) : false,
         hours: { from: m?.availableFrom ?? null, to: m?.availableTo ?? null, days: m?.availableDays ?? [] },
         chefSpecial: m?.chefSpecial ?? false,

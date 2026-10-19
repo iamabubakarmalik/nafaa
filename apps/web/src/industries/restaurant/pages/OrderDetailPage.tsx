@@ -31,7 +31,7 @@ import type { Kot } from '../api/kot.api';
 import { useOrderPayment } from '../hooks/useOrderPayment';
 import { CancelOrderDialog, ChargesDialog, MergeDialog, SplitItemsDialog, VoidItemDialog } from '../components/OrderDialogs';
 import { TablePickerModal } from '../components/TablePickerModal';
-import { MODE_META, ORDER_KEYS, STATUS_META, apiError, duration, isOpenOrder, lineExtras, minutesSince, orderTitle } from '../lib/orderMeta';
+import { MODE_META, ORDER_KEYS, STATUS_META, apiError, duration, isOpenOrder, itemName, lineExtras, minutesSince, orderTitle } from '../lib/orderMeta';
 import { printKot, printPreBill } from '../lib/slips';
 
 const ITEM_STATE: Record<string, { label: string; tone: string }> = {
@@ -184,7 +184,7 @@ export default function OrderDetailPage() {
                     <li key={it.id} className="flex items-start gap-3 px-4 py-3">
                       <span className="mt-0.5 flex h-8 min-w-8 items-center justify-center rounded-lg bg-slate-100 px-1.5 text-[0.875rem] font-bold tabular-nums text-slate-900">{it.quantity}</span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[0.9375rem] font-semibold text-slate-900">{it.product?.name ?? 'Item'}</p>
+                        <p className="text-[0.9375rem] font-semibold text-slate-900">{itemName(it)}</p>
                         {lineExtras(it) && <p className="text-[0.8125rem] text-slate-500">{lineExtras(it)}</p>}
                         {it.specialInstructions && <p className="text-[0.8125rem] italic text-amber-700">“{it.specialInstructions}”</p>}
                         <span className={cn('mt-1 inline-block rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', st.tone)}>{st.label}</span>

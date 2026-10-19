@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { categoryTypeParam } from '../common/category-type';
 import { UpsertElectronicsProductDto } from './dto/upsert-electronics-product.dto';
 
 @Injectable()
@@ -35,11 +36,12 @@ export class ElectronicsProductsService {
     trending?: boolean;
     search?: string;
   }) {
+    const categoryType = categoryTypeParam(params.categoryType);
     const profiles = await this.prisma.electronicsProductProfile.findMany({
       where: {
         tenantId: user.tenantId,
         ...(params.brandId && { brandId: params.brandId }),
-        ...(params.categoryType && { categoryType: params.categoryType as any }),
+        ...(categoryType && { categoryType }),
         ...(params.conditionType && { conditionType: params.conditionType as any }),
         ...(params.featured !== undefined && { isFeatured: params.featured }),
         ...(params.bestSeller !== undefined && { isBestSeller: params.bestSeller }),

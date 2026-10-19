@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DietaryTag, SpiceLevel } from '@prisma/client';
 import {
-  ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min,
+  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min,
 } from 'class-validator';
 
 /** HH:mm, or empty to clear the window. */
@@ -55,6 +55,23 @@ export class BulkAvailabilityDto {
   menuItemIds!: string[];
 
   @ApiProperty() @IsBoolean() available!: boolean;
+}
+
+export class BranchAvailabilityDto {
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Kam se kam ek dish chunein' })
+  @ArrayMaxSize(500)
+  @IsUUID('all', { each: true })
+  menuItemIds!: string[];
+
+  @ApiProperty() @IsBoolean() available!: boolean;
+
+  /** When switching off: back on at this time. Left out = end of the business day; null = until switched on. */
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsDateString({}, { message: 'Waqt sahi nahi' })
+  until?: string | null;
 }
 
 export class AddToMenuDto {

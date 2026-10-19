@@ -29,30 +29,30 @@ import { ordersApi, type OrderItem, type OrderMode, type RestaurantOrder } from 
 import { tablesApi, type FloorTable } from '../api/tables.api';
 import { happyHoursApi } from '../api/happy-hours.api';
 import type { Kot } from '../api/kot.api';
-import { useMenu, type MenuEntry } from '../hooks/useMenu';
+import { useMenu, type MenuEntry, type MenuSize } from '../hooks/useMenu';
 import { useOrderPayment } from '../hooks/useOrderPayment';
 import { RestaurantModifierPicker, type PickedDish, type PickedModifier } from '../pos-extensions/RestaurantModifierPicker';
 import { TablePickerModal } from './TablePickerModal';
 import { MODE_META, ORDER_KEYS, ORDER_MODES, apiError, lineExtras } from '../lib/orderMeta';
 import { printKot } from '../lib/slips';
 
-interface Line { key: string; entry: MenuEntry; quantity: number; modifiers: PickedModifier[]; note: string }
+interface Line { key: string; entry: MenuEntry; size?: MenuSize; quantity: number; modifiers: PickedModifier[]; note: string }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const PREF_KEY = 'nafaa.restaurant.order';
 
-/** Per-counter choices: auto KOT print and the usual dine-in service charge. */
-function readPrefs(): { kotPrint: boolean; servicePct: number } {
+/** Per-counter choice: print kitchen tickets automatically. */
+function readPrefs(): { kotPrint: boolean } {
   try {
     const v = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
-    return { kotPrint: v.kotPrint !== false, servicePct: Number(v.servicePct) || 0 };
-  } catch { return { kotPrint: true, servicePct: 0 }; }
+    return { kotPrint: v.kotPrint !== false };
+  } catch { return { kotPrint: true }; }
 }
-function savePrefs(p: { kotPrint: boolean; servicePct: number }) {
+function savePrefs(p: { kotPrint: boolean }) {
   try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch { /* storage blocked */ }
 }
 
-const lineUnit = (l: Line) => l.entry.price + l.modifiers.reduce((s, m) => s + m.priceAdjustment * m.quantity, 0);
+const lineUnit = (l: Line) => (l.size?.price ?? l.entry.price) + l.modifiers.reduce((s, m) => s + m.priceAdjustment * m.quantity, 0);
 
 export function OrderComposer({ counter = false, initialMode, initialTableId, orderId }: {
   /** Counter / cafe quick mode: pay right after ordering, next order starts at once. */
@@ -82,7 +82,8 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
   const [packing, setPacking] = useState('');
   const [discount, setDiscount] = useState('');
   const [prefs, setPrefs] = useState(readPrefs);
-  const [servicePct, setServicePct] = useState(() => String(readPrefs().servicePct || ''));
+  // Starts at the shop's dine-in service charge (Settings → Counter rules); this order may change it.
+  const [servicePct, setServicePct] = useState<string | null>(null);
   const [taxPct, setTaxPct] = useState('');
   const [orderNote, setOrderNote] = useState('');
   const [lines, setLines] = useState<Line[]>([]);
@@ -96,6 +97,9 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
   const existingQ = useQuery({ queryKey: ['restaurant-order', orderId], queryFn: () => ordersApi.getOne(orderId!), enabled: !!orderId });
   const existing = existingQ.data;
   const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get(), staleTime: 5 * 60_000 });
+  const { data: rules } = useQuery({ queryKey: ['counter-rules'], queryFn: () => settingsApi.counter(), staleTime: 5 * 60_000 });
+  const shopService = rules?.serviceChargePct ?? settings?.settings?.serviceChargePct ?? 0;
+  const serviceText = servicePct ?? (shopService ? String(shopService) : '');
   const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: () => teamApi.list().catch(() => []), staleTime: 5 * 60_000 });
   const { data: customersData } = useQuery({ queryKey: ['customers-for-pos'], queryFn: () => customersApi.list({ limit: 500 }), staleTime: 60_000 });
   const customers = customersData?.items ?? [];
@@ -134,9 +138,13 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
   // Happy hour running now: the server applies it when the order is saved;
   // this preview uses the same rules. Added dishes are priced on the order page.
   const happyCart = useMemo(() => {
-    const qty = new Map<string, number>();
-    lines.forEach((l) => qty.set(l.entry.productId, (qty.get(l.entry.productId) ?? 0) + l.quantity));
-    return [...qty].map(([productId, quantity]) => ({ productId, quantity }));
+    const qty = new Map<string, { productId: string; variantId?: string; quantity: number }>();
+    lines.forEach((l) => {
+      const key = `${l.entry.productId}:${l.size?.id ?? ''}`;
+      const row = qty.get(key) ?? { productId: l.entry.productId, variantId: l.size?.id, quantity: 0 };
+      qty.set(key, { ...row, quantity: row.quantity + l.quantity });
+    });
+    return [...qty.values()];
   }, [lines]);
   const happyQ = useQuery({
     queryKey: ['restaurant-happy-quote', happyCart, mode],
@@ -147,7 +155,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
   const happy = !adding && lines.length ? r2(Math.min(happyQ.data?.discount ?? 0, subtotal)) : 0;
   const itemsNet = r2(subtotal - happy);
 
-  const svcPct = mode === 'DINE_IN' ? Number(servicePct) || 0 : 0;
+  const svcPct = mode === 'DINE_IN' ? Number(serviceText) || 0 : 0;
   const service = r2(itemsNet * svcPct / 100);
   const tax = r2((itemsNet + service) * (Number(taxPct) || 0) / 100);
   const fee = mode === 'DELIVERY' ? Number(deliveryFee) || 0 : 0;
@@ -159,14 +167,15 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
   const add = (entry: MenuEntry, picked?: PickedDish) => {
     const modifiers = picked?.modifiers ?? [];
     const note = picked?.note ?? '';
+    const size = picked?.size;
     setLines((prev) => {
-      const same = prev.find((l) => l.entry.productId === entry.productId && !note && !l.note
+      const same = prev.find((l) => l.entry.productId === entry.productId && l.size?.id === size?.id && !note && !l.note
         && JSON.stringify(l.modifiers.map((m) => m.modifierOptionId).sort()) === JSON.stringify(modifiers.map((m) => m.modifierOptionId).sort()));
       if (same) return prev.map((l) => (l === same ? { ...l, quantity: l.quantity + (picked?.quantity ?? 1) } : l));
-      return [...prev, { key: `${entry.productId}-${Date.now()}-${prev.length}`, entry, quantity: picked?.quantity ?? 1, modifiers, note }];
+      return [...prev, { key: `${entry.productId}-${Date.now()}-${prev.length}`, entry, size, quantity: picked?.quantity ?? 1, modifiers, note }];
     });
   };
-  const tap = (entry: MenuEntry) => (entry.groups.length ? setPicking(entry) : add(entry));
+  const tap = (entry: MenuEntry) => (entry.groups.length || entry.sizes.length ? setPicking(entry) : add(entry));
   const setQty = (key: string, q: number) => setLines((prev) => (q <= 0 ? prev.filter((l) => l.key !== key) : prev.map((l) => (l.key === key ? { ...l, quantity: Math.min(q, 999) } : l))));
 
   const problem = (() => {
@@ -179,6 +188,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
 
   const items = (): OrderItem[] => lines.map((l) => ({
     productId: l.entry.productId,
+    variantId: l.size?.id,
     quantity: l.quantity,
     unit: l.entry.unit,
     specialInstructions: l.note || undefined,
@@ -220,7 +230,8 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
         deliveryNotes: mode === 'DELIVERY' ? deliveryNotes.trim() || undefined : undefined,
         deliveryFee: fee || undefined,
         packagingFee: pack || undefined,
-        serviceChargePct: svcPct || undefined,
+        // Sent as typed (0 too), so clearing it on one order is kept.
+        serviceChargePct: mode === 'DINE_IN' ? svcPct : undefined,
         taxPct: Number(taxPct) || undefined,
         discount: disc || undefined,
         specialRequests: orderNote.trim() || undefined,
@@ -231,7 +242,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
     },
     onSuccess: ({ order, kots }, { pay }) => {
       refresh();
-      if (mode === 'DINE_IN' && svcPct !== prefs.servicePct) { const p = { ...prefs, servicePct: svcPct }; setPrefs(p); savePrefs(p); }
+      setServicePct(null);
       const where = order.table ? `Table ${order.table.tableNumber}` : order.token ? `Token ${order.token}` : order.orderNumber;
       toast.success(kots ? `${where} — kitchen ko ${kots} ticket gaye` : `${where} — order save ho gaya`);
       if (pay) {
@@ -367,7 +378,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
                       <span className="line-clamp-2 text-[0.8125rem] font-semibold leading-snug text-slate-900">{e.name}</span>
                       <span className="mt-auto flex items-center justify-between pt-1">
                         <span className="text-[0.875rem] font-bold tabular-nums text-slate-900">{formatPKR(e.price)}</span>
-                        {e.groups.length > 0 && <span className="text-[0.6875rem] font-medium text-brand-700">options</span>}
+                        {(e.groups.length > 0 || e.sizes.length > 0) && <span className="text-[0.6875rem] font-medium text-brand-700">{e.sizes.length ? `${e.sizes.length} size` : 'options'}</span>}
                       </span>
                     </span>
                   </button>
@@ -465,7 +476,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
                 <li key={l.key} className="py-2">
                   <div className="flex items-start gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[0.875rem] font-semibold text-slate-900">{l.entry.name}</p>
+                      <p className="truncate text-[0.875rem] font-semibold text-slate-900">{l.entry.name}{l.size && <span className="font-medium text-slate-500"> · {l.size.name}</span>}</p>
                       {l.modifiers.length > 0 && <p className="truncate text-[0.75rem] text-slate-500">{lineExtras({ modifiers: l.modifiers.map((m) => ({ quantity: m.quantity, modifierOption: { name: m.name } })) })}</p>}
                       {l.note && noteFor !== l.key && <p className="truncate text-[0.75rem] italic text-amber-700">“{l.note}”</p>}
                     </div>
@@ -499,7 +510,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
                 <span className="ml-auto text-[0.75rem] font-medium text-slate-500">{[svcPct ? `Service ${svcPct}%` : '', Number(taxPct) ? `Tax ${taxPct}%` : '', disc ? `Discount ${formatPKR(disc)}` : ''].filter(Boolean).join(' · ') || 'kholein'}</span>
               </summary>
               <div className="grid grid-cols-2 gap-2 border-t border-slate-100 p-3">
-                {mode === 'DINE_IN' && <NumField label="Service charge %" value={servicePct} onChange={setServicePct} hint="Is counter par yaad rahega" />}
+                {mode === 'DINE_IN' && <NumField label="Service charge %" value={serviceText} onChange={setServicePct} hint={shopService ? `Dukaan ka ${shopService}% (Settings) — sirf is order ke liye badlein` : 'Sirf is order ke liye; dukaan ka Settings → Counter rules me'} />}
                 <NumField label="Tax %" value={taxPct} onChange={setTaxPct} />
                 <NumField label="Discount (Rs)" value={discount} onChange={setDiscount} hint="Had se zyada ho to payment par PIN" />
                 {mode !== 'DINE_IN' && <NumField label="Packing (Rs)" value={packing} onChange={setPacking} />}

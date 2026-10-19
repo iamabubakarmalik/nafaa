@@ -94,6 +94,7 @@ export class SettingsCoreService {
         requirePinForVoid: true, requirePinForDiscount: true, requirePinForRefund: true, managerPin: true,
         enableLoyalty: true, loyaltyPointsPerRupee: true, loyaltyRedemptionRate: true,
         loyaltyMinRedeem: true, loyaltyMaxRedeemPercent: true,
+        serviceChargePct: true, exchangeDays: true,
       },
     });
     if (!s) return null;

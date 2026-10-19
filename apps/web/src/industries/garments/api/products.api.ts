@@ -107,6 +107,8 @@ interface SizeGridVariant {
   id: string; name: string; barcode?: string | null; sku?: string | null; price: number; isActive: boolean;
   size?: string | null; colorName?: string | null; colorHex?: string | null; lowStockAlert: number;
   stock: number; allStock: number; sold30: number;
+  /** Pieces held for customers in the branch (holds, instalment plans). */
+  reserved: number;
   byShop: Array<{ shopId: string; name: string; stock: number }>;
 }
 

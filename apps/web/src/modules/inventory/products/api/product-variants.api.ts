@@ -15,11 +15,17 @@ export interface ProductVariant {
   costPrice: number;
   wholesalePrice?: number | null;
   stock: number;
+  /** Pieces held for customers (garment hold, layaway); free to sell = stock − reserved. */
+  reserved?: number;
   lowStockAlert: number;
   imageUrl?: string | null;
   isActive: boolean;
   sortOrder: number;
 }
+
+/** Variant stock free to sell: stock less any pieces held for customers. */
+export const freeVariantStock = (v: Pick<ProductVariant, 'stock' | 'reserved'>) =>
+  Number(v.stock ?? 0) - Math.max(Number(v.reserved ?? 0), 0);
 
 export interface UpsertVariantPayload {
   name: string;

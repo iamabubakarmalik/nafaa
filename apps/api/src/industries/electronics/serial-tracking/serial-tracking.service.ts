@@ -215,6 +215,38 @@ export class SerialTrackingService {
     };
   }
 
+  /**
+   * Units that left with the given bills (any status, so a returned or
+   * claimed unit still shows on its bill), and which products on those
+   * bills need a serial. Used by sales history for the bills on screen.
+   */
+  async forSales(user: AuthenticatedUser, saleIdsParam?: string) {
+    const saleIds = [...new Set((saleIdsParam ?? '').split(',').map((v) => v.trim()).filter(Boolean))];
+    if (saleIds.length > 100) throw new BadRequestException('Ek dafa mein 100 bill tak');
+    if (!saleIds.length) return { serials: [], trackedProductIds: [] as string[] };
+    await releaseVoidedSerials(this.prisma, user.tenantId);
+    const [serials, lines] = await Promise.all([
+      this.prisma.electronicsSerialTracking.findMany({
+        where: { tenantId: user.tenantId, saleId: { in: saleIds } },
+        select: { id: true, saleId: true, saleItemId: true, productId: true, serialNumber: true, imei: true, status: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+      this.prisma.saleItem.findMany({
+        where: { saleId: { in: saleIds }, sale: { tenantId: user.tenantId }, productId: { not: null } },
+        select: { productId: true },
+        distinct: ['productId'],
+      }),
+    ]);
+    const productIds = lines.map((l) => l.productId as string);
+    const tracked = productIds.length
+      ? await this.prisma.electronicsProductProfile.findMany({
+          where: { tenantId: user.tenantId, productId: { in: productIds }, OR: [{ requiresSerial: true }, { hasImei: true }] },
+          select: { productId: true },
+        })
+      : [];
+    return { serials, trackedProductIds: tracked.map((t) => t.productId) };
+  }
+
   async getOne(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.electronicsSerialTracking.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Serial nahi mila');

@@ -26,7 +26,7 @@ const KOT_FLOW: KotStatus[] = ['PENDING', 'PRINTED', 'ACKNOWLEDGED', 'COOKING', 
 const kitchenInclude = {
   items: {
     include: {
-      product: { select: { id: true, name: true, unit: true, categoryId: true } },
+      product: { select: { id: true, name: true, unit: true, categoryId: true, variants: { select: { id: true, name: true } } } },
       modifiers: { include: { modifierOption: { select: { name: true } } } },
     },
   },
@@ -41,7 +41,8 @@ function snapshotLine(it: KitchenLine, quantity = it.quantity) {
   return {
     id: it.id,
     productId: it.productId,
-    name: it.product?.name ?? 'Item',
+    // The size goes on the ticket: the kitchen cooks a half and a full plate differently.
+    name: [it.product?.name ?? 'Item', it.product?.variants.find((v) => v.id === it.variantId)?.name].filter(Boolean).join(' · '),
     quantity,
     unit: it.unit,
     modifiers: it.modifiers.map((m) => (m.quantity > 1 ? `${m.quantity}× ` : '') + m.modifierOption.name),

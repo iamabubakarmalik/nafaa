@@ -448,6 +448,8 @@ model Tenant {
   restaurantOrders         RestaurantOrder[]
   salonAppointmentLegacies SalonAppointmentLegacy[]
 
+  restaurantMenuAvailability RestaurantMenuAvailability[]
+
   // ── Marketplace relations ──
   marketplaceShopProfiles    ShopMarketplaceProfile[]
   marketplaceProductProfiles ProductMarketplaceProfile[]
@@ -663,6 +665,7 @@ model Shop {
   moneyAccounts    MoneyAccount[]
   moneyEntries     MoneyAccountEntry[]
   salePayments     SalePayment[]
+  menuAvailability RestaurantMenuAvailability[]
 
   // ── Marketplace relations ──
   marketplaceProfile  ShopMarketplaceProfile?
@@ -967,6 +970,7 @@ model Product {
   damageLogs           DamageLog[]
   menuItem             RestaurantMenuItem?
   recipeIngredients    RecipeIngredient[]    @relation("IngredientProduct")
+  modifierOptions      ModifierOption[]      @relation("ModifierOptionIngredient")
   restaurantOrderItems RestaurantOrderItem[] @relation("RestaurantOrderProduct")
   pharmacyMedicine     PharmacyMedicine?     @relation("PharmacyMedicine")
   productSalts         ProductSalt[]         @relation("ProductSalt")
@@ -1101,6 +1105,7 @@ model ProductVariant {
   units           ProductUnit[]
   comboItems      ProductComboItem[]
   damageLogs      DamageLog[]
+  recipeFactors   RecipeSizeFactor[]
 
   @@index([productId])
   @@index([productId, isActive])
@@ -2336,6 +2341,10 @@ model TenantSettings {
   showProductImages      Boolean @default(true)
   enableBarcodeScanner   Boolean @default(true)
   enableQuickKeys        Boolean @default(true)
+  /// Dine-in service charge, percent of the bill; 0 = none.
+  serviceChargePct       Float   @default(0)
+  /// Days after a sale within which goods may be exchanged; 0 = not set.
+  exchangeDays           Int     @default(0)
 
   // ===== 6. INVENTORY =====
   defaultLowStockAlert Int     @default(10)
@@ -3095,6 +3104,9 @@ model ShopStock {
 
   stock         Float @default(0)
   lowStockAlert Float @default(5)
+  /// Pieces held for customers (reservations, layaway). Still counted in
+  /// stock; available to sell = stock − reserved.
+  reserved      Float @default(0)
 
   // Optional shop-specific overrides
   shopPrice     Float? // If null, use product.price
@@ -3395,7 +3407,8 @@ model UsedPhone {
   soldSaleItem  SaleItem?
 
   @@unique([tenantId, usedPhoneCode])
-  @@unique([tenantId, imei1])
+  // Not unique: the same phone can be bought back after it was sold.
+  @@index([tenantId, imei1])
   @@index([tenantId])
   @@index([tenantId, status])
   @@index([tenantId, condition])
@@ -3515,6 +3528,8 @@ model RepairTicket {
   notes        String?   @db.Text
   warrantyDays Int       @default(7) // Repair warranty
   warrantyEnds DateTime?
+  /// Set when this ticket is a warranty return of an earlier repair.
+  warrantyOfId String?
 
   createdById String?
   createdAt   DateTime @default(now())
@@ -3533,6 +3548,9 @@ model RepairTicket {
   statusLog RepairStatusLog[]
   payments  RepairPayment[]
 
+  warrantyOf      RepairTicket?  @relation("RepairTicketWarranty", fields: [warrantyOfId], references: [id], onDelete: SetNull)
+  warrantyRepairs RepairTicket[] @relation("RepairTicketWarranty")
+
   @@unique([tenantId, ticketNumber])
   @@index([tenantId])
   @@index([tenantId, status])
@@ -3540,6 +3558,7 @@ model RepairTicket {
   @@index([customerId])
   @@index([shopId])
   @@index([imei1])
+  @@index([warrantyOfId])
 }
 
 model RepairPart {
@@ -4189,9 +4208,10 @@ model RestaurantMenuItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product   Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
-  modifiers MenuItemModifier[]
-  recipe    Recipe?
+  product      Product                      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  modifiers    MenuItemModifier[]
+  recipe       Recipe?
+  availability RestaurantMenuAvailability[]
 
   @@index([tenantId])
   @@index([tenantId, isAvailable])
@@ -4236,14 +4256,21 @@ model ModifierOption {
   isActive        Boolean @default(true)
   emoji           String? // 🧀 🌶️ 🥩
 
+  // Raw material this add-on uses up (e.g. extra cheese), per portion.
+  ingredientProductId String?
+  ingredientQty       Float?
+  ingredientUnit      String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   modifierGroup  ModifierGroup                 @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
   orderModifiers RestaurantOrderItemModifier[]
+  ingredient     Product?                      @relation("ModifierOptionIngredient", fields: [ingredientProductId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([modifierGroupId])
+  @@index([ingredientProductId])
 }
 
 // ─── Link: which modifiers apply to which menu items ───
@@ -4279,6 +4306,7 @@ model Recipe {
 
   menuItem    RestaurantMenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
   ingredients RecipeIngredient[]
+  sizeFactors RecipeSizeFactor[]
 
   @@index([tenantId])
 }
@@ -4288,13 +4316,15 @@ model RecipeIngredient {
   recipeId            String
   ingredientProductId String // The raw material product
 
-  quantity     Float
-  unit         String // "kg", "g", "ml", "piece"
-  costPerUnit  Float   @default(0)
-  totalCost    Float   @default(0)
-  isOptional   Boolean @default(false)
-  notes        String?
-  displayOrder Int     @default(0)
+  quantity       Float
+  unit           String // "kg", "g", "ml", "piece"
+  /// Percent lost in cleaning/cooking, on top of quantity.
+  wastagePercent Float   @default(0)
+  costPerUnit    Float   @default(0)
+  totalCost      Float   @default(0)
+  isOptional     Boolean @default(false)
+  notes          String?
+  displayOrder   Int     @default(0)
 
   createdAt DateTime @default(now())
 
@@ -4303,6 +4333,48 @@ model RecipeIngredient {
 
   @@index([recipeId])
   @@index([ingredientProductId])
+}
+
+// ─── Recipe per size: each size uses the recipe times its factor ───
+model RecipeSizeFactor {
+  id        String @id @default(uuid())
+  tenantId  String
+  recipeId  String
+  variantId String
+
+  factor Float @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recipe  Recipe         @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, variantId])
+  @@index([tenantId])
+  @@index([variantId])
+}
+
+// ─── Per-branch "86": a dish switched off at one branch, optionally until a time ───
+model RestaurantMenuAvailability {
+  id         String @id @default(uuid())
+  tenantId   String
+  shopId     String
+  menuItemId String
+
+  isAvailable Boolean   @default(true)
+  until       DateTime?
+  updatedById String?
+
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop     Shop               @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  menuItem RestaurantMenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, menuItemId])
+  @@index([tenantId])
+  @@index([menuItemId])
 }
 
 // ─── Tables (enhance existing RestaurantTable model with more fields) ───
@@ -4477,6 +4549,9 @@ model RestaurantOrderItem {
   isReturned      Boolean               @default(false)
   returnReason    String?
 
+  /// Happy-hour rule that priced this line, if any.
+  happyHourRuleId String?
+
   // Kitchen tracking
   sentToKitchenAt  DateTime?
   cookingStartedAt DateTime?
@@ -4486,13 +4561,15 @@ model RestaurantOrderItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  order     RestaurantOrder               @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product                       @relation("RestaurantOrderProduct", fields: [productId], references: [id], onDelete: Restrict)
-  modifiers RestaurantOrderItemModifier[]
+  order         RestaurantOrder               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product                       @relation("RestaurantOrderProduct", fields: [productId], references: [id], onDelete: Restrict)
+  modifiers     RestaurantOrderItemModifier[]
+  happyHourRule HappyHourRule?                @relation(fields: [happyHourRuleId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
   @@index([productId])
   @@index([status])
+  @@index([happyHourRuleId])
 }
 
 // ─── Modifier selections per order item ───
@@ -4726,6 +4803,8 @@ model HappyHourRule {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  orderItems RestaurantOrderItem[]
 
   @@index([tenantId])
   @@index([tenantId, isActive])
@@ -5462,6 +5541,9 @@ model GarmentCollection {
   isActive     Boolean @default(true)
   displayOrder Int     @default(0)
 
+  /// Sale running on the whole collection, percent off; null = no sale.
+  salePercent Float?
+
   totalProducts Int   @default(0)
   totalSales    Float @default(0)
 
@@ -5555,6 +5637,8 @@ model GarmentProductProfile {
   isFeatured   Boolean @default(false)
   isBestSeller Boolean @default(false)
   isOnSale     Boolean @default(false)
+  /// Price before the sale, restored when the sale ends.
+  regularPrice Float?
 
   totalSold        Int @default(0)
   totalReturns     Int @default(0)
@@ -5598,6 +5682,8 @@ model GarmentVariantProfile {
 
   weightGrams  Float?
   fabricMeters Float?
+  /// Price before the sale, restored when the sale ends.
+  regularPrice Float?
 
   displayOrder    Int     @default(0)
   isAvailable     Boolean @default(true)
@@ -16918,6 +17004,14 @@ enum ElectronicsCategoryType {
   MICROPHONE
   TRIPOD
   GIMBAL
+  TV
+  LAPTOP
+  TABLET
+  DESKTOP
+  PRINTER
+  GAMING_CONSOLE
+  HOME_THEATER
+  UPS
   OTHER
 }
 

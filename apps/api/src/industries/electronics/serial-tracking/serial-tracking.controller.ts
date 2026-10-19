@@ -31,6 +31,8 @@ export class SerialTrackingController {
   }
   @Get('lookup/:code') lookup(@GetUser() user: AuthenticatedUser, @Param('code') code: string) { return this.service.lookupBySerialOrImei(user, code); }
   @Get('warranty-check/:code') warranty(@GetUser() user: AuthenticatedUser, @Param('code') code: string) { return this.service.warrantyCheck(user, code); }
+  /** Units on the given bills (comma-separated ids, up to 100), for sales history. */
+  @Get('for-sales') forSales(@GetUser() user: AuthenticatedUser, @Query('saleIds') saleIds?: string) { return this.service.forSales(user, saleIds); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertSerialDto) { return this.service.update(user, id, dto); }
   @Post(':id/sell') sell(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: SellSerialDto) { return this.service.sell(user, id, dto); }

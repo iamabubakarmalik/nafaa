@@ -18,9 +18,9 @@ industries/<id>/pos/
   <Name>Pos.tsx  renders <PosScreen config={...} />
 ```
 
-On the engine: **retail**, **bakery**, **electronics**, **general**. Other
-industries still run their own POS pages and move over when their industry
-flow is rebuilt.
+On the engine: **retail**, **bakery**, **electronics**, **pharmacy**,
+**mobile**, **general**. Other industries still run their own POS pages and
+move over when their industry flow is rebuilt.
 
 ## What the engine does
 
@@ -57,5 +57,11 @@ Write `industries/<id>/pos/config.ts`:
   (`api.openPicker`) or asking for confirmation; call `api.addItem` with the
   answer (`serial`, `oversell`, `confirmed`…).
 - `scan(code, api)` — industry codes (serial/IMEI) before product barcodes.
+- `beforeCheckout(cart)` — return a message to stop checkout (checked when
+  checkout opens, on F12 cash and again before the bill is sent).
+- `onSale(sale)` — runs after the server saves a bill; never for a bill
+  queued offline.
+- Variant stock: a variant's `reserved` (pieces held for customers) is taken
+  off its stock in the size picker and in the stock check.
 
 Then add it to `PosGate` and the industry pack's `/pos` route.

@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, Recycle, ScanLine, Search, ShieldCheck, ShieldOff, Smartphone, Wrench } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, History, Recycle, ScanLine, Search, ShieldCheck, ShieldOff, Smartphone, Wrench } from 'lucide-react';
 import { Button, Modal, Skeleton } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { cn } from '@core/lib/cn';
@@ -26,6 +26,14 @@ export function ImeiLookupModal({ initial = '', onClose }: { initial?: string; o
   const d = q.data;
   const empty = d && !d.newPhones.length && !d.usedPhones.length && !d.repairs.length;
   const run = () => { const c = digits(text); if (c.length >= 5) setCode(c); };
+  // Each time the phone came in, oldest first: sold new, then bought back (maybe more than once).
+  const visits = d ? d.newPhones.filter((p) => p.status === 'SOLD').length + d.usedPhones.length : 0;
+  const order = new Map((d?.usedPhones ?? []).slice().reverse().map((u, i) => [u.id, i + 1]));
+  const soldNew = d?.newPhones.some((p) => p.status === 'SOLD') ?? false;
+  const visitLabel = (id: string) => {
+    const nth = order.get(id) ?? 1;
+    return `${nth > 1 || soldNew ? 'Wapas khareeda' : 'Pehli dafa liya'}${order.size > 1 ? ` · ${nth}/${order.size}` : ''}`;
+  };
 
   return (
     <Modal open onClose={onClose} size="lg" title="IMEI check" description="Warranty, bill, purana record — sab ek jagah">
@@ -54,6 +62,12 @@ export function ImeiLookupModal({ initial = '', onClose }: { initial?: string; o
             <p className="mt-2 font-semibold text-slate-800">Is dukaan me is IMEI ka koi record nahi</p>
             <p className="mt-1 text-[0.8125rem] text-slate-500">Na ye phone yahan se bika, na khareeda gaya, na repair hua.</p>
           </div>
+        )}
+
+        {visits > 1 && (
+          <p className="flex items-center gap-1.5 rounded-xl bg-sky-50 px-3 py-2 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
+            <History className="h-4 w-4" />Ye phone {visits} dafa is dukaan me aaya — neeche har dafa ka record hai (naya pehle).
+          </p>
         )}
 
         {d?.newPhones.map((p) => {
@@ -92,6 +106,7 @@ export function ImeiLookupModal({ initial = '', onClose }: { initial?: string; o
               <Link to={`/used-phones/${u.id}`} onClick={onClose} className="font-semibold text-slate-900 hover:text-brand-700">{u.brand} {u.model}{u.storage ? ` ${u.storage}` : ''}</Link>
               <span className="font-mono text-[0.75rem] text-slate-500">{u.usedPhoneCode}</span>
               <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', usedStatusOf(u.status).tone)}>{usedStatusOf(u.status).label}</span>
+              {visits > 1 && <span className="text-[0.75rem] text-slate-500">{visitLabel(u.id)}</span>}
             </div>
             <dl className="mt-2 grid gap-x-6 gap-y-1 text-[0.8125rem] sm:grid-cols-2">
               <div className="flex justify-between"><dt className="text-slate-500">Kis se liya</dt><dd>{u.fromCustomerName || '—'}{u.fromCustomerPhone ? ` · ${u.fromCustomerPhone}` : ''}</dd></div>
@@ -111,6 +126,7 @@ export function ImeiLookupModal({ initial = '', onClose }: { initial?: string; o
               <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', repairStatusOf(r.status).tone)}>{repairStatusOf(r.status).label}</span>
               {r.warrantyActive && <span className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" />Repair warranty {dayOnly(r.warrantyEnds)} tak</span>}
             </div>
+            {r.warrantyOf && <p className="mt-1 text-[0.75rem] text-cyan-800">Warranty claim — pehla job <Link to={`/repair-tickets/${r.warrantyOf.id}`} onClick={onClose} className="font-mono font-semibold hover:underline">{r.warrantyOf.ticketNumber}</Link></p>}
             <p className="mt-1 text-[0.8125rem] text-slate-600">{r.deviceBrand} {r.deviceModel} — {r.diagnosedIssue || r.reportedIssue}</p>
             <p className="text-[0.75rem] text-slate-500">{r.customerName} · {r.customerPhone} · {dayOnly(r.receivedAt)} · {formatPKR(r.totalCost)}</p>
           </section>
