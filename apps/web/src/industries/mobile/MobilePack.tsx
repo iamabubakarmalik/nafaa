@@ -1,17 +1,26 @@
 // apps/web/src/industries/mobile/MobilePack.tsx
-import { Smartphone, RefreshCw, Wrench, CreditCard, BarChart3, Sparkles } from 'lucide-react';
+import { Smartphone, RefreshCw, Wrench, CreditCard } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 // Pages
 import GlobalImeiInventoryPage from './pages/GlobalImeiInventoryPage';
 import UsedPhonesPage from './pages/UsedPhonesPage';
+import UsedPhoneFormPage from './pages/UsedPhoneFormPage';
+import UsedPhoneDetailPage from './pages/UsedPhoneDetailPage';
 import EmiPlansPage from './pages/EmiPlansPage';
 import EmiPlanDetailPage from './pages/EmiPlanDetailPage';
 import RepairTicketsPage from './pages/RepairTicketsPage';
+import RepairTicketFormPage from './pages/RepairTicketFormPage';
 import RepairTicketDetailPage from './pages/RepairTicketDetailPage';
 import MobileProductWizardPage from './pages/MobileProductWizardPage';
 import MobileProductDetailPage from './pages/MobileProductDetailPage';
 import MobileDashboard from './dashboard/MobileDashboard';
+
+const IMEI_VIEW = 'mobile.imei.view';
+const IMEI_MANAGE = 'mobile.imei.manage';
+const REPAIRS_VIEW = 'mobile.repairs.view';
+const REPAIRS_MANAGE = 'mobile.repairs.manage';
+const KHATA_VIEW = 'khata.view';
 
 /**
  * Mobile industry pack — STRICT MATCHING
@@ -26,7 +35,7 @@ export const MobilePack: IndustryPack = {
   emoji: '📱',
   priority: 80,
   description:
-    'IMEI tracking, PTA compliance, used phone trade-in, repair tickets, EMI installment plans.',
+    'IMEI stock, PTA, used phone khareed aur trade-in, repair job cards, qist plans.',
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -69,30 +78,36 @@ export const MobilePack: IndustryPack = {
       color: '#2563eb',
       order: 20,
       items: [
-        { to: '/imei-inventory', label: 'IMEI Inventory', icon: Smartphone },
-        { to: '/used-phones', label: 'Used Phones', icon: RefreshCw },
-        { to: '/repair-tickets', label: 'Repairs', icon: Wrench },
-        { to: '/emi-plans', label: 'EMI Plans', icon: CreditCard },
+        { to: '/imei-inventory', label: 'IMEI stock', icon: Smartphone, permission: IMEI_VIEW },
+        { to: '/used-phones', label: 'Used phones', icon: RefreshCw, permission: IMEI_VIEW },
+        { to: '/repair-tickets', label: 'Repairs', icon: Wrench, permission: REPAIRS_VIEW },
+        { to: '/emi-plans', label: 'Qist plans', icon: CreditCard, permission: KHATA_VIEW },
       ],
     },
   ],
 
   routes: [
-    // Wizard — highest priority mobile routes
-    { path: '/mobile-products/new', element: MobileProductWizardPage },
-    { path: '/mobile-products/:id/edit', element: MobileProductWizardPage },
-    // Detail view — comes AFTER edit so /:id/edit isn't swallowed
-    { path: '/mobile-products/:id', element: MobileProductDetailPage },
+    // Product editor and detail (the shared pages through mobile config)
+    { path: '/mobile-products/new', element: MobileProductWizardPage, permission: 'products.create' },
+    { path: '/mobile-products/:id/edit', element: MobileProductWizardPage, permission: 'products.edit' },
+    { path: '/mobile-products/:id', element: MobileProductDetailPage, permission: 'products.view' },
 
-    // Existing pages
-    { path: '/imei-inventory', element: GlobalImeiInventoryPage },
-    // Ek hi page dono kaam karta hai — :id ho to us product par scope ho jata hai
-    { path: '/products/:id/imei', element: GlobalImeiInventoryPage },
-    { path: '/used-phones', element: UsedPhonesPage },
-    { path: '/repair-tickets', element: RepairTicketsPage },
-    { path: '/repair-tickets/:id', element: RepairTicketDetailPage },
-    { path: '/emi-plans', element: EmiPlansPage },
-    { path: '/emi-plans/:id', element: EmiPlanDetailPage },
+    { path: '/imei-inventory', element: GlobalImeiInventoryPage, permission: IMEI_VIEW },
+    // Same page scoped to one product
+    { path: '/products/:id/imei', element: GlobalImeiInventoryPage, permission: IMEI_VIEW },
+
+    { path: '/used-phones', element: UsedPhonesPage, permission: IMEI_VIEW },
+    { path: '/used-phones/new', element: UsedPhoneFormPage, permission: IMEI_MANAGE },
+    { path: '/used-phones/:id/edit', element: UsedPhoneFormPage, permission: IMEI_MANAGE },
+    { path: '/used-phones/:id', element: UsedPhoneDetailPage, permission: IMEI_VIEW },
+
+    { path: '/repair-tickets', element: RepairTicketsPage, permission: REPAIRS_VIEW },
+    { path: '/repair-tickets/new', element: RepairTicketFormPage, permission: REPAIRS_MANAGE },
+    { path: '/repair-tickets/:id/edit', element: RepairTicketFormPage, permission: REPAIRS_MANAGE },
+    { path: '/repair-tickets/:id', element: RepairTicketDetailPage, permission: REPAIRS_VIEW },
+
+    { path: '/emi-plans', element: EmiPlansPage, permission: KHATA_VIEW },
+    { path: '/emi-plans/:id', element: EmiPlanDetailPage, permission: KHATA_VIEW },
   ],
 
   dashboardComponent: MobileDashboard,

@@ -14,6 +14,7 @@ import { AddPaymentDto } from './dto/add-payment.dto';
 import { DeliverRepairDto } from './dto/deliver-repair.dto';
 import { QueryRepairsDto } from './dto/query-repairs.dto';
 import { RepairsService } from './repairs.service';
+import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Repair Tickets')
 @ApiBearerAuth()
@@ -28,8 +29,14 @@ export class RepairsController {
   }
 
   @Get('stats')
-  stats(@GetUser() user: AuthenticatedUser) {
-    return this.service.stats(user);
+  stats(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
+    return this.service.stats(user, shopId);
+  }
+
+  /** Technician names used on tickets, with their open jobs. */
+  @Get('technicians')
+  technicians(@GetUser() user: AuthenticatedUser) {
+    return this.service.technicians(user);
   }
 
   @Get(':id')
@@ -87,7 +94,7 @@ export class RepairsController {
     return this.service.updateStatus(user, id, dto);
   }
 
-  /** Counter par ek hi step: baqi paisa lo, deliver karo, sale ban jaye. */
+  /** One step at the counter: take the balance, hand the phone back, post the bill. */
   @Post(':id/deliver')
   deliver(
     @GetUser() user: AuthenticatedUser,

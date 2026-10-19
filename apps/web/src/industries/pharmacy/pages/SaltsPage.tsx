@@ -1,243 +1,287 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Beaker, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Package, AlertTriangle, ShieldAlert, Ban, Heart, Baby,
-} from 'lucide-react';
-import { saltsApi, type Salt, type DrugScheduleClass } from '../api/salts.api';
-import { Button } from '@/design-system/components';
+/**
+ * Salts (generic names): every formula the shop stocks, the brands that
+ * carry it with price and shelf stock (so the counter can offer a cheaper
+ * or available substitute), its schedule, and which salts clash with each
+ * other. Salts are switched off, never deleted.
+ */
+
+import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { AlertTriangle, ArrowDownWideNarrow, Baby, Beaker, GraduationCap, HeartPulse, Pencil, Pill, Plus, Power, ShieldAlert, Trash2, Zap } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea, ViewTabs,
+  heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { interactionsApi, type DrugInteraction } from '../api/interactions.api';
+import { saltsApi, type DrugScheduleClass, type Salt } from '../api/salts.api';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { REGISTER_CLASSES, SCHEDULES, SCHEDULE_META } from '../lib/meta';
 
-const SCHEDULE_CONFIG: Record<DrugScheduleClass, { label: string; color: string; bg: string }> = {
-  OTC: { label: 'OTC', color: 'text-emerald-700', bg: 'bg-emerald-100 dark:bg-emerald-950/40' },
-  SCHEDULE_G: { label: 'Schedule G', color: 'text-blue-700', bg: 'bg-blue-100 dark:bg-blue-950/40' },
-  SCHEDULE_H: { label: 'Schedule H', color: 'text-amber-700', bg: 'bg-amber-100 dark:bg-amber-950/40' },
-  SCHEDULE_X: { label: 'Schedule X', color: 'text-rose-700', bg: 'bg-rose-100 dark:bg-rose-950/40' },
-  CONTROLLED: { label: 'Controlled', color: 'text-red-700', bg: 'bg-red-100 dark:bg-red-950/40' },
-  NARCOTIC: { label: 'Narcotic', color: 'text-red-800', bg: 'bg-red-200 dark:bg-red-950/60' },
-  PSYCHOTROPIC: { label: 'Psychotropic', color: 'text-purple-700', bg: 'bg-purple-100 dark:bg-purple-950/40' },
+type Tab = 'all' | 'rx' | 'register' | 'off' | 'clash';
+const SEVERITY: Record<DrugInteraction['severity'], { label: string; tone: string }> = {
+  MINOR: { label: 'Halka', tone: 'bg-slate-100 text-slate-700' },
+  MODERATE: { label: 'Darmiyana', tone: 'bg-amber-50 text-amber-800' },
+  MAJOR: { label: 'Sakht', tone: 'bg-rose-50 text-rose-700' },
+  CONTRAINDICATED: { label: 'Ek saath mana', tone: 'bg-rose-600 text-white' },
 };
+const apiError = (e: unknown) => { const m = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message; return (Array.isArray(m) ? m[0] : m) ?? 'Save nahi hua'; };
+const isRegister = (s: Salt) => s.isNarcotic || REGISTER_CLASSES.includes(s.scheduleClass);
 
-export default function SaltsPage() {
-  const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [scheduleFilter, setScheduleFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Salt | null>(null);
+interface ProductRow { product: { id: string; name: string; price: number; stock: number; isActive: boolean; brand?: { name: string } | null }; strength: string }
 
-  const { data: salts = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['salts', search, scheduleFilter],
-    queryFn: () => saltsApi.list({
-      search: search || undefined,
-      scheduleClass: scheduleFilter === 'all' ? undefined : scheduleFilter,
-    }),
+function SaltModal({ salt, onClose, onSaved }: { salt: Salt | null; onClose: () => void; onSaved: () => void }) {
+  const [d, setD] = useState({
+    name: salt?.name ?? '', genericName: salt?.genericName ?? '', category: salt?.category ?? '', standardDose: salt?.standardDose ?? '', maxDailyDose: salt?.maxDailyDose ?? '',
+    scheduleClass: (salt?.scheduleClass ?? 'OTC') as DrugScheduleClass, requiresPrescription: salt?.requiresPrescription ?? false, isNarcotic: salt?.isNarcotic ?? false,
+    isPregnancySafe: salt?.isPregnancySafe ?? false, isPediatricSafe: salt?.isPediatricSafe ?? false, sideEffects: salt?.sideEffects ?? '', warnings: salt?.warnings ?? '',
   });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => saltsApi.remove(id),
-    onSuccess: () => { toast.success('Salt deactivated'); queryClient.invalidateQueries({ queryKey: ['salts'] }); },
-  });
-
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-blue-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Drug Master
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🧪 Salts / Drug Master</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Generic ingredients — Paracetamol, Amoxicillin etc.</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Salt
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search salt name, generic name..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-cyan-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {['all', ...Object.keys(SCHEDULE_CONFIG)].map((s) => (
-            <button key={s} onClick={() => setScheduleFilter(s)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (scheduleFilter === s ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
-            }>
-              {s === 'all' ? 'All' : SCHEDULE_CONFIG[s as DrugScheduleClass]?.label || s}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <SaltForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['salts'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : salts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Beaker className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No salts</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {salts.map((salt) => {
-            const sCfg = SCHEDULE_CONFIG[salt.scheduleClass];
-            return (
-              <div key={salt.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">{salt.name}</h3>
-                    {salt.genericName && <div className="text-xs text-slate-500 font-bold truncate">{salt.genericName}</div>}
-                    {salt.category && <div className="text-[0.6875rem] uppercase font-extrabold text-cyan-600 mt-0.5">{salt.category}</div>}
-                  </div>
-                  <span className={'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ' + sCfg.bg + ' ' + sCfg.color}>
-                    {sCfg.label}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-1">
-                  {salt.requiresPrescription && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase">Rx</span>}
-                  {salt.isNarcotic && <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/40 text-red-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><ShieldAlert className="h-2 w-2" />Narcotic</span>}
-                  {salt.isBanned && <span className="px-1.5 py-0.5 rounded bg-black text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Ban className="h-2 w-2" />Banned</span>}
-                  {!salt.isPregnancySafe && <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Heart className="h-2 w-2" />Not preg</span>}
-                  {!salt.isPediatricSafe && <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Baby className="h-2 w-2" />Not ped</span>}
-                </div>
-
-                {salt.standardDose && (
-                  <div className="text-xs text-slate-600 font-semibold">Dose: <span className="font-extrabold text-slate-900">{salt.standardDose}</span></div>
-                )}
-
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
-                  <span className="inline-flex items-center gap-1 text-slate-500 font-bold">
-                    <Package className="h-3 w-3" />
-                    {salt._count?.productSalts || 0} products
-                  </span>
-                  <div className="flex gap-1">
-                    <button onClick={() => { setEditing(salt); setShowForm(true); }} className="h-7 w-7 rounded bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-                      <Edit3 className="h-3 w-3" />
-                    </button>
-                    <button onClick={() => { if (confirm('Deactivate ' + salt.name + '?')) removeMutation.mutate(salt.id); }} className="h-7 w-7 rounded bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function SaltForm({ editing, onClose, onSaved }: { editing: Salt | null; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState({
-    name: editing?.name ?? '',
-    genericName: editing?.genericName ?? '',
-    code: editing?.code ?? '',
-    category: editing?.category ?? '',
-    description: editing?.description ?? '',
-    standardDose: editing?.standardDose ?? '',
-    maxDailyDose: editing?.maxDailyDose ?? '',
-    routeOfAdmin: editing?.routeOfAdmin ?? '',
-    scheduleClass: editing?.scheduleClass ?? ('OTC' as DrugScheduleClass),
-    requiresPrescription: editing?.requiresPrescription ?? false,
-    isNarcotic: editing?.isNarcotic ?? false,
-    isBanned: editing?.isBanned ?? false,
-    isPregnancySafe: editing?.isPregnancySafe ?? true,
-    isLactationSafe: editing?.isLactationSafe ?? true,
-    isPediatricSafe: editing?.isPediatricSafe ?? true,
-    minAgeYears: editing?.minAgeYears ?? '',
-    contraindications: editing?.contraindications ?? '',
-    sideEffects: editing?.sideEffects ?? '',
-    warnings: editing?.warnings ?? '',
-  });
-
-  const saveMutation = useMutation({
+  const [tried, setTried] = useState(false);
+  const set = <K extends keyof typeof d>(k: K, v: (typeof d)[K]) => setD((x) => ({ ...x, [k]: v }));
+  const save = useMutation({
     mutationFn: () => {
-      const payload: any = { ...form, minAgeYears: form.minAgeYears ? Number(form.minAgeYears) : undefined };
-      return editing ? saltsApi.update(editing.id, payload) : saltsApi.create(payload);
+      const opt = (v: string) => v.trim() || undefined;
+      const body = {
+        name: d.name.trim(), genericName: opt(d.genericName), category: opt(d.category), standardDose: opt(d.standardDose), maxDailyDose: opt(d.maxDailyDose),
+        scheduleClass: d.scheduleClass, requiresPrescription: d.requiresPrescription || d.isNarcotic, isNarcotic: d.isNarcotic,
+        isPregnancySafe: d.isPregnancySafe, isPediatricSafe: d.isPediatricSafe, sideEffects: opt(d.sideEffects), warnings: opt(d.warnings),
+      };
+      return salt ? saltsApi.update(salt.id, body) : saltsApi.create(body);
     },
-    onSuccess: () => { toast.success(editing ? 'Salt updated' : 'Salt created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: () => { toast.success(salt ? 'Salt update ho gaya' : 'Salt ban gaya'); onSaved(); },
+    onError: (e) => toast.error(apiError(e)),
   });
-
+  const submit = (e: FormEvent) => { e.preventDefault(); setTried(true); if (d.name.trim().length < 2) return; save.mutate(); };
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Salt' : 'New Salt'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Salt Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.genericName} onChange={(e) => setForm({ ...form, genericName: e.target.value })} placeholder="Generic Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="ATC Code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Category (Analgesic, Antibiotic)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.standardDose} onChange={(e) => setForm({ ...form, standardDose: e.target.value })} placeholder="Standard Dose" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.maxDailyDose} onChange={(e) => setForm({ ...form, maxDailyDose: e.target.value })} placeholder="Max Daily Dose" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.routeOfAdmin} onChange={(e) => setForm({ ...form, routeOfAdmin: e.target.value })} placeholder="Route (Oral, IV)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input type="number" value={form.minAgeYears} onChange={(e) => setForm({ ...form, minAgeYears: e.target.value })} placeholder="Min Age (years)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
-        </div>
-
-        <select value={form.scheduleClass} onChange={(e) => setForm({ ...form, scheduleClass: e.target.value as any })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
-          {Object.entries(SCHEDULE_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {[
-            { key: 'requiresPrescription', label: 'Requires Rx', color: 'amber' },
-            { key: 'isNarcotic', label: 'Narcotic', color: 'red' },
-            { key: 'isBanned', label: 'Banned', color: 'slate' },
-            { key: 'isPregnancySafe', label: 'Preg Safe', color: 'pink' },
-            { key: 'isLactationSafe', label: 'Lactation Safe', color: 'purple' },
-            { key: 'isPediatricSafe', label: 'Pediatric Safe', color: 'orange' },
-          ].map((opt) => (
-            <label key={opt.key} className={
-              'flex items-center gap-2 p-2 rounded-xl border-2 cursor-pointer text-xs font-extrabold transition ' +
-              ((form as any)[opt.key] ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-cyan-300')
-            }>
-              <input type="checkbox" checked={(form as any)[opt.key]} onChange={(e) => setForm({ ...form, [opt.key]: e.target.checked })} className="h-4 w-4 rounded" />
-              <span>{opt.label}</span>
+    <Modal open onClose={onClose} size="lg" title={salt ? `${salt.name} — badlein` : 'Naya salt'} description="Generic naam — jaise Paracetamol, Amoxicillin. Strength har dawai par alag likhi jati hai."
+      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="salt-form" loading={save.isPending}>Save</Button></div>}>
+      <form id="salt-form" onSubmit={submit} className="grid gap-3 sm:grid-cols-2"
+        onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
+        <Input label="Naam" required autoFocus value={d.name} onChange={(e) => set('name', e.target.value)} placeholder="Paracetamol" error={tried && d.name.trim().length < 2 ? 'Naam likhein' : undefined} />
+        <Input label="Doosra naam" value={d.genericName} onChange={(e) => set('genericName', e.target.value)} placeholder="Acetaminophen" hint="Search me bhi milega" />
+        <Input label="Group" value={d.category} onChange={(e) => set('category', e.target.value)} placeholder="Dard, Antibiotic…" />
+        <Select label="Schedule" value={d.scheduleClass} onChange={(e) => set('scheduleClass', e.target.value as DrugScheduleClass)} options={SCHEDULES.map((k) => ({ value: k, label: SCHEDULE_META[k].label }))} hint={SCHEDULE_META[d.scheduleClass]?.hint} />
+        <Input label="Aam dose" value={d.standardDose} onChange={(e) => set('standardDose', e.target.value)} placeholder="500mg 3 dafa" />
+        <Input label="Din me zyada se zyada" value={d.maxDailyDose} onChange={(e) => set('maxDailyDose', e.target.value)} placeholder="4g" />
+        <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
+          {([['requiresPrescription', 'Nuskhe par', 'Rx'], ['isNarcotic', 'Narcotic / register', 'Har sale register me'], ['isPregnancySafe', 'Hamal me theek', ''], ['isPediatricSafe', 'Bachon ke liye theek', '']] as const).map(([k, label, hint]) => (
+            <label key={k} className="flex items-center gap-2.5 rounded-xl p-2.5 ring-1 ring-slate-200">
+              <input type="checkbox" checked={d[k]} onChange={(e) => set(k, e.target.checked)} className="h-4 w-4 rounded" />
+              <span className="text-[0.875rem] font-medium text-slate-800">{label}{hint && <span className="block text-[0.75rem] font-normal text-slate-500">{hint}</span>}</span>
             </label>
           ))}
         </div>
+        <Textarea label="Side effects" rows={2} value={d.sideEffects} onChange={(e) => set('sideEffects', e.target.value)} />
+        <Textarea label="Ehtiyat" rows={2} value={d.warnings} onChange={(e) => set('warnings', e.target.value)} />
+      </form>
+    </Modal>
+  );
+}
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
-        <textarea rows={2} value={form.contraindications} onChange={(e) => setForm({ ...form, contraindications: e.target.value })} placeholder="Contraindications" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
-        <textarea rows={2} value={form.sideEffects} onChange={(e) => setForm({ ...form, sideEffects: e.target.value })} placeholder="Side Effects" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
-        <textarea rows={2} value={form.warnings} onChange={(e) => setForm({ ...form, warnings: e.target.value })} placeholder="Warnings" className="w-full rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+function BrandsModal({ salt, onClose }: { salt: Salt; onClose: () => void }) {
+  const { data = [], isLoading } = useQuery({ queryKey: ['pharmacy-salt-products', salt.id], queryFn: () => saltsApi.productsBySalt(salt.id) as Promise<ProductRow[]> });
+  const rows = [...data].filter((r) => r.product.isActive).sort((a, b) => Number(b.product.stock > 0) - Number(a.product.stock > 0) || a.product.price - b.product.price);
+  return (
+    <Modal open onClose={onClose} size="lg" title={`${salt.name} — brands`} description="Isi formula ki dawaiyan, sasti aur shelf wali pehle — grahak ki dawai na ho to inme se dein">
+      {isLoading ? <Skeleton className="h-40 rounded-xl" /> : rows.length === 0 ? (
+        <p className="rounded-xl bg-slate-50 px-4 py-8 text-center text-[0.875rem] text-slate-600">Kisi dawai me ye salt nahi jora — dawai ke Formula step me jorein.</p>
+      ) : (
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl ring-1 ring-slate-200">
+          {rows.map((r) => (
+            <li key={r.product.id}>
+              <Link to={`/pharmacy-medicines/${r.product.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
+                <Pill className="h-4 w-4 shrink-0 text-brand-600" />
+                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-slate-900">{r.product.name}</span><span className="block text-[0.75rem] text-slate-500">{[r.strength, r.product.brand?.name].filter(Boolean).join(' · ')}</span></span>
+                <span className={cn('text-[0.75rem] font-medium tabular-nums', r.product.stock > 0 ? 'text-emerald-700' : 'text-rose-600')}>{r.product.stock > 0 ? `${Number(Number(r.product.stock).toFixed(2))} stock` : 'khatam'}</span>
+                <span className="w-24 text-right font-semibold tabular-nums">{formatPKR(r.product.price)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Modal>
+  );
+}
 
-        <div className="flex gap-2 pt-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
+function ClashModal({ salts, onClose, onSaved }: { salts: Salt[]; onClose: () => void; onSaved: () => void }) {
+  const [d, setD] = useState({ saltAId: '', saltBId: '', severity: 'MODERATE' as DrugInteraction['severity'], description: '', management: '' });
+  const options = [{ value: '', label: 'Chunein' }, ...salts.filter((s) => s.isActive).map((s) => ({ value: s.id, label: s.name }))];
+  const save = useMutation({
+    mutationFn: () => interactionsApi.create({ ...d, description: d.description.trim(), management: d.management.trim() || undefined }),
+    onSuccess: () => { toast.success('Asar likh diya — nuskhe par warning aayegi'); onSaved(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const ok = d.saltAId && d.saltBId && d.saltAId !== d.saltBId && d.description.trim().length >= 3;
+  return (
+    <Modal open onClose={onClose} size="lg" title="Do salts ka aapas me asar" description="Nuskhe me dono hon to pharmacist ko warning dikhegi"
+      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>Save</Button></div>}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Select label="Pehla salt" value={d.saltAId} onChange={(e) => setD({ ...d, saltAId: e.target.value })} options={options} />
+        <Select label="Doosra salt" value={d.saltBId} onChange={(e) => setD({ ...d, saltBId: e.target.value })} options={options} error={d.saltAId && d.saltAId === d.saltBId ? 'Do alag salt chunein' : undefined} />
+        <Select label="Kitna sakht" value={d.severity} onChange={(e) => setD({ ...d, severity: e.target.value as DrugInteraction['severity'] })} options={Object.entries(SEVERITY).map(([value, v]) => ({ value, label: v.label }))} wrapperClassName="sm:col-span-2" />
+        <Textarea label="Kya hota hai" required rows={2} value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} placeholder="Khoon patla hone ka khatra badhta hai" />
+        <Textarea label="Kya karein" rows={2} value={d.management} onChange={(e) => setD({ ...d, management: e.target.value })} placeholder="Doctor se poochein, dose kam" />
       </div>
-    </section>
+    </Modal>
+  );
+}
+
+export default function SaltsPage() {
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const [tab, setTab] = useState<Tab>('all');
+  const [search, setSearch] = useState('');
+  const [schedule, setSchedule] = useState('');
+  const [sort, setSort] = useState<'name' | 'brands'>('brands');
+  const [editing, setEditing] = useState<Salt | 'new' | null>(null);
+  const [brands, setBrands] = useState<Salt | null>(null);
+  const [clash, setClash] = useState(false);
+  const q = useDebounced(search.trim());
+  usePageKeys(searchRef, { n: () => canEdit && setEditing('new') });
+
+  const { data: salts = [], isLoading, isFetching } = useQuery({ queryKey: ['pharmacy-salts', 'page', q], queryFn: () => saltsApi.list({ search: q || undefined }) });
+  const { data: clashes = [] } = useQuery({ queryKey: ['pharmacy-interactions', 'all'], queryFn: () => interactionsApi.list() });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['pharmacy-salts'] }); qc.invalidateQueries({ queryKey: ['pharmacy-interactions'] }); };
+  const toggle = useMutation({
+    mutationFn: (s: Salt) => (s.isActive ? saltsApi.remove(s.id) : saltsApi.update(s.id, { name: s.name, isActive: true })),
+    onSuccess: (_r, s) => { toast.success(s.isActive ? `${s.name} band` : `${s.name} chalu`); refresh(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const dropClash = useMutation({ mutationFn: (id: string) => interactionsApi.remove(id), onSuccess: refresh, onError: (e) => toast.error(apiError(e)) });
+
+  const brandCount = (s: Salt) => s._count?.productSalts ?? 0;
+  const counts = { all: salts.filter((s) => s.isActive).length, rx: salts.filter((s) => s.isActive && s.requiresPrescription).length, register: salts.filter((s) => s.isActive && isRegister(s)).length, off: salts.filter((s) => !s.isActive).length };
+  const rows = useMemo(() => salts
+    .filter((s) => (tab === 'off' ? !s.isActive : s.isActive && (tab !== 'rx' || s.requiresPrescription) && (tab !== 'register' || isRegister(s))))
+    .filter((s) => !schedule || s.scheduleClass === schedule)
+    .sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : brandCount(b) - brandCount(a) || a.name.localeCompare(b.name))), [salts, tab, schedule, sort]);
+  const unused = salts.filter((s) => s.isActive && brandCount(s) === 0).length;
+
+  return (
+    <PageShell>
+      {editing && <SaltModal salt={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); }} />}
+      {brands && <BrandsModal salt={brands} onClose={() => setBrands(null)} />}
+      {clash && <ClashModal salts={salts} onClose={() => setClash(false)} onSaved={() => { setClash(false); refresh(); }} />}
+      {guide.isOpen && (
+        <PageGuide title="Salts — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Beaker, color: '#0891b2', title: 'Salt kya hai', text: 'Dawai ka asal formula (generic) — Panadol aur Calpol dono Paracetamol hain. Har dawai par salt aur strength likhein.' },
+            { icon: Pill, color: '#16a34a', title: 'Brands', text: 'Salt par click karein — isi formula ki saari dawaiyan, sasti aur shelf wali pehle. Grahak ki dawai na ho to yahan se substitute.' },
+            { icon: ShieldAlert, color: '#e11d48', title: 'Register wale', text: 'Narcotic / controlled salt ki dawai bechte waqt doctor aur mareez ka naam register me jata hai.' },
+            { icon: Zap, color: '#d97706', title: 'Aapas me asar', text: '"Asar" tab me likhein ke kaun se do salt saath nahi chalte — nuskha likhte waqt warning aati hai.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya salt'], ['G', 'guide']]} />
+      )}
+
+      <PageHero title="Salts / formula" chip={<><Beaker />{counts.all} salt</>} busy={isFetching && !isLoading} loading={isLoading}
+        meta="Generic naam, brands aur aapas ka asar"
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya salt</button>}
+        </>}
+        stats={[
+          { label: 'Chalu salts', value: String(counts.all) },
+          { label: 'Nuskhe wale', value: String(counts.rx) },
+          { label: 'Register wale', value: String(counts.register) },
+          { label: 'Aapas me asar', value: String(clashes.length) },
+        ]} />
+
+      <KpiRow cols={4}>
+        {isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Beaker} color="#0891b2" label="Chalu" value={counts.all} hint={unused ? `${unused} kisi dawai me nahi` : 'Sab kisi dawai me'} onClick={() => setTab('all')} active={tab === 'all'} />
+            <KpiCard icon={HeartPulse} color="#d97706" label="Nuskhe par" value={counts.rx} onClick={() => setTab('rx')} active={tab === 'rx'} />
+            <KpiCard icon={ShieldAlert} color="#e11d48" label="Register wale" value={counts.register} onClick={() => setTab('register')} active={tab === 'register'} />
+            <KpiCard icon={Zap} color="#7c3aed" label="Aapas me asar" value={clashes.length} onClick={() => setTab('clash')} active={tab === 'clash'} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Salt ka naam ya doosra naam…" />}
+        chips={(schedule || search.trim()) ? <>
+          {schedule && <FilterChip onRemove={() => setSchedule('')}>{SCHEDULE_META[schedule]?.label}</FilterChip>}
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setSchedule(''); }}>
+        <FilterMenu icon={ShieldAlert} label="Schedule" value={schedule || 'all'} active={!!schedule} options={[{ value: 'all', label: 'Sab' }, ...SCHEDULES.map((k) => ({ value: k, label: SCHEDULE_META[k].label, hint: SCHEDULE_META[k].hint }))]} onChange={(v) => setSchedule(v === 'all' ? '' : v)} />
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} align="right" width="w-56" onChange={setSort} options={[{ value: 'brands', label: 'Zyada brands pehle' }, { value: 'name', label: 'Naam se' }]} />
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab}
+        right={tab === 'clash' && canEdit ? <Button size="sm" onClick={() => setClash(true)} leftIcon={<Plus className="h-4 w-4" />}>Asar likhein</Button> : undefined}
+        tabs={[{ id: 'all', label: 'Sab', count: counts.all }, { id: 'rx', label: 'Nuskhe wale', count: counts.rx }, { id: 'register', label: 'Register', count: counts.register }, { id: 'clash', label: 'Aapas me asar', icon: Zap, count: clashes.length }, { id: 'off', label: 'Band', count: counts.off }]} />
+
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
+          : tab === 'clash' ? (
+            clashes.length === 0 ? <p className="px-6 py-14 text-center text-[0.875rem] text-slate-500">Abhi kuch nahi likha. Jaise: Warfarin + Aspirin — khoon patla hone ka khatra.</p> : (
+              <ul className="divide-y divide-slate-100">
+                {clashes.map((c) => (
+                  <li key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-slate-900">{c.saltA?.name} + {c.saltB?.name}</span>
+                      <span className="block text-[0.8125rem] text-slate-600">{c.description}{c.management && ` — ${c.management}`}</span>
+                    </span>
+                    <span className={cn('rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold', SEVERITY[c.severity].tone)}>{SEVERITY[c.severity].label}</span>
+                    {canEdit && <button type="button" aria-label="Hatayein" onClick={() => dropClash.mutate(c.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : rows.length === 0 ? (
+            <div className="flex flex-col items-center px-6 py-16 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Beaker className="h-7 w-7" /></span>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || schedule ? 'Is filter me koi salt nahi' : 'Abhi koi salt nahi'}</h3>
+              <p className="mt-1 text-[0.875rem] text-slate-500">Dawai banate waqt Formula step me salt likhein — yahan khud aa jayega.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[48rem] text-[0.875rem]">
+                <thead><tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-2.5">Salt</th><th className="px-3 py-2.5">Schedule</th><th className="px-3 py-2.5">Dose</th><th className="px-3 py-2.5 text-right">Brands</th><th className="px-5 py-2.5" />
+                </tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.map((s) => {
+                    const meta = SCHEDULE_META[s.scheduleClass];
+                    const n = brandCount(s);
+                    return (
+                      <tr key={s.id} className={cn(!s.isActive && 'opacity-60')}>
+                        <td className="px-5 py-2.5">
+                          <button type="button" onClick={() => setBrands(s)} className="font-semibold text-slate-900 hover:text-brand-700">{s.name}</button>
+                          <p className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
+                            {s.genericName && <span>{s.genericName}</span>}{s.category && <span>· {s.category}</span>}
+                            {s.isPediatricSafe && <span className="inline-flex items-center gap-0.5 text-emerald-700"><Baby className="h-3 w-3" />bachon ke liye</span>}
+                          </p>
+                        </td>
+                        <td className="px-3 py-2.5">{meta && <span className={cn('rounded-md px-1.5 py-0.5 text-[0.75rem] font-semibold ring-1', meta.tone)}>{meta.label}</span>}{isRegister(s) && <ShieldAlert className="ml-1.5 inline h-4 w-4 text-rose-600" />}</td>
+                        <td className="px-3 py-2.5 text-slate-600">{[s.standardDose, s.maxDailyDose && `zyada ${s.maxDailyDose}`].filter(Boolean).join(' · ') || '—'}</td>
+                        <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => setBrands(s)} className={cn('font-semibold tabular-nums hover:underline', n ? 'text-brand-700' : 'text-slate-400')}>{n}</button></td>
+                        <td className="px-5 py-2.5">
+                          {canEdit && (
+                            <div className="flex justify-end gap-1">
+                              <button type="button" onClick={() => setEditing(s)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
+                              <button type="button" onClick={() => toggle.mutate(s)} title={s.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+      </section>
+    </PageShell>
   );
 }

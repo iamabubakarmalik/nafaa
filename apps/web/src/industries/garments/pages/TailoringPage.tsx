@@ -1,282 +1,255 @@
-import { useState } from 'react';
+/**
+ * Stitching orders: what is due today, what is late, at trial or ready,
+ * and the money still to collect; the record by view (active, today, late…)
+ * with search, due-date, karigar and priority filters; and analytics. The
+ * next step, payments, the slips, WhatsApp and the bill at hand-over all
+ * work from the row.
+ *
+ * Keys: N new order · / search · 1 orders · 2 analytics · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import {
-  Scissors, Plus, Search, X, RefreshCw, Sparkles, Clock, Award,
-  DollarSign, User, Phone, Calendar, AlertCircle, CheckCircle2,
-  Package, Timer, Eye, ArrowRight, Zap,
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, CalendarDays, CheckCircle2, Clock, Filter, Flame, GraduationCap, ListChecks,
+  MessageCircle, Plus, Printer, Receipt, Ruler, Scissors, UserRound, Wallet,
 } from 'lucide-react';
-import { tailoringApi, type TailoringStatus } from '../api/tailoring.api';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import {
+  DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  Button, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { format, differenceInDays } from 'date-fns';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { tailoringApi, type TailoringQuery, type TailoringView } from '../api/tailoring.api';
+import { EmptyList, LoadFailed, Pager } from '../components/charts';
+import { useTailors } from '../components/fields';
+import { PRIORITIES, TAILORING_KEY, dayOnly, dueOf, garmentLabel, tailoringStatus } from '../components/meta';
+import { useGarmentsCan } from '../components/permissions';
+import { TailoringAnalytics } from '../components/tailoring/TailoringAnalytics';
+import { TailoringRow } from '../components/tailoring/TailoringRow';
+import { useTailoringActions } from '../components/tailoring/useTailoringActions';
 
-const STATUS_CONFIG: Record<TailoringStatus, { label: string; color: string; icon: any; group: string }> = {
-  DRAFT: { label: 'Draft', color: 'bg-slate-500', icon: AlertCircle, group: 'pending' },
-  QUOTED: { label: 'Quoted', color: 'bg-blue-500', icon: Clock, group: 'pending' },
-  CONFIRMED: { label: 'Confirmed', color: 'bg-cyan-500', icon: CheckCircle2, group: 'active' },
-  FABRIC_PENDING: { label: 'Fabric Pending', color: 'bg-orange-500', icon: Package, group: 'active' },
-  CUTTING: { label: 'Cutting', color: 'bg-amber-500', icon: Scissors, group: 'active' },
-  STITCHING: { label: 'Stitching', color: 'bg-purple-500', icon: Scissors, group: 'active' },
-  EMBROIDERY: { label: 'Embroidery', color: 'bg-fuchsia-500', icon: Sparkles, group: 'active' },
-  QUALITY_CHECK: { label: 'Quality Check', color: 'bg-violet-500', icon: Award, group: 'active' },
-  READY: { label: 'Ready', color: 'bg-emerald-500', icon: CheckCircle2, group: 'ready' },
-  DELIVERED: { label: 'Delivered', color: 'bg-green-600', icon: CheckCircle2, group: 'done' },
-  CANCELLED: { label: 'Cancelled', color: 'bg-rose-500', icon: X, group: 'done' },
-  ON_HOLD: { label: 'On Hold', color: 'bg-slate-500', icon: Timer, group: 'pending' },
-};
+type Tab = 'orders' | 'analytics';
+type Sort = NonNullable<TailoringQuery['sort']>;
 
-const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
-  LOW: { label: 'Low', color: 'bg-slate-500' },
-  NORMAL: { label: 'Normal', color: 'bg-blue-500' },
-  HIGH: { label: 'High', color: 'bg-amber-500' },
-  URGENT: { label: 'Urgent', color: 'bg-red-600' },
-};
+const VIEWS: Array<{ id: TailoringView; label: string; icon: typeof Scissors }> = [
+  { id: 'active', label: 'Chal rahe', icon: ListChecks },
+  { id: 'today', label: 'Aaj dena hai', icon: Clock },
+  { id: 'tomorrow', label: 'Kal dena hai', icon: CalendarDays },
+  { id: 'late', label: 'Late', icon: AlertTriangle },
+  { id: 'trial', label: 'Trial / fitting', icon: Ruler },
+  { id: 'ready', label: 'Tayyar — lene aana hai', icon: CheckCircle2 },
+  { id: 'unpaid', label: 'Paisa baqi', icon: Wallet },
+  { id: 'done', label: 'De diye / cancel', icon: Receipt },
+  { id: 'all', label: 'Sab', icon: Scissors },
+];
+const viewLabel = (v: TailoringView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 
 export default function TailoringPage() {
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const startHour = useBusinessDayStart();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const { manage: canManage } = useGarmentsCan();
+  const { sales } = useMasked();
+  const guide = usePageGuide();
+  const tailors = useTailors();
+  const searchRef = useRef<HTMLInputElement>(null);
+  useReceiptSetup();
+
+  const [tab, setTab] = useState<Tab>((params.get('tab') as Tab) || 'orders');
+  const [view, setView] = useState<TailoringView>((params.get('view') as TailoringView) || 'active');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const [aRange, setARange] = useState<DateRangeValue>({ preset: 'thisMonth', custom: { from: '', to: '' } });
+  const [tailorId, setTailorId] = useState('');
+  const [priority, setPriority] = useState('');
+  const [sort, setSort] = useState<Sort>('due');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('active');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
 
-  const { data: orders = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['tailoring-orders', statusFilter, priorityFilter, search],
-    queryFn: () => tailoringApi.list({
-      status: statusFilter === 'all' || statusFilter === 'active' ? undefined : statusFilter,
-      priority: priorityFilter === 'all' ? undefined : priorityFilter,
-      search: search.trim() || undefined,
-    }),
-    refetchInterval: 60_000,
-  });
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [view, range, tailorId, priority, sort, query]);
+  useEffect(() => {
+    const next = new URLSearchParams(params);
+    if (tab === 'orders') next.delete('tab'); else next.set('tab', tab);
+    if (view === 'active') next.delete('view'); else next.set('view', view);
+    setParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, view]);
 
-  const filtered = statusFilter === 'active'
-    ? orders.filter((o) => !['DELIVERED', 'CANCELLED', 'DRAFT'].includes(o.orderStatus))
-    : orders;
+  const period = resolveRange(range, startHour);
+  const aPeriod = resolveRange(aRange, startHour);
+  const q: TailoringQuery = {
+    view, page, limit: 30, sort, search: query || undefined, tailorId: tailorId || undefined, priority: priority || undefined, ...(period ?? {}),
+  };
+  const listQ = useQuery({ queryKey: [TAILORING_KEY, 'page', q], queryFn: () => tailoringApi.page(q), placeholderData: (p) => p, refetchInterval: 60_000, enabled: tab === 'orders' });
+  const sumQ = useQuery({ queryKey: [TAILORING_KEY, 'summary', 'open'], queryFn: () => tailoringApi.summary(), refetchInterval: 60_000 });
+  const act = useTailoringActions();
 
-  const stats = {
-    pending: orders.filter((o) => ['CONFIRMED', 'FABRIC_PENDING'].includes(o.orderStatus)).length,
-    active: orders.filter((o) => ['CUTTING', 'STITCHING', 'EMBROIDERY', 'QUALITY_CHECK'].includes(o.orderStatus)).length,
-    ready: orders.filter((o) => o.orderStatus === 'READY').length,
-    urgent: orders.filter((o) => o.priority === 'URGENT' && !['DELIVERED', 'CANCELLED'].includes(o.orderStatus)).length,
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+  const open = sumQ.data?.open;
+  const filtered = !!tailorId || !!priority || !!query || range.preset !== 'all';
+  const clear = () => { setTailorId(''); setPriority(''); setSearch(''); setRange({ preset: 'all', custom: { from: '', to: '' } }); };
+  const pick = (v: TailoringView) => { setTab('orders'); setView(v); };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); navigate('/garments/tailoring/new'); }
+      if (e.key === '1') setTab('orders');
+      if (e.key === '2') setTab('analytics');
+      if (e.key === '/') { e.preventDefault(); setTab('orders'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage, navigate]);
+
+  const printDoc = async (): Promise<PrintDoc> => {
+    const all = await tailoringApi.page({ ...q, page: 1, limit: 100 });
+    return {
+      title: `Silai orders — ${viewLabel(view)}`,
+      subtitle: period ? rangeLabel(period.from, period.to) : 'Sab tareekhen',
+      meta: [['Orders', String(all.total)], ...(all.totals ? [['Kul', formatPKR(all.totals.value)] as [string, string], ['Baqi lena', formatPKR(all.totals.due)] as [string, string]] : [])],
+      sections: [{
+        kind: 'table',
+        columns: [{ label: 'Kab' }, { label: 'Order', wideOnly: true }, { label: 'Customer' }, { label: 'Kapre', wideOnly: true }, { label: 'Karigar', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Kul', align: 'right' }, { label: 'Baqi', align: 'right' }],
+        rows: all.items.map((o) => [
+          dayOnly(o.promisedDate), o.orderNumber, `${o.customerName ?? ''} ${o.customerPhone ?? ''}`.trim(),
+          o.items.map((i) => `${i.quantity > 1 ? `${i.quantity}x ` : ''}${i.garmentName}`).join(', '), o.tailorName ?? '—',
+          tailoringStatus(o.orderStatus).label, formatPKR(o.total), formatPKR(dueOf(o)),
+        ]),
+      }],
+      footer: all.total > all.items.length ? `Pehle ${all.items.length} orders (kul ${all.total})` : undefined,
+    };
   };
 
+  const counts = data?.counts;
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-purple-900 to-violet-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-purple-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Custom Stitching
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">✂️ Tailoring Orders</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Bespoke stitching workflow — order to delivery</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Link to="/garments/tailoring/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" />
-                New Tailoring Order
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Silai orders"
+        chip={<><Scissors /> Tailoring</>}
+        meta="Naap, advance, trial aur delivery — sab ek jagah"
+        busy={(listQ.isFetching && !listQ.isLoading) || sumQ.isFetching}
+        loading={sumQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'orders' || !rows.length} /></span>
+          <Link to="/garments/measurements" className={heroButton}><Ruler className="h-4 w-4" /><span className="hidden sm:inline">Naap</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <Link to="/garments/tailoring/new" title="Naya order (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya order</Link>}
+        </>}
+        stats={open ? [
+          { label: 'Chal rahe orders', value: open.count, hint: sales(open.value) },
+          { label: 'Aaj dena hai', value: open.today, hint: open.late ? `${open.late} late` : undefined },
+          { label: 'Lena baqi', value: sales(open.due), hint: open.unpaid ? `${open.unpaid} orders` : undefined },
+        ] : [{ label: 'Chal rahe orders', value: '—' }]}
+      />
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Confirmed / Waiting" value={stats.pending} icon={Clock} color="cyan" />
-        <StatCard label="In Progress" value={stats.active} icon={Scissors} color="purple" />
-        <StatCard label="Ready for Pickup" value={stats.ready} icon={CheckCircle2} color="emerald" />
-        <StatCard label="Urgent Orders" value={stats.urgent} icon={Zap} color="rose" highlight={stats.urgent > 0} />
-      </section>
+      <KpiRow cols={5}>
+        {!open ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Clock} color="#d97706" label="Aaj dena hai" value={open.today} hint={open.urgent ? `${open.urgent} bohat jaldi wale` : 'Waqt par tayyar karein'} onClick={() => pick('today')} active={tab === 'orders' && view === 'today'} />
+          <KpiCard icon={AlertTriangle} color={open.late ? '#e11d48' : '#64748b'} label="Late" value={open.late} hint={open.late ? 'Customer ko foran batayein' : 'Koi late nahi'} onClick={() => pick('late')} active={tab === 'orders' && view === 'late'} />
+          <KpiCard icon={Ruler} color="#7c3aed" label="Trial / fitting" value={open.trial} hint="Customer ko bulayein" onClick={() => pick('trial')} active={tab === 'orders' && view === 'trial'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Tayyar" value={open.ready} hint="Lene aana hai" onClick={() => pick('ready')} active={tab === 'orders' && view === 'ready'} />
+          <KpiCard icon={Wallet} color="#0891b2" label="Lena baqi" value={sales(open.due)} hint={`Advance jama ${sales(open.advance)}`} onClick={() => pick('unpaid')} active={tab === 'orders' && view === 'unpaid'} />
+        </>}
+      </KpiRow>
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search order #, customer name, phone..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-purple-500"
-          />
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {[
-            { v: 'active', label: '🔥 Active' },
-            { v: 'all', label: 'All' },
-            { v: 'CONFIRMED', label: 'Confirmed' },
-            { v: 'CUTTING', label: 'Cutting' },
-            { v: 'STITCHING', label: 'Stitching' },
-            { v: 'EMBROIDERY', label: 'Embroidery' },
-            { v: 'READY', label: 'Ready' },
-            { v: 'DELIVERED', label: 'Delivered' },
-            { v: 'CANCELLED', label: 'Cancelled' },
-          ].map((s) => (
-            <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-purple-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{s.label}</button>
-          ))}
-        </div>
-
-        <div className="flex gap-1.5">
-          {['all', 'LOW', 'NORMAL', 'HIGH', 'URGENT'].map((p) => (
-            <button key={p} onClick={() => setPriorityFilter(p)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (priorityFilter === p ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>
-              {p === 'all' ? 'All Priority' : PRIORITY_CONFIG[p]?.label || p}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Scissors className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No tailoring orders</p>
-          <Link to="/garments/tailoring/new">
-            <Button className="mt-4 bg-gradient-to-r from-purple-600 to-violet-700">
-              <Plus className="h-4 w-4" />
-              Create First Order
-            </Button>
-          </Link>
-        </div>
+      {tab === 'analytics' ? (
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Jo orders is period me book hue ya diye gaye</p>}>
+          <DateRangeMenu value={aRange} onChange={setARange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />
+        </FilterBar>
       ) : (
-        <section className="grid gap-3">
-          {filtered.map((order) => <OrderCard key={order.id} order={order} />)}
-        </section>
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, order #, kapre ka naam…" label="Search" />}
+          chips={filtered ? <>
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>Dena: {rangeLabel(period.from, period.to)}</FilterChip>}
+            {tailorId && <FilterChip onRemove={() => setTailorId('')}>Karigar: {tailors.find((t) => t.id === tailorId)?.name ?? '—'}</FilterChip>}
+            {priority && <FilterChip onRemove={() => setPriority('')}>{PRIORITIES.find((p) => p.value === priority)?.label}</FilterChip>}
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+          </> : undefined}
+          onClear={clear}>
+          <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-72"
+            options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? `${counts[v.id]} orders` : undefined }))} />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Dene ki date" />
+          {tailors.length > 0 && (
+            <FilterMenu icon={UserRound} label="Karigar" value={tailorId} active={!!tailorId} onChange={setTailorId}
+              options={[{ value: '', label: 'Sab karigar' }, ...tailors.map((t) => ({ value: t.id, label: t.name }))]} />
+          )}
+          <FilterMenu icon={Flame} label="Jaldi" value={priority} active={!!priority} onChange={setPriority}
+            options={[{ value: '', label: 'Sab' }, ...PRIORITIES.map((p) => ({ value: p.value as string, label: p.label }))]} />
+          <FilterMenu icon={ArrowDownWideNarrow} label={sort === 'amount' ? 'Bari amount pehle' : sort === 'recent' ? 'Naye pehle' : 'Jo pehle dena'} value={sort} onChange={setSort} align="right"
+            options={[{ value: 'due', label: 'Jo pehle dena hai' }, { value: 'recent', label: 'Naye book pehle' }, { value: 'amount', label: 'Bari amount pehle' }]} />
+        </FilterBar>
       )}
-    </div>
-  );
-}
 
-function StatCard({ label, value, icon: Icon, color, highlight }: any) {
-  const colors: Record<string, string> = {
-    cyan: 'from-cyan-500 to-blue-600', purple: 'from-purple-500 to-violet-600',
-    emerald: 'from-emerald-500 to-green-600', rose: 'from-rose-500 to-red-600',
-  };
-  return (
-    <div className={
-      'rounded-2xl border-2 p-5 shadow-sm ' +
-      (highlight ? 'bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-950/40 dark:to-red-950/40 border-rose-300 animate-pulse' : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800')
-    }>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        tabs={[
+          { id: 'orders', label: 'Orders', icon: ListChecks, count: data?.total ?? null },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
 
-function OrderCard({ order }: { order: any }) {
-  const statusCfg = STATUS_CONFIG[order.orderStatus as TailoringStatus];
-  const priorityCfg = PRIORITY_CONFIG[order.priority] || PRIORITY_CONFIG.NORMAL;
-  const StatusIcon = statusCfg.icon;
-  const daysLeft = order.promisedDate ? differenceInDays(new Date(order.promisedDate), new Date()) : null;
-  const remaining = order.total - order.paidAmount;
-
-  return (
-    <Link to={'/garments/tailoring/' + order.id} className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-purple-300 transition p-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 text-white flex items-center justify-center shadow shrink-0">
-            <Scissors className="h-6 w-6" />
+      {tab === 'analytics' ? <TailoringAnalytics range={aPeriod} /> : (<>
+        {data && data.total > 0 && data.totals && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
+            <span className="text-slate-500">{viewLabel(view)}</span>
+            <span className="font-semibold text-slate-900">{data.total} orders · {sales(data.totals.value)}</span>
+            <span className="text-success-700">Advance {sales(data.totals.advance)}</span>
+            {data.totals.due > 0 && <button type="button" onClick={() => setView('unpaid')} className="text-amber-700 hover:underline">Lena baqi {sales(data.totals.due)}</button>}
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{order.orderNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
-                <StatusIcon className="h-2.5 w-2.5" />
-                {statusCfg.label}
-              </span>
-              <span className={'px-2 py-0.5 rounded-md text-[0.625rem] font-extrabold uppercase text-white ' + priorityCfg.color}>
-                {priorityCfg.label}
-              </span>
-              {order.paymentStatus === 'PAID' && (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-                  <CheckCircle2 className="h-2 w-2" />
-                  Paid
-                </span>
-              )}
-              {order.paymentStatus === 'PARTIALLY_PAID' && (
-                <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase">
-                  Partial
-                </span>
-              )}
-            </div>
+        )}
 
-            <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">
-              {order.customerName && (
-                <span className="inline-flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {order.customerName}
-                </span>
-              )}
-              {order.customerPhone && (
-                <span className="inline-flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  {order.customerPhone}
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {format(new Date(order.createdAt), 'dd MMM')}
-              </span>
-              {order.promisedDate && (
-                <span className={
-                  'inline-flex items-center gap-1 font-extrabold ' +
-                  (daysLeft !== null && daysLeft < 0 ? 'text-rose-700' : daysLeft !== null && daysLeft <= 2 ? 'text-amber-700' : 'text-slate-700')
-                }>
-                  <Clock className="h-3 w-3" />
-                  Due: {format(new Date(order.promisedDate), 'dd MMM')}
-                  {daysLeft !== null && (daysLeft < 0 ? ' (OVERDUE)' : daysLeft <= 2 ? ' (' + daysLeft + 'd)' : '')}
-                </span>
-              )}
-            </div>
+        {listQ.isLoading ? (
+          <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
+        ) : listQ.isError && !data ? (
+          <LoadFailed what="Orders" retry={() => listQ.refetch()} />
+        ) : !rows.length ? (
+          <EmptyList icon={Scissors}
+            title={filtered ? 'Is filter me koi order nahi' : view === 'late' ? 'Koi order late nahi — shabash' : view === 'today' ? 'Aaj koi suit nahi dena' : 'Koi order nahi'}
+            text="Customer ka naap lein, kapra aur design likhein, advance lein aur parchi dein — tayyar hone par WhatsApp karein.">
+            {canManage && <Button onClick={() => navigate('/garments/tailoring/new')} leftIcon={<Plus className="h-4 w-4" />}>Naya order</Button>}
+            {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+            {!filtered && view !== 'all' && <Button variant="ghost" onClick={() => setView('all')}>Sab orders dekhein</Button>}
+          </EmptyList>
+        ) : (
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {rows.map((o) => <TailoringRow key={o.id} o={o} a={act} canManage={canManage} shopName={shopName} />)}
+          </ul>
+        )}
+        {data && <Pager page={page} pages={data.pages} onPage={setPage} />}
+      </>)}
 
-            <div className="mt-2 flex flex-wrap gap-1">
-              {order.items?.slice(0, 4).map((it: any, i: number) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-700">
-                  {it.garmentName} × {it.quantity}
-                </span>
-              ))}
-              {(order.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-500">
-                  +{(order.items?.length || 0) - 4} more
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+      {act.modals}
 
-        <div className="text-right shrink-0">
-          <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(order.total)}</div>
-          {remaining > 0 && order.paymentStatus !== 'PAID' && (
-            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
-          )}
-          {order.paidAmount > 0 && (
-            <div className="text-[0.6875rem] font-bold text-emerald-600">Paid: {formatPKR(order.paidAmount)}</div>
-          )}
-          <div className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-purple-600">
-            View <ArrowRight className="h-3 w-3" />
-          </div>
-        </div>
-      </div>
-    </Link>
+      {guide.isOpen && (
+        <PageGuide title="Silai orders — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#db2777', title: 'Order likhein', text: '"Naya order": customer, naap, kapre (customer ka ya dukaan ka), silai ka rate, kab dena hai aur advance. Parchi customer ko, karigar parchi karigar ko.' },
+            { icon: Scissors, color: '#7c3aed', title: 'Agla qadam — ek button', text: 'Pakka → cutting → silai → trial → tayyar → de diya. Ghalti ho to "Ek qadam peeche".' },
+            { icon: Receipt, color: '#16a34a', title: '"De diya" = asli bill', text: `Suit dete hi bill banta hai: silai ki amount Sale me aati hai, dukaan ka kapra stock se nikalta hai, aur jo baqi rahe woh customer ke khate me. Ek order ka bill do dafa nahi banta.` },
+            { icon: Wallet, color: '#0891b2', title: 'Advance', text: 'Advance customer ke khate me jama hota hai aur bill me khud kat jata hai. Cash, card, bank ya JazzCash — jo aaya woh chunein.' },
+            { icon: Printer, color: '#ea580c', title: 'Parchi', text: 'Customer ki parchi me amount aur baqi; karigar ki parchi me sirf naap aur design. Dukaan ke bill design me chhapti hai.' },
+            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp', text: 'Tayyar hote hi WhatsApp button se customer ko bata dein — baqi amount khud likha hota hai.' },
+          ]}
+          tips={[
+            'Aaj aur Late wale card roz subah dekhein — Eid se pehle har din ginti karein.',
+            `Har garment ki silai alag likhein (${garmentLabel('SHALWAR_KAMEEZ')}, ${garmentLabel('WAISTCOAT')}) — analytics me pata chalta hai kya zyada silta hai.`,
+            'Cancel karne se advance khud wapas nahi hota — customer ke khate me jama rehta hai.',
+          ]}
+          shortcuts={[['N', 'naya order'], ['/', 'dhoondein'], ['1', 'orders'], ['2', 'analytics'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

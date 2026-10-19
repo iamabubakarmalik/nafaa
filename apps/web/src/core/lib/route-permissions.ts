@@ -33,8 +33,13 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/electronics\/warranty/, P.ELECTRONICS_WARRANTY_VIEW],
 
   // Mobile
-  [/^\/mobile\/(repairs|repair-tickets)/, P.MOBILE_REPAIRS_VIEW],
+  [/^\/(mobile\/)?(repairs|repair-tickets)/, P.MOBILE_REPAIRS_VIEW],
   [/^\/(mobile\/)?(imei|used-phones)/, P.MOBILE_IMEI_VIEW],
+  [/^\/emi-plans/, P.KHATA_VIEW],
+
+  // Pharmacy
+  [/^\/pharmacy\/prescriptions/, P.POS_USE],
+  [/^\/pharmacy\/(medicines|salts|expiring|controlled-log)/, P.PRODUCTS_VIEW],
 
   // Restaurant
   [/^\/restaurant\/(orders|tables|delivery|riders)/, P.RESTAURANT_ORDERS_VIEW],

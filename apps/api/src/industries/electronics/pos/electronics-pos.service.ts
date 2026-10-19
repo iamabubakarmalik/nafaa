@@ -255,10 +255,16 @@ export class ElectronicsPosService {
   // BUNDLES — deal packs (TV + soundbar waghera)
   // ══════════════════════════════════════════════════════════
   private async findBundles(tenantId: string, search?: string) {
+    // Only bundles on offer today.
+    const now = new Date();
     const rows = await this.prisma.electronicsBundle.findMany({
       where: {
         tenantId,
         isActive: true,
+        AND: [
+          { OR: [{ validFrom: null }, { validFrom: { lte: now } }] },
+          { OR: [{ validUntil: null }, { validUntil: { gte: now } }] },
+        ],
         ...(search && { name: { contains: search, mode: 'insensitive' as const } }),
       },
       orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],

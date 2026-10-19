@@ -54,7 +54,58 @@ export interface SerialWithProduct extends ElectronicsSerial {
   } | null;
 }
 
+export type SerialView = 'all' | 'stock' | 'sold' | 'warranty' | 'expiring' | 'problem' | 'tradein';
+export type SerialSort = 'new' | 'old' | 'warranty' | 'cost';
+
+export interface SerialClaimRef { id: string; claimNumber: string; status: WarrantyStatus; resolvedAt?: string | null }
+
+export interface SerialPage {
+  items: Array<SerialWithProduct & { claims: SerialClaimRef[] }>;
+  total: number;
+  page: number;
+  pages: number;
+  counts: Record<SerialView, number>;
+  /** Purchase cost of units on the shelf. */
+  shelfCost: number;
+}
+
+export interface WarrantyCheck {
+  found: boolean;
+  serial?: SerialWithProduct & { customer?: { id: string; name: string; phone?: string | null } | null };
+  claims?: SerialClaimRef[];
+  warranty?: {
+    status: WarrantyStatus; type: string | null; startDate: string | null; endDate: string | null;
+    isExpired: boolean; daysRemaining: number; isValid: boolean;
+  };
+}
+
+export interface TradeInPayload {
+  productId?: string;
+  name?: string;
+  brandId?: string;
+  categoryId?: string;
+  serialNumber: string;
+  imei?: string;
+  condition?: 'OPEN_BOX' | 'REFURBISHED' | 'USED' | 'DAMAGED' | 'FOR_PARTS';
+  value: number;
+  salePrice?: number;
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  physicalCondition?: string;
+  notes?: string;
+}
+
 export const serialTrackingApi = {
+  /** Paged register with counts per view (serials page). */
+  page: (params: { view?: SerialView; search?: string; productId?: string; sort?: SerialSort; page?: number; limit?: number }) =>
+    apiClient.get('/electronics/serial-tracking/page', { params }).then(unwrap<SerialPage>),
+
+  /** Used unit bought from a customer: stock in, cash out of the drawer. */
+  tradeIn: (data: TradeInPayload) =>
+    apiClient.post('/electronics/serial-tracking/trade-in', data)
+      .then(unwrap<{ number: string; serial: ElectronicsSerial; productId: string; value: number; customerId: string | null }>),
+
   create: (data: Partial<ElectronicsSerial>) =>
     apiClient.post('/electronics/serial-tracking', data).then(unwrap<ElectronicsSerial>),
 
@@ -79,10 +130,10 @@ export const serialTrackingApi = {
     apiClient.get('/electronics/serial-tracking', { params }).then(unwrap<SerialWithProduct[]>),
 
   lookup: (code: string) =>
-    apiClient.get('/electronics/serial-tracking/lookup/' + code).then(unwrap<ElectronicsSerial | null>),
+    apiClient.get('/electronics/serial-tracking/lookup/' + encodeURIComponent(code)).then(unwrap<ElectronicsSerial | null>),
 
   warrantyCheck: (code: string) =>
-    apiClient.get('/electronics/serial-tracking/warranty-check/' + code).then(unwrap<any>),
+    apiClient.get('/electronics/serial-tracking/warranty-check/' + encodeURIComponent(code)).then(unwrap<WarrantyCheck>),
 
   getOne: (id: string) =>
     apiClient.get('/electronics/serial-tracking/' + id).then(unwrap<ElectronicsSerial>),

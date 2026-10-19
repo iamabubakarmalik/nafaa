@@ -2,7 +2,6 @@ import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import RetailDashboard from './dashboard/RetailDashboard';
 import RetailPos from './pos/RetailPos';
-import BulkImportPage from './pages/BulkImportPage';
 import BarcodeLabelsPage from '@modules/inventory/barcodes/pages/BarcodeLabelsPage';
 import RetailProductEditor from './products/RetailProductEditor';
 import RetailProductDetail from './products/RetailProductDetail';
@@ -58,7 +57,6 @@ export const RetailPack: IndustryPack = {
     // Combos
 
     // Retail features
-    { path: '/retail/bulk-import',    element: BulkImportPage },
     { path: '/retail/barcode-labels', element: BarcodeLabelsPage },
   ],
 

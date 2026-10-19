@@ -54,7 +54,7 @@ export const restaurantDashboard = createDashboard({
     { id: 'restaurant-orders', title: 'Chaalu orders', description: 'Khule orders, late aur tayyar sab se upar', size: 'half', sizes: ANY_SIZE, Component: RestaurantLiveOrders },
     { id: 'restaurant-floor', title: 'Table floor', description: 'Har table ka haal — bhari, khaali, reserved, safai', size: 'half', sizes: ['half', 'wide', 'full'], Component: RestaurantFloor },
     { id: 'restaurant-kitchen', title: 'Kitchen', description: 'KOT queue aur banane/serve ka ausat waqt', size: 'third', sizes: ['third', 'half'], Component: RestaurantKitchen },
-    { id: 'restaurant-modes', title: 'Order ki qisam', description: 'Dine-in, takeaway aur delivery ke khule orders', size: 'third', sizes: ['third', 'half'], Component: RestaurantModes },
+    { id: 'restaurant-modes', title: 'Order type', description: 'Dine-in, takeaway aur delivery ke khule orders', size: 'third', sizes: ['third', 'half'], Component: RestaurantModes },
   ],
   useQuickActions: useRestaurantActions,
   moneyMap: { productsPath: '/restaurant/menu' },

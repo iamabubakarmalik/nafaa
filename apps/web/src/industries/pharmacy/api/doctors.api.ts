@@ -19,6 +19,8 @@ export interface Doctor {
   totalPrescriptions: number;
   totalBusiness: number;
   totalCommission: number;
+  /** Latest prescription from this doctor (list only). */
+  lastPrescriptionAt?: string | null;
   notes?: string;
   isVerified: boolean;
   isActive: boolean;

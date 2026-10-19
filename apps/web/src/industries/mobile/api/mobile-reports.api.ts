@@ -43,6 +43,8 @@ export interface RepairAnalytics {
   partsCost: number;
   laborRevenue: number;
   collected: number;
+  /** What the parts cost the shop. */
+  partsOwnCost: number;
   grossProfit: number;
   topBrands: { brand: string; count: number }[];
 }

@@ -1,523 +1,420 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ChefHat, Package, Plus, Trash2, X, Save, Search, Sparkles,
-  RefreshCw, DollarSign, Clock, ArrowRight, AlertCircle,
-  Utensils, TrendingUp, Info,
-} from 'lucide-react';
-import { menuItemsApi } from '../api/menu-items.api';
-import { recipesApi, type Recipe, type RecipeIngredient } from '../api/recipes.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { lineCost } from '../lib/recipeUnits';
+/**
+ * Recipes: the kitchen's view of every dish's ingredients. Three tabs:
+ *   Recipes       plate cost at today's rates and food cost %, edit in place
+ *   Ban sakti hai how many plates the branch stock still covers, and what
+ *                 runs out first (take a dish off the menu from here)
+ *   Saamaan       raw material used by sales against purchases and stock,
+ *                 with days left at the current rate
+ * Dishes without a recipe are listed so none is left uncounted.
+ *
+ * Keys: / search · N new recipe · R refresh rates · G guide · Ctrl+S save in the editor.
+ */
 
-const UNIT_OPTIONS = ['kg', 'g', 'mg', 'l', 'ml', 'piece', 'dozen', 'tbsp', 'tsp', 'cup', 'oz', 'lb'];
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  AlertTriangle, BookOpen, ChefHat, CircleSlash, Clock, Download, Flame, FolderTree, GraduationCap, Pencil, Plus, Power, RefreshCw,
+  Search, Trash2, TrendingDown, Truck, Wheat,
+} from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide, type GuideStep } from '@core/components/PageGuide';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { useShopParam } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
+import { menuItemsApi, type RestaurantMenuItem } from '../api/menu-items.api';
+import { recipesApi, type Cookability, type RecipeRow } from '../api/recipes.api';
+import { RecipeLinesEditor, recipeFromApi, recipeInput, recipeProblem, recipeTotals, type RecipeDraft } from '../components/RecipeLinesEditor';
+import { foodCostTone } from '../lib/menuMeta';
+
+type Tab = 'recipes' | 'cook' | 'usage';
+const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
+const errText = (e: unknown, fallback: string) => (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message?.toString() || fallback;
+const KEYS = ['restaurant-recipes', 'restaurant-cookability', 'restaurant-recipe-usage', 'restaurant-menu-board', 'restaurant-product-extra', 'restaurant-menu-items'];
+
+interface Target { menuItemId: string; name: string; price: number; productId: string }
 
 export default function RecipesPage() {
-  const queryClient = useQueryClient();
-  const [selectedMenuItemId, setSelectedMenuItemId] = useState<string>('');
-  const [menuSearch, setMenuSearch] = useState('');
+  const qc = useQueryClient();
+  const shopId = useShopParam();
+  const guide = usePageGuide();
+  const { cost, costHidden } = useMasked();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const can = { kitchen: usePermission(PERMISSIONS.RESTAURANT_KITCHEN_MANAGE), menu: usePermission(PERMISSIONS.RESTAURANT_MENU_MANAGE), buy: usePermission(PERMISSIONS.PURCHASES_CREATE) };
+  const [tab, setTab] = useState<Tab>('recipes');
+  const [search, setSearch] = useState('');
+  const [categoryId, setCategoryId] = useState<string>('all');
+  const [days, setDays] = useState(7);
+  const [editing, setEditing] = useState<Target | null>(null);
+  const [picking, setPicking] = useState(false);
 
-  const { data: menuItems = [] } = useQuery({
-    queryKey: ['menu-items-recipes', menuSearch],
-    queryFn: () => menuItemsApi.list({ search: menuSearch || undefined }),
+  const recipesQ = useQuery({ queryKey: ['restaurant-recipes'], queryFn: () => recipesApi.list() });
+  const cookQ = useQuery({ queryKey: ['restaurant-cookability', shopId], queryFn: () => recipesApi.cookability() });
+  const menuQ = useQuery({ queryKey: ['restaurant-menu-items', 'recipes-page'], queryFn: () => menuItemsApi.list({}), retry: false });
+  const usageQ = useQuery({ queryKey: ['restaurant-recipe-usage', shopId, days], queryFn: () => recipesApi.usage(days), enabled: tab === 'usage' });
+  const refresh = () => KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const recipes = recipesQ.data ?? [];
+  const cookBy = useMemo(() => new Map((cookQ.data?.rows ?? []).map((r) => [r.menuItemId, r])), [cookQ.data]);
+  const missing = useMemo(() => (menuQ.data ?? []).filter((m) => !m.recipe && m.product?.isActive !== false && !m.product?.isRawMaterial && m.product?.productType !== 'BOUGHT'), [menuQ.data]);
+
+  const refreshCosts = useMutation({
+    mutationFn: () => recipesApi.refreshCosts(),
+    onSuccess: (r) => { toast.success(r.updated ? `${r.updated} dish ki cost aaj ke rate par aa gayi` : 'Sab cost pehle se theek thi'); refresh(); },
+    onError: (e) => toast.error(errText(e, 'Cost taaza nahi hui')),
   });
-
-  const { data: recipe, isLoading: loadingRecipe } = useQuery({
-    queryKey: ['recipe', selectedMenuItemId],
-    queryFn: () => recipesApi.getByMenuItem(selectedMenuItemId),
-    enabled: !!selectedMenuItemId,
+  const runRefresh = refreshCosts.mutate as () => void;
+  const setAvailable = useMutation({
+    mutationFn: ({ id, on }: { id: string; on: boolean }) => menuItemsApi.setAvailable(id, on),
+    onSuccess: (_r, v) => { toast.success(v.on ? 'Chalu' : 'Band (86) — counter par nahi aayegi'); refresh(); },
+    onError: (e) => toast.error(errText(e, 'Nahi badla')),
   });
-
-  const selectedMenuItem = menuItems.find((m) => m.id === selectedMenuItemId);
-
-  return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-lime-900 to-emerald-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-lime-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-emerald-400/15 blur-3xl" />
-
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Recipe / BOM Builder
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              📖 Recipes
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Ingredients tracker — auto stock deduction jab dish bane
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <div className="grid lg:grid-cols-[380px_1fr] gap-6">
-        {/* LEFT — Menu picker */}
-        <aside className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-10rem)]">
-          <div className="px-4 py-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/30">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Menu Items</h3>
-          </div>
-          <div className="p-3 border-b border-slate-100 dark:border-ink-800">
-            <div className="relative">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                value={menuSearch}
-                onChange={(e) => setMenuSearch(e.target.value)}
-                placeholder="Search menu..."
-                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-lime-500"
-              />
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {menuItems.map((mi) => (
-              <button
-                key={mi.id}
-                onClick={() => setSelectedMenuItemId(mi.id)}
-                className={
-                  'w-full px-3 py-2 flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-ink-800 transition text-left border-l-4 ' +
-                  (selectedMenuItemId === mi.id ? 'bg-lime-50 dark:bg-lime-950/30 border-lime-500' : 'border-transparent')
-                }
-              >
-                <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
-                  {mi.imageUrl || mi.product?.images?.[0]?.url ? (
-                    <img src={mi.imageUrl || mi.product?.images?.[0]?.url} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <ChefHat className="h-4 w-4 text-slate-400" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-xs truncate text-slate-900 dark:text-ink-white">{mi.product?.name}</div>
-                  <div className="text-[0.6875rem] text-slate-500 font-semibold">{formatPKR(mi.product?.price ?? 0)}</div>
-                </div>
-                {mi.recipe && <span className="px-1.5 py-0.5 rounded bg-lime-100 dark:bg-lime-950/40 text-lime-700 text-[0.625rem] font-extrabold uppercase">Has Recipe</span>}
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        {/* RIGHT — Recipe editor */}
-        <section>
-          {!selectedMenuItem ? (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-              <ChefHat className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Select a menu item</h3>
-              <p className="text-sm text-slate-500 font-semibold mt-1">Left se select karo recipe banane ke liye</p>
-            </div>
-          ) : loadingRecipe ? (
-            <div className="h-96 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-          ) : (
-            <RecipeEditor
-              menuItem={selectedMenuItem}
-              existingRecipe={recipe ?? null}
-              onSaved={() => {
-                queryClient.invalidateQueries({ queryKey: ['recipe', selectedMenuItemId] });
-                queryClient.invalidateQueries({ queryKey: ['menu-items-recipes'] });
-              }}
-            />
-          )}
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
-  menuItem: any;
-  existingRecipe: Recipe | null;
-  onSaved: () => void;
-}) {
-  const [yieldQuantity, setYieldQuantity] = useState(existingRecipe?.yieldQuantity ?? 1);
-  const [yieldUnit, setYieldUnit] = useState(existingRecipe?.yieldUnit ?? 'portion');
-  const [cookingTime, setCookingTime] = useState(existingRecipe?.cookingTime ?? menuItem.prepTimeMinutes ?? 15);
-  const [preparationSteps, setPreparationSteps] = useState(existingRecipe?.preparationSteps ?? '');
-  const [ingredients, setIngredients] = useState<RecipeIngredient[]>(
-    existingRecipe?.ingredients ?? [],
-  );
 
   useEffect(() => {
-    if (existingRecipe) {
-      setYieldQuantity(existingRecipe.yieldQuantity);
-      setYieldUnit(existingRecipe.yieldUnit);
-      setCookingTime(existingRecipe.cookingTime ?? 15);
-      setPreparationSteps(existingRecipe.preparationSteps ?? '');
-      setIngredients(existingRecipe.ingredients);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (k === 'n' && can.kitchen) { e.preventDefault(); setPicking(true); }
+      if (k === 'r' && can.kitchen) { e.preventDefault(); runRefresh(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [can.kitchen, runRefresh]);
+
+  const term = search.trim().toLowerCase();
+  const categories = useMemo(() => {
+    const m = new Map<string, { id: string; name: string; color: string }>();
+    for (const r of recipes) if (r.menuItem.product.category) m.set(r.menuItem.product.category.id, r.menuItem.product.category);
+    return [...m.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [recipes]);
+  const shown = recipes.filter((r) => (categoryId === 'all' || r.menuItem.product.category?.id === categoryId)
+    && (!term || r.menuItem.product.name.toLowerCase().includes(term) || r.ingredients.some((i) => String(i.ingredient?.name ?? '').toLowerCase().includes(term))));
+  const cookRows = (cookQ.data?.rows ?? []).filter((r) => !term || r.name.toLowerCase().includes(term));
+  const usageRows = (usageQ.data?.rows ?? []).filter((r) => !term || r.name.toLowerCase().includes(term));
+
+  const priced = (cookQ.data?.rows ?? []).filter((r) => r.price > 0 && r.cost > 0);
+  const avgFood = priced.length ? priced.reduce((s, r) => s + r.foodCostPct, 0) / priced.length : null;
+  const unitProblems = (cookQ.data?.rows ?? []).filter((r) => r.unitProblems?.length);
+  const target = (m: { id: string; product?: { id: string; name: string; price: number } }): Target => ({ menuItemId: m.id, name: m.product?.name ?? 'Dish', price: Number(m.product?.price) || 0, productId: m.product?.id ?? '' });
+
+  const exportCsv = () => {
+    if (tab === 'usage') {
+      downloadCsv(`saamaan-${days}din.csv`, [['Saamaan', 'Unit', 'Recipe me laga', ...(costHidden ? [] : ['Value']), 'Khareeda', 'Stock', 'Roz', 'Kitne din'],
+        ...usageRows.map((r) => [r.name, r.unit, r.used, ...(costHidden ? [] : [r.usedValue]), r.bought, r.stock, r.perDay, r.daysLeft ?? ''])]);
     } else {
-      setYieldQuantity(1);
-      setYieldUnit('portion');
-      setCookingTime(15);
-      setPreparationSteps('');
-      setIngredients([]);
+      downloadCsv('recipes.csv', [['Dish', 'Category', 'Rate', ...(costHidden ? [] : ['Plate cost', 'Food cost %']), 'Ban sakti (plate)', 'Pehle khatam', 'Saamaan']]
+        .concat(shown.map((r) => {
+          const c = cookBy.get(r.menuItemId);
+          return [r.menuItem.product.name, r.menuItem.product.category?.name ?? '', String(r.menuItem.product.price), ...(costHidden ? [] : [String(c?.cost ?? ''), String(c?.foodCostPct ?? '')]),
+            String(c?.canMake ?? ''), c?.blocker?.name ?? '', r.ingredients.map((i) => `${i.ingredient?.name} ${fmt(i.quantity)} ${i.unit}`).join('; ')];
+        })));
     }
-  }, [existingRecipe, menuItem.id]);
-
-  // Optional lines are left out of the dish cost, as on the server.
-  const totalCost = ingredients.reduce((sum, ing) => (ing.isOptional ? sum
-    : sum + lineCost(ing.quantity, ing.unit, ing.costPerUnit ?? 0, ing.ingredient?.unit)), 0);
-  const menuPrice = menuItem.product?.price ?? 0;
-  // The menu price is per plate, so margin is measured against one portion's cost.
-  const portionCost = yieldQuantity > 0 ? totalCost / yieldQuantity : totalCost;
-  const marginPct = menuPrice > 0 ? ((menuPrice - portionCost) / menuPrice) * 100 : 0;
-
-  const saveMutation = useMutation({
-    mutationFn: () => recipesApi.upsert({
-      menuItemId: menuItem.id,
-      yieldQuantity,
-      yieldUnit,
-      cookingTime,
-      preparationSteps: preparationSteps || undefined,
-      // Saved rows come back with ids and the ingredient object; send only the fields the API takes.
-      ingredients: ingredients.filter((i) => i.ingredientProductId && i.quantity > 0).map((i, idx) => ({
-        ingredientProductId: i.ingredientProductId,
-        quantity: Number(i.quantity),
-        unit: i.unit,
-        ...(i.costPerUnit != null && { costPerUnit: Number(i.costPerUnit) }),
-        isOptional: !!i.isOptional,
-        ...(i.notes && { notes: i.notes }),
-        displayOrder: idx,
-      })),
-    }),
-    onSuccess: () => {
-      toast.success('Recipe saved');
-      onSaved();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: () => recipesApi.remove(existingRecipe!.id),
-    onSuccess: () => {
-      toast.success('Recipe deleted');
-      onSaved();
-    },
+  };
+  const printDoc = (): PrintDoc => ({
+    title: 'Recipes',
+    meta: [['Dishes', String(shown.length)]],
+    sections: shown.map((r) => ({
+      kind: 'table' as const,
+      title: `${r.menuItem.product.name} — ${fmt(r.yieldQuantity)} plate`,
+      columns: [{ label: 'Saamaan' }, { label: 'Quantity', align: 'right' as const }, ...(costHidden ? [] : [{ label: 'Cost', align: 'right' as const }])],
+      rows: r.ingredients.map((i) => [`${i.ingredient?.name ?? ''}${i.isOptional ? ' (marzi)' : ''}`, `${fmt(i.quantity)} ${i.unit}`, ...(costHidden ? [] : [String(i.totalCost ?? '')])]),
+    })),
   });
 
   return (
-    <div className="space-y-4">
-      {/* Menu Item Header */}
-      <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-lime-900 text-white p-5">
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-white/15 overflow-hidden shrink-0">
-            {menuItem.imageUrl || menuItem.product?.images?.[0]?.url ? (
-              <img src={menuItem.imageUrl || menuItem.product?.images?.[0]?.url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center"><ChefHat className="h-8 w-8 text-white/60" /></div>
-            )}
-          </div>
-          <div className="flex-1">
-            <div className="text-xs uppercase font-extrabold text-white/70">Recipe for</div>
-            <div className="text-2xl font-extrabold">{menuItem.product?.name}</div>
-            <div className="text-sm text-white/80 font-semibold">Menu price: {formatPKR(menuPrice)}</div>
-          </div>
-        </div>
-      </div>
+    <PageShell>
+      {guide.isOpen && <PageGuide title="Recipes — aasaan tareeqa" steps={GUIDE} onClose={guide.close}
+        tips={['Degh ki recipe ho to poori degh ka saamaan likhein aur "kitni plate banti hain" me plate ginein.', 'Chicken ya oil ka rate badla? "Rates taaza karein" dabayein — sab dishes ki cost aaj ke rate par aa jati hai.']}
+        shortcuts={[['/', 'search'], ['N', 'nayi recipe'], ['R', 'rates taaza'], ['G', 'guide']]} />}
+      {editing && <RecipeModal target={editing} canSave={can.kitchen} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); }} />}
+      {picking && <PickDish dishes={missing} onClose={() => setPicking(false)} onPick={(m) => { setPicking(false); setEditing(target(m)); }} />}
 
-      {/* Cost analysis */}
-      <div className="grid sm:grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
-          <div className="text-xs uppercase font-extrabold text-slate-500">Recipe Cost</div>
-          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(totalCost)}</div>
-          <div className="text-[0.6875rem] text-slate-500 font-bold">per {yieldQuantity} {yieldUnit}</div>
-        </div>
-        <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
-          <div className="text-xs uppercase font-extrabold text-slate-500">Cost per Portion</div>
-          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
-            {formatPKR(yieldQuantity > 0 ? totalCost / yieldQuantity : 0)}
-          </div>
-          <div className="text-[0.6875rem] text-slate-500 font-bold">1 {yieldUnit}</div>
-        </div>
-        <div className={
-          'rounded-2xl border-2 p-4 ' +
-          (marginPct > 50 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300' :
-           marginPct > 30 ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300' :
-           'bg-rose-50 dark:bg-rose-950/40 border-rose-300')
-        }>
-          <div className={
-            'text-xs uppercase font-extrabold ' +
-            (marginPct > 50 ? 'text-emerald-700' : marginPct > 30 ? 'text-amber-700' : 'text-rose-700')
-          }>Profit Margin</div>
-          <div className={
-            'mt-1 text-2xl font-extrabold tabular-nums ' +
-            (marginPct > 50 ? 'text-emerald-700' : marginPct > 30 ? 'text-amber-700' : 'text-rose-700')
-          }>
-            {marginPct.toFixed(1)}%
-          </div>
-          <div className={
-            'text-[0.6875rem] font-bold ' +
-            (marginPct > 50 ? 'text-emerald-700' : marginPct > 30 ? 'text-amber-700' : 'text-rose-700')
-          }>
-            Profit: {formatPKR(menuPrice - portionCost)}
-          </div>
-        </div>
-      </div>
+      <PageHero title="Recipes" chip={<><BookOpen />{recipes.length} dish</>} meta="Saamaan, plate ki cost aur stock" busy={(recipesQ.isFetching || cookQ.isFetching) && !recipesQ.isLoading} loading={recipesQ.isLoading}
+        actions={<>
+          <PrivacyToggle compact />
+          {can.kitchen && <button type="button" onClick={() => refreshCosts.mutate()} disabled={refreshCosts.isPending} title="Rates taaza karein (R)" className={heroButton}><RefreshCw className={cn('h-4 w-4', refreshCosts.isPending && 'animate-spin')} /><span className="hidden sm:inline">Rates taaza</span></button>}
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          {tab === 'recipes' && <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>}
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.kitchen && <button type="button" onClick={() => setPicking(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />Nayi recipe</button>}
+        </>}
+        stats={[
+          { label: 'Recipe wali dishes', value: String(recipes.length), hint: missing.length ? `${missing.length} baqi` : 'sab' },
+          { label: 'Ausat food cost', value: costHidden ? '••••' : avgFood === null ? '—' : `${avgFood.toFixed(1)}%` },
+          { label: 'Ab nahi ban sakti', value: String(cookQ.data?.outOfStock ?? 0), hint: `${cookQ.data?.running ?? 0} thori bachi` },
+        ]} />
 
-      {/* Yield + Time */}
-      <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white">Recipe Yield</h3>
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Yield Quantity</label>
-            <input
-              type="number" step="0.01" min="0.01"
-              value={yieldQuantity}
-              onChange={(e) => setYieldQuantity(Number(e.target.value))}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
-            />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Yield Unit</label>
-            <select
-              value={yieldUnit}
-              onChange={(e) => setYieldUnit(e.target.value)}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-lime-500"
-            >
-              <option value="portion">Portion</option>
-              <option value="plate">Plate</option>
-              <option value="serving">Serving</option>
-              <option value="piece">Piece</option>
-              <option value="kg">Kg</option>
-              <option value="g">Grams</option>
-              <option value="liter">Liter</option>
-              <option value="ml">ml</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Cooking Time (min)</label>
-            <input
-              type="number" min="1"
-              value={cookingTime}
-              onChange={(e) => setCookingTime(Number(e.target.value))}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Ingredients */}
-      <IngredientsSection ingredients={ingredients} onChange={setIngredients} />
-
-      {/* Preparation Steps */}
-      <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white mb-2">Preparation Steps</h3>
-        <textarea
-          rows={6}
-          value={preparationSteps}
-          onChange={(e) => setPreparationSteps(e.target.value)}
-          placeholder="1. Marinate chicken with spices for 30 minutes..."
-          className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-lime-500 resize-none"
-        />
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <Button
-          size="lg"
-          className="flex-1 bg-gradient-to-r from-lime-600 to-emerald-700"
-          onClick={() => saveMutation.mutate()}
-          loading={saveMutation.isPending}
-          disabled={ingredients.filter((i) => i.ingredientProductId && i.quantity > 0).length === 0}
-        >
-          <Save className="h-5 w-5" />
-          {existingRecipe ? 'Update Recipe' : 'Create Recipe'}
-        </Button>
-        {existingRecipe && (
-          <Button
-            size="lg"
-            variant="secondary"
-            onClick={() => {
-              if (confirm('Delete this recipe?')) removeMutation.mutate();
-            }}
-            className="bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:bg-rose-100"
-          >
-            <Trash2 className="h-5 w-5" />
-            Delete
-          </Button>
+      <KpiRow cols={4}>
+        {cookQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={CircleSlash} color="#e11d48" label="Ban nahi sakti" value={String(cookQ.data?.outOfStock ?? 0)} hint="Saamaan khatam · dabayein" onClick={() => setTab('cook')} active={tab === 'cook'} />
+            <KpiCard icon={Clock} color="#d97706" label="Thori bachi" value={String(cookQ.data?.running ?? 0)} hint="5 plate ya kam" onClick={() => setTab('cook')} />
+            <KpiCard icon={BookOpen} color="#7c3aed" label="Recipe nahi" value={String(cookQ.data?.withoutRecipe ?? missing.length)} hint="Bikne par stock nahi katta" onClick={() => can.kitchen && setPicking(true)} />
+            <KpiCard icon={Flame} color="#ea580c" label="Food cost 45%+" value={costHidden ? '••••' : String(priced.filter((r) => r.foodCostPct > 45).length)} hint="Rate ya recipe dekhein" />
+          </>
         )}
-      </div>
-    </div>
+      </KpiRow>
+
+      {unitProblems.length > 0 && (
+        <p className="flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{unitProblems.map((r) => r.name).slice(0, 5).join(', ')} ki recipe me unit stock se nahi milti ({unitProblems[0].unitProblems?.join(', ')}) — saamaan sahi nahi katta. Recipe khol kar unit theek karein.</span>
+        </p>
+      )}
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Dish ya saamaan ka naam…" label="Recipe search" />}
+        chips={term || categoryId !== 'all' ? <>
+          {term && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+          {categoryId !== 'all' && <FilterChip onRemove={() => setCategoryId('all')}>{categories.find((c) => c.id === categoryId)?.name}</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setCategoryId('all'); }}>
+        {tab === 'recipes' && <FilterMenu icon={FolderTree} label="Category" value={categoryId} active={categoryId !== 'all'}
+          options={[{ value: 'all', label: 'Sab category' }, ...categories.map((c) => ({ value: c.id, label: c.name, color: c.color }))]} onChange={setCategoryId} />}
+        {tab === 'usage' && <FilterMenu icon={Clock} label="Din" value={String(days)} options={[{ value: '1', label: 'Aaj' }, { value: '7', label: '7 din' }, { value: '30', label: '30 din' }, { value: '90', label: '90 din' }]} onChange={(v) => setDays(Number(v))} />}
+      </FilterBar>
+
+      <ViewTabs<Tab> value={tab} onChange={setTab} tabs={[
+        { id: 'recipes', label: 'Recipes', icon: BookOpen, count: recipes.length },
+        { id: 'cook', label: 'Ban sakti hai', icon: ChefHat, count: cookQ.data?.outOfStock || null },
+        { id: 'usage', label: 'Saamaan ka istemal', icon: Wheat },
+      ]} hint={<><Kbd>R</Kbd> rates taaza</>} />
+
+      {tab === 'recipes' && (
+        <div className="space-y-4">
+          {missing.length > 0 && can.kitchen && (
+            <div className="rounded-3xl bg-violet-50 p-4 ring-1 ring-violet-200">
+              <p className="text-[0.875rem] font-semibold text-violet-900">{missing.length} dish ki recipe nahi — bikne par saamaan stock se nahi katta</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {missing.slice(0, 12).map((m) => (
+                  <button key={m.id} type="button" onClick={() => setEditing(target(m))} className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-3 text-[0.8125rem] font-medium text-violet-900 ring-1 ring-violet-200 hover:bg-violet-100">
+                    <Plus className="h-3.5 w-3.5" />{m.product?.name}
+                  </button>
+                ))}
+                {missing.length > 12 && <button type="button" onClick={() => setPicking(true)} className="h-8 px-2 text-[0.8125rem] font-semibold text-violet-800 hover:underline">+{missing.length - 12} aur</button>}
+              </div>
+            </div>
+          )}
+          <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {recipesQ.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+              : recipesQ.isError ? <p className="px-6 py-12 text-center text-[0.875rem] text-slate-500">{errText(recipesQ.error, 'Recipes nahi khulin')}</p>
+                : !shown.length ? (
+                  <div className="flex flex-col items-center px-6 py-14 text-center">
+                    <BookOpen className="h-8 w-8 text-slate-400" />
+                    <p className="mt-3 font-semibold text-slate-900">{recipes.length ? 'Is filter me koi recipe nahi' : 'Abhi koi recipe nahi'}</p>
+                    <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">Recipe se dish bikne par chicken, chawal, oil stock se katta hai aur har plate ki cost aur profit sahi aata hai.</p>
+                    {can.kitchen && !recipes.length && <Button className="mt-4" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setPicking(true)}>Pehli recipe</Button>}
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {shown.map((r) => <RecipeRowView key={r.id} r={r} cook={cookBy.get(r.menuItemId)} cost={cost} costHidden={costHidden} canEdit={can.kitchen}
+                      onEdit={() => setEditing({ menuItemId: r.menuItemId, name: r.menuItem.product.name, price: Number(r.menuItem.product.price) || 0, productId: r.menuItem.product.id })} />)}
+                  </ul>
+                )}
+          </section>
+        </div>
+      )}
+
+      {tab === 'cook' && (
+        <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          {cookQ.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div> : !cookRows.length ? (
+            <p className="px-6 py-12 text-center text-[0.875rem] text-slate-500">Koi recipe nahi — pehle dishes ki recipe banayein</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {cookRows.map((r) => <CookRow key={r.recipeId} r={r} canMenu={can.menu} canBuy={can.buy} busy={setAvailable.isPending} onToggle={(on) => setAvailable.mutate({ id: r.menuItemId, on })} />)}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {tab === 'usage' && (
+        <div className="space-y-4">
+          <KpiRow cols={3}>
+            {usageQ.isLoading || !usageQ.data ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+              <>
+                <KpiCard icon={Wheat} color="#a16207" label={`Recipe me laga · ${days} din`} value={cost(usageQ.data.totals.usedValue)} hint={`${usageQ.data.totals.items} cheezein`} />
+                <KpiCard icon={TrendingDown} color="#e11d48" label="2 din me khatam" value={String(usageQ.data.totals.runningOut)} hint="Isi raftaar par" />
+                <KpiCard icon={Truck} color="#0891b2" label="Khareeda" value={String(usageQ.data.rows.filter((r) => r.bought > 0).length)} hint="cheezein is period me" />
+              </>
+            )}
+          </KpiRow>
+          <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {usageQ.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}</div> : !usageRows.length ? (
+              <p className="px-6 py-12 text-center text-[0.875rem] text-slate-500">Is period me recipe se koi saamaan nahi laga</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.8125rem]">
+                  <thead className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                    <tr><th className="px-4 py-2.5">Saamaan</th><th className="px-3 py-2.5 text-right">Recipe me laga</th><th className="px-3 py-2.5 text-right">Value</th><th className="px-3 py-2.5 text-right">Khareeda</th><th className="px-3 py-2.5 text-right">Stock</th><th className="px-3 py-2.5 text-right">Roz</th><th className="px-4 py-2.5 text-right">Kitne din</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {usageRows.map((r) => (
+                      <tr key={r.productId}>
+                        <td className="px-4 py-2.5"><Link to={`/restaurant-menu-items/${r.productId}`} className="font-medium text-slate-900 hover:text-brand-700">{r.name}</Link></td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{fmt(r.used)} {r.unit}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{cost(r.usedValue)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{r.bought ? `${fmt(r.bought)} ${r.unit}` : '—'}</td>
+                        <td className={cn('px-3 py-2.5 text-right tabular-nums', r.stock <= r.lowStockAlert && 'font-semibold text-rose-700')}>{fmt(r.stock)} {r.unit}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{fmt(r.perDay)}</td>
+                        <td className={cn('px-4 py-2.5 text-right font-semibold tabular-nums', r.daysLeft !== null && r.daysLeft <= 2 ? 'text-rose-700' : 'text-slate-800')}>{r.daysLeft === null ? '—' : `${r.daysLeft} din`}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+          <p className="text-[0.75rem] text-slate-500">"Recipe me laga" bikne wali dishes ki recipe se nikla saamaan hai. Stock ginti me farq ho to Stock adjustment se theek karein — wahan wajah ke saath record rehta hai.</p>
+        </div>
+      )}
+    </PageShell>
   );
 }
 
-function IngredientsSection({ ingredients, onChange }: {
-  ingredients: RecipeIngredient[];
-  onChange: (ing: RecipeIngredient[]) => void;
-}) {
-  const [productSearch, setProductSearch] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
+function RecipeRowView({ r, cook, cost, costHidden, canEdit, onEdit }: { r: RecipeRow; cook?: Cookability; cost: (n: number) => string; costHidden: boolean; canEdit: boolean; onEdit: () => void }) {
+  const p = r.menuItem.product;
+  const tone = foodCostTone(cook?.foodCostPct ?? null);
+  return (
+    <li className="flex flex-wrap items-center gap-3 px-4 py-3">
+      <Link to={`/restaurant-menu-items/${p.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+        <ProductThumb name={p.name} category={p.category?.name} url={p.images[0]?.url} size="md" />
+        <span className="min-w-0">
+          <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{p.name}{!r.menuItem.isAvailable && <span className="ml-1.5 rounded bg-rose-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-rose-700">band</span>}</span>
+          <span className="block truncate text-[0.75rem] text-slate-500">{fmt(r.yieldQuantity)} plate · {r.ingredients.map((i) => i.ingredient?.name).filter(Boolean).slice(0, 5).join(', ')}{r.ingredients.length > 5 ? '…' : ''}</span>
+        </span>
+      </Link>
+      <div className="flex flex-wrap items-center gap-4 text-[0.8125rem]">
+        <span className="text-right"><span className="block text-[0.6875rem] text-slate-500">Plate</span><strong className="tabular-nums">{cost(cook?.cost ?? 0)}</strong></span>
+        <span className="text-right"><span className="block text-[0.6875rem] text-slate-500">Food cost</span>
+          <strong className={cn('tabular-nums', tone === 'bad' ? 'text-rose-700' : tone === 'warn' ? 'text-amber-700' : 'text-success-700')}>{costHidden || !cook?.price ? '—' : `${cook.foodCostPct}%`}</strong></span>
+        <span className="min-w-[6rem] text-right"><span className="block text-[0.6875rem] text-slate-500">Ban sakti</span>
+          <strong className={cn('tabular-nums', cook?.canMake === 0 ? 'text-rose-700' : cook?.canMake != null && cook.canMake <= 5 ? 'text-amber-700' : 'text-slate-900')}>{cook?.canMake == null ? '—' : `${cook.canMake} plate`}</strong></span>
+        {canEdit && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={onEdit}>Badlein</Button>}
+      </div>
+    </li>
+  );
+}
 
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-recipe', productSearch],
-    queryFn: () => productsApi.list({ page: 1, limit: 30, search: productSearch || undefined }),
-    enabled: showPicker,
+function CookRow({ r, canMenu, canBuy, busy, onToggle }: { r: Cookability; canMenu: boolean; canBuy: boolean; busy: boolean; onToggle: (on: boolean) => void }) {
+  const out = r.canMake === 0;
+  return (
+    <li className={cn('flex flex-wrap items-center gap-3 px-4 py-3', out && 'bg-rose-50/40')}>
+      <span className={cn('flex h-11 w-14 shrink-0 flex-col items-center justify-center rounded-xl text-center', out ? 'bg-rose-600 text-white' : r.canMake !== null && r.canMake <= 5 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-800')}>
+        <strong className="text-[1rem] leading-none tabular-nums">{r.canMake ?? '—'}</strong><span className="text-[0.625rem]">plate</span>
+      </span>
+      <div className="min-w-0 flex-1">
+        <Link to={`/restaurant-menu-items/${r.productId}`} className="block truncate text-[0.9375rem] font-semibold text-slate-900 hover:text-brand-700">{r.name}</Link>
+        <p className="text-[0.75rem] text-slate-600">
+          {out ? <>Khatam: <strong className="text-rose-700">{r.missing.map((m) => m.name).join(', ') || r.blocker?.name}</strong></>
+            : r.blocker ? <>Pehle {r.blocker.name} khatam hoga · {fmt(r.blocker.have)} {r.blocker.unit} hai, plate me {fmt(r.blocker.need)}</> : 'Sab saamaan marzi ka'}
+        </p>
+      </div>
+      {out && canBuy && <Link to="/purchases/new" className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[0.75rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50"><Truck className="h-3.5 w-3.5" />Khareedein</Link>}
+      {canMenu ? (
+        <button type="button" disabled={busy} onClick={() => onToggle(!r.isAvailable)}
+          className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.75rem] font-semibold ring-1', r.isAvailable ? (out ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-success-50 text-success-700 ring-success-200') : 'bg-rose-50 text-rose-700 ring-rose-200')}>
+          <Power className="h-3.5 w-3.5" />{r.isAvailable ? (out ? 'Menu par — band karein' : 'Menu par') : 'Band (86)'}
+        </button>
+      ) : <span className="text-[0.75rem] text-slate-500">{r.isAvailable ? 'Menu par' : 'Band'}</span>}
+    </li>
+  );
+}
+
+function PickDish({ dishes, onClose, onPick }: { dishes: RestaurantMenuItem[]; onClose: () => void; onPick: (m: RestaurantMenuItem) => void }) {
+  const [q, setQ] = useState('');
+  const term = q.trim().toLowerCase();
+  const rows = dishes.filter((m) => !term || String(m.product?.name ?? '').toLowerCase().includes(term));
+  return (
+    <Modal open onClose={onClose} size="md" title="Kis dish ki recipe?" description="Yahan woh dishes hain jin ki recipe abhi nahi bani">
+      <label className="relative block">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dish ka naam…" className="h-10 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-[0.875rem]" />
+      </label>
+      <ul className="mt-3 max-h-[50vh] space-y-1 overflow-y-auto">
+        {rows.map((m) => (
+          <li key={m.id}><button type="button" onClick={() => onPick(m)} className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[0.875rem] hover:bg-slate-50">
+            <span className="font-medium text-slate-900">{m.product?.name}</span><span className="text-[0.75rem] text-slate-500">{m.product?.category?.name}</span>
+          </button></li>
+        ))}
+        {!rows.length && <li className="py-6 text-center text-[0.8125rem] text-slate-500">{dishes.length ? 'Koi dish nahi mili' : 'Har dish ki recipe ban chuki hai. Nayi dish menu me banayein.'}</li>}
+      </ul>
+      <p className="mt-3 text-[0.75rem] text-slate-500">Dish menu par nahi? <Link to="/restaurant-menu-items/new" className="font-semibold text-brand-700 hover:underline">Nayi dish banayein</Link> — wahin recipe bhi.</p>
+    </Modal>
+  );
+}
+
+function RecipeModal({ target, canSave, onClose, onSaved }: { target: Target; canSave: boolean; onClose: () => void; onSaved: () => void }) {
+  const q = useQuery({ queryKey: ['restaurant-recipe', target.menuItemId], queryFn: () => recipesApi.getByMenuItem(target.menuItemId) });
+  const [draft, setDraft] = useState<RecipeDraft | null>(null);
+  const [tried, setTried] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  useEffect(() => { if (q.isSuccess && !draft) setDraft(recipeFromApi(q.data)); }, [q.isSuccess, q.data, draft]);
+  const problem = draft ? (draft.lines.length ? recipeProblem(draft) : 'Kam se kam ek cheez recipe me daalein') : null;
+
+  const save = useMutation({
+    mutationFn: () => recipesApi.upsert(recipeInput(target.menuItemId, draft!)),
+    onSuccess: () => { toast.success(`${target.name} ki recipe save — plate ${recipeTotals(draft!).perPlate.toFixed(0)} Rs`); onSaved(); },
+    onError: (e) => toast.error(errText(e, 'Save nahi hui')),
+  });
+  const remove = useMutation({
+    mutationFn: () => recipesApi.remove(q.data!.id),
+    onSuccess: () => { toast.success('Recipe hata di — ab is dish se saamaan nahi katega'); onSaved(); },
+    onError: (e) => toast.error(errText(e, 'Nahi hati')),
+  });
+  const submit = () => { setTried(true); if (!problem && canSave && !save.isPending) save.mutate(); };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
-  const products = productsData?.items ?? [];
-
-  const addIngredient = (product: any) => {
-    onChange([
-      ...ingredients,
-      {
-        ingredientProductId: product.id,
-        quantity: 1,
-        unit: product.unit || 'piece',
-        costPerUnit: product.costPrice ?? 0,
-        totalCost: product.costPrice ?? 0,
-        isOptional: false,
-        ingredient: product,
-      },
-    ]);
-    setShowPicker(false);
-    setProductSearch('');
-  };
-
-  const update = (idx: number, patch: Partial<RecipeIngredient>) => {
-    const updated = ingredients.map((ing, i) => {
-      if (i !== idx) return ing;
-      const next = { ...ing, ...patch };
-      // Recalc totalCost
-      if ('quantity' in patch || 'costPerUnit' in patch || 'unit' in patch) {
-        next.totalCost = lineCost(next.quantity ?? 0, next.unit, next.costPerUnit ?? 0, next.ingredient?.unit);
-      }
-      return next;
-    });
-    onChange(updated);
-  };
-
-  const remove = (idx: number) => onChange(ingredients.filter((_, i) => i !== idx));
-
   return (
-    <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/30 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Package className="h-4 w-4 text-lime-600" />
-          <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white">Ingredients</h3>
-          <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-ink-700 text-[0.6875rem] font-extrabold">{ingredients.length}</span>
-        </div>
-        <Button size="sm" onClick={() => setShowPicker(true)} className="bg-gradient-to-r from-lime-600 to-emerald-700">
-          <Plus className="h-3.5 w-3.5" />
-          Add Ingredient
-        </Button>
-      </div>
-
-      {showPicker && (
-        <div className="p-3 border-b border-slate-100 dark:border-ink-800 bg-lime-50/50 dark:bg-lime-950/20">
-          <div className="flex gap-2 mb-2">
-            <div className="relative flex-1">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                autoFocus
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                placeholder="Search raw materials/ingredients..."
-                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-lime-500"
-              />
+    <Modal open onClose={onClose} size="xl" title={`${target.name} — recipe`} description="Gram, ml ya adad me likhein; stock kilo/litre me ho to khud badal jata hai"
+      footer={<>
+        {q.data && canSave && (confirmDelete
+          ? <Button variant="danger" size="sm" loading={remove.isPending} onClick={() => remove.mutate()}>Haan, hatayein</Button>
+          : <Button variant="ghost" size="sm" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => setConfirmDelete(true)}>Recipe hatayein</Button>)}
+        {tried && problem ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problem}</p> : <span className="mr-auto hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        <Button variant="secondary" onClick={onClose}>Band</Button>
+        {canSave && <Button loading={save.isPending} onClick={submit}>Save karein</Button>}
+      </>}>
+      {!draft ? <Skeleton className="h-72 rounded-2xl" /> : (
+        <div className="space-y-4">
+          {!canSave && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Recipe badalne ke liye "Kitchen sambhalna" ki permission chahiye.</p>}
+          <RecipeLinesEditor value={draft} onChange={setDraft} price={target.price} dishProductId={target.productId} />
+          {draft.lines.length > 0 && (
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
+              <label className="block text-[0.8125rem] font-medium text-slate-700">Banane ka tareeqa (marzi)
+                <textarea value={draft.preparationSteps} onChange={(e) => setDraft({ ...draft, preparationSteps: e.target.value.slice(0, 5000) })} rows={3}
+                  className="mt-1.5 block w-full rounded-xl border border-slate-200 px-3 py-2 text-[0.875rem]" placeholder="1. …" />
+              </label>
+              <label className="block text-[0.8125rem] font-medium text-slate-700">Pakne me (min)
+                <input inputMode="numeric" value={draft.cookingTime ?? ''} onChange={(e) => setDraft({ ...draft, cookingTime: e.target.value ? Number(e.target.value.replace(/\D/g, '')) : null })}
+                  className="mt-1.5 block h-10 w-full rounded-xl border border-slate-200 px-3 text-right text-[0.875rem]" />
+              </label>
             </div>
-            <button onClick={() => setShowPicker(false)} className="h-10 w-10 rounded-xl bg-white dark:bg-ink-800 hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="max-h-56 overflow-y-auto space-y-1">
-            {products.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => addIngredient(p)}
-                className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-ink-800 transition text-left"
-              >
-                <Package className="h-4 w-4 text-slate-400" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-sm truncate text-slate-900 dark:text-ink-white">{p.name}</div>
-                  <div className="text-xs text-slate-500 font-semibold">
-                    Cost: {formatPKR(p.costPrice)} / {p.unit} • Stock: {p.stock}
-                  </div>
-                </div>
-                <Plus className="h-4 w-4 text-lime-600" />
-              </button>
-            ))}
-          </div>
+          )}
         </div>
       )}
-
-      {ingredients.length === 0 ? (
-        <div className="p-8 text-center">
-          <Package className="h-12 w-12 text-slate-400 mx-auto mb-2" />
-          <p className="font-extrabold text-slate-700 dark:text-ink-300">No ingredients yet</p>
-          <p className="text-xs text-slate-500 font-semibold mt-1">Add products/raw materials used in this dish</p>
-        </div>
-      ) : (
-        <div className="divide-y divide-slate-100 dark:divide-ink-800">
-          {ingredients.map((ing, i) => (
-            <div key={i} className="p-3 grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-4 flex items-center gap-2 min-w-0">
-                <Package className="h-4 w-4 text-slate-400 shrink-0" />
-                <div className="min-w-0">
-                  <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">
-                    {ing.ingredient?.name || 'Ingredient'}
-                  </div>
-                  <div className="text-[0.6875rem] text-slate-500 font-semibold">Stock: {ing.ingredient?.stock ?? '—'}</div>
-                </div>
-              </div>
-
-              <div className="col-span-2">
-                <input
-                  type="number" step="0.001" min="0.001"
-                  value={ing.quantity}
-                  onChange={(e) => update(i, { quantity: Number(e.target.value) })}
-                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-right focus:outline-none focus:border-lime-500"
-                />
-              </div>
-
-              <div className="col-span-2">
-                <select
-                  value={ing.unit}
-                  onChange={(e) => update(i, { unit: e.target.value })}
-                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-lime-500"
-                >
-                  {[...new Set([ing.unit, ing.ingredient?.unit, ...UNIT_OPTIONS].filter(Boolean) as string[])]
-                    .map((u) => <option key={u} value={u}>{u}</option>)}
-                </select>
-              </div>
-
-              <div className="col-span-2 relative">
-                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[0.625rem] font-extrabold text-slate-500">Rs</span>
-                <input
-                  type="number" step="0.01"
-                  value={ing.costPerUnit ?? 0}
-                  onChange={(e) => update(i, { costPerUnit: Number(e.target.value) })}
-                  placeholder="Cost/unit"
-                  title={`Rate per ${ing.ingredient?.unit || 'unit'} (stock ki unit)`}
-                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-7 pr-2 text-xs font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
-                />
-              </div>
-
-              <div className="col-span-1 text-right">
-                <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
-                  {formatPKR(lineCost(ing.quantity ?? 0, ing.unit, ing.costPerUnit ?? 0, ing.ingredient?.unit))}
-                </div>
-                <label className="inline-flex items-center gap-1 text-[0.625rem] font-bold text-slate-500 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={ing.isOptional || false}
-                    onChange={(e) => update(i, { isOptional: e.target.checked })}
-                    className="h-3 w-3"
-                  />
-                  Opt
-                </label>
-              </div>
-
-              <button
-                onClick={() => remove(i)}
-                className="col-span-1 h-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    </Modal>
   );
 }
+
+const GUIDE: GuideStep[] = [
+  { icon: BookOpen, color: '#7c3aed', title: 'Recipe banayein', text: 'Dish chunein, saamaan daalein: chicken 250 gram, oil 30 ml, pyaaz 1 adad. Degh ho to poori degh likh kar plate ginein.' },
+  { icon: Wheat, color: '#a16207', title: 'Stock khud katta hai', text: 'Dish kitchen me banne ya bill banne par recipe ka saamaan branch ke stock se nikal jata hai.' },
+  { icon: Flame, color: '#ea580c', title: 'Plate ki cost', text: 'Raw material ke aaj ke rate se. Purchase ka rate badle to "Rates taaza" dabayein — profit report isi cost se banti hai.' },
+  { icon: ChefHat, color: '#e11d48', title: 'Ban sakti hai?', text: 'Kitni plate aur ban sakti hain aur kaunsa saamaan pehle khatam hoga. Khatam ho to wahin se dish band (86) karein.' },
+  { icon: Truck, color: '#0891b2', title: 'Saamaan ka istemal', text: 'Recipe se kitna laga, kitna khareeda, kitna bacha aur kitne din chalega — chori ya zyada wastage yahin pakdi jati hai.' },
+];

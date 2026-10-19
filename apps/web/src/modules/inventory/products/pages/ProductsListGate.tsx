@@ -1,7 +1,8 @@
 /**
  * Picks the products page for the current industry. Retail, Bakery,
- * Electronics and businesses without an industry use the shared page
- * (modules/inventory/products/list); the rest keep their own pages for now,
+ * Electronics, Pharmacy, Garments and businesses without an industry use the
+ * shared page (modules/inventory/products/list) through their own config;
+ * the rest keep their own pages for now,
  * and industries without one use the older general list (carpet rolls,
  * IMEI and other industry panels live there).
  */
@@ -14,6 +15,8 @@ const PAGES: Record<string, LazyExoticComponent<ComponentType>> = {
   retail: lazy(() => import('@industries/retail/products/RetailProducts')),
   bakery: lazy(() => import('@industries/bakery/products/BakeryProducts')),
   electronics: lazy(() => import('@industries/electronics/products/ElectronicsProducts')),
+  pharmacy: lazy(() => import('@industries/pharmacy/products/PharmacyProducts')),
+  garments: lazy(() => import('@industries/garments/pages/GarmentProductsPage')),
   mobile: lazy(() => import('@industries/mobile/pages/MobileProductsPage')),
   appliances: lazy(() => import('@industries/appliances/pages/AppliancesProductsPage')),
   agri: lazy(() => import('@industries/agri/pages/AgriProductsListPage')),

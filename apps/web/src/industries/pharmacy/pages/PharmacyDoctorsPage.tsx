@@ -1,250 +1,230 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Stethoscope, Plus, Search, X, Save, Edit3, Trash2, RefreshCw,
-  Sparkles, Phone, Award, Building, DollarSign, TrendingUp,
-  ShieldCheck, User, FileText,
-} from 'lucide-react';
-import { doctorsApi, type Doctor } from '../api/doctors.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Doctor directory: who sends prescriptions here, how many and for how
+ * much medicine. Counter staff add and correct doctors; verifying or
+ * switching one off needs customer-records rights. Doctors are never
+ * deleted, so old prescriptions keep their name.
+ */
+
+import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { BadgeCheck, Download, FileText, GraduationCap, Pencil, Phone, Plus, Power, Stethoscope, Trophy, UserPlus } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Textarea, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { doctorsApi, type Doctor } from '../api/doctors.api';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { drName, formatCnic, shortDate } from '../lib/meta';
 
-export default function DoctorsPage() {
-  const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Doctor | null>(null);
+type Tab = 'active' | 'verified' | 'inactive';
+type Sort = 'rx' | 'value' | 'name' | 'recent';
+interface Draft { name: string; registrationNumber: string; phone: string; cnic: string; qualification: string; specialization: string; clinicName: string; clinicAddress: string; hospitalAffiliation: string; notes: string }
 
-  const { data: doctors = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['doctors', search],
-    queryFn: () => doctorsApi.list({ search: search || undefined, isActive: true }),
-  });
+const EMPTY: Draft = { name: '', registrationNumber: '', phone: '', cnic: '', qualification: '', specialization: '', clinicName: '', clinicAddress: '', hospitalAffiliation: '', notes: '' };
+const SPECIALITIES = ['General physician', 'Child (Peds)', 'Gynae', 'Medicine', 'Sugar / Diabetes', 'Dil (Cardio)', 'Skin', 'ENT', 'Eye', 'Surgeon', 'Dentist'];
+const apiError = (e: unknown) => { const m = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message; return (Array.isArray(m) ? m[0] : m) ?? 'Save nahi hua'; };
 
-  const verifyMutation = useMutation({
-    mutationFn: (id: string) => doctorsApi.verify(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['doctors'] }),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => doctorsApi.remove(id),
-    onSuccess: () => {
-      toast.success('Doctor deactivated');
-      queryClient.invalidateQueries({ queryKey: ['doctors'] });
+function DoctorModal({ doctor, onClose, onSaved }: { doctor: Doctor | null; onClose: () => void; onSaved: () => void }) {
+  const [d, setD] = useState<Draft>(() => (doctor ? {
+    name: doctor.name, registrationNumber: doctor.registrationNumber, phone: doctor.phone ?? '', cnic: doctor.cnic ?? '', qualification: doctor.qualification ?? '',
+    specialization: doctor.specialization ?? '', clinicName: doctor.clinicName ?? '', clinicAddress: doctor.clinicAddress ?? '', hospitalAffiliation: doctor.hospitalAffiliation ?? '', notes: doctor.notes ?? '',
+  } : EMPTY));
+  const [tried, setTried] = useState(false);
+  const set = (k: keyof Draft, v: string) => setD((x) => ({ ...x, [k]: v }));
+  const errors: Partial<Record<keyof Draft, string>> = {
+    name: d.name.trim().length < 2 ? 'Naam likhein' : undefined,
+    registrationNumber: d.registrationNumber.trim().length < 2 ? 'PMDC number likhein' : undefined,
+    cnic: d.cnic && d.cnic.replace(/\D/g, '').length !== 13 ? 'CNIC 13 hindsay ka hota hai' : undefined,
+  };
+  const save = useMutation({
+    mutationFn: () => {
+      const opt = (v: string) => v.trim() || undefined;
+      const body = {
+        name: d.name.trim(), registrationNumber: d.registrationNumber.trim(), phone: opt(d.phone), cnic: opt(d.cnic), qualification: opt(d.qualification),
+        specialization: opt(d.specialization), clinicName: opt(d.clinicName), clinicAddress: opt(d.clinicAddress), hospitalAffiliation: opt(d.hospitalAffiliation), notes: opt(d.notes),
+      };
+      return doctor ? doctorsApi.update(doctor.id, body) : doctorsApi.create(body);
     },
+    onSuccess: () => { toast.success(doctor ? 'Doctor update ho gaya' : 'Doctor jur gaya'); onSaved(); },
+    onError: (e) => toast.error(apiError(e)),
   });
-
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    setTried(true);
+    if (Object.values(errors).some(Boolean)) return;
+    save.mutate();
+  };
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Registered Doctors
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">👨‍⚕️ Doctors Directory</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">PMDC registered doctors + commission tracking</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Doctor
-            </Button>
-          </div>
+    <Modal open onClose={onClose} size="lg" title={doctor ? `${doctor.name} — badlein` : 'Naya doctor'} description="PMDC number se doctor pehchana jata hai — ek number do doctors ka nahi ho sakta"
+      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="doctor-form" loading={save.isPending}>Save</Button></div>}>
+      <form id="doctor-form" onSubmit={submit} className="grid gap-3 sm:grid-cols-2"
+        onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
+        <Input label="Naam" required autoFocus value={d.name} onChange={(e) => set('name', e.target.value)} placeholder="Ahmed Raza" error={tried ? errors.name : undefined} hint='"Dr." likhne ki zaroorat nahi' />
+        <Input label="PMDC number" required value={d.registrationNumber} onChange={(e) => set('registrationNumber', e.target.value)} placeholder="12345-P" error={tried ? errors.registrationNumber : undefined} />
+        <div className="sm:col-span-2">
+          <Input label="Specialist" value={d.specialization} onChange={(e) => set('specialization', e.target.value)} list="doctor-specs" />
+          <datalist id="doctor-specs">{SPECIALITIES.map((s) => <option key={s} value={s} />)}</datalist>
         </div>
-      </section>
-
-      <div className="relative">
-        <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search name, reg #, phone..."
-          className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500"
-        />
-      </div>
-
-      {showForm && (
-        <DoctorForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['doctors'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : doctors.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Stethoscope className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No doctors yet</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {doctors.map((doc) => (
-            <div key={doc.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-lg font-extrabold shadow shrink-0">
-                  {doc.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{doc.name}</span>
-                    {doc.isVerified && <Award className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
-                  </div>
-                  <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{doc.registrationNumber}</div>
-                  {doc.specialization && <div className="text-xs text-slate-600 font-bold">{doc.specialization}</div>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                {doc.phone && (
-                  <a href={'tel:' + doc.phone} className="inline-flex items-center gap-1 text-blue-700 font-bold hover:underline">
-                    <Phone className="h-3 w-3" />
-                    {doc.phone}
-                  </a>
-                )}
-                {doc.clinicName && (
-                  <span className="inline-flex items-center gap-1 text-slate-600 font-semibold truncate">
-                    <Building className="h-3 w-3" />
-                    {doc.clinicName}
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
-                <div className="text-center">
-                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rx</div>
-                  <div className="font-extrabold tabular-nums">{doc.totalPrescriptions}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Business</div>
-                  <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(doc.totalBusiness)}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Commission</div>
-                  <div className="font-extrabold text-amber-700 tabular-nums text-[0.6875rem]">{formatPKR(doc.totalCommission)}</div>
-                </div>
-              </div>
-
-              <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-                <button onClick={() => verifyMutation.mutate(doc.id)} className={
-                  'flex-1 h-8 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 ' +
-                  (doc.isVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700')
-                }>
-                  <ShieldCheck className="h-3 w-3" />
-                  {doc.isVerified ? 'Verified' : 'Verify'}
-                </button>
-                <button onClick={() => { setEditing(doc); setShowForm(true); }} className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-                  <Edit3 className="h-3.5 w-3.5" />
-                </button>
-                <button onClick={() => { if (confirm('Deactivate ' + doc.name + '?')) removeMutation.mutate(doc.id); }} className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </div>
+        <Input label="Phone" inputMode="tel" value={d.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx…" />
+        <Input label="Degree" value={d.qualification} onChange={(e) => set('qualification', e.target.value)} placeholder="MBBS, FCPS" />
+        <Input label="Clinic" value={d.clinicName} onChange={(e) => set('clinicName', e.target.value)} />
+        <Input label="Hospital" value={d.hospitalAffiliation} onChange={(e) => set('hospitalAffiliation', e.target.value)} />
+        <Input label="Clinic ka pata" value={d.clinicAddress} onChange={(e) => set('clinicAddress', e.target.value)} wrapperClassName="sm:col-span-2" />
+        <Input label="CNIC" inputMode="numeric" value={d.cnic} onChange={(e) => set('cnic', formatCnic(e.target.value))} error={tried ? errors.cnic : undefined} />
+        <Textarea label="Note" rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} />
+      </form>
+    </Modal>
   );
 }
 
-function DoctorForm({ editing, onClose, onSaved }: { editing: Doctor | null; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState({
-    name: editing?.name ?? '',
-    registrationNumber: editing?.registrationNumber ?? '',
-    phone: editing?.phone ?? '',
-    email: editing?.email ?? '',
-    cnic: editing?.cnic ?? '',
-    qualification: editing?.qualification ?? '',
-    specialization: editing?.specialization ?? '',
-    yearsOfExperience: editing?.yearsOfExperience ?? '',
-    clinicName: editing?.clinicName ?? '',
-    clinicAddress: editing?.clinicAddress ?? '',
-    hospitalAffiliation: editing?.hospitalAffiliation ?? '',
-    consultationFee: editing?.consultationFee ?? '',
-    commissionType: editing?.commissionType ?? 'NONE',
-    commissionValue: editing?.commissionValue ?? 0,
-    notes: editing?.notes ?? '',
-    isVerified: editing?.isVerified ?? false,
+export default function PharmacyDoctorsPage() {
+  const qc = useQueryClient();
+  const { sales: money } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const canAdd = usePermission(PERMISSIONS.POS_USE);
+  const canManage = usePermission(PERMISSIONS.CUSTOMERS_EDIT);
+  const [tab, setTab] = useState<Tab>('active');
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<Sort>('rx');
+  const [spec, setSpec] = useState('');
+  const [editing, setEditing] = useState<Doctor | 'new' | null>(null);
+  const q = useDebounced(search.trim());
+  usePageKeys(searchRef, { n: () => canAdd && setEditing('new') });
+
+  const { data: all = [], isLoading, isFetching } = useQuery({ queryKey: ['pharmacy-doctors', 'page', q], queryFn: () => doctorsApi.list({ search: q || undefined }) });
+  const refresh = () => qc.invalidateQueries({ queryKey: ['pharmacy-doctors'] });
+  const verify = useMutation({ mutationFn: (id: string) => doctorsApi.verify(id), onSuccess: refresh, onError: (e) => toast.error(apiError(e)) });
+  const toggle = useMutation({
+    mutationFn: (d: Doctor) => (d.isActive ? doctorsApi.remove(d.id) : doctorsApi.update(d.id, { name: d.name, registrationNumber: d.registrationNumber, isActive: true })),
+    onSuccess: (_r, d) => { toast.success(d.isActive ? `${d.name} band — purane nuskhon me naam rahega` : `${d.name} phir chalu`); refresh(); },
+    onError: (e) => toast.error(apiError(e)),
   });
 
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        ...form,
-        yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
-        consultationFee: form.consultationFee ? Number(form.consultationFee) : undefined,
-      };
-      return editing ? doctorsApi.update(editing.id, payload) : doctorsApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Doctor updated' : 'Doctor added'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
+  const specs = useMemo(() => [...new Set(all.map((d) => d.specialization).filter(Boolean) as string[])].sort(), [all]);
+  const counts = { active: all.filter((d) => d.isActive).length, verified: all.filter((d) => d.isActive && d.isVerified).length, inactive: all.filter((d) => !d.isActive).length };
+  const rows = useMemo(() => all
+    .filter((d) => (tab === 'inactive' ? !d.isActive : d.isActive && (tab !== 'verified' || d.isVerified)))
+    .filter((d) => !spec || d.specialization === spec)
+    .sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name)
+      : sort === 'value' ? b.totalBusiness - a.totalBusiness
+        : sort === 'recent' ? String(b.lastPrescriptionAt ?? '').localeCompare(String(a.lastPrescriptionAt ?? ''))
+          : b.totalPrescriptions - a.totalPrescriptions)), [all, tab, spec, sort]);
+  const totalRx = all.reduce((s, d) => s + d.totalPrescriptions, 0);
+  const totalValue = all.reduce((s, d) => s + d.totalBusiness, 0);
+  const top = [...all].sort((a, b) => b.totalPrescriptions - a.totalPrescriptions)[0];
+
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Koi doctor nahi'); return; }
+    downloadCsv('doctors.csv', [['Naam', 'PMDC', 'Specialist', 'Phone', 'Clinic', 'Nuskhe', 'Dawai ki value', 'Aakhri nuskha', 'Verified'],
+      ...rows.map((d) => [d.name, d.registrationNumber, d.specialization, d.phone, d.clinicName, d.totalPrescriptions, d.totalBusiness, d.lastPrescriptionAt?.slice(0, 10), d.isVerified ? 'Haan' : 'Nahi'])]);
+  };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Doctor' : 'New Doctor'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 grid sm:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto">
-        <div className="sm:col-span-2 grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Doctor Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} placeholder="PMDC Reg # *" className="h-11 rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-        </div>
-        <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-        <input value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} placeholder="Qualification (MBBS, FCPS)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <input value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} placeholder="Specialization" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <input type="number" value={form.yearsOfExperience} onChange={(e) => setForm({ ...form, yearsOfExperience: e.target.value })} placeholder="Years Experience" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500" />
-        <input value={form.clinicName} onChange={(e) => setForm({ ...form, clinicName: e.target.value })} placeholder="Clinic Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <input value={form.hospitalAffiliation} onChange={(e) => setForm({ ...form, hospitalAffiliation: e.target.value })} placeholder="Hospital Affiliation" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <input type="number" value={form.consultationFee} onChange={(e) => setForm({ ...form, consultationFee: e.target.value })} placeholder="Consultation Fee" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500" />
+    <PageShell>
+      {editing && <DoctorModal doctor={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); }} />}
+      {guide.isOpen && (
+        <PageGuide title="Doctors — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: UserPlus, color: '#2563eb', title: 'Doctor jorein', text: 'Naam aur PMDC number kaafi hai. Nuskha likhte waqt directory se doctor chunein to PMDC khud aa jata hai.' },
+            { icon: BadgeCheck, color: '#16a34a', title: 'Verify', text: 'PMDC number check kar lein to "Verified" lagayein — narcotic nuskhe me isi doctor par bharosa hota hai.' },
+            { icon: Trophy, color: '#d97706', title: 'Kaun zyada bhejta hai', text: 'Har doctor ke nuskhe aur dawai ki value — kis clinic se kaam aata hai, saaf dikhta hai.' },
+            { icon: Power, color: '#64748b', title: 'Band karein', text: 'Doctor mitaya nahi jata, sirf band hota hai — purane nuskhon me naam rehta hai.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya doctor'], ['G', 'guide']]} />
+      )}
 
-        <div className="sm:col-span-2 rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-3 space-y-2">
-          <div className="text-sm font-extrabold text-amber-900 dark:text-amber-300">Commission Setup</div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            <select value={form.commissionType} onChange={(e) => setForm({ ...form, commissionType: e.target.value })} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold">
-              <option value="NONE">No Commission</option>
-              <option value="PER_PRESCRIPTION">Per Prescription (Rs)</option>
-              <option value="PERCENTAGE">Percentage %</option>
-            </select>
-            {form.commissionType !== 'NONE' && (
-              <input type="number" step="0.01" value={form.commissionValue} onChange={(e) => setForm({ ...form, commissionValue: Number(e.target.value) })} placeholder="Value" className="h-10 rounded-lg border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            )}
-          </div>
-        </div>
+      <PageHero title="Doctors" chip={<><Stethoscope />{counts.active} chalu</>} busy={isFetching && !isLoading} loading={isLoading}
+        meta="Directory — nuskhe kis doctor se aate hain"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <Link to="/pharmacy/prescriptions" className={heroButton}><FileText className="h-4 w-4" /><span className="hidden sm:inline">Nuskhe</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canAdd && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya doctor</button>}
+        </>}
+        stats={[
+          { label: 'Kul nuskhe', value: String(totalRx) },
+          { label: 'Dawai ki value', value: money(totalValue) },
+          { label: 'Sab se zyada', value: top && top.totalPrescriptions ? top.name : '—', hint: top && top.totalPrescriptions ? `${top.totalPrescriptions} nuskhe` : undefined },
+        ]} />
 
-        <textarea rows={2} value={form.clinicAddress} onChange={(e) => setForm({ ...form, clinicAddress: e.target.value })} placeholder="Clinic address" className="sm:col-span-2 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="sm:col-span-2 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+      <KpiRow cols={3}>
+        {isLoading ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Stethoscope} color="#0891b2" label="Chalu doctors" value={counts.active} onClick={() => setTab('active')} active={tab === 'active'} />
+            <KpiCard icon={BadgeCheck} color="#16a34a" label="Verified" value={counts.verified} hint="PMDC check" onClick={() => setTab('verified')} active={tab === 'verified'} />
+            <KpiCard icon={Power} color="#64748b" label="Band" value={counts.inactive} onClick={() => setTab('inactive')} active={tab === 'inactive'} />
+          </>
+        )}
+      </KpiRow>
 
-        <label className="sm:col-span-2 flex items-center gap-2 p-3 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 cursor-pointer">
-          <input type="checkbox" checked={form.isVerified} onChange={(e) => setForm({ ...form, isVerified: e.target.checked })} className="h-4 w-4 rounded" />
-          <ShieldCheck className="h-4 w-4 text-emerald-600" />
-          <span className="text-sm font-extrabold text-emerald-900 dark:text-emerald-300">Verified (PMDC checked)</span>
-        </label>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, PMDC, phone, clinic ya specialist…" />}
+        chips={(spec || search.trim()) ? <>
+          {spec && <FilterChip onRemove={() => setSpec('')}>{spec}</FilterChip>}
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setSpec(''); }}>
+        {specs.length > 0 && <FilterMenu icon={Stethoscope} label="Specialist" value={spec || 'all'} active={!!spec} options={[{ value: 'all', label: 'Sab' }, ...specs.map((s) => ({ value: s, label: s }))]} onChange={(v) => setSpec(v === 'all' ? '' : v)} />}
+        <FilterMenu icon={Trophy} label="Sort" value={sort} align="right" width="w-56" onChange={setSort}
+          options={[{ value: 'rx', label: 'Zyada nuskhe pehle' }, { value: 'value', label: 'Zyada value pehle' }, { value: 'recent', label: 'Haal hi me' }, { value: 'name', label: 'Naam se' }]} />
+      </FilterBar>
 
-        <div className="sm:col-span-2 flex gap-2 pt-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.registrationNumber.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </section>
+      <ViewTabs value={tab} onChange={setTab}
+        tabs={[{ id: 'active', label: 'Chalu', count: counts.active }, { id: 'verified', label: 'Verified', count: counts.verified }, { id: 'inactive', label: 'Band', count: counts.inactive }]} />
+
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+          : rows.length === 0 ? (
+            <div className="flex flex-col items-center px-6 py-16 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Stethoscope className="h-7 w-7" /></span>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || spec ? 'Is filter me koi doctor nahi' : 'Abhi koi doctor nahi'}</h3>
+              <p className="mt-1 text-[0.875rem] text-slate-500">Jin doctors ke nuskhe aate hain unhe jorein — nuskha likhna tez ho jata hai.</p>
+              {canAdd && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya doctor</Button>}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[52rem] text-[0.875rem]">
+                <thead><tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-2.5">Doctor</th><th className="px-3 py-2.5">Clinic / hospital</th><th className="px-3 py-2.5 text-right">Nuskhe</th><th className="px-3 py-2.5 text-right">Dawai ki value</th><th className="px-3 py-2.5">Aakhri</th><th className="px-5 py-2.5" />
+                </tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.map((d) => (
+                    <tr key={d.id} className={cn(!d.isActive && 'opacity-60')}>
+                      <td className="px-5 py-2.5">
+                        <p className="flex items-center gap-1.5 font-semibold text-slate-900">{drName(d.name)}{d.isVerified && <BadgeCheck className="h-4 w-4 text-emerald-600" />}</p>
+                        <p className="text-[0.75rem] text-slate-500">PMDC {d.registrationNumber}{d.specialization && ` · ${d.specialization}`}{d.qualification && ` · ${d.qualification}`}</p>
+                      </td>
+                      <td className="px-3 py-2.5 text-slate-600">
+                        <p>{d.clinicName || d.hospitalAffiliation || '—'}</p>
+                        {d.phone && <a href={`tel:${d.phone}`} className="inline-flex items-center gap-1 text-[0.75rem] text-brand-700"><Phone className="h-3 w-3" />{d.phone}</a>}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{d.totalPrescriptions}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums">{money(d.totalBusiness)}</td>
+                      <td className="px-3 py-2.5 text-slate-600">{d.lastPrescriptionAt ? shortDate(d.lastPrescriptionAt) : '—'}</td>
+                      <td className="px-5 py-2.5">
+                        <div className="flex justify-end gap-1">
+                          {canAdd && <button type="button" onClick={() => setEditing(d)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>}
+                          {canManage && d.isActive && <button type="button" onClick={() => verify.mutate(d.id)} title={d.isVerified ? 'Verified hatayein' : 'Verify karein'} className={cn('flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100', d.isVerified ? 'text-emerald-600' : 'text-slate-400')}><BadgeCheck className="h-4 w-4" /></button>}
+                          {canManage && <button type="button" onClick={() => toggle.mutate(d)} title={d.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>}
+                          <Link to={`/pharmacy/prescriptions?doctor=${d.id}`} title="Nuskhe" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><FileText className="h-4 w-4" /></Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+      </section>
+    </PageShell>
   );
 }

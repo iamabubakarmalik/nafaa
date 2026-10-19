@@ -15,5 +15,5 @@ export class RestaurantDashboardController {
 
   @Get('overview') overview(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.overview(user, shopId); }
   @Get('orders-by-hour') ordersByHour(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.ordersByHour(user, shopId); }
-  @Get('kitchen-performance') kitchenPerf(@GetUser() user: AuthenticatedUser) { return this.service.kitchenPerformance(user); }
+  @Get('kitchen-performance') kitchenPerf(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.kitchenPerformance(user, shopId); }
 }

@@ -1,16 +1,24 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { UpsertSaltDto } from './dto/upsert-salt.dto';
+import { AssignSaltItemDto, UpsertSaltDto } from './dto/upsert-salt.dto';
 
 @Injectable()
 export class SaltsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async assertFreeName(tenantId: string, name: string, exceptId?: string) {
+    const dup = await this.prisma.salt.findFirst({
+      where: { tenantId, name: { equals: name, mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) },
+      select: { id: true },
+    });
+    if (dup) throw new BadRequestException(`Salt "${name}" pehle se mojood hai`);
+  }
+
   async create(user: AuthenticatedUser, dto: UpsertSaltDto) {
-    const dup = await this.prisma.salt.findFirst({ where: { tenantId: user.tenantId, name: dto.name } });
-    if (dup) throw new BadRequestException(`Salt "${dto.name}" already exists`);
-    return this.prisma.salt.create({ data: { tenantId: user.tenantId, ...dto } });
+    const name = dto.name.trim();
+    await this.assertFreeName(user.tenantId, name);
+    return this.prisma.salt.create({ data: { ...dto, name, ...(dto.isNarcotic && { requiresPrescription: true }), tenantId: user.tenantId } });
   }
 
   async list(user: AuthenticatedUser, params: { search?: string; scheduleClass?: string; isActive?: boolean; requiresPrescription?: boolean }) {
@@ -44,37 +52,47 @@ export class SaltsService {
         drugInteractionsB: { include: { saltA: true } },
       },
     });
-    if (!salt) throw new NotFoundException('Salt not found');
+    if (!salt) throw new NotFoundException('Salt nahi mila');
     return salt;
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertSaltDto) {
     const salt = await this.prisma.salt.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!salt) throw new NotFoundException('Salt not found');
-    return this.prisma.salt.update({ where: { id }, data: dto });
+    if (!salt) throw new NotFoundException('Salt nahi mila');
+    const name = dto.name.trim();
+    await this.assertFreeName(user.tenantId, name, id);
+    return this.prisma.salt.update({ where: { id }, data: { ...dto, name, ...(dto.isNarcotic && { requiresPrescription: true }) } });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const salt = await this.prisma.salt.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!salt) throw new NotFoundException('Salt not found');
+    if (!salt) throw new NotFoundException('Salt nahi mila');
     return this.prisma.salt.update({ where: { id }, data: { isActive: false } });
   }
 
-  async assignToProduct(user: AuthenticatedUser, productId: string, salts: { saltId: string; strength: string; strengthValue?: number; strengthUnit?: string; isMainSalt?: boolean }[]) {
-    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+  /** Replaces the product's formula; every salt must belong to this shop and appear once. */
+  async assignToProduct(user: AuthenticatedUser, productId: string, salts: AssignSaltItemDto[]) {
+    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId }, select: { id: true } });
+    if (!product) throw new NotFoundException('Product nahi mila');
+    const ids = salts.map((s) => s.saltId);
+    if (new Set(ids).size !== ids.length) throw new BadRequestException('Ek salt do dafa likha hai');
+    const found = ids.length ? await this.prisma.salt.count({ where: { id: { in: ids }, tenantId: user.tenantId } }) : 0;
+    if (found !== ids.length) throw new NotFoundException('Salt nahi mila');
+    const main = salts.findIndex((s) => s.isMainSalt);
 
-    await this.prisma.productSalt.deleteMany({ where: { productId } });
-    await this.prisma.productSalt.createMany({
-      data: salts.map((s, i) => ({
-        productId,
-        saltId: s.saltId,
-        strength: s.strength,
-        strengthValue: s.strengthValue,
-        strengthUnit: s.strengthUnit,
-        isMainSalt: s.isMainSalt ?? i === 0,
-      })),
-    });
+    await this.prisma.$transaction([
+      this.prisma.productSalt.deleteMany({ where: { productId } }),
+      this.prisma.productSalt.createMany({
+        data: salts.map((s, i) => ({
+          productId,
+          saltId: s.saltId,
+          strength: s.strength.trim(),
+          strengthValue: s.strengthValue,
+          strengthUnit: s.strengthUnit,
+          isMainSalt: main >= 0 ? i === main : i === 0,
+        })),
+      }),
+    ]);
     return this.prisma.productSalt.findMany({ where: { productId }, include: { salt: true } });
   }
 

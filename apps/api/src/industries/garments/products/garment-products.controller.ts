@@ -6,7 +6,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { OpeningStockDto } from '../common/opening-stock.helper';
 import { GarmentProductsService } from './garment-products.service';
-import { UpsertGarmentProductDto, UpsertVariantProfileDto } from './dto/upsert-garment-product.dto';
+import { UpsertGarmentProductDto, UpsertVariantProfileDto, VariantProfilesDto } from './dto/upsert-garment-product.dto';
 
 @ApiTags('Garments - Products')
 @ApiBearerAuth()
@@ -27,6 +27,12 @@ export class GarmentProductsController {
     return this.service.splitVariantStock(user, productId, shop.shopId);
   }
 
+  /** Size and colour of the product's variants, saved together. */
+  @Post(':productId/variant-profiles')
+  saveVariantProfiles(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string, @Body() dto: VariantProfilesDto) {
+    return this.service.saveVariantProfiles(user, productId, dto);
+  }
+
   @Post() upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertGarmentProductDto) { return this.service.upsertProfile(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('gender') gender?: string, @Query('categoryType') categoryType?: string, @Query('season') season?: string, @Query('collectionId') collectionId?: string, @Query('featured') featured?: string, @Query('newArrival') newArrival?: string, @Query('bestSeller') bestSeller?: string, @Query('onSale') onSale?: string, @Query('search') search?: string) {
     return this.service.list(user, {
@@ -37,7 +43,13 @@ export class GarmentProductsController {
       onSale: onSale === 'true' ? true : undefined,
     });
   }
+  /** Garment facts of every product (POS filters, product cards). */
+  @Get('meta') meta(@GetUser() user: AuthenticatedUser) { return this.service.meta(user); }
+  /** Sizes/colours running out in the branch, with a suggested quantity. */
+  @Get('reorder') reorder(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('limit') limit?: string) { return this.service.reorder(user, shop, { limit }); }
   @Get('by-product/:productId') byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) { return this.service.getByProductId(user, productId); }
+  /** Stock per size and colour of one product, in this branch and all branches. */
+  @Get(':productId/size-grid') sizeGrid(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') productId: string) { return this.service.sizeGrid(user, shop, productId); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 

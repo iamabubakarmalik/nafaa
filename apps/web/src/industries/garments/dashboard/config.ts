@@ -12,7 +12,7 @@ import { useOverview } from '@modules/dashboard/data/queries';
 import { useMasked } from '@modules/dashboard/engine';
 import { useGarmentsOps } from './useGarmentsOps';
 import {
-  GarmentsAlterations, GarmentsCatalog, GarmentsTailoring, GarmentsWorkshop, garmentsKpis, useGarmentsAttention,
+  GarmentsAlterations, GarmentsCatalog, GarmentsReorder, GarmentsTailoring, GarmentsWorkshop, garmentsKpis, useGarmentsAttention,
 } from './widgets';
 
 const productPath = (id: string) => `/garment-products/${id}`;
@@ -53,6 +53,7 @@ export const garmentsDashboard = createDashboard({
     { id: 'garments-workshop', title: 'Silai ka kaam', description: 'Silai, alteration, hold, qist aur silai ki kamai', size: 'third', sizes: ['third', 'half'], Component: GarmentsWorkshop },
   ],
   lateWidgets: [
+    { id: 'garments-reorder', title: 'Size reorder', description: 'Bikne wale size aur rang jo khatam ho rahe', size: 'third', sizes: ANY_SIZE, Component: GarmentsReorder },
     { id: 'garments-catalog', title: 'Maal ka mix', description: 'Season aur gender ke hisaab se products', size: 'half', sizes: ['half', 'wide', 'full'], Component: GarmentsCatalog },
   ],
   useQuickActions: useGarmentsActions,

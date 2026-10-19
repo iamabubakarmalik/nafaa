@@ -34,7 +34,24 @@ export function convertQty(qty: number, fromUnit?: string | null, toUnit?: strin
   return qty;
 }
 
-/** Cost of one recipe line: quantity in its own unit, price per stocked unit. */
-export function lineCost(quantity: number, unit: string | undefined, costPerUnit: number, stockUnit?: string | null): number {
-  return convertQty(quantity || 0, unit, stockUnit) * (costPerUnit || 0);
+/**
+ * Units a recipe line may use for an ingredient stocked in `stockUnit`: the
+ * stock unit and its smaller or larger relatives (kg ↔ gram, litre ↔ ml,
+ * pcs ↔ dozen). The API refuses any other unit.
+ */
+export function unitChoices(stockUnit?: string | null): string[] {
+  const u = norm(stockUnit);
+  if (!u) return ['pcs'];
+  if (MASS[u]) return [...new Set([u, 'kg', 'gram'])];
+  if (VOLUME[u]) return [...new Set([u, 'liter', 'ml'])];
+  if (COUNT[u]) return [...new Set([u, 'pcs', 'dozen'])];
+  return [u];
+}
+
+/** The smaller unit a cook writes in: grams for kg, ml for litres. */
+export function cookUnit(stockUnit?: string | null): string {
+  const u = norm(stockUnit);
+  if (MASS[u] && MASS[u] >= 1000) return 'gram';
+  if (VOLUME[u] && VOLUME[u] >= 1000) return 'ml';
+  return u || 'pcs';
 }

@@ -86,12 +86,8 @@ import CatalogPage from '@modules/catalog/pages/CatalogPage';
 import CategoriesPage from '@modules/inventory/categories/pages/CategoriesPage';
 
 // ─── Mobile Industry ───────────────────────────────────────────
-import EmiPlansPage from '@industries/mobile/pages/EmiPlansPage';
-import EmiPlanDetailPage from '@industries/mobile/pages/EmiPlanDetailPage';
-import RepairTicketsPage from '@industries/mobile/pages/RepairTicketsPage';
-import RepairTicketDetailPage from '@industries/mobile/pages/RepairTicketDetailPage';
+// The rest of the mobile pages are routed by MobilePack with permissions.
 import GlobalImeiInventoryPage from '@industries/mobile/pages/GlobalImeiInventoryPage';
-import UsedPhonesPage from '@industries/mobile/pages/UsedPhonesPage';
 
 // ─── Customers ─────────────────────────────────────────────────
 import { CustomersPage as CustomerDirectoryPage } from '@modules/customers/directory/CustomersPage';
@@ -179,13 +175,12 @@ import ComboFormPage from '@modules/inventory/combos/pages/ComboFormPage';
 import DamagePage from '@modules/inventory/damage/pages/DamagePage';
 import ProductUnitsPage from '@modules/inventory/product-units/pages/ProductUnitsPage';
 import QuickKeysPage from '@modules/pos/quick-keys/QuickKeysPage';
-import BulkImportPage from '@industries/retail/pages/BulkImportPage';
 
 // ─── Restaurant Industry ───────────────────────────────────────
 import RestaurantDashboard from '@industries/restaurant/dashboard/RestaurantDashboard';
 import RestaurantOrdersPage from '@industries/restaurant/pages/RestaurantOrdersPage';
 import TablesLayoutPage from '@industries/restaurant/pages/TablesLayoutPage';
-import MenuItemsPage from '@industries/restaurant/pages/MenuItemsPage';
+import RestaurantProductsListPage from '@industries/restaurant/pages/RestaurantProductsListPage';
 import ModifiersPage from '@industries/restaurant/pages/ModifiersPage';
 import KotDisplayPage from '@industries/restaurant/pages/KotDisplayPage';
 import RidersPage from '@industries/restaurant/pages/RidersPage';
@@ -195,18 +190,6 @@ import OrderDetailPage from '@industries/restaurant/pages/OrderDetailPage';
 import RecipesPage from '@industries/restaurant/pages/RecipesPage';
 import StationsPage from '@industries/restaurant/pages/StationsPage';
 import DeliveryTrackingPage from '@industries/restaurant/pages/DeliveryTrackingPage';
-
-// ─── Pharmacy Industry ─────────────────────────────────────────
-import PharmacyDashboard from '@industries/pharmacy/dashboard/PharmacyDashboard';
-import PrescriptionsPage from '@industries/pharmacy/pages/PrescriptionsPage';
-import NewPrescriptionPage from '@industries/pharmacy/pages/NewPrescriptionPage';
-import PrescriptionDetailPage from '@industries/pharmacy/pages/PrescriptionDetailPage';
-import PharmacyDoctorsPage from '@industries/pharmacy/pages/PharmacyDoctorsPage';
-import SaltsPage from '@industries/pharmacy/pages/SaltsPage';
-import MedicinesPage from '@industries/pharmacy/pages/MedicinesPage';
-import ExpiringPage from '@industries/pharmacy/pages/ExpiringPage';
-import ControlledLogPage from '@industries/pharmacy/pages/ControlledLogPage';
-import TemperatureLogPage from '@industries/pharmacy/pages/TemperatureLogPage';
 
 // ─── Garments Industry ─────────────────────────────────────────
 import GarmentsDashboard from '@industries/garments/dashboard/GarmentsDashboard';
@@ -376,10 +359,8 @@ import MobileProductWizardPage from '@/industries/mobile/pages/MobileProductWiza
 import MobileProductDetailPage from '@industries/mobile/pages/MobileProductDetailPage';
 import RetailProductEditor from '@industries/retail/products/RetailProductEditor';
 import RetailProductDetail from '@industries/retail/products/RetailProductDetail';
-import RestaurantMenuItemWizardPage from '@industries/restaurant/pages/RestaurantMenuItemWizardPage';
-import RestaurantMenuItemDetailPage from '@industries/restaurant/pages/RestaurantMenuItemDetailPage';
-import PharmacyMedicineWizardPage from '@industries/pharmacy/pages/PharmacyMedicineWizardPage';
-import PharmacyMedicineDetailPage from '@industries/pharmacy/pages/PharmacyMedicineDetailPage';
+import RestaurantProductEditor from '@industries/restaurant/products/RestaurantProductEditor';
+import RestaurantProductDetail from '@industries/restaurant/products/RestaurantProductDetail';
 import GarmentProductWizardPage from '@industries/garments/pages/GarmentProductWizardPage';
 import GarmentProductDetailPage from '@industries/garments/pages/GarmentProductDetailPage';
 import JewelryItemWizardPage from '@industries/jewelry/pages/JewelryItemWizardPage';
@@ -420,7 +401,6 @@ import ElectronicsProductEditor from '@industries/electronics/products/Electroni
 import ElectronicsProductDetail from '@industries/electronics/products/ElectronicsProductDetail';
 import ElectronicsBundlesPage from '@industries/electronics/pages/ElectronicsBundlesPage';
 import ElectronicsBundleFormPage from '@industries/electronics/pages/BundleFormPage';
-import ElectronicsSerialTrackingPage from '@industries/electronics/pages/SerialTrackingPage';
 import ElectronicsWarrantyClaimsPage from '@industries/electronics/pages/WarrantyClaimsPage';
 
 // ─── Cosmetics Industry ────────────────────────────────────────
@@ -621,7 +601,7 @@ export default function App() {
                   <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormGate />)} />
                   <Route path="/products/bulk-import" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductBulkImportPage />)} />
                   <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormGate />)} />
-                  <Route path="/products/:id/imei" element={secure(PERMISSIONS.PRODUCTS_EDIT, <GlobalImeiInventoryPage />)} />
+                  <Route path="/products/:id/imei" element={secure(PERMISSIONS.MOBILE_IMEI_VIEW, <GlobalImeiInventoryPage />)} />
                   <Route path="/products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductViewGate />)} />
                   <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListGate />)} />
 
@@ -634,12 +614,6 @@ export default function App() {
                   <Route path="/mobile-reports" element={<Navigate to="/reports" replace />} />
                   <Route path="/appliances/reports" element={<Navigate to="/reports" replace />} />
                   <Route path="/appliances/stock-report" element={<Navigate to="/stock-report" replace />} />
-                  <Route path="/emi-plans/:id" element={<EmiPlanDetailPage />} />
-                  <Route path="/emi-plans" element={<EmiPlansPage />} />
-                  <Route path="/repair-tickets/:id" element={<RepairTicketDetailPage />} />
-                  <Route path="/repair-tickets" element={<RepairTicketsPage />} />
-                  <Route path="/imei-inventory" element={<GlobalImeiInventoryPage />} />
-                  <Route path="/used-phones" element={<UsedPhonesPage />} />
 
                   {/* ── Customers ──────────────────────────────── */}
                   <Route path="/customers/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
@@ -826,7 +800,7 @@ export default function App() {
                   <Route path="/retail/product-units" element={<Navigate to="/product-units" replace />} />
                   <Route path="/quick-keys" element={secure(PERMISSIONS.PRODUCTS_VIEW, <QuickKeysPage />)} />
                   <Route path="/retail/quick-keys" element={<Navigate to="/quick-keys" replace />} />
-                  <Route path="/retail/bulk-import" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BulkImportPage />)} />
+                  <Route path="/retail/bulk-import" element={<Navigate to="/products/bulk-import" replace />} />
                   <Route path="/retail/reorders" element={<Navigate to="/low-stock" replace />} />
                   <Route path="/retail/barcode-labels" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BarcodeLabelsPage />)} />
 
@@ -837,7 +811,7 @@ export default function App() {
                   <Route path="/restaurant/orders/:id" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <OrderDetailPage />)} />
                   <Route path="/restaurant/orders" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <RestaurantOrdersPage />)} />
                   <Route path="/restaurant/tables" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <TablesLayoutPage />)} />
-                  <Route path="/restaurant/menu" element={secure(PERMISSIONS.RESTAURANT_MENU_VIEW, <MenuItemsPage />)} />
+                  <Route path="/restaurant/menu" element={secure(PERMISSIONS.RESTAURANT_MENU_VIEW, <RestaurantProductsListPage />)} />
                   <Route path="/restaurant/modifiers" element={secure(PERMISSIONS.RESTAURANT_MENU_VIEW, <ModifiersPage />)} />
                   <Route path="/restaurant/kot" element={secure(PERMISSIONS.RESTAURANT_KITCHEN_VIEW, <KotDisplayPage />)} />
                   <Route path="/restaurant/riders" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <RidersPage />)} />
@@ -846,18 +820,7 @@ export default function App() {
                   <Route path="/restaurant/stations" element={secure(PERMISSIONS.RESTAURANT_KITCHEN_VIEW, <StationsPage />)} />
                   <Route path="/restaurant/delivery" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <DeliveryTrackingPage />)} />
 
-                  {/* Pharmacy */}
-                  <Route path="/pharmacy" element={<PharmacyDashboard />} />
-                  <Route path="/pharmacy/dashboard" element={<PharmacyDashboard />} />
-                  <Route path="/pharmacy/prescriptions/new" element={<NewPrescriptionPage />} />
-                  <Route path="/pharmacy/prescriptions/:id" element={<PrescriptionDetailPage />} />
-                  <Route path="/pharmacy/prescriptions" element={<PrescriptionsPage />} />
-                  <Route path="/pharmacy/doctors" element={<PharmacyDoctorsPage />} />
-                  <Route path="/pharmacy/salts" element={<SaltsPage />} />
-                  <Route path="/pharmacy/medicines" element={<MedicinesPage />} />
-                  <Route path="/pharmacy/expiring" element={<ExpiringPage />} />
-                  <Route path="/pharmacy/controlled-log" element={<ControlledLogPage />} />
-                  <Route path="/pharmacy/temperature-log" element={<TemperatureLogPage />} />
+                  {/* Pharmacy pages are routed by PharmacyPack with permissions. */}
 
                   {/* Garments */}
                   <Route path="/garments" element={<GarmentsDashboard />} />
@@ -1046,7 +1009,7 @@ export default function App() {
                   <Route path="/electronics/bundles/new" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundleFormPage />)} />
                   <Route path="/electronics/bundles/:id/edit" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundleFormPage />)} />
                   <Route path="/electronics/bundles" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundlesPage />)} />
-                  <Route path="/electronics/serial-tracking" element={<ElectronicsSerialTrackingPage />} />
+                  <Route path="/electronics/serial-tracking" element={<Navigate to="/electronics/serials" replace />} />
                   <Route path="/electronics/warranty-claims" element={secure(PERMISSIONS.ELECTRONICS_WARRANTY_VIEW, <ElectronicsWarrantyClaimsPage />)} />
 
                   {/* Cosmetics */}
@@ -1161,14 +1124,9 @@ export default function App() {
                   <Route path="/retail-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <RetailProductDetail />)} />
 
                   {/* Restaurant */}
-                  <Route path="/restaurant-menu-items/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <RestaurantMenuItemWizardPage />)} />
-                  <Route path="/restaurant-menu-items/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <RestaurantMenuItemWizardPage />)} />
-                  <Route path="/restaurant-menu-items/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <RestaurantMenuItemDetailPage />)} />
-
-                  {/* Pharmacy */}
-                  <Route path="/pharmacy-medicines/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <PharmacyMedicineWizardPage />)} />
-                  <Route path="/pharmacy-medicines/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <PharmacyMedicineWizardPage />)} />
-                  <Route path="/pharmacy-medicines/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <PharmacyMedicineDetailPage />)} />
+                  <Route path="/restaurant-menu-items/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <RestaurantProductEditor />)} />
+                  <Route path="/restaurant-menu-items/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <RestaurantProductEditor />)} />
+                  <Route path="/restaurant-menu-items/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <RestaurantProductDetail />)} />
 
                   {/* Bakery */}
                   <Route path="/bakery-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <BakeryProductEditor />)} />

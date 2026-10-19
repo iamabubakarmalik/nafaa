@@ -89,7 +89,7 @@ export interface DamageOptions {
   units: Array<{ id: string; unitName: string; conversionRate: number; variantId?: string | null; barcode?: string | null }>;
   batches: Array<{ id: string; batchNumber: string; expiryDate?: string | null; quantity: number; costPrice: number; variantId?: string | null }>;
   /** Roll or IMEI products are written off on the Adjustments page. */
-  tracked: 'roll' | 'imei' | null;
+  tracked: 'roll' | 'imei' | 'serial' | null;
 }
 
 export interface CreateDamagePayload {

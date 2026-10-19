@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertElectronicsProductDto } from './dto/upsert-electronics-product.dto';
@@ -9,7 +9,11 @@ export class ElectronicsProductsService {
 
   async upsert(user: AuthenticatedUser, dto: UpsertElectronicsProductDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Product nahi mila');
+    if (dto.brandId) {
+      const brand = await this.prisma.brand.findFirst({ where: { id: dto.brandId, tenantId: user.tenantId }, select: { id: true } });
+      if (!brand) throw new BadRequestException('Brand nahi mila');
+    }
 
     const existing = await this.prisma.electronicsProductProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) {
@@ -53,12 +57,13 @@ export class ElectronicsProductsService {
       this.prisma.product.findMany({
         where: {
           id: { in: productIds },
+          tenantId: user.tenantId,
           ...(params.search && { name: { contains: params.search, mode: 'insensitive' } }),
         },
         include: { images: { where: { isPrimary: true }, take: 1 }, category: true },
       }),
       // Ab global Brand — electronics ka apna brand table khatam kar diya
-      this.prisma.brand.findMany({ where: { id: { in: brandIds } } }),
+      this.prisma.brand.findMany({ where: { id: { in: brandIds }, tenantId: user.tenantId } }),
     ]);
 
     const productsMap = new Map(products.map((p) => [p.id, p]));
@@ -78,7 +83,7 @@ export class ElectronicsProductsService {
       where: { productId, tenantId: user.tenantId },
     });
     if (!profile) return null;
-    const brand = profile.brandId ? await this.prisma.brand.findUnique({ where: { id: profile.brandId } }) : null;
+    const brand = profile.brandId ? await this.prisma.brand.findFirst({ where: { id: profile.brandId, tenantId: user.tenantId } }) : null;
     const serialCount = await this.prisma.electronicsSerialTracking.count({
       where: { tenantId: user.tenantId, productId, status: 'IN_STOCK' },
     });

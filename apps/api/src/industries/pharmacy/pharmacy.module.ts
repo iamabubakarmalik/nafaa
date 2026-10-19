@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ControlledLogModule } from './controlled-log/controlled-log.module';
 import { DoctorsModule } from './doctors/doctors.module';
 import { DrugInteractionsModule } from './drug-interactions/drug-interactions.module';
+import { ExpiryModule } from './expiry/expiry.module';
 import { MedicinesModule } from './medicines/medicines.module';
 import { PharmacyDashboardModule } from './dashboard/pharmacy-dashboard.module';
 import { PrescriptionsModule } from './prescriptions/prescriptions.module';
@@ -22,6 +23,7 @@ import { TemperatureLogModule } from './temperature-log/temperature-log.module';
     RefillRemindersModule,
     TemperatureLogModule,
     PharmacyDashboardModule,
+    ExpiryModule,
   ],
   exports: [
     SaltsModule,

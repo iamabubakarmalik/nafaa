@@ -1,186 +1,203 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Thermometer, Plus, Sparkles, RefreshCw, X, Save, MapPin,
-  CheckCircle2, AlertTriangle, Droplets, TrendingDown, TrendingUp,
-} from 'lucide-react';
-import { temperatureApi } from '../api/temperature.api';
-import { Button } from '@/design-system/components';
+/**
+ * Cold chain log: fridge and store temperature readings, written twice a
+ * day. A reading outside the limits is a breach; insulin and vaccines from a
+ * fridge that broke the 2–8°C range should be checked before selling.
+ * Any staff member can write a reading.
+ */
+
+import { useMemo, useState, type FormEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { AlertTriangle, CalendarRange, CheckCircle2, Clock, Download, Droplets, GraduationCap, MapPin, Snowflake, Thermometer } from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterMenu, Input, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { rangeLabel } from '@core/lib/dateRange';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { temperatureApi, type TemperatureLog } from '../api/temperature.api';
 
-export default function TemperatureLogPage() {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
+interface Summary {
+  total: number; breaches: number; compliancePct: number; lastReadingAt: string | null;
+  byLocation: Array<{ location: string; _avg: { temperature: number | null; humidity: number | null }; _min: { temperature: number | null }; _max: { temperature: number | null }; _count: { _all: number } }>;
+}
 
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: ['temperature-logs'],
-    queryFn: () => temperatureApi.list(),
-    refetchInterval: 60_000,
+/** Usual limits by place; the shop can type its own. */
+const PRESETS: Array<{ location: string; min: number; max: number }> = [
+  { location: 'Fridge 1', min: 2, max: 8 }, { location: 'Fridge 2', min: 2, max: 8 }, { location: 'Freezer', min: -25, max: -15 }, { location: 'Store room', min: 15, max: 30 }, { location: 'Counter', min: 15, max: 30 },
+];
+const when = (v: string) => new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(v));
+const apiError = (e: unknown) => { const m = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message; return (Array.isArray(m) ? m[0] : m) ?? 'Save nahi hua'; };
+
+function ReadingForm({ places, onSaved }: { places: string[]; onSaved: () => void }) {
+  const [location, setLocation] = useState(places[0] ?? 'Fridge 1');
+  const preset = PRESETS.find((p) => p.location.toLowerCase() === location.trim().toLowerCase());
+  const [temp, setTemp] = useState('');
+  const [humidity, setHumidity] = useState('');
+  const [min, setMin] = useState(String(preset?.min ?? 2));
+  const [max, setMax] = useState(String(preset?.max ?? 8));
+  const [notes, setNotes] = useState('');
+  const pick = (l: string) => { setLocation(l); const p = PRESETS.find((x) => x.location === l); if (p) { setMin(String(p.min)); setMax(String(p.max)); } };
+  const t = temp.trim() === '' ? NaN : Number(temp);
+  const out = Number.isFinite(t) && ((min !== '' && t < Number(min)) || (max !== '' && t > Number(max)));
+  const save = useMutation({
+    mutationFn: () => temperatureApi.create({
+      location: location.trim(), temperature: t, humidity: humidity ? Number(humidity) : undefined,
+      minLimit: min === '' ? undefined : Number(min), maxLimit: max === '' ? undefined : Number(max), notes: notes.trim() || undefined,
+    }),
+    onSuccess: (r) => { toast[r.isWithinRange ? 'success' : 'error'](r.isWithinRange ? 'Reading likh di' : 'Temperature had se bahar — dawai check karein'); setTemp(''); setHumidity(''); setNotes(''); onSaved(); },
+    onError: (e) => toast.error(apiError(e)),
   });
-
-  const { data: summary } = useQuery({
-    queryKey: ['temperature-summary'],
-    queryFn: () => temperatureApi.summary(7),
-  });
-
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!location.trim()) { toast.error('Jagah likhein'); return; }
+    if (!Number.isFinite(t) || t < -80 || t > 80) { toast.error('Temperature -80 se 80 ke darmiyan likhein'); return; }
+    if (min !== '' && max !== '' && Number(min) > Number(max)) { toast.error('Kam se kam had zyada wali se bari hai'); return; }
+    save.mutate();
+  };
+  const all = [...new Set([...places, ...PRESETS.map((p) => p.location)])];
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Cold Chain
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🌡️ Temperature Log</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Refrigerator + freezer temperature monitoring</p>
-          </div>
-          <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4" />
-            Log Reading
-          </Button>
-        </div>
-      </section>
-
-      {summary && (
-        <section className="grid grid-cols-3 gap-4">
-          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5">
-            <div className="text-xs uppercase font-extrabold text-slate-500">Compliance</div>
-            <div className="text-3xl font-extrabold text-emerald-700 tabular-nums mt-1">{summary.compliancePct?.toFixed(1)}%</div>
-            <div className="text-xs font-semibold text-slate-500 mt-1">Last 7 days</div>
-          </div>
-          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5">
-            <div className="text-xs uppercase font-extrabold text-slate-500">Total Readings</div>
-            <div className="text-3xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums mt-1">{summary.total}</div>
-          </div>
-          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-rose-200 dark:border-rose-800 p-5">
-            <div className="text-xs uppercase font-extrabold text-rose-700">Breaches</div>
-            <div className="text-3xl font-extrabold text-rose-700 tabular-nums mt-1">{summary.breaches}</div>
-            <div className="text-xs font-semibold text-slate-500 mt-1">Out-of-range readings</div>
-          </div>
-        </section>
-      )}
-
-      {showForm && (
-        <TempLogForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['temperature-logs'] }); queryClient.invalidateQueries({ queryKey: ['temperature-summary'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : (
-        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-ink-800">
-            {logs.map((log) => (
-              <div key={log.id} className="px-5 py-3 flex items-center gap-3">
-                <div className={
-                  'h-10 w-10 rounded-xl flex items-center justify-center shrink-0 text-white ' +
-                  (log.isWithinRange ? 'bg-emerald-500' : 'bg-rose-500')
-                }>
-                  {log.isWithinRange ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{log.temperature}°</span>
-                    {log.humidity !== undefined && log.humidity !== null && (
-                      <span className="inline-flex items-center gap-1 text-sm font-bold text-blue-700">
-                        <Droplets className="h-3.5 w-3.5" />
-                        {log.humidity}%
-                      </span>
-                    )}
-                    {log.location && (
-                      <span className="inline-flex items-center gap-1 text-xs text-slate-500 font-bold">
-                        <MapPin className="h-3 w-3" />
-                        {log.location}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-slate-500 font-semibold">
-                    {format(new Date(log.logDate), 'dd MMM yyyy, HH:mm')}
-                    {log.minLimit !== undefined && log.maxLimit !== undefined && ' • Range: ' + log.minLimit + '° to ' + log.maxLimit + '°'}
-                  </div>
-                  {log.notes && <div className="text-xs italic text-amber-700 mt-0.5">{log.notes}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+    <form onSubmit={submit} className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Thermometer className="h-4 w-4 text-brand-600" />Nayi reading</h2>
+        <p className="text-[0.75rem] text-slate-500">Subah aur shaam — dono waqt likhein</p>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {all.map((l) => <button key={l} type="button" onClick={() => pick(l)} className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium', location === l ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>{l}</button>)}
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-6">
+        <Input label="Jagah" value={location} onChange={(e) => setLocation(e.target.value)} wrapperClassName="sm:col-span-2" />
+        <Input label="Temperature °C" required inputMode="decimal" autoFocus value={temp} onChange={(e) => setTemp(e.target.value.replace(/[^\d.-]/g, ''))}
+          error={out ? `Had ${min}–${max}°C se bahar` : undefined} />
+        <Input label="Nami %" inputMode="decimal" value={humidity} onChange={(e) => setHumidity(e.target.value.replace(/[^\d.]/g, ''))} />
+        <Input label="Kam se kam" inputMode="decimal" value={min} onChange={(e) => setMin(e.target.value.replace(/[^\d.-]/g, ''))} />
+        <Input label="Zyada se zyada" inputMode="decimal" value={max} onChange={(e) => setMax(e.target.value.replace(/[^\d.-]/g, ''))} />
+      </div>
+      <div className="mt-3 flex flex-wrap items-end gap-3">
+        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Bijli gayi thi, fridge ka darwaza khula tha…" wrapperClassName="min-w-[14rem] flex-1" />
+        <Button type="submit" loading={save.isPending} variant={out ? 'danger' : 'primary'}>Save reading</Button>
+      </div>
+    </form>
   );
 }
 
-function TempLogForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState({
-    temperature: '',
-    humidity: '',
-    location: 'Fridge 1',
-    minLimit: 2,
-    maxLimit: 8,
-    notes: '',
-  });
+export default function TemperatureLogPage() {
+  const qc = useQueryClient();
+  const startHour = useBusinessDayStart();
+  const guide = usePageGuide();
+  const [period, setPeriod] = useState<DateRangeValue>({ preset: 'week', custom: { from: '', to: '' } });
+  const [location, setLocation] = useState('');
+  const [tab, setTab] = useState<'all' | 'breach'>('all');
+  const range = resolveRange(period, startHour);
+  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
 
-  const saveMutation = useMutation({
-    mutationFn: () => temperatureApi.create({
-      temperature: Number(form.temperature),
-      humidity: form.humidity ? Number(form.humidity) : undefined,
-      location: form.location,
-      minLimit: Number(form.minLimit),
-      maxLimit: Number(form.maxLimit),
-      notes: form.notes || undefined,
-    }),
-    onSuccess: () => { toast.success('Reading logged'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  const { data: logs = [], isLoading, isFetching } = useQuery({
+    queryKey: ['temperature-logs', range?.from, range?.to, location],
+    queryFn: () => temperatureApi.list({ from: range?.from, to: range?.to, location: location || undefined }),
+    refetchInterval: 60_000,
+  });
+  const { data: summary } = useQuery({ queryKey: ['temperature-summary'], queryFn: () => temperatureApi.summary(7) as Promise<Summary> });
+  const refresh = () => ['temperature-logs', 'temperature-summary', 'pharmacy-dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const places = useMemo(() => [...new Set([...(summary?.byLocation ?? []).map((b) => b.location), ...logs.map((l) => l.location).filter(Boolean) as string[]])], [summary, logs]);
+  const rows = tab === 'breach' ? logs.filter((l) => !l.isWithinRange) : logs;
+  const breaches = logs.filter((l) => !l.isWithinRange).length;
+  const hoursSince = summary?.lastReadingAt ? (Date.now() - new Date(summary.lastReadingAt).getTime()) / 3_600_000 : null;
+
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Koi reading nahi'); return; }
+    downloadCsv('temperature-log.csv', [['Waqt', 'Jagah', 'Temperature', 'Nami', 'Had', 'Theek', 'Kis ne', 'Note'],
+      ...rows.map((l) => [l.logDate, l.location, l.temperature, l.humidity, `${l.minLimit ?? ''}–${l.maxLimit ?? ''}`, l.isWithinRange ? 'Haan' : 'Nahi', l.recordedBy, l.notes])]);
+  };
+  const printDoc = (): PrintDoc => ({
+    title: 'Temperature log', subtitle: label,
+    meta: [['Readings', String(rows.length)], ['Had se bahar', String(rows.filter((l) => !l.isWithinRange).length)]],
+    sections: [{ kind: 'table', title: 'Readings', columns: [{ label: 'Waqt' }, { label: 'Jagah' }, { label: '°C', align: 'right' }, { label: 'Had' }, { label: 'Theek' }],
+      rows: rows.map((l) => [when(l.logDate), l.location ?? '', String(l.temperature), `${l.minLimit ?? ''}–${l.maxLimit ?? ''}`, l.isWithinRange ? 'Haan' : 'NAHI']) }],
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Log Temperature Reading</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Temperature (°C) *</label>
-            <input type="number" step="0.1" autoFocus value={form.temperature} onChange={(e) => setForm({ ...form, temperature: e.target.value })} placeholder="5.5" className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Humidity (%)</label>
-            <input type="number" step="0.1" value={form.humidity} onChange={(e) => setForm({ ...form, humidity: e.target.value })} placeholder="Optional" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Location</label>
-            <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Fridge 1 / Freezer / Storage Room" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Min °C</label>
-              <input type="number" step="0.1" value={form.minLimit} onChange={(e) => setForm({ ...form, minLimit: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums" />
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Cold chain — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Thermometer, color: '#0891b2', title: 'Reading likhein', text: 'Fridge ka thermometer dekh kar subah aur shaam temperature likhein. Jagah ek dafa chunein, agli dafa yaad rehti hai.' },
+            { icon: Snowflake, color: '#2563eb', title: 'Had', text: 'Fridge 2–8°C, freezer −25 se −15°C, store 15–30°C. Apni had bhi likh sakte hain.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Had se bahar', text: 'Laal reading par fridge ki dawai (insulin, vaccine) check karein. Dashboard par bhi warning aati hai.' },
+            { icon: Download, color: '#16a34a', title: 'Record', text: 'Inspector ke liye CSV ya print — poore mahine ki readings.' },
+          ]}
+          shortcuts={[['G', 'guide']]} />
+      )}
+
+      <PageHero title="Cold chain" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={!summary}
+        meta="Fridge aur store ka temperature"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Theek readings (7 din)', value: `${(summary?.compliancePct ?? 100).toFixed(0)}%` },
+          { label: 'Readings (7 din)', value: String(summary?.total ?? 0) },
+          { label: 'Had se bahar (7 din)', value: String(summary?.breaches ?? 0) },
+          { label: 'Aakhri reading', value: summary?.lastReadingAt ? when(summary.lastReadingAt) : '—' },
+        ]} />
+
+      {hoursSince !== null && hoursSince > 12 && (
+        <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] font-medium text-amber-900 ring-1 ring-amber-200"><Clock className="h-4 w-4" />{Math.floor(hoursSince)} ghante se koi reading nahi — abhi likh dein</p>
+      )}
+
+      <ReadingForm places={places} onSaved={refresh} />
+
+      {(summary?.byLocation.length ?? 0) > 0 && (
+        <KpiRow cols={Math.min(5, Math.max(3, summary!.byLocation.length)) as 3 | 4 | 5}>
+          {summary!.byLocation.map((b) => (
+            <KpiCard key={b.location} icon={MapPin} color="#0891b2" label={b.location} value={`${(b._avg.temperature ?? 0).toFixed(1)}°C`}
+              hint={`${b._min.temperature ?? '—'}° se ${b._max.temperature ?? '—'}° · ${b._count._all} readings`} onClick={() => setLocation(location === b.location ? '' : b.location)} active={location === b.location} />
+          ))}
+        </KpiRow>
+      )}
+
+      <FilterBar>
+        <DateRangeMenu value={period} onChange={setPeriod} startHour={startHour} label="Date" defaultPreset="week" />
+        {places.length > 0 && <FilterMenu icon={MapPin} label="Jagah" value={location || 'all'} active={!!location} options={[{ value: 'all', label: 'Sab jagah' }, ...places.map((p) => ({ value: p, label: p }))]} onChange={(v) => setLocation(v === 'all' ? '' : v)} />}
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} tabs={[{ id: 'all', label: 'Sab readings', count: logs.length }, { id: 'breach', label: 'Had se bahar', icon: AlertTriangle, count: breaches }]} />
+
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}</div>
+          : rows.length === 0 ? <p className="px-6 py-14 text-center text-[0.875rem] text-slate-500">{tab === 'breach' ? 'Is muddat me temperature hamesha had me raha' : 'Is muddat me koi reading nahi — upar se likhein'}</p> : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[40rem] text-[0.875rem]">
+                <thead><tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-2.5">Waqt</th><th className="px-3 py-2.5">Jagah</th><th className="px-3 py-2.5 text-right">Temperature</th><th className="px-3 py-2.5">Had</th><th className="px-3 py-2.5">Kis ne</th><th className="px-5 py-2.5">Note</th>
+                </tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.map((l: TemperatureLog) => (
+                    <tr key={l.id} className={cn(!l.isWithinRange && 'bg-rose-50/60')}>
+                      <td className="whitespace-nowrap px-5 py-2 text-slate-600">{when(l.logDate)}</td>
+                      <td className="px-3 py-2 font-medium text-slate-900">{l.location ?? '—'}</td>
+                      <td className="px-3 py-2 text-right">
+                        <span className={cn('inline-flex items-center gap-1 font-bold tabular-nums', l.isWithinRange ? 'text-slate-900' : 'text-rose-700')}>
+                          {l.isWithinRange ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <AlertTriangle className="h-3.5 w-3.5" />}{l.temperature}°C
+                        </span>
+                        {l.humidity != null && <span className="ml-2 inline-flex items-center gap-0.5 text-[0.75rem] text-slate-500"><Droplets className="h-3 w-3" />{l.humidity}%</span>}
+                      </td>
+                      <td className="px-3 py-2 text-slate-600">{l.minLimit ?? '—'}° – {l.maxLimit ?? '—'}°</td>
+                      <td className="px-3 py-2 text-slate-600">{l.recordedBy ?? '—'}</td>
+                      <td className="px-5 py-2 text-slate-600">{l.notes ?? ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max °C</label>
-              <input type="number" step="0.1" value={form.maxLimit} onChange={(e) => setForm({ ...form, maxLimit: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums" />
-            </div>
-          </div>
-          <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes (if breach — action taken)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.temperature}>
-              <Save className="h-4 w-4" />
-              Log Reading
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+          )}
+      </section>
+    </PageShell>
   );
 }

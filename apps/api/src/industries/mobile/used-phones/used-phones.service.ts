@@ -1,28 +1,36 @@
 import {
   BadRequestException, ConflictException, Injectable, NotFoundException,
 } from '@nestjs/common';
+import { PaymentMethod, Prisma, UsedPhoneCondition, UsedPhoneStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { SalesService } from '../../../modules/sales/sales/sales.service';
+import type { CreateSaleDto } from '../../../modules/sales/sales/dto/create-sale.dto';
+import { ShopScope } from '../../../common/shop-scope';
+import { startOfDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { CreateUsedPhoneDto } from './dto/create-used-phone.dto';
 import { UpdateUsedPhoneDto } from './dto/update-used-phone.dto';
 import { CreateInspectionDto } from './dto/create-inspection.dto';
 import { QueryUsedPhonesDto } from './dto/query-used-phones.dto';
-import { UsedPhoneCondition, UsedPhoneStatus, Prisma } from '@prisma/client';
+import { assertOwnCustomer, assertOwnShop, normaliseCnic } from '../common/mobile-common';
+
+/** Statuses a phone can be moved to by hand. SOLD comes from a bill, IN_TRANSIT from a transfer. */
+const MANUAL_STATUS: UsedPhoneStatus[] = ['PENDING_INSPECTION', 'IN_STOCK', 'REPAIRING', 'RETURNED'];
 
 @Injectable()
 export class UsedPhonesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sales: SalesService,
+  ) {}
 
   // ════════════════════════════════════════════════════════
-  // VALUATION HELPER — auto-estimate buyback based on condition
+  // VALUATION HELPER — suggested buy-back price from condition
   // ════════════════════════════════════════════════════════
 
-  /**
-   * Suggest buyback price based on condition + accessories + age.
-   * Returns a percentage multiplier of a hypothetical "new" reference price.
-   */
+  /** Suggested buy-back price as a share of the market price of a like-new unit. */
   estimateValuation(input: {
-    referencePrice: number; // typical new/like-new market price
+    referencePrice: number;
     condition: UsedPhoneCondition;
     modelYear?: number;
     hasOriginalBox?: boolean;
@@ -32,8 +40,6 @@ export class UsedPhonesService {
     batteryHealth?: number;
   }): { suggestedBuyback: number; multiplier: number; reasoning: string[] } {
     const reasoning: string[] = [];
-
-    // Base multiplier by condition
     const conditionMultipliers: Record<UsedPhoneCondition, number> = {
       EXCELLENT: 0.85,
       VERY_GOOD: 0.75,
@@ -41,38 +47,22 @@ export class UsedPhonesService {
       FAIR: 0.50,
       POOR: 0.30,
     };
-    let multiplier = conditionMultipliers[input.condition];
-    reasoning.push(`Base ${input.condition}: ${(multiplier * 100).toFixed(0)}%`);
+    const reference = Math.max(Number(input.referencePrice) || 0, 0);
+    let multiplier = conditionMultipliers[input.condition] ?? conditionMultipliers.GOOD;
+    reasoning.push(`Halat ${input.condition}: ${(multiplier * 100).toFixed(0)}%`);
 
-    // Age penalty (3% per year after 1st year)
     if (input.modelYear) {
       const age = new Date().getFullYear() - input.modelYear;
       if (age > 1) {
         const agePenalty = Math.min((age - 1) * 0.03, 0.20);
         multiplier -= agePenalty;
-        reasoning.push(`${age}yr old: -${(agePenalty * 100).toFixed(0)}%`);
+        reasoning.push(`${age} saal purana: -${(agePenalty * 100).toFixed(0)}%`);
       }
     }
-
-    // Accessories bonus
-    if (input.hasOriginalBox) {
-      multiplier += 0.02;
-      reasoning.push('Original box: +2%');
-    }
-    if (input.hasOriginalCharger) {
-      multiplier += 0.02;
-      reasoning.push('Charger: +2%');
-    }
-    if (input.hasOriginalReceipt) {
-      multiplier += 0.03;
-      reasoning.push('Receipt: +3%');
-    }
-    if (input.hasWarrantyLeft) {
-      multiplier += 0.05;
-      reasoning.push('Warranty left: +5%');
-    }
-
-    // Battery health
+    if (input.hasOriginalBox) { multiplier += 0.02; reasoning.push('Dabba: +2%'); }
+    if (input.hasOriginalCharger) { multiplier += 0.02; reasoning.push('Charger: +2%'); }
+    if (input.hasOriginalReceipt) { multiplier += 0.03; reasoning.push('Raseed: +3%'); }
+    if (input.hasWarrantyLeft) { multiplier += 0.05; reasoning.push('Warranty baqi: +5%'); }
     if (input.batteryHealth !== undefined && input.batteryHealth < 80) {
       const batteryPenalty = ((80 - input.batteryHealth) / 100) * 0.5;
       multiplier -= batteryPenalty;
@@ -80,33 +70,48 @@ export class UsedPhonesService {
     }
 
     multiplier = Math.max(0.10, Math.min(multiplier, 0.95));
-    const suggestedBuyback = Math.round(input.referencePrice * multiplier);
-
-    return { suggestedBuyback, multiplier, reasoning };
+    return { suggestedBuyback: Math.round(reference * multiplier), multiplier, reasoning };
   }
 
   // ════════════════════════════════════════════════════════
-  // CREATE
+  // CREATE (buy-back, exchange or consignment intake)
   // ════════════════════════════════════════════════════════
 
   async create(user: AuthenticatedUser, dto: CreateUsedPhoneDto) {
-    // IMEI uniqueness check
+    if (dto.imei2 && dto.imei2 === dto.imei1) throw new BadRequestException('IMEI 1 aur IMEI 2 ek jaise nahi ho sakte');
     const existing = await this.prisma.usedPhone.findFirst({
       where: { tenantId: user.tenantId, imei1: dto.imei1 },
+      select: { usedPhoneCode: true, status: true },
     });
     if (existing) {
-      throw new ConflictException(`IMEI ${dto.imei1} already exists (${existing.usedPhoneCode})`);
+      throw new ConflictException(`IMEI ${dto.imei1} pehle se used phone ${existing.usedPhoneCode} me hai — usi record ko kholein`);
     }
-
-    // Also check against new phone IMEIs
-    const existingNew = await this.prisma.productImei.findFirst({
-      where: { tenantId: user.tenantId, imei1: dto.imei1 },
+    // A phone still on our shelf as new stock cannot be bought in again;
+    // one we sold earlier can (a customer selling it back is normal).
+    const onShelf = await this.prisma.productImei.findFirst({
+      where: { tenantId: user.tenantId, status: { not: 'SOLD' }, OR: [{ imei1: dto.imei1 }, { imei2: dto.imei1 }] },
+      select: { status: true },
     });
-    if (existingNew) {
-      throw new ConflictException(`IMEI ${dto.imei1} exists as new phone stock`);
+    if (onShelf) {
+      throw new ConflictException(`IMEI ${dto.imei1} naye phone ke stock me hai (${onShelf.status}) — ye wapas khareeda nahi ja sakta`);
+    }
+    if (dto.status && !['PENDING_INSPECTION', 'IN_STOCK'].includes(dto.status)) {
+      throw new BadRequestException('Naya used phone "Check baqi" ya "Stock" me hi aata hai');
+    }
+    await assertOwnShop(this.prisma, user, dto.shopId);
+    await assertOwnCustomer(this.prisma, user, dto.fromCustomerId);
+    const cnic = normaliseCnic(dto.fromCustomerCnic);
+
+    // A seller already on the customer list is linked by phone number.
+    let fromCustomerId = dto.fromCustomerId;
+    const sellerPhone = dto.fromCustomerPhone?.trim();
+    if (!fromCustomerId && sellerPhone) {
+      fromCustomerId = (await this.prisma.customer.findFirst({
+        where: { tenantId: user.tenantId, phone: sellerPhone, isActive: true },
+        select: { id: true },
+      }))?.id;
     }
 
-    // Generate code
     const year = new Date().getFullYear();
     const prefix = `UP-${year}-`;
     const last = await this.prisma.usedPhone.findFirst({
@@ -116,19 +121,13 @@ export class UsedPhonesService {
     });
     let nextNum = 1;
     if (last?.usedPhoneCode) {
-      const parts = last.usedPhoneCode.split('-');
-      const n = parseInt(parts[parts.length - 1], 10);
+      const n = parseInt(last.usedPhoneCode.split('-').pop() ?? '', 10);
       if (!isNaN(n)) nextNum = n + 1;
     }
     const usedPhoneCode = `${prefix}${String(nextNum).padStart(4, '0')}`;
-
-    // Resolve shop
     const shopId = dto.shopId ?? user.shopId ?? null;
-
-    // Calculate totalCost
     const buyback = dto.buybackPrice ?? 0;
     const refurbish = dto.refurbishCost ?? 0;
-    const totalCost = buyback + refurbish;
 
     const phone = await this.prisma.usedPhone.create({
       data: {
@@ -138,8 +137,8 @@ export class UsedPhonesService {
         imei1: dto.imei1,
         imei2: dto.imei2,
         serialNumber: dto.serialNumber,
-        brand: dto.brand,
-        model: dto.model,
+        brand: dto.brand.trim(),
+        model: dto.model.trim(),
         storage: dto.storage,
         ram: dto.ram,
         color: dto.color,
@@ -159,12 +158,12 @@ export class UsedPhonesService {
         buybackPrice: buyback,
         estimatedValue: dto.estimatedValue ?? 0,
         refurbishCost: refurbish,
-        totalCost,
+        totalCost: buyback + refurbish,
         resalePrice: dto.resalePrice ?? 0,
-        fromCustomerId: dto.fromCustomerId,
-        fromCustomerName: dto.fromCustomerName,
-        fromCustomerPhone: dto.fromCustomerPhone,
-        fromCustomerCnic: dto.fromCustomerCnic,
+        fromCustomerId,
+        fromCustomerName: dto.fromCustomerName?.trim() || undefined,
+        fromCustomerPhone: sellerPhone || undefined,
+        fromCustomerCnic: cnic,
         cnicPhotoUrl: dto.cnicPhotoUrl,
         imeiPhotoUrl: dto.imeiPhotoUrl,
         devicePhotos: dto.devicePhotos ?? [],
@@ -213,6 +212,23 @@ export class UsedPhonesService {
     });
   }
 
+  /** True once the seller was paid from the drawer for this phone. */
+  private async paidFromDrawer(tenantId: string, code: string) {
+    return !!(await this.prisma.cashTransaction.findFirst({
+      where: { tenantId, reference: `usedphone:${code}` },
+      select: { id: true },
+    }));
+  }
+
+  /** The live bill that used this exchange phone as a trade-in, if any. */
+  private async tradeInBill(tenantId: string, code: string) {
+    const row = await this.prisma.salePayment.findFirst({
+      where: { tenantId, method: 'TRADE_IN', reference: code, sale: { status: { not: 'VOIDED' } } },
+      select: { sale: { select: { id: true, saleNumber: true } } },
+    });
+    return row?.sale ?? null;
+  }
+
   /**
    * Phones taken in as an exchange (type Exchange) that no live bill has used
    * as a trade-in yet. The POS offers these as a TRADE_IN payment.
@@ -241,31 +257,58 @@ export class UsedPhonesService {
   // LIST + DETAIL
   // ════════════════════════════════════════════════════════
 
-  async findAll(user: AuthenticatedUser, query: QueryUsedPhonesDto) {
-    const where: Prisma.UsedPhoneWhereInput = {
+  private listWhere(user: AuthenticatedUser, query: QueryUsedPhonesDto, withStatus = true): Prisma.UsedPhoneWhereInput {
+    const q = query.search?.trim();
+    const and: Prisma.UsedPhoneWhereInput[] = [];
+    if (q) {
+      and.push({
+        OR: [
+          { imei1: { contains: q } },
+          { imei2: { contains: q } },
+          { serialNumber: { contains: q, mode: 'insensitive' as const } },
+          { brand: { contains: q, mode: 'insensitive' as const } },
+          { model: { contains: q, mode: 'insensitive' as const } },
+          { usedPhoneCode: { contains: q, mode: 'insensitive' as const } },
+          { fromCustomerName: { contains: q, mode: 'insensitive' as const } },
+          { fromCustomerPhone: { contains: q } },
+          { fromCustomerCnic: { contains: q } },
+        ],
+      });
+    }
+    const ok = (v?: string) => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
+    if (ok(query.from) || ok(query.to)) {
+      const r: Prisma.DateTimeFilter = {};
+      if (ok(query.from)) r.gte = startOfDayTz(new Date(`${query.from}T12:00:00Z`));
+      if (ok(query.to)) r.lt = startOfDayTz(new Date(new Date(`${query.to}T12:00:00Z`).getTime() + 86_400_000));
+      and.push(query.status === 'SOLD' ? { soldAt: r } : { receivedAt: r });
+    }
+    if (query.agedDays && query.agedDays > 0) {
+      and.push({ status: 'IN_STOCK', receivedAt: { lte: subDaysTz(new Date(), query.agedDays) } });
+    }
+    return {
       tenantId: user.tenantId,
       ...(query.shopId && { shopId: query.shopId }),
-      ...(query.status && { status: query.status }),
+      ...(withStatus && query.status && { status: query.status }),
       ...(query.condition && { condition: query.condition }),
+      ...(query.source && { source: query.source }),
+      ...(query.ptaStatus && { ptaStatus: query.ptaStatus }),
       ...(query.brand && { brand: { contains: query.brand, mode: 'insensitive' } }),
-      ...(query.search && {
-        OR: [
-          { imei1: { contains: query.search } },
-          { imei2: { contains: query.search } },
-          { serialNumber: { contains: query.search, mode: 'insensitive' as const } },
-          { brand: { contains: query.search, mode: 'insensitive' as const } },
-          { model: { contains: query.search, mode: 'insensitive' as const } },
-          { usedPhoneCode: { contains: query.search, mode: 'insensitive' as const } },
-          { fromCustomerName: { contains: query.search, mode: 'insensitive' as const } },
-          { fromCustomerPhone: { contains: query.search } },
-        ],
-      }),
+      ...(and.length && { AND: and }),
     };
+  }
 
+  async findAll(user: AuthenticatedUser, query: QueryUsedPhonesDto) {
+    const where = this.listWhere(user, query);
     const page = query.page ?? 1;
-    const limit = query.limit ?? 50;
+    const limit = Math.min(query.limit ?? 50, 200);
+    const orderBy: Prisma.UsedPhoneOrderByWithRelationInput[] =
+      query.sort === 'old' ? [{ receivedAt: 'asc' }]
+        : query.sort === 'priceHigh' ? [{ resalePrice: 'desc' }]
+          : query.sort === 'margin' ? [{ resalePrice: 'desc' }, { totalCost: 'asc' }]
+            : query.sort === 'sold' ? [{ soldAt: { sort: 'desc', nulls: 'last' } }]
+              : [{ receivedAt: 'desc' }];
 
-    const [items, total] = await Promise.all([
+    const [items, total, byStatus, sums] = await Promise.all([
       this.prisma.usedPhone.findMany({
         where,
         include: {
@@ -273,19 +316,28 @@ export class UsedPhonesService {
           fromCustomer: { select: { id: true, name: true, phone: true } },
           _count: { select: { inspections: true } },
         },
-        orderBy: { receivedAt: 'desc' },
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
       }),
       this.prisma.usedPhone.count({ where }),
+      this.prisma.usedPhone.groupBy({ by: ['status'], where: this.listWhere(user, query, false), _count: { _all: true } }),
+      this.prisma.usedPhone.aggregate({ where, _sum: { totalCost: true, resalePrice: true, finalSoldPrice: true } }),
     ]);
 
+    const now = Date.now();
     return {
-      items,
+      items: items.map((p) => ({ ...p, daysInStock: Math.max(0, Math.floor((now - p.receivedAt.getTime()) / 86_400_000)) })),
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      counts: Object.fromEntries(byStatus.map((s) => [s.status, s._count._all])) as Partial<Record<UsedPhoneStatus, number>>,
+      totals: {
+        cost: Number(sums._sum.totalCost ?? 0),
+        resale: Number(sums._sum.resalePrice ?? 0),
+        sold: Number(sums._sum.finalSoldPrice ?? 0),
+      },
     };
   }
 
@@ -298,8 +350,24 @@ export class UsedPhonesService {
         inspections: { orderBy: { inspectedAt: 'desc' } },
       },
     });
-    if (!phone) throw new NotFoundException('Used phone not found');
+    if (!phone) throw new NotFoundException('Used phone nahi mila');
     return phone;
+  }
+
+  /** Detail plus where the money went: drawer payment, trade-in bill, resale bill. */
+  async detail(user: AuthenticatedUser, id: string) {
+    const phone = await this.findOne(user, id);
+    const [paid, tradeIn, sale] = await Promise.all([
+      this.paidFromDrawer(user.tenantId, phone.usedPhoneCode),
+      this.tradeInBill(user.tenantId, phone.usedPhoneCode),
+      phone.soldSaleId
+        ? this.prisma.sale.findFirst({
+            where: { id: phone.soldSaleId, tenantId: user.tenantId },
+            select: { id: true, saleNumber: true, status: true, createdAt: true, total: true, customer: { select: { id: true, name: true, phone: true } } },
+          })
+        : null,
+    ]);
+    return { ...phone, paidFromDrawer: paid, tradeInBill: tradeIn, sale };
   }
 
   async stats(user: AuthenticatedUser) {
@@ -343,20 +411,49 @@ export class UsedPhonesService {
   // UPDATE
   // ════════════════════════════════════════════════════════
 
+  /**
+   * Edits the phone's details. Money already paid or used on a bill keeps
+   * its amount, and status moves only between the hand-set ones.
+   */
   async update(user: AuthenticatedUser, id: string, dto: UpdateUsedPhoneDto) {
     const phone = await this.findOne(user, id);
+    if (phone.status === 'SOLD' || phone.status === 'DISCARDED') {
+      const allowed = ['notes', 'conditionNotes', 'devicePhotos', 'imeiPhotoUrl', 'cnicPhotoUrl'];
+      const touched = Object.keys(dto).filter((k) => (dto as Record<string, unknown>)[k] !== undefined);
+      if (touched.some((k) => !allowed.includes(k))) {
+        throw new BadRequestException(`${phone.usedPhoneCode} ${phone.status === 'SOLD' ? 'bik chuka' : 'discard ho chuka'} hai — sirf note aur tasveerein badal sakti hain`);
+      }
+    }
+    if (dto.status && dto.status !== phone.status && !MANUAL_STATUS.includes(dto.status)) {
+      throw new BadRequestException('Ye halat yahan se nahi lagti — bechne ke liye POS, hatane ke liye Discard');
+    }
+    const moneyChanged = (dto.buybackPrice !== undefined && Number(dto.buybackPrice) !== Number(phone.buybackPrice))
+      || (dto.source !== undefined && dto.source !== phone.source);
+    if (moneyChanged) {
+      if (await this.paidFromDrawer(user.tenantId, phone.usedPhoneCode)) {
+        throw new BadRequestException('Is phone ke paise galle se diye ja chuke hain — khareed ki qeemat ab nahi badal sakti');
+      }
+      const bill = await this.tradeInBill(user.tenantId, phone.usedPhoneCode);
+      if (bill) throw new BadRequestException(`Ye phone bill ${bill.saleNumber} me trade-in laga hai — qeemat nahi badal sakti`);
+    }
+    if (dto.imei1 && dto.imei1 !== phone.imei1) {
+      const taken = await this.prisma.usedPhone.findFirst({ where: { tenantId: user.tenantId, imei1: dto.imei1, id: { not: id } }, select: { usedPhoneCode: true } });
+      if (taken) throw new ConflictException(`IMEI ${dto.imei1} pehle se ${taken.usedPhoneCode} me hai`);
+    }
+    if (dto.shopId !== undefined) await assertOwnShop(this.prisma, user, dto.shopId);
+    if (dto.fromCustomerId !== undefined) await assertOwnCustomer(this.prisma, user, dto.fromCustomerId);
 
-    // Recalculate totalCost if either component changed
     const buyback = dto.buybackPrice ?? phone.buybackPrice;
     const refurbish = dto.refurbishCost ?? phone.refurbishCost;
-    const totalCost = Number(buyback) + Number(refurbish);
+    const { warrantyExpiryDate, fromCustomerCnic, ...rest } = dto;
 
     return this.prisma.usedPhone.update({
       where: { id },
       data: {
-        ...dto,
-        totalCost,
-        warrantyExpiryDate: dto.warrantyExpiryDate ? new Date(dto.warrantyExpiryDate) : undefined,
+        ...rest,
+        ...(fromCustomerCnic !== undefined && { fromCustomerCnic: normaliseCnic(fromCustomerCnic) ?? null }),
+        totalCost: Number(buyback) + Number(refurbish),
+        ...(warrantyExpiryDate !== undefined && { warrantyExpiryDate: warrantyExpiryDate ? new Date(warrantyExpiryDate) : null }),
       },
       include: {
         shop: { select: { id: true, name: true } },
@@ -371,6 +468,10 @@ export class UsedPhonesService {
 
   async addInspection(user: AuthenticatedUser, usedPhoneId: string, dto: CreateInspectionDto) {
     const phone = await this.findOne(user, usedPhoneId);
+    if (['SOLD', 'DISCARDED', 'IN_TRANSIT'].includes(phone.status)) {
+      throw new BadRequestException(`${phone.usedPhoneCode} abhi ${phone.status} hai — check nahi ho sakta`);
+    }
+    const refurbish = dto.estimatedRepairCost ?? Number(phone.refurbishCost);
 
     return this.prisma.$transaction(async (tx) => {
       const inspection = await tx.usedPhoneInspection.create({
@@ -396,15 +497,14 @@ export class UsedPhonesService {
         },
       });
 
-      // Auto-update phone status & refurbish cost
       await tx.usedPhone.update({
         where: { id: usedPhoneId },
         data: {
           inspectedAt: new Date(),
           inspectedById: user.id,
           status: dto.needsRepair ? 'REPAIRING' : 'IN_STOCK',
-          refurbishCost: dto.estimatedRepairCost ?? phone.refurbishCost,
-          totalCost: Number(phone.buybackPrice) + Number(dto.estimatedRepairCost ?? phone.refurbishCost),
+          refurbishCost: refurbish,
+          totalCost: Number(phone.buybackPrice) + refurbish,
         },
       });
 
@@ -417,57 +517,78 @@ export class UsedPhonesService {
   // ════════════════════════════════════════════════════════
 
   async markInStock(user: AuthenticatedUser, id: string) {
-    await this.findOne(user, id);
+    const phone = await this.findOne(user, id);
+    if (!['PENDING_INSPECTION', 'REPAIRING', 'RETURNED'].includes(phone.status)) {
+      throw new BadRequestException(`${phone.usedPhoneCode} abhi ${phone.status} hai — stock me nahi daala ja sakta`);
+    }
     return this.prisma.usedPhone.update({
       where: { id },
       data: { status: UsedPhoneStatus.IN_STOCK },
     });
   }
 
-  async markSold(user: AuthenticatedUser, id: string, finalPrice: number, saleId?: string) {
+  /**
+   * Sells the phone outside the POS (mobile app). The sale is a real bill
+   * through the counter engine, so the money reaches the drawer, khata and
+   * reports. With `saleId` the bill already exists and must hold this phone.
+   */
+  async markSold(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    id: string,
+    body: { finalPrice: number; saleId?: string; paymentMethod?: PaymentMethod; customerId?: string },
+  ) {
     const phone = await this.findOne(user, id);
-    if (phone.status === 'SOLD') {
-      throw new BadRequestException('Already sold');
+    if (phone.status === 'SOLD') throw new BadRequestException('Ye phone pehle hi bik chuka hai');
+    if (body.saleId) {
+      const line = await this.prisma.saleItem.findFirst({
+        where: { usedPhoneId: id, saleId: body.saleId, sale: { tenantId: user.tenantId, status: { not: 'VOIDED' } } },
+        select: { id: true },
+      });
+      if (!line) throw new BadRequestException('Is bill me ye phone nahi');
+      return this.findOne(user, id);
     }
-    return this.prisma.usedPhone.update({
-      where: { id },
-      data: {
-        status: UsedPhoneStatus.SOLD,
-        finalSoldPrice: finalPrice,
-        soldAt: new Date(),
-        soldSaleId: saleId,
-      },
-    });
+    const price = Number(body.finalPrice);
+    if (!(price > 0)) throw new BadRequestException('Bechne ki qeemat likhein');
+    if (phone.status !== 'IN_STOCK') {
+      throw new BadRequestException(`${phone.usedPhoneCode} abhi ${phone.status} hai — pehle check kar ke stock me daalein`);
+    }
+    await this.sales.create(user, scope, {
+      shopId: scope.shopId ?? phone.shopId ?? undefined,
+      customerId: body.customerId || undefined,
+      paymentMethod: body.paymentMethod ?? 'CASH',
+      paidAmount: price,
+      items: [{ usedPhoneId: id, quantity: 1, priceOverride: price }],
+    } as CreateSaleDto);
+    return this.findOne(user, id);
   }
 
   async markDiscarded(user: AuthenticatedUser, id: string, reason?: string) {
-    await this.findOne(user, id);
+    const phone = await this.findOne(user, id);
+    if (phone.status === 'SOLD') throw new BadRequestException('Bika hua phone discard nahi ho sakta');
+    if (phone.status === 'DISCARDED') return phone;
+    const line = `[DISCARD ${new Date().toISOString().slice(0, 10)}] ${reason?.trim() || 'Bechne ke qabil nahi'}`;
     return this.prisma.usedPhone.update({
       where: { id },
       data: {
         status: UsedPhoneStatus.DISCARDED,
-        notes: reason,
+        notes: [phone.notes, line].filter(Boolean).join('\n'),
       },
     });
   }
 
   // ════════════════════════════════════════════════════════
-  // REMOVE
+  // REMOVE — a phone record is never erased; it is discarded with a note
   // ════════════════════════════════════════════════════════
 
   async remove(user: AuthenticatedUser, id: string) {
     const phone = await this.findOne(user, id);
-    if (phone.status === 'SOLD') {
-      throw new BadRequestException('Cannot delete sold phone');
+    if (phone.status === 'SOLD' || phone.soldSaleId) {
+      throw new BadRequestException('Bika hua phone hataya nahi ja sakta');
     }
-    const paid = await this.prisma.cashTransaction.findFirst({
-      where: { tenantId: user.tenantId, reference: `usedphone:${phone.usedPhoneCode}` },
-      select: { id: true },
-    });
-    if (paid) {
-      throw new BadRequestException('Is phone ke paise galle se diye ja chuke hain — mitane ki jagah "Discard" karein');
-    }
-    await this.prisma.usedPhone.delete({ where: { id } });
-    return { message: 'Used phone deleted', usedPhoneCode: phone.usedPhoneCode };
+    const bill = await this.tradeInBill(user.tenantId, phone.usedPhoneCode);
+    if (bill) throw new BadRequestException(`Ye phone bill ${bill.saleNumber} me trade-in laga hai — pehle wo bill cancel karein`);
+    await this.markDiscarded(user, id, 'Ghalat entry — hataya gaya');
+    return { message: 'Used phone hata diya (record "Discard" me mehfooz hai)', usedPhoneCode: phone.usedPhoneCode };
   }
 }

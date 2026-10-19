@@ -62,6 +62,10 @@ export interface PosCartLine {
   serialNumber?: string;
   imei?: string;
   warrantyMonths?: number;
+  /** Phone sold by IMEI (mobile shops); `imei` holds the number shown. */
+  imeiId?: string;
+  /** Used phone sold from the used stock; the line has no productId. */
+  usedPhoneId?: string;
   /** Quantity cannot be changed (serial-tracked units). */
   lockQty?: boolean;
   /** Batch picked at the counter; left out, the sale takes the earliest expiry. */

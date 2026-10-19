@@ -1,423 +1,106 @@
-import { useState, useMemo, useEffect } from 'react';
+/**
+ * A part on a repair job: from own stock (leaves the shelf now, back if the
+ * job is cancelled), bought from the market for this job, or brought by the
+ * customer. Cost is what the shop paid; price is what the customer pays.
+ */
+
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  X, Package, Plus, Search, ScanLine, Info, AlertTriangle,
-  TrendingUp, Percent, Boxes, Sparkles, Keyboard,
-} from 'lucide-react';
-import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
-import { repairsApi } from '../../api/repairs.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
+import { Search } from 'lucide-react';
+import { Button, Input, Modal } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
+import { productsApi } from '@modules/inventory/products/api/products.api';
+import { repairsApi, type PartSource, type RepairTicket } from '../../api/repairs.api';
+import { REPAIR_KEY, apiError, money } from '../meta';
 
-interface Props {
-  ticketId: string;
-  ticketNumber: string;
-  onClose: () => void;
-}
-
-const SOURCES = [
-  {
-    val: 'OWN_STOCK',
-    label: 'Own Stock',
-    hint: 'Inventory se ghata',
-    icon: Boxes,
-    color: 'emerald',
-  },
-  {
-    val: 'PURCHASED_FOR_REPAIR',
-    label: 'Bahar se laaya',
-    hint: 'Market purchase',
-    icon: Package,
-    color: 'blue',
-  },
-  {
-    val: 'CUSTOMER_PROVIDED',
-    label: 'Customer ne di',
-    hint: 'Free part',
-    icon: Sparkles,
-    color: 'violet',
-  },
+const SOURCES: Array<{ id: PartSource; label: string; hint: string }> = [
+  { id: 'OWN_STOCK', label: 'Apne stock se', hint: 'Shelf se nikalega' },
+  { id: 'PURCHASED_FOR_REPAIR', label: 'Bazar se laya', hint: 'Isi kaam ke liye khareeda' },
+  { id: 'CUSTOMER_PROVIDED', label: 'Customer ka', hint: 'Customer khud laya' },
 ];
 
-const QUICK_MARGINS = [10, 15, 20, 25, 30, 40, 50];
-
-export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
-  const queryClient = useQueryClient();
-  const [source, setSource] = useState('OWN_STOCK');
-  const [productSearch, setProductSearch] = useState('');
-  const [selectedProductId, setSelectedProductId] = useState('');
-  const [partName, setPartName] = useState('');
-  const [partNumber, setPartNumber] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [unitCost, setUnitCost] = useState('');
-  const [unitPrice, setUnitPrice] = useState('');
-  const [notes, setNotes] = useState('');
-  const [showShortcuts, setShowShortcuts] = useState(false);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === '?' && e.shiftKey) setShowShortcuts((v) => !v);
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-repair-part'],
-    queryFn: () => fetchAllProducts(),
-    enabled: source === 'OWN_STOCK',
+export function AddPartModal({ ticket, onClose }: { ticket: RepairTicket; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [source, setSource] = useState<PartSource>('OWN_STOCK');
+  const [term, setTerm] = useState('');
+  const [product, setProduct] = useState<{ id: string; name: string; price: number; costPrice: number; stock: number } | null>(null);
+  const [name, setName] = useState('');
+  const [qty, setQty] = useState('1');
+  const [cost, setCost] = useState('');
+  const [price, setPrice] = useState('');
+  const found = useQuery({
+    queryKey: ['repair-part-search', term],
+    queryFn: () => productsApi.list({ search: term, limit: 10, isActive: true }),
+    enabled: source === 'OWN_STOCK' && term.trim().length >= 2 && !product,
   });
-
-  const filteredProducts = useMemo(() => {
-    const list = productsData?.items ?? [];
-    const q = productSearch.toLowerCase().trim();
-    if (!q) return list.slice(0, 15);
-    return list
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          (p.sku || '').toLowerCase().includes(q) ||
-          (p.barcode || '').includes(q),
-      )
-      .slice(0, 15);
-  }, [productsData, productSearch]);
-
-  const selectedProduct = productsData?.items.find((p) => p.id === selectedProductId);
-
-  const qtyN = Number(quantity) || 0;
-  const costN = Number(unitCost) || 0;
-  const priceN = Number(unitPrice) || 0;
-  const total = qtyN * priceN;
-  const totalCost = qtyN * costN;
-  const profit = total - totalCost;
-  const marginPct = priceN > 0 && costN > 0 ? ((priceN - costN) / priceN) * 100 : 0;
-
-  // Low stock warning
-  const lowStockWarn =
-    selectedProduct && source === 'OWN_STOCK' && qtyN > (selectedProduct.stock || 0);
-
-  const applyMargin = (pct: number) => {
-    if (!costN) return toast.error('Pehle unit cost daalo');
-    const suggested = Math.round(costN / (1 - pct / 100));
-    setUnitPrice(String(suggested));
-    toast.success(`${pct}% margin lagaya: ${formatPKR(suggested)}`);
+  const pickProduct = (p: { id: string; name: string; price: number; costPrice: number; stock: number }) => {
+    setProduct(p); setName(p.name); setPrice(String(p.price || '')); setCost(String(p.costPrice || ''));
   };
+  const q = Number(qty) || 0;
+  const problem = source === 'OWN_STOCK' && !product ? 'Stock se part chunein'
+    : !name.trim() ? 'Part ka naam likhein'
+      : !(q > 0) ? 'Kitne lage — likhein'
+        : source === 'OWN_STOCK' && product && q > product.stock ? `Stock me sirf ${product.stock} hain` : null;
 
-  const mutation = useMutation({
-    mutationFn: () =>
-      repairsApi.addPart(ticketId, {
-        productId: selectedProductId || undefined,
-        partName: partName.trim() || selectedProduct?.name || '',
-        partNumber: partNumber.trim() || undefined,
-        quantity: qtyN,
-        unitCost: costN,
-        unitPrice: priceN,
-        source,
-        notes: notes.trim() || undefined,
-      }),
+  const save = useMutation({
+    mutationFn: () => repairsApi.addPart(ticket.id, {
+      productId: source === 'OWN_STOCK' ? product?.id : undefined, partName: name.trim(), quantity: q, source,
+      unitCost: source === 'CUSTOMER_PROVIDED' ? 0 : cost ? Number(cost) : undefined, unitPrice: Number(price) || 0,
+    }),
     onSuccess: () => {
-      toast.success('Part add ho gaya ✅');
-      queryClient.invalidateQueries({ queryKey: ['repair-ticket', ticketId] });
-      queryClient.invalidateQueries({ queryKey: ['repair-tickets'] });
+      toast.success(source === 'OWN_STOCK' ? 'Part laga — stock se nikal gaya' : 'Part laga');
+      [REPAIR_KEY, 'products-catalog', 'products-for-pos'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onError: (e) => toast.error(apiError(e, 'Part nahi laga')),
   });
 
-  const submit = () => {
-    if (!partName.trim() && !selectedProduct) return toast.error('Part name required');
-    if (qtyN <= 0) return toast.error('Quantity required');
-    if (priceN <= 0) return toast.error('Unit price required');
-    if (lowStockWarn) {
-      if (!confirm(`Stock sirf ${selectedProduct?.stock} hai, aap ${qtyN} de rahay ho. Confirm?`))
-        return;
-    }
-    mutation.mutate();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg">
-              <Package className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-bold">
-                Add Part / Spare
-              </div>
-              <h3 className="font-bold text-slate-900 dark:text-ink-white">{ticketNumber}</h3>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setShowShortcuts((v) => !v)}
-              className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"
-              title="Shortcuts (Shift+?)"
-            >
-              <Keyboard className="h-4 w-4 text-slate-600 dark:text-ink-300" />
+    <Modal open onClose={onClose} size="md" title="Part lagayein" description={`${ticket.ticketNumber} · ${ticket.deviceBrand} ${ticket.deviceModel}`}
+      footer={<>
+        {problem && (name || product) && <span className="mr-auto text-[0.8125rem] text-amber-800">{problem}</span>}
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button onClick={() => save.mutate()} disabled={!!problem} loading={save.isPending}>Jodein · {formatPKR(q * (Number(price) || 0))}</Button>
+      </>}>
+      <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          {SOURCES.map((s) => (
+            <button key={s.id} type="button" onClick={() => { setSource(s.id); setProduct(null); }}
+              className={cn('rounded-xl p-2.5 text-left ring-1', source === s.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200')}>
+              <p className="text-[0.8125rem] font-semibold text-slate-900">{s.label}</p>
+              <p className="text-[0.6875rem] text-slate-500">{s.hint}</p>
             </button>
-            <button
-              onClick={onClose}
-              className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"
-            >
-              <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-            </button>
-          </div>
+          ))}
         </div>
-
-        {showShortcuts && (
-          <div className="px-5 py-3 bg-slate-50 dark:bg-ink-800/50 border-b border-slate-200 dark:border-ink-800 text-xs text-slate-700 dark:text-ink-300">
-            <div className="flex items-center gap-4 flex-wrap">
-              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border font-mono">Esc</kbd> Close</span>
-              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border font-mono">Shift+?</kbd> Toggle help</span>
-              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border font-mono">Ctrl+Enter</kbd> Save</span>
-            </div>
+        {source === 'OWN_STOCK' && (product ? (
+          <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200 text-[0.8125rem]">
+            <span><b>{product.name}</b> · stock {product.stock}</span>
+            <button type="button" onClick={() => { setProduct(null); setName(''); }} className="font-semibold text-brand-700">Badlein</button>
           </div>
-        )}
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* Source */}
+        ) : (
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-2">
-              Part Source
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {SOURCES.map((s) => {
-                const Icon = s.icon;
-                const active = source === s.val;
-                return (
-                  <button
-                    key={s.val}
-                    type="button"
-                    onClick={() => {
-                      setSource(s.val);
-                      if (s.val !== 'OWN_STOCK') {
-                        setSelectedProductId('');
-                        setProductSearch('');
-                      }
-                      if (s.val === 'CUSTOMER_PROVIDED') {
-                        setUnitCost('0');
-                        setUnitPrice('0');
-                      }
-                    }}
-                    className={`p-3 rounded-xl border-2 text-xs font-bold transition ${
-                      active
-                        ? `bg-${s.color}-50 dark:bg-${s.color}-950/40 border-${s.color}-400 text-${s.color}-800 dark:text-${s.color}-200 shadow`
-                        : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-slate-300'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 mx-auto mb-1" />
-                    <div>{s.label}</div>
-                    <div className="text-[0.625rem] font-normal opacity-70 mt-0.5">{s.hint}</div>
+            <Input autoFocus value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Part dhoondein — screen, battery…" leftIcon={<Search className="h-4 w-4" />} />
+            <ul className="mt-1 max-h-48 overflow-y-auto">
+              {(found.data?.items ?? []).map((p) => (
+                <li key={p.id}>
+                  <button type="button" onClick={() => pickProduct({ id: p.id, name: p.name, price: Number(p.price) || 0, costPrice: Number(p.costPrice) || 0, stock: Number((p as { shopStock?: number }).shopStock ?? p.stock) || 0 })}
+                    className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[0.8125rem] hover:bg-slate-50">
+                    <span className="font-medium text-slate-900">{p.name}</span><span className="text-slate-500">stock {Number((p as { shopStock?: number }).shopStock ?? p.stock) || 0} · {formatPKR(Number(p.price) || 0)}</span>
                   </button>
-                );
-              })}
-            </div>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          {/* Product link */}
-          {source === 'OWN_STOCK' && (
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1">
-                Link to Inventory Product
-              </label>
-              <div className="relative">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  value={productSearch}
-                  onChange={(e) => {
-                    setProductSearch(e.target.value);
-                    setSelectedProductId('');
-                  }}
-                  placeholder="Naam, SKU, ya barcode se search karo..."
-                  className="h-10 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white pl-9 pr-10 text-sm focus:outline-none focus:border-emerald-500"
-                />
-                <ScanLine className="h-4 w-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
-              </div>
-              {productSearch && !selectedProductId && filteredProducts.length > 0 && (
-                <div className="mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 divide-y divide-slate-100 dark:divide-ink-700 shadow-lg">
-                  {filteredProducts.map((p) => {
-                    const threshold = (p as any).lowStockThreshold ?? (p as any).minStock ?? 5;
-                    const low = (p.stock || 0) <= threshold;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedProductId(p.id);
-                          setPartName(p.name);
-                          setProductSearch(p.name);
-                          setUnitCost(String(p.costPrice || ''));
-                          setUnitPrice(String(p.price || ''));
-                        }}
-                        className="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-sm transition"
-                      >
-                        <div className="font-bold text-slate-900 dark:text-ink-white text-xs flex items-center justify-between">
-                          {p.name}
-                          {low && (
-                            <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">
-                              LOW
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400">
-                          Stock: <strong>{p.stock} {p.unit}</strong> · Cost:{' '}
-                          {formatPKR(p.costPrice || 0)} · Price: {formatPKR(p.price || 0)}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {selectedProduct && (
-                <div className="mt-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-3 py-2 flex items-center justify-between">
-                  <div className="text-[0.6875rem] text-emerald-800 dark:text-emerald-200 font-bold">
-                    ✓ {selectedProduct.name} — Stock: {selectedProduct.stock} {selectedProduct.unit}
-                  </div>
-                  <button
-                    onClick={() => {
-                      setSelectedProductId('');
-                      setProductSearch('');
-                    }}
-                    className="text-[0.6875rem] text-rose-600 hover:underline font-bold"
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {lowStockWarn && (
-            <div className="rounded-xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-700 p-3 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-rose-900 dark:text-rose-200">
-                <strong>Low stock warning:</strong> Sirf {selectedProduct?.stock} unit available hai,
-                aap {qtyN} de rahay ho.
-              </div>
-            </div>
-          )}
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Input
-              label="Part Name *"
-              value={partName}
-              onChange={(e) => setPartName(e.target.value)}
-              placeholder="LCD Display, Battery..."
-            />
-            <Input
-              label="Part Number"
-              value={partNumber}
-              onChange={(e) => setPartNumber(e.target.value)}
-              placeholder="Brand part ID"
-            />
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-3">
-            <Input
-              label="Quantity *"
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
-            <Input
-              label="Unit Cost (PKR)"
-              type="number"
-              value={unitCost}
-              onChange={(e) => setUnitCost(e.target.value)}
-            />
-            <Input
-              label="Unit Price *"
-              type="number"
-              value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
-              placeholder="Customer rate"
-            />
-          </div>
-
-          {/* Quick margin buttons */}
-          {costN > 0 && (
-            <div>
-              <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 uppercase mb-1.5 flex items-center gap-1">
-                <Percent className="h-3 w-3" /> Quick Margin
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {QUICK_MARGINS.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => applyMargin(m)}
-                    className="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950/40 hover:bg-blue-200 dark:hover:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-bold transition"
-                  >
-                    {m}%
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Live summary */}
-          {total > 0 && (
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800 p-3 text-center">
-                <div className="text-[0.625rem] uppercase font-bold text-emerald-700 dark:text-emerald-300">Total</div>
-                <div className="text-lg font-extrabold text-emerald-900 dark:text-emerald-100">
-                  {formatPKR(total)}
-                </div>
-              </div>
-              <div className="rounded-xl bg-blue-50 dark:bg-blue-950/40 border-2 border-blue-200 dark:border-blue-800 p-3 text-center">
-                <div className="text-[0.625rem] uppercase font-bold text-blue-700 dark:text-blue-300">Profit</div>
-                <div className={`text-lg font-extrabold ${profit >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-rose-700'}`}>
-                  {formatPKR(profit)}
-                </div>
-              </div>
-              <div className="rounded-xl bg-violet-50 dark:bg-violet-950/40 border-2 border-violet-200 dark:border-violet-800 p-3 text-center">
-                <div className="text-[0.625rem] uppercase font-bold text-violet-700 dark:text-violet-300 flex items-center justify-center gap-0.5">
-                  <TrendingUp className="h-2.5 w-2.5" /> Margin
-                </div>
-                <div className="text-lg font-extrabold text-violet-900 dark:text-violet-100">
-                  {marginPct.toFixed(1)}%
-                </div>
-              </div>
-            </div>
-          )}
-
-          <Input
-            label="Notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Optional"
-          />
-
-          <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 border border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] text-slate-600 dark:text-ink-400 flex items-start gap-2">
-            <Info className="h-3 w-3 flex-shrink-0 mt-0.5 text-blue-600" />
-            <span>
-              <strong>Tip:</strong> "Own Stock" par inventory automatically ghatega. "Customer Provided"
-              par cost/price 0 rehta hai.
-            </span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={submit}
-            loading={mutation.isPending}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            <Plus className="h-4 w-4" /> Add Part
-          </Button>
+        ))}
+        {source !== 'OWN_STOCK' && <Input label="Part ka naam" value={name} onChange={(e) => setName(e.target.value)} placeholder="iPhone 11 LCD" autoFocus />}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Kitne" inputMode="decimal" value={qty} onChange={(e) => setQty(money(e.target.value))} />
+          {source !== 'CUSTOMER_PROVIDED' && <Input label="Cost (ek)" inputMode="decimal" value={cost} onChange={(e) => setCost(money(e.target.value))} hint="Dukaan ne kitne ka liya" />}
+          <Input label="Customer se (ek)" inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} hint={source === 'CUSTOMER_PROVIDED' ? 'Aksar 0' : undefined} />
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

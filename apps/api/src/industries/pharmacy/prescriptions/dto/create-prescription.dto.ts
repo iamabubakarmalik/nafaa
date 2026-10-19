@@ -1,12 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod, PrescriptionType, RefillFrequency } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
 import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
+import { SalePaymentPartDto } from '../../../../modules/sales/sales/dto/create-sale.dto';
 
 class PrescriptionItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() productId?: string;
-  @ApiProperty() @IsString() medicineName!: string;
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(160) medicineName!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() saltName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() strength?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() dose?: string;
@@ -14,8 +15,8 @@ class PrescriptionItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() duration?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() route?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() instructions?: string;
-  @ApiProperty() @IsNumber() prescribedQty!: number;
-  @ApiPropertyOptional() @IsOptional() @IsString() unit?: string;
+  @ApiProperty() @IsNumber() @Min(0.01) @Max(100000) prescribedQty!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) unit?: string;
 }
 
 export class CreatePrescriptionDto {
@@ -30,11 +31,11 @@ export class CreatePrescriptionDto {
   @ApiPropertyOptional() @IsOptional() @IsString() hospitalName?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() patientName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() patientAge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(130) patientAge?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() patientGender?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() patientPhone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() patientCnic?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() patientWeight?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(400) patientWeight?: number;
 
   @ApiPropertyOptional() @IsOptional() @IsString() prescriptionDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() diagnosis?: string;
@@ -43,7 +44,7 @@ export class CreatePrescriptionDto {
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) imageUrls?: string[];
 
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isRefillable?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsInt() refillsAllowed?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(24) refillsAllowed?: number;
   @ApiPropertyOptional({ enum: RefillFrequency }) @IsOptional() @IsEnum(RefillFrequency) refillFrequency?: RefillFrequency;
 
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isInsuranceClaim?: boolean;
@@ -52,13 +53,14 @@ export class CreatePrescriptionDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 
-  @ApiProperty({ type: [PrescriptionItemDto] }) @IsArray() @ValidateNested({ each: true }) @Type(() => PrescriptionItemDto)
+  @ApiProperty({ type: [PrescriptionItemDto] })
+  @IsArray() @ArrayMinSize(1) @ArrayMaxSize(60) @ValidateNested({ each: true }) @Type(() => PrescriptionItemDto)
   items!: PrescriptionItemDto[];
 }
 
 class DispenseItemDto {
   @ApiProperty() @IsString() itemId!: string;
-  @ApiProperty() @IsNumber() @Min(0) dispensedQty!: number;
+  @ApiProperty() @IsNumber() @Min(0) @Max(100000) dispensedQty!: number;
   @ApiPropertyOptional() @IsOptional() @IsString() productId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() batchId?: string | null;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) unitPrice?: number;
@@ -90,5 +92,31 @@ export class DispenseDto {
 
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
 
+  @ApiPropertyOptional({ type: [SalePaymentPartDto], description: 'Split payment (cash + card …); replaces method and paid amount' })
+  @IsOptional() @IsArray() @ArrayMaxSize(10) @ValidateNested({ each: true }) @Type(() => SalePaymentPartDto)
+  payments?: SalePaymentPartDto[];
+
+  @ApiPropertyOptional({ description: 'Owner/manager PIN when the discount needs it' })
+  @IsOptional() @IsString() @MaxLength(12) managerPin?: string;
+
   @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
+}
+
+export class RejectPrescriptionDto {
+  @ApiProperty() @IsString() @MinLength(3) @MaxLength(300) reason!: string;
+}
+
+export class VerifyPrescriptionDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) notes?: string;
+}
+
+export class ListPrescriptionsDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() doctorId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() customerId?: string;
+  @ApiPropertyOptional({ description: 'Business day YYYY-MM-DD' }) @IsOptional() @IsString() from?: string;
+  @ApiPropertyOptional({ description: 'Business day YYYY-MM-DD' }) @IsOptional() @IsString() to?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) search?: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
 }

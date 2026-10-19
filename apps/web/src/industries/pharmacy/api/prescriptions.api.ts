@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { PaymentMethod, SalePaymentPart } from '@modules/sales/sales/api/sales.api';
 
 export type PrescriptionStatus = 'PENDING' | 'VERIFIED' | 'PARTIALLY_DISPENSED' | 'DISPENSED' | 'REJECTED' | 'CANCELLED';
 export type PrescriptionType = 'WALK_IN' | 'ONLINE' | 'REFILL' | 'HOSPITAL' | 'INSURANCE' | 'EMERGENCY';
@@ -67,17 +68,43 @@ export interface Prescription {
   totalAmount: number;
   notes?: string;
   items: PrescriptionItem[];
-  doctor?: any;
+  doctor?: { id: string; name: string; specialization?: string | null } | null;
+  /** Latest bill made from this prescription (detail only). */
+  sale?: { id: string; saleNumber: string; total: number; paidAmount: number; creditAmount: number; status: string; soldAt: string } | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface DispensePayload {
   items: { itemId: string; dispensedQty: number; unitPrice?: number; productId?: string; batchId?: string }[];
-  paymentMethod?: 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
+  paymentMethod?: PaymentMethod;
   paidAmount?: number;
+  /** Split payment; replaces method and amount. */
+  payments?: SalePaymentPart[];
   discount?: number;
+  managerPin?: string;
   notes?: string;
+}
+
+export interface PrescriptionQuery {
+  status?: PrescriptionStatus;
+  doctorId?: string;
+  customerId?: string;
+  /** Business days, YYYY-MM-DD. */
+  from?: string;
+  to?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PrescriptionPage {
+  items: Prescription[];
+  total: number;
+  page: number;
+  limit: number;
+  counts: Record<'all' | PrescriptionStatus, number>;
+  dispensedValue: number;
 }
 
 export interface DispensedSale {
@@ -94,6 +121,9 @@ export const prescriptionsApi = {
     apiClient.post('/pharmacy/prescriptions', data).then(unwrap<Prescription>),
   list: (params?: { status?: string; customerId?: string; doctorId?: string; from?: string; to?: string; search?: string }) =>
     apiClient.get('/pharmacy/prescriptions', { params }).then(unwrap<Prescription[]>),
+  /** One page for the list screen, with counts per status over the same filter. */
+  page: (params: PrescriptionQuery) =>
+    apiClient.get('/pharmacy/prescriptions/page', { params }).then(unwrap<PrescriptionPage>),
   summary: (params?: { from?: string; to?: string }) =>
     apiClient.get('/pharmacy/prescriptions/summary', { params }).then(unwrap<any>),
   getOne: (id: string) => apiClient.get('/pharmacy/prescriptions/' + id).then(unwrap<Prescription>),

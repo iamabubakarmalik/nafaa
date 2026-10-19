@@ -5,10 +5,14 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { MobilePosService } from './mobile-pos.service';
 import { ShopIdParam } from '../../../common/shop-scope';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Mobile POS')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+// `industries/` routes are open in the route map; the counter catalog needs pos.use.
+@RequirePermissions(PERMISSIONS.POS_USE)
 @Controller('industries/mobile/pos')
 export class MobilePosController {
   constructor(private readonly service: MobilePosService) {}

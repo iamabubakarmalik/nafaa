@@ -29,17 +29,30 @@ import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { ReceiptPreview } from '@core/receipt/ReceiptPreview';
 import { printReceipt } from '@core/receipt/print';
 import { devicePaper, getReceiptSetup, setDevicePaper, useReceiptSetup } from '@core/receipt/setup';
-import type { ReceiptPaper } from '@core/receipt/types';
+import type { ReceiptPaper, ReceiptRowDoc } from '@core/receipt/types';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { ReturnModal } from '@modules/sales/returns/components/ReturnModal';
 import { FbrReceiptBadge } from '@integrations/fbr';
-import { loadReceipt } from '../../receipt/industryReceipt';
+import { loadReceipt, type LoadedReceipt } from '../../receipt/industryReceipt';
 import { receiptText } from '../../receipt/fromSale';
 
 const PAPERS = [{ value: '58', label: '58mm' }, { value: '80', label: '80mm' }, { value: 'A4', label: 'A4' }] as const;
 const VOID_REASONS = ['Ghalat bill bana', 'Customer ne liya hi nahi', 'Demo / test bill', 'Do dafa ban gaya'];
 const num = (v: unknown) => Number(v ?? 0) || 0;
+
+/**
+ * Adds the industry's rows under the bill header (table, token, waiter…)
+ * before the bill is shown or printed. Rows whose label the bill already
+ * has are skipped; a failed lookup leaves the plain bill.
+ */
+async function withIndustryRows(r: LoadedReceipt, rowsFor?: (sale: { id: string; saleNumber?: string }) => Promise<ReceiptRowDoc[]>): Promise<LoadedReceipt> {
+  if (!rowsFor || !r.sale?.id || !navigator.onLine) return r;
+  const rows = await rowsFor(r.sale).catch(() => [] as ReceiptRowDoc[]);
+  const have = new Set((r.doc.infoRows ?? []).map((x) => x.label));
+  const fresh = rows.filter((x) => x?.value && !have.has(x.label));
+  return fresh.length ? { ...r, doc: { ...r.doc, infoRows: [...(r.doc.infoRows ?? []), ...fresh] } } : r;
+}
 
 export default function ReceiptPage() {
   const { id } = useParams();
@@ -66,7 +79,7 @@ export default function ReceiptPage() {
 
   const q = useQuery({
     queryKey: ['sale-receipt', id, industry?.id],
-    queryFn: () => loadReceipt(id!, industry?.id, setup),
+    queryFn: async () => withIndustryRows(await loadReceipt(id!, industry?.id, setup), industry?.receipt?.infoRows),
     enabled: !!id,
   });
   const data = q.data;

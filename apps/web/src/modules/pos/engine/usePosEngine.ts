@@ -45,7 +45,7 @@ import { receiptText } from '@modules/sales/receipt/fromSale';
 import { splitReceiptLines } from '../components/PosSplitTender';
 import { keepAdvance, salePayment } from '../lib/posCheckout';
 import { askManagerPin } from '@core/security/ManagerPin';
-import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem } from './types';
+import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem, PosUsedPhoneLine } from './types';
 
 /** Customers refresh after a sale (balances change). */
 const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
@@ -92,6 +92,8 @@ export function usePosEngine(config: PosIndustryConfig) {
   const { items, loading, refreshKeys } = config.useCatalog();
   const useBundles = config.useBundles ?? (() => [] as PosBundle[]);
   const bundles = useBundles();
+  const useTradeIns = config.useTradeIns ?? (() => undefined);
+  const tradeIns = useTradeIns();
   const { data: quickKeys = [] } = useQuery({
     queryKey: ['pos-quick-keys'],
     queryFn: () => quickKeysApi.list().catch(() => [] as QuickKey[]),
@@ -288,12 +290,17 @@ export function usePosEngine(config: PosIndustryConfig) {
       : opts.variant?.stock != null ? Number(opts.variant.stock) : item.stock;
 
   const pushLine = useCallback((item: PosItem, unit: PosUnitOption, qty: number, opts: AddOptions) => {
-    const limit = limitFor(item, opts);
+    // One tracked unit (serial or IMEI) is one line of exactly 1.
+    const single = !!(opts.serial || opts.imei);
+    if (opts.imei) qty = 1;
+    const limit = opts.imei ? 1 : limitFor(item, opts);
     const baseQty = qty * unit.conversionRate;
-    const price = opts.variant?.price != null && unit.conversionRate === 1 ? Number(opts.variant.price) : unit.price;
+    const price = opts.price != null && unit.conversionRate === 1 ? Number(opts.price)
+      : opts.variant?.price != null && unit.conversionRate === 1 ? Number(opts.variant.price) : unit.price;
     setCart((prev) => {
-      const existing = !opts.serial && prev.find((l) =>
-        l.productId === item.id && l.unitName === unit.unitName && l.unitPrice === price && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId);
+      if (opts.imei && prev.some((l) => l.imeiId === opts.imei!.id)) { toast.info('Ye phone pehle se bill mein hai'); return prev; }
+      const existing = !single && prev.find((l) =>
+        l.productId === item.id && l.unitName === unit.unitName && l.unitPrice === price && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId && !l.imeiId);
       if (existing) {
         const nq = Number((existing.quantity + qty).toFixed(3));
         const nb = nq * unit.conversionRate;
@@ -306,6 +313,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       const notes = [
         unit.conversionRate !== 1 ? `${qty} ${unit.unitName} = ${Number(baseQty.toFixed(3))} ${item.unit}` : '',
         opts.serial ? `S/N: ${opts.serial.serialNumber}${opts.serial.imei ? ` · IMEI: ${opts.serial.imei}` : ''}` : '',
+        opts.imei ? `IMEI: ${opts.imei.imei1}${opts.imei.imei2 ? ` / ${opts.imei.imei2}` : ''}` : '',
         opts.oversell ? 'Stock chadhe bagair becha' : '',
         opts.note ?? '',
       ].filter(Boolean);
@@ -316,8 +324,24 @@ export function usePosEngine(config: PosIndustryConfig) {
         quantity: qty, baseQuantity: baseQty, conversionRate: unit.conversionRate, baseUnit: item.unit, baseStock: limit,
         lineTotal: qty * price, note: notes.join(' • ') || undefined,
         variantId: opts.variant?.id, variantName: opts.variant?.name,
-        serialId: opts.serial?.id, serialNumber: opts.serial?.serialNumber, imei: opts.serial?.imei ?? undefined,
-        warrantyMonths: opts.warrantyMonths, lockQty: !!opts.serial,
+        serialId: opts.serial?.id, serialNumber: opts.serial?.serialNumber, imei: opts.imei?.imei1 ?? opts.serial?.imei ?? undefined,
+        imeiId: opts.imei?.id,
+        warrantyMonths: opts.warrantyMonths, lockQty: single,
+      }];
+    });
+  }, []);
+
+  /** A used phone: no catalog product, quantity 1, its own price. */
+  const addUsedPhone = useCallback((u: PosUsedPhoneLine) => {
+    if (!(u.price > 0)) { toast.error(`${u.name} ka resale price set nahi`); return; }
+    setCart((prev) => {
+      if (prev.some((l) => l.usedPhoneId === u.usedPhoneId)) { toast.info('Ye phone pehle se bill mein hai'); return prev; }
+      toast.success(`${u.name} — ${u.code}`, { duration: 800 });
+      return [...prev, {
+        id: posLineId(), type: 'product', name: u.name, image: u.image,
+        unitName: 'pcs', unitLabel: 'USED', emoji: '📱',
+        unitPrice: u.price, basePrice: u.price, quantity: 1, baseQuantity: 1, conversionRate: 1, baseUnit: 'pcs', baseStock: 1,
+        lineTotal: u.price, note: u.note || `Used · ${u.code}`, usedPhoneId: u.usedPhoneId, lockQty: true,
       }];
     });
   }, []);
@@ -335,7 +359,8 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, [unitIndex, config]);
 
   const placeUnit = useCallback((item: PosItem, unit: PosUnitOption, opts: AddOptions, qty = 1) => {
-    if (isWeightUnit(unit.unitName)) { setWeigh({ item, unit, opts }); return; }
+    // A known quantity (scale label) goes straight on the bill without the weigh window.
+    if (isWeightUnit(unit.unitName) && opts.qty == null) { setWeigh({ item, unit, opts }); return; }
     pushLine(item, unit, qty, opts);
   }, [pushLine]);
 
@@ -343,19 +368,20 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   const addItem = useCallback(async (item: PosItem, opts: AddOptions = {}) => {
     if (config.beforeAdd && config.beforeAdd(item, opts, engineApiRef.current) === 'handled') return;
-    if (item.price <= 0 && !opts.variant) { toast.error(`${item.name} ka rate set nahi — pehle product mein rate daalein`); return; }
-    if (!opts.oversell && !rulesRef.current.negativeStock && !opts.variant && item.stock <= 0 && !item.hasVariants) { toast.error(`${item.name} — stock khatam`); return; }
+    if (item.price <= 0 && !opts.variant && !(opts.price != null && opts.price > 0)) { toast.error(`${item.name} ka rate set nahi — pehle product mein rate daalein`); return; }
+    if (!opts.oversell && !opts.imei && !rulesRef.current.negativeStock && !opts.variant && item.stock <= 0 && !item.hasVariants) { toast.error(`${item.name} — stock khatam`); return; }
 
-    if (item.hasVariants && !opts.variant) {
+    if (item.hasVariants && !opts.variant && !opts.imei) {
       try {
         const variants = (await productVariantsApi.list(item.id)).filter((v) => v.isActive);
         if (variants.length) { setVariantPicker({ item, variants, opts }); return; }
       } catch { toast.error('Variants load nahi hue'); return; }
     }
-    if (opts.serial || opts.unit) { placeUnit(item, opts.unit ?? derivePosUnits({ ...item.product, price: item.price, unit: item.unit } as any, [])[0], opts, opts.qty ?? 1); return; }
+    if (opts.serial || opts.imei || opts.unit) { placeUnit(item, opts.unit ?? derivePosUnits({ ...item.product, price: item.price, unit: item.unit } as any, [])[0], opts, opts.qty ?? 1); return; }
 
     const units = await unitsFor(item);
-    if (units.length > 1 && !opts.variant) { setUnitPicker({ item, units, opts }); return; }
+    // A quantity from a scale label is in the base unit, so no unit picker.
+    if (units.length > 1 && !opts.variant && opts.qty == null) { setUnitPicker({ item, units, opts }); return; }
     placeUnit(item, units[0], opts, opts.qty ?? 1);
   }, [config, placeUnit, unitsFor]);
 
@@ -407,13 +433,15 @@ export function usePosEngine(config: PosIndustryConfig) {
       const c = code.trim().toLowerCase();
       return items.find((i) => (i.product.barcode ?? '').toLowerCase() === c || (i.product.sku ?? '').toLowerCase() === c);
     },
+    addUsedPhone,
+    items,
     cart,
   };
 
   /* ── Line edits ── */
   const changeQty = (id: string, delta: number) => setCart((prev) => prev.flatMap((l) => {
     if (l.id !== id) return [l];
-    if (l.lockQty && delta > 0) { toast.error('Serial wala item — ek hi'); return [l]; }
+    if (l.lockQty && delta > 0) { toast.error('Serial / IMEI wala item — ek hi'); return [l]; }
     const nq = Number((l.quantity + delta * qtyStep(l.unitName)).toFixed(3));
     if (nq <= 0) return [];
     const nb = nq * l.conversionRate;
@@ -423,7 +451,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   const setQty = (id: string, qty: number) => setCart((prev) => prev.flatMap((l) => {
     if (l.id !== id) return [l];
     if (qty <= 0) return [];
-    if (l.lockQty && qty > 1) { toast.error('Serial wala item — ek hi'); return [l]; }
+    if (l.lockQty && qty > 1) { toast.error('Serial / IMEI wala item — ek hi'); return [l]; }
     const nb = qty * l.conversionRate;
     if (l.type === 'product' && nb > l.baseStock) { toast.error(`Stock sirf ${l.baseStock} ${l.baseUnit}`); return [l]; }
     return [{ ...l, quantity: qty, baseQuantity: nb, lineTotal: qty * l.unitPrice }];
@@ -491,8 +519,17 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (local) { void addItem(local); return; }
 
     try {
-      const p = await offlineProductsApi.byBarcode(code);
+      const p = await offlineProductsApi.byBarcode(code) as Awaited<ReturnType<typeof offlineProductsApi.byBarcode>> & {
+        matchedVariant?: { id: string; name: string; price?: number | null; stock?: number | null; isActive?: boolean };
+        shopStock?: number | null;
+      };
       const it = itemsById.get(p.id);
+      // A size/colour barcode names the variant, so it goes on the bill without the picker.
+      const mv = p.matchedVariant;
+      if (it && mv && mv.isActive !== false) {
+        void addItem(it, { variant: { id: mv.id, name: mv.name, price: mv.price ?? null, stock: p.shopStock ?? mv.stock ?? null } });
+        return;
+      }
       if (it) { void addItem(it); return; }
     } catch { /* not a product barcode */ }
     toast.error(`Barcode "${code}" nahi mila`);
@@ -671,8 +708,11 @@ export function usePosEngine(config: PosIndustryConfig) {
             priceOverride: l.unitPrice / l.conversionRate,
             note: l.note,
             ...(l.serialId ? { serialId: l.serialId } : {}),
+            ...(l.imeiId ? { imeiId: l.imeiId } : {}),
             ...(l.batchId ? { batchId: l.batchId } : {}),
           });
+        } else if (l.usedPhoneId) {
+          items.push({ usedPhoneId: l.usedPhoneId, quantity: 1, priceOverride: l.unitPrice, note: l.note });
         }
       }
       const pay = salePayment(d, total);
@@ -759,7 +799,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     heldCarts, hold, resume, deleteHeld,
     // actions
     addItem: (it: PosItem, o?: AddOptions) => void addItem(it, o), addBundle, addQuickKey, handleBarcode, onVoice,
-    pushLine, placeUnit,
+    pushLine, placeUnit, addUsedPhone, tradeIns,
     // modals
     unitPicker, setUnitPicker, weigh, setWeigh, variantPicker, setVariantPicker, picker, setPicker,
     checkout, setCheckout, openCheckout, instantCash, checkoutMutation, lastSale, closeSuccess, shareLastSale,

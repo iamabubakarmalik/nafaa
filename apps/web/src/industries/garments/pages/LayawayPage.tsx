@@ -1,363 +1,267 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  CreditCard, Plus, X, Save, RefreshCw, Sparkles, DollarSign,
-  Calendar, User, Phone, CheckCircle2, AlertCircle, Ban, Clock,
-} from 'lucide-react';
-import { layawayApi, type LayawayPlan } from '../api/layaway.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Instalment plans (qist): a garment kept aside and paid off over weeks or
+ * months. The record by view (running, overdue, due this week, done…) with
+ * search; each plan shows its instalments; money taken fills them in order
+ * and the last payment makes the bill (the piece leaves stock then).
+ *
+ * Keys: N new plan · / search · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+import { AlertTriangle, Ban, CalendarClock, CheckCircle2, ChevronDown, CreditCard, Filter, GraduationCap, ListChecks, Plus, Receipt, Wallet } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { PaymentMethodPicker, TakePaymentModal } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { layawayApi, type LayawayPlan, type LayawayView } from '../api/layaway.api';
+import { EmptyList, LoadFailed, Pager } from '../components/charts';
+import { CancelModal, CustomerField, Pill, emptyCustomer, type CustomerValue } from '../components/fields';
+import { LAYAWAY_KEY, MONEY_KEYS, TONE, apiError, daysFrom, dayOnly, opt, r2, whenText } from '../components/meta';
+import { useGarmentsCan } from '../components/permissions';
+import { ProductPick, type PickedProduct } from '../components/ProductPick';
 
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: 'bg-blue-500',
-  COMPLETED: 'bg-emerald-600',
-  CANCELLED: 'bg-rose-500',
-  DEFAULTED: 'bg-orange-600',
-  REFUNDED: 'bg-slate-500',
+const VIEWS: Array<{ id: LayawayView; label: string; icon: typeof CreditCard }> = [
+  { id: 'active', label: 'Chal rahe', icon: ListChecks },
+  { id: 'overdue', label: 'Qist late', icon: AlertTriangle },
+  { id: 'week', label: 'Is hafte qist', icon: CalendarClock },
+  { id: 'completed', label: 'Poore', icon: CheckCircle2 },
+  { id: 'cancelled', label: 'Cancel', icon: Ban },
+  { id: 'all', label: 'Sab', icon: CreditCard },
+];
+const STATUS: Record<string, { label: string; tone: string }> = {
+  ACTIVE: { label: 'Chal raha', tone: TONE.blue }, COMPLETED: { label: 'Poora — bill bana', tone: TONE.green },
+  CANCELLED: { label: 'Cancel', tone: TONE.rose }, DEFAULTED: { label: 'Chhor diya', tone: TONE.rose }, REFUNDED: { label: 'Paisa wapas', tone: TONE.slate },
 };
-
-const INSTALLMENT_COLORS: Record<string, string> = {
-  UNPAID: 'bg-slate-500',
-  PARTIALLY_PAID: 'bg-amber-500',
-  PAID: 'bg-emerald-600',
-  REFUNDED: 'bg-rose-500',
-};
+const FREQ: Record<string, string> = { WEEKLY: 'Har hafte', BIWEEKLY: 'Har 2 hafte', MONTHLY: 'Har mahine' };
+const viewLabel = (v: LayawayView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 
 export default function LayawayPage() {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
-  const [showForm, setShowForm] = useState(false);
-  const [payingPlan, setPayingPlan] = useState<LayawayPlan | null>(null);
+  const qc = useQueryClient();
+  const { manage } = useGarmentsCan();
+  const { sales } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<LayawayView>('active');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [payOn, setPayOn] = useState<LayawayPlan | null>(null);
+  const [cancelOn, setCancelOn] = useState<LayawayPlan | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
-  const { data: plans = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['layaway', statusFilter],
-    queryFn: () => layawayApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
-    refetchInterval: 60_000,
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [view, query]);
+  const q = { view, page, limit: 30, search: query || undefined };
+  const listQ = useQuery({ queryKey: [LAYAWAY_KEY, 'page', q], queryFn: () => layawayApi.page(q), placeholderData: (p) => p, refetchInterval: 60_000 });
+  const refresh = () => [LAYAWAY_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const pay = useMutation({
+    mutationFn: ({ p, amount, method }: { p: LayawayPlan; amount: number; method: PaymentMethod }) => layawayApi.pay(p.id, { amount, paymentMethod: method }),
+    onSuccess: (p) => {
+      toast.success(p.status === 'COMPLETED' ? `${p.planNumber} poora — bill ${p.bill?.saleNumber ?? 'ban gaya'}, piece de dein` : `${p.planNumber}: qist darj — baqi ${formatPKR(p.remainingAmount)}`);
+      setPayOn(null); refresh();
+    },
+    onError: (e) => toast.error(apiError(e, 'Qist darj nahi hui')),
+  });
+  const complete = useMutation({
+    mutationFn: (p: LayawayPlan) => layawayApi.complete(p.id),
+    onSuccess: (p) => { toast.success(`${p.planNumber}: bill ${p.bill?.saleNumber ?? ''} ban gaya`); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
   });
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && manage) { e.preventDefault(); setAdding(true); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [manage]);
+
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+  const counts = data?.counts;
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-green-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Installment Plans
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">💳 Layaway Plans</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Kist / installment — expensive garments</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Plan
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero title="Qist plan" chip={<><CreditCard /> Layaway</>} meta="Kapra rakhein, qiston me paisa lein, poora hone par dein"
+        busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {manage && <button type="button" onClick={() => setAdding(true)} title="Naya plan (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya plan</button>}
+        </>}
+        stats={[
+          { label: 'Chal rahe plan', value: counts?.active ?? '—' },
+          { label: 'Lena baqi', value: data ? sales(data.totals.remaining) : '—' },
+          { label: 'Mil chuka', value: data ? sales(data.totals.paid) : '—' },
+        ]}
+      />
+      <KpiRow cols={4}>
+        {!counts ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={ListChecks} color="#2563eb" label="Chal rahe" value={counts.active} hint={data ? sales(data.totals.value) : undefined} onClick={() => setView('active')} active={view === 'active'} />
+          <KpiCard icon={AlertTriangle} color={counts.overdue ? '#e11d48' : '#64748b'} label="Qist late" value={counts.overdue} hint={counts.overdue ? 'Phone karein' : 'Sab waqt par'} onClick={() => setView('overdue')} active={view === 'overdue'} />
+          <KpiCard icon={CalendarClock} color="#d97706" label="Is hafte qist" value={counts.week} hint="Yaad dilayein" onClick={() => setView('week')} active={view === 'week'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Poore" value={counts.completed} hint="Bill ban chuka" onClick={() => setView('completed')} active={view === 'completed'} />
+        </>}
+      </KpiRow>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, plan #…" />}
+        chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined} onClear={() => setSearch('')}>
+        <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-64"
+          options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? String(counts[v.id]) : undefined }))} />
+      </FilterBar>
+      <ViewTabs value={view} onChange={setView} hint={<>{manage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search</>}
+        tabs={VIEWS.slice(0, 4).map((v) => ({ id: v.id, label: v.label, icon: v.icon, count: counts?.[v.id] ?? null }))} />
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {['ACTIVE', 'all', 'COMPLETED', 'CANCELLED', 'DEFAULTED'].map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>
-            {s === 'all' ? 'All' : s}
-          </button>
-        ))}
-      </div>
-
-      {showForm && (
-        <LayawayForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['layaway'] }); }}
-        />
-      )}
-
-      {payingPlan && (
-        <PayInstallmentModal
-          plan={payingPlan}
-          onClose={() => setPayingPlan(null)}
-          onDone={() => { setPayingPlan(null); queryClient.invalidateQueries({ queryKey: ['layaway'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : plans.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <CreditCard className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No layaway plans</p>
-        </div>
-      ) : (
-        <section className="grid gap-4">
-          {plans.map((plan) => {
-            const daysToNext = plan.nextDueDate ? differenceInDays(new Date(plan.nextDueDate), new Date()) : null;
-            const progressPct = (plan.paidAmount / plan.totalAmount) * 100;
-            return (
-              <div key={plan.id} className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{plan.planNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[plan.status]}>
-                          {plan.status}
-                        </span>
-                      </div>
-                      {plan.customerName && (
-                        <div className="mt-1 flex items-center gap-2 text-sm text-slate-600 font-bold">
-                          <User className="h-3 w-3" /> {plan.customerName}
-                          {plan.customerPhone && <><Phone className="h-3 w-3 ml-2" /> {plan.customerPhone}</>}
+      {listQ.isLoading ? <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        : listQ.isError && !data ? <LoadFailed what="Plan" retry={() => listQ.refetch()} />
+          : !rows.length ? (
+            <EmptyList icon={CreditCard} title={query ? 'Kuch nahi mila' : 'Koi plan nahi'} text="Shadi ka jora ya mehnga suit — customer kuch paisa ab de, baqi qiston me. Aakhri qist par bill banta hai aur piece diya jata hai.">
+              {manage && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Naya plan</Button>}
+            </EmptyList>
+          ) : (
+            <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+              {rows.map((p) => {
+                const st = STATUS[p.status] ?? STATUS.ACTIVE;
+                const late = p.status === 'ACTIVE' && (daysFrom(p.nextDueDate) ?? 0) < 0;
+                const pct = p.totalAmount ? Math.min(100, Math.round((p.paidAmount / p.totalAmount) * 100)) : 0;
+                const open = openId === p.id;
+                return (
+                  <li key={p.id}>
+                    <div className="flex items-start gap-3 px-3 py-3 sm:px-4">
+                      <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', late ? 'bg-rose-50 text-rose-600' : p.status === 'ACTIVE' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400')}><CreditCard className="h-5 w-5" /></span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="truncate font-semibold text-slate-900">{p.customerName || 'Customer'}</span>
+                          <Pill tone={st.tone}>{st.label}</Pill>
+                          <span className="font-mono text-[0.6875rem] text-slate-400">{p.planNumber}</span>
                         </div>
-                      )}
-                      <div className="mt-1 text-xs text-slate-500 font-semibold">
-                        {plan.installmentCount} × {formatPKR(plan.installmentAmount)} • {plan.frequency}
-                        {plan.nextDueDate && plan.status === 'ACTIVE' && (
-                          <span className={
-                            'ml-2 font-extrabold ' +
-                            (daysToNext !== null && daysToNext < 0 ? 'text-rose-700' : daysToNext !== null && daysToNext <= 3 ? 'text-amber-700' : 'text-slate-600')
-                          }>
-                            Next: {format(new Date(plan.nextDueDate), 'dd MMM')}
-                            {daysToNext !== null && daysToNext < 0 && ' (OVERDUE)'}
-                          </span>
-                        )}
+                        <p className="truncate text-[0.8125rem] text-slate-600">{p.productName ?? p.notes ?? 'Kapra'} · {p.installmentCount} qist, {FREQ[p.frequency] ?? p.frequency}</p>
+                        <div className="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-success-500" style={{ width: `${pct}%` }} /></div>
+                        {p.status === 'ACTIVE' && p.nextDueDate && <p className={cn('mt-1 text-[0.75rem]', late ? 'font-semibold text-rose-700' : 'text-slate-500')}>Agli qist {whenText(p.nextDueDate)} · {dayOnly(p.nextDueDate)}</p>}
                       </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-bold tabular-nums">{formatPKR(p.totalAmount)}</p>
+                        <p className="text-[0.6875rem] text-slate-500">{p.status === 'ACTIVE' ? `${formatPKR(p.remainingAmount)} baqi` : `${formatPKR(p.paidAmount)} mila`}</p>
+                      </div>
+                      <button type="button" onClick={() => setOpenId(open ? null : p.id)} aria-label="Qisten" aria-expanded={open} className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} /></button>
                     </div>
-                    {plan.status === 'ACTIVE' && (
-                      <Button size="sm" onClick={() => setPayingPlan(plan)} className="bg-gradient-to-r from-emerald-600 to-green-700">
-                        <DollarSign className="h-3.5 w-3.5" />
-                        Pay Installment
-                      </Button>
+                    {manage && p.status === 'ACTIVE' && (
+                      <div className="flex flex-wrap gap-1.5 px-3 pb-3 sm:px-4 sm:pl-[4.25rem]">
+                        {p.remainingAmount > 0.01
+                          ? <Button size="sm" variant="primary" onClick={() => setPayOn(p)} leftIcon={<Wallet className="h-4 w-4" />}>Qist lein</Button>
+                          : <Button size="sm" variant="success" loading={complete.isPending} onClick={() => complete.mutate(p)} leftIcon={<Receipt className="h-4 w-4" />}>Bill banayein</Button>}
+                        <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => setCancelOn(p)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
+                      </div>
                     )}
-                  </div>
+                    {open && (
+                      <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-3 sm:pl-[4.25rem]">
+                        <ol className="grid gap-1.5 sm:grid-cols-2">
+                          {p.depositAmount > 0 && <li className="flex justify-between rounded-lg bg-white px-3 py-1.5 text-[0.8125rem] ring-1 ring-slate-200"><span>Deposit</span><span className="font-semibold text-success-700">{formatPKR(p.depositAmount)}</span></li>}
+                          {p.installments.map((i) => (
+                            <li key={i.id} className="flex justify-between gap-2 rounded-lg bg-white px-3 py-1.5 text-[0.8125rem] ring-1 ring-slate-200">
+                              <span>Qist {i.installmentNo} · {dayOnly(i.dueDate)}</span>
+                              <span className={cn('font-semibold tabular-nums', i.status === 'PAID' ? 'text-success-700' : i.status === 'PARTIALLY_PAID' ? 'text-amber-700' : 'text-slate-700')}>
+                                {i.status === 'PAID' ? `${formatPKR(i.amount)} ✓` : i.status === 'PARTIALLY_PAID' ? `${formatPKR(i.paidAmount)} / ${formatPKR(i.amount)}` : formatPKR(i.amount)}
+                              </span>
+                            </li>
+                          ))}
+                        </ol>
+                        {p.bill && <Link to={`/sales/${p.bill.id}/receipt`} className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Bill {p.bill.saleNumber} →</Link>}
+                        {p.cancellationReason && <p className="mt-2 text-[0.8125rem] text-rose-700">Cancel: {p.cancellationReason}</p>}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+      {data && <Pager page={page} pages={data.pages} onPage={setPage} />}
 
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                    <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total</div>
-                      <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(plan.totalAmount)}</div>
-                    </div>
-                    <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Paid</div>
-                      <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(plan.paidAmount)}</div>
-                    </div>
-                    <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Remaining</div>
-                      <div className="text-lg font-extrabold text-amber-700 tabular-nums">{formatPKR(plan.remainingAmount)}</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 mb-1">
-                      <span>Payment Progress</span>
-                      <span>{progressPct.toFixed(0)}%</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-emerald-500 to-green-600" style={{ width: progressPct + '%' }} />
-                    </div>
-                  </div>
-                </div>
-
-                {plan.installments.length > 0 && (
-                  <div className="border-t border-slate-100 dark:border-ink-800 bg-slate-50/50 dark:bg-ink-800/20 p-3">
-                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Installments</div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
-                      {plan.installments.map((inst) => (
-                        <div key={inst.id} className={
-                          'rounded-lg p-2 border-2 ' +
-                          (inst.status === 'PAID' ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30' :
-                           inst.status === 'PARTIALLY_PAID' ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/30' :
-                           'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900')
-                        }>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[0.625rem] font-extrabold text-slate-500">#{inst.installmentNo}</span>
-                            <span className={'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' + INSTALLMENT_COLORS[inst.status]}>
-                              {inst.status === 'PARTIALLY_PAID' ? 'PART' : inst.status}
-                            </span>
-                          </div>
-                          <div className="mt-1 text-xs font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(inst.amount)}</div>
-                          <div className="text-[0.625rem] font-bold text-slate-500">{format(new Date(inst.dueDate), 'dd MMM')}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </section>
+      {adding && <PlanForm onClose={() => setAdding(false)} onDone={refresh} />}
+      {payOn && (
+        <TakePaymentModal title="Qist lein" description={`${payOn.customerName ?? ''} · ${payOn.planNumber} · ${formatPKR(payOn.remainingAmount)} baqi`}
+          amount={Math.min(payOn.installmentAmount, payOn.remainingAmount)} max={payOn.remainingAmount} loading={pay.isPending}
+          hint="Khate me jama hota hai. Poora hone par bill khud banega aur piece stock se niklega."
+          onConfirm={(amount, method) => pay.mutate({ p: payOn, amount, method })} onClose={() => setPayOn(null)} />
       )}
-    </div>
+      {cancelOn && <CancelModal title={`${cancelOn.customerName ?? ''} · ${cancelOn.planNumber}`} paid={cancelOn.paidAmount} onConfirm={(reason) => layawayApi.cancel(cancelOn.id, reason || undefined).then(refresh)} onClose={() => setCancelOn(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Qist plan — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Plan banayein', text: 'Customer, kaunsa kapra, kul amount, deposit aur kitni qisten. Qisten khud barabar bant jati hain.' },
+            { icon: Wallet, color: '#16a34a', title: 'Qist lein', text: 'Jo paisa aaye "Qist lein" se likhein — pehli baqi qist me lagta hai. Har rupaya customer ke khate me jama hota hai.' },
+            { icon: Receipt, color: '#7c3aed', title: 'Aakhri qist', text: 'Paisa poora hote hi bill banta hai, kapra stock se nikalta hai aur customer ko de dein.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Late', text: '"Qist late" wale customers ko phone karein. Cancel se mila paisa khate me jama rehta hai.' },
+          ]}
+          shortcuts={[['N', 'naya plan'], ['/', 'dhoondein'], ['G', 'guide']]} />
+      )}
+    </PageShell>
   );
 }
 
-function LayawayForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerName: '', customerPhone: '',
-    totalAmount: 0, depositAmount: 0, installmentCount: 3,
-    frequency: 'MONTHLY', startDate: new Date().toISOString().split('T')[0], notes: '',
-  });
-
-  const saveMutation = useMutation({
+function PlanForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [customer, setCustomer] = useState<CustomerValue>(emptyCustomer);
+  const [product, setProduct] = useState<PickedProduct | null>(null);
+  const [label, setLabel] = useState('');
+  const [total, setTotal] = useState('');
+  const [deposit, setDeposit] = useState('');
+  const [count, setCount] = useState(3);
+  const [freq, setFreq] = useState<'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'>('MONTHLY');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const amount = r2(total === '' ? product?.price ?? 0 : Number(total) || 0);
+  const dep = r2(Number(deposit) || 0);
+  const each = count ? Math.floor((amount - dep) / count) : 0;
+  const problem = !customer.customerId && !customer.name.trim() ? 'Customer ka naam likhein'
+    : !product && !label.trim() ? 'Product chunein ya kapre ka naam likhein'
+      : amount < 1 ? 'Kul amount likhein' : dep >= amount ? 'Deposit kul se kam ho — poora paisa ho to seedha POS se bechein' : null;
+  const save = useMutation({
     mutationFn: () => layawayApi.create({
-      ...form,
-      totalAmount: Number(form.totalAmount),
-      depositAmount: Number(form.depositAmount) || 0,
-      installmentCount: Number(form.installmentCount),
+      customerId: customer.customerId || undefined, customerName: opt(customer.name), customerPhone: opt(customer.phone),
+      productId: product?.productId, variantId: product?.variantId, totalAmount: amount, depositAmount: dep || undefined,
+      installmentCount: count, frequency: freq, notes: opt(label), paymentMethod: dep > 0 ? method : undefined,
     }),
-    onSuccess: () => { toast.success('Layaway plan created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: (p) => { toast.success(`Plan ${p.planNumber} ban gaya — agli qist ${dayOnly(p.nextDueDate)}`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Plan nahi bana')),
   });
-
-  const remaining = Number(form.totalAmount || 0) - Number(form.depositAmount || 0);
-  const perInstallment = form.installmentCount > 0 ? remaining / Number(form.installmentCount) : 0;
-
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">New Layaway Plan</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+    <Modal open onClose={onClose} size="lg" title="Naya qist plan" description="Kapra customer ke liye rakha jayega; aakhri qist par bill banega"
+      footer={<>
+        {problem ? <p className="mr-auto text-[0.8125rem] text-amber-800">{problem}</p> : <p className="mr-auto text-[0.8125rem] text-slate-500">{count} qist × ~{formatPKR(each)}</p>}
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<CreditCard className="h-4 w-4" />}>Plan banayein</Button>
+      </>}>
+      <div className="space-y-4">
+        <CustomerField value={customer} onChange={setCustomer} />
+        <ProductPick value={product} onChange={(p) => { setProduct(p); setTotal(''); }} label="Kaunsa kapra (stock se)" hint="Aakhri qist par yeh piece stock se niklega" />
+        {!product && <Input label="Ya kapre ka naam" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={200} placeholder="Shadi ka lehnga (order par)" hint="Stock ka piece na ho to" />}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Kul amount (Rs)" inputMode="decimal" value={total === '' && product ? String(product.price) : total} onChange={(e) => setTotal(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" />
+          <Input label="Deposit abhi (Rs)" inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" hint="Khate me jama hota hai" />
         </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
+        {dep > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
+        <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Total Amount *</label>
-            <input type="number" value={form.totalAmount} onChange={(e) => setForm({ ...form, totalAmount: e.target.value })} placeholder="0" className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Deposit (Down Payment)</label>
-            <input type="number" value={form.depositAmount} onChange={(e) => setForm({ ...form, depositAmount: e.target.value })} placeholder="0" className="h-14 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-4 text-xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block"># Installments *</label>
-            <input type="number" min="1" value={form.installmentCount} onChange={(e) => setForm({ ...form, installmentCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitni qisten</span>
+            <div className="grid grid-cols-6 gap-1">{[2, 3, 4, 6, 9, 12].map((c) => <button key={c} type="button" onClick={() => setCount(c)} className={cn('h-10 rounded-lg text-[0.8125rem] font-semibold ring-1', count === c ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{c}</button>)}</div>
           </div>
           <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Frequency</label>
-            <select value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-              <option>WEEKLY</option>
-              <option>BIWEEKLY</option>
-              <option>MONTHLY</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
-            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        {form.totalAmount > 0 && form.installmentCount > 0 && (
-          <div className="rounded-xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-4">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-2">Plan Preview</div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-white/70">Remaining:</span> <span className="font-extrabold text-cyan-300">{formatPKR(remaining)}</span></div>
-              <div><span className="text-white/70">Per installment:</span> <span className="font-extrabold text-emerald-300">{formatPKR(perInstallment)}</span></div>
-            </div>
-          </div>
-        )}
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.totalAmount || !form.installmentCount}>
-            <Save className="h-4 w-4" />
-            Create Plan
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function PayInstallmentModal({ plan, onClose, onDone }: { plan: LayawayPlan; onClose: () => void; onDone: () => void }) {
-  const nextUnpaid = plan.installments.find((i) => i.status !== 'PAID');
-  const [installmentId, setInstallmentId] = useState(nextUnpaid?.id ?? '');
-  const [amount, setAmount] = useState(nextUnpaid ? nextUnpaid.amount - nextUnpaid.paidAmount : 0);
-  const [method, setMethod] = useState('CASH');
-  const [reference, setReference] = useState('');
-
-  const payMutation = useMutation({
-    mutationFn: () => layawayApi.pay(plan.id, installmentId, { amount, paymentMethod: method, reference }),
-    onSuccess: () => { toast.success('Payment recorded'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-          <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Pay Installment</h3>
-            <p className="text-xs text-slate-500 font-semibold">{plan.planNumber} • {plan.customerName}</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Installment</label>
-            <select value={installmentId} onChange={(e) => {
-              setInstallmentId(e.target.value);
-              const inst = plan.installments.find((i) => i.id === e.target.value);
-              if (inst) setAmount(inst.amount - inst.paidAmount);
-            }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-              {plan.installments.filter((i) => i.status !== 'PAID').map((i) => (
-                <option key={i.id} value={i.id}>
-                  #{i.installmentNo} • {formatPKR(i.amount - i.paidAmount)} • Due {format(new Date(i.dueDate), 'dd MMM')}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
-            <input type="number" step="0.01" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
-            <div className="grid grid-cols-3 gap-2">
-              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
-                <button key={m} onClick={() => setMethod(m)} className={
-                  'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                  (method === m ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-                }>{m}</button>
-              ))}
-            </div>
-          </div>
-
-          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0 || !installmentId}>
-              <CheckCircle2 className="h-4 w-4" />
-              Confirm Payment
-            </Button>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kab kab</span>
+            <div className="grid grid-cols-3 gap-1">{(['WEEKLY', 'BIWEEKLY', 'MONTHLY'] as const).map((f) => <button key={f} type="button" onClick={() => setFreq(f)} className={cn('h-10 rounded-lg text-[0.75rem] font-semibold ring-1', freq === f ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{FREQ[f]}</button>)}</div>
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

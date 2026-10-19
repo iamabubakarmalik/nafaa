@@ -4,7 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TablesV2Service } from './tables-v2.service';
-import { ChangeTableStatusDto, ReserveTableDto, UpsertTableDto } from './dto/upsert-table.dto';
+import { ChangeTableStatusDto, ReserveTableDto, UpdateTableDto, UpsertTableDto } from './dto/upsert-table.dto';
 import { ShopIdParam } from '../../../common/shop-scope';
 
 @ApiTags('Restaurant - Tables')
@@ -19,8 +19,10 @@ export class TablesV2Controller {
     return this.service.list(user, { status, section, shopId });
   }
   @Get('layout') layout(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.layout(user, shopId); }
+  /** Live floor: each table with its running bill, guests, waiter and kitchen state. */
+  @Get('floor') floor(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) { return this.service.floor(user, shopId); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertTableDto) { return this.service.update(user, id, dto); }
+  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateTableDto) { return this.service.update(user, id, dto); }
   @Post(':id/status') changeStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: ChangeTableStatusDto) { return this.service.changeStatus(user, id, dto.status); }
   @Post(':id/reserve') reserve(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: ReserveTableDto) { return this.service.reserve(user, id, dto); }
   @Post(':id/cancel-reservation') cancelReservation(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.cancelReservation(user, id); }

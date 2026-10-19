@@ -1,569 +1,223 @@
-// apps/web/src/industries/mobile/pages/EmiPlanDetailPage.tsx
-import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+/**
+ * One installment plan: the customer and the bill it splits (with the phone
+ * and IMEI), every installment with its due date and what was paid, the
+ * khata entries made against it, and the actions — take money, forgive one
+ * installment, mark default or close the plan.
+ *
+ * Keys: Q take installment · Esc back.
+ */
+
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, CreditCard, User, Phone, Calendar, DollarSign,
-  CheckCircle2, AlertTriangle, Clock, Ban, Printer,
-  MessageCircle, AlertCircle, Banknote, RefreshCw,
-  GraduationCap, X, Copy, Sparkles,
-} from 'lucide-react';
-import { Button } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
-import {
-  emiApi,
-  type EmiInstallmentStatus,
-  EMI_STATUS_LABELS,
-  EMI_STATUS_COLORS,
-  INSTALLMENT_STATUS_LABELS,
-  INSTALLMENT_STATUS_COLORS,
-} from '../api/emi.api';
+import { ArrowLeft, Ban, CreditCard, HandCoins, History, MessageCircle, Receipt, UserRound, XCircle } from 'lucide-react';
+import { Button, Card, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { emiApi, type EmiInstallment } from '../api/emi.api';
 import { RecordEmiPaymentModal } from '../components/emi/RecordEmiPaymentModal';
+import { emiMessage } from '../components/slips';
+import { EMI_KEY, MONEY_KEYS, apiError, dateTime, dayOnly, installmentOf, methodLabel, planStatusOf, waLink } from '../components/meta';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA EMI PLAN DETAIL — FULL BEST
-   ─────────────────────────────────────────────────────────────
-   🌙 Dark mode complete • ⌨️ Shortcuts • 💬 WhatsApp reminder
-   🖨️ Print schedule • 📋 Copy plan # • 🎓 Guide
-   ═════════════════════════════════════════════════════════════ */
-
-const formatDate = (iso: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date(iso));
+type Pop = { kind: 'waive'; i: EmiInstallment } | { kind: 'default' } | { kind: 'cancel' } | null;
 
 export default function EmiPlanDetailPage() {
-  const { id } = useParams();
-  const queryClient = useQueryClient();
-  const [paymentInstallment, setPaymentInstallment] = useState<{
-    id: string; number: number; amount: number; paid: number;
-  } | null>(null);
-  const [showGuide, setShowGuide] = useState(false);
+  const { id = '' } = useParams();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const canManage = usePermission(PERMISSIONS.KHATA_MANAGE);
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const { sales } = useMasked();
+  const [collect, setCollect] = useState(false);
+  const [pop, setPop] = useState<Pop>(null);
+  const [reason, setReason] = useState('');
 
-  const { data: plan, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['emi-plan', id],
-    queryFn: () => emiApi.getOne(id!),
-    enabled: !!id,
+  const q = useQuery({ queryKey: [EMI_KEY, 'one', id], queryFn: () => emiApi.getOne(id), enabled: !!id });
+  const p = q.data;
+  const refresh = () => [EMI_KEY, 'emi-stats', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const act = useMutation({
+    mutationFn: () => {
+      if (!pop) throw new Error('');
+      if (pop.kind === 'waive') return emiApi.waive(id, pop.i.id, reason.trim());
+      if (pop.kind === 'default') return emiApi.markDefaulted(id, reason.trim() || undefined);
+      return emiApi.cancel(id, reason.trim() || undefined);
+    },
+    onSuccess: () => { toast.success(pop?.kind === 'waive' ? 'Qist maaf — khata se bhi kam' : 'Plan band ho gaya'); setPop(null); setReason(''); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['emi-plan', id] });
-    queryClient.invalidateQueries({ queryKey: ['emi-plans'] });
-    queryClient.invalidateQueries({ queryKey: ['emi-stats'] });
-  };
-
-  const waiveMutation = useMutation({
-    mutationFn: ({ installmentId, reason }: { installmentId: string; reason?: string }) =>
-      emiApi.waiveInstallment(id!, installmentId, reason),
-    onSuccess: () => { toast.success('✓ Installment waive ho gayi'); invalidate(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Fail hua'),
-  });
-
-  const defaultMutation = useMutation({
-    mutationFn: (reason?: string) => emiApi.markDefaulted(id!, reason),
-    onSuccess: () => { toast.success('Plan defaulted mark ho gaya'); invalidate(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Fail hua'),
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: (reason?: string) => emiApi.cancel(id!, reason),
-    onSuccess: () => { toast.success('Plan cancel ho gaya'); invalidate(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Fail hua'),
-  });
-
-  /* ─── Keyboard ─── */
+  const active = p?.status === 'ACTIVE';
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'Escape') {
-        if (showGuide) { setShowGuide(false); return; }
-        return;
-      }
-      if (e.key === 'r' && !e.ctrlKey) refetch();
-      if (e.key === 'i' && plan) {
-        navigator.clipboard.writeText(plan.planNumber);
-        toast.success('Plan # copy ho gaya');
-      }
-      if (e.key === 'w') sendReminder();
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (e.key === 'Escape') navigate('/emi-plans');
+      if ((e.key === 'q' || e.key === 'Q') && canManage && active) setCollect(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan, showGuide]);
+  }, [canManage, active, navigate]);
 
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = (showGuide || !!paymentInstallment) ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showGuide, paymentInstallment]);
+  if (q.isLoading) return <PageShell><Skeleton className="h-36 rounded-3xl" /><Skeleton className="h-80 rounded-2xl" /></PageShell>;
+  if (!p) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Ye plan nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/emi-plans')}>Plans par wapas</Button></div></PageShell>;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[400px] flex flex-col items-center justify-center gap-3">
-        <div className="inline-block h-10 w-10 rounded-full border-4 border-indigo-200 dark:border-indigo-500/30 border-t-indigo-600 dark:border-t-indigo-400 animate-spin" />
-        <p className="text-xs font-extrabold text-slate-500 dark:text-ink-400">Plan load ho raha hai...</p>
-      </div>
-    );
-  }
-
-  if (!plan) {
-    return (
-      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-16 text-center">
-        <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-100 dark:bg-rose-500/15 flex items-center justify-center mb-3">
-          <AlertCircle className="h-8 w-8 text-rose-500" />
-        </div>
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Plan nahi mila</h3>
-        <Link to="/emi-plans" className="mt-4 inline-flex items-center gap-1.5 text-sm font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Wapis EMI Plans
-        </Link>
-      </div>
-    );
-  }
-
-  const statusColors = EMI_STATUS_COLORS[plan.status];
-  const progressPercent = plan.financedAmount > 0
-    ? Math.min(Math.max(((plan.paidAmount - plan.downPayment) / plan.financedAmount) * 100, 0), 100)
-    : 0;
-
-  const sendReminder = () => {
-    if (!plan.customerPhone) return toast.error('Customer ka phone nahi hai');
-    const phone = plan.customerPhone.replace(/\D/g, '');
-    const cleanPhone = phone.startsWith('92') ? phone : phone.startsWith('0') ? '92' + phone.slice(1) : '92' + phone;
-    const msg = [
-      `*💳 EMI Reminder — Plan ${plan.planNumber}*`,
-      '',
-      `Assalamu Alaikum ${plan.customerName},`,
-      '',
-      ...(plan.overdueAmount > 0 ? [`⚠️ Overdue: *${formatPKR(plan.overdueAmount)}* (${plan.overdueCount} installments)`] : []),
-      `Remaining: *${formatPKR(plan.remainingAmount)}*`,
-      plan.nextDueDate ? `Next Due: ${formatDate(plan.nextDueDate)} — ${formatPKR(plan.nextDueAmount)}` : '',
-      '',
-      'Shukriya! 🙏',
-      '_Powered by Nafaa POS_',
-    ].filter(Boolean).join('\n');
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
+  const st = planStatusOf(p.status);
+  const collected = Number(p.paidAmount) - Number(p.downPayment);
+  const wa = waLink(p.customerPhone ?? p.customer?.phone, emiMessage(p, shopName));
+  const printDoc = (): PrintDoc => ({
+    title: `Qist plan ${p.planNumber}`,
+    subtitle: `${p.customerName}${p.customerPhone ? ` · ${p.customerPhone}` : ''}`,
+    meta: [['Bill', p.sale?.saleNumber ?? '—'], ['Kul', formatPKR(p.totalAmount)], ['Down payment', formatPKR(p.downPayment)], ['Baqi', formatPKR(p.remainingAmount)]],
+    sections: [{
+      kind: 'table',
+      columns: [{ label: '#' }, { label: 'Tareekh' }, { label: 'Qist', align: 'right' }, { label: 'Mili', align: 'right' }, { label: 'Halat' }],
+      rows: p.installments.map((i) => [String(i.installmentNumber), dayOnly(i.dueDate), formatPKR(i.amount), formatPKR(i.paidAmount), installmentOf(i.status).label]),
+    }],
+    footer: 'Har qist waqt par jama karwayein. Shukriya!',
+  });
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-3">
-      {showGuide && <DetailGuide onClose={() => setShowGuide(false)} />}
-
-      {/* ═══ TOP BAR ═══ */}
-      <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
-        <Link
-          to="/emi-plans"
-          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-700 px-4 py-2.5 text-sm font-extrabold text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800 shadow-sm transition"
-        >
-          <ArrowLeft className="h-4 w-4" /> Wapis EMI Plans
-        </Link>
-        <div className="flex gap-2 flex-wrap items-center">
-          <button
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            className="h-10 w-10 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-ink-700 transition disabled:opacity-50"
-            title="Refresh (R)"
-          >
-            <RefreshCw className={`h-4 w-4 text-slate-600 dark:text-ink-300 ${isRefetching ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={() => setShowGuide(true)}
-            className="h-10 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-          >
-            <GraduationCap className="h-4 w-4" /> Guide
-          </button>
-          {plan.customerPhone && (
-            <button
-              onClick={sendReminder}
-              className="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-md shadow-emerald-500/30 transition"
-            >
-              <MessageCircle className="h-4 w-4" /> Reminder
-            </button>
-          )}
-          <button
-            onClick={() => window.print()}
-            className="h-10 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-md shadow-blue-500/30 transition"
-          >
-            <Printer className="h-4 w-4" /> Print
-          </button>
+    <PageShell>
+      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
+        <div className="flex flex-wrap items-start gap-3">
+          <button type="button" onClick={() => navigate('/emi-plans')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold">{p.customerName}</h1>
+              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[0.75rem] font-medium ring-1 ring-white/25">{st.label}</span>
+            </div>
+            <p className="mt-0.5 text-[0.8125rem] text-white/80"><span className="font-mono">{p.planNumber}</span>{p.customerPhone ? ` · ${p.customerPhone}` : ''} · {p.installmentCount} qist × {formatPKR(p.installmentAmount)}</p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Schedule" /></span>
+            {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />Yaad dilayein</a>}
+            {canManage && active && <button type="button" onClick={() => setCollect(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800 shadow-sm hover:bg-brand-50"><HandCoins className="h-4 w-4" />Qist lein (Q)</button>}
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat label="Qiston me" value={sales(p.financedAmount)} hint={`down ${formatPKR(p.downPayment)}`} />
+          <Stat label="Mila" value={sales(collected)} hint={`${p.paidInstallmentCount}/${p.installmentCount} qist`} />
+          <Stat label="Baqi" value={sales(p.remainingAmount)} />
+          <Stat label={p.overdueAmount > 0 ? 'Late' : 'Agli qist'} value={p.overdueAmount > 0 ? sales(p.overdueAmount) : p.nextDueDate ? dayOnly(p.nextDueDate) : '—'} hint={p.overdueAmount > 0 ? `${p.overdueCount} qist` : p.nextDueDate ? formatPKR(p.nextDueAmount) : undefined} />
         </div>
       </div>
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-purple-700 dark:from-ink-950 dark:via-indigo-950 dark:to-purple-900 text-white p-4 sm:p-6 shadow-2xl">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-indigo-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-purple-400/20 blur-3xl pointer-events-none" />
-
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex-1 min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <CreditCard className="h-3.5 w-3.5 text-amber-300" /> EMI Plan
-            </div>
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-extrabold font-mono break-all">{plan.planNumber}</h1>
-              <button
-                onClick={() => { navigator.clipboard.writeText(plan.planNumber); toast.success('Copy ho gaya'); }}
-                className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center transition"
-                title="Copy plan # (I)"
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <div className="mt-2.5 flex items-center gap-3 text-xs sm:text-sm text-white/90 font-semibold flex-wrap">
-              <span className="inline-flex items-center gap-1">
-                <User className="h-3.5 w-3.5" /> {plan.customerName}
-              </span>
-              {plan.customerPhone && (
-                <span className="inline-flex items-center gap-1">
-                  <Phone className="h-3.5 w-3.5" /> {plan.customerPhone}
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" /> Start: {formatDate(plan.startDate)}
-              </span>
-            </div>
-          </div>
-          <div className="shrink-0">
-            <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-extrabold border-2 ${statusColors.bg} ${statusColors.text} ${statusColors.border}`}>
-              {EMI_STATUS_LABELS[plan.status]}
-            </span>
-            {plan.overdueCount > 0 && (
-              <div className="mt-2 text-right">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold animate-pulse">
-                  <AlertTriangle className="h-3 w-3" /> {plan.overdueCount} OVERDUE
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Progress */}
-        <div className="relative mt-4">
-          <div className="flex justify-between text-xs mb-1.5 font-bold">
-            <span className="text-white/80">Payment Progress — {plan.paidInstallmentCount}/{plan.installmentCount} installments</span>
-            <span className="tabular-nums">{progressPercent.toFixed(0)}% • {formatPKR(plan.paidAmount)} / {formatPKR(plan.totalAmount)}</span>
-          </div>
-          <div className="h-2.5 rounded-full bg-white/15 overflow-hidden border border-white/20">
-            <div
-              className={`h-full transition-all ${
-                plan.overdueCount > 0
-                  ? 'bg-gradient-to-r from-rose-400 to-red-500'
-                  : 'bg-gradient-to-r from-emerald-400 to-emerald-500'
-              }`}
-              style={{ width: `${Math.max(progressPercent, 2)}%` }}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ QUICK ACTIONS (ACTIVE plan) ═══ */}
-      {plan.status === 'ACTIVE' && (
-        <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
-          <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Plan Actions
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => {
-                const reason = prompt('Default ki wajah? (customer ne pay karna band kar diya)');
-                if (reason !== null) defaultMutation.mutate(reason || undefined);
-              }}
-              disabled={defaultMutation.isPending}
-              className="px-3.5 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 border-2 border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50"
-            >
-              <AlertTriangle className="h-3.5 w-3.5" /> Default Mark Karo
-            </button>
-            <button
-              onClick={() => {
-                const reason = prompt('Cancel ki wajah?');
-                if (reason !== null) cancelMutation.mutate(reason || undefined);
-              }}
-              disabled={cancelMutation.isPending}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50"
-            >
-              <Ban className="h-3.5 w-3.5" /> Plan Cancel Karo
-            </button>
-          </div>
-        </div>
+      {p.customer && Math.abs(Number(p.customer.balance) - Number(p.remainingAmount)) > 1 && active && (
+        <p className="rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
+          Customer ka poora khata {formatPKR(Number(p.customer.balance))} hai — is plan ke baqi {formatPKR(p.remainingAmount)} ke ilawa aur udhaar ya advance bhi ho sakta hai. Qist yahan se lein taake plan aur khata dono theek rahein.
+        </p>
       )}
 
-      {/* ═══ MAIN GRID ═══ */}
-      <div className="grid xl:grid-cols-[1fr_400px] gap-4 items-start">
-        {/* ── Installments ── */}
-        <div className="space-y-4">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
-                  <Calendar className="h-5 w-5" />
-                </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
-                  Installments <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({plan.paidInstallmentCount}/{plan.installmentCount})</span>
-                </h3>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              {plan.installments.map((inst) => {
-                const status = inst.status as EmiInstallmentStatus;
-                const colors = INSTALLMENT_STATUS_COLORS[status];
-                const balance = Number(inst.amount) - Number(inst.paidAmount);
-                const isPaid = status === 'PAID';
-                const isWaived = status === 'WAIVED';
-                const isOverdue = status === 'OVERDUE' || (status === 'PENDING' && new Date(inst.dueDate) < new Date());
-
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          <Card className="rounded-2xl" flush title={<H icon={CreditCard}>Qistein</H>}>
+            <ul className="divide-y divide-slate-100">
+              {p.installments.map((i) => {
+                const m = installmentOf(i.status);
+                const due = Number(i.amount) - Number(i.paidAmount);
                 return (
-                  <div
-                    key={inst.id}
-                    className={`rounded-xl border-2 p-3.5 transition ${colors.bg} ${colors.border} dark:bg-opacity-20`}
-                  >
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 shadow-sm ${
-                          isPaid
-                            ? 'bg-emerald-600 text-white'
-                            : isWaived
-                              ? 'bg-slate-400 text-white'
-                              : isOverdue
-                                ? 'bg-rose-600 text-white'
-                                : 'bg-white dark:bg-ink-800 border-2 border-slate-300 dark:border-ink-600 text-slate-700 dark:text-ink-300'
-                        }`}>
-                          {isPaid || isWaived ? <CheckCircle2 className="h-4 w-4" /> : inst.installmentNumber}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">
-                            Installment #{inst.installmentNumber}
-                          </div>
-                          <div className="text-xs text-slate-600 dark:text-ink-300 mt-0.5 font-semibold">
-                            Due: <strong>{formatDate(inst.dueDate)}</strong>
-                            {inst.paidDate && isPaid && (
-                              <span className="ml-2 text-emerald-700 dark:text-emerald-400">
-                                · Paid: {formatDate(inst.paidDate)}
-                              </span>
-                            )}
-                          </div>
-                          {inst.notes && (
-                            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 italic">{inst.notes}</div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">Amount</div>
-                        <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(inst.amount)}</div>
-                        {Number(inst.paidAmount) > 0 && !isPaid && (
-                          <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
-                            Paid: {formatPKR(inst.paidAmount)} · Bal: {formatPKR(balance)}
-                          </div>
-                        )}
-                        <span className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold border ${colors.bg} ${colors.text} ${colors.border}`}>
-                          {INSTALLMENT_STATUS_LABELS[status]}
-                        </span>
-                      </div>
-                    </div>
-
-                    {plan.status === 'ACTIVE' && !isPaid && !isWaived && (
-                      <div className="mt-2.5 pt-2.5 border-t border-slate-200/60 dark:border-ink-700/60 flex gap-1.5 print:hidden">
-                        <button
-                          onClick={() => setPaymentInstallment({
-                            id: inst.id,
-                            number: inst.installmentNumber,
-                            amount: Number(inst.amount),
-                            paid: Number(inst.paidAmount),
-                          })}
-                          className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/30 transition active:scale-95"
-                        >
-                          <Banknote className="h-3.5 w-3.5" /> Payment Record Karo
-                        </button>
-                        <button
-                          onClick={() => {
-                            const reason = prompt('Waive ki wajah? (maaf karne ka reason)');
-                            if (reason !== null) waiveMutation.mutate({ installmentId: inst.id, reason: reason || undefined });
-                          }}
-                          disabled={waiveMutation.isPending}
-                          className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition disabled:opacity-50"
-                          title="Ye installment maaf karo"
-                        >
-                          <Ban className="h-3.5 w-3.5" /> Waive
-                        </button>
-                      </div>
+                  <li key={i.id} className="flex items-center gap-3 px-5 py-2.5 text-[0.8125rem]">
+                    <span className="w-6 text-right font-semibold text-slate-400">{i.installmentNumber}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="font-medium text-slate-900">{dayOnly(i.dueDate)}</span>
+                      {i.paidDate && <span className="ml-2 text-[0.75rem] text-slate-500">mili {dayOnly(i.paidDate)}</span>}
+                      {i.notes && i.status === 'WAIVED' && <span className="block text-[0.75rem] text-slate-500">{i.notes}</span>}
+                    </span>
+                    <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', m.tone)}>{m.label}</span>
+                    <span className="w-28 text-right tabular-nums">
+                      <b>{formatPKR(i.amount)}</b>
+                      {Number(i.paidAmount) > 0 && i.status !== 'PAID' && <span className="block text-[0.6875rem] text-amber-700">mila {formatPKR(i.paidAmount)}</span>}
+                    </span>
+                    {canManage && active && (i.status === 'PENDING' || i.status === 'OVERDUE') && due > 0 && (
+                      <button type="button" onClick={() => setPop({ kind: 'waive', i })} className="text-[0.75rem] font-semibold text-slate-500 hover:text-rose-700">Maaf</button>
                     )}
-                  </div>
+                  </li>
                 );
               })}
-            </div>
-          </div>
+            </ul>
+          </Card>
 
-          {plan.notes && (
-            <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-4 text-sm">
-              <div className="font-extrabold text-amber-900 dark:text-amber-300 mb-1 flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4" /> Notes
-              </div>
-              <div className="whitespace-pre-line font-semibold text-amber-900 dark:text-amber-200">{plan.notes}</div>
+          <Card className="rounded-2xl" title={<H icon={History}>Khata me jama</H>} description="Is plan ke naam se aaye paise">
+            {p.payments.length === 0 ? <p className="text-[0.8125rem] text-slate-500">Abhi koi qist nahi mili</p> : (
+              <ul className="space-y-1.5 text-[0.8125rem]">
+                {p.payments.map((x) => (
+                  <li key={x.id} className="flex justify-between gap-3">
+                    <span className="text-slate-600">{dateTime(x.createdAt)} · {x.type === 'ADJUSTMENT' ? 'Maaf' : methodLabel(x.paymentMethod ?? 'CASH')}{x.note ? ` · ${x.note}` : ''}</span>
+                    <span className={cn('font-semibold tabular-nums', x.type === 'ADJUSTMENT' ? 'text-slate-500' : 'text-emerald-700')}>{formatPKR(Math.abs(Number(x.amount)))}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<H icon={UserRound}>Customer</H>}>
+            <dl className="space-y-1 text-[0.8125rem]">
+              <Row label="Naam">{p.customer ? <Link to={`/customers/${p.customer.id}`} className="font-semibold text-brand-700 hover:underline">{p.customerName}</Link> : p.customerName}</Row>
+              <Row label="Phone">{p.customerPhone ?? p.customer?.phone ?? '—'}</Row>
+              {p.customer?.cnic && <Row label="CNIC"><span className="font-mono">{p.customer.cnic}</span></Row>}
+              {p.customer && <Row label="Khata">{formatPKR(Number(p.customer.balance))}</Row>}
+            </dl>
+          </Card>
+          {p.sale && (
+            <Card className="rounded-2xl" title={<H icon={Receipt}>Bill</H>} description={`${p.sale.saleNumber} · ${dayOnly(p.sale.soldAt)}`}>
+              <ul className="space-y-1 text-[0.8125rem]">
+                {p.sale.items.map((it) => (
+                  <li key={it.id} className="flex justify-between gap-2">
+                    <span className="text-slate-700">{it.product?.name ?? 'Phone'}{it.note ? <span className="block text-[0.6875rem] text-slate-500">{it.note}</span> : null}</span>
+                    <span className="tabular-nums">{formatPKR(it.total)}</span>
+                  </li>
+                ))}
+              </ul>
+              <dl className="mt-2 space-y-0.5 border-t border-slate-100 pt-2 text-[0.8125rem]">
+                <Row label="Kul">{formatPKR(p.sale.total)}</Row>
+                <Row label="Bill par mila">{formatPKR(p.sale.paidAmount)}</Row>
+                <Row label="Udhaar">{formatPKR(p.sale.creditAmount)}</Row>
+              </dl>
+            </Card>
+          )}
+          {p.notes && <Card className="rounded-2xl" title="Note"><p className="whitespace-pre-line text-[0.8125rem] text-slate-700">{p.notes}</p></Card>}
+          {canManage && active && (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="ghost" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setPop({ kind: 'default' })}>Default</Button>
+              <Button variant="ghost" className="text-rose-700" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setPop({ kind: 'cancel' })}>Plan band karein</Button>
             </div>
           )}
         </div>
-
-        {/* ── Sidebar ── */}
-        <aside className="space-y-4">
-          {/* Financial summary */}
-          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-500/10 dark:via-ink-900/80 dark:to-purple-500/10 border-2 border-indigo-200 dark:border-indigo-500/30 shadow-sm p-4 sm:p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
-                <DollarSign className="h-5 w-5" />
-              </div>
-              <h3 className="font-extrabold text-indigo-900 dark:text-indigo-200">Financial Summary</h3>
-            </div>
-
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-ink-300">Total Amount</span>
-                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(plan.totalAmount)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold text-emerald-700 dark:text-emerald-400">Down Payment</span>
-                <span className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(plan.downPayment)}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t-2 border-indigo-200 dark:border-indigo-500/30">
-                <span className="font-extrabold text-indigo-700 dark:text-indigo-300">Financed</span>
-                <span className="font-extrabold text-indigo-700 dark:text-indigo-300 tabular-nums">{formatPKR(plan.financedAmount)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-ink-300">Per Month</span>
-                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(plan.installmentAmount)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-ink-300">Tenure</span>
-                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{plan.installmentCount} months</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t-2 border-indigo-200 dark:border-indigo-500/30">
-                <span className="text-emerald-700 dark:text-emerald-400 font-bold">Total Paid</span>
-                <span className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(plan.paidAmount)}</span>
-              </div>
-              <div className="rounded-xl bg-amber-100 dark:bg-amber-500/15 border-2 border-amber-300 dark:border-amber-500/40 px-3 py-2 flex justify-between">
-                <span className="font-extrabold text-amber-900 dark:text-amber-200">Remaining</span>
-                <span className="font-extrabold text-amber-900 dark:text-amber-200 tabular-nums">{formatPKR(plan.remainingAmount)}</span>
-              </div>
-              {plan.overdueAmount > 0 && (
-                <div className="rounded-xl bg-rose-100 dark:bg-rose-500/15 border-2 border-rose-300 dark:border-rose-500/40 px-3 py-2 flex justify-between">
-                  <span className="font-extrabold text-rose-900 dark:text-rose-200 inline-flex items-center gap-1">
-                    <AlertTriangle className="h-3.5 w-3.5" /> Overdue
-                  </span>
-                  <span className="font-extrabold text-rose-900 dark:text-rose-200 tabular-nums">{formatPKR(plan.overdueAmount)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Customer */}
-          {plan.customer && (
-            <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
-              <div className="flex items-center justify-between mb-2.5">
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm flex items-center gap-2">
-                  <User className="h-4 w-4 text-violet-600 dark:text-violet-400" /> Customer
-                </h3>
-                <Link
-                  to={`/customers/${plan.customer.id}`}
-                  className="text-xs font-extrabold text-violet-700 dark:text-violet-300 hover:underline"
-                >
-                  Profile →
-                </Link>
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{plan.customer.name}</div>
-                {plan.customer.phone && <div className="font-semibold text-slate-600 dark:text-ink-300 font-mono">📞 {plan.customer.phone}</div>}
-                {plan.customer.cnic && <div className="font-semibold text-slate-600 dark:text-ink-300 font-mono">CNIC: {plan.customer.cnic}</div>}
-                {plan.customer.address && <div className="font-semibold text-slate-600 dark:text-ink-300">📍 {plan.customer.address}</div>}
-                {(plan.customer.balance ?? 0) > 0 && (
-                  <div className="mt-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5 text-amber-700 dark:text-amber-300 font-extrabold tabular-nums">
-                    Aur udhaar: {formatPKR(plan.customer.balance ?? 0)}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Next Due */}
-          {plan.nextDueDate && plan.status === 'ACTIVE' && (
-            <div className="rounded-2xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-4">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-300 tracking-wider">Next Due</div>
-              <div className="text-2xl font-extrabold text-blue-900 dark:text-blue-200 mt-1 tabular-nums">
-                {formatPKR(plan.nextDueAmount)}
-              </div>
-              <div className="text-xs text-blue-700 dark:text-blue-300 font-extrabold mt-1 inline-flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {formatDate(plan.nextDueDate)}
-              </div>
-            </div>
-          )}
-        </aside>
       </div>
 
-      {paymentInstallment && (
-        <RecordEmiPaymentModal
-          planId={plan.id}
-          planNumber={plan.planNumber}
-          installmentId={paymentInstallment.id}
-          installmentNumber={paymentInstallment.number}
-          installmentAmount={paymentInstallment.amount}
-          alreadyPaid={paymentInstallment.paid}
-          onClose={() => setPaymentInstallment(null)}
-        />
+      {collect && <RecordEmiPaymentModal plan={p} onClose={() => setCollect(false)} />}
+      {pop && (
+        <Modal open onClose={() => setPop(null)} size="sm"
+          title={pop.kind === 'waive' ? `Qist ${pop.i.installmentNumber} maaf karein?` : pop.kind === 'default' ? 'Plan default karein?' : 'Plan band karein?'}
+          description={pop.kind === 'waive' ? `${formatPKR(Number(pop.i.amount) - Number(pop.i.paidAmount))} khata se bhi kam ho jayega` : 'Qistein ruk jayengi — baqi udhaar khata me rahega'}
+          footer={<><Button variant="secondary" onClick={() => setPop(null)}>Rehne dein</Button><Button variant="danger" loading={act.isPending} disabled={pop.kind === 'waive' && !reason.trim()} onClick={() => act.mutate()}>Haan</Button></>}>
+          <Textarea label="Wajah" required={pop.kind === 'waive'} rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={pop.kind === 'waive' ? 'Purana customer, rishta…' : 'Customer gayab, phone wapas liya…'} />
+        </Modal>
       )}
-
-      {/* ═══ PRINT CSS ═══ */}
-      <style>{`
-        @media print {
-          @page { size: A4 portrait; margin: 10mm 8mm; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          .print\\:hidden { display: none !important; }
-          section, div { box-shadow: none !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav { display: none !important; }
-          [data-sonner-toaster], [data-sonner-toast] { display: none !important; visibility: hidden !important; }
-        }
-      `}</style>
-    </div>
+    </PageShell>
   );
 }
 
-/* ═══ DETAIL GUIDE ═══ */
-function DetailGuide({ onClose }: { onClose: () => void }) {
+function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-indigo-300 dark:border-indigo-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-3.5 border-b-2 border-indigo-200 dark:border-indigo-500/30 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-500/15 dark:to-purple-500/15 flex items-center justify-between">
-          <h3 className="font-extrabold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Ye Page Kya Karta Hai?
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-        <div className="p-5 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-          <Tip><strong>Payment Record Karo</strong> — customer paisa de to installment pe click karo, method chuno, done</Tip>
-          <Tip><strong>Waive</strong> — installment maaf karni ho to reason ke sath (record rehta hai)</Tip>
-          <Tip><strong>💬 Reminder</strong> — customer ko WhatsApp pe remaining + next due chala jata hai</Tip>
-          <Tip><strong>Default</strong> — customer ne pay karna band kar diya? Mark karo taake report sahi rahe</Tip>
-          <Tip><strong>⌨️ R</strong> refresh • <strong>I</strong> plan # copy • <strong>W</strong> WhatsApp</Tip>
-          <Button className="w-full mt-2 bg-gradient-to-r from-indigo-600 to-purple-700 font-extrabold h-11" onClick={onClose}>
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya 👍
-          </Button>
-        </div>
-      </div>
+    <div className="rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/15">
+      <p className="text-[0.75rem] text-white/70">{label}</p>
+      <p className="text-lg font-bold tabular-nums">{value}</p>
+      {hint && <p className="truncate text-[0.6875rem] text-white/60">{hint}</p>}
     </div>
   );
 }
 
-function Tip({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2 rounded-lg bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span className="leading-relaxed">{children}</span>
-    </div>
-  );
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return <div className="flex justify-between gap-3 py-0.5"><dt className="text-slate-500">{label}</dt><dd className="text-right text-slate-800">{children}</dd></div>;
 }
+
+const H = ({ icon: Icon, children }: { icon: typeof CreditCard; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;

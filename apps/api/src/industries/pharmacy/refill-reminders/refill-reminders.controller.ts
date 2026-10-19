@@ -3,16 +3,21 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { RefillRemindersService } from './refill-reminders.service';
+import { CreateRefillReminderDto } from './dto/create-refill-reminder.dto';
 
+/** Refill reminders are counter follow-up work with the patient: pos.use. */
 @ApiTags('Pharmacy - Refill Reminders')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@RequirePermissions(PERMISSIONS.POS_USE)
 @Controller('pharmacy/refill-reminders')
 export class RefillRemindersController {
   constructor(private readonly service: RefillRemindersService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateRefillReminderDto) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('customerId') customerId?: string, @Query('from') from?: string, @Query('to') to?: string) {
     return this.service.list(user, { status, customerId, from, to });
   }

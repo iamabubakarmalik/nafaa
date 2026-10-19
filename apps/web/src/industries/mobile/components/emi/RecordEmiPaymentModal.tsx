@@ -1,218 +1,79 @@
-// apps/web/src/industries/mobile/components/emi/RecordEmiPaymentModal.tsx
-import { useState, useEffect } from 'react';
+/**
+ * Taking installment money: any amount, settling the oldest open
+ * installments first. It is a khata payment, so the khata, galla and day
+ * book show it at once.
+ */
+
+import { useMemo, useState, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Banknote, CreditCard, Smartphone, Building2, Zap, CheckCircle2 } from 'lucide-react';
-import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
+import { Button, Input, Modal } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
-import { emiApi } from '../../api/emi.api';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { emiApi, type EmiPlan } from '../../api/emi.api';
+import { EMI_KEY, METHODS, MONEY_KEYS, apiError, dayOnly, money } from '../meta';
 
-/* ═════════════════════════════════════════════════════════════
-   RECORD EMI PAYMENT — FULL BEST (dark mode + Esc + Ctrl+Enter)
-   ═════════════════════════════════════════════════════════════ */
-
-interface Props {
-  planId: string;
-  planNumber: string;
-  installmentId: string;
-  installmentNumber: number;
-  installmentAmount: number;
-  alreadyPaid: number;
-  onClose: () => void;
-}
-
-const METHODS: { val: PaymentMethod; label: string; emoji: string; icon: any }[] = [
-  { val: 'CASH', label: 'Cash', emoji: '💵', icon: Banknote },
-  { val: 'CARD', label: 'Card', emoji: '💳', icon: CreditCard },
-  { val: 'JAZZCASH', label: 'JazzCash', emoji: '📱', icon: Smartphone },
-  { val: 'EASYPAISA', label: 'EasyPaisa', emoji: '⚡', icon: Zap },
-  { val: 'BANK_TRANSFER', label: 'Bank', emoji: '🏦', icon: Building2 },
-];
-
-export function RecordEmiPaymentModal({
-  planId, planNumber, installmentId, installmentNumber, installmentAmount, alreadyPaid, onClose,
-}: Props) {
-  const queryClient = useQueryClient();
-  const balance = Math.max(installmentAmount - alreadyPaid, 0);
-  const [amount, setAmount] = useState(String(balance));
+export function RecordEmiPaymentModal({ plan, onClose }: { plan: EmiPlan; onClose: () => void }) {
+  const qc = useQueryClient();
+  const open = plan.installments.filter((i) => i.status === 'PENDING' || i.status === 'OVERDUE');
+  const total = open.reduce((s, i) => s + Number(i.amount) - Number(i.paidAmount), 0);
+  const first = open[0] ? Number(open[0].amount) - Number(open[0].paidAmount) : 0;
+  const [amount, setAmount] = useState(String(plan.overdueAmount > 0 ? plan.overdueAmount : first || ''));
   const [method, setMethod] = useState<PaymentMethod>('CASH');
-  const [paidDate, setPaidDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
+  const n = Number(amount) || 0;
+  const problem = !(n > 0) ? 'Amount likhein' : n > total + 0.01 ? `Kul baqi sirf ${formatPKR(total)} hai` : null;
 
-  const mutation = useMutation({
-    mutationFn: () =>
-      emiApi.recordPayment(planId, installmentId, {
-        amount: Number(amount),
-        paymentMethod: method,
-        paidDate,
-        notes: notes.trim() || undefined,
-      }),
-    onSuccess: () => {
-      toast.success(`✓ ${formatPKR(Number(amount))} record ho gaya`);
-      // Qist milne par customer ka khata bhi kam hota hai — is liye
-      // khata, customer list aur reports sab refresh karne hain.
-      queryClient.invalidateQueries({
-        predicate: (q) => {
-          const k = String(q.queryKey?.[0] ?? '');
-          return [
-            'emi-plan', 'emi-plans', 'emi-stats',
-            'customer-ledger-summary', 'customer-ledger',
-            'customers', 'customers-stats', 'customer',
-            'dashboard-overview',
-          ].includes(k) || k.startsWith('mobile-reports');
-        },
-      });
-      onClose();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Fail hua'),
+  // Which installments this money settles.
+  const preview = useMemo(() => {
+    let left = n;
+    return open.map((i) => {
+      const due = Number(i.amount) - Number(i.paidAmount);
+      const take = Math.max(Math.min(due, left), 0);
+      left -= take;
+      return { i, take, full: take >= due - 0.005 };
+    }).filter((x) => x.take > 0);
+  }, [n, open]);
+
+  const save = useMutation({
+    mutationFn: () => emiApi.collect(plan.id, { amount: n, paymentMethod: method, notes: notes.trim() || undefined }),
+    onSuccess: () => { toast.success(`${formatPKR(n)} qist mili — khata me jama`); [EMI_KEY, 'emi-stats', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Qist save nahi hui')),
   });
 
-  const submit = () => {
-    const amt = Number(amount);
-    if (!amt || amt <= 0) return toast.error('Amount likho');
-    if (amt > balance + 0.01) return toast.error(`Balance se zyada nahi — max ${formatPKR(balance)}`);
-    mutation.mutate();
-  };
-
-  /* Esc + Ctrl+Enter + scroll lock */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); submit(); }
-    };
-    window.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amount, balance]);
-
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div
-        className="w-full max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border-2 border-emerald-200 dark:border-emerald-500/40"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-4 border-b-2 border-emerald-100 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15 flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40 shrink-0">
-              <Banknote className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-extrabold">
-                Installment #{installmentNumber} — Payment
-              </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white font-mono truncate">{planNumber}</h3>
-            </div>
-          </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition shrink-0">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
+    <Modal open onClose={onClose} size="md" title={`Qist lein — ${plan.planNumber}`} description={`${plan.customerName} · kul baqi ${formatPKR(total)}`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={() => save.mutate()} disabled={!!problem} loading={save.isPending}>{formatPKR(n)} lein</Button></>}>
+      <div className="space-y-3">
+        <Input label="Kitne mile" inputMode="decimal" value={amount} onChange={(e) => setAmount(money(e.target.value))} autoFocus error={amount && problem ? problem : undefined} />
+        <div className="flex flex-wrap gap-1.5">
+          {plan.overdueAmount > 0 && <Quick onClick={() => setAmount(String(plan.overdueAmount))}>Late {formatPKR(plan.overdueAmount)}</Quick>}
+          {first > 0 && <Quick onClick={() => setAmount(String(first))}>Ek qist {formatPKR(first)}</Quick>}
+          {total > 0 && <Quick onClick={() => setAmount(String(Math.round(total * 100) / 100))}>Poora {formatPKR(total)}</Quick>}
         </div>
-
-        <div className="p-5 space-y-4">
-          <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-blue-50 dark:from-emerald-500/10 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 grid grid-cols-3 gap-2 text-center">
-            <div>
-              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">Amount</div>
-              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm tabular-nums">{formatPKR(installmentAmount)}</div>
-            </div>
-            <div>
-              <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Paid</div>
-              <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm tabular-nums">{formatPKR(alreadyPaid)}</div>
-            </div>
-            <div>
-              <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 dark:text-amber-400">Balance</div>
-              <div className="font-extrabold text-amber-700 dark:text-amber-400 text-sm tabular-nums">{formatPKR(balance)}</div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
-              Kitna Mila? (PKR) *
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">Rs</span>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                onFocus={(e) => e.target.select()}
-                autoFocus
-                className="h-14 w-full rounded-xl border-2 border-emerald-300 dark:border-emerald-500/50 bg-white dark:bg-ink-800 pl-9 pr-3 text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
-              />
-            </div>
-            <div className="flex gap-1.5 mt-1.5">
-              <button
-                type="button"
-                onClick={() => setAmount(String(balance))}
-                className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-[0.6875rem] font-extrabold hover:bg-emerald-200 dark:hover:bg-emerald-500/25 transition"
-              >
-                Full ({formatPKR(balance)})
-              </button>
-              {balance > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setAmount(String(Math.round(balance / 2)))}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 text-[0.6875rem] font-extrabold hover:bg-slate-200 dark:hover:bg-ink-700 transition"
-                >
-                  Half
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-5 gap-1.5">
-            {METHODS.map((m) => {
-              const Icon = m.icon;
-              const active = method === m.val;
-              return (
-                <button
-                  key={m.val}
-                  type="button"
-                  onClick={() => setMethod(m.val)}
-                  className={`p-2 rounded-xl border-2 text-[0.625rem] font-extrabold transition ${
-                    active
-                      ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-400 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-200 shadow-md'
-                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
-                  }`}
-                >
-                  <div className="text-base leading-none">{m.emoji}</div>
-                  <div className="mt-0.5">{m.label}</div>
-                </button>
-              );
-            })}
-          </div>
-
-          <Input
-            label="Payment Date"
-            type="date"
-            value={paidDate}
-            onChange={(e) => setPaidDate(e.target.value)}
-          />
-
-          <Input
-            label="Note (optional)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Reference ya koi baat..."
-          />
+        <div className="flex flex-wrap gap-1.5">
+          {METHODS.map((m) => (
+            <button key={m.value} type="button" onClick={() => setMethod(m.value)}
+              className={cn('h-9 rounded-lg px-3 text-[0.8125rem] font-medium ring-1', method === m.value ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{m.label}</button>
+          ))}
         </div>
-
-        <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={submit}
-            loading={mutation.isPending}
-            className="bg-gradient-to-r from-emerald-600 to-teal-700 font-extrabold shadow-lg shadow-emerald-500/40"
-          >
-            <CheckCircle2 className="h-4 w-4" /> Record Karo
-          </Button>
-        </div>
+        {preview.length > 0 && (
+          <ul className="space-y-1 rounded-xl bg-slate-50 p-3 text-[0.8125rem]">
+            {preview.map(({ i, take, full }) => (
+              <li key={i.id} className="flex justify-between">
+                <span className="text-slate-600">Qist {i.installmentNumber} · {dayOnly(i.dueDate)}</span>
+                <span className={cn('font-semibold tabular-nums', full ? 'text-emerald-700' : 'text-amber-700')}>{formatPKR(take)}{full ? ' ✓' : ' (adhoori)'}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} hint="Marzi hai — jaise transaction number" />
       </div>
-    </div>
+    </Modal>
   );
 }
+
+const Quick = ({ onClick, children }: { onClick: () => void; children: ReactNode }) => (
+  <button type="button" onClick={onClick} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200">{children}</button>
+);

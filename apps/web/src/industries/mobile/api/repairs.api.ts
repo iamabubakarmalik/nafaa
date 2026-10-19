@@ -1,8 +1,6 @@
 import { apiClient } from '@core/api/client';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
-// ─── Types ─────────────────────────────────────────────────
-
 export type RepairStatus =
   | 'RECEIVED'
   | 'DIAGNOSED'
@@ -16,126 +14,22 @@ export type RepairStatus =
 
 export type RepairPriority = 'NORMAL' | 'URGENT' | 'EMERGENCY';
 export type RepairPaymentStatus = 'PENDING' | 'ADVANCE_PAID' | 'FULLY_PAID';
+export type RepairView = 'open' | 'working' | 'ready' | 'late' | 'unpaid' | 'closed' | 'warranty' | 'all';
+export type RepairSort = 'new' | 'old' | 'due' | 'amount';
+export type PartSource = 'OWN_STOCK' | 'PURCHASED_FOR_REPAIR' | 'CUSTOMER_PROVIDED';
 
-// ─── Status Labels & Colors ────────────────────────────────
-
-export const REPAIR_STATUS_LABELS: Record<RepairStatus, string> = {
-  RECEIVED: 'Received',
-  DIAGNOSED: 'Diagnosed',
-  AWAITING_APPROVAL: 'Awaiting Approval',
-  AWAITING_PARTS: 'Awaiting Parts',
-  IN_PROGRESS: 'In Progress',
-  READY: 'Ready for Pickup',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
-  UNREPAIRABLE: 'Unrepairable',
+/** Allowed next statuses; DELIVERED always goes through the deliver step. */
+export const REPAIR_TRANSITIONS: Record<RepairStatus, RepairStatus[]> = {
+  RECEIVED: ['DIAGNOSED', 'CANCELLED', 'UNREPAIRABLE'],
+  DIAGNOSED: ['AWAITING_APPROVAL', 'AWAITING_PARTS', 'IN_PROGRESS', 'CANCELLED', 'UNREPAIRABLE'],
+  AWAITING_APPROVAL: ['AWAITING_PARTS', 'IN_PROGRESS', 'CANCELLED', 'UNREPAIRABLE'],
+  AWAITING_PARTS: ['IN_PROGRESS', 'CANCELLED'],
+  IN_PROGRESS: ['READY', 'AWAITING_PARTS', 'UNREPAIRABLE', 'CANCELLED'],
+  READY: ['DELIVERED', 'IN_PROGRESS'],
+  DELIVERED: [],
+  CANCELLED: [],
+  UNREPAIRABLE: ['DELIVERED', 'CANCELLED'],
 };
-
-export const REPAIR_STATUS_URDU: Record<RepairStatus, string> = {
-  RECEIVED: 'Mila',
-  DIAGNOSED: 'Check ho gaya',
-  AWAITING_APPROVAL: 'Customer ki approval chahiye',
-  AWAITING_PARTS: 'Parts ka intezaar',
-  IN_PROGRESS: 'Kaam chal raha hai',
-  READY: 'Tayyar (Pickup)',
-  DELIVERED: 'Deliver ho gaya',
-  CANCELLED: 'Cancel',
-  UNREPAIRABLE: 'Nahin ban sakta',
-};
-
-export const REPAIR_STATUS_EMOJI: Record<RepairStatus, string> = {
-  RECEIVED: '📥',
-  DIAGNOSED: '🔍',
-  AWAITING_APPROVAL: '⏳',
-  AWAITING_PARTS: '📦',
-  IN_PROGRESS: '🔧',
-  READY: '✅',
-  DELIVERED: '🎉',
-  CANCELLED: '❌',
-  UNREPAIRABLE: '💀',
-};
-
-export const REPAIR_STATUS_COLORS: Record<
-  RepairStatus,
-  { bg: string; text: string; border: string; darkBg: string; darkText: string }
-> = {
-  RECEIVED:          { bg: 'bg-blue-100',    text: 'text-blue-700',    border: 'border-blue-300',    darkBg: 'dark:bg-blue-900/30',    darkText: 'dark:text-blue-300'    },
-  DIAGNOSED:         { bg: 'bg-indigo-100',  text: 'text-indigo-700',  border: 'border-indigo-300',  darkBg: 'dark:bg-indigo-900/30',  darkText: 'dark:text-indigo-300'  },
-  AWAITING_APPROVAL: { bg: 'bg-amber-100',   text: 'text-amber-700',   border: 'border-amber-300',   darkBg: 'dark:bg-amber-900/30',   darkText: 'dark:text-amber-300'   },
-  AWAITING_PARTS:    { bg: 'bg-orange-100',  text: 'text-orange-700',  border: 'border-orange-300',  darkBg: 'dark:bg-orange-900/30',  darkText: 'dark:text-orange-300'  },
-  IN_PROGRESS:       { bg: 'bg-violet-100',  text: 'text-violet-700',  border: 'border-violet-300',  darkBg: 'dark:bg-violet-900/30',  darkText: 'dark:text-violet-300'  },
-  READY:             { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300', darkBg: 'dark:bg-emerald-900/30', darkText: 'dark:text-emerald-300' },
-  DELIVERED:         { bg: 'bg-slate-100',   text: 'text-slate-700',   border: 'border-slate-300',   darkBg: 'dark:bg-ink-800',      darkText: 'dark:text-ink-300'   },
-  CANCELLED:         { bg: 'bg-rose-100',    text: 'text-rose-700',    border: 'border-rose-300',    darkBg: 'dark:bg-rose-900/30',    darkText: 'dark:text-rose-300'    },
-  UNREPAIRABLE:      { bg: 'bg-red-100',     text: 'text-red-700',     border: 'border-red-300',     darkBg: 'dark:bg-red-900/30',     darkText: 'dark:text-red-300'     },
-};
-
-// ─── Priority Labels & Colors ──────────────────────────────
-
-export const REPAIR_PRIORITY_LABELS: Record<RepairPriority, string> = {
-  NORMAL: 'Normal',
-  URGENT: 'Urgent',
-  EMERGENCY: 'Emergency',
-};
-
-export const REPAIR_PRIORITY_URDU: Record<RepairPriority, string> = {
-  NORMAL: 'Aam',
-  URGENT: 'Jaldi chahiye',
-  EMERGENCY: 'Bohat urgent',
-};
-
-export const REPAIR_PRIORITY_EMOJI: Record<RepairPriority, string> = {
-  NORMAL: '🟢',
-  URGENT: '🟠',
-  EMERGENCY: '🔴',
-};
-
-export const REPAIR_PRIORITY_COLORS: Record<
-  RepairPriority,
-  { bg: string; text: string; border: string }
-> = {
-  NORMAL:    { bg: 'bg-slate-100',  text: 'text-slate-700',  border: 'border-slate-300' },
-  URGENT:    { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
-  EMERGENCY: { bg: 'bg-rose-100',   text: 'text-rose-700',   border: 'border-rose-300' },
-};
-
-// ─── Payment Status ────────────────────────────────────────
-
-export const REPAIR_PAYMENT_STATUS_LABELS: Record<RepairPaymentStatus, string> = {
-  PENDING: 'Payment Pending',
-  ADVANCE_PAID: 'Advance Paid',
-  FULLY_PAID: 'Fully Paid',
-};
-
-// ─── Valid Status Transitions ──────────────────────────────
-
-export const VALID_STATUS_TRANSITIONS: Record<RepairStatus, RepairStatus[]> = {
-  RECEIVED:          ['DIAGNOSED', 'CANCELLED', 'UNREPAIRABLE'],
-  DIAGNOSED:         ['AWAITING_APPROVAL', 'AWAITING_PARTS', 'IN_PROGRESS', 'CANCELLED', 'UNREPAIRABLE'],
-  AWAITING_APPROVAL: ['AWAITING_PARTS', 'IN_PROGRESS', 'CANCELLED'],
-  AWAITING_PARTS:    ['IN_PROGRESS', 'CANCELLED'],
-  IN_PROGRESS:       ['READY', 'UNREPAIRABLE', 'CANCELLED'],
-  READY:             ['DELIVERED', 'IN_PROGRESS'],
-  DELIVERED:         [],
-  CANCELLED:         [],
-  UNREPAIRABLE:      ['CANCELLED'],
-};
-
-// ─── Helper: Status flow guidance ──────────────────────────
-
-export const STATUS_NEXT_ACTIONS: Record<RepairStatus, string> = {
-  RECEIVED:          'Ab device check kar ke Diagnose karein',
-  DIAGNOSED:         'Customer ko estimate batayein → Approval ya Parts order',
-  AWAITING_APPROVAL: 'Customer se estimate approve karwayein',
-  AWAITING_PARTS:    'Parts aa jayein to In Progress karein',
-  IN_PROGRESS:       'Repair khatam ho to Ready mark karein',
-  READY:             'Customer ko call karein pickup ke liye',
-  DELIVERED:         'Ticket close ho gaya ✅',
-  CANCELLED:         'Ticket cancel ho chuka hai',
-  UNREPAIRABLE:      'Device repair nahin ho sakta, customer ko wapas karein',
-};
-
-// ─── Interfaces ────────────────────────────────────────────
 
 export interface RepairPart {
   id: string;
@@ -155,17 +49,14 @@ export interface RepairPart {
 
 export interface RepairStatusLog {
   id: string;
-  ticketId: string;
   fromStatus?: RepairStatus | null;
   toStatus: RepairStatus;
   note?: string | null;
-  changedById?: string | null;
   changedAt: string;
 }
 
 export interface RepairPaymentRecord {
   id: string;
-  ticketId: string;
   amount: number;
   paymentMethod: PaymentMethod;
   reference?: string | null;
@@ -175,7 +66,6 @@ export interface RepairPaymentRecord {
 
 export interface RepairTicket {
   id: string;
-  tenantId: string;
   shopId?: string | null;
   ticketNumber: string;
   imei1?: string | null;
@@ -209,7 +99,6 @@ export interface RepairTicket {
   discount: number;
   receivedAt: string;
   diagnosedAt?: string | null;
-  approvedAt?: string | null;
   startedAt?: string | null;
   readyAt?: string | null;
   deliveredAt?: string | null;
@@ -218,24 +107,31 @@ export interface RepairTicket {
   technicianName?: string | null;
   beforePhotos: string[];
   afterPhotos: string[];
-  signatureUrl?: string | null;
-  smsNotificationsSent: number;
-  lastSmsSentAt?: string | null;
   notes?: string | null;
   warrantyDays: number;
   warrantyEnds?: string | null;
-  customer?: {
-    id: string;
-    name: string;
-    phone?: string | null;
-    cnic?: string | null;
-    address?: string | null;
-  } | null;
+  saleId?: string | null;
+  customer?: { id: string; name: string; phone?: string | null; cnic?: string | null; address?: string | null; balance?: number } | null;
   shop?: { id: string; name: string } | null;
+  sale?: { id: string; saleNumber: string; total?: number; paidAmount?: number; creditAmount?: number; status?: string } | null;
   parts?: RepairPart[];
   statusLog?: RepairStatusLog[];
   payments?: RepairPaymentRecord[];
   _count?: { parts: number; payments: number };
+  /** List only. */
+  isLate?: boolean;
+  daysInShop?: number;
+  warrantyActive?: boolean;
+}
+
+interface RepairListPage {
+  items: RepairTicket[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  counts: Partial<Record<RepairStatus, number>>;
+  totals: { bill: number; estimate: number; paid: number; due: number };
 }
 
 export interface RepairStats {
@@ -243,16 +139,31 @@ export interface RepairStats {
   byPriority: { priority: RepairPriority; count: number }[];
   todayCount: number;
   monthRevenue: number;
+  monthDelivered: number;
   totalRevenue: number;
   totalDelivered: number;
   openTickets: number;
-  avgRepairHours?: number;
-  overdueCount?: number;
+  late: number;
+  readyDue: number;
+  deliveredToday: number;
 }
 
-// ─── Payloads ──────────────────────────────────────────────
+export interface RepairListParams {
+  search?: string;
+  status?: RepairStatus;
+  priority?: RepairPriority;
+  view?: RepairView;
+  technician?: string;
+  customerId?: string;
+  shopId?: string;
+  from?: string;
+  to?: string;
+  sort?: RepairSort;
+  page?: number;
+  limit?: number;
+}
 
-export interface CreateRepairTicketPayload {
+export interface RepairTicketPayload {
   shopId?: string;
   imei1?: string;
   imei2?: string;
@@ -272,94 +183,61 @@ export interface CreateRepairTicketPayload {
   priority?: RepairPriority;
   estimatedCost?: number;
   advancePaid?: number;
+  advanceMethod?: PaymentMethod;
   estimatedReadyAt?: string;
-  technicianId?: string;
   technicianName?: string;
   beforePhotos?: string[];
   notes?: string;
   warrantyDays?: number;
+  warrantyOf?: string;
 }
 
-export interface DiagnosePayload {
+interface DiagnosePayload {
   diagnosedIssue: string;
   diagnosisNotes?: string;
   recommendedActions?: string;
   estimatedCost: number;
-  partsCost?: number;
   laborCost?: number;
 }
 
-export interface AddPartPayload {
+interface AddPartPayload {
   productId?: string;
   partName: string;
   partNumber?: string;
   quantity: number;
   unitCost?: number;
   unitPrice: number;
-  source?: string;
+  source?: PartSource;
   notes?: string;
 }
 
-export interface UpdateStatusPayload {
-  toStatus: RepairStatus;
-  note?: string;
-}
-
-export interface AddPaymentPayload {
-  amount: number;
-  paymentMethod?: PaymentMethod;
-  reference?: string;
-  notes?: string;
-}
-
-// ─── API Methods ───────────────────────────────────────────
-
-const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.data : res?.data);
+const unwrap = (res: { data?: unknown }) => {
+  const body = res?.data as { data?: unknown } | undefined;
+  return body?.data !== undefined ? body.data : body;
+};
 
 export const repairsApi = {
-  list: (params?: {
-    search?: string;
-    status?: RepairStatus;
-    priority?: RepairPriority;
-    customerId?: string;
-    technicianId?: string;
-    shopId?: string;
-    page?: number;
-    limit?: number;
-    from?: string;
-    to?: string;
-  }) =>
-    apiClient.get('/repair-tickets', { params }).then(unwrap) as Promise<{
-      items: RepairTicket[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    }>,
+  list: (params?: RepairListParams) =>
+    apiClient.get('/repair-tickets', { params }).then(unwrap) as Promise<RepairListPage>,
 
-  stats: () =>
-    apiClient.get('/repair-tickets/stats').then(unwrap) as Promise<RepairStats>,
+  stats: (shopId?: string) =>
+    apiClient.get('/repair-tickets/stats', { params: { shopId } }).then(unwrap) as Promise<RepairStats>,
 
-  /**
-   * Counter par ek hi step: baqi paisa lo, ticket deliver karo,
-   * aur repair ki kamai ko Sale bana kar hisab me daalo.
-   */
-  deliver: (
-    id: string,
-    payload: { amount?: number; paymentMethod?: string; note?: string },
-  ) =>
+  technicians: () =>
+    apiClient.get('/repair-tickets/technicians').then(unwrap) as Promise<Array<{ name: string; total: number; open: number }>>,
+
+  /** One step at the counter: take the balance, hand the phone back, post the bill. */
+  deliver: (id: string, payload: { amount?: number; paymentMethod?: string; note?: string }) =>
     apiClient.post(`/repair-tickets/${id}/deliver`, payload).then(unwrap) as Promise<{
       ticket: RepairTicket;
-      sale: { id: string; saleNumber: string; total: number } | null;
+      sale: { id: string; saleNumber: string; total: number; paidAmount?: number; creditAmount?: number } | null;
     }>,
 
-  getOne: (id: string) =>
-    apiClient.get(`/repair-tickets/${id}`).then(unwrap) as Promise<RepairTicket>,
+  getOne: (id: string) => apiClient.get(`/repair-tickets/${id}`).then(unwrap) as Promise<RepairTicket>,
 
-  create: (payload: CreateRepairTicketPayload) =>
-    apiClient.post('/repair-tickets', payload).then(unwrap) as Promise<RepairTicket>,
+  create: (payload: RepairTicketPayload) => apiClient.post('/repair-tickets', payload).then(unwrap) as Promise<RepairTicket>,
 
-  update: (id: string, payload: Partial<CreateRepairTicketPayload>) =>
+  update: (id: string, payload: Partial<RepairTicketPayload> & { laborCost?: number; discount?: number; afterPhotos?: string[] }) =>
     apiClient.patch(`/repair-tickets/${id}`, payload).then(unwrap) as Promise<RepairTicket>,
 
   diagnose: (id: string, payload: DiagnosePayload) =>
@@ -371,12 +249,9 @@ export const repairsApi = {
   removePart: (id: string, partId: string) =>
     apiClient.delete(`/repair-tickets/${id}/parts/${partId}`).then(unwrap) as Promise<RepairTicket>,
 
-  updateStatus: (id: string, payload: UpdateStatusPayload) =>
+  updateStatus: (id: string, payload: { toStatus: RepairStatus; note?: string }) =>
     apiClient.patch(`/repair-tickets/${id}/status`, payload).then(unwrap) as Promise<RepairTicket>,
 
-  addPayment: (id: string, payload: AddPaymentPayload) =>
+  addPayment: (id: string, payload: { amount: number; paymentMethod?: PaymentMethod; reference?: string; notes?: string }) =>
     apiClient.post(`/repair-tickets/${id}/payments`, payload).then(unwrap) as Promise<RepairPaymentRecord>,
-
-  remove: (id: string) =>
-    apiClient.delete(`/repair-tickets/${id}`).then(unwrap),
 };

@@ -1,35 +1,32 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDateString, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min,
+  MinLength, ValidateNested,
+} from 'class-validator';
+
+export class BundleItemDto {
+  @ApiProperty() @IsString() productId!: string;
+  @ApiProperty() @IsInt() @Min(1) @Max(1000) quantity!: number;
+  /** Normal price of one piece; left out, the product's price is used. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) unitPrice?: number;
+}
 
 export class UpsertBundleDto {
-  @ApiProperty() @IsString() name!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
-  @ApiProperty() @IsArray() @Type(() => Object) items!: Array<{ productId: string; quantity: number; unitPrice: number }>;
-  @ApiProperty() @IsNumber() originalPrice!: number;
-  @ApiProperty() @IsNumber() bundlePrice!: number;
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(120) name!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) description?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) imageUrl?: string;
+  @ApiProperty({ type: [BundleItemDto] })
+  @IsArray() @ArrayMinSize(1) @ArrayMaxSize(30) @ValidateNested({ each: true }) @Type(() => BundleItemDto)
+  items!: BundleItemDto[];
+  /** Kept for older callers; the server works it out from the items. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) originalPrice?: number;
+  @ApiProperty() @IsNumber() @Min(1) bundlePrice!: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsString() validFrom?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() validUntil?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() validFrom?: string | null;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() validUntil?: string | null;
 }
 
-
-/**
- * Sirf chand fields badalne ke liye (jaise sirf isActive ya isFeatured).
- * UpsertBundleDto me name/items/prices lazmi hain — us se ek chhota
- * toggle bhi 400 de deta tha.
- */
-export class PatchBundleDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
-  @ApiPropertyOptional() @IsOptional() @IsArray() @Type(() => Object) items?: Array<{ productId: string; quantity: number; unitPrice: number }>;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() originalPrice?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() bundlePrice?: number;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsString() validFrom?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() validUntil?: string;
-}
+/** Any subset of the fields, e.g. only isActive or isFeatured. */
+export class PatchBundleDto extends PartialType(UpsertBundleDto) {}

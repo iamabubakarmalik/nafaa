@@ -36,6 +36,22 @@ const inputCls = 'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 t
 const labelCls = 'mb-1.5 block text-[0.8125rem] font-medium text-slate-700';
 const hintCls = 'mt-1 text-[0.6875rem] text-slate-500';
 
+/** Goods counted one piece at a time: they go through Stock adjustments, where the exact piece is chosen. */
+const TRACKED: Record<NonNullable<DamageOptions['tracked']>, { short: string; help: string }> = {
+  roll: {
+    short: 'roll',
+    help: 'Is product ka har roll alag ginta hai. Kharab roll Stock adjustments page se likhein — wahan sahi roll chun sakte hain.',
+  },
+  imei: {
+    short: 'IMEI',
+    help: 'Is product ka har phone (IMEI) alag ginta hai. Kharab phone Stock adjustments page se likhein — wahan sahi IMEI chun sakte hain.',
+  },
+  serial: {
+    short: 'serial',
+    help: 'Is product ka har unit apne serial number se ginta hai. Kharab unit Stock adjustments page se likhein, aur note me us ka serial number likh dein.',
+  },
+};
+
 const dayText = (iso: string) => new Date(iso).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' });
 const expired = (iso?: string | null) => !!iso && new Date(iso).getTime() < Date.now();
 
@@ -85,7 +101,7 @@ export function DamageReportForm({ canApprove, onClose }: { canApprove: boolean;
     const o = optionsOf(i);
     const n = l.source.name;
     if (!o) problems.push(optionsQs[i]?.isError ? `${n}: details load nahi hui` : `${n}: load ho raha hai`);
-    else if (o.tracked) problems.push(`${n}: ${o.tracked === 'roll' ? 'roll' : 'IMEI'} wala maal Stock adjustments se likhein`);
+    else if (o.tracked) problems.push(`${n}: ${TRACKED[o.tracked].short} wala maal Stock adjustments se likhein`);
     else if (o.variants.length && !l.variantId) problems.push(`${n}: type (variant) chunein`);
     if (!(Number(l.qty) > 0)) problems.push(`${n}: quantity likhein`);
   });
@@ -283,7 +299,7 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
 
       {o?.tracked && (
         <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-          Is product ka har {o.tracked === 'roll' ? 'roll' : 'phone (IMEI)'} alag ginta hai. Kharab {o.tracked === 'roll' ? 'roll' : 'device'} Stock adjustments page se likhein — wahan sahi {o.tracked === 'roll' ? 'roll' : 'device'} chun sakte hain.
+          {TRACKED[o.tracked].help}
         </p>
       )}
 

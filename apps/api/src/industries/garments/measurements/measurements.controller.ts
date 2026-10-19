@@ -14,7 +14,10 @@ export class MeasurementsController {
   constructor(private readonly service: MeasurementsService) {}
 
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertMeasurementDto) { return this.service.create(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('gender') gender?: string, @Query('search') search?: string) { return this.service.listAll(user, { gender, search }); }
+  /** With `page`, a paged answer with stats; without it, a plain list. */
+  @Get() list(@GetUser() user: AuthenticatedUser, @Query('gender') gender?: string, @Query('search') search?: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.service.listAll(user, { gender, search, page, limit });
+  }
   @Get('by-customer/:customerId') byCustomer(@GetUser() user: AuthenticatedUser, @Param('customerId') customerId: string) { return this.service.listByCustomer(user, customerId); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertMeasurementDto) { return this.service.update(user, id, dto); }

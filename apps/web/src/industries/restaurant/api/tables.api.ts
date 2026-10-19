@@ -37,6 +37,29 @@ export interface RestaurantTable {
   updatedAt: string;
 }
 
+/** A table on the live floor, with what is happening on it. */
+export interface FloorTable extends RestaurantTable {
+  liveStatus: TableStatus;
+  orders: Array<{ id: string; orderNumber: string; status: string; total: number; paidAmount: number; parentOrderId?: string | null }>;
+  currentOrder: { id: string; orderNumber: string; status: string; createdAt: string } | null;
+  runningBill: number;
+  guests: number | null;
+  waiterName: string | null;
+  billPrinted: boolean;
+  unsent: number;
+  cooking: number;
+  ready: number;
+}
+
+export interface Floor {
+  tables: FloorTable[];
+  sections: string[];
+  stats: {
+    total: number; available: number; occupied: number; reserved: number; cleaning: number; outOfService: number;
+    billPrinted: number; guests: number; runningBill: number; ready: number;
+  };
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const tablesApi = {
@@ -48,6 +71,9 @@ export const tablesApi = {
 
   layout: (shopId?: string) =>
     apiClient.get('/restaurant/tables/layout', { params: shopId ? { shopId } : {} }).then(unwrap<any>),
+
+  floor: () =>
+    apiClient.get('/restaurant/tables/floor').then(unwrap<Floor>),
 
   getOne: (id: string) =>
     apiClient.get('/restaurant/tables/' + id).then(unwrap<RestaurantTable>),

@@ -19,7 +19,11 @@ export interface Kot {
   cancelledAt?: string;
   notes?: string;
   priority?: string;
-  order?: any;
+  order?: {
+    id: string; orderNumber: string; mode: string; status: string; numberOfGuests?: number | null; customerName?: string | null;
+    specialRequests?: string | null; createdAt: string; estimatedPrepTime?: number | null; token?: number | null;
+    table?: { tableNumber: string; tableName?: string | null; section?: string | null } | null;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -30,7 +34,7 @@ export const kotApi = {
   create: (data: { orderId: string; itemIds: string[]; station?: string; priority?: string; notes?: string }) =>
     apiClient.post('/restaurant/kot', data).then(unwrap<Kot>),
 
-  list: (params?: { status?: string; station?: string; orderId?: string }) =>
+  list: (params?: { status?: string; station?: string; orderId?: string; active?: boolean }) =>
     apiClient.get('/restaurant/kot', { params }).then(unwrap<Kot[]>),
 
   updateStatus: (id: string, status: KotStatus) =>

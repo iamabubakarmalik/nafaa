@@ -212,7 +212,7 @@ export function RestaurantModes() {
   const { sales } = useMasked();
   const max = Math.max(1, ...orders.modes.map((m) => m.count));
   return (
-    <WidgetCard title="Order ki qisam" icon={ShoppingBag} description="Khule orders — dine-in, takeaway, delivery">
+    <WidgetCard title="Order type" icon={ShoppingBag} description="Khule orders — dine-in, takeaway, delivery">
       {orders.modes.length === 0 ? (
         <EmptyHint icon={ShoppingBag} text="Abhi koi order khula nahi" />
       ) : (

@@ -1,6 +1,6 @@
 /**
- * Picks the POS for the current industry. Retail, Bakery, Electronics and
- * businesses without an industry run on the shared POS engine
+ * Picks the POS for the current industry. Retail, Bakery, Electronics,
+ * Pharmacy and businesses without an industry run on the shared POS engine
  * (modules/pos/engine); the rest still use their own pages until their
  * industry flow is rebuilt.
  */
@@ -17,7 +17,7 @@ const BakeryPos = lazy(() => import('@industries/bakery/pos/BakeryPos'));
 const GymPosPage = lazy(() => import('@industries/gym/pages/GymPosPage'));
 const ClinicPosPage = lazy(() => import('@industries/clinic/pages/ClinicPosPage'));
 const ServicesBizPosPage = lazy(() => import('@industries/services-biz/pages/ServicesBizPosPage'));
-const PharmacyPosPage = lazy(() => import('@industries/pharmacy/pages/PharmacyPosPage'));
+const PharmacyPos = lazy(() => import('@industries/pharmacy/pos/PharmacyPos'));
 const JewelryPosPage = lazy(() => import('@industries/jewelry/pages/JewelryPosPage'));
 const HardwarePosPage = lazy(() => import('@industries/hardware/pages/HardwarePosPage'));
 const DairyPosPage = lazy(() => import('@industries/dairy/pages/DairyPosPage'));
@@ -61,7 +61,7 @@ export default function PosGate() {
   if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymPosPage /></Suspense>;
   if (industry?.id === 'clinic') return <Suspense fallback={<Loader />}><ClinicPosPage /></Suspense>;
   if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizPosPage /></Suspense>;
-  if (industry?.id === 'pharmacy') return <Suspense fallback={<Loader />}><PharmacyPosPage /></Suspense>;
+  if (industry?.id === 'pharmacy') return <Suspense fallback={<Loader />}><PharmacyPos /></Suspense>;
   if (industry?.id === 'jewelry') return <Suspense fallback={<Loader />}><JewelryPosPage /></Suspense>;
   if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwarePosPage /></Suspense>;
   if (industry?.id === 'dairy') return <Suspense fallback={<Loader />}><DairyPosPage /></Suspense>;

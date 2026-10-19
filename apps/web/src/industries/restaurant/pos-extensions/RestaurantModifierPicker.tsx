@@ -1,201 +1,111 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { X, Plus, ChefHat, Info } from 'lucide-react';
-import { menuItemsApi } from '@industries/restaurant/api/menu-items.api';
+/**
+ * Dish options before it goes on the order: size, add-ons, removals and
+ * spice, each group with its own min/max, plus a note for the kitchen.
+ * Required groups must be filled; defaults are pre-ticked.
+ */
+
+import { useMemo, useState } from 'react';
+import { Check, Minus, Plus } from 'lucide-react';
+import { Button, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import type { MenuEntry } from '../hooks/useMenu';
 
-interface Props {
-  productId: string;
-  onConfirm: (selections: Array<{
-    modifierOptionId: string;
-    optionName: string;
-    quantity: number;
-    priceAdjustment: number;
-  }>) => void;
+export interface PickedModifier { modifierOptionId: string; name: string; quantity: number; priceAdjustment: number }
+export interface PickedDish { quantity: number; modifiers: PickedModifier[]; note: string }
+
+const NOTES = ['Kam mirch', 'Zyada mirch', 'Kam tel', 'Pyaz ke bagair', 'Jaldi', 'Alag pack'];
+
+export function RestaurantModifierPicker({ item, onConfirm, onClose }: {
+  item: MenuEntry;
+  onConfirm: (d: PickedDish) => void;
   onClose: () => void;
-}
+}) {
+  const [picked, setPicked] = useState<Record<string, string[]>>(() =>
+    Object.fromEntries(item.groups.map((g) => [g.id, g.options.filter((o) => o.isDefault).slice(0, g.maxSelections).map((o) => o.id)])));
+  const [qty, setQty] = useState(1);
+  const [note, setNote] = useState('');
 
-export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Props) {
-  const [selections, setSelections] = useState<Record<string, string[]>>({});
-
-  // Fetch menu item with modifiers
-  const { data: menuItems = [], isLoading } = useQuery({
-    queryKey: ['menu-item-for-product', productId],
-    queryFn: () => menuItemsApi.list({}),
+  const toggle = (groupId: string, optionId: string, max: number) => setPicked((prev) => {
+    const cur = prev[groupId] ?? [];
+    if (cur.includes(optionId)) return { ...prev, [groupId]: cur.filter((x) => x !== optionId) };
+    if (max === 1) return { ...prev, [groupId]: [optionId] };
+    if (cur.length >= max) return prev;
+    return { ...prev, [groupId]: [...cur, optionId] };
   });
 
-  const menuItem = menuItems.find((m: any) => m.productId === productId);
-  const groups = menuItem?.modifiers?.map((mm: any) => mm.modifierGroup).filter((g: any) => g && g.isActive !== false) ?? [];
+  const missing = item.groups.filter((g) => (picked[g.id]?.length ?? 0) < (g.isRequired ? Math.max(1, g.minSelections) : g.minSelections));
+  const chosen = useMemo(() => item.groups.flatMap((g) => (picked[g.id] ?? []).map((id) => g.options.find((o) => o.id === id)!).filter(Boolean)), [item.groups, picked]);
+  const unit = item.price + chosen.reduce((s, o) => s + o.priceAdjustment, 0);
 
-  const toggle = (groupId: string, optionId: string, maxSel: number) => {
-    setSelections((prev) => {
-      const current = prev[groupId] || [];
-      const already = current.includes(optionId);
-      if (already) return { ...prev, [groupId]: current.filter((id) => id !== optionId) };
-      if (maxSel === 1) return { ...prev, [groupId]: [optionId] };
-      if (current.length >= maxSel) return prev;
-      return { ...prev, [groupId]: [...current, optionId] };
+  const confirm = () => {
+    if (missing.length) return;
+    onConfirm({
+      quantity: qty,
+      note: note.trim(),
+      modifiers: chosen.map((o) => ({ modifierOptionId: o.id, name: o.name, quantity: 1, priceAdjustment: o.priceAdjustment })),
     });
   };
 
-  const canConfirm = groups.every((g: any) => {
-    const sel = selections[g.id] || [];
-    if (g.isRequired && sel.length < Math.max(1, g.minSelections || 0)) return false;
-    return true;
-  });
-
-  const totalAdjustment = groups.reduce((sum: number, g: any) => {
-    const sel = selections[g.id] || [];
-    for (const optId of sel) {
-      const opt = g.options?.find((o: any) => o.id === optId);
-      if (opt) sum += opt.priceAdjustment || 0;
-    }
-    return sum;
-  }, 0);
-
-  const handleConfirm = () => {
-    const selected: any[] = [];
-    for (const g of groups) {
-      const sel = selections[g.id] || [];
-      for (const optId of sel) {
-        const opt = g.options?.find((o: any) => o.id === optId);
-        if (opt) selected.push({
-          modifierOptionId: opt.id,
-          optionName: opt.name,
-          quantity: 1,
-          priceAdjustment: opt.priceAdjustment || 0,
-        });
-      }
-    }
-    onConfirm(selected);
-  };
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white flex items-center justify-between shrink-0">
-          <div className="min-w-0 flex-1">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Customize</div>
-            <h3 className="font-extrabold text-lg truncate">{menuItem?.product?.name || 'Item'}</h3>
+    <Modal open onClose={onClose} size="lg" title={item.name} description={`${formatPKR(item.price)} · options chunein`}
+      footer={
+        <div className="flex w-full items-center gap-3">
+          <div className="inline-flex items-center rounded-xl bg-slate-100 p-1">
+            <button type="button" aria-label="Kam" onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white"><Minus className="h-4 w-4" /></button>
+            <span className="w-10 text-center text-[1rem] font-bold tabular-nums">{qty}</span>
+            <button type="button" aria-label="Zyada" onClick={() => setQty((q) => Math.min(99, q + 1))} className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white"><Plus className="h-4 w-4" /></button>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center shrink-0">
-            <X className="h-4 w-4" />
-          </button>
+          <Button className="flex-1" size="lg" disabled={missing.length > 0} onClick={confirm}>
+            {missing.length ? `"${missing[0].name}" chunein` : `Order me daalein · ${formatPKR(unit * qty)}`}
+          </Button>
         </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {isLoading ? (
-            <div className="py-8 text-center text-sm text-slate-500 font-semibold">Loading...</div>
-          ) : !menuItem ? (
-            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 dark:border-amber-800 p-4 text-center">
-              <Info className="h-8 w-8 text-amber-600 mx-auto mb-2" />
-              <div className="font-extrabold text-amber-900 dark:text-amber-300 text-sm">
-                No menu configuration for this product
-              </div>
-              <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold mt-1">
-                Add to cart directly, or configure it in Menu Items
-              </p>
-              <Button className="mt-3 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => onConfirm([])}>
-                <Plus className="h-4 w-4" />
-                Add without customization
-              </Button>
-            </div>
-          ) : groups.length === 0 ? (
-            <div className="rounded-xl bg-slate-50 dark:bg-ink-800 p-4 text-center">
-              <ChefHat className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-              <div className="font-extrabold text-slate-700 dark:text-ink-300 text-sm">
-                No modifiers available
-              </div>
-              <p className="text-xs text-slate-500 font-semibold mt-1">Just add to cart</p>
-              <Button className="mt-3 bg-gradient-to-r from-orange-600 to-red-700" onClick={() => onConfirm([])}>
-                <Plus className="h-4 w-4" />
-                Add to Cart
-              </Button>
-            </div>
-          ) : (
-            groups.map((g: any) => {
-              const sel = selections[g.id] || [];
-              return (
-                <div key={g.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{g.name}</div>
-                      <div className="text-[0.6875rem] text-slate-500 font-bold">
-                        {g.isRequired ? 'Required' : 'Optional'} • Choose {g.minSelections}–{g.maxSelections}
-                      </div>
-                    </div>
-                    <span className={
-                      'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ' +
-                      (g.isRequired
-                        ? (sel.length >= g.minSelections ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700')
-                        : 'bg-slate-100 text-slate-600')
-                    }>
-                      {sel.length}/{g.maxSelections}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {g.options?.filter((o: any) => o.isActive).map((opt: any) => {
-                      const active = sel.includes(opt.id);
-                      return (
-                        <button
-                          key={opt.id}
-                          onClick={() => toggle(g.id, opt.id, g.maxSelections)}
-                          className={
-                            'p-2 rounded-lg border-2 text-left text-xs font-extrabold transition ' +
-                            (active
-                              ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700 shadow'
-                              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-orange-300')
-                          }
-                        >
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="flex items-center gap-1 min-w-0">
-                              {opt.emoji && <span>{opt.emoji}</span>}
-                              <span className="truncate">{opt.name}</span>
-                            </span>
-                            {(opt.priceAdjustment ?? 0) !== 0 && (
-                              <span className={(opt.priceAdjustment ?? 0) > 0 ? 'text-emerald-700 shrink-0' : 'text-rose-700 shrink-0'}>
-                                {(opt.priceAdjustment ?? 0) > 0 ? '+' : ''}{formatPKR(opt.priceAdjustment ?? 0)}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Footer with total */}
-        {menuItem && groups.length > 0 && (
-          <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4 space-y-2">
-            {totalAdjustment !== 0 && (
-              <div className="flex justify-between items-center text-sm font-extrabold">
-                <span className="text-slate-600 dark:text-ink-400">Modifier total:</span>
-                <span className={totalAdjustment > 0 ? 'text-emerald-700 tabular-nums' : 'text-rose-700 tabular-nums'}>
-                  {totalAdjustment > 0 ? '+' : ''}{formatPKR(totalAdjustment)}
+      }>
+      <div className="space-y-5">
+        {item.groups.map((g) => {
+          const sel = picked[g.id] ?? [];
+          const need = g.isRequired ? Math.max(1, g.minSelections) : g.minSelections;
+          return (
+            <section key={g.id}>
+              <div className="mb-2 flex items-baseline justify-between gap-2">
+                <h3 className="text-[0.875rem] font-semibold text-slate-900">{g.name}</h3>
+                <span className={cn('text-[0.75rem]', sel.length < need ? 'font-semibold text-rose-600' : 'text-slate-500')}>
+                  {need > 0 ? `Zaroori · ${need === g.maxSelections ? need : `${need}–${g.maxSelections}`}` : g.maxSelections > 1 ? `${g.maxSelections} tak` : 'Marzi'}
                 </span>
               </div>
-            )}
-            <div className="flex gap-2">
-              <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-              <Button
-                className="flex-1 bg-gradient-to-r from-orange-600 to-red-700"
-                onClick={handleConfirm}
-                disabled={!canConfirm}
-              >
-                <Plus className="h-4 w-4" />
-                Add to Cart
-              </Button>
-            </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {g.options.map((o) => {
+                  const on = sel.includes(o.id);
+                  return (
+                    <button key={o.id} type="button" onClick={() => toggle(g.id, o.id, g.maxSelections)}
+                      className={cn('flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left ring-1 transition',
+                        on ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:ring-slate-300')}>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-md ring-1', on ? 'bg-brand-600 text-white ring-brand-600' : 'ring-slate-300')}>
+                          {on && <Check className="h-3.5 w-3.5" />}
+                        </span>
+                        <span className="truncate text-[0.875rem] font-medium text-slate-800">{o.name}</span>
+                      </span>
+                      {o.priceAdjustment !== 0 && <span className="shrink-0 text-[0.8125rem] font-semibold tabular-nums text-slate-600">{o.priceAdjustment > 0 ? '+' : ''}{formatPKR(o.priceAdjustment)}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+        <section>
+          <h3 className="mb-2 text-[0.875rem] font-semibold text-slate-900">Kitchen ke liye note</h3>
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {NOTES.map((n) => (
+              <button key={n} type="button" onClick={() => setNote((v) => (v.includes(n) ? v : v ? `${v}, ${n}` : n))}
+                className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.75rem] font-medium text-slate-700 hover:bg-slate-200">{n}</button>
+            ))}
           </div>
-        )}
+          <input value={note} onChange={(e) => setNote(e.target.value.slice(0, 300))} placeholder="Jaise: kam mirch, alag pack"
+            className="h-10 w-full rounded-xl border border-slate-200 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+        </section>
       </div>
-    </div>
+    </Modal>
   );
 }

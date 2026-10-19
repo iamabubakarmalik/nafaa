@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { tablesApi, type RestaurantTable } from '../api/tables.api';
+import { tablesApi, type FloorTable } from '../api/tables.api';
 import { ordersApi, type OrderMode, type OrderStatus, type RestaurantOrder } from '../api/orders.api';
 import { kotApi } from '../api/kot.api';
 import { restaurantDashboardApi } from '../api/dashboard.api';
@@ -16,8 +16,6 @@ const MINUTE = 60 * SECOND;
 
 /** Statuses the kitchen is still working on. */
 const IN_KITCHEN: OrderStatus[] = ['PLACED', 'CONFIRMED', 'COOKING'];
-/** Statuses that are still open, from placed until paid or delivered. */
-const OPEN: OrderStatus[] = [...IN_KITCHEN, 'READY', 'SERVED', 'OUT_FOR_DELIVERY', 'ON_HOLD'];
 /** Default kitchen time when an order carries no estimate. */
 const DEFAULT_PREP_MIN = 20;
 
@@ -43,9 +41,10 @@ interface RestaurantOverview {
 }
 
 export function useRestaurantOps() {
-  const tablesQ = useQuery({ queryKey: ['restaurant-tables-dash'], queryFn: () => tablesApi.list().catch(() => [] as RestaurantTable[]), refetchInterval: 30 * SECOND });
-  const ordersQ = useQuery({ queryKey: ['restaurant-orders-active'], queryFn: () => ordersApi.list({}).catch(() => [] as RestaurantOrder[]), refetchInterval: 20 * SECOND });
-  const kotsQ = useQuery({ queryKey: ['kot-active-dash'], queryFn: () => kotApi.list({}).catch(() => []), refetchInterval: 15 * SECOND });
+  // The live floor: a table's state comes from its open orders, not a stored flag.
+  const tablesQ = useQuery({ queryKey: ['restaurant-floor'], queryFn: () => tablesApi.floor(), select: (f): FloorTable[] => f?.tables ?? [], refetchInterval: 30 * SECOND });
+  const ordersQ = useQuery({ queryKey: ['restaurant-orders-active'], queryFn: () => ordersApi.list({ open: true }).catch(() => [] as RestaurantOrder[]), refetchInterval: 20 * SECOND });
+  const kotsQ = useQuery({ queryKey: ['restaurant-kot', 'active'], queryFn: () => kotApi.list({ active: true }).catch(() => []), refetchInterval: 15 * SECOND });
   const overviewQ = useQuery({
     queryKey: ['restaurant-dashboard-overview'],
     queryFn: () => restaurantDashboardApi.overview().catch(() => null) as Promise<RestaurantOverview | null>,
@@ -58,8 +57,8 @@ export function useRestaurantOps() {
   });
 
   const tables = useMemo(() => {
-    const list = (tablesQ.data ?? []).filter((t) => t.isActive !== false);
-    const by = (s: RestaurantTable['status']) => list.filter((t) => t.status === s);
+    const list = (tablesQ.data ?? []).map((t) => ({ ...t, status: t.liveStatus }));
+    const by = (s: FloorTable['liveStatus']) => list.filter((t) => t.status === s);
     const reserved = by('RESERVED');
     return {
       list,
@@ -79,7 +78,7 @@ export function useRestaurantOps() {
 
   const orders = useMemo(() => {
     const open: OpenOrder[] = (ordersQ.data ?? [])
-      .filter((o) => OPEN.includes(o.status))
+      .filter((o) => !o.saleId)
       .map((o) => {
         const age = minutesSince(o.placedAt || o.createdAt);
         return { ...o, age, late: IN_KITCHEN.includes(o.status) && age > Number(o.estimatedPrepTime || DEFAULT_PREP_MIN) };

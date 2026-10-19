@@ -1,430 +1,298 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import {
-  Bike, MapPin, Clock, Phone, User, Sparkles, RefreshCw,
-  CheckCircle2, X, ArrowRight, Package, DollarSign,
-  Star, AlertCircle, PhoneCall, Navigation, Timer,
-} from 'lucide-react';
-import { deliveryApi, type DeliveryStatus } from '../api/delivery.api';
-import { ridersApi } from '../api/riders.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
+/**
+ * Delivery board: delivery orders by stage — waiting for a rider, rider
+ * assigned, on the way, delivered with the cash still with the rider. The
+ * rider hands the cash over at the counter ("Cash lein"): each order then
+ * becomes a cash bill, so the drawer and day book match what is in hand.
+ *
+ * Keys: N new delivery order · R riders · G guide.
+ */
 
-const STATUS_CONFIG: Record<DeliveryStatus, { label: string; bg: string; text: string; next?: DeliveryStatus }> = {
-  PENDING: { label: 'Pending', bg: 'bg-slate-500', text: 'text-slate-700', next: 'ASSIGNED' },
-  ASSIGNED: { label: 'Assigned', bg: 'bg-blue-500', text: 'text-blue-700', next: 'PICKED_UP' },
-  PICKED_UP: { label: 'Picked Up', bg: 'bg-cyan-500', text: 'text-cyan-700', next: 'ON_THE_WAY' },
-  ON_THE_WAY: { label: 'On the Way', bg: 'bg-violet-500', text: 'text-violet-700', next: 'ARRIVED' },
-  ARRIVED: { label: 'Arrived', bg: 'bg-amber-500', text: 'text-amber-700', next: 'DELIVERED' },
-  DELIVERED: { label: 'Delivered', bg: 'bg-emerald-500', text: 'text-emerald-700' },
-  FAILED: { label: 'Failed', bg: 'bg-rose-500', text: 'text-rose-700' },
-  RETURNED: { label: 'Returned', bg: 'bg-orange-500', text: 'text-orange-700' },
-};
+import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Bike, CheckCircle2, Clock, GraduationCap, HandCoins, MapPin, Navigation, PackageCheck, Phone, Plus, Users, XCircle } from 'lucide-react';
+import { Button, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { deliveryApi, type BoardOrder, type DeliveryStage, type RiderCash } from '../api/delivery.api';
+import { ridersApi } from '../api/riders.api';
+import { ORDER_KEYS, apiError, duration, minutesSince } from '../lib/orderMeta';
+
+const STAGES: Array<{ id: Exclude<DeliveryStage, 'done'>; label: string; color: string; hint: string }> = [
+  { id: 'needsRider', label: 'Rider chahiye', color: '#e11d48', hint: 'Kitchen me ya tayyar' },
+  { id: 'assigned', label: 'Rider laga', color: '#2563eb', hint: 'Uthane ka intezar' },
+  { id: 'onTheWay', label: 'Raste me', color: '#7c3aed', hint: 'Customer ki taraf' },
+  { id: 'cash', label: 'Cash rider ke paas', color: '#d97706', hint: 'Deliver ho gaya' },
+];
 
 export default function DeliveryTrackingPage() {
-  const queryClient = useQueryClient();
-  const [assignFor, setAssignFor] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const canManage = usePermission(PERMISSIONS.RESTAURANT_ORDERS_MANAGE);
+  const canPay = usePermission(PERMISSIONS.POS_USE);
+  const [assign, setAssign] = useState<BoardOrder | null>(null);
+  const [fail, setFail] = useState<BoardOrder | null>(null);
+  const [settle, setSettle] = useState<RiderCash | null>(null);
+  const [guide, setGuide] = useState(false);
 
-  const { data: deliveries = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['deliveries-active'],
-    queryFn: () => deliveryApi.listActive(),
-    refetchInterval: 20_000,
+  const board = useQuery({ queryKey: ['restaurant-delivery-board'], queryFn: () => deliveryApi.board(), refetchInterval: 15_000 });
+  const cash = useQuery({ queryKey: ['restaurant-rider-cash'], queryFn: () => deliveryApi.riderCash(), refetchInterval: 30_000 });
+  const rows = board.data ?? [];
+  const by = (s: DeliveryStage) => rows.filter((o) => o.stage === s);
+  const done = by('done');
+  const cashTotal = (cash.data ?? []).reduce((n, r) => n + r.amount, 0);
+  const refresh = () => ORDER_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const step = useMutation({
+    mutationFn: ({ id, status, failureReason }: { id: string; status: string; failureReason?: string }) => deliveryApi.updateStatus(id, { status, failureReason }),
+    onSuccess: () => { refresh(); setFail(null); },
+    onError: (e) => toast.error(apiError(e)),
   });
 
-  const { data: riders = [] } = useQuery({
-    queryKey: ['riders-active'],
-    queryFn: () => ridersApi.list({ status: 'ACTIVE', active: true }),
-  });
-
-  const statusMutation = useMutation({
-    mutationFn: ({ orderId, status }: { orderId: string; status: string }) =>
-      deliveryApi.updateStatus(orderId, { status }),
-    onSuccess: () => {
-      toast.success('Delivery updated');
-      queryClient.invalidateQueries({ queryKey: ['deliveries-active'] });
-    },
-  });
-
-  const stats = {
-    pending: deliveries.filter((d) => d.status === 'PENDING').length,
-    assigned: deliveries.filter((d) => d.status === 'ASSIGNED').length,
-    onTheWay: deliveries.filter((d) => ['PICKED_UP', 'ON_THE_WAY', 'ARRIVED'].includes(d.status)).length,
-    total: deliveries.length,
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (k === 'n') navigate('/restaurant/orders/new?mode=DELIVERY');
+      if (k === 'r') navigate('/restaurant/riders');
+      if (k === 'g') setGuide(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-purple-400/15 blur-3xl" />
+    <PageShell>
+      {assign && <AssignDialog order={assign} onClose={() => setAssign(null)} onDone={() => { refresh(); setAssign(null); }} />}
+      {fail && <FailDialog order={fail} saving={step.isPending} onClose={() => setFail(null)} onConfirm={(reason) => step.mutate({ id: fail.id, status: 'FAILED', failureReason: reason })} />}
+      {settle && <SettleDialog rider={settle} onClose={() => setSettle(null)} onDone={() => { refresh(); setSettle(null); }} />}
+      {guide && (
+        <Modal open onClose={() => setGuide(false)} size="md" title="Delivery — aasaan tareeqa">
+          <ol className="list-decimal space-y-2 pl-5 text-[0.875rem] text-slate-700">
+            <li>Delivery order lein (<Kbd>N</Kbd>) — pata aur phone zaroori.</li>
+            <li>"Rider lagayein" — rider busy ho jata hai.</li>
+            <li>Rider khana uthaye to "Nikal gaya", pahunchaye to "Deliver".</li>
+            <li>Wapas aa kar rider cash de: upar "Cash lein" — har order ka cash bill banta hai, drawer me jata hai.</li>
+            <li>Card / online paid order ho to order khol kar payment lein.</li>
+          </ol>
+        </Modal>
+      )}
 
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Live Tracking
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              🏍️ Delivery Tracking
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Riders live status — auto-refresh every 20 seconds
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
-            >
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        title="Delivery"
+        chip={<><Bike />{rows.filter((o) => o.stage !== 'done').length} chalu</>}
+        busy={board.isFetching && !board.isLoading}
+        meta="Har 15 second taaza"
+        loading={board.isLoading}
+        actions={<>
+          <Link to="/restaurant/riders" className={heroButton}><Users className="h-4 w-4" />Riders <Kbd className="hidden bg-white/20 text-white md:inline-flex">R</Kbd></Link>
+          <Link to="/restaurant/orders/new?mode=DELIVERY" className={heroPrimaryButton}><Plus className="h-4 w-4" />Delivery order</Link>
+          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Riders ke paas cash', value: formatPKR(cashTotal), hint: `${(cash.data ?? []).length} rider` },
+          { label: 'Rider chahiye', value: String(by('needsRider').length) },
+          { label: 'Raste me', value: String(by('onTheWay').length + by('assigned').length) },
+          { label: 'Aaj deliver', value: String(done.length + by('cash').length) },
+        ]}
+      />
 
-      {/* STATS */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Active" value={stats.total} icon={Bike} color="violet" />
-        <StatCard label="Pending Assignment" value={stats.pending} icon={AlertCircle} color="amber" />
-        <StatCard label="Assigned" value={stats.assigned} icon={CheckCircle2} color="blue" />
-        <StatCard label="On the Way" value={stats.onTheWay} icon={Navigation} color="emerald" />
-      </section>
+      {(cash.data ?? []).length > 0 && (
+        <KpiRow cols={4}>
+          {(cash.data ?? []).map((r) => (
+            <KpiCard key={r.rider.id} icon={HandCoins} color="#d97706" label={r.rider.name} value={formatPKR(r.amount)}
+              hint={canPay ? `${r.orders.length} order · cash lein` : `${r.orders.length} order`} onClick={canPay ? () => setSettle(r) : undefined} />
+          ))}
+        </KpiRow>
+      )}
 
-      {/* DELIVERIES */}
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : deliveries.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-emerald-100 dark:bg-emerald-950/40 mx-auto flex items-center justify-center">
-            <CheckCircle2 className="h-10 w-10 text-emerald-600" />
-          </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No active deliveries</h3>
-          <p className="mt-1 text-sm text-slate-500 font-semibold">All caught up! 🎉</p>
+      {board.isLoading ? (
+        <div className="grid gap-4 lg:grid-cols-4">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-80 rounded-3xl" />)}</div>
+      ) : !rows.length ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg"><Bike className="h-7 w-7" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">Abhi koi delivery nahi</h3>
+          <Button className="mt-4" onClick={() => navigate('/restaurant/orders/new?mode=DELIVERY')}><Plus className="h-4 w-4" />Delivery order lein</Button>
         </div>
       ) : (
-        <section className="grid gap-3">
-          {deliveries.map((d: any) => (
-            <DeliveryCard
-              key={d.id}
-              delivery={d}
-              onAssign={() => setAssignFor(d.orderId)}
-              onNext={() => {
-                const next = STATUS_CONFIG[d.status as DeliveryStatus]?.next;
-                if (next) statusMutation.mutate({ orderId: d.orderId, status: next });
-              }}
-              onFail={() => {
-                const reason = prompt('Failure reason?');
-                if (reason) deliveryApi.updateStatus(d.orderId, { status: 'FAILED', failureReason: reason })
-                  .then(() => queryClient.invalidateQueries({ queryKey: ['deliveries-active'] }));
-              }}
-            />
-          ))}
-        </section>
-      )}
-
-      {assignFor && (
-        <AssignRiderModal
-          orderId={assignFor}
-          riders={riders}
-          onClose={() => setAssignFor(null)}
-          onAssigned={() => {
-            setAssignFor(null);
-            queryClient.invalidateQueries({ queryKey: ['deliveries-active'] });
-            queryClient.invalidateQueries({ queryKey: ['riders-active'] });
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    violet: 'from-violet-500 to-purple-600',
-    amber: 'from-amber-500 to-orange-600',
-    blue: 'from-blue-500 to-blue-700',
-    emerald: 'from-emerald-500 to-green-600',
-  };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DeliveryCard({ delivery, onAssign, onNext, onFail }: any) {
-  const cfg = STATUS_CONFIG[delivery.status as DeliveryStatus] ?? STATUS_CONFIG.PENDING;
-  const order = delivery.order;
-  const rider = delivery.rider;
-  const elapsed = delivery.assignedAt
-    ? Math.floor((Date.now() - new Date(delivery.assignedAt).getTime()) / 60000)
-    : 0;
-
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        {/* LEFT */}
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={'h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow ' + cfg.bg + ' text-white'}>
-            <Bike className="h-6 w-6" />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Link to={'/restaurant/orders/' + delivery.orderId} className="font-extrabold text-slate-900 dark:text-ink-white text-lg hover:text-violet-600">
-                {order?.orderNumber}
-              </Link>
-              <span className={'px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase text-white ' + cfg.bg}>
-                {cfg.label}
-              </span>
-              {elapsed > 0 && (
-                <span className={
-                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.6875rem] font-extrabold ' +
-                  (elapsed > 45 ? 'bg-rose-100 text-rose-700' : elapsed > 25 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')
-                }>
-                  <Timer className="h-2.5 w-2.5" />
-                  {elapsed}m
-                </span>
-              )}
-            </div>
-
-            <div className="mt-1 grid sm:grid-cols-2 gap-2 text-xs">
-              {/* Customer */}
-              <div className="space-y-1">
-                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Customer</div>
-                {order?.customerName && (
-                  <div className="flex items-center gap-1.5 text-slate-700 dark:text-ink-300 font-bold">
-                    <User className="h-3 w-3 text-slate-400" />
-                    {order.customerName}
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+          {STAGES.map((s) => {
+            const list = by(s.id);
+            return (
+              <section key={s.id} className="flex flex-col rounded-3xl bg-slate-100/70 p-3 ring-1 ring-slate-200/80">
+                <h2 className="mb-2 flex items-center justify-between px-1 text-[0.875rem] font-semibold text-slate-900">
+                  <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />{s.label}</span>
+                  <span className="rounded-full bg-white px-2 text-[0.75rem] tabular-nums text-slate-600">{list.length}</span>
+                </h2>
+                {!list.length ? <p className="py-8 text-center text-[0.8125rem] text-slate-400">{s.hint} — koi nahi</p> : (
+                  <div className="space-y-2">
+                    {list.map((o) => (
+                      <DeliveryCard key={o.id} o={o} canManage={canManage} busy={step.isPending && step.variables?.id === o.id}
+                        onAssign={() => setAssign(o)} onFail={() => setFail(o)}
+                        onStep={(status) => step.mutate({ id: o.id, status })} />
+                    ))}
                   </div>
                 )}
-                {order?.customerPhone && (
-                  <a href={'tel:' + order.customerPhone} className="flex items-center gap-1.5 text-blue-700 font-bold hover:underline">
-                    <Phone className="h-3 w-3" />
-                    {order.customerPhone}
-                  </a>
-                )}
-                {order?.deliveryAddress && (
-                  <div className="flex items-start gap-1.5 text-slate-600 dark:text-ink-400 font-semibold">
-                    <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-                    <span className="line-clamp-2">{order.deliveryAddress}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Rider */}
-              <div className="space-y-1">
-                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Rider</div>
-                {rider ? (
-                  <>
-                    <Link to={'/restaurant/riders'} className="flex items-center gap-1.5 text-violet-700 font-bold hover:underline">
-                      {rider.avatarUrl ? (
-                        <img src={rider.avatarUrl} alt="" className="h-5 w-5 rounded-full object-cover" />
-                      ) : (
-                        <div className="h-5 w-5 rounded-full bg-violet-500 text-white flex items-center justify-center text-[0.6875rem] font-extrabold">
-                          {rider.name.charAt(0)}
-                        </div>
-                      )}
-                      {rider.name}
-                    </Link>
-                    <a href={'tel:' + rider.phone} className="flex items-center gap-1.5 text-blue-700 font-bold hover:underline">
-                      <PhoneCall className="h-3 w-3" />
-                      {rider.phone}
-                    </a>
-                    {rider.vehicleNumber && (
-                      <div className="text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-ink-400">
-                        🏍️ {rider.vehicleNumber}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-amber-700 font-extrabold italic">⚠️ Not assigned</div>
-                )}
-              </div>
-            </div>
-
-            {delivery.distanceKm && (
-              <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-500 font-semibold">
-                <span>{delivery.distanceKm.toFixed(1)} km</span>
-                {delivery.estimatedMinutes && <span>ETA: {delivery.estimatedMinutes}m</span>}
-                {delivery.deliveryFee > 0 && <span className="text-emerald-700 font-extrabold">Fee: {formatPKR(delivery.deliveryFee)}</span>}
-              </div>
-            )}
-          </div>
+              </section>
+            );
+          })}
         </div>
-
-        {/* RIGHT */}
-        <div className="text-right shrink-0">
-          <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
-            {formatPKR(order?.total ?? 0)}
-          </div>
-          <div className="mt-2 flex gap-1 justify-end flex-wrap">
-            {!rider && (
-              <button
-                onClick={onAssign}
-                className="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-xs font-extrabold inline-flex items-center gap-1 shadow"
-              >
-                <User className="h-3 w-3" />
-                Assign
-              </button>
-            )}
-            {cfg.next && (
-              <button
-                onClick={onNext}
-                className={'px-3 py-1.5 rounded-lg text-white text-xs font-extrabold inline-flex items-center gap-1 shadow ' + STATUS_CONFIG[cfg.next].bg}
-              >
-                <ArrowRight className="h-3 w-3" />
-                {STATUS_CONFIG[cfg.next].label}
-              </button>
-            )}
-            {!['DELIVERED', 'FAILED', 'RETURNED'].includes(delivery.status) && (
-              <button
-                onClick={onFail}
-                className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
-                title="Mark failed"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+      )}
+      {done.length > 0 && (
+        <details className="rounded-3xl bg-white px-4 py-3 ring-1 ring-slate-200/80">
+          <summary className="cursor-pointer text-[0.875rem] font-semibold text-slate-700">Pichhle 12 ghante me mukammal · {done.length}</summary>
+          <ul className="mt-2 divide-y divide-slate-100 text-[0.8125rem]">
+            {done.map((o) => (
+              <li key={o.id} className="flex justify-between py-1.5"><Link to={`/restaurant/orders/${o.id}`} className="hover:underline">{o.token ? `#${o.token} · ` : ''}{o.customerName ?? o.orderNumber}</Link>
+                <span className="text-slate-500">{o.delivery?.rider?.name ?? '—'} · {formatPKR(o.total)}</span></li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </PageShell>
   );
 }
 
-function AssignRiderModal({ orderId, riders, onClose, onAssigned }: any) {
-  const [selectedRider, setSelectedRider] = useState('');
-  const [estimatedMinutes, setEstimatedMinutes] = useState(30);
-  const [distanceKm, setDistanceKm] = useState<any>('');
-  const [deliveryFee, setDeliveryFee] = useState<any>('');
-  const [riderCommission, setRiderCommission] = useState<any>('');
+function DeliveryCard({ o, canManage, busy, onAssign, onFail, onStep }: {
+  o: BoardOrder; canManage: boolean; busy: boolean; onAssign: () => void; onFail: () => void; onStep: (s: string) => void;
+}) {
+  const rider = o.delivery?.rider;
+  const ready = o.items.length > 0 && o.items.every((i) => i.status === 'READY' || i.status === 'SERVED');
+  const age = minutesSince(o.createdAt);
+  return (
+    <article className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+      <Link to={`/restaurant/orders/${o.id}`} className="block px-3 py-2.5 hover:bg-slate-50">
+        <div className="flex items-start justify-between gap-2">
+          <p className="truncate text-[0.9375rem] font-bold text-slate-900">{o.token ? `#${o.token} · ` : ''}{o.customerName || o.orderNumber}</p>
+          <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', age > 45 ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600')}><Clock className="h-3 w-3" />{duration(age)}</span>
+        </div>
+        {o.deliveryAddress && <p className="mt-0.5 flex items-start gap-1 text-[0.8125rem] text-slate-600"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="line-clamp-2">{o.deliveryAddress}</span></p>}
+        <p className="mt-0.5 truncate text-[0.75rem] text-slate-500">{o.items.map((i) => `${i.quantity}× ${i.product?.name ?? ''}`).join(', ')}</p>
+        <div className="mt-1.5 flex items-center justify-between">
+          <span className="text-[0.75rem] text-slate-500">{rider ? <><Bike className="mr-1 inline h-3.5 w-3.5" />{rider.name}</> : ready ? <span className="font-semibold text-emerald-700">Khana tayyar</span> : 'Kitchen me'}</span>
+          <span className="text-[0.9375rem] font-bold tabular-nums">{formatPKR(o.due || o.total)}</span>
+        </div>
+      </Link>
+      {canManage && o.stage !== 'done' && (
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-100 px-3 py-2">
+          {o.customerPhone && <a href={`tel:${o.customerPhone}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" title="Customer ko call"><Phone className="h-4 w-4" /></a>}
+          {(o.stage === 'needsRider' || o.stage === 'assigned') && <Button size="xs" variant={o.stage === 'needsRider' ? 'primary' : 'ghost'} onClick={onAssign}><Bike className="h-3.5 w-3.5" />{rider ? 'Badlein' : 'Rider lagayein'}</Button>}
+          {o.stage === 'assigned' && <Button size="xs" loading={busy} onClick={() => onStep('PICKED_UP')}><Navigation className="h-3.5 w-3.5" />Nikal gaya</Button>}
+          {o.stage === 'onTheWay' && <Button size="xs" variant="success" loading={busy} onClick={() => onStep('DELIVERED')}><PackageCheck className="h-3.5 w-3.5" />Deliver</Button>}
+          {(o.stage === 'assigned' || o.stage === 'onTheWay') && <button type="button" onClick={onFail} className="ml-auto rounded-lg p-1.5 text-rose-600 hover:bg-rose-50" title="Delivery nahi hui"><XCircle className="h-4 w-4" /></button>}
+          {o.stage === 'cash' && <span className="text-[0.75rem] font-medium text-amber-800">Rider se cash lena hai</span>}
+        </div>
+      )}
+    </article>
+  );
+}
 
-  const assignMutation = useMutation({
-    mutationFn: () => deliveryApi.assign(orderId, {
-      riderId: selectedRider,
-      estimatedMinutes,
-      distanceKm: distanceKm ? Number(distanceKm) : undefined,
-      deliveryFee: deliveryFee ? Number(deliveryFee) : undefined,
-      riderCommission: riderCommission ? Number(riderCommission) : undefined,
-    }),
-    onSuccess: () => {
-      toast.success('Rider assigned');
-      onAssigned();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+function AssignDialog({ order, onClose, onDone }: { order: BoardOrder; onClose: () => void; onDone: () => void }) {
+  const { data: riders = [], isLoading } = useQuery({ queryKey: ['restaurant-riders', 'active'], queryFn: () => ridersApi.list({ active: true }) });
+  const [riderId, setRiderId] = useState(order.delivery?.riderId ?? '');
+  const [fee, setFee] = useState('');
+  const save = useMutation({
+    mutationFn: () => deliveryApi.assign(order.id, { riderId, ...(Number(fee) > 0 && { riderCommission: Number(fee) }) }),
+    onSuccess: () => { toast.success('Rider lag gaya'); onDone(); },
+    onError: (e) => toast.error(apiError(e)),
   });
-
+  const usable = riders.filter((r) => r.status === 'ACTIVE' || r.status === 'BUSY');
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Assign Rider</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
+    <Modal open onClose={onClose} size="md" title={`${order.customerName || order.orderNumber} — rider`} description={order.deliveryAddress ?? undefined}
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!riderId} loading={save.isPending} onClick={() => save.mutate()}>Rider lagayein</Button></div>}>
+      {isLoading ? <p className="py-6 text-center text-slate-500">…</p> : !usable.length ? (
+        <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-[0.875rem] text-slate-600">Koi rider duty par nahi. <Link className="font-semibold text-brand-700" to="/restaurant/riders">Riders</Link></p>
+      ) : (
+        <div className="space-y-3">
+          <ul className="space-y-1.5">
+            {usable.map((r) => (
+              <li key={r.id}><button type="button" onClick={() => setRiderId(r.id)}
+                className={cn('flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left ring-1', riderId === r.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
+                <span><span className="block text-[0.875rem] font-semibold">{r.name}</span><span className="text-[0.75rem] text-slate-500">{r.phone}{r.vehicleNumber ? ` · ${r.vehicleNumber}` : ''}{r.cashDue ? ` · cash ${formatPKR(r.cashDue)}` : ''}</span></span>
+                <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', r.status === 'BUSY' ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700')}>{r.status === 'BUSY' ? `${r.activeTrips ?? 1} trip` : 'Free'}</span>
+              </button></li>
+            ))}
+          </ul>
+          <label className="block text-[0.8125rem] font-medium text-slate-700">Rider ka kiraya (marzi)
+            <input value={fee} onChange={(e) => setFee(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="0"
+              className="mt-1 h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] font-normal tabular-nums outline-none focus:border-brand-500" />
+            <span className="mt-0.5 block text-[0.75rem] font-normal text-slate-500">Cash lete waqt drawer se de sakte hain — tab yeh Expense me khud likh jata hai</span>
+          </label>
         </div>
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Select Available Rider</label>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {riders.length === 0 ? (
-                <div className="text-sm text-slate-500 font-semibold italic p-4 text-center">No active riders. Add riders first.</div>
-              ) : (
-                riders.map((r: any) => (
-                  <button
-                    key={r.id}
-                    onClick={() => setSelectedRider(r.id)}
-                    className={
-                      'w-full p-3 rounded-xl border-2 flex items-center gap-3 transition text-left ' +
-                      (selectedRider === r.id
-                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow'
-                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
-                    }
-                  >
-                    {r.avatarUrl ? (
-                      <img src={r.avatarUrl} alt="" className="h-10 w-10 rounded-xl object-cover" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center font-extrabold">
-                        {r.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{r.name}</div>
-                      <div className="text-xs text-slate-500 font-semibold">
-                        {r.phone} • {r.totalDeliveries} deliveries
-                        {r.avgRating && ' • ⭐ ' + r.avgRating.toFixed(1)}
-                      </div>
-                    </div>
-                    {selectedRider === r.id && <CheckCircle2 className="h-5 w-5 text-violet-600" />}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
+      )}
+    </Modal>
+  );
+}
 
-          {selectedRider && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">ETA (minutes)</label>
-                <input
-                  type="number" value={estimatedMinutes} onChange={(e) => setEstimatedMinutes(Number(e.target.value))}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
-                />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Distance (km)</label>
-                <input
-                  type="number" step="0.1" value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)}
-                  placeholder="Optional"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
-                />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Fee (Rs)</label>
-                <input
-                  type="number" step="0.01" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
-                />
-              </div>
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Rider Commission</label>
-                <input
-                  type="number" step="0.01" value={riderCommission} onChange={(e) => setRiderCommission(e.target.value)}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button
-            className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700"
-            onClick={() => assignMutation.mutate()}
-            loading={assignMutation.isPending}
-            disabled={!selectedRider}
-          >
-            <Bike className="h-4 w-4" />
-            Assign Rider
-          </Button>
-        </div>
+function FailDialog({ order, saving, onConfirm, onClose }: { order: BoardOrder; saving: boolean; onConfirm: (reason: string) => void; onClose: () => void }) {
+  const [reason, setReason] = useState('');
+  return (
+    <Modal open onClose={onClose} size="md" title="Delivery nahi hui" description="Rider free ho jata hai. Order khula rehta hai — naya rider lagayein ya order cancel karein."
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={saving} disabled={reason.trim().length < 3} onClick={() => onConfirm(reason.trim())}>Save karein</Button></div>}>
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        {['Customer ne phone nahi uthaya', 'Ghalat pata', 'Customer ne lene se mana kiya', 'Bike kharab'].map((r) => (
+          <button key={r} type="button" onClick={() => setReason(r)} className={cn('rounded-full px-2.5 py-1 text-[0.75rem] font-medium', reason === r ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700')}>{r}</button>
+        ))}
       </div>
-    </div>
+      <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value.slice(0, 300))} placeholder="Wajah" aria-label="Wajah"
+        className="h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500" />
+      <p className="mt-2 text-[0.75rem] text-slate-500">{order.orderNumber}</p>
+    </Modal>
+  );
+}
+
+function SettleDialog({ rider, onClose, onDone }: { rider: RiderCash; onClose: () => void; onDone: () => void }) {
+  const canExpense = usePermission(PERMISSIONS.EXPENSES_CREATE);
+  const delivered = rider.orders.filter((o) => o.status === 'DELIVERED');
+  const [pick, setPick] = useState<Set<string>>(() => new Set(delivered.map((o) => o.id)));
+  const amount = useMemo(() => rider.orders.filter((o) => pick.has(o.id)).reduce((n, o) => n + o.due, 0), [rider.orders, pick]);
+  const fee = useMemo(() => rider.orders.filter((o) => pick.has(o.id)).reduce((n, o) => n + (o.riderFee ?? 0), 0), [rider.orders, pick]);
+  const [payFee, setPayFee] = useState(true);
+  const paying = canExpense && payFee && fee > 0;
+  const save = useMutation({
+    mutationFn: () => deliveryApi.settle(rider.rider.id, [...pick], paying),
+    onSuccess: (r) => {
+      if (r.settled.length) toast.success(`${formatPKR(r.amount)} cash mila — ${r.settled.length} bill ban gaye`);
+      if (r.riderFee?.error) toast.error(r.riderFee.error);
+      else if (r.riderFee?.amount) toast.success(`Rider ko ${formatPKR(r.riderFee.amount)} kiraya diya — Expense ${r.riderFee.expenseNumbers.join(', ')}`);
+      r.failed.forEach((f) => toast.error(`${f.orderNumber}: ${f.error}`));
+      onDone();
+    },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const toggle = (id: string) => setPick((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  return (
+    <Modal open onClose={onClose} size="md" title={`${rider.rider.name} se cash lein`} description="Har chuna hua order cash bill ban jata hai — drawer aur day book me abhi jata hai"
+      footer={<div className="flex w-full items-center justify-between gap-3"><span className="text-[0.875rem] text-slate-600">{paying ? 'Drawer me' : 'Lena hai'} <b className="text-[1.125rem] tabular-nums text-slate-900">{formatPKR(paying ? amount - fee : amount)}</b></span>
+        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!pick.size} loading={save.isPending} onClick={() => save.mutate()}><CheckCircle2 className="h-4 w-4" />Cash mil gaya</Button></div></div>}>
+      <ul className="divide-y divide-slate-100">
+        {rider.orders.map((o) => (
+          <li key={o.id}>
+            <label className="flex cursor-pointer items-center gap-3 py-2">
+              <input type="checkbox" checked={pick.has(o.id)} onChange={() => toggle(o.id)} className="h-4 w-4 accent-[rgb(var(--brand-600))]" />
+              <span className="min-w-0 flex-1"><span className="block text-[0.875rem] font-semibold">{o.customerName || o.orderNumber}</span>
+                <span className="text-[0.75rem] text-slate-500">{o.orderNumber} · {o.status === 'DELIVERED' ? 'deliver ho gaya' : 'abhi raste me'}</span></span>
+              <span className="text-right"><span className="block text-[0.875rem] font-bold tabular-nums">{formatPKR(o.due)}</span>
+                {(o.riderFee ?? 0) > 0 && <span className="block text-[0.6875rem] text-slate-500">kiraya {formatPKR(o.riderFee ?? 0)}</span>}</span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      {fee > 0 && (
+        canExpense ? (
+          <label className="mt-2 flex cursor-pointer items-start gap-2.5 rounded-xl bg-amber-50 px-3 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
+            <input type="checkbox" checked={payFee} onChange={(e) => setPayFee(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[rgb(var(--brand-600))]" />
+            <span>Rider ka kiraya <b className="tabular-nums">{formatPKR(fee)}</b> abhi drawer se dein
+              <span className="block text-[0.75rem] text-amber-800/80">Cash Expense ban jata hai, taake drawer aur profit dono sahi rahein</span></span>
+          </label>
+        ) : (
+          <p className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600">Rider ka kiraya {formatPKR(fee)} — drawer se dene ke liye Expense likhne ki permission chahiye</p>
+        )
+      )}
+    </Modal>
   );
 }

@@ -1,507 +1,266 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import {
-  Palette, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Star, Calendar, Package, Eye, EyeOff, TrendingUp, Award, Image as ImageIcon,
-} from 'lucide-react';
-import { collectionsApi, type GarmentCollection, type GarmentSeason } from '../api/collections.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+/**
+ * Collections (Summer Lawn, Eid, Winter): which products belong to each
+ * season, what is left on the shelf of this branch and how each sells in
+ * the last 30 days. Mark a whole collection "Sale" (the POS shows those
+ * pieces under Sale), add or take out products, and switch old ones off.
+ *
+ * Keys: N new · / search · G guide.
+ */
 
-const SEASONS: { value: GarmentSeason; label: string; emoji: string; gradient: string }[] = [
-  { value: 'SPRING', label: 'Spring', emoji: '🌸', gradient: 'from-pink-400 to-rose-400' },
-  { value: 'SUMMER', label: 'Summer', emoji: '☀️', gradient: 'from-amber-400 to-orange-500' },
-  { value: 'AUTUMN', label: 'Autumn', emoji: '🍂', gradient: 'from-orange-500 to-red-600' },
-  { value: 'WINTER', label: 'Winter', emoji: '❄️', gradient: 'from-blue-400 to-cyan-500' },
-  { value: 'ALL_SEASON', label: 'All Season', emoji: '🌍', gradient: 'from-emerald-400 to-teal-500' },
-  { value: 'EID_COLLECTION', label: 'Eid Collection', emoji: '🌙', gradient: 'from-purple-500 to-violet-600' },
-  { value: 'WEDDING_COLLECTION', label: 'Wedding', emoji: '💒', gradient: 'from-rose-500 to-pink-600' },
-  { value: 'FESTIVE_COLLECTION', label: 'Festive', emoji: '🎉', gradient: 'from-fuchsia-500 to-pink-600' },
-  { value: 'RAMADAN_COLLECTION', label: 'Ramadan', emoji: '🕌', gradient: 'from-indigo-500 to-purple-600' },
-  { value: 'SCHOOL_COLLECTION', label: 'School', emoji: '🎒', gradient: 'from-blue-500 to-indigo-600' },
-];
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Archive, BadgePercent, CalendarRange, GraduationCap, Layers, Package, Palette, Pencil, Plus, Sparkles, Star, TrendingUp, X } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Switch, Textarea, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { collectionsApi, type CollectionInput, type GarmentCollection, type GarmentSeason } from '../api/collections.api';
+import { EmptyList, LoadFailed } from '../components/charts';
+import { COLLECTION_KEY, META_KEY, SEASONS, apiError, dayFull, dayInput, opt, seasonLabel } from '../components/meta';
+import { useGarmentsCan } from '../components/permissions';
+import { ProductPick, type PickedProduct } from '../components/ProductPick';
+
+type Show = 'active' | 'all' | 'off';
 
 export default function CollectionsPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const { catalog: canEdit } = useGarmentsCan();
+  const { sales, cost } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [seasonFilter, setSeasonFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<GarmentCollection | null>(null);
+  const [season, setSeason] = useState('');
+  const [show, setShow] = useState<Show>('active');
+  const [form, setForm] = useState<{ c: GarmentCollection | null } | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
-  const { data: collections = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['collections', seasonFilter, search],
-    queryFn: () => collectionsApi.list({
-      season: seasonFilter === 'all' ? undefined : seasonFilter,
-      search: search.trim() || undefined,
-      active: true,
-    }),
+  const listQ = useQuery({ queryKey: [COLLECTION_KEY, 'list'], queryFn: () => collectionsApi.list() });
+  const statsQ = useQuery({ queryKey: [COLLECTION_KEY, 'stats'], queryFn: () => collectionsApi.stats(30) });
+  const statOf = useMemo(() => new Map((statsQ.data?.items ?? []).map((s) => [s.collectionId, s])), [statsQ.data]);
+  const refresh = () => [COLLECTION_KEY, META_KEY, 'products-for-pos', 'catalog'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const onSale = useMutation({
+    mutationFn: ({ c, on }: { c: GarmentCollection; on: boolean }) => collectionsApi.setOnSale(c.id, on),
+    onSuccess: (r, v) => { toast.success(v.on ? `${r.updated} products "Sale" par` : 'Sale hata di'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const toggleActive = useMutation({
+    mutationFn: (c: GarmentCollection) => (c.isActive ? collectionsApi.remove(c.id) : collectionsApi.update(c.id, { name: c.name, isActive: true })),
+    onSuccess: (c) => { toast.success(c.isActive ? 'Collection chalu' : 'Collection band — products waise hi hain'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: (id: string) => collectionsApi.toggleFeatured(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collections'] }),
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canEdit) { e.preventDefault(); setForm({ c: null }); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canEdit]);
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => collectionsApi.remove(id),
-    onSuccess: () => {
-      toast.success('Collection deactivated');
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
-    },
-  });
+  const all = listQ.data ?? [];
+  const term = search.trim().toLowerCase();
+  const rows = all.filter((c) => (show === 'all' || (show === 'active' ? c.isActive : !c.isActive))
+    && (!season || c.season === season) && (!term || c.name.toLowerCase().includes(term) || (c.code ?? '').toLowerCase().includes(term)));
+  const totals = (statsQ.data?.items ?? []).reduce((t, s) => ({ stock: t.stock + s.stock, value: t.value + s.stockValue, sold: t.sold + s.soldValue, onSale: t.onSale + s.onSale }), { stock: 0, value: 0, sold: 0, onSale: 0 });
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-fuchsia-900 to-pink-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-pink-400/15 blur-3xl" />
+    <PageShell>
+      <PageHero title="Collections" chip={<><Palette /> Season</>} meta="Har season ka maal, shelf par kitna bacha aur kitna bika"
+        busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm({ c: null })} title="Nayi (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi collection</button>}
+        </>}
+        stats={[
+          { label: 'Chalu collections', value: all.filter((c) => c.isActive).length },
+          { label: 'Shelf par', value: `${Math.round(totals.stock)} pc`, hint: cost(totals.value) },
+          { label: '30 din ki Sale', value: sales(totals.sold) },
+        ]}
+      />
+      <KpiRow cols={4}>
+        {statsQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Layers} color="#7c3aed" label="Collections" value={all.length} hint={`${all.filter((c) => c.isActive).length} chalu`} />
+          <KpiCard icon={Package} color="#2563eb" label="Shelf par" value={`${Math.round(totals.stock)} pc`} hint={`Cost ${cost(totals.value)}`} />
+          <KpiCard icon={TrendingUp} color="#16a34a" label="30 din me bika" value={sales(totals.sold)} hint="Is branch me" />
+          <KpiCard icon={BadgePercent} color="#e11d48" label="Sale par" value={totals.onSale} hint="Products" />
+        </>}
+      </KpiRow>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Collection ka naam ya code…" />}>
+        <FilterMenu icon={CalendarRange} label={season ? seasonLabel(season) : 'Har season'} value={season} active={!!season} onChange={setSeason}
+          options={[{ value: '', label: 'Har season' }, ...SEASONS.map((s) => ({ value: s.value, label: s.label }))]} />
+        <FilterMenu icon={Archive} label={show === 'active' ? 'Chalu' : show === 'off' ? 'Band' : 'Sab'} value={show} active={show !== 'active'} onChange={setShow} align="right"
+          options={[{ value: 'active', label: 'Chalu' }, { value: 'off', label: 'Band' }, { value: 'all', label: 'Sab' }]} />
+      </FilterBar>
 
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Seasonal Collections
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              🎨 Collections
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Eid, Summer Lawn, Winter, Wedding — sab collections yahaan
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
-            >
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button
-              className="bg-white text-slate-900 hover:bg-slate-100"
-              onClick={() => { setEditing(null); setShowForm(true); }}
-            >
-              <Plus className="h-4 w-4" />
-              New Collection
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search collections..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-fuchsia-500"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button
-            onClick={() => setSeasonFilter('all')}
-            className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (seasonFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }
-          >
-            All Seasons
-          </button>
-          {SEASONS.map((s) => (
-            <button
-              key={s.value}
-              onClick={() => setSeasonFilter(s.value)}
-              className={
-                'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                (seasonFilter === s.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-              }
-            >
-              {s.emoji} {s.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <CollectionForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false);
-            setEditing(null);
-            queryClient.invalidateQueries({ queryKey: ['collections'] });
-          }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : collections.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-fuchsia-100 dark:bg-fuchsia-950/40 mx-auto flex items-center justify-center">
-            <Palette className="h-10 w-10 text-fuchsia-600" />
-          </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No collections yet</h3>
-          <p className="mt-1 text-sm text-slate-500 font-semibold">Pehla seasonal collection banao</p>
-          <Button
-            className="mt-4 bg-gradient-to-r from-fuchsia-600 to-pink-700"
-            onClick={() => { setEditing(null); setShowForm(true); }}
-          >
-            <Plus className="h-4 w-4" />
-            Create First Collection
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {collections.map((collection) => (
-            <CollectionCard
-              key={collection.id}
-              collection={collection}
-              onEdit={() => { setEditing(collection); setShowForm(true); }}
-              onToggleFeatured={() => toggleMutation.mutate(collection.id)}
-              onDelete={() => {
-                if (confirm('Deactivate "' + collection.name + '"?')) removeMutation.mutate(collection.id);
-              }}
-            />
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function CollectionCard({ collection, onEdit, onToggleFeatured, onDelete }: {
-  collection: GarmentCollection;
-  onEdit: () => void;
-  onToggleFeatured: () => void;
-  onDelete: () => void;
-}) {
-  const season = SEASONS.find((s) => s.value === collection.season);
-
-  return (
-    <div className={
-      'group rounded-3xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (collection.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
-    }>
-      {/* Cover */}
-      <div className={'relative aspect-[16/9] overflow-hidden bg-gradient-to-br ' + (season?.gradient ?? 'from-fuchsia-500 to-pink-600')}>
-        {collection.coverImageUrl ? (
-          <img src={collection.coverImageUrl} alt={collection.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-6xl">{season?.emoji || '👗'}</span>
-          </div>
-        )}
-
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex gap-1 flex-wrap">
-          {collection.isFeatured && (
-            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-              <Star className="h-2 w-2 fill-current" />
-              Featured
-            </span>
-          )}
-          <span className="px-2 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[0.625rem] font-extrabold uppercase shadow">
-            {season?.label}
-          </span>
-        </div>
-
-        {/* Featured toggle */}
-        <button
-          onClick={onToggleFeatured}
-          className={
-            'absolute top-3 right-3 h-8 w-8 rounded-lg backdrop-blur flex items-center justify-center transition shadow-lg ' +
-            (collection.isFeatured ? 'bg-amber-500 text-white' : 'bg-slate-900/60 text-white hover:bg-amber-500')
-          }
-        >
-          <Star className={'h-4 w-4 ' + (collection.isFeatured ? 'fill-current' : '')} />
-        </button>
-
-        {/* Hover actions */}
-        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <button
-            onClick={onEdit}
-            className="h-8 w-8 rounded-lg bg-slate-900/90 text-white flex items-center justify-center hover:bg-slate-900 shadow"
-          >
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="h-8 w-8 rounded-lg bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-600 shadow"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="p-4 space-y-2">
-        <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">{collection.name}</h3>
-          {collection.code && (
-            <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{collection.code}</div>
-          )}
-          {collection.year && (
-            <div className="text-xs font-extrabold text-fuchsia-600 mt-0.5">{collection.year}</div>
-          )}
-        </div>
-
-        {collection.description && (
-          <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold line-clamp-2">{collection.description}</p>
-        )}
-
-        {(collection.launchDate || collection.endDate) && (
-          <div className="text-xs text-slate-500 font-bold inline-flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            {collection.launchDate && format(new Date(collection.launchDate), 'dd MMM')}
-            {collection.launchDate && collection.endDate && ' – '}
-            {collection.endDate && format(new Date(collection.endDate), 'dd MMM yyyy')}
-          </div>
-        )}
-
-        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
-          <span className="inline-flex items-center gap-1 text-xs text-slate-600 font-bold">
-            <Package className="h-3 w-3" />
-            {collection.totalProducts || 0} products
-          </span>
-          {collection.totalSales > 0 && (
-            <span className="text-xs font-extrabold text-emerald-700 tabular-nums inline-flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              {formatPKR(collection.totalSales)}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CollectionForm({ editing, onClose, onSaved }: {
-  editing: GarmentCollection | null;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [form, setForm] = useState({
-    name: editing?.name ?? '',
-    code: editing?.code ?? '',
-    description: editing?.description ?? '',
-    season: editing?.season ?? ('ALL_SEASON' as GarmentSeason),
-    year: editing?.year ?? new Date().getFullYear(),
-    launchDate: editing?.launchDate ? editing.launchDate.slice(0, 10) : '',
-    endDate: editing?.endDate ? editing.endDate.slice(0, 10) : '',
-    coverImageUrl: editing?.coverImageUrl ?? '',
-    bannerImageUrl: editing?.bannerImageUrl ?? '',
-    colorTheme: editing?.colorTheme ?? '',
-    isFeatured: editing?.isFeatured ?? false,
-    displayOrder: editing?.displayOrder ?? 0,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        ...form,
-        year: form.year ? Number(form.year) : undefined,
-        launchDate: form.launchDate || undefined,
-        endDate: form.endDate || undefined,
-      };
-      return editing ? collectionsApi.update(editing.id, payload) : collectionsApi.create(payload);
-    },
-    onSuccess: () => {
-      toast.success(editing ? 'Collection updated' : 'Collection created');
-      onSaved();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
-          {editing ? 'Edit Collection' : 'New Collection'}
-        </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="sm:col-span-2">
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Collection Name *</label>
-            <input
-              autoFocus
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="e.g. Eid Luxury 2026, Summer Lawn 2026"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Code</label>
-            <input
-              value={form.code}
-              onChange={(e) => setForm({ ...form, code: e.target.value })}
-              placeholder="EID26"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Year</label>
-            <input
-              type="number"
-              value={form.year}
-              onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500"
-            />
-          </div>
-        </div>
-
-        {/* Season picker */}
-        <div>
-          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Season *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {SEASONS.map((s) => {
-              const active = form.season === s.value;
-              return (
-                <button
-                  key={s.value}
-                  onClick={() => setForm({ ...form, season: s.value })}
-                  className={
-                    'p-3 rounded-xl border-2 text-center transition ' +
-                    (active
-                      ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow'
-                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
-                  }
-                >
-                  <div className="text-2xl mb-1">{s.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">{s.label}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
-          <textarea
-            rows={3}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Collection ka theme aur inspiration..."
-            className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none"
-          />
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Launch Date</label>
-            <input
-              type="date"
-              value={form.launchDate}
-              onChange={(e) => setForm({ ...form, launchDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
-            />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">End Date</label>
-            <input
-              type="date"
-              value={form.endDate}
-              onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Cover Image</label>
-          {form.coverImageUrl ? (
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
-              <img src={form.coverImageUrl} alt="" className="w-full h-full object-cover" />
-              <button
-                onClick={() => setForm({ ...form, coverImageUrl: '' })}
-                className="absolute top-2 right-2 h-8 w-8 rounded-lg bg-rose-600 text-white flex items-center justify-center"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+      {listQ.isLoading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-52 rounded-2xl" />)}</div>
+        : listQ.isError ? <LoadFailed what="Collections" retry={() => listQ.refetch()} />
+          : !rows.length ? (
+            <EmptyList icon={Palette} title={all.length ? 'Is filter me koi nahi' : 'Abhi koi collection nahi'} text="Summer Lawn, Eid, Winter — har season ka maal ek collection me rakhein. Season khatam ho to poori collection 'Sale' par laga dein.">
+              {canEdit && <Button onClick={() => setForm({ c: null })} leftIcon={<Plus className="h-4 w-4" />}>Nayi collection</Button>}
+            </EmptyList>
           ) : (
-            <UploadDropzone
-              onUploaded={(records) => {
-                const first = Array.isArray(records) ? records[0] : records;
-                const url = typeof first === 'string' ? first : (first as any)?.url;
-                if (url) setForm({ ...form, coverImageUrl: url });
-              }}
-            />
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {rows.map((c) => {
+                const s = statOf.get(c.id);
+                const sell = s && s.stock + s.soldQty > 0 ? Math.round((s.soldQty / (s.stock + s.soldQty)) * 100) : null;
+                const allOnSale = !!s && s.products > 0 && s.onSale === s.products;
+                return (
+                  <article key={c.id} className={cn('flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80', !c.isActive && 'opacity-70')}>
+                    <div className="h-2" style={{ background: c.colorTheme || '#ec4899' }} />
+                    <div className="flex flex-1 flex-col p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-slate-900">{c.name}{c.isFeatured && <Star className="ml-1 inline h-3.5 w-3.5 fill-amber-400 text-amber-400" />}</p>
+                          <p className="text-[0.75rem] text-slate-500">{seasonLabel(c.season)}{c.year ? ` ${c.year}` : ''}{c.code ? ` · ${c.code}` : ''}{!c.isActive ? ' · band' : ''}</p>
+                        </div>
+                        {allOnSale && <span className="shrink-0 rounded-full bg-rose-600 px-2 py-0.5 text-[0.6875rem] font-bold text-white">SALE</span>}
+                      </div>
+                      <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded-xl bg-slate-50 py-2"><dt className="text-[0.6875rem] text-slate-500">Products</dt><dd className="font-bold tabular-nums">{s?.products ?? c.productCount ?? 0}</dd></div>
+                        <div className="rounded-xl bg-slate-50 py-2"><dt className="text-[0.6875rem] text-slate-500">Shelf par</dt><dd className="font-bold tabular-nums">{Math.round(s?.stock ?? 0)}</dd></div>
+                        <div className="rounded-xl bg-slate-50 py-2"><dt className="text-[0.6875rem] text-slate-500">30 din bika</dt><dd className="font-bold tabular-nums">{Math.round(s?.soldQty ?? 0)}</dd></div>
+                      </dl>
+                      <p className="mt-2 text-[0.75rem] text-slate-500">
+                        Sale {sales(s?.soldValue ?? 0)} · stock cost {cost(s?.stockValue ?? 0)}
+                        {sell !== null && <span className={cn('ml-1 font-semibold', sell >= 50 ? 'text-success-700' : sell < 20 ? 'text-rose-700' : 'text-amber-700')}>· {sell}% bik gaya</span>}
+                      </p>
+                      {(c.launchDate || c.endDate) && <p className="text-[0.75rem] text-slate-500">{dayFull(c.launchDate)} — {dayFull(c.endDate)}</p>}
+                      <div className="mt-auto flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
+                        <Button size="sm" variant="secondary" onClick={() => setOpenId(c.id)} leftIcon={<Package className="h-4 w-4" />}>Products</Button>
+                        {canEdit && c.isActive && (
+                          <Button size="sm" variant={allOnSale ? 'secondary' : 'danger'} loading={onSale.isPending && onSale.variables?.c.id === c.id} onClick={() => onSale.mutate({ c, on: !allOnSale })} leftIcon={<BadgePercent className="h-4 w-4" />}>
+                            {allOnSale ? 'Sale hatayein' : 'Sale lagayein'}
+                          </Button>
+                        )}
+                        {canEdit && <Button size="sm" variant="ghost" onClick={() => setForm({ c })} aria-label="Badlein"><Pencil className="h-4 w-4" /></Button>}
+                        {canEdit && <Button size="sm" variant="ghost" className="ml-auto" onClick={() => toggleActive.mutate(c)}>{c.isActive ? 'Band karein' : 'Chalu karein'}</Button>}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           )}
-        </div>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Color Theme</label>
-            <input
-              value={form.colorTheme}
-              onChange={(e) => setForm({ ...form, colorTheme: e.target.value })}
-              placeholder="Pink, gold, ivory..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
-            />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Display Order</label>
-            <input
-              type="number"
-              value={form.displayOrder}
-              onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500"
-            />
-          </div>
-        </div>
+      {form && <CollectionForm c={form.c} onClose={() => setForm(null)} onDone={refresh} />}
+      {openId && <CollectionProducts id={openId} canEdit={canEdit} onClose={() => setOpenId(null)} onChanged={refresh} />}
 
-        <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.isFeatured}
-            onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
-            className="h-5 w-5 rounded"
-          />
-          <Star className={'h-5 w-5 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
-          <div className="flex-1">
-            <div className="text-sm font-extrabold text-amber-900 dark:text-amber-300">Featured Collection</div>
-            <div className="text-xs text-amber-700 dark:text-amber-400 font-semibold">Show prominently on homepage/dashboard</div>
-          </div>
-        </label>
+      {guide.isOpen && (
+        <PageGuide title="Collections — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#ec4899', title: 'Nayi collection', text: 'Naam, season aur saal. Product banate waqt collection chunein, ya yahan "Products" se jorein.' },
+            { icon: TrendingUp, color: '#16a34a', title: 'Kitna bika', text: 'Har card par shelf ka stock aur 30 din ki Sale. "% bik gaya" kam ho to us maal par Sale lagayein.' },
+            { icon: BadgePercent, color: '#e11d48', title: 'Sale', text: '"Sale lagayein" se poori collection POS par "Sale" filter me aa jati hai. Rate product me hi kam karein — Discount bill par bhi de sakte hain.' },
+            { icon: Archive, color: '#64748b', title: 'Band karein', text: 'Purani collection band karne se products, stock aur bill waise hi rehte hain.' },
+          ]}
+          shortcuts={[['N', 'nayi'], ['/', 'dhoondein'], ['G', 'guide']]} />
+      )}
+    </PageShell>
+  );
+}
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button
-            className="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-700"
-            onClick={() => saveMutation.mutate()}
-            loading={saveMutation.isPending}
-            disabled={!form.name.trim()}
-          >
-            <Save className="h-4 w-4" />
-            {editing ? 'Update Collection' : 'Create Collection'}
-          </Button>
+const THEMES = ['#ec4899', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#64748b'];
+
+function CollectionForm({ c, onClose, onDone }: { c: GarmentCollection | null; onClose: () => void; onDone: () => void }) {
+  const [name, setName] = useState(c?.name ?? '');
+  const [code, setCode] = useState(c?.code ?? '');
+  const [season, setSeason] = useState<GarmentSeason>(c?.season ?? 'SUMMER');
+  const [year, setYear] = useState(String(c?.year ?? new Date().getFullYear()));
+  const [launch, setLaunch] = useState(dayInput(c?.launchDate));
+  const [end, setEnd] = useState(dayInput(c?.endDate));
+  const [desc, setDesc] = useState(c?.description ?? '');
+  const [theme, setTheme] = useState(c?.colorTheme ?? THEMES[0]);
+  const [featured, setFeatured] = useState(c?.isFeatured ?? false);
+  const y = Number(year);
+  const problem = !name.trim() ? 'Naam likhein' : year && !(y >= 2000 && y <= 2100) ? 'Saal sahi likhein' : launch && end && end < launch ? 'Khatam hone ki date shuru se pehle hai' : null;
+  const save = useMutation({
+    mutationFn: () => {
+      const body: CollectionInput = {
+        name: name.trim(), code: opt(code) ?? '', season, year: year ? y : undefined, launchDate: launch || undefined, endDate: end || undefined,
+        description: opt(desc) ?? '', colorTheme: theme, isFeatured: featured,
+      };
+      return c ? collectionsApi.update(c.id, body) : collectionsApi.create(body);
+    },
+    onSuccess: (r) => { toast.success(c ? `${r.name} save ho gayi` : `${r.name} ban gayi`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="md" title={c ? `${c.name} — badlein` : 'Nayi collection'}
+      footer={<>
+        {problem && name ? <p className="mr-auto text-[0.8125rem] text-amber-800">{problem}</p> : null}
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()}>Save karein</Button>
+      </>}>
+      <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <Input label="Naam" required value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Summer Lawn 2026" />
+          <Input label="Code" value={code} onChange={(e) => setCode(e.target.value)} maxLength={30} placeholder="SL26" hint="Marzi hai" />
         </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Select label="Season" value={season} onChange={(e) => setSeason(e.target.value as GarmentSeason)} options={SEASONS.map((s) => ({ value: s.value, label: s.label }))} />
+          <Input label="Saal" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />
+          <Input label="Shuru" type="date" value={launch} onChange={(e) => setLaunch(e.target.value)} hint="Marzi hai" />
+          <Input label="Khatam" type="date" value={end} onChange={(e) => setEnd(e.target.value)} hint="Marzi hai" />
+        </div>
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Rang</span>
+          <div className="flex flex-wrap gap-1.5">{THEMES.map((t) => <button key={t} type="button" onClick={() => setTheme(t)} aria-label={t} className={cn('h-8 w-8 rounded-full ring-2 ring-offset-2', theme === t ? 'ring-slate-900' : 'ring-transparent')} style={{ background: t }} />)}</div>
+        </div>
+        <Textarea label="Tafseel" value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} maxLength={2000} hint="Marzi hai" />
+        <Switch checked={featured} onChange={(e) => setFeatured(e.target.checked)} label="Khaas collection" description="List me sab se upar" />
       </div>
-    </section>
+    </Modal>
+  );
+}
+
+function CollectionProducts({ id, canEdit, onClose, onChanged }: { id: string; canEdit: boolean; onClose: () => void; onChanged: () => void }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: [COLLECTION_KEY, 'one', id], queryFn: () => collectionsApi.getOne(id) });
+  const [pick, setPick] = useState<PickedProduct | null>(null);
+  const after = () => { qc.invalidateQueries({ queryKey: [COLLECTION_KEY] }); onChanged(); };
+  const add = useMutation({
+    mutationFn: (productId: string) => collectionsApi.addProducts(id, [productId]),
+    onSuccess: () => { toast.success('Collection me jur gaya'); setPick(null); after(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi jura')),
+  });
+  const remove = useMutation({
+    mutationFn: (productId: string) => collectionsApi.removeProducts(id, [productId]),
+    onSuccess: () => { toast.success('Collection se nikal diya — product waisa hi hai'); after(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi nikla')),
+  });
+  const c = q.data;
+  return (
+    <Modal open onClose={onClose} size="lg" title={c ? `${c.name} — products` : 'Products'} description={c ? `${c.products.length} products · ${seasonLabel(c.season)}` : undefined}>
+      <div className="space-y-3">
+        {canEdit && (
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="min-w-0 flex-1"><ProductPick value={pick} onChange={(p) => { setPick(p); if (p) add.mutate(p.productId); }} label="Product jorein" hint="Naam likhein ya barcode scan karein" /></div>
+          </div>
+        )}
+        {q.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !c?.products.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">Is collection me abhi koi product nahi</p> : (
+          <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+            {c.products.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+                <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-slate-100">{p.images[0]?.url ? <img src={p.images[0].url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="m-3 h-4 w-4 text-slate-300" />}</span>
+                <div className="min-w-0 flex-1">
+                  <Link to={`/garment-products/${p.id}`} className="block truncate text-[0.875rem] font-medium text-slate-900 hover:text-brand-700">{p.name}</Link>
+                  <p className="text-[0.75rem] text-slate-500">{formatPKR(p.price)} · stock {Math.round(p.stock)}{p.isOnSale ? ' · Sale' : ''}{!p.isActive ? ' · band' : ''}</p>
+                </div>
+                {canEdit && <button type="button" onClick={() => remove.mutate(p.id)} aria-label="Collection se nikalein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="h-4 w-4" /></button>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Modal>
   );
 }

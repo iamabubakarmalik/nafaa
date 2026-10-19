@@ -11,7 +11,7 @@ import { DamageReasonCode, DamageStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
-import { businessDayKey } from '../../../common/helpers/business-time.helper';
+import { businessDayKey, dateKeyTz } from '../../../common/helpers/business-time.helper';
 import { ShopScope, applyStockDelta, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
 import { periodRange } from '../../../modules/inventory/taxonomy/taxonomy.helper';
 import { CreateDamageDto } from './dto/create-damage.dto';
@@ -56,12 +56,14 @@ export class DamageService {
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope, dto.shopId);
     assertShopAccess(user, shopId, 'Damage report');
 
-    const [rolls, imeis] = await Promise.all([
+    const [rolls, imeis, serials] = await Promise.all([
       this.prisma.carpetRoll.count({ where: { tenantId: user.tenantId, productId: product.id, status: 'ACTIVE' } }),
       this.prisma.productImei.count({ where: { tenantId: user.tenantId, productId: product.id, status: 'IN_STOCK' } }),
+      this.serialTracked(user.tenantId, product.id),
     ]);
-    if (rolls || imeis) {
-      throw new BadRequestException('Is product ka maal roll ya IMEI se chalta hai — kharab maal Stock adjustments se likhein');
+    // Each roll, phone or serial unit is counted on its own; Stock adjustments picks the exact one.
+    if (rolls || imeis || serials) {
+      throw new BadRequestException('Is product ka har piece alag ginta hai (roll, IMEI ya serial) — kharab maal Stock adjustments se likhein');
     }
 
     let cost = Number(product.costPrice) || 0;
@@ -135,8 +137,18 @@ export class DamageService {
     throw new BadRequestException('Report number nahi bana — dobara koshish karein');
   }
 
+  /** An electronics product sold by serial unit, or one with units on the shelf. */
+  private async serialTracked(tenantId: string, productId: string) {
+    const [profile, units] = await Promise.all([
+      this.prisma.electronicsProductProfile.findFirst({ where: { tenantId, productId }, select: { requiresSerial: true, hasImei: true } }),
+      this.prisma.electronicsSerialTracking.count({ where: { tenantId, productId, status: 'IN_STOCK' } }),
+    ]);
+    return !!(profile?.requiresSerial || profile?.hasImei || units > 0);
+  }
+
   private async nextNumber(tenantId: string, bump: number) {
-    const year = new Date().getFullYear();
+    // The shop's year, not the server's (UTC) one.
+    const year = dateKeyTz(new Date()).slice(0, 4);
     const prefix = `DMG-${year}-`;
     const last = await this.prisma.damageLog.findFirst({
       where: { tenantId, damageNumber: { startsWith: prefix } },
@@ -409,7 +421,7 @@ export class DamageService {
   /**
    * What the report form needs for one product: variants and units, open
    * batches (nearest expiry first), stock in the active branch, and whether
-   * the product is tracked by roll or IMEI (those go through adjustments).
+   * the product is tracked by roll, IMEI or serial (those go through adjustments).
    */
   async options(user: AuthenticatedUser, scope: ShopScope, productId: string) {
     const product = await this.prisma.product.findFirst({
@@ -417,7 +429,7 @@ export class DamageService {
       select: { id: true, name: true, unit: true, sku: true, stock: true, costPrice: true, hasVariants: true, expiryTracked: true },
     });
     if (!product) throw new NotFoundException('Product nahi mila');
-    const [variants, units, batches, branch, rolls, imeis] = await Promise.all([
+    const [variants, units, batches, branch, rolls, imeis, serials] = await Promise.all([
       this.prisma.productVariant.findMany({
         where: { productId, isActive: true },
         select: { id: true, name: true, color: true, colorHex: true, size: true, stock: true, costPrice: true },
@@ -437,6 +449,7 @@ export class DamageService {
       scope.shopId ? this.prisma.shopStock.findMany({ where: { shopId: scope.shopId, productId }, select: { variantId: true, stock: true } }) : Promise.resolve([]),
       this.prisma.carpetRoll.count({ where: { tenantId: user.tenantId, productId, status: 'ACTIVE' } }),
       this.prisma.productImei.count({ where: { tenantId: user.tenantId, productId, status: 'IN_STOCK' } }),
+      this.serialTracked(user.tenantId, productId),
     ]);
     const at = (v: string | null) => {
       if (!scope.shopId) return null;
@@ -447,7 +460,7 @@ export class DamageService {
       variants: variants.map((v) => ({ ...v, branchStock: at(v.id) })),
       units: units.filter((u) => Number(u.conversionRate) !== 1 || u.unitName.toLowerCase() !== (product.unit || '').toLowerCase()),
       batches,
-      tracked: rolls > 0 ? 'roll' : imeis > 0 ? 'imei' : null,
+      tracked: rolls > 0 ? 'roll' : imeis > 0 ? 'imei' : serials ? 'serial' : null,
     };
   }
 }

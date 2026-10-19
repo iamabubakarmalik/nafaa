@@ -1,291 +1,240 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  BookmarkPlus, Plus, X, Save, RefreshCw, Sparkles, Clock, User,
-  Phone, Package, Search, DollarSign, CheckCircle2, AlertCircle, Ban,
-} from 'lucide-react';
-import { reservationsApi, type Reservation } from '../api/reservations.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+/**
+ * Holds: a piece kept aside for a customer for a few days, usually with a
+ * deposit. The record by view (active, ending today, expired, sold…) with
+ * search; a new hold checks the branch has the piece free; "Bech dein"
+ * makes the bill with the deposit counted, and expired holds can be given
+ * more days or cancelled (the deposit stays on the customer's khata).
+ *
+ * Keys: N new hold · / search · G guide.
+ */
 
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: 'bg-blue-500',
-  CONVERTED_TO_SALE: 'bg-emerald-600',
-  EXPIRED: 'bg-slate-500',
-  CANCELLED: 'bg-rose-500',
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Ban, Bookmark, CalendarPlus, CheckCircle2, Clock, Filter, GraduationCap, Hourglass, ListChecks, Plus, Receipt, ShoppingBag, Wallet } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { PaymentMethodPicker, TakePaymentModal } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { reservationsApi, type Reservation, type ReservationView } from '../api/reservations.api';
+import { EmptyList, LoadFailed, Pager } from '../components/charts';
+import { CancelModal, CustomerField, Pill, emptyCustomer, type CustomerValue } from '../components/fields';
+import { HOLD_KEY, MONEY_KEYS, TONE, apiError, dayOnly, opt, r2, whenText } from '../components/meta';
+import { useGarmentsCan } from '../components/permissions';
+import { ProductPick, type PickedProduct } from '../components/ProductPick';
+
+const VIEWS: Array<{ id: ReservationView; label: string; icon: typeof Bookmark }> = [
+  { id: 'active', label: 'Hold par', icon: ListChecks },
+  { id: 'today', label: 'Aaj khatam', icon: Clock },
+  { id: 'expired', label: 'Waqt guzar gaya', icon: Hourglass },
+  { id: 'sold', label: 'Bik gaye', icon: Receipt },
+  { id: 'cancelled', label: 'Cancel', icon: Ban },
+  { id: 'all', label: 'Sab', icon: Bookmark },
+];
+const STATUS: Record<Reservation['status'], { label: string; tone: string }> = {
+  ACTIVE: { label: 'Hold par', tone: TONE.blue }, CONVERTED_TO_SALE: { label: 'Bik gaya', tone: TONE.green },
+  EXPIRED: { label: 'Waqt guzra', tone: TONE.amber }, CANCELLED: { label: 'Cancel', tone: TONE.rose },
 };
+const viewLabel = (v: ReservationView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 
 export default function ReservationsPage() {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
-  const [showForm, setShowForm] = useState(false);
+  const qc = useQueryClient();
+  const { manage } = useGarmentsCan();
+  const { sales } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<ReservationView>('active');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [sellOn, setSellOn] = useState<Reservation | null>(null);
+  const [cancelOn, setCancelOn] = useState<Reservation | null>(null);
 
-  const { data: reservations = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['reservations', statusFilter],
-    queryFn: () => reservationsApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
-    refetchInterval: 60_000,
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [view, query]);
+  const q = { view, page, limit: 30, search: query || undefined };
+  const listQ = useQuery({ queryKey: [HOLD_KEY, 'page', q], queryFn: () => reservationsApi.page(q), placeholderData: (p) => p, refetchInterval: 60_000 });
+  const refresh = () => [HOLD_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const sell = useMutation({
+    mutationFn: ({ r, paidNow, method }: { r: Reservation; paidNow: number; method: PaymentMethod }) => reservationsApi.sell(r.id, { paidNow, paymentMethod: method }),
+    onSuccess: (r) => { toast.success(`${r.reservationNumber} bik gaya — bill ${r.bill?.saleNumber ?? ''}`); setSellOn(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+  });
+  const extend = useMutation({
+    mutationFn: ({ r, days }: { r: Reservation; days: number }) => reservationsApi.extend(r.id, days),
+    onSuccess: (r) => { toast.success(`${r.reservationNumber}: ${dayOnly(r.expiresAt)} tak hold`); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Hold nahi badha')),
   });
 
-  const cancelMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason: string }) => reservationsApi.cancel(id, reason),
-    onSuccess: () => { toast.success('Reservation cancelled'); queryClient.invalidateQueries({ queryKey: ['reservations'] }); },
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && manage) { e.preventDefault(); setAdding(true); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [manage]);
 
-  const expireMutation = useMutation({
-    mutationFn: () => reservationsApi.expireOld(),
-    onSuccess: () => { toast.success('Expired reservations updated'); queryClient.invalidateQueries({ queryKey: ['reservations'] }); },
-  });
-
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+  const counts = data?.counts;
+  const t = data?.totals;
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Product Reservations
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔖 Reservations</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Hold products for customers with deposit</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => expireMutation.mutate()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <Clock className="h-4 w-4" />
-              Expire Old
-            </button>
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Reservation
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero title="Hold" chip={<><Bookmark /> Reservation</>} meta="Customer ke liye kapra rakhein — deposit ke saath"
+        busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {manage && <button type="button" onClick={() => setAdding(true)} title="Naya hold (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya hold</button>}
+        </>}
+        stats={[
+          { label: 'Hold par', value: counts?.active ?? '—', hint: t ? `${t.pieces} piece` : undefined },
+          { label: 'Hold ka maal', value: t ? sales(t.value) : '—' },
+          { label: 'Deposit jama', value: t ? sales(t.deposits) : '—' },
+        ]}
+      />
+      <KpiRow cols={4}>
+        {!counts ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={ListChecks} color="#2563eb" label="Hold par" value={counts.active} hint="Kisi aur ko na bechein" onClick={() => setView('active')} active={view === 'active'} />
+          <KpiCard icon={Clock} color="#d97706" label="Aaj khatam" value={counts.today} hint="Customer ko yaad dilayein" onClick={() => setView('today')} active={view === 'today'} />
+          <KpiCard icon={Hourglass} color={counts.expired ? '#e11d48' : '#64748b'} label="Waqt guzar gaya" value={counts.expired} hint="Din barhayein ya cancel" onClick={() => setView('expired')} active={view === 'expired'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Bik gaye" value={counts.sold} hint="Hold se bill bana" onClick={() => setView('sold')} active={view === 'sold'} />
+        </>}
+      </KpiRow>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, hold #…" />}
+        chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined} onClear={() => setSearch('')}>
+        <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-64"
+          options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? String(counts[v.id]) : undefined }))} />
+      </FilterBar>
+      <ViewTabs value={view} onChange={setView} hint={<>{manage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search</>}
+        tabs={VIEWS.slice(0, 4).map((v) => ({ id: v.id, label: v.label, icon: v.icon, count: counts?.[v.id] ?? null }))} />
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {['ACTIVE', 'all', 'CONVERTED_TO_SALE', 'EXPIRED', 'CANCELLED'].map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>
-            {s === 'all' ? 'All' : s.replace('_', ' ')}
-          </button>
-        ))}
-      </div>
-
-      {showForm && (
-        <ReservationForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['reservations'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : reservations.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <BookmarkPlus className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No reservations</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 gap-3">
-          {reservations.map((r) => {
-            const daysLeft = differenceInDays(new Date(r.expiresAt), new Date());
-            const isExpiring = r.status === 'ACTIVE' && daysLeft <= 1;
-            return (
-              <div key={r.id} className={
-                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
-                (isExpiring ? 'border-rose-400 ring-2 ring-rose-100' : 'border-slate-200 dark:border-ink-800')
-              }>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-extrabold text-slate-900 dark:text-ink-white">{r.reservationNumber}</span>
-                    <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[r.status]}>
-                      {r.status.replace('_', ' ')}
-                    </span>
-                    {isExpiring && (
-                      <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
-                        Expiring
-                      </span>
+      {listQ.isLoading ? <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        : listQ.isError && !data ? <LoadFailed what="Hold" retry={() => listQ.refetch()} />
+          : !rows.length ? (
+            <EmptyList icon={Bookmark} title={query ? 'Kuch nahi mila' : 'Koi hold nahi'} text="Customer kehta hai 'yeh suit rakh lein, kal aa kar le jaunga' — deposit lein aur hold banayein. Hold wala piece doosre customer ko nahi bikta.">
+              {manage && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Naya hold</Button>}
+            </EmptyList>
+          ) : (
+            <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+              {rows.map((r) => {
+                const st = STATUS[r.status];
+                const live = r.status === 'ACTIVE' || r.status === 'EXPIRED';
+                return (
+                  <li key={r.id} className="flex flex-wrap items-start gap-3 px-3 py-3 sm:px-4">
+                    <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', r.status === 'EXPIRED' ? 'bg-amber-50 text-amber-600' : r.status === 'ACTIVE' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400')}><Bookmark className="h-5 w-5" /></span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="truncate font-semibold text-slate-900">{r.customerName || 'Customer'}</span>
+                        <Pill tone={st.tone}>{st.label}</Pill>
+                        <span className="font-mono text-[0.6875rem] text-slate-400">{r.reservationNumber}</span>
+                      </div>
+                      <p className="truncate text-[0.8125rem] text-slate-600">{r.quantity > 1 ? `${r.quantity}x ` : ''}{r.productName ?? 'Product'} · {formatPKR(r.unitPrice)}</p>
+                      <p className={cn('text-[0.75rem]', r.status === 'EXPIRED' ? 'font-semibold text-amber-700' : 'text-slate-500')}>
+                        {r.status === 'ACTIVE' ? `${whenText(r.expiresAt)} tak · ${dayOnly(r.expiresAt)}` : r.status === 'EXPIRED' ? `Waqt guzra ${dayOnly(r.expiresAt)}` : dayOnly(r.reservedAt)}
+                        {r.customerPhone ? ` · ${r.customerPhone}` : ''}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-bold tabular-nums">{formatPKR(r.total)}</p>
+                      <p className="text-[0.6875rem] text-slate-500">Deposit {formatPKR(r.depositAmount)}</p>
+                    </div>
+                    {manage && live && (
+                      <div className="flex w-full flex-wrap gap-1.5 sm:pl-[3.25rem]">
+                        <Button size="sm" variant="success" onClick={() => setSellOn(r)} leftIcon={<ShoppingBag className="h-4 w-4" />}>Bech dein — {formatPKR(r.balance)}</Button>
+                        {[3, 7].map((d) => <Button key={d} size="sm" variant="secondary" loading={extend.isPending && extend.variables?.r.id === r.id && extend.variables?.days === d} onClick={() => extend.mutate({ r, days: d })} leftIcon={<CalendarPlus className="h-4 w-4" />}>+{d} din</Button>)}
+                        <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => setCancelOn(r)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
+                      </div>
                     )}
-                  </div>
-                  {r.status === 'ACTIVE' && (
-                    <button
-                      onClick={() => {
-                        const reason = prompt('Cancellation reason?');
-                        if (reason !== null) cancelMutation.mutate({ id: r.id, reason });
-                      }}
-                      className="h-7 w-7 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
-                    >
-                      <Ban className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
+                    {r.bill && <Link to={`/sales/${r.bill.id}/receipt`} className="w-full text-[0.75rem] font-semibold text-brand-700 hover:underline sm:pl-[3.25rem]">Bill {r.bill.saleNumber} →</Link>}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+      {data && <Pager page={page} pages={data.pages} onPage={setPage} />}
 
-                <div className="text-sm space-y-1">
-                  {r.customerName && <div className="inline-flex items-center gap-1 font-bold"><User className="h-3 w-3" />{r.customerName}</div>}
-                  {r.customerPhone && <div className="inline-flex items-center gap-1 text-xs text-slate-600 font-bold ml-4"><Phone className="h-3 w-3" />{r.customerPhone}</div>}
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-                  <div>
-                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</div>
-                    <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{r.quantity}</div>
-                  </div>
-                  <div>
-                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
-                    <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(r.quantity * r.unitPrice)}</div>
-                  </div>
-                  <div>
-                    <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Deposit</div>
-                    <div className="text-sm font-extrabold text-amber-700 tabular-nums">{formatPKR(r.depositAmount)}</div>
-                  </div>
-                </div>
-
-                <div className={
-                  'flex items-center gap-1 text-xs font-extrabold ' +
-                  (isExpiring ? 'text-rose-700' : 'text-slate-600')
-                }>
-                  <Clock className="h-3 w-3" />
-                  Expires: {format(new Date(r.expiresAt), 'dd MMM, HH:mm')}
-                  {r.status === 'ACTIVE' && ' (' + (daysLeft <= 0 ? 'today' : daysLeft + 'd left') + ')'}
-                </div>
-
-                {r.notes && <p className="text-xs italic text-slate-500">{r.notes}</p>}
-              </div>
-            );
-          })}
-        </section>
+      {adding && <HoldForm onClose={() => setAdding(false)} onDone={refresh} />}
+      {sellOn && (
+        <TakePaymentModal title="Bech dein — bill" confirmLabel="Bill banayein"
+          description={`${sellOn.customerName ?? ''} · ${sellOn.productName ?? ''} · kul ${formatPKR(sellOn.total)}, deposit ${formatPKR(sellOn.depositAmount)}`}
+          amount={sellOn.balance} max={sellOn.balance} allowZero loading={sell.isPending}
+          onConfirm={(amount, method) => sell.mutate({ r: sellOn, paidNow: amount, method })} onClose={() => setSellOn(null)} />
       )}
-    </div>
+      {cancelOn && <CancelModal title={`${cancelOn.customerName ?? ''} · ${cancelOn.reservationNumber}`} paid={cancelOn.depositAmount} onConfirm={(reason) => reservationsApi.cancel(cancelOn.id, reason || undefined).then(refresh)} onClose={() => setCancelOn(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Hold — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Hold banayein', text: 'Product scan karein ya naam likhein, size/rang chunein, deposit lein. Hold wala piece doosre customer ke liye "khaali" nahi ginta.' },
+            { icon: Wallet, color: '#16a34a', title: 'Deposit', text: 'Deposit customer ke khate me advance ban kar jama hota hai, aur bechte waqt bill me kat jata hai.' },
+            { icon: ShoppingBag, color: '#7c3aed', title: 'Bech dein', text: 'Customer aaye to "Bech dein" — bill banta hai, piece stock se nikalta hai.' },
+            { icon: Hourglass, color: '#d97706', title: 'Waqt guzar gaya', text: 'Din barhayein ya cancel karein. Cancel se deposit khud wapas nahi hota — khate me jama rehta hai.' },
+          ]}
+          shortcuts={[['N', 'naya hold'], ['/', 'dhoondein'], ['G', 'guide']]} />
+      )}
+    </PageShell>
   );
 }
 
-function ReservationForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerName: '', customerPhone: '', productId: '', quantity: 1,
-    unitPrice: 0, depositAmount: 0, expiresAt: '', notes: '',
-  });
-  const [productSearch, setProductSearch] = useState('');
-  const [showProductPicker, setShowProductPicker] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-reservation', productSearch],
-    queryFn: () => productsApi.list({ limit: 30, search: productSearch || undefined }),
-    enabled: showProductPicker,
-  });
-
-  const saveMutation = useMutation({
+function HoldForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [customer, setCustomer] = useState<CustomerValue>(emptyCustomer);
+  const [product, setProduct] = useState<PickedProduct | null>(null);
+  const [qty, setQty] = useState('1');
+  const [price, setPrice] = useState('');
+  const [deposit, setDeposit] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const [days, setDays] = useState(3);
+  const [notes, setNotes] = useState('');
+  const quantity = Math.max(Math.floor(Number(qty) || 1), 1);
+  const rate = price === '' ? product?.price ?? 0 : Number(price) || 0;
+  const total = r2(rate * quantity);
+  const dep = r2(Number(deposit) || 0);
+  const problem = !customer.customerId && !customer.name.trim() ? 'Customer ka naam likhein' : !product ? 'Product chunein' : dep > total + 0.01 ? 'Deposit kul se zyada' : null;
+  const save = useMutation({
     mutationFn: () => reservationsApi.create({
-      ...form,
-      quantity: Number(form.quantity) || 1,
-      unitPrice: Number(form.unitPrice) || 0,
-      depositAmount: Number(form.depositAmount) || 0,
-      expiresAt: form.expiresAt || undefined,
+      customerId: customer.customerId || undefined, customerName: opt(customer.name), customerPhone: opt(customer.phone),
+      productId: product!.productId, variantId: product!.variantId, quantity, unitPrice: rate,
+      depositAmount: dep || undefined, paymentMethod: dep > 0 ? method : undefined, holdDays: days, notes: opt(notes),
     }),
-    onSuccess: () => { toast.success('Reservation created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: (r) => { toast.success(`Hold ${r.reservationNumber} — ${dayOnly(r.expiresAt)} tak`); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Hold nahi bana')),
   });
-
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">New Reservation</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
+    <Modal open onClose={onClose} size="lg" title="Naya hold" description="Piece customer ke liye alag rakhein"
+      footer={<>
+        {problem ? <p className="mr-auto text-[0.8125rem] text-amber-800">{problem}</p> : <p className="mr-auto text-[0.8125rem] text-slate-500">Kul {formatPKR(total)}{dep > 0 ? ` · baqi ${formatPKR(total - dep)}` : ''}</p>}
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Bookmark className="h-4 w-4" />}>Hold karein</Button>
+      </>}>
+      <div className="space-y-4">
+        <CustomerField value={customer} onChange={setCustomer} />
+        <ProductPick value={product} onChange={(p) => { setProduct(p); setPrice(''); }} label="Kaunsa piece" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Piece" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="text-right" />
+          <Input label="Rate (1 pc)" inputMode="decimal" value={price === '' && product ? String(product.price) : price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" hint="Jo rate tay hua" />
+          <div>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitne din</span>
+            <div className="grid grid-cols-4 gap-1">{[1, 3, 7, 15].map((d) => <button key={d} type="button" onClick={() => setDays(d)} className={cn('h-10 rounded-lg text-[0.8125rem] font-semibold ring-1', days === d ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{d}</button>)}</div>
+          </div>
+        </div>
+        <div className="grid gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200 sm:grid-cols-2">
+          <Input label="Deposit (Rs)" inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" hint="Khate me jama hota hai, bill me kat jata hai" />
+          {dep > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
+        </div>
+        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Shaam ko aayenge…" hint="Marzi hai" />
       </div>
-      <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-        </div>
-
-        {selectedProduct ? (
-          <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800 p-3 flex items-center gap-3">
-            <Package className="h-5 w-5 text-blue-600" />
-            <div className="flex-1">
-              <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedProduct.name}</div>
-              <div className="text-xs text-slate-600 font-bold">Stock: {selectedProduct.stock} • {formatPKR(selectedProduct.price)}</div>
-            </div>
-            <button onClick={() => { setSelectedProduct(null); setForm({ ...form, productId: '', unitPrice: 0 }); }} className="text-xs font-extrabold text-blue-600 hover:underline">
-              Change
-            </button>
-          </div>
-        ) : (
-          <div>
-            <button onClick={() => setShowProductPicker(!showProductPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 hover:border-blue-400">
-              <Search className="h-4 w-4 inline mr-1" />
-              Select Product *
-            </button>
-            {showProductPicker && (
-              <div className="mt-2 rounded-xl border-2 border-blue-300 bg-blue-50/50 p-3 space-y-2">
-                <input autoFocus value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="h-10 w-full rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                <div className="max-h-52 overflow-y-auto space-y-1">
-                  {(productsData?.items ?? []).map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setSelectedProduct(p);
-                        setForm({ ...form, productId: p.id, unitPrice: p.price });
-                        setShowProductPicker(false);
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-ink-800 text-left"
-                    >
-                      <Package className="h-3.5 w-3.5 text-slate-400" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-extrabold truncate">{p.name}</div>
-                        <div className="text-[0.6875rem] text-slate-500 font-bold">Stock: {p.stock} • {formatPKR(p.price)}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Qty</label>
-            <input type="number" min="1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-200 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Unit Price</label>
-            <input type="number" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Deposit</label>
-            <input type="number" value={form.depositAmount} onChange={(e) => setForm({ ...form, depositAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Expires At (default: 7 days)</label>
-          <input type="datetime-local" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.productId}>
-            <Save className="h-4 w-4" />
-            Create Reservation
-          </Button>
-        </div>
-      </div>
-    </section>
+    </Modal>
   );
 }

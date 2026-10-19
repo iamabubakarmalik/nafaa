@@ -1,8 +1,5 @@
 // apps/web/src/industries/electronics/ElectronicsPack.tsx
-import {
-  LayoutDashboard, Sparkles, Zap, Award, Shield, Cpu, Package,
-  Barcode, BadgeCheck, Layers,
-} from 'lucide-react';
+import { Barcode, Cpu, Layers, Shield } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import ElectronicsDashboard from './dashboard/ElectronicsDashboard';
@@ -74,8 +71,8 @@ export const ElectronicsPack: IndustryPack = {
       color: '#3b82f6',
       order: 20,
       items: [
-        { to: '/electronics/serials', label: 'Serial/IMEI Track', icon: Barcode },
-        { to: '/electronics/warranty-claims', label: 'Warranty Claims', icon: Shield, badge: 'NEW' },
+        { to: '/electronics/serials', label: 'Serial / IMEI', icon: Barcode },
+        { to: '/electronics/warranty-claims', label: 'Warranty claims', icon: Shield },
         { to: '/electronics/bundles', label: 'Bundles', icon: Layers },
       ],
     },

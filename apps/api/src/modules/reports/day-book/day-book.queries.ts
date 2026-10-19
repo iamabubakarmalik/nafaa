@@ -254,18 +254,30 @@ export class DayBookQueries {
       FROM b FULL JOIN p ON p.method = b.method`;
   }
 
-  /** Products from the list that are now at or under their alert level. */
+  /**
+   * Products from the list that are now at or under their alert level. A product
+   * with sizes or colours keeps its stock on the variant rows, so it is checked
+   * per variant; its base row (often 0) is skipped.
+   */
   lowStock(scope: Scope, productIds: string[]) {
     if (!productIds.length) return Promise.resolve([] as LowRow[]);
     const shop = scope.shopId ? Prisma.sql`AND ss."shopId" = ${scope.shopId}` : Prisma.empty;
     return this.prisma.$queryRaw<LowRow[]>`
-      SELECT ss."productId" AS pid, p.name, p.unit, ss.stock::float8 AS stock,
+      SELECT ss."productId" AS pid,
+             CASE WHEN v.id IS NULL THEN p.name ELSE p.name || ' (' || v.name || ')' END AS name,
+             p.unit, ss.stock::float8 AS stock,
              ss."lowStockAlert"::float8 AS alert, sh.name AS shop
       FROM "ShopStock" ss
       JOIN "Product" p ON p.id = ss."productId"
       JOIN "Shop" sh ON sh.id = ss."shopId"
+      LEFT JOIN "ProductVariant" v ON v.id = ss."variantId"
       WHERE ss."tenantId" = ${scope.tenantId} AND ss."productId" = ANY(${productIds}::text[])
-        AND ss."variantId" IS NULL AND ss."isActive" = true AND p."isActive" = true
+        AND ss."isActive" = true AND p."isActive" = true
+        AND (
+          (ss."variantId" IS NULL AND NOT EXISTS (
+            SELECT 1 FROM "ProductVariant" pv WHERE pv."productId" = p.id AND pv."isActive" = true))
+          OR (ss."variantId" IS NOT NULL AND v."isActive" = true)
+        )
         AND ss.stock <= ss."lowStockAlert" ${shop}
       ORDER BY ss.stock ASC, p.name ASC
       LIMIT 60`;

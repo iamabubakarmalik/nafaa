@@ -1,795 +1,265 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Smartphone,
-  Plus, AlertTriangle, Trash2, Eye, Edit3, Headphones,
-  GraduationCap, X, WifiOff, Layers, Hash, Package, ShieldCheck,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { useMobileWizard, type WizardStep } from '../hooks/useMobileWizard';
-import { useAuthStore, useShopParam } from '@core/stores/auth.store';
-import { MobileWizardStepper } from '../components/wizard/MobileWizardStepper';
-import { MobileWizardStep1Basic } from '../components/wizard/MobileWizardStep1Basic';
-import { MobileWizardStep2Variants } from '../components/wizard/MobileWizardStep2Variants';
-import { MobileWizardStep3Imeis } from '../components/wizard/MobileWizardStep3Imeis';
-import { MobileWizardSummary } from '../components/wizard/MobileWizardSummary';
-import { saveMobileWizard, type MobileWizardSaveResult } from '../api/mobile-wizard.api';
-import { imeiApi } from '../api/imei.api';
+/**
+ * Mobile product editor on the shared steps: phone or accessory, model and
+ * warranty, storage/RAM/colour variants, and for a phone the IMEIs of the
+ * units on hand (scan, paste or type) with PTA status. A phone's stock comes
+ * only from its IMEIs; an accessory keeps a plain count.
+ */
+
+import { useMemo, useState } from 'react';
+import { AlertTriangle, ClipboardPaste, Plus, ScanLine, ShieldCheck, Smartphone, Trash2 } from 'lucide-react';
+import { cn } from '@core/lib/cn';
+import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { Chip, Section, TextField, Tiles, inputClass } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, EditorDraft, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
-import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
+import { imeiApi, type PtaStatus } from '../api/imei.api';
+import { PTA_HINT, PTA_LIST, isLuhnValid, ptaOf } from '../components/meta';
 
-/* ═════════════════════════════════════════════════════════════
-   MOBILE PRODUCT WIZARD — FULL BEST v4
-   ─────────────────────────────────────────────────────────────
-   📱🎧 PRODUCT TYPE FIRST — phone ya accessory, flow khud
-      adapt hota hai:
-        • PHONE     → Step 3 = IMEIs (15-digit, PTA, warranty)
-        • ACCESSORY → Step 3 = Stock (simple qty, koi IMEI nahi)
-   ✏️  Edit mode me type LOCKED (real product ka type preserve)
-   🎓 Teacher — type ke hisab se alag guide (phone vs accessory)
-   📡 Offline guard — save block, draft auto-save safe
-   ⌨️  Ctrl+→/← steps • Ctrl+Enter save • Esc teacher
-   📊 Hero live stats — type ke hisab se labels (IMEIs / Units)
-   🌙 Dark complete • 📱 Safe-area bottom bar
-   ═════════════════════════════════════════════════════════════ */
+interface ImeiLine { imei1: string; imei2: string; variant: string; pta: PtaStatus }
 
-type ProductType = 'PHONE' | 'ACCESSORY';
-
-function useOnlineStatus() {
-  const [online, setOnline] = useState(() => navigator.onLine);
-  useEffect(() => {
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener('online', on);
-    window.addEventListener('offline', off);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
-  }, []);
-  return online;
+interface MobileExtra {
+  phone: boolean;
+  model: string;
+  warrantyMonths: number;
+  pta: PtaStatus;
+  imeis: ImeiLine[];
+  /** Edit only: phones of this model already on the shelf. */
+  onShelf: number;
 }
+
+const initial: MobileExtra = { phone: true, model: '', warrantyMonths: 12, pta: 'APPROVED', imeis: [], onShelf: 0 };
+const WARRANTY = [0, 1, 3, 6, 12, 24];
+const MODEL_PREFIX = /^Model:\s*/i;
+
+/* ── Basic step: what it is ── */
+function Identity({ ctx }: { ctx: StepContext<MobileExtra> }) {
+  const x = ctx.draft.extra;
+  return (
+    <div className="space-y-4">
+      <div>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Ye kya hai</span>
+        <Tiles value={x.phone ? 'phone' : 'acc'} onChange={(v) => ctx.setExtra({ phone: v === 'phone' })} columns="grid-cols-2"
+          options={[
+            { value: 'phone', label: 'Phone / tablet', hint: 'Har piece ka IMEI — stock IMEI se', icon: '📱' },
+            { value: 'acc', label: 'Accessory', hint: 'Charger, cover, handsfree — sirf ginti', icon: '🔌' },
+          ]} />
+      </div>
+      <TextField label="Model number" value={x.model} onChange={(model) => ctx.setExtra({ model })} placeholder="Jaise: SM-A155F, A2846"
+        hint="Marzi hai — search aur warranty claim me kaam aata hai" />
+      {x.phone && (
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Dukaan ki warranty (naye IMEI par lagegi)</span>
+          <div className="flex flex-wrap gap-1.5">
+            {WARRANTY.map((m) => <Chip key={m} on={x.warrantyMonths === m} onClick={() => ctx.setExtra({ warrantyMonths: m })}>{m === 0 ? 'Koi nahi' : m < 12 ? `${m} mahine` : `${m / 12} saal`}</Chip>)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Stock step addition: IMEIs ── */
+function Imeis({ ctx }: { ctx: StepContext<MobileExtra> }) {
+  const x = ctx.draft.extra;
+  const variants = ctx.draft.core.variants.filter((v) => v.isActive).map((v) => v.name.trim()).filter(Boolean);
+  const [scan, setScan] = useState(false);
+  const [paste, setPaste] = useState('');
+  const known = useMemo(() => new Set(x.imeis.flatMap((l) => [l.imei1, l.imei2].filter(Boolean))), [x.imeis]);
+  const blank = (imei1 = '', imei2 = ''): ImeiLine => ({ imei1, imei2, variant: variants.length === 1 ? variants[0] : '', pta: x.pta });
+  const update = (i: number, patch: Partial<ImeiLine>) => ctx.setExtra({ imeis: x.imeis.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
+  const parsed = paste.split('\n').map((l) => l.replace(/[^\d,\s\t]/g, '').split(/[,\s\t]+/).filter(Boolean)).filter((p) => p[0]);
+  const fresh = parsed.filter((p) => !known.has(p[0]));
+  const stockTyped = ctx.draft.core.stock > 0 || ctx.draft.core.variants.some((v) => !v.id && v.stock > 0);
+
+  if (!x.phone) return null;
+  return (
+    <Section icon={Smartphone} title="IMEI" hint="Har phone ka apna IMEI — isi se stock, bill, warranty aur chori ka record chalta hai">
+      {scan && <BarcodeScanner onDetected={(c: string) => { const d = c.replace(/\D/g, ''); if (d.length === 15 && !known.has(d)) ctx.setExtra({ imeis: [...x.imeis, blank(d)] }); }} onClose={() => setScan(false)} />}
+      <div className="space-y-3">
+        {ctx.isEdit && <p className="text-[0.8125rem] text-slate-600">Abhi shelf par <strong>{x.onShelf}</strong> phone hain. Yahan sirf <strong>naye</strong> IMEI daalein — purane IMEI page par hain.</p>}
+        {stockTyped && (
+          <p className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Phone ka stock IMEI se banta hai — upar wala stock 0 rakhein, IMEI yahan daalein.
+          </p>
+        )}
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">PTA (naye IMEI par)</span>
+          <div className="flex flex-wrap gap-1.5">
+            {PTA_LIST.map((p) => <Chip key={p} on={x.pta === p} onClick={() => ctx.setExtra({ pta: p })} color={ptaOf(p).color}>{ptaOf(p).label}</Chip>)}
+          </div>
+          <p className="mt-1 text-[0.75rem] text-slate-500">{PTA_HINT[x.pta]}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setScan(true)} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 text-[0.8125rem] font-semibold text-white"><ScanLine className="h-4 w-4" />Dabba scan karein</button>
+          <button type="button" onClick={() => ctx.setExtra({ imeis: [...x.imeis, blank()] })} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 text-[0.8125rem] font-semibold text-slate-700"><Plus className="h-4 w-4" />Haath se</button>
+        </div>
+        <details className="rounded-xl bg-slate-50 p-3">
+          <summary className="flex cursor-pointer items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-700"><ClipboardPaste className="h-4 w-4" />Excel ya WhatsApp se paste (har line: IMEI 1, IMEI 2)</summary>
+          <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={4} placeholder={'356789012345678, 356789012345686\n356789012345694'} className={cn(inputClass, 'mt-2 h-auto py-2 font-mono text-[0.8125rem]')} />
+          {parsed.length > 0 && (
+            <button type="button" onClick={() => { ctx.setExtra({ imeis: [...x.imeis, ...fresh.map((p) => blank(p[0], p[1] ?? ''))] }); setPaste(''); }}
+              className="mt-2 h-9 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white">
+              {fresh.length} naye jorein{parsed.length > fresh.length ? ` · ${parsed.length - fresh.length} pehle se hain` : ''}
+            </button>
+          )}
+        </details>
+        {x.imeis.length > 0 && (
+          <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200">
+            <table className="w-full min-w-[40rem] text-[0.8125rem]">
+              <thead>
+                <tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-3 py-2">IMEI 1</th><th className="px-2 py-2">IMEI 2</th>{variants.length > 0 && <th className="px-2 py-2">Variant</th>}<th className="px-2 py-2">PTA</th><th />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {x.imeis.map((l, i) => {
+                  const bad = l.imei1.length === 15 && !isLuhnValid(l.imei1);
+                  return (
+                    <tr key={i}>
+                      <td className="px-3 py-1.5">
+                        <input inputMode="numeric" maxLength={15} value={l.imei1} onChange={(e) => update(i, { imei1: e.target.value.replace(/\D/g, '') })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]', bad && 'border-amber-400')} />
+                        {bad && <span className="text-[0.6875rem] text-amber-700">Check digit nahi milta — dobara dekhein</span>}
+                      </td>
+                      <td className="px-2 py-1.5"><input inputMode="numeric" maxLength={15} value={l.imei2} onChange={(e) => update(i, { imei2: e.target.value.replace(/\D/g, '') })} placeholder="Dual SIM" className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></td>
+                      {variants.length > 0 && (
+                        <td className="px-2 py-1.5">
+                          <select value={l.variant} onChange={(e) => update(i, { variant: e.target.value })} className={cn(inputClass, 'h-9 text-[0.8125rem]')}>
+                            <option value="">Chunein…</option>
+                            {variants.map((v) => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </td>
+                      )}
+                      <td className="px-2 py-1.5">
+                        <select value={l.pta} onChange={(e) => update(i, { pta: e.target.value as PtaStatus })} className={cn(inputClass, 'h-9 text-[0.8125rem]')}>
+                          {PTA_LIST.map((p) => <option key={p} value={p}>{ptaOf(p).label}</option>)}
+                        </select>
+                      </td>
+                      <td className="px-2 py-1.5"><button type="button" onClick={() => ctx.setExtra({ imeis: x.imeis.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {ctx.errors.imeis && <p className="text-[0.8125rem] font-medium text-rose-600">{ctx.errors.imeis}</p>}
+      </div>
+    </Section>
+  );
+}
+
+function imeiErrors(d: EditorDraft<MobileExtra>): string | null {
+  const x = d.extra;
+  if (!x.phone) return null;
+  if (d.core.stock > 0 || d.core.variants.some((v) => !v.id && v.stock > 0)) return 'Phone ka stock IMEI se banta hai — stock 0 rakhein aur IMEI daalein';
+  const all: string[] = [];
+  const variants = d.core.variants.filter((v) => v.isActive).map((v) => v.name.trim()).filter(Boolean);
+  for (const [i, l] of x.imeis.entries()) {
+    if (!/^\d{15}$/.test(l.imei1)) return `Line ${i + 1}: IMEI 1 me 15 number hon`;
+    if (l.imei2 && !/^\d{15}$/.test(l.imei2)) return `Line ${i + 1}: IMEI 2 me 15 number hon`;
+    if (l.imei2 && l.imei2 === l.imei1) return `Line ${i + 1}: IMEI 1 aur 2 ek jaise nahi ho sakte`;
+    if (variants.length && !variants.includes(l.variant)) return `Line ${i + 1}: variant chunein`;
+    all.push(l.imei1, ...(l.imei2 ? [l.imei2] : []));
+  }
+  const dup = all.find((n, i) => all.indexOf(n) !== i);
+  return dup ? `IMEI ${dup} do dafa likha hai` : null;
+}
+
+const core: CoreOptions = {
+  units: [{ value: 'pcs', label: 'Adad (pcs)' }, { value: 'set', label: 'Set' }, { value: 'pair', label: 'Joda' }, { value: 'box', label: 'Dabba' }],
+  skuPrefix: 'MOB',
+  variants: {
+    presets: [
+      { group: 'Storage', values: ['64GB', '128GB', '256GB', '512GB', '1TB'] },
+      { group: 'RAM', values: ['4GB', '6GB', '8GB', '12GB'] },
+      { group: 'Rang', values: ['Black', 'White', 'Blue', 'Green', 'Gold', 'Titanium'] },
+    ],
+  },
+  markups: [3, 5, 8, 10, 15, 20],
+};
+
+const stock = stockStep<MobileExtra>(core, { extra: (ctx) => <Imeis ctx={ctx} />, quick: [1, 5, 10, 25, 50] });
+const stockWithImeis: StepDef<MobileExtra> = {
+  ...stock,
+  hint: 'Stock, variants aur IMEI',
+  validate: (d, isEdit) => {
+    const e = stock.validate?.(d, isEdit) ?? {};
+    const err = imeiErrors(d);
+    if (err) e.imeis = err;
+    return e;
+  },
+};
+
+const config: EditorConfig<MobileExtra> = {
+  label: 'Mobile',
+  draftKey: 'nafaa.product-editor.mobile',
+  paths: { list: '/products', detail: (id) => `/mobile-products/${id}`, create: '/mobile-products/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const [product, page] = await Promise.all([
+        productsApi.getOne(productId).catch(() => null),
+        imeiApi.listAll({ productId, limit: 1 }).catch(() => null),
+      ]);
+      const total = page ? Object.values(page.counts).reduce((s, n) => s + (n ?? 0), 0) : 0;
+      return {
+        phone: (product as { productType?: string | null } | null)?.productType === 'PHONE' || total > 0,
+        model: product?.shortDescription?.replace(MODEL_PREFIX, '') ?? '',
+        onShelf: page?.counts.IN_STOCK ?? 0,
+        imeis: [],
+      };
+    },
+    // A phone's own stock starts at 0; its IMEIs bring it in.
+    product: (d, payload) => ({
+      ...payload,
+      productType: d.extra.phone ? 'PHONE' : (payload.productType === 'PHONE' ? null : payload.productType),
+      shortDescription: d.extra.model.trim() ? `Model: ${d.extra.model.trim()}` : undefined,
+      ...(d.extra.phone && 'stock' in payload ? { stock: 0 } : {}),
+    }),
+    save: async (productId, d, { shopId }) => {
+      const x = d.extra;
+      if (!x.phone || !x.imeis.length) return;
+      const variants = d.core.variants.length ? await productVariantsApi.list(productId) : [];
+      const idOf = new Map(variants.map((v) => [v.name.trim(), v.id]));
+      const groups = new Map<string, ImeiLine[]>();
+      for (const l of x.imeis) groups.set(l.variant, [...(groups.get(l.variant) ?? []), l]);
+      for (const [name, lines] of groups) {
+        const variant = name ? d.core.variants.find((v) => v.name.trim() === name) : undefined;
+        await imeiApi.bulkCreate({
+          productId,
+          variantId: name ? idOf.get(name) : undefined,
+          shopId,
+          costPrice: Number(variant?.costPrice ?? d.core.costPrice) || 0,
+          warrantyMonths: x.warrantyMonths,
+          imeis: lines.map((l) => ({ imei1: l.imei1, imei2: l.imei2 || undefined, ptaStatus: l.pta })),
+        });
+      }
+    },
+  },
+  steps: [
+    basicStep<MobileExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: 'Jaise: Samsung Galaxy A15', categorySuggestions: ['Mobile phones', 'Tablets', 'Chargers', 'Covers', 'Handsfree', 'Power banks', 'Smart watches'] }),
+    priceStep<MobileExtra>(core),
+    stockWithImeis,
+  ],
+  summary: (d) => (
+    <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
+      <p className="text-slate-600">{d.extra.phone ? '📱 Phone / tablet' : '🔌 Accessory'}{d.extra.model ? ` · ${d.extra.model}` : ''}</p>
+      {d.extra.phone && d.extra.warrantyMonths > 0 && <p className="inline-flex items-center gap-1 text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" />Warranty {d.extra.warrantyMonths} mahine</p>}
+      {d.extra.phone && <p className="text-violet-700">{d.extra.imeis.length} naye IMEI{d.extra.imeis.length ? '' : ' — baad me bhi daal sakte hain'}</p>}
+    </div>
+  ),
+  refresh: ['mobile-product-imeis', 'mobile-imei-shelf', 'mobile-imeis', 'mobile-pos-catalog'],
+  guide: [
+    { icon: Smartphone, color: '#2563eb', title: 'Phone ya accessory', text: 'Phone ka har piece IMEI se pehchana jata hai aur stock IMEI se banta hai. Accessory ka stock aam ginti hai.' },
+    { icon: ScanLine, color: '#7c3aed', title: 'IMEI daalna', text: 'Dabbe ka barcode scan karein, Excel se paste karein ya haath se likhein. Har IMEI 15 number ka hota hai.' },
+    { icon: ShieldCheck, color: '#16a34a', title: 'PTA', text: 'Har phone ki PTA halat likhein — Non-PTA phone ki SIM kuch din baad band ho jati hai, customer ko batana zaroori hai.' },
+  ],
+};
 
 export default function MobileProductWizardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id } = useParams();
-  const currentShopId = useShopParam();
-  const isEdit = Boolean(id);
-  const isOnline = useOnlineStatus();
-
-  const {
-    draft, draftRestored, validation, stats,
-    goToStep, nextStep, prevStep,
-    updateBasic,
-    setHasVariants, addVariant, addVariantsMatrix, updateVariant, removeVariant,
-    addImeiLine, addImeisBulk, updateImeiLine, removeImeiLine, applyPtaToAll,
-    upsertAccessoryStock,
-    reset,
-  } = useMobileWizard({ autoLoadDraft: !isEdit });
-
-  const [savedResult, setSavedResult] = useState<MobileWizardSaveResult | null>(null);
-  const [editLoaded, setEditLoaded] = useState(false);
-  const [showTeacher, setShowTeacher] = useState(false);
-
-  /* ── Product type (edit mode me product ka real type) ── */
-  const productType: ProductType = ((draft.basic as any).productType as ProductType) || 'PHONE';
-  const isAccessory = productType === 'ACCESSORY';
-
-  const setProductType = (t: ProductType) => {
-    if (isEdit) return; // edit me type locked
-    updateBasic({ productType: t } as any);
-    toast.success(t === 'PHONE' ? '📱 Phone mode — Step 3 me IMEIs + PTA' : '🎧 Accessory mode — Step 3 me sirf stock qty', { duration: 2000 });
-  };
-
-  // ─── EDIT MODE — load existing product ───
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product-for-wizard', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
-
-  const { data: existingVariants = [] } = useQuery({
-    queryKey: ['product-variants', id],
-    queryFn: () => productVariantsApi.list(id!),
-    enabled: isEdit,
-  });
-
-  // The product row cannot hold PHONE/ACCESSORY; a model with IMEIs is a phone.
-  const { data: existingImeis, isFetched: imeisFetched } = useQuery({
-    queryKey: ['product-imeis-for-wizard', id],
-    queryFn: () => imeiApi.listByProduct(id!),
-    enabled: isEdit,
-  });
-
-  useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded || !imeisFetched) return;
-    const savedType = (existingProduct as any).productType;
-    const inferredType: ProductType = savedType === 'PHONE' || savedType === 'ACCESSORY'
-      ? savedType
-      : (existingImeis?.length ?? 0) > 0 ? 'PHONE' : 'ACCESSORY';
-
-    updateBasic({
-      name: existingProduct.name,
-      description: existingProduct.description ?? '',
-      categoryId: existingProduct.categoryId ?? '',
-      brandId: existingProduct.brandId ?? '',
-      modelNumber: (existingProduct as any).shortDescription?.startsWith('Model: ')
-        ? (existingProduct as any).shortDescription.slice(7).trim()
-        : existingProduct.metaTitle?.split('—').pop()?.trim() ?? '',
-      sku: existingProduct.sku ?? '',
-      barcode: existingProduct.barcode ?? '',
-      costPrice: existingProduct.costPrice ?? 0,
-      salePrice: existingProduct.price ?? 0,
-      wholesalePrice: existingProduct.wholesalePrice ?? '',
-      taxRate: existingProduct.taxRate ?? 0,
-      warrantyMonths: 12,
-      defaultPtaStatus: 'APPROVED',
-      isActive: existingProduct.isActive,
-      isFeatured: existingProduct.isFeatured,
-      imageUrls: (existingProduct.images ?? []).map((img: any) => img?.url).filter(Boolean),
-      tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
-      // ✅ Real type preserve — hardcode NAHI
-      productType: inferredType,
-    } as any);
-
-    setHasVariants(existingVariants.length > 0);
-    setEditLoaded(true);
-  }, [isEdit, existingProduct, existingVariants, existingImeis, imeisFetched, editLoaded, updateBasic, setHasVariants]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => saveMobileWizard(draft, currentShopId || undefined, isEdit ? id : undefined),
-    onSuccess: (result) => {
-      setSavedResult(result);
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['imei-available'] });
-      queryClient.invalidateQueries({ queryKey: ['imei-product-list'] });
-      queryClient.invalidateQueries({ queryKey: ['imei-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['product-imeis'] });
-      forceRefreshProducts().catch(() => {});
-      toast.success(
-        isAccessory
-          ? `${result.productName} ${isEdit ? 'updated' : 'created'} — ${result.accessoryUnits} units stock me`
-          : `${result.productName} ${isEdit ? 'updated' : 'created'} — ${result.variantCount} variants, ${result.imeiCount} IMEIs`,
-      );
-      if (!isEdit) reset();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Save fail hua');
-    },
-  });
-
-  const currentValidation =
-    draft.step === 1 ? validation.step1
-    : draft.step === 2 ? validation.step2
-    : validation.step3;
-
-  const canGoNext = currentValidation.valid && draft.step < 3;
-  const canSave = validation.step1.valid && validation.step2.valid && validation.step3.valid;
-
-  /* Scroll top on step change */
-  const prevStepRef = useRef(draft.step);
-  useEffect(() => {
-    if (prevStepRef.current !== draft.step) {
-      prevStepRef.current = draft.step;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [draft.step]);
-
-  /* Keyboard shortcuts */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showTeacher) return setShowTeacher(false);
-      const ctrl = e.ctrlKey || e.metaKey;
-      if (!ctrl) return;
-      if (e.key === 'ArrowRight' && canGoNext && !savedResult) { e.preventDefault(); nextStep(); }
-      if (e.key === 'ArrowLeft' && draft.step > 1 && !savedResult) { e.preventDefault(); prevStep(); }
-      if (e.key === 'Enter' && draft.step === 3 && canSave && !saveMutation.isPending && isOnline && !savedResult) {
-        e.preventDefault();
-        saveMutation.mutate();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [draft.step, canGoNext, canSave, savedResult, showTeacher, nextStep, prevStep, saveMutation, isOnline]);
-
-  /* Body scroll lock for teacher */
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = showTeacher ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher]);
-
-  const handleSave = () => {
-    if (!isOnline) {
-      toast.error('Internet nahi hai — online ho kar save karein. Draft safe hai, kuch nahi khoya.');
-      return;
-    }
-    saveMutation.mutate();
-  };
-
-  /* Type-aware step labels */
-  const step3Label = isAccessory ? 'Stock' : 'IMEIs';
-  const stepLabels = [
-    { s: 1, label: 'Basic Info', valid: validation.step1.valid },
-    { s: 2, label: 'Variants', valid: validation.step2.valid },
-    { s: 3, label: step3Label, valid: validation.step3.valid },
-  ];
-
-  // ─── Edit loading skeleton ───
-  if (isEdit && !editLoaded && !existingProduct) {
-    return (
-      <div className="max-w-4xl mx-auto py-10 space-y-4">
-        <div className="h-40 rounded-3xl bg-gradient-to-r from-slate-200 to-slate-100 dark:from-ink-800 dark:to-ink-800/60 animate-pulse" />
-        <div className="grid xl:grid-cols-[1fr_360px] gap-5">
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-            ))}
-          </div>
-          <div className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse hidden xl:block" />
-        </div>
-        <div className="flex justify-center pt-4">
-          <div className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-ink-400">
-            <div className="h-5 w-5 rounded-full border-2 border-blue-200 dark:border-blue-500/30 border-t-blue-600 dark:border-t-blue-400 animate-spin" />
-            Product load ho raha hai...
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ═══ SUCCESS SCREEN (type-aware) ═══
-  if (savedResult) {
-    return (
-      <div className="max-w-2xl mx-auto py-8 sm:py-12 space-y-5 px-1">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 border-2 border-blue-300 dark:border-blue-500/40 p-6 sm:p-8 text-center shadow-xl dark:shadow-none">
-          <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
-
-          <div className="relative">
-            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-blue-700 text-white flex items-center justify-center shadow-xl shadow-blue-500/30 mx-auto mb-4">
-              <CheckCircle2 className="h-10 w-10" />
-            </div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-ink-800 border border-blue-200 dark:border-blue-500/40 px-3 py-1 text-[0.6875rem] font-extrabold text-blue-800 dark:text-blue-300 mb-2">
-              {isAccessory ? <Headphones className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />}
-              {isAccessory ? 'ACCESSORY' : 'PHONE'}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-blue-900 dark:text-blue-100">
-              Product {isEdit ? 'Updated' : 'Created'}! 🎉
-            </h1>
-            <p className="text-blue-800 dark:text-blue-200 font-semibold mt-1 text-sm sm:text-base">
-              <strong>{savedResult.productName}</strong> aur uski poori inventory ready hai
-            </p>
-
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-6">
-              <SuccessStat icon={Layers} label="Variants" value={savedResult.variantCount} />
-              {isAccessory ? (
-                <SuccessStat icon={Package} label="Units" value={savedResult.accessoryUnits} />
-              ) : (
-                <SuccessStat icon={Hash} label="IMEIs" value={savedResult.imeiCount} />
-              )}
-              <SuccessStat
-                icon={ShieldCheck}
-                label={isAccessory ? 'Type' : 'PTA'}
-                value={isAccessory ? 'Qty' : '✓'}
-              />
-            </div>
-
-            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/40 px-3 py-1 text-[0.6875rem] font-extrabold text-emerald-800 dark:text-emerald-300">
-              <ShieldCheck className="h-3.5 w-3.5" /> Offline cache bhi refresh ho gaya — POS me turant dikhega
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <button
-            onClick={() => {
-              setSavedResult(null);
-              reset();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              if (isEdit) navigate('/mobile-products/new');
-            }}
-            className="rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white p-5 flex flex-col items-center gap-2 shadow-lg shadow-blue-500/30 transition"
-          >
-            <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another</div>
-            <div className="text-xs opacity-90 font-semibold">Naya product shuru karo</div>
-          </button>
-          <button
-            onClick={() => navigate(`/mobile-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] p-5 flex flex-col items-center gap-2 transition"
-          >
-            <Eye className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <div className="font-extrabold text-slate-900 dark:text-ink-white">View Product</div>
-            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Full detail page</div>
-          </button>
-          <button
-            onClick={() => navigate(isAccessory ? '/mobile-products' : '/imei-inventory')}
-            className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] p-5 flex flex-col items-center gap-2 transition"
-          >
-            {isAccessory ? (
-              <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            ) : (
-              <Smartphone className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            )}
-            <div className="font-extrabold text-slate-900 dark:text-ink-white">
-              {isAccessory ? 'All Products' : 'All IMEIs'}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
-              {isAccessory ? 'Catalog dekho' : 'IMEI inventory'}
-            </div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ═══ WIZARD ═══
-  return (
-    <div className="space-y-4 sm:space-y-5 pb-32 sm:pb-28">
-      {showTeacher && <WizardTeacher isAccessory={isAccessory} onClose={() => setShowTeacher(false)} />}
-
-      {/* Offline banner */}
-      {!isOnline && (
-        <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-3 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-lg">
-            <WifiOff className="h-4 w-4" />
-          </div>
-          <div className="text-xs flex-1 min-w-0">
-            <div className="font-extrabold text-rose-900 dark:text-rose-200">Offline Mode</div>
-            <div className="font-semibold text-rose-800 dark:text-rose-300">
-              Form bharna chalu rakhein — draft auto-save hota hai. Save sirf online hone pe hoga.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Draft restored */}
-      {draftRestored && !isEdit && (
-        <div className="rounded-2xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/40 p-3 flex items-center gap-3 flex-wrap">
-          <Sparkles className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0" />
-          <div className="text-xs text-blue-900 dark:text-blue-200 flex-1 min-w-0 font-semibold">
-            <strong>Draft restored</strong> — pichli bar ki values load ho gayi hain
-          </div>
-          <button
-            onClick={() => { if (confirm('Draft delete kar ke naya start karein?')) reset(); }}
-            className="px-3 py-1.5 rounded-lg bg-white dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-700 dark:text-rose-400 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200 dark:border-rose-500/40 transition"
-          >
-            <Trash2 className="h-3 w-3" /> Fresh Start
-          </button>
-        </div>
-      )}
-
-      {/* Edit mode note */}
-      {isEdit && (
-        <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-3 flex items-start gap-3">
-          <Edit3 className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 dark:text-amber-200 flex-1 font-semibold">
-            <div className="font-extrabold mb-0.5">
-              Edit Mode • Type locked: {isAccessory ? '🎧 Accessory' : '📱 Phone'}
-            </div>
-            Basic info edit kar sakte hain. New variants + {isAccessory ? 'stock' : 'IMEIs'} add karenge tou existing ke saath merge honge (duplicates skip).
-            Delete karne ke liye{' '}
-            <a href={`/mobile-products/${id}`} className="underline font-extrabold">detail page</a> use karein.
-          </div>
-        </div>
-      )}
-
-      {/* Back + Guide */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <button
-          onClick={() => navigate(isEdit ? `/mobile-products/${id}` : '/mobile-products')}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition min-h-[44px]"
-        >
-          <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Products'}
-        </button>
-        <button
-          onClick={() => setShowTeacher(true)}
-          className="inline-flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-amber-100 dark:bg-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/30 border-2 border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-extrabold transition"
-        >
-          <GraduationCap className="h-4 w-4" /> Guide
-        </button>
-      </div>
-
-      {/* ═══ PRODUCT TYPE SELECTOR (create mode only) ═══ */}
-      {!isEdit && (
-        <section className="grid grid-cols-2 gap-3">
-          <TypeCard
-            active={!isAccessory}
-            onClick={() => setProductType('PHONE')}
-            icon={Smartphone}
-            emoji="📱"
-            title="Phone"
-            desc="IMEI tracked • PTA status • warranty"
-            tone="blue"
-          />
-          <TypeCard
-            active={isAccessory}
-            onClick={() => setProductType('ACCESSORY')}
-            icon={Headphones}
-            emoji="🎧"
-            title="Accessory"
-            desc="Charger, cover, handsfree — sirf qty stock"
-            tone="violet"
-          />
-        </section>
-      )}
-
-      {/* ═══ HERO (type-aware) ═══ */}
-      <section className={`relative overflow-hidden rounded-2xl sm:rounded-3xl text-white p-4 sm:p-6 shadow-2xl ${
-        isAccessory
-          ? 'bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-ink-950 dark:via-violet-950 dark:to-fuchsia-900'
-          : 'bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900'
-      }`}>
-        <div className={`absolute -top-20 -right-20 h-64 w-64 rounded-full blur-3xl pointer-events-none ${isAccessory ? 'bg-fuchsia-400/20' : 'bg-blue-400/20'}`} />
-        <div className={`absolute -bottom-20 -left-20 h-64 w-64 rounded-full blur-3xl pointer-events-none ${isAccessory ? 'bg-violet-400/15' : 'bg-indigo-400/15'}`} />
-        <div className="relative">
-          <div className="flex items-start justify-between gap-3 flex-wrap">
-            <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest">
-                {isAccessory ? <Headphones className="h-3.5 w-3.5 text-fuchsia-300" /> : <Smartphone className="h-3.5 w-3.5 text-amber-300" />}
-                {isEdit ? `Editing ${isAccessory ? 'Accessory' : 'Phone'}` : isAccessory ? 'New Accessory' : 'New Phone'}
-                {!isOnline && (
-                  <>
-                    <span className="opacity-40">•</span>
-                    <span className="inline-flex items-center gap-1 text-rose-300">
-                      <WifiOff className="h-3 w-3" /> Offline
-                    </span>
-                  </>
-                )}
-              </div>
-              <h1 className="mt-2.5 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight truncate">
-                {draft.basic.name || (isEdit ? 'Edit Product' : isAccessory ? 'Add Accessory' : 'Add Mobile Phone')}
-              </h1>
-              <p className="mt-1.5 text-xs sm:text-sm text-white/85 font-semibold">
-                {isAccessory
-                  ? 'Naam, price, colors (optional) aur stock qty — bas itna hi. Koi IMEI nahi.'
-                  : 'Ek page mein — product, colors/storage aur IMEIs sab. PTA compliance built-in.'}
-              </p>
-            </div>
-
-            {/* Live mini stats — type-aware */}
-            <div className="flex gap-2 shrink-0">
-              <HeroStat label="Variants" value={stats.variantCount} />
-              {isAccessory ? (
-                <HeroStat label="Units" value={stats.accessoryUnits} />
-              ) : (
-                <HeroStat label="IMEIs" value={stats.imeiCount} />
-              )}
-              <HeroStat label="Step" value={`${draft.step}/3`} />
-            </div>
-          </div>
-
-          {/* Step progress chips — type-aware labels */}
-          <div className="mt-4 flex gap-1.5 flex-wrap">
-            {stepLabels.map((st) => {
-              const active = draft.step === st.s;
-              return (
-                <div
-                  key={st.s}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.6875rem] font-extrabold border transition ${
-                    active
-                      ? 'bg-white text-slate-900 border-white shadow-lg'
-                      : st.valid
-                      ? 'bg-emerald-400/20 text-emerald-200 border-emerald-400/40'
-                      : 'bg-white/10 text-white/70 border-white/20'
-                  }`}
-                >
-                  {st.valid && !active && <CheckCircle2 className="h-3 w-3" />}
-                  {st.s}. {st.label}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <MobileWizardStepper
-        currentStep={draft.step}
-        stepValidation={validation}
-        onStepClick={(s) => {
-          if (s === 1) goToStep(1);
-          else if (s === 2 && validation.step1.valid) goToStep(s as WizardStep);
-          else if (s === 3 && validation.step1.valid && validation.step2.valid)
-            goToStep(s as WizardStep);
-        }}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-4 sm:gap-5 items-start">
-        <div className="min-w-0">
-          {draft.step === 1 && (
-            <MobileWizardStep1Basic
-              basic={draft.basic}
-              onChange={updateBasic}
-              errors={validation.step1.errors}
-            />
-          )}
-          {draft.step === 2 && (
-            <MobileWizardStep2Variants
-              basic={draft.basic}
-              hasVariants={draft.hasVariants}
-              onToggleVariants={setHasVariants}
-              variants={draft.variants}
-              onAddVariant={addVariant}
-              onAddVariantsMatrix={addVariantsMatrix}
-              onUpdateVariant={updateVariant}
-              onRemoveVariant={removeVariant}
-              errors={validation.step2.errors}
-            />
-          )}
-          {draft.step === 3 && (
-            <MobileWizardStep3Imeis
-              basic={draft.basic}
-              hasVariants={draft.hasVariants}
-              variants={draft.variants}
-              imeiLines={draft.imeiLines}
-              accessoryStock={draft.accessoryStock}
-              onAddImeiLine={addImeiLine}
-              onUpdateImeiLine={updateImeiLine}
-              onRemoveImeiLine={removeImeiLine}
-              onAddImeisBulk={addImeisBulk}
-              onApplyPtaToAll={applyPtaToAll}
-              onUpsertAccessoryStock={upsertAccessoryStock}
-              errors={validation.step3.errors}
-            />
-          )}
-        </div>
-
-        <div className="xl:sticky xl:top-4">
-          <MobileWizardSummary draft={draft} stats={stats} allValid={canSave} />
-        </div>
-      </div>
-
-      {/* ═══ BOTTOM BAR ═══ */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 dark:border-ink-800 bg-white/95 dark:bg-ink-950/95 backdrop-blur-lg px-3 sm:px-4 pt-3 lg:pl-[300px] shadow-[0_-4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
-        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <button
-            onClick={prevStep}
-            disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-3 sm:px-4 min-h-[44px] rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition disabled:opacity-40 active:scale-[0.97]"
-            title="Ctrl+←"
-          >
-            <ArrowLeft className="h-4 w-4" /> <span className="hidden xs:inline">Back</span>
-          </button>
-
-          <div className="flex-1 text-center min-w-0 px-1">
-            <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400">
-              Step {draft.step} of 3 {isAccessory && draft.step === 3 ? '• Stock qty' : ''}
-            </div>
-            {!currentValidation.valid && (
-              <div className="inline-flex items-center gap-1 text-[0.6875rem] text-rose-700 dark:text-rose-400 font-bold max-w-full">
-                <AlertTriangle className="h-3 w-3 shrink-0" />
-                <span className="truncate">{currentValidation.errors[0]}</span>
-              </div>
-            )}
-          </div>
-
-          {draft.step < 3 ? (
-            <button
-              onClick={nextStep}
-              disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-4 sm:px-5 min-h-[44px] rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-sm font-extrabold shadow-lg shadow-blue-500/30 disabled:opacity-50 transition active:scale-[0.97]"
-              title="Ctrl+→"
-            >
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <Button
-              onClick={handleSave}
-              loading={saveMutation.isPending}
-              disabled={!canSave || !isOnline}
-              className="bg-gradient-to-r from-blue-600 to-indigo-700 min-h-[44px] shadow-lg shadow-blue-500/30"
-              title="Ctrl+Enter"
-            >
-              {!isOnline ? <WifiOff className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-              <span className="hidden sm:inline">
-                {isEdit
-                  ? 'Save Changes'
-                  : isAccessory
-                  ? `Save (${stats.accessoryUnits} units)`
-                  : `Save All (${stats.imeiCount} IMEIs)`}
-              </span>
-              <span className="sm:hidden">{isEdit ? 'Save' : 'Save All'}</span>
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   TYPE CARD — Phone ya Accessory
-   ═════════════════════════════════════════════════════════════ */
-function TypeCard({ active, onClick, icon: Icon, emoji, title, desc, tone }: {
-  active: boolean; onClick: () => void; icon: any; emoji: string; title: string; desc: string; tone: 'blue' | 'violet';
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative text-left rounded-2xl border-4 p-4 sm:p-5 transition-all active:scale-[0.98] ${
-        active
-          ? tone === 'blue'
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-xl shadow-blue-500/20 ring-4 ring-blue-200 dark:ring-blue-500/30'
-            : 'border-violet-500 bg-violet-50 dark:bg-violet-500/10 shadow-xl shadow-violet-500/20 ring-4 ring-violet-200 dark:ring-violet-500/30'
-          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 hover:border-slate-300 dark:hover:border-ink-600'
-      }`}
-    >
-      {active && (
-        <div className={`absolute -top-2 -right-2 h-7 w-7 rounded-full text-white flex items-center justify-center shadow-lg ${tone === 'blue' ? 'bg-blue-600' : 'bg-violet-600'}`}>
-          <CheckCircle2 className="h-4 w-4" />
-        </div>
-      )}
-      <div className="flex items-center gap-3">
-        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${
-          active
-            ? tone === 'blue' ? 'bg-blue-600 text-white' : 'bg-violet-600 text-white'
-            : 'bg-slate-100 dark:bg-ink-800'
-        }`}>
-          {emoji}
-        </div>
-        <div className="min-w-0">
-          <div className={`font-extrabold text-base sm:text-lg ${active ? 'text-slate-900 dark:text-ink-white' : 'text-slate-700 dark:text-ink-200'}`}>
-            {title}
-          </div>
-          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 leading-tight">{desc}</div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   WIZARD TEACHER — type-aware guide
-   ═════════════════════════════════════════════════════════════ */
-function WizardTeacher({ isAccessory, onClose }: { isAccessory: boolean; onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> {isAccessory ? 'Accessory Guide' : 'Phone Wizard Guide'}
-          </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            {isAccessory ? (
-              <>Accessory ka matlab: <strong>charger, cover, handsfree, glass</strong> — in ka koi IMEI nahi hota,
-              sirf <strong>quantity stock</strong> hota hai. 3 easy steps, draft auto-save.</>
-            ) : (
-              <>Phone wizard <strong>3 easy steps</strong> me poora product banata hai — phone + colors
-              + IMEIs sab ek saath. <strong>Draft auto-save</strong> hota rehta hai —
-              browser band bhi kar do tou kuch nahi khoega.</>
-            )}
-          </p>
-
-          <div className="space-y-2">
-            <StepCard
-              num={1}
-              title="Basic Info"
-              desc={isAccessory
-                ? 'Accessory ka naam (jaise "iPhone 15 Cover"), price, brand. Name + price zaroori.'
-                : 'Phone ka naam, brand, model, prices. Name + prices zaroori — baqi optional.'}
-              tip={isAccessory ? 'Barcode laga do tou POS scan se turant aayega' : 'Model number auto-SKU banata hai'}
-            />
-            <StepCard
-              num={2}
-              title="Variants"
-              desc={isAccessory
-                ? 'Colors ya sizes (Black/White cover) — OPTIONAL. Nahi chahiye tou skip karo, seedha Step 3.'
-                : 'Colors aur storage combinations (Black 128GB). Matrix se ek click me saare combos.'}
-              tip={isAccessory ? 'Simple item hai tou variants skip = kam clicks' : 'Accessory hai tou Phone/Accessory type upar se badlo'}
-            />
-            <StepCard
-              num={3}
-              title={isAccessory ? 'Stock Qty' : 'IMEIs'}
-              desc={isAccessory
-                ? 'Sirf quantity likho — kitne piece stock me hain. Bas, khatam!'
-                : 'Har phone ka 15-digit IMEI daalo. Bulk paste supported — lines ya comma se separate.'}
-              tip={isAccessory ? 'Baad mein purchase se stock aur barh sakta hai' : 'Box pe ya *#06# se IMEI mil jata hai'}
-            />
-          </div>
-
-          {!isAccessory && (
-            <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/40 p-3 text-xs font-semibold text-rose-900 dark:text-rose-200">
-              🛡️ <strong>PTA zaroori hai:</strong> Pakistan me non-PTA phone bechna illegal hai.
-              Default <strong>APPROVED</strong> rakhein — sirf tab change karein jab pakka pata ho.
-              Non-approved phones POS me <strong>sell nahi</strong> honge.
-            </div>
-          )}
-
-          {isAccessory && (
-            <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/40 p-3 text-xs font-semibold text-violet-900 dark:text-violet-200">
-              🎧 <strong>Accessory tips:</strong> Low-stock alert default 5 hai — stock kam ho to dashboard
-              pe warning aa jayegi. Repair tickets me parts ke tor pe bhi yehi accessories use ho sakti hain.
-            </div>
-          )}
-
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400 mb-1">
-              ⌨️ Shortcuts (desktop)
-            </div>
-            <KbdRow keys="Ctrl + →" desc="Next step" />
-            <KbdRow keys="Ctrl + ←" desc="Back step" />
-            <KbdRow keys="Ctrl + Enter" desc="Save (step 3 pe)" />
-            <KbdRow keys="Esc" desc="Ye window band" />
-          </div>
-
-          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/40 p-3 text-xs font-semibold text-emerald-900 dark:text-emerald-200">
-            📡 <strong>Offline?</strong> Form bharna chalu rakhein — draft safe rehta hai. Save ka button
-            online hone pe hi kaam karega, aur save ke baad offline cache khud refresh ho jata hai.
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 font-extrabold shadow-lg shadow-blue-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya — Shuru Karein!
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StepCard({ num, title, desc, tip }: { num: number; title: string; desc: string; tip: string }) {
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border-2 border-blue-100 dark:border-blue-500/25 bg-blue-50/50 dark:bg-blue-500/5 p-3">
-      <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-sm font-extrabold shrink-0 shadow-lg shadow-blue-500/30">
-        {num}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
-        <div className="text-xs text-slate-600 dark:text-ink-300 font-semibold mt-0.5">{desc}</div>
-        <div className="text-[0.6875rem] text-blue-700 dark:text-blue-300 font-extrabold mt-1 inline-flex items-center gap-1">
-          <Sparkles className="h-3 w-3" /> {tip}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function KbdRow({ keys, desc }: { keys: string; desc: string }) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <kbd className="px-2 py-0.5 rounded-md bg-white dark:bg-ink-700 border border-slate-300 dark:border-ink-600 text-slate-700 dark:text-ink-200 font-mono font-bold text-[0.6875rem] shadow-sm">
-        {keys}
-      </kbd>
-      <span className="text-slate-600 dark:text-ink-300">{desc}</span>
-    </div>
-  );
-}
-
-function HeroStat({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="rounded-xl bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 text-center min-w-[62px]">
-      <div className="text-lg sm:text-xl font-extrabold tabular-nums leading-none">{value}</div>
-      <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-white/60 mt-1">{label}</div>
-    </div>
-  );
-}
-
-function SuccessStat({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
-  return (
-    <div className="rounded-xl bg-white dark:bg-ink-900 border-2 border-blue-200 dark:border-blue-500/30 p-3">
-      <Icon className="h-4 w-4 text-blue-500 dark:text-blue-400 mx-auto mb-1" />
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-300">{label}</div>
-      <div className="text-2xl font-extrabold text-blue-900 dark:text-blue-100 tabular-nums mt-0.5">{value}</div>
-    </div>
-  );
+  return <ProductEditorPage config={config} />;
 }

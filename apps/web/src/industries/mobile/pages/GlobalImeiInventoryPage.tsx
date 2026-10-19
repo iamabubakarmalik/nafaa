@@ -1,857 +1,347 @@
-// src/industries/mobile/pages/GlobalImeiInventoryPage.tsx
-import { useMemo, useState, useEffect, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+/**
+ * IMEI stock: every new phone by its IMEI — what is on the shelf and for how
+ * long, PTA status, what was sold, to whom and the warranty left. Opened from
+ * a product (/products/:id/imei) it shows that model only.
+ *
+ * Keys: N add IMEIs · C IMEI check · / search · 1 list · 2 analytics · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
-  Smartphone, Search, Download, RefreshCw, ShieldCheck,
-  Package, CheckCircle2, ExternalLink, Trash2, ScanLine,
-  GraduationCap, X, Keyboard, Printer, AlertOctagon,
-  AlertTriangle, Clock, Shield, XCircle, DollarSign,
-  Plus, ArrowLeft, Store, Layers,
+  AlertTriangle, ArrowDownWideNarrow, ArrowLeft, BarChart3, Calendar, CheckCircle2, Clock, Download, Filter, GraduationCap, Hash, ListChecks,
+  Pencil, Plus, ScanSearch, ShieldCheck, Smartphone, Wallet,
 } from 'lucide-react';
-import { Button } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
-import { toast } from 'sonner';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
 import {
-  imeiApi,
-  type PtaStatus,
-  type ImeiStatus,
-  PTA_STATUS_LABELS,
-  PTA_STATUS_COLORS,
-} from '../api/imei.api';
-import { PtaStatusBadge } from '../components/PtaStatusBadge';
-import { BulkImeiAddModal } from '../components/BulkImeiAddModal';
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useShopParam } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { productsApi } from '@modules/inventory/products/api/products.api';
-import { shopsApi } from '@modules/organization/shops/api/shops.api';
-import { useAuthStore } from '@core/stores/auth.store';
+import { imeiApi, type ImeiListParams, type ImeiRow, type ImeiSort, type ImeiStatus, type PtaStatus } from '../api/imei.api';
+import { mobileReportsApi } from '../api/mobile-reports.api';
+import { AddImeisModal } from '../components/imei/AddImeisModal';
+import { EditImeiModal } from '../components/imei/EditImeiModal';
+import { ImeiLookupModal } from '../components/imei/ImeiLookupModal';
+import { IMEI_KEY, IMEI_STATUSES, PTA_LIST, ageText, dayOnly, imeiStatusOf, ptaOf } from '../components/meta';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA IMEI INVENTORY — ek hi page, do kaam
-   ─────────────────────────────────────────────────────────────
-   /imei-inventory        → poori dukan ke saare device
-   /products/:id/imei     → sirf us product ke device
-   Pehle ye do alag pages the — ab ek hi, is liye har feature
-   (teacher, print, bulk select, shop filter) dono jagah milta hai.
-   🌙 Dark mode complete
-   🎓 Teacher — "IMEI inventory kaise use karein"
-   🛡️ PTA breakdown — clickable filter chips
-   ☑️ Bulk select — delete + CSV export
-   ⌨️  / search focus • Esc close
-   🖨️ Print report (A4 landscape)
-   📊 Hero live stats
-   ═════════════════════════════════════════════════════════════ */
-
-type StatusFilter = 'ALL' | ImeiStatus;
-type PtaFilter = 'ALL' | PtaStatus;
-
-const PTA_ICONS: Record<PtaStatus, any> = {
-  APPROVED: CheckCircle2,
-  NON_PTA: AlertOctagon,
-  PATCH: AlertTriangle,
-  PENDING: Clock,
-  EXEMPT: Shield,
-};
-
-const STATUS_ICONS: Record<string, any> = {
-  IN_STOCK: CheckCircle2,
-  SOLD: Package,
-  RETURNED: RefreshCw,
-  DAMAGED: XCircle,
-  RESERVED: Clock,
-  LOST: AlertOctagon,
-};
+type Tab = 'list' | 'analytics';
+type StatusPick = ImeiStatus | 'all';
+const AGED = [{ value: '', label: 'Koi bhi' }, { value: '30', label: '30 din se purane' }, { value: '60', label: '60 din se purane' }, { value: '90', label: '90 din se purane' }];
+const SORTS: Array<{ value: ImeiSort; label: string }> = [
+  { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' }, { value: 'sold', label: 'Abhi bike pehle' },
+  { value: 'costHigh', label: 'Mehnge pehle' }, { value: 'costLow', label: 'Saste pehle' },
+];
 
 export default function GlobalImeiInventoryPage() {
-  // `:id` mile to sirf usi product ke IMEI — warna poori dukan
-  const { id: scopedProductId } = useParams();
-  const isScoped = Boolean(scopedProductId);
-
-  const queryClient = useQueryClient();
-  const tenantName = useAuthStore((s) => s.tenant?.name);
-  const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+  const { id: productId } = useParams();
+  const [params, setParams] = useSearchParams();
+  const shopId = useShopParam();
+  const startHour = useBusinessDayStart();
+  const canManage = usePermission(PERMISSIONS.MOBILE_IMEI_MANAGE);
+  const { sales, cost } = useMasked();
+  const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('IN_STOCK');
-  const [ptaFilter, setPtaFilter] = useState<PtaFilter>('ALL');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [showTeacher, setShowTeacher] = useState(false);
-  const [shopFilter, setShopFilter] = useState<string>('ALL');
-  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [tab, setTab] = useState<Tab>('list');
+  const [status, setStatus] = useState<StatusPick>((params.get('status') as StatusPick) || 'IN_STOCK');
+  const [pta, setPta] = useState<PtaStatus | ''>('');
+  const [aged, setAged] = useState('');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const [sort, setSort] = useState<ImeiSort>('new');
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const [query, setQuery] = useState(search.trim());
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [lookup, setLookup] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ImeiRow | null>(null);
 
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [status, pta, aged, range, sort, query, productId]);
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 200);
-    return () => clearTimeout(t);
-  }, [search]);
+    const next = new URLSearchParams(params);
+    if (status === 'IN_STOCK') next.delete('status'); else next.set('status', status);
+    next.delete('q');
+    setParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
-  const { data: stats, refetch: refetchStats, isRefetching } = useQuery({
-    queryKey: ['imei-global-stats'],
-    queryFn: imeiApi.stats,
-  });
-
-  /* Scoped mode: product ka naam/price header me dikhane ke liye */
-  const { data: product } = useQuery({
-    queryKey: ['product', scopedProductId],
-    queryFn: () => productsApi.getOne(scopedProductId!),
-    enabled: isScoped,
-  });
-
-  const { data: shops = [] } = useQuery({
-    queryKey: ['shops'],
-    queryFn: () => shopsApi.list(),
-  });
-
-  const { data: listData, isLoading, refetch } = useQuery({
-    queryKey: ['imei-global-list', statusFilter, ptaFilter, shopFilter, scopedProductId],
-    queryFn: () =>
-      imeiApi.listAll({
-        status: statusFilter === 'ALL' ? undefined : statusFilter,
-        ptaStatus: ptaFilter === 'ALL' ? undefined : ptaFilter,
-        shopId: shopFilter === 'ALL' ? undefined : shopFilter,
-        productId: scopedProductId,
-        limit: 500,
-      }),
-  });
-
-  const imeis = listData?.items ?? [];
-
-  const filtered = useMemo(() => {
-    const q = debouncedSearch.toLowerCase();
-    if (!q) return imeis;
-    return imeis.filter((i: any) =>
-      i.imei1?.includes(q) ||
-      i.imei2?.includes(q) ||
-      i.serialNumber?.toLowerCase().includes(q) ||
-      i.color?.toLowerCase().includes(q) ||
-      i.product?.name?.toLowerCase().includes(q) ||
-      i.product?.brand?.name?.toLowerCase().includes(q),
-    );
-  }, [imeis, debouncedSearch]);
-
-  const ptaBreakdown = useMemo(() => {
-    const map: Record<PtaStatus, number> = { APPROVED: 0, NON_PTA: 0, PATCH: 0, PENDING: 0, EXEMPT: 0 };
-    stats?.byPta?.forEach((p: any) => { map[p.ptaStatus as PtaStatus] = p.count; });
-    return map;
-  }, [stats]);
-
-  const recalcMutation = useMutation({
-    mutationFn: imeiApi.recalcStocks,
-    onSuccess: (data) => {
-      toast.success(`✓ ${data.message} — ${data.productsUpdated} products, ${data.variantsUpdated} variants`);
-      queryClient.invalidateQueries({ queryKey: ['imei-global-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['imei-global-list'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['products-for-pos'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Recalc fail hua'),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => imeiApi.remove(id),
-    onSuccess: () => {
-      toast.success('✓ IMEI delete ho gaya');
-      queryClient.invalidateQueries({ queryKey: ['imei-global-list'] });
-      queryClient.invalidateQueries({ queryKey: ['imei-global-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete fail hua'),
-  });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const res = await Promise.allSettled(ids.map((id) => imeiApi.remove(id)));
-      return {
-        ok: res.filter((r) => r.status === 'fulfilled').length,
-        fail: res.length - res.filter((r) => r.status === 'fulfilled').length,
-      };
-    },
-    onSuccess: ({ ok, fail }) => {
-      if (ok) toast.success(`✓ ${ok} IMEIs delete ho gaye`);
-      if (fail) toast.error(`${fail} fail huay (SOLD IMEIs delete nahi ho saktin)`);
-      setSelected(new Set());
-      queryClient.invalidateQueries({ queryKey: ['imei-global-list'] });
-      queryClient.invalidateQueries({ queryKey: ['imei-global-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-    onError: () => toast.error('Bulk delete fail'),
-  });
-
-  const exportCSV = (rows: any[]) => {
-    if (rows.length === 0) return toast.error('Koi data nahi');
-    const summary = [
-      [`IMEI Inventory Report — ${tenantName || 'Nafaa'}`],
-      [`Shop: ${shopName || 'All'}  •  Generated: ${new Date().toLocaleString('en-PK')}  •  Total: ${rows.length}`],
-      [''],
-    ];
-    const headers = ['IMEI 1', 'IMEI 2', 'Serial', 'Product', 'Brand', 'Variant', 'Color', 'Status', 'PTA', 'PTA Tax', 'Cost', 'Warranty', 'Date'];
-    const body = rows.map((i: any) => [
-      i.imei1, i.imei2 || '', i.serialNumber || '',
-      i.product?.name || '', i.product?.brand?.name || '',
-      i.variant?.name || '', i.color || '',
-      i.status, i.ptaStatus || '', Number(i.ptaTaxPaid || 0).toFixed(2),
-      Number(i.costPrice || 0).toFixed(2),
-      i.warrantyMonths ? `${i.warrantyMonths}m` : '',
-      new Date(i.createdAt).toLocaleString('en-PK'),
-    ]);
-    const csv = [...summary, headers, ...body]
-      .map((r) => r.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `imei-inventory-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`${rows.length} IMEIs export ho gaye`);
+  const period = resolveRange(range, startHour);
+  const q: ImeiListParams = {
+    productId, shopId, page, limit: 50, sort, search: query || undefined,
+    status: status === 'all' ? undefined : status, ptaStatus: pta || undefined, agedDays: aged ? Number(aged) : undefined,
+    ...(period && period.from !== 'all' ? { from: period.from, to: period.to } : {}),
   };
+  const listQ = useQuery({ queryKey: [IMEI_KEY, 'page', q], queryFn: () => imeiApi.listAll(q), placeholderData: (p) => p, enabled: tab === 'list' });
+  const statsQ = useQuery({ queryKey: ['imei-stats', shopId], queryFn: () => imeiApi.stats(shopId), refetchInterval: 60_000 });
+  const productQ = useQuery({ queryKey: ['product', productId], queryFn: () => productsApi.getOne(productId!), enabled: !!productId });
 
-  const handlePrint = () => window.print();
-  const printDate = new Date().toLocaleString('en-PK', { dateStyle: 'full', timeStyle: 'short' });
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+  const s = statsQ.data;
+  const filtered = !!pta || !!aged || !!query || range.preset !== 'all';
+  const clear = () => { setPta(''); setAged(''); setSearch(''); setRange({ preset: 'all', custom: { from: '', to: '' } }); };
+  const pick = (st: StatusPick, extra?: () => void) => { setTab('list'); setStatus(st); extra?.(); };
+  const nonPta = s?.byPta?.find((b) => b.ptaStatus === 'NON_PTA')?.count ?? 0;
+  const statusLabel = status === 'all' ? 'Sab phone' : imeiStatusOf(status).label;
 
-  /* ─── Selection ─── */
-  const toggleOne = (id: string) => {
-    setSelected((prev) => {
-      const n = new Set(prev);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
-  };
-  const toggleAllVisible = () => {
-    const allSelected = filtered.every((i: any) => selected.has(i.id));
-    setSelected(allSelected ? new Set() : new Set(filtered.map((i: any) => i.id)));
-  };
-
-  /* ─── Keyboard shortcuts ─── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = document.activeElement?.tagName;
-      if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-      if (e.key === 'Escape') {
-        if (showTeacher) setShowTeacher(false);
-        else if (search) setSearch('');
-        else if (selected.size > 0) setSelected(new Set());
-      }
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); setAdding(true); }
+      if (e.key === 'c' || e.key === 'C') { e.preventDefault(); setLookup(''); }
+      if (e.key === '1') setTab('list');
+      if (e.key === '2') setTab('analytics');
+      if (e.key === '/') { e.preventDefault(); setTab('list'); window.setTimeout(() => searchRef.current?.focus(), 0); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showTeacher, search, selected]);
+  }, [canManage]);
 
-  const hasFilters = !!search || statusFilter !== 'IN_STOCK' || ptaFilter !== 'ALL' || shopFilter !== 'ALL';
-  const clearFilters = () => { setSearch(''); setStatusFilter('ALL'); setPtaFilter('ALL'); setShopFilter('ALL'); };
+  const fetchAll = () => imeiApi.listAll({ ...q, page: 1, limit: 500 });
+  const printDoc = async (): Promise<PrintDoc> => {
+    const all = await fetchAll();
+    return {
+      title: `IMEI stock — ${statusLabel}${productQ.data ? ` · ${productQ.data.name}` : ''}`,
+      subtitle: period && period.from !== 'all' ? rangeLabel(period.from, period.to) : 'Sab tareekhen',
+      meta: [['Phone', String(all.total)], ['Cost', formatPKR(all.totals.cost)], ...(all.totals.sold ? [['Bika', formatPKR(all.totals.sold)] as [string, string]] : [])],
+      sections: [{
+        kind: 'table',
+        columns: [{ label: 'Phone' }, { label: 'IMEI' }, { label: 'PTA', wideOnly: true }, { label: 'Halat' }, { label: 'Din', align: 'right', wideOnly: true }, { label: 'Cost', align: 'right' }],
+        rows: all.items.map((r) => [
+          `${r.product.name}${r.variant ? ` ${r.variant.name}` : ''}`, `${r.imei1}${r.imei2 ? ` / ${r.imei2}` : ''}`, ptaOf(r.ptaStatus).label,
+          `${imeiStatusOf(r.status).label}${r.sale ? ` · ${r.sale.saleNumber}` : ''}`, r.status === 'IN_STOCK' ? String(r.daysInStock ?? '') : '', formatPKR(r.costPrice),
+        ]),
+      }],
+      footer: all.total > all.items.length ? `Pehle ${all.items.length} phone (kul ${all.total})` : undefined,
+    };
+  };
+  const exportCsv = async () => {
+    const all = await fetchAll();
+    downloadCsv(`imei-${statusLabel.toLowerCase().replace(/\s+/g, '-')}.csv`, [
+      ['Phone', 'Variant', 'IMEI 1', 'IMEI 2', 'PTA', 'Halat', 'Aaya', 'Din shelf par', 'Cost', 'Bechne ki qeemat', 'Bika', 'Bill', 'Customer', 'Branch'],
+      ...all.items.map((r) => [r.product.name, r.variant?.name, r.imei1, r.imei2, ptaOf(r.ptaStatus).label, imeiStatusOf(r.status).label, dayOnly(r.purchasedAt),
+        r.daysInStock, r.costPrice, r.salePrice, r.soldPrice, r.sale?.saleNumber, r.sale?.customer?.name, r.shop?.name]),
+    ]);
+  };
 
-  const activeShops = useMemo(() => (shops as any[]).filter((sh) => sh.isActive !== false), [shops]);
-
+  const counts = data?.counts;
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-0">
-      {showTeacher && (
-        <ImeiTeacher onClose={() => setShowTeacher(false)} />
+    <PageShell>
+      <PageHero
+        title={productQ.data ? productQ.data.name : 'IMEI stock'}
+        chip={<><Smartphone /> {productId ? 'Is model ke phone' : 'Naye phone'}</>}
+        meta="Har phone apne IMEI se — shelf, PTA, bill aur warranty"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={statsQ.isLoading}
+        actions={<>
+          {productId && <Link to={`/mobile-products/${productId}`} className={heroButton}><ArrowLeft className="h-4 w-4" /><span className="hidden sm:inline">Product</span></Link>}
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'list' || !rows.length} /></span>
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={() => setLookup('')} title="IMEI check (C)" className={heroButton}><ScanSearch className="h-4 w-4" /><span className="hidden sm:inline">IMEI check</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setAdding(true)} title="Naye IMEI (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> IMEI daalein</button>}
+        </>}
+        stats={s ? [
+          { label: 'Shelf par', value: s.inStock, hint: cost(Number(s.stockValue ?? 0)) },
+          { label: 'Is mahine bike', value: s.soldThisMonth ?? 0, hint: sales(s.soldThisMonthValue ?? 0) },
+          { label: 'Aaj bike', value: s.soldToday ?? 0 },
+        ] : [{ label: 'Shelf par', value: '—' }]}
+      />
+
+      <KpiRow cols={5}>
+        {!s ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Smartphone} color="#10b981" label="Shelf par" value={s.inStock} hint={`Bechne par ${sales(Number(s.retailValue ?? 0))}`} onClick={() => pick('IN_STOCK', () => setAged(''))} active={tab === 'list' && status === 'IN_STOCK' && !aged} />
+          <KpiCard icon={Clock} color={s.aged60 ? '#d97706' : '#64748b'} label="60 din se purane" value={s.aged60 ?? 0} hint={s.aged60 ? 'Qeemat girne se pehle bechein' : 'Sab taaza'} onClick={() => pick('IN_STOCK', () => setAged('60'))} active={tab === 'list' && aged === '60'} />
+          <KpiCard icon={AlertTriangle} color={nonPta ? '#e11d48' : '#64748b'} label="Non-PTA shelf par" value={nonPta} hint="Customer ko zaroor batayein" onClick={() => pick('IN_STOCK', () => setPta('NON_PTA'))} active={tab === 'list' && pta === 'NON_PTA'} />
+          <KpiCard icon={CheckCircle2} color="#8b5cf6" label="Bik chuke" value={s.sold} hint={`Is mahine profit ${cost(Math.max((s.soldThisMonthValue ?? 0) - (s.soldThisMonthCost ?? 0), 0))}`} onClick={() => pick('SOLD', () => setSort('sold'))} active={tab === 'list' && status === 'SOLD'} />
+          <KpiCard icon={Wallet} color={(s.damaged ?? 0) + (s.lost ?? 0) ? '#e11d48' : '#64748b'} label="Kharab / gum" value={(s.damaged ?? 0) + (s.lost ?? 0)} hint={s.reserved ? `${s.reserved} rakhe hue` : undefined} onClick={() => pick('DAMAGED')} active={tab === 'list' && status === 'DAMAGED'} />
+        </>}
+      </KpiRow>
+
+      {tab === 'analytics' ? (
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Shelf ke phone — PTA aur kitne din se pare hain</p>} />
+      ) : (
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="IMEI, model, rang…" label="Search" />}
+          chips={filtered ? <>
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+            {pta && <FilterChip onRemove={() => setPta('')}>{ptaOf(pta).label}</FilterChip>}
+            {aged && <FilterChip onRemove={() => setAged('')}>{aged} din se purane</FilterChip>}
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>{status === 'SOLD' ? 'Bika' : 'Aaya'}: {rangeLabel(period.from, period.to)}</FilterChip>}
+          </> : undefined}
+          onClear={clear}>
+          <FilterMenu icon={Filter} label={statusLabel} value={status} active={status !== 'IN_STOCK'} onChange={setStatus} width="w-64"
+            options={[...IMEI_STATUSES.map((st) => ({ value: st as StatusPick, label: imeiStatusOf(st).label, hint: counts?.[st] != null ? `${counts[st]} phone` : undefined })), { value: 'all' as StatusPick, label: 'Sab phone' }]} />
+          <FilterMenu icon={ShieldCheck} label={pta ? ptaOf(pta).label : 'PTA'} value={pta} active={!!pta} onChange={setPta}
+            options={[{ value: '' as PtaStatus | '', label: 'Sab' }, ...PTA_LIST.map((p) => ({ value: p as PtaStatus | '', label: ptaOf(p).label }))]} />
+          <FilterMenu icon={Clock} label={aged ? `${aged}+ din` : 'Kitna purana'} value={aged} active={!!aged} onChange={setAged} options={AGED} />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={status === 'SOLD' ? 'Bikne ki date' : 'Aane ki date'} />
+          <FilterMenu icon={ArrowDownWideNarrow} label={SORTS.find((x) => x.value === sort)?.label ?? 'Tarteeb'} value={sort} onChange={setSort} align="right" options={SORTS} />
+        </FilterBar>
       )}
 
-      {/* Bulk add sirf scoped mode me — kis product ka device, ye pata hona zaroori hai */}
-      {showBulkAdd && product && (
-        <BulkImeiAddModal
-          productId={product.id}
-          productName={product.name}
-          defaultCostPrice={product.costPrice || 0}
-          onSuccess={() => {
-            setShowBulkAdd(false);
-            queryClient.invalidateQueries({
-              predicate: (q) => {
-                const k = String(q.queryKey?.[0] ?? '');
-                return [
-                  'imei-global-list', 'imei-global-stats', 'imei-stats', 'imei-list',
-                  'imei-product-list', 'mobile-pos-catalog', 'mobile-low-stock',
-                  'mobile-stock-aging', 'products', 'mobile-products', 'product',
-                ].includes(k) || k.startsWith('mobile-reports');
-              },
-            });
-          }}
-          onClose={() => setShowBulkAdd(false)}
-        />
-      )}
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{canManage && <><Kbd>N</Kbd> IMEI · </>}<Kbd>C</Kbd> check · <Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        tabs={[
+          { id: 'list', label: 'Phone', icon: ListChecks, count: data?.total ?? null },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
 
-      {/* ═══ PRINT-ONLY HEADER ═══ */}
-      <div className="hidden print:block">
-        <div className="flex items-center justify-between border-b-4 border-blue-600 pb-3 mb-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 leading-tight">
-              📱 {tenantName || 'My Store'} — IMEI Inventory Report
-            </h1>
-            <p className="text-xs text-slate-600 font-semibold mt-1">
-              {shopName ? `Shop: ${shopName}  •  ` : ''}{filtered.length} IMEIs
-              {statusFilter !== 'ALL' ? `  •  ${statusFilter.replace('_', ' ')}` : ''}
-              {ptaFilter !== 'ALL' ? `  •  PTA: ${PTA_STATUS_LABELS[ptaFilter]}` : ''}
-            </p>
-            <p className="text-xs text-slate-500 mt-0.5">Generated: {printDate}</p>
+      {tab === 'analytics' ? <ImeiAnalytics shopId={shopId} onBucket={(days) => pick('IN_STOCK', () => setAged(days))} onPta={(p) => pick('IN_STOCK', () => setPta(p))} /> : (<>
+        {data && data.total > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
+            <span className="text-slate-500">{statusLabel}</span>
+            <span className="font-semibold text-slate-900">{data.total} phone · cost {cost(data.totals.cost)}</span>
+            {data.totals.sold > 0 && <span className="text-violet-700">bike {sales(data.totals.sold)}</span>}
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none" />
-
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <Smartphone className="h-3.5 w-3.5 text-amber-300" /> Mobile Industry
-              {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
+        {listQ.isLoading ? (
+          <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        ) : listQ.isError && !data ? (
+          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+            <p className="font-semibold text-slate-900">Phone load nahi hue</p>
+            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+          </div>
+        ) : !rows.length ? (
+          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+            <Smartphone className="mx-auto h-10 w-10 text-slate-300" />
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi phone nahi' : status === 'IN_STOCK' ? 'Shelf par koi phone nahi' : 'Koi phone nahi'}</p>
+            <p className="mt-1 text-sm text-slate-500">Naye phone aayein to unke IMEI yahan daalein — POS par wohi phone bikenge.</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {canManage && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>IMEI daalein</Button>}
+              {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+              {!filtered && status !== 'all' && <Button variant="ghost" onClick={() => setStatus('all')}>Sab phone dekhein</Button>}
             </div>
-            {isScoped && (
-              <Link to={`/mobile-products/${scopedProductId}`}
-                className="mt-2 inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-white/80 hover:text-white transition">
-                <ArrowLeft className="h-3.5 w-3.5" /> Wapis product par
-              </Link>
-            )}
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
-              {isScoped
-                ? <>📇 {product?.name ?? 'Product'} <span className="text-white/70 text-lg sm:text-xl">ki IMEIs</span></>
-                : '📇 IMEI Inventory'}
-            </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
-              {isScoped
-                ? 'Is product ke saare device — search, filter, manage'
-                : 'Saare products ki IMEIs ek jagah — search, filter, manage'}
-              {stats && (
-                <>
-                  <span className="opacity-50 mx-1.5">•</span>
-                  <strong className="text-blue-200">{stats.total}</strong> total
-                  <span className="opacity-50 mx-1.5">•</span>
-                  <strong className="text-emerald-300">{stats.inStock}</strong> in-stock
-                </>
-              )}
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            <button
-              onClick={() => setShowTeacher(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-            >
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-            <a
-              href="https://dirbs.pta.gov.pk"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <ExternalLink className="h-4 w-4" /> <span className="hidden sm:inline">DIRBS PTA</span>
-            </a>
-            <button
-              onClick={() => { refetch(); refetchStats(); }}
-              disabled={isRefetching}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-            <button
-              onClick={handlePrint}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
-            </button>
-            <Button
-              onClick={() => {
-                if (confirm('Saare product stocks ko IMEI counts se recalculate karein? Ye "Out of stock" ghalti fix karta hai.')) {
-                  recalcMutation.mutate();
-                }
-              }}
-              loading={recalcMutation.isPending}
-              variant="outline"
-              className="font-extrabold bg-white/15 border-white/25 text-white hover:bg-white/25"
-            >
-              <RefreshCw className="h-4 w-4" /> <span className="hidden sm:inline">Recalc Stock</span>
-            </Button>
-            {isScoped ? (
-              <Button
-                onClick={() => setShowBulkAdd(true)}
-                disabled={!product}
-                className="bg-white text-blue-900 hover:bg-slate-100 font-extrabold shadow-2xl"
-              >
-                <Plus className="h-4 w-4" /> IMEI Add Karo
-              </Button>
-            ) : (
-              <Link to="/products">
-                <Button className="bg-white text-blue-900 hover:bg-slate-100 font-extrabold shadow-2xl">
-                  <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Product chuno</span>
-                  <span className="sm:hidden">Add</span>
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
-          <Kbd>/</Kbd><span className="text-white/60">Search</span>
-          <span className="text-white/30 mx-1">•</span>
-          <Kbd>Esc</Kbd><span className="text-white/60">Clear / band</span>
-        </div>
-      </section>
-
-      {/* ═══ KPIs ═══ */}
-      {stats && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 print:hidden">
-          <Kpi icon={Smartphone} label="Total IMEIs" value={stats.total} tone="blue" />
-          <Kpi icon={CheckCircle2} label="In Stock" value={stats.inStock} tone="emerald" />
-          <Kpi icon={Package} label="Sold" value={stats.sold} tone="violet" />
-          <Kpi icon={DollarSign} label="Stock Value" value={formatPKR(stats.stockValue ?? 0)} tone="amber" isText />
-        </section>
-      )}
-
-      {/* ═══ PTA BREAKDOWN — clickable ═══ */}
-      {stats && (
-        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-500/10 dark:via-ink-900 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/40 p-4 sm:p-5 print:hidden">
-          <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
-            <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">PTA Status (In-Stock IMEIs)</h3>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {(['APPROVED', 'NON_PTA', 'PATCH', 'PENDING', 'EXEMPT'] as PtaStatus[]).map((status) => {
-              const count = ptaBreakdown[status];
-              const active = ptaFilter === status;
-              const colors = PTA_STATUS_COLORS[status];
-              const Icon = PTA_ICONS[status];
-              return (
-                <button
-                  key={status}
-                  onClick={() => setPtaFilter(active ? 'ALL' : status)}
-                  className={`rounded-xl border-2 p-3 text-left transition active:scale-[0.98] ${
-                    active
-                      ? `${colors.bg} ${colors.border} shadow-md ring-2 ring-offset-1 dark:ring-offset-ink-900 ring-emerald-400`
-                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-emerald-300 dark:hover:border-emerald-500/50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <Icon className={`h-4 w-4 ${colors.text}`} />
-                    <span className={`text-2xl font-extrabold tabular-nums ${count > 0 ? colors.text : 'text-slate-300 dark:text-ink-600'}`}>
-                      {count}
-                    </span>
-                  </div>
-                  <div className={`text-[0.6875rem] uppercase tracking-wider font-extrabold mt-1 ${colors.text}`}>
-                    {PTA_STATUS_LABELS[status]}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* ═══ STATUS CHIPS ═══ */}
-      <section className="flex gap-1.5 overflow-x-auto pb-1 print:hidden">
-        {(['ALL', 'IN_STOCK', 'SOLD', 'RETURNED', 'DAMAGED', 'RESERVED', 'LOST'] as StatusFilter[]).map((s) => {
-          const active = statusFilter === s;
-          const Icon = s === 'ALL' ? Smartphone : STATUS_ICONS[s];
-          return (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`shrink-0 inline-flex items-center gap-1 px-3 h-10 rounded-xl text-xs font-extrabold transition border-2 ${
-                active
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-blue-300'
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {s === 'ALL' ? `Sab (${stats?.total ?? 0})` : s.replace('_', ' ')}
-            </button>
-          );
-        })}
-      </section>
-
-      {/* ═══ SHOP CHIPS — ab har device apni shop se juda hai ═══ */}
-      {activeShops.length > 1 && (
-        <section className="flex gap-1.5 overflow-x-auto pb-1 print:hidden items-center">
-          <span className="shrink-0 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider inline-flex items-center gap-1 pr-1">
-            <Store className="h-3 w-3" /> Shop
-          </span>
-          <button
-            onClick={() => setShopFilter('ALL')}
-            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 ${
-              shopFilter === 'ALL'
-                ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 border-transparent shadow-sm'
-                : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400 hover:bg-slate-200 dark:hover:bg-ink-700'
-            }`}
-          >
-            Sab shops
-          </button>
-          {activeShops.map((sh: any) => (
-            <button
-              key={sh.id}
-              onClick={() => setShopFilter(sh.id)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 inline-flex items-center gap-1 ${
-                shopFilter === sh.id
-                  ? 'bg-blue-600 text-white border-transparent shadow-sm'
-                  : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400 hover:bg-slate-200 dark:hover:bg-ink-700'
-              }`}
-            >
-              <Store className="h-3 w-3" /> {sh.name}
-            </button>
-          ))}
-        </section>
-      )}
-
-      {/* ═══ SEARCH + EXPORT ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-3.5 print:hidden">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <ScanLine className="h-4 w-4 text-blue-600 dark:text-blue-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              ref={searchRef}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Scan ya search IMEI / product / brand / serial... (/ shortcut)"
-              className="h-11 w-full rounded-xl border-2 border-blue-200 dark:border-blue-500/40 bg-blue-50/30 dark:bg-blue-500/5 pl-9 pr-9 text-sm font-mono text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-ink-800 transition"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition">
-                <X className="h-3.5 w-3.5 text-slate-400" />
-              </button>
-            )}
-          </div>
-          {hasFilters && (
-            <button onClick={clearFilters} className="text-xs font-extrabold text-rose-600 dark:text-rose-400 hover:text-rose-700 inline-flex items-center gap-1 transition">
-              <X className="h-3 w-3" /> Clear
-            </button>
-          )}
-          {filtered.length > 0 && (
-            <button
-              onClick={() => exportCSV(filtered)}
-              className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50 bg-white dark:bg-ink-800 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition"
-            >
-              <Download className="h-3.5 w-3.5" /> CSV ({filtered.length})
-            </button>
-          )}
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
-            {filtered.length} IMEIs
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ BULK BAR ═══ */}
-      {selected.size > 0 && (
-        <section className="sticky top-2 z-20 rounded-2xl bg-slate-950 dark:bg-ink-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
-          <div className="font-extrabold text-sm px-2"><span className="text-blue-300">{selected.size}</span> selected</div>
-          <button
-            onClick={() => exportCSV(imeis.filter((i: any) => selected.has(i.id)))}
-            className="px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-extrabold inline-flex items-center gap-1 transition"
-          >
-            <Download className="h-3.5 w-3.5" /> Export
-          </button>
-          <button
-            onClick={() => {
-              if (confirm(`${selected.size} IMEIs delete karein? SOLD IMEIs delete nahi hongi.`)) {
-                bulkDeleteMutation.mutate(Array.from(selected));
-              }
-            }}
-            disabled={bulkDeleteMutation.isPending}
-            className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-extrabold inline-flex items-center gap-1 transition disabled:opacity-50"
-          >
-            <Trash2 className="h-3.5 w-3.5" /> Delete
-          </button>
-          <button onClick={() => setSelected(new Set())} className="ml-auto px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold transition">
-            Clear
-          </button>
-        </section>
-      )}
-
-      {/* ═══ IMEI LIST ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
-        {isLoading ? (
-          <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 sm:p-16 text-center">
-            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-700 mx-auto flex items-center justify-center shadow-lg shadow-blue-500/40">
-              <Smartphone className="h-10 w-10 text-white" />
-            </div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
-              {hasFilters ? 'Koi matching IMEI nahi' : 'Abhi koi IMEI nahi'}
-            </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
-              {hasFilters
-                ? 'Filters badal ke dekho ya search clear karo'
-                : 'IMEIs product page se add hoti hain (Product wizard → IMEI Tracking step)'}
-            </p>
-            {hasFilters ? (
-              <Button variant="secondary" className="mt-4 font-extrabold" onClick={clearFilters}>
-                <X className="h-4 w-4" /> Filters Clear Karo
-              </Button>
-            ) : (
-              <div className="mt-4 flex gap-2 justify-center flex-wrap">
-                <Button variant="secondary" className="font-extrabold" onClick={() => setShowTeacher(true)}>
-                  <GraduationCap className="h-4 w-4" /> Pehle Seekh Lo
-                </Button>
-                <Link to="/mobile-products/new">
-                  <Button className="bg-gradient-to-r from-blue-600 to-indigo-700 font-extrabold shadow-lg shadow-blue-500/40">
-                    <Smartphone className="h-4 w-4" /> Naya Phone Add Karo
-                  </Button>
-                </Link>
-              </div>
-            )}
           </div>
         ) : (
-          <>
-            {/* Select all row — screen only */}
-            <div className="px-4 py-2.5 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40 flex items-center gap-2 print:hidden">
-              <input
-                type="checkbox"
-                checked={filtered.length > 0 && filtered.every((i: any) => selected.has(i.id))}
-                onChange={toggleAllVisible}
-                className="h-4 w-4 rounded accent-blue-600"
-              />
-              <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400">Sab select karo</span>
-            </div>
-
-            <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
-              {filtered.map((imei: any) => {
-                const StatusIcon = STATUS_ICONS[imei.status] ?? Package;
-                return (
-                  <div key={imei.id} className={`p-4 hover:bg-blue-50/40 dark:hover:bg-blue-500/5 transition ${selected.has(imei.id) ? 'bg-blue-50/60 dark:bg-blue-500/10' : ''}`}>
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                      <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <input
-                          type="checkbox"
-                          checked={selected.has(imei.id)}
-                          onChange={() => toggleOne(imei.id)}
-                          className="h-4 w-4 rounded accent-blue-600 mt-1 shrink-0 print:hidden"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className="font-mono font-extrabold text-slate-900 dark:text-ink-white text-sm">
-                              {imei.imei1}
-                            </span>
-                            <PtaStatusBadge
-                              status={(imei.ptaStatus || 'PENDING') as PtaStatus}
-                              size="sm"
-                              taxPaid={imei.ptaTaxPaid}
-                            />
-                            <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold inline-flex items-center gap-1 ${
-                              imei.status === 'IN_STOCK' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
-                              imei.status === 'SOLD' ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300' :
-                              imei.status === 'RETURNED' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' :
-                              'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300'
-                            }`}>
-                              <StatusIcon className="h-2.5 w-2.5" /> {imei.status}
-                            </span>
-                            {imei.color && (
-                              <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold">
-                                {imei.color}
-                              </span>
-                            )}
-                          </div>
-
-                          <Link
-                            to={`/mobile-products/${imei.productId}/edit`}
-                            className="font-extrabold text-slate-900 dark:text-ink-white hover:text-blue-700 dark:hover:text-blue-400 inline-flex items-center gap-1 text-sm transition"
-                          >
-                            <Package className="h-3.5 w-3.5" />
-                            {imei.product?.name || 'Unknown product'}
-                            {imei.product?.brand?.name && (
-                              <span className="text-xs text-violet-700 dark:text-violet-400 font-bold"> · {imei.product.brand.name}</span>
-                            )}
-                            {imei.variant?.name && (
-                              <span className="text-xs text-slate-500 dark:text-ink-400"> — {imei.variant.name}</span>
-                            )}
-                          </Link>
-
-                          {imei.imei2 && (
-                            <div className="text-xs text-slate-500 dark:text-ink-400 font-mono mt-0.5">IMEI 2: {imei.imei2}</div>
-                          )}
-                          {imei.serialNumber && (
-                            <div className="text-xs text-slate-500 dark:text-ink-400 font-mono">Serial: {imei.serialNumber}</div>
-                          )}
-
-                          <div className="mt-2 flex items-center gap-3 flex-wrap text-xs text-slate-500 dark:text-ink-400">
-                            <span>Cost: <strong className="text-slate-700 dark:text-ink-200">{formatPKR(imei.costPrice || 0)}</strong></span>
-                            {imei.ptaTaxPaid > 0 && (
-                              <span className="text-emerald-700 dark:text-emerald-400 font-bold">+ Tax: {formatPKR(imei.ptaTaxPaid)}</span>
-                            )}
-                            {imei.warrantyMonths > 0 && <span>Warranty: {imei.warrantyMonths}m</span>}
-                            {imei.warrantyExpiry && (
-                              <span>Till: {new Date(imei.warrantyExpiry).toLocaleDateString('en-PK')}</span>
-                            )}
-                            {imei.soldAt && (
-                              <span className="text-violet-700 dark:text-violet-400 font-bold">
-                                Sold: {new Date(imei.soldAt).toLocaleDateString('en-PK')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0 print:hidden">
-                        <Link
-                          to={`/imei-inventory/${imei.productId}`}
-                          className="h-9 px-2.5 rounded-lg border-2 border-slate-200 dark:border-ink-700 hover:bg-slate-50 dark:hover:bg-ink-800 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1 transition"
-                        >
-                          <ExternalLink className="h-3 w-3" /> Product IMEIs
-                        </Link>
-                        {imei.status !== 'SOLD' && (
-                          <button
-                            onClick={() => {
-                              if (confirm(`IMEI ${imei.imei1} delete karein?`)) deleteMutation.mutate(imei.id);
-                            }}
-                            className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 inline-flex items-center justify-center transition"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {rows.map((r) => <ImeiRowItem key={r.id} r={r} money={sales} costOf={cost} onOpen={() => setEditing(r)} onCheck={() => setLookup(r.imei1)} />)}
+          </ul>
         )}
+
+        {data && data.totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2">
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+            <span className="text-sm text-slate-600">Safha {page} / {data.totalPages}</span>
+            <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+          </div>
+        )}
+      </>)}
+
+      {adding && <AddImeisModal productId={productId} onClose={() => setAdding(false)} />}
+      {lookup !== null && <ImeiLookupModal initial={lookup} onClose={() => setLookup(null)} />}
+      {editing && <EditImeiModal row={editing} canManage={canManage} onClose={() => setEditing(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="IMEI stock — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Naye phone', text: 'Purchase ke baad "IMEI daalein": model chunein, dabbe scan karein. Jitne IMEI, utna stock — purchase wala stock barabar ho jata hai.' },
+            { icon: ShieldCheck, color: '#16a34a', title: 'PTA', text: 'Har phone ki PTA halat likhein. Non-PTA phone bechne se pehle customer ko batayein — SIM kuch din baad band ho jati hai.' },
+            { icon: ScanSearch, color: '#7c3aed', title: 'IMEI check', text: 'Customer warranty ke liye aaye ya koi phone bechne aaye — IMEI check se pata chalta hai kab bika, kis ko, warranty kitni baqi, aur purana record.' },
+            { icon: Clock, color: '#d97706', title: 'Purana maal', text: '60 din se pare phone ki qeemat girti hai. Peela card dabayein aur unhe pehle bechein.' },
+            { icon: Pencil, color: '#e11d48', title: 'Kharab ya gum', text: 'Phone par click kar ke halat "Kharab" ya "Gum" karein — stock se nikal kar nuqsan me likha jata hai.' },
+            { icon: Hash, color: '#0891b2', title: 'Bika hua phone', text: 'Bika phone sirf Return se wapas aata hai — Sales me bill khol kar Return karein.' },
+          ]}
+          tips={['Phone POS par IMEI se bikta hai, is liye IMEI ke bagair phone counter par nahi aata.', 'IMEI daalne ke liye "Mobile IMEI sambhalna" ki permission chahiye.']}
+          shortcuts={[['N', 'IMEI daalein'], ['C', 'IMEI check'], ['/', 'dhoondein'], ['1', 'phone'], ['2', 'analytics'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function ImeiRowItem({ r, money, costOf, onOpen, onCheck }: { r: ImeiRow; money: (n: number) => string; costOf: (n: number) => string; onOpen: () => void; onCheck: () => void }) {
+  const st = imeiStatusOf(r.status);
+  const old = r.status === 'IN_STOCK' && (r.daysInStock ?? 0) >= 60;
+  return (
+    <li className="flex items-start gap-3 px-3 py-3 sm:px-4">
+      <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', r.status === 'IN_STOCK' ? (old ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600') : 'bg-slate-100 text-slate-500')}>
+        <Smartphone className="h-5 w-5" />
+      </span>
+      <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="truncate font-semibold text-slate-900">{r.product.name}{r.variant ? ` · ${r.variant.name}` : ''}</span>
+          <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}>{st.label}</span>
+          <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', ptaOf(r.ptaStatus).tone)}>{ptaOf(r.ptaStatus).label}</span>
+        </div>
+        <p className="mt-0.5 font-mono text-[0.8125rem] text-slate-600">{r.imei1}{r.imei2 ? ` / ${r.imei2}` : ''}{r.color ? <span className="font-sans text-slate-500"> · {r.color}</span> : null}</p>
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.75rem] text-slate-500">
+          {r.status === 'IN_STOCK' ? (
+            <span className={cn('inline-flex items-center gap-1', old && 'font-semibold text-amber-700')}><Calendar className="h-3 w-3" />{ageText(r.daysInStock)} se shelf par</span>
+          ) : r.sale ? (
+            <span>{r.sale.saleNumber}{r.sale.customer ? ` · ${r.sale.customer.name}` : ''}{r.soldAt ? ` · ${dayOnly(r.soldAt)}` : ''}</span>
+          ) : <span>Aaya {dayOnly(r.purchasedAt)}</span>}
+          {r.status === 'SOLD' && r.warranty.months > 0 && (
+            <span className={r.warranty.active ? 'text-emerald-700' : 'text-slate-400'}>{r.warranty.active ? `Warranty ${r.warranty.daysLeft} din` : 'Warranty khatam'}</span>
+          )}
+          {r.shop && <span className="text-slate-400">{r.shop.name}</span>}
+        </p>
+      </button>
+      <div className="shrink-0 text-right">
+        <p className="font-semibold tabular-nums text-slate-900">{r.status === 'SOLD' && r.soldPrice ? money(r.soldPrice) : money(r.salePrice)}</p>
+        <p className="text-[0.75rem] tabular-nums text-slate-500">cost {costOf(r.costPrice)}</p>
+        <button type="button" onClick={onCheck} className="mt-1 text-[0.75rem] font-semibold text-brand-700 hover:underline">Check</button>
+      </div>
+    </li>
+  );
+}
+
+/** PTA mix and shelf age of the phones on hand. */
+function ImeiAnalytics({ shopId, onBucket, onPta }: { shopId?: string; onBucket: (days: string) => void; onPta: (p: PtaStatus) => void }) {
+  const { cost } = useMasked();
+  const aging = useQuery({ queryKey: ['mobile-stock-aging', shopId], queryFn: () => mobileReportsApi.stockAging(shopId), staleTime: 60_000 });
+  const pta = useQuery({ queryKey: ['mobile-pta', shopId], queryFn: () => imeiApi.stats(shopId), staleTime: 60_000 });
+  if (aging.isLoading || pta.isLoading) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-64 rounded-3xl" /><Skeleton className="h-64 rounded-3xl" /></div>;
+  const buckets = aging.data?.buckets ?? [];
+  const maxB = Math.max(1, ...buckets.map((b) => b.phones));
+  const byPta = pta.data?.byPta ?? [];
+  const total = Math.max(1, byPta.reduce((s2, b) => s2 + b.count, 0));
+  const days = (k: string) => (k === '31-60' ? '30' : k === '61-90' ? '60' : k === '90+' ? '90' : '');
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+        <h3 className="font-semibold text-slate-900">Kitne din se shelf par</h3>
+        <p className="text-[0.75rem] text-slate-500">Naye phone — purane pehle bechein</p>
+        <ul className="mt-4 space-y-3">
+          {buckets.map((b) => (
+            <li key={b.key}>
+              <button type="button" onClick={() => onBucket(days(b.key))} className="w-full text-left">
+                <div className="flex justify-between text-[0.8125rem]"><span className="font-medium text-slate-700">{b.label}</span><span className="tabular-nums text-slate-600">{b.phones} phone · {cost(b.phoneValue)}</span></div>
+                <div className="mt-1 h-2.5 rounded-full bg-slate-100"><div className={cn('h-2.5 rounded-full', b.key === '0-30' ? 'bg-emerald-500' : b.key === '31-60' ? 'bg-amber-400' : 'bg-rose-500')} style={{ width: `${(b.phones / maxB) * 100}%` }} /></div>
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
-
-      {/* ═══ PRINT CSS ═══ */}
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 10mm 8mm; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          .print\\:hidden { display: none !important; }
-          .print\\:block { display: block !important; }
-          section, div { box-shadow: none !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav { display: none !important; }
-          [data-sonner-toaster], [data-sonner-toast] { display: none !important; visibility: hidden !important; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   TEACHER — IMEI inventory guide
-   ═════════════════════════════════════════════════════════════ */
-function ImeiTeacher({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> IMEI Inventory — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            Ye page <strong>saare products ki IMEIs</strong> ek jagah dikhata hai — jis phone ka bhi IMEI ho, yahan mil jayegi.
-            Yahan se search, filter, delete sab hota hai.
-          </p>
-
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2.5">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
-              🛡️ PTA Status kya hai?
-            </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-              <GuideRow emoji="✅" title="Approved" desc="PTA se register — bilkul theek, bik sakta hai" />
-              <GuideRow emoji="🔧" title="Patch" desc="Local network patch se chal raha — kabhi issue ho sakta" />
-              <GuideRow emoji="⏳" title="Pending" desc="Register ho raha hai — verify jaldi karein" />
-              <GuideRow emoji="❌" title="Non-PTA" desc="Register nahi — POS me sell block ho sakta hai" />
-              <GuideRow emoji="📋" title="Exempt" desc="Special case — tax se azad" />
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/40 p-3 text-xs font-semibold text-emerald-900 dark:text-emerald-200">
-            💡 <strong>"Out of stock" ghalti?</strong> — Header ka <strong>Recalc Stock</strong> button
-            saare products ka stock IMEI counts se recalculate kar deta hai.
-          </div>
-
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <TipRow><strong>⌨️ / dabao</strong> — search box pe jump, ya barcode scan karo</TipRow>
-            <TipRow><strong>PTA chip pe click</strong> — us status ke IMEIs filter ho jayenge</TipRow>
-            <TipRow><strong>Checkbox se select</strong> — bulk export ya delete</TipRow>
-            <TipRow><strong>SOLD IMEIs delete nahi hoti</strong> — sale history preserve rehti hai</TipRow>
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 font-extrabold shadow-lg shadow-blue-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya!
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GuideRow({ emoji, title, desc }: { emoji: string; title: string; desc: string }) {
-  return (
-    <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2.5">
-      <span className="text-lg shrink-0">{emoji}</span>
-      <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs">{title}</div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">{desc}</div>
-      </div>
-    </div>
-  );
-}
-
-function TipRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm">
-      {children}
-    </kbd>
-  );
-}
-
-/* ══════════ KPI CARD ══════════ */
-function Kpi({ icon: Icon, label, value, tone, isText }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-indigo-700 shadow-blue-500/40',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/40',
-    violet: 'from-violet-500 to-fuchsia-600 shadow-violet-500/40',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/40',
-  };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-3 sm:p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
-          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate ${isText ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
-            {value}
-          </div>
-        </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
+      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+        <h3 className="font-semibold text-slate-900">PTA — shelf ke phone</h3>
+        <p className="text-[0.75rem] text-slate-500">Non-PTA aur Patched phone par customer ko batana zaroori</p>
+        <ul className="mt-4 space-y-3">
+          {byPta.length === 0 && <li className="text-[0.8125rem] text-slate-500">Shelf par koi phone nahi</li>}
+          {byPta.map((b) => (
+            <li key={b.ptaStatus}>
+              <button type="button" onClick={() => onPta(b.ptaStatus)} className="w-full text-left">
+                <div className="flex justify-between text-[0.8125rem]"><span className="font-medium" style={{ color: ptaOf(b.ptaStatus).color }}>{ptaOf(b.ptaStatus).label}</span><span className="tabular-nums text-slate-600">{b.count} phone{b.taxPaid ? ` · tax ${formatPKR(b.taxPaid)}` : ''}</span></div>
+                <div className="mt-1 h-2.5 rounded-full bg-slate-100"><div className="h-2.5 rounded-full" style={{ width: `${(b.count / total) * 100}%`, backgroundColor: ptaOf(b.ptaStatus).color }} /></div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

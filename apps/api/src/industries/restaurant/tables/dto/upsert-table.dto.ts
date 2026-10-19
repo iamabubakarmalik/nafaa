@@ -1,19 +1,19 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableStatus } from '@prisma/client';
-import { IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { RestaurantTableStatus } from '@prisma/client';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 export class UpsertTableDto {
-  @ApiProperty() @IsString() tableNumber!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() tableName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() capacity?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() minCapacity?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() maxCapacity?: number;
-  @ApiPropertyOptional() @IsOptional() @IsString() section?: string;
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(20) tableNumber!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) tableName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(100) capacity?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(100) minCapacity?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(200) maxCapacity?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) section?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() floor?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() shape?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() positionX?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() positionY?: number;
-  @ApiPropertyOptional({ enum: TableStatus }) @IsOptional() @IsEnum(TableStatus) status?: TableStatus;
+  @ApiPropertyOptional({ enum: RestaurantTableStatus }) @IsOptional() @IsEnum(RestaurantTableStatus) status?: RestaurantTableStatus;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isReservable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isSmokingAllowed?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAcRoom?: boolean;
@@ -25,14 +25,17 @@ export class UpsertTableDto {
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 }
 
+/** Edits send only what changed. */
+export class UpdateTableDto extends PartialType(UpsertTableDto) {}
+
 export class ReserveTableDto {
-  @ApiProperty() @IsString() reservedByName!: string;
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(80) reservedByName!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() reservedByPhone?: string;
   @ApiProperty() @IsDateString() reservedFor!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() reservationNote?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() numberOfGuests?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) reservationNote?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(200) numberOfGuests?: number;
 }
 
 export class ChangeTableStatusDto {
-  @ApiProperty({ enum: TableStatus }) @IsEnum(TableStatus) status!: TableStatus;
+  @ApiProperty({ enum: RestaurantTableStatus }) @IsEnum(RestaurantTableStatus) status!: RestaurantTableStatus;
 }

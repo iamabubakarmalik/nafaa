@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { hourInTz, startOfBusinessDayTz, startOfDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
+import { hourInTz, startOfBusinessDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { saleFigures } from '../../../common/helpers/business-math.helper';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { OPEN_ORDER } from '../orders/order-tokens';
 
 @Injectable()
 export class RestaurantDashboardService {
@@ -39,9 +40,10 @@ export class RestaurantDashboardService {
       this.prisma.restaurantOrder.findMany({
         where: {
           ...baseWhere,
-          status: { in: ['PLACED', 'CONFIRMED', 'COOKING', 'READY', 'OUT_FOR_DELIVERY'] },
+          status: { in: OPEN_ORDER },
+          saleId: null,
         },
-        include: { table: true, items: { take: 3 } },
+        include: { table: true, items: { where: { isReturned: false }, take: 3 } },
         orderBy: { createdAt: 'desc' },
         take: 20,
       }),
@@ -57,7 +59,7 @@ export class RestaurantDashboardService {
       }),
       this.prisma.restaurantOrderItem.groupBy({
         by: ['productId'],
-        where: { order: { ...baseWhere, status: 'COMPLETED', createdAt: { gte: weekAgo } } },
+        where: { isReturned: false, order: { ...baseWhere, status: 'COMPLETED', createdAt: { gte: weekAgo } } },
         _sum: { quantity: true, total: true },
         orderBy: { _sum: { total: 'desc' } },
         take: 10,
@@ -71,10 +73,9 @@ export class RestaurantDashboardService {
     const yestR = yesterdaySales.net;
     const growth = yestR > 0 ? ((todayR - yestR) / yestR) * 100 : 0;
 
-    // Enrich top items
     const productIds = topItems.map((t) => t.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: productIds }, tenantId: user.tenantId },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
 
@@ -98,7 +99,8 @@ export class RestaurantDashboardService {
   }
 
   async ordersByHour(user: AuthenticatedUser, shopId?: string) {
-    const todayStart = startOfDayTz(new Date());
+    const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
+    const todayStart = startOfBusinessDayTz(new Date(), tz, dayStartHour);
     const orders = await this.prisma.restaurantOrder.findMany({
       where: { tenantId: user.tenantId, status: 'COMPLETED', createdAt: { gte: todayStart }, ...(shopId && { OR: [{ shopId }, { shopId: null }] }) },
       select: { total: true, createdAt: true, mode: true },
@@ -106,18 +108,20 @@ export class RestaurantDashboardService {
     const buckets: Record<number, { hour: number; revenue: number; count: number }> = {};
     for (let h = 0; h < 24; h++) buckets[h] = { hour: h, revenue: 0, count: 0 };
     for (const o of orders) {
-      const h = hourInTz(new Date(o.createdAt));
+      const h = hourInTz(new Date(o.createdAt), tz);
       buckets[h].revenue += o.total;
       buckets[h].count += 1;
     }
     return Object.values(buckets);
   }
 
-  async kitchenPerformance(user: AuthenticatedUser) {
-    const todayStart = startOfDayTz(new Date());
+  async kitchenPerformance(user: AuthenticatedUser, shopId?: string) {
+    const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
+    const todayStart = startOfBusinessDayTz(new Date(), tz, dayStartHour);
     const completed = await this.prisma.restaurantOrder.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(shopId && { OR: [{ shopId }, { shopId: null }] }),
         status: 'COMPLETED',
         createdAt: { gte: todayStart },
         cookingStartedAt: { not: null },

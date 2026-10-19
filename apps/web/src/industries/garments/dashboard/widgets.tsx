@@ -4,13 +4,16 @@ import { BookmarkPlus, CheckCircle2, CreditCard, Palette, Ruler, Scissors, Shirt
 import { Badge } from '@/design-system/components';
 import { IconBubble, ListRow, MetricTile, RowList, useMasked, WidgetCard, type KpiDef } from '@modules/dashboard/engine';
 import type { AttentionItem } from '@modules/dashboard/widgets';
+import { useQuery } from '@tanstack/react-query';
+import { garmentProductsApi } from '../api/products.api';
+import { META_KEY } from '../components/meta';
 import { useGarmentsOps } from './useGarmentsOps';
 
 const TAILORING = '/garments/tailoring';
 const ALTERATIONS = '/garments/alterations';
 
-const when = (days: number | null) => (days === null ? '—' : days === 0 ? 'Aaj' : days === 1 ? 'Kal' : `${days} din`);
-const whenVariant = (days: number | null) => (days === null ? 'default' : days === 0 ? 'danger' : days <= 2 ? 'warning' : 'default') as 'default' | 'danger' | 'warning';
+const when = (days: number | null) => (days === null ? '—' : days < 0 ? `${-days} din late` : days === 0 ? 'Aaj' : days === 1 ? 'Kal' : `${days} din`);
+const whenVariant = (days: number | null) => (days === null ? 'default' : days <= 0 ? 'danger' : days <= 2 ? 'warning' : 'default') as 'default' | 'danger' | 'warning';
 
 export const garmentsKpis: KpiDef[] = [
   {
@@ -42,7 +45,7 @@ export const garmentsKpis: KpiDef[] = [
     useValue: () => {
       const g = useGarmentsOps();
       const { sales } = useMasked();
-      return { loading: g.loading, to: TAILORING, value: sales(g.revenue.total), hint: `30 din · ${g.revenue.count} suit diye` };
+      return { loading: g.loading, to: TAILORING, value: sales(g.revenue.total), hint: `Is mahine · ${g.revenue.count} order diye` };
     },
   },
 ];
@@ -50,12 +53,14 @@ export const garmentsKpis: KpiDef[] = [
 export function useGarmentsAttention(): AttentionItem[] {
   const g = useGarmentsOps();
   const items: AttentionItem[] = [];
-  const today = g.tailoring.filter((o) => o.days === 0);
-  if (g.urgent.length) items.push({ icon: Scissors, level: 'danger', text: `${g.urgent.length} urgent silai order — karigar ko pehle ye dein`, to: TAILORING, cta: 'Orders dekhein' });
-  if (today.length) items.push({ icon: Scissors, level: 'warning', text: `${today.length} silai order aaj dena hai — tayyar hai ya nahi, check kar lein`, to: TAILORING, cta: 'Silai dekhein' });
-  if (g.alterationsSoon.length) items.push({ icon: Ruler, level: 'warning', text: `${g.alterationsSoon.length} alteration aaj ya kal deni hai`, to: ALTERATIONS, cta: 'Alterations' });
-  if (g.pending.layaway) items.push({ icon: CreditCard, level: 'info', text: `${g.pending.layaway} qist plan chaalu — baqi qist yaad dila dein`, to: '/garments/layaway', cta: 'Qist dekhein' });
-  if (g.pending.reservations) items.push({ icon: BookmarkPlus, level: 'neutral', text: `${g.pending.reservations} kapre customers ke liye hold par hain`, to: '/garments/reservations', cta: 'Hold dekhein' });
+  const t = g.today;
+  if (t.tailoringLate) items.push({ icon: Scissors, level: 'danger', text: `${t.tailoringLate} silai order late hain — customer ko batayein aur karigar se pehle ye karwayein`, to: `${TAILORING}?view=late`, cta: 'Late orders' });
+  if (g.urgent.length) items.push({ icon: Scissors, level: 'danger', text: `${g.urgent.length} bohat jaldi wale silai order — karigar ko pehle ye dein`, to: TAILORING, cta: 'Orders dekhein' });
+  if (t.tailoringDue) items.push({ icon: Scissors, level: 'warning', text: `${t.tailoringDue} silai order aaj dena hai — tayyar hai ya nahi, check kar lein`, to: `${TAILORING}?view=today`, cta: 'Silai dekhein' });
+  if (t.tailoringReady + t.alterationsReady) items.push({ icon: CheckCircle2, level: 'info', text: `${t.tailoringReady + t.alterationsReady} kapre tayyar rakhe hain — customers ko WhatsApp karein`, to: `${TAILORING}?view=ready`, cta: 'Tayyar' });
+  if (t.alterationsDue || t.alterationsLate) items.push({ icon: Ruler, level: 'warning', text: `${t.alterationsDue} alteration aaj deni hai${t.alterationsLate ? `, ${t.alterationsLate} late` : ''}`, to: ALTERATIONS, cta: 'Alterations' });
+  if (t.layawayOverdue) items.push({ icon: CreditCard, level: 'warning', text: `${t.layawayOverdue} qist plan ki qist late hai — phone karein`, to: '/garments/layaway', cta: 'Qist dekhein' });
+  if (t.holdsEndingToday) items.push({ icon: BookmarkPlus, level: 'neutral', text: `${t.holdsEndingToday} hold aaj khatam ho rahe hain — customer ko yaad dilayein`, to: '/garments/reservations', cta: 'Hold dekhein' });
   return items;
 }
 
@@ -90,7 +95,7 @@ export function GarmentsAlterations() {
             key={a.id}
             to={ALTERATIONS}
             leading={<IconBubble icon={Ruler} tone="warning" />}
-            title={a.garmentDescription || 'Kapra'}
+            title={a.customerName ? `${a.customerName} — ${a.garmentDescription || 'Kapra'}` : a.garmentDescription || 'Kapra'}
             meta={<span className="font-mono">{a.ticketNumber}</span>}
             value={<Badge variant={whenVariant(a.days)} size="xs">{when(a.days)}</Badge>}
           />
@@ -104,9 +109,9 @@ export function GarmentsAlterations() {
 export function GarmentsWorkshop() {
   const g = useGarmentsOps();
   const { sales } = useMasked();
-  const due = Math.max(g.revenue.total - g.revenue.paid, 0);
+  const due = g.today.toCollect;
   return (
-    <WidgetCard title="Silai ka kaam" icon={Scissors} description="Kaam ka bojh aur 30 din ki kamai" to={TAILORING}>
+    <WidgetCard title="Silai ka kaam" icon={Scissors} description="Kaam ka bojh aur is mahine ki kamai" to={TAILORING}>
       <div className="grid grid-cols-2 gap-2">
         <MetricTile icon={Scissors} tone="brand" label="Silai" value={g.pending.tailoring} hint="chal rahi" to={TAILORING} />
         <MetricTile icon={Ruler} tone="warning" label="Alteration" value={g.pending.alterations} hint="intezar me" to={ALTERATIONS} />
@@ -115,7 +120,7 @@ export function GarmentsWorkshop() {
       </div>
       <div className="mt-4 flex flex-wrap justify-between gap-2 border-t border-slate-100 pt-3 text-[0.8125rem]">
         <span className="text-slate-500">Silai ki kamai <strong className="tabular-nums text-slate-900">{sales(g.revenue.total)}</strong></span>
-        <span className="text-slate-500">{due > 0 ? <>Baqi <strong className="tabular-nums text-amber-700">{sales(due)}</strong></> : `${g.revenue.count} suit diye`}</span>
+        <span className="text-slate-500">{due > 0 ? <>Lena baqi <strong className="tabular-nums text-amber-700">{sales(due)}</strong></> : `${g.revenue.count} order diye`}</span>
       </div>
     </WidgetCard>
   );
@@ -167,6 +172,23 @@ export function GarmentsCatalog() {
           )}
         </div>
       )}
+    </WidgetCard>
+  );
+}
+
+/** Sizes and colours running out in this branch, with how many to buy. */
+export function GarmentsReorder() {
+  const q = useQuery({ queryKey: [META_KEY, 'reorder', 8], queryFn: () => garmentProductsApi.reorder(8), staleTime: 5 * 60_000 });
+  const items = q.data?.items ?? [];
+  return (
+    <WidgetCard title="Size reorder" icon={Ruler} description={q.data?.products ? `${q.data.products} products ke size khatam ho rahe` : 'Bikne wale size jo khatam ho rahe'} to="/garments/products" flush>
+      <RowList empty="Koi size khatam nahi ho raha" emptyIcon={CheckCircle2}>
+        {items.map((g) => (
+          <ListRow key={g.productId} to={`/garment-products/${g.productId}`} leading={<IconBubble icon={Shirt} tone="warning" />}
+            title={g.name} meta={g.sizes.map((x) => `${x.name} ${Math.round(x.stock)}`).join(' · ')}
+            value={`${g.sizes.reduce((s, x) => s + x.suggest, 0)} pc`} valueHint={<span className="text-slate-500">mangwayein</span>} />
+        ))}
+      </RowList>
     </WidgetCard>
   );
 }

@@ -20,6 +20,7 @@
 import type { ComponentType, LazyExoticComponent, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { AuthTenant } from '@core/stores/auth.store';
+import type { ReceiptRowDoc } from '@core/receipt/types';
 
 // ═══════════════════════════════════════════════════════════════
 // Navigation
@@ -198,6 +199,14 @@ export interface IndustryReceiptExtensions {
 
   /** WhatsApp message builder — extra lines for the shared message */
   whatsappLines?: (sale: any) => string[];
+
+  /**
+   * Rows under the bill header (Restaurant: token, table, waiter). The shared
+   * receipt page adds them after building the bill, before it shows or
+   * prints; a label the bill already has is skipped. A failed lookup leaves
+   * the plain bill.
+   */
+  infoRows?: (sale: { id: string; saleNumber?: string }) => Promise<ReceiptRowDoc[]>;
 }
 
 // ═══════════════════════════════════════════════════════════════

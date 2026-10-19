@@ -1,4 +1,4 @@
-import { Shirt, LayoutDashboard, Sparkles, Palette, Ruler, Scissors, Bookmark, CreditCard, Package, Users } from 'lucide-react';
+import { Shirt, LayoutDashboard, Sparkles, Palette, Ruler, Scissors, Bookmark, CreditCard, Package } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import GarmentsDashboard from './dashboard/GarmentsDashboard';
@@ -16,8 +16,9 @@ import GarmentProductWizardPage from './pages/GarmentProductWizardPage';
 import GarmentProductDetailPage from './pages/GarmentProductDetailPage';
 
 /**
- * Garments / Boutique / Fashion industry pack.
- * Collections, tailoring, alterations, reservations, layaway plans.
+ * Garments / Boutique / Fashion industry pack: products with size × colour
+ * variants on the shared pages, stitching orders with naap and advance,
+ * alterations, holds, instalment plans, collections and size charts.
  */
 export const GarmentsPack: IndustryPack = {
   id: 'garments',
@@ -49,16 +50,16 @@ export const GarmentsPack: IndustryPack = {
       color: '#ec4899',
       order: 20,
       items: [
-        { to: '/garment-products/new', label: '+ Add Garment', icon: Sparkles, badge: 'FAST' },
-        { to: '/garments/dashboard', label: 'Garments Dashboard', icon: LayoutDashboard },
-        { to: '/garments/products', label: 'Products Catalog', icon: Shirt },
-        { to: '/garments/collections', label: 'Collections', icon: Palette },
-        { to: '/garments/measurements', label: 'Measurements', icon: Ruler },
-        { to: '/garments/tailoring', label: 'Tailoring Orders', icon: Scissors },
+        { to: '/garment-products/new', label: '+ Naya kapra', icon: Sparkles, badge: 'FAST' },
+        { to: '/garments/dashboard', label: 'Garments dashboard', icon: LayoutDashboard },
+        { to: '/garments/products', label: 'Products', icon: Shirt },
+        { to: '/garments/tailoring', label: 'Silai orders', icon: Scissors },
         { to: '/garments/alterations', label: 'Alterations', icon: Ruler },
-        { to: '/garments/reservations', label: 'Reservations', icon: Bookmark },
-        { to: '/garments/layaway', label: 'Layaway Plans', icon: CreditCard },
-        { to: '/garments/size-charts', label: 'Size Charts', icon: Package },
+        { to: '/garments/measurements', label: 'Naap', icon: Ruler },
+        { to: '/garments/reservations', label: 'Hold', icon: Bookmark },
+        { to: '/garments/layaway', label: 'Qist plan', icon: CreditCard },
+        { to: '/garments/collections', label: 'Collections', icon: Palette },
+        { to: '/garments/size-charts', label: 'Size charts', icon: Package },
       ],
     },
   ],

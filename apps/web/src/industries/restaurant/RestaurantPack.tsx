@@ -1,12 +1,13 @@
 import { ChefHat, ShoppingBag, Utensils, Sparkles, Timer, Bike, Zap, BookOpen, Flame, MapPin, LayoutDashboard } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
+import { PERMISSIONS } from '@core/lib/permissions';
 
 import RestaurantDashboard from './dashboard/RestaurantDashboard';
 import RestaurantOrdersPage from './pages/RestaurantOrdersPage';
 import NewOrderPage from './pages/NewOrderPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import TablesLayoutPage from './pages/TablesLayoutPage';
-import MenuItemsPage from './pages/MenuItemsPage';
+import RestaurantProductsListPage from './pages/RestaurantProductsListPage';
 import ModifiersPage from './pages/ModifiersPage';
 import KotDisplayPage from './pages/KotDisplayPage';
 import RidersPage from './pages/RidersPage';
@@ -14,22 +15,9 @@ import HappyHoursPage from './pages/HappyHoursPage';
 import RecipesPage from './pages/RecipesPage';
 import StationsPage from './pages/StationsPage';
 import DeliveryTrackingPage from './pages/DeliveryTrackingPage';
-
-// ✅ IMPORTANT: wizard + detail imports
-import RestaurantMenuItemWizardPage from './pages/RestaurantMenuItemWizardPage';
-import RestaurantMenuItemDetailPage from './pages/RestaurantMenuItemDetailPage';
-
-// POS extensions
-import { RestaurantPosModeBar } from './pos-extensions/RestaurantPosModeBar';
-import { restaurantAutoServiceCharges } from './pos-extensions/RestaurantAutoServiceCharges';
-
-// Sales & Receipt extensions
-import { RestaurantSaleBadge } from './sales-extensions/RestaurantSaleBadge';
-import { RestaurantReceiptMeta } from './receipt-extensions/RestaurantReceiptMeta';
-import { RestaurantItemDetails } from './receipt-extensions/RestaurantItemDetails';
-import { RestaurantTotalsExtension } from './receipt-extensions/RestaurantTotalsExtension';
-import { RestaurantKitchenCopy } from './receipt-extensions/RestaurantKitchenCopy';
-import { restaurantWhatsappLines } from './receipt-extensions/restaurantWhatsappLines';
+import RestaurantProductEditor from './products/RestaurantProductEditor';
+import RestaurantProductDetail from './products/RestaurantProductDetail';
+import { restaurantReceiptRows } from './lib/receiptRows';
 
 export const RestaurantPack: IndustryPack = {
   id: 'restaurant',
@@ -93,12 +81,12 @@ export const RestaurantPack: IndustryPack = {
         { to: '/restaurant/dashboard', label: 'Restaurant Dashboard', icon: LayoutDashboard, badge: 'NEW' },
         { to: '/restaurant/orders', label: 'Orders', icon: ShoppingBag },
         { to: '/restaurant/tables', label: 'Tables', icon: Utensils },
-        { to: '/restaurant/menu', label: 'Menu Items', icon: ChefHat },
-        { to: '/restaurant/modifiers', label: 'Modifiers', icon: Sparkles },
+        { to: '/restaurant/menu', label: 'Menu', icon: ChefHat },
+        { to: '/restaurant/modifiers', label: 'Add-ons', icon: Sparkles },
         { to: '/restaurant/kot', label: 'Kitchen (KOT)', icon: Timer },
         { to: '/restaurant/riders', label: 'Riders', icon: Bike },
         { to: '/restaurant/happy-hours', label: 'Happy Hours', icon: Zap },
-        { to: '/restaurant/recipes', label: 'Recipes / BOM', icon: BookOpen, badge: 'NEW' },
+        { to: '/restaurant/recipes', label: 'Recipes', icon: BookOpen },
         { to: '/restaurant/stations', label: 'Kitchen Stations', icon: Flame },
         { to: '/restaurant/delivery', label: 'Delivery Tracking', icon: MapPin },
       ],
@@ -106,10 +94,10 @@ export const RestaurantPack: IndustryPack = {
   ],
 
   routes: [
-    // 🔥🔥🔥 CRITICAL FIX — ALWAYS FIRST
-    { path: '/restaurant-menu-items/new', element: RestaurantMenuItemWizardPage },
-    { path: '/restaurant-menu-items/:id/edit', element: RestaurantMenuItemWizardPage },
-    { path: '/restaurant-menu-items/:id', element: RestaurantMenuItemDetailPage },
+    // Menu item editor and detail (the shared product pages through restaurant config)
+    { path: '/restaurant-menu-items/new', element: RestaurantProductEditor, permission: PERMISSIONS.PRODUCTS_CREATE },
+    { path: '/restaurant-menu-items/:id/edit', element: RestaurantProductEditor, permission: PERMISSIONS.PRODUCTS_EDIT },
+    { path: '/restaurant-menu-items/:id', element: RestaurantProductDetail, permission: PERMISSIONS.PRODUCTS_VIEW },
 
     { path: '/restaurant', element: RestaurantDashboard },
     { path: '/restaurant/dashboard', element: RestaurantDashboard },
@@ -117,7 +105,7 @@ export const RestaurantPack: IndustryPack = {
     { path: '/restaurant/orders/:id', element: OrderDetailPage },
     { path: '/restaurant/orders', element: RestaurantOrdersPage },
     { path: '/restaurant/tables', element: TablesLayoutPage },
-    { path: '/restaurant/menu', element: MenuItemsPage },
+    { path: '/restaurant/menu', element: RestaurantProductsListPage },
     { path: '/restaurant/modifiers', element: ModifiersPage },
     { path: '/restaurant/kot', element: KotDisplayPage },
     { path: '/restaurant/riders', element: RidersPage },
@@ -126,23 +114,6 @@ export const RestaurantPack: IndustryPack = {
     { path: '/restaurant/stations', element: StationsPage },
     { path: '/restaurant/delivery', element: DeliveryTrackingPage },
   ],
-
-  pos: {
-    modeBar: RestaurantPosModeBar,
-    autoServiceCharges: restaurantAutoServiceCharges,
-  },
-
-  sales: {
-    saleBadge: RestaurantSaleBadge,
-  },
-
-  receipt: {
-    metaSection: RestaurantReceiptMeta,
-    itemDetails: RestaurantItemDetails,
-    totalsExtension: RestaurantTotalsExtension,
-    kitchenCopy: RestaurantKitchenCopy,
-    whatsappLines: restaurantWhatsappLines,
-  },
 
   dashboardComponent: RestaurantDashboard,
 
@@ -168,4 +139,7 @@ export const RestaurantPack: IndustryPack = {
     { key: 'restaurantDelivery', label: 'Delivery Tracking', defaultEnabled: false },
     { key: 'restaurantRecipes', label: 'Recipes / BOM', defaultEnabled: false },
   ],
+
+  /** Token and waiter on the shared bill page. */
+  receipt: { infoRows: restaurantReceiptRows },
 };

@@ -3,8 +3,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { SaltsService } from './salts.service';
-import { UpsertSaltDto } from './dto/upsert-salt.dto';
+import { AssignSaltsDto, UpsertSaltDto } from './dto/upsert-salt.dto';
 
 @ApiTags('Pharmacy - Salts')
 @ApiBearerAuth()
@@ -13,15 +15,19 @@ import { UpsertSaltDto } from './dto/upsert-salt.dto';
 export class SaltsController {
   constructor(private readonly service: SaltsService) {}
 
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertSaltDto) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('search') search?: string, @Query('scheduleClass') scheduleClass?: string, @Query('requiresPrescription') requiresPrescription?: string) {
-    return this.service.list(user, { search, scheduleClass, requiresPrescription: requiresPrescription === 'true' ? true : undefined });
+    return this.service.list(user, { search, scheduleClass, requiresPrescription: requiresPrescription === 'true' ? true : requiresPrescription === 'false' ? false : undefined });
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertSaltDto) { return this.service.update(user, id, dto); }
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 
-  @Post('assign/:productId') assign(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string, @Body() body: { salts: any[] }) {
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
+  @Post('assign/:productId') assign(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string, @Body() body: AssignSaltsDto) {
     return this.service.assignToProduct(user, productId, body.salts);
   }
   @Get('by-product/:productId') byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) {

@@ -1,5 +1,6 @@
-import { Pill, LayoutDashboard, AlertTriangle, Beaker, Stethoscope, ShieldAlert, Thermometer, Sparkles } from 'lucide-react';
+import { Beaker, CalendarX, FilePlus, FileText, Pill, ShieldAlert, Stethoscope, Thermometer } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
+import { PERMISSIONS } from '@core/lib/permissions';
 
 import PharmacyDashboard from './dashboard/PharmacyDashboard';
 import PrescriptionsPage from './pages/PrescriptionsPage';
@@ -7,13 +8,19 @@ import NewPrescriptionPage from './pages/NewPrescriptionPage';
 import PrescriptionDetailPage from './pages/PrescriptionDetailPage';
 import DoctorsPage from './pages/PharmacyDoctorsPage';
 import SaltsPage from './pages/SaltsPage';
-import MedicinesPage from './pages/MedicinesPage';
 import ExpiringPage from './pages/ExpiringPage';
-import PharmacyMedicineWizardPage from './pages/PharmacyMedicineWizardPage';
-import PharmacyMedicineDetailPage from './pages/PharmacyMedicineDetailPage';
 import ControlledLogPage from './pages/ControlledLogPage';
 import TemperatureLogPage from './pages/TemperatureLogPage';
+import PharmacyProducts from './products/PharmacyProducts';
+import PharmacyProductEditor from './products/PharmacyProductEditor';
+import PharmacyProductDetail from './products/PharmacyProductDetail';
 
+/**
+ * Pharmacy / medical store: medicines with formula and schedule on the
+ * shared product pages, the shared counter with a register prompt for
+ * controlled medicines, prescriptions, expiry, narcotic register and cold
+ * chain.
+ */
 export const PharmacyPack: IndustryPack = {
   id: 'pharmacy',
   name: 'Pharmacy / Medical Store',
@@ -36,44 +43,39 @@ export const PharmacyPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Pharmacy Industry',
+      label: 'Pharmacy',
       icon: Pill,
       emoji: '💊',
       color: '#0891b2',
       order: 20,
       items: [
-        { to: '/pharmacy-medicines/new', label: '+ Add Medicine', icon: Sparkles, badge: 'FAST' },
-        { to: '/pharmacy/dashboard', label: 'Pharmacy Dashboard', icon: LayoutDashboard, badge: 'NEW' },
-        { to: '/pharmacy/prescriptions', label: 'Prescriptions', icon: AlertTriangle },
-        { to: '/pharmacy/medicines', label: 'Medicines', icon: Pill },
-        { to: '/pharmacy/salts', label: 'Salts / Drugs', icon: Beaker },
+        { to: '/pharmacy/prescriptions/new', label: 'Naya nuskha', icon: FilePlus, permission: PERMISSIONS.POS_USE },
+        { to: '/pharmacy/prescriptions', label: 'Nuskhe', icon: FileText, permission: PERMISSIONS.POS_USE },
+        { to: '/pharmacy/medicines', label: 'Dawaiyan', icon: Pill, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/expiring', label: 'Expiry', icon: CalendarX, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/salts', label: 'Salts / formula', icon: Beaker, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/pharmacy/doctors', label: 'Doctors', icon: Stethoscope },
-        { to: '/pharmacy/expiring', label: 'Expiring Stock', icon: AlertTriangle },
-        { to: '/pharmacy/controlled-log', label: 'Narcotic Register', icon: ShieldAlert },
-        { to: '/pharmacy/temperature-log', label: 'Cold Chain', icon: Thermometer },
+        { to: '/pharmacy/controlled-log', label: 'Narcotic register', icon: ShieldAlert, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/temperature-log', label: 'Cold chain', icon: Thermometer },
       ],
     },
   ],
 
   routes: [
-    // ✅ Wizard FIRST (important)
-    { path: '/pharmacy-medicines/new', element: PharmacyMedicineWizardPage },
-    { path: '/pharmacy-medicines/:id/edit', element: PharmacyMedicineWizardPage },
+    { path: '/pharmacy-medicines/new', element: PharmacyProductEditor, permission: PERMISSIONS.PRODUCTS_CREATE },
+    { path: '/pharmacy-medicines/:id/edit', element: PharmacyProductEditor, permission: PERMISSIONS.PRODUCTS_EDIT },
+    { path: '/pharmacy-medicines/:id', element: PharmacyProductDetail, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/pharmacy/medicines', element: PharmacyProducts, permission: PERMISSIONS.PRODUCTS_VIEW },
 
     { path: '/pharmacy', element: PharmacyDashboard },
     { path: '/pharmacy/dashboard', element: PharmacyDashboard },
-    { path: '/pharmacy/prescriptions/new', element: NewPrescriptionPage },
-    { path: '/pharmacy/prescriptions/:id', element: PrescriptionDetailPage },
-    { path: '/pharmacy/prescriptions', element: PrescriptionsPage },
+    { path: '/pharmacy/prescriptions/new', element: NewPrescriptionPage, permission: PERMISSIONS.POS_USE },
+    { path: '/pharmacy/prescriptions/:id', element: PrescriptionDetailPage, permission: PERMISSIONS.POS_USE },
+    { path: '/pharmacy/prescriptions', element: PrescriptionsPage, permission: PERMISSIONS.POS_USE },
     { path: '/pharmacy/doctors', element: DoctorsPage },
-    { path: '/pharmacy/salts', element: SaltsPage },
-    { path: '/pharmacy/medicines', element: MedicinesPage },
-
-    // optional detail page (if used)
-    { path: '/pharmacy-medicines/:id', element: PharmacyMedicineDetailPage },
-
-    { path: '/pharmacy/expiring', element: ExpiringPage },
-    { path: '/pharmacy/controlled-log', element: ControlledLogPage },
+    { path: '/pharmacy/salts', element: SaltsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/pharmacy/expiring', element: ExpiringPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/pharmacy/controlled-log', element: ControlledLogPage, permission: PERMISSIONS.PRODUCTS_VIEW },
     { path: '/pharmacy/temperature-log', element: TemperatureLogPage },
   ],
 

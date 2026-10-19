@@ -4,16 +4,46 @@ import {
 import { ImeiStatus, PtaStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { startOfDayTz, startOfMonthTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { CreateImeiDto } from './dto/create-imei.dto';
 import { BulkCreateImeiDto } from './dto/bulk-create-imei.dto';
+import { UpdateImeiDto } from './dto/update-imei.dto';
+import { addMonthsClamped, daysUntil, isLuhnValid, syncImeiStock } from '../common/mobile-common';
+
+/**
+ * Statuses an owner may set by hand. SOLD comes only from a bill; a phone
+ * going back to the supplier goes through a purchase return.
+ */
+const MANUAL_STATUS: ImeiStatus[] = ['IN_STOCK', 'RESERVED', 'DAMAGED', 'LOST'];
+/** Off the shelf as a write-off (counted in damage and loss reports). */
+const WRITTEN_OFF: ImeiStatus[] = ['DAMAGED', 'LOST'];
+
+export type ImeiSort = 'new' | 'old' | 'costHigh' | 'costLow' | 'sold';
+
+export interface ImeiListParams {
+  search?: string;
+  status?: ImeiStatus;
+  ptaStatus?: PtaStatus;
+  productId?: string;
+  variantId?: string;
+  shopId?: string;
+  /** Only phones on the shelf for at least this many days. */
+  agedDays?: number;
+  /** Period on the date that fits the status (sold date for SOLD, entry date otherwise). */
+  from?: string;
+  to?: string;
+  sort?: ImeiSort;
+  page?: number;
+  limit?: number;
+}
 
 @Injectable()
 export class ImeiService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Har IMEI lookup ke saath sale ke liye zaroori fields.
-   * `price` yahan hona zaroori hai — iske baghair POS phone ko Rs 0 par cart me daal deta tha.
+   * Fields the POS needs for a sale. `price` must be here, or the phone goes
+   * on the bill at Rs 0.
    */
   private static readonly SALE_INCLUDE = {
     product: {
@@ -43,93 +73,18 @@ export class ImeiService {
     },
   } satisfies Prisma.ProductImeiInclude;
 
-  // ════════════════════════════════════════════════════════
-  // HELPER: Sync product/variant stock from IMEI counts
-  // ════════════════════════════════════════════════════════
-  /**
-   * IMEI ginti se stock dobara banata hai.
-   *
-   * Pehle ye har shop ka stock "pehli shop" me daal deta tha, is liye
-   * multi-shop me ginti hamesha galat rehti thi. Ab har shop ka apna
-   * ShopStock usi shop ke IMEIs se banta hai.
-   *
-   * `shopIds` me wo shops do jinka hisab badla hai (misal transfer me
-   * dono taraf ki shop).
-   */
-  private async syncStockFromImeis(
-    tx: any,
-    tenantId: string,
-    productId: string,
-    variantId?: string | null,
-    shopIds?: (string | null | undefined)[],
-  ) {
-    // Product ka global stock = tenant ke tamam IN_STOCK IMEIs
-    const productInStock = await tx.productImei.count({
-      where: { tenantId, productId, status: 'IN_STOCK' },
-    });
-    await tx.product.update({
-      where: { id: productId },
-      data: { stock: productInStock },
-    });
-
-    if (variantId) {
-      const variantInStock = await tx.productImei.count({
-        where: { tenantId, productId, variantId, status: 'IN_STOCK' },
-      });
-      await tx.productVariant.update({
-        where: { id: variantId },
-        data: { stock: variantInStock },
-      });
-    }
-
-    // Kaunsi shops ka hisab dobara banana hai
-    let targets = (shopIds ?? []).filter((id): id is string => Boolean(id));
-    if (targets.length === 0) {
-      const rows = await tx.productImei.findMany({
-        where: { tenantId, productId, shopId: { not: null } },
-        select: { shopId: true },
-        distinct: ['shopId'],
-      });
-      targets = rows.map((r: any) => r.shopId).filter(Boolean);
-    }
-    targets = [...new Set(targets)];
-
-    for (const shopId of targets) {
-      const shopInStock = await tx.productImei.count({
-        where: { tenantId, productId, shopId, status: 'IN_STOCK', ...(variantId ? { variantId } : {}) },
-      });
-
-      const existing = await tx.shopStock.findFirst({
-        where: { shopId, productId, variantId: variantId ?? null },
-      });
-
-      if (existing) {
-        await tx.shopStock.update({
-          where: { id: existing.id },
-          data: { stock: shopInStock },
-        });
-      } else if (shopInStock > 0) {
-        await tx.shopStock.create({
-          data: {
-            tenantId, shopId, productId, variantId: variantId ?? null,
-            stock: shopInStock, isActive: true,
-          },
-        });
-      }
-    }
-  }
-
   /** The product (and variant) must belong to this shop owner. */
   private async assertOwnProduct(user: AuthenticatedUser, productId: string, variantId?: string | null) {
-    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId }, select: { id: true } });
+    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId }, select: { id: true, costPrice: true } });
     if (!product) throw new NotFoundException('Product nahi mila');
     if (variantId) {
       const v = await this.prisma.productVariant.findFirst({ where: { id: variantId, productId }, select: { id: true } });
       if (!v) throw new NotFoundException('Variant nahi mila');
     }
+    return product;
   }
 
-  /** Device kis shop me rakha jaye — dto > user ki shop > pehli active shop. */
+  /** Branch the device sits in: given one, else the user's own, else the first active shop. */
   private async resolveShopId(user: AuthenticatedUser, explicit?: string) {
     if (explicit) {
       const own = await this.prisma.shop.findFirst({ where: { id: explicit, tenantId: user.tenantId }, select: { id: true } });
@@ -139,29 +94,51 @@ export class ImeiService {
     if (user.shopId) return user.shopId;
     const shop = await this.prisma.shop.findFirst({
       where: { tenantId: user.tenantId, isActive: true },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
       select: { id: true },
     });
-    return shop?.id ?? null;
+    if (!shop) throw new BadRequestException('Koi active shop nahi hai. Pehle shop banayein.');
+    return shop.id;
+  }
+
+  /** IMEI 1 and IMEI 2 of the new phones must not already be with this shop (new or used). */
+  private async assertFree(user: AuthenticatedUser, numbers: string[], exceptId?: string) {
+    const list = [...new Set(numbers.filter(Boolean))];
+    if (!list.length) return;
+    const taken = await this.prisma.productImei.findMany({
+      where: {
+        tenantId: user.tenantId,
+        ...(exceptId && { id: { not: exceptId } }),
+        OR: [{ imei1: { in: list } }, { imei2: { in: list } }],
+      },
+      select: { imei1: true, imei2: true },
+    });
+    if (taken.length) {
+      const hit = list.filter((n) => taken.some((t) => t.imei1 === n || t.imei2 === n));
+      throw new ConflictException(`Ye IMEI pehle se stock record me hai: ${hit.join(', ')}`);
+    }
+  }
+
+  /** Warranty runs from the day of sale; an unsold phone shows its months only. */
+  private warrantyOf(row: { warrantyMonths: number | null; soldAt: Date | null; status: ImeiStatus }) {
+    const months = Number(row.warrantyMonths ?? 0);
+    if (!months || !row.soldAt || row.status !== 'SOLD') return { months, start: null, end: null, active: false, daysLeft: null };
+    const end = addMonthsClamped(row.soldAt, months);
+    const daysLeft = daysUntil(end);
+    return { months, start: row.soldAt, end, active: daysLeft >= 0, daysLeft };
   }
 
   // ════════════════════════════════════════════════════════
   // CREATE
   // ════════════════════════════════════════════════════════
   async create(user: AuthenticatedUser, dto: CreateImeiDto) {
-    await this.assertOwnProduct(user, dto.productId, dto.variantId);
-    const existing = await this.prisma.productImei.findFirst({
-      where: { tenantId: user.tenantId, imei1: dto.imei1 },
-    });
-    if (existing) {
-      throw new ConflictException(`IMEI ${dto.imei1} already exists`);
-    }
-
-    const warrantyExpiry = dto.warrantyMonths
-      ? new Date(Date.now() + dto.warrantyMonths * 30 * 24 * 60 * 60 * 1000)
-      : null;
+    const product = await this.assertOwnProduct(user, dto.productId, dto.variantId);
+    if (dto.imei2 && dto.imei2 === dto.imei1) throw new BadRequestException('IMEI 1 aur IMEI 2 ek jaise nahi ho sakte');
+    await this.assertFree(user, [dto.imei1, dto.imei2 ?? '']);
+    if (dto.status && dto.status !== 'IN_STOCK') throw new BadRequestException('Naya phone stock me hi aata hai');
 
     const shopId = await this.resolveShopId(user, dto.shopId);
+    const cost = dto.costPrice ?? (Number(product.costPrice) || 0);
 
     return this.prisma.$transaction(async (tx) => {
       const imei = await tx.productImei.create({
@@ -177,17 +154,19 @@ export class ImeiService {
           ptaTaxPaid: dto.ptaTaxPaid ?? 0,
           ptaTaxDueAt: dto.ptaTaxDueAt ? new Date(dto.ptaTaxDueAt) : null,
           ptaVerifiedAt: dto.ptaVerifiedAt ? new Date(dto.ptaVerifiedAt) : null,
-          costPrice: dto.costPrice ?? 0,
+          costPrice: cost,
           warrantyMonths: dto.warrantyMonths ?? 12,
-          warrantyExpiry,
+          warrantyExpiry: null,
           color: dto.color,
           notes: dto.notes,
           purchasedAt: new Date(),
         },
       });
-
-      await this.syncStockFromImeis(tx, user.tenantId, dto.productId, dto.variantId, [shopId]);
-      return imei;
+      await syncImeiStock(tx, user, {
+        productId: dto.productId, variantId: dto.variantId, shopIds: [shopId],
+        reference: `IMEI-${imei.imei1}`, note: `Naya phone IMEI ${imei.imei1}`, unitCost: cost,
+      });
+      return { ...imei, luhnOk: isLuhnValid(imei.imei1) };
     });
   }
 
@@ -195,26 +174,15 @@ export class ImeiService {
   // BULK CREATE
   // ════════════════════════════════════════════════════════
   async bulkCreate(user: AuthenticatedUser, dto: BulkCreateImeiDto) {
-    await this.assertOwnProduct(user, dto.productId, dto.variantId);
-    const imeis = dto.imeis.map((i) => i.imei1);
-    const dup = imeis.find((x, i) => imeis.indexOf(x) !== i);
+    const product = await this.assertOwnProduct(user, dto.productId, dto.variantId);
+    const numbers = dto.imeis.flatMap((i) => [i.imei1, i.imei2 ?? '']).filter(Boolean);
+    const dup = numbers.find((x, i) => numbers.indexOf(x) !== i);
     if (dup) throw new ConflictException(`IMEI ${dup} list me do dafa hai`);
-    const existing = await this.prisma.productImei.findMany({
-      where: { tenantId: user.tenantId, imei1: { in: imeis } },
-      select: { imei1: true },
-    });
-    if (existing.length > 0) {
-      throw new ConflictException(
-        `IMEIs already exist: ${existing.map((e) => e.imei1).join(', ')}`,
-      );
-    }
-
-    const warrantyExpiry = dto.warrantyMonths
-      ? new Date(Date.now() + dto.warrantyMonths * 30 * 24 * 60 * 60 * 1000)
-      : null;
+    await this.assertFree(user, numbers);
 
     const count = dto.imeis.length;
     const shopId = await this.resolveShopId(user, dto.shopId);
+    const cost = dto.costPrice ?? (Number(product.costPrice) || 0);
 
     await this.prisma.$transaction(async (tx) => {
       await tx.productImei.createMany({
@@ -228,99 +196,145 @@ export class ImeiService {
           serialNumber: i.serialNumber,
           ptaStatus: i.ptaStatus ?? 'PENDING',
           ptaTaxPaid: i.ptaTaxPaid ?? 0,
-          costPrice: dto.costPrice ?? 0,
+          costPrice: cost,
           warrantyMonths: dto.warrantyMonths ?? 12,
-          warrantyExpiry,
+          warrantyExpiry: null,
           color: i.color,
           notes: i.notes,
           purchasedAt: new Date(),
         })),
       });
-
-      await this.syncStockFromImeis(tx, user.tenantId, dto.productId, dto.variantId, [shopId]);
+      await syncImeiStock(tx, user, {
+        productId: dto.productId, variantId: dto.variantId, shopIds: [shopId],
+        reference: `IMEI-BULK`, note: `${count} naye phone IMEI ke saath`, unitCost: cost,
+      });
     });
 
-    return { count, message: `${count} IMEIs added successfully` };
+    const badChecksum = dto.imeis.filter((i) => !isLuhnValid(i.imei1)).map((i) => i.imei1);
+    return { count, message: `${count} IMEIs add ho gaye`, badChecksum };
   }
 
   // ════════════════════════════════════════════════════════
-  // GLOBAL LIST (with filters)
+  // LIST (server-side filters, totals per status)
   // ════════════════════════════════════════════════════════
-  async listAll(
-    user: AuthenticatedUser,
-    params: {
-      search?: string;
-      status?: ImeiStatus;
-      ptaStatus?: PtaStatus;
-      productId?: string;
-      variantId?: string;
-      shopId?: string;
-      page?: number;
-      limit?: number;
-    },
-  ) {
-    const where: Prisma.ProductImeiWhereInput = {
+  private listWhere(user: AuthenticatedUser, params: ImeiListParams, withStatus = true): Prisma.ProductImeiWhereInput {
+    const q = params.search?.trim();
+    const and: Prisma.ProductImeiWhereInput[] = [];
+    if (q) {
+      and.push({
+        OR: [
+          { imei1: { contains: q } },
+          { imei2: { contains: q } },
+          { serialNumber: { contains: q, mode: 'insensitive' as const } },
+          { color: { contains: q, mode: 'insensitive' as const } },
+          { product: { name: { contains: q, mode: 'insensitive' as const } } },
+          { product: { brand: { name: { contains: q, mode: 'insensitive' as const } } } },
+          { variant: { name: { contains: q, mode: 'insensitive' as const } } },
+        ],
+      });
+    }
+    const range = this.range(params.from, params.to);
+    if (range) {
+      // A sold phone is dated by its sale; anything else by the day it came in.
+      and.push(params.status === 'SOLD' ? { soldAt: range } : { purchasedAt: range });
+    }
+    if (params.agedDays && params.agedDays > 0) {
+      and.push({ status: 'IN_STOCK', purchasedAt: { lte: subDaysTz(new Date(), params.agedDays) } });
+    }
+    return {
       tenantId: user.tenantId,
       ...(params.shopId && { shopId: params.shopId }),
-      ...(params.status && { status: params.status }),
+      ...(withStatus && params.status && { status: params.status }),
       ...(params.ptaStatus && { ptaStatus: params.ptaStatus }),
       ...(params.productId && { productId: params.productId }),
       ...(params.variantId && { variantId: params.variantId }),
-      ...(params.search && {
-        OR: [
-          { imei1: { contains: params.search } },
-          { imei2: { contains: params.search } },
-          { serialNumber: { contains: params.search, mode: 'insensitive' as const } },
-          { color: { contains: params.search, mode: 'insensitive' as const } },
-          { product: { name: { contains: params.search, mode: 'insensitive' as const } } },
-        ],
-      }),
+      ...(and.length && { AND: and }),
     };
+  }
 
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 100;
+  private range(from?: string, to?: string): Prisma.DateTimeFilter | null {
+    const ok = (v?: string) => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
+    if (!ok(from) && !ok(to)) return null;
+    const r: Prisma.DateTimeFilter = {};
+    if (ok(from)) r.gte = startOfDayTz(new Date(`${from}T12:00:00Z`));
+    if (ok(to)) r.lt = startOfDayTz(new Date(new Date(`${to}T12:00:00Z`).getTime() + 86_400_000));
+    return r;
+  }
 
-    const [items, total] = await Promise.all([
+  async listAll(user: AuthenticatedUser, params: ImeiListParams) {
+    const where = this.listWhere(user, params);
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(Math.max(1, params.limit ?? 100), 500);
+    const orderBy: Prisma.ProductImeiOrderByWithRelationInput[] =
+      params.sort === 'old' ? [{ purchasedAt: 'asc' }, { createdAt: 'asc' }]
+        : params.sort === 'costHigh' ? [{ costPrice: 'desc' }]
+          : params.sort === 'costLow' ? [{ costPrice: 'asc' }]
+            : params.sort === 'sold' ? [{ soldAt: { sort: 'desc', nulls: 'last' } }]
+              : [{ createdAt: 'desc' }];
+
+    const [items, total, byStatus, sums] = await Promise.all([
       this.prisma.productImei.findMany({
         where,
         include: {
-          product: { select: { id: true, name: true, sku: true, brandId: true, brand: { select: { name: true } } } },
-          variant: { select: { id: true, name: true, color: true, colorHex: true } },
+          product: { select: { id: true, name: true, sku: true, price: true, brandId: true, brand: { select: { name: true } } } },
+          variant: { select: { id: true, name: true, color: true, colorHex: true, price: true } },
           shop: { select: { id: true, name: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
       }),
       this.prisma.productImei.count({ where }),
+      this.prisma.productImei.groupBy({ by: ['status'], where: this.listWhere(user, params, false), _count: { _all: true } }),
+      this.prisma.productImei.aggregate({ where, _sum: { costPrice: true, soldPrice: true } }),
     ]);
 
+    // Bill and customer of sold phones, for the list and warranty checks.
+    const saleItemIds = items.map((i) => i.saleItemId).filter((x): x is string => !!x);
+    const lines = saleItemIds.length
+      ? await this.prisma.saleItem.findMany({
+          where: { id: { in: saleItemIds }, sale: { tenantId: user.tenantId } },
+          select: { id: true, sale: { select: { id: true, saleNumber: true, status: true, customer: { select: { id: true, name: true, phone: true } } } } },
+        })
+      : [];
+    const saleByItem = new Map(lines.map((l) => [l.id, l.sale]));
+    const now = new Date();
+
     return {
-      items, total, page, limit,
+      items: items.map((i) => ({
+        ...i,
+        salePrice: Number(i.variant?.price ?? i.product?.price ?? 0),
+        sale: i.saleItemId ? saleByItem.get(i.saleItemId) ?? null : null,
+        daysInStock: i.purchasedAt ? Math.max(0, Math.floor((now.getTime() - i.purchasedAt.getTime()) / 86_400_000)) : null,
+        warranty: this.warrantyOf(i),
+      })),
+      total,
+      page,
+      limit,
       totalPages: Math.ceil(total / limit),
+      counts: Object.fromEntries(byStatus.map((s) => [s.status, s._count._all])) as Partial<Record<ImeiStatus, number>>,
+      totals: { cost: Number(sums._sum.costPrice ?? 0), sold: Number(sums._sum.soldPrice ?? 0) },
     };
   }
 
   // ════════════════════════════════════════════════════════
-  // GLOBAL STATS (with PTA breakdown)
+  // STATS (with PTA breakdown, ageing and today's sales)
   // ════════════════════════════════════════════════════════
-  async stats(user: AuthenticatedUser) {
-    const [byStatus, byPta, totalAgg] = await Promise.all([
-      this.prisma.productImei.groupBy({
-        by: ['status'],
-        where: { tenantId: user.tenantId },
-        _count: { _all: true },
+  async stats(user: AuthenticatedUser, shopId?: string) {
+    const base: Prisma.ProductImeiWhereInput = { tenantId: user.tenantId, ...(shopId && { shopId }) };
+    const inStock: Prisma.ProductImeiWhereInput = { ...base, status: 'IN_STOCK' };
+    const now = new Date();
+    const [byStatus, byPta, totalAgg, retailRows, aged60, soldToday, soldMonth] = await Promise.all([
+      this.prisma.productImei.groupBy({ by: ['status'], where: base, _count: { _all: true } }),
+      this.prisma.productImei.groupBy({ by: ['ptaStatus'], where: inStock, _count: { _all: true }, _sum: { ptaTaxPaid: true } }),
+      this.prisma.productImei.aggregate({ where: inStock, _sum: { costPrice: true } }),
+      this.prisma.productImei.findMany({
+        where: inStock,
+        select: { product: { select: { price: true } }, variant: { select: { price: true } } },
       }),
-      this.prisma.productImei.groupBy({
-        by: ['ptaStatus'],
-        where: { tenantId: user.tenantId, status: 'IN_STOCK' },
-        _count: { _all: true },
-        _sum: { ptaTaxPaid: true },
-      }),
-      this.prisma.productImei.aggregate({
-        where: { tenantId: user.tenantId, status: 'IN_STOCK' },
-        _sum: { costPrice: true },
-      }),
+      this.prisma.productImei.count({ where: { ...inStock, purchasedAt: { lte: subDaysTz(now, 60) } } }),
+      this.prisma.productImei.count({ where: { ...base, status: 'SOLD', soldAt: { gte: startOfDayTz(now) } } }),
+      this.prisma.productImei.aggregate({ where: { ...base, status: 'SOLD', soldAt: { gte: startOfMonthTz(now) } }, _count: { _all: true }, _sum: { soldPrice: true, costPrice: true } }),
     ]);
 
     const statusMap: Record<string, number> = {};
@@ -335,6 +349,12 @@ export class ImeiService {
       reserved: statusMap.RESERVED ?? 0,
       lost: statusMap.LOST ?? 0,
       stockValue: totalAgg._sum.costPrice ?? 0,
+      retailValue: retailRows.reduce((s, r) => s + Number(r.variant?.price ?? r.product?.price ?? 0), 0),
+      aged60,
+      soldToday,
+      soldThisMonth: soldMonth._count._all,
+      soldThisMonthValue: Number(soldMonth._sum.soldPrice ?? 0),
+      soldThisMonthCost: Number(soldMonth._sum.costPrice ?? 0),
       byPta: byPta.map((p) => ({
         ptaStatus: p.ptaStatus,
         count: p._count._all,
@@ -343,59 +363,98 @@ export class ImeiService {
     };
   }
 
+  /**
+   * Phones that left with the given bills: new phones by IMEI, used phones,
+   * trade-ins taken as payment and EMI plans, for the sales history.
+   */
+  async forSales(user: AuthenticatedUser, saleIds: string[]) {
+    const ids = [...new Set(saleIds.filter(Boolean))].slice(0, 200);
+    if (!ids.length) return { imeis: [], used: [], tradeIns: [], plans: [] };
+    const [imeis, used, tradeIns, plans] = await Promise.all([
+      this.prisma.$queryRaw<Array<{ saleId: string; saleItemId: string; imei1: string; imei2: string | null; ptaStatus: PtaStatus; warrantyMonths: number | null; status: ImeiStatus }>>`
+        SELECT si."saleId" AS "saleId", pi."saleItemId" AS "saleItemId", pi.imei1, pi.imei2, pi."ptaStatus" AS "ptaStatus",
+               pi."warrantyMonths" AS "warrantyMonths", pi.status
+        FROM "ProductImei" pi JOIN "SaleItem" si ON si.id = pi."saleItemId"
+        WHERE pi."tenantId" = ${user.tenantId} AND si."saleId" IN (${Prisma.join(ids)})`,
+      this.prisma.saleItem.findMany({
+        where: { saleId: { in: ids }, usedPhoneId: { not: null }, sale: { tenantId: user.tenantId } },
+        select: { saleId: true, id: true, usedPhone: { select: { usedPhoneCode: true, imei1: true, condition: true, ptaStatus: true } } },
+      }),
+      this.prisma.salePayment.findMany({
+        where: { tenantId: user.tenantId, saleId: { in: ids }, method: 'TRADE_IN' },
+        select: { saleId: true, amount: true, reference: true, note: true },
+      }),
+      this.prisma.emiPlan.findMany({
+        where: { tenantId: user.tenantId, saleId: { in: ids } },
+        select: { id: true, saleId: true, planNumber: true, status: true, remainingAmount: true },
+      }),
+    ]);
+    return {
+      imeis,
+      used: used.filter((u) => u.usedPhone).map((u) => ({ saleId: u.saleId, saleItemId: u.id, ...u.usedPhone! })),
+      tradeIns: tradeIns.map((t) => ({ ...t, amount: Number(t.amount) })),
+      plans,
+    };
+  }
+
+  /**
+   * Per product: phones on the shelf against the branch stock, so screens can
+   * show where a count and the IMEIs disagree.
+   */
+  async shelfCounts(user: AuthenticatedUser, shopId?: string) {
+    const [groups, all] = await Promise.all([
+      this.prisma.productImei.groupBy({
+        by: ['productId'],
+        where: { tenantId: user.tenantId, status: 'IN_STOCK', ...(shopId && { shopId }) },
+        _count: { _all: true },
+      }),
+      this.prisma.productImei.groupBy({ by: ['productId'], where: { tenantId: user.tenantId }, _count: { _all: true } }),
+    ]);
+    const ids = all.map((g) => g.productId);
+    const [stocks, products] = ids.length
+      ? await Promise.all([
+          this.prisma.shopStock.groupBy({
+            by: ['productId'],
+            where: { tenantId: user.tenantId, productId: { in: ids }, ...(shopId && { shopId }) },
+            _sum: { stock: true },
+          }),
+          this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: ids } }, select: { id: true, name: true } }),
+        ])
+      : [[], []];
+    const onShelf = new Map(groups.map((g) => [g.productId, g._count._all]));
+    const stock = new Map(stocks.map((s) => [s.productId, Number(s._sum.stock ?? 0)]));
+    const names = new Map(products.map((p) => [p.id, p.name]));
+    return all.map((g) => ({
+      productId: g.productId,
+      name: names.get(g.productId) ?? 'Phone',
+      total: g._count._all,
+      inStock: onShelf.get(g.productId) ?? 0,
+      stock: stock.get(g.productId) ?? 0,
+    }));
+  }
+
   // ════════════════════════════════════════════════════════
-  // STOCK RECALC (Admin tool — fix existing data)
+  // STOCK RECALC (owner tool — bring branch stock back to the phones on the shelf)
   // ════════════════════════════════════════════════════════
   async recalcAllStocks(user: AuthenticatedUser) {
-    // Find all products that have IMEIs
-    const products = await this.prisma.product.findMany({
-      where: {
-        tenantId: user.tenantId,
-        productImeis: { some: {} },
-      },
-      include: {
-        variants: { where: { isActive: true } },
-      },
+    const groups = await this.prisma.productImei.groupBy({
+      by: ['productId', 'variantId', 'shopId'],
+      where: { tenantId: user.tenantId, shopId: { not: null } },
     });
-
-    let productCount = 0;
-    let variantCount = 0;
-
-    for (const product of products) {
-      await this.prisma.$transaction(async (tx) => {
-        // Product-level
-        const inStock = await tx.productImei.count({
-          where: { tenantId: user.tenantId, productId: product.id, status: 'IN_STOCK' },
-        });
-        await tx.product.update({
-          where: { id: product.id },
-          data: { stock: inStock },
-        });
-        productCount++;
-
-        // Variants
-        for (const variant of product.variants) {
-          const vInStock = await tx.productImei.count({
-            where: {
-              tenantId: user.tenantId,
-              productId: product.id,
-              variantId: variant.id,
-              status: 'IN_STOCK',
-            },
-          });
-          await tx.productVariant.update({
-            where: { id: variant.id },
-            data: { stock: vInStock },
-          });
-          variantCount++;
-        }
-      });
+    const products = new Set<string>();
+    let variants = 0;
+    for (const g of groups) {
+      await this.prisma.$transaction((tx) => syncImeiStock(tx, user, {
+        productId: g.productId, variantId: g.variantId, shopIds: [g.shopId],
+        reference: 'IMEI-RECOUNT', note: 'Stock IMEI ginti ke barabar kiya',
+      }));
+      products.add(g.productId);
+      if (g.variantId) variants += 1;
     }
-
     return {
-      message: 'Stock recalculated successfully',
-      productsUpdated: productCount,
-      variantsUpdated: variantCount,
+      message: 'Stock IMEI ginti ke barabar ho gaya',
+      productsUpdated: products.size,
+      variantsUpdated: variants,
     };
   }
 
@@ -416,12 +475,13 @@ export class ImeiService {
     });
   }
 
-  async availableForSale(user: AuthenticatedUser, productId: string, variantId?: string) {
+  async availableForSale(user: AuthenticatedUser, productId: string, variantId?: string, shopId?: string) {
     return this.prisma.productImei.findMany({
       where: {
         tenantId: user.tenantId,
         productId,
         ...(variantId && { variantId }),
+        ...(shopId && { OR: [{ shopId }, { shopId: null }] }),
         status: 'IN_STOCK',
       },
       include: ImeiService.SALE_INCLUDE,
@@ -430,27 +490,108 @@ export class ImeiService {
   }
 
   async search(user: AuthenticatedUser, query: string, status?: ImeiStatus) {
+    const q = query.trim();
     return this.prisma.productImei.findMany({
       where: {
         tenantId: user.tenantId,
         ...(status && { status }),
-        ...(query
+        ...(q
           ? {
               OR: [
-                { imei1: { contains: query } },
-                { imei2: { contains: query } },
-                { serialNumber: { contains: query, mode: 'insensitive' as const } },
-                { product: { name: { contains: query, mode: 'insensitive' as const } } },
+                { imei1: { contains: q } },
+                { imei2: { contains: q } },
+                { serialNumber: { contains: q, mode: 'insensitive' as const } },
+                { product: { name: { contains: q, mode: 'insensitive' as const } } },
               ],
             }
           : {}),
       },
       include: ImeiService.SALE_INCLUDE,
-      // IN_STOCK pehle — warna 20 sold rows list bhar dete the aur
-      // bikne wale phone bilkul dikhte hi nahi the.
+      // Phones on the shelf first, so sold ones never push them off the list.
       orderBy: [{ status: 'asc' }, { purchasedAt: 'asc' }],
       take: 50,
     });
+  }
+
+  // ════════════════════════════════════════════════════════
+  // LOOKUP — one IMEI's whole story: stock, sale, warranty, buy-backs, repairs
+  // ════════════════════════════════════════════════════════
+  async lookup(user: AuthenticatedUser, raw: string) {
+    const code = (raw ?? '').replace(/\s+/g, '');
+    if (code.length < 5) throw new BadRequestException('Poora IMEI likhein (kam az kam 5 number)');
+    const exact = /^\d{15}$/.test(code);
+    const match = exact ? { equals: code } : { contains: code };
+
+    const [newPhones, usedPhones, repairs] = await Promise.all([
+      this.prisma.productImei.findMany({
+        where: { tenantId: user.tenantId, OR: [{ imei1: match }, { imei2: match }, { serialNumber: { equals: code, mode: 'insensitive' } }] },
+        include: {
+          product: { select: { id: true, name: true, sku: true, price: true, brand: { select: { name: true } } } },
+          variant: { select: { id: true, name: true, price: true } },
+          shop: { select: { id: true, name: true } },
+        },
+        take: 10,
+      }),
+      this.prisma.usedPhone.findMany({
+        where: { tenantId: user.tenantId, OR: [{ imei1: match }, { imei2: match }] },
+        select: {
+          id: true, usedPhoneCode: true, brand: true, model: true, storage: true, status: true, condition: true, source: true,
+          buybackPrice: true, resalePrice: true, finalSoldPrice: true, receivedAt: true, soldAt: true, soldSaleId: true,
+          fromCustomerName: true, fromCustomerPhone: true, fromCustomerCnic: true, ptaStatus: true,
+        },
+        orderBy: { receivedAt: 'desc' },
+        take: 10,
+      }),
+      this.prisma.repairTicket.findMany({
+        where: { tenantId: user.tenantId, OR: [{ imei1: match }, { imei2: match }] },
+        select: {
+          id: true, ticketNumber: true, status: true, deviceBrand: true, deviceModel: true, reportedIssue: true, diagnosedIssue: true,
+          receivedAt: true, deliveredAt: true, warrantyDays: true, warrantyEnds: true, totalCost: true, customerName: true, customerPhone: true,
+        },
+        orderBy: { receivedAt: 'desc' },
+        take: 20,
+      }),
+    ]);
+
+    const saleItemIds = newPhones.map((p) => p.saleItemId).filter((x): x is string => !!x);
+    const usedSaleIds = usedPhones.map((p) => p.soldSaleId).filter((x): x is string => !!x);
+    const [lines, usedSales] = await Promise.all([
+      saleItemIds.length
+        ? this.prisma.saleItem.findMany({
+            where: { id: { in: saleItemIds }, sale: { tenantId: user.tenantId } },
+            select: { id: true, price: true, sale: { select: { id: true, saleNumber: true, status: true, createdAt: true, customer: { select: { id: true, name: true, phone: true } } } } },
+          })
+        : [],
+      usedSaleIds.length
+        ? this.prisma.sale.findMany({
+            where: { id: { in: usedSaleIds }, tenantId: user.tenantId },
+            select: { id: true, saleNumber: true, status: true, createdAt: true, customer: { select: { id: true, name: true, phone: true } } },
+          })
+        : [],
+    ]);
+    const lineById = new Map(lines.map((l) => [l.id, l]));
+    const saleById = new Map(usedSales.map((s) => [s.id, s]));
+    const now = new Date();
+
+    return {
+      code,
+      newPhones: newPhones.map((p) => {
+        const line = p.saleItemId ? lineById.get(p.saleItemId) : undefined;
+        return {
+          id: p.id, imei1: p.imei1, imei2: p.imei2, serialNumber: p.serialNumber, color: p.color, status: p.status,
+          ptaStatus: p.ptaStatus, ptaTaxPaid: p.ptaTaxPaid, costPrice: p.costPrice, soldPrice: p.soldPrice, purchasedAt: p.purchasedAt, soldAt: p.soldAt,
+          notes: p.notes, product: p.product, variant: p.variant, shop: p.shop,
+          sale: line ? { ...line.sale, price: line.price } : null,
+          warranty: this.warrantyOf(p),
+        };
+      }),
+      usedPhones: usedPhones.map((u) => ({ ...u, sale: u.soldSaleId ? saleById.get(u.soldSaleId) ?? null : null })),
+      repairs: repairs.map((r) => {
+        const end = r.warrantyEnds ?? (r.deliveredAt && r.warrantyDays ? new Date(r.deliveredAt.getTime() + r.warrantyDays * 86_400_000) : null);
+        return { ...r, warrantyEnds: end, warrantyActive: !!end && r.status === 'DELIVERED' && end >= now };
+      }),
+      luhnOk: exact ? isLuhnValid(code) : null,
+    };
   }
 
   async findOne(user: AuthenticatedUser, id: string) {
@@ -458,87 +599,108 @@ export class ImeiService {
       where: { id, tenantId: user.tenantId },
       include: { product: true, variant: true },
     });
-    if (!imei) throw new NotFoundException('IMEI not found');
+    if (!imei) throw new NotFoundException('IMEI nahi mila');
     return imei;
   }
 
-  async update(user: AuthenticatedUser, id: string, data: Partial<CreateImeiDto>) {
+  /**
+   * Edits one phone. A sale is the only way to SOLD; DAMAGED and LOST from
+   * the shelf take it out of stock with a write-off movement at its cost.
+   */
+  async update(user: AuthenticatedUser, id: string, dto: UpdateImeiDto) {
     const current = await this.findOne(user, id);
-    // The body is not validated by a DTO class here, so copy only known fields.
-    const FIELDS = ['imei1', 'imei2', 'serialNumber', 'ptaStatus', 'ptaTaxPaid', 'costPrice', 'warrantyMonths', 'color', 'notes', 'status', 'shopId'] as const;
-    const updateData: any = {};
-    for (const k of FIELDS) if ((data as any)?.[k] !== undefined) updateData[k] = (data as any)[k];
-    if (updateData.warrantyMonths) {
-      updateData.warrantyExpiry = new Date(
-        new Date(current.purchasedAt ?? Date.now()).getTime() + Number(updateData.warrantyMonths) * 30 * 24 * 60 * 60 * 1000,
-      );
+    const data: Prisma.ProductImeiUpdateInput = {};
+    const copy = ['imei1', 'imei2', 'serialNumber', 'ptaStatus', 'ptaTaxPaid', 'costPrice', 'warrantyMonths', 'color', 'notes'] as const;
+    for (const k of copy) if (dto[k] !== undefined) (data as Record<string, unknown>)[k] = dto[k];
+    if (dto.ptaTaxDueAt !== undefined) data.ptaTaxDueAt = dto.ptaTaxDueAt ? new Date(dto.ptaTaxDueAt) : null;
+    if (dto.ptaVerifiedAt !== undefined) data.ptaVerifiedAt = dto.ptaVerifiedAt ? new Date(dto.ptaVerifiedAt) : null;
+
+    const nextImei1 = dto.imei1 ?? current.imei1;
+    const nextImei2 = dto.imei2 === undefined ? current.imei2 : dto.imei2;
+    if (nextImei2 && nextImei2 === nextImei1) throw new BadRequestException('IMEI 1 aur IMEI 2 ek jaise nahi ho sakte');
+    if ((dto.imei1 && dto.imei1 !== current.imei1) || (dto.imei2 && dto.imei2 !== current.imei2)) {
+      if (current.status === 'SOLD') throw new BadRequestException('Bike hue phone ka IMEI nahi badla ja sakta — bill par yahi likha hai');
+      await this.assertFree(user, [dto.imei1 && dto.imei1 !== current.imei1 ? dto.imei1 : '', dto.imei2 && dto.imei2 !== current.imei2 ? dto.imei2 : ''], id);
     }
-    if (data?.ptaTaxDueAt) updateData.ptaTaxDueAt = new Date(data.ptaTaxDueAt);
-    if (data?.ptaVerifiedAt) updateData.ptaVerifiedAt = new Date(data.ptaVerifiedAt);
-    if (updateData.status === 'SOLD' && current.status !== 'SOLD') {
-      throw new BadRequestException('Phone sale sirf POS se hoti hai');
-    }
-    if (current.status === 'SOLD' && updateData.status && updateData.status !== 'SOLD') {
-      throw new BadRequestException('Bika hua phone wapas lene ke liye Returns istemal karein');
-    }
-    if (updateData.shopId) await this.resolveShopId(user, updateData.shopId);
-    if (updateData.imei1 && updateData.imei1 !== current.imei1) {
-      const taken = await this.prisma.productImei.findFirst({ where: { tenantId: user.tenantId, imei1: updateData.imei1, id: { not: id } } });
-      if (taken) throw new ConflictException(`IMEI ${updateData.imei1} pehle se maujood hai`);
+    if (dto.costPrice !== undefined && current.status === 'SOLD') {
+      throw new BadRequestException('Bike hue phone ki cost nahi badli ja sakti — bill ka profit isi par bana hai');
     }
 
-    const stockChanged = (updateData.status && updateData.status !== current.status)
-      || (updateData.shopId && updateData.shopId !== current.shopId);
+    let status = current.status;
+    if (dto.status && dto.status !== current.status) {
+      if (dto.status === 'SOLD') throw new BadRequestException('Phone sirf POS bill se bikta hai');
+      if (current.status === 'SOLD') throw new BadRequestException('Bika hua phone wapas lene ke liye Return istemal karein');
+      if (!MANUAL_STATUS.includes(dto.status)) throw new BadRequestException('Supplier ko wapas bhejne ke liye Purchase return istemal karein');
+      if (dto.shopId && dto.shopId !== current.shopId) throw new BadRequestException('Halat aur shop ek saath nahi badalte — pehle ek kaam karein');
+      status = dto.status;
+      data.status = status;
+    }
+
+    let shopId = current.shopId;
+    if (dto.shopId && dto.shopId !== current.shopId) {
+      if (current.status !== 'IN_STOCK') throw new BadRequestException('Sirf stock wala phone doosri shop bheja ja sakta hai');
+      shopId = await this.resolveShopId(user, dto.shopId);
+      data.shop = { connect: { id: shopId } };
+    }
+
+    const stockChanged = status !== current.status || shopId !== current.shopId;
+    const cost = Number(dto.costPrice ?? current.costPrice) || Number(current.product?.costPrice) || 0;
+    // Damage and loss are write-offs; a written-off phone found again reduces them.
+    const writeOff: 'DAMAGE' | 'LOSS' | 'ADJUSTMENT_IN' | null =
+      status === current.status ? null
+        : WRITTEN_OFF.includes(status) && !WRITTEN_OFF.includes(current.status) ? (status === 'DAMAGED' ? 'DAMAGE' : 'LOSS')
+          : status === 'IN_STOCK' && WRITTEN_OFF.includes(current.status) ? 'ADJUSTMENT_IN'
+            : null;
     return this.prisma.$transaction(async (tx) => {
-      const row = await tx.productImei.update({ where: { id }, data: updateData });
+      const row = await tx.productImei.update({ where: { id }, data });
+      if (writeOff && current.shopId) {
+        await tx.stockAdjustment.create({
+          data: {
+            tenantId: user.tenantId, shopId: current.shopId, productId: current.productId, variantId: current.variantId, imeiId: id,
+            createdById: user.id, type: writeOff, quantity: 1, unitCost: cost, value: cost,
+            reason: writeOff === 'DAMAGE' ? 'Kharab' : writeOff === 'LOSS' ? 'Gum' : 'Wapas mila',
+            note: `[IMEI: ${row.imei1}] ${current.status} → ${status}${dto.notes ? ` — ${dto.notes}` : ''}`,
+          },
+        });
+      }
       if (stockChanged) {
-        await this.syncStockFromImeis(tx, user.tenantId, current.productId, current.variantId, [current.shopId, row.shopId]);
+        const reason = shopId !== current.shopId ? 'doosri shop bheja' : `${current.status} → ${status}`;
+        await syncImeiStock(tx, user, {
+          productId: current.productId, variantId: current.variantId, shopIds: [current.shopId, shopId],
+          reference: `IMEI-${row.imei1}`, note: `IMEI ${row.imei1}: ${reason}`, unitCost: cost,
+          outType: shopId !== current.shopId ? 'TRANSFER_OUT' : status === 'DAMAGED' ? 'DAMAGE' : status === 'LOST' ? 'LOSS' : 'ADJUSTMENT_OUT',
+          inType: shopId !== current.shopId ? 'TRANSFER_IN' : 'ADJUSTMENT_IN',
+        });
       }
       return row;
     });
   }
 
+  /**
+   * Removes a phone entered by mistake: only one on the shelf that was never
+   * sold, moved or adjusted. Its stock leaves with a movement.
+   */
   async remove(user: AuthenticatedUser, id: string) {
     const imei = await this.findOne(user, id);
-    if (imei.status === 'SOLD') {
-      throw new BadRequestException('Cannot delete sold IMEI');
+    if (imei.status === 'SOLD' || imei.saleItemId || imei.soldAt) {
+      throw new BadRequestException('Bika hua phone mitaya nahi ja sakta');
+    }
+    const [transfers, adjustments] = await Promise.all([
+      this.prisma.stockTransferItem.count({ where: { imeiId: id } }),
+      this.prisma.stockAdjustment.count({ where: { imeiId: id } }),
+    ]);
+    if (transfers || adjustments) {
+      throw new BadRequestException('Is phone ki history hai (transfer/adjustment) — mitane ki jagah halat "Gum" ya "Kharab" karein');
     }
 
     await this.prisma.$transaction(async (tx) => {
       await tx.productImei.delete({ where: { id } });
-      await this.syncStockFromImeis(tx, user.tenantId, imei.productId, imei.variantId, [imei.shopId]);
+      await syncImeiStock(tx, user, {
+        productId: imei.productId, variantId: imei.variantId, shopIds: [imei.shopId],
+        reference: `IMEI-${imei.imei1}`, note: `Ghalat IMEI ${imei.imei1} hataya`, unitCost: Number(imei.costPrice) || 0,
+      });
     });
 
     return { success: true };
-  }
-
-  async markSold(
-    tx: any,
-    tenantId: string,
-    imeiId: string,
-    saleItemId: string,
-    soldPrice: number,
-  ) {
-    const imei = await tx.productImei.findFirst({
-      where: { id: imeiId, tenantId },
-    });
-    if (!imei) throw new NotFoundException('IMEI not found');
-    if (imei.status !== 'IN_STOCK') {
-      throw new BadRequestException(`IMEI ${imei.imei1} is not in stock (${imei.status})`);
-    }
-
-    const updated = await tx.productImei.update({
-      where: { id: imeiId },
-      data: {
-        status: 'SOLD',
-        saleItemId,
-        soldPrice,
-        soldAt: new Date(),
-      },
-    });
-
-    // Sync stock after marking sold
-    await this.syncStockFromImeis(tx, tenantId, imei.productId, imei.variantId);
-    return updated;
   }
 }

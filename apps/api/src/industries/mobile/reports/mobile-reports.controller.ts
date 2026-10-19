@@ -5,15 +5,24 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { MobileReportsService } from './mobile-reports.service';
 import { ShopIdParam } from '../../../common/shop-scope';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
+/*
+ * `mobile-reports` matches no rule in the route map, so the rights are set
+ * here: reports need reports.view, the month summary dashboard.view and the
+ * profit split profit_report.view.
+ */
 @ApiTags('Mobile Reports')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@RequirePermissions(PERMISSIONS.REPORTS_VIEW)
 @Controller('mobile-reports')
 export class MobileReportsController {
   constructor(private readonly service: MobileReportsService) {}
 
   @Get('dashboard')
+  @RequirePermissions(PERMISSIONS.DASHBOARD_VIEW)
   dashboard(
     @GetUser() user: AuthenticatedUser,
     @ShopIdParam() shopId?: string,
@@ -23,6 +32,7 @@ export class MobileReportsController {
 
   /** Kamai 4 raston me tori hui — naya phone, used phone, accessory, repair. */
   @Get('profit-by-source')
+  @RequirePermissions(PERMISSIONS.PROFIT_REPORT_VIEW)
   profitBySource(
     @GetUser() user: AuthenticatedUser,
     @Query('from') from?: string,

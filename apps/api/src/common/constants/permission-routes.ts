@@ -69,6 +69,16 @@ export const ROUTE_RULES: RouteRule[] = [
   /* Data files. Each file also needs the view right of what it holds (checked in ExportsService). */
   { match: /^exports(\/|$)/, GET: P.EXPORTS_VIEW },
 
+  /* Garments. Placed first so `garments/collections/:id/products` is not taken by
+     the general products rule. Jobs take money at the counter (same right as the
+     web's useGarmentsCan); measurements are customer records. */
+  { match: /^garments\/(tailoring|alterations|reservations|layaway)(\/|$)/, GET: P.POS_USE, write: P.POS_USE },
+  { match: /^garments\/measurements(\/|$)/, GET: P.CUSTOMERS_VIEW, write: P.CUSTOMERS_EDIT },
+  { match: /^garments\/(collections|size-charts)(\/|$)/, GET: P.PRODUCTS_VIEW, write: P.PRODUCTS_EDIT },
+
+  /* Retail reorder list: reading is the low-stock view, acting on it is buying. */
+  { match: /^retail\/reorder(\/|$)/, GET: P.LOW_STOCK_VIEW, write: P.PURCHASES_CREATE },
+
   /* ── Bikri aur counter ── */
   { match: /(^|\/)pos(\/|$)/, GET: P.POS_USE, write: P.POS_USE },
   /* Cancelling a bill always needs the void permission, whatever the PIN setting. */
@@ -112,7 +122,8 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)day-book(\/|$)/, GET: P.DASHBOARD_VIEW },
   /* The P&L shows profit, so it needs the profit permission, not the general reports one. */
   { match: /^reports\/pnl(\/|$)/, GET: P.PROFIT_REPORT_VIEW },
-  { match: /(^|\/)profit(-|\/)/, GET: P.PROFIT_REPORT_VIEW },
+  /* Also a path that ends in `profit` (electronics/analytics/profit). */
+  { match: /(^|\/)profit(-|\/|$)/, GET: P.PROFIT_REPORT_VIEW },
   /* Daily summary: reading is a report; sending it now is a settings action. */
   { match: /^reports\/daily-summary(\/|$)/, GET: P.REPORTS_VIEW, write: P.SETTINGS_EDIT },
   /* Customers report lives under reports, not customers. It needs report access
@@ -157,7 +168,7 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)repair-tickets?(\/|$)/, GET: P.MOBILE_REPAIRS_VIEW, write: P.MOBILE_REPAIRS_MANAGE },
   { match: /(^|\/)(imei|used-phones)(\/|$)/, GET: P.MOBILE_IMEI_VIEW, write: P.MOBILE_IMEI_MANAGE },
 
-  { match: /^restaurant\/(orders|tables|delivery)(\/|$)/, GET: P.RESTAURANT_ORDERS_VIEW, write: P.RESTAURANT_ORDERS_MANAGE },
+  { match: /^restaurant\/(orders|tables|delivery|riders)(\/|$)/, GET: P.RESTAURANT_ORDERS_VIEW, write: P.RESTAURANT_ORDERS_MANAGE },
   { match: /^restaurant\/(kot|stations|recipes)(\/|$)/, GET: P.RESTAURANT_KITCHEN_VIEW, write: P.RESTAURANT_KITCHEN_MANAGE },
   { match: /^restaurant\/(menu-items|modifiers|happy-hours)(\/|$)/, GET: P.RESTAURANT_MENU_VIEW, write: P.RESTAURANT_MENU_MANAGE },
 

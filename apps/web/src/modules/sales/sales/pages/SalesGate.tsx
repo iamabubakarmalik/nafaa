@@ -1,6 +1,6 @@
 /**
  * Picks the sales history for the current industry. Retail, Bakery,
- * Electronics and businesses without an industry use the shared history
+ * Electronics, Pharmacy and businesses without an industry use the shared history
  * (modules/sales/history); the rest keep their own pages for now.
  */
 import { lazy, Suspense } from 'react';
@@ -18,7 +18,7 @@ const BakerySales = lazy(() => import('@industries/bakery/sales/BakerySales'));
 const GymSalesPage = lazy(() => import('@industries/gym/pages/GymSalesPage'));
 const ClinicSalesPage = lazy(() => import('@industries/clinic/pages/ClinicSalesPage'));
 const ServicesBizSalesPage = lazy(() => import('@industries/services-biz/pages/ServicesBizSalesPage'));
-const PharmacySalesPage = lazy(() => import('@industries/pharmacy/pages/PharmacySalesPage'));
+const PharmacySales = lazy(() => import('@industries/pharmacy/sales/PharmacySales'));
 const JewelrySalesPage = lazy(() => import('@industries/jewelry/pages/JewelrySalesPage'));
 const HardwareSalesPage = lazy(() => import('@industries/hardware/pages/HardwareSalesPage'));
 const DairySalesPage = lazy(() => import('@industries/dairy/pages/DairySalesPage'));
@@ -51,7 +51,7 @@ export default function SalesGate() {
   if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymSalesPage /></Suspense>;
   if (industry?.id === 'clinic') return <Suspense fallback={<Loader />}><ClinicSalesPage /></Suspense>;
   if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizSalesPage /></Suspense>;
-  if (industry?.id === 'pharmacy') return <Suspense fallback={<Loader />}><PharmacySalesPage /></Suspense>;
+  if (industry?.id === 'pharmacy') return <Suspense fallback={<Loader />}><PharmacySales /></Suspense>;
   if (industry?.id === 'jewelry') return <Suspense fallback={<Loader />}><JewelrySalesPage /></Suspense>;
   if (industry?.id === 'hardware') return <Suspense fallback={<Loader />}><HardwareSalesPage /></Suspense>;
   if (industry?.id === 'dairy') return <Suspense fallback={<Loader />}><DairySalesPage /></Suspense>;

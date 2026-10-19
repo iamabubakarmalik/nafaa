@@ -1,556 +1,204 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Bike, Plus, Phone, MapPin, Star, TrendingUp, Award, X, Save,
-  Edit3, Trash2, RefreshCw, Sparkles, Car, User, Clock,
-  CheckCircle2, AlertCircle, Coffee, Circle, Search,
-} from 'lucide-react';
-import { ridersApi, type Rider, type RiderStatus } from '../api/riders.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Riders: who delivers, who is on duty or on a trip, and how much cash each
+ * one still has to hand over. Add or edit a rider, put them on or off duty,
+ * take their cash on the delivery board. A removed rider is kept with
+ * history and only leaves the list.
+ *
+ * Keys: / search · A add rider · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Bike, Coffee, GraduationCap, HandCoins, Pencil, Phone, Plus, Power, Trash2, Users } from 'lucide-react';
+import {
+  Button, FilterBar, KpiCard, KpiRow, Kbd, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { ridersApi, type Rider, type RiderStatus } from '../api/riders.api';
+import { apiError } from '../lib/orderMeta';
 
-const STATUS_CONFIG: Record<RiderStatus, { label: string; color: string; bg: string; icon: any }> = {
-  ACTIVE: { label: 'Active', color: 'text-emerald-700', bg: 'bg-emerald-500', icon: CheckCircle2 },
-  BUSY: { label: 'On Delivery', color: 'text-amber-700', bg: 'bg-amber-500', icon: Bike },
-  OFFLINE: { label: 'Offline', color: 'text-slate-700', bg: 'bg-slate-500', icon: Circle },
-  ON_BREAK: { label: 'On Break', color: 'text-blue-700', bg: 'bg-blue-500', icon: Coffee },
-  INACTIVE: { label: 'Inactive', color: 'text-rose-700', bg: 'bg-rose-500', icon: AlertCircle },
+const STATUS: Record<RiderStatus, { label: string; tone: string }> = {
+  ACTIVE: { label: 'Duty par · free', tone: 'bg-emerald-50 text-emerald-700' },
+  BUSY: { label: 'Trip par', tone: 'bg-violet-50 text-violet-700' },
+  ON_BREAK: { label: 'Break', tone: 'bg-amber-50 text-amber-800' },
+  OFFLINE: { label: 'Chhutti / off', tone: 'bg-slate-100 text-slate-600' },
+  INACTIVE: { label: 'Hata diya', tone: 'bg-rose-50 text-rose-700' },
 };
-
-const VEHICLE_OPTIONS = [
-  { value: 'Bike', emoji: '🏍️' },
-  { value: 'Car', emoji: '🚗' },
-  { value: 'Bicycle', emoji: '🚴' },
-  { value: 'Rickshaw', emoji: '🛺' },
-  { value: 'On foot', emoji: '🚶' },
-];
+type View = 'all' | 'duty' | 'off';
 
 export default function RidersPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const canManage = usePermission(PERMISSIONS.RESTAURANT_ORDERS_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Rider | null>(null);
+  const [view, setView] = useState<View>('all');
+  const [edit, setEdit] = useState<Rider | 'new' | null>(null);
+  const [guide, setGuide] = useState(false);
 
-  const { data: riders = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['riders', statusFilter],
-    queryFn: () => ridersApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      active: true,
-    }),
-    refetchInterval: 30_000,
+  const q = useQuery({ queryKey: ['restaurant-riders', 'active'], queryFn: () => ridersApi.list({ active: true }), refetchInterval: 30_000 });
+  const riders = q.data ?? [];
+  const onDuty = riders.filter((r) => r.status === 'ACTIVE' || r.status === 'BUSY');
+  const cash = riders.reduce((n, r) => n + (r.cashDue ?? 0), 0);
+  const shown = useMemo(() => {
+    const s = search.trim().toLowerCase();
+    return riders.filter((r) => (view === 'all' || (view === 'duty' ? r.status === 'ACTIVE' || r.status === 'BUSY' : r.status === 'OFFLINE' || r.status === 'ON_BREAK'))
+      && (!s || r.name.toLowerCase().includes(s) || r.phone.includes(s) || (r.vehicleNumber ?? '').toLowerCase().includes(s)));
+  }, [riders, search, view]);
+
+  const refresh = () => ['restaurant-riders', 'restaurant-delivery-board', 'restaurant-rider-cash'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const act = useMutation({
+    mutationFn: (run: () => Promise<unknown>) => run(),
+    onSuccess: () => { refresh(); setEdit(null); },
+    onError: (e) => toast.error(apiError(e)),
   });
+  const run = (fn: () => Promise<unknown>, ok: string) => act.mutate(async () => { await fn(); toast.success(ok); });
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => ridersApi.remove(id),
-    onSuccess: () => {
-      toast.success('Rider deactivated');
-      queryClient.invalidateQueries({ queryKey: ['riders'] });
-    },
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: RiderStatus }) =>
-      ridersApi.update(id, { status }),
-    onSuccess: () => {
-      toast.success('Status updated');
-      queryClient.invalidateQueries({ queryKey: ['riders'] });
-    },
-  });
-
-  const filtered = riders.filter((r) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return r.name.toLowerCase().includes(q) || r.phone.includes(q) || (r.vehicleNumber || '').toLowerCase().includes(q);
-  });
-
-  const stats = {
-    total: riders.length,
-    active: riders.filter((r) => r.status === 'ACTIVE').length,
-    busy: riders.filter((r) => r.status === 'BUSY').length,
-    offline: riders.filter((r) => r.status === 'OFFLINE' || r.status === 'ON_BREAK').length,
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (k === 'a' && canManage) setEdit('new');
+      if (k === 'g') setGuide(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage]);
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-cyan-400/15 blur-3xl" />
-
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Delivery Fleet
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              🏍️ Riders
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Delivery boys — manage, track, assign
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
-            >
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button
-              className="bg-white text-slate-900 hover:bg-slate-100"
-              onClick={() => { setEditing(null); setShowForm(true); }}
-            >
-              <Plus className="h-4 w-4" />
-              Add Rider
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS */}
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Riders" value={stats.total} icon={Bike} color="blue" />
-        <StatCard label="Available" value={stats.active} icon={CheckCircle2} color="emerald" />
-        <StatCard label="On Delivery" value={stats.busy} icon={MapPin} color="amber" />
-        <StatCard label="Offline" value={stats.offline} icon={Circle} color="slate" />
-      </section>
-
-      {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name, phone, vehicle..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-blue-500"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {['all', 'ACTIVE', 'BUSY', 'OFFLINE', 'ON_BREAK', 'INACTIVE'].map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={
-                'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                (statusFilter === s
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200')
-              }
-            >
-              {s === 'all' ? 'All' : STATUS_CONFIG[s as RiderStatus]?.label || s}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <RiderForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false);
-            setEditing(null);
-            queryClient.invalidateQueries({ queryKey: ['riders'] });
-          }}
-        />
+    <PageShell>
+      {edit && <RiderForm rider={edit === 'new' ? null : edit} saving={act.isPending} onClose={() => setEdit(null)}
+        onSave={(d) => run(() => (edit === 'new' ? ridersApi.create(d) : ridersApi.update(edit.id, d)), edit === 'new' ? `${d.name} jur gaya` : 'Rider save ho gaya')} />}
+      {guide && (
+        <Modal open onClose={() => setGuide(false)} size="md" title="Riders — aasaan tareeqa">
+          <ul className="space-y-2 text-[0.875rem] text-slate-700">
+            <li><b>Duty par</b>: sirf yehi riders delivery order par lag sakte hain. Shift khatam ho to "Off".</li>
+            <li><b>Trip par</b>: order uthaya hua hai. Deliver hote hi khud free.</li>
+            <li><b>Cash</b>: deliver kiye orders ka paisa jo abhi rider ke paas hai. Delivery board par "Cash lein".</li>
+            <li><Kbd>A</Kbd> naya rider · <Kbd>/</Kbd> search</li>
+          </ul>
+        </Modal>
       )}
+      <PageHero
+        title="Riders"
+        chip={<><Bike />{riders.length} rider</>}
+        busy={q.isFetching && !q.isLoading}
+        loading={q.isLoading}
+        actions={<>
+          <Link to="/restaurant/delivery" className={heroButton}><Bike className="h-4 w-4" />Delivery board</Link>
+          {canManage && <button type="button" onClick={() => setEdit('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya rider <Kbd className="hidden md:inline-flex">A</Kbd></button>}
+          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Riders ke paas cash', value: formatPKR(cash) },
+          { label: 'Duty par', value: `${onDuty.length} / ${riders.length}` },
+          { label: 'Trip par', value: String(riders.filter((r) => r.status === 'BUSY').length) },
+          { label: 'Kul deliveries', value: String(riders.reduce((n, r) => n + (r.totalDeliveries ?? 0), 0)) },
+        ]}
+      />
+      <KpiRow cols={3}>
+        <KpiCard icon={Users} color="#16a34a" label="Duty par" value={String(onDuty.length)} hint="Order par lag sakte hain" onClick={() => setView(view === 'duty' ? 'all' : 'duty')} active={view === 'duty'} />
+        <KpiCard icon={Coffee} color="#64748b" label="Off / break" value={String(riders.length - onDuty.length)} onClick={() => setView(view === 'off' ? 'all' : 'off')} active={view === 'off'} />
+        <KpiCard icon={HandCoins} color="#d97706" label="Cash lena hai" value={formatPKR(cash)} hint={`${riders.filter((r) => (r.cashDue ?? 0) > 0).length} rider`} />
+      </KpiRow>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone ya bike number…" label="Rider search" />} />
+      <ViewTabs value={view} onChange={setView} tabs={[{ id: 'all', label: 'Sab', count: riders.length }, { id: 'duty', label: 'Duty par', count: onDuty.length }, { id: 'off', label: 'Off', count: riders.length - onDuty.length }]} />
 
-      {/* RIDERS GRID */}
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-blue-100 dark:bg-blue-950/40 mx-auto flex items-center justify-center">
-            <Bike className="h-10 w-10 text-blue-600" />
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {q.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div> : !shown.length ? (
+          <div className="flex flex-col items-center px-6 py-14 text-center">
+            <Bike className="h-10 w-10 text-slate-300" />
+            <p className="mt-3 font-semibold text-slate-900">{riders.length ? 'Is filter me koi rider nahi' : 'Abhi koi rider nahi'}</p>
+            {canManage && !riders.length && <Button className="mt-4" onClick={() => setEdit('new')}><Plus className="h-4 w-4" />Pehla rider</Button>}
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No riders</h3>
-          <p className="mt-1 text-sm text-slate-500 font-semibold">
-            {search || statusFilter !== 'all' ? 'No riders match' : 'Add your first rider'}
-          </p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((rider) => (
-            <RiderCard
-              key={rider.id}
-              rider={rider}
-              onEdit={() => { setEditing(rider); setShowForm(true); }}
-              onDelete={() => {
-                if (confirm('Deactivate ' + rider.name + '?')) removeMutation.mutate(rider.id);
-              }}
-              onStatusChange={(status) => updateStatusMutation.mutate({ id: rider.id, status })}
-            />
-          ))}
-        </section>
-      )}
-    </div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {shown.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-700"><Bike className="h-5 w-5" /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[0.9375rem] font-semibold text-slate-900">{r.name} <span className={cn('ml-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', STATUS[r.status].tone)}>{r.status === 'BUSY' ? `${r.activeTrips ?? 1} trip par` : STATUS[r.status].label}</span></p>
+                  <p className="text-[0.75rem] text-slate-500"><Phone className="mr-1 inline h-3 w-3" /><a href={`tel:${r.phone}`} className="hover:underline">{r.phone}</a>{r.vehicleNumber ? ` · ${r.vehicleType ? `${r.vehicleType} ` : ''}${r.vehicleNumber}` : ''} · {r.totalDeliveries} delivery</p>
+                </div>
+                {(r.cashDue ?? 0) > 0 && <Link to="/restaurant/delivery" className="rounded-xl bg-amber-50 px-3 py-1.5 text-[0.8125rem] font-bold tabular-nums text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100">{formatPKR(r.cashDue ?? 0)} cash</Link>}
+                {canManage && (
+                  <div className="flex items-center gap-1">
+                    {r.status !== 'BUSY' && (r.status === 'ACTIVE'
+                      ? <Button size="sm" variant="secondary" onClick={() => run(() => ridersApi.update(r.id, { status: 'OFFLINE' }), `${r.name} off`)}><Power className="h-4 w-4" />Off</Button>
+                      : <Button size="sm" onClick={() => run(() => ridersApi.update(r.id, { status: 'ACTIVE' }), `${r.name} duty par`)}><Power className="h-4 w-4" />Duty par</Button>)}
+                    {r.status === 'ACTIVE' && <Button size="sm" variant="ghost" onClick={() => run(() => ridersApi.update(r.id, { status: 'ON_BREAK' }), `${r.name} break par`)}><Coffee className="h-4 w-4" /></Button>}
+                    <Button size="sm" variant="ghost" onClick={() => setEdit(r)} aria-label="Badlein"><Pencil className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" className="text-rose-600" aria-label="Hatayein"
+                      onClick={() => { if (window.confirm(`${r.name} ko list se hata dein? Purani deliveries record me rahengi.`)) run(() => ridersApi.remove(r.id), 'Rider hata diya'); }}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </PageShell>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-700',
-    emerald: 'from-emerald-500 to-green-600',
-    amber: 'from-amber-500 to-orange-600',
-    slate: 'from-slate-500 to-slate-700',
+type RiderDraft = Pick<Rider, 'name' | 'phone'> & Partial<Pick<Rider, 'cnic' | 'vehicleType' | 'vehicleNumber' | 'isEmployee' | 'commissionType' | 'commissionValue' | 'notes'>>;
+
+function RiderForm({ rider, saving, onSave, onClose }: { rider: Rider | null; saving: boolean; onSave: (d: RiderDraft) => void; onClose: () => void }) {
+  const [f, setF] = useState({
+    name: rider?.name ?? '', phone: rider?.phone ?? '', cnic: rider?.cnic ?? '', vehicleType: rider?.vehicleType ?? 'Bike', vehicleNumber: rider?.vehicleNumber ?? '',
+    isEmployee: rider?.isEmployee ?? true, commissionType: rider?.commissionType ?? 'PER_DELIVERY', commissionValue: rider?.commissionValue ? String(rider.commissionValue) : '', notes: rider?.notes ?? '',
+  });
+  const [tried, setTried] = useState(false);
+  const errors = {
+    name: f.name.trim().length < 2 ? 'Rider ka naam likhein' : '',
+    phone: !/^[0-9+\-\s]{7,20}$/.test(f.phone.trim()) ? 'Phone number theek likhein (jaise 03001234567)' : '',
+    cnic: f.cnic && f.cnic.replace(/\D/g, '').length !== 13 ? 'CNIC 13 hindsay ka hota hai' : '',
   };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
+  const ok = !errors.name && !errors.phone && !errors.cnic;
+  const submit = () => {
+    setTried(true);
+    if (!ok) return;
+    onSave({
+      name: f.name.trim(), phone: f.phone.trim(), cnic: f.cnic.trim() || undefined, vehicleType: f.vehicleType.trim() || undefined, vehicleNumber: f.vehicleNumber.trim() || undefined,
+      isEmployee: f.isEmployee, commissionType: f.commissionType, commissionValue: Number(f.commissionValue) || 0, notes: f.notes.trim() || undefined,
+    });
+  };
+  const input = (k: keyof typeof f, label: string, opts: { hint?: string; error?: string; required?: boolean; placeholder?: string; mode?: 'tel' | 'numeric' | 'decimal' } = {}) => (
+    <label className="text-[0.8125rem] font-medium text-slate-700">{label}{opts.required && <span className="text-rose-500"> *</span>}
+      <input value={String(f[k])} onChange={(e) => setF({ ...f, [k]: e.target.value })} placeholder={opts.placeholder} inputMode={opts.mode}
+        className={cn('mt-1 h-10 w-full rounded-xl border px-3 text-[0.875rem] font-normal outline-none focus:ring-2', tried && opts.error ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-300 focus:border-brand-500 focus:ring-brand-500/20')} />
+      {tried && opts.error ? <span className="mt-1 block text-[0.75rem] text-rose-600">{opts.error}</span> : opts.hint && <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{opts.hint}</span>}
+    </label>
   );
-}
-
-function RiderCard({ rider, onEdit, onDelete, onStatusChange }: {
-  rider: Rider;
-  onEdit: () => void;
-  onDelete: () => void;
-  onStatusChange: (status: RiderStatus) => void;
-}) {
-  const cfg = STATUS_CONFIG[rider.status];
-  const StatusIcon = cfg.icon;
-
   return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl transition p-4 space-y-3">
-      {/* Header */}
-      <div className="flex items-start gap-3">
-        <div className="relative shrink-0">
-          {rider.avatarUrl ? (
-            <img src={rider.avatarUrl} alt={rider.name} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-ink-700" />
-          ) : (
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center text-lg font-extrabold shadow-lg ring-2 ring-white">
-              {rider.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div className={'absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white dark:ring-ink-900 ' + cfg.bg} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{rider.name}</div>
-          <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-ink-400 font-semibold">
-            <Phone className="h-3 w-3" />
-            {rider.phone}
-          </div>
-          {rider.vehicleType && (
-            <div className="text-xs text-slate-500 font-bold mt-0.5">
-              {VEHICLE_OPTIONS.find((v) => v.value === rider.vehicleType)?.emoji} {rider.vehicleType}
-              {rider.vehicleNumber && ' • ' + rider.vehicleNumber}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Status Select */}
-      <div>
-        <select
-          value={rider.status}
-          onChange={(e) => onStatusChange(e.target.value as RiderStatus)}
-          className={
-            'w-full h-9 rounded-lg text-xs font-extrabold text-white text-center appearance-none cursor-pointer ' + cfg.bg
-          }
-        >
-          {(['ACTIVE', 'BUSY', 'OFFLINE', 'ON_BREAK', 'INACTIVE'] as RiderStatus[]).map((s) => (
-            <option key={s} value={s} className="text-black">{STATUS_CONFIG[s].label}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Deliveries</div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{rider.totalDeliveries}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Tips</div>
-          <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(rider.totalTips).replace('Rs', '')}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 flex items-center justify-center gap-0.5">
-            <Star className="h-2 w-2 fill-current" /> Rating
-          </div>
-          <div className="text-lg font-extrabold text-amber-700 tabular-nums">
-            {rider.avgRating ? rider.avgRating.toFixed(1) : '—'}
-          </div>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-        <button
-          onClick={onEdit}
-          className="flex-1 h-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 dark:text-ink-300 text-xs font-extrabold inline-flex items-center justify-center gap-1"
-        >
-          <Edit3 className="h-3.5 w-3.5" />
-          Edit
-        </button>
-        <button
-          onClick={onDelete}
-          className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function RiderForm({ editing, onClose, onSaved }: {
-  editing: Rider | null;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [form, setForm] = useState({
-    name: editing?.name ?? '',
-    phone: editing?.phone ?? '',
-    cnic: editing?.cnic ?? '',
-    email: editing?.email ?? '',
-    avatarUrl: editing?.avatarUrl ?? '',
-    vehicleType: editing?.vehicleType ?? 'Bike',
-    vehicleNumber: editing?.vehicleNumber ?? '',
-    licenseNumber: editing?.licenseNumber ?? '',
-    isEmployee: editing?.isEmployee ?? true,
-    commissionType: editing?.commissionType ?? 'PER_DELIVERY',
-    commissionValue: editing?.commissionValue ?? 0,
-    baseSalary: editing?.baseSalary ?? 0,
-    notes: editing?.notes ?? '',
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = { ...form };
-      return editing ? ridersApi.update(editing.id, payload) : ridersApi.create(payload);
-    },
-    onSuccess: () => {
-      toast.success(editing ? 'Rider updated' : 'Rider created');
-      onSaved();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
-          {editing ? 'Edit Rider' : 'New Rider'}
-        </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-        {/* Photo */}
-        <div>
-          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Photo</label>
-          {form.avatarUrl ? (
-            <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
-              <img src={form.avatarUrl} alt="" className="w-full h-full object-cover" />
-              <button
-                onClick={() => setForm({ ...form, avatarUrl: '' })}
-                className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-rose-600 text-white flex items-center justify-center"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ) : (
-            <UploadDropzone
-              onUploaded={(records) => {
-                const first = Array.isArray(records) ? records[0] : records;
-                const url = typeof first === 'string' ? first : (first as any)?.url;
-                if (url) setForm({ ...form, avatarUrl: url });
-              }}
-            />
-          )}
-        </div>
-
-        {/* Basic */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Full Name *</label>
-            <input
-              autoFocus
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Ahmed Khan"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Phone *</label>
-            <input
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="03XXXXXXXXX"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">CNIC</label>
-            <input
-              value={form.cnic}
-              onChange={(e) => setForm({ ...form, cnic: e.target.value })}
-              placeholder="42101-XXXXXXX-X"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Email</label>
-            <input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="Optional"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Vehicle */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Vehicle Info</div>
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Vehicle Type</label>
-            <div className="grid grid-cols-5 gap-2">
-              {VEHICLE_OPTIONS.map((v) => (
-                <button
-                  key={v.value}
-                  onClick={() => setForm({ ...form, vehicleType: v.value })}
-                  className={
-                    'p-3 rounded-xl border-2 text-center transition ' +
-                    (form.vehicleType === v.value
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow'
-                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300')
-                  }
-                >
-                  <div className="text-2xl mb-1">{v.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">{v.value}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Vehicle Number</label>
-              <input
-                value={form.vehicleNumber}
-                onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })}
-                placeholder="LEA-1234"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">License Number</label>
-              <input
-                value={form.licenseNumber}
-                onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })}
-                placeholder="Optional"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Compensation */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Compensation</div>
-
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.isEmployee} onChange={(e) => setForm({ ...form, isEmployee: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold">Employee (not freelance)</span>
-          </label>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Commission Type</label>
-              <select
-                value={form.commissionType}
-                onChange={(e) => setForm({ ...form, commissionType: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
-              >
-                <option value="PER_DELIVERY">Per Delivery (fixed Rs)</option>
-                <option value="PERCENTAGE">Percentage of order</option>
-                <option value="FIXED">Fixed monthly</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">
-                Commission Value {form.commissionType === 'PERCENTAGE' ? '(%)' : '(Rs)'}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.commissionValue}
-                onChange={(e) => setForm({ ...form, commissionValue: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          {form.isEmployee && (
-            <div>
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Base Monthly Salary (Rs)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.baseSalary}
-                onChange={(e) => setForm({ ...form, baseSalary: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Notes</label>
-          <textarea
-            rows={2}
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Any additional info"
-            className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none"
-          />
-        </div>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button
-            className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700"
-            onClick={() => saveMutation.mutate()}
-            loading={saveMutation.isPending}
-            disabled={!form.name.trim() || !form.phone.trim()}
-          >
-            <Save className="h-4 w-4" />
-            {editing ? 'Update Rider' : 'Create Rider'}
-          </Button>
-        </div>
-      </div>
-    </section>
+    <Modal open onClose={onClose} size="lg" title={rider ? `${rider.name} badlein` : 'Naya rider'}
+      footer={<div className="flex w-full items-center justify-between"><span className="text-[0.75rem] text-slate-400">Ctrl+S se save</span><div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={saving} onClick={submit}>Save karein</Button></div></div>}>
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); submit(); }}
+        onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
+        {input('name', 'Naam', { required: true, error: errors.name })}
+        {input('phone', 'Phone', { required: true, error: errors.phone, placeholder: '03xx xxxxxxx', mode: 'tel', hint: 'Customer aur counter isi number par call karte hain' })}
+        {input('vehicleType', 'Sawari', { placeholder: 'Bike' })}
+        {input('vehicleNumber', 'Number plate', { placeholder: 'LEA-1234' })}
+        {input('cnic', 'CNIC', { error: errors.cnic, placeholder: '35202-1234567-1', hint: 'Marzi — record ke liye' })}
+        <label className="text-[0.8125rem] font-medium text-slate-700">Kiraya kaise
+          <select value={f.commissionType} onChange={(e) => setF({ ...f, commissionType: e.target.value })} className="mt-1 h-10 w-full rounded-xl border border-slate-300 bg-white px-2 text-[0.875rem] font-normal">
+            <option value="PER_DELIVERY">Har delivery ka fixed</option><option value="PERCENTAGE">Bill ka %</option><option value="FIXED">Mahana tankhwah</option>
+          </select>
+        </label>
+        {input('commissionValue', f.commissionType === 'PERCENTAGE' ? 'Kitna %' : 'Kitne Rs', { mode: 'decimal', hint: 'Sirf record — payment Expense ya Staff se' })}
+        <label className="flex items-center gap-2 self-end pb-2 text-[0.875rem] text-slate-700">
+          <input type="checkbox" checked={f.isEmployee} onChange={(e) => setF({ ...f, isEmployee: e.target.checked })} className="h-4 w-4 accent-[rgb(var(--brand-600))]" />Dukaan ka apna rider
+        </label>
+        <label className="text-[0.8125rem] font-medium text-slate-700 sm:col-span-2">Note
+          <input value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value.slice(0, 300) })} className="mt-1 h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] font-normal outline-none focus:border-brand-500" />
+        </label>
+      </form>
+    </Modal>
   );
 }

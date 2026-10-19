@@ -53,6 +53,19 @@ export class StockAdjustmentsService {
     return id;
   }
 
+  /**
+   * A phone whose stock follows its IMEIs changes only through an IMEI (damaged,
+   * lost, found); a plain count would leave stock and the IMEI list apart.
+   * Electronics serial units are not blocked: their write-off is a plain line,
+   * and the unit's status is set on the serials page.
+   */
+  private async assertNotImeiDriven(db: Prisma.TransactionClient, tenantId: string, productId: string, name?: string) {
+    const phone = await db.productImei.findFirst({ where: { tenantId, productId }, select: { id: true } });
+    if (phone) {
+      throw new BadRequestException(`${name ? `${name}: ` : ''}is phone ka stock IMEI se chalta hai — IMEI chun kar badlein (IMEI stock page)`);
+    }
+  }
+
   private ref() {
     return `ADJ-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
   }
@@ -80,6 +93,7 @@ export class StockAdjustmentsService {
   }) {
     const product = await tx.product.findFirst({ where: { id: l.productId, tenantId: user.tenantId }, select: { id: true, name: true, costPrice: true, hasVariants: true } });
     if (!product) throw new NotFoundException('Product nahi mila');
+    await this.assertNotImeiDriven(tx, user.tenantId, product.id, product.name);
     let cost = Number(product.costPrice) || 0;
     let label = product.name;
     if (l.variantId) {

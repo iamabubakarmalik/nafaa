@@ -188,7 +188,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       {e.checkout && (
         <PosCheckoutModal total={e.total} itemCount={e.cart.length} loading={e.checkoutMutation.isPending} initMethod={e.checkout.method}
           customerName={e.selectedCustomer?.name} customerBalance={Number(e.selectedCustomer?.balance || 0)} hasCustomer={!!e.customerId}
-          initMode={e.checkout.mode} receiver={e.receiver} allowCredit={e.rules.allowCredit}
+          initMode={e.checkout.mode} receiver={e.receiver} allowCredit={e.rules.allowCredit} tradeIns={e.tradeIns}
           onConfirm={(d) => e.checkoutMutation.mutate(d)} onClose={() => e.setCheckout(null)} />
       )}
       {e.lastSale && (

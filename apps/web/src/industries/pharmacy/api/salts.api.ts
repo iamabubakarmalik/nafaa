@@ -52,8 +52,6 @@ export const saltsApi = {
   remove: (id: string) => apiClient.delete('/pharmacy/salts/' + id).then(unwrap),
   assign: (productId: string, salts: any[]) =>
     apiClient.post('/pharmacy/salts/assign/' + productId, { salts }).then(unwrap<ProductSalt[]>),
-  byProduct: (productId: string) =>
-    apiClient.get('/pharmacy/salts/by-product/' + productId).then(unwrap<ProductSalt[]>),
   productsBySalt: (id: string) =>
     apiClient.get('/pharmacy/salts/' + id + '/products').then(unwrap<any[]>),
 };

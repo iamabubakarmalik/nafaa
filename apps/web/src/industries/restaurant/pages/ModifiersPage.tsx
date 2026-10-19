@@ -1,480 +1,400 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Sparkles, Plus, Edit3, Trash2, X, Save, RefreshCw, Eye, EyeOff,
-  Package, ArrowUp, ArrowDown, Layers,
-} from 'lucide-react';
-import { modifiersApi, type ModifierGroup, type ModifierOption, type ModifierType } from '../api/modifiers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
+/**
+ * Add-on groups: the choices a waiter asks for with a dish — extras (cheese
+ * +100), removals (no onion), spice, cooking style, a size step, or a free
+ * note. Each group has rules (required, how many may be picked) and is put
+ * on dishes here or from the dish editor. Groups used on past orders are
+ * switched off instead of deleted, so old bills keep their lines.
+ *
+ * Keys: / search · N new group · G guide · Ctrl+S save in the form.
+ */
 
-const MODIFIER_TYPES: { value: ModifierType; label: string; emoji: string; description: string }[] = [
-  { value: 'ADDON', label: 'Add-on', emoji: '➕', description: 'Extra cheese, add bacon' },
-  { value: 'VARIATION', label: 'Variation', emoji: '📏', description: 'Size: small/medium/large' },
-  { value: 'REMOVAL', label: 'Removal', emoji: '❌', description: 'No onion, no garlic' },
-  { value: 'SPICE_LEVEL', label: 'Spice Level', emoji: '🌶️', description: 'Mild/medium/hot' },
-  { value: 'COOKING_STYLE', label: 'Cooking Style', emoji: '🔥', description: 'Well done, medium rare' },
-  { value: 'NOTE', label: 'Note', emoji: '📝', description: 'Free-text customer note' },
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  AlertTriangle, CheckCircle2, ChefHat, CircleSlash, Copy, GraduationCap, Layers, ListChecks, ListFilter, MinusCircle, Pencil, Plus,
+  PlusCircle, Power, Search, Sparkles, Trash2, UtensilsCrossed,
+} from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
+  Switch, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide, type GuideStep } from '@core/components/PageGuide';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { menuItemsApi } from '../api/menu-items.api';
+import { modifiersApi, type ModifierGroup, type ModifierGroupInput, type ModifierOption, type ModifierType } from '../api/modifiers.api';
+import { MODIFIER_TYPES, modifierTypeOf } from '../lib/menuMeta';
+
+const KEY = 'restaurant-modifiers';
+type Status = 'all' | 'on' | 'off';
+
+const PRESETS: Array<{ label: string; group: ModifierGroupInput }> = [
+  { label: 'Extra', group: { name: 'Extra', type: 'ADDON', isRequired: false, minSelections: 0, maxSelections: 5, options: [{ name: 'Extra cheese', priceAdjustment: 100 }, { name: 'Raita', priceAdjustment: 50 }, { name: 'Salad', priceAdjustment: 50 }, { name: 'Extra boti', priceAdjustment: 150 }] } },
+  { label: 'Bagair', group: { name: 'Bagair', type: 'REMOVAL', isRequired: false, minSelections: 0, maxSelections: 5, options: [{ name: 'Pyaaz nahi' }, { name: 'Mayo nahi' }, { name: 'Hari mirch nahi' }] } },
+  { label: 'Teekhapan', group: { name: 'Teekhapan', type: 'SPICE_LEVEL', isRequired: false, minSelections: 0, maxSelections: 1, options: [{ name: 'Halka' }, { name: 'Darmiyana', isDefault: true }, { name: 'Teekha' }] } },
+  { label: 'Roti / Naan', group: { name: 'Roti / Naan', type: 'ADDON', isRequired: false, minSelections: 0, maxSelections: 3, options: [{ name: 'Roti', priceAdjustment: 25 }, { name: 'Naan', priceAdjustment: 40 }, { name: 'Roghni naan', priceAdjustment: 70 }] } },
+  { label: 'Drink size', group: { name: 'Drink size', type: 'VARIATION', isRequired: true, minSelections: 1, maxSelections: 1, options: [{ name: 'Regular', isDefault: true }, { name: 'Large', priceAdjustment: 80 }] } },
 ];
 
+const errText = (e: unknown, fallback: string) => (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message?.toString() || fallback;
+
 export default function ModifiersPage() {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<ModifierGroup | null>(null);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const canManage = usePermission(PERMISSIONS.RESTAURANT_MENU_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [search, setSearch] = useState('');
+  const [type, setType] = useState<ModifierType | 'all'>('all');
+  const [status, setStatus] = useState<Status>('all');
+  const [editing, setEditing] = useState<ModifierGroup | ModifierGroupInput | null>(null);
+  const [assigning, setAssigning] = useState<ModifierGroup | null>(null);
+  const [removing, setRemoving] = useState<ModifierGroup | null>(null);
 
-  const { data: groups = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['modifier-groups'],
-    queryFn: () => modifiersApi.list(),
-  });
+  const groupsQ = useQuery({ queryKey: [KEY], queryFn: () => modifiersApi.list() });
+  const groups = groupsQ.data ?? [];
+  const refresh = () => [KEY, 'restaurant-menu-board', 'restaurant-menu-items', 'restaurant-product-extra'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const toggleMutation = useMutation({
+  const toggle = useMutation({
     mutationFn: (id: string) => modifiersApi.toggle(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifier-groups'] }),
+    onSuccess: (g) => { toast.success(g.isActive ? 'Chalu — order par poocha jayega' : 'Band — order par nahi aayega'); refresh(); },
+    onError: (e) => toast.error(errText(e, 'Nahi badla')),
   });
-
-  const removeMutation = useMutation({
+  const remove = useMutation({
     mutationFn: (id: string) => modifiersApi.remove(id),
-    onSuccess: () => {
-      toast.success('Modifier group deleted');
-      queryClient.invalidateQueries({ queryKey: ['modifier-groups'] });
+    onSuccess: (r) => {
+      toast.success((r as { isActive?: boolean })?.isActive === false ? 'Purane order me laga tha — band kar diya, history rahegi' : 'Group hata diya');
+      setRemoving(null); refresh();
     },
+    onError: (e) => toast.error(errText(e, 'Nahi hata')),
   });
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key.toLowerCase() === 'n' && canManage) { e.preventDefault(); setEditing(blank()); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canManage]);
+
+  const term = search.trim().toLowerCase();
+  const shown = useMemo(() => groups.filter((g) => (type === 'all' || g.type === type)
+    && (status === 'all' || (status === 'on' ? g.isActive : !g.isActive))
+    && (!term || g.name.toLowerCase().includes(term) || g.options.some((o) => o.name.toLowerCase().includes(term)))), [groups, type, status, term]);
+  const stats = useMemo(() => ({
+    on: groups.filter((g) => g.isActive).length,
+    dishes: new Set(groups.flatMap((g) => (g.menuItems ?? []).map((m) => m.menuItemId))).size,
+    options: groups.reduce((s, g) => s + g.options.filter((o) => o.isActive !== false).length, 0),
+    unused: groups.filter((g) => g.isActive && !(g._count?.menuItems ?? 0)).length,
+    required: groups.filter((g) => g.isActive && g.isRequired).length,
+  }), [groups]);
+  const hasFilters = !!(term || type !== 'all' || status !== 'all');
+
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-rose-400/15 blur-3xl" />
-
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Menu Modifiers
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              🎨 Modifiers
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Customization options — Extra cheese, No onion, Size variations
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
-            >
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button
-              className="bg-white text-slate-900 hover:bg-slate-100"
-              onClick={() => { setEditing(null); setShowForm(true); }}
-            >
-              <Plus className="h-4 w-4" />
-              Add Group
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {showForm && (
-        <ModifierForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false);
-            setEditing(null);
-            queryClient.invalidateQueries({ queryKey: ['modifier-groups'] });
-          }}
-        />
+    <PageShell>
+      {guide.isOpen && <PageGuide title="Add-ons — aasaan tareeqa" steps={GUIDE} onClose={guide.close}
+        tips={['Ek group kai dishes par lag sakta hai — "Extra" ek dafa banayein, sab burgers par lagayein.', 'Half / Full jaisa size jis ka rate alag ho, dish ke "Size" me rakhein; yahan wala size tab jab har dish par ek jaisa farq ho.']}
+        shortcuts={[['/', 'search'], ['N', 'naya group'], ['G', 'guide']]} />}
+      {editing && <GroupForm initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); }} />}
+      {assigning && <AssignDishes group={assigning} onClose={() => setAssigning(null)} onSaved={() => { setAssigning(null); refresh(); }} />}
+      {removing && (
+        <Modal open onClose={() => setRemoving(null)} title={`"${removing.name}" hatayein?`} size="sm"
+          footer={<><Button variant="secondary" onClick={() => setRemoving(null)}>Rehne dein</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate(removing.id)}>Hatayein</Button></>}>
+          <p className="text-[0.875rem] text-slate-600">{removing._count?.menuItems ? `${removing._count.menuItems} dish se bhi hat jayega. ` : ''}Agar purane order me laga tha to sirf band hoga — bill waise hi rahenge.</p>
+        </Modal>
       )}
 
-      {/* GROUPS LIST */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
+      <PageHero title="Add-ons" chip={<><Sparkles />{groups.length} group</>} meta="Extra, bagair, teekhapan — order lete waqt" busy={groupsQ.isFetching && !groupsQ.isLoading} loading={groupsQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setEditing(blank())} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya group</button>}
+        </>}
+        stats={[
+          { label: 'Chalu group', value: `${stats.on} / ${groups.length}` },
+          { label: 'Dishes par lage', value: String(stats.dishes), hint: 'dish' },
+          { label: 'Options', value: String(stats.options) },
+        ]} />
+
+      <KpiRow cols={4}>
+        {groupsQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Chalu" value={String(stats.on)} onClick={() => setStatus(status === 'on' ? 'all' : 'on')} active={status === 'on'} />
+            <KpiCard icon={CircleSlash} color="#64748b" label="Band" value={String(groups.length - stats.on)} onClick={() => setStatus(status === 'off' ? 'all' : 'off')} active={status === 'off'} />
+            <KpiCard icon={AlertTriangle} color="#d97706" label="Kisi dish par nahi" value={String(stats.unused)} hint="Order par kabhi nahi aayenge" />
+            <KpiCard icon={ListChecks} color="#7c3aed" label="Zaroori" value={String(stats.required)} hint="Bina chune order nahi banta" />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Group ya option ka naam…" label="Add-on search" />}
+        chips={hasFilters ? <>
+          {term && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+          {type !== 'all' && <FilterChip onRemove={() => setType('all')}>{modifierTypeOf(type).label}</FilterChip>}
+          {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{status === 'on' ? 'Chalu' : 'Band'}</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setType('all'); setStatus('all'); }}>
+        <FilterMenu icon={Layers} label="Type" value={type} active={type !== 'all'} width="w-72"
+          options={[{ value: 'all' as const, label: 'Har type' }, ...MODIFIER_TYPES.map((t) => ({ value: t.value, label: t.label, hint: t.hint }))]} onChange={setType} />
+        <FilterMenu icon={ListFilter} label="Status" value={status} active={status !== 'all'}
+          options={[{ value: 'all', label: 'Sab' }, { value: 'on', label: 'Chalu' }, { value: 'off', label: 'Band' }]} onChange={setStatus} />
+      </FilterBar>
+
+      {canManage && !groups.length && !groupsQ.isLoading && (
+        <div className="rounded-3xl bg-white p-5 ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">Jaldi shuru karein</p>
+          <p className="text-[0.8125rem] text-slate-500">Ek dabayein, rate apne hisaab se badlein aur save karein.</p>
+          <div className="mt-3 flex flex-wrap gap-2">{PRESETS.map((p) => <Button key={p.label} variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEditing(structuredClone(p.group))}>{p.label}</Button>)}</div>
         </div>
-      ) : groups.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-pink-100 dark:bg-pink-950/40 mx-auto flex items-center justify-center">
-            <Sparkles className="h-10 w-10 text-pink-600" />
-          </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No modifier groups</h3>
-          <p className="mt-1 text-sm text-slate-500 font-semibold">Add modifiers to customize menu items</p>
-          <Button
-            className="mt-4 bg-gradient-to-r from-pink-600 to-rose-700"
-            onClick={() => { setEditing(null); setShowForm(true); }}
-          >
-            <Plus className="h-4 w-4" />
-            Create First Group
-          </Button>
-        </div>
+      )}
+
+      {groupsQ.isLoading ? (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-44 rounded-2xl" />)}</div>
+      ) : groupsQ.isError ? (
+        <div className="rounded-3xl bg-white px-6 py-12 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Add-ons nahi khule</p><p className="mt-1 text-[0.875rem] text-slate-500">{errText(groupsQ.error, 'Dobara koshish karein')}</p></div>
+      ) : !shown.length ? (
+        groups.length ? <div className="rounded-3xl bg-white px-6 py-12 text-center text-[0.875rem] text-slate-500 ring-1 ring-slate-200/80">Is filter me koi group nahi</div> : null
       ) : (
-        <section className="grid gap-3">
-          {groups.map((group) => (
-            <ModifierGroupCard
-              key={group.id}
-              group={group}
-              onEdit={() => { setEditing(group); setShowForm(true); }}
-              onToggle={() => toggleMutation.mutate(group.id)}
-              onDelete={() => {
-                if (confirm('Delete modifier group "' + group.name + '"?')) removeMutation.mutate(group.id);
-              }}
-            />
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
-  group: ModifierGroup;
-  onEdit: () => void;
-  onToggle: () => void;
-  onDelete: () => void;
-}) {
-  const typeCfg = MODIFIER_TYPES.find((t) => t.value === group.type);
-
-  return (
-    <div className={
-      'rounded-2xl border-2 shadow-sm hover:shadow-lg transition p-4 ' +
-      (group.isActive ? 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800' : 'bg-slate-50 dark:bg-ink-900/50 border-slate-200 dark:border-ink-800 opacity-70')
-    }>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-lg shrink-0 text-xl">
-            {typeCfg?.emoji || '🎨'}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{group.name}</h3>
-              <span className="px-2 py-0.5 rounded-md bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.625rem] font-extrabold uppercase">
-                {typeCfg?.label || group.type}
-              </span>
-              {group.isRequired && (
-                <span className="px-2 py-0.5 rounded-md bg-red-100 dark:bg-red-950/40 text-red-700 text-[0.625rem] font-extrabold uppercase">
-                  Required
-                </span>
-              )}
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">
-                Choose {group.minSelections}–{group.maxSelections}
-              </span>
-              {group._count?.menuItems ? (
-                <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-                  <Package className="h-2 w-2" />
-                  {group._count.menuItems} items
-                </span>
-              ) : null}
-            </div>
-
-            {group.description && (
-              <p className="text-xs text-slate-500 font-semibold mt-1">{group.description}</p>
-            )}
-
-            {/* Options */}
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {group.options.map((opt) => (
-                <div
-                  key={opt.id}
-                  className={
-                    'px-2.5 py-1 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 border-2 ' +
-                    (opt.isDefault ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300' : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
-                  }
-                >
-                  {opt.emoji && <span>{opt.emoji}</span>}
-                  <span>{opt.name}</span>
-                  {(opt.priceAdjustment ?? 0) !== 0 && (
-                    <span className={(opt.priceAdjustment ?? 0) > 0 ? 'text-emerald-700' : 'text-rose-700'}>
-                      {(opt.priceAdjustment ?? 0) > 0 ? '+' : ''}{formatPKR(opt.priceAdjustment ?? 0)}
-                    </span>
-                  )}
-                  {opt.isDefault && <span className="text-[0.625rem] uppercase text-emerald-600">DEF</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-1 shrink-0">
-          <button
-            onClick={onToggle}
-            className={
-              'h-9 w-9 rounded-lg flex items-center justify-center transition ' +
-              (group.isActive ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700' : 'bg-slate-100 dark:bg-ink-800 text-slate-500')
-            }
-            title={group.isActive ? 'Active' : 'Inactive'}
-          >
-            {group.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-          </button>
-          <button
-            onClick={onEdit}
-            className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
-          >
-            <Edit3 className="h-4 w-4" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModifierForm({ editing, onClose, onSaved }: {
-  editing: ModifierGroup | null;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [form, setForm] = useState({
-    name: editing?.name ?? '',
-    description: editing?.description ?? '',
-    type: editing?.type ?? ('ADDON' as ModifierType),
-    isRequired: editing?.isRequired ?? false,
-    minSelections: editing?.minSelections ?? 0,
-    maxSelections: editing?.maxSelections ?? 1,
-    isActive: editing?.isActive ?? true,
-  });
-
-  const [options, setOptions] = useState<ModifierOption[]>(
-    editing?.options?.length ? editing.options : [{ name: '', priceAdjustment: 0, isDefault: false, isActive: true }],
-  );
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload = {
-        ...form,
-        // Only the fields the API takes; saved options keep their id so past orders stay linked.
-        options: options.filter((o) => o.name.trim()).map((o, idx) => ({
-          ...(o.id && { id: o.id }),
-          name: o.name.trim(),
-          priceAdjustment: Number(o.priceAdjustment) || 0,
-          isDefault: !!o.isDefault,
-          isActive: o.isActive ?? true,
-          ...(o.emoji && { emoji: o.emoji }),
-          displayOrder: idx,
-        })),
-      };
-      return editing ? modifiersApi.update(editing.id, payload) : modifiersApi.create(payload);
-    },
-    onSuccess: () => {
-      toast.success(editing ? 'Modifier updated' : 'Modifier created');
-      onSaved();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  const addOption = () => setOptions([...options, { name: '', priceAdjustment: 0, isDefault: false, isActive: true }]);
-  const removeOption = (idx: number) => setOptions(options.filter((_, i) => i !== idx));
-  const updateOption = (idx: number, patch: Partial<ModifierOption>) => {
-    setOptions(options.map((o, i) => (i === idx ? { ...o, ...patch } : o)));
-  };
-  const moveOption = (idx: number, dir: 'up' | 'down') => {
-    const newIdx = dir === 'up' ? idx - 1 : idx + 1;
-    if (newIdx < 0 || newIdx >= options.length) return;
-    const copy = [...options];
-    [copy[idx], copy[newIdx]] = [copy[newIdx], copy[idx]];
-    setOptions(copy);
-  };
-
-  const validOptions = options.filter((o) => o.name.trim()).length;
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
-          {editing ? 'Edit Modifier Group' : 'New Modifier Group'}
-        </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
-        {/* Basic Info */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Group Name *</label>
-            <input
-              autoFocus
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="e.g. Size, Toppings, Spice Level"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
-            />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Type</label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as ModifierType })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
-            >
-              {MODIFIER_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.emoji} {t.label} — {t.description}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
-          <input
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Optional description shown to customer"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
-          />
-        </div>
-
-        {/* Selection Rules */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Selection Rules</div>
-
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.isRequired} onChange={(e) => setForm({ ...form, isRequired: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold">Required (customer must select)</span>
-          </label>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min Selections</label>
-              <input
-                type="number"
-                min="0"
-                value={form.minSelections}
-                onChange={(e) => setForm({ ...form, minSelections: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
-              />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Max Selections</label>
-              <input
-                type="number"
-                min="1"
-                value={form.maxSelections}
-                onChange={(e) => setForm({ ...form, maxSelections: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-slate-500 font-semibold">
-            Max = 1 → single choice (radio) • Max &gt; 1 → multi-select (checkbox)
-          </p>
-        </div>
-
-        {/* Options */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <label className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Options ({validOptions})</label>
-              <p className="text-xs text-slate-500 font-semibold">Individual choices for customer</p>
-            </div>
-            <Button size="sm" onClick={addOption} className="bg-gradient-to-r from-pink-600 to-rose-700">
-              <Plus className="h-3.5 w-3.5" />
-              Add Option
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            {options.map((opt, idx) => (
-              <div key={idx} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 grid grid-cols-12 gap-2 items-center">
-                <div className="col-span-1 flex flex-col gap-1">
-                  <button
-                    onClick={() => moveOption(idx, 'up')}
-                    disabled={idx === 0}
-                    className="h-6 w-6 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center"
-                  >
-                    <ArrowUp className="h-3 w-3" />
-                  </button>
-                  <button
-                    onClick={() => moveOption(idx, 'down')}
-                    disabled={idx === options.length - 1}
-                    className="h-6 w-6 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center"
-                  >
-                    <ArrowDown className="h-3 w-3" />
-                  </button>
-                </div>
-
-                <input
-                  value={opt.emoji || ''}
-                  onChange={(e) => updateOption(idx, { emoji: e.target.value })}
-                  placeholder="🧀"
-                  maxLength={4}
-                  className="col-span-1 h-10 text-center rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-lg font-bold focus:outline-none focus:border-pink-500"
-                />
-
-                <input
-                  value={opt.name}
-                  onChange={(e) => updateOption(idx, { name: e.target.value })}
-                  placeholder="Option name (e.g. Small, Extra Cheese)"
-                  className="col-span-5 h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
-                />
-
-                <div className="col-span-3 relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-extrabold">Rs</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={opt.priceAdjustment ?? 0}
-                    onChange={(e) => updateOption(idx, { priceAdjustment: Number(e.target.value) })}
-                    placeholder="0"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-8 pr-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
-                  />
-                </div>
-
-                <label className="col-span-1 flex items-center justify-center cursor-pointer" title="Default">
-                  <input
-                    type="checkbox"
-                    checked={opt.isDefault || false}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        // Only one default in single-select
-                        setOptions(options.map((o, i) => ({ ...o, isDefault: i === idx })));
-                      } else {
-                        updateOption(idx, { isDefault: false });
-                      }
-                    }}
-                    className="h-4 w-4 rounded"
-                  />
-                </label>
-
-                <button
-                  onClick={() => removeOption(idx)}
-                  className="col-span-1 h-10 w-10 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center"
-                >
-                  <Trash2 className="h-4 w-4" />
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {shown.map((g) => {
+            const t = modifierTypeOf(g.type);
+            const opts = g.options.filter((o) => o.isActive !== false);
+            const dishes = g._count?.menuItems ?? 0;
+            return (
+              <article key={g.id} className={cn('flex flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80', !g.isActive && 'opacity-70')}>
+                <header className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-[1rem] font-bold text-slate-900">{g.name}</h3>
+                    <p className="text-[0.75rem] text-slate-500">{t.label} · {g.isRequired ? `zaroori, ${g.minSelections}–${g.maxSelections}` : g.maxSelections > 1 ? `marzi, ${g.maxSelections} tak` : 'marzi, ek'}</p>
+                  </div>
+                  <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-bold', g.isActive ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-500')}>{g.isActive ? 'Chalu' : 'Band'}</span>
+                </header>
+                <ul className="mt-3 flex-1 space-y-1">
+                  {opts.slice(0, 6).map((o) => (
+                    <li key={o.id ?? o.name} className="flex items-center justify-between gap-2 text-[0.8125rem]">
+                      <span className="truncate text-slate-700">{o.emoji ? `${o.emoji} ` : ''}{o.name}{o.isDefault && <span className="ml-1 text-[0.6875rem] text-brand-700">(pehle se)</span>}</span>
+                      <span className={cn('shrink-0 tabular-nums', (o.priceAdjustment ?? 0) > 0 ? 'text-slate-900' : (o.priceAdjustment ?? 0) < 0 ? 'text-success-700' : 'text-slate-400')}>
+                        {o.priceAdjustment ? `${o.priceAdjustment > 0 ? '+' : '−'}${formatPKR(Math.abs(o.priceAdjustment))}` : 'free'}
+                      </span>
+                    </li>
+                  ))}
+                  {opts.length > 6 && <li className="text-[0.75rem] text-slate-500">+{opts.length - 6} aur</li>}
+                  {!opts.length && <li className="text-[0.8125rem] text-slate-500">{g.type === 'NOTE' ? 'Grahak apni baat likhwata hai' : 'Koi chalu option nahi'}</li>}
+                </ul>
+                <button type="button" onClick={() => canManage && setAssigning(g)} disabled={!canManage}
+                  className={cn('mt-3 flex items-center gap-1.5 rounded-xl px-3 py-2 text-left text-[0.8125rem] font-medium ring-1', dishes ? 'bg-slate-50 text-slate-700 ring-slate-200' : 'bg-amber-50 text-amber-900 ring-amber-200', canManage && 'hover:bg-brand-50')}>
+                  <UtensilsCrossed className="h-4 w-4" />{dishes ? `${dishes} dish par laga` : 'Kisi dish par nahi — lagayein'}
                 </button>
-              </div>
+                {canManage && (
+                  <footer className="mt-3 flex gap-1.5 border-t border-slate-100 pt-3">
+                    <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditing(g)}>Badlein</Button>
+                    <Button size="sm" variant="ghost" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => setEditing(copyOf(g))}>Copy</Button>
+                    <Button size="sm" variant="ghost" leftIcon={<Power className="h-3.5 w-3.5" />} loading={toggle.isPending && toggle.variables === g.id} onClick={() => toggle.mutate(g.id)}>{g.isActive ? 'Band' : 'Chalu'}</Button>
+                    <button type="button" onClick={() => setRemoving(g)} aria-label="Hatayein" className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                  </footer>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </PageShell>
+  );
+}
+
+const blank = (): ModifierGroupInput => ({ name: '', type: 'ADDON', isRequired: false, minSelections: 0, maxSelections: 3, options: [{ name: '', priceAdjustment: 0 }] });
+const copyOf = (g: ModifierGroup): ModifierGroupInput => ({
+  name: `${g.name} (copy)`, description: g.description, type: g.type, isRequired: g.isRequired, minSelections: g.minSelections, maxSelections: g.maxSelections,
+  options: g.options.filter((o) => o.isActive !== false).map((o) => ({ name: o.name, priceAdjustment: o.priceAdjustment, isDefault: o.isDefault, emoji: o.emoji })),
+});
+
+/** Mirrors the API rules so the cashier never meets a group that cannot be filled. */
+function problemOf(f: ModifierGroupInput): string | null {
+  if (!f.name.trim()) return 'Group ka naam likhein';
+  const live = f.options.filter((o) => o.isActive !== false);
+  if (f.options.some((o) => !o.name.trim())) return 'Har option ka naam likhein';
+  const names = f.options.map((o) => o.name.trim().toLowerCase());
+  if (new Set(names).size !== names.length) return 'Do option ka naam ek jaisa hai';
+  if (f.type !== 'NOTE' && !live.length) return 'Kam se kam ek option daalein';
+  const min = f.isRequired ? Math.max(f.minSelections ?? 0, 1) : f.minSelections ?? 0;
+  const max = f.maxSelections ?? 1;
+  if (min > max) return '"Kam se kam" "zyada se zyada" se barh nahi sakta';
+  if (f.type !== 'NOTE' && min > live.length) return `Sirf ${live.length} option hain — kam se kam ${min} nahi chune ja sakte`;
+  if ((f.type === 'VARIATION' || f.type === 'SPICE_LEVEL') && max > 1) return 'Size ya teekhapan me ek hi chuna jata hai';
+  if (live.filter((o) => o.isDefault).length > max) return 'Pehle se chune option zyada se zyada se barh gaye';
+  return null;
+}
+
+function GroupForm({ initial, onClose, onSaved }: { initial: ModifierGroup | ModifierGroupInput; onClose: () => void; onSaved: () => void }) {
+  const id = 'id' in initial ? initial.id : null;
+  const [f, setF] = useState<ModifierGroupInput>(() => ({
+    name: initial.name, description: initial.description ?? '', type: initial.type ?? 'ADDON', isRequired: !!initial.isRequired,
+    minSelections: initial.minSelections ?? 0, maxSelections: initial.maxSelections ?? 1,
+    options: initial.options.map((o) => ({ id: o.id, name: o.name, priceAdjustment: o.priceAdjustment ?? 0, isDefault: !!o.isDefault, isActive: o.isActive !== false, emoji: o.emoji ?? '' })),
+  }));
+  const set = (p: Partial<ModifierGroupInput>) => setF((x) => ({ ...x, ...p }));
+  const setOpt = (i: number, p: Partial<ModifierOption>) => set({ options: f.options.map((o, j) => (j === i ? { ...o, ...p } : o)) });
+  const single = f.type === 'VARIATION' || f.type === 'SPICE_LEVEL';
+  const problem = problemOf(f);
+  const [tried, setTried] = useState(false);
+
+  const save = useMutation({
+    mutationFn: () => {
+      const body: ModifierGroupInput = {
+        ...f, name: f.name.trim(), description: f.description?.trim() || undefined,
+        minSelections: f.isRequired ? Math.max(f.minSelections ?? 0, 1) : f.minSelections, maxSelections: single ? 1 : f.maxSelections,
+        options: f.options.map((o, i) => ({ ...o, name: o.name.trim(), emoji: o.emoji || undefined, displayOrder: i })),
+      };
+      return id ? modifiersApi.update(id, body) : modifiersApi.create(body);
+    },
+    onSuccess: () => { toast.success(id ? 'Group save ho gaya' : 'Group ban gaya — ab dishes par lagayein'); onSaved(); },
+    onError: (e) => toast.error(errText(e, 'Save nahi hua')),
+  });
+  const submit = () => { setTried(true); if (!problem && !save.isPending) save.mutate(); };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  return (
+    <Modal open onClose={onClose} size="lg" title={id ? `"${initial.name}" badlein` : 'Naya add-on group'} description="Order lete waqt waiter yahi options dekhega"
+      footer={<>
+        {tried && problem ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problem}</p> : <span className="mr-auto hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button loading={save.isPending} onClick={submit}>{id ? 'Save karein' : 'Group banayein'}</Button>
+      </>}>
+      <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Group ka naam" required autoFocus value={f.name} onChange={(e) => set({ name: e.target.value.slice(0, 60) })} placeholder="Extra, Bagair, Roti…" hint="Waiter ko yahi naam dikhega" error={tried && !f.name.trim() ? 'Naam likhein' : undefined} />
+          <Input label="Note (marzi)" value={f.description ?? ''} onChange={(e) => set({ description: e.target.value.slice(0, 200) })} placeholder="Maslan: sirf burger ke saath" />
+        </div>
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Type</span>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {MODIFIER_TYPES.map((t) => (
+              <button key={t.value} type="button" onClick={() => set({ type: t.value, ...(t.value === 'VARIATION' || t.value === 'SPICE_LEVEL' ? { maxSelections: 1 } : {}) })}
+                className={cn('rounded-xl border p-2.5 text-left transition', f.type === t.value ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' : 'border-slate-200 hover:bg-slate-50')}>
+                <span className="block text-[0.8125rem] font-semibold text-slate-900">{t.label}</span>
+                <span className="block text-[0.6875rem] leading-snug text-slate-500">{t.hint}</span>
+              </button>
             ))}
           </div>
-          <div className="mt-1 flex items-center justify-between text-[0.6875rem] font-bold text-slate-500 px-1">
-            <span>Order • Emoji • Name • Price Adjustment • Default? • Delete</span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Switch checked={!!f.isRequired} onChange={(e) => set({ isRequired: e.target.checked, minSelections: e.target.checked ? Math.max(f.minSelections ?? 0, 1) : 0 })} label="Zaroori" description="Bina chune order nahi banega" />
+          <Input label="Kam se kam" inputMode="numeric" value={String(f.isRequired ? Math.max(f.minSelections ?? 0, 1) : f.minSelections ?? 0)} disabled={!f.isRequired}
+            onChange={(e) => set({ minSelections: Number(e.target.value.replace(/\D/g, '')) || 0 })} hint={f.isRequired ? 'Kitne chunna lazmi' : 'Marzi wale me 0'} />
+          <Input label="Zyada se zyada" inputMode="numeric" value={String(single ? 1 : f.maxSelections ?? 1)} disabled={single}
+            onChange={(e) => set({ maxSelections: Math.max(Number(e.target.value.replace(/\D/g, '')) || 1, 1) })} hint={single ? 'Size / teekhapan me ek' : 'Kitne tak chun sakte hain'} />
+        </div>
+        {f.type !== 'NOTE' && (
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className="text-[0.8125rem] font-medium text-slate-700">Options</span>
+              <span className="text-[0.6875rem] text-slate-500">Rate me farq: + mehnga, − sasta, 0 free</span>
+            </div>
+            <ul className="space-y-2">
+              {f.options.map((o, i) => (
+                <li key={o.id ?? `n${i}`} className={cn('flex flex-wrap items-center gap-2 rounded-xl border p-2', o.isActive === false ? 'border-slate-200 bg-slate-50 opacity-70' : 'border-slate-200')}>
+                  <input value={o.emoji ?? ''} onChange={(e) => setOpt(i, { emoji: e.target.value.slice(0, 8) })} placeholder="🧀" aria-label="Emoji" className="h-9 w-12 rounded-lg border border-slate-200 text-center" />
+                  <input value={o.name} onChange={(e) => setOpt(i, { name: e.target.value.slice(0, 60) })} placeholder="Extra cheese" aria-label="Option ka naam"
+                    className={cn('h-9 min-w-[8rem] flex-1 rounded-lg border px-2.5 text-[0.875rem]', tried && !o.name.trim() ? 'border-rose-400' : 'border-slate-200')} />
+                  <div className="flex items-center">
+                    <button type="button" onClick={() => setOpt(i, { priceAdjustment: -Math.abs(o.priceAdjustment ?? 0) })} aria-label="Sasta" className={cn('flex h-9 w-8 items-center justify-center rounded-l-lg border border-r-0', (o.priceAdjustment ?? 0) < 0 ? 'bg-success-50 text-success-700' : 'text-slate-400')}><MinusCircle className="h-4 w-4" /></button>
+                    <input inputMode="decimal" value={o.priceAdjustment ? String(Math.abs(o.priceAdjustment)) : ''} placeholder="0" aria-label="Rate me farq"
+                      onChange={(e) => { const v = Number(e.target.value.replace(/[^\d.]/g, '')) || 0; setOpt(i, { priceAdjustment: (o.priceAdjustment ?? 0) < 0 ? -v : v }); }}
+                      className="h-9 w-20 border border-slate-200 px-2 text-right tabular-nums" />
+                    <button type="button" onClick={() => setOpt(i, { priceAdjustment: Math.abs(o.priceAdjustment ?? 0) })} aria-label="Mehnga" className={cn('flex h-9 w-8 items-center justify-center rounded-r-lg border border-l-0', (o.priceAdjustment ?? 0) > 0 ? 'bg-brand-50 text-brand-700' : 'text-slate-400')}><PlusCircle className="h-4 w-4" /></button>
+                  </div>
+                  <label className="inline-flex items-center gap-1 text-[0.75rem] text-slate-600"><input type="checkbox" checked={!!o.isDefault} onChange={(e) => setOpt(i, { isDefault: e.target.checked })} className="h-4 w-4 rounded border-slate-300" />Pehle se</label>
+                  {o.id
+                    ? <button type="button" onClick={() => setOpt(i, { isActive: o.isActive === false })} className={cn('h-8 rounded-lg px-2 text-[0.6875rem] font-semibold ring-1', o.isActive === false ? 'bg-slate-100 text-slate-500 ring-slate-200' : 'bg-success-50 text-success-700 ring-success-200')}>{o.isActive === false ? 'Band' : 'Chalu'}</button>
+                    : <button type="button" onClick={() => set({ options: f.options.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+                </li>
+              ))}
+            </ul>
+            <Button className="mt-2" size="sm" variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => set({ options: [...f.options, { name: '', priceAdjustment: 0 }] })}>Option jorein</Button>
+            {id && <p className="mt-2 text-[0.6875rem] text-slate-500">Purane option hatte nahi, band hote hain — jin bills me lage the woh waise rahenge.</p>}
           </div>
-        </div>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button
-            className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700"
-            onClick={() => saveMutation.mutate()}
-            loading={saveMutation.isPending}
-            disabled={!form.name.trim() || validOptions === 0}
-          >
-            <Save className="h-4 w-4" />
-            {editing ? 'Update Group' : 'Create Group'}
-          </Button>
-        </div>
+        )}
       </div>
-    </section>
+    </Modal>
   );
 }
+
+function AssignDishes({ group, onClose, onSaved }: { group: ModifierGroup; onClose: () => void; onSaved: () => void }) {
+  const [q, setQ] = useState('');
+  const [onlyPicked, setOnlyPicked] = useState(false);
+  const menu = useQuery({ queryKey: ['restaurant-menu-items', 'assign'], queryFn: () => menuItemsApi.list({}) });
+  const [picked, setPicked] = useState<Set<string>>(() => new Set((group.menuItems ?? []).map((m) => m.menuItemId)));
+  const term = q.trim().toLowerCase();
+  const rows = (menu.data ?? []).filter((m) => (!term || String(m.product?.name ?? '').toLowerCase().includes(term) || String(m.product?.category?.name ?? '').toLowerCase().includes(term))
+    && (!onlyPicked || picked.has(m.id)));
+  const flip = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const save = useMutation({
+    mutationFn: () => modifiersApi.assignDishes(group.id, [...picked]),
+    onSuccess: (r) => { toast.success(`${r.added} dish par laga, ${r.removed} se hata`); onSaved(); },
+    onError: (e) => toast.error(errText(e, 'Save nahi hua')),
+  });
+  const cats = useMemo(() => {
+    const m = new Map<string, string[]>();
+    for (const r of rows) { const c = r.product?.category?.name ?? 'Baghair category'; m.set(c, [...(m.get(c) ?? []), r.id]); }
+    return [...m.entries()];
+  }, [rows]);
+  return (
+    <Modal open onClose={onClose} size="lg" title={`"${group.name}" kin dishes par?`} description="Chuni hui dish ka order lete waqt yeh group poocha jayega"
+      footer={<><span className="mr-auto text-[0.8125rem] text-slate-600">{picked.size} chuni</span><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={() => save.mutate()}>Save karein</Button></>}>
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <label className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dish ya category…" className="h-10 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-[0.875rem]" />
+          </label>
+          <Button size="sm" variant={onlyPicked ? 'primary' : 'secondary'} onClick={() => setOnlyPicked((v) => !v)}>Sirf chuni</Button>
+        </div>
+        {menu.isLoading ? <Skeleton className="h-60 rounded-xl" /> : !rows.length ? <p className="py-8 text-center text-[0.8125rem] text-slate-500">Koi dish nahi mili</p> : (
+          <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+            {cats.map(([cat, ids]) => {
+              const all = ids.every((x) => picked.has(x));
+              return (
+                <div key={cat}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <p className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{cat}</p>
+                    <button type="button" onClick={() => setPicked((p) => { const n = new Set(p); ids.forEach((x) => (all ? n.delete(x) : n.add(x))); return n; })} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">{all ? 'Sab hatayein' : 'Sab chunein'}</button>
+                  </div>
+                  <ul className="grid gap-1.5 sm:grid-cols-2">
+                    {rows.filter((r) => ids.includes(r.id)).map((m) => (
+                      <li key={m.id}>
+                        <label className={cn('flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-[0.8125rem]', picked.has(m.id) ? 'border-brand-400 bg-brand-50/60' : 'border-slate-200 hover:bg-slate-50')}>
+                          <input type="checkbox" checked={picked.has(m.id)} onChange={() => flip(m.id)} className="h-4 w-4 rounded border-slate-300" />
+                          <span className="min-w-0 flex-1 truncate font-medium text-slate-900">{m.product?.name}</span>
+                          {!m.isAvailable && <span className="text-[0.6875rem] text-rose-600">band</span>}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <p className="text-[0.75rem] text-slate-500">Nayi dish? <Link to="/restaurant-menu-items/new" className="font-semibold text-brand-700 hover:underline">Dish banayein</Link> — wahan bhi add-ons chun sakte hain.</p>
+      </div>
+    </Modal>
+  );
+}
+
+const GUIDE: GuideStep[] = [
+  { icon: Plus, color: '#16a34a', title: 'Group banayein', text: '"Extra" jaisa group, us me options aur rate ka farq: cheese +100, raita +50. Bagair pyaaz jaisi cheez 0 par.' },
+  { icon: ListChecks, color: '#7c3aed', title: 'Zaroori ya marzi', text: 'Zaroori group ke bagair order nahi banta (maslan drink ka size). Marzi wale me kitne tak chun sakte hain likhein.' },
+  { icon: UtensilsCrossed, color: '#2563eb', title: 'Dishes par lagayein', text: '"Kisi dish par nahi" dabayein aur dishes chunein — ek group kai dishes par. Dish ke editor se bhi lag jata hai.' },
+  { icon: ChefHat, color: '#ea580c', title: 'Kitchen tak', text: 'Chuna hua option order aur KOT par chhapta hai, aur rate ka farq bill me judta hai.' },
+  { icon: Power, color: '#64748b', title: 'Band karein', text: 'Kuch din ke liye nahi dena (cheese khatam) to group band karein — dishes par laga rahega, wapas chalu kar sakte hain.' },
+];

@@ -1,8 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { RepairPriority, RepairStatus } from '@prisma/client';
+import { PaymentMethod, RepairPriority } from '@prisma/client';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 import {
-  IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional,
-  IsString, Length, Matches, Min,
+  IsArray, IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional,
+  IsString, Length, Matches, MaxLength, Min,
 } from 'class-validator';
 
 export class CreateRepairTicketDto {
@@ -21,6 +22,8 @@ export class CreateRepairTicketDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @Length(15, 15)
+  @Matches(/^\d{15}$/)
   imei2?: string;
 
   @ApiPropertyOptional()
@@ -30,10 +33,14 @@ export class CreateRepairTicketDto {
 
   @ApiProperty({ example: 'Apple' })
   @IsString()
+  @IsNotEmpty({ message: 'Brand likhein' })
+  @MaxLength(60)
   deviceBrand!: string;
 
   @ApiProperty({ example: 'iPhone 12' })
   @IsString()
+  @IsNotEmpty({ message: 'Model likhein' })
+  @MaxLength(80)
   deviceModel!: string;
 
   @ApiPropertyOptional()
@@ -56,10 +63,13 @@ export class CreateRepairTicketDto {
 
   @ApiProperty()
   @IsString()
+  @IsNotEmpty({ message: 'Customer ka naam likhein' })
+  @MaxLength(100)
   customerName!: string;
 
   @ApiProperty()
   @IsString()
+  @Matches(/^[0-9+\-\s]{7,16}$/, { message: 'Phone number sahi likhein (03XX XXXXXXX)' })
   customerPhone!: string;
 
   @ApiPropertyOptional()
@@ -74,6 +84,7 @@ export class CreateRepairTicketDto {
 
   @ApiProperty()
   @IsString()
+  @IsNotEmpty({ message: 'Kharabi likhein' })
   reportedIssue!: string;
 
   @ApiPropertyOptional({ enum: RepairPriority })
@@ -92,6 +103,11 @@ export class CreateRepairTicketDto {
   @IsNumber()
   @Min(0)
   advancePaid?: number;
+
+  @ApiPropertyOptional({ enum: PaymentMethod, description: 'How the advance was paid (default cash)' })
+  @IsOptional()
+  @IsIn(MONEY_METHODS)
+  advanceMethod?: PaymentMethod;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -118,6 +134,11 @@ export class CreateRepairTicketDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({ description: 'Earlier ticket number when this job is a free redo under its repair warranty' })
+  @IsOptional()
+  @IsString()
+  warrantyOf?: string;
 
   @ApiPropertyOptional({ default: 7 })
   @IsOptional()

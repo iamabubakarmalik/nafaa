@@ -49,7 +49,7 @@ export function usePosBatches(shopId: string | null | undefined, cart: PosCartLi
 
   const ids = useMemo(() => {
     const s = new Set<string>();
-    for (const l of cart) if (l.type === 'product' && l.productId && !l.serialId && batchedSet.has(l.productId)) s.add(l.productId);
+    for (const l of cart) if (l.type === 'product' && l.productId && !l.serialId && !l.imeiId && batchedSet.has(l.productId)) s.add(l.productId);
     return [...s].sort();
   }, [cart, batchedSet]);
 
@@ -72,7 +72,7 @@ export function usePosBatches(shopId: string | null | undefined, cart: PosCartLi
   }, [rows]);
 
   return useCallback((line: PosCartLine): PosLineBatch | null => {
-    if (line.type !== 'product' || !line.productId || line.serialId) return null;
+    if (line.type !== 'product' || !line.productId || line.serialId || line.imeiId) return null;
     const list = byProduct.get(`${line.productId}:${line.variantId ?? ''}`) ?? [];
     if (!list.length) return null;
     const pickedBatch = line.batchId ? list.find((b) => b.id === line.batchId) : undefined;

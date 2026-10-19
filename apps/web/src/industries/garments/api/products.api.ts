@@ -86,6 +86,41 @@ export interface VariantProfile {
   isFeaturedColor: boolean;
 }
 
+/** Garment facts of one product, as the POS and products page read them. */
+export interface GarmentMeta {
+  productId: string;
+  gender?: GarmentGender | null;
+  categoryType?: GarmentCategoryType | null;
+  season: string;
+  collectionId?: string | null;
+  fabricType?: GarmentFabricType | null;
+  styleCode?: string | null;
+  isReadyMade: boolean;
+  isStitchable: boolean;
+  isFabricOnly: boolean;
+  isNewArrival: boolean;
+  isBestSeller: boolean;
+  isOnSale: boolean;
+}
+
+interface SizeGridVariant {
+  id: string; name: string; barcode?: string | null; sku?: string | null; price: number; isActive: boolean;
+  size?: string | null; colorName?: string | null; colorHex?: string | null; lowStockAlert: number;
+  stock: number; allStock: number; sold30: number;
+  byShop: Array<{ shopId: string; name: string; stock: number }>;
+}
+
+export interface SizeGrid {
+  productId: string; name: string; sizes: string[]; colors: string[];
+  shops: Array<{ id: string; name: string }>;
+  variants: SizeGridVariant[];
+}
+
+interface ReorderGroup {
+  productId: string; name: string; sold30: number;
+  sizes: Array<{ variantId: string; name: string; size?: string | null; colorName?: string | null; stock: number; alert: number; sold30: number; suggest: number }>;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const garmentProductsApi = {
@@ -95,15 +130,14 @@ export const garmentProductsApi = {
     apiClient.get('/garments/products', { params }).then(unwrap<GarmentProductProfile[]>),
   byProduct: (productId: string) =>
     apiClient.get('/garments/products/by-product/' + productId).then(unwrap<GarmentProductProfile | null>),
-  getOne: (id: string) =>
-    apiClient.get('/garments/products/' + id).then(unwrap<GarmentProductProfile>),
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/garments/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 
-  upsertVariant: (data: Partial<VariantProfile>) =>
-    apiClient.post('/garments/products/variant-profile', data).then(unwrap<VariantProfile>),
+  meta: () => apiClient.get('/garments/products/meta').then(unwrap<{ items: GarmentMeta[]; collections: Array<{ id: string; name: string; isActive: boolean }> }>),
+  sizeGrid: (productId: string) => apiClient.get(`/garments/products/${productId}/size-grid`).then(unwrap<SizeGrid>),
+  reorder: (limit = 50) => apiClient.get('/garments/products/reorder', { params: { limit } }).then(unwrap<{ items: ReorderGroup[]; products: number; pieces: number }>),
+  saveVariantProfiles: (productId: string, items: Array<{ variantId: string; size?: string; colorName?: string; colorHex?: string; displayOrder?: number }>) =>
+    apiClient.post(`/garments/products/${productId}/variant-profiles`, { items }).then(unwrap<{ saved: number }>),
+  splitVariantStock: (productId: string) => apiClient.post(`/garments/products/${productId}/variant-stock-split`).then(unwrap<{ moved: number; reason?: string }>),
+
   variantProfiles: (productId: string) =>
     apiClient.get('/garments/products/variant-profiles/' + productId).then(unwrap<VariantProfile[]>),
-  removeVariant: (id: string) =>
-    apiClient.delete('/garments/products/variant-profile/' + id).then(unwrap),
 };

@@ -1,636 +1,363 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, Plus, Trash2, User, Phone, Stethoscope, Search,
-  Sparkles, FileText, Camera, Repeat, ShieldCheck, X, Upload,
-  Calendar, Award, ChevronDown, Pill,
-} from 'lucide-react';
-import { prescriptionsApi, type PrescriptionType, type PrescriptionItem, type RefillFrequency } from '../api/prescriptions.api';
-import { doctorsApi } from '../api/doctors.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Take a prescription in: patient (from the customer list or typed), the
+ * doctor (from the directory or typed), the medicines with dose and
+ * quantity, and optional scan, diagnosis and refill. Medicines picked from
+ * stock carry their rate and formula; two salts that clash show a warning.
+ *
+ * Keys: Ctrl+S save · Esc back · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { AlertTriangle, ArrowLeft, Camera, ClipboardList, FilePlus, GraduationCap, Pill, Plus, Repeat, Search, Stethoscope, Trash2, UserRound, X } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageShell, Select, Textarea } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen } from '@core/lib/shortcuts';
+import { useShopParam } from '@core/stores/auth.store';
+import { UploadDropzone } from '@core/components/uploads';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { customersApi, type Customer } from '@modules/customers/customers/api/customers.api';
+import { useProductCatalog, type PosItem } from '@modules/pos/engine';
+import { doctorsApi, type Doctor } from '../api/doctors.api';
+import { interactionsApi } from '../api/interactions.api';
+import { prescriptionsApi, type PrescriptionType, type RefillFrequency } from '../api/prescriptions.api';
+import { useMedicineFacts } from '../hooks/useMedicineFacts';
+import { useDebounced } from '../hooks/usePageKeys';
+import { formatCnic } from '../lib/meta';
 
-const TYPES: { value: PrescriptionType; label: string; emoji: string }[] = [
-  { value: 'WALK_IN', label: 'Walk-in', emoji: '🚶' },
-  { value: 'ONLINE', label: 'Online', emoji: '📱' },
-  { value: 'HOSPITAL', label: 'Hospital', emoji: '🏥' },
-  { value: 'INSURANCE', label: 'Insurance', emoji: '💳' },
-  { value: 'EMERGENCY', label: 'Emergency', emoji: '🚨' },
+interface Line { key: number; productId: string; medicineName: string; strength: string; dose: string; frequency: string; duration: string; qty: string; unit: string; instructions: string; price: number }
+interface Form {
+  type: PrescriptionType; customerId: string; patientName: string; patientAge: string; patientGender: string; patientPhone: string; patientCnic: string;
+  doctorId: string; doctorName: string; doctorRegNumber: string; doctorSpeciality: string; hospitalName: string; prescriptionDate: string;
+  diagnosis: string; notes: string; imageUrls: string[]; isRefillable: boolean; refillsAllowed: string; refillFrequency: RefillFrequency | '';
+}
+
+const today = () => new Date().toISOString().slice(0, 10);
+const EMPTY: Form = {
+  type: 'WALK_IN', customerId: '', patientName: '', patientAge: '', patientGender: '', patientPhone: '', patientCnic: '',
+  doctorId: '', doctorName: '', doctorRegNumber: '', doctorSpeciality: '', hospitalName: '', prescriptionDate: today(),
+  diagnosis: '', notes: '', imageUrls: [], isRefillable: false, refillsAllowed: '2', refillFrequency: 'MONTHLY',
+};
+let seq = 1;
+const newLine = (): Line => ({ key: seq++, productId: '', medicineName: '', strength: '', dose: '', frequency: '', duration: '', qty: '', unit: 'tablet', instructions: '', price: 0 });
+
+const TYPES: Array<{ value: PrescriptionType; label: string }> = [
+  { value: 'WALK_IN', label: 'Counter par' }, { value: 'HOSPITAL', label: 'Hospital' }, { value: 'ONLINE', label: 'Online / WhatsApp' },
+  { value: 'EMERGENCY', label: 'Emergency' }, { value: 'INSURANCE', label: 'Insurance / panel' },
+];
+const FREQS = ['1-0-1', '1-1-1', '1-0-0', '0-0-1', '1-1-1-1', 'SOS'];
+const DURATIONS = ['3 din', '5 din', '7 din', '10 din', '15 din', '1 mahina'];
+const INSTRUCTIONS = ['Khane ke baad', 'Khane se pehle', 'Khali pait', 'Sone se pehle'];
+const REFILLS: Array<{ value: RefillFrequency; label: string }> = [
+  { value: 'WEEKLY', label: 'Har hafte' }, { value: 'BIWEEKLY', label: 'Har 2 hafte' }, { value: 'MONTHLY', label: 'Har mahine' }, { value: 'QUARTERLY', label: 'Har 3 mahine' },
 ];
 
-const REFILL_FREQ: { value: RefillFrequency; label: string }[] = [
-  { value: 'DAILY', label: 'Daily' },
-  { value: 'WEEKLY', label: 'Weekly' },
-  { value: 'BIWEEKLY', label: 'Biweekly' },
-  { value: 'MONTHLY', label: 'Monthly' },
-  { value: 'QUARTERLY', label: 'Quarterly' },
-  { value: 'AS_NEEDED', label: 'As Needed' },
-];
+/** Doses a day from "1-0-1" (2) or "1-1-1" (3); 0 when unknown (SOS). */
+const perDay = (f: string) => (/^\d(-\d)+$/.test(f) ? f.split('-').reduce((s, x) => s + Number(x), 0) : 0);
+const days = (d: string) => { const n = parseInt(d, 10); return Number.isFinite(n) ? (/mahina/.test(d) ? n * 30 : n) : 0; };
+const apiError = (e: unknown) => (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+
+function MedicinePicker({ items, facts, onPick, onClose }: { items: PosItem[]; facts: ReturnType<typeof useMedicineFacts>; onPick: (p: PosItem) => void; onClose: () => void }) {
+  const [q, setQ] = useState('');
+  const needle = q.trim().toLowerCase();
+  const list = useMemo(() => (needle.length < 2 ? [] : items.filter((p) => [p.name, p.product.barcode, p.product.sku, facts.get(p.id)?.generic]
+    .some((v) => (v ?? '').toLowerCase().includes(needle))).slice(0, 12)), [needle, items, facts]);
+  return (
+    <div className="absolute inset-x-0 top-full z-30 mt-1 rounded-xl bg-white p-2 shadow-xl ring-1 ring-slate-200">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); if (e.key === 'Enter' && list[0]) onPick(list[0]); }}
+          placeholder="Dawai ya formula likhein…" className="h-10 w-full rounded-lg bg-slate-100 pl-9 pr-9 text-[0.875rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
+        <button type="button" onClick={onClose} aria-label="Band" className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+      </div>
+      <ul className="mt-1 max-h-72 overflow-y-auto">
+        {needle.length < 2 ? <li className="px-3 py-3 text-[0.8125rem] text-slate-500">Kam az kam 2 harf likhein</li>
+          : list.length === 0 ? <li className="px-3 py-3 text-[0.8125rem] text-slate-500">Stock me nahi mili — naam haath se likh dein</li>
+            : list.map((p) => (
+              <li key={p.id}>
+                <button type="button" onClick={() => onPick(p)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-brand-50">
+                  <Pill className="h-4 w-4 shrink-0 text-brand-600" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[0.875rem] font-medium text-slate-900">{p.name}</span>
+                    <span className="block truncate text-[0.75rem] text-slate-500">{facts.get(p.id)?.generic || p.categoryName || ''}</span>
+                  </span>
+                  <span className="text-right text-[0.75rem] tabular-nums"><span className="block font-semibold text-slate-900">{formatPKR(p.price)}</span><span className={p.stock > 0 ? 'text-emerald-700' : 'text-rose-600'}>{p.stock > 0 ? `${Number(p.stock.toFixed(2))} ${p.unit}` : 'khatam'}</span></span>
+                </button>
+              </li>
+            ))}
+      </ul>
+    </div>
+  );
+}
 
 export default function NewPrescriptionPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const shopId = useShopParam();
+  const guide = usePageGuide();
+  const lock = useRef(false);
+  const [f, setF] = useState<Form>(EMPTY);
+  const [lines, setLines] = useState<Line[]>(() => [newLine()]);
+  const [picker, setPicker] = useState<number | null>(null);
+  const [custQ, setCustQ] = useState('');
+  const [tried, setTried] = useState(false);
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
+  const setLine = (key: number, patch: Partial<Line>) => setLines((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)));
 
-  const [form, setForm] = useState<any>({
-    type: 'WALK_IN' as PrescriptionType,
-    customerId: '',
-    doctorId: '',
-    doctorName: '',
-    doctorRegNumber: '',
-    doctorSpeciality: '',
-    hospitalName: '',
-    patientName: '',
-    patientAge: '',
-    patientGender: '',
-    patientPhone: '',
-    patientCnic: '',
-    patientWeight: '',
-    prescriptionDate: new Date().toISOString().split('T')[0],
-    diagnosis: '',
-    chiefComplaint: '',
-    imageUrls: [] as string[],
-    isRefillable: false,
-    refillsAllowed: 0,
-    refillFrequency: '' as RefillFrequency | '',
-    isInsuranceClaim: false,
-    insuranceProvider: '',
-    insuranceApprovalCode: '',
-    notes: '',
+  const { items } = useProductCatalog();
+  const facts = useMedicineFacts();
+  const { data: doctors = [] } = useQuery({ queryKey: ['pharmacy-doctors', 'active'], queryFn: () => doctorsApi.list({ isActive: true }).catch(() => [] as Doctor[]), staleTime: 5 * 60_000 });
+  const cq = useDebounced(custQ.trim());
+  const { data: custs } = useQuery({
+    queryKey: ['customers', 'rx-pick', cq],
+    queryFn: () => customersApi.list({ search: cq, limit: 8 }),
+    enabled: cq.length >= 2,
   });
 
-  const [items, setItems] = useState<PrescriptionItem[]>([{
-    medicineName: '', prescribedQty: 1, unit: 'tablet',
-  }]);
-
-  const [productSearch, setProductSearch] = useState('');
-  const [showProductPicker, setShowProductPicker] = useState<number | null>(null);
-  const [doctorSearch, setDoctorSearch] = useState('');
-  const [showDoctorPicker, setShowDoctorPicker] = useState(false);
-
-  const { data: doctors = [] } = useQuery({
-    queryKey: ['doctors-for-rx', doctorSearch],
-    queryFn: () => doctorsApi.list({ search: doctorSearch, isActive: true }),
-    enabled: showDoctorPicker,
+  // Salts of the picked medicines, checked against each other.
+  const saltIds = useMemo(() => [...new Set(lines.flatMap((l) => facts.get(l.productId)?.saltIds ?? []))].sort(), [lines, facts]);
+  const { data: clash } = useQuery({
+    queryKey: ['pharmacy-interactions', saltIds],
+    queryFn: () => interactionsApi.check(saltIds),
+    enabled: saltIds.length >= 2,
+    staleTime: 5 * 60_000,
   });
 
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-rx'],
-    queryFn: () => customersApi.list({ limit: 500 }),
-  });
+  const pickCustomer = (c: Customer) => {
+    setF((x) => ({ ...x, customerId: c.id, patientName: x.patientName || c.name, patientPhone: x.patientPhone || (c.phone ?? ''), patientCnic: x.patientCnic || (c.cnic ?? '') }));
+    setCustQ('');
+  };
+  const pickDoctor = (id: string) => {
+    const d = doctors.find((x) => x.id === id);
+    setF((x) => ({ ...x, doctorId: id, ...(d && { doctorName: d.name, doctorRegNumber: d.registrationNumber, doctorSpeciality: d.specialization ?? '', hospitalName: d.clinicName ?? d.hospitalAffiliation ?? '' }) }));
+  };
+  const pickMedicine = (key: number, p: PosItem) => {
+    const m = facts.get(p.id);
+    setLine(key, { productId: p.id, medicineName: p.name, strength: m?.generic ?? '', unit: p.unit, price: p.price });
+    setPicker(null);
+  };
+  /** Quantity from dose × days when both are known and nothing is typed yet. */
+  const suggest = (l: Line) => { const n = perDay(l.frequency) * days(l.duration); return n > 0 ? String(n) : ''; };
 
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-rx', productSearch],
-    queryFn: () => productsApi.list({ page: 1, limit: 30, search: productSearch || undefined }),
-    enabled: showProductPicker !== null,
-  });
+  const used = lines.filter((l) => l.medicineName.trim() || l.qty);
+  const problems = useMemo(() => {
+    const out: string[] = [];
+    if (!f.patientName.trim() && !f.customerId) out.push('Mareez ka naam likhein');
+    if (f.patientCnic && f.patientCnic.replace(/\D/g, '').length !== 13) out.push('CNIC 13 hindsay ka hota hai');
+    if (f.patientAge && !(Number(f.patientAge) >= 0 && Number(f.patientAge) <= 130)) out.push('Umar theek nahi');
+    if (!used.length) out.push('Kam az kam ek dawai likhein');
+    used.forEach((l, i) => {
+      if (!l.medicineName.trim()) out.push(`Line ${i + 1}: dawai ka naam likhein`);
+      else if (!(Number(l.qty || suggest(l)) > 0)) out.push(`${l.medicineName}: kitni deni hai likhein`);
+    });
+    if (f.isRefillable && !(Number(f.refillsAllowed) > 0)) out.push('Kitni dafa refill likhein');
+    return out;
+  }, [f, used]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const createMutation = useMutation({
-    mutationFn: () => prescriptionsApi.create({
-      ...form,
-      patientAge: form.patientAge ? Number(form.patientAge) : undefined,
-      patientWeight: form.patientWeight ? Number(form.patientWeight) : undefined,
-      refillsAllowed: Number(form.refillsAllowed) || 0,
-      refillFrequency: form.refillFrequency || undefined,
-      items: items.filter((it) => it.medicineName.trim()),
-    }),
-    onSuccess: (rx) => {
-      toast.success('Prescription ' + rx.prescriptionNumber + ' created');
-      navigate('/pharmacy/prescriptions/' + rx.id);
+  const save = useMutation({
+    mutationFn: () => {
+      if (problems.length) throw new Error(problems[0]);
+      const opt = (v: string) => v.trim() || undefined;
+      return prescriptionsApi.create({
+        type: f.type, shopId: shopId || undefined, customerId: f.customerId || undefined, doctorId: f.doctorId || undefined,
+        patientName: opt(f.patientName), patientAge: f.patientAge ? Number(f.patientAge) : undefined, patientGender: opt(f.patientGender),
+        patientPhone: opt(f.patientPhone), patientCnic: opt(f.patientCnic),
+        doctorName: opt(f.doctorName), doctorRegNumber: opt(f.doctorRegNumber), doctorSpeciality: opt(f.doctorSpeciality), hospitalName: opt(f.hospitalName),
+        prescriptionDate: f.prescriptionDate || undefined, diagnosis: opt(f.diagnosis), notes: opt(f.notes), imageUrls: f.imageUrls,
+        isRefillable: f.isRefillable, refillsAllowed: f.isRefillable ? Number(f.refillsAllowed) : 0, refillFrequency: f.isRefillable && f.refillFrequency ? f.refillFrequency : undefined,
+        items: used.map((l) => ({
+          productId: l.productId || undefined, medicineName: l.medicineName.trim(), strength: opt(l.strength), dose: opt(l.dose),
+          frequency: opt(l.frequency), duration: opt(l.duration), instructions: opt(l.instructions), prescribedQty: Number(l.qty || suggest(l)), unit: l.unit,
+        })),
+      } as Parameters<typeof prescriptionsApi.create>[0]);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: (rx) => {
+      toast.success(`Nuskha ${rx.prescriptionNumber} ban gaya`);
+      qc.invalidateQueries({ queryKey: ['prescriptions-page'] });
+      qc.invalidateQueries({ queryKey: ['pharmacy-dashboard'] });
+      navigate(`/pharmacy/prescriptions/${rx.id}`);
+    },
+    onError: (e) => { const m = apiError(e); toast.error(Array.isArray(m) ? m[0] : m ?? (e as Error).message); },
+    onSettled: () => { lock.current = false; },
+  });
+  const submit = () => {
+    setTried(true);
+    if (problems.length) { toast.error(problems[0]); return; }
+    if (lock.current) return;
+    lock.current = true;
+    save.mutate();
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); }
+      if (e.key === 'Escape' && !isDialogOpen() && picker === null) navigate('/pharmacy/prescriptions');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
-  const addItem = () => setItems([...items, { medicineName: '', prescribedQty: 1, unit: 'tablet' }]);
-  const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
-  const updateItem = (i: number, patch: Partial<PrescriptionItem>) => {
-    setItems(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
-  };
-
-  const pickProductForItem = (i: number, product: any) => {
-    updateItem(i, {
-      productId: product.id,
-      medicineName: product.name,
-      unit: product.unit || 'tablet',
-    });
-    setShowProductPicker(null);
-    setProductSearch('');
-  };
-
-  const pickDoctor = (doc: any) => {
-    setForm({
-      ...form,
-      doctorId: doc.id,
-      doctorName: doc.name,
-      doctorRegNumber: doc.registrationNumber,
-      doctorSpeciality: doc.specialization || '',
-      hospitalName: doc.hospitalAffiliation || form.hospitalName,
-    });
-    setShowDoctorPicker(false);
-    setDoctorSearch('');
-  };
-
-  const canSave = items.some((it) => it.medicineName.trim() && it.prescribedQty > 0);
+  const total = used.reduce((s, l) => s + l.price * (Number(l.qty || suggest(l)) || 0), 0);
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/pharmacy/prescriptions')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                New Prescription
-              </div>
-              <h1 className="mt-1 text-2xl font-extrabold">📋 Create Prescription</h1>
-            </div>
+    <PageShell className="max-w-5xl">
+      {guide.isOpen && (
+        <PageGuide title="Naya nuskha" onClose={guide.close}
+          steps={[
+            { icon: UserRound, color: '#2563eb', title: 'Mareez', text: 'Purana customer ho to dhoond kar chunein — naam, phone aur CNIC khud aa jate hain aur udhaar usi ke khate me jata hai.' },
+            { icon: Stethoscope, color: '#0891b2', title: 'Doctor', text: 'Directory se chunein ya naam aur PMDC likh dein. Narcotic dawai ke liye PMDC zaroor likhein.' },
+            { icon: Pill, color: '#16a34a', title: 'Dawaiyan', text: 'Stock se dawai chunein to rate aur formula aa jata hai. Dose (1-0-1) aur din likhein to miqdaar khud ban jati hai.' },
+            { icon: Repeat, color: '#7c3aed', title: 'Refill', text: 'Har mahine wali dawai (sugar, BP) ke liye refill chalu karein — mareez ko yaad dihani bhi milti hai.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link to="/pharmacy/prescriptions" aria-label="Wapas" className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-5 w-5" /></Link>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Naya nuskha</h1>
+            <p className="text-[0.8125rem] text-slate-500">Check ke baad dawai di jati hai aur bill banta hai</p>
           </div>
-          <Button
-            onClick={() => createMutation.mutate()}
-            loading={createMutation.isPending}
-            disabled={!canSave}
-            className="bg-white text-slate-900 hover:bg-slate-100"
-          >
-            <Save className="h-4 w-4" />
-            Create Prescription
-          </Button>
         </div>
-      </section>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={guide.open} leftIcon={<GraduationCap className="h-4 w-4" />}>Guide</Button>
+          <Button onClick={submit} loading={save.isPending} leftIcon={<FilePlus className="h-4 w-4" />}>Save <Kbd className="ml-1 hidden bg-white/20 text-white sm:inline-flex">Ctrl S</Kbd></Button>
+        </div>
+      </div>
 
-      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
-        <div className="space-y-6">
-          {/* TYPE */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Prescription Type</label>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {TYPES.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() => setForm({ ...form, type: t.value })}
-                  className={
-                    'p-3 rounded-xl border-2 text-center transition ' +
-                    (form.type === t.value
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow'
-                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
-                  }
-                >
-                  <div className="text-xl mb-1">{t.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold">{t.label}</div>
-                </button>
-              ))}
-            </div>
-          </section>
+      {tried && problems.length > 0 && (
+        <div className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">
+          <p className="font-semibold">Ye theek karein:</p>
+          <ul className="mt-1 list-disc pl-5">{problems.map((p) => <li key={p}>{p}</li>)}</ul>
+        </div>
+      )}
 
-          {/* DOCTOR */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Stethoscope className="h-4 w-4 text-emerald-600" />
-              Doctor Information
-            </h3>
-
-            {form.doctorId ? (
-              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-800 p-3 flex items-center gap-3">
-                <Award className="h-5 w-5 text-emerald-600" />
-                <div className="flex-1">
-                  <div className="font-extrabold text-slate-900 dark:text-ink-white">{form.doctorName}</div>
-                  <div className="text-xs text-slate-600 font-semibold">
-                    Reg: {form.doctorRegNumber}
-                    {form.doctorSpeciality && ' • ' + form.doctorSpeciality}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setForm({ ...form, doctorId: '', doctorName: '', doctorRegNumber: '', doctorSpeciality: '' })}
-                  className="text-xs font-extrabold text-emerald-700 hover:underline"
-                >
-                  Change
-                </button>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><UserRound className="h-4 w-4 text-brand-600" />Mareez</span>}>
+          <div className="space-y-3">
+            {f.customerId ? (
+              <div className="flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2 text-[0.875rem]">
+                <span>Customer: <strong>{f.patientName}</strong> — udhaar isi ke khate me</span>
+                <button type="button" onClick={() => set('customerId', '')} className="text-[0.75rem] font-semibold text-rose-700">Hatayein</button>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div className="sm:col-span-2">
-                  <button
-                    onClick={() => setShowDoctorPicker(true)}
-                    className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 hover:border-emerald-400"
-                  >
-                    <Search className="h-4 w-4 inline mr-1" />
-                    Search Registered Doctor
-                  </button>
-                </div>
-                <input
-                  value={form.doctorName}
-                  onChange={(e) => setForm({ ...form, doctorName: e.target.value })}
-                  placeholder="Doctor Name (manual entry)"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
-                />
-                <input
-                  value={form.doctorRegNumber}
-                  onChange={(e) => setForm({ ...form, doctorRegNumber: e.target.value })}
-                  placeholder="PMDC Reg #"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500"
-                />
-                <input
-                  value={form.doctorSpeciality}
-                  onChange={(e) => setForm({ ...form, doctorSpeciality: e.target.value })}
-                  placeholder="Speciality"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
-                />
-                <input
-                  value={form.hospitalName}
-                  onChange={(e) => setForm({ ...form, hospitalName: e.target.value })}
-                  placeholder="Hospital / Clinic"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
-                />
+              <div className="relative">
+                <Input label="Purana customer dhoondein" value={custQ} onChange={(e) => setCustQ(e.target.value)} placeholder="Naam ya phone…" leftIcon={<Search className="h-4 w-4" />}
+                  hint="Marzi hai — chunne se udhaar aur refill yaad dihani usi customer par" />
+                {cq.length >= 2 && (custs?.items.length ?? 0) > 0 && (
+                  <ul className="absolute inset-x-0 top-[4.5rem] z-30 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200">
+                    {custs!.items.map((c) => (
+                      <li key={c.id}><button type="button" onClick={() => pickCustomer(c)} className="flex w-full justify-between px-3 py-2 text-left text-[0.875rem] hover:bg-brand-50"><span className="font-medium">{c.name}</span><span className="text-slate-500">{c.phone}</span></button></li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
-
-            {showDoctorPicker && (
-              <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20 p-3">
-                <div className="flex gap-2 mb-2">
-                  <input
-                    autoFocus
-                    value={doctorSearch}
-                    onChange={(e) => setDoctorSearch(e.target.value)}
-                    placeholder="Search by name, reg #..."
-                    className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
-                  />
-                  <button onClick={() => setShowDoctorPicker(false)} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="max-h-56 overflow-y-auto space-y-1">
-                  {doctors.map((doc) => (
-                    <button
-                      key={doc.id}
-                      onClick={() => pickDoctor(doc)}
-                      className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-ink-800 text-left"
-                    >
-                      <Stethoscope className="h-4 w-4 text-emerald-600" />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-extrabold text-sm truncate">{doc.name}</div>
-                        <div className="text-xs text-slate-500 font-semibold">
-                          {doc.registrationNumber} {doc.specialization && '• ' + doc.specialization}
-                        </div>
-                      </div>
-                      {doc.isVerified && <Award className="h-3 w-3 text-emerald-500" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* PATIENT */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <User className="h-4 w-4 text-violet-600" />
-              Patient Information
-            </h3>
-
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Existing Customer (optional)</label>
-              <select
-                value={form.customerId}
-                onChange={(e) => {
-                  const c = customersData?.items.find((x) => x.id === e.target.value);
-                  setForm({
-                    ...form,
-                    customerId: e.target.value,
-                    patientName: c?.name || form.patientName,
-                    patientPhone: c?.phone || form.patientPhone,
-                  });
-                }}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
-              >
-                <option value="">Walk-in / New patient</option>
-                {(customersData?.items ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} {c.phone ? '• ' + c.phone : ''}</option>
-                ))}
-              </select>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Mareez ka naam" required value={f.patientName} onChange={(e) => set('patientName', e.target.value)} error={tried && !f.patientName.trim() && !f.customerId ? 'Naam likhein' : undefined} />
+              <Input label="Phone" inputMode="tel" value={f.patientPhone} onChange={(e) => set('patientPhone', e.target.value)} placeholder="03xx…" hint="Refill ki yaad dihani isi par" />
+              <Input label="Umar" inputMode="numeric" value={f.patientAge} onChange={(e) => set('patientAge', e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="saal" />
+              <Select label="Jins" value={f.patientGender} onChange={(e) => set('patientGender', e.target.value)} options={[{ value: '', label: '—' }, { value: 'MALE', label: 'Mard' }, { value: 'FEMALE', label: 'Aurat' }, { value: 'CHILD', label: 'Bacha' }]} />
+              <Input label="CNIC" inputMode="numeric" value={f.patientCnic} onChange={(e) => set('patientCnic', formatCnic(e.target.value))} placeholder="35202-1234567-1" hint="Narcotic dawai ke liye zaroori" wrapperClassName="sm:col-span-2" />
             </div>
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              <input
-                value={form.patientName}
-                onChange={(e) => setForm({ ...form, patientName: e.target.value })}
-                placeholder="Patient name"
-                className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
-              />
-              <input
-                value={form.patientPhone}
-                onChange={(e) => setForm({ ...form, patientPhone: e.target.value })}
-                placeholder="Phone"
-                className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
-              />
-              <input
-                value={form.patientCnic}
-                onChange={(e) => setForm({ ...form, patientCnic: e.target.value })}
-                placeholder="CNIC (required for narcotics)"
-                className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500"
-              />
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  type="number"
-                  value={form.patientAge}
-                  onChange={(e) => setForm({ ...form, patientAge: e.target.value })}
-                  placeholder="Age"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
-                />
-                <select
-                  value={form.patientGender}
-                  onChange={(e) => setForm({ ...form, patientGender: e.target.value })}
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
-                >
-                  <option value="">Sex</option>
-                  <option value="M">M</option>
-                  <option value="F">F</option>
-                  <option value="O">O</option>
-                </select>
-                <input
-                  type="number" step="0.1"
-                  value={form.patientWeight}
-                  onChange={(e) => setForm({ ...form, patientWeight: e.target.value })}
-                  placeholder="Wt (kg)"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* MEDICINES */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Pill className="h-4 w-4 text-violet-600" />
-                Prescribed Medicines
-              </h3>
-              <Button size="sm" onClick={addItem} className="bg-gradient-to-r from-violet-600 to-purple-700">
-                <Plus className="h-3.5 w-3.5" />
-                Add Medicine
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              {items.map((item, i) => (
-                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 dark:bg-ink-800/30 p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Medicine #{i + 1}</span>
-                    {items.length > 1 && (
-                      <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid sm:grid-cols-6 gap-2">
-                    <div className="sm:col-span-3 relative">
-                      <input
-                        value={item.medicineName}
-                        onChange={(e) => updateItem(i, { medicineName: e.target.value })}
-                        placeholder="Medicine name *"
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 pr-9 text-sm font-bold focus:outline-none focus:border-violet-500"
-                      />
-                      <button
-                        onClick={() => setShowProductPicker(i)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center"
-                        title="Pick from stock"
-                      >
-                        <Search className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <input
-                      value={item.strength || ''}
-                      onChange={(e) => updateItem(i, { strength: e.target.value })}
-                      placeholder="500mg"
-                      className="h-10 sm:col-span-1 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
-                    />
-                    <input
-                      type="number" step="0.5"
-                      value={item.prescribedQty}
-                      onChange={(e) => updateItem(i, { prescribedQty: Number(e.target.value) })}
-                      className="h-10 sm:col-span-1 rounded-lg border-2 border-violet-200 bg-violet-50 dark:bg-violet-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-violet-500"
-                    />
-                    <input
-                      value={item.unit || 'tablet'}
-                      onChange={(e) => updateItem(i, { unit: e.target.value })}
-                      placeholder="unit"
-                      className="h-10 sm:col-span-1 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
-                    />
-                  </div>
-
-                  {showProductPicker === i && (
-                    <div className="rounded-lg border-2 border-violet-300 bg-violet-50/50 dark:bg-violet-950/20 p-2">
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          autoFocus
-                          value={productSearch}
-                          onChange={(e) => setProductSearch(e.target.value)}
-                          placeholder="Search medicine..."
-                          className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
-                        />
-                        <button onClick={() => setShowProductPicker(null)} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="max-h-40 overflow-y-auto space-y-1">
-                        {(productsData?.items ?? []).map((p) => (
-                          <button
-                            key={p.id}
-                            onClick={() => pickProductForItem(i, p)}
-                            className="w-full px-2 py-1.5 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-ink-800 text-left"
-                          >
-                            <Pill className="h-3.5 w-3.5 text-slate-400" />
-                            <span className="text-xs font-extrabold truncate flex-1">{p.name}</span>
-                            <span className="text-[0.6875rem] font-bold text-slate-500">Stock: {p.stock}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="grid sm:grid-cols-3 gap-2">
-                    <input
-                      value={item.dose || ''}
-                      onChange={(e) => updateItem(i, { dose: e.target.value })}
-                      placeholder="Dose (500mg)"
-                      className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
-                    />
-                    <input
-                      value={item.frequency || ''}
-                      onChange={(e) => updateItem(i, { frequency: e.target.value })}
-                      placeholder="Frequency (1-0-1 / TID)"
-                      className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
-                    />
-                    <input
-                      value={item.duration || ''}
-                      onChange={(e) => updateItem(i, { duration: e.target.value })}
-                      placeholder="Duration (7 days)"
-                      className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
-                    />
-                  </div>
-
-                  <input
-                    value={item.instructions || ''}
-                    onChange={(e) => updateItem(i, { instructions: e.target.value })}
-                    placeholder="Instructions (after meals, empty stomach...)"
-                    className="h-9 w-full rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* DIAGNOSIS */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Diagnosis & Notes</h3>
-
-            <input
-              value={form.chiefComplaint}
-              onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })}
-              placeholder="Chief complaint"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
-            />
-
-            <textarea
-              rows={2}
-              value={form.diagnosis}
-              onChange={(e) => setForm({ ...form, diagnosis: e.target.value })}
-              placeholder="Diagnosis / clinical notes"
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
-            />
-
-            <textarea
-              rows={2}
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Internal notes"
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
-            />
-          </section>
-        </div>
-
-        {/* SIDEBAR */}
-        <aside className="space-y-4">
-          <div className="sticky top-4 space-y-4">
-            {/* IMAGES */}
-            <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-2 flex items-center gap-2">
-                <Camera className="h-4 w-4 text-violet-600" />
-                Prescription Images
-              </h4>
-              {form.imageUrls.length > 0 && (
-                <div className="grid grid-cols-3 gap-1 mb-2">
-                  {form.imageUrls.map((url: string, i: number) => (
-                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => setForm({ ...form, imageUrls: form.imageUrls.filter((_: any, idx: number) => idx !== i) })}
-                        className="absolute top-1 right-1 h-5 w-5 rounded bg-rose-600 text-white flex items-center justify-center"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <UploadDropzone
-                onUploaded={(records) => {
-                  const urls = Array.isArray(records)
-                    ? records.map((r: any) => r.url || r).filter(Boolean)
-                    : [(records as any)?.url || records];
-                  setForm({ ...form, imageUrls: [...form.imageUrls, ...urls] });
-                }}
-              />
-            </section>
-
-            {/* REFILL */}
-            <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Repeat className="h-4 w-4 text-emerald-600" />
-                Refill Settings
-              </h4>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.isRefillable}
-                  onChange={(e) => setForm({ ...form, isRefillable: e.target.checked })}
-                  className="h-4 w-4 rounded"
-                />
-                <span className="text-sm font-extrabold">Refillable</span>
-              </label>
-              {form.isRefillable && (
-                <>
-                  <input
-                    type="number" min="0"
-                    value={form.refillsAllowed}
-                    onChange={(e) => setForm({ ...form, refillsAllowed: e.target.value })}
-                    placeholder="Refills allowed"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500"
-                  />
-                  <select
-                    value={form.refillFrequency}
-                    onChange={(e) => setForm({ ...form, refillFrequency: e.target.value })}
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="">Frequency...</option>
-                    {REFILL_FREQ.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
-                  </select>
-                </>
-              )}
-            </section>
-
-            {/* INSURANCE */}
-            <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-blue-600" />
-                Insurance
-              </h4>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.isInsuranceClaim}
-                  onChange={(e) => setForm({ ...form, isInsuranceClaim: e.target.checked })}
-                  className="h-4 w-4 rounded"
-                />
-                <span className="text-sm font-extrabold">Insurance claim</span>
-              </label>
-              {form.isInsuranceClaim && (
-                <>
-                  <input
-                    value={form.insuranceProvider}
-                    onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })}
-                    placeholder="Provider"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
-                  />
-                  <input
-                    value={form.insuranceApprovalCode}
-                    onChange={(e) => setForm({ ...form, insuranceApprovalCode: e.target.value })}
-                    placeholder="Approval code"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
-                  />
-                </>
-              )}
-            </section>
-
-            <Button
-              onClick={() => createMutation.mutate()}
-              loading={createMutation.isPending}
-              disabled={!canSave}
-              size="lg"
-              className="w-full bg-gradient-to-r from-violet-600 to-purple-700"
-            >
-              <Save className="h-4 w-4" />
-              Create Prescription
-            </Button>
           </div>
-        </aside>
+        </Card>
+
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Stethoscope className="h-4 w-4 text-brand-600" />Doctor</span>}>
+          <div className="space-y-3">
+            <Select label="Directory se" value={f.doctorId} onChange={(e) => pickDoctor(e.target.value)}
+              options={[{ value: '', label: 'Haath se likhein' }, ...doctors.map((d) => ({ value: d.id, label: `${d.name} · ${d.registrationNumber}` }))]}
+              hint={<Link to="/pharmacy/doctors" className="font-semibold text-brand-700 hover:underline">Doctor directory →</Link>} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Doctor ka naam" value={f.doctorName} onChange={(e) => setF((x) => ({ ...x, doctorName: e.target.value, doctorId: '' }))} />
+              <Input label="PMDC number" value={f.doctorRegNumber} onChange={(e) => setF((x) => ({ ...x, doctorRegNumber: e.target.value, doctorId: '' }))} />
+              <Input label="Specialist" value={f.doctorSpeciality} onChange={(e) => set('doctorSpeciality', e.target.value)} placeholder="Child, Sugar…" />
+              <Input label="Hospital / clinic" value={f.hospitalName} onChange={(e) => set('hospitalName', e.target.value)} />
+              <Input label="Nuskhe ki tareekh" type="date" max={today()} value={f.prescriptionDate} onChange={(e) => set('prescriptionDate', e.target.value)} />
+              <Select label="Kahan se aaya" value={f.type} onChange={(e) => set('type', e.target.value as PrescriptionType)} options={TYPES} />
+            </div>
+          </div>
+        </Card>
       </div>
-    </div>
+
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Pill className="h-4 w-4 text-brand-600" />Dawaiyan</span>}
+        description="Stock se chunein to rate aur formula khud aa jata hai; nahi hai to naam likh dein"
+        actions={<Button size="sm" variant="secondary" onClick={() => setLines((ls) => [...ls, newLine()])} leftIcon={<Plus className="h-4 w-4" />}>Dawai</Button>}>
+        {clash?.hasWarnings && (
+          <div className={cn('mb-3 rounded-xl px-3 py-2.5 text-[0.8125rem] ring-1', clash.hasMajor ? 'bg-rose-50 text-rose-900 ring-rose-200' : 'bg-amber-50 text-amber-900 ring-amber-200')}>
+            <p className="flex items-center gap-1.5 font-semibold"><AlertTriangle className="h-4 w-4" />In dawaiyon ka aapas me asar hai — pharmacist / doctor se poochein</p>
+            <ul className="mt-1 list-disc pl-5">{clash.interactions.map((i) => <li key={i.id}>{i.saltA?.name} + {i.saltB?.name} ({i.severity}): {i.description}</li>)}</ul>
+          </div>
+        )}
+        <ul className="space-y-3">
+          {lines.map((l, idx) => (
+            <li key={l.key} className="rounded-2xl p-3 ring-1 ring-slate-200">
+              <div className="flex items-start gap-2">
+                <span className="mt-2.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[0.75rem] font-bold text-slate-600">{idx + 1}</span>
+                <div className="relative min-w-0 flex-1">
+                  <div className="flex gap-2">
+                    <input value={l.medicineName} onChange={(e) => setLine(l.key, { medicineName: e.target.value, productId: '', price: 0 })} placeholder="Dawai ka naam"
+                      className={cn('h-11 min-w-0 flex-1 rounded-xl border bg-white px-3.5 text-[0.9375rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20', tried && !l.medicineName.trim() && l.qty ? 'border-rose-400' : 'border-slate-200')} />
+                    <button type="button" onClick={() => setPicker(picker === l.key ? null : l.key)} className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-slate-900 px-3 text-[0.8125rem] font-semibold text-white"><Search className="h-4 w-4" /><span className="hidden sm:inline">Stock se</span></button>
+                  </div>
+                  {picker === l.key && <MedicinePicker items={items} facts={facts} onPick={(p) => pickMedicine(l.key, p)} onClose={() => setPicker(null)} />}
+                  <p className="mt-1 text-[0.75rem] text-slate-500">{l.productId ? <>Stock wali · {formatPKR(l.price)} / {l.unit}{l.strength && ` · ${l.strength}`}</> : 'Stock se nahi jori — dawai dete waqt jor sakte hain'}</p>
+                </div>
+                <button type="button" aria-label="Hatayein" onClick={() => setLines((ls) => (ls.length > 1 ? ls.filter((x) => x.key !== l.key) : [newLine()]))} className="mt-1.5 flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+              </div>
+              <div className="mt-3 grid gap-3 pl-8 sm:grid-cols-4">
+                <div className="sm:col-span-2">
+                  <span className="mb-1 block text-[0.75rem] font-medium text-slate-600">Kitni dafa</span>
+                  <div className="flex flex-wrap gap-1">{FREQS.map((x) => <button key={x} type="button" onClick={() => setLine(l.key, { frequency: l.frequency === x ? '' : x })} className={cn('h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold', l.frequency === x ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>{x}</button>)}</div>
+                </div>
+                <div className="sm:col-span-2">
+                  <span className="mb-1 block text-[0.75rem] font-medium text-slate-600">Kitne din</span>
+                  <div className="flex flex-wrap gap-1">{DURATIONS.map((x) => <button key={x} type="button" onClick={() => setLine(l.key, { duration: l.duration === x ? '' : x })} className={cn('h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold', l.duration === x ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>{x}</button>)}</div>
+                </div>
+                <Input label={`Kitni (${l.unit})`} inputMode="decimal" value={l.qty} placeholder={suggest(l) || '0'} onChange={(e) => setLine(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
+                  hint={!l.qty && suggest(l) ? `Dose × din = ${suggest(l)}` : undefined} error={tried && l.medicineName.trim() && !(Number(l.qty || suggest(l)) > 0) ? 'Miqdaar likhein' : undefined} />
+                <Input label="Dose" value={l.dose} onChange={(e) => setLine(l.key, { dose: e.target.value })} placeholder="1 goli, 5 ml" />
+                <div className="sm:col-span-2">
+                  <Input label="Hidayat" value={l.instructions} onChange={(e) => setLine(l.key, { instructions: e.target.value })} placeholder="Khane ke baad" list={`ins-${l.key}`} />
+                  <datalist id={`ins-${l.key}`}>{INSTRUCTIONS.map((x) => <option key={x} value={x} />)}</datalist>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {total > 0 && <p className="mt-3 text-right text-[0.875rem] text-slate-600">Andaza: <strong className="tabular-nums text-slate-900">{formatPKR(total)}</strong> (shelf rate)</p>}
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ClipboardList className="h-4 w-4 text-brand-600" />Aur</span>}>
+          <div className="space-y-3">
+            <Textarea label="Bimari / diagnosis" rows={2} value={f.diagnosis} onChange={(e) => set('diagnosis', e.target.value)} placeholder="Marzi hai" />
+            <Textarea label="Note" rows={2} value={f.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Team ke liye" />
+            <div>
+              <span className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><Camera className="h-4 w-4" />Nuskhe ki tasveer</span>
+              <UploadDropzone purpose="document" maxFiles={4} hint="Parchi ki photo — record ke liye"
+                onUploaded={(records) => set('imageUrls', [...f.imageUrls, ...records.map((r) => r.url).filter(Boolean)])} />
+              {f.imageUrls.length > 0 && <p className="mt-1 text-[0.75rem] text-emerald-700">{f.imageUrls.length} tasveer lagi</p>}
+            </div>
+          </div>
+        </Card>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Repeat className="h-4 w-4 text-brand-600" />Refill</span>} description="Har mahine wali dawai — agli dafa ek click me naya nuskha">
+          <label className="flex items-center gap-3 rounded-xl p-3 ring-1 ring-slate-200">
+            <input type="checkbox" checked={f.isRefillable} onChange={(e) => set('isRefillable', e.target.checked)} className="h-5 w-5 rounded" />
+            <span className="text-[0.875rem] font-semibold text-slate-900">Ye nuskha dobara bhara ja sakta hai</span>
+          </label>
+          {f.isRefillable && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Input label="Kitni dafa" inputMode="numeric" value={f.refillsAllowed} onChange={(e) => set('refillsAllowed', e.target.value.replace(/\D/g, '').slice(0, 2))} />
+              <Select label="Kab kab" value={f.refillFrequency} onChange={(e) => set('refillFrequency', e.target.value as RefillFrequency)} options={REFILLS} />
+            </div>
+          )}
+        </Card>
+      </div>
+    </PageShell>
   );
 }

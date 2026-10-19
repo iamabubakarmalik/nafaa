@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, Barcode, Search, CheckCircle2, Shield, Package } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';

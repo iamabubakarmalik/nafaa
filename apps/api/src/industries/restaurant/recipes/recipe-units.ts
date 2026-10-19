@@ -39,5 +39,26 @@ export function convertQty(qty: number, fromUnit?: string | null, toUnit?: strin
   return qty;
 }
 
+/** Unit family of a known unit; unknown units (plate, bottle, tin) are their own family. */
+function familyOf(unit: string): string {
+  if (MASS[unit]) return 'mass';
+  if (VOLUME[unit]) return 'volume';
+  if (COUNT[unit]) return 'count';
+  return `own:${unit}`;
+}
+
+/**
+ * Whether a recipe line written in `lineUnit` can be taken from stock kept
+ * in `stockUnit`: the same unit, or two units of one family (g and kg, ml
+ * and litre, pcs and dozen). "1 cup" of rice kept in kg is refused, since
+ * it would take 1 kg.
+ */
+export function unitsCompatible(lineUnit?: string | null, stockUnit?: string | null): boolean {
+  const a = norm(lineUnit);
+  const b = norm(stockUnit);
+  if (!a || !b || a === b) return true;
+  return familyOf(a) === familyOf(b);
+}
+
 export const round3 = (v: number) => Math.round(v * 1000) / 1000;
 export const round2 = (v: number) => Math.round(v * 100) / 100;

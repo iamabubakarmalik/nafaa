@@ -1,58 +1,78 @@
 import { apiClient } from '@core/api/client';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
-export interface LayawayInstallment {
+export type LayawayView = 'active' | 'overdue' | 'week' | 'completed' | 'cancelled' | 'all';
+
+interface LayawayInstallment {
   id: string;
   installmentNo: number;
   dueDate: string;
   amount: number;
   paidAmount: number;
   status: 'UNPAID' | 'PARTIALLY_PAID' | 'PAID' | 'REFUNDED';
-  paidAt?: string;
-  paymentMethod?: string;
-  reference?: string;
-  notes?: string;
+  paidAt?: string | null;
+  paymentMethod?: string | null;
 }
 
 export interface LayawayPlan {
   id: string;
   planNumber: string;
-  customerId?: string;
-  customerName?: string;
-  customerPhone?: string;
-  productId?: string;
-  variantId?: string;
-  tailoringOrderId?: string;
+  customerId?: string | null;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  productId?: string | null;
+  variantId?: string | null;
+  productName?: string | null;
   totalAmount: number;
   depositAmount: number;
   paidAmount: number;
   remainingAmount: number;
   installmentCount: number;
   installmentAmount: number;
-  frequency: string;
+  frequency: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | string;
   startDate: string;
-  nextDueDate?: string;
-  finalDueDate?: string;
+  nextDueDate?: string | null;
+  finalDueDate?: string | null;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'DEFAULTED' | 'REFUNDED';
-  completedAt?: string;
-  cancelledAt?: string;
-  cancellationReason?: string;
-  notes?: string;
+  completedAt?: string | null;
+  cancelledAt?: string | null;
+  cancellationReason?: string | null;
+  notes?: string | null;
   installments: LayawayInstallment[];
+  bill?: { id: string; saleNumber: string } | null;
   createdAt: string;
-  updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+interface LayawayInput {
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  productId?: string;
+  variantId?: string;
+  totalAmount: number;
+  depositAmount?: number;
+  installmentCount: number;
+  frequency?: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+  startDate?: string;
+  notes?: string;
+  paymentMethod?: PaymentMethod;
+}
+
+export interface LayawayPage {
+  items: LayawayPlan[];
+  total: number; page: number; pages: number;
+  counts: Record<LayawayView, number>;
+  totals: { remaining: number; paid: number; value: number };
+}
+
+const unwrap = <T,>(res: { data: { data: T } }): T => res.data.data;
 
 export const layawayApi = {
-  create: (data: any) =>
-    apiClient.post('/garments/layaway', data).then(unwrap<LayawayPlan>),
-  list: (params?: { status?: string; customerId?: string }) =>
-    apiClient.get('/garments/layaway', { params }).then(unwrap<LayawayPlan[]>),
-  getOne: (id: string) =>
-    apiClient.get('/garments/layaway/' + id).then(unwrap<LayawayPlan>),
-  pay: (planId: string, installmentId: string, data: { amount: number; paymentMethod: string; reference?: string; notes?: string }) =>
-    apiClient.post('/garments/layaway/' + planId + '/installments/' + installmentId + '/pay', data).then(unwrap<LayawayPlan>),
-  cancel: (id: string, reason?: string) =>
-    apiClient.post('/garments/layaway/' + id + '/cancel', { reason }).then(unwrap<LayawayPlan>),
+  create: (data: LayawayInput) => apiClient.post('/garments/layaway', data).then(unwrap<LayawayPlan>),
+  page: (q: { view?: LayawayView; page?: number; limit?: number; search?: string }) =>
+    apiClient.get('/garments/layaway/page', { params: q }).then(unwrap<LayawayPage>),
+  pay: (id: string, data: { amount: number; paymentMethod: PaymentMethod }) =>
+    apiClient.post('/garments/layaway/' + id + '/pay', data).then(unwrap<LayawayPlan>),
+  complete: (id: string) => apiClient.post('/garments/layaway/' + id + '/complete').then(unwrap<LayawayPlan>),
+  cancel: (id: string, reason?: string) => apiClient.post('/garments/layaway/' + id + '/cancel', { reason }).then(unwrap<LayawayPlan>),
 };

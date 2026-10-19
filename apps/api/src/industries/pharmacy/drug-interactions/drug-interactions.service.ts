@@ -8,13 +8,15 @@ export class DrugInteractionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: UpsertInteractionDto) {
-    if (dto.saltAId === dto.saltBId) throw new BadRequestException('Salts must differ');
+    if (dto.saltAId === dto.saltBId) throw new BadRequestException('Do alag salt chunein');
+    const owned = await this.prisma.salt.count({ where: { id: { in: [dto.saltAId, dto.saltBId] }, tenantId: user.tenantId } });
+    if (owned !== 2) throw new NotFoundException('Salt nahi mila');
 
     // Normalize order — always smaller ID first
     const [a, b] = [dto.saltAId, dto.saltBId].sort();
 
     const existing = await this.prisma.drugInteraction.findFirst({ where: { saltAId: a, saltBId: b } });
-    if (existing) throw new BadRequestException('Interaction already exists');
+    if (existing) throw new BadRequestException('In dono ka asar pehle se likha hai');
 
     return this.prisma.drugInteraction.create({
       data: {
@@ -79,7 +81,7 @@ export class DrugInteractionsService {
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertInteractionDto) {
     const i = await this.prisma.drugInteraction.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!i) throw new NotFoundException('Interaction not found');
+    if (!i) throw new NotFoundException('Interaction nahi mila');
     return this.prisma.drugInteraction.update({
       where: { id },
       data: {
@@ -95,7 +97,7 @@ export class DrugInteractionsService {
 
   async remove(user: AuthenticatedUser, id: string) {
     const i = await this.prisma.drugInteraction.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!i) throw new NotFoundException('Interaction not found');
+    if (!i) throw new NotFoundException('Interaction nahi mila');
     return this.prisma.drugInteraction.delete({ where: { id } });
   }
 }

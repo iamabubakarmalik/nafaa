@@ -27,6 +27,10 @@ export interface Rider {
   isActive: boolean;
   notes?: string;
   deliveries?: any[];
+  /** Trips under way. */
+  activeTrips?: number;
+  /** Cash of delivered orders not yet handed over. */
+  cashDue?: number;
   createdAt: string;
   updatedAt: string;
 }

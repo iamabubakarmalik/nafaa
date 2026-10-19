@@ -2,7 +2,8 @@ import { apiClient } from '@core/api/client';
 import type { PtaStatus } from './imei.api';
 
 export type UsedPhoneCondition = 'EXCELLENT' | 'VERY_GOOD' | 'GOOD' | 'FAIR' | 'POOR';
-export type UsedPhoneStatus = 'PENDING_INSPECTION' | 'IN_STOCK' | 'REPAIRING' | 'SOLD' | 'RETURNED' | 'DISCARDED';
+export type UsedPhoneStatus = 'PENDING_INSPECTION' | 'IN_STOCK' | 'IN_TRANSIT' | 'REPAIRING' | 'SOLD' | 'RETURNED' | 'DISCARDED';
+export type UsedPhoneSort = 'new' | 'old' | 'priceHigh' | 'margin' | 'sold';
 export type TradeInSource = 'CASH_BUYBACK' | 'EXCHANGE' | 'CONSIGNMENT';
 
 export const CONDITION_LABELS: Record<UsedPhoneCondition, string> = {
@@ -19,24 +20,6 @@ export const CONDITION_COLORS: Record<UsedPhoneCondition, { bg: string; text: st
   GOOD: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
   FAIR: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' },
   POOR: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-300' },
-};
-
-export const STATUS_LABELS: Record<UsedPhoneStatus, string> = {
-  PENDING_INSPECTION: 'Pending Inspection',
-  IN_STOCK: 'In Stock',
-  REPAIRING: 'Under Repair',
-  SOLD: 'Sold',
-  RETURNED: 'Returned',
-  DISCARDED: 'Discarded',
-};
-
-export const STATUS_COLORS: Record<UsedPhoneStatus, { bg: string; text: string }> = {
-  PENDING_INSPECTION: { bg: 'bg-amber-100', text: 'text-amber-700' },
-  IN_STOCK: { bg: 'bg-emerald-100', text: 'text-emerald-700' },
-  REPAIRING: { bg: 'bg-orange-100', text: 'text-orange-700' },
-  SOLD: { bg: 'bg-violet-100', text: 'text-violet-700' },
-  RETURNED: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  DISCARDED: { bg: 'bg-slate-100', text: 'text-slate-700' },
 };
 
 export interface UsedPhone {
@@ -87,6 +70,42 @@ export interface UsedPhone {
   fromCustomer?: { id: string; name: string; phone?: string | null } | null;
   inspections?: UsedPhoneInspection[];
   _count?: { inspections: number };
+  /** List only: whole days since it came in. */
+  daysInStock?: number;
+}
+
+/** One phone with where its money went: drawer payment, trade-in bill, resale bill. */
+interface UsedPhoneDetail extends UsedPhone {
+  inspections: UsedPhoneInspection[];
+  paidFromDrawer: boolean;
+  tradeInBill: { id: string; saleNumber: string } | null;
+  sale: { id: string; saleNumber: string; status: string; createdAt: string; total: number; customer: { id: string; name: string; phone: string | null } | null } | null;
+}
+
+export interface UsedPhoneListParams {
+  search?: string;
+  status?: UsedPhoneStatus;
+  condition?: UsedPhoneCondition;
+  source?: TradeInSource;
+  ptaStatus?: PtaStatus;
+  brand?: string;
+  shopId?: string;
+  from?: string;
+  to?: string;
+  agedDays?: number;
+  sort?: UsedPhoneSort;
+  page?: number;
+  limit?: number;
+}
+
+interface UsedPhoneListPage {
+  items: UsedPhone[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  counts: Partial<Record<UsedPhoneStatus, number>>;
+  totals: { cost: number; resale: number; sold: number };
 }
 
 export interface UsedPhoneInspection {
@@ -194,25 +213,14 @@ export interface CreateInspectionPayload {
   recommendedActions?: string;
 }
 
-const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.data : res?.data);
+const unwrap = (res: { data?: unknown }) => {
+  const body = res?.data as { data?: unknown } | undefined;
+  return body?.data !== undefined ? body.data : body;
+};
 
 export const usedPhonesApi = {
-  list: (params?: {
-    search?: string;
-    status?: UsedPhoneStatus;
-    condition?: UsedPhoneCondition;
-    brand?: string;
-    shopId?: string;
-    page?: number;
-    limit?: number;
-  }) =>
-    apiClient.get('/used-phones', { params }).then(unwrap) as Promise<{
-      items: UsedPhone[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    }>,
+  list: (params?: UsedPhoneListParams) =>
+    apiClient.get('/used-phones', { params }).then(unwrap) as Promise<UsedPhoneListPage>,
 
   stats: () =>
     apiClient.get('/used-phones/stats').then(unwrap) as Promise<UsedPhoneStats>,
@@ -230,8 +238,11 @@ export const usedPhonesApi = {
   getOne: (id: string) =>
     apiClient.get(`/used-phones/${id}`).then(unwrap) as Promise<UsedPhone>,
 
+  detail: (id: string) =>
+    apiClient.get(`/used-phones/${id}/detail`).then(unwrap) as Promise<UsedPhoneDetail>,
+
   create: (payload: CreateUsedPhonePayload) =>
-    apiClient.post('/used-phones', payload).then(unwrap) as Promise<UsedPhone>,
+    apiClient.post('/used-phones', payload).then(unwrap) as Promise<UsedPhone & { paidFromDrawer?: boolean }>,
 
   update: (id: string, payload: Partial<CreateUsedPhonePayload>) =>
     apiClient.patch(`/used-phones/${id}`, payload).then(unwrap) as Promise<UsedPhone>,
@@ -242,12 +253,6 @@ export const usedPhonesApi = {
   markInStock: (id: string) =>
     apiClient.patch(`/used-phones/${id}/mark-in-stock`).then(unwrap) as Promise<UsedPhone>,
 
-  markSold: (id: string, finalPrice: number, saleId?: string) =>
-    apiClient.patch(`/used-phones/${id}/mark-sold`, { finalPrice, saleId }).then(unwrap) as Promise<UsedPhone>,
-
   discard: (id: string, reason?: string) =>
     apiClient.patch(`/used-phones/${id}/discard`, { reason }).then(unwrap) as Promise<UsedPhone>,
-
-  remove: (id: string) =>
-    apiClient.delete(`/used-phones/${id}`).then(unwrap),
 };

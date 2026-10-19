@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Package, Plus, Minus, Save, AlertTriangle, TrendingUp } from 'lucide-react';
+import { X, Package, Plus, Minus, Save, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';

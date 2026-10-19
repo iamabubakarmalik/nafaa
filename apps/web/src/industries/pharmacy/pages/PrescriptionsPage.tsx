@@ -1,272 +1,227 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import {
-  FileText, Plus, Search, X, RefreshCw, Sparkles, User, Phone,
-  Stethoscope, Clock, CheckCircle2, Ban, Package, Eye,
-  AlertCircle, Calendar, DollarSign, Repeat, Award, ClipboardCheck,
-} from 'lucide-react';
-import { prescriptionsApi, type PrescriptionStatus, type Prescription } from '../api/prescriptions.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Prescriptions list: what waits for the pharmacist's check, what is ready
+ * to hand over, and what was given, for any period. Status counts, search
+ * and paging come from the server; CSV and print take the whole filter.
+ */
+
+import { useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import {
+  CalendarRange, CheckCircle2, ClipboardCheck, Clock, Download, FilePlus, FileText, GraduationCap, ListChecks, Package, Repeat, Stethoscope, UserRound, XCircle,
+} from 'lucide-react';
+import {
+  DateRangeMenu, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { rangeLabel } from '@core/lib/dateRange';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { doctorsApi, type Doctor } from '../api/doctors.api';
+import { prescriptionsApi, type Prescription, type PrescriptionQuery, type PrescriptionStatus } from '../api/prescriptions.api';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { RX_STATUS, drName, shortDate } from '../lib/meta';
 
-const STATUS_CONFIG: Record<PrescriptionStatus, { label: string; color: string; icon: any }> = {
-  PENDING: { label: 'Pending', color: 'bg-blue-500', icon: Clock },
-  VERIFIED: { label: 'Verified', color: 'bg-cyan-500', icon: ClipboardCheck },
-  PARTIALLY_DISPENSED: { label: 'Partial', color: 'bg-amber-500', icon: Package },
-  DISPENSED: { label: 'Dispensed', color: 'bg-emerald-600', icon: CheckCircle2 },
-  REJECTED: { label: 'Rejected', color: 'bg-rose-500', icon: Ban },
-  CANCELLED: { label: 'Cancelled', color: 'bg-slate-500', icon: X },
-};
+const LIMIT = 25;
+type Tab = 'all' | PrescriptionStatus;
+const TABS: Array<{ id: Tab; label: string; icon: typeof Clock }> = [
+  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'PENDING', label: 'Check baqi', icon: Clock },
+  { id: 'VERIFIED', label: 'Dene ko tayyar', icon: ClipboardCheck },
+  { id: 'PARTIALLY_DISPENSED', label: 'Kuch di', icon: Package },
+  { id: 'DISPENSED', label: 'Poori di', icon: CheckCircle2 },
+  { id: 'REJECTED', label: 'Radd', icon: XCircle },
+];
 
-const TYPE_LABELS: Record<string, string> = {
-  WALK_IN: 'Walk-in', ONLINE: 'Online', REFILL: 'Refill', HOSPITAL: 'Hospital',
-  INSURANCE: 'Insurance', EMERGENCY: 'Emergency',
-};
+async function fetchAll(q: PrescriptionQuery) {
+  const out: Prescription[] = [];
+  for (let page = 1; page <= 40; page++) {
+    const res = await prescriptionsApi.page({ ...q, page, limit: 100 });
+    out.push(...res.items);
+    if (out.length >= res.total || !res.items.length) break;
+  }
+  return out;
+}
 
 export default function PrescriptionsPage() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('all');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [params] = useSearchParams();
+  const [period, setPeriod] = useState<DateRangeValue>({ preset: params.get('doctor') ? 'all' : 'month', custom: { from: '', to: '' } });
+  const [doctorId, setDoctorId] = useState<string>(() => params.get('doctor') ?? '');
+  const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
+  const q = useDebounced(search.trim());
+  const range = resolveRange(period, startHour);
 
-  const { data: prescriptions = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['prescriptions', statusFilter, search],
-    queryFn: () => prescriptionsApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      search: search.trim() || undefined,
-    }),
-    refetchInterval: 30_000,
+  const query: PrescriptionQuery = useMemo(() => ({
+    status: tab === 'all' ? undefined : tab, search: q || undefined, doctorId: doctorId || undefined,
+    from: range?.from, to: range?.to,
+  }), [tab, q, doctorId, range?.from, range?.to]);
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['prescriptions-page', query, page],
+    queryFn: () => prescriptionsApi.page({ ...query, page, limit: LIMIT }),
+    placeholderData: keepPreviousData,
+    refetchInterval: 60_000,
   });
+  const { data: doctors = [] } = useQuery({ queryKey: ['pharmacy-doctors', 'all'], queryFn: () => doctorsApi.list().catch(() => [] as Doctor[]), staleTime: 5 * 60_000 });
+  const c = data?.counts;
+  const go = (t: Tab) => { setTab(t); setPage(1); };
+  usePageKeys(searchRef, { n: () => navigate('/pharmacy/prescriptions/new') });
 
-  const counts = {
-    pending: prescriptions.filter((p) => p.status === 'PENDING').length,
-    verified: prescriptions.filter((p) => p.status === 'VERIFIED').length,
-    partial: prescriptions.filter((p) => p.status === 'PARTIALLY_DISPENSED').length,
-    dispensed: prescriptions.filter((p) => p.status === 'DISPENSED').length,
+  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const rows = await fetchAll(query);
+      if (!rows.length) { toast.error('Is filter me koi nuskha nahi'); return; }
+      downloadCsv('nuskhe.csv', [
+        ['Number', 'Tareekh', 'Mareez', 'Phone', 'Doctor', 'PMDC', 'Dawaiyan', 'Status', 'Amount'],
+        ...rows.map((r) => [r.prescriptionNumber, r.createdAt.slice(0, 10), r.patientName, r.patientPhone, r.doctorName, r.doctorRegNumber,
+          r.items.map((i) => `${i.medicineName} x${i.prescribedQty}`).join('; '), RX_STATUS[r.status].label, r.totalAmount]),
+      ]);
+      toast.success(`${rows.length} nuskhe CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+  };
+  const printDoc = async (): Promise<PrintDoc> => {
+    const rows = await fetchAll(query);
+    return {
+      title: 'Nuskhe', subtitle: label,
+      meta: [['Nuskhe', String(rows.length)], ['Di gayi dawai', money(data?.dispensedValue ?? 0)]],
+      sections: [{
+        kind: 'table', title: 'Nuskhe',
+        columns: [{ label: 'Number' }, { label: 'Mareez' }, { label: 'Doctor', wideOnly: true }, { label: 'Status' }, { label: 'Amount', align: 'right' }],
+        rows: rows.map((r) => [r.prescriptionNumber, r.patientName ?? '', r.doctorName ?? '', RX_STATUS[r.status].label, money(r.totalAmount)]),
+      }],
+    };
   };
 
+  const items = data?.items ?? [];
+  const pages = data ? Math.max(1, Math.ceil(data.total / LIMIT)) : 1;
+  const doctorName = doctors.find((d) => d.id === doctorId)?.name;
+
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-purple-400/15 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Prescriptions
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              📋 Prescriptions
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Doctor prescriptions — verify, dispense, refill
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
-            >
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Link to="/pharmacy/prescriptions/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" />
-                New Prescription
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Pending" value={counts.pending} icon={Clock} color="blue" />
-        <StatCard label="Verified" value={counts.verified} icon={ClipboardCheck} color="cyan" />
-        <StatCard label="Partial" value={counts.partial} icon={Package} color="amber" />
-        <StatCard label="Dispensed" value={counts.dispensed} icon={CheckCircle2} color="emerald" />
-      </section>
-
-      {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search Rx#, patient, phone, doctor..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {['all', 'PENDING', 'VERIFIED', 'PARTIALLY_DISPENSED', 'DISPENSED', 'REJECTED', 'CANCELLED'].map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={
-                'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                (statusFilter === s
-                  ? 'bg-violet-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
-              }
-            >
-              {s === 'all' ? 'All' : STATUS_CONFIG[s as PrescriptionStatus]?.label || s}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* LIST */}
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : prescriptions.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-violet-100 dark:bg-violet-950/40 mx-auto flex items-center justify-center">
-            <FileText className="h-10 w-10 text-violet-600" />
-          </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No prescriptions</h3>
-          <p className="mt-1 text-sm text-slate-500 font-semibold">Pehla prescription banao</p>
-        </div>
-      ) : (
-        <section className="grid gap-3">
-          {prescriptions.map((rx) => <RxCard key={rx.id} rx={rx} />)}
-        </section>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Nuskhe — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: FilePlus, color: '#2563eb', title: 'Nuskha likhein', text: 'Mareez aur doctor ka naam, phir dawaiyan aur kitni. Stock wali dawai chunein to rate khud aa jata hai.' },
+            { icon: ClipboardCheck, color: '#0891b2', title: 'Check karein', text: 'Pharmacist nuskha dekh kar "Check ho gaya" dabata hai — tab hi dawai di ja sakti hai.' },
+            { icon: Package, color: '#16a34a', title: 'Dawai dein', text: 'Jitni dawai deni hai likhein, batch chunein aur paisa lein (cash, card, split ya udhaar). Ye normal sale ban jati hai — stock, khata aur reports sab me.' },
+            { icon: Repeat, color: '#7c3aed', title: 'Refill', text: 'Refill wale nuskhe se agli dafa ek click me naya nuskha ban jata hai, aaj ke rate par.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya nuskha'], ['G', 'guide']]} />
       )}
-    </div>
-  );
-}
 
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-700', cyan: 'from-cyan-500 to-blue-600',
-    amber: 'from-amber-500 to-orange-600', emerald: 'from-emerald-500 to-green-600',
-  };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
+      <PageHero title="Nuskhe" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta="Prescriptions — check, dawai dena aur refill"
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/pharmacy/prescriptions/new" className={heroPrimaryButton}><FilePlus className="h-4 w-4" />Naya nuskha</Link>
+        </>}
+        stats={[
+          { label: `Nuskhe · ${label}`, value: String(c?.all ?? 0) },
+          { label: 'Check baqi', value: String(c?.PENDING ?? 0) },
+          { label: 'Dene ko tayyar', value: String((c?.VERIFIED ?? 0) + (c?.PARTIALLY_DISPENSED ?? 0)) },
+          { label: 'Di gayi dawai', value: money(data?.dispensedValue ?? 0) },
+        ]} />
 
-function RxCard({ rx }: { rx: Prescription }) {
-  const statusCfg = STATUS_CONFIG[rx.status];
-  const StatusIcon = statusCfg.icon;
-  const dispensed = rx.items?.filter((i) => i.isDispensed).length || 0;
-  const total = rx.items?.length || 0;
+      <KpiRow cols={4}>
+        {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Clock} color="#d97706" label="Check baqi" value={c.PENDING} hint="Pharmacist dekhe · dabayein" onClick={() => go('PENDING')} active={tab === 'PENDING'} />
+            <KpiCard icon={ClipboardCheck} color="#0891b2" label="Dene ko tayyar" value={c.VERIFIED} hint="Check ho gaye" onClick={() => go('VERIFIED')} active={tab === 'VERIFIED'} />
+            <KpiCard icon={Package} color="#7c3aed" label="Kuch di, baqi rehti" value={c.PARTIALLY_DISPENSED} hint="Baqi dawai deni hai" onClick={() => go('PARTIALLY_DISPENSED')} active={tab === 'PARTIALLY_DISPENSED'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Poori di" value={c.DISPENSED} hint={`${c.REJECTED + c.CANCELLED} radd / band`} onClick={() => go('DISPENSED')} active={tab === 'DISPENSED'} />
+          </>
+        )}
+      </KpiRow>
 
-  return (
-    <Link
-      to={'/pharmacy/prescriptions/' + rx.id}
-      className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-violet-300 transition p-4"
-    >
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg shrink-0">
-            <FileText className="h-6 w-6" />
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Nuskha number, mareez, phone, CNIC, doctor ya dawai…" />}
+        chips={(search.trim() || doctorId) ? <>
+          {doctorId && <FilterChip onRemove={() => setDoctorId('')}>{drName(doctorName) || 'Doctor'}</FilterChip>}
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setDoctorId(''); }}>
+        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Date" defaultPreset={'month'} />
+        {doctors.length > 0 && (
+          <FilterMenu icon={Stethoscope} label="Doctor" value={doctorId || 'all'} active={!!doctorId} width="w-72"
+            options={[{ value: 'all', label: 'Sab doctor' }, ...doctors.map((d) => ({ value: d.id, label: d.name, hint: d.specialization ?? d.registrationNumber }))]}
+            onChange={(v) => { setDoctorId(v === 'all' ? '' : v); setPage(1); }} />
+        )}
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={go} hint={<>Nuskhe par click kar ke kholein</>}
+        tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? (t.id === 'all' ? c.all : c[t.id]) : null }))} />
+
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {isLoading ? (
+          <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        ) : items.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-16 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><FileText className="h-7 w-7" /></span>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || doctorId ? 'Is filter me koi nuskha nahi' : 'Is muddat me koi nuskha nahi'}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">Mareez nuskha laye to "Naya nuskha" se likhein.</p>
+            <Link to="/pharmacy/prescriptions/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><FilePlus className="h-4 w-4" />Naya nuskha</Link>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{rx.prescriptionNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
-                <StatusIcon className="h-2.5 w-2.5" />
-                {statusCfg.label}
-              </span>
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 text-[0.625rem] font-extrabold uppercase">
-                {TYPE_LABELS[rx.type] || rx.type}
-              </span>
-              {rx.isRefillable && (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-                  <Repeat className="h-2 w-2" />
-                  Refills: {rx.refillsAllowed - rx.refillsUsed}/{rx.refillsAllowed}
-                </span>
-              )}
-              {rx.isInsuranceClaim && (
-                <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase">
-                  Insurance
-                </span>
-              )}
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {items.map((r) => {
+              const st = RX_STATUS[r.status];
+              const given = r.items.reduce((s, i) => s + (i.dispensedQty ?? 0), 0);
+              const asked = r.items.reduce((s, i) => s + i.prescribedQty, 0);
+              return (
+                <li key={r.id}>
+                  <Link to={`/pharmacy/prescriptions/${r.id}`} className="grid gap-2 px-4 py-3 hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_8rem_7rem] lg:items-center">
+                    <div>
+                      <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.prescriptionNumber}</p>
+                      <p className="text-[0.75rem] text-slate-500">{shortDate(r.createdAt)}{r.type === 'REFILL' && ' · refill'}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-1.5 truncate font-semibold text-slate-900"><UserRound className="h-3.5 w-3.5 shrink-0 text-slate-400" />{r.patientName || 'Walk-in'}</p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{[r.patientAge ? `${r.patientAge} saal` : '', r.patientPhone].filter(Boolean).join(' · ') || '—'}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-1.5 truncate text-[0.875rem] text-slate-700"><Stethoscope className="h-3.5 w-3.5 shrink-0 text-slate-400" />{drName(r.doctorName) || '—'}</p>
+                      {r.doctorRegNumber && <p className="truncate text-[0.75rem] text-slate-500">PMDC {r.doctorRegNumber}</p>}
+                    </div>
+                    <p className="min-w-0 truncate text-[0.8125rem] text-slate-600">
+                      {r.items.slice(0, 3).map((i) => i.medicineName).join(', ')}{r.items.length > 3 ? ` +${r.items.length - 3}` : ''}
+                      {asked > 0 && r.status !== 'PENDING' && <span className="ml-1.5 text-[0.75rem] text-slate-400">({Number(given.toFixed(2))}/{Number(asked.toFixed(2))} di)</span>}
+                    </p>
+                    <span className={cn('w-fit rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1', st.tone)}>{st.label}</span>
+                    <p className="text-right text-[0.9375rem] font-bold tabular-nums text-slate-900">{r.totalAmount > 0 ? money(r.totalAmount) : '—'}</p>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {data && data.total > LIMIT && (
+          <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
+            <span>{(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, data.total)} / {data.total}</span>
+            <div className="flex gap-2">
+              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Pichla</button>
+              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Agla</button>
             </div>
-
-            <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 dark:text-ink-400 font-semibold flex-wrap">
-              {rx.patientName && (
-                <span className="inline-flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {rx.patientName}
-                  {rx.patientAge && ' (' + rx.patientAge + 'y)'}
-                </span>
-              )}
-              {rx.patientPhone && (
-                <span className="inline-flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  {rx.patientPhone}
-                </span>
-              )}
-              {(rx.doctor?.name || rx.doctorName) && (
-                <span className="inline-flex items-center gap-1">
-                  <Stethoscope className="h-3 w-3" />
-                  {rx.doctor?.name || rx.doctorName}
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {format(new Date(rx.createdAt), 'dd MMM, HH:mm')}
-              </span>
-            </div>
-
-            {rx.diagnosis && (
-              <div className="mt-2 text-xs text-slate-500 italic line-clamp-1">Dx: {rx.diagnosis}</div>
-            )}
-
-            <div className="mt-2 flex flex-wrap gap-1">
-              {rx.items?.slice(0, 4).map((it, i) => (
-                <span key={i} className={
-                  'px-2 py-0.5 rounded text-[0.6875rem] font-extrabold ' +
-                  (it.isDispensed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-                }>
-                  {it.medicineName} × {it.prescribedQty}
-                </span>
-              ))}
-              {(rx.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-500">
-                  +{(rx.items?.length || 0) - 4} more
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(rx.totalAmount)}</div>
-          <div className="text-[0.6875rem] font-extrabold text-slate-500">
-            {dispensed}/{total} items dispensed
-          </div>
-          <div className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-violet-600">
-            View <Eye className="h-3 w-3" />
-          </div>
-        </div>
-      </div>
-    </Link>
+          </footer>
+        )}
+      </section>
+    </PageShell>
   );
 }

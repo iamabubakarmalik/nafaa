@@ -124,7 +124,7 @@ export function MobileEmi() {
             key={p.id}
             to={`/emi-plans/${p.id}`}
             leading={<IconBubble icon={AlertTriangle} tone="danger" />}
-            title={p.customer?.name ?? p.customerName}
+            title={p.customerName}
             meta={<span><span className="font-mono">{p.planNumber}</span> · {p.overdueCount} kist late{p.customerPhone ? ` · ${p.customerPhone}` : ''}</span>}
             value={cost(p.overdueAmount)}
             valueHint={<span className="text-rose-700">late</span>}

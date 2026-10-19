@@ -26,7 +26,7 @@ export class MobileReportsService {
       saleStats,
     ] = await Promise.all([
       this.prisma.productImei.aggregate({
-        where: { tenantId: user.tenantId, status: 'IN_STOCK' },
+        where: { tenantId: user.tenantId, ...(shopId && { shopId }), status: 'IN_STOCK' },
         _count: { _all: true },
         _sum: { costPrice: true, ptaTaxPaid: true },
       }),
@@ -514,8 +514,7 @@ export class MobileReportsService {
   // ════════════════════════════════════════════════════════
 
   async topBrands(user: AuthenticatedUser, days = 30) {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
+    const cutoff = subDaysTz(startOfDayTz(new Date()), Math.max(1, Math.min(days || 30, 366)) - 1);
 
     const sales = await this.prisma.saleItem.findMany({
       where: {
@@ -575,8 +574,7 @@ export class MobileReportsService {
   // ════════════════════════════════════════════════════════
 
   async repairAnalytics(user: AuthenticatedUser, days = 30) {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
+    const cutoff = subDaysTz(startOfDayTz(new Date()), Math.max(1, Math.min(days || 30, 366)) - 1);
 
     const [byStatus, deliveredAgg, topIssues, usedParts] = await Promise.all([
       this.prisma.repairTicket.groupBy({
@@ -626,8 +624,8 @@ export class MobileReportsService {
   // ════════════════════════════════════════════════════════
 
   async emiAnalytics(user: AuthenticatedUser) {
-    const today = new Date();
-    const monthStart = startOfMonthTz(today);
+    const today = startOfDayTz(new Date());
+    const monthStart = startOfMonthTz(new Date());
 
     const [byStatus, financingTotals, overdueAgg, collectedAgg] = await Promise.all([
       this.prisma.emiPlan.groupBy({
@@ -649,13 +647,10 @@ export class MobileReportsService {
         _sum: { amount: true, paidAmount: true },
         _count: { _all: true },
       }),
-      this.prisma.emiInstallment.aggregate({
-        where: {
-          plan: { tenantId: user.tenantId },
-          status: 'PAID',
-          paidDate: { gte: monthStart },
-        },
-        _sum: { paidAmount: true },
+      // Installment money as it reached the khata (part payments included).
+      this.prisma.customerLedger.aggregate({
+        where: { tenantId: user.tenantId, type: 'PAYMENT_RECEIVED', reference: { startsWith: 'EMI-' }, createdAt: { gte: monthStart } },
+        _sum: { amount: true },
         _count: { _all: true },
       }),
     ]);
@@ -672,7 +667,7 @@ export class MobileReportsService {
       activeRemaining: financingTotals._sum.remainingAmount ?? 0,
       overdueCount: overdueAgg._count._all,
       overdueAmount: (overdueAgg._sum.amount ?? 0) - (overdueAgg._sum.paidAmount ?? 0),
-      collectedThisMonth: collectedAgg._sum.paidAmount ?? 0,
+      collectedThisMonth: -(collectedAgg._sum.amount ?? 0),
       collectedCountThisMonth: collectedAgg._count._all,
     };
   }
@@ -682,8 +677,7 @@ export class MobileReportsService {
   // ════════════════════════════════════════════════════════
 
   async usedPhoneAnalytics(user: AuthenticatedUser, days = 30) {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
+    const cutoff = subDaysTz(startOfDayTz(new Date()), Math.max(1, Math.min(days || 30, 366)) - 1);
 
     const [byCondition, soldAgg, inStockAgg] = await Promise.all([
       this.prisma.usedPhone.groupBy({

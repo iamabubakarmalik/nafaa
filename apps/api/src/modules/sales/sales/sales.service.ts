@@ -14,7 +14,8 @@ import { PaymentPart, saveSalePayments, splitTender } from '../../../common/help
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import {
-  ShopScope, isServiceProduct, putIntoBatches, recordSaleBatches, resolveWriteShopId, takeFromBatches,
+  ShopScope, applyStockDelta, isServiceProduct, putIntoBatches, readShopStock, recordSaleBatches, resolveWriteShopId,
+  takeFromBatches,
 } from '../../../common/shop-scope';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { DiscountsService } from '../discounts/discounts.service';
@@ -35,9 +36,21 @@ export interface SaleOrigin {
 
 /** Number or zero, for optional numeric columns. */
 const n0 = (v: unknown) => Number(v ?? 0);
+/** Rupees to 2 decimals, so stored money carries no float noise. */
+const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
+
+/** Runs after a void commits; an industry that keeps its own records for a bill settles them here. */
+type VoidListener = (tenantId: string, saleId: string) => Promise<unknown>;
 
 @Injectable()
 export class SalesService {
+  private readonly voidListeners: VoidListener[] = [];
+
+  /** Industry flows register here to react to a committed void. Errors never fail the void. */
+  onVoid(fn: VoidListener) {
+    this.voidListeners.push(fn);
+  }
+
   constructor(private readonly prisma: PrismaService,
     private readonly discounts: DiscountsService,
     private readonly notifications: NotificationsService,
@@ -152,6 +165,19 @@ export class SalesService {
       if (imeiDupCheck.has(id)) throw new BadRequestException('Duplicate IMEI in cart');
       imeiDupCheck.add(id);
     }
+    // The phone must be this line's product and variant, and sit in the selling branch;
+    // otherwise the bill takes the wrong price and cost and both stocks drift.
+    const imeiById = new Map(imeis.map((i) => [i.id, i]));
+    for (const item of productItems) {
+      if (!item.imeiId) continue;
+      const im = imeiById.get(item.imeiId)!;
+      if (im.productId !== item.productId || (im.variantId ?? null) !== (item.variantId ?? null)) {
+        throw new BadRequestException(`IMEI ${im.imei1} is product/variant ka nahi`);
+      }
+      if (im.shopId && im.shopId !== sellingShopId) {
+        throw new BadRequestException(`IMEI ${im.imei1} doosri shop me hai — pehle transfer karein`);
+      }
+    }
 
     // ─── Validate electronics serials ─────────────────────────
     const serials = serialIds.length
@@ -172,6 +198,18 @@ export class SalesService {
     for (const id of serialIds) {
       if (serialDupCheck.has(id)) throw new BadRequestException('Ek hi serial cart me do dafa hai');
       serialDupCheck.add(id);
+    }
+    // Same rule for serial units: the line's product, and in the selling branch.
+    const serialById = new Map(serials.map((sr) => [sr.id, sr]));
+    for (const item of productItems) {
+      if (!item.serialId) continue;
+      const sr = serialById.get(item.serialId)!;
+      if (sr.productId !== item.productId) {
+        throw new BadRequestException(`Serial ${sr.serialNumber} is product ka nahi`);
+      }
+      if (sr.shopId && sr.shopId !== sellingShopId) {
+        throw new BadRequestException(`Serial ${sr.serialNumber} doosri shop me hai — pehle transfer karein`);
+      }
     }
     // Warranty months of the serial products, for the unit's warranty dates.
     const serialProductIds = [...new Set(serials.map((sr) => sr.productId))];
@@ -349,13 +387,15 @@ export class SalesService {
         addCartNeed(wantByKey, stockKey, quantity, allowNegativeStock ? Infinity : Number(shopStock.stock), { item: itemName, shop: shop.name });
       }
 
-      const lineGross = unitPrice * quantity;
-      const lineDiscount = item.lineDiscount ?? 0;
-      if (lineDiscount > lineGross) {
+      // Money is kept to paisa: a strip at 260 sold as 6 x 43.333 must total 260, not 259.9999998.
+      const lineGross = r2(unitPrice * quantity);
+      const askedLineDiscount = r2(item.lineDiscount ?? 0);
+      if (askedLineDiscount > lineGross + 0.005) {
         throw new BadRequestException(`Line discount cannot exceed line total for ${itemName}`);
       }
+      const lineDiscount = Math.min(askedLineDiscount, lineGross);
 
-      const lineTotal = lineGross - lineDiscount;
+      const lineTotal = r2(lineGross - lineDiscount);
       const lineCost = unitCost * quantity;
 
       subtotal += lineGross;
@@ -384,9 +424,11 @@ export class SalesService {
         internalNote: item.internalNote,
       };
     });
+    subtotal = r2(subtotal);
+    totalLineDiscount = r2(totalLineDiscount);
 
     // ─── Discount code ────────────────────────────────────────
-    let discount = (dto.discount ?? 0) + totalLineDiscount;
+    let discount = r2((dto.discount ?? 0) + totalLineDiscount);
     let discountCodeId: string | undefined;
     let discountCodeStr: string | undefined;
 
@@ -396,8 +438,8 @@ export class SalesService {
         user, dto.discountCode, subtotal - totalLineDiscount,
         { shopId: sellingShopId, customerId: dto.customerId },
       );
-      codeDiscount = validated.discount;
-      discount += validated.discount;
+      codeDiscount = r2(validated.discount);
+      discount = r2(discount + codeDiscount);
       discountCodeId = validated.id;
       discountCodeStr = validated.code;
     }
@@ -423,20 +465,20 @@ export class SalesService {
       const payable = Math.max(subtotal - discount, 0) * Math.min(100, Math.max(0, settings.loyaltyMaxRedeemPercent ?? 100)) / 100;
       const usable = Math.min(dto.loyaltyPointsToUse, Math.floor(payable / rate));
       loyaltyPointsUsed = Math.max(0, usable);
-      loyaltyDiscount = loyaltyPointsUsed * rate;
+      loyaltyDiscount = r2(loyaltyPointsUsed * rate);
     }
 
-    const totalDiscount = discount + loyaltyDiscount;
+    const totalDiscount = r2(discount + loyaltyDiscount);
 
     // ─── Service Charges ────────────────────────────────────
     const allServiceCharges = dto.serviceCharges ?? [];
     // Bahar ka rider apna delivery charge khud leta hai — bill par sirf likha,
     // dukaan ki sale / drawer / munafe me nahi (warna cash register kam dikhta).
     const serviceChargesArr = allServiceCharges.filter((sc: any) => !sc.passThrough);
-    const serviceChargesTotal = serviceChargesArr.reduce(
+    const serviceChargesTotal = r2(serviceChargesArr.reduce(
       (sum, sc) => sum + Number(sc.amount || 0),
       0,
-    );
+    ));
 
     // Kuch services par dukan ka apna kharcha hota hai (rider ka kiraya
     // waghera). Wo costOfGoods me jurta hai — warna `total - costOfGoods`
@@ -446,11 +488,16 @@ export class SalesService {
       0,
     );
 
-    const total = Math.max(subtotal - totalDiscount + serviceChargesTotal, 0);
-    const tender = splitTender(total, { parts: dto.payments, method: dto.paymentMethod, paidAmount: dto.paidAmount });
+    const total = r2(Math.max(subtotal - totalDiscount + serviceChargesTotal, 0));
+    // Amounts handed over are rounded the same way, so a till that sends the
+    // unrounded bill total is not left owing a fraction of a paisa.
+    const tender = splitTender(total, { parts: dto.payments, method: dto.paymentMethod, paidAmount: r2(dto.paidAmount) });
+    tender.paidAmount = r2(tender.paidAmount);
+    tender.changeAmount = r2(tender.changeAmount);
+    for (const row of tender.rows) row.amount = r2(row.amount);
     if (!opts.tradeInChecked) await this.checkTradeIns(user.tenantId, tender.rows);
     const { paidAmount, changeAmount } = tender;
-    const creditAmount = Math.max(total - paidAmount, 0);
+    const creditAmount = r2(Math.max(total - paidAmount, 0));
 
     if (creditAmount > 0 && !dto.customerId) {
       throw new BadRequestException('Udhaar sale ke liye customer select karna zaroori hai');
@@ -585,8 +632,9 @@ export class SalesService {
 
         // ─── IMEI items: mark SOLD + sync stock ───────────────
         if (item.isImeiItem && item.imeiId) {
-          const updatedImei = await tx.productImei.update({
-            where: { id: item.imeiId },
+          // Only while still on the shelf, so two counters cannot sell the same phone.
+          const claimed = await tx.productImei.updateMany({
+            where: { id: item.imeiId, status: 'IN_STOCK' },
             data: {
               status: 'SOLD',
               saleItemId: saleItem.id,
@@ -594,60 +642,30 @@ export class SalesService {
               soldAt: new Date(),
             },
           });
+          const updatedImei = imeiMap.get(item.imeiId)!;
+          if (!claimed.count) throw new BadRequestException(`IMEI ${updatedImei.imei1} abhi bik chuka hai`);
 
-          const productStock = await tx.productImei.count({
-            where: {
+          // One phone leaves this branch's shelf: one SALE_OUT movement at the
+          // phone's own cost. Never below zero, as before, when the branch count
+          // was already short of its phones.
+          const onShelf = await readShopStock(tx, sellingShopId, item.productId!, item.variantId ?? null);
+          const out = Math.min(item.quantity, Math.max(onShelf, 0));
+          if (out > 0) {
+            await applyStockDelta({
+              tx,
               tenantId: user.tenantId,
-              productId: item.productId!,
-              status: 'IN_STOCK',
-            },
-          });
-          await tx.product.update({
-            where: { id: item.productId! },
-            data: { stock: productStock },
-          });
-
-          if (item.variantId) {
-            const variantStock = await tx.productImei.count({
-              where: {
-                tenantId: user.tenantId,
-                productId: item.productId!,
-                variantId: item.variantId,
-                status: 'IN_STOCK',
-              },
-            });
-            await tx.productVariant.update({
-              where: { id: item.variantId },
-              data: { stock: variantStock },
-            });
-          }
-
-          const existingShopStock = await tx.shopStock.findFirst({
-            where: {
               shopId: sellingShopId,
               productId: item.productId!,
               variantId: item.variantId ?? null,
-            },
-          });
-          if (existingShopStock) {
-            const newShopStock = Math.max(Number(existingShopStock.stock) - 1, 0);
-            await tx.shopStock.update({
-              where: { id: existingShopStock.id },
-              data: { stock: newShopStock },
-            });
-          }
-
-          await tx.stockMovement.create({
-            data: {
-              tenantId: user.tenantId,
-              productId: item.productId!,
-              type: 'SALE_OUT',
-              quantity: -item.quantity,
-              balanceAfter: productStock,
+              delta: -out,
+              movementType: 'SALE_OUT',
               reference: sale.saleNumber,
               note: `IMEI ${updatedImei.imei1} sold at ${shop.name}`,
-            },
-          });
+              userId: user.id,
+              unitCost: item.costPrice,
+              batchMode: 'none',
+            });
+          }
           continue;
         }
 
@@ -1219,6 +1237,8 @@ export class SalesService {
 
       // ─── Restore IMEIs (mark IN_STOCK again) ──────────────────
       const saleItemIds = sale.items.map((i) => i.id);
+      // Lines that sold a phone: their stock comes back below as one phone each.
+      const imeiLineIds = new Set<string>();
       if (saleItemIds.length > 0) {
         const imeis = await tx.productImei.findMany({
           where: {
@@ -1227,6 +1247,7 @@ export class SalesService {
           },
         });
         for (const imei of imeis) {
+          if (imei.saleItemId) imeiLineIds.add(imei.saleItemId);
           await tx.productImei.update({
             where: { id: imei.id },
             data: {
@@ -1283,7 +1304,8 @@ export class SalesService {
 
         const itemNote = (item as any).note || '';
         const isCarpetItem = hasCarpetNote(itemNote) || (!!item.productId && noStockTaken.has(item.productId));
-        const isImeiItem = itemNote.startsWith('IMEI:');
+        // A phone line is known by its IMEI; the note prefix covers older bills.
+        const isImeiItem = imeiLineIds.has(item.id) || itemNote.startsWith('IMEI:');
 
         if (!item.productId) continue; // safety guard
 
@@ -1308,52 +1330,20 @@ export class SalesService {
         const variantId = item.variantLink?.variantId ?? null;
 
         if (isImeiItem) {
-          const productStock = await tx.productImei.count({
-            where: {
-              tenantId: user.tenantId,
-              productId: item.productId,
-              status: 'IN_STOCK',
-            },
-          });
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { stock: productStock },
-          });
-          if (variantId) {
-            const variantStock = await tx.productImei.count({
-              where: {
-                tenantId: user.tenantId,
-                productId: item.productId,
-                variantId,
-                status: 'IN_STOCK',
-              },
-            });
-            await tx.productVariant.update({
-              where: { id: variantId },
-              data: { stock: variantStock },
-            });
-          }
-          const existing = await tx.shopStock.findFirst({
-            where: { shopId: sale.shopId!, productId: item.productId, variantId },
-          });
-          if (existing) {
-            await tx.shopStock.update({
-              where: { id: existing.id },
-              data: { stock: { increment: item.quantity } },
-            });
-          }
-
-          await tx.stockMovement.create({
-            data: {
-              tenantId: user.tenantId,
-              shopId: sale.shopId,
-              productId: item.productId,
-              type: 'RETURN_IN',
-              quantity: item.quantity,
-              balanceAfter: productStock,
-              reference: sale.saleNumber,
-              note: `Voided IMEI sale: ${reason || 'No reason'}`,
-            },
+          // The phone is back on this branch's shelf: one RETURN_IN at its cost.
+          await applyStockDelta({
+            tx,
+            tenantId: user.tenantId,
+            shopId: sale.shopId!,
+            productId: item.productId,
+            variantId,
+            delta: item.quantity,
+            movementType: 'RETURN_IN',
+            reference: sale.saleNumber,
+            note: `Voided IMEI sale: ${reason || 'No reason'}`,
+            userId: user.id,
+            unitCost: item.costPrice,
+            batchMode: 'none',
           });
           continue;
         }
@@ -1462,6 +1452,7 @@ export class SalesService {
 
       return tx.sale.update({ where: { id }, data: { status: 'VOIDED' } });
     }).then((result) => {
+      for (const fn of this.voidListeners) void fn(user.tenantId, id).catch(() => undefined);
       void this.fbr
         .cancelInvoice(user.tenantId, id, reason ?? 'Sale voided')
         .catch(() => undefined);

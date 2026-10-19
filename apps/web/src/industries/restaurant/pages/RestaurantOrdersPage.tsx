@@ -1,368 +1,296 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import {
-  ShoppingBag, Plus, Search, X, Filter, Clock, DollarSign,
-  Utensils, Bike, Package, Car, Home, Coffee, RefreshCw,
-  ChefHat, CheckCircle2, Award, Timer, User, Phone, MapPin,
-  Sparkles, ArrowRight, Eye, AlertCircle, Ban, PlayCircle,
-} from 'lucide-react';
-import { ordersApi, type RestaurantOrder, type OrderStatus, type OrderMode } from '../api/orders.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Restaurant orders: every order for any period with server paging, filters
+ * (status, order type, waiter, date), totals for the whole filter, and the
+ * end-of-day view (open orders, money by type / waiter / table). Paid
+ * money is the bills' net, so it matches the day book.
+ *
+ * Keys: / search · N new order · D day close · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  ArrowDownWideNarrow, Ban, BarChart3, CalendarRange, CheckCircle2, ChefHat, Download, Flame, GraduationCap, ListChecks, ListFilter, Plus, ReceiptText,
+  ShoppingBag, UserRound, Utensils, Wallet, type LucideIcon,
+} from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, type FilterOption,
+} from '@/design-system/components';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { DATE_PRESETS, presetRange, rangeLabel, type DatePreset } from '@core/lib/dateRange';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { teamApi } from '@modules/organization/team/api/team.api';
+import { ordersApi, type OrderMode, type OrderPageQuery, type RestaurantOrder } from '../api/orders.api';
+import { DayClosePanel } from '../components/DayClosePanel';
+import { MODE_META, ORDER_MODES, STATUS_META, duration, isOpenOrder, minutesSince, orderTitle } from '../lib/orderMeta';
 
-const MODE_CONFIG: Record<OrderMode, { label: string; icon: any; color: string; bg: string }> = {
-  DINE_IN: { label: 'Dine-in', icon: Utensils, color: 'text-emerald-700', bg: 'bg-emerald-100 dark:bg-emerald-950/40' },
-  TAKEAWAY: { label: 'Takeaway', icon: ShoppingBag, color: 'text-blue-700', bg: 'bg-blue-100 dark:bg-blue-950/40' },
-  DELIVERY: { label: 'Delivery', icon: Bike, color: 'text-violet-700', bg: 'bg-violet-100 dark:bg-violet-950/40' },
-  DRIVE_THRU: { label: 'Drive-thru', icon: Car, color: 'text-amber-700', bg: 'bg-amber-100 dark:bg-amber-950/40' },
-  ROOM_SERVICE: { label: 'Room Service', icon: Home, color: 'text-pink-700', bg: 'bg-pink-100 dark:bg-pink-950/40' },
-  PICKUP: { label: 'Pickup', icon: Package, color: 'text-cyan-700', bg: 'bg-cyan-100 dark:bg-cyan-950/40' },
-};
-
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: any }> = {
-  DRAFT: { label: 'Draft', color: 'bg-slate-500', icon: AlertCircle },
-  PLACED: { label: 'Placed', color: 'bg-blue-500', icon: CheckCircle2 },
-  CONFIRMED: { label: 'Confirmed', color: 'bg-cyan-500', icon: CheckCircle2 },
-  COOKING: { label: 'Cooking', color: 'bg-amber-500', icon: ChefHat },
-  READY: { label: 'Ready', color: 'bg-emerald-500', icon: Award },
-  SERVED: { label: 'Served', color: 'bg-teal-600', icon: Utensils },
-  OUT_FOR_DELIVERY: { label: 'On the way', color: 'bg-violet-500', icon: Bike },
-  DELIVERED: { label: 'Delivered', color: 'bg-green-600', icon: CheckCircle2 },
-  COMPLETED: { label: 'Completed', color: 'bg-emerald-700', icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancelled', color: 'bg-rose-500', icon: Ban },
-  ON_HOLD: { label: 'On Hold', color: 'bg-orange-500', icon: PlayCircle },
-};
+type Bucket = 'all' | 'open' | 'completed' | 'cancelled';
+const BUCKETS: Array<FilterOption<Bucket>> = [
+  { value: 'all', label: 'Sab orders', icon: ListChecks, color: '#475569' },
+  { value: 'open', label: 'Khule', hint: 'Table, kitchen ya rider ke paas', icon: Flame, color: '#ea580c' },
+  { value: 'completed', label: 'Paid', hint: 'Bill ban gaya', icon: CheckCircle2, color: '#16a34a' },
+  { value: 'cancelled', label: 'Cancel', icon: Ban, color: '#e11d48' },
+];
+const SORTS: Array<FilterOption<'new' | 'old' | 'high' | 'low'>> = [
+  { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' }, { value: 'high', label: 'Bari amount pehle' }, { value: 'low', label: 'Chhoti amount pehle' },
+];
+const LIMIT = 30;
 
 export default function RestaurantOrdersPage() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const startHour = useBusinessDayStart();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<'orders' | 'close'>('orders');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [modeFilter, setModeFilter] = useState<string>('all');
+  const [debounced, setDebounced] = useState('');
+  const [bucket, setBucket] = useState<Bucket>('all');
+  const [mode, setMode] = useState<OrderMode | 'all'>('all');
+  const [waiterId, setWaiterId] = useState('all');
+  const [preset, setPreset] = useState<DatePreset>('today');
+  const [custom, setCustom] = useState({ from: '', to: '' });
+  const [sort, setSort] = useState<'new' | 'old' | 'high' | 'low'>('new');
+  const [page, setPage] = useState(1);
+  const [guide, setGuide] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  const { data: orders = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['restaurant-orders', statusFilter, modeFilter, search],
-    queryFn: () => ordersApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      mode: modeFilter === 'all' ? undefined : modeFilter,
-      search: search.trim() || undefined,
-    }),
-    refetchInterval: 30_000,
-  });
+  useEffect(() => { const t = setTimeout(() => setDebounced(search.trim()), 300); return () => clearTimeout(t); }, [search]);
+  useEffect(() => setPage(1), [debounced, bucket, mode, waiterId, preset, custom, sort]);
 
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
-      ordersApi.updateStatus(id, status),
-    onSuccess: (order) => {
-      toast.success('Order updated: ' + STATUS_CONFIG[order.status].label);
-      queryClient.invalidateQueries({ queryKey: ['restaurant-orders'] });
-      queryClient.invalidateQueries({ queryKey: ['restaurant-dashboard-overview'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update failed'),
-  });
+  const range = presetRange(preset, startHour, custom);
+  const query: OrderPageQuery = {
+    search: debounced || undefined, status: bucket, mode: mode === 'all' ? undefined : mode, waiterId: waiterId === 'all' ? undefined : waiterId,
+    from: range.from === 'all' ? undefined : range.from, to: range.to, sort, page, limit: LIMIT,
+  };
+  const q = useQuery({ queryKey: ['restaurant-orders-page', query], queryFn: () => ordersApi.page(query), placeholderData: keepPreviousData, refetchInterval: 30_000 });
+  const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: () => teamApi.list().catch(() => []), staleTime: 5 * 60_000 });
+  const st = q.data?.stats;
+  const rows = q.data?.items ?? [];
+  const pages = Math.max(1, Math.ceil((q.data?.total ?? 0) / LIMIT));
+  const label = rangeLabel(range.from, range.to);
+  const hasFilters = bucket !== 'all' || mode !== 'all' || waiterId !== 'all' || !!debounced || preset !== 'today';
+  const clear = () => { setBucket('all'); setMode('all'); setWaiterId('all'); setSearch(''); setPreset('today'); };
 
-  const activeOrders = orders.filter((o) =>
-    ['PLACED', 'CONFIRMED', 'COOKING', 'READY', 'SERVED', 'OUT_FOR_DELIVERY'].includes(o.status),
-  );
-  const completedToday = orders.filter((o) => {
-    if (o.status !== 'COMPLETED' && o.status !== 'DELIVERED') return false;
-    const today = new Date().toDateString();
-    return new Date(o.createdAt).toDateString() === today;
-  });
-  const totalRevenue = completedToday.reduce((sum, o) => sum + o.total, 0);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (k === 'n') navigate('/restaurant/orders/new');
+      if (k === 'd') setTab((t) => (t === 'orders' ? 'close' : 'orders'));
+      if (k === 'g') setGuide(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
+  /** Every order of the filter, page by page, for CSV and print. */
+  const fetchAll = async () => {
+    const out: RestaurantOrder[] = [];
+    for (let p = 1; p <= 50; p++) {
+      const r = await ordersApi.page({ ...query, page: p, limit: 200 });
+      out.push(...r.items);
+      if (out.length >= r.total || !r.items.length) break;
+    }
+    return out;
+  };
+  const csv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAll();
+      if (!all.length) { toast.error('Is filter me koi order nahi'); return; }
+      downloadCsv(`restaurant-orders-${range.from}-${range.to}.csv`, [
+        ['Order', 'Token', 'Tareekh', 'Type', 'Table', 'Customer', 'Waiter', 'Status', 'Bill', 'Total', 'Mila'],
+        ...all.map((o) => [o.orderNumber, o.token ?? '', new Date(o.createdAt).toLocaleString('en-PK'), MODE_META[o.mode].label, o.table?.tableNumber ?? '',
+          o.customerName ?? '', o.waiterName ?? '', STATUS_META[o.status].label, o.sale?.saleNumber ?? '', o.total, o.paidAmount]),
+      ]);
+      toast.success(`${all.length} order CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+  };
+  const printDoc = async (): Promise<PrintDoc> => {
+    const all = await fetchAll();
+    return {
+      title: 'Restaurant orders', subtitle: label,
+      sections: [
+        { kind: 'rows', rows: [
+          { label: 'Paid (bill)', value: `${st?.completed ?? 0} · ${formatPKR(st?.completedAmount ?? 0)}`, strong: true },
+          { label: 'Khule', value: `${st?.open ?? 0} · ${formatPKR(st?.openAmount ?? 0)}` },
+          { label: 'Cancel', value: `${st?.cancelled ?? 0} · ${formatPKR(st?.cancelledAmount ?? 0)}` },
+        ] },
+        { kind: 'table', columns: [{ label: 'Order' }, { label: 'Type' }, { label: 'Table / customer', wideOnly: true }, { label: 'Status', wideOnly: true }, { label: 'Total', align: 'right' }],
+          rows: all.map((o) => [o.orderNumber, MODE_META[o.mode].short, o.table ? `T ${o.table.tableNumber}` : o.customerName ?? '', STATUS_META[o.status].label, formatPKR(o.total)]) },
+      ],
+    };
+  };
+
+  const modeOptions = useMemo<Array<FilterOption<OrderMode | 'all'>>>(() => [
+    { value: 'all', label: 'Har type' }, ...ORDER_MODES.map((m) => ({ value: m, label: MODE_META[m].label, icon: MODE_META[m].icon, color: MODE_META[m].color })),
+  ], []);
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-orange-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-rose-400/15 blur-3xl" />
+    <PageShell>
+      {guide && <OrdersGuide onClose={() => setGuide(false)} />}
+      <PageHero
+        title="Orders"
+        chip={<><CalendarRange />{label}</>}
+        busy={q.isFetching && !q.isLoading}
+        meta="Dine-in, takeaway, delivery aur counter"
+        loading={q.isLoading}
+        actions={<>
+          <button type="button" onClick={() => void csv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <Link to="/restaurant/tables" className={heroButton}><Utensils className="h-4 w-4" />Tables</Link>
+          <Link to="/restaurant/orders/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya order <Kbd className="hidden md:inline-flex">N</Kbd></Link>
+          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={st ? [
+          { label: `Paid · ${st.completed} bill`, value: formatPKR(st.completedAmount), hint: st.voidedBills ? `${st.voidedBills} bill void` : undefined },
+          { label: 'Khule orders', value: String(st.open), hint: formatPKR(st.openAmount) },
+          { label: 'Ausat bill', value: formatPKR(st.averageBill) },
+          { label: 'Cancel', value: String(st.cancelled), hint: st.cancelledAmount ? formatPKR(st.cancelledAmount) : undefined },
+        ] : [{ label: 'Paid', value: '' }, { label: 'Khule orders', value: '' }, { label: 'Ausat bill', value: '' }, { label: 'Cancel', value: '' }]}
+      />
 
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Live Orders
+      <KpiRow>
+        {!st ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={ChefHat} color="#ea580c" label="Kitchen me" value={String(st.kitchen)} hint="Ban rahe orders" onClick={() => setBucket(bucket === 'open' ? 'all' : 'open')} active={bucket === 'open'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Tayyar" value={String(st.ready)} hint="Serve / pickup ka intezar" />
+            <KpiCard icon={ReceiptText} color="#9333ea" label="Bill print" value={String(st.billPrinted)} hint="Payment ka intezar" />
+            {st.byMode.slice(0, 2).map((m) => {
+              const meta = MODE_META[m.mode];
+              return <KpiCard key={m.mode} icon={meta?.icon ?? ShoppingBag} color={meta?.color ?? '#475569'} label={meta?.label ?? m.mode} value={formatPKR(m.amount)} hint={`${m.count} bill · dabayein`}
+                onClick={() => setMode(mode === m.mode ? 'all' : m.mode)} active={mode === m.mode} />;
+            })}
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Order number, bill number, customer, phone ya table…" label="Order search" />}
+        chips={hasFilters ? <>
+          {preset !== 'today' && <FilterChip onRemove={() => setPreset('today')}>{label}</FilterChip>}
+          {bucket !== 'all' && <FilterChip onRemove={() => setBucket('all')}>{BUCKETS.find((b) => b.value === bucket)?.label}</FilterChip>}
+          {mode !== 'all' && <FilterChip onRemove={() => setMode('all')}>{MODE_META[mode].label}</FilterChip>}
+          {waiterId !== 'all' && <FilterChip onRemove={() => setWaiterId('all')}>{team.find((t) => t.id === waiterId)?.fullName ?? 'Waiter'}</FilterChip>}
+          {debounced && <FilterChip onRemove={() => setSearch('')}>"{debounced}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <FilterMenu icon={CalendarRange} label="Date" value={preset} active={preset !== 'today'} width="w-72"
+          options={[...DATE_PRESETS.map((p) => ({ value: p.id, label: p.label })), { value: 'custom' as const, label: 'Apni date', hint: 'Neeche se chunein' }]}
+          onChange={setPreset}
+          footer={() => (
+            <div className="mt-1 grid grid-cols-2 gap-2 border-t border-slate-100 p-2 pt-3">
+              {(['from', 'to'] as const).map((k) => (
+                <label key={k} className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">{k === 'from' ? 'Se' : 'Tak'}
+                  <input type="date" value={custom[k] || (range[k] === 'all' ? '' : range[k])} onChange={(e) => { setCustom({ ...custom, [k]: e.target.value }); setPreset('custom'); }}
+                    className="mt-1 block h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-normal normal-case tracking-normal text-slate-900" />
+                </label>
+              ))}
             </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-              🍽️ Restaurant Orders
-            </h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              Dine-in, Takeaway, Delivery — sab ek jagah manage karo
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20"
-            >
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Link to="/restaurant/orders/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" />
-                New Order
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+          )} />
+        <FilterMenu icon={ListFilter} label="Status" value={bucket} active={bucket !== 'all'} options={BUCKETS} onChange={setBucket} />
+        <FilterMenu icon={Utensils} label="Type" value={mode} active={mode !== 'all'} options={modeOptions} onChange={setMode} />
+        {team.length > 1 && (
+          <FilterMenu icon={UserRound} label="Waiter" value={waiterId} active={waiterId !== 'all'}
+            options={[{ value: 'all', label: 'Sab waiter' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]} onChange={setWaiterId} />
+        )}
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />
+      </FilterBar>
 
-      {/* STATS */}
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Active Orders" value={activeOrders.length} sub="In progress" icon={ChefHat} color="orange" />
-        <StatCard label="Completed Today" value={completedToday.length} sub="Done" icon={CheckCircle2} color="emerald" />
-        <StatCard label="Revenue Today" value={formatPKR(totalRevenue)} sub="From completed" icon={DollarSign} color="blue" />
-        <StatCard label="Total Shown" value={orders.length} sub="Last 200 orders" icon={ShoppingBag} color="violet" />
-      </section>
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>D</Kbd> se badlein</>}
+        tabs={[{ id: 'orders', label: 'Orders', icon: ListChecks, count: q.data?.total ?? null }, { id: 'close', label: 'Din band', icon: BarChart3 }]} />
 
-      {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-orange-500"
-              placeholder="Search order #, customer, phone..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-
-          <select
-            value={modeFilter}
-            onChange={(e) => setModeFilter(e.target.value)}
-            className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-sm font-bold focus:outline-none focus:border-orange-500"
-          >
-            <option value="all">All Modes</option>
-            {Object.entries(MODE_CONFIG).map(([k, v]) => (
-              <option key={k} value={k}>{v.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Status quick-filter chips */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {['all', 'PLACED', 'CONFIRMED', 'COOKING', 'READY', 'SERVED', 'OUT_FOR_DELIVERY', 'COMPLETED', 'CANCELLED'].map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={
-                'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                (statusFilter === s
-                  ? 'bg-orange-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200')
-              }
-            >
-              {s === 'all' ? 'All' : STATUS_CONFIG[s as OrderStatus]?.label || s}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ORDERS LIST */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : orders.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
-            <ShoppingBag className="h-10 w-10 text-slate-400" />
-          </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No orders</h3>
-          <p className="mt-1 text-sm text-slate-500 font-semibold">
-            {search || statusFilter !== 'all' || modeFilter !== 'all' ? 'No orders match filters' : 'Naya order banao'}
-          </p>
-        </div>
-      ) : (
-        <section className="grid gap-3">
-          {orders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onStatusChange={(status) => updateStatusMutation.mutate({ id: order.id, status })}
-              isUpdating={updateStatusMutation.isPending}
-            />
-          ))}
+      {tab === 'close' ? <DayClosePanel date={preset === 'today' ? undefined : range.to} /> : (
+        <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          {q.isLoading ? (
+            <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+          ) : !rows.length ? (
+            <div className="flex flex-col items-center px-6 py-16 text-center">
+              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg"><ShoppingBag className="h-7 w-7" /></span>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{hasFilters ? 'Is filter me koi order nahi' : 'Aaj abhi koi order nahi'}</h3>
+              <div className="mt-4">{hasFilters ? <Button variant="secondary" onClick={clear}>Filter hatayein</Button> : <Button onClick={() => navigate('/restaurant/orders/new')}>Pehla order lein</Button>}</div>
+            </div>
+          ) : (
+            <>
+              <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)_7rem] gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 lg:grid">
+                <span>Order</span><span>Type</span><span>Dishes</span><span>Status</span><span className="text-right">Amount</span>
+              </div>
+              <ul className="divide-y divide-slate-100">
+                {rows.map((o) => <OrderRow key={o.id} o={o} />)}
+              </ul>
+              {pages > 1 && (
+                <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-[0.8125rem]">
+                  <span className="text-slate-500">Safha {page} / {pages} · {q.data?.total} order</span>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Pichhla</Button>
+                    <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>Agla</Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </section>
       )}
-    </div>
+    </PageShell>
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    orange: 'from-orange-500 to-red-600',
-    emerald: 'from-emerald-500 to-green-600',
-    blue: 'from-blue-500 to-blue-700',
-    violet: 'from-violet-500 to-purple-600',
-  };
+function OrderRow({ o }: { o: RestaurantOrder }) {
+  const meta = MODE_META[o.mode];
+  const status = STATUS_META[o.status];
+  const open = isOpenOrder(o);
+  const voided = o.sale?.status === 'VOIDED';
+  const Icon = meta.icon;
   return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-          <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
+    <li>
+      <Link to={`/restaurant/orders/${o.id}`} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 hover:bg-slate-50 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)_7rem] lg:px-5">
+        <span className="min-w-0">
+          <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{orderTitle(o)}</span>
+          <span className="block truncate text-[0.75rem] text-slate-500">{o.orderNumber}{o.sale ? ` · ${o.sale.saleNumber}` : ''} · {new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(o.createdAt))}</span>
+        </span>
+        <span className="hidden items-center gap-1.5 text-[0.8125rem] text-slate-700 lg:inline-flex"><Icon className="h-4 w-4" style={{ color: meta.color }} />{meta.label}{o.waiterName ? <span className="truncate text-slate-400">· {o.waiterName}</span> : null}</span>
+        <span className="hidden truncate text-[0.8125rem] text-slate-600 lg:block">{o.items.map((i) => `${i.quantity}× ${i.product?.name ?? ''}`).join(', ')}</span>
+        <span className="hidden lg:block">
+          <span className={cn('inline-block rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', voided ? 'bg-rose-50 text-rose-700' : status.tone)}>{voided ? 'Bill void' : status.label}</span>
+          {open && <span className="ml-1.5 text-[0.6875rem] text-slate-400">{duration(minutesSince(o.createdAt))}</span>}
+          {(o.sale?.creditAmount ?? 0) > 0 && <span className="ml-1.5 text-[0.6875rem] font-semibold text-amber-700">udhaar</span>}
+        </span>
+        <span className="text-right">
+          <span className={cn('block text-[0.9375rem] font-bold tabular-nums', voided || o.status === 'CANCELLED' ? 'text-slate-400 line-through' : 'text-slate-900')}>{formatPKR(o.total)}</span>
+          <span className={cn('text-[0.6875rem] font-semibold lg:hidden', status.tone, 'rounded px-1')}>{voided ? 'Bill void' : status.label}</span>
+        </span>
+      </Link>
+    </li>
   );
 }
 
-function OrderCard({ order, onStatusChange, isUpdating }: {
-  order: RestaurantOrder;
-  onStatusChange: (status: OrderStatus) => void;
-  isUpdating: boolean;
-}) {
-  const modeCfg = MODE_CONFIG[order.mode];
-  const statusCfg = STATUS_CONFIG[order.status];
-  const ModeIcon = modeCfg.icon;
-  const StatusIcon = statusCfg.icon;
-
-  // Next status suggestion
-  const nextStatus: Record<OrderStatus, OrderStatus | null> = {
-    DRAFT: 'PLACED',
-    PLACED: 'CONFIRMED',
-    CONFIRMED: 'COOKING',
-    COOKING: 'READY',
-    READY: order.mode === 'DELIVERY' ? 'OUT_FOR_DELIVERY' : 'SERVED',
-    SERVED: 'COMPLETED',
-    OUT_FOR_DELIVERY: 'DELIVERED',
-    DELIVERED: 'COMPLETED',
-    COMPLETED: null,
-    CANCELLED: null,
-    ON_HOLD: 'PLACED',
-  };
-  const next = nextStatus[order.status];
-
-  const elapsed = order.placedAt
-    ? Math.floor((Date.now() - new Date(order.placedAt).getTime()) / 60000)
-    : 0;
-
+function OrdersGuide({ onClose }: { onClose: () => void }) {
+  const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
+    { icon: Plus, color: '#2563eb', title: 'Naya order', text: 'N dabayein. Dine-in me table chunein, takeaway / delivery / counter me customer.' },
+    { icon: Flame, color: '#ea580c', title: 'Khule orders', text: '"Status → Khule" se wo sab jo table par, kitchen me ya rider ke paas hain.' },
+    { icon: Wallet, color: '#16a34a', title: 'Paid', text: 'Upar ka "Paid" bill ka net hai — void bill nikal kar, return ghata kar. Day book se milta hai.' },
+    { icon: BarChart3, color: '#db2777', title: 'Din band', text: 'D — khule orders ki tambeeh, rider ka cash, aur type / waiter / table war sale.' },
+  ];
   return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        {/* LEFT */}
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={'h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow ' + modeCfg.bg + ' ' + modeCfg.color}>
-            <ModeIcon className="h-6 w-6" />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{order.orderNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
-                <StatusIcon className={'h-2.5 w-2.5 ' + (order.status === 'COOKING' ? 'animate-pulse' : '')} />
-                {statusCfg.label}
-              </span>
-              <span className={'px-2 py-0.5 rounded-md text-[0.6875rem] font-extrabold uppercase ' + modeCfg.bg + ' ' + modeCfg.color}>
-                {modeCfg.label}
-              </span>
-              {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && elapsed > 0 && (
-                <span className={
-                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.6875rem] font-extrabold ' +
-                  (elapsed > 30 ? 'bg-rose-100 text-rose-700' : elapsed > 15 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')
-                }>
-                  <Clock className="h-2.5 w-2.5" />
-                  {elapsed}m
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 font-semibold flex-wrap">
-              {order.table && (
-                <span className="inline-flex items-center gap-1">
-                  <Utensils className="h-3 w-3" />
-                  Table {order.table.tableNumber}
-                </span>
-              )}
-              {order.customerName && (
-                <span className="inline-flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {order.customerName}
-                </span>
-              )}
-              {order.customerPhone && (
-                <span className="inline-flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  {order.customerPhone}
-                </span>
-              )}
-              {order.numberOfGuests && (
-                <span>{order.numberOfGuests} guests</span>
-              )}
-              <span>{order.items?.length || 0} items</span>
-            </div>
-
-            {/* Items preview */}
-            <div className="mt-2 flex flex-wrap gap-1">
-              {order.items?.slice(0, 4).map((item, i) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-300">
-                  {item.product?.name || 'Item'} × {item.quantity}
-                </span>
-              ))}
-              {(order.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-bold text-slate-500">
-                  +{(order.items?.length || 0) - 4} more
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT */}
-        <div className="text-right shrink-0">
-          <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
-            {formatPKR(order.total)}
-          </div>
-          {order.paidAmount > 0 && order.paidAmount < order.total && (
-            <div className="text-[0.6875rem] font-extrabold text-amber-700 mt-1">
-              Paid: {formatPKR(order.paidAmount)}
-            </div>
-          )}
-          {order.paidAmount >= order.total && (
-            <div className="text-[0.6875rem] font-extrabold text-emerald-600 mt-1 inline-flex items-center gap-0.5">
-              <CheckCircle2 className="h-2.5 w-2.5" />
-              Paid
-            </div>
-          )}
-
-          <div className="mt-3 flex gap-1 justify-end">
-            {next && order.status !== 'CANCELLED' && (
-              <button
-                onClick={() => onStatusChange(next)}
-                disabled={isUpdating}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm"
-                title={'Mark as ' + STATUS_CONFIG[next].label}
-              >
-                <ArrowRight className="h-3 w-3" />
-                {STATUS_CONFIG[next].label}
-              </button>
-            )}
-
-            <Link
-              to={'/restaurant/orders/' + order.id}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 dark:text-ink-300 text-xs font-extrabold"
-            >
-              <Eye className="h-3 w-3" />
-              View
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Modal open onClose={onClose} size="lg" title="Orders — aasaan tareeqa">
+      <ol className="grid gap-3 sm:grid-cols-2">
+        {steps.map((s, i) => (
+          <li key={s.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${s.color}17`, color: s.color }}>
+              <s.icon className="h-5 w-5" />
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.625rem] font-bold text-white">{i + 1}</span>
+            </span>
+            <div><p className="text-[0.875rem] font-semibold text-slate-900">{s.title}</p><p className="mt-0.5 text-[0.8125rem] leading-relaxed text-slate-600">{s.text}</p></div>
+          </li>
+        ))}
+      </ol>
+    </Modal>
   );
 }

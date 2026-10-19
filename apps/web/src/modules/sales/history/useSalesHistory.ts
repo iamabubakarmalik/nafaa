@@ -5,6 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { useBusinessDayStart } from '@core/lib/business-day';
 import { getPendingAsSales, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { salesHistoryApi, type HistoryFilters, type HistorySale, type HistorySort, type HistoryStatus } from './api';
@@ -20,17 +21,25 @@ function readPrefs(): { preset: DatePreset; sort: HistorySort } {
 export function useSalesHistory() {
   const startHour = useBusinessDayStart();
   const saved = useMemo(readPrefs, []);
-  const [preset, setPreset] = useState<DatePreset>(saved.preset);
+  // A link such as /sales?q=NF-123 opens with that search over all dates,
+  // since the bill may be older than the saved period.
+  const [params] = useSearchParams();
+  const linkQ = useMemo(() => params.get('q')?.trim() ?? '', []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [preset, setPreset] = useState<DatePreset>(linkQ ? 'all' : saved.preset);
   const [custom, setCustom] = useState({ from: '', to: '' });
   const [method, setMethod] = useState<PaymentMethod | undefined>();
   const [status, setStatus] = useState<HistoryStatus>('all');
   const [staffId, setStaffId] = useState<string | undefined>();
   const [source, setSource] = useState<string | undefined>();
   const [sort, setSort] = useState<HistorySort>(saved.sort);
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState(linkQ);
+  const [query, setQuery] = useState(linkQ);
   useEffect(() => { const t = setTimeout(() => setQuery(search), 300); return () => clearTimeout(t); }, [search]);
-  useEffect(() => { try { localStorage.setItem(PREF_KEY, JSON.stringify({ preset: preset === 'custom' ? 'today' : preset, sort })); } catch { /* */ } }, [preset, sort]);
+  useEffect(() => {
+    // The all-dates period opened by a link is not saved as the user's choice.
+    const keep = preset === 'custom' ? 'today' : linkQ && preset === 'all' ? saved.preset : preset;
+    try { localStorage.setItem(PREF_KEY, JSON.stringify({ preset: keep, sort })); } catch { /* */ }
+  }, [preset, sort, linkQ, saved.preset]);
 
   const range = presetRange(preset, startHour, custom);
   const filters: HistoryFilters = { ...range, method, status, staffId, source, search: query, sort };

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GarmentCategoryType, GarmentFabricType, GarmentFitType, GarmentGender, GarmentSeason, GarmentWorkType } from '@prisma/client';
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 
 export class UpsertGarmentProductDto {
   @ApiProperty() @IsString() productId!: string;
@@ -49,16 +50,30 @@ export class UpsertVariantProfileDto {
   @ApiPropertyOptional() @IsOptional() @IsString() colorFamily?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() skuSuffix?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() barcode?: string;
-  @ApiPropertyOptional() @IsOptional() chest?: number;
-  @ApiPropertyOptional() @IsOptional() waist?: number;
-  @ApiPropertyOptional() @IsOptional() hip?: number;
-  @ApiPropertyOptional() @IsOptional() shoulder?: number;
-  @ApiPropertyOptional() @IsOptional() length?: number;
-  @ApiPropertyOptional() @IsOptional() sleeveLength?: number;
-  @ApiPropertyOptional() @IsOptional() inseam?: number;
-  @ApiPropertyOptional() @IsOptional() weightGrams?: number;
-  @ApiPropertyOptional() @IsOptional() fabricMeters?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() chest?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() waist?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() hip?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() shoulder?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() length?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() sleeveLength?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() inseam?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() weightGrams?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() fabricMeters?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() displayOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeaturedColor?: boolean;
+}
+
+class VariantProfileLineDto {
+  @ApiProperty() @IsString() variantId!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) size?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) colorName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) colorHex?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() displayOrder?: number;
+}
+
+export class VariantProfilesDto {
+  @ApiProperty({ type: [VariantProfileLineDto] })
+  @IsArray() @ArrayMaxSize(300) @ValidateNested({ each: true }) @Type(() => VariantProfileLineDto)
+  items!: VariantProfileLineDto[];
 }

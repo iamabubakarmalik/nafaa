@@ -15,6 +15,7 @@ import type { Product } from '@modules/inventory/products/api/products.api';
 import type { PosBadge } from '../components/PosTiles';
 import type { PosCartLine } from '../lib/posCart';
 import type { PosUnitOption } from '../lib/posUnits';
+import type { PosTradeIn } from '../components/PosSplitTender';
 
 /** A sellable product, normalised for the counter. */
 export interface PosItem {
@@ -76,7 +77,22 @@ export interface AddOptions {
   confirmed?: string[];
   variant?: { id: string; name: string; price?: number | null; stock?: number | null };
   serial?: { id: string; serialNumber: string; imei?: string | null };
+  /** The exact phone sold (mobile shops): quantity stays 1 and the sale carries its IMEI. */
+  imei?: { id: string; imei1: string; imei2?: string | null };
   warrantyMonths?: number;
+  note?: string;
+  /** Rate for this line instead of the product or variant price (a phone's own price). */
+  price?: number;
+}
+
+/** A line with no catalog product behind it: a used phone taken in earlier. */
+export interface PosUsedPhoneLine {
+  usedPhoneId: string;
+  /** Shown on the bill, e.g. UP-0012. */
+  code: string;
+  name: string;
+  price: number;
+  image?: string;
   note?: string;
 }
 
@@ -89,6 +105,10 @@ export interface PosEngineApi {
   itemById: (id: string) => PosItem | undefined;
   /** Catalog item whose barcode or SKU equals `code`. */
   findItemByCode: (code: string) => PosItem | undefined;
+  /** Puts a used phone on the bill (no catalog product, quantity 1). */
+  addUsedPhone: (line: PosUsedPhoneLine) => void;
+  /** The whole counter catalog, for industry scans that match on item details (IMEI). */
+  items: PosItem[];
   cart: PosCartLine[];
 }
 
@@ -123,4 +143,6 @@ export interface PosIndustryConfig {
   CartExtra?: ComponentType;
   /** Show voice billing. */
   voice?: boolean;
+  /** Goods taken toward the bill (used phones), offered as a payment at checkout. */
+  useTradeIns?: () => PosTradeIn[] | undefined;
 }
