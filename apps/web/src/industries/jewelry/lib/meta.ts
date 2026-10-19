@@ -17,6 +17,7 @@ export const KEYS = {
   karigars: 'jewelry-karigars',
   metal: 'jewelry-metal-stock',
   sales: 'jewelry-sales',
+  repairs: 'jewelry-repairs',
 } as const;
 
 export const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;

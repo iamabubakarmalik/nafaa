@@ -1,4 +1,4 @@
-import { Bell, Car, Package, Plus, Truck, UserCog, Wrench } from 'lucide-react';
+import { Bell, Car, Package, Plus, Recycle, Truck, UserCog, Wrench } from 'lucide-react';
 import { PERMISSIONS } from '@core/lib/permissions';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
@@ -11,6 +11,7 @@ import NewWorkshopJobPage from './pages/NewWorkshopJobPage';
 import WorkshopJobDetailPage from './pages/WorkshopJobDetailPage';
 import MechanicsPage from './pages/MechanicsPage';
 import ServiceRemindersPage from './pages/ServiceRemindersPage';
+import CoreReturnsPage from './pages/CoreReturnsPage';
 import AutoPartWizardPage from './pages/AutoPartWizardPage';
 import AutoPartDetailPage from './pages/AutoPartDetailPage';
 
@@ -50,6 +51,7 @@ export const AutoPartsPack: IndustryPack = {
         { to: '/autoparts/parts', label: 'Parts', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/autoparts/vehicles', label: 'Gaariyan', icon: Car, permission: PERMISSIONS.CUSTOMERS_VIEW },
         { to: '/autoparts/reminders', label: 'Service reminders', icon: Bell, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/autoparts/core-returns', label: 'Purane parts', icon: Recycle, permission: PERMISSIONS.RETURNS_VIEW },
         { to: '/autoparts/mechanics', label: 'Mechanic', icon: UserCog, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
         { to: '/autoparts/makes', label: 'Company / model', icon: Truck, permission: PERMISSIONS.PRODUCTS_VIEW },
       ],
@@ -73,6 +75,7 @@ export const AutoPartsPack: IndustryPack = {
     { path: '/autoparts/models', element: VehicleMakesPage, permission: PERMISSIONS.PRODUCTS_VIEW },
     { path: '/autoparts/mechanics', element: MechanicsPage, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
     { path: '/autoparts/reminders', element: ServiceRemindersPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/autoparts/core-returns', element: CoreReturnsPage, permission: PERMISSIONS.RETURNS_VIEW },
   ],
 
   dashboardComponent: AutoPartsDashboard,

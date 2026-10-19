@@ -34,6 +34,8 @@ interface BulkRowActions {
   back: (o: BulkOrder) => void;
   pay: (o: BulkOrder) => void;
   cancel: (o: BulkOrder) => void;
+  /** Cash refund of a cancelled order's advance; shown with the returns permission. */
+  refund?: (o: BulkOrder) => void;
 }
 
 export function BulkOrderRow({ o, a }: { o: BulkOrder; a: BulkRowActions }) {
@@ -103,6 +105,9 @@ export function BulkOrderRow({ o, a }: { o: BulkOrder; a: BulkRowActions }) {
               {BULK_PREV[o.status as BakeryOrderStatus] && <Button size="sm" variant="ghost" disabled={busy} onClick={() => a.back(o)} leftIcon={<Undo2 className="h-4 w-4" />}>Ek qadam peeche</Button>}
               <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => a.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
             </>}
+            {a.canManage && a.refund && o.status === 'CANCELLED' && o.paidAmount > 0 && (
+              <Button size="sm" variant="danger" onClick={() => a.refund!(o)} leftIcon={<Undo2 className="h-4 w-4" />}>Advance wapas</Button>
+            )}
           </div>
         </div>
       )}

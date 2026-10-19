@@ -5,17 +5,20 @@
  */
 
 import { useState, type FormEvent } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, ShieldPlus } from 'lucide-react';
 import { Button, Input, Modal, Segmented, Select, Switch, Textarea } from '@/design-system/components';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { panelsApi } from '../api/panels.api';
 import { patientsApi, type Patient, type PatientInput } from '../api/patients.api';
 import { BLOOD_GROUPS, GENDERS, apiError, formatCnic } from '../lib/meta';
 
 interface Draft {
   fullName: string; phonePrimary: string; gender: string; ageYears: string; dateOfBirth: string; fatherOrHusbandName: string; cnic: string;
   bloodGroup: string; allergies: string; chronicConditions: string; currentMedications: string; address: string; city: string;
-  emergencyContactName: string; emergencyContactPhone: string; hasInsurance: boolean; insuranceProvider: string; insuranceNumber: string; notes: string;
+  emergencyContactName: string; emergencyContactPhone: string; hasInsurance: boolean; insuranceProvider: string; insuranceNumber: string; panelId: string; notes: string;
 }
 
 const fromPatient = (p: Patient | null, name = ''): Draft => ({
@@ -23,7 +26,7 @@ const fromPatient = (p: Patient | null, name = ''): Draft => ({
   fatherOrHusbandName: p?.fatherOrHusbandName ?? '', cnic: p?.cnic ?? '', bloodGroup: p?.bloodGroup ?? '', allergies: (p?.allergies ?? []).join(', '),
   chronicConditions: (p?.chronicConditions ?? []).join(', '), currentMedications: (p?.currentMedications ?? []).join(', '), address: p?.address ?? '', city: p?.city ?? '',
   emergencyContactName: p?.emergencyContactName ?? '', emergencyContactPhone: p?.emergencyContactPhone ?? '', hasInsurance: !!p?.hasInsurance,
-  insuranceProvider: p?.insuranceProvider ?? '', insuranceNumber: p?.insuranceNumber ?? '', notes: p?.notes ?? '',
+  insuranceProvider: p?.insuranceProvider ?? '', insuranceNumber: p?.insuranceNumber ?? '', panelId: p?.panelId ?? '', notes: p?.notes ?? '',
 });
 
 const list = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
@@ -39,6 +42,9 @@ export function PatientFormModal({ patient, initialName, onClose, onSaved }: {
   const [more, setMore] = useState(!!patient);
   const [dupOk, setDupOk] = useState(false);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
+  const canSeePanels = usePermission(PERMISSIONS.CUSTOMERS_VIEW);
+  const { data: panels } = useQuery({ queryKey: ['clinic-panels', 'active'], queryFn: () => panelsApi.list(), enabled: canSeePanels });
+  const panelOptions = panels?.items ?? [];
 
   const phone = d.phonePrimary.replace(/\D/g, '');
   const errors: Partial<Record<keyof Draft, string>> = {
@@ -49,6 +55,7 @@ export function PatientFormModal({ patient, initialName, onClose, onSaved }: {
     dateOfBirth: d.dateOfBirth && new Date(d.dateOfBirth) > new Date() ? 'Aage ki tareekh nahi' : undefined,
   };
 
+  const panelNext = d.hasInsurance ? d.panelId : '';
   const save = useMutation({
     mutationFn: () => {
       // Editing sends empty text so a cleared field is cleared; a new record leaves it out.
@@ -62,6 +69,8 @@ export function PatientFormModal({ patient, initialName, onClose, onSaved }: {
         address: opt(d.address), city: opt(d.city), emergencyContactName: opt(d.emergencyContactName),
         emergencyContactPhone: opt(d.emergencyContactPhone), hasInsurance: d.hasInsurance,
         insuranceProvider: opt(d.insuranceProvider), insuranceNumber: opt(d.insuranceNumber), notes: opt(d.notes),
+        // Sent only when changed, so a record on a panel that was switched off still saves.
+        ...(panelNext !== (patient?.panelId ?? '') && { panelId: panelNext || null }),
         ...(dupOk && { allowDuplicate: true }),
       };
       return patient ? patientsApi.update(patient.id, body) : patientsApi.create(body);
@@ -118,6 +127,12 @@ export function PatientFormModal({ patient, initialName, onClose, onSaved }: {
                 description="Company ka naam aur card number — fees khata me rakh kar company se wasool karein" />
               {d.hasInsurance && (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {panelOptions.length > 0 && (
+                    <Select label="Panel (company khata)" value={d.panelId} wrapperClassName="sm:col-span-2"
+                      onChange={(e) => { const id = e.target.value; setD((x) => ({ ...x, panelId: id, insuranceProvider: x.insuranceProvider || (panelOptions.find((o) => o.id === id)?.name ?? '') })); }}
+                      options={[{ value: '', label: 'Koi nahi — mareez khud deta hai' }, ...panelOptions.map((o) => ({ value: o.id, label: o.name }))]}
+                      hint="Panel chunein to fees company ke khata me jati hai" />
+                  )}
                   <Input label="Company / panel" value={d.insuranceProvider} onChange={(e) => set('insuranceProvider', e.target.value)} placeholder="State Life, Sehat Card…" />
                   <Input label="Card number" value={d.insuranceNumber} onChange={(e) => set('insuranceNumber', e.target.value)} />
                 </div>

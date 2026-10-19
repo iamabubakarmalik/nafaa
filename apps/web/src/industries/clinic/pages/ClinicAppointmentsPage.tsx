@@ -161,7 +161,7 @@ export default function ClinicAppointmentsPage() {
           shortcuts={[['/', 'search'], ['N', 'naya token'], ['F', 'follow-up'], ['G', 'guide']]} />
       )}
       {paying && (
-        <FeePayModal title={`Fees — ${paying.patient?.fullName ?? paying.appointmentNumber}`} due={r2(paying.total - paying.paidAmount)} busy={pay.isPending}
+        <FeePayModal title={`Fees — ${paying.patient?.fullName ?? paying.appointmentNumber}`} due={r2(paying.total - paying.paidAmount)} panel={paying.panel} busy={pay.isPending}
           description={`Token ${paying.tokenNumber ?? '-'} · ${drName(paying.doctor)} · baqi ${money(r2(paying.total - paying.paidAmount))}`}
           onClose={() => setPaying(null)} onPay={(b) => pay.mutate(b)} />
       )}
@@ -231,7 +231,7 @@ export default function ClinicAppointmentsPage() {
                         </Td>
                         <Td>
                           <p className="font-semibold text-slate-900">{patientLine(a.patient)}</p>
-                          <p className="max-w-xs truncate text-[0.75rem] text-slate-500">{a.patient?.mrn}{a.chiefComplaint && ` · ${a.chiefComplaint}`}</p>
+                          <p className="max-w-xs truncate text-[0.75rem] text-slate-500">{a.patient?.mrn}{a.panel && ` · Panel ${a.panel.name}`}{a.chiefComplaint && ` · ${a.chiefComplaint}`}</p>
                         </Td>
                         <Td><p>{drName(a.doctor)}</p><p className="text-[0.75rem] text-slate-500">{visitLabel(a.visitType)}</p></Td>
                         <Td><Badge variant={APT_STATUS[a.status].variant} dot>{APT_STATUS[a.status].label}</Badge></Td>

@@ -54,6 +54,10 @@ export class CreateSalonBillDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
   @ApiPropertyOptional({ description: 'Tip for the staff; passed on, so it is entered as its own cost' })
   @IsOptional() @IsNumber() @Min(0) tip?: number;
+  @ApiPropertyOptional({ description: 'Gift voucher code that pays for part of the bill' })
+  @IsOptional() @IsString() @MaxLength(20) voucherCode?: string;
+  @ApiPropertyOptional({ description: 'How much of the voucher to use; left out, as much as the bill allows' })
+  @IsOptional() @IsNumber() @Min(0.01) voucherAmount?: number;
 
   @ApiProperty({ enum: PaymentMethod }) @Transform(bankAlias) @IsEnum(PaymentMethod) paymentMethod!: PaymentMethod;
   @ApiProperty() @IsNumber() @Min(0) paidAmount!: number;

@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { r2, salonClock, serviceSku } from '../common/salon-common';
+import { type DayRange, r2, salonClock, serviceProductIds } from '../common/salon-common';
 import { AssignServiceDto, UpsertStaffProfileDto } from './dto/upsert-staff-profile.dto';
 
 @Injectable()
@@ -155,22 +156,20 @@ export class StaffProfilesService {
   }
 
   /**
-   * Commission each stylist earned in a period, from billed service lines
-   * (by bill date). Voided bills are left out; a service returned on its
-   * bill takes its commission back. With `staffProfileId`, the lines too.
+   * Billed service lines of a period (by bill date) with their commission:
+   * voided bills left out, `returned` when the line's bill line came back.
+   * A line linked to its bill line (`saleItemId`) is matched exactly; older
+   * lines are matched by their service's product, one returned unit per line.
    */
-  async commission(user: AuthenticatedUser, params: { from?: string; to?: string; staffProfileId?: string }) {
-    const tenantId = user.tenantId;
-    const clock = await salonClock(this.tz, tenantId);
-    const todayKey = clock.keyOf(new Date());
-    const period = clock.range(params.from, params.to) ?? clock.range(`${todayKey.slice(0, 8)}01`, todayKey)!;
+  async commissionRows(tenantId: string, period: DayRange, staffProfileId?: string) {
     const lines = await this.prisma.salonAppointmentService.findMany({
       where: {
-        staffProfileId: params.staffProfileId ? params.staffProfileId : { not: null },
+        staffProfileId: staffProfileId ? staffProfileId : { not: null },
         appointment: { tenantId, saleId: { not: null }, actualEnd: { gte: period.gte, lt: period.lt } },
       },
       select: {
         id: true, serviceId: true, serviceName: true, staffProfileId: true, staffName: true, price: true, total: true, commissionAmount: true, notes: true,
+        saleItemId: true, commissionPaid: true, commissionPaidAt: true, payoutRef: true,
         appointment: { select: { id: true, appointmentNumber: true, customerName: true, actualEnd: true, saleId: true } },
       },
       orderBy: { appointment: { actualEnd: 'desc' } },
@@ -180,35 +179,60 @@ export class StaffProfilesService {
     const sales = saleIds.length
       ? await this.prisma.sale.findMany({
           where: { tenantId, id: { in: saleIds } },
-          select: { id: true, saleNumber: true, status: true, items: { where: { returnedQty: { gt: 0 } }, select: { returnedQty: true, product: { select: { sku: true } } } } },
+          select: { id: true, saleNumber: true, status: true, items: { where: { returnedQty: { gt: 0 } }, select: { id: true, productId: true, returnedQty: true } } },
         })
       : [];
     const saleOf = new Map(sales.map((s) => [s.id, s]));
-    // Returned service units per bill and service, used up line by line.
-    const returned = new Map<string, number>();
+    const productOf = await serviceProductIds(this.prisma as unknown as Prisma.TransactionClient, tenantId, [...new Set(lines.map((l) => l.serviceId))]);
+    const linked = new Set(lines.map((l) => l.saleItemId).filter(Boolean));
+    const returnedItems = new Set<string>();
+    // Older lines: returned units per bill and service product, used up line by line.
+    const pool = new Map<string, number>();
     for (const s of sales) {
       for (const it of s.items) {
-        const sku = it.product?.sku ?? '';
-        if (!sku.startsWith('SALON-SVC-')) continue;
-        const key = `${s.id}:${sku}`;
-        returned.set(key, (returned.get(key) ?? 0) + Math.round(it.returnedQty));
+        returnedItems.add(it.id);
+        if (linked.has(it.id)) continue;
+        const key = `${s.id}:${it.productId}`;
+        pool.set(key, (pool.get(key) ?? 0) + Math.round(it.returnedQty));
       }
     }
-    const rows = lines.flatMap((l) => {
+    const takeFromPool = (saleId: string, serviceId: string) => {
+      const key = `${saleId}:${productOf.get(serviceId)}`;
+      if (!productOf.has(serviceId) || !(pool.get(key)! > 0)) return false;
+      pool.set(key, pool.get(key)! - 1);
+      return true;
+    };
+    return lines.flatMap((l) => {
       const sale = saleOf.get(l.appointment.saleId!);
       if (!sale || sale.status === 'VOIDED') return [];
-      const key = `${sale.id}:${serviceSku(l.serviceId)}`;
-      const left = returned.get(key) ?? 0;
-      if (left > 0) returned.set(key, left - 1);
-      return [{ ...l, saleNumber: sale.saleNumber, returned: left > 0 }];
+      const returned = l.saleItemId ? returnedItems.has(l.saleItemId) : takeFromPool(sale.id, l.serviceId);
+      const paidAt = l.commissionPaidAt ?? (l.commissionPaid ? l.appointment.actualEnd : null);
+      return [{ ...l, saleNumber: sale.saleNumber, returned, paidAt }];
     });
-    const people = new Map<string, { staffProfileId: string; name: string; services: number; revenue: number; commission: number; returned: number; net: number }>();
+  }
+
+  /**
+   * Commission each stylist earned in a period, from billed service lines
+   * (by bill date). Voided bills are left out; a service returned on its
+   * bill takes its commission back. `paid` is what was paid out already,
+   * `unpaid` what is still owed. With `staffProfileId`, the lines too.
+   */
+  async commission(user: AuthenticatedUser, params: { from?: string; to?: string; staffProfileId?: string }) {
+    const tenantId = user.tenantId;
+    const clock = await salonClock(this.tz, tenantId);
+    const todayKey = clock.keyOf(new Date());
+    const period = clock.range(params.from, params.to) ?? clock.range(`${todayKey.slice(0, 8)}01`, todayKey)!;
+    const rows = await this.commissionRows(tenantId, period, params.staffProfileId);
+    const people = new Map<string, { staffProfileId: string; name: string; services: number; revenue: number; commission: number; returned: number; net: number; paid: number; unpaid: number; paidThenReturned: number }>();
     for (const r of rows) {
-      const p = people.get(r.staffProfileId!) ?? { staffProfileId: r.staffProfileId!, name: r.staffName ?? 'Staff', services: 0, revenue: 0, commission: 0, returned: 0, net: 0 };
+      const p = people.get(r.staffProfileId!) ?? { staffProfileId: r.staffProfileId!, name: r.staffName ?? 'Staff', services: 0, revenue: 0, commission: 0, returned: 0, net: 0, paid: 0, unpaid: 0, paidThenReturned: 0 };
       p.services += 1;
       p.revenue = r2(p.revenue + r.total);
       p.commission = r2(p.commission + r.commissionAmount);
       if (r.returned) p.returned = r2(p.returned + r.commissionAmount);
+      if (r.paidAt) p.paid = r2(p.paid + r.commissionAmount);
+      if (r.paidAt && r.returned) p.paidThenReturned = r2(p.paidThenReturned + r.commissionAmount);
+      if (!r.paidAt && !r.returned) p.unpaid = r2(p.unpaid + r.commissionAmount);
       p.net = r2(p.commission - p.returned);
       people.set(r.staffProfileId!, p);
     }
@@ -221,12 +245,14 @@ export class StaffProfilesService {
         services: staff.reduce((s, p) => s + p.services, 0),
         revenue: r2(staff.reduce((s, p) => s + p.revenue, 0)),
         net: r2(staff.reduce((s, p) => s + p.net, 0)),
+        paid: r2(staff.reduce((s, p) => s + p.paid, 0)),
+        unpaid: r2(staff.reduce((s, p) => s + p.unpaid, 0)),
       },
       lines: params.staffProfileId
         ? rows.slice(0, 500).map((r) => ({
             id: r.id, at: r.appointment.actualEnd, appointmentId: r.appointment.id, appointmentNumber: r.appointment.appointmentNumber,
             customerName: r.appointment.customerName, saleNumber: r.saleNumber, serviceName: r.serviceName, total: r.total,
-            commission: r.commissionAmount, returned: r.returned, notes: r.notes,
+            commission: r.commissionAmount, returned: r.returned, notes: r.notes, paidAt: r.paidAt, payoutRef: r.payoutRef,
           }))
         : undefined,
     };

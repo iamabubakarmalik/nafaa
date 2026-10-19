@@ -6,8 +6,9 @@
 
 import { useState } from 'react';
 import { cn } from '@core/lib/cn';
-import { useMutation } from '@tanstack/react-query';
-import { AlertTriangle, Ban, CheckCircle2 } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { AlertTriangle, Ban, CheckCircle2, Undo2 } from 'lucide-react';
+import { withManagerPin } from '@core/security/ManagerPin';
 import { toast } from 'sonner';
 import { Button, Input, Modal, Textarea } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
@@ -90,10 +91,50 @@ export function CancelModal({ title, paid, askReason = true, onConfirm, onClose 
         {paid > 0 && (
           <p className="flex gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            Customer {formatPKR(paid)} de chuka hai. Yeh advance customer ke khate me jama rehta hai — agle bill me kat jayega, ya Customers me khate se wapas karein. Cancel se paisa khud wapas nahi hota.
+            Customer {formatPKR(paid)} de chuka hai. Yeh advance customer ke khate me jama rehta hai — agle bill me kat jayega, ya cancel ke baad "Advance wapas" se cash me wapas karein. Cancel se paisa khud wapas nahi hota.
           </p>
         )}
         {askReason && <Textarea data-autofocus label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} placeholder="Customer ne mana kar diya, date badal gayi…" hint="Marzi hai — baad me yaad rehta hai" />}
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * Cash refund of a cancelled order's advance. Only the part held on the
+ * customer's khata goes back; it leaves the open drawer of this branch.
+ */
+export function RefundModal({ title, loadMoney, onRefund, onClose, onDone }: {
+  title: string;
+  loadMoney: () => Promise<{ khataPaid?: number; legacyPaid?: number }>;
+  onRefund: (managerPin?: string) => Promise<unknown>;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const money = useQuery({ queryKey: ['bakery-order-refund', title], queryFn: loadMoney, staleTime: 0 });
+  const held = Number(money.data?.khataPaid) || 0;
+  const older = Number(money.data?.legacyPaid) || 0;
+  const refund = useMutation({
+    mutationFn: () => withManagerPin('Advance wapsi', (pin) => onRefund(pin), 'refund'),
+    onSuccess: () => { toast.success(`${formatPKR(held)} advance wapas — drawer se cash nikla`); onDone(); },
+    onError: (e) => toast.error(apiError(e, 'Advance wapas nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title="Advance wapas karein?" description={title}
+      footer={<>
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="danger" disabled={!(held > 0)} loading={refund.isPending || money.isLoading} onClick={() => refund.mutate()} leftIcon={<Undo2 className="h-4 w-4" />}>
+          {held > 0 ? `${formatPKR(held)} cash wapas` : 'Wapas karne ko kuch nahi'}
+        </Button>
+      </>}>
+      <div className="space-y-3 text-[0.8125rem]">
+        <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-slate-700">Customer ke khate se advance hat jayega aur utna cash is branch ke khule drawer se nikalega. Day book me "Advance wapas" likha jayega.</p>
+        {older > 0.5 && (
+          <p className="flex gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-amber-900 ring-1 ring-amber-200">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            {formatPKR(older)} purane tareeqe se liya gaya tha aur khate me nahi — woh yahan se wapas nahi hota.
+          </p>
+        )}
       </div>
     </Modal>
   );

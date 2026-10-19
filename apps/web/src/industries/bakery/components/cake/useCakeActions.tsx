@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cakeOrdersApi, type BakeryOrderStatus, type CakeOrder } from '../../api/cake-orders.api';
 import { OrderDeliverModal, type OrderForBill } from '../OrderDeliverModal';
-import { CancelModal, PayModal } from '../OrderModals';
+import { CancelModal, PayModal, RefundModal } from '../OrderModals';
 import { CAKE_KEY, CAKE_PREV, apiError, cakeLine, cakeNext, dueOf, isDelivery, statusOf } from '../meta';
 
 function cakeBill(o: CakeOrder): OrderForBill {
@@ -26,6 +26,7 @@ export function useCakeActions(shopName: string) {
   const [payOn, setPayOn] = useState<CakeOrder | null>(null);
   const [cancelOn, setCancelOn] = useState<CakeOrder | null>(null);
   const [deliverOn, setDeliverOn] = useState<CakeOrder | null>(null);
+  const [refundOn, setRefundOn] = useState<CakeOrder | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: [CAKE_KEY] });
 
   const status = useMutation({
@@ -59,6 +60,10 @@ export function useCakeActions(shopName: string) {
           onConfirm={(reason) => cakeOrdersApi.updateStatus(cancelOn.id, 'CANCELLED', reason || undefined).then(refresh)}
           onClose={() => setCancelOn(null)} />
       )}
+      {refundOn && (
+        <RefundModal title={`${refundOn.customerName} · ${refundOn.orderNumber}`} loadMoney={() => cakeOrdersApi.getOne(refundOn.id)}
+          onRefund={(pin) => cakeOrdersApi.refund(refundOn.id, pin)} onClose={() => setRefundOn(null)} onDone={() => { setRefundOn(null); refresh(); }} />
+      )}
       {deliverOn && (
         <OrderDeliverModal order={cakeBill(deliverOn)} shopName={shopName}
           onClose={() => setDeliverOn(null)} onDone={() => setDeliverOn(null)}
@@ -72,7 +77,7 @@ export function useCakeActions(shopName: string) {
 
   return {
     next, back, confirm,
-    pay: setPayOn, cancel: setCancelOn, deliver: setDeliverOn,
+    pay: setPayOn, cancel: setCancelOn, deliver: setDeliverOn, refund: setRefundOn,
     busyId: status.isPending ? status.variables?.o.id : undefined,
     modals,
   };

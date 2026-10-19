@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CoreReturnsModule } from './core-returns/core-returns.module';
 import { CustomerVehiclesModule } from './customer-vehicles/customer-vehicles.module';
 import { AutoPartsDashboardModule } from './dashboard/autoparts-dashboard.module';
 import { MechanicsModule } from './mechanics/mechanics.module';
@@ -18,6 +19,7 @@ import { WorkshopJobsModule } from './workshop-jobs/workshop-jobs.module';
     MechanicsModule,
     ServiceRemindersModule,
     AutoPartsDashboardModule,
+    CoreReturnsModule,
   ],
   exports: [
     VehicleMakesModule,

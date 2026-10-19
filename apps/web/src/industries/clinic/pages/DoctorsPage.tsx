@@ -2,12 +2,12 @@
  * Doctors: fees (first visit, follow-up and its days, emergency), timings,
  * daily limit and the doctor's share. The "Din ka hisaab" tab closes a day
  * per doctor: patients seen, fees and lab billed (from the bills, so it
- * matches the day book), cash vs khata, and the doctor's share to pay out.
+ * matches the day book), cash vs khata, and the doctor's share. "Share
+ * payouts" pays the share for a period as an expense and prints a slip.
  * Doctors are switched off, never deleted, so old visits keep their name.
  */
 
 import { useMemo, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Banknote, BookOpen, CalendarDays, Clock, Download, GraduationCap, HandCoins, Pencil, Plus, Power, Printer, Stethoscope, UserCog, Users } from 'lucide-react';
@@ -24,11 +24,12 @@ import { usePermission } from '@core/hooks/usePermission';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { appointmentsApi } from '../api/appointments.api';
 import { doctorsApi, type Doctor, type Specialty } from '../api/doctors.api';
+import { DoctorPayouts } from '../components/DoctorPayouts';
 import { ListCard, ListFailed, ListLoading } from '../components/ListBits';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { DAYS, SPECIALTIES, apiError, dayBounds, dayKey, drName, shortDate, specialtyLabel } from '../lib/meta';
 
-type Tab = 'doctors' | 'day';
+type Tab = 'doctors' | 'day' | 'payouts';
 
 interface Draft {
   fullName: string; phone: string; title: string; qualifications: string; specialties: Specialty[]; pmcNumber: string;
@@ -132,7 +133,7 @@ function DoctorModal({ doctor, onClose, onSaved }: { doctor: Doctor | null; onCl
   );
 }
 
-function DayClose() {
+function DayClose({ onPayouts }: { onPayouts: () => void }) {
   const { sales: money } = useMasked();
   const [day, setDay] = useState(dayKey());
   const q = useQuery({ queryKey: ['clinic-day-close', day], queryFn: () => appointmentsApi.dayClose(dayBounds(day).from) });
@@ -148,7 +149,7 @@ function DayClose() {
         <Input label="Din" type="date" value={day} onChange={(e) => setDay(e.target.value || dayKey())} wrapperClassName="w-44" />
         <Button variant="secondary" leftIcon={<Download className="h-4 w-4" />} onClick={exportCsv} disabled={!rows.length}>CSV</Button>
         <Button variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Print</Button>
-        <Link to="/expenses" className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50"><HandCoins className="h-4 w-4" />Share ada karein (Expense)</Link>
+        <Button variant="secondary" className="ml-auto" leftIcon={<HandCoins className="h-4 w-4" />} onClick={onPayouts}>Share ada karein</Button>
       </div>
       <KpiRow>
         <KpiCard icon={Users} color="#2563eb" label="Mareez dekhe" value={t?.seen ?? 0} hint={`${t?.booked ?? 0} booked`} />
@@ -180,7 +181,7 @@ function DayClose() {
           </Table>
         )}
       </ListCard>
-      <p className="text-[0.75rem] text-slate-500">Amount bill se li jati hai (void aur poore wapas bill shamil nahi), is liye day book se milti hai. Share ki adaigi Expense me "Doctor share" likh kar karein.</p>
+      <p className="text-[0.75rem] text-slate-500">Amount bill se li jati hai (void aur poore wapas bill shamil nahi), is liye day book se milti hai. Share "Share payouts" tab se ada karein — Expense khud likha jata hai.</p>
     </div>
   );
 }
@@ -224,6 +225,7 @@ export default function DoctorsPage() {
             { icon: Clock, color: '#0891b2', title: 'Waqt aur had', text: 'Clinic ka waqt, din aur din ki had — had poori ho to sirf emergency token banta hai.' },
             { icon: HandCoins, color: '#d97706', title: 'Share', text: 'Fees ka % ya har mareez par Rs. "Din ka hisaab" me har doctor ka share banta hai.' },
             { icon: BookOpen, color: '#16a34a', title: 'Din ka hisaab', text: 'Har shaam doctor wise mareez, fees, khata aur share — print kar ke dastakhat lein.' },
+            { icon: Banknote, color: '#7c3aed', title: 'Share payouts', text: 'Doctor aur muddat chunein, baqi share ada karein — Expense khud likha jata hai aur slip print hoti hai.' },
           ]}
           shortcuts={[['/', 'search'], ['N', 'naya doctor'], ['G', 'guide']]} />
       )}
@@ -241,9 +243,9 @@ export default function DoctorsPage() {
         ]} />
 
       <ViewTabs<Tab> value={tab} onChange={setTab}
-        tabs={[{ id: 'doctors', label: 'Doctors', icon: Stethoscope, count: all.length }, ...(canMoney ? [{ id: 'day' as const, label: 'Din ka hisaab', icon: BookOpen }] : [])]} />
+        tabs={[{ id: 'doctors', label: 'Doctors', icon: Stethoscope, count: all.length }, ...(canMoney ? [{ id: 'day' as const, label: 'Din ka hisaab', icon: BookOpen }, { id: 'payouts' as const, label: 'Share payouts', icon: HandCoins }] : [])]} />
 
-      {tab === 'day' && canMoney ? <DayClose /> : (
+      {tab === 'day' && canMoney ? <DayClose onPayouts={() => setTab('payouts')} /> : tab === 'payouts' && canMoney ? <DoctorPayouts /> : (
         <>
           <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya PMDC number…" />}>
             <Segmented<'active' | 'off'> value={show} onChange={setShow} label="Kaun" items={[{ value: 'active', label: 'Chalu' }, { value: 'off', label: 'Band' }]} />

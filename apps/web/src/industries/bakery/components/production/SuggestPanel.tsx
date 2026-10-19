@@ -12,7 +12,7 @@ import { Button, Card, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/desig
 import { cn } from '@core/lib/cn';
 import { productionApi } from '../../api/production.api';
 import { LoadFailed } from '../charts';
-import { PRODUCTION_KEY, flavorLabel, fmtQty, sizeLabel, timeOnly } from '../meta';
+import { PRODUCTION_KEY, byWeight, flavorLabel, fmtQty, qtyInput, sizeLabel, timeOnly } from '../meta';
 import type { BuilderLine } from './PlanBuilder';
 
 export function SuggestPanel({ date, canManage, onPlan }: { date: string; canManage: boolean; onPlan: (lines: BuilderLine[]) => void }) {
@@ -32,7 +32,7 @@ export function SuggestPanel({ date, canManage, onPlan }: { date: string; canMan
 
   const make = () => onPlan([
     ...d.rows.filter((r) => picked.has(r.productId) && Number(qty[r.productId]) > 0).map((r) => ({
-      key: r.productId, productId: r.productId, productName: r.name, plannedQty: qty[r.productId],
+      key: r.productId, productId: r.productId, productName: r.name, plannedQty: qty[r.productId], unit: r.unit,
       note: r.orderRefs.length ? `Orders: ${r.orderRefs.join(', ')}` : undefined,
     })),
   ]);
@@ -107,8 +107,8 @@ export function SuggestPanel({ date, canManage, onPlan }: { date: string; canMan
                     <Td className="px-2 py-2 text-right tabular-nums text-slate-600">{r.freshLeft ? fmtQty(r.freshLeft) : '—'}</Td>
                     <Td className="px-2 py-2 text-right tabular-nums text-slate-600">{r.planned ? fmtQty(r.planned) : '—'}</Td>
                     <Td className="px-4 py-2 text-right">
-                      <input inputMode="numeric" value={qty[r.productId] ?? ''} aria-label={`${r.name} kitne`} disabled={!canManage}
-                        onChange={(e) => { const v = e.target.value.replace(/\D/g, ''); setQty((x) => ({ ...x, [r.productId]: v })); if (Number(v) > 0) setPicked((s) => new Set(s).add(r.productId)); }}
+                      <input inputMode={byWeight(r.unit) ? 'decimal' : 'numeric'} value={qty[r.productId] ?? ''} aria-label={`${r.name} kitne`} disabled={!canManage}
+                        onChange={(e) => { const v = qtyInput(e.target.value, byWeight(r.unit)); setQty((x) => ({ ...x, [r.productId]: v })); if (Number(v) > 0) setPicked((s) => new Set(s).add(r.productId)); }}
                         className="h-8 w-20 rounded-lg border border-slate-300 bg-white px-2 text-right font-semibold tabular-nums" />
                     </Td>
                   </Tr>

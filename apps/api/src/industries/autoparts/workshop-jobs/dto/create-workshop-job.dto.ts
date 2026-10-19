@@ -4,6 +4,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, MaxLength, Min, ValidateNested,
 } from 'class-validator';
+import { CoreReturnInputDto } from '../../core-returns/dto/core-return.dto';
 
 export class LaborItemDto {
   @ApiProperty() @IsString() @MaxLength(300) description!: string;
@@ -133,6 +134,8 @@ export class DeliverJobDto {
   @ApiPropertyOptional() @IsOptional() @IsString() nextServiceDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(120) warrantyMonths?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) warrantyKm?: number;
+  /** Old part the customer gives back now; its value is taken off the bill as a trade-in. */
+  @ApiPropertyOptional({ type: CoreReturnInputDto }) @IsOptional() @ValidateNested() @Type(() => CoreReturnInputDto) coreReturn?: CoreReturnInputDto;
 }
 
 export class SetWarrantyDto {

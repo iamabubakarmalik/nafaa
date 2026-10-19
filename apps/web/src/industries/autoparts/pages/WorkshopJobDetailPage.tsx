@@ -350,6 +350,12 @@ export default function WorkshopJobDetailPage() {
             {j.advanceOnKhata > 0 && j.status !== 'DELIVERED' && (
               <p className="mx-5 mb-4 flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600"><BookOpen className="h-3.5 w-3.5" />{formatPKR(j.advanceOnKhata)} advance khata me jama — bill me katega</p>
             )}
+            {(j.coreReturns?.length ?? 0) > 0 && (
+              <div className="mx-5 mb-4 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
+                <Link to="/autoparts/core-returns" className="font-semibold hover:underline">Purane part</Link>
+                {j.coreReturns!.map((c) => <span key={c.id} className="block">{c.description} · {formatPKR(c.value)}{c.saleId ? ' · bill me laga' : ' · agle bill me katega'}</span>)}
+              </div>
+            )}
           </Card>
         </div>
       </div>

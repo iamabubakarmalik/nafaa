@@ -1,10 +1,10 @@
 /**
  * Labels, colours and small helpers shared by the salon screens: appointment
- * status, service categories, staff roles, membership tiers, time and
+ * status and source, service categories, staff roles, membership tiers, time and
  * money formatting, query keys and the API error text.
  */
 
-import type { AppointmentStatus } from '../api/appointments.api';
+import type { AppointmentSource, AppointmentStatus } from '../api/appointments.api';
 import type { ServiceCategory } from '../api/services.api';
 import type { StaffProfile, StaffRole } from '../api/staff-profiles.api';
 
@@ -15,6 +15,7 @@ export const SALON_KEYS = {
   memberships: 'salon-memberships',
   packages: 'salon-packages',
   customers: 'salon-customers',
+  vouchers: 'salon-vouchers',
 } as const;
 
 export type Tone = 'default' | 'info' | 'warning' | 'success' | 'danger' | 'brand';
@@ -28,6 +29,12 @@ export const STATUS: Record<AppointmentStatus, { label: string; variant: Tone; c
   COMPLETED: { label: 'Ho gaya', variant: 'success', color: '#16a34a' },
   NO_SHOW: { label: 'Nahi aaye', variant: 'danger', color: '#e11d48' },
   CANCELLED: { label: 'Cancel', variant: 'danger', color: '#94a3b8' },
+};
+
+export const SOURCE_LABEL: Record<AppointmentSource, string> = {
+  BOOKED: 'Booking',
+  WALK_IN: 'Walk-in',
+  COUNTER: 'Counter',
 };
 
 export const CATEGORIES: Array<{ value: ServiceCategory; label: string }> = [

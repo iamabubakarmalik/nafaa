@@ -12,7 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope } from '../../../common/shop-scope';
-import { DAY_MS, positive, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, writeShopId } from '../bakery-common';
+import { DAY_MS, bakeQty, positive, productUnit, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withUnits, writeShopId } from '../bakery-common';
 
 export type WasteSource = 'BATCH' | 'BAKING' | 'RAW' | 'DAMAGE';
 
@@ -42,9 +42,9 @@ export class FreshnessService {
   ) {}
 
   async create(user: AuthenticatedUser, scope: ShopScope, dto: Record<string, any>) {
-    const product = await this.prisma.product.findFirst({ where: { id: String(dto?.productId ?? ''), tenantId: user.tenantId }, select: { id: true, name: true } });
+    const product = await this.prisma.product.findFirst({ where: { id: String(dto?.productId ?? ''), tenantId: user.tenantId }, select: { id: true, name: true, unit: true } });
     if (!product) throw new NotFoundException('Cheez maal me nahi mili');
-    const qty = Math.round(positive(dto.initialQty, 'Kitne banaye — tadaad likhein'));
+    const qty = this.qty(dto.initialQty, product.unit, 'Kitne banaye — tadaad likhein');
     const productionDate = dto.productionDate ? new Date(dto.productionDate) : new Date();
     const bestBefore = new Date(dto.bestBefore);
     if (Number.isNaN(productionDate.getTime()) || Number.isNaN(bestBefore.getTime())) throw new BadRequestException('Date theek nahi');
@@ -61,7 +61,7 @@ export class FreshnessService {
         bestBefore,
         expiryDate: expiry && !Number.isNaN(expiry.getTime()) ? expiry : null,
         initialQty: qty,
-        currentQty: Math.min(Math.max(Math.round(Number(dto.currentQty ?? qty)), 0), qty),
+        currentQty: Math.min(Math.max(bakeQty(dto.currentQty ?? qty, product.unit) || 0, 0), qty),
       },
     }).then(qtyNumbers);
   }
@@ -79,7 +79,7 @@ export class FreshnessService {
       },
       orderBy: active ? { bestBefore: 'asc' } : { createdAt: 'desc' },
       take: active ? 500 : 300,
-    }).then((rows) => rows.map(qtyNumbers));
+    }).then((rows) => withUnits(this.prisma, user.tenantId, rows.map(qtyNumbers)));
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
@@ -87,8 +87,8 @@ export class FreshnessService {
   }
 
   async recordSale(user: AuthenticatedUser, id: string, qty: number) {
-    const n = Math.round(positive(qty, 'Kitne bike — tadaad likhein'));
-    await this.mustFind(user, id);
+    const log = await this.mustFind(user, id);
+    const n = this.qty(qty, await productUnit(this.prisma, user.tenantId, log.productId), 'Kitne bike — tadaad likhein');
     const done = await this.prisma.bakeryFreshnessLog.updateMany({
       where: { id, tenantId: user.tenantId, currentQty: { gte: n }, status: { not: 'DISCARDED' } },
       data: { soldQty: { increment: n }, currentQty: { decrement: n } },
@@ -99,9 +99,9 @@ export class FreshnessService {
 
   /** Throws pieces away. The reason is added to the batch's list of reasons with the count. */
   async discard(user: AuthenticatedUser, id: string, qty: number, reason: string) {
-    const n = Math.round(positive(qty, 'Kitne phenke — tadaad likhein'));
     const why = String(reason ?? '').trim() || 'Waqt guzar gaya';
     const log = await this.mustFind(user, id);
+    const n = this.qty(qty, await productUnit(this.prisma, user.tenantId, log.productId), 'Kitne phenke — tadaad likhein');
     if (log.currentQty < n) throw new BadRequestException(`Sirf ${log.currentQty} baqi hain`);
     const entry = `${n} — ${why}`;
     const done = await this.prisma.bakeryFreshnessLog.updateMany({
@@ -109,7 +109,7 @@ export class FreshnessService {
       data: {
         wastedQty: { increment: n },
         currentQty: { decrement: n },
-        status: log.currentQty - n <= 0 ? 'DISCARDED' : log.status,
+        status: r3(log.currentQty - n) <= 0 ? 'DISCARDED' : log.status,
         discardedAt: new Date(),
         discardReason: (log.discardReason ? `${log.discardReason} · ${entry}` : entry).slice(0, 1000),
       },
@@ -119,9 +119,9 @@ export class FreshnessService {
   }
 
   async discount(user: AuthenticatedUser, id: string, qty: number) {
-    const n = Math.round(positive(qty, 'Kitne sasta becha — tadaad likhein'));
     const log = await this.mustFind(user, id);
-    if (log.discountedQty + n > log.initialQty) throw new BadRequestException('Bane hue se zyada nahi ho sakta');
+    const n = this.qty(qty, await productUnit(this.prisma, user.tenantId, log.productId), 'Kitne sasta becha — tadaad likhein');
+    if (r3(log.discountedQty + n) > log.initialQty) throw new BadRequestException('Bane hue se zyada nahi ho sakta');
     await this.prisma.bakeryFreshnessLog.updateMany({ where: { id, tenantId: user.tenantId }, data: { discountedQty: { increment: n } } });
     return this.mustFind(user, id);
   }
@@ -265,6 +265,13 @@ export class FreshnessService {
       byItem: group((r) => r.name).slice(0, 15),
       byDay: group((r) => clock.keyOf(r.at)).sort((a, b) => a.key.localeCompare(b.key)),
     };
+  }
+
+  /** A positive quantity: decimals for goods sold by weight, whole pieces otherwise. */
+  private qty(value: unknown, unit: string | null, message: string) {
+    const n = bakeQty(positive(value, message), unit);
+    if (!(n > 0)) throw new BadRequestException(message);
+    return n;
   }
 
   private async mustFind(user: AuthenticatedUser, id: string) {

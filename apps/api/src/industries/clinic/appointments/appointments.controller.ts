@@ -25,7 +25,7 @@ export class AppointmentsController {
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: Record<string, string | undefined>) {
     return this.service.list(user, {
       status: q.status, doctorId: q.doctorId, patientId: q.patientId, from: q.from, to: q.to, search: q.search,
-      paymentStatus: q.paymentStatus, page: q.page, limit: q.limit, sort: q.sort,
+      paymentStatus: q.paymentStatus, panelId: q.panelId, page: q.page, limit: q.limit, sort: q.sort,
     });
   }
 
@@ -49,6 +49,10 @@ export class AppointmentsController {
 
   @Patch(':id/status') status(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string; cancellationReason?: string }) {
     return this.service.updateStatus(user, id, body?.status, body?.cancellationReason);
+  }
+
+  @Patch(':id/panel') setPanel(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { panelId?: string | null }) {
+    return this.service.setPanel(user, id, body?.panelId);
   }
 
   @Post(':id/reschedule') reschedule(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.reschedule(user, id, dto); }

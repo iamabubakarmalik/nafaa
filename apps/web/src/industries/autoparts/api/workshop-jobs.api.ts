@@ -112,6 +112,8 @@ export interface WorkshopJobDetail extends WorkshopJob {
   vehicle?: CustomerVehicle | null;
   /** The bill made when the vehicle was handed back. */
   sale?: { id: string; saleNumber: string; total: number; creditAmount: number; status: string } | null;
+  /** Old parts given back with this job; held ones without a bill go on the next hand-over bill. */
+  coreReturns?: Array<{ id: string; description: string; value: number; status: string; saleId?: string | null }>;
 }
 
 export interface JobPage {
@@ -158,6 +160,8 @@ export type JobUpdateInput = Partial<Pick<JobCreateInput,
 
 export interface DeliverInput {
   amount: number; paymentMethod: PaymentMethod; notes?: string; nextServiceKm?: number; nextServiceDate?: string; warrantyMonths?: number; warrantyKm?: number;
+  /** Old part the customer gives now; its value comes off the bill as a trade-in. */
+  coreReturn?: { description: string; value: number };
 }
 
 const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
@@ -168,6 +172,8 @@ export const workshopJobsApi = {
   page: (params: JobListParams) => apiClient.get(base, { params: { ...params, page: params.page ?? 1 } }).then(unwrap<JobPage>),
   stats: (shopId?: string) => apiClient.get(`${base}/stats`, { params: { shopId } }).then(unwrap<JobStats>),
   getOne: (id: string) => apiClient.get(`${base}/${id}`).then(unwrap<WorkshopJobDetail>),
+  /** The job behind each workshop bill, for links from sales history. */
+  bySales: (saleIds: string[]) => apiClient.get(`${base}/by-sales`, { params: { ids: saleIds.join(',') } }).then(unwrap<Array<{ saleId: string; jobId: string; jobNumber: string }>>),
   update: (id: string, data: JobUpdateInput) => apiClient.patch(`${base}/${id}`, data).then(unwrap<WorkshopJob>),
   updateStatus: (id: string, status: JobStatus, opts?: { notes?: string; cancellationReason?: string }) =>
     apiClient.patch(`${base}/${id}/status`, { status, ...opts }).then(unwrap<WorkshopJobDetail>),

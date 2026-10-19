@@ -218,6 +218,20 @@ export function apiError(e: unknown, fallback: string) {
   return (Array.isArray(m) ? m[0] : m) || err?.message || fallback;
 }
 
+/** Units sold by weight; their baking and batch quantities take decimals (12.5 kg). Same list as the API. */
+const MEASURED_UNITS = new Set(['kg', 'kilogram', 'g', 'gm', 'gram', 'pound', 'lb', 'l', 'liter', 'litre', 'ml']);
+export const byWeight = (unit?: string | null) => MEASURED_UNITS.has((unit ?? '').trim().toLowerCase());
+
+/** Cleans a typed quantity: up to three decimals for goods sold by weight, digits only for pieces. */
+export const qtyInput = (v: string, weight: boolean) =>
+  weight ? (v.replace(/[^\d.]/g, '').match(/^\d*(\.\d{0,3})?/)?.[0] ?? '') : v.replace(/\D/g, '');
+
+/** A typed quantity as a number, rounded the way the API stores it. */
+export const qtyValue = (v: string, weight: boolean) => {
+  const n = Number(v) || 0;
+  return weight ? Math.round(n * 1000) / 1000 : Math.round(n);
+};
+
 export const fmtQty = (q: number | null | undefined) => {
   const n = Number(q || 0);
   return Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100);

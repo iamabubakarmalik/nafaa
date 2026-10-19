@@ -3,6 +3,8 @@
  * token. The fee follows the doctor (follow-up rate inside the doctor's
  * follow-up days, emergency rate when ticked); it can be taken right away
  * (cash, card, split or khata) and the token slip prints with the bill.
+ * A panel patient's fee goes to the company's khata; reception can pick
+ * another panel or none for this visit.
  */
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
@@ -10,7 +12,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlarmClock, CalendarClock, CheckCircle2, GraduationCap, Printer, Siren, Stethoscope, Ticket, Timer, UserRound, Wallet } from 'lucide-react';
-import { Button, Card, Input, PageHero, PageShell, Skeleton, Switch, Textarea, heroButton, heroIconButton } from '@/design-system/components';
+import { Button, Card, Input, PageHero, PageShell, Select, Skeleton, Switch, Textarea, heroButton, heroIconButton } from '@/design-system/components';
 import { HeroBack } from '@core/components/HeroBack';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
@@ -19,6 +21,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { appointmentsApi, type Appointment, type FeePayment, type VisitType } from '../api/appointments.api';
 import { doctorsApi, type Doctor } from '../api/doctors.api';
+import { panelsApi } from '../api/panels.api';
 import { patientsApi, type Patient } from '../api/patients.api';
 import { FeePayModal } from '../components/FeePayModal';
 import { PatientPicker } from '../components/PatientPicker';
@@ -35,6 +38,7 @@ export default function ClinicNewAppointmentPage() {
   const guide = usePageGuide();
   const [params] = useSearchParams();
   const canBill = usePermission(PERMISSIONS.POS_USE);
+  const canSeePanels = usePermission(PERMISSIONS.CUSTOMERS_VIEW);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [doctorId, setDoctorId] = useState('');
   const [visitType, setVisitType] = useState<VisitType | ''>('');
@@ -48,6 +52,12 @@ export default function ClinicNewAppointmentPage() {
   const [tried, setTried] = useState(false);
   const [paying, setPaying] = useState<Done | null>(null);
   const [last, setLast] = useState<Done | null>(null);
+  const [panelId, setPanelId] = useState('');
+  const { data: panels } = useQuery({ queryKey: ['clinic-panels', 'active'], queryFn: () => panelsApi.list(), enabled: canSeePanels });
+  const panelOptions = panels?.items ?? [];
+  // A panel patient starts on their panel; reception can change it for this visit.
+  useEffect(() => { setPanelId(patient?.panelId ?? ''); }, [patient]);
+  const panelOf = (id?: string | null) => panelOptions.find((x) => x.id === id) ?? null;
 
   // Opened from a patient page or a follow-up: start with that patient (and doctor).
   const patientParam = params.get('patient');
@@ -102,6 +112,7 @@ export default function ClinicNewAppointmentPage() {
       patientId: patient!.id, doctorId, walkIn, scheduledStart: walkIn ? new Date().toISOString() : new Date(when).toISOString(),
       visitType: visitType || (emergency ? 'EMERGENCY' : undefined), isEmergency: emergency, chiefComplaint: complaint.trim() || undefined,
       discount: Number(discount) || 0, otherCharges: Number(other) || 0,
+      ...(panelOptions.length > 0 && { panelId: panelId || null }),
     }),
     onSuccess: (apt) => {
       qc.invalidateQueries({ queryKey: ['clinic-appointments'] });
@@ -147,7 +158,7 @@ export default function ClinicNewAppointmentPage() {
       )}
       {paying && (
         <FeePayModal title={`Fees — Token ${paying.apt.tokenNumber}`} description={`${paying.patient.fullName} · ${drName(paying.doctor)} · ${formatPKR(paying.apt.total)}`}
-          due={r2(paying.apt.total - paying.apt.paidAmount)} busy={pay.isPending}
+          due={r2(paying.apt.total - paying.apt.paidAmount)} panel={panelOf(paying.apt.panelId)} busy={pay.isPending}
           onClose={() => { setLast(paying); setPaying(null); reset(); }} onPay={(b) => pay.mutate(b)} />
       )}
 
@@ -239,6 +250,11 @@ export default function ClinicNewAppointmentPage() {
                 <Input label="Doosre charges" inputMode="decimal" size="sm" value={other} onChange={(e) => setOther(e.target.value)} placeholder="0" />
                 <Input label="Discount" inputMode="decimal" size="sm" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="0" error={tried ? errors.discount : undefined} />
               </div>
+              {panelOptions.length > 0 && (
+                <Select label="Kaun dega" size="sm" value={panelId} onChange={(e) => setPanelId(e.target.value)}
+                  options={[{ value: '', label: 'Mareez khud' }, ...panelOptions.map((x) => ({ value: x.id, label: `Panel: ${x.name}` }))]}
+                  hint={panelId ? 'Fees company ke khata me jayegi' : undefined} />
+              )}
               <div className="flex items-baseline justify-between border-t border-slate-100 pt-3"><span className="font-semibold text-slate-700">Kul</span><span className="text-2xl font-bold tabular-nums text-slate-900">{formatPKR(total)}</span></div>
               {canBill && <Switch checked={takeFee} onChange={(e) => setTakeFee(e.target.checked)} label="Fees abhi lein" description="Token ke saath bill aur parchi print" />}
               <Button type="submit" fullWidth size="lg" loading={create.isPending} leftIcon={<Ticket className="h-5 w-5" />}>Token banayein</Button>

@@ -1,14 +1,15 @@
 /**
  * One patient's record: profile and alerts, every visit with diagnosis,
- * prescriptions (reprint), lab results, vaccines and the vitals trend, and
- * the khata balance with a link to the customer's khata page.
+ * prescriptions (reprint), lab results, vaccines, the vitals trend, dental,
+ * antenatal and physio records, the panel that pays, and the khata balance
+ * with a link to the customer's khata page.
  */
 
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Activity, AlertTriangle, BookOpen, CalendarPlus, FlaskConical, GraduationCap, History, Pencil, Pill, Power, Printer, Syringe } from 'lucide-react';
+import { Activity, AlertTriangle, Baby, BookOpen, CalendarPlus, Dumbbell, FlaskConical, GraduationCap, History, Pencil, Pill, Power, Printer, Smile, Syringe } from 'lucide-react';
 import {
   Badge, Button, Card, EmptyState, PageHero, PageShell, Skeleton, Table, TBody, THead, Td, Th, Tr, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
@@ -20,11 +21,12 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { patientsApi } from '../api/patients.api';
 import { LabResultsModal } from '../components/LabModals';
 import { PatientFormModal } from '../components/PatientFormModal';
+import { AncRecords, DentalRecords, PhysioRecords } from '../components/SpecialtyRecords';
 import type { LabOrder } from '../api/lab-orders.api';
 import { APT_STATUS, LAB_STATUS, VACCINE_STATUS, ageOf, apiError, bloodLabel, drName, genderLabel, shortDate, visitLabel } from '../lib/meta';
 import { printLabReport, printPrescription } from '../lib/print';
 
-type Tab = 'visits' | 'rx' | 'lab' | 'vaccines' | 'vitals';
+type Tab = 'visits' | 'rx' | 'lab' | 'vaccines' | 'vitals' | 'dental' | 'anc' | 'physio';
 
 export default function PatientDetailPage() {
   const { id = '' } = useParams();
@@ -49,13 +51,13 @@ export default function PatientDetailPage() {
   if (q.isLoading) return <PageShell><Skeleton className="h-32 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></PageShell>;
   if (!q.data) return <PageShell><EmptyState title="Mareez nahi mila" action={<Button onClick={() => navigate('/clinic/patients')}>Mareez</Button>} /></PageShell>;
 
-  const { patient: p, appointments, prescriptions, labOrders, vaccinations, vitalsHistory, customer, doctors } = q.data;
+  const { patient: p, appointments, prescriptions, labOrders, vaccinations, vitalsHistory, customer, doctors, panel } = q.data;
   const doc = (docId: string) => doctors.find((d) => d.id === docId) ?? null;
   const encById = new Map(appointments.filter((a) => a.encounter).map((a) => [a.encounter!.id, a]));
   const facts: Array<[string, string | undefined | null]> = [
     ['MR No.', p.mrn], ['Umar', ageOf(p.dateOfBirth)], ['Jins', genderLabel(p.gender)], ['Phone', p.phonePrimary], ['CNIC', p.cnic],
     ['Walid / shohar', p.fatherOrHusbandName], ['Blood group', bloodLabel(p.bloodGroup)], ['Pata', [p.address, p.city].filter(Boolean).join(', ')],
-    ['Emergency', [p.emergencyContactName, p.emergencyContactPhone].filter(Boolean).join(' · ')], ['Panel', p.hasInsurance ? [p.insuranceProvider, p.insuranceNumber].filter(Boolean).join(' · ') || 'Haan' : null],
+    ['Emergency', [p.emergencyContactName, p.emergencyContactPhone].filter(Boolean).join(' · ')], ['Panel', panel ? [panel.name, p.insuranceNumber].filter(Boolean).join(' · ') + (panel.isActive ? '' : ' (band)') : p.hasInsurance ? [p.insuranceProvider, p.insuranceNumber].filter(Boolean).join(' · ') || 'Haan' : null],
     ['Register', shortDate(p.registeredAt)],
   ];
 
@@ -114,9 +116,15 @@ export default function PatientDetailPage() {
               { id: 'lab', label: 'Lab', icon: FlaskConical, count: labOrders.length },
               { id: 'vaccines', label: 'Vaccines', icon: Syringe, count: vaccinations.length },
               { id: 'vitals', label: 'Vitals', icon: Activity, count: vitalsHistory.length },
+              { id: 'dental', label: 'Daant', icon: Smile },
+              ...(p.gender !== 'MALE' ? [{ id: 'anc' as const, label: 'Hamal (ANC)', icon: Baby }] : []),
+              { id: 'physio', label: 'Physio', icon: Dumbbell },
             ]} />
 
           <Card>
+            {tab === 'dental' && <DentalRecords patientId={p.id} canManage={canManage} />}
+            {tab === 'anc' && <AncRecords patientId={p.id} canManage={canManage} />}
+            {tab === 'physio' && <PhysioRecords patientId={p.id} canManage={canManage} />}
             {tab === 'visits' && (appointments.length === 0 ? <EmptyState title="Abhi koi visit nahi" /> : (
               <Table minWidth="44rem">
                 <THead><Tr><Th>Tareekh</Th><Th>Doctor</Th><Th>Diagnosis</Th><Th>Status</Th><Th align="right">Fees</Th></Tr></THead>

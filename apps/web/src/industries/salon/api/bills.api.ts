@@ -18,6 +18,8 @@ export interface SalonBillInput {
   useMembership?: boolean;
   discount?: number;
   tip?: number;
+  voucherCode?: string;
+  voucherAmount?: number;
   paymentMethod: PaymentMethod;
   paidAmount: number;
   payments?: SalePaymentPart[];
@@ -28,6 +30,7 @@ export interface SalonBillInput {
 export interface SalonBill {
   id: string; saleNumber: string; total: number; paidAmount: number; changeAmount: number; creditAmount: number;
   appointment: { id: string; appointmentNumber: string } | null;
+  voucher?: { code: string; used: number; balance: number };
 }
 
 export interface SalonPerks {

@@ -11,11 +11,14 @@ import {
   SetWarrantyDto, UpdateJobStatusDto, UpdateWorkshopJobDto,
 } from './dto/create-workshop-job.dto';
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
+import { coreCode, recordCore } from '../core-returns/core-returns.service';
 import {
   ensureCustomer, postIndustrySale, recordKhataPayment, resolveIndustryShopId, toPaymentMethod, type IndustrySaleLine,
 } from '../../_shared/industry-sale.helper';
 
 type Tx = Prisma.TransactionClient;
+
+type HeldCore = { id: string; value: number; description: string };
 
 const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 /** Bill number for a job. A job billed again after its bill was voided gets -2, -3… */
@@ -410,10 +413,10 @@ export class WorkshopJobsService implements OnModuleInit {
     };
   }
 
-  /** The job's live bill: the latest one not voided. */
-  private async findBill(tenantId: string, jobNumber: string) {
-    return this.prisma.sale.findFirst({
-      where: { tenantId, saleNumber: { startsWith: jobSaleNumber(jobNumber) }, status: { not: 'VOIDED' } },
+  /** The job's live bill: the one linked by saleId; old jobs fall back to the latest WSJ- bill not voided. */
+  private async findBill(db: Tx | PrismaService, tenantId: string, job: { jobNumber: string; saleId: string | null }) {
+    return db.sale.findFirst({
+      where: { tenantId, status: { not: 'VOIDED' }, ...(job.saleId ? { id: job.saleId } : { saleNumber: { startsWith: jobSaleNumber(job.jobNumber) } }) },
       orderBy: { createdAt: 'desc' },
       select: { id: true, saleNumber: true, total: true, creditAmount: true, status: true },
     });
@@ -423,11 +426,11 @@ export class WorkshopJobsService implements OnModuleInit {
     let job = await this.prisma.workshopJob.findFirst({ where: { id, tenantId: user.tenantId }, include: JOB_INCLUDE });
     if (!job) throw new NotFoundException('Job nahi mili');
 
-    let sale = job.status === 'DELIVERED' ? await this.findBill(user.tenantId, job.jobNumber) : null;
+    const sale = job.status === 'DELIVERED' ? await this.findBill(this.prisma, user.tenantId, job) : null;
     // Bill voided while the listener was not running: reopen now.
     if (job.status === 'DELIVERED' && !sale) {
       const voided = await this.prisma.sale.findFirst({
-        where: { tenantId: user.tenantId, saleNumber: { startsWith: jobSaleNumber(job.jobNumber) }, status: 'VOIDED' },
+        where: { tenantId: user.tenantId, status: 'VOIDED', ...(job.saleId ? { id: job.saleId } : { saleNumber: { startsWith: jobSaleNumber(job.jobNumber) } }) },
         orderBy: { createdAt: 'desc' }, select: { id: true },
       });
       if (voided) {
@@ -436,10 +439,11 @@ export class WorkshopJobsService implements OnModuleInit {
       }
     }
 
-    const [customer, vehicle, names] = await Promise.all([
+    const [customer, vehicle, names, coreReturns] = await Promise.all([
       job.customerId ? this.prisma.customer.findFirst({ where: { id: job.customerId, tenantId: user.tenantId }, select: { id: true, name: true, phone: true, balance: true } }) : null,
       job.vehicleId ? this.prisma.customerVehicle.findFirst({ where: { id: job.vehicleId, tenantId: user.tenantId } }) : null,
       this.mechanicNames(user.tenantId, [job.primaryMechanicId, ...job.assistantMechanicIds]),
+      this.prisma.coreReturn.findMany({ where: { tenantId: user.tenantId, jobId: job.id }, orderBy: { createdAt: 'asc' }, select: { id: true, description: true, value: true, status: true, saleId: true } }),
     ]);
     const advanceOnKhata = await this.khataPaid(this.prisma, user.tenantId, job.jobNumber);
     return {
@@ -450,7 +454,33 @@ export class WorkshopJobsService implements OnModuleInit {
       customer,
       vehicle,
       sale,
+      coreReturns,
     };
+  }
+
+  /** Jobs behind the given bills (by saleId; older bills by their WSJ- number), for links from sales history. */
+  async bySales(user: AuthenticatedUser, ids: string[]) {
+    const wanted = [...new Set(ids.filter(Boolean))].slice(0, 200);
+    if (!wanted.length) return [];
+    const linked = await this.prisma.workshopJob.findMany({ where: { tenantId: user.tenantId, saleId: { in: wanted } }, select: { id: true, jobNumber: true, saleId: true } });
+    const rest = wanted.filter((s) => !linked.some((j) => j.saleId === s));
+    const old = rest.length
+      ? await this.prisma.sale.findMany({ where: { tenantId: user.tenantId, id: { in: rest }, saleNumber: { startsWith: 'WSJ-' } }, select: { id: true, saleNumber: true } })
+      : [];
+    const numberOf = (saleNumber: string) => {
+      const raw = saleNumber.slice(4);
+      return /^JOB-\d{4}-\d+-\d+$/.test(raw) ? raw.replace(/-\d+$/, '') : raw;
+    };
+    const oldJobs = old.length
+      ? await this.prisma.workshopJob.findMany({ where: { tenantId: user.tenantId, jobNumber: { in: old.map((s) => numberOf(s.saleNumber)) } }, select: { id: true, jobNumber: true } })
+      : [];
+    return [
+      ...linked.map((j) => ({ saleId: j.saleId!, jobId: j.id, jobNumber: j.jobNumber })),
+      ...old.flatMap((s) => {
+        const j = oldJobs.find((x) => x.jobNumber === numberOf(s.saleNumber));
+        return j ? [{ saleId: s.id, jobId: j.id, jobNumber: j.jobNumber }] : [];
+      }),
+    ];
   }
 
   // ─────────────────────────── edit ───────────────────────────
@@ -607,6 +637,7 @@ export class WorkshopJobsService implements OnModuleInit {
     this.assertOpen(job);
     const amount = r2(dto.amount ?? 0);
     const due = r2(Math.max(job.total - job.paidAmount, 0));
+    const newCore = r2(dto.coreReturn?.value ?? 0);
     if (amount > due + 0.01) throw new BadRequestException(`Baqi sirf Rs ${due} hai`);
     const nextDate = blank(dto.nextServiceDate) ? new Date(dto.nextServiceDate!) : null;
     if (nextDate && Number.isNaN(nextDate.getTime())) throw new BadRequestException('Agli service ki date sahi likhein');
@@ -618,19 +649,42 @@ export class WorkshopJobsService implements OnModuleInit {
       this.assertOpen(fresh);
       const now = new Date();
       const shopId = await resolveIndustryShopId(tx, user, fresh.shopId);
-      const bill = await this.postJobBill(tx, user, fresh, shopId, amount, dto.paymentMethod);
+      // Old parts given with this job (a new one now, or one held from a bill that was voided).
+      if (dto.coreReturn) await recordCore(tx, user, { ...dto.coreReturn, jobId: id, shopId });
+      const held: HeldCore[] = await tx.coreReturn.findMany({
+        where: { tenantId: user.tenantId, jobId: id, status: 'HELD', saleId: null }, select: { id: true, value: true, description: true },
+      });
+      // Skip a part whose code already sits on a live bill (not yet linked).
+      const onBill = held.length ? await tx.salePayment.findMany({
+        where: { tenantId: user.tenantId, method: 'TRADE_IN', reference: { in: held.map((c) => coreCode(c.id)) }, sale: { status: { not: 'VOIDED' } } },
+        select: { reference: true },
+      }) : [];
+      const cores = held.filter((c) => !onBill.some((p) => p.reference === coreCode(c.id)));
+      const coreValue = r2(cores.reduce((s, c) => s + c.value, 0));
+      if (amount + coreValue > due + 0.01) {
+        throw new BadRequestException(`Baqi Rs ${due} hai — purane part (Rs ${coreValue}) ke baad sirf Rs ${r2(Math.max(due - coreValue, 0))} lein`);
+      }
+      const bill = await this.postJobBill(tx, user, fresh, shopId, amount, dto.paymentMethod, cores);
 
       if (amount > 0) {
         await tx.workshopJobPayment.create({
           data: { jobId: id, amount, paymentMethod: toPaymentMethod(dto.paymentMethod), reference: bill.saleNumber ?? fresh.jobNumber, notes: blank(dto.notes) ?? 'Gaari dete waqt', receivedById: user.id },
         });
       }
-      const paid = r2(fresh.paidAmount + amount);
+      for (const c of cores) {
+        await tx.workshopJobPayment.create({
+          data: { jobId: id, amount: c.value, paymentMethod: 'TRADE_IN', reference: bill.saleNumber ?? fresh.jobNumber, notes: `Purana part: ${c.description}`, receivedById: user.id },
+        });
+      }
+      if (bill.saleId && cores.length) {
+        await tx.coreReturn.updateMany({ where: { tenantId: user.tenantId, id: { in: cores.map((c) => c.id) } }, data: { saleId: bill.saleId } });
+      }
+      const paid = r2(fresh.paidAmount + amount + coreValue);
       const warrantyMonths = dto.warrantyMonths ?? fresh.warrantyMonths;
       await tx.workshopJob.update({
         where: { id },
         data: {
-          status: 'DELIVERED', deliveredAt: now, completedAt: fresh.completedAt ?? now, shopId, customerId: bill.customerId ?? fresh.customerId,
+          status: 'DELIVERED', deliveredAt: now, completedAt: fresh.completedAt ?? now, shopId, customerId: bill.customerId ?? fresh.customerId, saleId: bill.saleId ?? null,
           paidAmount: paid, paymentStatus: payStatus(paid, fresh.total),
           ...(warrantyMonths > 0 && { warrantyStatus: 'ACTIVE', warrantyMonths, warrantyKm: dto.warrantyKm ?? fresh.warrantyKm, warrantyExpiry: addMonths(now, warrantyMonths) }),
         },
@@ -665,7 +719,7 @@ export class WorkshopJobsService implements OnModuleInit {
     return this.getOne(user, id);
   }
 
-  private async postJobBill(tx: Tx, user: AuthenticatedUser, job: Prisma.WorkshopJobGetPayload<{ include: { laborItems: true; partsUsed: true; externalWork: true } }>, shopId: string, amountNow: number, method?: string) {
+  private async postJobBill(tx: Tx, user: AuthenticatedUser, job: Prisma.WorkshopJobGetPayload<{ include: { laborItems: true; partsUsed: true; externalWork: true } }>, shopId: string, amountNow: number, method: string | undefined, cores: HeldCore[]) {
     const stockParts = job.partsUsed.filter((p) => p.productId && !p.isCustomerSupplied);
     const products = stockParts.length
       ? await tx.product.findMany({ where: { id: { in: stockParts.map((p) => p.productId!) }, tenantId: user.tenantId }, select: { id: true, name: true, costPrice: true, productType: true, unit: true } })
@@ -704,7 +758,8 @@ export class WorkshopJobsService implements OnModuleInit {
 
     // Payments recorded before khata posting existed count as paid with this bill.
     const legacyPaid = r2(Math.max(job.paidAmount - (await this.khataPaid(tx, user.tenantId, job.jobNumber)), 0));
-    const owed = r2(Math.max(job.total - job.paidAmount - amountNow, 0));
+    const coreValue = r2(cores.reduce((s, c) => s + c.value, 0));
+    const owed = r2(Math.max(job.total - job.paidAmount - amountNow - coreValue, 0));
     let customerId: string | null = job.customerId || null;
     if (!customerId && owed > 0.009) {
       if (!job.customerName?.trim() && !job.customerPhone?.trim()) {
@@ -714,6 +769,7 @@ export class WorkshopJobsService implements OnModuleInit {
     }
 
     let saleNumber: string | undefined;
+    let saleId: string | undefined;
     if (billable) {
       const round = 1 + await tx.sale.count({ where: { tenantId: user.tenantId, saleNumber: { startsWith: jobSaleNumber(job.jobNumber) }, status: 'VOIDED' } });
       const sale = await postIndustrySale(tx, user, {
@@ -725,9 +781,15 @@ export class WorkshopJobsService implements OnModuleInit {
         discount: job.discount,
         paidAmount: r2(legacyPaid + amountNow),
         paymentMethod: method ?? 'CASH',
+        tradeIns: cores.map((c) => ({ amount: c.value, reference: coreCode(c.id), note: `Purana part: ${c.description}` })),
       });
+      // Guard: a bill posted earlier under this number must carry the old parts too.
+      if (coreValue > 0 && Number(sale.paidAmount) < r2(legacyPaid + amountNow + coreValue) - 0.01) {
+        throw new BadRequestException('Purane part ki qeemat is bill par nahi lagi — dobara koshish karein');
+      }
       saleNumber = sale.saleNumber;
-    } else if (amountNow > 0) {
+      saleId = sale.id;
+    } else if (amountNow > 0 || coreValue > 0) {
       throw new BadRequestException('Is job ka koi bill nahi — paisa na lein');
     }
 
@@ -745,7 +807,7 @@ export class WorkshopJobsService implements OnModuleInit {
       });
       await tx.workshopJobPart.update({ where: { id: p.id }, data: { installedAt: new Date() } });
     }
-    return { saleNumber, customerId };
+    return { saleNumber, saleId, customerId };
   }
 
   /**
@@ -757,11 +819,13 @@ export class WorkshopJobsService implements OnModuleInit {
   async reopenAfterVoid(tenantId: string, saleId: string) {
     try {
       const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { id: true, shopId: true, saleNumber: true, status: true, paidAmount: true, changeAmount: true } });
-      if (!sale || sale.status !== 'VOIDED' || !sale.saleNumber.startsWith('WSJ-')) return null;
-      const raw = sale.saleNumber.slice(4);
-      const again = raw.match(/^(.+)-\d+$/);
-      const job = (await this.prisma.workshopJob.findFirst({ where: { tenantId, jobNumber: raw } }))
-        ?? (again ? await this.prisma.workshopJob.findFirst({ where: { tenantId, jobNumber: again[1] } }) : null);
+      if (!sale || sale.status !== 'VOIDED') return null;
+      // Jobs billed before saleId existed are found from the WSJ- bill number.
+      const raw = sale.saleNumber.startsWith('WSJ-') ? sale.saleNumber.slice(4) : null;
+      const again = raw?.match(/^(.+)-\d+$/);
+      const job = (await this.prisma.workshopJob.findFirst({ where: { tenantId, saleId: sale.id } }))
+        ?? (raw ? await this.prisma.workshopJob.findFirst({ where: { tenantId, saleId: null, jobNumber: raw } }) : null)
+        ?? (again ? await this.prisma.workshopJob.findFirst({ where: { tenantId, saleId: null, jobNumber: again[1] } }) : null);
       if (!job || job.status !== 'DELIVERED') return null;
 
       const voidBy = await this.prisma.activityLog.findFirst({
@@ -771,10 +835,16 @@ export class WorkshopJobsService implements OnModuleInit {
         await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`workshop-job:${job.id}`}))::text`;
         const fresh = await tx.workshopJob.findUniqueOrThrow({ where: { id: job.id } });
         if (fresh.status !== 'DELIVERED') return null;
-        const atDelivery = await tx.workshopJobPayment.aggregate({ where: { jobId: job.id, reference: sale.saleNumber }, _sum: { amount: true } });
-        const back = r2(atDelivery._sum.amount ?? 0);
-        if (back > 0) {
-          await tx.workshopJobPayment.create({ data: { jobId: job.id, amount: -back, paymentMethod: 'CASH', reference: sale.saleNumber, notes: `Bill ${sale.saleNumber} void — paisa wapas`, receivedById: voidBy?.userId ?? null } });
+        const atDelivery = await tx.workshopJobPayment.groupBy({ by: ['paymentMethod'], where: { jobId: job.id, reference: sale.saleNumber }, _sum: { amount: true } });
+        const tradeInBack = r2(atDelivery.filter((g) => g.paymentMethod === 'TRADE_IN').reduce((s, g) => s + (g._sum.amount ?? 0), 0));
+        const back = r2(atDelivery.reduce((s, g) => s + (g._sum.amount ?? 0), 0));
+        const moneyBack = r2(back - tradeInBack);
+        if (moneyBack > 0) {
+          await tx.workshopJobPayment.create({ data: { jobId: job.id, amount: -moneyBack, paymentMethod: 'CASH', reference: sale.saleNumber, notes: `Bill ${sale.saleNumber} void — paisa wapas`, receivedById: voidBy?.userId ?? null } });
+        }
+        // Old parts stay held for the job's next bill.
+        if (tradeInBack > 0) {
+          await tx.workshopJobPayment.create({ data: { jobId: job.id, amount: -tradeInBack, paymentMethod: 'TRADE_IN', reference: sale.saleNumber, notes: `Bill ${sale.saleNumber} void — purana part agle bill par lagega`, receivedById: voidBy?.userId ?? null } });
         }
         // The void put the bill's shelf parts back in stock, but they are still in the vehicle.
         const parts = await tx.saleItem.findMany({
@@ -792,7 +862,7 @@ export class WorkshopJobsService implements OnModuleInit {
         const paid = r2(Math.max(fresh.paidAmount - back, 0));
         await tx.workshopJob.update({
           where: { id: job.id },
-          data: { status: 'COMPLETED', deliveredAt: null, paidAmount: paid, paymentStatus: payStatus(paid, fresh.total), warrantyStatus: fresh.warrantyStatus === 'ACTIVE' ? 'NONE' : fresh.warrantyStatus },
+          data: { status: 'COMPLETED', deliveredAt: null, saleId: null, paidAmount: paid, paymentStatus: payStatus(paid, fresh.total), warrantyStatus: fresh.warrantyStatus === 'ACTIVE' ? 'NONE' : fresh.warrantyStatus },
         });
         await tx.workshopJobStatusLog.create({ data: { jobId: job.id, fromStatus: 'DELIVERED', toStatus: 'COMPLETED', changedById: voidBy?.userId ?? null, notes: `Bill ${sale.saleNumber} void hua — job dobara khuli, theek kar ke dobara dein` } });
         if (fresh.vehicleId) {
@@ -817,11 +887,9 @@ export class WorkshopJobsService implements OnModuleInit {
     return r2(-(Number(agg._sum.amount) || 0));
   }
 
-  private async takeMoney(tx: Tx, user: AuthenticatedUser, job: { id: string; jobNumber: string; status: JobStatus; customerId: string | null; customerName: string | null; customerPhone: string | null; paidAmount: number; total: number }, shopId: string, amount: number, method: string, note: string) {
+  private async takeMoney(tx: Tx, user: AuthenticatedUser, job: { id: string; jobNumber: string; saleId: string | null; status: JobStatus; customerId: string | null; customerName: string | null; customerPhone: string | null; paidAmount: number; total: number }, shopId: string, amount: number, method: string, note: string) {
     const customerId = await ensureCustomer(tx, user, { customerId: job.customerId, name: job.customerName ?? job.customerPhone, phone: job.customerPhone, shopId });
-    const bill = job.status === 'DELIVERED' ? await tx.sale.findFirst({
-      where: { tenantId: user.tenantId, saleNumber: { startsWith: jobSaleNumber(job.jobNumber) }, status: { not: 'VOIDED' } }, orderBy: { createdAt: 'desc' }, select: { saleNumber: true },
-    }) : null;
+    const bill = job.status === 'DELIVERED' ? await this.findBill(tx, user.tenantId, job) : null;
     const reference = bill?.saleNumber ?? job.jobNumber;
     await recordKhataPayment(tx, user, {
       customerId, shopId, amount, method,

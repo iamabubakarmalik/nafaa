@@ -1,13 +1,15 @@
 /**
  * Salon service list: price, time, commission and who it is for. Each
- * service is billed against its own service product, which is kept in step
- * here. Removing a service only switches it off; its history stays.
+ * service is billed against its own service product (linked by
+ * `productId`), which is kept in step here. Removing a service only
+ * switches it off; its history stays.
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { ensureServiceProduct, r2, serviceSku } from '../common/salon-common';
+import { ensureServiceProduct, linkServiceProducts, r2, serviceSku } from '../common/salon-common';
 import { UpdateServiceDto, UpsertServiceDto } from './dto/upsert-service.dto';
 
 @Injectable()
@@ -41,7 +43,7 @@ export class ServicesService {
   }
 
   async list(user: AuthenticatedUser, params: { category?: string; forGender?: string; search?: string; active?: boolean; featured?: boolean; popular?: boolean }) {
-    return this.prisma.salonService.findMany({
+    const rows = await this.prisma.salonService.findMany({
       where: {
         tenantId: user.tenantId,
         ...(params.category && { category: params.category as never }),
@@ -60,12 +62,13 @@ export class ServicesService {
       },
       orderBy: [{ isFeatured: 'desc' }, { displayOrder: 'asc' }, { name: 'asc' }],
     });
+    return linkServiceProducts(this.prisma as unknown as Prisma.TransactionClient, user.tenantId, rows);
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.salonService.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Service nahi mili');
-    return s;
+    return (await linkServiceProducts(this.prisma as unknown as Prisma.TransactionClient, user.tenantId, [s]))[0];
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateServiceDto) {
@@ -80,10 +83,13 @@ export class ServicesService {
   }
 
   async remove(user: AuthenticatedUser, id: string) {
-    await this.getOne(user, id);
+    const before = await this.getOne(user, id);
     return this.prisma.$transaction(async (tx) => {
       const svc = await tx.salonService.update({ where: { id }, data: { isActive: false } });
-      await tx.product.updateMany({ where: { tenantId: user.tenantId, sku: serviceSku(id) }, data: { isActive: false } });
+      await tx.product.updateMany({
+        where: before.productId ? { id: before.productId, tenantId: user.tenantId } : { tenantId: user.tenantId, sku: serviceSku(id) },
+        data: { isActive: false },
+      });
       return svc;
     });
   }
@@ -129,13 +135,13 @@ export class ServicesService {
       row.count += 1; row.revenue = r2(row.revenue + l.total); row.commission = r2(row.commission + l.commissionAmount);
       staff.set(key, row);
     }
-    const [assigned, product] = await Promise.all([
-      this.prisma.salonStaffService.findMany({ where: { serviceId: id, staffProfile: { tenantId: user.tenantId, isActive: true } }, select: { staffProfileId: true, customPrice: true, customDuration: true, customCommissionPct: true } }),
-      this.prisma.product.findFirst({ where: { tenantId: user.tenantId, sku: serviceSku(id) }, select: { id: true } }),
-    ]);
+    const assigned = await this.prisma.salonStaffService.findMany({
+      where: { serviceId: id, staffProfile: { tenantId: user.tenantId, isActive: true } },
+      select: { staffProfileId: true, customPrice: true, customDuration: true, customCommissionPct: true },
+    });
     return {
       service: svc,
-      productId: product?.id ?? null,
+      productId: svc.productId,
       last90: { count: live.length, revenue: r2(live.reduce((s, l) => s + l.total, 0)), commission: r2(live.reduce((s, l) => s + l.commissionAmount, 0)) },
       staff: [...staff.values()].sort((a, b) => b.count - a.count),
       assigned,

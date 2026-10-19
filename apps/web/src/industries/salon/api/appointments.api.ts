@@ -3,6 +3,9 @@ import { apiClient } from '@core/api/client';
 export type AppointmentStatus = 'DRAFT' | 'CONFIRMED' | 'ARRIVED' | 'IN_PROGRESS'
   | 'COMPLETED' | 'NO_SHOW' | 'CANCELLED' | 'RESCHEDULED';
 
+/** Where an appointment came from: booked ahead, walked in to the queue, or billed straight at the counter. */
+export type AppointmentSource = 'BOOKED' | 'WALK_IN' | 'COUNTER';
+
 export interface AppointmentService {
   id?: string;
   serviceId: string;
@@ -27,6 +30,7 @@ export interface Appointment {
   customerEmail?: string;
   customerNotes?: string;
   status: AppointmentStatus;
+  source: AppointmentSource;
   scheduledStart: string;
   scheduledEnd: string;
   actualStart?: string;
@@ -58,7 +62,7 @@ export interface Appointment {
 export type AppointmentView = 'today' | 'queue' | 'upcoming' | 'done' | 'missed' | 'all';
 
 export interface AppointmentQuery {
-  view?: AppointmentView; from?: string; to?: string; staffProfileId?: string; search?: string; page?: number; limit?: number;
+  view?: AppointmentView; from?: string; to?: string; staffProfileId?: string; source?: AppointmentSource; search?: string; page?: number; limit?: number;
 }
 
 export interface AppointmentPage {
@@ -74,6 +78,7 @@ export interface AppointmentSummary {
     from: string; to: string; bookings: number; completed: number; noShows: number; cancelled: number; noShowRate: number;
     walkIns: number; customers: number; revenue: number; average: number; commission: number;
   };
+  sources: Record<AppointmentSource, { count: number; completed: number; revenue: number }>;
   staff: Array<{ staffProfileId: string; name: string; services: number; revenue: number; commission: number }>;
   services: Array<{ serviceId: string; name: string; count: number; revenue: number }>;
   hours: Array<{ hour: number; bookings: number }>;

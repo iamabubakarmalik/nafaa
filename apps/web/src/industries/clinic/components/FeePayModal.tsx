@@ -1,7 +1,8 @@
 /**
  * Takes a clinic fee (appointment or lab): one method, a split across
- * methods, or part / all on the patient's khata. Every payment becomes a
- * bill, so the drawer, day book and khata see it once.
+ * methods, or part / all on the patient's khata. A panel visit starts on
+ * "Khata" and the khata is the panel's (company's), not the patient's.
+ * Every payment becomes a bill, so the drawer, day book and khata see it once.
  */
 
 import { useState, type FormEvent } from 'react';
@@ -27,16 +28,19 @@ function MethodChips({ value, onChange }: { value: FeeMethod; onChange: (m: FeeM
   );
 }
 
-export function FeePayModal({ title, description, due, busy, onClose, onPay }: {
+export function FeePayModal({ title, description, due, panel, busy, onClose, onPay }: {
   title: string;
   description?: string;
   /** Still to be billed. */
   due: number;
+  /** Company panel that pays this visit; its khata takes the unpaid part. */
+  panel?: { name: string } | null;
   busy?: boolean;
   onClose: () => void;
   onPay: (body: FeePayment) => void;
 }) {
-  const [mode, setMode] = useState<Mode>('one');
+  const [mode, setMode] = useState<Mode>(panel ? 'khata' : 'one');
+  const khataOf = panel ? `panel "${panel.name}"` : 'mareez';
   const [amount, setAmount] = useState(String(due));
   const [method, setMethod] = useState<FeeMethod>('CASH');
   const [paidNow, setPaidNow] = useState('');
@@ -75,12 +79,12 @@ export function FeePayModal({ title, description, due, busy, onClose, onPay }: {
         <Input label="Bill ka amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus
           hint="Kam likhein to baqi baad me alag bill par" error={tried && error && !(amt > 0 && amt <= due + 0.009) ? error : undefined} />
         <Segmented<Mode> value={mode} onChange={setMode} label="Kaise liya"
-          items={[{ value: 'one', label: 'Ek tareeqa' }, { value: 'split', label: 'Do tareeqe' }, { value: 'khata', label: 'Khata (udhaar)' }]} />
+          items={[{ value: 'one', label: 'Ek tareeqa' }, { value: 'split', label: 'Do tareeqe' }, { value: 'khata', label: panel ? 'Panel khata' : 'Khata (udhaar)' }]} />
         {mode === 'one' && (
           <div className="space-y-3">
             <MethodChips value={method} onChange={setMethod} />
             <Input label="Abhi kitna mila" inputMode="decimal" value={paidNow} onChange={(e) => setPaidNow(e.target.value)} placeholder={String(amt || '')}
-              hint="Khaali rahe to poora amount; kam likhein to baqi mareez ke khata me" />
+              hint={`Khaali rahe to poora amount; kam likhein to baqi ${khataOf} ke khata me`} />
           </div>
         )}
         {mode === 'split' && (
@@ -103,7 +107,9 @@ export function FeePayModal({ title, description, due, busy, onClose, onPay }: {
         )}
         {mode === 'khata' && (
           <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-            <BookOpen className="mt-0.5 h-4 w-4 shrink-0" />Poora {formatPKR(amt)} mareez ke khata me jayega. Wapas aane par Khata page se wasool karein.
+            <BookOpen className="mt-0.5 h-4 w-4 shrink-0" />{panel
+              ? <>Poora {formatPKR(amt)} panel &quot;{panel.name}&quot; ke khata me jayega. Company se Panels page par wasool karein.</>
+              : <>Poora {formatPKR(amt)} mareez ke khata me jayega. Wapas aane par Khata page se wasool karein.</>}
           </p>
         )}
         {tried && error && <p className="text-[0.8125rem] font-medium text-rose-600">{error}</p>}

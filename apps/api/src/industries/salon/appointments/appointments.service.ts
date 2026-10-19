@@ -7,13 +7,13 @@
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, type SalonAppointmentSource } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ensureCustomer, recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
-import { DAY_MS, paging, r2, salonClock, withNextNumber } from '../common/salon-common';
+import { DAY_MS, paging, r2, salonClock, sourceOf, sourceWhere, withNextNumber, withSource } from '../common/salon-common';
 import { SalonBillsService, lineCommission } from '../bills/salon-bills.service';
 import {
   AddPaymentDto, AppointmentPageQuery, AppointmentView, CheckoutAppointmentDto, CreateAppointmentDto, RescheduleDto, UpdateAppointmentStatusDto,
@@ -108,10 +108,7 @@ export class AppointmentsService {
     const tax = r2(dto.taxAmount ?? 0);
     const discount = r2(dto.discount ?? 0);
     const total = r2(Math.max(subtotal + serviceCharge + tax - discount, 0));
-    const notes = [
-      dto.walkIn && 'Walk-in',
-      dto.numberOfGuests && dto.numberOfGuests > 1 && `Guests: ${dto.numberOfGuests}`,
-    ].filter(Boolean).join(' · ');
+    const notes = dto.numberOfGuests && dto.numberOfGuests > 1 ? `Guests: ${dto.numberOfGuests}` : '';
 
     const clock = await salonClock(this.tz, tenantId);
     return withNextNumber(
@@ -130,6 +127,7 @@ export class AppointmentsService {
           customerEmail: dto.customerEmail?.trim() || null,
           customerNotes: dto.customerNotes?.trim() || null,
           status: dto.walkIn ? 'ARRIVED' : 'CONFIRMED',
+          source: dto.walkIn ? 'WALK_IN' : 'BOOKED',
           arrivedAt: dto.walkIn ? now : undefined,
           scheduledStart,
           scheduledEnd,
@@ -147,11 +145,12 @@ export class AppointmentsService {
     );
   }
 
-  async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; staffProfileId?: string; from?: string; to?: string; search?: string; saleId?: string; saleIds?: string }) {
+  async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; staffProfileId?: string; from?: string; to?: string; search?: string; saleId?: string; saleIds?: string; source?: SalonAppointmentSource }) {
     const saleIds = params.saleIds?.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 200);
-    return this.prisma.salonAppointment.findMany({
+    const rows = await this.prisma.salonAppointment.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(params.source && { AND: [sourceWhere(params.source)] }),
         ...(params.status && { status: params.status as never }),
         ...(params.customerId && { customerId: params.customerId }),
         ...(params.saleId && { saleId: params.saleId }),
@@ -175,6 +174,7 @@ export class AppointmentsService {
       orderBy: { scheduledStart: params.customerId ? 'desc' : 'asc' },
       take: 200,
     });
+    return rows.map(withSource);
   }
 
   /** One view of the appointment record, paged, with the count of every view. */
@@ -192,6 +192,7 @@ export class AppointmentsService {
       ...scope.whereLoose,
       ...(period && { scheduledStart: { gte: period.gte, lt: period.lt } }),
       ...(q.staffProfileId && { services: { some: { staffProfileId: q.staffProfileId } } }),
+      ...(q.source && { AND: [sourceWhere(q.source)] }),
       ...(q.search?.trim() && {
         OR: [
           { appointmentNumber: { contains: q.search.trim(), mode: 'insensitive' } },
@@ -229,7 +230,7 @@ export class AppointmentsService {
       this.prisma.salonAppointment.aggregate({ where, _sum: { total: true, paidAmount: true } }),
     ]);
     return {
-      items, total, page, limit, pages: Math.max(Math.ceil(total / limit), 1),
+      items: items.map(withSource), total, page, limit, pages: Math.max(Math.ceil(total / limit), 1),
       counts: Object.fromEntries(counts) as Record<AppointmentView, number>,
       totals: { value: r2(totals._sum.total ?? 0), paid: r2(totals._sum.paidAmount ?? 0) },
     };
@@ -258,7 +259,7 @@ export class AppointmentsService {
       this.prisma.salonAppointment.findMany({
         where: { ...scoped, scheduledStart: { gte: period.gte, lt: period.lt } },
         select: {
-          status: true, scheduledStart: true, saleId: true, internalNotes: true, customerId: true,
+          status: true, scheduledStart: true, saleId: true, source: true, internalNotes: true, customerId: true,
           services: { select: { serviceId: true, serviceName: true, staffProfileId: true, staffName: true, total: true, commissionAmount: true } },
         },
         take: 20_000,
@@ -310,6 +311,11 @@ export class AppointmentsService {
       weekdays[clock.weekday(r.scheduledStart)].bookings += 1;
     }
     const revenue = r2(billed.reduce((s, r) => s + (billOf.get(r.saleId!) ?? 0), 0));
+    const sources = Object.fromEntries((['BOOKED', 'WALK_IN', 'COUNTER'] as const).map((k) => {
+      const own = rows.filter((r) => r.status !== 'CANCELLED' && sourceOf(r) === k);
+      const paid = own.filter((r) => r.saleId && billOf.has(r.saleId));
+      return [k, { count: own.length, completed: paid.length, revenue: r2(paid.reduce((s, r) => s + (billOf.get(r.saleId!) ?? 0), 0)) }];
+    })) as Record<SalonAppointmentSource, { count: number; completed: number; revenue: number }>;
     const booked = rows.filter((r) => r.status !== 'CANCELLED').length;
     const noShows = rows.filter((r) => r.status === 'NO_SHOW').length;
 
@@ -324,12 +330,13 @@ export class AppointmentsService {
         noShows,
         cancelled: rows.filter((r) => r.status === 'CANCELLED').length,
         noShowRate: booked ? r2((noShows / booked) * 100) : 0,
-        walkIns: rows.filter((r) => (r.internalNotes ?? '').startsWith('Walk-in')).length,
+        walkIns: sources.WALK_IN.count + sources.COUNTER.count,
         customers: new Set(rows.map((r) => r.customerId).filter(Boolean)).size,
         revenue,
         average: billed.length ? r2(revenue / billed.length) : 0,
         commission: r2([...staff.values()].reduce((s, x) => s + x.commission, 0)),
       },
+      sources,
       staff: [...staff.values()].sort((a, b) => b.revenue - a.revenue),
       services: [...services.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 15),
       hours,
@@ -351,7 +358,7 @@ export class AppointmentsService {
         ? this.prisma.sale.findFirst({ where: { id: apt.saleId, tenantId: user.tenantId }, select: { id: true, saleNumber: true, status: true, total: true, creditAmount: true, refundedAmount: true } })
         : null,
     ]);
-    return { ...apt, customer, sale };
+    return { ...withSource(apt), customer, sale };
   }
 
   async updateStatus(user: AuthenticatedUser, scope: ShopScope, id: string, dto: UpdateAppointmentStatusDto) {
@@ -496,7 +503,7 @@ export class AppointmentsService {
     const to = new Date(params.to);
     if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) throw new BadRequestException('Tareekh sahi chunein');
     if (to.getTime() - from.getTime() > 62 * DAY_MS) throw new BadRequestException('Calendar ek waqt me 2 mahine tak dikhata hai');
-    return this.prisma.salonAppointment.findMany({
+    const rows = await this.prisma.salonAppointment.findMany({
       where: {
         tenantId: user.tenantId,
         status: { notIn: ['CANCELLED'] },
@@ -506,6 +513,7 @@ export class AppointmentsService {
       include: { services: { orderBy: { displayOrder: 'asc' } } },
       orderBy: { scheduledStart: 'asc' },
     });
+    return rows.map(withSource);
   }
 
   async submitRating(user: AuthenticatedUser, id: string, rating: number, feedback?: string) {

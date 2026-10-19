@@ -15,6 +15,8 @@ export interface FreshnessLog {
   soldQty: number;
   wastedQty: number;
   discountedQty: number;
+  /** Product unit; quantities take decimals when it is a weight. */
+  unit?: string | null;
   status: FreshnessStatus;
   discardedAt?: string;
   discardReason?: string;

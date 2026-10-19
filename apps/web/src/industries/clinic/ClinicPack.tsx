@@ -1,5 +1,5 @@
 import {
-  Stethoscope, LayoutDashboard, Calendar, CalendarPlus, Timer, UserCog, Users, Pill, TestTube, Syringe,
+  Stethoscope, LayoutDashboard, Calendar, CalendarPlus, Timer, UserCog, Users, Pill, TestTube, Syringe, Building2,
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -8,6 +8,8 @@ import ClinicDashboard from './dashboard/ClinicDashboard';
 import DoctorsPage from './pages/DoctorsPage';
 import PatientsPage from './pages/PatientsPage';
 import PatientDetailPage from './pages/PatientDetailPage';
+import PanelsPage from './pages/PanelsPage';
+import PanelStatementPage from './pages/PanelStatementPage';
 import ClinicAppointmentsPage from './pages/ClinicAppointmentsPage';
 import ClinicNewAppointmentPage from './pages/ClinicNewAppointmentPage';
 import ClinicAppointmentDetailPage from './pages/ClinicAppointmentDetailPage';
@@ -22,8 +24,9 @@ const RECORDS = PERMISSIONS.CLINIC_RECORDS_VIEW;
 /**
  * Clinic / Doctor / Dental / Lab pack: reception and tokens, live line,
  * visits (vitals, notes, prescriptions, lab), patient records, doctors with
- * fees and day close, vaccines. Medical pages need bookings view; the
- * patient directory needs customers view.
+ * fees, day close and share payouts, vaccines, company panels. Medical
+ * pages need records view; the patient directory and panels need customers
+ * view, a panel statement khata view.
  */
 export const ClinicPack: IndustryPack = {
   id: 'clinic',
@@ -64,6 +67,7 @@ export const ClinicPack: IndustryPack = {
         { to: '/clinic/appointments', label: 'Appointments', icon: Calendar, permission: BOOKINGS },
         { to: '/clinic/patients', label: 'Mareez', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
         { to: '/clinic/doctors', label: 'Doctors', icon: UserCog, permission: BOOKINGS },
+        { to: '/clinic/panels', label: 'Panels', icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
         { to: '/clinic/prescriptions', label: 'Nuskhe', icon: Pill, permission: RECORDS },
         { to: '/clinic/lab-orders', label: 'Lab', icon: TestTube, permission: RECORDS },
         { to: '/clinic/vaccinations', label: 'Vaccines', icon: Syringe, permission: RECORDS },
@@ -81,6 +85,8 @@ export const ClinicPack: IndustryPack = {
     { path: '/clinic/doctors', element: DoctorsPage, permission: BOOKINGS },
     { path: '/clinic/patients/:id', element: PatientDetailPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
     { path: '/clinic/patients', element: PatientsPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/clinic/panels/:id', element: PanelStatementPage, permission: PERMISSIONS.KHATA_VIEW },
+    { path: '/clinic/panels', element: PanelsPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
     { path: '/clinic/prescriptions', element: ClinicPrescriptionsPage, permission: RECORDS },
     { path: '/clinic/lab-orders', element: LabOrdersPage, permission: RECORDS },
     { path: '/clinic/vaccinations', element: VaccinationsPage, permission: RECORDS },

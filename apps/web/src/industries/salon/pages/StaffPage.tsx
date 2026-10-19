@@ -2,7 +2,8 @@
  * Stylists: who takes bookings, their role, days and hours and commission
  * rate; today's load; and the commission statement for a period from
  * billed services (voided bills left out, returned services taken back),
- * with each stylist's lines and print. People come from HR staff; a
+ * with each stylist's lines, what is paid and owed, and print. Paying a
+ * stylist opens their payout screen. People come from HR staff; a
  * stylist profile adds the salon side.
  *
  * Keys: N add stylist · 1 stylists · 2 commission · G guide.
@@ -12,7 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CalendarCheck, Clock, Coins, GraduationCap, Pencil, Percent, Plus, Power, Receipt, Scissors, UserPlus, Users } from 'lucide-react';
+import { CalendarCheck, Clock, Coins, GraduationCap, Pencil, Percent, Plus, Power, Receipt, Scissors, UserPlus, Users, Wallet } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import type { PrintDoc } from '@core/print';
 import {
@@ -200,7 +201,8 @@ export default function StaffPage() {
       ) : comQ.isLoading ? <ListSkeleton /> : !com?.staff.length ? (
         <EmptyList icon={Coins} title="Is period me koi commission nahi" text="Counter par har service ke saath stylist chunein — bill bante hi commission yahan aa jati hai." />
       ) : person && com.lines ? (
-        <Card flush title={<CardTitle icon={Receipt}>{com.staff[0]?.name} — har service</CardTitle>} actions={<span className="text-[0.875rem] font-bold">{cost(com.totals.net)}</span>}>
+        <Card flush title={<CardTitle icon={Receipt}>{com.staff[0]?.name} — har service</CardTitle>}
+          actions={<span className="flex items-center gap-3"><span className="text-[0.875rem] font-bold">{cost(com.totals.net)}</span><Link to={`/salon/staff/${person}/payout`} className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[0.8125rem] font-medium text-brand-700 ring-1 ring-slate-200 hover:bg-slate-50"><Wallet className="h-3.5 w-3.5" /> Payout</Link></span>}>
           <Table minWidth="40rem">
             <THead><Tr><Th>Date</Th><Th>Bill</Th><Th>Customer</Th><Th>Service</Th><Th align="right">Amount</Th><Th align="right">Commission</Th></Tr></THead>
             <TBody>
@@ -220,7 +222,7 @@ export default function StaffPage() {
       ) : (
         <Card flush title={<CardTitle icon={Percent}>Commission — {rangeLabel(com.from, com.to)}</CardTitle>}>
           <Table minWidth="36rem">
-            <THead><Tr><Th>Stylist</Th><Th align="right">Services</Th><Th align="right">Bill</Th><Th align="right">Wapas</Th><Th align="right">Commission</Th></Tr></THead>
+            <THead><Tr><Th>Stylist</Th><Th align="right">Services</Th><Th align="right">Bill</Th><Th align="right">Wapas</Th><Th align="right">Commission</Th><Th align="right">Di gayi</Th><Th align="right">Baqi</Th><Th /></Tr></THead>
             <TBody>
               {com.staff.map((p) => (
                 <Tr key={p.staffProfileId} className="cursor-pointer hover:bg-slate-50" onClick={() => setPerson(p.staffProfileId)}>
@@ -229,11 +231,16 @@ export default function StaffPage() {
                   <Td align="right" className="tabular-nums">{sales(p.revenue)}</Td>
                   <Td align="right" className="tabular-nums text-rose-700">{p.returned ? `−${cost(p.returned)}` : '—'}</Td>
                   <Td align="right" className="font-semibold tabular-nums">{cost(p.net)}</Td>
+                  <Td align="right" className="tabular-nums text-success-700">{p.paid ? cost(p.paid) : '—'}</Td>
+                  <Td align="right" className="font-semibold tabular-nums text-amber-700">{p.unpaid ? cost(p.unpaid) : '—'}</Td>
+                  <Td align="right" onClick={(e) => e.stopPropagation()}>
+                    <Link to={`/salon/staff/${p.staffProfileId}/payout`} className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[0.8125rem] font-medium text-brand-700 ring-1 ring-slate-200 hover:bg-slate-50"><Wallet className="h-3.5 w-3.5" /> Payout</Link>
+                  </Td>
                 </Tr>
               ))}
             </TBody>
           </Table>
-          <p className="border-t border-slate-100 px-5 py-3 text-[0.75rem] text-slate-500">Commission ki adaigi Expenses ya HR → Payroll se karein; ye hisaab sirf banti hui commission dikhata hai.</p>
+          <p className="border-t border-slate-100 px-5 py-3 text-[0.75rem] text-slate-500">"Payout" se baqi commission drawer se dein — Expense likha jata hai aur slip print hoti hai.</p>
         </Card>
       )}
 

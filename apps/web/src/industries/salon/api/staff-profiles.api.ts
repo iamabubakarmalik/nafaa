@@ -42,9 +42,27 @@ export type StaffProfileInput = Partial<Pick<StaffProfile, 'role' | 'specializat
 
 export interface CommissionStatement {
   from: string; to: string;
-  staff: Array<{ staffProfileId: string; name: string; services: number; revenue: number; commission: number; returned: number; net: number }>;
-  totals: { services: number; revenue: number; net: number };
-  lines?: Array<{ id: string; at: string; appointmentId: string; appointmentNumber: string; customerName?: string | null; saleNumber: string; serviceName: string; total: number; commission: number; returned: boolean; notes?: string | null }>;
+  staff: Array<{
+    staffProfileId: string; name: string; services: number; revenue: number; commission: number; returned: number; net: number;
+    /** Paid out already; still owed; paid but the service came back later. */
+    paid: number; unpaid: number; paidThenReturned: number;
+  }>;
+  totals: { services: number; revenue: number; net: number; paid: number; unpaid: number };
+  lines?: Array<{
+    id: string; at: string; appointmentId: string; appointmentNumber: string; customerName?: string | null; saleNumber: string; serviceName: string;
+    total: number; commission: number; returned: boolean; notes?: string | null; paidAt?: string | null; payoutRef?: string | null;
+  }>;
+}
+
+export interface CommissionPayout {
+  ref: string; staffProfileId: string | null; staffName: string | null; paidAt: string | null; services: number; amount: number;
+  expense: { expenseNumber: string; status: string; paymentMethod: string; amount: number } | null;
+}
+
+export interface PayoutSlip {
+  ref: string; staffProfileId: string | null; staffName: string | null; paidAt: string | null; amount: number;
+  expense: { expenseNumber: string; title: string; amount: number; paymentMethod: string; status: string; expenseDate: string; paidBy: string | null } | null;
+  lines: Array<{ id: string; at: string | null; appointmentNumber: string; customerName?: string | null; saleNumber: string | null; serviceName: string; total: number; commission: number }>;
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
@@ -55,4 +73,8 @@ export const staffProfilesApi = {
   commission: (params: { from?: string; to?: string; staffProfileId?: string }) =>
     apiClient.get('/salon/staff-profiles/commission', { params }).then(unwrap<CommissionStatement>),
   remove: (id: string) => apiClient.delete('/salon/staff-profiles/' + id).then(unwrap),
+  pay: (data: { staffProfileId: string; from: string; to: string; lineIds?: string[]; paymentMethod?: string; note?: string }) =>
+    apiClient.post('/salon/commission/payouts', data).then(unwrap<PayoutSlip>),
+  payouts: (staffProfileId?: string) => apiClient.get('/salon/commission/payouts', { params: { staffProfileId } }).then(unwrap<CommissionPayout[]>),
+  slip: (ref: string) => apiClient.get('/salon/commission/payouts/' + encodeURIComponent(ref)).then(unwrap<PayoutSlip>),
 };

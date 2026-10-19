@@ -13,7 +13,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { hourInTz } from '../../../common/helpers/business-time.helper';
 import { ShopScope } from '../../../common/shop-scope';
-import { CLOSED_ORDER, DAY_MS, orderMoney, positive, postOrderAdvance, r2, shopClock, withNextNumber, writeShopId } from '../bakery-common';
+import { CLOSED_ORDER, DAY_MS, checkRefundPin, orderMoney, positive, postOrderAdvance, r2, refundOrderAdvance, shopClock, withNextNumber, writeShopId } from '../bakery-common';
 import { CreateCakeOrderDto, UpdateCakeOrderDto, UpdateCakeOrderStatusDto } from './dto/create-cake-order.dto';
 
 type CakeOrderView = 'active' | 'today' | 'tomorrow' | 'late' | 'ready' | 'unpaid' | 'done' | 'all';
@@ -555,6 +555,23 @@ export class CakeOrdersService {
       orderBy: { neededBy: 'asc' },
       take: 1000,
     });
+  }
+
+
+  /**
+   * Gives back in cash the advance of a cancelled order (khata REFUND line
+   * plus a cash-out from the open drawer); the order becomes "refunded".
+   */
+  async refundAdvance(user: AuthenticatedUser, scope: ShopScope, id: string, managerPin?: string) {
+    const o = await this.mustFind(user, id);
+    if (o.status !== 'CANCELLED') throw new BadRequestException('Sirf cancel order ka advance wapas hota hai');
+    await checkRefundPin(this.prisma, user, managerPin);
+    await this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.bakeryCakeOrder.updateMany({ where: { id, tenantId: user.tenantId, status: 'CANCELLED' }, data: { status: 'REFUNDED' } });
+      if (!claimed.count) throw new ConflictException('Order abhi kisi aur ne badla — safha taaza karein');
+      await refundOrderAdvance(tx, user, { orderNumber: o.orderNumber, kind: 'Cake', customerId: o.customerId, paidAmount: o.paidAmount, shopId: scope.shopId ?? o.shopId });
+    });
+    return this.getOne(user, id);
   }
 
   /* ───────────────────────── helpers ───────────────────────── */

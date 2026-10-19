@@ -17,7 +17,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { TakePaymentModal } from '@modules/pos/components';
 import { appointmentsApi, type Appointment, type AppointmentStatus } from '../api/appointments.api';
 import { CancelModal } from './fields';
-import { SALON_KEYS, STATUS, apiError, dayKey, serviceLine, shortDate, timeOf, toIso, waLink } from '../lib/meta';
+import { SALON_KEYS, SOURCE_LABEL, STATUS, apiError, dayKey, serviceLine, shortDate, timeOf, toIso, waLink } from '../lib/meta';
 
 const OPEN: AppointmentStatus[] = ['CONFIRMED', 'RESCHEDULED', 'ARRIVED', 'IN_PROGRESS', 'DRAFT'];
 export const isOpen = (a: Appointment) => !a.saleId && OPEN.includes(a.status);
@@ -134,7 +134,7 @@ export function AppointmentRow({ a, act, canBook, canBill }: { a: Appointment; a
           <span className="flex flex-wrap items-center gap-2">
             <span className="truncate text-[0.9375rem] font-semibold text-slate-900">{a.customerName || 'Walk-in'}</span>
             <StatusBadge a={a} />
-            {(a.internalNotes ?? '').startsWith('Walk-in') && <Badge size="xs" variant="outline">Walk-in</Badge>}
+            {a.source !== 'BOOKED' && <Badge size="xs" variant="outline">{SOURCE_LABEL[a.source]}</Badge>}
           </span>
           <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{serviceLine(a.services)}{people ? ` · ${people}` : ''}</span>
           <span className="mt-0.5 block text-[0.75rem] text-slate-500">

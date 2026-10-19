@@ -6,10 +6,13 @@
  *   (its bill link is cleared and the void is noted on it), package
  *   sessions it used are given back, and the membership, staff, service and
  *   customer totals are taken back out. It can then be billed again.
- * - Membership or package sale: that membership or package is cancelled.
+ * - Membership, package or gift voucher sale: that membership, package or
+ *   voucher is cancelled.
+ * - Voucher money that paid for lines of the bill goes back to the voucher.
  *
- * A membership or package bill that comes back in full (a return) cancels
- * it the same way. Nothing is deleted; package usage entries are marked as voided.
+ * A membership, package or voucher bill that comes back in full (a return)
+ * cancels it the same way, and a returned line paid by a voucher gives that
+ * amount back. Nothing is deleted; package usage entries are marked as voided.
  */
 
 import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
@@ -19,6 +22,7 @@ import { ReturnsService } from '../../../modules/sales/returns/returns.service';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { paidOnKhata } from '../../_shared/industry-sale.helper';
 import { r2 } from '../common/salon-common';
+import { giveVoucherBack } from '../gift-vouchers/voucher-rules';
 import { SalonBillsService } from './salon-bills.service';
 
 @Injectable()
@@ -41,15 +45,28 @@ export class SalonBillVoidService implements OnModuleInit {
     }));
   }
 
-  /** A membership or package bill returned in full cancels what it sold. */
+  /** Returned lines paid by a voucher give it back; a membership, package or voucher bill returned in full cancels what it sold. */
   async handleReturn(tenantId: string, saleId: string) {
-    const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { saleNumber: true, status: true } });
-    if (!sale || sale.status !== 'FULLY_RETURNED') return null;
-    return this.cancelSold(tenantId, sale.saleNumber, `Bill ${sale.saleNumber} wapas`);
+    const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { id: true, saleNumber: true, status: true } });
+    if (!sale) return null;
+    await giveVoucherBack(this.db, tenantId, sale.id, 'return');
+    if (sale.status !== 'FULLY_RETURNED') return null;
+    return this.cancelSold(tenantId, sale, `Bill ${sale.saleNumber} wapas`);
   }
 
-  /** Cancels the membership or package a SLN-MEM-/SLN-PKG- bill sold; null for other bills. */
-  private cancelSold(tenantId: string, saleNumber: string, note: string) {
+  private get db() {
+    return this.prisma as unknown as Prisma.TransactionClient;
+  }
+
+  /** Cancels the membership, package or gift voucher a bill sold; null for other bills. */
+  private cancelSold(tenantId: string, sale: { id: string; saleNumber: string }, note: string) {
+    const { saleNumber } = sale;
+    if (saleNumber.startsWith('SLN-GV-')) {
+      return this.prisma.salonGiftVoucher.updateMany({
+        where: { tenantId, saleId: sale.id, status: { not: 'CANCELLED' } },
+        data: { status: 'CANCELLED' },
+      });
+    }
     if (saleNumber.startsWith('SLN-MEM-')) {
       return this.prisma.salonMembership.updateMany({
         where: { tenantId, membershipNumber: saleNumber.slice(4), status: { not: 'CANCELLED' } },
@@ -70,12 +87,13 @@ export class SalonBillVoidService implements OnModuleInit {
     if (!sale || sale.status !== 'VOIDED') return null;
     const note = `Bill ${sale.saleNumber} void`;
 
-    const sold = this.cancelSold(tenantId, sale.saleNumber, note);
+    const sold = this.cancelSold(tenantId, sale, note);
     if (sold) return sold;
+    await giveVoucherBack(this.db, tenantId, sale.id, 'void');
 
     const apt = await this.prisma.salonAppointment.findFirst({ where: { tenantId, saleId: sale.id }, include: { services: true } });
     if (!apt) return null;
-    const advance = await paidOnKhata(this.prisma as unknown as Prisma.TransactionClient, tenantId, apt.appointmentNumber);
+    const advance = await paidOnKhata(this.db, tenantId, apt.appointmentNumber);
 
     return this.prisma.$transaction(async (tx) => {
       // Only the first run finds the bill still linked.

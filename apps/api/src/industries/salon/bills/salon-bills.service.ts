@@ -8,9 +8,13 @@
  *
  * Services are bill lines against their service product (no stock).
  * Products used on a service leave stock at cost on a line of Rs 0.
- * Every bill is tied to an appointment: the booked one, or a walk-in record
+ * Every bill is tied to an appointment: the booked one, or a counter record
  * made here, which keeps the stylist's work, commission and the customer's
- * history in one place.
+ * history in one place. Each service line keeps the id of the bill line
+ * that charged it, so a return maps to the exact service.
+ *
+ * A gift voucher lowers the price of the lines it pays for (see
+ * voucher-rules.ts); its balance is taken before the sale is saved.
  */
 
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
@@ -22,6 +26,7 @@ import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { CreateSaleDto } from '../../../modules/sales/sales/dto/create-sale.dto';
 import { paidOnKhata } from '../../_shared/industry-sale.helper';
 import { ensureServiceProduct, r2, withNextNumber } from '../common/salon-common';
+import { spreadVoucher, usableVoucher, voucherTag } from '../gift-vouchers/voucher-rules';
 import { CreateSalonBillDto } from './dto/create-salon-bill.dto';
 
 type StaffWithServices = SalonStaffProfile & { services: SalonStaffService[] };
@@ -136,6 +141,16 @@ export class SalonBillsService {
     if (usedRows.length !== usedIds.length) throw new NotFoundException('Istemal wali cheez nahi mili');
     const usedMap = new Map(usedRows.map((p) => [p.id, p]));
 
+    // ─── Commission already paid on this appointment's lines ───
+    // Billing again after a void keeps those lines (and their payout); each must still be on the bill.
+    const paidOld = lines.length ? (apt?.services ?? []).filter((s) => s.commissionPaid || s.commissionPaidAt) : [];
+    const keepPaid = new Map<number, string>();
+    for (const old of paidOld) {
+      const idx = lines.findIndex((l, i) => !keepPaid.has(i) && l.serviceId === old.serviceId && (l.staffProfileId ?? null) === old.staffProfileId);
+      if (idx < 0) throw new BadRequestException(`${old.serviceName}${old.staffName ? ` (${old.staffName})` : ''} ki commission di ja chuki — ye service isi stylist ke saath bill me rakhein`);
+      keepPaid.set(idx, old.id);
+    }
+
     // ─── Bill lines ───
     const serviceProduct = await this.prisma.$transaction(async (tx) => {
       const out = new Map<string, string>();
@@ -145,6 +160,8 @@ export class SalonBillsService {
 
     const items: SaleItemInput[] = [];
     const unitCosts: Array<number | undefined> = [];
+    /** Index in `items` of each service line's bill line. */
+    const serviceItem: number[] = [];
     let memberSaved = 0;
     const planned = lines.map((l, idx) => {
       const svc = svcMap.get(l.serviceId)!;
@@ -174,6 +191,7 @@ export class SalonBillsService {
         total = agreed;
       }
       const tags = [staffName && `Stylist: ${staffName}`, purchase && `Package ${purchase.purchaseNumber}`, !purchase && memberPct > 0 && `Membership ${memberPct}%`].filter(Boolean);
+      serviceItem.push(items.length);
       items.push({ productId: serviceProduct.get(svc.id)!, quantity: 1, priceOverride, lineDiscount: lineDiscount || undefined, note: tags.join(' · ') || undefined });
       unitCosts.push(r2(svc.costPrice ?? 0));
 
@@ -197,12 +215,35 @@ export class SalonBillsService {
         notes: [l.notes?.trim(), purchase && `Package ${purchase.purchaseNumber}`].filter(Boolean).join(' · ') || null,
         productsUsed: used.length ? used : undefined,
         displayOrder: idx,
+        saleItemId: null as string | null,
       };
     });
 
     for (const p of products) {
       items.push({ productId: p.productId, variantId: p.variantId, batchId: p.batchId, quantity: p.quantity, priceOverride: p.price });
       unitCosts.push(undefined);
+    }
+
+    // ─── Gift voucher: lowers the price of the lines it pays for ───
+    const voucher = dto.voucherCode?.trim() ? await usableVoucher(this.db, tenantId, dto.voucherCode) : null;
+    let voucherUsed = 0;
+    if (voucher) {
+      const units = await this.unitPrices(tenantId, items);
+      const rows = items.map((it, i) => ({ unit: units[i], qty: Number(it.quantity), lineDiscount: r2(it.lineDiscount ?? 0) }));
+      const room = r2(rows.reduce((s, l) => s + Math.max(l.unit * l.qty - l.lineDiscount, 0), 0) - r2(dto.discount ?? 0));
+      const want = r2(Math.min(voucher.balance, dto.voucherAmount ?? voucher.balance, Math.max(room, 0)));
+      const { cuts, placed } = spreadVoucher(rows, want);
+      if (placed <= 0) throw new BadRequestException('Is bill par voucher se kuch kam nahi hota');
+      cuts.forEach((cut, i) => {
+        if (!cut) return;
+        items[i] = {
+          ...items[i],
+          priceOverride: r2(rows[i].unit - cut),
+          note: [items[i].note, `Voucher ${voucher.code}`].filter(Boolean).join(' · '),
+          internalNote: voucherTag(voucher.code, cut * rows[i].qty),
+        };
+      });
+      voucherUsed = placed;
     }
 
     const tip = r2(dto.tip ?? 0);
@@ -220,6 +261,22 @@ export class SalonBillsService {
         data: { paymentStatus: 'BILLING' },
       });
       if (!claimed.count) throw new BadRequestException(`${apt.appointmentNumber} ka bill ban raha hai — thora intezar karein`);
+    }
+    const release = async () => {
+      if (apt) await this.prisma.salonAppointment.updateMany({ where: { id: apt.id, paymentStatus: 'BILLING' }, data: { paymentStatus: apt.paymentStatus } });
+      if (voucher && voucherUsed > 0) await this.prisma.salonGiftVoucher.update({ where: { id: voucher.id }, data: { balance: { increment: voucherUsed } } });
+    };
+    // Take the voucher money first, so two bills cannot spend the same balance.
+    if (voucher) {
+      const took = await this.prisma.salonGiftVoucher.updateMany({
+        where: { id: voucher.id, status: 'ACTIVE', balance: { gte: voucherUsed - 0.001 } },
+        data: { balance: { decrement: voucherUsed } },
+      });
+      if (!took.count) {
+        voucherUsed = 0;
+        await release();
+        throw new BadRequestException(`${voucher.code} ka balance abhi badla hai — dobara koshish karein`);
+      }
     }
 
     // Payments taken before advances went to khata count as paid with this bill.
@@ -245,9 +302,23 @@ export class SalonBillsService {
         serviceCharges: charges.length ? charges : undefined,
       } as CreateSaleDto, undefined, { unitCosts });
     } catch (e) {
-      if (apt) await this.prisma.salonAppointment.updateMany({ where: { id: apt.id, paymentStatus: 'BILLING' }, data: { paymentStatus: apt.paymentStatus } });
+      await release();
       throw e;
     }
+    if (voucher) {
+      await this.prisma.salonGiftVoucher.updateMany({ where: { id: voucher.id, status: 'ACTIVE', balance: { lte: 0.009 } }, data: { status: 'USED' } });
+    }
+
+    // Each service line keeps the bill line that charged it.
+    const taken = new Set<string>();
+    planned.forEach((p, i) => {
+      const want = items[serviceItem[i]];
+      const at = sale.items[serviceItem[i]];
+      const hit = at && at.productId === want.productId && !taken.has(at.id)
+        ? at
+        : sale.items.find((x) => x.productId === want.productId && !taken.has(x.id));
+      if (hit) { taken.add(hit.id); p.saleItemId = hit.id; }
+    });
 
     const saleTotal = r2(Number(sale.total));
     const advanceOnKhata = r2(advance - legacyPaid);
@@ -276,9 +347,12 @@ export class SalonBillsService {
         let appointment: { id: string; appointmentNumber: string } | null = null;
         if (apt) {
           if (lines.length) {
-            // Booked lines are the plan; the bill's lines are what was done.
-            await tx.salonAppointmentService.deleteMany({ where: { appointmentId: apt.id } });
-            await tx.salonAppointmentService.createMany({ data: planned.map((p) => ({ ...p, appointmentId: apt.id, productsUsed: p.productsUsed as Prisma.InputJsonValue | undefined })) });
+            // Booked lines are the plan; the bill's lines are what was done. Lines whose commission was paid stay.
+            const kept = [...keepPaid.values()];
+            await tx.salonAppointmentService.deleteMany({ where: { appointmentId: apt.id, ...(kept.length && { id: { notIn: kept } }) } });
+            const row = (p: (typeof planned)[number]) => ({ ...p, productsUsed: p.productsUsed as Prisma.InputJsonValue | undefined });
+            for (const [i, id] of keepPaid) await tx.salonAppointmentService.update({ where: { id }, data: row(planned[i]) });
+            await tx.salonAppointmentService.createMany({ data: planned.filter((_, i) => !keepPaid.has(i)).map((p) => ({ ...row(p), appointmentId: apt.id })) });
           }
           appointment = await tx.salonAppointment.update({
             where: { id: apt.id },
@@ -286,7 +360,7 @@ export class SalonBillsService {
             select: { id: true, appointmentNumber: true },
           });
         } else if (planned.length) {
-          // A walk-in gets its own record so the stylist's work and the customer's history are kept.
+          // A counter bill without a booking gets its own record so the stylist's work and the customer's history are kept.
           const minutes = planned.reduce((s, l) => s + l.durationMinutes, 0) || 30;
           appointment = await withNextNumber(
             (prefix) => tx.salonAppointment.findFirst({ where: { tenantId, appointmentNumber: { startsWith: prefix } }, orderBy: { appointmentNumber: 'desc' }, select: { appointmentNumber: true } }).then((r) => r?.appointmentNumber),
@@ -302,7 +376,7 @@ export class SalonBillsService {
                 scheduledEnd: now,
                 arrivedAt: now,
                 actualStart: new Date(now.getTime() - minutes * 60_000),
-                internalNotes: 'Walk-in — counter bill',
+                source: 'COUNTER',
                 createdById: user.id,
                 services: { create: planned.map((p) => ({ ...p, productsUsed: p.productsUsed as Prisma.InputJsonValue | undefined })) },
               },
@@ -334,13 +408,29 @@ export class SalonBillsService {
         if (customerId) await this.bumpProfile(tx, tenantId, customerId, saleTotal, 1);
         return appointment;
       }, { timeout: 30_000 });
-      return { ...sale, appointment: record };
+      return { ...sale, appointment: record, ...(voucher && { voucher: { code: voucher.code, used: voucherUsed, balance: r2(voucher.balance - voucherUsed) } }) };
     } catch (e) {
       // The bill stands; link it so the appointment never shows as unbilled.
       this.log.error(`Salon bill ${sale.saleNumber} saved but its appointment was not updated: ${(e as Error).message}`);
       if (apt) await this.prisma.salonAppointment.updateMany({ where: { id: apt.id }, data: { saleId: sale.id, status: 'COMPLETED', paymentStatus: 'PAID' } }).catch(() => undefined);
       return { ...sale, appointment: apt ? { id: apt.id, appointmentNumber: apt.appointmentNumber } : null };
     }
+  }
+
+  private get db() {
+    return this.prisma as unknown as Prisma.TransactionClient;
+  }
+
+  /** Price per unit each bill line will be charged at: the given price, else the variant's or product's. */
+  private async unitPrices(tenantId: string, items: SaleItemInput[]): Promise<number[]> {
+    const open = items.filter((i) => i.priceOverride == null);
+    const productIds = [...new Set(open.map((i) => i.productId).filter((x): x is string => !!x))];
+    const variantIds = [...new Set(open.map((i) => i.variantId).filter((x): x is string => !!x))];
+    const [products, variants] = await Promise.all([
+      productIds.length ? this.prisma.product.findMany({ where: { tenantId, id: { in: productIds } }, select: { id: true, price: true } }) : [],
+      variantIds.length ? this.prisma.productVariant.findMany({ where: { id: { in: variantIds }, product: { tenantId } }, select: { id: true, price: true } }) : [],
+    ]);
+    return items.map((i) => r2(Number(i.priceOverride ?? variants.find((v) => v.id === i.variantId)?.price ?? products.find((p) => p.id === i.productId)?.price ?? 0)));
   }
 
   /** A customer's running membership and the packages that still have sessions, for the counter. */

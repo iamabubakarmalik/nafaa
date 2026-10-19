@@ -4,6 +4,8 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { CakeOrdersService, type CakeOrderQuery } from './cake-orders.service';
 import {
   CakeOrderAssignDto, CakeOrderPaymentDto, CakeOrderRatingDto, CreateCakeOrderDto, UpdateCakeOrderDto, UpdateCakeOrderStatusDto,
@@ -49,4 +51,10 @@ export class CakeOrdersController {
   @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CakeOrderPaymentDto) { return this.service.addPayment(user, id, body.amount, body.expectedPaid, body.method, body.withBill); }
   @Post(':id/assign') assign(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CakeOrderAssignDto) { return this.service.assignBaker(user, id, body.bakerId, body.decoratorId); }
   @Post(':id/rating') rate(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CakeOrderRatingDto) { return this.service.addRating(user, id, body.rating, body.feedback, body.photoUrls); }
+
+  /** Cash refund of a cancelled order's advance: a refund, so it also needs the returns permission. */
+  @RequirePermissions(PERMISSIONS.BAKERY_ORDERS_MANAGE, PERMISSIONS.RETURNS_CREATE)
+  @Post(':id/refund') refund(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() body: { managerPin?: string }) {
+    return this.service.refundAdvance(user, shop, id, body?.managerPin);
+  }
 }

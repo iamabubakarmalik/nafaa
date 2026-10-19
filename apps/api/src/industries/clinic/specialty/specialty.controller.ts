@@ -7,7 +7,7 @@ import { RequirePermissions } from '../../../common/decorators/permissions.decor
 import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { SpecialtyService } from './specialty.service';
 
-/** Dental, antenatal and physio records: read with bookings view, written with bookings manage. */
+/** Dental, antenatal and physio records: read with clinic records view, written with clinic records manage. The dental delete route switches the entry off. */
 @ApiTags('Clinic - Specialty Records')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

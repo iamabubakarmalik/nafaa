@@ -1,8 +1,8 @@
 /**
  * State and money of one salon bill at the counter: service lines (stylist,
  * agreed price, package session, colour notes, products used), retail
- * products, membership discount, discount and tip, and the appointment it
- * closes with its advance. Prices follow the server's rules so the total
+ * products, membership discount, gift voucher, discount and tip, and the
+ * appointment it closes with its advance. Prices follow the server's rules so the total
  * shown is the total billed.
  */
 
@@ -13,6 +13,7 @@ import type { Appointment } from '../api/appointments.api';
 import { salonBillsApi, type SalonBillInput } from '../api/bills.api';
 import type { SalonService } from '../api/services.api';
 import type { StaffProfile } from '../api/staff-profiles.api';
+import type { VoucherLookup } from '../api/gift-vouchers.api';
 import { emptyCustomer, type CustomerValue } from '../components/fields';
 
 export interface UsedLine { key: string; productId: string; name: string; unit: string; quantity: number }
@@ -35,6 +36,23 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 let seq = 0;
 const nextKey = () => `l${Date.now().toString(36)}${(seq++).toString(36)}`;
 
+/**
+ * How much of a voucher a bill can use, placed line by line as the server
+ * does: whole paisa per unit, never more than a line's own amount, and
+ * never below the bill discount.
+ */
+function voucherOnBill(rows: Array<{ unit: number; qty: number }>, balance: number, asked: number | null, discount: number) {
+  const room = r2(rows.reduce((s, l) => s + Math.max(l.unit * l.qty, 0), 0) - discount);
+  let left = r2(Math.min(balance, asked ?? balance, Math.max(room, 0)));
+  const want = left;
+  for (const l of rows) {
+    if (left <= 0 || l.qty <= 0 || l.unit * l.qty <= 0) continue;
+    const perUnit = Math.floor((Math.min(left, r2(l.unit * l.qty)) / l.qty) * 100) / 100;
+    left = r2(left - perUnit * l.qty);
+  }
+  return r2(want - left);
+}
+
 /** List price of a service for a stylist: the stylist's own rate for it, else the service's. */
 export function listPriceFor(svc: SalonService | undefined, staff: StaffProfile | undefined) {
   if (!svc) return 0;
@@ -50,6 +68,8 @@ export function useSalonBill(services: SalonService[], stylists: StaffProfile[])
   const [useMembership, setUseMembership] = useState(false);
   const [discount, setDiscount] = useState('');
   const [tip, setTip] = useState('');
+  const [voucher, setVoucher] = useState<VoucherLookup | null>(null);
+  const [voucherAsk, setVoucherAsk] = useState('');
 
   const perksQ = useQuery({
     queryKey: ['salon-perks', customer.customerId],
@@ -76,7 +96,13 @@ export function useSalonBill(services: SalonService[], stylists: StaffProfile[])
   const packageCovered = r2(priced.reduce((s, p) => s + (p.line.packagePurchaseId ? p.list : 0), 0));
   const discountRs = Math.max(Number(discount) || 0, 0);
   const tipRs = Math.max(Number(tip) || 0, 0);
-  const total = r2(Math.max(servicesTotal + productsTotal + tipRs - discountRs, 0));
+  const voucherRs = voucher && !voucher.problem
+    ? voucherOnBill(
+        [...priced.map((p) => ({ unit: p.total, qty: 1 })), ...products.map((p) => ({ unit: p.price, qty: p.quantity }))],
+        voucher.balance, voucherAsk === '' ? null : Math.max(Number(voucherAsk) || 0, 0), discountRs,
+      )
+    : 0;
+  const total = r2(Math.max(servicesTotal + productsTotal - voucherRs + tipRs - discountRs, 0));
   const advance = appointment?.advance ?? 0;
   const due = r2(Math.max(total - advance, 0));
   const count = lines.length + products.length;
@@ -119,6 +145,7 @@ export function useSalonBill(services: SalonService[], stylists: StaffProfile[])
 
   const reset = () => {
     setLines([]); setProducts([]); setCustomer(emptyCustomer); setAppointment(null); setUseMembership(false); setDiscount(''); setTip('');
+    setVoucher(null); setVoucherAsk('');
   };
 
   /** Bill body for the API, without the payment fields. */
@@ -139,11 +166,14 @@ export function useSalonBill(services: SalonService[], stylists: StaffProfile[])
     useMembership: memberPct > 0 || undefined,
     discount: discountRs || undefined,
     tip: tipRs || undefined,
+    voucherCode: voucherRs > 0 ? voucher?.code : undefined,
+    voucherAmount: voucherRs > 0 ? voucherRs : undefined,
   });
 
   return {
     lines, products, customer, setCustomer, appointment, setAppointment, perks, perksLoading: perksQ.isLoading,
     useMembership, setUseMembership, memberPct, discount, setDiscount, tip, setTip,
+    voucher, setVoucher, voucherAsk, setVoucherAsk, voucherRs,
     priced, servicesTotal, productsTotal, memberSaved, packageCovered, discountRs, tipRs, total, advance, due, count,
     addService, updateLine, removeLine, addUsed, removeUsed, addProduct, updateProduct, loadAppointment, reset, body,
   };

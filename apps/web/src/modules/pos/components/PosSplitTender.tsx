@@ -1,6 +1,6 @@
 /**
  * Split payment rows for the checkout: one row per method (cash + card,
- * cash + JazzCash, a trade-in phone …). The keypad types into the row in
+ * cash + JazzCash, a trade-in phone or old part …). The keypad types into the row in
  * focus; change can only come from cash.
  */
 
@@ -11,7 +11,7 @@ import type { SalePaymentPart, TenderMethod } from '@modules/sales/sales/api/sal
 import { PAYMENT_LABELS } from '@modules/sales/receipt/fromSale';
 import { POS_PAYMENT_METHODS } from '../lib/posCart';
 
-/** A used phone taken in as an exchange, offered as a trade-in part. */
+/** Goods taken toward the bill (a used phone, an old part), offered as a trade-in part. */
 export interface PosTradeIn {
   code: string;
   label: string;
@@ -40,7 +40,7 @@ export function splitSummary(rows: SplitRow[], total: number) {
   const problem = change > cash + 0.005
     ? 'Change sirf Cash se di ja sakti hai — card, wallet ya trade-in ki amount bill se zyada na likhein'
     : rows.some((r) => r.method === 'TRADE_IN' && amountOf(r) > 0 && !r.reference)
-      ? 'Trade-in ke liye phone chunein'
+      ? 'Trade-in ke liye cheez chunein'
       : null;
   return { paid, cash, change, remaining, problem };
 }
@@ -66,7 +66,7 @@ export function PosSplitTender({ total, rows, onRows, active, onActive, tradeIns
   onRows: (rows: SplitRow[]) => void;
   active: number;
   onActive: (i: number) => void;
-  /** Open trade-in phones; when given, Trade-in is one of the methods. */
+  /** Open trade-ins; when given, Trade-in is one of the methods. */
   tradeIns?: PosTradeIn[];
 }) {
   const s = splitSummary(rows, total);
@@ -129,9 +129,9 @@ export function PosSplitTender({ total, rows, onRows, active, onActive, tradeIns
                 </button>
               </div>
               {r.method === 'TRADE_IN' && (
-                <select value={r.reference ?? ''} onChange={(e) => pickTradeIn(i, e.target.value)} aria-label="Trade-in phone"
+                <select value={r.reference ?? ''} onChange={(e) => pickTradeIn(i, e.target.value)} aria-label="Trade-in"
                   className="mt-2 h-10 w-full rounded-lg border border-amber-300 bg-amber-50 px-2 text-[0.8125rem]">
-                  <option value="">{tradeIns?.length ? 'Trade-in phone chunein…' : 'Koi trade-in phone nahi (Used phones → Trade-in, type Exchange)'}</option>
+                  <option value="">{tradeIns?.length ? 'Trade-in chunein…' : 'Koi trade-in nahi mila'}</option>
                   {tradeIns?.filter((t) => t.code === r.reference || !usedCodes.has(t.code)).map((t) => (
                     <option key={t.code} value={t.code}>{t.label} · {formatPKR(t.value)}</option>
                   ))}

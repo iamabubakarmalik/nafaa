@@ -31,6 +31,8 @@ export interface FeeBillInput {
   /** Team-only link, e.g. "clinic-apt:<id>". */
   link: string;
   note?: string;
+  /** Owner's PIN when the bill takes a khata past its credit limit. */
+  managerPin?: string;
 }
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
@@ -102,6 +104,7 @@ export async function billClinicFee(
       paidAmount: paid,
       ...(input.payments?.length && paid > 0 ? { payments: input.payments } : {}),
       note: input.note || undefined,
+      ...(input.managerPin && { managerPin: input.managerPin }),
       items: [{ productId, quantity: 1, priceOverride: amount, note: input.lineNote, internalNote: input.link }],
     } as any);
     return {

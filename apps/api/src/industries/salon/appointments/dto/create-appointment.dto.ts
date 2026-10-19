@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PaymentMethod, SalonAppointmentStatus } from '@prisma/client';
+import { PaymentMethod, SalonAppointmentSource, SalonAppointmentStatus } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested,
@@ -75,6 +75,7 @@ export class AppointmentPageQuery {
   @IsOptional() @IsString() from?: string;
   @IsOptional() @IsString() to?: string;
   @IsOptional() @IsString() staffProfileId?: string;
+  @IsOptional() @IsEnum(SalonAppointmentSource) source?: SalonAppointmentSource;
   @IsOptional() @IsString() @MaxLength(80) search?: string;
   @IsOptional() @IsString() page?: string;
   @IsOptional() @IsString() limit?: string;

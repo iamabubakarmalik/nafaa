@@ -6,6 +6,7 @@ import { JewelryProductsModule } from './products/jewelry-products.module';
 import { KarigarsModule } from './karigars/karigars.module';
 import { MetalRatesModule } from './metal-rates/metal-rates.module';
 import { MetalStockModule } from './metal-stock/metal-stock.module';
+import { RepairsModule } from './repairs/repairs.module';
 import { SalesModule } from './sales/sales.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { SalesModule } from './sales/sales.module';
     ExchangesModule,
     KarigarsModule,
     MetalStockModule,
+    RepairsModule,
     JewelryDashboardModule,
   ],
   exports: [

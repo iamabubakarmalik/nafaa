@@ -3,6 +3,7 @@ import { ClinicBloodGroup, ClinicGender, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
+import { PanelsService } from '../panels/panels.service';
 
 const GENDERS = Object.values(ClinicGender);
 const BLOOD = Object.values(ClinicBloodGroup);
@@ -84,7 +85,17 @@ function bmiOf(heightCm?: number | null, weightKg?: number | null) {
 
 @Injectable()
 export class PatientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly panels: PanelsService,
+  ) {}
+
+  /** A company panel on the record also marks the patient as a panel patient. */
+  private async withPanel(tenantId: string, dto: any, data: Prisma.ClinicPatientProfileUncheckedUpdateInput) {
+    if (dto?.panelId === undefined) return;
+    data.panelId = await this.panels.usable(tenantId, dto.panelId);
+    if (data.panelId) data.hasInsurance = true;
+  }
 
   /**
    * Registers a patient. Every patient is also a customer (khata, bills),
@@ -92,6 +103,7 @@ export class PatientsService {
    */
   async create(user: AuthenticatedUser, scope: ShopScope, dto: any) {
     const data = readPatient(dto ?? {}, false) as Prisma.ClinicPatientProfileUncheckedCreateInput;
+    await this.withPanel(user.tenantId, dto, data);
     if (data.phonePrimary || data.cnic) {
       const dup = await this.prisma.clinicPatientProfile.findFirst({
         where: { tenantId: user.tenantId, isActive: true, OR: [...(data.cnic ? [{ cnic: data.cnic as string }] : []), ...(data.phonePrimary ? [{ phonePrimary: data.phonePrimary as string, fullName: { equals: data.fullName as string, mode: 'insensitive' as const } }] : [])] },
@@ -151,6 +163,7 @@ export class PatientsService {
       ...(params.gender && GENDERS.includes(params.gender as ClinicGender) && { gender: params.gender as ClinicGender }),
       ...(params.bloodGroup && BLOOD.includes(params.bloodGroup as ClinicBloodGroup) && { bloodGroup: params.bloodGroup as ClinicBloodGroup }),
       ...(params.insurance === 'yes' && { hasInsurance: true }),
+      ...(params.panelId && { panelId: params.panelId }),
       ...(params.allergies === 'yes' && { NOT: { allergies: { isEmpty: true } } }),
       ...(q && {
         OR: [
@@ -203,6 +216,7 @@ export class PatientsService {
   async update(user: AuthenticatedUser, id: string, dto: any) {
     const p = await this.getOne(user, id);
     const data = readPatient(dto ?? {}, true);
+    await this.withPanel(user.tenantId, dto, data);
     if (dto?.isActive !== undefined) data.isActive = !!dto.isActive;
     const heightCm = (data.heightCm as number | null | undefined) === undefined ? p.heightCm : (data.heightCm as number | null);
     const weightKg = (data.weightKg as number | null | undefined) === undefined ? p.weightKg : (data.weightKg as number | null);
@@ -220,7 +234,7 @@ export class PatientsService {
   /** Everything about one patient: visits, prescriptions, labs, vaccines, vitals and khata. */
   async history(user: AuthenticatedUser, id: string) {
     const patient = await this.getOne(user, id);
-    const [appointments, prescriptions, labOrders, vaccinations, vitalsHistory, customer, doctors] = await Promise.all([
+    const [appointments, prescriptions, labOrders, vaccinations, vitalsHistory, customer, doctors, panel] = await Promise.all([
       this.prisma.clinicAppointment.findMany({
         where: { patientId: id, tenantId: user.tenantId },
         include: { encounter: true, vitals: true },
@@ -233,8 +247,9 @@ export class PatientsService {
       this.prisma.clinicVitals.findMany({ where: { patientId: id, appointment: { tenantId: user.tenantId } }, orderBy: { recordedAt: 'desc' }, take: 30 }),
       this.prisma.customer.findFirst({ where: { id: patient.customerId, tenantId: user.tenantId }, select: { id: true, name: true, phone: true, balance: true, totalSpent: true } }),
       this.prisma.clinicDoctorProfile.findMany({ where: { tenantId: user.tenantId }, select: { id: true, fullName: true, title: true } }),
+      patient.panelId ? this.prisma.clinicPanel.findFirst({ where: { id: patient.panelId, tenantId: user.tenantId }, select: { id: true, name: true, isActive: true, customerId: true } }) : null,
     ]);
-    return { patient, appointments, prescriptions, labOrders, vaccinations, vitalsHistory, customer, doctors };
+    return { patient, appointments, prescriptions, labOrders, vaccinations, vitalsHistory, customer, doctors, panel };
   }
 
   async remove(user: AuthenticatedUser, id: string) {

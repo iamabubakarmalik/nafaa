@@ -1,9 +1,9 @@
 /**
  * Appointments: today's floor at a glance (waiting, in the chair, late,
  * done, advances held), the record by view (today, queue, upcoming, done,
- * missed, all) with search, date and stylist filters, and analytics for a
- * period (bookings, no-shows, walk-ins, billed amount, stylists, services,
- * busy hours and days). Every next step works from the row.
+ * missed, all) with search, date, stylist and source filters, and analytics
+ * for a period (bookings, no-shows, walk-ins, billed amount by source,
+ * stylists, services, busy hours and days). Every next step works from the row.
  *
  * Keys: N new booking · W walk-in · / search · 1 list · 2 analytics · G guide.
  */
@@ -13,7 +13,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   AlarmClock, Armchair, BarChart3, CalendarCheck, CalendarDays, CalendarPlus, CheckCircle2, Clock, Crown, Filter, GraduationCap, Hourglass,
-  ListChecks, MessageCircle, Receipt, Scissors, TrendingUp, UserRound, UserX, Users, Wallet,
+  ListChecks, LogIn, MessageCircle, Receipt, Scissors, TrendingUp, UserRound, UserX, Users, Wallet,
 } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import type { PrintDoc } from '@core/print';
@@ -26,11 +26,11 @@ import { useBusinessDayStart } from '@core/lib/business-day';
 import { rangeLabel } from '@core/lib/dateRange';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
-import { appointmentsApi, type AppointmentQuery, type AppointmentView } from '../api/appointments.api';
+import { appointmentsApi, type AppointmentQuery, type AppointmentSource, type AppointmentView } from '../api/appointments.api';
 import { AppointmentRow, useAppointmentActions } from '../components/appointments';
 import { useStylists } from '../components/fields';
 import { AnalyticsSkeleton, CardTitle, Columns, EmptyList, HeroPrint, ListSkeleton, LoadFailed, Pager, RankedBars, StatTile, TotalsStrip } from '../components/ui';
-import { SALON_KEYS, STATUS, WEEKDAYS, serviceLine, shortDate, staffName, timeOf } from '../lib/meta';
+import { SALON_KEYS, SOURCE_LABEL, STATUS, WEEKDAYS, serviceLine, shortDate, staffName, timeOf } from '../lib/meta';
 import { useSalonCan } from '../lib/permissions';
 
 type Tab = 'list' | 'analytics';
@@ -61,12 +61,13 @@ export default function AppointmentsPage() {
   const [range, setRange] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
   const [aRange, setARange] = useState<DateRangeValue>({ preset: 'thisMonth', custom: { from: '', to: '' } });
   const [staffId, setStaffId] = useState('');
+  const [source, setSource] = useState<AppointmentSource | ''>('');
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
 
   useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
-  useEffect(() => { setPage(1); }, [view, range, staffId, query]);
+  useEffect(() => { setPage(1); }, [view, range, staffId, source, query]);
   useEffect(() => {
     const next = new URLSearchParams(params);
     if (tab === 'list') next.delete('tab'); else next.set('tab', tab);
@@ -77,15 +78,15 @@ export default function AppointmentsPage() {
 
   const period = resolveRange(range, startHour);
   const aPeriod = resolveRange(aRange, startHour);
-  const q: AppointmentQuery = { view, page, limit: 30, search: query || undefined, staffProfileId: staffId || undefined, ...(period ?? {}) };
+  const q: AppointmentQuery = { view, page, limit: 30, search: query || undefined, staffProfileId: staffId || undefined, source: source || undefined, ...(period ?? {}) };
   const listQ = useQuery({ queryKey: [SALON_KEYS.appointments, 'page', q], queryFn: () => appointmentsApi.page(q), placeholderData: (p) => p, refetchInterval: 30_000, enabled: tab === 'list' });
   const sumQ = useQuery({ queryKey: [SALON_KEYS.appointments, 'summary', aPeriod?.from, aPeriod?.to], queryFn: () => appointmentsApi.summary(aPeriod ?? undefined), refetchInterval: 60_000 });
 
   const data = listQ.data;
   const rows = data?.items ?? [];
   const s = sumQ.data;
-  const filtered = !!staffId || !!query || range.preset !== 'all';
-  const clear = () => { setStaffId(''); setSearch(''); setRange({ preset: 'all', custom: { from: '', to: '' } }); };
+  const filtered = !!staffId || !!source || !!query || range.preset !== 'all';
+  const clear = () => { setStaffId(''); setSource(''); setSearch(''); setRange({ preset: 'all', custom: { from: '', to: '' } }); };
   const pick = (v: AppointmentView) => { setTab('list'); setView(v); };
   const walkIn = () => navigate('/salon/appointments/new?walkin=1');
 
@@ -164,6 +165,7 @@ export default function AppointmentsPage() {
           chips={filtered ? <>
             {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>{rangeLabel(period.from, period.to)}</FilterChip>}
             {staffId && <FilterChip onRemove={() => setStaffId('')}>Stylist: {stylists.nameOf(staffId)}</FilterChip>}
+            {source && <FilterChip onRemove={() => setSource('')}>{SOURCE_LABEL[source]}</FilterChip>}
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
           </> : undefined}
           onClear={clear}>
@@ -174,6 +176,13 @@ export default function AppointmentsPage() {
             <FilterMenu icon={Users} label="Stylist" value={staffId} active={!!staffId} onChange={setStaffId}
               options={[{ value: '', label: 'Sab stylist' }, ...stylists.all.map((x) => ({ value: x.id, label: staffName(x) }))]} />
           )}
+          <FilterMenu icon={LogIn} label={source ? SOURCE_LABEL[source] : 'Kahan se'} value={source} active={!!source} onChange={setSource}
+            options={[
+              { value: '', label: 'Sab' },
+              { value: 'BOOKED', label: 'Booking', hint: 'Pehle se waqt liya' },
+              { value: 'WALK_IN', label: 'Walk-in', hint: 'Aa kar queue me' },
+              { value: 'COUNTER', label: 'Counter', hint: 'Seedha counter par bill' },
+            ]} />
         </FilterBar>
       )}
 
@@ -184,7 +193,7 @@ export default function AppointmentsPage() {
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         ]} />
 
-      {tab === 'analytics' ? <Analytics summary={sumQ.data} loading={sumQ.isLoading} onStaff={(id) => { setStaffId(id); pick('all'); }} /> : (<>
+      {tab === 'analytics' ? <Analytics summary={sumQ.data} loading={sumQ.isLoading} onStaff={(id) => { setStaffId(id); pick('all'); }} onSource={(k) => { setSource(k); pick('all'); }} /> : (<>
         {data && data.total > 0 && (
           <TotalsStrip>
             <span className="text-slate-500">{viewLabel(view)}</span>
@@ -234,7 +243,9 @@ export default function AppointmentsPage() {
   );
 }
 
-function Analytics({ summary: s, loading, onStaff }: { summary?: Awaited<ReturnType<typeof appointmentsApi.summary>>; loading: boolean; onStaff: (id: string) => void }) {
+function Analytics({ summary: s, loading, onStaff, onSource }: {
+  summary?: Awaited<ReturnType<typeof appointmentsApi.summary>>; loading: boolean; onStaff: (id: string) => void; onSource: (source: AppointmentSource) => void;
+}) {
   const { sales } = useMasked();
   if (loading || !s) return <AnalyticsSkeleton />;
   const p = s.period;
@@ -252,6 +263,12 @@ function Analytics({ summary: s, loading, onStaff }: { summary?: Awaited<ReturnT
         </Card>
         <Card title={<CardTitle icon={Scissors}>Sab se zyada services</CardTitle>}>
           <RankedBars rows={s.services.map((x) => ({ key: x.serviceId, label: `${x.name} · ${x.count}`, value: x.revenue, display: sales(x.revenue), color: '#db2777' }))} />
+        </Card>
+        <Card title={<CardTitle icon={LogIn}>Customer kahan se aaye</CardTitle>}>
+          <RankedBars onPick={(k) => onSource(k as AppointmentSource)}
+            rows={(['BOOKED', 'WALK_IN', 'COUNTER'] as const).map((k) => ({
+              key: k, label: `${SOURCE_LABEL[k]} · ${s.sources[k].count} (${s.sources[k].completed} bill)`, value: s.sources[k].revenue, display: sales(s.sources[k].revenue), color: '#7c3aed',
+            }))} />
         </Card>
         <Card title={<CardTitle icon={Clock}>Kis ghante zyada booking</CardTitle>}>
           <Columns items={s.hours.filter((h) => h.hour >= 8 && h.hour <= 23).map((h) => ({ key: String(h.hour), label: String(h.hour % 12 || 12), value: h.bookings, title: `${h.hour}:00 — ${h.bookings} bookings` }))} />

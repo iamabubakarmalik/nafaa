@@ -9,6 +9,8 @@ export interface ProductionItem {
   plannedQty: number;
   producedQty: number;
   failedQty: number;
+  /** Product unit; quantities take decimals when it is a weight. */
+  unit?: string | null;
   bakerId?: string;
   bakerName?: string;
   status: string;

@@ -1,4 +1,4 @@
-import { Scissors, LayoutDashboard, Calendar, Timer, UserCheck, Award, BookmarkPlus, Heart, Receipt } from 'lucide-react';
+import { Scissors, LayoutDashboard, Calendar, Timer, UserCheck, Award, BookmarkPlus, Heart, Receipt, Ticket } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import SalonDashboard from './dashboard/SalonDashboard';
@@ -11,12 +11,15 @@ import AppointmentDetailPage from './pages/AppointmentDetailPage';
 import MembershipsPage from './pages/MembershipsPage';
 import PackagesPage from './pages/PackagesPage';
 import CustomersPage from './pages/CustomersPage';
+import GiftVouchersPage from './pages/GiftVouchersPage';
+import CommissionPayoutPage from './pages/CommissionPayoutPage';
 import SalonServiceWizardPage from './pages/SalonServiceWizardPage';
 import SalonServiceDetailPage from './pages/SalonServiceDetailPage';
 
 /**
  * Salon / Beauty Parlour / Spa industry pack.
- * Appointments, services, staff commissions, memberships, packages.
+ * Appointments, services, staff commissions and payouts, memberships,
+ * packages, gift vouchers.
  */
 export const SalonPack: IndustryPack = {
   id: 'salon',
@@ -56,6 +59,7 @@ export const SalonPack: IndustryPack = {
         { to: '/salon/staff', label: 'Stylist aur commission', icon: UserCheck },
         { to: '/salon/memberships', label: 'Memberships', icon: Award },
         { to: '/salon/packages', label: 'Packages', icon: BookmarkPlus },
+        { to: '/salon/gift-vouchers', label: 'Gift vouchers', icon: Ticket },
         { to: '/salon/customers', label: 'Salon customers', icon: Heart },
       ],
     },
@@ -77,8 +81,10 @@ export const SalonPack: IndustryPack = {
     { path: '/salon-services/:id', element: SalonServiceDetailPage },
 
     { path: '/salon/staff', element: StaffPage },
+    { path: '/salon/staff/:id/payout', element: CommissionPayoutPage },
     { path: '/salon/memberships', element: MembershipsPage },
     { path: '/salon/packages', element: PackagesPage },
+    { path: '/salon/gift-vouchers', element: GiftVouchersPage },
     { path: '/salon/customers', element: CustomersPage },
   ],
 

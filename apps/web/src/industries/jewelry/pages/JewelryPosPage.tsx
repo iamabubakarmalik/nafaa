@@ -2,8 +2,9 @@
  * Jewelry counter. Every piece is priced from its weight at today's rate
  * for its karat, plus banwai, kaat and stones; the cashier can change the
  * rate or banwai while bargaining, or add a piece by hand. Old gold from
- * the customer is weighed, its karat and kaat set, and counted as trade-in
- * on the bill. Checkout uses the shared dialog: cash, card, wallet, split,
+ * the customer is weighed in first (karat, kaat; it goes into metal stock as
+ * a JEX- record), then sent on the bill as a TRADE_IN payment naming that
+ * record, which the shared sales service checks. Checkout uses the shared dialog: cash, card, wallet, split,
  * part payment or udhaar. The bill is saved through the jewelry API, which
  * posts the shared sale (stock, khata, drawer, reports) and keeps the
  * weight breakdown for the receipt.
@@ -31,6 +32,7 @@ import {
 } from '@modules/pos/components';
 import { useProductCatalog } from '@modules/pos/engine';
 import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
+import { exchangesApi, type Exchange } from '../api/exchanges.api';
 import { jewelrySalesApi } from '../api/sales.api';
 import type { Purity } from '../api/metal-rates.api';
 import type { JewelryCategory } from '../api/products.api';
@@ -63,6 +65,10 @@ interface Line {
   /** A plain product with no jewelry profile: sold at its own price. */
   plain?: boolean;
 }
+
+/** An old gold record (JEX-…) weighed in at the counter, waiting for a bill. */
+interface OldGold { code: string; value: number; grams: number; purity: string }
+const goldOf = (e: Exchange): OldGold => ({ code: e.exchangeNumber, value: e.netValue, grams: e.netWeight ?? e.grossWeight, purity: e.testedPurity ?? e.claimedPurity });
 
 const lineTotal = (l: Line) => (l.plain ? r2(l.making * l.qty) : r2(piecePrice({
   netWeight: l.netWeight, ratePerGram: l.rate, makingChargeFixed: l.making, wastagePct: l.wastagePct, wastageGrams: l.wastageGrams,
@@ -104,6 +110,10 @@ function JewelryCounter() {
   const [addCustomer, setAddCustomer] = useState<{ name: string; phone: string } | null>(null);
   const [discount, setDiscount] = useState(0);
   const [old, setOld] = useState<{ open: boolean; grams: number; purity: Purity; kaat: number; value: number | null }>({ open: false, grams: 0, purity: 'KARAT_22', kaat: 0, value: null });
+  /** Old gold records (JEX-…) put on this bill. */
+  const [golds, setGolds] = useState<OldGold[]>([]);
+  const openGoldQ = useQuery({ queryKey: [KEYS.exchanges, 'bill-open'], queryFn: () => exchangesApi.page({ kind: 'bill-open', limit: 50 }), staleTime: 30_000 });
+  const waiting = (openGoldQ.data?.items ?? []).filter((e) => !golds.some((g) => g.code === e.exchangeNumber));
   const [handPiece, setHandPiece] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [notes, setNotes] = useState('');
@@ -156,20 +166,49 @@ function JewelryCounter() {
   const subtotal = r2(lines.reduce((s, l) => s + lineTotal(l), 0));
   const weight = r3(lines.reduce((s, l) => s + l.netWeight * l.qty, 0));
   const oldCalc = oldGoldValue(old.grams, old.purity, rates, old.kaat);
-  const oldValue = old.open && old.grams > 0 ? r2(old.value ?? oldCalc.value) : 0;
   const disc = Math.min(discount, subtotal);
+  // Each gold record pays toward the bill up to what is left; old gold never gives change.
+  const tradeIns = golds.reduce<Array<OldGold & { amount: number }>>((acc, g) => {
+    const left = r2(subtotal - disc - acc.reduce((s, x) => s + x.amount, 0));
+    return [...acc, { ...g, amount: r2(Math.max(Math.min(g.value, left), 0)) }];
+  }, []);
+  const oldValue = r2(tradeIns.reduce((s, g) => s + g.amount, 0));
+  const oldGrams = r3(golds.reduce((s, g) => s + g.grams, 0));
   const total = r2(Math.max(subtotal - disc - oldValue, 0));
   const customer = customers.find((c) => c.id === customerId);
   const catalogLines = lines.filter((l) => l.productId);
 
   const reset = () => {
-    setLines([]); setDiscount(0); setCustomerId(''); setNotes('');
+    setLines([]); setDiscount(0); setCustomerId(''); setNotes(''); setGolds([]);
     setOld({ open: false, grams: 0, purity: 'KARAT_22', kaat: 0, value: null });
   };
+
+  const weighIn = useMutation({
+    mutationFn: () => {
+      const value = r2(old.value ?? oldCalc.value);
+      return exchangesApi.create({
+        forBill: true, exchangeType: metalOf(old.purity) === 'SILVER' ? 'OLD_SILVER_EXCHANGE' : 'OLD_GOLD_EXCHANGE',
+        customerId: customerId || undefined, customerName: customer?.name || 'Walk-in', customerPhone: customer?.phone ?? '',
+        itemDescription: 'Counter par bill ke liye liya gaya purana zewar', metalType: metalOf(old.purity), claimedPurity: old.purity, testedPurity: old.purity,
+        grossWeight: old.grams,
+        ...(old.value != null ? { ratePerGram: r2(value / old.grams), deductionPct: 0 } : { ratePerGram: oldCalc.perGram, deductionPct: old.kaat }),
+      });
+    },
+    onSuccess: (e) => {
+      setGolds((gs) => [...gs, goldOf(e)]);
+      setOld({ open: true, grams: 0, purity: old.purity, kaat: old.kaat, value: null });
+      qc.invalidateQueries({ queryKey: [KEYS.exchanges] });
+      qc.invalidateQueries({ queryKey: [KEYS.metal] });
+      toast.success(`${e.exchangeNumber} — purana sona bill par`);
+    },
+    onError: (e) => toast.error(apiError(e, 'Purana sona save nahi hua')),
+  });
 
   const sell = useMutation({
     mutationFn: async (d: PosCheckoutResult) => {
       const pay = salePayment(d, total);
+      const money = (pay.payments ?? (pay.paidAmount > 0 ? [{ method: pay.paymentMethod, amount: pay.paidAmount }] : [])).filter((p) => p.method !== 'TRADE_IN');
+      const gold = tradeIns.filter((g) => g.amount > 0).map((g) => ({ method: 'TRADE_IN' as const, amount: g.amount, reference: g.code }));
       const body = {
         customerId: customerId || undefined,
         customerName: customer?.name, customerPhone: customer?.phone ?? undefined,
@@ -183,8 +222,7 @@ function JewelryCounter() {
         discount: disc || undefined,
         paymentMethod: pay.paymentMethod,
         paidAmount: pay.paidAmount,
-        ...(pay.payments && { payments: pay.payments.filter((p) => p.method !== 'TRADE_IN') }),
-        ...(oldValue > 0 && { exchangeMetalGrams: old.grams, exchangeMetalPurity: old.purity, exchangeValue: oldValue }),
+        ...(gold.length ? { payments: [...money, ...gold] } : pay.payments && { payments: money }),
         customerNotes: notes || undefined,
       };
       const res = await withManagerPin('Is bill ke liye malik ka PIN', (managerPin) => jewelrySalesApi.create({ ...body, ...(managerPin && { managerPin }) }),
@@ -212,7 +250,7 @@ function JewelryCounter() {
   const openCheckout = () => {
     if (!catalogLines.length) { toast.error('Kam az kam ek zewar catalog se chunein — stock usi se kam hota hai'); return; }
     if (lines.some((l) => !l.plain && !(l.rate > 0))) { toast.error('Har zewar ka rate likhein'); return; }
-    if (old.open && old.grams > 0 && !(oldValue > 0)) { toast.error('Purane sone ki qeemat likhein'); return; }
+    if (old.open && old.grams > 0) { toast.error('Tola hua purana sona pehle "Bill par lein" se shamil karein'); return; }
     setCheckout(true);
   };
 
@@ -338,9 +376,21 @@ function JewelryCounter() {
           <button type="button" onClick={() => setOld((o) => ({ ...o, open: !o.open }))} aria-expanded={old.open}
             className="flex w-full items-center gap-2 text-left">
             <Repeat className="h-4 w-4 text-yellow-700" />
-            <span className="text-[0.875rem] font-semibold text-slate-900">Purana sona (exchange)</span>
+            <span className="text-[0.875rem] font-semibold text-slate-900">Purana sona (trade-in)</span>
             <span className="ml-auto text-[0.8125rem] font-semibold tabular-nums text-yellow-800">{oldValue > 0 ? `− ${formatPKR(oldValue)}` : old.open ? '' : 'Shamil karein'}</span>
           </button>
+          {tradeIns.length > 0 && (
+            <ul className="mt-3 space-y-1.5">
+              {tradeIns.map((g) => (
+                <li key={g.code} className="flex items-center gap-2 rounded-xl bg-yellow-50 px-3 py-2 text-[0.8125rem] ring-1 ring-yellow-200">
+                  <KaratPill purity={g.purity} />
+                  <span className="min-w-0 flex-1 truncate text-slate-700">{grams(g.grams)} · {g.code}</span>
+                  <span className="font-semibold tabular-nums text-yellow-900">{formatPKR(g.amount)}{g.amount < g.value ? ` / ${formatPKR(g.value)}` : ''}</span>
+                  <button type="button" aria-label="Bill se hatayein" onClick={() => setGolds((gs) => gs.filter((x) => x.code !== g.code))} className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-white hover:text-rose-600"><X className="h-3.5 w-3.5" /></button>
+                </li>
+              ))}
+            </ul>
+          )}
           {old.open && (
             <div className="mt-3 space-y-2">
               <ChipPicker value={old.purity} onChange={(p) => setOld({ ...old, purity: p, value: null })}
@@ -354,6 +404,21 @@ function JewelryCounter() {
                 {oldCalc.perGram ? `${purityLabel(old.purity)} khareed rate ${formatPKR(oldCalc.perGram)}/g · poora ${formatPKR(oldCalc.full)}` : `${purityLabel(old.purity)} ka rate set nahi — qeemat khud likhein`}
                 {' '}· Sona metal stock me jata hai, bill par trade-in.
               </p>
+              <Button size="sm" variant="secondary" fullWidth loading={weighIn.isPending} disabled={!(old.grams > 0) || !(r2(old.value ?? oldCalc.value) > 0)}
+                onClick={() => weighIn.mutate()} leftIcon={<Scale className="h-4 w-4" />}>Bill par lein · {formatPKR(r2(old.value ?? oldCalc.value))}</Button>
+              {waiting.length > 0 && (
+                <div className="pt-1">
+                  <span className="block text-[0.6875rem] font-medium text-slate-500">Pehle se tola hua (bill ka intezar)</span>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {waiting.map((e) => (
+                      <button key={e.id} type="button" onClick={() => setGolds((gs) => [...gs, goldOf(e)])}
+                        className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-3 text-[0.75rem] font-semibold text-yellow-900 ring-1 ring-yellow-300 hover:bg-yellow-50">
+                        <Plus className="h-3.5 w-3.5" />{e.customerName} · {grams(e.netWeight ?? e.grossWeight)} · {formatPKR(e.netValue)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -364,7 +429,7 @@ function JewelryCounter() {
             <span className="inline-flex items-center gap-1 text-slate-500"><BadgePercent className="h-4 w-4" />Discount</span>
             <NumBox label="" value={discount} onChange={(v) => setDiscount(v)} suffix="Rs" className="w-32" />
           </div>
-          {oldValue > 0 && <div className="flex justify-between text-[0.875rem]"><span className="text-yellow-800">Purana sona {grams(old.grams)}</span><span className="font-semibold tabular-nums text-yellow-800">− {formatPKR(oldValue)}</span></div>}
+          {oldValue > 0 && <div className="flex justify-between text-[0.875rem]"><span className="text-yellow-800">Purana sona {grams(oldGrams)}</span><span className="font-semibold tabular-nums text-yellow-800">− {formatPKR(oldValue)}</span></div>}
           <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Bill par note (ikhtiyari)" maxLength={200}
             className="h-9 w-full rounded-xl border border-slate-200 px-3 text-[0.8125rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
           <div className="flex items-end justify-between border-t border-slate-100 pt-2">
@@ -394,11 +459,11 @@ function JewelryCounter() {
           steps={[
             { icon: TrendingUp, color: '#d97706', title: 'Subah rate', text: 'Din shuru hote hi "Rate badlein" se aaj ka 24K rate likhein. Har zewar ki qeemat usi se banti hai.' },
             { icon: Gem, color: '#7c3aed', title: 'Zewar chunein', text: 'Click karein ya barcode/design number likh kar Enter. Rate, banwai aur kaat bill par hi badal sakte hain — mol-tol yahin.' },
-            { icon: Repeat, color: '#a16207', title: 'Purana sona', text: 'Customer ka purana sona tol kar karat aur kaat likhein. Qeemat bill se kat jati hai, sona metal stock me jata hai.' },
+            { icon: Repeat, color: '#a16207', title: 'Purana sona', text: 'Customer ka purana sona tol kar karat aur kaat likhein, phir "Bill par lein". Qeemat bill se trade-in ke taur par kat jati hai, sona metal stock me jata hai.' },
             { icon: Wallet, color: '#16a34a', title: 'Payment', text: 'Cash, card, bank, JazzCash ya kai tareeqon se (split). Baqi ho to customer chun kar udhaar — khate me jata hai.' },
             { icon: Scale, color: '#0891b2', title: 'Hath se piece', text: 'Jo zewar catalog me nahi, "Hath se piece" se wazan aur karat likh kar daalein. Bill me kam az kam ek catalog zewar zaroori hai.' },
           ]}
-          tips={['Receipt par har zewar ka karat, wazan, rate aur banwai alag chhapti hai.', 'Bill cancel ya wapas karna ho to Sales history se — stock, khata aur purana sona khud theek hote hain.']}
+          tips={['Bill na bane to tola hua sona "Purana sona" page se customer ko wapas karein.', 'Receipt par har zewar ka karat, wazan, rate aur banwai alag chhapti hai.', 'Bill cancel ya wapas karna ho to Sales history se — stock, khata aur purana sona khud theek hote hain.']}
           shortcuts={[['/', 'dhoondein'], ['Enter', 'pehla zewar'], ['F9', 'payment'], ['G', 'guide']]}
         />
       )}

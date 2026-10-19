@@ -322,6 +322,8 @@ export class CustomOrdersService {
           where: { id: o.id },
           data: {
             customerId, finalPrice: price,
+            // The gold advance is used up by this bill.
+            goldAdvanceGrams: r3(Math.max(o.goldAdvanceGrams - gold.grams, 0)),
             paymentStatus: o.paidAmount + goldPaid >= price - 0.01 ? 'PAID' : 'PARTIAL',
             internalNotes: [o.internalNotes, `Bill ${sale.saleNumber}`].filter(Boolean).join(' · '),
           },
@@ -412,6 +414,7 @@ export class CustomOrdersService {
         entryType: 'EXCHANGE_IN', metalType, purity: dto.purity, grams, ratePerGram: r2(value / grams),
         reference: o.orderNumber, source: o.customerName, exchangeId: ex.id, notes: `Order ${o.orderNumber} ka advance sona`,
       });
+      await tx.jewelryCustomOrder.update({ where: { id: o.id }, data: { goldAdvanceGrams: { increment: grams } } });
       return ex;
     });
   }
@@ -437,7 +440,11 @@ export class CustomOrdersService {
     });
   }
 
-  /** The piece back from the karigar: its weight, the wastage allowed and any gold left over. */
+  /**
+   * The piece back from the karigar: its weight, the wastage allowed and any
+   * gold left over. The karigar earns labour at their rates (per gram of the
+   * piece, plus the per-piece rate on the first piece of the order).
+   */
   async receiveMetal(user: AuthenticatedUser, id: string, dto: { receivedGrams: number; wastageGrams?: number; returnedGrams?: number }) {
     const o = await this.getOne(user, id);
     this.open(o);
@@ -447,10 +454,18 @@ export class CustomOrdersService {
     const wastage = r3(Number(dto.wastageGrams) || 0);
     const back = r3(Number(dto.returnedGrams) || 0);
     return this.prisma.$transaction(async (tx) => {
-      await receiveFromKarigar(tx, user.tenantId, user.id, {
+      const k = await receiveFromKarigar(tx, user.tenantId, user.id, {
         karigarId: o.assignedKarigarId!, pieceGrams: piece, wastageGrams: wastage, returnedGrams: back,
         purity: o.purity, reference: o.orderNumber, notes: `Order ${o.orderNumber}`,
       });
+      const first = !(o.metalReceivedGrams && o.metalReceivedGrams > 0);
+      const labour = r2((k.perGramRate ?? 0) * piece + (first ? k.fixedRatePerPiece ?? 0 : 0));
+      if (labour > 0 || first) {
+        await tx.jewelryKarigar.update({
+          where: { id: k.id },
+          data: { totalEarnings: { increment: labour }, ...(first && { totalOrders: { increment: 1 }, completedOrders: { increment: 1 } }) },
+        });
+      }
       return tx.jewelryCustomOrder.update({
         where: { id },
         data: {

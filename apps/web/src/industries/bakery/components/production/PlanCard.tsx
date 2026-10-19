@@ -11,7 +11,7 @@ import { CheckCircle2, Flame, Package, Play, Plus, Timer, Trash2 } from 'lucide-
 import { Button, Input, Modal, Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { productionApi, type ProductionItem, type ProductionPlan } from '../../api/production.api';
-import { PRODUCTION_KEY, FRESH_KEY, RAW_KEY, apiError, fmtQty } from '../meta';
+import { PRODUCTION_KEY, FRESH_KEY, RAW_KEY, apiError, byWeight, fmtQty, qtyInput, qtyValue } from '../meta';
 import { useConfirm } from '../useConfirm';
 
 const ITEM_STATUS: Record<string, { label: string; tone: string }> = {
@@ -103,7 +103,7 @@ export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-base font-bold tabular-nums text-slate-900">{isDone ? fmtQty(i.producedQty) : fmtQty(i.plannedQty)}</p>
+                <p className="text-base font-bold tabular-nums text-slate-900">{isDone ? fmtQty(i.producedQty) : fmtQty(i.plannedQty)}{byWeight(i.unit) && <span className="ml-0.5 text-[0.75rem] font-medium text-slate-500">{i.unit}</span>}</p>
                 <p className="text-[0.6875rem] text-slate-500">{isDone ? `${fmtQty(i.plannedQty)} socha tha` : 'banana hai'}</p>
                 {isDone && i.failedQty > 0 && <p className="text-[0.6875rem] font-semibold text-rose-700">{fmtQty(i.failedQty)} kharab</p>}
               </div>
@@ -153,8 +153,9 @@ function FinishModal({ item, onClose, onDone }: { item: ProductionItem; onClose:
   const [failed, setFailed] = useState('0');
   const [notes, setNotes] = useState('');
   const setPref = (p: Partial<FinishPrefs>) => setPrefs((x) => { const n = { ...x, ...p }; try { localStorage.setItem(FINISH_PREFS, JSON.stringify(n)); } catch { /* storage blocked */ } return n; });
-  const producedQty = Math.round(Number(made) || 0);
-  const failedQty = Math.round(Number(failed) || 0);
+  const weight = byWeight(item.unit);
+  const producedQty = qtyValue(made, weight);
+  const failedQty = qtyValue(failed, weight);
   const linked = !!item.productId;
   const save = useMutation({
     mutationFn: () => productionApi.completeItem(item.id!, {
@@ -163,20 +164,20 @@ function FinishModal({ item, onClose, onDone }: { item: ProductionItem; onClose:
       freshHours: linked && prefs.makeBatch ? prefs.hours : undefined,
     }),
     onSuccess: (r) => {
-      toast.success(`${item.productName}: ${producedQty} ban gaye${r.stockAdded ? ` · ${r.stockAdded} stock me` : ''}`);
+      toast.success(`${item.productName}: ${fmtQty(producedQty)}${weight ? ` ${item.unit}` : ''} ban gaye${r.stockAdded ? ` · ${fmtQty(r.stockAdded)} stock me` : ''}`);
       (r.warnings ?? []).forEach((w) => toast.warning(w));
       onDone();
     },
     onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
-  const short = item.plannedQty - producedQty;
+  const short = Math.round((item.plannedQty - producedQty) * 1000) / 1000;
   return (
     <Modal open onClose={onClose} size="md" title="Ban gaya" description={`${item.productName} · ${fmtQty(item.plannedQty)} socha tha`}
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="success" disabled={producedQty + failedQty <= 0} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Darj karein</Button></>}>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Kitne bane (theek)" inputMode="numeric" value={made} onChange={(e) => setMade(e.target.value.replace(/\D/g, ''))} size="lg" className="text-center text-xl font-bold tabular-nums" data-autofocus />
-          <Input label="Kitne kharab" inputMode="numeric" value={failed} onChange={(e) => setFailed(e.target.value.replace(/\D/g, ''))} size="lg" className="text-center text-xl font-bold tabular-nums" hint="Waste ke record me jata hai" />
+          <Input label={weight ? `Kitna bana (${item.unit})` : 'Kitne bane (theek)'} inputMode={weight ? 'decimal' : 'numeric'} value={made} onChange={(e) => setMade(qtyInput(e.target.value, weight))} size="lg" className="text-center text-xl font-bold tabular-nums" data-autofocus />
+          <Input label="Kitne kharab" inputMode={weight ? 'decimal' : 'numeric'} value={failed} onChange={(e) => setFailed(qtyInput(e.target.value, weight))} size="lg" className="text-center text-xl font-bold tabular-nums" hint="Waste ke record me jata hai" />
         </div>
         {short > 0 && <p className="text-[0.8125rem] text-amber-800">Socha {fmtQty(item.plannedQty)} tha — {fmtQty(short)} kam ban rahe hain.</p>}
         <Input label="Koi baat" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Thora jal gaya, oven garam tha…" hint={failedQty > 0 ? 'Kharabi ki wajah likhein — waste ke record me dikhti hai' : undefined} />

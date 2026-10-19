@@ -4,8 +4,8 @@
  * reports all see it. The jewelry row keeps the weight, karat, rate and making
  * breakdown and carries the same bill number as the shared sale.
  */
-import { BadRequestException, Injectable, Logger, NotFoundException, type OnModuleInit } from '@nestjs/common';
-import { JewelryPurity, PaymentMethod } from '@prisma/client';
+import { BadRequestException, Injectable, NotFoundException, type OnModuleInit } from '@nestjs/common';
+import { JewelryPurity, PaymentMethod, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { SalesService as CoreSalesService } from '../../../modules/sales/sales/sales.service';
@@ -24,8 +24,6 @@ const KARAT_LABEL = (p: string) => p.replace('KARAT_', '') + (p.startsWith('KARA
 
 @Injectable()
 export class SalesService implements OnModuleInit {
-  private readonly logger = new Logger('JewelrySales');
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly coreSales: CoreSalesService,
@@ -131,11 +129,24 @@ export class SalesService implements OnModuleInit {
     const gstAmount = Math.max(Number(dto.gstAmount) || 0, 0);
     const otherCharges = Math.max(Number(dto.otherCharges) || 0, 0);
     const discount = Math.max(Number(dto.discount) || 0, 0);
-    const exchangeGrams = Math.max(Number(dto.exchangeMetalGrams) || 0, 0);
-    if (exchangeGrams > 0 && !dto.exchangeMetalPurity) throw new BadRequestException('Purane sone ka karat chunein');
-    const exchangeValue = dto.exchangeValue != null
-      ? Math.max(Number(dto.exchangeValue) || 0, 0)
-      : this.oldGoldValue(buyMap, exchangeGrams, dto.exchangeMetalPurity, dto.exchangeDeductionPct);
+    // Old gold comes either as trade-in rows naming gold already weighed in at
+    // the counter (JEX-…, checked by the shared sales service), or as grams on
+    // this bill (older screens), which are recorded here after the bill.
+    const tradeRows = (dto.payments ?? []).filter((p) => p.method === 'TRADE_IN' && Number(p.amount) > 0);
+    const taken = await this.counterGold(user.tenantId, tradeRows.map((p) => String(p.reference ?? '').trim()));
+    if (taken.length && (Number(dto.exchangeMetalGrams) > 0 || Number(dto.exchangeValue) > 0)) {
+      throw new BadRequestException('Purana sona ya trade-in se lein ya wazan likh kar — dono ek saath nahi');
+    }
+    const exchangeGrams = taken.length
+      ? Math.round(taken.reduce((g, e) => g + (e.netWeight ?? e.grossWeight), 0) * 1000) / 1000
+      : Math.max(Number(dto.exchangeMetalGrams) || 0, 0);
+    const exchangePurity = taken.length ? (taken[0].testedPurity ?? taken[0].claimedPurity) : dto.exchangeMetalPurity;
+    if (!taken.length && exchangeGrams > 0 && !exchangePurity) throw new BadRequestException('Purane sone ka karat chunein');
+    const exchangeValue = taken.length
+      ? r2(tradeRows.reduce((v, p) => v + Number(p.amount), 0))
+      : dto.exchangeValue != null
+        ? Math.max(Number(dto.exchangeValue) || 0, 0)
+        : this.oldGoldValue(buyMap, exchangeGrams, exchangePurity, dto.exchangeDeductionPct);
     if (exchangeValue > 0 && !(exchangeGrams > 0)) throw new BadRequestException('Purane sone ka wazan likhein');
 
     const subtotal = r2(enrichedItems.reduce((s, i) => s + i.itemTotal, 0));
@@ -175,14 +186,16 @@ export class SalesService implements OnModuleInit {
       ...(gstAmount > 0 ? [{ type: 'OTHER', label: 'GST', amount: gstAmount }] : []),
       ...(otherCharges > 0 ? [{ type: 'OTHER', label: 'Deegar charges', amount: otherCharges }] : []),
     ];
-    const exchangePurityLabel = dto.exchangeMetalPurity ? ` ${KARAT_LABEL(dto.exchangeMetalPurity)}` : '';
+    const exchangePurityLabel = exchangePurity ? ` ${KARAT_LABEL(exchangePurity)}` : '';
     const oldGold = `Purana sona${exchangeGrams ? ` ${exchangeGrams.toFixed(3)}g` : ''}${exchangePurityLabel}`;
 
     // Old gold is part of the payment (TRADE_IN), not a discount: the bill
     // keeps its full value, so profit is right and the discount rules stay out.
     const payments = [
       ...(parts.length ? parts : paidAmount > 0 ? [{ method: paymentMethod, amount: paidAmount }] : []),
-      ...(exchangeValue > 0 ? [{ method: 'TRADE_IN' as const, amount: exchangeValue, note: oldGold }] : []),
+      ...(taken.length
+        ? tradeRows.map((p) => ({ method: 'TRADE_IN' as const, amount: r2(Number(p.amount)), reference: String(p.reference).trim(), note: p.note }))
+        : exchangeValue > 0 ? [{ method: 'TRADE_IN' as const, amount: exchangeValue, note: oldGold }] : []),
     ];
     const core: any = await this.coreSales.create(user, scope, {
       shopId: dto.shopId,
@@ -200,59 +213,66 @@ export class SalesService implements OnModuleInit {
         note: describe(i),
       })),
       serviceCharges: serviceCharges.length ? serviceCharges : undefined,
-    } as any, undefined, { tradeInChecked: true });
+    } as any, undefined, { tradeInChecked: !taken.length });
 
     let jewelrySale;
     try {
-      jewelrySale = await this.prisma.jewelrySale.create({
-        data: {
-          tenantId: user.tenantId,
-          shopId: core.shopId,
-          invoiceNumber: core.saleNumber,
-          customerId: dto.customerId,
-          customerName: dto.customerName || core.customer?.name,
-          customerPhone: dto.customerPhone || core.customer?.phone,
-          customerCnic: dto.customerCnic,
-          customerAddress: dto.customerAddress,
-          metalRateSnapshot: ratesMap,
-          grossWeight: totalGrossWeight,
-          netWeight: totalNetWeight,
-          metalValue: r2(totalMetalValue),
-          makingCharges: r2(totalMakingCharges),
-          wastageValue: r2(totalWastageValue),
-          polishCharges: totalPolishCharges,
-          hallmarkCharges: totalHallmarkCharges,
-          stoneValue: totalStoneValue,
-          gstAmount,
-          otherCharges,
-          subtotal,
-          discount,
-          total,
-          paidAmount: r2(Math.min(paidAmount, total)),
-          paymentStatus: paidAmount >= total - 0.005 ? 'PAID' : paidAmount > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
-          paymentMethod,
-          exchangeMetalGrams: exchangeGrams,
-          exchangeMetalPurity: dto.exchangeMetalPurity,
-          exchangeValue,
-          exchangeType: dto.exchangeType ?? (exchangeValue > 0 ? 'OLD_GOLD_EXCHANGE' : undefined),
-          hallmarkVerified: dto.hallmarkVerified ?? false,
-          hasCertificate: dto.hasCertificate ?? false,
-          customerNotes: dto.customerNotes,
-          internalNotes: dto.internalNotes,
-          createdById: user.id,
-          items: { create: enrichedItems.map(({ unitTotal: _u, ...rest }) => rest) },
-        },
-        include: { items: true },
-      });
+      jewelrySale = await this.prisma.$transaction(async (tx) => {
+        const row = await tx.jewelrySale.create({
+          data: {
+            tenantId: user.tenantId,
+            shopId: core.shopId,
+            invoiceNumber: core.saleNumber,
+            customerId: dto.customerId,
+            customerName: dto.customerName || core.customer?.name,
+            customerPhone: dto.customerPhone || core.customer?.phone,
+            customerCnic: dto.customerCnic,
+            customerAddress: dto.customerAddress,
+            metalRateSnapshot: ratesMap,
+            grossWeight: totalGrossWeight,
+            netWeight: totalNetWeight,
+            metalValue: r2(totalMetalValue),
+            makingCharges: r2(totalMakingCharges),
+            wastageValue: r2(totalWastageValue),
+            polishCharges: totalPolishCharges,
+            hallmarkCharges: totalHallmarkCharges,
+            stoneValue: totalStoneValue,
+            gstAmount,
+            otherCharges,
+            subtotal,
+            discount,
+            total,
+            paidAmount: r2(Math.min(paidAmount, total)),
+            paymentStatus: paidAmount >= total - 0.005 ? 'PAID' : paidAmount > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
+            paymentMethod,
+            exchangeMetalGrams: exchangeGrams,
+            exchangeMetalPurity: exchangePurity,
+            exchangeValue,
+            exchangeType: dto.exchangeType ?? (exchangeValue > 0 ? 'OLD_GOLD_EXCHANGE' : undefined),
+            hallmarkVerified: dto.hallmarkVerified ?? false,
+            hasCertificate: dto.hasCertificate ?? false,
+            customerNotes: dto.customerNotes,
+            internalNotes: dto.internalNotes,
+            createdById: user.id,
+            items: { create: enrichedItems.map(({ unitTotal: _u, ...rest }) => rest) },
+          },
+          include: { items: true },
+        });
+        if (taken.length) {
+          // Gold weighed in at the counter now belongs to this bill.
+          const ids = taken.map((e) => e.id);
+          const linked = await tx.jewelryExchange.updateMany({ where: { id: { in: ids }, saleId: null, purpose: 'SALE' }, data: { saleId: row.id } });
+          if (linked.count !== ids.length) throw new BadRequestException('Purana sona kisi aur bill par lag chuka hai');
+          await tx.jewelryMetalStock.updateMany({ where: { tenantId: user.tenantId, exchangeId: { in: ids }, entryType: 'EXCHANGE_IN' }, data: { saleId: row.id } });
+        } else if (exchangeGrams > 0 || exchangeValue > 0) {
+          await this.recordOldGold(tx, user, row.id, core.saleNumber, dto, exchangeGrams, exchangeValue, buyMap);
+        }
+        return row;
+      }, { timeout: 30_000 });
     } catch (err) {
       // Keep the books clean: without the jewelry row the bill is undone.
       await this.coreSales.voidSale(user, scope, core.id, 'Jewelry bill save nahi hua').catch(() => undefined);
       throw err;
-    }
-
-    if (exchangeGrams > 0 || exchangeValue > 0) {
-      await this.recordOldGold(user, jewelrySale.id, core.saleNumber, dto, exchangeGrams, exchangeValue, buyMap)
-        .catch((e) => this.logger.warn(`Old gold entry failed for ${core.saleNumber}: ${e?.message}`));
     }
 
     return { ...jewelrySale, saleId: core.id, saleNumber: core.saleNumber };
@@ -266,52 +286,63 @@ export class SalesService implements OnModuleInit {
     return r2(grams * rate * (1 - Math.min(Math.max(Number(deductionPct) || 0, 0), 50) / 100));
   }
 
+  /** Old gold weighed in at the counter for a bill (JEX-…, not yet on a bill), in the order the rows name it. */
+  private async counterGold(tenantId: string, codes: string[]) {
+    if (!codes.length) return [];
+    if (codes.some((c) => !/^JEX-/i.test(c))) throw new BadRequestException('Trade-in ke liye counter par tola gaya purana sona chunein');
+    const rows = await this.prisma.jewelryExchange.findMany({
+      where: { tenantId, exchangeNumber: { in: codes, mode: 'insensitive' }, purpose: 'SALE', saleId: null },
+      select: { id: true, exchangeNumber: true, netWeight: true, grossWeight: true, testedPurity: true, claimedPurity: true },
+    });
+    const missing = codes.find((c) => !rows.some((r) => r.exchangeNumber.toUpperCase() === c.toUpperCase()));
+    if (missing) throw new BadRequestException(`Purana sona ${missing} nahi mila ya pehle hi kisi bill par lag chuka hai`);
+    return codes.map((c) => rows.find((r) => r.exchangeNumber.toUpperCase() === c.toUpperCase())!);
+  }
+
   /** Old gold taken in on a bill: an exchange record plus metal stock in. */
   private async recordOldGold(
-    user: AuthenticatedUser, jewelrySaleId: string, saleNumber: string,
+    tx: Prisma.TransactionClient, user: AuthenticatedUser, jewelrySaleId: string, saleNumber: string,
     dto: CreateJewelrySaleDto, grams: number, value: number, rates: Record<string, number>,
   ) {
     const purity: JewelryPurity = dto.exchangeMetalPurity ?? 'OTHER';
     const metalType = metalTypeForPurity(dto.exchangeMetalPurity);
     const fine = grams * (PURITY_FACTOR[purity] ?? 1);
     const fullValue = r2(grams * (rates[`${metalType}_${purity}`] ?? 0));
-    await this.prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-exchange-no:${user.tenantId}`}))::text`;
-      const count = await tx.jewelryExchange.count({ where: { tenantId: user.tenantId } });
-      const exchange = await tx.jewelryExchange.create({
-        data: {
-          tenantId: user.tenantId,
-          exchangeNumber: 'JEX-' + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0'),
-          exchangeType: dto.exchangeType ?? (metalType === 'SILVER' ? 'OLD_SILVER_EXCHANGE' : 'OLD_GOLD_EXCHANGE'),
-          customerId: dto.customerId,
-          customerName: dto.customerName || 'Walk-in',
-          customerPhone: dto.customerPhone || '',
-          customerCnic: dto.customerCnic,
-          itemDescription: `Bill ${saleNumber} par liya gaya purana zewar`,
-          metalType,
-          claimedPurity: purity,
-          testedPurity: purity,
-          grossWeight: grams,
-          netWeight: grams,
-          fineGoldEquivalent: fine,
-          ratePerGram: grams > 0 ? r2(value / grams) : 0,
-          grossValue: Math.max(fullValue, value),
-          deductions: r2(Math.max(fullValue - value, 0)),
-          netValue: value,
-          saleId: jewelrySaleId,
-          purpose: 'SALE',
-          createdById: user.id,
-        },
-      });
-      if (grams > 0 && dto.exchangeMetalPurity) {
-        await postMetalEntry(tx, user.tenantId, user.id, {
-          entryType: 'EXCHANGE_IN', metalType, purity, grams,
-          ratePerGram: r2(value / grams), reference: saleNumber,
-          source: dto.customerName || 'Customer', saleId: jewelrySaleId, exchangeId: exchange.id,
-          notes: 'Bill par purana zewar liya',
-        });
-      }
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-exchange-no:${user.tenantId}`}))::text`;
+    const count = await tx.jewelryExchange.count({ where: { tenantId: user.tenantId } });
+    const exchange = await tx.jewelryExchange.create({
+      data: {
+        tenantId: user.tenantId,
+        exchangeNumber: 'JEX-' + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0'),
+        exchangeType: dto.exchangeType ?? (metalType === 'SILVER' ? 'OLD_SILVER_EXCHANGE' : 'OLD_GOLD_EXCHANGE'),
+        customerId: dto.customerId,
+        customerName: dto.customerName || 'Walk-in',
+        customerPhone: dto.customerPhone || '',
+        customerCnic: dto.customerCnic,
+        itemDescription: `Bill ${saleNumber} par liya gaya purana zewar`,
+        metalType,
+        claimedPurity: purity,
+        testedPurity: purity,
+        grossWeight: grams,
+        netWeight: grams,
+        fineGoldEquivalent: fine,
+        ratePerGram: grams > 0 ? r2(value / grams) : 0,
+        grossValue: Math.max(fullValue, value),
+        deductions: r2(Math.max(fullValue - value, 0)),
+        netValue: value,
+        saleId: jewelrySaleId,
+        purpose: 'SALE',
+        createdById: user.id,
+      },
     });
+    if (grams > 0 && dto.exchangeMetalPurity) {
+      await postMetalEntry(tx, user.tenantId, user.id, {
+        entryType: 'EXCHANGE_IN', metalType, purity, grams,
+        ratePerGram: r2(value / grams), reference: saleNumber,
+        source: dto.customerName || 'Customer', saleId: jewelrySaleId, exchangeId: exchange.id,
+        notes: 'Bill par purana zewar liya',
+      });
+    }
   }
 
   /** Bill number → shared sale (id, status), for linking and status sync. */
@@ -403,25 +434,24 @@ export class SalesService implements OnModuleInit {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-void:${id}`}))::text`;
       const s = await tx.jewelrySale.findFirst({ where: { id, tenantId } });
       if (!s) return;
-      if (s.exchangeMetalGrams > 0 && s.exchangeMetalPurity) {
-        const [taken, done] = await Promise.all([
-          tx.jewelryMetalStock.findFirst({ where: { tenantId, saleId: s.id, entryType: 'EXCHANGE_IN' }, select: { id: true } }),
-          tx.jewelryMetalStock.findFirst({ where: { tenantId, saleId: s.id, entryType: 'ADJUSTMENT' }, select: { id: true } }),
-        ]);
-        if (taken && !done) {
-          await postMetalEntry(tx, tenantId, userId ?? s.createdById, {
-            entryType: 'ADJUSTMENT',
-            metalType: metalTypeForPurity(s.exchangeMetalPurity),
-            purity: s.exchangeMetalPurity,
-            grams: s.exchangeMetalGrams,
-            ratePerGram: r2(s.exchangeValue / s.exchangeMetalGrams),
-            reference: s.invoiceNumber,
-            source: s.customerName || 'Customer',
-            saleId: s.id,
-            notes: 'Bill cancel: purana zewar customer ko wapas',
-          });
-        }
+      // Each karat of old gold that came in on the bill and has not gone back yet.
+      const moves = await tx.jewelryMetalStock.groupBy({
+        by: ['entryType', 'metalType', 'purity'],
+        where: { tenantId, saleId: s.id, entryType: { in: ['EXCHANGE_IN', 'ADJUSTMENT'] } },
+        _sum: { grams: true, totalValue: true },
+      });
+      for (const m of moves.filter((x) => x.entryType === 'EXCHANGE_IN')) {
+        const back = moves.find((x) => x.entryType === 'ADJUSTMENT' && x.metalType === m.metalType && x.purity === m.purity)?._sum.grams ?? 0;
+        const grams = Math.round(((m._sum.grams ?? 0) - back) * 1000) / 1000;
+        if (!(grams > 0.0005)) continue;
+        await postMetalEntry(tx, tenantId, userId ?? s.createdById, {
+          entryType: 'ADJUSTMENT', metalType: m.metalType, purity: m.purity, grams,
+          ratePerGram: m._sum.grams ? r2((m._sum.totalValue ?? 0) / m._sum.grams) : null,
+          reference: s.invoiceNumber, source: s.customerName || 'Customer', saleId: s.id,
+          notes: 'Bill cancel: purana zewar customer ko wapas',
+        });
       }
+      await tx.jewelryExchange.updateMany({ where: { tenantId, saleId: s.id, purpose: 'SALE' }, data: { purpose: 'RETURNED' } });
       if (s.status !== 'CANCELLED') {
         await tx.jewelrySale.update({
           where: { id: s.id },

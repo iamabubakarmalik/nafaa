@@ -2,9 +2,9 @@
  * Salon counter (PosGate opens this page). Pick the customer from the
  * waiting queue or today's bookings, or start a walk-in; tap services
  * (each with its stylist), add retail products, products used on a
- * service, membership discount or a package session, discount and tip,
- * then take the money in the shared checkout (cash, card, wallet, split,
- * part or full udhaar). The bill goes through the shared sale engine.
+ * service, membership discount, a package session or a gift voucher,
+ * discount and tip, then take the money in the shared checkout (cash,
+ * card, wallet, split, part or full udhaar). The bill goes through the shared sale engine.
  *
  * Keys: / search · 1 services · 2 products · F12 bill · G guide.
  */
@@ -118,8 +118,9 @@ function SalonCounter() {
         credit: Math.max(Number(sale.creditAmount || 0) - bill.advance, 0) || undefined, phone: bill.customer.phone,
       });
       if (prefs.autoPrint) void print(sale.id);
+      if (sale.voucher) toast.success(`${sale.voucher.code} se ${formatPKR(sale.voucher.used)} — baqi balance ${formatPKR(sale.voucher.balance)}`);
       bill.reset();
-      [SALON_KEYS.appointments, SALON_KEYS.staff, SALON_KEYS.customers, 'salon-perks', 'products-for-pos', 'customers'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      [SALON_KEYS.appointments, SALON_KEYS.staff, SALON_KEYS.customers, SALON_KEYS.vouchers, 'salon-perks', 'products-for-pos', 'customers'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     } catch (e) {
       toast.error(apiError(e, 'Bill nahi bana'));
     } finally {

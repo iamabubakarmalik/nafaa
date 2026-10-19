@@ -12,7 +12,7 @@ import { Button, Input, Modal, Switch } from '@/design-system/components';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { damageApi } from '@modules/inventory/damage/api/damage.api';
 import { freshnessApi, type FreshnessLog } from '../../api/freshness.api';
-import { FRESH_KEY, apiError, fmtQty } from '../meta';
+import { FRESH_KEY, apiError, byWeight, fmtQty, qtyInput, qtyValue } from '../meta';
 
 export type BatchAction = 'sale' | 'discount' | 'discard';
 
@@ -26,7 +26,8 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
   const [reason, setReason] = useState('');
   // On by default: without a damage report the thrown pieces stay in stock and the loss never reaches profit.
   const [damage, setDamage] = useState(() => { try { return localStorage.getItem(DAMAGE_PREF) !== '0'; } catch { return true; } });
-  const n = Math.round(Number(qty) || 0);
+  const weight = byWeight(log.unit);
+  const n = qtyValue(qty, weight);
   const meta = {
     sale: { title: 'Kitne bik gaye?', btn: 'Sale likhein', icon: CheckCircle2, variant: 'success' as const },
     discount: { title: 'Kitne sasta becha?', btn: 'Likhein', icon: Tag, variant: 'primary' as const },
@@ -63,15 +64,15 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
     <Modal open onClose={onClose} size="sm" title={meta.title} description={`${log.productName}${log.batchNumber ? ` · ${log.batchNumber}` : ''} · ${fmtQty(max)} para hai`}
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant={meta.variant} disabled={bad} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<meta.icon className="h-4 w-4" />}>{meta.btn}</Button></>}>
       <div className="space-y-3">
-        <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} size="lg" className="text-center text-2xl font-bold tabular-nums" data-autofocus error={n > max ? `Sirf ${fmtQty(max)} para hai` : undefined} />
-        <div className="flex flex-wrap gap-1.5">{[max, Math.floor(max / 2), 1].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map((v, i) => <Button key={v} size="sm" variant="secondary" onClick={() => setQty(String(v))}>{i === 0 ? 'Sab' : fmtQty(v)}</Button>)}</div>
+        <Input inputMode={weight ? 'decimal' : 'numeric'} value={qty} onChange={(e) => setQty(qtyInput(e.target.value, weight))} size="lg" className="text-center text-2xl font-bold tabular-nums" data-autofocus error={n > max ? `Sirf ${fmtQty(max)} para hai` : undefined} />
+        <div className="flex flex-wrap gap-1.5">{[max, weight ? Math.round(max * 500) / 1000 : Math.floor(max / 2), 1].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map((v, i) => <Button key={v} size="sm" variant="secondary" onClick={() => setQty(String(v))}>{i === 0 ? 'Sab' : fmtQty(v)}</Button>)}</div>
         {mode === 'discard' && (
           <>
             <Input label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Waqt guzar gaya, jal gaya…" hint="Waste ke record me isi se pata chalta hai kyun phenkna para" />
             <div className="flex flex-wrap gap-1.5">{REASONS.map((r) => <Button key={r} size="xs" variant={reason === r ? 'primary' : 'secondary'} onClick={() => setReason(r)}>{r}</Button>)}</div>
             <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
               <Switch checked={damage} onChange={(e) => { setDamage(e.target.checked); try { localStorage.setItem(DAMAGE_PREF, e.target.checked ? '1' : '0'); } catch { /* storage blocked */ } }}
-                label="Stock se bhi ghatayein" description="Damage report banegi; manager manzoor kare to stock kam hoga aur munafa me nuqsaan ginega" />
+                label="Stock se bhi ghatayein" description="Damage report banegi; manager manzoor kare to stock kam hoga aur profit me loss ginega" />
             </div>
           </>
         )}
@@ -82,7 +83,7 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
   );
 }
 
-interface ProductLite { id: string; name: string; isActive?: boolean }
+interface ProductLite { id: string; name: string; unit?: string; isActive?: boolean }
 
 export function NewBatchModal({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
@@ -91,6 +92,8 @@ export function NewBatchModal({ onClose }: { onClose: () => void }) {
   const [qty, setQty] = useState('');
   const [hours, setHours] = useState(24);
   const [batch, setBatch] = useState('');
+  const weight = byWeight(product?.unit);
+  const amount = qtyValue(qty, weight);
   const productsQ = useQuery({ queryKey: ['bakery-all-products'], queryFn: () => fetchAllProducts({ isActive: undefined }), staleTime: 60_000 });
   const t = term.trim().toLowerCase();
   const options = useMemo(() => ((productsQ.data?.items ?? []) as ProductLite[]).filter((p) => p.isActive !== false && (!t || p.name.toLowerCase().includes(t))).slice(0, 12), [productsQ.data, t]);
@@ -98,14 +101,14 @@ export function NewBatchModal({ onClose }: { onClose: () => void }) {
     mutationFn: () => {
       const now = new Date();
       const best = new Date(now.getTime() + hours * 3_600_000);
-      return freshnessApi.create({ productId: product!.id, productName: product!.name, batchNumber: batch.trim() || undefined, productionDate: now.toISOString(), bestBefore: best.toISOString(), expiryDate: best.toISOString(), initialQty: Number(qty), currentQty: Number(qty) });
+      return freshnessApi.create({ productId: product!.id, productName: product!.name, batchNumber: batch.trim() || undefined, productionDate: now.toISOString(), bestBefore: best.toISOString(), expiryDate: best.toISOString(), initialQty: amount, currentQty: amount });
     },
     onSuccess: () => { toast.success('Batch jur gaya'); qc.invalidateQueries({ queryKey: [FRESH_KEY] }); onClose(); },
     onError: (e) => toast.error(apiError(e, 'Nahi ho saka')),
   });
   return (
     <Modal open onClose={onClose} size="md" title="Naya batch" description="Jo maal bana aur shelf par rakha — kab tak theek rahega"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!product || !(Number(qty) > 0)} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Plus className="h-4 w-4" />}>Batch jorein</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!product || !(amount > 0)} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Plus className="h-4 w-4" />}>Batch jorein</Button></>}>
       <div className="space-y-3">
         {product ? (
           <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 ring-1 ring-brand-100">
@@ -121,7 +124,7 @@ export function NewBatchModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Kitne banaye" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} />
+          <Input label={weight ? `Kitna banaya (${product?.unit})` : 'Kitne banaye'} inputMode={weight ? 'decimal' : 'numeric'} value={qty} onChange={(e) => setQty(qtyInput(e.target.value, weight))} />
           <Input label="Batch / naam" value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="Subah wala" hint="Marzi hai" />
         </div>
         <div>

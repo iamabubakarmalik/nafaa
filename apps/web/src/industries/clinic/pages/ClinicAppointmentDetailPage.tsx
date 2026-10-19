@@ -125,7 +125,7 @@ export default function ClinicAppointmentDetailPage() {
       )}
       {paying && (
         <FeePayModal title={paying === 'apt' ? `Fees — Token ${apt.tokenNumber ?? '-'}` : `Lab ${(paying as LabOrder).orderNumber}`}
-          due={paying === 'apt' ? left : r2((paying as LabOrder).totalCost - (paying as LabOrder).paidAmount)} busy={pay.isPending}
+          due={paying === 'apt' ? left : r2((paying as LabOrder).totalCost - (paying as LabOrder).paidAmount)} panel={paying === 'apt' ? apt.panel : null} busy={pay.isPending}
           onClose={() => setPaying(null)} onPay={(b) => pay.mutate(b)} />
       )}
       {writingRx && <RxBuilder appointmentId={apt.id} encounterId={apt.encounter?.id} onClose={() => setWritingRx(false)} onSaved={(rx) => { setWritingRx(false); refresh(); printRx(rx); }} />}
@@ -171,6 +171,7 @@ export default function ClinicAppointmentDetailPage() {
 
       <div className="flex flex-wrap items-center gap-2">
         {p && <Link to={`/clinic/patients/${p.id}`} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[0.8125rem] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50">{patientLine(p)} · {p.mrn}</Link>}
+        {apt.panel && <Badge variant="info">Panel: {apt.panel.name}</Badge>}
         {(p?.allergies?.length ?? 0) > 0 && <Badge variant="danger"><AlertTriangle className="mr-1 h-3.5 w-3.5" />Allergy: {p!.allergies.join(', ')}</Badge>}
         {(p?.chronicConditions?.length ?? 0) > 0 && <Badge variant="warning">{p!.chronicConditions.join(', ')}</Badge>}
         {p?.hasInsurance && <Badge variant="info">Panel: {p.insuranceProvider || 'haan'}</Badge>}

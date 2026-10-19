@@ -10,7 +10,7 @@ import { BakeryOrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
-import { CLOSED_ORDER, DAY_MS, ORDER_PAY_METHODS, orderMoney, positive, postOrderAdvance, r2, r3, shopClock, withNextNumber } from '../bakery-common';
+import { CLOSED_ORDER, DAY_MS, ORDER_PAY_METHODS, checkRefundPin, orderMoney, positive, postOrderAdvance, r2, r3, refundOrderAdvance, shopClock, withNextNumber } from '../bakery-common';
 import { ShopScope } from '../../../common/shop-scope';
 import { findOrderBill } from '../cake-orders/cake-orders.service';
 
@@ -85,6 +85,7 @@ export class BulkOrdersService {
         return tx.bakeryBulkOrder.create({
           data: {
             tenantId: user.tenantId,
+            shopId: scope.shopId ?? null,
             orderNumber,
             customerId: heldFor,
             organizationName,
@@ -117,7 +118,7 @@ export class BulkOrdersService {
   }
 
   /** Plain list kept for older screens; `open=true` returns every order still to deliver. */
-  async list(user: AuthenticatedUser, params: { status?: string; from?: string; to?: string; search?: string; open?: string }) {
+  async list(user: AuthenticatedUser, scope: ShopScope, params: { status?: string; from?: string; to?: string; search?: string; open?: string }) {
     const clock = await shopClock(this.tz, user.tenantId);
     const range = clock.range(params.from, params.to)
       ?? (params.from || params.to ? { ...(params.from && { gte: new Date(params.from) }), ...(params.to && { lte: new Date(params.to) }) } : undefined);
@@ -125,6 +126,7 @@ export class BulkOrdersService {
     return this.prisma.bakeryBulkOrder.findMany({
       where: {
         tenantId: user.tenantId,
+        AND: [scope.whereLoose],
         ...this.searchWhere(params.search),
         ...(params.status && { status: params.status as BakeryOrderStatus }),
         ...(open && !params.status && { status: { notIn: [...CLOSED_ORDER] } }),
@@ -135,7 +137,7 @@ export class BulkOrdersService {
     });
   }
 
-  async page(user: AuthenticatedUser, q: Record<string, string | undefined>) {
+  async page(user: AuthenticatedUser, scope: ShopScope, q: Record<string, string | undefined>) {
     const clock = await shopClock(this.tz, user.tenantId);
     const view: BulkView = VIEWS.includes(q.view as BulkView) ? (q.view as BulkView) : 'active';
     const limit = Math.min(Math.max(Number(q.limit) || 30, 1), 100);
@@ -143,6 +145,7 @@ export class BulkOrdersService {
     const range = clock.range(q.from, q.to);
     const base: Prisma.BakeryBulkOrderWhereInput = {
       tenantId: user.tenantId,
+      AND: [scope.whereLoose],
       ...this.searchWhere(q.search),
       ...(q.orderType && { orderType: q.orderType }),
       ...(range && { eventDate: range }),
@@ -186,13 +189,13 @@ export class BulkOrdersService {
   }
 
   /** Open-order numbers and analytics for a period of event dates (this year by default). */
-  async summary(user: AuthenticatedUser, from?: string, to?: string) {
+  async summary(user: AuthenticatedUser, scope: ShopScope, from?: string, to?: string) {
     const clock = await shopClock(this.tz, user.tenantId);
     const todayKey = clock.keyOf(new Date());
     const period = clock.range(from, to) ?? clock.range(`${todayKey.slice(0, 4)}-01-01`, `${todayKey.slice(0, 4)}-12-31`)!;
     const [open, rows] = await Promise.all([
-      this.prisma.bakeryBulkOrder.findMany({ where: { tenantId: user.tenantId, status: { notIn: [...CLOSED_ORDER] } }, take: 2000 }),
-      this.prisma.bakeryBulkOrder.findMany({ where: { tenantId: user.tenantId, eventDate: { gte: period.gte, lt: period.lt } }, take: 5000 }),
+      this.prisma.bakeryBulkOrder.findMany({ where: { tenantId: user.tenantId, ...scope.whereLoose, status: { notIn: [...CLOSED_ORDER] } }, take: 2000 }),
+      this.prisma.bakeryBulkOrder.findMany({ where: { tenantId: user.tenantId, ...scope.whereLoose, eventDate: { gte: period.gte, lt: period.lt } }, take: 5000 }),
     ]);
     const now = Date.now();
     const live = rows.filter((o) => o.status !== 'CANCELLED' && o.status !== 'REFUNDED');
@@ -334,6 +337,22 @@ export class BulkOrdersService {
     const d = typeof v === 'string' || v instanceof Date ? new Date(v) : null;
     if (!d || Number.isNaN(d.getTime())) throw new BadRequestException(message);
     return d;
+  }
+
+  /**
+   * Gives back in cash the advance of a cancelled order (khata REFUND line
+   * plus a cash-out from the open drawer); the order becomes "refunded".
+   */
+  async refundAdvance(user: AuthenticatedUser, scope: ShopScope, id: string, managerPin?: string) {
+    const o = await this.mustFind(user, id);
+    if (o.status !== 'CANCELLED') throw new BadRequestException('Sirf cancel order ka advance wapas hota hai');
+    await checkRefundPin(this.prisma, user, managerPin);
+    await this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.bakeryBulkOrder.updateMany({ where: { id, tenantId: user.tenantId, status: 'CANCELLED' }, data: { status: 'REFUNDED' } });
+      if (!claimed.count) throw new ConflictException('Order abhi kisi aur ne badla — safha taaza karein');
+      await refundOrderAdvance(tx, user, { orderNumber: o.orderNumber, kind: 'Bulk', customerId: o.customerId, paidAmount: o.paidAmount, shopId: scope.shopId ?? o.shopId });
+    });
+    return this.getOne(user, id);
   }
 
   private async lines(tenantId: string, raw: unknown): Promise<BulkLine[]> {

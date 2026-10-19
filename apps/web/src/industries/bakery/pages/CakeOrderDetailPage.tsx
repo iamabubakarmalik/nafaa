@@ -37,6 +37,7 @@ export default function CakeOrderDetailPage() {
   const navigate = useNavigate();
   const shopName = useAuthStore((s) => s.tenant?.name) || 'Bakery';
   const canManage = usePermission(PERMISSIONS.BAKERY_ORDERS_MANAGE);
+  const canRefund = usePermission(PERMISSIONS.RETURNS_CREATE);
   const [rating, setRating] = useState(false);
   useReceiptSetup();
 
@@ -117,7 +118,10 @@ export default function CakeOrderDetailPage() {
       {canManage && o.status === 'CANCELLED' && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-[0.8125rem] text-rose-900 ring-1 ring-rose-200">
           <Ban className="h-4 w-4" /> Cancel hua {dateTime(o.cancelledAt)}{o.cancellationReason ? ` — ${o.cancellationReason}` : ''}
-          <Button size="sm" variant="secondary" className="ml-auto" loading={busy} onClick={() => act.confirm(o)}>Dobara pakka karein</Button>
+          <span className="ml-auto flex flex-wrap gap-2">
+            {canRefund && Number(o.khataPaid) > 0 && <Button size="sm" variant="danger" onClick={() => act.refund(o)} leftIcon={<Undo2 className="h-4 w-4" />}>Advance wapas</Button>}
+            <Button size="sm" variant="secondary" loading={busy} onClick={() => act.confirm(o)}>Dobara pakka karein</Button>
+          </span>
         </div>
       )}
       {advanceShort > 0.5 && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Advance me {formatPKR(advanceShort)} kam hai — bara cake bina advance ke na banayein.</p>}

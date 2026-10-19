@@ -52,6 +52,8 @@ export interface Patient {
   insuranceNumber?: string;
   insuranceExpiry?: string;
   cardUrl?: string;
+  /** Company panel that pays this patient's fees. */
+  panelId?: string | null;
   preferredDoctorId?: string;
   preferredLanguage?: string;
   registeredAt: string;
@@ -87,6 +89,7 @@ export interface PatientHistory {
   vitalsHistory: import('./vitals.api').Vitals[];
   customer: { id: string; name: string; phone?: string | null; balance: number; totalSpent: number } | null;
   doctors: Array<{ id: string; fullName: string; title?: string | null }>;
+  panel: { id: string; name: string; isActive: boolean; customerId: string | null } | null;
 }
 
 /** Registration body: patient fields plus age in years when the birth date is not known. */

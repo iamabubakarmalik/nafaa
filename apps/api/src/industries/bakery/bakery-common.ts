@@ -11,6 +11,7 @@ import { businessDayKey, safeDayStart, startOfBusinessDayTz, tzParts, zonedToUtc
 import { PrismaService } from '../../prisma/prisma.service';
 import { ShopScope } from '../../common/shop-scope';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
+import { PIN_NEEDS, requireManagerPin } from '../../common/helpers/manager-pin.helper';
 import { ensureCustomer, paidOnKhata, recordKhataPayment, resolveIndustryShopId } from '../_shared/industry-sale.helper';
 
 export const DAY_MS = 86_400_000;
@@ -26,6 +27,35 @@ interface DayRange { gte: Date; lt: Date }
 
 export const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 export const r3 = (n: number) => Math.round((Number(n) || 0) * 1000) / 1000;
+
+/** Units goods are sold by weight or volume in; their baking and batch quantities keep decimals (12.5 kg). */
+const MEASURED_UNITS = new Set(['kg', 'kilogram', 'g', 'gm', 'gram', 'pound', 'lb', 'l', 'liter', 'litre', 'ml']);
+const measured = (unit?: string | null) => MEASURED_UNITS.has(String(unit ?? '').trim().toLowerCase());
+
+/**
+ * A baking or batch quantity: up to three decimals for goods sold by weight,
+ * whole pieces otherwise. NaN when the value is not a number.
+ */
+export function bakeQty(value: unknown, unit?: string | null): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return Number.NaN;
+  return measured(unit) ? r3(n) : Math.round(n);
+}
+
+/** Unit of a catalog product, or null when there is no product. */
+export async function productUnit(db: PrismaService | Prisma.TransactionClient, tenantId: string, productId?: string | null) {
+  if (!productId) return null;
+  return (await db.product.findFirst({ where: { id: productId, tenantId }, select: { unit: true } }))?.unit ?? null;
+}
+
+/** Adds each row's product unit, so screens know which quantities take decimals. */
+export async function withUnits<T extends { productId: string | null }>(db: PrismaService, tenantId: string, rows: T[]): Promise<Array<T & { unit: string | null }>> {
+  const ids = [...new Set(rows.map((r) => r.productId).filter((x): x is string => !!x))];
+  const units = new Map(ids.length
+    ? (await db.product.findMany({ where: { tenantId, id: { in: ids } }, select: { id: true, unit: true } })).map((p) => [p.id, p.unit])
+    : []);
+  return rows.map((r) => ({ ...r, unit: r.productId ? units.get(r.productId) ?? null : null }));
+}
 
 type Numbered<T> = { [K in keyof T]: T[K] extends Prisma.Decimal ? number : T[K] };
 
@@ -150,16 +180,20 @@ export async function syncBatchesWithStock(prisma: PrismaService, tenantId: stri
   if (!live.length) return;
   const stock = await prisma.shopStock.findMany({
     where: { shopId: { in: [...new Set(live.map((b) => b.shopId!))] }, productId: { in: [...new Set(live.map((b) => b.productId))] }, variantId: null },
-    select: { shopId: true, productId: true, stock: true },
+    select: { shopId: true, productId: true, stock: true, product: { select: { unit: true } } },
   });
-  const shelf = new Map(stock.map((s) => [`${s.shopId}:${s.productId}`, Math.max(Math.floor(Number(s.stock) || 0), 0)]));
+  // Pieces count whole; goods sold by weight keep their decimals.
+  const shelf = new Map(stock.map((s) => {
+    const n = Math.max(Number(s.stock) || 0, 0);
+    return [`${s.shopId}:${s.productId}`, measured(s.product?.unit) ? r3(n) : Math.floor(n)];
+  }));
   const groups = new Map<string, typeof live>();
   for (const b of live) {
     const key = `${b.shopId}:${b.productId}`;
     groups.set(key, [...(groups.get(key) ?? []), b]);
   }
   for (const [key, batches] of groups) {
-    let over = batches.reduce((s, b) => s + b.currentQty, 0) - (shelf.get(key) ?? 0);
+    let over = r3(batches.reduce((s, b) => s + b.currentQty, 0) - (shelf.get(key) ?? 0));
     for (const b of batches) {
       if (over <= 0) break;
       const take = Math.min(b.currentQty, over);
@@ -167,7 +201,7 @@ export async function syncBatchesWithStock(prisma: PrismaService, tenantId: stri
         where: { id: b.id, currentQty: b.currentQty },
         data: { currentQty: { decrement: take }, soldQty: { increment: take } },
       });
-      if (done.count) over -= take;
+      if (done.count) over = r3(over - take);
     }
   }
 }
@@ -210,3 +244,54 @@ export async function orderMoney(db: PrismaService | Prisma.TransactionClient, t
 
 /** Payment methods an order advance can be taken by. */
 export const ORDER_PAY_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'] as const;
+
+/** Refunding money follows the shop's refund PIN setting, as returns and booking refunds do. */
+export async function checkRefundPin(prisma: PrismaService, user: AuthenticatedUser, managerPin?: string) {
+  const rules = await prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForRefund: true } });
+  if (rules?.requirePinForRefund) await requireManagerPin(prisma, user, managerPin, 'Advance wapsi', false, PIN_NEEDS.refund);
+}
+
+/**
+ * Gives back in cash the advance of a cancelled order. Only money held on
+ * the customer's khata for this order (and still unused there) goes back:
+ * the khata gets a REFUND line with the order number, so the advance is
+ * cleared, and the cash leaves the branch's open drawer as a cash-out with
+ * the same number. Returns the amount given back.
+ */
+export async function refundOrderAdvance(
+  tx: Prisma.TransactionClient,
+  user: AuthenticatedUser,
+  input: { orderNumber: string; kind: 'Cake' | 'Bulk'; customerId: string | null; paidAmount: number; shopId?: string | null },
+) {
+  const { khataPaid } = await orderMoney(tx, user.tenantId, input.orderNumber, input.paidAmount);
+  const refunded = await tx.customerLedger.aggregate({ where: { tenantId: user.tenantId, type: 'REFUND', reference: input.orderNumber }, _sum: { amount: true } });
+  const customer = input.customerId
+    ? await tx.customer.findFirst({ where: { id: input.customerId, tenantId: user.tenantId }, select: { id: true, balance: true } })
+    : null;
+  const held = customer ? Math.max(-Number(customer.balance), 0) : 0;
+  const amount = r2(Math.min(khataPaid - (Number(refunded._sum.amount) || 0), held));
+  if (!customer || !(amount > 0)) throw new BadRequestException('Is order ka koi advance khata par baqi nahi — wapas karne ko kuch nahi');
+
+  const shopId = await resolveIndustryShopId(tx, user, input.shopId);
+  const register = await tx.cashRegister.findFirst({ where: { tenantId: user.tenantId, shopId, status: 'OPEN' }, orderBy: { openedAt: 'desc' }, select: { id: true } });
+  const claimed = register
+    ? await tx.cashRegister.updateMany({ where: { id: register.id, status: 'OPEN' }, data: { expectedBalance: { decrement: amount }, totalCashOut: { increment: amount } } })
+    : { count: 0 };
+  if (!register || !claimed.count) throw new BadRequestException('Is branch ka cash register band hai — pehle register kholein, phir advance wapas karein');
+
+  const { balance } = await tx.customer.update({ where: { id: customer.id }, data: { balance: { increment: amount } }, select: { balance: true } });
+  await tx.customerLedger.create({
+    data: {
+      tenantId: user.tenantId, shopId, customerId: customer.id, createdById: user.id,
+      type: 'REFUND', amount, balanceAfter: balance, reference: input.orderNumber, paymentMethod: 'CASH',
+      note: `${input.kind} order cancel — advance wapas: ${input.orderNumber}`,
+    },
+  });
+  await tx.cashTransaction.create({
+    data: {
+      tenantId: user.tenantId, cashRegisterId: register.id, createdById: user.id,
+      type: 'CASH_OUT', amount, reason: `Advance wapas: ${input.orderNumber}`, note: `${input.kind} order cancel`, reference: input.orderNumber,
+    },
+  });
+  return amount;
+}

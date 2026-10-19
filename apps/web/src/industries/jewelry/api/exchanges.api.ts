@@ -39,7 +39,8 @@ export interface Exchange {
   updatedAt: string;
 }
 
-export type ExchangeKind = 'buy' | 'repair' | 'repair-open' | 'all';
+/** `bill-open`: gold weighed in at the counter that no bill has used yet. */
+export type ExchangeKind = 'buy' | 'bill-open' | 'repair' | 'repair-open' | 'all';
 export interface ExchangePage {
   kind: ExchangeKind; page: number; limit: number; total: number; pages: number; items: Exchange[];
   totals: { grams: number; fine: number; value: number; deductions: number };
@@ -51,6 +52,7 @@ export const exchangesApi = {
   create: (data: any) => apiClient.post('/jewelry/exchanges', data).then(unwrap<Exchange & { paidFromDrawer?: boolean }>),
   page: (params: { kind?: ExchangeKind; search?: string; from?: string; to?: string; page?: number; limit?: number }) =>
     apiClient.get('/jewelry/exchanges/page', { params }).then(unwrap<ExchangePage>),
+  giveBack: (id: string) => apiClient.post('/jewelry/exchanges/' + id + '/give-back').then(unwrap<Exchange>),
   deliverRepair: (id: string, data: { charge: number; paidAmount: number; paymentMethod: string }) =>
     apiClient.post('/jewelry/exchanges/' + id + '/deliver', data).then(unwrap<Exchange>),
 };

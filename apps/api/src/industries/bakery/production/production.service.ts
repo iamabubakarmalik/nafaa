@@ -12,7 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope, applyStockDelta, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
-import { CLOSED_ORDER, DAY_MS, SOLD_STATUSES, isDayKey, planNumbers, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withNextNumber, writeShopId } from '../bakery-common';
+import { CLOSED_ORDER, DAY_MS, SOLD_STATUSES, bakeQty, isDayKey, planNumbers, productUnit, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withNextNumber, withUnits, writeShopId } from '../bakery-common';
 
 export interface PlanItemInput {
   productId?: string;
@@ -47,8 +47,9 @@ const BULK_TO_MAKE = ['CONFIRMED', 'DEPOSIT_PAID', 'IN_PRODUCTION', 'BAKING', 'D
 const COUNTED_CAKE = { notIn: [...CLOSED_ORDER, 'DRAFT', 'QUOTED'] as never[] };
 
 const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
-const wholeQty = (v: unknown, label: string) => {
-  const n = Math.round(Number(v));
+/** Planned quantity: decimals for goods sold by weight, whole pieces otherwise. */
+const planQty = (v: unknown, label: string, unit: string | null) => {
+  const n = bakeQty(v, unit);
   if (!Number.isFinite(n) || n <= 0) throw new BadRequestException(`${label} — quantity likhein`);
   return n;
 };
@@ -83,12 +84,12 @@ export class ProductionService {
           shift: text(dto.shift),
           headBakerId: text(dto.headBakerId),
           notes: text(dto.notes),
-          totalItems: items.reduce((s, it) => s + it.plannedQty, 0),
+          totalItems: Math.round(items.reduce((s, it) => s + it.plannedQty, 0)),
           createdById: user.id,
           items: { create: items.map((it, idx) => ({ ...it, displayOrder: idx })) },
         },
         include: { items: { orderBy: { displayOrder: 'asc' } } },
-      }).then(planNumbers),
+      }).then(async (plan) => (await this.withItemUnits(user.tenantId, [planNumbers(plan)]))[0]),
     );
   }
 
@@ -106,7 +107,7 @@ export class ProductionService {
       include: { items: { orderBy: { displayOrder: 'asc' } } },
       orderBy: { planDate: 'desc' },
       take: 200,
-    }).then((plans) => plans.map(planNumbers));
+    }).then((plans) => this.withItemUnits(user.tenantId, plans.map(planNumbers)));
   }
 
   /** Plans of the current business day in the shop's own timezone. */
@@ -116,7 +117,7 @@ export class ProductionService {
       where: { tenantId: user.tenantId, ...scope.whereLoose, planDate: { gte: day.gte, lt: day.lt } },
       include: { items: { orderBy: { displayOrder: 'asc' } } },
       orderBy: { createdAt: 'desc' },
-    }).then((plans) => plans.map(planNumbers));
+    }).then((plans) => this.withItemUnits(user.tenantId, plans.map(planNumbers)));
   }
 
   async getPlan(user: AuthenticatedUser, id: string) {
@@ -148,10 +149,10 @@ export class ProductionService {
     if (!Array.isArray(items) || !items.length) throw new BadRequestException('Kam se kam ek cheez daalein');
     const clean = await this.cleanItems(user.tenantId, items);
     const start = plan.items.length;
-    await this.prisma.$transaction([
-      this.prisma.bakeryProductionItem.createMany({ data: clean.map((it, i) => ({ ...it, planId: plan.id, displayOrder: start + i })) }),
-      this.prisma.bakeryProductionPlan.update({ where: { id: plan.id }, data: { totalItems: { increment: clean.reduce((s, it) => s + it.plannedQty, 0) } } }),
-    ]);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.bakeryProductionItem.createMany({ data: clean.map((it, i) => ({ ...it, planId: plan.id, displayOrder: start + i })) });
+      await this.retotalPlan(tx, plan.id);
+    });
     return this.mustPlan(user, planId);
   }
 
@@ -159,10 +160,10 @@ export class ProductionService {
   async removeItem(user: AuthenticatedUser, itemId: string) {
     const item = await this.mustItem(user, itemId);
     if (item.status !== 'PLANNED') throw new BadRequestException('Jo cheez oven me ja chuki ya ban chuki, woh plan se nahi hat sakti');
-    await this.prisma.$transaction([
-      this.prisma.bakeryProductionItem.deleteMany({ where: { id: item.id, status: 'PLANNED' } }),
-      this.prisma.bakeryProductionPlan.update({ where: { id: item.planId }, data: { totalItems: { decrement: item.plannedQty } } }),
-    ]);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.bakeryProductionItem.deleteMany({ where: { id: item.id, status: 'PLANNED' } });
+      await this.retotalPlan(tx, item.planId);
+    });
     return this.mustPlan(user, item.planId);
   }
 
@@ -185,7 +186,7 @@ export class ProductionService {
         status: 'COMPLETED',
         completedAt: new Date(),
         completedItems: plan.items.filter((it) => it.status === 'COMPLETED').length,
-        failedItems: plan.items.reduce((s, it) => s + it.failedQty, 0),
+        failedItems: Math.round(plan.items.reduce((s, it) => s + it.failedQty, 0)),
         totalCost: r2(plan.items.reduce((s, it) => s + it.totalCost, 0)),
       },
     });
@@ -199,16 +200,14 @@ export class ProductionService {
     const data: Prisma.BakeryProductionItemUpdateManyMutationInput = {};
     if (dto?.plannedQty !== undefined) {
       if (item.status === 'COMPLETED') throw new BadRequestException('Ban chuki cheez ki quantity nahi badalti');
-      data.plannedQty = wholeQty(dto.plannedQty, item.productName);
+      data.plannedQty = planQty(dto.plannedQty, item.productName, await productUnit(this.prisma, user.tenantId, item.productId));
     }
     for (const k of ['bakerId', 'bakerName', 'batchNumber', 'ovenNumber', 'notes'] as const) {
       if (dto?.[k] !== undefined) data[k] = text(dto[k]);
     }
     if (dto?.status === 'ON_HOLD' || (dto?.status === 'PLANNED' && item.status === 'ON_HOLD')) data.status = dto.status as ProductionStatus;
     await this.prisma.bakeryProductionItem.updateMany({ where: { id: item.id }, data });
-    if (data.plannedQty !== undefined) {
-      await this.prisma.bakeryProductionPlan.update({ where: { id: item.planId }, data: { totalItems: { increment: Number(data.plannedQty) - item.plannedQty } } });
-    }
+    if (data.plannedQty !== undefined) await this.retotalPlan(this.prisma, item.planId);
     return this.mustItem(user, itemId);
   }
 
@@ -238,15 +237,16 @@ export class ProductionService {
   async completeItem(user: AuthenticatedUser, scope: ShopScope, itemId: string, dto: CompleteItemInput) {
     const item = await this.mustItem(user, itemId);
     if (item.status === 'COMPLETED') throw new ConflictException('Yeh cheez pehle hi "ban gayi" darj ho chuki');
-    const produced = Math.round(Number(dto?.producedQty));
-    const failed = Math.max(Math.round(Number(dto?.failedQty) || 0), 0);
+    const plan = item.plan;
+    const product = item.productId
+      ? await this.prisma.product.findFirst({ where: { id: item.productId, tenantId: user.tenantId }, select: { id: true, name: true, costPrice: true, hasVariants: true, unit: true } })
+      : null;
+    // Goods sold by weight keep decimals (12.5 kg); pieces stay whole.
+    const produced = bakeQty(dto?.producedQty, product?.unit);
+    const failed = Math.max(bakeQty(dto?.failedQty ?? 0, product?.unit) || 0, 0);
     if (!Number.isFinite(produced) || produced < 0) throw new BadRequestException('Kitne bane — quantity likhein');
     if (produced + failed <= 0) throw new BadRequestException('Kitne bane ya kitne kharab hue — kuch to likhein');
 
-    const plan = item.plan;
-    const product = item.productId
-      ? await this.prisma.product.findFirst({ where: { id: item.productId, tenantId: user.tenantId }, select: { id: true, name: true, costPrice: true, hasVariants: true } })
-      : null;
     const profile = product && dto.useIngredients
       ? await this.prisma.bakeryProductProfile.findFirst({ where: { productId: product.id, tenantId: user.tenantId }, select: { ingredients: true } })
       : null;
@@ -312,7 +312,7 @@ export class ProductionService {
       if (product && before && (shopId || !(Number(before.costPrice) > 0))) {
         const oldQty = shopId ? Math.max(Number(before.stock) || 0, 0) : 0;
         const oldCost = Number(before.costPrice) || 0;
-        const avg = oldQty > 0 && oldCost > 0 ? r2((oldQty * oldCost + produced * unitCost) / (oldQty + produced)) : unitCost;
+        const avg = oldQty > 0 && oldCost > 0 ? r2((oldQty * oldCost + produced * unitCost) / r3(oldQty + produced)) : unitCost;
         await tx.product.update({ where: { id: product.id }, data: { costPrice: avg } });
       }
 
@@ -382,7 +382,7 @@ export class ProductionService {
         orderBy: { neededBy: 'asc' },
       }),
       this.prisma.bakeryBulkOrder.findMany({
-        where: { tenantId: user.tenantId, status: { in: [...BULK_TO_MAKE] }, eventDate: day },
+        where: { tenantId: user.tenantId, ...scope.whereLoose, status: { in: [...BULK_TO_MAKE] }, eventDate: day },
         select: { id: true, orderNumber: true, organizationName: true, items: true, eventDate: true },
       }),
       this.prisma.bakeryProductionItem.findMany({
@@ -490,7 +490,7 @@ export class ProductionService {
 
     type Agg = { planned: number; produced: number; failed: number };
     const zero = (): Agg => ({ planned: 0, produced: 0, failed: 0 });
-    const into = (a: Agg, it: { plannedQty: number; producedQty: number; failedQty: number }) => { a.planned += it.plannedQty; a.produced += it.producedQty; a.failed += it.failedQty; };
+    const into = (a: Agg, it: { plannedQty: number; producedQty: number; failedQty: number }) => { a.planned = r3(a.planned + it.plannedQty); a.produced = r3(a.produced + it.producedQty); a.failed = r3(a.failed + it.failedQty); };
     const total = zero();
     const byProduct = new Map<string, Agg & { name: string; productId: string | null; cost: number }>();
     const byDay = new Map<string, Agg>();
@@ -531,9 +531,10 @@ export class ProductionService {
   private async cleanItems(tenantId: string, items: PlanItemInput[]) {
     const productIds = [...new Set(items.map((it) => it.productId).filter((x): x is string => !!x))];
     const products = productIds.length
-      ? await this.prisma.product.findMany({ where: { tenantId, id: { in: productIds } }, select: { id: true, name: true } })
+      ? await this.prisma.product.findMany({ where: { tenantId, id: { in: productIds } }, select: { id: true, name: true, unit: true } })
       : [];
     const names = new Map(products.map((p) => [p.id, p.name]));
+    const units = new Map(products.map((p) => [p.id, p.unit]));
     const orderIds = [...new Set(items.map((it) => it.cakeOrderId).filter((x): x is string => !!x))];
     const orders = orderIds.length
       ? new Set((await this.prisma.bakeryCakeOrder.findMany({ where: { tenantId, id: { in: orderIds } }, select: { id: true } })).map((o) => o.id))
@@ -547,7 +548,7 @@ export class ProductionService {
         productName,
         category: it.category && (Object.values(BakeryCategory) as string[]).includes(it.category) ? (it.category as BakeryCategory) : null,
         cakeOrderId: it.cakeOrderId && orders.has(it.cakeOrderId) ? it.cakeOrderId : null,
-        plannedQty: wholeQty(it.plannedQty, productName),
+        plannedQty: planQty(it.plannedQty, productName, it.productId ? units.get(it.productId) ?? null : null),
         bakerId: text(it.bakerId),
         bakerName: text(it.bakerName),
         batchNumber: text(it.batchNumber),
@@ -557,13 +558,26 @@ export class ProductionService {
     });
   }
 
+  /** Plans with each line's product unit. */
+  private async withItemUnits<P extends { items: Array<{ productId: string | null }> }>(tenantId: string, plans: P[]) {
+    const units = await withUnits(this.prisma, tenantId, plans.flatMap((p) => p.items));
+    let i = 0;
+    return plans.map((p) => ({ ...p, items: p.items.map(() => units[i++]) }));
+  }
+
+  /** The plan's item count, kept whole; lines by weight count by their rounded amount. */
+  private async retotalPlan(db: PrismaService | Prisma.TransactionClient, planId: string) {
+    const sum = await db.bakeryProductionItem.aggregate({ where: { planId }, _sum: { plannedQty: true } });
+    await db.bakeryProductionPlan.update({ where: { id: planId }, data: { totalItems: Math.round(Number(sum._sum.plannedQty) || 0) } });
+  }
+
   private async mustPlan(user: AuthenticatedUser, id: string) {
     const plan = await this.prisma.bakeryProductionPlan.findFirst({
       where: { id, tenantId: user.tenantId },
       include: { items: { orderBy: { displayOrder: 'asc' } } },
     });
     if (!plan) throw new NotFoundException('Plan nahi mila');
-    return planNumbers(plan);
+    return (await this.withItemUnits(user.tenantId, [planNumbers(plan)]))[0];
   }
 
   private async mustItem(user: AuthenticatedUser, itemId: string) {

@@ -77,6 +77,8 @@ export const bulkOrdersApi = {
   getOne: (id: string) => apiClient.get('/bakery/bulk-orders/' + id).then(unwrap<BulkOrder>),
   update: (id: string, data: any) => apiClient.patch('/bakery/bulk-orders/' + id, data).then(unwrap<BulkOrder>),
   updateStatus: (id: string, status: string) => apiClient.patch('/bakery/bulk-orders/' + id + '/status', { status }).then(unwrap<BulkOrder>),
+  /** Cash refund of a cancelled order's khata advance; the order becomes REFUNDED. */
+  refund: (id: string, managerPin?: string) => apiClient.post('/bakery/bulk-orders/' + id + '/refund', { managerPin }).then(unwrap<BulkOrder>),
   /** Same rules as the cake order payment: khata advance unless `withBill`. */
   payment: (id: string, amount: number, expectedPaid?: number, opts?: OrderPayOptions) =>
     apiClient.post('/bakery/bulk-orders/' + id + '/payment', { amount, expectedPaid, ...opts }).then(unwrap<BulkOrder>),

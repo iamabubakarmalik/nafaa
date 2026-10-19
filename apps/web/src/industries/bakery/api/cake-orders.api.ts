@@ -152,6 +152,8 @@ export const cakeOrdersApi = {
   getOne: (id: string) => apiClient.get('/bakery/cake-orders/' + id).then(unwrap<CakeOrder>),
   updateStatus: (id: string, status: string, cancellationReason?: string) =>
     apiClient.patch('/bakery/cake-orders/' + id + '/status', { status, cancellationReason }).then(unwrap<CakeOrder>),
+  /** Cash refund of a cancelled order's khata advance; the order becomes REFUNDED. */
+  refund: (id: string, managerPin?: string) => apiClient.post('/bakery/cake-orders/' + id + '/refund', { managerPin }).then(unwrap<CakeOrder>),
   /**
    * `expectedPaid` = paid amount the screen showed; the server refuses a repeat.
    * The money goes on the customer's khata as an advance, unless `withBill`

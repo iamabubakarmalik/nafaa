@@ -1,10 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException, type OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, type OnModuleInit } from '@nestjs/common';
 import { ClinicAppointmentStatus, ClinicVisitType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { startOfDayTz, endOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
+import { ReturnsService } from '../../../modules/sales/returns/returns.service';
+import { PanelsService } from '../panels/panels.service';
+import { DOCTOR_SELECT, doctorShares } from './doctor-share';
 import { FEE_LINK, billClinicFee, clinicFeeLines, readFeePayment } from './fee-billing';
 
 const STATUSES = Object.values(ClinicAppointmentStatus);
@@ -25,7 +28,8 @@ const NEXT: Record<ClinicAppointmentStatus, ClinicAppointmentStatus[]> = {
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 const PERSON = { id: true, fullName: true, mrn: true, phonePrimary: true, gender: true, dateOfBirth: true, customerId: true, allergies: true } as const;
-const DOCTOR = { id: true, fullName: true, title: true, photoUrl: true, specialties: true, consultationFee: true, followUpFee: true, followUpDays: true, commissionPct: true, commissionType: true } as const;
+const DOCTOR = DOCTOR_SELECT;
+const PANEL = { select: { id: true, name: true, isActive: true } } as const;
 
 function validDate(v: unknown, label: string) {
   const d = new Date(String(v ?? ''));
@@ -35,14 +39,78 @@ function validDate(v: unknown, label: string) {
 
 @Injectable()
 export class AppointmentsService implements OnModuleInit {
+  private readonly log = new Logger(AppointmentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly sales: SalesService,
+    private readonly returns: ReturnsService,
+    private readonly panels: PanelsService,
   ) {}
 
-  /** A voided fee bill takes its amount off the appointment or lab order it paid for. */
+  /** A voided or returned fee bill takes its amount off the appointment or lab order it paid for. */
   onModuleInit() {
     this.sales.onVoid((tenantId, saleId) => this.onBillVoided(tenantId, saleId));
+    this.returns.onReturn((tenantId, saleId) => this.onBillReturned(tenantId, saleId).catch((e) => {
+      this.log.warn(`Returned clinic bill ${saleId} not settled: ${(e as Error).message}`);
+    }));
+  }
+
+  /**
+   * Each return on a fee bill lowers what the visit or lab order has billed
+   * by the refunded line amount. The return number is noted on the record,
+   * so a return is never counted twice.
+   */
+  private async onBillReturned(tenantId: string, saleId: string) {
+    const rows = await this.prisma.saleReturnItem.findMany({
+      where: { return: { saleId, tenantId }, saleItem: { internalNote: { startsWith: 'clinic-' } } },
+      select: { total: true, saleItem: { select: { internalNote: true } }, return: { select: { returnNumber: true } } },
+    });
+    // One entry per (return, record).
+    const perReturn = new Map<string, { kind: 'appointment' | 'lab'; id: string; returnNumber: string; amount: number }>();
+    for (const r of rows) {
+      const tag = r.saleItem.internalNote ?? '';
+      const kind = tag.startsWith(FEE_LINK.appointment) ? 'appointment' : tag.startsWith(FEE_LINK.lab) ? 'lab' : null;
+      if (!kind) continue;
+      const id = tag.slice(tag.indexOf(':') + 1);
+      const key = `${r.return.returnNumber}|${tag}`;
+      const cur = perReturn.get(key) ?? { kind, id, returnNumber: r.return.returnNumber, amount: 0 };
+      cur.amount += Number(r.total) || 0;
+      perReturn.set(key, cur);
+    }
+    for (const e of perReturn.values()) {
+      const mark = `Return ${e.returnNumber}:`;
+      const amount = r2(e.amount);
+      await this.prisma.$transaction(async (tx) => {
+        if (e.kind === 'appointment') {
+          await tx.$queryRaw`SELECT id FROM "ClinicAppointment" WHERE id = ${e.id} FOR UPDATE`;
+          const apt = await tx.clinicAppointment.findFirst({ where: { id: e.id, tenantId } });
+          if (!apt || (apt.internalNotes ?? '').includes(mark)) return;
+          const paid = r2(Math.max(apt.paidAmount - amount, 0));
+          await tx.clinicAppointment.update({
+            where: { id: apt.id },
+            data: {
+              paidAmount: paid,
+              paymentStatus: paid <= 0 ? 'UNPAID' : paid >= apt.total - 0.009 ? 'PAID' : 'PARTIALLY_PAID',
+              internalNotes: [apt.internalNotes, `${mark} Rs ${amount} wapas`].filter(Boolean).join('\n'),
+            },
+          });
+        } else {
+          await tx.$queryRaw`SELECT id FROM "ClinicLabOrder" WHERE id = ${e.id} FOR UPDATE`;
+          const lab = await tx.clinicLabOrder.findFirst({ where: { id: e.id, tenantId } });
+          if (!lab || (lab.notes ?? '').includes(mark)) return;
+          const paid = r2(Math.max(lab.paidAmount - amount, 0));
+          await tx.clinicLabOrder.update({
+            where: { id: lab.id },
+            data: {
+              paidAmount: paid,
+              paymentStatus: paid <= 0 ? 'UNPAID' : paid >= lab.totalCost - 0.009 ? 'PAID' : 'PARTIALLY_PAID',
+              notes: [lab.notes, `${mark} Rs ${amount} wapas`].filter(Boolean).join('\n'),
+            },
+          });
+        }
+      });
+    }
   }
 
   private async onBillVoided(tenantId: string, saleId: string) {
@@ -90,7 +158,7 @@ export class AppointmentsService implements OnModuleInit {
 
     const [doctor, patient] = await Promise.all([
       this.prisma.clinicDoctorProfile.findFirst({ where: { id: dto.doctorId, tenantId: user.tenantId } }),
-      this.prisma.clinicPatientProfile.findFirst({ where: { id: dto.patientId, tenantId: user.tenantId }, select: { id: true, isActive: true } }),
+      this.prisma.clinicPatientProfile.findFirst({ where: { id: dto.patientId, tenantId: user.tenantId }, select: { id: true, isActive: true, panel: { select: { id: true, isActive: true } } } }),
     ]);
     if (!doctor || !doctor.isActive) throw new NotFoundException('Doctor nahi mila ya band hai');
     if (!patient || !patient.isActive) throw new NotFoundException('Mareez nahi mila');
@@ -124,6 +192,8 @@ export class AppointmentsService implements OnModuleInit {
     const scheduledEnd = dto.scheduledEnd ? validDate(dto.scheduledEnd, 'Khatam hone ka waqt') : new Date(start.getTime() + durationMin * 60_000);
     if (scheduledEnd <= start) throw new BadRequestException('Khatam hone ka waqt shuru se pehle hai');
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope, dto.shopId).catch(() => null);
+    // The patient's panel pays unless reception picks another one or none.
+    const panelId = dto.panelId !== undefined ? await this.panels.usable(user.tenantId, dto.panelId) : patient.panel?.isActive ? patient.panel.id : null;
 
     // Numbers come from the highest used one; retried if two desks book at the same moment.
     for (let attempt = 0; ; attempt += 1) {
@@ -151,7 +221,7 @@ export class AppointmentsService implements OnModuleInit {
             chiefComplaint: dto.chiefComplaint ? String(dto.chiefComplaint).slice(0, 2000) : undefined,
             reasonForVisit: dto.reasonForVisit ? String(dto.reasonForVisit).slice(0, 2000) : undefined,
             patientNotes: dto.patientNotes ? String(dto.patientNotes).slice(0, 2000) : undefined,
-            consultationFee, otherCharges, discount, taxAmount, total,
+            consultationFee, otherCharges, discount, taxAmount, total, panelId,
             status: dto.walkIn ? 'ARRIVED' : 'CONFIRMED',
             ...(dto.walkIn && { arrivedAt: new Date() }),
             createdById: user.id,
@@ -173,6 +243,7 @@ export class AppointmentsService implements OnModuleInit {
       ...(p.status === 'OPEN' && { status: { in: OPEN } }),
       ...(p.doctorId && { doctorId: p.doctorId }),
       ...(p.patientId && { patientId: p.patientId }),
+      ...(p.panelId && { panelId: p.panelId }),
       ...(p.paymentStatus === 'DUE' && { paymentStatus: { in: ['UNPAID', 'PARTIALLY_PAID'] }, total: { gt: 0 }, status: { notIn: ['CANCELLED', 'NO_SHOW'] } }),
       ...(p.from || p.to ? {
         scheduledStart: {
@@ -218,13 +289,13 @@ export class AppointmentsService implements OnModuleInit {
   async list(user: AuthenticatedUser, params: Record<string, string | undefined>) {
     const where = await this.where(user, params);
     if (!params.page) {
-      const rows = await this.prisma.clinicAppointment.findMany({ where, orderBy: { scheduledStart: 'asc' }, take: 300 });
+      const rows = await this.prisma.clinicAppointment.findMany({ where, orderBy: { scheduledStart: 'asc' }, take: 300, include: { panel: PANEL } });
       return this.withPeople(user.tenantId, rows);
     }
     const page = Math.max(Number(params.page) || 1, 1);
     const limit = Math.min(Math.max(Number(params.limit) || 25, 1), 200);
     const [rows, total, sums, byStatus] = await Promise.all([
-      this.prisma.clinicAppointment.findMany({ where, orderBy: { scheduledStart: params.sort === 'asc' ? 'asc' : 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.clinicAppointment.findMany({ where, orderBy: { scheduledStart: params.sort === 'asc' ? 'asc' : 'desc' }, skip: (page - 1) * limit, take: limit, include: { panel: PANEL } }),
       this.prisma.clinicAppointment.count({ where }),
       this.prisma.clinicAppointment.aggregate({ where: { ...where, status: { notIn: ['CANCELLED', 'NO_SHOW'] } }, _sum: { total: true, paidAmount: true } }),
       this.prisma.clinicAppointment.groupBy({ by: ['status'], where, _count: { _all: true } }),
@@ -260,7 +331,7 @@ export class AppointmentsService implements OnModuleInit {
   async getOne(user: AuthenticatedUser, id: string) {
     const apt = await this.prisma.clinicAppointment.findFirst({
       where: { id, tenantId: user.tenantId },
-      include: { encounter: { include: { prescriptions: { include: { items: { orderBy: { displayOrder: 'asc' } } } }, labOrders: { include: { tests: true } } } }, vitals: true },
+      include: { encounter: { include: { prescriptions: { include: { items: { orderBy: { displayOrder: 'asc' } } } }, labOrders: { include: { tests: true } } } }, vitals: true, panel: PANEL },
     });
     if (!apt) throw new NotFoundException('Appointment nahi mili');
     const [patient, doctor, bills] = await Promise.all([
@@ -341,13 +412,16 @@ export class AppointmentsService implements OnModuleInit {
       this.prisma.clinicPatientProfile.findFirst({ where: { id: apt.patientId, tenantId: user.tenantId }, select: { customerId: true, fullName: true, mrn: true } }),
       this.prisma.clinicDoctorProfile.findFirst({ where: { id: apt.doctorId, tenantId: user.tenantId }, select: { fullName: true } }),
     ]);
+    // A panel visit is billed to the company's khata, with the patient named on the line.
+    const panel = apt.panelId ? await this.panels.khataCustomer(user, apt.panelId, apt.shopId) : null;
     const sale = await billClinicFee(this.prisma, this.sales, user, scope, {
       ...pay,
-      customerId: patient?.customerId,
+      customerId: panel?.customerId ?? patient?.customerId,
       shopId: apt.shopId,
+      managerPin: body?.managerPin ? String(body.managerPin) : undefined,
       link: `${FEE_LINK.appointment}${apt.id}`,
-      lineNote: [`Token ${apt.tokenNumber ?? '-'}`, apt.appointmentNumber, doctor?.fullName ? `Dr. ${doctor.fullName}` : null].filter(Boolean).join(' · '),
-      note: `Fees ${apt.appointmentNumber}${patient ? ` · ${patient.fullName} (${patient.mrn})` : ''}`,
+      lineNote: [`Token ${apt.tokenNumber ?? '-'}`, apt.appointmentNumber, doctor?.fullName ? `Dr. ${doctor.fullName}` : null, panel && patient ? `${patient.fullName} (${patient.mrn})` : null].filter(Boolean).join(' · '),
+      note: `Fees ${apt.appointmentNumber}${patient ? ` · ${patient.fullName} (${patient.mrn})` : ''}${panel ? ` · Panel ${panel.name}` : ''}`,
     });
 
     // Re-read so two desks taking money together cannot both count from the same base.
@@ -359,7 +433,7 @@ export class AppointmentsService implements OnModuleInit {
         data: {
           paidAmount: billed,
           paymentStatus: billed >= cur.total - 0.009 ? 'PAID' : 'PARTIALLY_PAID',
-          internalNotes: [cur.internalNotes, `Bill ${sale.saleNumber}: Rs ${pay.amount}${sale.creditAmount > 0 ? ` (khata Rs ${sale.creditAmount})` : ''}`].filter(Boolean).join('\n'),
+          internalNotes: [cur.internalNotes, `Bill ${sale.saleNumber}: Rs ${pay.amount}${sale.creditAmount > 0 ? ` (${panel ? `panel ${panel.name}` : 'khata'} Rs ${sale.creditAmount})` : ''}`].filter(Boolean).join('\n'),
         },
       });
       return { ...updated, sale };
@@ -402,62 +476,15 @@ export class AppointmentsService implements OnModuleInit {
   async dayClose(user: AuthenticatedUser, date?: string) {
     const day = date ? validDate(date, 'Tareekh') : new Date();
     const from = startOfDayTz(day);
-    const to = endOfDayTz(day);
-    const [doctors, appts, lines] = await Promise.all([
-      this.prisma.clinicDoctorProfile.findMany({ where: { tenantId: user.tenantId }, select: DOCTOR }),
-      this.prisma.clinicAppointment.findMany({ where: { tenantId: user.tenantId, scheduledStart: { gte: from, lte: to } }, select: { doctorId: true, status: true } }),
-      this.prisma.saleItem.findMany({
-        where: { internalNote: { startsWith: 'clinic-' }, sale: { tenantId: user.tenantId, createdAt: { gte: from, lte: to }, status: { notIn: ['VOIDED', 'FULLY_RETURNED'] } } },
-        select: { internalNote: true, total: true, sale: { select: { total: true, paidAmount: true, creditAmount: true, saleNumber: true } } },
-      }),
-    ]);
-    const aptIds = lines.filter((l) => l.internalNote!.startsWith(FEE_LINK.appointment)).map((l) => l.internalNote!.slice(FEE_LINK.appointment.length));
-    const labIds = lines.filter((l) => l.internalNote!.startsWith(FEE_LINK.lab)).map((l) => l.internalNote!.slice(FEE_LINK.lab.length));
-    const [aptDoc, labDoc] = await Promise.all([
-      this.prisma.clinicAppointment.findMany({ where: { tenantId: user.tenantId, id: { in: aptIds } }, select: { id: true, doctorId: true } }),
-      this.prisma.clinicLabOrder.findMany({ where: { tenantId: user.tenantId, id: { in: labIds } }, select: { id: true, doctorId: true } }),
-    ]);
-    const docOf = new Map<string, string>([...aptDoc.map((a) => [`${FEE_LINK.appointment}${a.id}`, a.doctorId] as const), ...labDoc.map((l) => [`${FEE_LINK.lab}${l.id}`, l.doctorId] as const)]);
+    return { date: from, ...(await doctorShares(this.prisma, user.tenantId, from, endOfDayTz(day))) };
+  }
 
-    const rows = new Map<string, { booked: number; seen: number; waiting: number; cancelled: number; fees: number; labFees: number; collected: number; khata: number; bills: number }>();
-    const row = (id: string) => {
-      if (!rows.has(id)) rows.set(id, { booked: 0, seen: 0, waiting: 0, cancelled: 0, fees: 0, labFees: 0, collected: 0, khata: 0, bills: 0 });
-      return rows.get(id)!;
-    };
-    for (const a of appts) {
-      const r = row(a.doctorId);
-      r.booked += 1;
-      if (a.status === 'COMPLETED') r.seen += 1;
-      else if (a.status === 'CANCELLED' || a.status === 'NO_SHOW') r.cancelled += 1;
-      else r.waiting += 1;
-    }
-    for (const l of lines) {
-      const doc = docOf.get(l.internalNote!);
-      if (!doc) continue;
-      const r = row(doc);
-      const amount = Number(l.total) || 0;
-      // Fee bills carry one line, so the bill's paid / khata split is the line's.
-      const share = l.sale.total > 0 ? amount / l.sale.total : 0;
-      if (l.internalNote!.startsWith(FEE_LINK.lab)) r.labFees += amount; else r.fees += amount;
-      r.khata += (Number(l.sale.creditAmount) || 0) * share;
-      r.collected += (Math.min(Number(l.sale.paidAmount) || 0, l.sale.total)) * share;
-      r.bills += 1;
-    }
-    const out = [...rows.entries()].map(([doctorId, r]) => {
-      const d = doctors.find((x) => x.id === doctorId);
-      const pct = d?.commissionPct ?? 0;
-      const fixed = d?.commissionType === 'FIXED';
-      const share = r2(fixed ? pct * r.seen : (r.fees * pct) / 100);
-      return {
-        doctorId, doctor: d ?? null,
-        ...r, fees: r2(r.fees), labFees: r2(r.labFees), collected: r2(r.collected), khata: r2(r.khata),
-        commissionType: fixed ? 'FIXED' : 'PERCENTAGE', commissionPct: pct, share, clinicKeeps: r2(r.fees + r.labFees - share),
-      };
-    }).sort((a, b) => b.fees - a.fees);
-    const sum = (k: 'booked' | 'seen' | 'fees' | 'labFees' | 'collected' | 'khata' | 'share') => r2(out.reduce((s, x) => s + x[k], 0));
-    return {
-      date: from, rows: out,
-      totals: { booked: sum('booked'), seen: sum('seen'), fees: sum('fees'), labFees: sum('labFees'), collected: sum('collected'), khata: sum('khata'), share: sum('share') },
-    };
+  /** Puts a panel on a visit, or takes it off, before any fee is billed. */
+  async setPanel(user: AuthenticatedUser, id: string, panelId: unknown) {
+    const apt = await this.prisma.clinicAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!apt) throw new NotFoundException('Appointment nahi mili');
+    if (apt.paidAmount > 0) throw new BadRequestException('Is visit ka bill ban chuka hai — panel ab nahi badal sakta');
+    const next = await this.panels.usable(user.tenantId, panelId ?? null);
+    return this.prisma.clinicAppointment.update({ where: { id }, data: { panelId: next }, include: { panel: PANEL } });
   }
 }

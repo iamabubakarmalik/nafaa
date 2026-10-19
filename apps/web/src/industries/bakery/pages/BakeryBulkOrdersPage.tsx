@@ -50,6 +50,7 @@ export default function BakeryBulkOrdersPage() {
   const startHour = useBusinessDayStart();
   const shopName = useAuthStore((s) => s.tenant?.name) || 'Bakery';
   const canManage = usePermission(PERMISSIONS.BAKERY_ORDERS_MANAGE);
+  const canRefund = usePermission(PERMISSIONS.RETURNS_CREATE);
   const { sales } = useMasked();
   const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -207,7 +208,7 @@ export default function BakeryBulkOrdersPage() {
                 </div>
               ) : (
                 <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-                  {rows.map((o) => <BulkOrderRow key={o.id} o={o} a={{ canManage, busyId: act.busyId, shopName, next: act.next, back: act.back, pay: act.pay, cancel: act.cancel }} />)}
+                  {rows.map((o) => <BulkOrderRow key={o.id} o={o} a={{ canManage, busyId: act.busyId, shopName, next: act.next, back: act.back, pay: act.pay, cancel: act.cancel, refund: canRefund ? act.refund : undefined }} />)}
                 </ul>
               )}
             {data && data.pages > 1 && (

@@ -23,9 +23,10 @@ export class AppointmentsController {
     @GetUser() user: AuthenticatedUser,
     @Query('status') status?: string, @Query('customerId') customerId?: string, @Query('staffProfileId') staffProfileId?: string,
     @Query('from') from?: string, @Query('to') to?: string, @Query('search') search?: string,
-    @Query('saleId') saleId?: string, @Query('saleIds') saleIds?: string,
+    @Query('saleId') saleId?: string, @Query('saleIds') saleIds?: string, @Query('source') source?: string,
   ) {
-    return this.service.list(user, { status, customerId, staffProfileId, from, to, search, saleId, saleIds });
+    const src = (['BOOKED', 'WALK_IN', 'COUNTER'] as const).find((s) => s === source);
+    return this.service.list(user, { status, customerId, staffProfileId, from, to, search, saleId, saleIds, source: src });
   }
   @Get('page') page(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query() q: AppointmentPageQuery) {
     return this.service.page(user, shop, q);

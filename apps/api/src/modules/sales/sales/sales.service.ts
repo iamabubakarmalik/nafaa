@@ -809,7 +809,7 @@ export class SalesService {
             data: {
               tenantId: user.tenantId, customerId: customer.id, type: 'REDEEMED', shopId: sellingShopId, saleId: sale.id,
               points: -loyaltyPointsUsed, balanceAfter: loyaltyPoints,
-              reference: sale.saleNumber, note: `Rs ${loyaltyDiscount.toFixed(0)} ki chhoot`,
+              reference: sale.saleNumber, note: `Rs ${loyaltyDiscount.toFixed(0)} loyalty discount`,
             },
           });
         }
@@ -1109,7 +1109,8 @@ export class SalesService {
    * A trade-in from the till is goods taken toward the bill, worth at least the
    * amount and not already used on another live bill. It is either a used phone
    * taken in as an exchange (Used phones → Trade-in, type Exchange) or old gold
-   * a jewelry counter took for a bill (JEX-…, purpose SALE, not yet on a bill).
+   * a jewelry counter took for a bill (JEX-…, purpose SALE, not yet on a bill),
+   * or an old part an auto parts counter took back (CORE-…, held, no bill).
    * Its code is kept as the reference.
    */
   private async checkTradeIns(tenantId: string, rows: PaymentPart[]) {
@@ -1117,8 +1118,10 @@ export class SalesService {
     for (const row of rows) {
       if (row.method !== 'TRADE_IN') continue;
       const code = row.reference?.trim();
-      if (!code) throw new BadRequestException('Trade-in ke liye used phone ya purana zewar chunein');
-      const goods = /^JEX-/i.test(code) ? await this.oldGoldTradeIn(tenantId, code) : await this.usedPhoneTradeIn(tenantId, code);
+      if (!code) throw new BadRequestException('Trade-in ke liye used phone, purana zewar ya purana part chunein');
+      const goods = /^JEX-/i.test(code) ? await this.oldGoldTradeIn(tenantId, code)
+        : /^CORE-/i.test(code) ? await this.coreReturnTradeIn(tenantId, code)
+        : await this.usedPhoneTradeIn(tenantId, code);
       if (seen.has(goods.code)) throw new BadRequestException(`${goods.code} bill me do dafa hai`);
       seen.add(goods.code);
       if (row.amount > goods.value + 0.01) {
@@ -1155,6 +1158,19 @@ export class SalesService {
     }
     const grams = Number(ex.netWeight ?? ex.grossWeight) || 0;
     return { code: ex.exchangeNumber, value: Number(ex.netValue), label: `Purana zewar ${grams.toFixed(3)}g (${ex.exchangeNumber})` };
+  }
+
+  /** An old part an auto parts counter took back: held and not on a live bill. */
+  private async coreReturnTradeIn(tenantId: string, code: string) {
+    const core = await this.prisma.coreReturn.findFirst({
+      where: { tenantId, id: code.slice(5) },
+      select: { id: true, description: true, value: true, status: true, saleId: true, jobId: true },
+    });
+    // A part taken with a workshop job is used on that job's own bill.
+    if (!core || core.status !== 'HELD' || core.saleId || core.jobId) {
+      throw new BadRequestException(`Purana part ${code} nahi mila — counter par liya gaya part chunein jo abhi kisi bill par na laga ho`);
+    }
+    return { code: `CORE-${core.id}`, value: Number(core.value), label: `Purana part: ${core.description}` };
   }
 
   /**

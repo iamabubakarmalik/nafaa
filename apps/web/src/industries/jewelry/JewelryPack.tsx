@@ -11,6 +11,7 @@ import JewelrySalesPage from './pages/JewelrySalesPage';
 import NewSalePage from './pages/NewSalePage';
 import CustomOrdersPage from './pages/CustomOrdersPage';
 import ExchangesPage from './pages/ExchangesPage';
+import RepairsPage from './pages/RepairsPage';
 import KarigarsPage from './pages/KarigarsPage';
 import MetalRatesPage from './pages/MetalRatesPage';
 import MetalStockPage from './pages/MetalStockPage';
@@ -20,7 +21,7 @@ import JewelryItemDetailPage from './pages/JewelryItemDetailPage';
 /**
  * Jewelry / sonar pack: pieces by weight and karat on the shared product
  * pages, a counter priced from today's rate with old gold as trade-in,
- * custom orders with karigar gold, old gold buying and repairs, metal stock
+ * custom orders with karigar gold, old gold buying, repairs, metal stock
  * and daily rates. Sales history, receipts and reports are the shared ones.
  */
 export const JewelryPack: IndustryPack = {
@@ -60,7 +61,7 @@ export const JewelryPack: IndustryPack = {
         { to: '/jewelry/sales', label: 'Sales', icon: ShoppingBag, permission: PERMISSIONS.SALES_VIEW },
         { to: '/jewelry/custom-orders', label: 'Custom orders', icon: Palette, permission: PERMISSIONS.POS_USE },
         { to: '/jewelry/exchanges', label: 'Purana sona', icon: Repeat, permission: PERMISSIONS.PURCHASES_VIEW },
-        { to: '/jewelry/exchanges?tab=repair', label: 'Repair', icon: Wrench, permission: PERMISSIONS.POS_USE },
+        { to: '/jewelry/repairs', label: 'Repair', icon: Wrench, permission: PERMISSIONS.POS_USE },
         { to: '/jewelry/karigars', label: 'Karigar', icon: Users, permission: PERMISSIONS.SUPPLIERS_VIEW },
         { to: '/jewelry/metal-stock', label: 'Metal stock', icon: Coins, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
         { to: '/jewelry/dashboard', label: 'Jewelry dashboard', icon: LayoutDashboard },
@@ -79,6 +80,7 @@ export const JewelryPack: IndustryPack = {
     { path: '/jewelry/sales', element: JewelrySalesPage, permission: PERMISSIONS.SALES_VIEW },
     { path: '/jewelry/custom-orders', element: CustomOrdersPage, permission: PERMISSIONS.POS_USE },
     { path: '/jewelry/exchanges', element: ExchangesPage },
+    { path: '/jewelry/repairs', element: RepairsPage, permission: PERMISSIONS.POS_USE },
     { path: '/jewelry/karigars', element: KarigarsPage, permission: PERMISSIONS.SUPPLIERS_VIEW },
     { path: '/jewelry/metal-rates', element: MetalRatesPage },
     { path: '/jewelry/metal-stock', element: MetalStockPage, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },

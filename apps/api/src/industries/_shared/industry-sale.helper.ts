@@ -64,6 +64,8 @@ export interface IndustrySaleInput {
   /** Money taken at the counter with this bill (advances already on khata are not included). */
   paidAmount: number;
   paymentMethod?: string | null;
+  /** Goods taken toward the bill (an old part): TRADE_IN rows, paid but never money. */
+  tradeIns?: Array<{ amount: number; reference: string; note?: string }>;
 }
 
 /** Picks the branch for a write: the given one, the user's own, else the main shop. */
@@ -151,8 +153,12 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
   const subtotal = r2(lines.reduce((s, l) => s + r2(l.amount), 0));
   const discount = Math.min(r2(input.discount ?? 0), subtotal);
   const total = r2(Math.max(subtotal - discount, 0));
-  const paidAmount = r2(Math.max(input.paidAmount, 0));
+  const moneyIn = r2(Math.max(input.paidAmount, 0));
+  const tradeIns = (input.tradeIns ?? []).map((t) => ({ ...t, amount: r2(Math.max(Number(t.amount) || 0, 0)) })).filter((t) => t.amount > 0);
+  const tradeIn = r2(tradeIns.reduce((s, t) => s + t.amount, 0));
+  const paidAmount = r2(moneyIn + tradeIn);
   const changeAmount = r2(Math.max(paidAmount - total, 0));
+  if (changeAmount > moneyIn + 0.005) throw new BadRequestException('Trade-in par change nahi diya ja sakta');
   const creditAmount = r2(Math.max(total - paidAmount, 0));
   const costOfGoods = r2(lines.reduce((s, l) => s + r2(l.cost ?? 0), 0));
 
@@ -188,7 +194,7 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
       paidAmount,
       changeAmount,
       creditAmount,
-      paymentMethod: toPaymentMethod(input.paymentMethod),
+      paymentMethod: tradeIn > 0 && !(moneyIn > 0) ? 'TRADE_IN' : toPaymentMethod(input.paymentMethod),
       status: 'COMPLETED',
       items: {
         create: lines.map((l) => {
@@ -207,9 +213,11 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
     },
     include: { items: true },
   });
-  if (paidAmount - changeAmount > 0) {
-    await saveSalePayments(db, sale, [{ method: sale.paymentMethod, amount: paidAmount - changeAmount }]);
-  }
+  const money = r2(moneyIn - changeAmount);
+  await saveSalePayments(db, sale, [
+    ...(money > 0 ? [{ method: toPaymentMethod(input.paymentMethod), amount: money }] : []),
+    ...tradeIns.map((t) => ({ method: 'TRADE_IN' as const, amount: t.amount, reference: t.reference, note: t.note ?? null })),
+  ]);
 
   if (customer) {
     if (creditAmount > 0) {

@@ -18,6 +18,8 @@ export class WorkshopJobsController {
 
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateWorkshopJobDto) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: ListJobsQuery) { return this.service.list(user, q); }
+  /** `ids` = comma-separated sale ids; returns the job behind each workshop bill. */
+  @Get('by-sales') bySales(@GetUser() user: AuthenticatedUser, @Query('ids') ids?: string) { return this.service.bySales(user, (ids ?? '').split(',')); }
   @Get('stats') stats(@GetUser() user: AuthenticatedUser, @Query('shopId') shopId?: string) { return this.service.stats(user, shopId || undefined); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateWorkshopJobDto) { return this.service.update(user, id, dto); }

@@ -4,7 +4,7 @@
  * same as "Gaari dein" on the job's own page.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
 import { workshopJobsApi, type DeliverInput, type WorkshopJob } from '../api/workshop-jobs.api';
@@ -15,6 +15,8 @@ import { printJobCard } from '../components/slips';
 export function JobHandover({ job, onClose }: { job: WorkshopJob; onClose: () => void }) {
   const qc = useQueryClient();
   const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  // The full job carries old parts already taken with it.
+  const detail = useQuery({ queryKey: [JOB_KEY, 'one', job.id], queryFn: () => workshopJobsApi.getOne(job.id), staleTime: 10_000 });
   const deliver = useMutation({
     mutationFn: (v: DeliverInput) => workshopJobsApi.deliver(job.id, v),
     onSuccess: (r) => {
@@ -26,5 +28,6 @@ export function JobHandover({ job, onClose }: { job: WorkshopJob; onClose: () =>
     },
     onError: (e) => toast.error(apiError(e, 'Gaari wapas nahi hui')),
   });
-  return <DeliverJobModal job={job} pending={deliver.isPending} onClose={onClose} onConfirm={(v) => { if (!deliver.isPending) deliver.mutate(v); }} />;
+  if (detail.isLoading) return null;
+  return <DeliverJobModal job={detail.data ?? job} pending={deliver.isPending} onClose={onClose} onConfirm={(v) => { if (!deliver.isPending) deliver.mutate(v); }} />;
 }

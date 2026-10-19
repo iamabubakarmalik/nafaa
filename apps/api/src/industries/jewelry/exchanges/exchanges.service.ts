@@ -1,10 +1,13 @@
 /**
- * Old gold and silver bought across the counter, and repairs.
+ * Old gold and silver taken across the counter.
  *
  * Buying: the metal is tested (karat), weighed, valued at today's buying
  * rate less kaat, and goes into metal stock; cash paid comes out of the
- * open drawer. Repairs (repair, resize, polish) keep the customer's piece
- * on record and become a bill when handed back.
+ * open drawer. Gold weighed in for a bill (`forBill`) also goes into metal
+ * stock and waits, unpaid, as a trade-in the counter can put on the bill;
+ * if the customer takes it back instead it goes out of stock again.
+ * Repairs now live in JewelryRepair; old repair rows here (purpose REPAIR /
+ * REPAIR_DONE) are still listed and handed back from this service.
  */
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ExchangeType, JewelryPurity, Prisma } from '@prisma/client';
@@ -24,7 +27,8 @@ export const REPAIR_TYPES: ExchangeType[] = ['REPAIR', 'RESIZING', 'RENOVATION']
 const PURITIES = Object.values(JewelryPurity) as string[];
 const TYPES = Object.values(ExchangeType) as string[];
 
-type Kind = 'buy' | 'repair' | 'repair-open' | 'all';
+type Kind = 'buy' | 'bill-open' | 'repair' | 'repair-open' | 'all';
+const KINDS: Kind[] = ['buy', 'bill-open', 'repair', 'repair-open', 'all'];
 
 @Injectable()
 export class ExchangesService {
@@ -33,14 +37,14 @@ export class ExchangesService {
   async create(user: AuthenticatedUser, dto: any) {
     const type = String(dto?.exchangeType ?? 'OLD_GOLD_EXCHANGE');
     if (!TYPES.includes(type)) throw new BadRequestException('Kaam ki type ghalat hai');
-    const repair = REPAIR_TYPES.includes(type as ExchangeType);
+    if (REPAIR_TYPES.includes(type as ExchangeType)) throw new BadRequestException('Repair ab "Repair" page se darj hoti hai');
+    const forBill = dto.forBill === true;
     const claimed = String(dto.claimedPurity ?? '');
     if (!PURITIES.includes(claimed)) throw new BadRequestException('Karat chunein');
     const tested = dto.testedPurity ? String(dto.testedPurity) : claimed;
     if (!PURITIES.includes(tested)) throw new BadRequestException('Test ka karat ghalat hai');
     const customerName = String(dto.customerName ?? '').trim() || 'Walk-in';
     const customerPhone = String(dto.customerPhone ?? '').trim();
-    if (repair && !customerPhone) throw new BadRequestException('Repair ke liye customer ka phone likhein');
     const itemDescription = String(dto.itemDescription ?? '').trim();
     if (!itemDescription) throw new BadRequestException('Zewar ki tafseel likhein (kya cheez hai)');
 
@@ -51,23 +55,21 @@ export class ExchangesService {
     const netWeight = dto.netWeight ? r3(Number(dto.netWeight)) : r3(grossWeight - stoneWeight);
     const fineGoldEquivalent = r3(netWeight * (PURITY_FACTOR[tested] ?? 1));
 
-    // Buying: value = net weight × rate (rate is per gram of the tested karat) less kaat and charges.
-    // Repair: netValue is the agreed charge for the work.
+    // Value = net weight × rate (rate is per gram of the tested karat) less kaat and charges.
     const ratePerGram = r2(Math.max(Number(dto.ratePerGram) || 0, 0));
-    const grossValue = repair ? 0 : r2(netWeight * ratePerGram);
+    const grossValue = r2(netWeight * ratePerGram);
     const deductionPct = Math.min(Math.max(Number(dto.deductionPct) || 0, 0), 50);
-    const deductions = repair ? 0 : r2(dto.deductions != null ? Math.max(Number(dto.deductions) || 0, 0) : (grossValue * deductionPct) / 100);
+    const deductions = r2(dto.deductions != null ? Math.max(Number(dto.deductions) || 0, 0) : (grossValue * deductionPct) / 100);
     const meltingCharges = r2(Math.max(Number(dto.meltingCharges) || 0, 0));
     const testingCharges = r2(Math.max(Number(dto.testingCharges) || 0, 0));
-    const netValue = repair
-      ? r2(Math.max(Number(dto.repairCharge ?? dto.netValue) || 0, 0))
-      : r2(Math.max(grossValue - deductions - meltingCharges - testingCharges, 0));
-    if (!repair && !(ratePerGram > 0)) throw new BadRequestException('Rate likhein (aaj ka khareed rate)');
+    const netValue = r2(Math.max(grossValue - deductions - meltingCharges - testingCharges, 0));
+    if (!(ratePerGram > 0)) throw new BadRequestException('Rate likhein (aaj ka khareed rate)');
+    if (forBill && !(netValue > 0)) throw new BadRequestException('Purane sone ki qeemat sifar nahi ho sakti');
 
     const exchange = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-exchange-no:${user.tenantId}`}))::text`;
       const count = await tx.jewelryExchange.count({ where: { tenantId: user.tenantId } });
-      const exchangeNumber = (repair ? 'JRP-' : 'JEX-') + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0');
+      const exchangeNumber = 'JEX-' + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0');
       const row = await tx.jewelryExchange.create({
         data: {
           tenantId: user.tenantId,
@@ -84,7 +86,7 @@ export class ExchangesService {
           testedPurity: tested as JewelryPurity,
           grossWeight, netWeight, stoneWeight, fineGoldEquivalent,
           ratePerGram, grossValue, deductions, netValue, meltingCharges, testingCharges,
-          purpose: repair ? 'REPAIR' : 'BUY',
+          purpose: forBill ? 'SALE' : 'BUY',
           testingMethod: dto.testingMethod || null,
           testedBy: dto.testedBy || null,
           witnessedBy: dto.witnessedBy || null,
@@ -105,7 +107,7 @@ export class ExchangesService {
     });
 
     // Old metal bought for cash: the money leaves the drawer.
-    if (!repair && dto.paidInCash === true && netValue > 0) {
+    if (!forBill && dto.paidInCash === true && netValue > 0) {
       const paid = await payFromDrawer(this.prisma, {
         tenantId: user.tenantId, userId: user.id, shopId: user.shopId, amount: netValue,
         reason: `Purana zewar khareeda ${exchange.exchangeNumber}`, note: customerName, reference: `jewelry-exchange:${exchange.exchangeNumber}`,
@@ -116,14 +118,15 @@ export class ExchangesService {
   }
 
   private kindWhere(kind: Kind): Prisma.JewelryExchangeWhereInput {
-    if (kind === 'buy') return { exchangeType: { notIn: REPAIR_TYPES } };
+    if (kind === 'buy') return { exchangeType: { notIn: REPAIR_TYPES }, OR: [{ purpose: null }, { purpose: { not: 'RETURNED' } }] };
+    if (kind === 'bill-open') return { purpose: 'SALE', saleId: null };
     if (kind === 'repair') return { exchangeType: { in: REPAIR_TYPES } };
     if (kind === 'repair-open') return { exchangeType: { in: REPAIR_TYPES }, purpose: 'REPAIR' };
     return {};
   }
 
   async page(user: AuthenticatedUser, q: { kind?: string; search?: string; from?: string; to?: string; page?: number; limit?: number }) {
-    const kind: Kind = (['buy', 'repair', 'repair-open', 'all'] as string[]).includes(q.kind ?? '') ? (q.kind as Kind) : 'buy';
+    const kind: Kind = (KINDS as string[]).includes(q.kind ?? '') ? (q.kind as Kind) : 'buy';
     const limit = Math.min(Math.max(Number(q.limit) || 30, 1), 100);
     const page = Math.max(Number(q.page) || 1, 1);
     const search = q.search?.trim();
@@ -132,13 +135,15 @@ export class ExchangesService {
       ...this.kindWhere(kind),
       ...(q.from || q.to ? { exchangeDate: { ...(q.from && { gte: new Date(q.from) }), ...(q.to && { lte: new Date(q.to) }) } } : {}),
       ...(search && {
-        OR: [
-          { exchangeNumber: { contains: search, mode: 'insensitive' } },
-          { customerName: { contains: search, mode: 'insensitive' } },
-          { customerPhone: { contains: search } },
-          { customerCnic: { contains: search } },
-          { itemDescription: { contains: search, mode: 'insensitive' } },
-        ],
+        AND: [{
+          OR: [
+            { exchangeNumber: { contains: search, mode: 'insensitive' } },
+            { customerName: { contains: search, mode: 'insensitive' } },
+            { customerPhone: { contains: search } },
+            { customerCnic: { contains: search } },
+            { itemDescription: { contains: search, mode: 'insensitive' } },
+          ],
+        }],
       }),
     };
     const [total, items, sums] = await Promise.all([
@@ -179,6 +184,28 @@ export class ExchangesService {
     const e = await this.prisma.jewelryExchange.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!e) throw new NotFoundException('Record nahi mila');
     return e;
+  }
+
+  /**
+   * Gold weighed in for a bill that the customer takes back without a bill:
+   * it goes out of metal stock again and the row is closed.
+   */
+  async giveBack(user: AuthenticatedUser, id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-exchange:${id}`}))::text`;
+      const e = await tx.jewelryExchange.findFirst({ where: { id, tenantId: user.tenantId } });
+      if (!e) throw new NotFoundException('Record nahi mila');
+      if (e.purpose !== 'SALE' || e.saleId) throw new BadRequestException('Sirf woh purana sona wapas ho sakta hai jo abhi kisi bill par nahi laga');
+      const grams = r3(e.netWeight ?? e.grossWeight);
+      if (grams > 0) {
+        await postMetalEntry(tx, user.tenantId, user.id, {
+          entryType: 'ADJUSTMENT', metalType: e.metalType, purity: e.testedPurity ?? e.claimedPurity, grams,
+          ratePerGram: e.ratePerGram || null, reference: e.exchangeNumber, source: e.customerName, exchangeId: e.id,
+          notes: 'Bill nahi bana: purana zewar customer ko wapas',
+        });
+      }
+      return tx.jewelryExchange.update({ where: { id: e.id }, data: { purpose: 'RETURNED' } });
+    });
   }
 
   async linkToSale(user: AuthenticatedUser, id: string, saleId: string) {

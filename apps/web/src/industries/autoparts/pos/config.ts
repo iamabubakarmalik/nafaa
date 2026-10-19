@@ -4,7 +4,8 @@
  * brake" or a part number finds it. Genuine, local and used parts are marked
  * on the card. Vehicles whose job is finished show under "Gaari wapsi"; a
  * click (or scanning the job number) takes the money and hands the vehicle
- * back with its bill.
+ * back with its bill. An old part the customer gives back is recorded from
+ * the cart and taken as a Trade-in at checkout.
  */
 
 import { createElement, useMemo } from 'react';
@@ -17,8 +18,9 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { useShopParam } from '@core/stores/auth.store';
 import { workshopJobsApi, type WorkshopJob } from '../api/workshop-jobs.api';
-import { JOB_KEY, conditionOf, statusOf } from '../components/meta';
+import { CORE_KEY, JOB_KEY, conditionOf, statusOf } from '../components/meta';
 import { PART_FACTS_KEY, partSearchText, usePartFacts } from '../hooks/usePartFacts';
+import { CoreTakeBack, useCoreTradeIns } from './CoreTakeBack';
 import { JobHandover } from './JobHandover';
 
 type Kind = 'part' | 'job';
@@ -80,7 +82,7 @@ function useAutoPartsCatalog() {
     staleTime: 15_000,
   });
   const items = useMemo(() => [...parts.items, ...jobItems(jobs.data?.items ?? [])], [parts.items, jobs.data]);
-  return { items, loading: parts.loading, refreshKeys: [...parts.refreshKeys, PART_FACTS_KEY, JOB_KEY] };
+  return { items, loading: parts.loading, refreshKeys: [...parts.refreshKeys, PART_FACTS_KEY, JOB_KEY, CORE_KEY] };
 }
 
 function handOver(item: PosItem, api: PosEngineApi) {
@@ -102,6 +104,8 @@ export const autoPartsPos: PosIndustryConfig = {
   useCatalog: useAutoPartsCatalog,
   quickKeys: true,
   filters,
+  CartExtra: CoreTakeBack,
+  useTradeIns: useCoreTradeIns,
   searchHint: 'Part ka naam, part number, gaari (corolla brake) — ya job number',
   receiptFooter: 'Bijli ka saman aur fit kiya hua part wapas nahi hota. Part wapas karna ho to bill aur dabba saath laayein.',
   beforeAdd: (item, opts, api) => {

@@ -170,6 +170,7 @@ export class LabOrdersService {
     const sale = await billClinicFee(this.prisma, this.sales, user, scope, {
       ...pay,
       customerId: patient?.customerId,
+      managerPin: body?.managerPin ? String(body.managerPin) : undefined,
       link: `${FEE_LINK.lab}${o.id}`,
       lineNote: `${o.orderNumber} · ${names}`.slice(0, 300),
       note: `Lab ${o.orderNumber}${patient ? ` · ${patient.fullName} (${patient.mrn})` : ''}`,

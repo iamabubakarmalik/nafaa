@@ -26,7 +26,7 @@ export class PatientsController {
 
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: Record<string, string | undefined>) {
     return this.service.list(user, {
-      search: q.search, gender: q.gender, bloodGroup: q.bloodGroup, insurance: q.insurance, allergies: q.allergies, status: q.status, sort: q.sort, page: q.page, limit: q.limit,
+      search: q.search, gender: q.gender, bloodGroup: q.bloodGroup, insurance: q.insurance, panelId: q.panelId, allergies: q.allergies, status: q.status, sort: q.sort, page: q.page, limit: q.limit,
     });
   }
 

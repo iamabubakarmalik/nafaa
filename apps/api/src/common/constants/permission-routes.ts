@@ -90,6 +90,8 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /^salon\/staff-profiles\/commission$/, GET: [P.COMMISSION_VIEW, P.COMMISSION_MANAGE] },
   { match: /^salon\/staff-profiles(\/|$)/, GET: [P.STAFF_VIEW, P.POS_USE, P.SERVICE_BOOKINGS_VIEW], write: P.STAFF_MANAGE },
   { match: /^salon\/customer-profiles(\/|$)/, GET: P.CUSTOMERS_VIEW, write: P.CUSTOMERS_EDIT },
+  // Gift vouchers are sold and spent at the counter; the list also serves customer lookups.
+  { match: /^salon\/gift-vouchers(\/|$)/, GET: [P.POS_USE, P.CUSTOMERS_VIEW], POST: P.POS_USE },
 
   /* Auto parts. Vehicles and reminders are customer records, part details and
      makes/models are catalog data, mechanics are staff seen from the job board. */

@@ -12,6 +12,7 @@ import type { VehicleType } from '../api/vehicle-models.api';
 export const JOB_KEY = 'workshop-jobs';
 export const VEHICLE_KEY = 'autoparts-vehicles';
 export const REMINDER_KEY = 'autoparts-reminders';
+export const CORE_KEY = 'autoparts-core-returns';
 export const MECHANIC_KEY = 'autoparts-mechanics';
 export const MAKES_KEY = 'vehicle-makes';
 export const MODELS_KEY = 'vehicle-models';

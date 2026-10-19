@@ -12,11 +12,11 @@ import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productionApi, type PlanItemInput, type ProductionPlan } from '../../api/production.api';
-import { PRODUCTION_KEY, apiError, dayOnly } from '../meta';
+import { PRODUCTION_KEY, apiError, byWeight, dayOnly, qtyInput, qtyValue } from '../meta';
 
 const SHIFTS = ['Subah', 'Dopahar', 'Shaam', 'Raat'];
 
-export interface BuilderLine { key: string; productId?: string; productName: string; plannedQty: string; cakeOrderId?: string; note?: string }
+export interface BuilderLine { key: string; productId?: string; productName: string; plannedQty: string; unit?: string | null; cakeOrderId?: string; note?: string }
 
 export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
   /** Business day (yyyy-mm-dd) of a new plan. */
@@ -35,12 +35,12 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
   const productsQ = useQuery({ queryKey: ['bakery-all-products'], queryFn: () => fetchAllProducts({ isActive: undefined }), staleTime: 60_000 });
   const chosen = new Set(lines.map((l) => l.productId).filter(Boolean));
   const t = term.trim().toLowerCase();
-  const options = useMemo(() => ((productsQ.data?.items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>)
+  const options = useMemo(() => ((productsQ.data?.items ?? []) as Array<{ id: string; name: string; unit?: string; isActive?: boolean }>)
     .filter((p) => p.isActive !== false && !chosen.has(p.id) && (!t || p.name.toLowerCase().includes(t))).slice(0, 12),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [productsQ.data, t, lines]);
 
-  const items: PlanItemInput[] = lines.map((l) => ({ productId: l.productId, productName: l.productName.trim(), plannedQty: Math.round(Number(l.plannedQty) || 0), cakeOrderId: l.cakeOrderId, notes: l.note }));
+  const items: PlanItemInput[] = lines.map((l) => ({ productId: l.productId, productName: l.productName.trim(), plannedQty: qtyValue(l.plannedQty, byWeight(l.unit)), cakeOrderId: l.cakeOrderId, notes: l.note }));
   const bad = !items.length || items.some((i) => !i.productName || i.plannedQty <= 0);
   const save = useMutation({
     mutationFn: () => (plan ? productionApi.addItems(plan.id, items) : productionApi.createPlan({ planDate: date, shift, notes: notes.trim() || undefined, items })),
@@ -75,7 +75,7 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
                     : <Input size="sm" value={l.productName} onChange={(e) => update(l.key, { productName: e.target.value })} placeholder="Cheez ka naam" />}
                   {l.note && <p className="truncate text-[0.6875rem] text-slate-500">{l.note}</p>}
                 </div>
-                <input inputMode="numeric" value={l.plannedQty} onChange={(e) => update(l.key, { plannedQty: e.target.value.replace(/\D/g, '') })} aria-label="Kitne"
+                <input inputMode={byWeight(l.unit) ? 'decimal' : 'numeric'} value={l.plannedQty} onChange={(e) => update(l.key, { plannedQty: qtyInput(e.target.value, byWeight(l.unit)) })} aria-label={byWeight(l.unit) ? `Kitna (${l.unit})` : 'Kitne'}
                   className={cn('h-9 w-20 rounded-lg border bg-white px-2 text-center text-[0.875rem] font-semibold tabular-nums', Number(l.plannedQty) > 0 ? 'border-slate-300' : 'border-rose-400')} />
                 <button type="button" aria-label="Hatayein" onClick={() => setLines((xs) => xs.filter((x) => x.key !== l.key))} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
               </li>
@@ -87,7 +87,7 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
           <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Kya banana hai — cheez search…" leftIcon={<Search className="h-4 w-4" />} data-autofocus />
           <div className="mt-2 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
             {options.map((p) => (
-              <button key={p.id} type="button" onClick={() => { setLines((xs) => [...xs, { key: p.id, productId: p.id, productName: p.name, plannedQty: '' }]); setTerm(''); }}
+              <button key={p.id} type="button" onClick={() => { setLines((xs) => [...xs, { key: p.id, productId: p.id, productName: p.name, plannedQty: '', unit: p.unit }]); setTerm(''); }}
                 className="inline-flex h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[0.8125rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:ring-brand-400">
                 <Plus className="h-3.5 w-3.5 text-brand-600" />{p.name}
               </button>

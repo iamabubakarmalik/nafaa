@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { bulkOrdersApi, type BulkOrder } from '../../api/bulk-orders.api';
 import type { BakeryOrderStatus } from '../../api/cake-orders.api';
 import { OrderDeliverModal, type OrderForBill } from '../OrderDeliverModal';
-import { CancelModal, PayModal } from '../OrderModals';
+import { CancelModal, PayModal, RefundModal } from '../OrderModals';
 import { BULK_KEY, BULK_PREV, apiError, bulkNext, bulkPrice, statusOf } from '../meta';
 
 export function bulkLines(o: BulkOrder) {
@@ -38,6 +38,7 @@ export function useBulkActions(shopName: string) {
   const [payOn, setPayOn] = useState<BulkOrder | null>(null);
   const [cancelOn, setCancelOn] = useState<BulkOrder | null>(null);
   const [deliverOn, setDeliverOn] = useState<BulkOrder | null>(null);
+  const [refundOn, setRefundOn] = useState<BulkOrder | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: [BULK_KEY] });
 
   const status = useMutation({
@@ -68,6 +69,10 @@ export function useBulkActions(shopName: string) {
         <CancelModal title={`${cancelOn.organizationName} · ${cancelOn.orderNumber}`} paid={Number(cancelOn.paidAmount || 0)} askReason={false}
           onConfirm={() => bulkOrdersApi.updateStatus(cancelOn.id, 'CANCELLED').then(refresh)} onClose={() => setCancelOn(null)} />
       )}
+      {refundOn && (
+        <RefundModal title={`${refundOn.organizationName} · ${refundOn.orderNumber}`} loadMoney={() => bulkOrdersApi.getOne(refundOn.id)}
+          onRefund={(pin) => bulkOrdersApi.refund(refundOn.id, pin)} onClose={() => setRefundOn(null)} onDone={() => { setRefundOn(null); refresh(); }} />
+      )}
       {deliverOn && (
         <OrderDeliverModal order={bulkBill(deliverOn)} shopName={shopName}
           onClose={() => setDeliverOn(null)} onDone={() => setDeliverOn(null)}
@@ -79,5 +84,5 @@ export function useBulkActions(shopName: string) {
     </>
   );
 
-  return { next, back, pay: setPayOn, cancel: setCancelOn, busyId: status.isPending ? status.variables?.o.id : undefined, modals };
+  return { next, back, pay: setPayOn, cancel: setCancelOn, refund: setRefundOn, busyId: status.isPending ? status.variables?.o.id : undefined, modals };
 }
