@@ -69,21 +69,20 @@ export interface HardwareProduct {
   totalRevenue: number;
   totalReturns: number;
   notes?: string;
-  product?: any;
-  brand?: any;
-  bulkPricing?: any[];
+  bulkPricing?: Array<{ id: string; minQuantity: number; maxQuantity?: number | null; price: number; label?: string | null }>;
   createdAt: string;
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+/** The light facts every list and the counter show (size, shade, pack). */
+export type HardwareFacts = Pick<HardwareProduct, 'productId' | 'categoryType' | 'unit' | 'grade' | 'diameter' | 'gradeStrength' | 'bagWeight'
+  | 'tileSize' | 'finishType' | 'piecesPerBox' | 'sqftPerBox' | 'colorCode' | 'colorName' | 'finishSheen' | 'coverage' | 'litersPerCan'
+  | 'requiresTruck' | 'isFastMoving' | 'manufacturingLocation'>;
+
+const unwrap = <T,>(res: { data: { data?: T } & T }): T => (res.data?.data ?? res.data) as T;
 
 export const hardwareProductsApi = {
   upsert: (data: Partial<HardwareProduct>) => apiClient.post('/hardware/products', data).then(unwrap<HardwareProduct>),
-  list: (params?: any) => apiClient.get('/hardware/products', { params }).then(unwrap<HardwareProduct[]>),
-  byCategoryCount: () => apiClient.get('/hardware/products/by-category-count').then(unwrap<Record<string, number>>),
+  facts: () => apiClient.get('/hardware/products/facts').then(unwrap<HardwareFacts[]>),
   byProduct: (productId: string) => apiClient.get('/hardware/products/by-product/' + productId).then(unwrap<HardwareProduct | null>),
-  getOne: (id: string) => apiClient.get('/hardware/products/' + id).then(unwrap<HardwareProduct>),
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/hardware/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

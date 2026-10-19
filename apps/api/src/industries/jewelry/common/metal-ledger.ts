@@ -46,7 +46,7 @@ export interface MetalEntryInput {
   notes?: string | null;
 }
 
-export async function postMetalEntry(db: Db, tenantId: string, userId: string, e: MetalEntryInput) {
+export async function postMetalEntry(db: Db, tenantId: string, userId: string | null, e: MetalEntryInput) {
   const grams = Math.abs(Number(e.grams) || 0);
   const before = await metalBalance(db, tenantId, e.metalType, e.purity);
   const balanceGrams = METAL_IN_TYPES.includes(e.entryType) ? before + grams : before - grams;

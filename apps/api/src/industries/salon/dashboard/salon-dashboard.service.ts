@@ -1,17 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, endOfDay, subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { DAY_MS } from '../common/salon-common';
 
 @Injectable()
 export class SalonDashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tz: TenantTimezoneService,
+  ) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
-    const weekAgo = subDays(new Date(), 7);
-    const monthAgo = subDays(new Date(), 30);
+    // The shop's own calendar day; the server clock is UTC.
+    const zone = await this.tz.resolve(user.tenantId);
+    const todayStart = startOfDayTz(new Date(), zone);
+    const todayEnd = endOfDayTz(new Date(), zone);
+    const monthAgo = new Date(todayStart.getTime() - 30 * DAY_MS);
 
     const [
       totalServices, totalStaff, activeMemberships,
@@ -90,8 +96,8 @@ export class SalonDashboardService {
     });
 
     const staffProfileIds = topStaffData.map((s) => s.staffProfileId).filter(Boolean) as string[];
-    const staffProfiles = await this.prisma.salonStaffProfile.findMany({ where: { id: { in: staffProfileIds } } });
-    const staffs = await this.prisma.staff.findMany({ where: { id: { in: staffProfiles.map((sp) => sp.staffId) } } });
+    const staffProfiles = await this.prisma.salonStaffProfile.findMany({ where: { tenantId: user.tenantId, id: { in: staffProfileIds } } });
+    const staffs = await this.prisma.staff.findMany({ where: { tenantId: user.tenantId, id: { in: staffProfiles.map((sp) => sp.staffId) } } });
     const spMap = new Map(staffProfiles.map((sp) => [sp.id, sp]));
     const staffMap = new Map(staffs.map((s) => [s.id, s]));
 
@@ -126,7 +132,7 @@ export class SalonDashboardService {
       .sort((a, b) => (b._count._all ?? 0) - (a._count._all ?? 0))
       .slice(0, 5);
     const serviceIds = topServicesData.map((s) => s.serviceId);
-    const services = await this.prisma.salonService.findMany({ where: { id: { in: serviceIds } } });
+    const services = await this.prisma.salonService.findMany({ where: { tenantId: user.tenantId, id: { in: serviceIds } } });
     const svcMap = new Map(services.map((s) => [s.id, s]));
 
     return {

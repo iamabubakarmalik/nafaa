@@ -22,6 +22,14 @@ export class BulkPricingService {
     if (dto.maxQuantity != null && dto.maxQuantity < dto.minQuantity) throw new BadRequestException('Zyada se zyada quantity kam se kam se chhoti nahi ho sakti');
   }
 
+  async listAll(user: AuthenticatedUser) {
+    return this.prisma.hardwareBulkPricing.findMany({
+      where: { tenantId: user.tenantId, isActive: true },
+      select: { id: true, productId: true, minQuantity: true, maxQuantity: true, price: true, label: true },
+      orderBy: [{ productId: 'asc' }, { minQuantity: 'asc' }],
+    });
+  }
+
   async listByProduct(user: AuthenticatedUser, productId: string) {
     return this.prisma.hardwareBulkPricing.findMany({
       where: { tenantId: user.tenantId, productId, isActive: true },
@@ -39,7 +47,8 @@ export class BulkPricingService {
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.hardwareBulkPricing.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Pricing not found');
-    return this.prisma.hardwareBulkPricing.delete({ where: { id } });
+    // Switched off, not deleted, so a bill made at this rate can still be explained.
+    return this.prisma.hardwareBulkPricing.update({ where: { id }, data: { isActive: false } });
   }
 
   async calculatePrice(user: AuthenticatedUser, productId: string, quantity: number) {

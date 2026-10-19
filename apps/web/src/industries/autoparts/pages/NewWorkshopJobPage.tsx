@@ -1,398 +1,340 @@
-import { useState } from 'react';
+/**
+ * New job card: the vehicle (picked from the shop's list by its number, or
+ * new), its meter reading, the customer, what is wrong, who will work on it
+ * and when it will be ready, what was in the vehicle, an early labour
+ * estimate and any advance taken now. Parts are added on the job once work
+ * starts, so they leave stock when they are fitted.
+ *
+ * Keys: Ctrl+Enter save · Esc back · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, Plus, Trash2, Sparkles, Wrench, X, Car, User,
-  Package, DollarSign, AlertCircle, Search,
-} from 'lucide-react';
-import { workshopJobsApi } from '../api/workshop-jobs.api';
-import { customerVehiclesApi } from '../api/customer-vehicles.api';
-import { mechanicsApi } from '../api/mechanics.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
-import { Button } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { ArrowLeft, Car, ClipboardList, Fuel, GraduationCap, Plus, Search, Trash2, UserRound, Wallet, Wrench } from 'lucide-react';
+import {
+  Button, Card, Input, Kbd, PageHero, PageShell, Select, Switch, Textarea, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen } from '@core/lib/shortcuts';
+import { useAuthStore, useShopParam } from '@core/stores/auth.store';
+import { useReceiptSetup } from '@core/receipt/setup';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { customerVehiclesApi, type CustomerVehicle } from '../api/customer-vehicles.api';
+import { mechanicsApi } from '../api/mechanics.api';
+import { vehicleMakesApi } from '../api/vehicle-makes.api';
+import { vehicleModelsApi } from '../api/vehicle-models.api';
+import { workshopJobsApi, type JobCreateInput, type JobPriority, type JobType } from '../api/workshop-jobs.api';
+import { printJobCard } from '../components/slips';
+import {
+  JOB_KEY, JOB_TYPES, MAKES_KEY, MECHANIC_KEY, MODELS_KEY, MONEY_KEYS, PRIORITIES, VEHICLE_KEY, apiError, digits, jobTypeOf, km,
+  localInput, money, plate, priorityOf, vehicleName,
+} from '../components/meta';
 
-const JOB_TYPES = [
-  { value: 'GENERAL_SERVICE', label: 'General Service', emoji: '🔧' },
-  { value: 'OIL_CHANGE', label: 'Oil Change', emoji: '🛢️' },
-  { value: 'TUNE_UP', label: 'Tune-up', emoji: '⚙️' },
-  { value: 'REPAIR', label: 'Repair', emoji: '🔨' },
-  { value: 'BRAKE_SERVICE', label: 'Brake Service', emoji: '🛑' },
-  { value: 'BATTERY_CHANGE', label: 'Battery', emoji: '🔋' },
-  { value: 'AC_SERVICE', label: 'A/C Service', emoji: '❄️' },
-  { value: 'TIRE_CHANGE', label: 'Tire Change', emoji: '🛞' },
-  { value: 'DIAGNOSTIC', label: 'Diagnostic', emoji: '💻' },
-  { value: 'DENTING_PAINTING', label: 'Denting/Paint', emoji: '🎨' },
-  { value: 'WHEEL_ALIGNMENT', label: 'Wheel Alignment', emoji: '📐' },
-  { value: 'ACCIDENT_REPAIR', label: 'Accident Repair', emoji: '💥' },
-  { value: 'OTHER', label: 'Other', emoji: '🔧' },
-];
+const COMPLAINTS = ['Oil change', 'Tuning', 'Brake se awaz', 'AC thanda nahi', 'Start nahi hoti', 'Garam ho jati hai', 'Suspension se awaz', 'Clutch slip',
+  'Battery down', 'Lights / bijli', 'Pick nahi', 'Dhuan', 'Alignment', 'Denting painting'];
+const FUEL = ['Khali', '1/4', '1/2', '3/4', 'Full'];
 
-const PRIORITIES = [
-  { value: 'LOW', label: 'Low', color: 'bg-slate-500' },
-  { value: 'NORMAL', label: 'Normal', color: 'bg-blue-500' },
-  { value: 'HIGH', label: 'High', color: 'bg-amber-500' },
-  { value: 'URGENT', label: 'Urgent', color: 'bg-red-600' },
-  { value: 'EMERGENCY', label: 'Emergency', color: 'bg-red-700' },
-];
+interface Labour { description: string; amount: string }
+interface Draft {
+  vehicleId: string; reg: string; makeId: string; makeName: string; modelName: string; year: string; odometer: string;
+  name: string; phone: string; jobType: JobType; complaint: string; priority: JobPriority; mechanicId: string; promisedAt: string; bay: string;
+  fuel: string; spare: boolean; toolkit: boolean; damages: string; labour: Labour[]; advance: string; method: PaymentMethod; notes: string;
+}
+const EMPTY: Draft = {
+  vehicleId: '', reg: '', makeId: '', makeName: '', modelName: '', year: '', odometer: '', name: '', phone: '', jobType: 'GENERAL_SERVICE', complaint: '',
+  priority: 'NORMAL', mechanicId: '', promisedAt: '', bay: '', fuel: '', spare: false, toolkit: false, damages: '', labour: [], advance: '', method: 'CASH', notes: '',
+};
+
+const n = (v: string) => Number(v) || 0;
+const atHour = (days: number, hour: number) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(hour, 0, 0, 0); return d; };
 
 export default function NewWorkshopJobPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const preselectedVehicleId = searchParams.get('vehicleId');
+  const qc = useQueryClient();
+  const shopId = useShopParam();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const guide = usePageGuide();
+  useReceiptSetup();
+  const [params] = useSearchParams();
+  const [f, setF] = useState<Draft>(EMPTY);
+  const [touched, setTouched] = useState(false);
+  const [regQuery, setRegQuery] = useState('');
+  const [print, setPrint] = useState(true);
+  const [lastKm, setLastKm] = useState<number | null>(null);
+  const lock = useRef(false);
+  const set = (patch: Partial<Draft>) => setF((x) => ({ ...x, ...patch }));
 
-  const [form, setForm] = useState<any>({
-    vehicleId: preselectedVehicleId || '',
-    customerId: '',
-    customerName: '',
-    customerPhone: '',
-    priority: 'NORMAL',
-    jobType: 'GENERAL_SERVICE',
-    customerComplaint: '',
-    diagnosis: '',
-    workDescription: '',
-    primaryMechanicId: '',
-    bayNumber: '',
-    promisedAt: '',
-    odometerKm: '',
-    fuelLevel: '',
-    hasSpareTire: false,
-    hasToolkit: false,
-    externalDamages: '',
-    discount: 0,
-    taxAmount: 0,
-    internalNotes: '',
-  });
+  // The vehicles page opens this form for one vehicle.
+  const presetQ = useQuery({ queryKey: [VEHICLE_KEY, 'one', params.get('vehicle')], queryFn: () => customerVehiclesApi.getOne(params.get('vehicle')!), enabled: !!params.get('vehicle') });
+  useEffect(() => {
+    if (presetQ.data && !f.vehicleId) pickVehicle(presetQ.data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetQ.data]);
 
-  const [laborItems, setLaborItems] = useState<any[]>([]);
-  const [partsUsed, setPartsUsed] = useState<any[]>([]);
-  const [externalWork, setExternalWork] = useState<any[]>([]);
+  useEffect(() => { const t = setTimeout(() => setRegQuery(f.vehicleId ? '' : f.reg.trim()), 250); return () => clearTimeout(t); }, [f.reg, f.vehicleId]);
+  const lookQ = useQuery({ queryKey: [VEHICLE_KEY, 'lookup', regQuery], queryFn: () => customerVehiclesApi.page({ search: regQuery, limit: 6 }), enabled: regQuery.length >= 2, staleTime: 30_000 });
+  const matches = (lookQ.data?.items ?? []).filter((v) => !f.vehicleId);
+  const exact = matches.find((v) => plate(v.registrationNumber) === plate(f.reg));
 
-  const [vehicleSearch, setVehicleSearch] = useState('');
-  const [showVehiclePicker, setShowVehiclePicker] = useState(!preselectedVehicleId);
+  const makesQ = useQuery({ queryKey: [MAKES_KEY, 'active'], queryFn: () => vehicleMakesApi.list({ active: true }), staleTime: 5 * 60_000 });
+  const modelsQ = useQuery({ queryKey: [MODELS_KEY, f.makeId], queryFn: () => vehicleModelsApi.list({ makeId: f.makeId, active: true }), enabled: !!f.makeId, staleTime: 5 * 60_000 });
+  const mechQ = useQuery({ queryKey: [MECHANIC_KEY], queryFn: () => mechanicsApi.list(), staleTime: 5 * 60_000 });
 
-  const { data: vehiclesData = [] } = useQuery({
-    queryKey: ['vehicles-for-job', vehicleSearch],
-    queryFn: () => customerVehiclesApi.list({ search: vehicleSearch || undefined, active: true }),
-    enabled: showVehiclePicker,
-  });
+  function pickVehicle(v: CustomerVehicle) {
+    setLastKm(v.odometerKm ?? v.lastOdometerKm ?? null);
+    set({
+      vehicleId: v.id, reg: v.registrationNumber, makeId: v.makeId ?? '', makeName: v.makeName ?? '', modelName: v.modelName ?? '', year: v.year ? String(v.year) : '',
+      name: v.ownerName ?? '', phone: v.ownerPhone ?? '', odometer: '',
+    });
+  }
 
-  const { data: preselectedVehicle } = useQuery({
-    queryKey: ['vehicle-preselected', preselectedVehicleId],
-    queryFn: () => customerVehiclesApi.getOne(preselectedVehicleId!),
-    enabled: !!preselectedVehicleId,
-  });
+  const labourTotal = f.labour.reduce((s, l) => s + n(l.amount), 0);
+  const problems = useMemo(() => {
+    const out: Record<string, string> = {};
+    if (!f.reg.trim()) out.reg = 'Gaari ka number likhein';
+    else if (plate(f.reg).length < 3) out.reg = 'Number poora likhein';
+    if (f.year && (n(f.year) < 1950 || n(f.year) > new Date().getFullYear() + 1)) out.year = 'Saal sahi likhein';
+    if (f.odometer && f.vehicleId && lastKm && n(f.odometer) < lastKm) out.odometer = `Pichli dafa ${km(lastKm)} tha — kam nahi ho sakta`;
+    if (f.phone && digits(f.phone).length < 10) out.phone = 'Phone number poora likhein';
+    if (!f.complaint.trim()) out.complaint = 'Kya kaam hai ya kya kharabi hai — likhein';
+    if (f.promisedAt && new Date(f.promisedAt).getTime() < Date.now() - 60_000) out.promisedAt = 'Ye waqt guzar chuka hai';
+    if (f.labour.some((l) => !l.description.trim() && n(l.amount) > 0)) out.labour = 'Mazdoori ki har line ka kaam likhein';
+    if (n(f.advance) > 0 && !f.name.trim() && !f.phone.trim()) out.advance = 'Advance ke liye customer ka naam ya phone likhein';
+    if (n(f.advance) > 0 && labourTotal > 0 && n(f.advance) > labourTotal * 5) out.advance = 'Advance bohat zyada lag raha hai — check karein';
+    return out;
+  }, [f, labourTotal, lastKm]);
+  const err = (k: string) => (touched ? problems[k] : undefined);
 
-  const { data: mechanics = [] } = useQuery({
-    queryKey: ['mechanics-for-job'],
-    queryFn: () => mechanicsApi.list({ available: true }),
-  });
-
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-job'],
-    queryFn: () => fetchAllProducts(),
-  });
-
-  const selectedVehicle = preselectedVehicle || vehiclesData.find((v) => v.id === form.vehicleId);
-
-  // Totals
-  const laborTotal = laborItems.reduce((s, l) => s + (l.hours || 1) * (l.ratePerHour || 0), 0);
-  const partsTotal = partsUsed.reduce((s, p) => s + ((p.unitPrice || 0) * (p.quantity || 1) - (p.discount || 0)), 0);
-  const externalTotal = externalWork.reduce((s, e) => s + (e.cost || 0) + (e.markup || 0), 0);
-  const subtotal = laborTotal + partsTotal + externalTotal;
-  const total = Math.max(subtotal + Number(form.taxAmount) - Number(form.discount), 0);
-
-  const createMutation = useMutation({
-    mutationFn: () => workshopJobsApi.create({
-      ...form,
-      odometerKm: form.odometerKm ? Number(form.odometerKm) : undefined,
-      discount: Number(form.discount) || 0,
-      taxAmount: Number(form.taxAmount) || 0,
-      customerId: form.customerId || selectedVehicle?.customerId,
-      customerName: form.customerName || selectedVehicle?.ownerName,
-      customerPhone: form.customerPhone || selectedVehicle?.ownerPhone,
-      laborItems: laborItems.map((l) => ({ ...l, hours: Number(l.hours) || 1, ratePerHour: Number(l.ratePerHour) || 0 })),
-      partsUsed: partsUsed.map((p) => ({ ...p, quantity: Number(p.quantity) || 1, unitPrice: Number(p.unitPrice) || 0, discount: Number(p.discount) || 0 })),
-      externalWork: externalWork.map((e) => ({ ...e, cost: Number(e.cost) || 0, markup: Number(e.markup) || 0 })),
-    }),
-    onSuccess: (job) => {
-      toast.success('Job ' + job.jobNumber + ' created');
-      navigate('/autoparts/jobs/' + job.id);
+  const save = useMutation({
+    mutationFn: () => {
+      const opt = (v: string) => v.trim() || undefined;
+      const make = makesQ.data?.find((m) => m.id === f.makeId);
+      const body: JobCreateInput = {
+        vehicleId: f.vehicleId || undefined, registrationNumber: plate(f.reg), makeName: make?.name ?? opt(f.makeName), modelName: opt(f.modelName),
+        year: f.year ? n(f.year) : undefined, odometerKm: f.odometer ? n(f.odometer) : undefined, customerName: opt(f.name), customerPhone: opt(f.phone),
+        jobType: f.jobType, customerComplaint: f.complaint.trim(), priority: f.priority, primaryMechanicId: f.mechanicId || undefined,
+        promisedAt: f.promisedAt ? new Date(f.promisedAt).toISOString() : undefined, bayNumber: opt(f.bay), fuelLevel: f.fuel || undefined,
+        hasSpareTire: f.spare, hasToolkit: f.toolkit, externalDamages: opt(f.damages), internalNotes: opt(f.notes), shopId: shopId || undefined,
+        laborItems: f.labour.filter((l) => l.description.trim()).map((l) => ({ description: l.description.trim(), hours: 1, ratePerHour: n(l.amount) })),
+        advance: n(f.advance) || undefined, advanceMethod: n(f.advance) ? f.method : undefined,
+      };
+      return workshopJobsApi.create(body);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: (job) => {
+      [JOB_KEY, VEHICLE_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      toast.success(`${job.jobNumber} ban gaya — ${job.registrationNumber}`);
+      if (print) printJobCard(job, shopName);
+      navigate(`/autoparts/jobs/${job.id}`, { replace: true });
+    },
+    onError: (e) => toast.error(apiError(e, 'Job nahi bana')),
+    onSettled: () => { lock.current = false; },
   });
 
-  const canSubmit = form.vehicleId || (form.customerName && form.customerPhone);
+  const submit = () => {
+    setTouched(true);
+    const first = Object.values(problems)[0];
+    if (first) { toast.error(first); return; }
+    if (lock.current) return;
+    lock.current = true;
+    save.mutate();
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.key === 's')) { e.preventDefault(); submit(); }
+      if (e.key === 'Escape' && !isDialogOpen()) navigate(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-orange-400/20 blur-3xl" />
-        <div className="relative flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/autoparts/jobs')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                New Job
+    <PageShell>
+      <PageHero
+        title="Naya job card"
+        chip={<><Car /> Gaari receive</>}
+        meta="Gaari ka number, meter, shikayat — parts kaam shuru hone par job me jorein"
+        actions={<>
+          <button type="button" onClick={() => navigate(-1)} title="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}><ClipboardList className="h-4 w-4" />{save.isPending ? 'Ban raha…' : 'Job banayein'}</button>
+        </>}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={Car}>Gaari</T>} description="Number likhte hi purani gaari mil jati hai — us ki history saath rehti hai">
+            <div className="space-y-3">
+              <div className="relative">
+                <Input label="Gaari ka number" required value={f.reg} autoFocus leftIcon={<Search className="h-4 w-4" />} placeholder="LEA-1234 / ABC 123"
+                  onChange={(e) => { setLastKm(null); set({ reg: e.target.value.toUpperCase(), vehicleId: '' }); }} error={err('reg')}
+                  hint={f.vehicleId ? 'Purani gaari — history is job ke saath judegi' : exact ? 'Ye gaari pehle se darj hai — neeche se chunein' : 'Nayi gaari khud darj ho jayegi'} />
+                {matches.length > 0 && (
+                  <ul className="absolute inset-x-0 top-[4.75rem] z-20 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200">
+                    {matches.map((v) => (
+                      <li key={v.id}>
+                        <button type="button" onClick={() => pickVehicle(v)} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-brand-50">
+                          <Car className="h-4 w-4 shrink-0 text-slate-400" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block font-semibold text-slate-900">{v.registrationNumber} <span className="font-normal text-slate-600">{vehicleName(v)}</span></span>
+                            <span className="block truncate text-[0.75rem] text-slate-500">{[v.ownerName, v.ownerPhone, v.lastServiceAt ? `${v.totalServices} dafa aayi` : null].filter(Boolean).join(' · ')}</span>
+                          </span>
+                          {v.openJobs > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">Job khuli hai</span>}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              <h1 className="mt-1 text-2xl font-extrabold">🔧 New Workshop Job</h1>
-            </div>
-          </div>
-          <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} disabled={!canSubmit} className="bg-white text-slate-900 hover:bg-slate-100">
-            <Save className="h-4 w-4" />
-            Create Job
-          </Button>
-        </div>
-      </section>
-
-      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
-        <div className="space-y-6">
-          {/* Vehicle */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Car className="h-4 w-4 text-blue-600" />
-              Vehicle
-            </h3>
-
-            {selectedVehicle ? (
-              <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 p-3 flex items-center gap-3">
-                <Car className="h-5 w-5 text-blue-600" />
-                <div className="flex-1">
-                  <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedVehicle.registrationNumber}</div>
-                  <div className="text-xs font-bold text-slate-600">{selectedVehicle.makeName} {selectedVehicle.modelName} {selectedVehicle.year}</div>
-                  {selectedVehicle.ownerName && <div className="text-xs font-bold text-slate-500">{selectedVehicle.ownerName} • {selectedVehicle.ownerPhone}</div>}
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Select label="Company" value={f.makeId} disabled={!!f.vehicleId && !!f.makeName && !f.makeId}
+                  onChange={(e) => set({ makeId: e.target.value, makeName: makesQ.data?.find((m) => m.id === e.target.value)?.name ?? '', modelName: '' })}
+                  placeholder={f.vehicleId && f.makeName && !f.makeId ? f.makeName : 'Chunein'} options={(makesQ.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
+                <div>
+                  <Input label="Model" value={f.modelName} onChange={(e) => set({ modelName: e.target.value })} placeholder="Corolla, CD 70…" list="ap-models" />
+                  <datalist id="ap-models">{(modelsQ.data ?? []).map((m) => <option key={m.id} value={m.name} />)}</datalist>
                 </div>
-                <button onClick={() => { setForm({ ...form, vehicleId: '' }); setShowVehiclePicker(true); }} className="text-xs font-extrabold text-blue-600 hover:underline">Change</button>
+                <Input label="Saal" inputMode="numeric" value={f.year} onChange={(e) => set({ year: digits(e.target.value).slice(0, 4) })} placeholder="2016" error={err('year')} />
               </div>
-            ) : (
-              <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-3 space-y-2">
-                <input autoFocus value={vehicleSearch} onChange={(e) => setVehicleSearch(e.target.value)} placeholder="Search vehicle by registration, name, phone..." className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                <div className="max-h-52 overflow-y-auto space-y-1">
-                  {vehiclesData.map((v) => (
-                    <button key={v.id} onClick={() => { setForm({ ...form, vehicleId: v.id }); setShowVehiclePicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
-                      <Car className="h-3.5 w-3.5 text-slate-400" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-extrabold truncate">{v.registrationNumber}</div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500">{v.makeName} {v.modelName} • {v.ownerName}</div>
-                      </div>
-                    </button>
+              <Input label="Meter (km)" inputMode="numeric" value={f.odometer} onChange={(e) => set({ odometer: digits(e.target.value) })} placeholder="84500"
+                error={err('odometer')} hint="Abhi meter par kitna hai — agli service ka hisaab isi se" />
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={Wrench}>Kaam</T>}>
+            <div className="space-y-3">
+              <div>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kya kaam hai</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {JOB_TYPES.slice(0, 10).map((t) => (
+                    <button key={t} type="button" onClick={() => set({ jobType: t })} aria-pressed={f.jobType === t}
+                      className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium ring-1', f.jobType === t ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{jobTypeOf(t)}</button>
+                  ))}
+                  <select aria-label="Aur kaam" value={JOB_TYPES.slice(0, 10).includes(f.jobType) ? '' : f.jobType} onChange={(e) => e.target.value && set({ jobType: e.target.value as JobType })}
+                    className="h-8 rounded-full bg-white px-3 text-[0.8125rem] ring-1 ring-slate-200">
+                    <option value="">Aur…</option>
+                    {JOB_TYPES.slice(10).map((t) => <option key={t} value={t}>{jobTypeOf(t)}</option>)}
+                  </select>
+                </div>
+              </div>
+              <Textarea label="Shikayat / kya karna hai" required rows={3} value={f.complaint} onChange={(e) => set({ complaint: e.target.value })}
+                placeholder="Customer ne kya bataya" error={err('complaint')} />
+              <div className="flex flex-wrap gap-1">
+                {COMPLAINTS.map((c) => (
+                  <button key={c} type="button" onClick={() => set({ complaint: f.complaint.includes(c) ? f.complaint : [f.complaint.trim(), c].filter(Boolean).join(', ') })}
+                    className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] font-medium text-slate-700 hover:bg-slate-200">{c}</button>
+                ))}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select label="Mechanic" value={f.mechanicId} onChange={(e) => set({ mechanicId: e.target.value })} placeholder="Baad me"
+                  options={(mechQ.data ?? []).map((m) => ({ value: m.id, label: `${m.staff?.fullName ?? 'Mechanic'}${m.openJobs ? ` (${m.openJobs} chal rahe)` : ''}${m.isAvailable ? '' : ' — chutti'}` }))}
+                  hint={mechQ.data && !mechQ.data.length ? 'Mechanic page par staff ko mechanic banayein' : 'Kis ke zimme hai'} />
+                <Select label="Jaldi" value={f.priority} onChange={(e) => set({ priority: e.target.value as JobPriority })} options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} />
+              </div>
+              <div>
+                <Input label="Gaari kab deni hai" type="datetime-local" value={f.promisedAt} onChange={(e) => set({ promisedAt: e.target.value })} error={err('promisedAt')}
+                  hint="Is waqt ke baad job “Late” me aati hai" />
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {[['Aaj shaam', atHour(0, 18)], ['Kal dopahar', atHour(1, 13)], ['Kal shaam', atHour(1, 18)], ['Parson', atHour(2, 18)]].map(([label, d]) => (
+                    <button key={label as string} type="button" onClick={() => set({ promisedAt: localInput(d as Date) })}
+                      className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] font-medium text-slate-700 hover:bg-slate-200">{label as string}</button>
                   ))}
                 </div>
               </div>
-            )}
-
-            <div className="grid sm:grid-cols-2 gap-2">
-              <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name (or walk-in)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
-            <input type="number" value={form.odometerKm} onChange={(e) => setForm({ ...form, odometerKm: e.target.value })} placeholder="Current Odometer (km)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-          </section>
+          </Card>
 
-          {/* Job Details */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Wrench className="h-4 w-4 text-orange-600" />
-              Job Details
-            </h3>
-
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Job Type</label>
-              <div className="flex flex-wrap gap-1">
-                {JOB_TYPES.map((t) => (
-                  <button key={t.value} onClick={() => setForm({ ...form, jobType: t.value })} className={
-                    'px-2 py-1 rounded-lg text-xs font-extrabold border-2 ' +
-                    (form.jobType === t.value ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-orange-300')
-                  }>{t.emoji} {t.label}</button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Priority</label>
-              <div className="grid grid-cols-5 gap-2">
-                {PRIORITIES.map((p) => (
-                  <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
-                    'p-2 rounded-xl border-2 text-xs font-extrabold ' +
-                    (form.priority === p.value ? p.color + ' border-transparent text-white' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-orange-300')
-                  }>{p.label}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              <select value={form.primaryMechanicId} onChange={(e) => setForm({ ...form, primaryMechanicId: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
-                <option value="">Assign Mechanic</option>
-                {mechanics.map((m) => {
-                  const nm = m.staff ? ((m.staff as any).firstName || '') + ' ' + ((m.staff as any).lastName || '') : '';
-                  return <option key={m.id} value={m.id}>{nm.trim() || 'Mechanic'} • Rs {m.hourlyRate}/hr</option>;
-                })}
-              </select>
-              <input value={form.bayNumber} onChange={(e) => setForm({ ...form, bayNumber: e.target.value })} placeholder="Bay # (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Promised Delivery</label>
-              <input type="datetime-local" value={form.promisedAt} onChange={(e) => setForm({ ...form, promisedAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-
-            <textarea rows={2} value={form.customerComplaint} onChange={(e) => setForm({ ...form, customerComplaint: e.target.value })} placeholder="Customer complaint / problem description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
-            <textarea rows={2} value={form.diagnosis} onChange={(e) => setForm({ ...form, diagnosis: e.target.value })} placeholder="Diagnosis / findings..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
-            <textarea rows={2} value={form.workDescription} onChange={(e) => setForm({ ...form, workDescription: e.target.value })} placeholder="Work to be done..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
-          </section>
-
-          {/* Labor Items */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Wrench className="h-4 w-4 text-orange-600" />
-                Labor ({laborItems.length})
-              </h3>
-              <Button size="sm" onClick={() => setLaborItems([...laborItems, { description: '', hours: 1, ratePerHour: 500 }])} className="bg-gradient-to-r from-orange-600 to-red-700">
-                <Plus className="h-3.5 w-3.5" />
-                Add Labor
-              </Button>
-            </div>
-            {laborItems.map((item, i) => (
-              <div key={i} className="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Labor #{i + 1}</span>
-                  <button onClick={() => setLaborItems(laborItems.filter((_, idx) => idx !== i))} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-                <input value={item.description} onChange={(e) => { const c = [...laborItems]; c[i].description = e.target.value; setLaborItems(c); }} placeholder="Description *" className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-bold focus:outline-none focus:border-orange-500" />
-                <div className="grid grid-cols-3 gap-2">
-                  <input type="number" step="0.1" value={item.hours} onChange={(e) => { const c = [...laborItems]; c[i].hours = Number(e.target.value); setLaborItems(c); }} placeholder="Hours" className="h-10 rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-orange-500" />
-                  <input type="number" value={item.ratePerHour} onChange={(e) => { const c = [...laborItems]; c[i].ratePerHour = Number(e.target.value); setLaborItems(c); }} placeholder="Rate/hr" className="h-10 rounded-lg border-2 border-emerald-200 bg-emerald-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
-                  <div className="h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-sm font-extrabold text-emerald-800 tabular-nums">
-                    {formatPKR((item.hours || 1) * (item.ratePerHour || 0))}
-                  </div>
+          <Card className="rounded-2xl" title={<T icon={Fuel}>Gaari ki halat</T>} description="Baad ke jhagre se bachne ke liye — parchi par chhapta hai">
+            <div className="space-y-3">
+              <div>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Petrol</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {FUEL.map((x) => (
+                    <button key={x} type="button" onClick={() => set({ fuel: f.fuel === x ? '' : x })} aria-pressed={f.fuel === x}
+                      className={cn('h-8 rounded-lg px-3 text-[0.8125rem] font-medium ring-1', f.fuel === x ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{x}</button>
+                  ))}
                 </div>
               </div>
-            ))}
-          </section>
-
-          {/* Parts */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Package className="h-4 w-4 text-amber-600" />
-                Parts Used ({partsUsed.length})
-              </h3>
-              <Button size="sm" onClick={() => setPartsUsed([...partsUsed, { partName: '', quantity: 1, unitPrice: 0, discount: 0 }])} className="bg-gradient-to-r from-amber-600 to-orange-700">
-                <Plus className="h-3.5 w-3.5" />
-                Add Part
-              </Button>
-            </div>
-            {partsUsed.map((item, i) => (
-              <div key={i} className="rounded-xl border-2 border-slate-200 bg-amber-50/50 p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Part #{i + 1}</span>
-                  <button onClick={() => setPartsUsed(partsUsed.filter((_, idx) => idx !== i))} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-                <select value={item.productId || ''} onChange={(e) => {
-                  const c = [...partsUsed];
-                  const prod = productsData?.items?.find((p) => p.id === e.target.value);
-                  if (prod) {
-                    c[i].productId = prod.id;
-                    c[i].partName = prod.name;
-                    c[i].unitPrice = prod.price;
-                  }
-                  setPartsUsed(c);
-                }} className="h-10 w-full rounded-lg border-2 border-amber-200 bg-white px-2 text-sm font-bold focus:outline-none focus:border-amber-500">
-                  <option value="">-- Or select from inventory --</option>
-                  {(productsData?.items ?? []).map((p) => <option key={p.id} value={p.id}>{p.name} • {formatPKR(p.price)}</option>)}
-                </select>
-                <input value={item.partName} onChange={(e) => { const c = [...partsUsed]; c[i].partName = e.target.value; setPartsUsed(c); }} placeholder="Part name *" className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-bold focus:outline-none focus:border-amber-500" />
-                <div className="grid grid-cols-4 gap-2">
-                  <input type="number" value={item.quantity} onChange={(e) => { const c = [...partsUsed]; c[i].quantity = Number(e.target.value); setPartsUsed(c); }} placeholder="Qty" className="h-10 rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
-                  <input type="number" value={item.unitPrice} onChange={(e) => { const c = [...partsUsed]; c[i].unitPrice = Number(e.target.value); setPartsUsed(c); }} placeholder="Price" className="h-10 rounded-lg border-2 border-emerald-200 bg-emerald-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
-                  <input type="number" value={item.discount} onChange={(e) => { const c = [...partsUsed]; c[i].discount = Number(e.target.value); setPartsUsed(c); }} placeholder="Disc" className="h-10 rounded-lg border-2 border-rose-200 bg-rose-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-rose-500" />
-                  <div className="h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-sm font-extrabold text-emerald-800 tabular-nums">
-                    {formatPKR((item.quantity || 1) * (item.unitPrice || 0) - (item.discount || 0))}
-                  </div>
-                </div>
+              <div className="flex flex-wrap gap-6">
+                <Switch checked={f.spare} onChange={(e) => set({ spare: e.target.checked })} label="Stepney saath hai" />
+                <Switch checked={f.toolkit} onChange={(e) => set({ toolkit: e.target.checked })} label="Auzaar saath hain" />
               </div>
-            ))}
-          </section>
-
-          {/* External Work */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">🏢 External Work ({externalWork.length})</h3>
-              <Button size="sm" onClick={() => setExternalWork([...externalWork, { description: '', vendorName: '', cost: 0, markup: 0 }])} className="bg-gradient-to-r from-violet-600 to-purple-700">
-                <Plus className="h-3.5 w-3.5" />
-                Add External
-              </Button>
+              <Input label="Pehle se nuqsan" value={f.damages} onChange={(e) => set({ damages: e.target.value })} placeholder="Peeche bumper par scratch…" hint="Marzi hai" />
             </div>
-            {externalWork.map((item, i) => (
-              <div key={i} className="rounded-xl border-2 border-slate-200 bg-violet-50/50 p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">External #{i + 1}</span>
-                  <button onClick={() => setExternalWork(externalWork.filter((_, idx) => idx !== i))} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-                <input value={item.description} onChange={(e) => { const c = [...externalWork]; c[i].description = e.target.value; setExternalWork(c); }} placeholder="Description (e.g. Painting)" className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                <div className="grid grid-cols-2 gap-2">
-                  <input value={item.vendorName} onChange={(e) => { const c = [...externalWork]; c[i].vendorName = e.target.value; setExternalWork(c); }} placeholder="Vendor name" className="h-10 rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                  <input value={item.vendorPhone} onChange={(e) => { const c = [...externalWork]; c[i].vendorPhone = e.target.value; setExternalWork(c); }} placeholder="Phone" className="h-10 rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <input type="number" value={item.cost} onChange={(e) => { const c = [...externalWork]; c[i].cost = Number(e.target.value); setExternalWork(c); }} placeholder="Cost" className="h-10 rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-violet-500" />
-                  <input type="number" value={item.markup} onChange={(e) => { const c = [...externalWork]; c[i].markup = Number(e.target.value); setExternalWork(c); }} placeholder="Markup" className="h-10 rounded-lg border-2 border-amber-200 bg-amber-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
-                  <div className="h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-sm font-extrabold text-emerald-800 tabular-nums">
-                    {formatPKR((item.cost || 0) + (item.markup || 0))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </section>
+          </Card>
         </div>
 
-        {/* Sidebar */}
-        <aside className="space-y-4">
-          <div className="sticky top-4 space-y-4">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-orange-900 text-white p-5 shadow-xl">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between"><span className="text-white/70">Labor</span><span className="font-bold tabular-nums">{formatPKR(laborTotal)}</span></div>
-                <div className="flex justify-between"><span className="text-white/70">Parts</span><span className="font-bold tabular-nums">{formatPKR(partsTotal)}</span></div>
-                <div className="flex justify-between"><span className="text-white/70">External</span><span className="font-bold tabular-nums">{formatPKR(externalTotal)}</span></div>
-                <div className="pt-2 border-t border-white/20 flex justify-between">
-                  <span className="text-white/70 font-bold">Subtotal</span>
-                  <span className="font-extrabold tabular-nums text-cyan-300">{formatPKR(subtotal)}</span>
-                </div>
-              </div>
-              <div className="mt-3 space-y-2">
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
-                  <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none" />
-                </div>
-                <div>
-                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
-                  <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none" />
-                </div>
-              </div>
-              <div className="mt-3 pt-3 border-t border-white/20 flex justify-between items-center">
-                <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
-                <span className="text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
-              </div>
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>} description="Phone se purana customer khud mil jata hai; udhaar aur advance usi ke khata me">
+            <div className="grid gap-3">
+              <Input label="Naam" value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder="Bilal Ahmad" hint="Marzi hai — udhaar ke liye zaroori" />
+              <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="03001234567" error={err('phone')}
+                hint="WhatsApp par gaari tayyar hone ki khabar" />
             </div>
-            <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} disabled={!canSubmit} size="lg" className="w-full bg-gradient-to-r from-orange-600 to-red-700">
-              <Save className="h-5 w-5" />
-              Create Job
-            </Button>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={Wrench}>Mazdoori ka andaza</T>} description="Marzi hai — baad me job par bhi jor sakte hain">
+            <div className="space-y-2">
+              {f.labour.map((l, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input aria-label="Kaam" value={l.description} placeholder="Oil change" wrapperClassName="flex-1"
+                    onChange={(e) => set({ labour: f.labour.map((x, j) => (j === i ? { ...x, description: e.target.value } : x)) })} />
+                  <Input aria-label="Amount" inputMode="decimal" value={l.amount} placeholder="Rs" wrapperClassName="w-28" className="text-right tabular-nums"
+                    onChange={(e) => set({ labour: f.labour.map((x, j) => (j === i ? { ...x, amount: money(e.target.value) } : x)) })} />
+                  <button type="button" aria-label="Hatayein" onClick={() => set({ labour: f.labour.filter((_, j) => j !== i) })}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              ))}
+              {err('labour') && <p className="text-[0.8125rem] font-medium text-rose-600">{err('labour')}</p>}
+              <Button variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />}
+                onClick={() => set({ labour: [...f.labour, { description: f.labour.length ? '' : jobTypeOf(f.jobType), amount: '' }] })}>Mazdoori jorein</Button>
+              {labourTotal > 0 && <p className="text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">Kul {formatPKR(labourTotal)}</p>}
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={Wallet}>Advance</T>} description="Abhi mila paisa customer ke khata me jama hota hai aur bill me katta hai">
+            <div className="space-y-3">
+              <Input label="Advance (Rs)" inputMode="decimal" value={f.advance} onChange={(e) => set({ advance: money(e.target.value) })} placeholder="0"
+                error={err('advance')} className="text-right font-semibold tabular-nums" hint={n(f.advance) ? formatPKR(n(f.advance)) : 'Khali chhorein agar kuch nahi mila'} />
+              {n(f.advance) > 0 && <PaymentMethodPicker value={f.method} onChange={(method) => set({ method })} />}
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl">
+            <div className="space-y-3">
+              <Input label="Bay / jagah" value={f.bay} onChange={(e) => set({ bay: e.target.value })} placeholder="Bay 2" hint="Marzi hai" />
+              <Textarea label="Andar ka note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Sirf staff ke liye" hint="Parchi par nahi chhapta" />
+              <Switch checked={print} onChange={(e) => setPrint(e.target.checked)} label="Save ke baad parchi print karein" />
+            </div>
+          </Card>
+
+          <div className="flex items-center justify-between gap-3">
+            <span className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save · <Kbd>Esc</Kbd> wapas</span>
+            <Button onClick={submit} loading={save.isPending} leftIcon={<ClipboardList className="h-4 w-4" />}>Job banayein</Button>
           </div>
-        </aside>
+        </div>
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide title="Naya job — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Car, color: '#2563eb', title: 'Gaari ka number', text: 'Number likhte hi purani gaari aa jati hai — company, model aur malik khud bhar jate hain. Nayi gaari khud darj ho jati hai.' },
+            { icon: Wrench, color: '#7c3aed', title: 'Shikayat aur mechanic', text: 'Customer ki baat likhein, mechanic chunein aur gaari dene ka waqt. Late gaariyan jobs list me laal dikhti hain.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance customer ke khata me jama hota hai aur gaari dete waqt bill me khud kat jata hai.' },
+            { icon: ClipboardList, color: '#ea580c', title: 'Parts baad me', text: 'Save ke baad job khulti hai — wahan parts jorein. Stock wala part jorte hi stock se nikalta hai.' },
+          ]}
+          shortcuts={[['Ctrl+Enter', 'save'], ['Esc', 'wapas'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
+}
+
+function T({ icon: Icon, children }: { icon: typeof Car; children: string }) {
+  return <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
 }

@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Barcode, Plus } from 'lucide-react';
 import { useShopParam } from '@core/stores/auth.store';
+import { Button } from '@/design-system/components';
 import { PurchaseEditorPage } from '@modules/purchasing/purchases/editor/PurchaseEditorPage';
 import PurchaseDetailPage from '@modules/purchasing/purchases/pages/PurchaseDetailPage';
 import { electronicsProductsApi } from '../api/products.api';
@@ -49,10 +50,7 @@ function LineUnits({ productId, purchaseNumber, onAdd }: { productId: string; pu
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-violet-50 px-2.5 py-2 ring-1 ring-violet-200">
       <span className="min-w-0 flex-1 text-[0.75rem] text-violet-800">Serial wali cheez — is bill ke <b>{isLoading ? '…' : have}</b> units darj</span>
-      <button type="button" onClick={() => onAdd(have)}
-        className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg bg-violet-600 px-2.5 text-[0.75rem] font-semibold text-white hover:bg-violet-700">
-        <Plus className="h-3 w-3" /> Serial daalein
-      </button>
+      <Button size="xs" onClick={() => onAdd(have)} leftIcon={<Plus className="h-3 w-3" />} className="shrink-0">Serial daalein</Button>
     </div>
   );
 }

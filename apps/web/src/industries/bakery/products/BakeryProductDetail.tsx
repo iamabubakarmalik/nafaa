@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { CakeSlice, ChefHat, Clock, Leaf, Snowflake, Wheat } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card } from '@/design-system/components';
+import { Card, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -142,22 +142,20 @@ const config: DetailConfig<Extra> = {
         return (
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="rounded-2xl lg:col-span-2" flush title="Kya lagta hai" description={`Ek dafa mein ${fmt(r.yieldQty)} ${ctx.product.unit} — aaj ke rate se`}>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[34rem] text-[0.8125rem]">
-                  <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-2.5">Cheez</th><th className="px-3 py-2.5 text-right">Quantity</th><th className="px-3 py-2.5 text-right">Rate</th><th className="px-3 py-2.5 text-right">Kharch</th><th className="px-5 py-2.5 text-right">Godown mein</th></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
+              <Table minWidth="34rem" className="text-[0.8125rem] [&_table]:text-[0.8125rem]">
+                  <THead><Tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><Th className="px-5 py-2.5">Cheez</Th><Th className="px-3 py-2.5 text-right">Quantity</Th><Th className="px-3 py-2.5 text-right">Rate</Th><Th className="px-3 py-2.5 text-right">Kharch</Th><Th className="px-5 py-2.5 text-right">Godown mein</Th></Tr></THead>
+                  <TBody>
                     {r.rows.map((l) => (
-                      <tr key={l.ingredientId} className={cn(r.limiting?.ingredientId === l.ingredientId && 'bg-amber-50/60')}>
-                        <td className="px-5 py-2 font-medium text-slate-900">{l.name}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">{fmt(l.qty)} {l.unit}</td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-600">{ctx.cost(l.rate)}</td>
-                        <td className="px-3 py-2 text-right font-semibold tabular-nums">{ctx.cost(l.cost)}</td>
-                        <td className="px-5 py-2 text-right tabular-nums text-slate-600">{l.stock === null ? '—' : `${fmt(l.stock)} ${l.unit}`}</td>
-                      </tr>
+                      <Tr key={l.ingredientId} className={cn(r.limiting?.ingredientId === l.ingredientId && 'bg-amber-50/60')}>
+                        <Td className="px-5 py-2 font-medium text-slate-900">{l.name}</Td>
+                        <Td className="px-3 py-2 text-right tabular-nums">{fmt(l.qty)} {l.unit}</Td>
+                        <Td className="px-3 py-2 text-right tabular-nums text-slate-600">{ctx.cost(l.rate)}</Td>
+                        <Td className="px-3 py-2 text-right font-semibold tabular-nums">{ctx.cost(l.cost)}</Td>
+                        <Td className="px-5 py-2 text-right tabular-nums text-slate-600">{l.stock === null ? '—' : `${fmt(l.stock)} ${l.unit}`}</Td>
+                      </Tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </TBody>
+                </Table>
             </Card>
             <div className="space-y-4">
               <Card className="rounded-2xl" title="Cost">

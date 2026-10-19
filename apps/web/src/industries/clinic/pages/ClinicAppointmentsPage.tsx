@@ -1,193 +1,259 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+/**
+ * Appointments: every visit with server-side search, period, doctor,
+ * status and "fees baqi" filters, paging, CSV and print; fees can be taken
+ * from the row. The Follow-up tab lists patients the doctors asked to come
+ * back, with a one-click booking.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
-  Calendar, Plus, Search, RefreshCw, Sparkles, Clock, User,
-  CheckCircle2, ArrowRight, Video, Home, Zap, Timer, AlertCircle,
+  CalendarCheck, CalendarClock, CalendarPlus, CheckCircle2, Download, GraduationCap, Printer, Repeat, Stethoscope, Timer, Wallet, XCircle,
 } from 'lucide-react';
-import { appointmentsApi, type AppointmentStatus } from '../api/appointments.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { format, differenceInMinutes, isToday } from 'date-fns';
+import {
+  Badge, Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton,
+  Table, TBody, THead, Td, Th, Tr, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { appointmentsApi, type Appointment, type AppointmentStatus, type FeePayment } from '../api/appointments.api';
+import { doctorsApi } from '../api/doctors.api';
+import { FeePayModal } from '../components/FeePayModal';
+import { ListCard, ListFailed, ListLoading, Pager } from '../components/ListBits';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { APT_STATUS, PAY_STATUS, apiError, dayBounds, dayKey, drName, patientLine, r2, shortDate, timeOf, visitLabel } from '../lib/meta';
+import { printTokenSlip } from '../lib/print';
 
-const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; icon: any }> = {
-  SCHEDULED: { label: 'Scheduled', color: 'bg-slate-500', icon: Calendar },
-  CONFIRMED: { label: 'Confirmed', color: 'bg-blue-500', icon: CheckCircle2 },
-  ARRIVED: { label: 'Arrived', color: 'bg-cyan-500', icon: User },
-  IN_CONSULTATION: { label: 'In Consultation', color: 'bg-amber-500', icon: Timer },
-  COMPLETED: { label: 'Completed', color: 'bg-emerald-600', icon: CheckCircle2 },
-  NO_SHOW: { label: 'No Show', color: 'bg-orange-600', icon: AlertCircle },
-  CANCELLED: { label: 'Cancelled', color: 'bg-rose-500', icon: AlertCircle },
-  RESCHEDULED: { label: 'Rescheduled', color: 'bg-violet-500', icon: Calendar },
-};
+type Tab = 'list' | 'followups';
+const LIMIT = 30;
+const STATUS_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'all', label: 'Sab' }, { value: 'OPEN', label: 'Abhi baqi (line)' }, { value: 'COMPLETED', label: 'Mukammal' },
+  { value: 'CANCELLED', label: 'Cancel' }, { value: 'NO_SHOW', label: 'Nahi aaye' },
+];
 
-export default function ClinicAppointmentsPage() {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('upcoming');
-  const [dateFilter, setDateFilter] = useState<string>('today');
+function periodOf(v: DateRangeValue) {
+  const r = resolveRange(v, 0);
+  if (!r) return {};
+  return { from: r.from === 'all' ? undefined : dayBounds(r.from).from, to: dayBounds(r.to).to };
+}
 
-  const getDateRange = () => {
-    const now = new Date();
-    const start = new Date(now);
-    const end = new Date(now);
-    if (dateFilter === 'today') { start.setHours(0,0,0,0); end.setHours(23,59,59,999); }
-    else if (dateFilter === 'tomorrow') { start.setDate(start.getDate()+1); start.setHours(0,0,0,0); end.setDate(end.getDate()+1); end.setHours(23,59,59,999); }
-    else if (dateFilter === 'week') { start.setHours(0,0,0,0); end.setDate(end.getDate()+7); }
-    else if (dateFilter === 'month') { start.setHours(0,0,0,0); end.setDate(end.getDate()+30); }
-    return { from: start.toISOString(), to: end.toISOString() };
-  };
-
-  const { data: appointments = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['clinic-appointments', statusFilter, dateFilter, search],
-    queryFn: () => {
-      const range = dateFilter === 'all' ? {} : getDateRange();
-      return appointmentsApi.list({
-        status: statusFilter === 'upcoming' || statusFilter === 'all' ? undefined : statusFilter,
-        search: search.trim() || undefined,
-        ...range,
-      });
-    },
-    refetchInterval: 60_000,
-  });
-
-  const filtered = statusFilter === 'upcoming'
-    ? appointments.filter((a) => ['SCHEDULED', 'CONFIRMED', 'ARRIVED', 'IN_CONSULTATION'].includes(a.status))
-    : appointments;
-
+function FollowUps() {
+  const [days, setDays] = useState<'7' | '30' | 'past'>('7');
+  const range = days === 'past'
+    ? { from: dayBounds(dayKey(new Date(Date.now() - 30 * 86_400_000))).from, to: dayBounds(dayKey(new Date(Date.now() - 86_400_000))).to }
+    : { from: dayBounds(dayKey()).from, to: dayBounds(dayKey(new Date(Date.now() + Number(days) * 86_400_000))).to };
+  const q = useQuery({ queryKey: ['clinic-followups', range.from, range.to], queryFn: () => appointmentsApi.followUps(range.from, range.to) });
+  const rows = q.data ?? [];
+  const open = rows.filter((r) => !r.bookedAppointmentId);
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Booking Manager
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">📅 Appointments</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">All appointments with token queue</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Link to="/clinic/appointments/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" />
-                New Appointment
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search appointment #, complaint..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {[
-            { v: 'today', label: '📅 Today' },
-            { v: 'tomorrow', label: 'Tomorrow' },
-            { v: 'week', label: 'Next 7 days' },
-            { v: 'month', label: 'Next 30 days' },
-            { v: 'all', label: 'All' },
-          ].map((d) => (
-            <button key={d.v} onClick={() => setDateFilter(d.v)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (dateFilter === d.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{d.label}</button>
-          ))}
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {[
-            { v: 'upcoming', label: '🔥 Upcoming' },
-            { v: 'all', label: 'All Status' },
-            ...Object.entries(STATUS_CONFIG).map(([k, v]) => ({ v: k, label: v.label })),
-          ].map((s) => (
-            <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{s.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Calendar className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No appointments</p>
-        </div>
+    <ListCard>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+        <p className="text-[0.875rem] text-slate-600"><b className="text-slate-900">{open.length}</b> ne abhi booking nahi ki · {rows.length - open.length} booked</p>
+        <FilterMenu icon={CalendarClock} label="Kab" value={days} onChange={setDays} align="right"
+          options={[{ value: '7', label: 'Agle 7 din' }, { value: '30', label: 'Agle 30 din' }, { value: 'past', label: 'Guzar gaye (30 din)' }]} />
+      </div>
+      {q.isLoading ? <ListLoading /> : q.isError ? <ListFailed onRetry={() => q.refetch()} /> : rows.length === 0 ? (
+        <p className="px-6 py-14 text-center text-[0.875rem] text-slate-500">Is waqt me koi follow-up nahi. Doctor checkup me "Dobara kab aayein" likhe to yahan aata hai.</p>
       ) : (
-        <section className="grid gap-3">
-          {filtered.map((apt) => <AppointmentCard key={apt.id} apt={apt} />)}
-        </section>
+        <Table minWidth="48rem">
+          <THead><Tr><Th>Tareekh</Th><Th>Mareez</Th><Th>Doctor</Th><Th>Diagnosis</Th><Th align="right">Booking</Th></Tr></THead>
+          <TBody>
+            {rows.map((f) => (
+              <Tr key={f.id}>
+                <Td className="whitespace-nowrap font-semibold text-slate-900">{shortDate(f.followUpDate)}</Td>
+                <Td><Link to={`/clinic/patients/${f.patientId}`} className="font-semibold text-slate-900 hover:text-brand-700">{patientLine(f.patient)}</Link><p className="text-[0.75rem] text-slate-500">{f.patient?.mrn}{f.patient?.phonePrimary && ` · ${f.patient.phonePrimary}`}</p></Td>
+                <Td>{drName(f.doctor)}</Td>
+                <Td className="max-w-xs truncate">{f.finalDiagnosis || f.provisionalDiagnosis || f.followUpAdvice || '—'}</Td>
+                <Td align="right">
+                  {f.bookedAppointmentId
+                    ? <Link to={`/clinic/appointments/${f.bookedAppointmentId}`}><Badge variant="success">Booked {shortDate(f.bookedFor)}</Badge></Link>
+                    : <Link to={`/clinic/appointments/new?patient=${f.patientId}&doctor=${f.doctorId}`} className="inline-flex h-8 items-center gap-1 rounded-lg bg-brand-600 px-2.5 text-[0.75rem] font-semibold text-white hover:bg-brand-700"><CalendarPlus className="h-3.5 w-3.5" />Book</Link>}
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
       )}
-    </div>
+    </ListCard>
   );
 }
 
-function AppointmentCard({ apt }: any) {
-  const statusCfg = STATUS_CONFIG[apt.status as AppointmentStatus];
-  const StatusIcon = statusCfg.icon;
-  const startDate = new Date(apt.scheduledStart);
-  const minsToStart = differenceInMinutes(startDate, new Date());
-  const isSoon = minsToStart <= 30 && minsToStart >= 0 && ['CONFIRMED', 'ARRIVED'].includes(apt.status);
-  const remaining = apt.total - apt.paidAmount;
+export default function ClinicAppointmentsPage() {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canBill = usePermission(PERMISSIONS.POS_USE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('list');
+  const [search, setSearch] = useState('');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'today', custom: { from: '', to: '' } });
+  const [doctorId, setDoctorId] = useState('');
+  const [status, setStatus] = useState('all');
+  const [due, setDue] = useState(false);
+  const [page, setPage] = useState(1);
+  const [paying, setPaying] = useState<Appointment | null>(null);
+  const q = useDebounced(search.trim());
+  usePageKeys(searchRef, { n: () => navigate('/clinic/appointments/new'), f: () => setTab((t) => (t === 'list' ? 'followups' : 'list')) });
+  useEffect(() => { setPage(1); }, [q, range, doctorId, status, due]);
+
+  const { data: doctors = [] } = useQuery({ queryKey: ['clinic-doctors', 'all'], queryFn: () => doctorsApi.list() });
+  const params = useMemo(() => ({
+    ...periodOf(range), search: q || undefined, doctorId: doctorId || undefined, status: status === 'all' ? undefined : status,
+    paymentStatus: due ? 'DUE' : undefined, limit: LIMIT,
+  }), [range, q, doctorId, status, due]);
+  const list = useQuery({
+    queryKey: ['clinic-appointments', 'page', params, page],
+    queryFn: () => appointmentsApi.page({ ...params, page }),
+    placeholderData: (p) => p,
+    refetchInterval: 60_000,
+    enabled: tab === 'list',
+  });
+  const data = list.data;
+  const by = data?.summary.byStatus ?? {};
+  const count = (...s: AppointmentStatus[]) => s.reduce((n, k) => n + (by[k] ?? 0), 0);
+
+  const pay = useMutation({
+    mutationFn: (body: FeePayment) => appointmentsApi.addPayment(paying!.id, body),
+    onSuccess: (res) => {
+      toast.success(`Bill ${res.sale.saleNumber} ban gaya`);
+      printTokenSlip(res, paying!.patient ? { ...paying!.patient } : null, paying!.doctor, res.sale);
+      setPaying(null);
+      qc.invalidateQueries({ queryKey: ['clinic-appointments'] });
+    },
+    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+  });
+
+  const exportCsv = async () => {
+    try {
+      const all = await appointmentsApi.page({ ...params, page: 1, limit: 200 });
+      if (!all.items.length) { toast.error('Koi appointment nahi'); return; }
+      downloadCsv('appointments.csv', [
+        ['Tareekh', 'Waqt', 'Token', 'Number', 'Mareez', 'MR', 'Phone', 'Doctor', 'Visit', 'Status', 'Fees', 'Bill bana', 'Baqi'],
+        ...all.items.map((a) => [shortDate(a.scheduledStart), timeOf(a.scheduledStart), a.tokenNumber, a.appointmentNumber, a.patient?.fullName, a.patient?.mrn, a.patient?.phonePrimary,
+          drName(a.doctor), visitLabel(a.visitType), APT_STATUS[a.status].label, a.total, a.paidAmount, r2(Math.max(a.total - a.paidAmount, 0))]),
+      ]);
+    } catch (e) { toast.error(apiError(e, 'File nahi bani')); }
+  };
+
+  const chips = [
+    doctorId && <FilterChip key="d" onRemove={() => setDoctorId('')}>{drName(doctors.find((d) => d.id === doctorId))}</FilterChip>,
+    status !== 'all' && <FilterChip key="s" onRemove={() => setStatus('all')}>{STATUS_OPTIONS.find((s) => s.value === status)?.label}</FilterChip>,
+    due && <FilterChip key="p" onRemove={() => setDue(false)}>Fees baqi</FilterChip>,
+    q && <FilterChip key="q" onRemove={() => setSearch('')}>"{q}"</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <Link to={'/clinic/appointments/' + apt.id} className={
-      'block rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 ' +
-      (isSoon ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800 hover:border-blue-300')
-    }>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={
-            'shrink-0 rounded-2xl px-3 py-2 text-center min-w-[80px] ' +
-            (isSoon ? 'bg-amber-100' : 'bg-blue-100 dark:bg-blue-950/40')
-          }>
-            <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Token</div>
-            <div className="text-2xl font-extrabold text-blue-900">#{apt.tokenNumber || '?'}</div>
-            <div className="text-[0.6875rem] font-bold text-blue-700 mt-1">{format(startDate, 'HH:mm')}</div>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{apt.appointmentNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white inline-flex items-center gap-1 ' + statusCfg.color}>
-                <StatusIcon className="h-2.5 w-2.5" />
-                {statusCfg.label}
-              </span>
-              {isSoon && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">SOON</span>}
-              {apt.isEmergency && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Zap className="h-2 w-2" />EMERGENCY</span>}
-              {apt.isTelemedicine && <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Video className="h-2 w-2" />TELE</span>}
-              {apt.isHomeVisit && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Home className="h-2 w-2" />HOME</span>}
-              {apt.paymentStatus === 'PAID' && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">PAID</span>}
+    <PageShell className="print:space-y-2">
+      {guide.isOpen && (
+        <PageGuide title="Appointments — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: CalendarPlus, color: '#2563eb', title: 'Naya token', text: 'N dabayein ya "Naya token" — reception page par mareez, doctor aur fees ek jagah.' },
+            { icon: Wallet, color: '#d97706', title: 'Fees baqi', text: '"Fees baqi" card dabayein — jin ki fees ka bill nahi bana. Row ke Rs button se foran lein.' },
+            { icon: Repeat, color: '#16a34a', title: 'Follow-up', text: 'F dabayein — doctor ne jin ko dobara bulaya, un ki list; "Book" se seedha token.' },
+            { icon: Download, color: '#64748b', title: 'CSV aur print', text: 'Jo filter laga hai wohi list file me ya kaghaz par.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya token'], ['F', 'follow-up'], ['G', 'guide']]} />
+      )}
+      {paying && (
+        <FeePayModal title={`Fees — ${paying.patient?.fullName ?? paying.appointmentNumber}`} due={r2(paying.total - paying.paidAmount)} busy={pay.isPending}
+          description={`Token ${paying.tokenNumber ?? '-'} · ${drName(paying.doctor)} · baqi ${money(r2(paying.total - paying.paidAmount))}`}
+          onClose={() => setPaying(null)} onPay={(b) => pay.mutate(b)} />
+      )}
+
+      <PageHero title="Appointments" chip={<><CalendarCheck />{data?.total ?? 0}</>} busy={list.isFetching && !list.isLoading} loading={list.isLoading && tab === 'list'}
+        meta="Har visit, token aur fees"
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={() => window.print()} className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">Print</span></button>
+          <Link to="/clinic/queue" className={heroButton}><Timer className="h-4 w-4" /><span className="hidden sm:inline">Live line</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/clinic/appointments/new" className={heroPrimaryButton}><CalendarPlus className="h-4 w-4" />Naya token</Link>
+        </>}
+        stats={[
+          { label: 'Fees (is filter me)', value: money(data?.summary.fees ?? 0) },
+          { label: 'Bill ban gaya', value: money(data?.summary.billed ?? 0) },
+          { label: 'Baqi', value: money(data?.summary.due ?? 0) },
+        ]} />
+
+      <KpiRow>
+        {list.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={CalendarCheck} color="#2563eb" label="Kul" value={data?.total ?? 0} onClick={() => { setStatus('all'); setDue(false); }} active={status === 'all' && !due} />
+            <KpiCard icon={Timer} color="#d97706" label="Line me" value={count('SCHEDULED', 'CONFIRMED', 'RESCHEDULED', 'ARRIVED', 'IN_CONSULTATION')} hint="Booked, intezar, doctor ke paas" onClick={() => setStatus('OPEN')} active={status === 'OPEN'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Mukammal" value={count('COMPLETED')} onClick={() => setStatus('COMPLETED')} active={status === 'COMPLETED'} />
+            <KpiCard icon={XCircle} color="#e11d48" label="Cancel / nahi aaye" value={count('CANCELLED', 'NO_SHOW')} onClick={() => setStatus('CANCELLED')} active={status === 'CANCELLED'} />
+            <KpiCard icon={Wallet} color="#b45309" label="Fees baqi" value={money(data?.summary.due ?? 0)} onClick={() => setDue((v) => !v)} active={due} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Mareez ka naam, phone, MR, appointment number ya shikayat…" />}
+        chips={chips.length ? <>{chips}</> : undefined}
+        onClear={() => { setSearch(''); setDoctorId(''); setStatus('all'); setDue(false); }}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={0} defaultPreset="today" />
+        <FilterMenu icon={Stethoscope} label="Doctor" value={doctorId || 'all'} active={!!doctorId} onChange={(v) => setDoctorId(v === 'all' ? '' : v)}
+          options={[{ value: 'all', label: 'Sab doctors' }, ...doctors.map((d) => ({ value: d.id, label: drName(d) }))]} />
+        <FilterMenu icon={CalendarClock} label="Status" value={status} active={status !== 'all'} onChange={setStatus} options={STATUS_OPTIONS} align="right" />
+      </FilterBar>
+
+      <ViewTabs<Tab> value={tab} onChange={setTab} hint="F dabayein: follow-up"
+        tabs={[{ id: 'list', label: 'Appointments', icon: CalendarCheck, count: data?.total ?? null }, { id: 'followups', label: 'Follow-up', icon: Repeat }]} />
+
+      {tab === 'followups' ? <FollowUps /> : (
+        <ListCard>
+          {list.isLoading ? <ListLoading /> : list.isError ? <ListFailed onRetry={() => list.refetch()} /> : !data?.items.length ? (
+            <div className="flex flex-col items-center px-6 py-16 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><CalendarCheck className="h-7 w-7" /></span>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{chips.length ? 'Is filter me koi appointment nahi' : 'Is waqt me koi appointment nahi'}</h3>
+              <p className="mt-1 text-[0.875rem] text-slate-500">Reception se mareez ko token dein — yahan foran aa jata hai.</p>
+              <Button className="mt-4" onClick={() => navigate('/clinic/appointments/new')} leftIcon={<CalendarPlus className="h-4 w-4" />}>Naya token</Button>
             </div>
-
-            {apt.chiefComplaint && (
-              <div className="mt-2 text-xs font-bold text-slate-700 line-clamp-1">💬 {apt.chiefComplaint}</div>
-            )}
-
-            <div className="mt-1 text-xs text-slate-500 font-semibold">
-              {isToday(startDate) ? 'Today' : format(startDate, 'dd MMM yyyy')} • {apt.visitType?.replace(/_/g, ' ')}
-            </div>
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(apt.total)}</div>
-          {remaining > 0 && apt.paymentStatus !== 'PAID' && (
-            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
+          ) : (
+            <>
+              <Table minWidth="60rem">
+                <THead><Tr><Th>Waqt / token</Th><Th>Mareez</Th><Th>Doctor</Th><Th>Status</Th><Th align="right">Fees</Th><Th align="right" /></Tr></THead>
+                <TBody>
+                  {data.items.map((a) => {
+                    const left = r2(a.total - a.paidAmount);
+                    const pay = a.total > 0 && a.status !== 'CANCELLED' && a.status !== 'NO_SHOW' ? PAY_STATUS[a.paymentStatus] : null;
+                    return (
+                      <Tr key={a.id} interactive onClick={() => navigate(`/clinic/appointments/${a.id}`)}>
+                        <Td className="whitespace-nowrap">
+                          <p className="font-semibold text-slate-900">{shortDate(a.scheduledStart)} · {timeOf(a.scheduledStart)}</p>
+                          <p className="text-[0.75rem] text-slate-500">Token {a.tokenNumber ?? '-'} · {a.appointmentNumber}{a.isEmergency && <span className="ml-1 font-semibold text-rose-600">Emergency</span>}</p>
+                        </Td>
+                        <Td>
+                          <p className="font-semibold text-slate-900">{patientLine(a.patient)}</p>
+                          <p className="max-w-xs truncate text-[0.75rem] text-slate-500">{a.patient?.mrn}{a.chiefComplaint && ` · ${a.chiefComplaint}`}</p>
+                        </Td>
+                        <Td><p>{drName(a.doctor)}</p><p className="text-[0.75rem] text-slate-500">{visitLabel(a.visitType)}</p></Td>
+                        <Td><Badge variant={APT_STATUS[a.status].variant} dot>{APT_STATUS[a.status].label}</Badge></Td>
+                        <Td align="right">
+                          <p className="font-semibold">{money(a.total)}</p>
+                          {pay && <Badge size="xs" variant={pay.variant}>{left > 0 ? `${money(left)} baqi` : pay.label}</Badge>}
+                        </Td>
+                        <Td align="right" onClick={(e) => e.stopPropagation()}>
+                          {canBill && left > 0 && a.status !== 'CANCELLED' && a.status !== 'NO_SHOW' && (
+                            <Button size="sm" variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => setPaying(a)}>Fees</Button>
+                          )}
+                        </Td>
+                      </Tr>
+                    );
+                  })}
+                </TBody>
+              </Table>
+              <Pager page={page} total={data.total} limit={LIMIT} onPage={setPage} />
+            </>
           )}
-          <div className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600">
-            View <ArrowRight className="h-3 w-3" />
-          </div>
-        </div>
-      </div>
-    </Link>
+        </ListCard>
+      )}
+    </PageShell>
   );
 }

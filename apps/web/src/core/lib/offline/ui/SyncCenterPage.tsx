@@ -1,120 +1,81 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+/**
+ * Sync center: what this device saved while offline and whether it reached
+ * the server. History of every change (sales, products, customers,
+ * expenses), the data kept on the device, storage used, and the tools:
+ * sync now, upload, retry failed, refresh products, backup and restore,
+ * clear the device copy.
+ *
+ * Unsent changes are never removed from here: a failed item is retried,
+ * not deleted, so no bill or payment is lost.
+ *
+ * Keys: / search · R refresh · A analytics · G guide.
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
-  Activity, Cloud, CloudOff, RefreshCw, Trash2, AlertTriangle, CheckCircle2,
-  Package, Users, Receipt, Layers, Wifi, Download, Upload, RotateCcw,
-  HardDrive, XCircle, Search, X, Calendar, GraduationCap, Zap, Info,
-  Printer, FileSpreadsheet, ShoppingCart, Tag as TagIcon, Building2,
-  Clock, Filter, TrendingUp, Database, DollarSign,
+  Activity, BarChart3, Building2, CalendarRange, CheckCircle2, Clock, CloudOff, Database, Download, GraduationCap, HardDrive, History, Layers,
+  ListChecks, Package, Receipt, RefreshCw, RotateCcw, ShoppingCart, Tag, Trash2, Upload, Users, Wallet, Wifi, Wrench, XCircle,
+  type LucideIcon,
 } from 'lucide-react';
-import {
-  ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
-} from 'recharts';
 import { toast } from 'sonner';
+import {
+  Alert, Button, Card, EmptyState, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField,
+  Table, TBody, THead, Td, Th, Tr, ViewTabs, heroButton, heroIconButton, type FilterOption,
+} from '@/design-system/components';
+import { PageGuide, type GuideStep } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { setToDayStart, useBusinessDayStart } from '@core/lib/business-day';
 import { useOfflineStatus } from '@core/hooks/useOfflineStatus';
 import { fullSync, uploadPendingChanges, resetFailedItems } from '@core/lib/offline/syncEngine';
-import { db, clearAllOfflineData } from '@core/lib/offline/db';
+import { clearAllOfflineData } from '@core/lib/offline/db';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { exportBackup, importBackup } from '@core/lib/offline/offlineBackup';
 import { getDeviceId } from '@core/lib/offline/offlineDevice';
 import { loadFullHistory, getDataSnapshot, type HistoryEvent } from '@core/lib/offline/offlineHistory';
-import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA SYNC CENTER — GLOBAL FULL BEST v3
-   ─────────────────────────────────────────────────────────────
-   🌍 Full history — sales, products, customers, categories, etc
-   🌙 Dark mode complete
-   🎓 Teacher modal — "offline sync kya hai" universal
-   ⌨️  / = search • R = refresh • Esc = teacher band
-   📅 Category filters • 🖨️ Print/PDF perfect
-   ═════════════════════════════════════════════════════════════ */
-
-const formatDate = (v: number | string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' })
-    .format(typeof v === 'number' ? new Date(v) : new Date(v));
-
-const formatDateShort = (v: number | string) =>
-  new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric' })
-    .format(typeof v === 'number' ? new Date(v) : new Date(v));
-
-const formatPKR = (n: number) => `Rs ${n.toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
-
-const categoryConfig: Record<string, { label: string; light: string; dark: string; icon: any; color: string; emoji: string }> = {
-  sale: {
-    label: 'Sales', emoji: '💰',
-    light: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    dark: 'dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40',
-    icon: ShoppingCart, color: '#10b981',
-  },
-  product: {
-    label: 'Products', emoji: '📦',
-    light: 'bg-blue-100 text-blue-700 border-blue-200',
-    dark: 'dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40',
-    icon: Package, color: '#3b82f6',
-  },
-  customer: {
-    label: 'Customers', emoji: '👥',
-    light: 'bg-violet-100 text-violet-700 border-violet-200',
-    dark: 'dark:bg-violet-500/20 dark:text-violet-300 dark:border-violet-500/40',
-    icon: Users, color: '#8b5cf6',
-  },
-  expense: {
-    label: 'Expenses', emoji: '💸',
-    light: 'bg-orange-100 text-orange-700 border-orange-200',
-    dark: 'dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/40',
-    icon: Receipt, color: '#f97316',
-  },
-  lookup: {
-    label: 'Categories/Brands', emoji: '🏷️',
-    light: 'bg-slate-100 text-slate-700 border-slate-200',
-    dark: 'dark:bg-ink-700 dark:text-ink-200 dark:border-ink-600',
-    icon: TagIcon, color: '#64748b',
-  },
-  other: {
-    label: 'Other', emoji: '⚙️',
-    light: 'bg-slate-100 text-slate-700 border-slate-200',
-    dark: 'dark:bg-ink-700 dark:text-ink-200 dark:border-ink-600',
-    icon: Database, color: '#94a3b8',
-  },
-};
-
-const statusConfig: Record<string, { label: string; light: string; dark: string; emoji: string }> = {
-  pending: {
-    label: 'Pending', emoji: '⏳',
-    light: 'bg-amber-100 text-amber-700 border-amber-200',
-    dark: 'dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40',
-  },
-  syncing: {
-    label: 'Syncing', emoji: '🔄',
-    light: 'bg-blue-100 text-blue-700 border-blue-200',
-    dark: 'dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40',
-  },
-  synced: {
-    label: 'Synced', emoji: '✅',
-    light: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    dark: 'dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40',
-  },
-  failed: {
-    label: 'Failed', emoji: '❌',
-    light: 'bg-rose-100 text-rose-700 border-rose-200',
-    dark: 'dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40',
-  },
-};
-
+type Category = HistoryEvent['category'];
+type Status = HistoryEvent['status'];
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month';
-type CategoryFilter = 'all' | 'sale' | 'product' | 'customer' | 'expense' | 'lookup';
-type StatusFilter = 'all' | 'pending' | 'syncing' | 'synced' | 'failed';
 
-const DATE_PRESETS: { v: DateFilter; l: string }[] = [
-  { v: 'today', l: 'Aaj' },
-  { v: 'yesterday', l: 'Kal' },
-  { v: 'week', l: '7 Din' },
-  { v: 'month', l: '30 Din' },
-  { v: 'all', l: 'Sab' },
+const CATEGORY: Record<Category, { label: string; icon: LucideIcon; color: string }> = {
+  sale: { label: 'Sales', icon: ShoppingCart, color: '#16a34a' },
+  product: { label: 'Products', icon: Package, color: '#2563eb' },
+  customer: { label: 'Customers', icon: Users, color: '#7c3aed' },
+  expense: { label: 'Expenses', icon: Receipt, color: '#ea580c' },
+  lookup: { label: 'Categories / Brands', icon: Tag, color: '#475569' },
+  other: { label: 'Doosri', icon: Database, color: '#94a3b8' },
+};
+const STATUS: Record<Status, { label: string; tone: string }> = {
+  pending: { label: 'Bhejna baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  syncing: { label: 'Ja raha hai', tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  synced: { label: 'Server par', tone: 'bg-success-50 text-success-700 ring-success-200' },
+  failed: { label: 'Nahi gaya', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+};
+const CATEGORY_OPTIONS: Array<FilterOption<'all' | Category>> = [
+  { value: 'all', label: 'Sab kaam', icon: ListChecks, color: '#475569' },
+  ...(Object.keys(CATEGORY) as Category[]).map((k) => ({ value: k, label: CATEGORY[k].label, icon: CATEGORY[k].icon, color: CATEGORY[k].color })),
 ];
+const STATUS_OPTIONS: Array<FilterOption<'all' | Status>> = [
+  { value: 'all', label: 'Har halat' },
+  { value: 'pending', label: STATUS.pending.label, hint: 'Internet aate hi jayega', icon: Clock, color: '#d97706' },
+  { value: 'failed', label: STATUS.failed.label, hint: 'Dobara bhejna hoga', icon: XCircle, color: '#e11d48' },
+  { value: 'synced', label: STATUS.synced.label, icon: CheckCircle2, color: '#16a34a' },
+];
+const DATE_OPTIONS: Array<FilterOption<DateFilter>> = [
+  { value: 'today', label: 'Aaj' }, { value: 'yesterday', label: 'Kal' }, { value: 'week', label: 'Pichle 7 din' },
+  { value: 'month', label: 'Pichle 30 din' }, { value: 'all', label: 'Sab' },
+];
+const PAGE = 100;
+
+const when = (v: number) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
+const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;
 
 interface Snapshot {
   products: number; customers: number; expenses: number;
@@ -122,1022 +83,405 @@ interface Snapshot {
   pendingSales: number; queueItems: number; hasPending: boolean;
 }
 
+/** Start/end (ms) of a date filter, on the shop's business day. */
+function rangeOf(f: DateFilter, startHour: number): [number, number] {
+  const today = setToDayStart(new Date(), startHour).getTime();
+  const day = 86_400_000;
+  if (f === 'today') return [today, Infinity];
+  if (f === 'yesterday') return [today - day, today - 1];
+  if (f === 'week') return [today - 6 * day, Infinity];
+  if (f === 'month') return [today - 29 * day, Infinity];
+  return [0, Infinity];
+}
+
 export default function SyncCenterPage() {
   const tenantName = useAuthStore((s) => s.tenant?.name);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const startHour = useBusinessDayStart();
+  const theme = useChartTheme();
   const status = useOfflineStatus();
+  const deviceId = useMemo(() => getDeviceId(), []);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
   const [history, setHistory] = useState<HistoryEvent[]>([]);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
-  const [showTeacher, setShowTeacher] = useState(false);
+  const [tab, setTab] = useState<'history' | 'analytics' | 'device'>('history');
+  const [guide, setGuide] = useState(false);
+  const [confirm, setConfirm] = useState<'clear' | { restore: File } | null>(null);
 
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [category, setCategory] = useState<'all' | Category>('all');
+  const [state, setState] = useState<'all' | Status>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('week');
+  const [shown, setShown] = useState(PAGE);
 
-  const refreshAll = async () => {
+  const refreshAll = useCallback(async () => {
     const [h, snap] = await Promise.all([loadFullHistory(), getDataSnapshot()]);
     setHistory(h);
     setSnapshot(snap);
+    setLoaded(true);
     try {
-      const est = await (navigator as any).storage?.estimate?.();
+      const est = await navigator.storage?.estimate?.();
       if (est) setStorage({ usage: est.usage || 0, quota: est.quota || 0 });
-    } catch {}
-  };
-
-  useEffect(() => {
-    refreshAll();
-    const interval = setInterval(refreshAll, 3000);
-    return () => clearInterval(interval);
+    } catch { /* storage estimate is optional */ }
   }, []);
 
+  useEffect(() => {
+    void refreshAll();
+    const t = window.setInterval(() => void refreshAll(), 3000);
+    return () => window.clearInterval(t);
+  }, [refreshAll]);
+
   const filtered = useMemo(() => {
-    let result = [...history];
     const q = search.toLowerCase().trim();
-    if (q) {
-      result = result.filter((e) =>
-        e.title.toLowerCase().includes(q) ||
-        e.description.toLowerCase().includes(q) ||
-        (e.error || '').toLowerCase().includes(q),
-      );
-    }
-    if (categoryFilter !== 'all') result = result.filter((e) => e.category === categoryFilter);
-    if (statusFilter !== 'all') result = result.filter((e) => e.status === statusFilter);
-    if (dateFilter !== 'all') {
-      const now = new Date();
-      let cutoff = new Date();
-      let end: Date | null = null;
-      if (dateFilter === 'today') {
-        cutoff.setHours(0, 0, 0, 0);
-      } else if (dateFilter === 'yesterday') {
-        cutoff.setDate(now.getDate() - 1);
-        cutoff.setHours(0, 0, 0, 0);
-        end = new Date(cutoff); end.setHours(23, 59, 59, 999);
-      } else if (dateFilter === 'week') {
-        cutoff.setDate(now.getDate() - 7);
-      } else if (dateFilter === 'month') {
-        cutoff.setMonth(now.getMonth() - 1);
-      }
-      result = result.filter((e) => {
-        if (end) return e.createdAt >= cutoff.getTime() && e.createdAt <= end.getTime();
-        return e.createdAt >= cutoff.getTime();
-      });
-    }
-    return result;
-  }, [history, search, categoryFilter, statusFilter, dateFilter]);
+    const [from, to] = rangeOf(dateFilter, startHour);
+    return history.filter((e) => e.createdAt >= from && e.createdAt <= to
+      && (category === 'all' || e.category === category)
+      && (state === 'all' || e.status === state)
+      && (!q || e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q) || (e.error ?? '').toLowerCase().includes(q)));
+  }, [history, search, category, state, dateFilter, startHour]);
+  useEffect(() => setShown(PAGE), [search, category, state, dateFilter]);
 
   const stats = useMemo(() => {
-    const today = new Date().setHours(0, 0, 0, 0);
-    const todayEvents = history.filter((e) => e.createdAt >= today);
-    const totalAmount = filtered.reduce((s, e) => s + (e.amount || 0), 0);
+    const [today] = rangeOf('today', startHour);
+    const count = (s: Status) => history.filter((e) => e.status === s).length;
     return {
-      total: history.length,
-      filtered: filtered.length,
-      today: todayEvents.length,
-      pending: history.filter((e) => e.status === 'pending').length,
-      failed: history.filter((e) => e.status === 'failed').length,
-      synced: history.filter((e) => e.status === 'synced').length,
-      totalAmount,
+      today: history.filter((e) => e.createdAt >= today).length,
+      pending: count('pending') + count('syncing'), failed: count('failed'), synced: count('synced'),
+      amount: filtered.reduce((a, e) => a + (e.category === 'sale' ? e.amount ?? 0 : 0), 0),
     };
-  }, [history, filtered]);
+  }, [history, filtered, startHour]);
 
-  // 7-day trend
-  const trendData = useMemo(() => {
-    const buckets: Record<string, { date: string; label: string; sales: number; other: number }> = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
-      const key = d.toISOString().slice(0, 10);
-      buckets[key] = { date: key, label: formatDateShort(d.getTime()), sales: 0, other: 0 };
-    }
+  const trend = useMemo(() => {
+    const day = 86_400_000;
+    const [today] = rangeOf('today', startHour);
+    const rows = Array.from({ length: 14 }, (_, i) => {
+      const at = today - (13 - i) * day;
+      return { at, label: new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short' }).format(new Date(at)), sales: 0, other: 0 };
+    });
     for (const e of history) {
-      const key = new Date(e.createdAt).toISOString().slice(0, 10);
-      if (buckets[key]) {
-        if (e.category === 'sale') buckets[key].sales += 1;
-        else buckets[key].other += 1;
-      }
+      const i = Math.floor((e.createdAt - rows[0].at) / day);
+      if (i < 0 || i >= rows.length) continue;
+      if (e.category === 'sale') rows[i].sales += 1; else rows[i].other += 1;
     }
-    return Object.values(buckets);
-  }, [history]);
+    return rows;
+  }, [history, startHour]);
 
-  // Category breakdown
-  const categoryBreakdown = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const e of history) {
-      map.set(e.category, (map.get(e.category) || 0) + 1);
-    }
-    return Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([cat, count]) => ({
-        name: categoryConfig[cat]?.label || cat,
-        value: count,
-        color: categoryConfig[cat]?.color || '#64748b',
-      }));
-  }, [history]);
-
-  const categoryCounts = useMemo(() => {
-    const m: Record<string, number> = { all: history.length };
-    history.forEach((e) => { m[e.category] = (m[e.category] || 0) + 1; });
-    return m;
-  }, [history]);
-
-  const statusCounts = useMemo(() => {
-    const m: Record<string, number> = { all: history.length };
-    history.forEach((e) => { m[e.status] = (m[e.status] || 0) + 1; });
-    return m;
-  }, [history]);
+  const byCategory = useMemo(() => (Object.keys(CATEGORY) as Category[])
+    .map((k) => ({ id: k, ...CATEGORY[k], count: history.filter((e) => e.category === k).length, failed: history.filter((e) => e.category === k && e.status === 'failed').length }))
+    .filter((c) => c.count > 0).sort((a, b) => b.count - a.count), [history]);
 
   const storagePct = storage && storage.quota > 0 ? Math.round((storage.usage / storage.quota) * 100) : 0;
+  const unsent = snapshot ? snapshot.pendingSales + snapshot.queueItems : 0;
+  const hasFilters = !!(search.trim() || category !== 'all' || state !== 'all' || dateFilter !== 'week');
+  const clearFilters = () => { setSearch(''); setCategory('all'); setState('all'); setDateFilter('week'); };
 
-  /* Actions */
   const run = async (key: string, fn: () => Promise<void>) => {
     setBusy(key);
-    try { await fn(); } finally { setBusy(null); await refreshAll(); }
+    try { await fn(); } catch (e) { toast.error((e as Error)?.message || 'Nahi hua'); } finally { setBusy(null); await refreshAll(); }
   };
-
-  const handleForceSync = () => run('sync', () => fullSync(false, true));
-  const handleRefreshProducts = () => run('products', async () => {
-    await forceRefreshProducts();
-    toast.success('Products refresh ho gaye');
-  });
-  const handleUploadOnly = () => run('upload', async () => {
+  const syncNow = () => run('sync', () => fullSync(false, true));
+  const uploadNow = () => run('upload', async () => {
     const r = await uploadPendingChanges();
-    toast.success(`${r.salesSynced} sales + ${r.queueSynced} changes upload ho gaye`);
+    toast.success(`${r.salesSynced} sales aur ${r.queueSynced} doosre kaam server par chale gaye`);
   });
-  const handleResetFailed = () => run('reset', async () => {
+  const retryFailed = () => run('reset', async () => {
     const n = await resetFailedItems();
-    if (n > 0) {
-      toast.success(`${n} failed items dobara queue me`);
-      await uploadPendingChanges();
-    } else toast.info('Koi failed item nahi');
+    if (!n) { toast.info('Koi ruka hua kaam nahi'); return; }
+    toast.success(`${n} kaam dobara bheje ja rahe hain`);
+    await uploadPendingChanges();
   });
-  const handleExportBackup = () => run('backup', async () => {
-    await exportBackup();
-    toast.success('Backup download ho gaya');
+  const refreshProducts = () => run('products', async () => { await forceRefreshProducts(); toast.success('Products taaza ho gaye'); });
+  const backup = () => run('backup', async () => { await exportBackup(); toast.success('Backup download ho gaya'); });
+  const restore = (file: File) => run('restore', async () => {
+    const r = await importBackup(file);
+    toast.success(`${r.restored} records wapas aa gaye`);
   });
-  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!confirm('Backup restore karne se current data merge ho jayega. Continue?')) return;
-    await run('restore', async () => {
-      const r = await importBackup(file);
-      toast.success(`${r.restored} records restore ho gaye`);
-    });
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-  const handleClearCache = async () => {
-    if (snapshot?.hasPending) {
-      toast.error('Pehle pending changes sync karo, phir cache clear karo');
-      return;
-    }
-    if (!confirm('Poora offline cache clear kar dein? Pehle backup download karein.')) return;
-    await run('clear', async () => {
-      await clearAllOfflineData();
-      toast.success('Cache clear ho gayi');
-      await fullSync(true, true);
-    });
-  };
-  const handleDeleteEvent = async (e: HistoryEvent) => {
-    if (!confirm('Ye event delete kar dein?')) return;
-    if (e.id.startsWith('sale_')) {
-      await db.pendingSales.delete(e.id.replace('sale_', ''));
-    } else if (e.id.startsWith('q_')) {
-      await db.syncQueue.delete(e.id.replace('q_', ''));
-    }
-    toast.success('Event hataa diya');
-    await refreshAll();
-  };
+  const clearDevice = () => run('clear', async () => {
+    await clearAllOfflineData();
+    toast.success('Computer ka data saaf — server se dobara aa raha hai');
+    await fullSync(true, true);
+  });
 
-  const exportCSV = () => {
-    if (filtered.length === 0) return;
-    const summary = [
-      [`Sync History — ${tenantName || 'Nafaa'}`],
-      [`Shop: ${shopName || 'All'}  •  Generated: ${new Date().toLocaleString('en-PK')}`],
-      [`Total: ${filtered.length}  •  Synced: ${stats.synced}  •  Pending: ${stats.pending}  •  Failed: ${stats.failed}`],
-      [''],
-    ];
-    const headers = ['Date', 'Category', 'Title', 'Description', 'Amount', 'Status', 'Error'];
-    const rows = filtered.map((e) => [
-      new Date(e.createdAt).toLocaleString('en-PK'),
-      categoryConfig[e.category]?.label || e.category,
-      e.title,
-      e.description,
-      e.amount ? formatPKR(e.amount) : '',
-      statusConfig[e.status]?.label || e.status,
-      e.error || '',
-    ]);
-    const csv = [...summary, headers, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sync-history-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  /* Keyboard shortcuts */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showTeacher) return setShowTeacher(false);
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
-      if (e.key.toLowerCase() === 'r') { e.preventDefault(); refreshAll(); }
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); setTab('history'); setTimeout(() => searchRef.current?.focus(), 0); }
+      else if (k === 'r') { e.preventDefault(); void refreshAll(); }
+      else if (k === 'a') setTab((t) => (t === 'analytics' ? 'history' : 'analytics'));
+      else if (k === 'g') setGuide(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showTeacher]);
+  }, [refreshAll]);
 
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = showTeacher ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher]);
-
-  const hasFilters = !!search || categoryFilter !== 'all' || statusFilter !== 'all' || dateFilter !== 'week';
-  const clearFilters = () => {
-    setSearch(''); setCategoryFilter('all'); setStatusFilter('all'); setDateFilter('week');
+  const exportCsv = () => {
+    if (!filtered.length) return toast.error('Koi kaam nahi');
+    downloadCsv(`sync-history-${new Date().toISOString().slice(0, 10)}.csv`, [
+      [`Sync history — ${tenantName || 'Nafaa'}`], [`Branch: ${shopName || 'Sab'} · Device: ${deviceId}`], [''],
+      ['Waqt', 'Kaam', 'Title', 'Details', 'Amount', 'Halat', 'Ghalti'],
+      ...filtered.map((e) => [when(e.createdAt), CATEGORY[e.category]?.label ?? e.category, e.title, e.description, e.amount ?? '', STATUS[e.status]?.label ?? e.status, e.error ?? '']),
+    ]);
   };
-  const printDate = new Date().toLocaleString('en-PK', { dateStyle: 'full', timeStyle: 'short' });
+  const printDoc = (): PrintDoc => ({
+    title: 'Sync history',
+    subtitle: `${DATE_OPTIONS.find((d) => d.value === dateFilter)?.label} · Device ${deviceId}`,
+    meta: [['Kaam', String(filtered.length)], ['Bhejna baqi', String(stats.pending)], ['Nahi gaye', String(stats.failed)]],
+    sections: [{
+      kind: 'table',
+      columns: [{ label: 'Waqt' }, { label: 'Kaam' }, { label: 'Details', wideOnly: true }, { label: 'Amount', align: 'right' }, { label: 'Halat' }],
+      rows: filtered.slice(0, 2000).map((e) => [when(e.createdAt), e.title, e.description, e.amount ? formatPKR(e.amount) : '', STATUS[e.status]?.label ?? e.status]),
+    }],
+  });
+
+  const spin = (key: string) => (busy === key ? 'animate-spin' : '');
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-3">
-      {showTeacher && <SyncTeacher onClose={() => setShowTeacher(false)} />}
+    <PageShell>
+      {guide && <SyncGuide onClose={() => setGuide(false)} />}
+      {confirm === 'clear' && (
+        <Modal open onClose={() => setConfirm(null)} size="sm" title="Computer ka data saaf karein?"
+          description="Sirf is computer ki copy mitegi; server par sab mehfooz hai aur dobara aa jayega."
+          footer={<><Button variant="secondary" onClick={() => setConfirm(null)}>Rehne dein</Button><Button variant="danger" loading={busy === 'clear'} onClick={() => { setConfirm(null); void clearDevice(); }}>Saaf karein</Button></>}>
+          <p className="text-[0.875rem] text-slate-600">Pehle backup download kar lein to behtar hai.</p>
+        </Modal>
+      )}
+      {confirm && typeof confirm === 'object' && (
+        <Modal open onClose={() => setConfirm(null)} size="sm" title="Backup wapas laayein?"
+          description={`${confirm.restore.name} — is computer ke data mein mil jayega; jo pehle se hai woh nahi mitega.`}
+          footer={<><Button variant="secondary" onClick={() => setConfirm(null)}>Rehne dein</Button><Button loading={busy === 'restore'} onClick={() => { const f = confirm.restore; setConfirm(null); void restore(f); }}>Wapas laayein</Button></>}>
+          <p className="text-[0.875rem] text-slate-600">Wapas aaye bill internet aate hi server par jayenge.</p>
+        </Modal>
+      )}
+      <input ref={fileRef} type="file" accept=".json,application/json" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) setConfirm({ restore: f }); e.target.value = ''; }} />
 
-      {/* PRINT HEADER */}
-      <div className="hidden print:block">
-        <div className="border-b-4 border-blue-600 pb-3 mb-4">
-          <h1 className="text-2xl font-black text-slate-900 leading-tight">
-            ☁️ {tenantName || 'My Store'} — Sync History
-          </h1>
-          <p className="text-xs text-slate-600 font-semibold mt-1">
-            {shopName ? `Shop: ${shopName}  •  ` : ''}Device: {getDeviceId()}  •  {filtered.length} events
-          </p>
-          <p className="text-xs text-slate-500 mt-0.5">Generated: {printDate}</p>
-        </div>
-      </div>
-
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
-
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              {status.isOnline ? (
-                <><Wifi className="h-3.5 w-3.5 text-emerald-300" /> Online</>
-              ) : (
-                <><CloudOff className="h-3.5 w-3.5 text-amber-300" /> Offline</>
-              )}
-              <span className="opacity-40">•</span>
-              <span className="text-cyan-200 font-mono">📱 {getDeviceId()}</span>
-              {shopName && (
-                <>
-                  <span className="opacity-40">•</span>
-                  <span className="text-cyan-200">🏪 {shopName}</span>
-                </>
-              )}
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">☁️ Sync Center</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
-              <strong className="text-cyan-200">{stats.total}</strong> total events
-              <span className="opacity-50 mx-1.5">•</span>
-              <strong className="text-emerald-300">{stats.synced}</strong> synced
-              <span className="opacity-50 mx-1.5">•</span>
-              <strong className="text-amber-300">{stats.pending}</strong> pending
-              {stats.failed > 0 && (
-                <>
-                  <span className="opacity-50 mx-1.5">•</span>
-                  <strong className="text-rose-300">{stats.failed}</strong> failed
-                </>
-              )}
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            <button
-              onClick={() => setShowTeacher(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-              title="Kaise kaam karta hai?"
-            >
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-            <button
-              onClick={handleForceSync}
-              disabled={busy !== null || !status.isOnline}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition"
-            >
-              <RefreshCw className={`h-4 w-4 ${busy === 'sync' || status.isSyncing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Full Sync</span>
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
-            </button>
-            <button
-              onClick={exportCSV}
-              disabled={filtered.length === 0}
-              className="h-11 px-3 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-2xl transition disabled:opacity-50"
-            >
-              <FileSpreadsheet className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Sync progress bar */}
-        {status.progress && status.progress.total > 0 && (
-          <div className="relative mt-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-3">
-            <div className="flex justify-between text-[0.6875rem] font-extrabold text-white mb-1.5">
-              <span className="inline-flex items-center gap-1.5">
-                <RefreshCw className="h-3 w-3 animate-spin" /> Syncing…
-              </span>
-              <span>{status.progress.done} / {status.progress.total}</span>
-            </div>
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-300"
-                style={{ width: `${Math.round((status.progress.done / status.progress.total) * 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Last sync + storage */}
-        {(status.lastSync || storage) && (
-          <div className="relative mt-3 flex flex-wrap gap-2 items-center text-[0.6875rem] font-bold">
-            {status.lastSync && (
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-2.5 py-1 backdrop-blur-md">
-                <Clock className="h-3 w-3 text-cyan-300" />
-                Last sync: {formatDate(status.lastSync)}
-              </div>
-            )}
-            {storage && (
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-2.5 py-1 backdrop-blur-md">
-                <HardDrive className="h-3 w-3 text-cyan-300" />
-                {(storage.usage / 1024 / 1024).toFixed(1)} MB / {(storage.quota / 1024 / 1024 / 1024).toFixed(1)} GB ({storagePct}%)
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
-          <Kbd>/</Kbd><span className="text-white/60">Search</span>
-          <span className="text-white/30 mx-1">•</span>
-          <Kbd>R</Kbd><span className="text-white/60">Refresh</span>
-        </div>
-      </section>
-
-      {/* ═══ FAILED ALERT ═══ */}
-      {stats.failed > 0 && (
-        <section className="rounded-2xl p-5 border-2 border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 flex items-start gap-3 print:hidden">
-          <div className="h-10 w-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-lg">
-            <XCircle className="w-5 h-5" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-extrabold text-rose-900 dark:text-rose-100">{stats.failed} items sync fail ho gaye</h3>
-            <p className="text-sm text-rose-700 dark:text-rose-300 mt-1 font-semibold">
-              Stock conflict, deleted record, ya network issue. Retry karo ya table me dekh ke delete karo.
-            </p>
-          </div>
-          <button
-            onClick={handleResetFailed}
-            disabled={busy !== null || !status.isOnline}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl text-sm font-extrabold transition shrink-0 shadow-lg"
-          >
-            <RotateCcw className={`w-4 h-4 ${busy === 'reset' ? 'animate-spin' : ''}`} />
-            Retry All
+      <PageHero
+        title="Sync center"
+        chip={status.isOnline ? <><Wifi />Online</> : <><CloudOff />Offline</>}
+        busy={status.isSyncing}
+        meta={`Device ${deviceId}${shopName ? ` · ${shopName}` : ''}`}
+        loading={!loaded}
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroIconButton} title="CSV"><Download className="h-4 w-4" /></button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" disabled={!filtered.length} /></span>
+          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => void syncNow()} disabled={busy !== null || !status.isOnline} className={heroButton}>
+            <RefreshCw className={cn('h-4 w-4', (busy === 'sync' || status.isSyncing) && 'animate-spin')} />Abhi sync karein
           </button>
-        </section>
+        </>}
+        stats={[
+          { label: 'Bhejna baqi', value: String(stats.pending), hint: unsent ? `${snapshot?.pendingSales ?? 0} bill` : 'sab server par' },
+          { label: 'Nahi gaye', value: String(stats.failed), hint: stats.failed ? 'dobara bhejein' : '' },
+          { label: 'Server par pohanch gaye', value: String(stats.synced) },
+          { label: 'Aakhri sync', value: status.lastSync ? new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit' }).format(new Date(status.lastSync)) : '—', hint: status.lastSync ? new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short' }).format(new Date(status.lastSync)) : '' },
+        ]}
+      />
+
+      {status.progress && status.progress.total > 0 && (
+        <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
+          <div className="mb-1.5 flex justify-between text-[0.8125rem] font-semibold text-slate-700">
+            <span className="inline-flex items-center gap-1.5"><RefreshCw className="h-3.5 w-3.5 animate-spin text-brand-600" />Sync ho raha hai…</span>
+            <span className="tabular-nums">{status.progress.done} / {status.progress.total}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${Math.round((status.progress.done / status.progress.total) * 100)}%` }} />
+          </div>
+        </div>
       )}
 
-      {/* ═══ PENDING ALERT (no failed) ═══ */}
-      {snapshot && (snapshot.pendingSales > 0 || snapshot.queueItems > 0) && stats.failed === 0 && (
-        <section className="rounded-2xl p-5 border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 flex items-start gap-3 print:hidden">
-          <div className="h-10 w-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-extrabold text-amber-900 dark:text-amber-100">
-              {snapshot.pendingSales + snapshot.queueItems} pending changes
-            </h3>
-            <p className="text-sm text-amber-700 dark:text-amber-300 mt-1 font-semibold">
-              {snapshot.pendingSales > 0 && `${snapshot.pendingSales} sales`}
-              {snapshot.pendingSales > 0 && snapshot.queueItems > 0 && ' + '}
-              {snapshot.queueItems > 0 && `${snapshot.queueItems} other changes`}
-              {' — internet aane par khud sync hongi'}
-            </p>
-          </div>
-          <button
-            onClick={handleUploadOnly}
-            disabled={busy !== null || !status.isOnline}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-xl text-sm font-extrabold transition shrink-0 shadow-lg"
+      {stats.failed > 0 ? (
+        <Alert tone="danger" title={`${stats.failed} kaam server par nahi gaye`}
+          action={<Button size="sm" variant="danger" loading={busy === 'reset'} disabled={busy !== null || !status.isOnline} leftIcon={<RotateCcw className="h-4 w-4" />} onClick={() => void retryFailed()}>Dobara bhejein</Button>}>
+          Stock kam hona, mita hua record ya internet ka masla ho sakta hai. Neeche "Nahi gaya" wali lines mein wajah likhi hai.
+        </Alert>
+      ) : unsent > 0 && (
+        <Alert tone="warning" title={`${unsent} kaam bhejna baqi`}
+          action={<Button size="sm" loading={busy === 'upload'} disabled={busy !== null || !status.isOnline} leftIcon={<Upload className="h-4 w-4" />} onClick={() => void uploadNow()}>Abhi bhejein</Button>}>
+          {snapshot!.pendingSales > 0 && `${snapshot!.pendingSales} bill`}{snapshot!.pendingSales > 0 && snapshot!.queueItems > 0 && ' aur '}{snapshot!.queueItems > 0 && `${snapshot!.queueItems} doosre kaam`} — internet aate hi khud chale jayenge.
+        </Alert>
+      )}
+
+      <KpiRow cols={4}>
+        <KpiCard icon={Activity} color="#2563eb" label="Aaj ke kaam" value={stats.today} hint="Is computer par" onClick={() => { setDateFilter('today'); setTab('history'); }} active={dateFilter === 'today' && tab === 'history'} />
+        <KpiCard icon={Clock} color="#d97706" label="Bhejna baqi" value={stats.pending} hint={stats.pending ? 'Internet ka intezaar' : 'Sab bhej diye'} onClick={() => { setState('pending'); setDateFilter('all'); setTab('history'); }} active={state === 'pending'} />
+        <KpiCard icon={XCircle} color="#e11d48" label="Nahi gaye" value={stats.failed} hint={stats.failed ? 'Wajah dekhein' : 'Koi nahi'} onClick={() => { setState('failed'); setDateFilter('all'); setTab('history'); }} active={state === 'failed'} />
+        <KpiCard icon={HardDrive} color="#475569" label="Computer ki jagah" value={storage ? mb(storage.usage) : '—'} hint={storage ? `${storagePct}% istemal` : undefined} onClick={() => setTab('device')} />
+      </KpiRow>
+
+      <ViewTabs
+        tabs={[
+          { id: 'history', label: 'History', icon: History, count: filtered.length },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'device', label: 'Computer ka data', icon: Wrench },
+        ]}
+        value={tab} onChange={setTab}
+        hint={<>Har 3 second mein khud taaza hota hai</>}
+      />
+
+      {tab === 'history' && (
+        <>
+          <FilterBar
+            search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill number, naam ya ghalti…" label="History dhoondein" />}
+            chips={hasFilters ? <>
+              {search.trim() && <FilterChip onRemove={() => setSearch('')}>“{search.trim()}”</FilterChip>}
+              {category !== 'all' && <FilterChip onRemove={() => setCategory('all')}>{CATEGORY[category].label}</FilterChip>}
+              {state !== 'all' && <FilterChip onRemove={() => setState('all')}>{STATUS[state].label}</FilterChip>}
+              {dateFilter !== 'week' && <FilterChip onRemove={() => setDateFilter('week')}>{DATE_OPTIONS.find((d) => d.value === dateFilter)?.label}</FilterChip>}
+            </> : undefined}
+            onClear={clearFilters}
           >
-            <RefreshCw className={`w-4 h-4 ${busy === 'upload' ? 'animate-spin' : ''}`} />
-            Upload Now
-          </button>
-        </section>
+            <FilterMenu icon={CalendarRange} label={DATE_OPTIONS.find((d) => d.value === dateFilter)?.label ?? 'Period'} value={dateFilter} options={DATE_OPTIONS} onChange={setDateFilter} active={dateFilter !== 'week'} width="w-52" />
+            <FilterMenu icon={Layers} label={category === 'all' ? 'Kaam' : CATEGORY[category].label} value={category} options={CATEGORY_OPTIONS} onChange={setCategory} active={category !== 'all'} width="w-60" />
+            <FilterMenu icon={ListChecks} label={state === 'all' ? 'Halat' : STATUS[state].label} value={state} options={STATUS_OPTIONS} onChange={setState} active={state !== 'all'} align="right" width="w-60" />
+          </FilterBar>
+
+          <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {!loaded ? <div className="h-48 animate-pulse bg-slate-50" /> : filtered.length === 0 ? (
+              <EmptyState icon={<CheckCircle2 className="h-6 w-6" />} title={hasFilters ? 'Is filter mein kuch nahi' : 'Abhi koi kaam nahi'}
+                description={hasFilters ? 'Filter hata kar dekhein.' : 'Offline bane bill aur badlav yahan dikhte hain.'}
+                action={hasFilters ? <Button variant="secondary" onClick={clearFilters}>Filter hatayein</Button> : undefined} />
+            ) : (
+              <>
+                <Table minWidth="44rem">
+                  <THead><Tr><Th>Waqt</Th><Th>Kaam</Th><Th>Details</Th><Th align="right">Amount</Th><Th>Halat</Th></Tr></THead>
+                  <TBody>
+                    {filtered.slice(0, shown).map((e) => {
+                      const c = CATEGORY[e.category] ?? CATEGORY.other;
+                      const st = STATUS[e.status] ?? STATUS.pending;
+                      return (
+                        <Tr key={e.id}>
+                          <Td className="whitespace-nowrap text-[0.8125rem] text-slate-500">{when(e.createdAt)}</Td>
+                          <Td>
+                            <span className="inline-flex items-center gap-2 font-medium text-slate-900">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${c.color}17`, color: c.color }}><c.icon className="h-3.5 w-3.5" /></span>
+                              {e.title}
+                            </span>
+                          </Td>
+                          <Td className="max-w-[28rem] text-[0.8125rem]">
+                            <span className="block truncate">{e.description}</span>
+                            {e.error && <span className="mt-0.5 block text-[0.75rem] font-medium text-rose-700">{e.error}</span>}
+                          </Td>
+                          <Td align="right" className="font-semibold text-slate-900">{e.amount ? formatPKR(e.amount) : '—'}</Td>
+                          <Td>
+                            <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold ring-1', st.tone)}>{st.label}</span>
+                            {!!e.retryCount && <span className="ml-1 text-[0.6875rem] text-slate-400">{e.retryCount}x</span>}
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </TBody>
+                </Table>
+                {filtered.length > shown && (
+                  <div className="border-t border-slate-100 p-2">
+                    <Button variant="ghost" fullWidth onClick={() => setShown((n) => n + PAGE)}>Aur dikhayein ({shown} / {filtered.length})</Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          {stats.amount > 0 && <p className="text-[0.8125rem] text-slate-500">Is list ke bills: <strong className="tabular-nums text-slate-800">{formatPKR(stats.amount)}</strong></p>}
+        </>
       )}
 
-      {/* ═══ KPIs ═══ */}
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
-        <Kpi icon={Calendar} tone="blue" label="Aaj" value={stats.today} sub="Events today" />
-        <Kpi icon={CheckCircle2} tone="emerald" label="Synced" value={stats.synced} sub="Server pe uploaded" />
-        <Kpi
-          icon={Clock} tone="amber"
-          label="Pending" value={stats.pending}
-          sub={stats.pending > 0 ? '⏳ Sync ka intezaar' : 'Sab up-to-date'}
-        />
-        <Kpi
-          icon={XCircle} tone="rose"
-          label="Failed" value={stats.failed}
-          sub={stats.failed > 0 ? '⚠️ Manual review chahiye' : 'Koi failure nahi'}
-          isNegative={stats.failed > 0}
-        />
-      </section>
-
-      {/* ═══ DATA SNAPSHOT ═══ */}
-      {snapshot && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 print:hidden">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Database className="h-4 w-4 text-blue-600" />
-                Offline Data Snapshot
-              </h3>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
-                Ye sab kuch aap ke device pe cached hai — offline chalega
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-            <SnapCard icon={Package} label="Products" value={snapshot.products} color="blue" />
-            <SnapCard icon={Users} label="Customers" value={snapshot.customers} color="violet" />
-            <SnapCard icon={Receipt} label="Expenses" value={snapshot.expenses} color="orange" />
-            <SnapCard icon={TagIcon} label="Categories" value={snapshot.categories} color="emerald" />
-            <SnapCard icon={Building2} label="Brands" value={snapshot.brands} color="cyan" />
-            <SnapCard icon={Layers} label="Tags" value={snapshot.tags} color="pink" />
-            <SnapCard icon={DollarSign} label="Exp. Cats" value={snapshot.expCats} color="amber" />
-            <SnapCard icon={Building2} label="Shops" value={snapshot.shops} color="slate" />
-          </div>
-        </section>
-      )}
-
-      {/* ═══ CHARTS ═══ */}
-      {history.length > 0 && (
-        <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 print:hidden">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">7-Din Activity Trend</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Sales vs Other events daily</p>
-              </div>
-              <TrendingUp className="h-5 w-5 text-blue-500" />
-            </div>
+      {tab === 'analytics' && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="rounded-2xl lg:col-span-2" title="Pichle 14 din" description="Is computer par roz kitne kaam hue">
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData}>
-                  <defs>
-                    <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="otherGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:opacity-20" />
-                  <XAxis dataKey="label" stroke="#64748b" fontSize={11} />
-                  <YAxis stroke="#64748b" fontSize={11} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
+                <AreaChart data={trend} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+                  <CartesianGrid stroke={theme.grid} vertical={false} />
+                  <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
+                  <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={40} />
+                  <Tooltip contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Area type="monotone" dataKey="sales" name="Sales" stroke="#10b981" fill="url(#salesGrad)" strokeWidth={2.5} />
-                  <Area type="monotone" dataKey="other" name="Other" stroke="#3b82f6" fill="url(#otherGrad)" strokeWidth={2.5} />
+                  <Area type="monotone" dataKey="sales" name="Sales" stroke={theme.primary} fill={theme.primarySoft} strokeWidth={2} />
+                  <Area type="monotone" dataKey="other" name="Doosre kaam" stroke={theme.highlight} fill="transparent" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </div>
-
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">Category Breakdown</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Event types split</p>
-              </div>
-              <Filter className="h-5 w-5 text-violet-500" />
-            </div>
-            {categoryBreakdown.length > 0 ? (
-              <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryBreakdown}
-                      cx="50%" cy="45%" outerRadius={85} innerRadius={42}
-                      dataKey="value"
-                      label={(entry: any) => `${entry.value}`}
-                      labelLine={false}
-                    >
-                      {categoryBreakdown.map((entry, idx) => (
-                        <Cell key={`cell-${idx}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: 12 }} />
-                    <Legend wrapperStyle={{ fontSize: 10, paddingTop: 12 }} iconType="circle" />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-ink-400 font-semibold">
-                Koi data nahi
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ═══ ACTIONS BAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 print:hidden">
-        <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
-          <Zap className="h-4 w-4 text-blue-600" /> Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-          <ActionBtn
-            icon={RefreshCw} label="Refresh Products"
-            onClick={handleRefreshProducts}
-            disabled={busy !== null || !status.isOnline}
-            loading={busy === 'products'}
-            color="blue"
-          />
-          <ActionBtn
-            icon={Download} label="Download Backup"
-            onClick={handleExportBackup}
-            disabled={busy !== null}
-            loading={busy === 'backup'}
-            color="emerald"
-          />
-          <ActionBtn
-            icon={Upload} label="Restore Backup"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={busy !== null}
-            loading={busy === 'restore'}
-            color="violet"
-          />
-          <ActionBtn
-            icon={RotateCcw} label="Retry Failed"
-            onClick={handleResetFailed}
-            disabled={busy !== null || !status.isOnline || stats.failed === 0}
-            loading={busy === 'reset'}
-            color="amber"
-          />
-          <ActionBtn
-            icon={Trash2} label="Clear Cache"
-            onClick={handleClearCache}
-            disabled={busy !== null || (snapshot?.hasPending ?? false)}
-            loading={busy === 'clear'}
-            color="rose"
-          />
-        </div>
-        <input ref={fileInputRef} type="file" accept=".json,application/json" className="hidden" onChange={handleImportBackup} />
-      </section>
-
-      {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3 print:hidden">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              ref={searchRef}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search history — sale, product, customer, error... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
-                <X className="h-4 w-4 text-slate-400" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Date presets */}
-        <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 items-center">
-            <Calendar className="h-3.5 w-3.5 text-slate-400 ml-1.5 shrink-0" />
-            {DATE_PRESETS.map((o) => (
-              <button
-                key={o.v}
-                onClick={() => setDateFilter(o.v)}
-                className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
-                  dateFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
-                }`}
-              >
-                {o.l}
-              </button>
-            ))}
-          </div>
-
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs font-extrabold text-rose-600 dark:text-rose-400 hover:text-rose-700 inline-flex items-center gap-1 transition"
-            >
-              <X className="h-3 w-3" /> Filters clear
-            </button>
-          )}
-
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
-            {filtered.length} / {history.length} events
-          </div>
-        </div>
-
-        {/* Category pills */}
-        <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-widest mr-1">Type:</span>
-          <button
-            onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-              categoryFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
-            }`}
-          >
-            Sab <span className={`ml-1 tabular-nums ${categoryFilter === 'all' ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{categoryCounts.all}</span>
-          </button>
-          {(Object.entries(categoryConfig) as [string, any][]).map(([key, cfg]) => {
-            const count = categoryCounts[key] || 0;
-            if (count === 0) return null;
-            const active = categoryFilter === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setCategoryFilter(key as CategoryFilter)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1 border ${
-                  active ? `${cfg.light} ${cfg.dark} shadow-sm ring-2` : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
-                }`}
-              >
-                <span>{cfg.emoji}</span>
-                {cfg.label}
-                <span className={`ml-0.5 tabular-nums ${active ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Status pills */}
-        <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-widest mr-1">Status:</span>
-          <button
-            onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-              statusFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
-            }`}
-          >
-            Sab
-          </button>
-          {(Object.entries(statusConfig) as [string, any][]).map(([key, cfg]) => {
-            const count = statusCounts[key] || 0;
-            if (count === 0) return null;
-            const active = statusFilter === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setStatusFilter(key as StatusFilter)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1 border ${
-                  active ? `${cfg.light} ${cfg.dark} shadow-sm ring-2` : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
-                }`}
-              >
-                <span>{cfg.emoji}</span>
-                {cfg.label}
-                <span className={`ml-0.5 tabular-nums ${active ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ═══ HISTORY TABLE ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:border-0 print:rounded-none print:shadow-none">
-        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
-          <div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Full History</h3>
-            <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
-              {filtered.length} events • Sales + Products + Customers + Categories sab
-            </p>
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          <div className="p-12 sm:p-16 text-center">
-            <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-blue-100 to-cyan-200 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
-              <Activity className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
-              {hasFilters ? 'Filter me kuch nahi mila' : 'Koi sync event nahi'}
-            </h4>
-            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
-              {hasFilters
-                ? 'Date range badhao ya filters clear karo'
-                : 'Jab bhi aap offline sale karo ya koi change hoga, yahan record hoga'}
-            </p>
-            {hasFilters && (
-              <Button variant="secondary" className="mt-4 font-extrabold" onClick={clearFilters}>
-                <X className="h-4 w-4" /> Filters Clear
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
-                <tr>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Type</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Title / Details</th>
-                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Amount</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Status</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Date</th>
-                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 print:hidden">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
-                {filtered.map((e) => {
-                  const catCfg = categoryConfig[e.category] || categoryConfig.other;
-                  const statCfg = statusConfig[e.status] || statusConfig.pending;
-                  const Icon = catCfg.icon;
+          </Card>
+          <Card className="rounded-2xl" title="Kaam ke hisaab se">
+            {byCategory.length === 0 ? <p className="py-10 text-center text-[0.8125rem] text-slate-500">Abhi kuch nahi</p> : (
+              <ul className="space-y-3">
+                {byCategory.map((c) => {
+                  const max = byCategory[0].count;
                   return (
-                    <tr key={e.id} className="hover:bg-blue-50/40 dark:hover:bg-blue-500/5 transition">
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border ${catCfg.light} ${catCfg.dark}`}>
-                          <Icon className="h-3 w-3" />
-                          {catCfg.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-extrabold text-slate-900 dark:text-ink-white">{e.title}</div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold mt-0.5">{e.description}</div>
-                        {e.error && (
-                          <div className="mt-1 text-[0.6875rem] text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded px-1.5 py-0.5 inline-block">
-                            ⚠️ {e.error}
-                            {e.retryCount && e.retryCount > 0 && ` (${e.retryCount} tries)`}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {e.amount ? (
-                          <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(e.amount)}</span>
-                        ) : (
-                          <span className="text-slate-300 dark:text-ink-600">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-extrabold border ${statCfg.light} ${statCfg.dark}`}>
-                          <span>{statCfg.emoji}</span>
-                          {statCfg.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-ink-400 text-xs font-semibold whitespace-nowrap">
-                        {formatDate(e.createdAt)}
-                      </td>
-                      <td className="px-4 py-3 text-right print:hidden">
-                        {(e.status === 'pending' || e.status === 'failed') && (
-                          <button
-                            onClick={() => handleDeleteEvent(e)}
-                            className="h-8 w-8 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 inline-flex items-center justify-center transition"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
+                    <li key={c.id}>
+                      <button type="button" onClick={() => { setCategory(c.id); setDateFilter('all'); setTab('history'); }} className="w-full text-left">
+                        <div className="flex justify-between text-[0.8125rem]">
+                          <span className="inline-flex items-center gap-1.5 text-slate-700"><c.icon className="h-3.5 w-3.5" style={{ color: c.color }} />{c.label}</span>
+                          <span className="tabular-nums font-semibold">{c.count}{c.failed ? <span className="ml-1 text-rose-600">· {c.failed} nahi gaye</span> : null}</span>
+                        </div>
+                        <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${(c.count / max) * 100}%`, backgroundColor: c.color }} /></div>
+                      </button>
+                    </li>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      {status.lastError && (
-        <div className="bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/40 rounded-2xl p-4 text-sm text-rose-700 dark:text-rose-300 font-semibold flex items-start gap-2 print:hidden">
-          <Info className="h-4 w-4 shrink-0 mt-0.5" />
-          <div><strong>Last error:</strong> {status.lastError}</div>
+              </ul>
+            )}
+          </Card>
         </div>
       )}
 
-      {/* PRINT CSS */}
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 10mm 8mm; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          .print\\:hidden { display: none !important; }
-          .print\\:block { display: block !important; }
-          section, div { box-shadow: none !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
-          table { font-size: 9px !important; border-collapse: collapse !important; width: 100% !important; }
-          thead { display: table-header-group !important; }
-          thead th { background: #0ea5e9 !important; color: white !important; padding: 5px 4px !important; font-size: 8px !important; font-weight: 800 !important; border: 1px solid #0284c7 !important; }
-          tbody tr { page-break-inside: avoid !important; }
-          tbody td { padding: 5px 4px !important; border: 1px solid #e2e8f0 !important; color: #0f172a !important; }
-          tbody tr:nth-child(even) td { background: #f8fafc !important; }
-          [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   TEACHER MODAL
-   ═════════════════════════════════════════════════════════════ */
-function SyncTeacher({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Sync Center — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            Ye <strong>offline sync ka control room</strong> hai — yahan aap dekh sakte ho
-            ke device pe kya kya <strong>save hai</strong>, kya server pe <strong>chala gaya</strong>,
-            aur kya <strong>abhi tak pending</strong> hai.
-          </p>
-
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">
-              📋 4 Status
+      {tab === 'device' && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="rounded-2xl lg:col-span-2" title="Is computer par rakha data" description="Internet ke bagair bhi yeh sab kaam karta hai">
+            {!snapshot ? <div className="h-32 animate-pulse rounded-xl bg-slate-50" /> : (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {([
+                  [Package, 'Products', snapshot.products, '#2563eb'], [Users, 'Customers', snapshot.customers, '#7c3aed'],
+                  [Receipt, 'Expenses', snapshot.expenses, '#ea580c'], [Tag, 'Categories', snapshot.categories, '#16a34a'],
+                  [Building2, 'Brands', snapshot.brands, '#0891b2'], [Layers, 'Tags', snapshot.tags, '#db2777'],
+                  [Wallet, 'Expense heads', snapshot.expCats, '#d97706'], [Building2, 'Branches', snapshot.shops, '#475569'],
+                ] as const).map(([Icon, label, value, color]) => (
+                  <div key={label} className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-3.5 w-3.5" /></span>
+                    <p className="mt-2 text-[1.125rem] font-bold tabular-nums text-slate-900">{value.toLocaleString('en-PK')}</p>
+                    <p className="text-[0.75rem] text-slate-500">{label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {storage && (
+              <div className="mt-4">
+                <div className="flex justify-between text-[0.8125rem] text-slate-600"><span className="inline-flex items-center gap-1.5"><HardDrive className="h-4 w-4" />Browser ki jagah</span><span className="tabular-nums">{mb(storage.usage)} / {(storage.quota / 1024 / 1024 / 1024).toFixed(1)} GB</span></div>
+                <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', storagePct > 80 ? 'bg-rose-500' : 'bg-brand-600')} style={{ width: `${Math.max(1, storagePct)}%` }} /></div>
+              </div>
+            )}
+          </Card>
+          <Card className="rounded-2xl" title="Auzaar">
+            <div className="space-y-2">
+              <Button fullWidth variant="secondary" leftIcon={<RefreshCw className={cn('h-4 w-4', spin('products'))} />} disabled={busy !== null || !status.isOnline} onClick={() => void refreshProducts()}>Products taaza karein</Button>
+              <Button fullWidth variant="secondary" leftIcon={<RotateCcw className={cn('h-4 w-4', spin('reset'))} />} disabled={busy !== null || !status.isOnline || !stats.failed} onClick={() => void retryFailed()}>Ruke hue dobara bhejein</Button>
+              <Button fullWidth variant="secondary" leftIcon={<Download className="h-4 w-4" />} loading={busy === 'backup'} disabled={busy !== null} onClick={() => void backup()}>Backup download</Button>
+              <Button fullWidth variant="secondary" leftIcon={<Upload className="h-4 w-4" />} loading={busy === 'restore'} disabled={busy !== null} onClick={() => fileRef.current?.click()}>Backup wapas laayein</Button>
+              <Button fullWidth variant="critical" leftIcon={<Trash2 className="h-4 w-4" />} loading={busy === 'clear'} disabled={busy !== null || !status.isOnline}
+                onClick={() => (snapshot?.hasPending ? toast.error('Pehle baqi kaam server par bhejein, phir saaf karein') : setConfirm('clear'))}>
+                Computer ka data saaf karein
+              </Button>
             </div>
-            <TypeRow emoji="⏳" label="Pending" color="text-amber-700 dark:text-amber-400" desc="Save ho gaya, sync ka intezaar" />
-            <TypeRow emoji="🔄" label="Syncing" color="text-blue-700 dark:text-blue-400" desc="Abhi upload ho raha hai" />
-            <TypeRow emoji="✅" label="Synced" color="text-emerald-700 dark:text-emerald-400" desc="Server pe pahunch gaya" />
-            <TypeRow emoji="❌" label="Failed" color="text-rose-700 dark:text-rose-400" desc="Kuch masla — retry ya delete" />
-          </div>
-
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-1">
-              💾 Data Snapshot Kya Hai?
-            </div>
-            <p>Aap ke device pe cached data ki gainti — ye sab <strong>net ke baghair bhi chalega</strong>:</p>
-            <ul className="list-disc pl-4 space-y-0.5">
-              <li>Products, Customers, Expenses</li>
-              <li>Categories, Brands, Tags</li>
-              <li>Shops, Expense Categories</li>
-            </ul>
-          </div>
-
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <TipRow><strong>Full Sync</strong> — sab pending upload karo phir latest data download karo</TipRow>
-            <TipRow><strong>Download Backup</strong> — poora offline data JSON me — weekly recommend</TipRow>
-            <TipRow><strong>Retry Failed</strong> — jo items fail hue unko dobara try karo</TipRow>
-            <TipRow><strong>Clear Cache</strong> — sab local data delete (pending hone par disabled)</TipRow>
-            <TipRow><strong>⌨️ /</strong> — search &nbsp;•&nbsp; <strong>R</strong> — refresh</TipRow>
-          </div>
-
-          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-3 text-xs font-semibold text-amber-900 dark:text-amber-200">
-            💡 <strong>Sab automatic hai</strong> — jab net aayega, pending items khud upload hongi.
-            Aap ko bas Failed items pe nazar rakhni hai — wo aksar stock conflict ki wajah se hote hain.
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 font-extrabold shadow-lg shadow-blue-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya!
-          </Button>
+            <p className="mt-3 text-[0.75rem] text-slate-500">Saaf karne se sirf is computer ki copy mitti hai; jo kaam bhejna baqi ho us ke hote hue yeh band rehta hai.</p>
+          </Card>
         </div>
-      </div>
-    </div>
+      )}
+    </PageShell>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   SUB-COMPONENTS
-   ═════════════════════════════════════════════════════════════ */
-function TypeRow({ emoji, label, color, desc }: { emoji: string; label: string; color: string; desc: string }) {
-  return (
-    <div className="flex items-start gap-2 rounded-lg bg-white dark:bg-ink-800 border border-blue-100 dark:border-blue-500/20 p-2">
-      <span className="text-base shrink-0">{emoji}</span>
-      <div className="min-w-0 flex-1">
-        <div className={`text-xs font-extrabold ${color}`}>{label}</div>
-        <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold">{desc}</div>
-      </div>
-    </div>
-  );
-}
-
-function TipRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm">
-      {children}
-    </kbd>
-  );
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone, isPositive, isNegative }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/40',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/40',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/40',
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/40',
-  };
-  return (
-    <div className={[
-      'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm transition-all',
-      isPositive ? 'border-emerald-300 dark:border-emerald-500/40' : isNegative ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800',
-    ].join(' ')}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
-        </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SnapCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color: string }) {
-  const colors: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-600',
-    violet: 'from-violet-500 to-violet-600',
-    orange: 'from-orange-500 to-orange-600',
-    emerald: 'from-emerald-500 to-emerald-600',
-    cyan: 'from-cyan-500 to-cyan-600',
-    pink: 'from-pink-500 to-pink-600',
-    amber: 'from-amber-500 to-amber-600',
-    slate: 'from-slate-500 to-slate-600',
-  };
-  return (
-    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 hover:shadow-sm transition">
-      <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center mb-2 shadow-sm`}>
-        <Icon className="w-4 h-4" />
-      </div>
-      <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value.toLocaleString()}</div>
-      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold uppercase tracking-wider">{label}</div>
-    </div>
-  );
-}
-
-function ActionBtn({ icon: Icon, label, onClick, disabled, loading, color }: {
-  icon: any; label: string; onClick: () => void; disabled?: boolean; loading?: boolean;
-  color: 'blue' | 'emerald' | 'violet' | 'amber' | 'rose';
-}) {
-  const colors = {
-    blue: 'border-blue-200 dark:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-700 dark:text-blue-300',
-    emerald: 'border-emerald-200 dark:border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-    violet: 'border-violet-200 dark:border-violet-500/40 hover:bg-violet-50 dark:hover:bg-violet-500/10 text-violet-700 dark:text-violet-300',
-    amber: 'border-amber-200 dark:border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-500/10 text-amber-700 dark:text-amber-300',
-    rose: 'border-rose-200 dark:border-rose-500/40 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-700 dark:text-rose-300',
-  };
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`h-14 rounded-xl border-2 bg-white dark:bg-ink-800 font-extrabold text-xs transition-all inline-flex flex-col items-center justify-center gap-1 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ${colors[color]}`}
-    >
-      <Icon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-      <span>{label}</span>
-    </button>
-  );
+function SyncGuide({ onClose }: { onClose: () => void }) {
+  const steps: GuideStep[] = [
+    { icon: CloudOff, color: '#d97706', title: 'Internet ke bagair', text: 'Internet chala jaye to bhi bill bante rehte hain — is computer par save hote hain.' },
+    { icon: Upload, color: '#2563eb', title: 'Khud server par', text: 'Internet aate hi sab "Bhejna baqi" kaam khud server par chale jate hain. Jaldi ho to "Abhi sync karein".' },
+    { icon: XCircle, color: '#e11d48', title: 'Nahi gaye', text: 'Kabhi stock ya mita hua record rok deta hai. Line mein wajah likhi hoti hai — theek kar ke "Dobara bhejein".' },
+    { icon: Download, color: '#16a34a', title: 'Backup', text: 'Lambi der internet na ho to "Backup download" kar lein — computer kharab ho to bhi bill bach jayenge.' },
+    { icon: Package, color: '#7c3aed', title: 'Products taaza', text: 'Kisi doosre computer par qeemat badli ho to "Products taaza karein".' },
+    { icon: Trash2, color: '#475569', title: 'Data saaf karna', text: 'Sirf is computer ki copy mitti hai, server ka data nahi. Baqi kaam ho to yeh band rehta hai.' },
+  ];
+  return <PageGuide title="Sync center — aasaan tareeqa" steps={steps} onClose={onClose} shortcuts={[['/', 'dhoondein'], ['R', 'taaza'], ['A', 'analytics'], ['G', 'guide']]} />;
 }

@@ -13,7 +13,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { hourInTz } from '../../../common/helpers/business-time.helper';
 import { ShopScope } from '../../../common/shop-scope';
-import { CLOSED_ORDER, DAY_MS, positive, r2, shopClock, withNextNumber, writeShopId } from '../bakery-common';
+import { CLOSED_ORDER, DAY_MS, orderMoney, positive, postOrderAdvance, r2, shopClock, withNextNumber, writeShopId } from '../bakery-common';
 import { CreateCakeOrderDto, UpdateCakeOrderDto, UpdateCakeOrderStatusDto } from './dto/create-cake-order.dto';
 
 type CakeOrderView = 'active' | 'today' | 'tomorrow' | 'late' | 'ready' | 'unpaid' | 'done' | 'all';
@@ -105,72 +105,78 @@ export class CakeOrdersService {
         orderBy: { orderNumber: 'desc' }, select: { orderNumber: true },
       }))?.orderNumber,
       `CK-${clock.year()}-`, 5,
-      (orderNumber) => this.prisma.bakeryCakeOrder.create({
-        data: {
-          tenantId: user.tenantId,
-          shopId,
-          orderNumber,
-          customerId,
-          customerName,
-          customerPhone,
-          customerEmail: dto.customerEmail?.trim() || null,
-          productId: dto.productId || null,
-          productName: dto.productName?.trim() || null,
-          category: dto.category ?? 'CUSTOM_CAKE',
-          size: dto.size,
-          customWeightKg: dto.customWeightKg ?? null,
-          shape: dto.shape ?? 'ROUND',
-          customShapeDesc: dto.customShapeDesc || null,
-          flavor: dto.flavor,
-          customFlavorDesc: dto.customFlavorDesc || null,
-          creamType: dto.creamType ?? null,
-          numberOrLetter: dto.numberOrLetter || null,
-          numberOfTiers: dto.numberOfTiers ?? 1,
-          tierDetails: dto.tierDetails ?? undefined,
-          messageOnCake: dto.messageOnCake?.trim() || null,
-          messageColor: dto.messageColor || null,
-          hasPhotoOnCake: dto.hasPhotoOnCake ?? false,
-          photoUrl: dto.photoUrl || null,
-          hasEdibleImage: dto.hasEdibleImage ?? false,
-          designReferenceUrls: dto.designReferenceUrls ?? [],
-          designInstructions: dto.designInstructions?.trim() || null,
-          colorTheme: dto.colorTheme || null,
-          primaryColor: dto.primaryColor || null,
-          secondaryColor: dto.secondaryColor || null,
-          decorativeItems: dto.decorativeItems ?? [],
-          candlesRequired: dto.candlesRequired ?? null,
-          candleType: dto.candleType || null,
-          cakeStand: dto.cakeStand ?? false,
-          cakeKnife: dto.cakeKnife ?? false,
-          occasion: dto.occasion || 'OTHER',
-          celebrantName: dto.celebrantName?.trim() || null,
-          celebrantAge: dto.celebrantAge ?? null,
-          eventDate: optionalDate(dto.eventDate),
-          eventTime: dto.eventTime || null,
-          eventVenue: dto.eventVenue || null,
-          isEggless: dto.isEggless ?? false,
-          isSugarFree: dto.isSugarFree ?? false,
-          isVegan: dto.isVegan ?? false,
-          allergies: dto.allergies ?? [],
-          dietaryNotes: dto.dietaryNotes || null,
-          deliveryType: dto.deliveryType ?? 'SELF_PICKUP',
-          neededBy,
-          deliveryDate: optionalDate(dto.deliveryDate),
-          deliveryTime: dto.deliveryTime || null,
-          deliveryAddress: dto.deliveryAddress?.trim() || null,
-          deliveryLandmark: dto.deliveryLandmark || null,
-          ...money,
-          advanceRequired,
-          advancePaid,
-          paidAmount: advancePaid,
-          total,
-          status,
-          confirmedAt: status === 'DRAFT' || status === 'QUOTED' ? null : new Date(),
-          paymentStatus: paymentStatusOf(advancePaid, total, advanceRequired),
-          specialInstructions: dto.specialInstructions?.trim() || null,
-          internalNotes: dto.internalNotes?.trim() || null,
-          createdById: user.id,
-        },
+      (orderNumber) => this.prisma.$transaction(async (tx) => {
+        // The advance reaches the drawer and khata today, held for the customer.
+        const heldFor = advancePaid > 0
+          ? await postOrderAdvance(tx, user, { orderNumber, kind: 'Cake', amount: advancePaid, method: dto.paymentMethod, customerId, name: customerName, phone: customerPhone, shopId })
+          : customerId;
+        return tx.bakeryCakeOrder.create({
+          data: {
+            tenantId: user.tenantId,
+            shopId,
+            orderNumber,
+            customerId: heldFor,
+            customerName,
+            customerPhone,
+            customerEmail: dto.customerEmail?.trim() || null,
+            productId: dto.productId || null,
+            productName: dto.productName?.trim() || null,
+            category: dto.category ?? 'CUSTOM_CAKE',
+            size: dto.size,
+            customWeightKg: dto.customWeightKg ?? null,
+            shape: dto.shape ?? 'ROUND',
+            customShapeDesc: dto.customShapeDesc || null,
+            flavor: dto.flavor,
+            customFlavorDesc: dto.customFlavorDesc || null,
+            creamType: dto.creamType ?? null,
+            numberOrLetter: dto.numberOrLetter || null,
+            numberOfTiers: dto.numberOfTiers ?? 1,
+            tierDetails: dto.tierDetails ?? undefined,
+            messageOnCake: dto.messageOnCake?.trim() || null,
+            messageColor: dto.messageColor || null,
+            hasPhotoOnCake: dto.hasPhotoOnCake ?? false,
+            photoUrl: dto.photoUrl || null,
+            hasEdibleImage: dto.hasEdibleImage ?? false,
+            designReferenceUrls: dto.designReferenceUrls ?? [],
+            designInstructions: dto.designInstructions?.trim() || null,
+            colorTheme: dto.colorTheme || null,
+            primaryColor: dto.primaryColor || null,
+            secondaryColor: dto.secondaryColor || null,
+            decorativeItems: dto.decorativeItems ?? [],
+            candlesRequired: dto.candlesRequired ?? null,
+            candleType: dto.candleType || null,
+            cakeStand: dto.cakeStand ?? false,
+            cakeKnife: dto.cakeKnife ?? false,
+            occasion: dto.occasion || 'OTHER',
+            celebrantName: dto.celebrantName?.trim() || null,
+            celebrantAge: dto.celebrantAge ?? null,
+            eventDate: optionalDate(dto.eventDate),
+            eventTime: dto.eventTime || null,
+            eventVenue: dto.eventVenue || null,
+            isEggless: dto.isEggless ?? false,
+            isSugarFree: dto.isSugarFree ?? false,
+            isVegan: dto.isVegan ?? false,
+            allergies: dto.allergies ?? [],
+            dietaryNotes: dto.dietaryNotes || null,
+            deliveryType: dto.deliveryType ?? 'SELF_PICKUP',
+            neededBy,
+            deliveryDate: optionalDate(dto.deliveryDate),
+            deliveryTime: dto.deliveryTime || null,
+            deliveryAddress: dto.deliveryAddress?.trim() || null,
+            deliveryLandmark: dto.deliveryLandmark || null,
+            ...money,
+            advanceRequired,
+            advancePaid,
+            paidAmount: advancePaid,
+            total,
+            status,
+            confirmedAt: status === 'DRAFT' || status === 'QUOTED' ? null : new Date(),
+            paymentStatus: paymentStatusOf(advancePaid, total, advanceRequired),
+            specialInstructions: dto.specialInstructions?.trim() || null,
+            internalNotes: dto.internalNotes?.trim() || null,
+            createdById: user.id,
+          },
+        });
       }),
     );
   }
@@ -194,6 +200,10 @@ export class CakeOrdersService {
       customerId = dto.customerId
         ? (await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } }))?.id ?? null
         : null;
+      // The advance sits on the first customer's khata; the bill must go to the same khata.
+      if (customerId !== order.customerId && (await orderMoney(this.prisma, user.tenantId, order.orderNumber, order.paidAmount)).khataPaid > 0) {
+        throw new BadRequestException('Is order ka advance pehle customer ke khate me hai — customer badla nahi ja sakta');
+      }
     }
 
     const text = (v: string | undefined) => (v === undefined ? undefined : v.trim() || null);
@@ -430,8 +440,10 @@ export class CakeOrdersService {
     };
   }
 
+  /** One order, with `khataPaid`: the part of what was received that is held on the customer's khata. */
   async getOne(user: AuthenticatedUser, id: string) {
-    return this.mustFind(user, id);
+    const order = await this.mustFind(user, id);
+    return { ...order, ...(await orderMoney(this.prisma, user.tenantId, order.orderNumber, order.paidAmount)) };
   }
 
   /** The bill made when the order was handed over, found by the order note it carries. */
@@ -467,9 +479,11 @@ export class CakeOrdersService {
    * Records money received on the order. Before delivery it counts as
    * advance; once the advance asked for is in, an order that was only
    * booked moves to "advance received". `expectedPaid` makes a repeated
-   * request fail instead of counting the money twice.
+   * request fail instead of counting the money twice. The money goes on the
+   * customer's khata as an advance, except money taken with the delivery
+   * bill (`withBill`), which the bill itself records.
    */
-  async addPayment(user: AuthenticatedUser, id: string, amount: number, expectedPaid?: number) {
+  async addPayment(user: AuthenticatedUser, id: string, amount: number, expectedPaid?: number, method?: string, withBill?: boolean) {
     const value = r2(positive(amount, 'Rakam likhein'));
     const order = await this.mustFind(user, id);
     if ((CLOSED_ORDER as readonly string[]).includes(order.status)) {
@@ -482,18 +496,26 @@ export class CakeOrdersService {
     if (paid > order.total + 0.005) throw new BadRequestException(`Baqi sirf ${due(order)} hai`);
 
     const status = BEFORE_WORK.includes(order.status) && paid >= order.advanceRequired && order.advanceRequired > 0 ? 'DEPOSIT_PAID' : order.status;
-    const done = await this.prisma.bakeryCakeOrder.updateMany({
-      where: { id, tenantId: user.tenantId, paidAmount: order.paidAmount, status: order.status },
-      data: {
-        paidAmount: paid,
-        advancePaid: r2(order.advancePaid + value),
-        paymentStatus: paymentStatusOf(paid, order.total, order.advanceRequired),
-        status,
-        ...(status !== order.status && { confirmedAt: order.confirmedAt ?? new Date() }),
-      },
+    await this.prisma.$transaction(async (tx) => {
+      const done = await tx.bakeryCakeOrder.updateMany({
+        where: { id, tenantId: user.tenantId, paidAmount: order.paidAmount, status: order.status },
+        data: {
+          paidAmount: paid,
+          ...(!withBill && { advancePaid: r2(order.advancePaid + value) }),
+          paymentStatus: paymentStatusOf(paid, order.total, order.advanceRequired),
+          status,
+          ...(status !== order.status && { confirmedAt: order.confirmedAt ?? new Date() }),
+        },
+      });
+      if (!done.count) throw new ConflictException('Order abhi badla gaya — safha taaza kar ke dobara koshish karein');
+      if (withBill) return;
+      const customerId = await postOrderAdvance(tx, user, {
+        orderNumber: order.orderNumber, kind: 'Cake', amount: value, method,
+        customerId: order.customerId, name: order.customerName, phone: order.customerPhone, shopId: order.shopId,
+      });
+      if (customerId !== order.customerId) await tx.bakeryCakeOrder.updateMany({ where: { id, tenantId: user.tenantId }, data: { customerId } });
     });
-    if (!done.count) throw new ConflictException('Order abhi badla gaya — safha taaza kar ke dobara koshish karein');
-    return this.mustFind(user, id);
+    return this.getOne(user, id);
   }
 
   async assignBaker(user: AuthenticatedUser, id: string, bakerId: string, decoratorId?: string) {

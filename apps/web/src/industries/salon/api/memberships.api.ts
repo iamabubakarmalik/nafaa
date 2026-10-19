@@ -42,21 +42,23 @@ export interface Membership {
   cancellationReason?: string;
   notes?: string;
   plan?: MembershipPlan;
+  customer?: { id: string; name: string; phone?: string | null } | null;
   createdAt: string;
   updatedAt: string;
 }
 
+export type PlanInput = Pick<MembershipPlan, 'name' | 'tier' | 'price' | 'durationDays' | 'discountPct' | 'priorityBooking' | 'benefits' | 'isActive'>
+  & { description?: string };
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const membershipsApi = {
-  createPlan: (data: Partial<MembershipPlan>) => apiClient.post('/salon/memberships/plans', data).then(unwrap<MembershipPlan>),
+  createPlan: (data: PlanInput) => apiClient.post('/salon/memberships/plans', data).then(unwrap<MembershipPlan>),
   listPlans: (params?: { active?: boolean }) => apiClient.get('/salon/memberships/plans', { params }).then(unwrap<MembershipPlan[]>),
-  updatePlan: (id: string, data: Partial<MembershipPlan>) => apiClient.patch('/salon/memberships/plans/' + id, data).then(unwrap<MembershipPlan>),
-  removePlan: (id: string) => apiClient.delete('/salon/memberships/plans/' + id).then(unwrap),
+  updatePlan: (id: string, data: Partial<PlanInput>) => apiClient.patch('/salon/memberships/plans/' + id, data).then(unwrap<MembershipPlan>),
 
   subscribe: (data: { planId: string; customerId: string; amountPaid: number; paymentMethod?: string; autoRenew?: boolean; notes?: string }) =>
     apiClient.post('/salon/memberships/subscribe', data).then(unwrap<Membership>),
-  list: (params?: any) => apiClient.get('/salon/memberships', { params }).then(unwrap<Membership[]>),
+  list: (params?: { status?: string; customerId?: string; planId?: string; search?: string }) => apiClient.get('/salon/memberships', { params }).then(unwrap<Membership[]>),
   cancel: (id: string, reason?: string) => apiClient.post('/salon/memberships/' + id + '/cancel', { reason }).then(unwrap<Membership>),
-  expireOld: () => apiClient.post('/salon/memberships/expire-old').then(unwrap),
 };

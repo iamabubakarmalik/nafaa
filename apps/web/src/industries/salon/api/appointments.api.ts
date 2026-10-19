@@ -14,7 +14,8 @@ export interface AppointmentService {
   total: number;
   durationMinutes: number;
   commissionAmount?: number;
-  notes?: string;
+  notes?: string | null;
+  productsUsed?: Array<{ productId: string; variantId?: string | null; name: string; unit: string; quantity: number }> | null;
 }
 
 export interface Appointment {
@@ -46,16 +47,53 @@ export interface Appointment {
   customerFeedback?: string;
   internalNotes?: string;
   services: AppointmentService[];
-  customer?: any;
+  customer?: { id: string; name: string; phone?: string | null; balance?: number } | null;
+  sale?: { id: string; saleNumber: string; status: string; total: number; creditAmount: number; refundedAmount: number } | null;
+  membershipId?: string | null;
+  packageId?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export type AppointmentView = 'today' | 'queue' | 'upcoming' | 'done' | 'missed' | 'all';
+
+export interface AppointmentQuery {
+  view?: AppointmentView; from?: string; to?: string; staffProfileId?: string; search?: string; page?: number; limit?: number;
+}
+
+export interface AppointmentPage {
+  items: Appointment[]; total: number; page: number; limit: number; pages: number;
+  counts: Record<AppointmentView, number>;
+  totals: { value: number; paid: number };
+}
+
+export interface AppointmentSummary {
+  today: { total: number; waiting: number; inChair: number; done: number; noShow: number; late: number; upcoming: number };
+  held: { amount: number; count: number };
+  period: {
+    from: string; to: string; bookings: number; completed: number; noShows: number; cancelled: number; noShowRate: number;
+    walkIns: number; customers: number; revenue: number; average: number; commission: number;
+  };
+  staff: Array<{ staffProfileId: string; name: string; services: number; revenue: number; commission: number }>;
+  services: Array<{ serviceId: string; name: string; count: number; revenue: number }>;
+  hours: Array<{ hour: number; bookings: number }>;
+  weekdays: Array<{ day: number; bookings: number }>;
+}
+
+export interface NewAppointment {
+  customerId?: string; customerName?: string; customerPhone?: string; customerNotes?: string;
+  scheduledStart: string; walkIn?: boolean; numberOfGuests?: number;
+  services: Array<{ serviceId: string; staffProfileId?: string; price?: number; durationMinutes?: number; notes?: string }>;
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const appointmentsApi = {
-  create: (data: any) => apiClient.post('/salon/appointments', data).then(unwrap<Appointment>),
-  list: (params?: any) => apiClient.get('/salon/appointments', { params }).then(unwrap<Appointment[]>),
+  create: (data: NewAppointment) => apiClient.post('/salon/appointments', data).then(unwrap<Appointment>),
+  list: (params?: { status?: string; customerId?: string; staffProfileId?: string; from?: string; to?: string; search?: string; saleId?: string; saleIds?: string }) =>
+    apiClient.get('/salon/appointments', { params }).then(unwrap<Appointment[]>),
+  page: (params: AppointmentQuery) => apiClient.get('/salon/appointments/page', { params }).then(unwrap<AppointmentPage>),
+  summary: (params?: { from?: string; to?: string }) => apiClient.get('/salon/appointments/summary', { params }).then(unwrap<AppointmentSummary>),
   calendar: (from: string, to: string, staffProfileId?: string) =>
     apiClient.get('/salon/appointments/calendar', { params: { from, to, staffProfileId } }).then(unwrap<Appointment[]>),
   getOne: (id: string) => apiClient.get('/salon/appointments/' + id).then(unwrap<Appointment>),
@@ -65,9 +103,6 @@ export const appointmentsApi = {
     apiClient.post('/salon/appointments/' + id + '/reschedule', data).then(unwrap<Appointment>),
   addPayment: (id: string, data: { amount: number; paymentMethod: string; reference?: string }) =>
     apiClient.post('/salon/appointments/' + id + '/payments', data).then(unwrap<Appointment>),
-  /** Final bill: completes the appointment and posts the sale. */
-  checkout: (id: string, data: { paidAmount: number; paymentMethod?: string; discount?: number; tip?: number; shopId?: string }) =>
-    apiClient.post('/salon/appointments/' + id + '/checkout', data).then(unwrap<Appointment & { sale?: { id: string; saleNumber: string }; change?: number }>),
   rate: (id: string, rating: number, feedback?: string) =>
     apiClient.post('/salon/appointments/' + id + '/rating', { rating, feedback }).then(unwrap<Appointment>),
 };

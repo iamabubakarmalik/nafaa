@@ -11,6 +11,9 @@ export class HardwareProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product not found');
 
+    if (dto.brandId && !(await this.prisma.hardwareBrand.findFirst({ where: { id: dto.brandId, tenantId: user.tenantId }, select: { id: true } }))) {
+      throw new NotFoundException('Brand nahi mila');
+    }
     const existing = await this.prisma.hardwareProductProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) {
       return this.prisma.hardwareProductProfile.update({
@@ -75,6 +78,17 @@ export class HardwareProductsService {
       }));
   }
 
+  async facts(user: AuthenticatedUser) {
+    return this.prisma.hardwareProductProfile.findMany({
+      where: { tenantId: user.tenantId },
+      select: {
+        productId: true, categoryType: true, unit: true, grade: true, diameter: true, gradeStrength: true, bagWeight: true,
+        tileSize: true, finishType: true, piecesPerBox: true, sqftPerBox: true, colorCode: true, colorName: true, finishSheen: true,
+        coverage: true, litersPerCan: true, requiresTruck: true, isFastMoving: true, manufacturingLocation: true,
+      },
+    });
+  }
+
   async byProduct(user: AuthenticatedUser, productId: string) {
     const profile = await this.prisma.hardwareProductProfile.findFirst({
       where: { productId, tenantId: user.tenantId },
@@ -83,7 +97,7 @@ export class HardwareProductsService {
 
     const brand = profile.brandId ? await this.prisma.hardwareBrand.findUnique({ where: { id: profile.brandId } }) : null;
     const bulkPricing = await this.prisma.hardwareBulkPricing.findMany({
-      where: { productId, isActive: true },
+      where: { tenantId: user.tenantId, productId, isActive: true },
       orderBy: { minQuantity: 'asc' },
     });
 

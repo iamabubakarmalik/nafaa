@@ -1,186 +1,152 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import {
-  ArrowLeft, Sparkles, Trash2, X, CheckCircle2, ExternalLink, Stethoscope,
-} from 'lucide-react';
-import { Button } from '@/design-system/components';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { clinicServicesApi } from '../api/services.api';
-import { useClinicWizard } from '../hooks/useClinicWizard';
-import { useClinicWizardSubmit } from '../hooks/useClinicWizardSubmit';
-import { ClinicWizardStepper } from '../components/wizard/ClinicWizardStepper';
-import { ClinicWizardSummary } from '../components/wizard/ClinicWizardSummary';
-import { ClinicWizardStep1Basic } from '../components/wizard/ClinicWizardStep1Basic';
-import { ClinicWizardStep2Requirements } from '../components/wizard/ClinicWizardStep2Requirements';
-import { ClinicWizardStep3Safety } from '../components/wizard/ClinicWizardStep3Safety';
+/**
+ * Clinic item editor on the shared product editor. Two kinds:
+ *   service   consultation, procedure, lab test, X-ray: no stock; the
+ *             clinical details (category, time, preparation) are saved to
+ *             the clinic service after the product
+ *   medicine  stock the clinic keeps and sells at the counter (tablets,
+ *             syrups, dressing): price and opening stock like any product
+ */
 
-export default function ClinicServiceWizardPage() {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+import { ClipboardList, Clock, FlaskConical, Pill, Stethoscope } from 'lucide-react';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { NumberField, Section, TextField, Tiles, Toggle } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { SERVICE_CATEGORIES } from '../api/constants';
+import { clinicServicesApi, type ServiceCategory } from '../api/services.api';
 
-  const wizard = useClinicWizard({ autoLoadDraft: !isEdit });
-  const { mutation, progress } = useClinicWizardSubmit(isEdit ? id : undefined);
-  const [showDraftBanner, setShowDraftBanner] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+type Kind = 'service' | 'item';
 
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
+export interface ClinicExtra {
+  kind: Kind;
+  serviceId: string | null;
+  category: ServiceCategory;
+  serviceCode: string;
+  durationMin: number | null;
+  requiresDoctor: boolean;
+  requiresRoom: boolean;
+  requiresPrep: boolean;
+  prepInstructions: string;
+}
 
-  const { data: existingService } = useQuery({
-    queryKey: ['clinic-service-by-product', id],
-    queryFn: () => clinicServicesApi.byProduct(id!).catch(() => null),
-    enabled: isEdit,
-  });
+const initial: ClinicExtra = {
+  kind: 'service', serviceId: null, category: 'CONSULTATION', serviceCode: '', durationMin: 15,
+  requiresDoctor: true, requiresRoom: false, requiresPrep: false, prepInstructions: '',
+};
 
-  useEffect(() => {
-    if (isEdit && existingProduct && !hydrated) {
-      wizard.hydrateFromProduct?.(existingProduct, existingService);
-      setHydrated(true);
-    }
-  }, [isEdit, existingProduct, existingService, hydrated, wizard]);
+const SERVICE_UNITS = ['service', 'session', 'visit', 'procedure', 'test'];
 
-  useEffect(() => {
-    if (!isEdit && wizard.draftRestored) setShowDraftBanner(true);
-  }, [isEdit, wizard.draftRestored]);
-
-  const submitting = mutation.isPending;
-
-  const handleSubmit = () => {
-    mutation.mutate(wizard.draft, {
-      onSuccess: (product) => {
-        setTimeout(() => {
-          if (!isEdit) wizard.reset();
-          navigate('/clinic-services/' + product.id);
-        }, 1500);
-      },
-    });
-  };
-
-  if (progress.stage === 'done' && progress.productId) {
-    return (
-      <div className="max-w-2xl mx-auto py-12">
-        <div className="rounded-3xl bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-2 border-cyan-200 shadow-xl p-8 text-center">
-          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 mx-auto flex items-center justify-center shadow-lg mb-4 animate-bounce">
-            <Stethoscope className="h-10 w-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-extrabold text-slate-900">
-            {isEdit ? '🎉 Service Updated!' : '🎉 Service Created!'}
-          </h2>
-          <p className="text-slate-600 font-semibold mt-2">
-            <strong className="text-cyan-700">{wizard.draft.basic.name}</strong> saved successfully
-          </p>
-          <div className="text-xs text-slate-500 font-bold mt-6">Redirecting...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (submitting) {
-    return (
-      <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="rounded-3xl bg-white shadow-2xl p-8 max-w-md w-full text-center">
-          <div className="h-16 w-16 rounded-full border-4 border-cyan-200 border-t-cyan-600 animate-spin mx-auto mb-4" />
-          <h3 className="text-xl font-extrabold text-slate-900">Saving...</h3>
-          <p className="text-slate-600 font-semibold mt-1">{progress.message}</p>
-        </div>
-      </div>
-    );
-  }
-
+function KindPick({ ctx }: { ctx: StepContext<ClinicExtra> }) {
+  const x = ctx.draft.extra;
   return (
-    <div className="space-y-5 pb-20">
-      {showDraftBanner && (
-        <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-3 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-amber-600" />
-            <div className="text-xs text-amber-900"><strong>Draft restored</strong></div>
-          </div>
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => { if (confirm('Discard draft?')) { wizard.reset(); setShowDraftBanner(false); } }}
-              className="h-8 px-3 rounded-lg bg-white border-2 border-amber-300 text-amber-800 text-xs font-extrabold inline-flex items-center gap-1"
-            >
-              <Trash2 className="h-3 w-3" /> Discard
-            </button>
-            <button onClick={() => setShowDraftBanner(false)} className="h-8 w-8 rounded-lg bg-white border-2 border-amber-300 text-amber-800 flex items-center justify-center">
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
+    <Tiles<Kind> value={x.kind} columns="grid-cols-2"
+      onChange={(kind) => {
+        ctx.setExtra({ kind });
+        ctx.setCore({ unit: kind === 'service' ? 'service' : 'pcs', productType: kind === 'service' ? 'SERVICE' : null });
+      }}
+      options={[
+        { value: 'service', label: 'Service / test', hint: 'Consultation, procedure, lab — stock nahi', icon: Stethoscope },
+        { value: 'item', label: 'Dawai / saman', hint: 'Clinic ka stock, counter par bikta hai', icon: Pill },
+      ]} />
+  );
+}
 
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <Link to="/products" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-cyan-600 font-bold transition">
-          <ArrowLeft className="h-4 w-4" /> Back to Products
-        </Link>
-        {isEdit && (
-          <Link to={'/clinic-services/' + id} className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-cyan-600 font-bold">
-            View detail <ExternalLink className="h-3 w-3" />
-          </Link>
+function Clinical({ ctx }: { ctx: StepContext<ClinicExtra> }) {
+  const x = ctx.draft.extra;
+  return (
+    <div className="space-y-4">
+      <Section icon={ClipboardList} title="Service ka type" hint="Counter aur Lab page par isi se alag dikhti hai">
+        <Tiles<ServiceCategory> value={x.category} onChange={(category) => ctx.setExtra({ category })} columns="grid-cols-2 sm:grid-cols-4"
+          options={SERVICE_CATEGORIES.map((c) => ({ value: c.value as ServiceCategory, label: c.label, icon: c.emoji }))} />
+      </Section>
+      <Section icon={Clock} title="Waqt aur tayyari">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <NumberField label="Kitna waqt" allowEmpty value={x.durationMin} onChange={(durationMin) => ctx.setExtra({ durationMin })} suffix="min" error={ctx.errors.durationMin} />
+          <TextField label="Service code" value={x.serviceCode} onChange={(serviceCode) => ctx.setExtra({ serviceCode })} placeholder="CBC-01" hint="Marzi — lab ke code ke liye" />
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <Toggle on={x.requiresDoctor} onChange={(requiresDoctor) => ctx.setExtra({ requiresDoctor })} title="Doctor zaroori" />
+          <Toggle on={x.requiresRoom} onChange={(requiresRoom) => ctx.setExtra({ requiresRoom })} title="Alag kamra" />
+          <Toggle on={x.requiresPrep} onChange={(requiresPrep) => ctx.setExtra({ requiresPrep })} icon={FlaskConical} title="Tayyari (khaali pait…)" />
+        </div>
+        {x.requiresPrep && (
+          <div className="mt-3"><TextField label="Mareez ko hidayat" value={x.prepInstructions} onChange={(prepInstructions) => ctx.setExtra({ prepInstructions })} placeholder="8 ghante khaali pait aayein" /></div>
         )}
-      </div>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-blue-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            🩺 {isEdit ? 'Edit Clinical Service' : 'Add Clinical Service'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? (wizard.draft.basic.name || 'Edit Service') : 'Add Clinical Service'}
-          </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-2xl">
-            Consultation, procedure, lab test, package — 3 quick steps, atomic save.
-          </p>
-        </div>
-      </section>
-
-      <ClinicWizardStepper
-        currentStep={wizard.draft.step}
-        stepValidation={wizard.validation}
-        onStepClick={wizard.goToStep}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-        <div className="min-w-0">
-          {wizard.draft.step === 1 && (
-            <ClinicWizardStep1Basic
-              basic={wizard.draft.basic}
-              onChange={wizard.updateBasic}
-              onNext={wizard.nextStep}
-              validation={wizard.validation.step1}
-            />
-          )}
-          {wizard.draft.step === 2 && (
-            <ClinicWizardStep2Requirements
-              requirements={wizard.draft.requirements}
-              serviceCategory={wizard.draft.basic.serviceCategory}
-              onChange={wizard.updateRequirements}
-              onTogglePackageItem={wizard.togglePackageItem}
-              onBack={wizard.prevStep}
-              onNext={wizard.nextStep}
-              validation={wizard.validation.step2}
-            />
-          )}
-          {wizard.draft.step === 3 && (
-            <ClinicWizardStep3Safety
-              safety={wizard.draft.safety}
-              onChange={wizard.updateSafety}
-              onBack={wizard.prevStep}
-              onSubmit={handleSubmit}
-              submitting={submitting}
-              validation={wizard.validation.step3}
-              allValid={wizard.validation.allValid}
-            />
-          )}
-        </div>
-        <ClinicWizardSummary draft={wizard.draft} stats={wizard.stats} allValid={wizard.validation.allValid} />
-      </div>
+      </Section>
     </div>
   );
+}
+
+const core: CoreOptions = {
+  units: [
+    { value: 'service', label: 'Service' }, { value: 'session', label: 'Session' }, { value: 'visit', label: 'Visit' }, { value: 'procedure', label: 'Procedure' },
+    { value: 'test', label: 'Test' }, { value: 'tablet', label: 'Tablet' }, { value: 'strip', label: 'Strip' }, { value: 'bottle', label: 'Bottle' },
+    { value: 'vial', label: 'Vial' }, { value: 'pcs', label: 'Adad (pcs)' },
+  ],
+  skuPrefix: 'CLN',
+  packs: true,
+  variants: false,
+  batches: true,
+  markups: [10, 20, 30, 50],
+};
+
+const clinicalStep: StepDef<ClinicExtra> = {
+  id: 'clinical', title: 'Service', hint: 'Type, waqt, tayyari', icon: Stethoscope,
+  render: (ctx) => <Clinical ctx={ctx} />,
+  when: (d) => d.extra.kind === 'service',
+  validate: (d): Errors => (d.extra.durationMin != null && !(d.extra.durationMin > 0 && d.extra.durationMin <= 600) ? { durationMin: '1 se 600 minute' } : {}),
+};
+
+const config: EditorConfig<ClinicExtra> = {
+  label: 'Clinic',
+  draftKey: 'nafaa.product-editor.clinic',
+  paths: { list: '/products', detail: (id) => `/clinic-services/${id}`, create: '/clinic-services/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const s = await clinicServicesApi.byProduct(productId).catch(() => null);
+      if (!s) return { kind: 'item' };
+      return {
+        kind: 'service', serviceId: s.id, category: s.category, serviceCode: s.serviceCode ?? '', durationMin: s.durationMin ?? null,
+        requiresDoctor: s.requiresDoctor, requiresRoom: !!(s as { requiresRoom?: boolean }).requiresRoom, requiresPrep: !!s.requiresFasting, prepInstructions: s.prepInstructions ?? '',
+      };
+    },
+    save: async (productId, d) => {
+      const x = d.extra;
+      if (x.kind !== 'service') return;
+      const body = {
+        productId, category: x.category, serviceCode: x.serviceCode.trim() || undefined, durationMin: x.durationMin ?? undefined, basePrice: d.core.price,
+        requiresDoctor: x.requiresDoctor, requiresRoom: x.requiresRoom, requiresPrep: x.requiresPrep, prepInstructions: x.requiresPrep ? x.prepInstructions.trim() : '', isActive: d.core.isActive,
+      } as Record<string, unknown>;
+      if (x.serviceId) await clinicServicesApi.update(x.serviceId, body);
+      else await clinicServicesApi.upsert(body);
+    },
+    // A service never holds stock; the server skips stock checks for it.
+    product: (d, payload) => (d.extra.kind === 'service' ? { ...payload, productType: 'SERVICE', stock: 0, lowStockAlert: 0, unit: SERVICE_UNITS.includes(d.core.unit) ? d.core.unit : 'service' } : payload),
+  },
+  steps: [
+    basicStep<ClinicExtra>(core, {
+      extra: (ctx) => <KindPick ctx={ctx} />, namePlaceholder: 'Jaise: Consultation, CBC test, Dressing, Panadol 500',
+      categorySuggestions: ['Consultation', 'Procedure', 'Lab test', 'X-ray / Ultrasound', 'Dawai', 'Injection', 'Surgical saman'],
+    }),
+    clinicalStep,
+    priceStep<ClinicExtra>(core),
+    { ...stockStep<ClinicExtra>(core, { quick: [10, 30, 100, 300] }), when: (d) => d.extra.kind === 'item' },
+  ],
+  summary: (d) => (
+    <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem] text-slate-600">
+      <p>{d.extra.kind === 'service' ? SERVICE_CATEGORIES.find((c) => c.value === d.extra.category)?.label : 'Dawai / saman (stock)'}</p>
+      {d.extra.kind === 'service' && d.extra.durationMin ? <p>{d.extra.durationMin} minute{d.extra.requiresPrep ? ' · tayyari zaroori' : ''}</p> : null}
+    </div>
+  ),
+  refresh: ['clinic-services', 'clinic-service-detail', 'products'],
+  guide: [
+    { icon: Stethoscope, color: '#0891b2', title: 'Service ya dawai', text: 'Consultation, procedure aur test "Service" hain — stock nahi hota. Clinic me rakhi dawai "Dawai / saman" — stock aur expiry ke saath.' },
+    { icon: FlaskConical, color: '#d97706', title: 'Lab test', text: 'Category "Lab test" rakhein — Lab order me rate khud aa jata hai.' },
+  ],
+};
+
+export default function ClinicServiceWizardPage() {
+  return <ProductEditorPage config={config} />;
 }

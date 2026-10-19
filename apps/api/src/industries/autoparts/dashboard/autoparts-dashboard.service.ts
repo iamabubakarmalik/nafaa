@@ -79,16 +79,15 @@ export class AutoPartsDashboardService {
     }> = (topMechanicsRaw as any[]).slice(0, 5);
 
     const mechanicIds = topMechanicsSorted.map((m) => m.primaryMechanicId).filter((x): x is string => !!x);
-    const mechs = await this.prisma.mechanicProfile.findMany({ where: { id: { in: mechanicIds } } });
-    const staffs = await this.prisma.staff.findMany({ where: { id: { in: mechs.map((m) => m.staffId) } } });
+    const mechs = await this.prisma.mechanicProfile.findMany({ where: { id: { in: mechanicIds }, tenantId: user.tenantId } });
+    const staffs = await this.prisma.staff.findMany({ where: { id: { in: mechs.map((m) => m.staffId) }, tenantId: user.tenantId } });
     const mMap = new Map(mechs.map((m) => [m.id, m]));
     const sMap = new Map(staffs.map((s) => [s.id, s]));
 
     const topMechanics = topMechanicsSorted.map((t) => {
       const m = t.primaryMechanicId ? mMap.get(t.primaryMechanicId) : null;
       const s = m ? sMap.get(m.staffId) : null;
-      const anyS = s as any;
-      const nm = anyS ? `${anyS.firstName || ''} ${anyS.lastName || ''}`.trim() : '';
+      const nm = s?.fullName?.trim() ?? '';
       return {
         mechanicId: t.primaryMechanicId,
         name: nm,

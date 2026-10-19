@@ -1,370 +1,171 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import {
-  Users, Plus, Search, X, Save, RefreshCw, Sparkles, User, Phone,
-  Calendar, Droplet, AlertCircle, Heart, Eye, FileText, ArrowRight,
-} from 'lucide-react';
-import { patientsApi, type Patient, type Gender, type BloodGroup } from '../api/patients.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format, differenceInYears } from 'date-fns';
+/**
+ * Patient directory: server-side search by name, phone, MR number or CNIC,
+ * filters for gender, blood group, allergies and panel patients, khata
+ * balance per patient, paging and CSV. Patients are never deleted; a record
+ * can be switched off and comes back with its history.
+ */
 
-const BLOOD_GROUPS: { value: BloodGroup; label: string }[] = [
-  { value: 'A_POS', label: 'A+' }, { value: 'A_NEG', label: 'A−' },
-  { value: 'B_POS', label: 'B+' }, { value: 'B_NEG', label: 'B−' },
-  { value: 'AB_POS', label: 'AB+' }, { value: 'AB_NEG', label: 'AB−' },
-  { value: 'O_POS', label: 'O+' }, { value: 'O_NEG', label: 'O−' },
-];
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AlertTriangle, ArrowUpDown, CalendarPlus, Download, Droplet, GraduationCap, HeartPulse, ShieldPlus, UserPlus, Users, Venus } from 'lucide-react';
+import {
+  Badge, Button, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton,
+  Table, TBody, THead, Td, Th, Tr, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { patientsApi } from '../api/patients.api';
+import { ListCard, ListFailed, ListLoading, Pager } from '../components/ListBits';
+import { PatientFormModal } from '../components/PatientFormModal';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { BLOOD_GROUPS, GENDERS, ageOf, apiError, bloodLabel, genderLabel, shortDate } from '../lib/meta';
+
+type Tab = 'active' | 'inactive';
+const LIMIT = 30;
 
 export default function PatientsPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canEdit = usePermission(PERMISSIONS.CUSTOMERS_EDIT);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('active');
   const [search, setSearch] = useState('');
-  const [genderFilter, setGenderFilter] = useState<string>('all');
-  const [bloodFilter, setBloodFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
+  const [gender, setGender] = useState('');
+  const [blood, setBlood] = useState('');
+  const [flag, setFlag] = useState<'' | 'allergies' | 'insurance'>('');
+  const [sort, setSort] = useState('recent');
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const q = useDebounced(search.trim());
+  usePageKeys(searchRef, { n: () => canEdit && setAdding(true) });
+  useEffect(() => { setPage(1); }, [q, gender, blood, flag, sort, tab]);
 
-  const { data: patients = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['clinic-patients', genderFilter, bloodFilter, search],
-    queryFn: () => patientsApi.list({
-      gender: genderFilter === 'all' ? undefined : genderFilter,
-      bloodGroup: bloodFilter === 'all' ? undefined : bloodFilter,
-      search: search.trim() || undefined,
-    }),
-  });
+  const params = useMemo(() => ({
+    search: q || undefined, gender: gender || undefined, bloodGroup: blood || undefined, sort, limit: LIMIT,
+    status: tab === 'inactive' ? 'inactive' : undefined, ...(flag === 'allergies' && { allergies: 'yes' }), ...(flag === 'insurance' && { insurance: 'yes' }),
+  }), [q, gender, blood, flag, sort, tab]);
+  const list = useQuery({ queryKey: ['clinic-patients', 'page', params, page], queryFn: () => patientsApi.page({ ...params, page }), placeholderData: (p) => p });
+  const data = list.data;
 
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-fuchsia-900 to-pink-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Users className="h-3.5 w-3.5 text-amber-300" />
-              Patient Records
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🧑‍🤝‍🧑 Patients</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">MRN, medical history, allergies, insurance</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Patient
-            </Button>
-          </div>
-        </div>
-      </section>
+  const exportCsv = async () => {
+    try {
+      const all = await patientsApi.page({ ...params, page: 1, limit: 200 });
+      if (!all.items.length) { toast.error('Koi mareez nahi'); return; }
+      downloadCsv('patients.csv', [
+        ['MR', 'Naam', 'Walid/Shohar', 'Phone', 'CNIC', 'Umar', 'Jins', 'Blood group', 'Allergy', 'Visits', 'Aakhri visit', 'Khata', 'Panel'],
+        ...all.items.map((p) => [p.mrn, p.fullName, p.fatherOrHusbandName, p.phonePrimary, p.cnic, ageOf(p.dateOfBirth), genderLabel(p.gender), bloodLabel(p.bloodGroup),
+          p.allergies.join('; '), p.totalVisits, p.lastVisitAt?.slice(0, 10), p.khataBalance, p.hasInsurance ? p.insuranceProvider || 'Haan' : '']),
+      ]);
+    } catch (e) { toast.error(apiError(e, 'File nahi bani')); }
+  };
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search MRN, name, phone, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
-        </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {['all', 'MALE', 'FEMALE', 'OTHER'].map((g) => (
-            <button key={g} onClick={() => setGenderFilter(g)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (genderFilter === g ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{g === 'all' ? 'All Gender' : g === 'MALE' ? '👨 Male' : g === 'FEMALE' ? '👩 Female' : '🧑 Other'}</button>
-          ))}
-          <div className="w-px bg-slate-200 mx-1" />
-          <button onClick={() => setBloodFilter('all')} className={
-            'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (bloodFilter === 'all' ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All Blood</button>
-          {BLOOD_GROUPS.map((b) => (
-            <button key={b.value} onClick={() => setBloodFilter(b.value)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (bloodFilter === b.value ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>🩸 {b.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <PatientForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['clinic-patients'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : patients.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No patients yet</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {patients.map((p) => <PatientCard key={p.id} patient={p} />)}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function PatientCard({ patient }: { patient: Patient }) {
-  const age = patient.dateOfBirth ? differenceInYears(new Date(), new Date(patient.dateOfBirth)) : null;
-  const hasAlerts = patient.allergies?.length > 0 || patient.chronicConditions?.length > 0;
-  const bloodDisplay = patient.bloodGroup?.replace('_POS', '+').replace('_NEG', '−');
+  const chips = [
+    gender && <FilterChip key="g" onRemove={() => setGender('')}>{genderLabel(gender)}</FilterChip>,
+    blood && <FilterChip key="b" onRemove={() => setBlood('')}>{bloodLabel(blood)}</FilterChip>,
+    flag && <FilterChip key="f" onRemove={() => setFlag('')}>{flag === 'allergies' ? 'Allergy wale' : 'Panel wale'}</FilterChip>,
+    q && <FilterChip key="q" onRemove={() => setSearch('')}>"{q}"</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <Link to={'/clinic/patients/' + patient.id} className={
-      'group block rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-4 space-y-3 ' +
-      (hasAlerts ? 'border-rose-200 dark:border-rose-800' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className="flex items-start gap-3">
-        {patient.photoUrl ? (
-          <img src={patient.photoUrl} alt="" className="h-14 w-14 rounded-2xl object-cover ring-2 ring-slate-200 shrink-0" />
-        ) : (
-          <div className={
-            'h-14 w-14 rounded-2xl text-white flex items-center justify-center text-xl font-extrabold shadow shrink-0 ' +
-            (patient.gender === 'MALE' ? 'bg-gradient-to-br from-blue-500 to-cyan-600' :
-             patient.gender === 'FEMALE' ? 'bg-gradient-to-br from-fuchsia-500 to-pink-600' :
-             'bg-gradient-to-br from-slate-500 to-slate-700')
-          }>
-            {patient.fullName?.charAt(0).toUpperCase() || '?'}
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{patient.fullName}</span>
-            {hasAlerts && (
-              <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-                <AlertCircle className="h-2 w-2" /> ALERT
-              </span>
-            )}
-          </div>
-          <div className="text-[0.6875rem] font-mono font-bold text-blue-600">{patient.mrn}</div>
-          {patient.phonePrimary && (
-            <div className="text-xs text-slate-600 font-bold inline-flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {patient.phonePrimary}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-1">
-        {age !== null && (
-          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-700">
-            {age}y
-          </span>
-        )}
-        {patient.gender && (
-          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-700">
-            {patient.gender === 'MALE' ? '♂️' : patient.gender === 'FEMALE' ? '♀️' : '⚧'}
-          </span>
-        )}
-        {bloodDisplay && (
-          <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/40 text-red-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-0.5">
-            <Droplet className="h-2 w-2 fill-current" /> {bloodDisplay}
-          </span>
-        )}
-        {patient.isPregnant && (
-          <span className="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.6875rem] font-extrabold uppercase">
-            🤰 Pregnant
-          </span>
-        )}
-        {patient.hasInsurance && (
-          <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.6875rem] font-extrabold uppercase">
-            💳 Insured
-          </span>
-        )}
-      </div>
-
-      {patient.allergies?.length > 0 && (
-        <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-rose-700 mb-1">⚠️ Allergies</div>
-          <div className="flex flex-wrap gap-1">
-            {patient.allergies.slice(0, 3).map((a, i) => (
-              <span key={i} className="text-[0.6875rem] font-extrabold text-rose-800">{a}</span>
-            ))}
-          </div>
-        </div>
+    <PageShell>
+      {adding && <PatientFormModal patient={null} initialName={search} onClose={() => setAdding(false)} onSaved={(p) => { setAdding(false); qc.invalidateQueries({ queryKey: ['clinic-patients'] }); navigate(`/clinic/patients/${p.id}`); }} />}
+      {guide.isOpen && (
+        <PageGuide title="Mareez — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: UserPlus, color: '#2563eb', title: 'Register', text: 'Naam, phone aur umar kaafi hai. MR number khud banta hai; mareez ka khata bhi saath khul jata hai.' },
+            { icon: Users, color: '#0891b2', title: 'Dhoondein', text: 'Naam, phone, MR ya CNIC — search server par hota hai, hazaron mareez me bhi foran.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Allergy', text: 'Allergy likhi ho to har visit aur nuskhe par laal nishan aata hai.' },
+            { icon: ShieldPlus, color: '#16a34a', title: 'Panel', text: 'Panel / insurance wale mareez ki fees khata me rakhein aur company se wasool karein.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya mareez'], ['G', 'guide']]} />
       )}
 
-      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Visits</div>
-          <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{patient.totalVisits}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Spent</div>
-          <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(patient.totalSpent).replace('Rs', '').trim()}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Due</div>
-          <div className="font-extrabold text-amber-700 tabular-nums text-[0.6875rem]">{formatPKR(patient.outstandingBalance).replace('Rs', '').trim()}</div>
-        </div>
-      </div>
+      <PageHero title="Mareez" chip={<><Users />{data?.summary.all ?? 0}</>} busy={list.isFetching && !list.isLoading} loading={list.isLoading}
+        meta="Har mareez ka record, visits aur khata"
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><UserPlus className="h-4 w-4" />Naya mareez</button>}
+        </>}
+        stats={[
+          { label: 'Kul mareez', value: String(data?.summary.all ?? 0) },
+          { label: 'Is mahine naye', value: String(data?.summary.newThisMonth ?? 0) },
+          { label: 'Allergy wale', value: String(data?.summary.withAllergy ?? 0) },
+        ]} />
 
-      <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
-        <div className="text-[0.6875rem] font-bold text-slate-500">
-          {patient.lastVisitAt ? 'Last: ' + format(new Date(patient.lastVisitAt), 'dd MMM yyyy') : 'Never visited'}
-        </div>
-        <div className="text-xs font-extrabold text-fuchsia-600 inline-flex items-center gap-1">
-          View <ArrowRight className="h-3 w-3" />
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function PatientForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerId: '', fullName: '', fatherOrHusbandName: '', cnic: '',
-    dateOfBirth: '', gender: '', bloodGroup: '', maritalStatus: '',
-    phonePrimary: '', phoneAlternate: '', email: '', address: '', city: '',
-    emergencyContactName: '', emergencyContactPhone: '', emergencyContactRelation: '',
-    heightCm: '', weightKg: '',
-    allergies: '', chronicConditions: '', currentMedications: '',
-    hasInsurance: false, insuranceProvider: '', insuranceNumber: '',
-    notes: '',
-  });
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [showPicker, setShowPicker] = useState(true);
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-clinic', customerSearch],
-    queryFn: () => customersApi.list({ limit: 50, search: customerSearch || undefined }),
-    enabled: showPicker,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => patientsApi.create({
-      ...form,
-      allergies: form.allergies ? form.allergies.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      chronicConditions: form.chronicConditions ? form.chronicConditions.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      currentMedications: form.currentMedications ? form.currentMedications.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      heightCm: form.heightCm ? Number(form.heightCm) : undefined,
-      weightKg: form.weightKg ? Number(form.weightKg) : undefined,
-    }),
-    onSuccess: () => { toast.success('Patient registered'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">🧑‍🤝‍🧑 Register New Patient</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        {selectedCustomer ? (
-          <div className="rounded-xl bg-fuchsia-50 dark:bg-fuchsia-950/30 border-2 border-fuchsia-200 p-3 flex items-center gap-3">
-            <User className="h-5 w-5 text-fuchsia-600" />
-            <div className="flex-1">
-              <div className="font-extrabold">{selectedCustomer.name}</div>
-              <div className="text-xs text-slate-600 font-bold">{selectedCustomer.phone}</div>
-            </div>
-            <button onClick={() => { setSelectedCustomer(null); setForm({ ...form, customerId: '', fullName: '', phonePrimary: '' }); setShowPicker(true); }} className="text-xs font-extrabold text-fuchsia-600 hover:underline">Change</button>
-          </div>
-        ) : (
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Select Customer *</label>
-            <input autoFocus value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Search name/phone..." className="h-11 w-full rounded-xl border-2 border-fuchsia-200 bg-fuchsia-50 dark:bg-fuchsia-950/30 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-            <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200 p-1">
-              {(customersData?.items ?? []).map((c) => (
-                <button key={c.id} onClick={() => { setSelectedCustomer(c); setForm({ ...form, customerId: c.id, fullName: c.name, phonePrimary: c.phone || '' }); setShowPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-fuchsia-50 text-left">
-                  <User className="h-3.5 w-3.5 text-slate-400" />
-                  <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                  <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {form.customerId && (
+      <KpiRow cols={4}>
+        {list.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            {/* Identity */}
-            <div className="grid sm:grid-cols-2 gap-3">
-              <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input value={form.fatherOrHusbandName} onChange={(e) => setForm({ ...form, fatherOrHusbandName: e.target.value })} placeholder="Father/Husband Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
-                <option value="">-- Gender --</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-              </select>
-              <select value={form.bloodGroup} onChange={(e) => setForm({ ...form, bloodGroup: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
-                <option value="">-- Blood Group --</option>
-                {BLOOD_GROUPS.map((b) => <option key={b.value} value={b.value}>🩸 {b.label}</option>)}
-              </select>
-            </div>
-
-            {/* Contact */}
-            <div className="grid sm:grid-cols-2 gap-3">
-              <input value={form.phonePrimary} onChange={(e) => setForm({ ...form, phonePrimary: e.target.value })} placeholder="Primary Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-            </div>
-            <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
-
-            {/* Emergency */}
-            <div className="rounded-xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-2">
-              <div className="text-sm font-extrabold text-red-900">🚨 Emergency Contact</div>
-              <div className="grid sm:grid-cols-3 gap-2">
-                <input value={form.emergencyContactName} onChange={(e) => setForm({ ...form, emergencyContactName: e.target.value })} placeholder="Name" className="h-10 rounded-lg border-2 border-red-300 bg-white dark:bg-red-950/40 px-3 text-sm font-bold focus:outline-none focus:border-red-500" />
-                <input value={form.emergencyContactPhone} onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value })} placeholder="Phone" className="h-10 rounded-lg border-2 border-red-300 bg-white dark:bg-red-950/40 px-3 text-sm font-bold focus:outline-none focus:border-red-500" />
-                <input value={form.emergencyContactRelation} onChange={(e) => setForm({ ...form, emergencyContactRelation: e.target.value })} placeholder="Relation" className="h-10 rounded-lg border-2 border-red-300 bg-white dark:bg-red-950/40 px-3 text-sm font-bold focus:outline-none focus:border-red-500" />
-              </div>
-            </div>
-
-            {/* Physical */}
-            <div className="grid grid-cols-2 gap-3">
-              <input type="number" step="0.1" value={form.heightCm} onChange={(e) => setForm({ ...form, heightCm: e.target.value })} placeholder="Height (cm)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
-              <input type="number" step="0.1" value={form.weightKg} onChange={(e) => setForm({ ...form, weightKg: e.target.value })} placeholder="Weight (kg)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
-            </div>
-
-            {/* Medical */}
-            <div className="rounded-xl border-2 border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 p-4 space-y-2">
-              <div className="text-sm font-extrabold text-rose-900">⚠️ Medical History</div>
-              <input value={form.allergies} onChange={(e) => setForm({ ...form, allergies: e.target.value })} placeholder="Allergies (comma separated)" className="h-10 w-full rounded-lg border-2 border-rose-300 bg-white dark:bg-rose-950/40 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              <input value={form.chronicConditions} onChange={(e) => setForm({ ...form, chronicConditions: e.target.value })} placeholder="Chronic conditions (Diabetes, HTN...)" className="h-10 w-full rounded-lg border-2 border-rose-300 bg-white dark:bg-rose-950/40 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              <input value={form.currentMedications} onChange={(e) => setForm({ ...form, currentMedications: e.target.value })} placeholder="Current medications" className="h-10 w-full rounded-lg border-2 border-rose-300 bg-white dark:bg-rose-950/40 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-            </div>
-
-            {/* Insurance */}
-            <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.hasInsurance} onChange={(e) => setForm({ ...form, hasInsurance: e.target.checked })} className="h-4 w-4 rounded" />
-                <span className="text-sm font-extrabold text-emerald-900">💳 Has Insurance</span>
-              </label>
-              {form.hasInsurance && (
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <input value={form.insuranceProvider} onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })} placeholder="Provider" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                  <input value={form.insuranceNumber} onChange={(e) => setForm({ ...form, insuranceNumber: e.target.value })} placeholder="Policy #" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-                </div>
-              )}
-            </div>
-
-            <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
-
-            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-              <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-              <Button className="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.fullName}>
-                <Save className="h-4 w-4" />
-                Register Patient
-              </Button>
-            </div>
+            <KpiCard icon={Users} color="#2563eb" label="Is list me" value={data?.total ?? 0} onClick={() => { setFlag(''); setGender(''); setBlood(''); }} active={!flag && !gender && !blood} />
+            <KpiCard icon={AlertTriangle} color="#e11d48" label="Allergy wale" value={data?.summary.withAllergy ?? 0} onClick={() => setFlag(flag === 'allergies' ? '' : 'allergies')} active={flag === 'allergies'} />
+            <KpiCard icon={ShieldPlus} color="#16a34a" label="Panel / insurance" value={data?.summary.withInsurance ?? 0} onClick={() => setFlag(flag === 'insurance' ? '' : 'insurance')} active={flag === 'insurance'} />
+            <KpiCard icon={HeartPulse} color="#7c3aed" label="Is mahine naye" value={data?.summary.newThisMonth ?? 0} onClick={() => setSort('new')} active={sort === 'new'} />
           </>
         )}
-      </div>
-    </section>
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, MR number ya CNIC…" />}
+        chips={chips.length ? <>{chips}</> : undefined}
+        onClear={() => { setSearch(''); setGender(''); setBlood(''); setFlag(''); }}>
+        <FilterMenu icon={Venus} label="Jins" value={gender || 'all'} active={!!gender} onChange={(v) => setGender(v === 'all' ? '' : v)}
+          options={[{ value: 'all', label: 'Sab' }, ...GENDERS.map((g) => ({ value: g.value, label: g.label }))]} />
+        <FilterMenu icon={Droplet} label="Blood group" value={blood || 'all'} active={!!blood} onChange={(v) => setBlood(v === 'all' ? '' : v)}
+          options={[{ value: 'all', label: 'Sab' }, ...BLOOD_GROUPS.map((b) => ({ value: b.value, label: b.label }))]} />
+        <FilterMenu icon={ArrowUpDown} label="Sort" value={sort} align="right" onChange={setSort}
+          options={[{ value: 'recent', label: 'Haal ki visit pehle' }, { value: 'new', label: 'Naye register pehle' }, { value: 'visits', label: 'Zyada visits' }, { value: 'name', label: 'Naam se' }]} />
+      </FilterBar>
+
+      <ViewTabs<Tab> value={tab} onChange={setTab} tabs={[{ id: 'active', label: 'Chalu' }, { id: 'inactive', label: 'Band' }]} />
+
+      <ListCard>
+        {list.isLoading ? <ListLoading /> : list.isError ? <ListFailed onRetry={() => list.refetch()} /> : !data?.items.length ? (
+          <div className="flex flex-col items-center px-6 py-16 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Users className="h-7 w-7" /></span>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{chips.length ? 'Is filter me koi mareez nahi' : 'Abhi koi mareez nahi'}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">Reception par token dete waqt bhi mareez register ho jata hai.</p>
+            {canEdit && <Button className="mt-4" onClick={() => setAdding(true)} leftIcon={<UserPlus className="h-4 w-4" />}>Naya mareez</Button>}
+          </div>
+        ) : (
+          <>
+            <Table minWidth="56rem">
+              <THead><Tr><Th>Mareez</Th><Th>Phone / CNIC</Th><Th>Sehat</Th><Th align="right">Visits</Th><Th align="right">Khata</Th><Th align="right" /></Tr></THead>
+              <TBody>
+                {data.items.map((p) => (
+                  <Tr key={p.id} interactive onClick={() => navigate(`/clinic/patients/${p.id}`)}>
+                    <Td>
+                      <p className="font-semibold text-slate-900">{p.fullName}<span className="ml-1.5 text-[0.75rem] font-normal text-slate-500">{[ageOf(p.dateOfBirth), genderLabel(p.gender)].filter(Boolean).join(' · ')}</span></p>
+                      <p className="text-[0.75rem] text-slate-500">{p.mrn}{p.fatherOrHusbandName && ` · ${p.fatherOrHusbandName}`}</p>
+                    </Td>
+                    <Td><p>{p.phonePrimary || '—'}</p>{p.cnic && <p className="text-[0.75rem] text-slate-500">{p.cnic}</p>}</Td>
+                    <Td>
+                      <div className="flex flex-wrap gap-1">
+                        {p.bloodGroup && p.bloodGroup !== 'UNKNOWN' && <Badge size="xs" variant="default">{bloodLabel(p.bloodGroup)}</Badge>}
+                        {p.allergies.length > 0 && <Badge size="xs" variant="danger">Allergy: {p.allergies.slice(0, 2).join(', ')}</Badge>}
+                        {p.chronicConditions.slice(0, 2).map((c) => <Badge key={c} size="xs" variant="warning">{c}</Badge>)}
+                        {p.hasInsurance && <Badge size="xs" variant="info">Panel</Badge>}
+                      </div>
+                    </Td>
+                    <Td align="right"><p className="font-semibold">{p.totalVisits}</p><p className="text-[0.75rem] text-slate-500">{p.lastVisitAt ? shortDate(p.lastVisitAt) : 'Abhi nahi'}</p></Td>
+                    <Td align="right" className={p.khataBalance > 0 ? 'font-semibold text-amber-700' : ''}>{p.khataBalance > 0 ? money(p.khataBalance) : '—'}</Td>
+                    <Td align="right" onClick={(e) => e.stopPropagation()}>
+                      <Link to={`/clinic/appointments/new?patient=${p.id}`} title="Token dein" className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><CalendarPlus className="h-4 w-4" />Token</Link>
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
+            <Pager page={page} total={data.total} limit={LIMIT} onPage={setPage} />
+          </>
+        )}
+      </ListCard>
+    </PageShell>
   );
 }

@@ -1,399 +1,320 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Users, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  User, Phone, DollarSign, Scale, Star, Award, ArrowUp, ArrowDown,
-} from 'lucide-react';
-import { karigarsApi, type Karigar } from '../api/karigars.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
-import { toast } from 'sonner';
+/**
+ * Karigars (artisans) and the gold they hold. Gold given goes out of metal
+ * stock onto the karigar; what comes back (the finished piece, wastage
+ * allowed and leftover gold) is taken off, so each karigar's balance and the
+ * safe always agree. Each karigar's full record opens from the row.
+ *
+ * Keys: N new karigar · / search · G guide.
+ */
 
-const SKILL_LEVELS = ['Apprentice', 'Junior', 'Skilled', 'Expert', 'Master'];
-const SPECIALIZATIONS = ['Kundan', 'Polki', 'Meenakari', 'Jadau', 'Filigree', 'Diamond Setting', 'Stone Setting', 'Engraving', 'Polishing', 'Casting', 'Wax Modeling'];
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { ArrowDownLeft, ArrowUpRight, Filter, GraduationCap, Hammer, History, Pencil, Plus, Scale, UserRound, Users } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Switch,
+  Table, TBody, THead, Td, Th, Tr, Textarea, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { karigarsApi, type Karigar } from '../api/karigars.api';
+import type { Purity } from '../api/metal-rates.api';
+import { ChipPicker, EmptyList, KaratPill, LoadFailed, StatusPill } from '../components/ui';
+import { COMMON_PURITIES, KEYS, apiError, day, dayTime, entryLabel, grams, purityLabel, r3 } from '../lib/meta';
+
+type Status = 'active' | 'inactive' | 'all';
+type Where = '' | 'in' | 'out';
 
 export default function KarigarsPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const canEdit = usePermission(PERMISSIONS.SUPPLIERS_EDIT);
+  const canMetal = usePermission(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState<Status>('active');
+  const [where, setWhere] = useState<Where>('');
   const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Karigar | null>(null);
-  const [issuingMetal, setIssuingMetal] = useState<Karigar | null>(null);
-  const [receivingMetal, setReceivingMetal] = useState<Karigar | null>(null);
+  const [query, setQuery] = useState('');
+  const [form, setForm] = useState<Karigar | 'new' | null>(null);
+  const [metal, setMetal] = useState<{ k: Karigar; mode: 'issue' | 'receive' } | null>(null);
+  const [ledger, setLedger] = useState<Karigar | null>(null);
 
-  const { data: karigars = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['jewelry-karigars', search],
-    queryFn: () => karigarsApi.list({ isActive: true, search: search.trim() || undefined }),
-  });
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  const params = { search: query || undefined, ...(status !== 'all' && { isActive: String(status === 'active') }), ...(where && { isInHouse: String(where === 'in') }) };
+  const listQ = useQuery({ queryKey: [KEYS.karigars, 'list', params], queryFn: () => karigarsApi.list(params), placeholderData: (p) => p });
+  const sumQ = useQuery({ queryKey: [KEYS.karigars, 'summary'], queryFn: karigarsApi.summary });
+  const rows = listQ.data ?? [];
+  const holding = r3(Number(sumQ.data?.totalOutstanding?.outstandingGrams ?? 0));
+  const wastage = r3(rows.reduce((s, k) => s + k.wastageGrams, 0));
+  const filtered = !!query || status !== 'active' || !!where;
+  const refresh = () => [KEYS.karigars, KEYS.metal, KEYS.orders, 'jewelry-dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const { data: summary } = useQuery({
-    queryKey: ['karigars-summary'],
-    queryFn: () => karigarsApi.summary(),
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canEdit) { e.preventDefault(); setForm('new'); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canEdit]);
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => karigarsApi.remove(id),
-    onSuccess: () => { toast.success('Karigar deactivated'); queryClient.invalidateQueries({ queryKey: ['jewelry-karigars'] }); },
+  const printDoc = (): PrintDoc => ({
+    title: 'Karigar — sone ka hisaab',
+    meta: [['Karigar', String(rows.length)], ['Un ke paas', grams(holding)]],
+    sections: [{
+      kind: 'table',
+      columns: [{ label: 'Karigar' }, { label: 'Phone', wideOnly: true }, { label: 'Diya', align: 'right' }, { label: 'Wapas', align: 'right' }, { label: 'Wastage', align: 'right', wideOnly: true }, { label: 'Baqi', align: 'right' }],
+      rows: rows.map((k) => [k.fullName, k.phone, String(r3(k.metalIssuedGrams)), String(r3(k.metalReturnedGrams)), String(r3(k.wastageGrams)), String(r3(k.outstandingGrams))]),
+    }],
   });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Users className="h-3.5 w-3.5 text-amber-300" />
-              Craftsmen
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🧑‍🎨 Karigars</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Metal tracking, earnings, specializations</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Karigar
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Karigar"
+        chip={<><Hammer /> Sone ka lena dena</>}
+        meta="Kis karigar ko kitna sona diya, kitna wapas aaya aur kitna baqi hai"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={sumQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya karigar (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Karigar</button>}
+        </>}
+        stats={[
+          { label: 'Chalu karigar', value: sumQ.data?.total ?? '—' },
+          { label: 'Un ke paas sona', value: grams(holding) },
+          { label: 'Kaam ki ginti', value: rows.reduce((s, k) => s + k.completedOrders, 0) },
+        ]}
+      />
 
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Karigars" value={summary.total} icon={Users} color="blue" />
-          <StatCard label="In-House" value={summary.inHouse} icon={User} color="cyan" />
-          <StatCard label="Metal Outstanding" value={(summary.totalOutstanding?.outstandingGrams ?? 0).toFixed(2) + 'g'} icon={Scale} color="amber" />
-          <StatCard label="Total Paid" value={formatPKR(summary.totalOutstanding?.totalEarnings ?? 0)} icon={DollarSign} color="emerald" />
-        </section>
-      )}
+      <KpiRow cols={4}>
+        <KpiCard icon={Users} color="#7c3aed" label="Dukaan ke andar" value={sumQ.data?.inHouse ?? '—'} onClick={() => setWhere(where === 'in' ? '' : 'in')} active={where === 'in'} />
+        <KpiCard icon={UserRound} color="#0891b2" label="Bahar wale" value={sumQ.data?.external ?? '—'} onClick={() => setWhere(where === 'out' ? '' : 'out')} active={where === 'out'} />
+        <KpiCard icon={Scale} color={holding > 0 ? '#d97706' : '#64748b'} label="Karigaron ke paas" value={grams(holding)} hint="Abhi wapas aana hai" />
+        <KpiCard icon={Hammer} color="#e11d48" label="Wastage di" value={grams(wastage)} hint="In karigaron ko ab tak" />
+      </KpiRow>
 
-      <div className="relative">
-        <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search karigars..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-      </div>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, CNIC, karigar #…" label="Search" />}
+        chips={filtered ? <>
+          {status !== 'active' && <FilterChip onRemove={() => setStatus('active')}>{status === 'inactive' ? 'Band' : 'Sab'}</FilterChip>}
+          {where && <FilterChip onRemove={() => setWhere('')}>{where === 'in' ? 'Dukaan ke andar' : 'Bahar wale'}</FilterChip>}
+          {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setStatus('active'); setWhere(''); }}>
+        <FilterMenu icon={Filter} label={status === 'active' ? 'Chalu' : status === 'inactive' ? 'Band' : 'Sab'} value={status} active={status !== 'active'} onChange={setStatus}
+          options={[{ value: 'active', label: 'Chalu' }, { value: 'inactive', label: 'Band' }, { value: 'all', label: 'Sab' }]} />
+      </FilterBar>
 
-      {showForm && (
-        <KarigarForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['jewelry-karigars'] }); queryClient.invalidateQueries({ queryKey: ['karigars-summary'] }); }}
-        />
-      )}
-
-      {issuingMetal && (
-        <MetalTransferModal
-          karigar={issuingMetal}
-          direction="issue"
-          onClose={() => setIssuingMetal(null)}
-          onDone={() => { setIssuingMetal(null); queryClient.invalidateQueries({ queryKey: ['jewelry-karigars'] }); }}
-        />
-      )}
-      {receivingMetal && (
-        <MetalTransferModal
-          karigar={receivingMetal}
-          direction="receive"
-          onClose={() => setReceivingMetal(null)}
-          onDone={() => { setReceivingMetal(null); queryClient.invalidateQueries({ queryKey: ['jewelry-karigars'] }); }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : karigars.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No karigars yet</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {karigars.map((k) => (
-            <div key={k.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                {k.photoUrl ? (
-                  <img src={k.photoUrl} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 shrink-0" />
-                ) : (
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center text-xl font-extrabold shrink-0">
-                    {k.fullName?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-extrabold truncate">{k.fullName}</span>
-                    {k.isInHouse && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">IN-HOUSE</span>}
-                    {k.skillLevel && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">{k.skillLevel}</span>}
-                  </div>
-                  <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{k.karigarNumber}</div>
-                  <div className="flex items-center gap-1 text-xs text-slate-600 font-bold"><Phone className="h-3 w-3" />{k.phone}</div>
-                  {k.yearsExperience && <div className="text-[0.6875rem] font-bold text-slate-500">{k.yearsExperience} yrs experience</div>}
-                </div>
-              </div>
-
-              {k.specializations?.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {k.specializations.slice(0, 3).map((s: string, i: number) => (
-                    <span key={i} className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase">{s}</span>
-                  ))}
-                </div>
-              )}
-
-              <div className="grid grid-cols-3 gap-1 text-xs">
-                <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-                  <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Issued</div>
-                  <div className="font-extrabold text-amber-800 tabular-nums text-[0.6875rem]">{k.metalIssuedGrams.toFixed(1)}g</div>
-                </div>
-                <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-                  <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Returned</div>
-                  <div className="font-extrabold text-emerald-800 tabular-nums text-[0.6875rem]">{k.metalReturnedGrams.toFixed(1)}g</div>
-                </div>
-                <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-2 text-center">
-                  <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Outstanding</div>
-                  <div className="font-extrabold text-rose-800 tabular-nums text-[0.6875rem]">{k.outstandingGrams.toFixed(1)}g</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-ink-800">
-                <div><span className="text-slate-500 font-semibold">Orders:</span> <span className="font-extrabold">{k.completedOrders}/{k.totalOrders}</span></div>
-                <div><span className="text-slate-500 font-semibold">Earnings:</span> <span className="font-extrabold text-emerald-700">{formatPKR(k.totalEarnings)}</span></div>
-              </div>
-
-              {k.qualityRating && (
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <Star key={n} className={'h-3 w-3 ' + (n <= (k.qualityRating || 0) ? 'text-amber-500 fill-amber-500' : 'text-slate-300')} />
-                  ))}
-                  <span className="text-xs font-extrabold text-amber-700 ml-1">{k.qualityRating.toFixed(1)}</span>
-                </div>
-              )}
-
-              <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-                <button onClick={() => setIssuingMetal(k)} className="flex-1 h-9 rounded-lg bg-amber-100 dark:bg-amber-950/40 hover:bg-amber-200 text-amber-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-                  <ArrowUp className="h-3 w-3" />
-                  Issue
-                </button>
-                <button onClick={() => setReceivingMetal(k)} className="flex-1 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 hover:bg-emerald-200 text-emerald-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-                  <ArrowDown className="h-3 w-3" />
-                  Receive
-                </button>
-                <button onClick={() => { setEditing(k); setShowForm(true); }} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-                  <Edit3 className="h-3.5 w-3.5" />
-                </button>
-                <button onClick={() => { if (confirm('Deactivate ' + k.fullName + '?')) removeMutation.mutate(k.id); }} className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    blue: 'from-blue-500 to-cyan-600', cyan: 'from-cyan-500 to-teal-600',
-    amber: 'from-amber-500 to-yellow-600', emerald: 'from-emerald-500 to-green-600',
-  };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-        </div>
-        <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow'}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function KarigarForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    fullName: editing?.fullName ?? '',
-    fatherName: editing?.fatherName ?? '',
-    cnic: editing?.cnic ?? '',
-    phone: editing?.phone ?? '',
-    address: editing?.address ?? '',
-    photoUrl: editing?.photoUrl ?? '',
-    specializations: editing?.specializations ?? [],
-    yearsExperience: editing?.yearsExperience ?? '',
-    skillLevel: editing?.skillLevel ?? '',
-    hourlyRate: editing?.hourlyRate ?? '',
-    perGramRate: editing?.perGramRate ?? '',
-    fixedRatePerPiece: editing?.fixedRatePerPiece ?? '',
-    isInHouse: editing?.isInHouse ?? true,
-    notes: editing?.notes ?? '',
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        ...form,
-        yearsExperience: form.yearsExperience ? Number(form.yearsExperience) : undefined,
-        hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
-        perGramRate: form.perGramRate ? Number(form.perGramRate) : undefined,
-        fixedRatePerPiece: form.fixedRatePerPiece ? Number(form.fixedRatePerPiece) : undefined,
-      };
-      return editing ? karigarsApi.update(editing.id, payload) : karigarsApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Karigar updated' : 'Karigar added'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const toggleSpec = (spec: string) => {
-    setForm({
-      ...form,
-      specializations: form.specializations.includes(spec)
-        ? form.specializations.filter((s: string) => s !== spec)
-        : [...form.specializations, spec],
-    });
-  };
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">{editing ? 'Edit Karigar' : 'Add New Karigar'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
-          {form.photoUrl ? (
-            <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200">
-              <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setForm({ ...form, photoUrl: '' })} className="absolute top-1 right-1 h-6 w-6 rounded bg-rose-600 text-white flex items-center justify-center"><X className="h-3 w-3" /></button>
-            </div>
+      {listQ.isLoading ? <Skeleton className="h-64 rounded-3xl" />
+        : listQ.isError && !listQ.data ? <LoadFailed what="Karigar" retry={() => listQ.refetch()} />
+          : !rows.length ? (
+            <EmptyList icon={Hammer} title={filtered ? 'Is filter me koi karigar nahi' : 'Abhi koi karigar nahi'} text="Karigar ka naam aur phone likhein — phir sona dein aur zewar wapas lein, hisaab khud banta hai.">
+              {canEdit && <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla karigar</Button>}
+            </EmptyList>
           ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, photoUrl: url });
-            }} />
+            <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+              <Table minWidth="56rem">
+                <THead><Tr><Th>Karigar</Th><Th>Rate</Th><Th align="right">Diya</Th><Th align="right">Wapas</Th><Th align="right">Wastage</Th><Th align="right">Baqi</Th><Th align="right">Kaam</Th></Tr></THead>
+                <TBody>
+                  {rows.map((k) => (
+                    <Tr key={k.id} className={k.isActive ? undefined : 'opacity-60'}>
+                      <Td>
+                        <button type="button" onClick={() => setLedger(k)} className="text-left">
+                          <span className="block font-semibold text-slate-900 hover:underline">{k.fullName}</span>
+                          <span className="block text-[0.75rem] text-slate-500">{k.karigarNumber} · {k.phone}{k.isInHouse ? '' : ' · bahar'}{k.isActive ? '' : ' · band'}</span>
+                        </button>
+                      </Td>
+                      <Td className="text-[0.8125rem]">{[k.perGramRate ? `${formatPKR(k.perGramRate)}/g` : '', k.fixedRatePerPiece ? `${formatPKR(k.fixedRatePerPiece)}/piece` : ''].filter(Boolean).join(' · ') || '—'}</Td>
+                      <Td align="right">{r3(k.metalIssuedGrams)}</Td>
+                      <Td align="right">{r3(k.metalReturnedGrams)}</Td>
+                      <Td align="right">{r3(k.wastageGrams)}{k.metalIssuedGrams > 0 && <span className="block text-[0.6875rem] text-slate-500">{Math.round((k.wastageGrams / k.metalIssuedGrams) * 1000) / 10}%</span>}</Td>
+                      <Td align="right" className={k.outstandingGrams > 0 ? 'font-bold text-amber-700' : 'text-slate-500'}>{r3(k.outstandingGrams)}</Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-1.5">
+                          {canMetal && k.isActive && <Button size="sm" variant="secondary" onClick={() => setMetal({ k, mode: 'issue' })} leftIcon={<ArrowUpRight className="h-4 w-4" />}>Sona dein</Button>}
+                          {canMetal && k.outstandingGrams > 0 && <Button size="sm" onClick={() => setMetal({ k, mode: 'receive' })} leftIcon={<ArrowDownLeft className="h-4 w-4" />}>Wapas lein</Button>}
+                          <Button size="sm" variant="ghost" onClick={() => setLedger(k)} aria-label="Hisaab"><History className="h-4 w-4" /></Button>
+                          {canEdit && <Button size="sm" variant="ghost" onClick={() => setForm(k)} aria-label="Badlein"><Pencil className="h-4 w-4" /></Button>}
+                        </div>
+                      </Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            </div>
           )}
-        </div>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} placeholder="Father's Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-        </div>
+      {form && <KarigarForm karigar={form === 'new' ? null : form} onClose={() => setForm(null)} onSaved={() => { setForm(null); refresh(); }} />}
+      {metal && <MetalModal k={metal.k} mode={metal.mode} onClose={() => setMetal(null)} onSaved={() => { setMetal(null); refresh(); }} />}
+      {ledger && <LedgerModal k={ledger} onClose={() => setLedger(null)} />}
 
-        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <select value={form.skillLevel} onChange={(e) => setForm({ ...form, skillLevel: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-            <option value="">-- Skill Level --</option>
-            {SKILL_LEVELS.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <input type="number" value={form.yearsExperience} onChange={(e) => setForm({ ...form, yearsExperience: e.target.value })} placeholder="Years of experience" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Specializations</label>
-          <div className="flex flex-wrap gap-1">
-            {SPECIALIZATIONS.map((s) => (
-              <button key={s} onClick={() => toggleSpec(s)} className={
-                'px-2 py-1 rounded-lg text-xs font-extrabold border-2 ' +
-                (form.specializations.includes(s) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-blue-300')
-              }>{s}</button>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-emerald-900 flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Payment Rates
-          </div>
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Hourly Rate</label>
-              <input type="number" value={form.hourlyRate} onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Per Gram (Rs)</label>
-              <input type="number" value={form.perGramRate} onChange={(e) => setForm({ ...form, perGramRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Per Piece</label>
-              <input type="number" value={form.fixedRatePerPiece} onChange={(e) => setForm({ ...form, fixedRatePerPiece: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-          </div>
-        </div>
-
-        <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 cursor-pointer">
-          <input type="checkbox" checked={form.isInHouse} onChange={(e) => setForm({ ...form, isInHouse: e.target.checked })} className="h-5 w-5 rounded" />
-          <div className="flex-1">
-            <div className="text-sm font-extrabold text-emerald-900">In-House Karigar</div>
-            <div className="text-xs text-emerald-700 font-semibold">Works at our shop (vs external contractor)</div>
-          </div>
-        </label>
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.fullName || !form.phone}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Add Karigar'}
-          </Button>
-        </div>
-      </div>
-    </section>
+      {guide.isOpen && (
+        <PageGuide title="Karigar — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#7c3aed', title: 'Karigar banayein', text: 'Naam, phone aur rate (fi gram ya fi piece) likhein.' },
+            { icon: ArrowUpRight, color: '#d97706', title: 'Sona dein', text: 'Kitna aur kis karat ka sona diya — tijori (metal stock) se nikal kar karigar ke khate me.' },
+            { icon: ArrowDownLeft, color: '#16a34a', title: 'Wapas lein', text: 'Bana hua zewar tol kar likhein, tay wastage aur bacha hua sona. Baqi khud kam hota hai.' },
+            { icon: History, color: '#0891b2', title: 'Hisaab', text: 'Naam par click — har lena dena aur us ke orders ek jagah.' },
+          ]}
+          tips={['Wastage % har karigar ke liye dekhein — zyada ho to baat karein.', 'Jis karigar ke paas sona baqi ho use band nahi kar sakte.']}
+          shortcuts={[['N', 'naya karigar'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function MetalTransferModal({ karigar, direction, onClose, onDone }: any) {
-  const [grams, setGrams] = useState(0);
-  const [wastage, setWastage] = useState(0);
-
-  const mutation = useMutation({
-    mutationFn: () => direction === 'issue'
-      ? karigarsApi.issueMetal(karigar.id, grams)
-      : karigarsApi.receiveMetal(karigar.id, grams, wastage),
-    onSuccess: () => { toast.success(direction === 'issue' ? 'Metal issued' : 'Metal received'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+function KarigarForm({ karigar, onClose, onSaved }: { karigar: Karigar | null; onClose: () => void; onSaved: () => void }) {
+  const [f, setF] = useState({
+    fullName: karigar?.fullName ?? '', phone: karigar?.phone ?? '', cnic: karigar?.cnic ?? '', address: karigar?.address ?? '',
+    skillLevel: karigar?.skillLevel ?? '', perGramRate: karigar?.perGramRate ? String(karigar.perGramRate) : '', fixedRatePerPiece: karigar?.fixedRatePerPiece ? String(karigar.fixedRatePerPiece) : '',
+    yearsExperience: karigar?.yearsExperience ? String(karigar.yearsExperience) : '', isInHouse: karigar?.isInHouse ?? true, isActive: karigar?.isActive ?? true, notes: karigar?.notes ?? '',
   });
-
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
+  const save = useMutation({
+    mutationFn: () => {
+      const body = {
+        fullName: f.fullName.trim(), phone: f.phone.trim(), cnic: f.cnic.trim() || undefined, address: f.address.trim() || undefined,
+        skillLevel: f.skillLevel.trim() || undefined, perGramRate: f.perGramRate ? Number(f.perGramRate) : undefined,
+        fixedRatePerPiece: f.fixedRatePerPiece ? Number(f.fixedRatePerPiece) : undefined, yearsExperience: f.yearsExperience ? Number(f.yearsExperience) : undefined,
+        isInHouse: f.isInHouse, isActive: f.isActive, notes: f.notes.trim() || undefined,
+      };
+      return karigar ? karigarsApi.update(karigar.id, body) : karigarsApi.create(body);
+    },
+    onSuccess: () => { toast.success(karigar ? 'Karigar update ho gaya' : 'Karigar ban gaya'); onSaved(); },
+    onError: (e) => setErrors({ form: apiError(e, 'Save nahi hua') }),
+  });
+  const submit = () => {
+    const e: Record<string, string> = {};
+    if (!f.fullName.trim()) e.fullName = 'Naam likhein';
+    if (!/^[\d+\-\s]{7,20}$/.test(f.phone.trim())) e.phone = 'Sahi phone number likhein';
+    setErrors(e);
+    if (!Object.keys(e).length) save.mutate();
+  };
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className={'px-5 py-3 border-b flex items-center justify-between ' + (direction === 'issue' ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-emerald-50 dark:bg-emerald-950/30')}>
-          <div>
-            <h3 className="font-extrabold">{direction === 'issue' ? '📤 Issue Metal' : '📥 Receive Metal'}</h3>
-            <p className="text-xs text-slate-500 font-semibold">{karigar.fullName} • Outstanding: {karigar.outstandingGrams.toFixed(1)}g</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
+    <Modal open onClose={onClose} size="lg" title={karigar ? `${karigar.fullName} — badlein` : 'Naya karigar'}
+      footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending}>Save karein</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}
+        onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Naam" required autoFocus value={f.fullName} onChange={(e) => set({ fullName: e.target.value })} error={errors.fullName} maxLength={80} />
+          <Input label="Phone" required inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} error={errors.phone} placeholder="03xx xxxxxxx" />
+          <Input label="CNIC" value={f.cnic} onChange={(e) => set({ cnic: e.target.value })} placeholder="35202-xxxxxxx-x" hint="Sona dene se pehle zaroor" />
+          <Input label="Kaam / mahaarat" value={f.skillLevel} onChange={(e) => set({ skillLevel: e.target.value })} placeholder="Kundan, choori, polish…" />
+          <Input label="Mazdoori fi gram (Rs)" inputMode="decimal" value={f.perGramRate} onChange={(e) => set({ perGramRate: e.target.value.replace(/[^\d.]/g, '') })} />
+          <Input label="Mazdoori fi piece (Rs)" inputMode="decimal" value={f.fixedRatePerPiece} onChange={(e) => set({ fixedRatePerPiece: e.target.value.replace(/[^\d.]/g, '') })} />
+          <Input label="Tajurba (saal)" inputMode="numeric" value={f.yearsExperience} onChange={(e) => set({ yearsExperience: e.target.value.replace(/\D/g, '') })} />
+          <Input label="Pata" value={f.address} onChange={(e) => set({ address: e.target.value })} maxLength={200} />
         </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className={'text-[0.6875rem] uppercase font-extrabold mb-1 block ' + (direction === 'issue' ? 'text-amber-700' : 'text-emerald-700')}>Grams *</label>
-            <input type="number" step="0.01" autoFocus value={grams} onChange={(e) => setGrams(Number(e.target.value))} className={
-              'h-16 w-full rounded-xl border-2 px-4 text-2xl font-extrabold tabular-nums focus:outline-none ' +
-              (direction === 'issue' ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/30 focus:border-amber-500' : 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 focus:border-emerald-500')
-            } />
-          </div>
-          {direction === 'receive' && (
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Wastage (g)</label>
-              <input type="number" step="0.01" value={wastage} onChange={(e) => setWastage(Number(e.target.value))} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
-            </div>
-          )}
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className={'flex-1 ' + (direction === 'issue' ? 'bg-gradient-to-r from-amber-600 to-yellow-700' : 'bg-gradient-to-r from-emerald-600 to-green-700')} onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={grams <= 0}>
-              Confirm
-            </Button>
-          </div>
+        <div className="flex flex-wrap gap-6">
+          <Switch label="Dukaan ke andar kaam karta hai" checked={f.isInHouse} onChange={(e) => set({ isInHouse: e.target.checked })} />
+          {karigar && <Switch label="Chalu" description="Band karne se history rehti hai" checked={f.isActive} onChange={(e) => set({ isActive: e.target.checked })} />}
         </div>
-      </div>
-    </div>
+        <Textarea label="Note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} maxLength={300} />
+        {errors.form && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{errors.form}</p>}
+        <p className="text-[0.75rem] text-slate-500">Save: <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd></p>
+      </form>
+    </Modal>
+  );
+}
+
+function MetalModal({ k, mode, onClose, onSaved }: { k: Karigar; mode: 'issue' | 'receive'; onClose: () => void; onSaved: () => void }) {
+  const issue = mode === 'issue';
+  const [purity, setPurity] = useState<Purity>('KARAT_22');
+  const [g, setG] = useState({ grams: '', piece: '', wastage: '', back: '' });
+  const [reference, setReference] = useState('');
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const settled = r3((Number(g.piece) || 0) + (Number(g.wastage) || 0) + (Number(g.back) || 0));
+  const save = useMutation({
+    mutationFn: () => issue
+      ? karigarsApi.issueMetal(k.id, { grams: Number(g.grams), purity, reference: reference.trim() || undefined, notes: notes.trim() || undefined })
+      : karigarsApi.receiveMetal(k.id, { receivedGrams: Number(g.piece) || 0, wastageGrams: Number(g.wastage) || 0, returnedGrams: Number(g.back) || 0, purity, reference: reference.trim() || undefined, notes: notes.trim() || undefined }),
+    onSuccess: () => { toast.success(issue ? 'Sona de diya — metal stock se nikla' : 'Wapas le liya'); onSaved(); },
+    onError: (e) => setError(apiError(e, 'Save nahi hua')),
+  });
+  const submit = () => {
+    if (issue && !(Number(g.grams) > 0)) return setError('Kitna sona diya — grams likhein');
+    if (!issue && !(settled > 0)) return setError('Wapas aane wala wazan likhein');
+    if (!issue && settled > k.outstandingGrams + 0.001) return setError(`${k.fullName} ke paas sirf ${grams(k.outstandingGrams)} hai`);
+    setError('');
+    save.mutate();
+  };
+  const num = (key: keyof typeof g) => (e: ChangeEvent<HTMLInputElement>) => setG({ ...g, [key]: e.target.value.replace(/[^\d.]/g, '') });
+  return (
+    <Modal open onClose={onClose} title={issue ? `${k.fullName} ko sona dein` : `${k.fullName} se wapas lein`}
+      description={`Abhi ${k.fullName} ke paas ${grams(k.outstandingGrams)}`}
+      footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending}>{issue ? 'Sona dein' : 'Wapas lein'}</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <ChipPicker label="Karat" value={purity} onChange={setPurity} options={COMMON_PURITIES.map((p) => ({ value: p, label: purityLabel(p) }))} />
+        {issue ? (
+          <Input label="Grams" required autoFocus inputMode="decimal" value={g.grams} onChange={num('grams')} hint="Tijori se nikal kar diya" />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Input label="Bana zewar (g)" autoFocus inputMode="decimal" value={g.piece} onChange={num('piece')} hint="Tol kar" />
+            <Input label="Wastage (g)" inputMode="decimal" value={g.wastage} onChange={num('wastage')} hint="Jo tay hua" />
+            <Input label="Bacha sona (g)" inputMode="decimal" value={g.back} onChange={num('back')} hint="Tijori me wapas" />
+          </div>
+        )}
+        {!issue && settled > 0 && (
+          <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">
+            Kul {grams(settled)} — baad me {k.fullName} ke paas {grams(Math.max(k.outstandingGrams - settled, 0))}
+            {Number(g.wastage) > 0 && settled > 0 ? ` · wastage ${Math.round((Number(g.wastage) / settled) * 1000) / 10}%` : ''}
+          </p>
+        )}
+        <Input label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Order # ya parchi" maxLength={60} />
+        <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={300} />
+        {error && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{error}</p>}
+      </form>
+    </Modal>
+  );
+}
+
+function LedgerModal({ k, onClose }: { k: Karigar; onClose: () => void }) {
+  const q = useQuery({ queryKey: [KEYS.karigars, 'ledger', k.id], queryFn: () => karigarsApi.ledger(k.id) });
+  return (
+    <Modal open onClose={onClose} size="xl" title={`${k.fullName} — hisaab`} description={`Diya ${grams(k.metalIssuedGrams)} · wapas ${grams(k.metalReturnedGrams)} · wastage ${grams(k.wastageGrams)} · baqi ${grams(k.outstandingGrams)}`}>
+      {q.isLoading ? <Skeleton className="h-48 rounded-2xl" /> : q.isError ? <LoadFailed what="Hisaab" retry={() => q.refetch()} /> : (
+        <div className="space-y-4">
+          <section>
+            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">Sone ka lena dena</h3>
+            {!q.data?.metal.length ? <p className="text-[0.8125rem] text-slate-500">Abhi koi entry nahi</p> : (
+              <Table minWidth="36rem">
+                <THead><Tr><Th>Kab</Th><Th>Kya</Th><Th>Karat</Th><Th align="right">Grams</Th><Th>Ref</Th></Tr></THead>
+                <TBody>
+                  {q.data.metal.map((e) => (
+                    <Tr key={e.id}><Td>{dayTime(e.entryDate)}</Td><Td>{entryLabel(e.entryType).label}</Td><Td><KaratPill purity={e.purity} /></Td>
+                      <Td align="right" className={entryLabel(e.entryType).in ? 'text-emerald-700' : 'text-rose-700'}>{entryLabel(e.entryType).in ? '+' : '−'}{r3(e.grams)}</Td>
+                      <Td>{[e.reference, e.notes].filter(Boolean).join(' · ') || '—'}</Td></Tr>
+                  ))}
+                </TBody>
+              </Table>
+            )}
+          </section>
+          <section>
+            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">Orders</h3>
+            {!q.data?.orders.length ? <p className="text-[0.8125rem] text-slate-500">Is karigar ko koi order nahi diya</p> : (
+              <Table minWidth="36rem">
+                <THead><Tr><Th>Order</Th><Th>Customer</Th><Th>Halat</Th><Th align="right">Diya</Th><Th align="right">Bana</Th><Th>Dena</Th></Tr></THead>
+                <TBody>
+                  {q.data.orders.map((o) => (
+                    <Tr key={o.id}><Td className="font-medium">{o.orderNumber}</Td><Td>{o.customerName}</Td><Td><StatusPill status={o.status} /></Td>
+                      <Td align="right">{o.metalIssuedGrams ? r3(o.metalIssuedGrams) : '—'}</Td><Td align="right">{o.metalReceivedGrams ? r3(o.metalReceivedGrams) : '—'}</Td><Td>{day(o.promisedDate)}</Td></Tr>
+                  ))}
+                </TBody>
+              </Table>
+            )}
+          </section>
+        </div>
+      )}
+    </Modal>
   );
 }

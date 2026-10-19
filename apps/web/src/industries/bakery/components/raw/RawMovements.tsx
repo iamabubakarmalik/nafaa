@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowDownToLine, Boxes, CalendarDays, Flame, PieChart, Scale, Utensils } from 'lucide-react';
-import { Card, Skeleton } from '@/design-system/components';
+import { Card, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
@@ -32,28 +32,26 @@ export function MovementRecord({ range, type, search }: { range: { from: string;
   if (!rows.length) return <div className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is period me koi record nahi</div>;
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[40rem] text-[0.8125rem]">
-          <thead>
-            <tr className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-2.5">Kab</th><th className="px-2 py-2.5">Kya</th><th className="px-2 py-2.5">Saamaan</th><th className="px-2 py-2.5">Wajah / note</th>
-              <th className="px-2 py-2.5 text-right">Quantity</th><th className="px-4 py-2.5 text-right">Rakam</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+      <Table minWidth="40rem" className="text-[0.8125rem] [&_table]:text-[0.8125rem]">
+          <THead>
+            <Tr className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+              <Th className="px-4 py-2.5">Kab</Th><Th className="px-2 py-2.5">Kya</Th><Th className="px-2 py-2.5">Saamaan</Th><Th className="px-2 py-2.5">Wajah / note</Th>
+              <Th className="px-2 py-2.5 text-right">Quantity</Th><Th className="px-4 py-2.5 text-right">Rakam</Th>
+            </Tr>
+          </THead>
+          <TBody>
             {rows.map((r) => (
-              <tr key={r.id}>
-                <td className="whitespace-nowrap px-4 py-2 text-slate-500">{dateTime(r.createdAt)}</td>
-                <td className={cn('px-2 py-2 font-semibold', kindOf(r.transactionType).tone)}>{kindOf(r.transactionType).label}</td>
-                <td className="px-2 py-2 font-medium text-slate-900">{r.ingredient.name}</td>
-                <td className="max-w-[16rem] truncate px-2 py-2 text-slate-600">{r.reason || r.notes || '—'}</td>
-                <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums">{fmtQty(r.quantity)} {r.unit}</td>
-                <td className="whitespace-nowrap px-4 py-2 text-right tabular-nums">{r.cost != null ? cost(Math.abs(r.cost)) : '••••'}</td>
-              </tr>
+              <Tr key={r.id}>
+                <Td className="whitespace-nowrap px-4 py-2 text-slate-500">{dateTime(r.createdAt)}</Td>
+                <Td className={cn('px-2 py-2 font-semibold', kindOf(r.transactionType).tone)}>{kindOf(r.transactionType).label}</Td>
+                <Td className="px-2 py-2 font-medium text-slate-900">{r.ingredient.name}</Td>
+                <Td className="max-w-[16rem] truncate px-2 py-2 text-slate-600">{r.reason || r.notes || '—'}</Td>
+                <Td className="whitespace-nowrap px-2 py-2 text-right tabular-nums">{fmtQty(r.quantity)} {r.unit}</Td>
+                <Td className="whitespace-nowrap px-4 py-2 text-right tabular-nums">{r.cost != null ? cost(Math.abs(r.cost)) : '••••'}</Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TBody>
+        </Table>
       {q.data.rows.length >= 300 && <p className="border-t border-slate-100 px-4 py-2 text-[0.75rem] text-slate-500">Aakhri 300 dikh rahe hain — chhoti period chunein</p>}
     </div>
   );

@@ -11,6 +11,9 @@ export class ProjectsService {
   /** The form sends "" for an unpicked customer or branch; store those as empty links. */
   private async clean(user: AuthenticatedUser, dto: UpsertProjectDto) {
     const customerId = dto.customerId?.trim() || null;
+    if (!dto.name?.trim()) throw new BadRequestException('Site / project ka naam likhein');
+    if (!dto.siteAddress?.trim()) throw new BadRequestException('Site ka pata likhein');
+    if (dto.estimatedBudget != null && dto.estimatedBudget < 0) throw new BadRequestException('Budget manfi nahi ho sakta');
     if (customerId) {
       const found = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
       if (!found) throw new NotFoundException('Customer nahi mila');
@@ -68,10 +71,10 @@ export class ProjectsService {
   /**
    * Live project money, so the cards never show stale zeros.
    *  - quoted: accepted or billed quotations
-   *  - ordered: POS bills tagged with the project (net of returns) plus the
-   *    goods on delivery slips that are not tied to a bill
-   *  - delivered: goods value that reached the site per delivery slips
-   * POS lines carry `[Project: <number>]` in their internal note (set by the hardware POS).
+   *  - ordered: bills linked to the site (through its challans or a billed
+   *    quotation), net of returns, plus older POS lines tagged
+   *    `[Project: <number>]`, plus goods on challans not tied to a bill
+   *  - delivered: goods value that reached the site per challans
    */
   private async financials(tenantId: string, projects: { id: string; projectNumber: string }[]) {
     const out = new Map<string, { totalQuoted: number; totalOrdered: number; totalDelivered: number; totalPending: number }>();
@@ -79,36 +82,57 @@ export class ProjectsService {
     const ids = projects.map((p) => p.id);
     const r2 = (n: number) => Math.round(n * 100) / 100;
 
-    const [quoted, deliveries, lines] = await Promise.all([
+    const [quoted, converted, deliveries, lines] = await Promise.all([
       this.prisma.hardwareQuotation.groupBy({
         by: ['projectId'],
         where: { tenantId, projectId: { in: ids }, status: { in: ['ACCEPTED', 'CONVERTED'] } },
         _sum: { total: true },
       }),
+      this.prisma.hardwareQuotation.findMany({
+        where: { tenantId, projectId: { in: ids }, status: 'CONVERTED', convertedSaleId: { not: null } },
+        select: { projectId: true, convertedSaleId: true },
+      }),
       this.prisma.hardwareDelivery.findMany({
         where: { tenantId, projectId: { in: ids }, status: { not: 'CANCELLED' } },
-        select: { projectId: true, saleId: true, items: { select: { orderedQty: true, deliveredQty: true, unitPrice: true } } },
+        select: { projectId: true, saleId: true, status: true, items: { select: { orderedQty: true, deliveredQty: true, unitPrice: true } } },
       }),
       this.prisma.saleItem.findMany({
         where: {
           sale: { tenantId, status: { not: 'VOIDED' } },
           OR: projects.map((p) => ({ internalNote: { contains: `[Project: ${p.projectNumber}]` } })),
         },
-        select: { internalNote: true, quantity: true, returnedQty: true, total: true },
+        select: { saleId: true, internalNote: true, quantity: true, returnedQty: true, total: true },
       }),
     ]);
 
+    const linked = new Map<string, Set<string>>();
+    const link = (projectId: string | null, saleId: string | null) => {
+      if (!projectId || !saleId) return;
+      const set = linked.get(projectId) ?? new Set<string>();
+      set.add(saleId);
+      linked.set(projectId, set);
+    };
+    converted.forEach((q) => link(q.projectId, q.convertedSaleId));
+    deliveries.forEach((d) => link(d.projectId, d.saleId));
+    const saleIds = [...new Set([...linked.values()].flatMap((s) => [...s]))];
+    const sales = saleIds.length
+      ? await this.prisma.sale.findMany({ where: { tenantId, id: { in: saleIds }, status: { not: 'VOIDED' } }, select: { id: true, total: true, refundedAmount: true } })
+      : [];
+    const saleNet = new Map(sales.map((x) => [x.id, Math.max(x.total - (x.refundedAmount ?? 0), 0)]));
+
     for (const p of projects) {
       const tag = `[Project: ${p.projectNumber}]`;
-      const billed = lines
-        .filter((l) => l.internalNote?.includes(tag))
+      const own = linked.get(p.id) ?? new Set<string>();
+      const billedLinked = [...own].reduce((s, id) => s + (saleNet.get(id) ?? 0), 0);
+      const billedTagged = lines
+        .filter((l) => l.internalNote?.includes(tag) && !own.has(l.saleId))
         .reduce((s, l) => s + (l.quantity > 0 ? (l.total * (l.quantity - l.returnedQty)) / l.quantity : 0), 0);
-      const own = deliveries.filter((d) => d.projectId === p.id);
-      const slipOnly = own.filter((d) => !d.saleId).flatMap((d) => d.items)
+      const challans = deliveries.filter((d) => d.projectId === p.id);
+      const slipOnly = challans.filter((d) => !d.saleId).flatMap((d) => d.items)
         .reduce((s, it) => s + it.orderedQty * it.unitPrice, 0);
-      const delivered = own.flatMap((d) => d.items)
+      const delivered = challans.filter((d) => d.status === 'DELIVERED' || d.status === 'PARTIALLY_DELIVERED').flatMap((d) => d.items)
         .reduce((s, it) => s + Math.min(it.deliveredQty, it.orderedQty) * it.unitPrice, 0);
-      const ordered = billed + slipOnly;
+      const ordered = billedLinked + billedTagged + slipOnly;
       out.set(p.id, {
         totalQuoted: r2(quoted.find((q) => q.projectId === p.id)?._sum.total ?? 0),
         totalOrdered: r2(ordered),
@@ -124,8 +148,8 @@ export class ProjectsService {
     if (!p) throw new NotFoundException('Project not found');
 
     const [quotations, deliveries] = await Promise.all([
-      this.prisma.hardwareQuotation.findMany({ where: { projectId: id }, orderBy: { createdAt: 'desc' }, take: 20 }),
-      this.prisma.hardwareDelivery.findMany({ where: { projectId: id }, orderBy: { createdAt: 'desc' }, take: 20 }),
+      this.prisma.hardwareQuotation.findMany({ where: { tenantId: user.tenantId, projectId: id }, orderBy: { createdAt: 'desc' }, take: 50 }),
+      this.prisma.hardwareDelivery.findMany({ where: { tenantId: user.tenantId, projectId: id }, include: { items: true }, orderBy: { createdAt: 'desc' }, take: 50 }),
     ]);
 
     const totals = await this.financials(user.tenantId, [p]);

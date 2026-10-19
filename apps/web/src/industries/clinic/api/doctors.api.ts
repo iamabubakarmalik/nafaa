@@ -40,6 +40,7 @@ export interface Doctor {
   breakStartTime?: string;
   breakEndTime?: string;
   commissionPct: number;
+  commissionType?: 'PERCENTAGE' | 'FIXED' | string;
   languages: string[];
   services: string[];
   proceduresOffered: string[];
@@ -57,13 +58,14 @@ export interface Doctor {
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: T } & T }): T => (res.data?.data ?? res.data) as T;
 
 export const doctorsApi = {
-  upsert: (data: Partial<Doctor>) => apiClient.post('/clinic/doctors', data).then(unwrap<Doctor>),
-  list: (params?: any) => apiClient.get('/clinic/doctors', { params }).then(unwrap<Doctor[]>),
+  /** Without `staffId`, `phone` makes a new staff record for the doctor. */
+  upsert: (data: Partial<Doctor> & { phone?: string }) => apiClient.post('/clinic/doctors', data).then(unwrap<Doctor>),
+  list: (params?: Record<string, unknown>) => apiClient.get('/clinic/doctors', { params }).then(unwrap<Doctor[]>),
   byStaff: (staffId: string) => apiClient.get('/clinic/doctors/by-staff/' + staffId).then(unwrap<Doctor | null>),
   getOne: (id: string) => apiClient.get('/clinic/doctors/' + id).then(unwrap<Doctor>),
-  availability: (id: string, date: string) => apiClient.get('/clinic/doctors/' + id + '/availability', { params: { date } }).then(unwrap<any>),
+  availability: (id: string, date: string) => apiClient.get('/clinic/doctors/' + id + '/availability', { params: { date } }).then(unwrap<{ available: boolean; reason?: string; workingHours?: { start: string; end: string }; slotDuration?: number; bookings?: Array<{ start: string; end: string; status: string }> }>),
   remove: (id: string) => apiClient.delete('/clinic/doctors/' + id).then(unwrap),
 };

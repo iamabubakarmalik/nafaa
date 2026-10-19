@@ -46,7 +46,7 @@ export class CakeOrdersController {
 
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateCakeOrderDto) { return this.service.update(user, id, dto); }
   @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateCakeOrderStatusDto) { return this.service.updateStatus(user, id, dto); }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CakeOrderPaymentDto) { return this.service.addPayment(user, id, body.amount, body.expectedPaid); }
+  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CakeOrderPaymentDto) { return this.service.addPayment(user, id, body.amount, body.expectedPaid, body.method, body.withBill); }
   @Post(':id/assign') assign(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CakeOrderAssignDto) { return this.service.assignBaker(user, id, body.bakerId, body.decoratorId); }
   @Post(':id/rating') rate(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: CakeOrderRatingDto) { return this.service.addRating(user, id, body.rating, body.feedback, body.photoUrls); }
 }

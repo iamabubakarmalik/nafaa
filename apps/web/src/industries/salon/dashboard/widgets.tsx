@@ -7,26 +7,12 @@ import { EmptyHint, IconBubble, ListRow, RowList, useMasked, WidgetCard, type Kp
 import type { AttentionItem } from '@modules/dashboard/widgets';
 import { cn } from '@core/lib/cn';
 import type { AppointmentStatus } from '../api/appointments.api';
-import { useSalonOps, type SalonAppointment } from './useSalonOps';
+import { STATUS, serviceLine } from '../lib/meta';
+import { useSalonOps } from './useSalonOps';
 
-const STATUS: Record<AppointmentStatus, { label: string; variant: 'default' | 'info' | 'warning' | 'success' | 'danger' | 'brand' }> = {
-  DRAFT: { label: 'Kachchi', variant: 'default' },
-  CONFIRMED: { label: 'Booked', variant: 'info' },
-  ARRIVED: { label: 'Aa gaye', variant: 'brand' },
-  IN_PROGRESS: { label: 'Chair par', variant: 'warning' },
-  COMPLETED: { label: 'Ho gaya', variant: 'success' },
-  NO_SHOW: { label: 'Nahi aaye', variant: 'danger' },
-  CANCELLED: { label: 'Cancel', variant: 'danger' },
-  RESCHEDULED: { label: 'Waqt badla', variant: 'default' },
-};
 
 const TIER_LABEL: Record<string, string> = { BRONZE: 'Bronze', SILVER: 'Silver', GOLD: 'Gold', PLATINUM: 'Platinum', DIAMOND: 'Diamond', CUSTOM: 'Custom' };
 
-const serviceLine = (a: SalonAppointment) => {
-  const first = a.services?.[0]?.serviceName || 'Service';
-  const more = (a.services?.length ?? 0) - 1;
-  return more > 0 ? `${first} +${more}` : first;
-};
 
 const inLabel = (m: number) => (m <= 0 ? 'Abhi' : m < 60 ? `${Math.round(m)} min me` : `${Math.floor(m / 60)}h ${Math.round(m % 60)}m me`);
 
@@ -121,7 +107,7 @@ export function SalonAppointments() {
                 </span>
               )}
               title={a.customerName || 'Walk-in'}
-              meta={`${serviceLine(a)}${staff ? ` · ${staff}` : ''}`}
+              meta={`${serviceLine(a.services)}${staff ? ` · ${staff}` : ''}`}
               value={sales(a.total)}
               valueHint={late ? <Badge variant="danger" size="xs">Late</Badge> : soon ? <Badge variant="warning" size="xs">{inLabel(a.startsIn)}</Badge> : <Badge variant={st.variant} size="xs">{st.label}</Badge>}
             />
@@ -144,7 +130,7 @@ export function SalonStaffBoard() {
             leading={<Avatar name={s.name} url={s.profile.photoUrl} size={36} />}
             title={s.name}
             meta={s.busy
-              ? `Abhi: ${s.busy.customerName || 'Walk-in'} · ${serviceLine(s.busy)}`
+              ? `Abhi: ${s.busy.customerName || 'Walk-in'} · ${serviceLine(s.busy.services)}`
               : s.next ? `Agla ${format(new Date(s.next.scheduledStart), 'h:mm a')} · ${s.next.customerName || 'Walk-in'}` : 'Aaj aur koi booking nahi'}
             value={<span className="text-[0.8125rem]">{s.done}/{s.today}</span>}
             valueHint={s.busy ? <Badge variant="warning" size="xs" dot pulse>Masroof</Badge> : <Badge variant="success" size="xs">Farigh</Badge>}

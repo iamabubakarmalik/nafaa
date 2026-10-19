@@ -18,19 +18,20 @@ import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { bulkOrdersApi, type BulkOrder } from '../api/bulk-orders.api';
+import type { OrderPayMethod } from '../api/cake-orders.api';
 import { bulkLines } from '../components/bulk/useBulkActions';
-import { BULK_KEY, BULK_TYPES, apiError, isClosed } from '../components/meta';
+import { BULK_KEY, BULK_TYPES, PAY_METHODS, apiError, isClosed } from '../components/meta';
 
 interface Line { key: string; productId?: string; name: string; qty: string; rate: string; unit?: string }
 interface Draft {
   organizationName: string; contactPerson: string; contactPhone: string; contactEmail: string;
   orderType: string; eventDate: string; eventTime: string; venue: string; totalGuests: string;
   requiresDelivery: boolean; deliveryAddress: string; requiresSetup: boolean; setupTime: string; specialInstructions: string;
-  finalPrice: string; advancePaid: string; confirmed: boolean;
+  finalPrice: string; advancePaid: string; payMethod: OrderPayMethod; confirmed: boolean;
 }
 const EMPTY: Draft = {
   organizationName: '', contactPerson: '', contactPhone: '', contactEmail: '', orderType: 'WEDDING', eventDate: '', eventTime: '', venue: '', totalGuests: '',
-  requiresDelivery: true, deliveryAddress: '', requiresSetup: false, setupTime: '', specialInstructions: '', finalPrice: '', advancePaid: '', confirmed: true,
+  requiresDelivery: true, deliveryAddress: '', requiresSetup: false, setupTime: '', specialInstructions: '', finalPrice: '', advancePaid: '', payMethod: 'CASH', confirmed: true,
 };
 const pad = (n: number) => String(n).padStart(2, '0');
 const digits = (v: string) => v.replace(/[^\d.]/g, '');
@@ -115,7 +116,7 @@ export default function BakeryBulkOrderFormPage() {
         requiresSetup: f.requiresSetup, setupTime: f.requiresSetup ? f.setupTime : '', specialInstructions: f.specialInstructions.trim(),
       };
       if (editing) return bulkOrdersApi.update(id!, body);
-      return bulkOrdersApi.create({ ...body, advancePaid: paid, status: f.confirmed || paid > 0 ? 'CONFIRMED' : 'QUOTED' });
+      return bulkOrdersApi.create({ ...body, advancePaid: paid, ...(paid > 0 && { paymentMethod: f.payMethod }), status: f.confirmed || paid > 0 ? 'CONFIRMED' : 'QUOTED' });
     },
     onSuccess: (o) => { toast.success(editing ? 'Order save ho gaya' : `Order ${o.orderNumber} ban gaya`); qc.invalidateQueries({ queryKey: [BULK_KEY] }); navigate('/bakery/bulk-orders'); },
     onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
@@ -224,6 +225,11 @@ export default function BakeryBulkOrderFormPage() {
                 <>
                   <Input label="Advance mila" inputMode="decimal" value={f.advancePaid} onChange={(e) => set('advancePaid', digits(e.target.value))} placeholder="0" hint="Advance aate hi order pakka ho jata hai" />
                   <div className="flex flex-wrap gap-1.5">{[25, 50, 100].map((p) => <Button key={p} size="xs" variant="secondary" onClick={() => set('advancePaid', String(Math.round((price * p) / 100)))}>{p}% · {formatPKR(Math.round((price * p) / 100))}</Button>)}</div>
+                  {paid > 0 && (
+                    <div role="radiogroup" aria-label="Advance kaise mila" className="flex flex-wrap gap-1.5">
+                      {PAY_METHODS.map((m) => <Button key={m.id} size="xs" role="radio" aria-checked={f.payMethod === m.id} variant={f.payMethod === m.id ? 'primary' : 'secondary'} onClick={() => set('payMethod', m.id)}>{m.label}</Button>)}
+                    </div>
+                  )}
                   {!(paid > 0) && <Switch checked={f.confirmed} onChange={(e) => set('confirmed', e.target.checked)} label="Order pakka hai" description={f.confirmed ? 'Bina advance ke bhi pakka' : 'Sirf rate bataya — abhi pakka nahi'} />}
                 </>
               )}

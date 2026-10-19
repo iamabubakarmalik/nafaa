@@ -1,185 +1,252 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Truck, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Globe, Package, Zap,
-} from 'lucide-react';
-import { vehicleMakesApi, type VehicleMake } from '../api/vehicle-makes.api';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Vehicle companies and their models, on one page: the list parts are
+ * fitted to and vehicles are picked from. Pakistani companies with their
+ * common cars and bikes can be added in one click; anything missing is
+ * added by hand. Nothing is deleted — a company or model is switched off.
+ *
+ * Keys: N new company · M new model · / search · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Bike, Car, Factory, GraduationCap, Package, Pencil, Plus, Power, Sparkles } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { vehicleMakesApi, type VehicleMake, type VehicleMakeInput } from '../api/vehicle-makes.api';
+import { vehicleModelsApi, type VehicleModel, type VehicleModelInput, type VehicleType } from '../api/vehicle-models.api';
+import { MAKES_KEY, MODELS_KEY, VEHICLE_TYPES, apiError, digits, vehicleTypeOf } from '../components/meta';
+
+const BIKES: VehicleType[] = ['MOTORCYCLE', 'SCOOTER', 'RICKSHAW'];
 
 export default function VehicleMakesPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<VehicleMake | null>(null);
+  const [showOff, setShowOff] = useState(false);
+  const [makeId, setMakeId] = useState('');
+  const [makeForm, setMakeForm] = useState<VehicleMake | 'new' | null>(null);
+  const [modelForm, setModelForm] = useState<VehicleModel | 'new' | null>(null);
 
-  const { data: makes = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['vehicle-makes', search],
-    queryFn: () => vehicleMakesApi.list({ search: search.trim() || undefined, active: true }),
-  });
+  const makesQ = useQuery({ queryKey: [MAKES_KEY, 'all'], queryFn: () => vehicleMakesApi.list() });
+  const modelsQ = useQuery({ queryKey: [MODELS_KEY, 'all'], queryFn: () => vehicleModelsApi.list() });
+  const refresh = () => [MAKES_KEY, MODELS_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => vehicleMakesApi.remove(id),
-    onSuccess: () => { toast.success('Make removed'); queryClient.invalidateQueries({ queryKey: ['vehicle-makes'] }); },
-  });
+  const makes = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const modelHit = new Set((modelsQ.data ?? []).filter((m) => q && m.name.toLowerCase().includes(q)).map((m) => m.makeId));
+    return (makesQ.data ?? []).filter((m) => (showOff || m.isActive) && (!q || m.name.toLowerCase().includes(q) || modelHit.has(m.id)));
+  }, [makesQ.data, modelsQ.data, search, showOff]);
+  const make = makesQ.data?.find((m) => m.id === makeId) ?? makes[0];
+  const models = (modelsQ.data ?? []).filter((m) => m.makeId === make?.id && (showOff || m.isActive))
+    .filter((m) => !search.trim() || make?.name.toLowerCase().includes(search.trim().toLowerCase()) || m.name.toLowerCase().includes(search.trim().toLowerCase()));
+  const total = { makes: (makesQ.data ?? []).filter((m) => m.isActive).length, models: (modelsQ.data ?? []).filter((m) => m.isActive).length };
+  const bikes = (modelsQ.data ?? []).filter((m) => m.isActive && BIKES.includes(m.vehicleType)).length;
 
-  const seedMutation = useMutation({
+  const seed = useMutation({
     mutationFn: () => vehicleMakesApi.seedPakistani(),
-    onSuccess: (data) => { toast.success('Added ' + data.created + ' Pakistani makes'); queryClient.invalidateQueries({ queryKey: ['vehicle-makes'] }); },
+    onSuccess: (r) => { toast.success(r.created || r.models ? `${r.created} company aur ${r.models} model daal diye` : 'Sab pehle se maujood hain'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const saveMake = useMutation({
+    mutationFn: (v: VehicleMakeInput) => (makeForm && makeForm !== 'new' ? vehicleMakesApi.update(makeForm.id, v) : vehicleMakesApi.create(v)),
+    onSuccess: (m) => { toast.success(`${m.name} save ho gayi`); setMakeId(m.id); setMakeForm(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Company save nahi hui')),
+  });
+  const saveModel = useMutation({
+    mutationFn: (v: VehicleModelInput) => (modelForm && modelForm !== 'new' ? vehicleModelsApi.update(modelForm.id, v) : vehicleModelsApi.create(v)),
+    onSuccess: (m) => { toast.success(`${m.name} save ho gaya`); setModelForm(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Model save nahi hua')),
+  });
+  const toggleMake = useMutation({
+    mutationFn: (m: VehicleMake) => (m.isActive ? vehicleMakesApi.remove(m.id) : vehicleMakesApi.update(m.id, { isActive: true })),
+    onSuccess: (_r, m) => { toast.success(m.isActive ? `${m.name} band — purani gaariyan aur parts waise hi` : `${m.name} chalu`); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const toggleModel = useMutation({
+    mutationFn: (m: VehicleModel) => (m.isActive ? vehicleModelsApi.remove(m.id) : vehicleModelsApi.update(m.id, { isActive: true })),
+    onSuccess: (_r, m) => { toast.success(m.isActive ? `${m.name} band` : `${m.name} chalu`); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen() || !canEdit) return;
+      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); setMakeForm('new'); }
+      if ((e.key === 'm' || e.key === 'M') && make) { e.preventDefault(); setModelForm('new'); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canEdit, make]);
+
+  const loading = makesQ.isLoading || modelsQ.isLoading;
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-red-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Vehicle Brands
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🚛 Vehicle Makes</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Toyota, Honda, Suzuki, KIA — sab brands</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <Zap className="h-4 w-4" />
-              Seed 30 Pakistani Makes
-            </button>
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              New Make
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Company aur model"
+        chip={<><Car /> Gaariyan</>}
+        meta="Parts kis gaari me lagte hain aur job me gaari chunna — isi list se"
+        actions={<>
+          {canEdit && <button type="button" onClick={() => seed.mutate()} disabled={seed.isPending} className={heroButton}><Sparkles className="h-4 w-4" /><span className="hidden sm:inline">Pakistani list daalein</span></button>}
+          <Link to="/autoparts/parts" className={heroButton}><Package className="h-4 w-4" /><span className="hidden sm:inline">Parts</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setMakeForm('new')} title="Nayi company (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Company</button>}
+        </>}
+        loading={loading}
+        stats={[{ label: 'Company', value: total.makes }, { label: 'Model', value: total.models }, { label: 'Bike / rickshaw model', value: bikes }]}
+      />
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search makes..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500" />
-        </div>
-      </section>
+      <KpiRow cols={3}>
+        <KpiCard icon={Factory} color="#2563eb" label="Company" value={total.makes} hint="Toyota, Honda, Suzuki…" />
+        <KpiCard icon={Car} color="#0891b2" label="Car / jeep model" value={total.models - bikes} />
+        <KpiCard icon={Bike} color="#d97706" label="Bike / rickshaw" value={bikes} />
+      </KpiRow>
 
-      {showForm && (
-        <MakeForm editing={editing} onClose={() => { setShowForm(false); setEditing(null); }} onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['vehicle-makes'] }); }} />
-      )}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Company ya model — Corolla, CD 70…" label="Search" />}>
+        <button type="button" onClick={() => setShowOff(!showOff)} aria-pressed={showOff}
+          className={cn('inline-flex h-11 items-center gap-1.5 rounded-2xl px-4 text-[0.8125rem] font-semibold ring-1', showOff ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>
+          <Power className="h-4 w-4" />Band bhi dikhayein
+        </button>
+      </FilterBar>
 
-      {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : makes.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Truck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No vehicle makes yet</p>
-          <div className="mt-4 flex gap-2 justify-center">
-            <Button className="bg-gradient-to-r from-rose-600 to-red-700" onClick={() => seedMutation.mutate()} loading={seedMutation.isPending}>
-              <Zap className="h-4 w-4" />
-              Auto-Add Pakistani Makes
-            </Button>
-            <Button variant="secondary" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Manually
-            </Button>
+      {loading ? <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]"><Skeleton className="h-96 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></div>
+        : !makesQ.data?.length ? (
+          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+            <Factory className="mx-auto h-10 w-10 text-slate-300" />
+            <p className="mt-3 font-semibold text-slate-900">Abhi koi company nahi</p>
+            <p className="mt-1 text-sm text-slate-500">Ek click me Toyota, Honda, Suzuki, Yamaha… aur un ke aam model daal lein.</p>
+            {canEdit && <Button className="mt-4" loading={seed.isPending} onClick={() => seed.mutate()} leftIcon={<Sparkles className="h-4 w-4" />}>Pakistani list daalein</Button>}
           </div>
-        </div>
-      ) : (
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {makes.map((make) => (
-            <div key={make.id} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-2">
-              <div className="flex items-start justify-between">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow overflow-hidden">
-                  {make.logoUrl ? <img src={make.logoUrl} alt="" className="w-full h-full object-cover" /> : <Truck className="h-7 w-7" />}
-                </div>
-                <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                  <button onClick={() => { setEditing(make); setShowForm(true); }} className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-                    <Edit3 className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => { if (confirm('Remove ' + make.name + '?')) removeMutation.mutate(make.id); }} className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-              <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{make.name}</h3>
-                {make.country && (
-                  <div className="flex items-center gap-1 text-xs text-slate-500 font-bold">
-                    <Globe className="h-3 w-3" />
-                    {make.country}
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <ul className="max-h-[36rem] overflow-y-auto rounded-3xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
+              {makes.length === 0 && <li className="px-3 py-6 text-center text-[0.8125rem] text-slate-500">Koi company nahi mili</li>}
+              {makes.map((m) => {
+                const count = (modelsQ.data ?? []).filter((x) => x.makeId === m.id && x.isActive).length;
+                return (
+                  <li key={m.id}>
+                    <button type="button" onClick={() => setMakeId(m.id)}
+                      className={cn('flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[0.875rem]', make?.id === m.id ? 'bg-brand-50 text-brand-900 ring-1 ring-brand-200' : 'hover:bg-slate-50', !m.isActive && 'opacity-60')}>
+                      <span className="min-w-0 flex-1 truncate font-medium">{m.name}</span>
+                      <span className="text-[0.75rem] tabular-nums text-slate-500">{count}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+              {make && (
+                <header className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate text-[1.0625rem] font-bold text-slate-900">{make.name}{!make.isActive && <span className="ml-2 text-[0.75rem] font-medium text-slate-500">(band)</span>}</h2>
+                    <p className="text-[0.75rem] text-slate-500">{make.country ? `${make.country} · ` : ''}{models.length} model</p>
                   </div>
-                )}
-              </div>
-              <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
-                <span className="inline-flex items-center gap-1 text-xs text-slate-600 font-bold">
-                  <Package className="h-3 w-3" />
-                  {make._count?.models || 0} models
-                </span>
-              </div>
-            </div>
-          ))}
-        </section>
+                  {canEdit && <>
+                    <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setMakeForm(make)}>Badlein</Button>
+                    <Button size="sm" variant="ghost" leftIcon={<Power className="h-3.5 w-3.5" />} loading={toggleMake.isPending} onClick={() => toggleMake.mutate(make)}>{make.isActive ? 'Band' : 'Chalu'}</Button>
+                    <Button size="sm" leftIcon={<Plus className="h-3.5 w-3.5" />} onClick={() => setModelForm('new')}>Model (M)</Button>
+                  </>}
+                </header>
+              )}
+              {models.length === 0 ? <p className="px-4 py-10 text-center text-[0.8125rem] text-slate-500">Is company ka koi model nahi — “Model” se jorein</p> : (
+                <ul className="grid gap-2 p-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {models.map((m) => (
+                    <li key={m.id} className={cn('flex items-center gap-2 rounded-2xl px-3 py-2.5 ring-1 ring-slate-200', !m.isActive && 'opacity-60')}>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">{BIKES.includes(m.vehicleType) ? <Bike className="h-4 w-4" /> : <Car className="h-4 w-4" />}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold text-slate-900">{m.name}</span>
+                        <span className="block truncate text-[0.75rem] text-slate-500">{vehicleTypeOf(m.vehicleType)}{m.yearFrom || m.yearTo ? ` · ${m.yearFrom ?? ''}–${m.yearTo ?? 'ab tak'}` : ''}{m.engineOptions.length ? ` · ${m.engineOptions.join(', ')}` : ''}</span>
+                      </span>
+                      {canEdit && <>
+                        <button type="button" onClick={() => setModelForm(m)} aria-label={`${m.name} badlein`} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button type="button" onClick={() => toggleModel.mutate(m)} aria-label={m.isActive ? `${m.name} band karein` : `${m.name} chalu karein`} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-3.5 w-3.5" /></button>
+                      </>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+        )}
+
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> company · <Kbd>M</Kbd> model · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+
+      {makeForm && <MakeModal make={makeForm === 'new' ? null : makeForm} pending={saveMake.isPending} onSave={(v) => saveMake.mutate(v)} onClose={() => setMakeForm(null)} />}
+      {modelForm && make && (
+        <ModelModal makes={(makesQ.data ?? []).filter((m) => m.isActive || m.id === make.id)} makeId={make.id} model={modelForm === 'new' ? null : modelForm}
+          pending={saveModel.isPending} onSave={(v) => saveModel.mutate(v)} onClose={() => setModelForm(null)} />
       )}
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide title="Company aur model — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Sparkles, color: '#7c3aed', title: 'Ek click', text: '"Pakistani list daalein" se Toyota, Honda, Suzuki, Yamaha, United… aur un ke aam model aa jate hain. Pehle se maujood cheez nahi badalti.' },
+            { icon: Package, color: '#ea580c', title: 'Parts ke liye', text: 'Part ke "Gaari" step me yahi company aur model chune jate hain — counter par "corolla brake" se part milta hai.' },
+            { icon: Power, color: '#64748b', title: 'Band karein', text: 'Jo company ya model nahi chahiye band kar dein — purani gaariyan aur parts waise hi rehte hain.' },
+          ]}
+          shortcuts={[['N', 'company'], ['M', 'model'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function MakeForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    name: editing?.name ?? '',
-    country: editing?.country ?? '',
-    logoUrl: editing?.logoUrl ?? '',
-    displayOrder: editing?.displayOrder ?? 0,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => editing ? vehicleMakesApi.update(editing.id, form) : vehicleMakesApi.create(form),
-    onSuccess: () => { toast.success(editing ? 'Updated' : 'Created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
+function MakeModal({ make, pending, onSave, onClose }: { make: VehicleMake | null; pending: boolean; onSave: (v: VehicleMakeInput) => void; onClose: () => void }) {
+  const [name, setName] = useState(make?.name ?? '');
+  const [country, setCountry] = useState(make?.country ?? '');
+  const bad = name.trim().length < 2;
+  const submit = () => { if (!bad && !pending) onSave({ name: name.trim(), country: country.trim() || undefined }); };
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Make' : 'New Make'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-3">
-        <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Make name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="Country of origin" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
-          {form.logoUrl ? (
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
-              <img src={form.logoUrl} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setForm({ ...form, logoUrl: '' })} className="absolute top-1 right-1 h-6 w-6 rounded bg-rose-600 text-white flex items-center justify-center">
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, logoUrl: url });
-            }} />
-          )}
-        </div>
-        <div className="flex gap-2 pt-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </section>
+    <Modal open onClose={onClose} size="sm" title={make ? `${make.name} badlein` : 'Nayi company'}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} disabled={bad} loading={pending}>Save</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Input label="Naam" required value={name} onChange={(e) => setName(e.target.value)} autoFocus placeholder="Toyota" error={name && bad ? 'Kam se kam 2 harf' : undefined} />
+        <Input label="Mulk" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Japan" hint="Marzi hai" />
+      </form>
+    </Modal>
+  );
+}
+
+function ModelModal({ makes, makeId, model, pending, onSave, onClose }: {
+  makes: VehicleMake[]; makeId: string; model: VehicleModel | null; pending: boolean; onSave: (v: VehicleModelInput) => void; onClose: () => void;
+}) {
+  const [f, setF] = useState({
+    makeId: model?.makeId ?? makeId, name: model?.name ?? '', type: model?.vehicleType ?? ('CAR' as VehicleType),
+    from: model?.yearFrom ? String(model.yearFrom) : '', to: model?.yearTo ? String(model.yearTo) : '', engines: model?.engineOptions.join(', ') ?? '',
+  });
+  const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
+  const badYears = !!f.from && !!f.to && Number(f.from) > Number(f.to);
+  const bad = f.name.trim().length < 1 || badYears;
+  const submit = () => {
+    if (bad || pending) return;
+    onSave({
+      makeId: f.makeId, name: f.name.trim(), vehicleType: f.type, yearFrom: f.from ? Number(f.from) : undefined, yearTo: f.to ? Number(f.to) : undefined,
+      engineOptions: f.engines.split(',').map((x) => x.trim()).filter(Boolean),
+    });
+  };
+  return (
+    <Modal open onClose={onClose} size="md" title={model ? `${model.name} badlein` : 'Naya model'}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} disabled={bad} loading={pending}>Save</Button></>}>
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Select label="Company" value={f.makeId} onChange={(e) => set({ makeId: e.target.value })} options={makes.map((m) => ({ value: m.id, label: m.name }))} />
+        <Input label="Model" required value={f.name} onChange={(e) => set({ name: e.target.value })} autoFocus placeholder="Corolla" />
+        <Select label="Gaari ki type" value={f.type} onChange={(e) => set({ type: e.target.value as VehicleType })} options={VEHICLE_TYPES.map((t) => ({ value: t, label: vehicleTypeOf(t) }))} />
+        <Input label="Engine" value={f.engines} onChange={(e) => set({ engines: e.target.value })} placeholder="1300cc, 1600cc" hint="Comma se alag — marzi hai" />
+        <Input label="Saal se" inputMode="numeric" value={f.from} onChange={(e) => set({ from: digits(e.target.value).slice(0, 4) })} placeholder="2014" />
+        <Input label="Saal tak" inputMode="numeric" value={f.to} onChange={(e) => set({ to: digits(e.target.value).slice(0, 4) })} placeholder="Ab tak" error={badYears ? '“Se” se kam hai' : undefined} />
+      </form>
+    </Modal>
   );
 }

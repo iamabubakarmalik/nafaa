@@ -4,7 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CustomerVehiclesService } from './customer-vehicles.service';
-import { UpsertCustomerVehicleDto } from './dto/upsert-customer-vehicle.dto';
+import { ListVehiclesQuery, UpsertCustomerVehicleDto } from './dto/upsert-customer-vehicle.dto';
 
 @ApiTags('Auto Parts - Customer Vehicles')
 @ApiBearerAuth()
@@ -14,9 +14,8 @@ export class CustomerVehiclesController {
   constructor(private readonly service: CustomerVehiclesService) {}
 
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertCustomerVehicleDto) { return this.service.create(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('customerId') customerId?: string, @Query('makeId') makeId?: string, @Query('vehicleType') vehicleType?: string, @Query('search') search?: string, @Query('active') active?: string) {
-    return this.service.list(user, { customerId, makeId, vehicleType, search, active: active === 'true' ? true : active === 'false' ? false : undefined });
-  }
+  @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: ListVehiclesQuery) { return this.service.list(user, q); }
+  @Get('stats') stats(@GetUser() user: AuthenticatedUser) { return this.service.stats(user); }
   @Get('expiring-documents') expiring(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
     return this.service.expiringDocuments(user, days ? parseInt(days) : 30);
   }

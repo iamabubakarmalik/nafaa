@@ -1,222 +1,214 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  AlertTriangle, RefreshCw, Sparkles, Package, TrendingDown, Phone,
-  Clock, User, X, Save, Edit3,
-} from 'lucide-react';
-import { reorderRulesApi } from '../api/reorder-rules.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
+/**
+ * Reorder list: items at or below their reorder point (out of stock first),
+ * how much to order and from whom, printed as a buying list per supplier.
+ * Points are set here or in the item editor's stock step.
+ */
 
-const SEVERITY_CONFIG: Record<string, { label: string; color: string }> = {
-  OUT_OF_STOCK: { label: 'Out of Stock', color: 'bg-red-600' },
-  CRITICAL: { label: 'Critical', color: 'bg-rose-500' },
-  LOW: { label: 'Low', color: 'bg-amber-500' },
-  OK: { label: 'OK', color: 'bg-emerald-500' },
+import { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AlertTriangle, CheckCircle2, Download, Edit3, GraduationCap, ListChecks, PackageX, Plus, RefreshCw, ShoppingCart, Trash2 } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Table, TBody, THead, Td, Th, Tr, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import type { PosItem } from '@modules/pos/engine';
+import { reorderRulesApi, type ReorderRule } from '../api/reorder-rules.api';
+import { ItemPick } from '../components/ItemPick';
+import { usePageKeys } from '../hooks/usePageKeys';
+import { errorText, qty } from '../lib/meta';
+
+type Tab = 'need' | 'out' | 'ok' | 'all';
+const SEVERITY: Record<string, { label: string; tone: string }> = {
+  OUT_OF_STOCK: { label: 'Khatam', tone: 'bg-rose-600 text-white ring-rose-600' },
+  CRITICAL: { label: 'Bohat kam', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  LOW: { label: 'Mangwana hai', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  OK: { label: 'Theek', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
 };
+const ORDER = { OUT_OF_STOCK: 0, CRITICAL: 1, LOW: 2, OK: 3 } as Record<string, number>;
 
 export default function ReorderRulesPage() {
-  const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'alerts' | 'rules'>('alerts');
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('need');
+  const [search, setSearch] = useState('');
+  const [form, setForm] = useState<{ rule?: ReorderRule } | null>(null);
+  const [removing, setRemoving] = useState<ReorderRule | null>(null);
 
-  const { data: alerts, isLoading: alertsLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['reorder-alerts'],
-    queryFn: () => reorderRulesApi.lowStockAlerts(),
-    refetchInterval: 60_000,
-  });
+  const { data = [], isLoading, isFetching } = useQuery({ queryKey: ['hardware-reorder'], queryFn: () => reorderRulesApi.list({ active: true }) });
+  usePageKeys(searchRef, { n: () => setForm({}) });
 
-  const { data: rules = [] } = useQuery({
-    queryKey: ['reorder-rules'],
-    queryFn: () => reorderRulesApi.list({ active: true, needsReorder: true }),
-    enabled: tab === 'rules',
-  });
+  const all = useMemo(() => [...data].sort((a, b) => (ORDER[a.severity ?? 'OK'] - ORDER[b.severity ?? 'OK']) || (a.product?.name ?? '').localeCompare(b.product?.name ?? '')), [data]);
+  const term = search.trim().toLowerCase();
+  const matchTab = (r: ReorderRule) => (tab === 'need' ? r.needsReorder : tab === 'out' ? r.severity === 'OUT_OF_STOCK' : tab === 'ok' ? !r.needsReorder : true);
+  const rows = all.filter((r) => matchTab(r) && (!term || [r.product?.name, r.preferredSupplier].some((v) => (v ?? '').toLowerCase().includes(term))));
+  const need = all.filter((r) => r.needsReorder);
+  const counts = { need: need.length, out: all.filter((r) => r.severity === 'OUT_OF_STOCK').length, ok: all.length - need.length, all: all.length };
+
+  const buyingList = (): PrintDoc => {
+    const bySupplier = new Map<string, ReorderRule[]>();
+    for (const r of need) bySupplier.set(r.preferredSupplier || 'Supplier tay nahi', [...(bySupplier.get(r.preferredSupplier || 'Supplier tay nahi') ?? []), r]);
+    return {
+      title: 'Mangwane ki list', subtitle: new Date().toLocaleDateString('en-PK'),
+      meta: [['Items', String(need.length)], ['Khatam', String(counts.out)]],
+      sections: [...bySupplier.entries()].map(([supplier, list]) => ({
+        kind: 'table' as const, title: supplier,
+        columns: [{ label: 'Item' }, { label: 'Stock', align: 'right' as const }, { label: 'Mangwayein', align: 'right' as const }],
+        rows: list.map((r) => [r.product?.name ?? '—', `${qty(r.currentStock ?? 0)} ${r.product?.unit ?? ''}`, qty(r.reorderQty)]),
+      })),
+    };
+  };
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is list me kuch nahi'); return; }
+    downloadCsv('reorder.csv', [['Item', 'Unit', 'Stock', 'Reorder point', 'Kam se kam', 'Mangwana', 'Supplier', 'Haal'],
+      ...rows.map((r) => [r.product?.name, r.product?.unit, r.currentStock, r.reorderPoint, r.minStock, r.reorderQty, r.preferredSupplier, SEVERITY[r.severity ?? 'OK'].label])]);
+  };
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-red-900 to-rose-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-red-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
-              Stock Alerts
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Reorder — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: RefreshCw, color: '#2563eb', title: 'Point lagayein', text: 'Har zaroori item par likhein kitna reh jaye to mangwana hai aur kitna mangwana hai.' },
+            { icon: AlertTriangle, color: '#d97706', title: 'Mangwana hai', text: 'Stock point tak aaye to item yahan aur dashboard par aata hai — khatam wale sab se upar.' },
+            { icon: ShoppingCart, color: '#16a34a', title: 'Purchase', text: '"Mangwane ki list" print kar ke supplier ko dein, maal aaye to Purchase banayein — bilty/kiraya bhi us me likhein.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya point'], ['G', 'guide']]} />
+      )}
+
+      <PageHero title="Reorder" chip={`${counts.need} mangwana hai`} busy={isFetching && !isLoading} loading={isLoading}
+        meta="Cement, sarya, pipe — khatam hone se pehle mangwayein"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={buyingList} label="Mangwane ki list" disabled={!need.length} /></span>
+          <Link to="/purchases/new" className={heroButton}><ShoppingCart className="h-4 w-4" />Purchase</Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setForm({})} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya point</button>
+        </>}
+        stats={[{ label: 'Mangwana hai', value: String(counts.need) }, { label: 'Khatam', value: String(counts.out) }, { label: 'Point wale items', value: String(counts.all) }]} />
+
+      <KpiRow cols={4}>
+        {isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={PackageX} color="#e11d48" label="Khatam" value={counts.out} onClick={() => setTab('out')} active={tab === 'out'} />
+            <KpiCard icon={AlertTriangle} color="#d97706" label="Mangwana hai" value={counts.need} onClick={() => setTab('need')} active={tab === 'need'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Theek" value={counts.ok} onClick={() => setTab('ok')} active={tab === 'ok'} />
+            <KpiCard icon={ListChecks} color="#475569" label="Sab" value={counts.all} onClick={() => setTab('all')} active={tab === 'all'} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Item ya supplier…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')} />
+
+      <ViewTabs value={tab} onChange={setTab} tabs={[
+        { id: 'need', label: 'Mangwana hai', icon: AlertTriangle, count: counts.need },
+        { id: 'out', label: 'Khatam', icon: PackageX, count: counts.out },
+        { id: 'ok', label: 'Theek', icon: CheckCircle2, count: counts.ok },
+        { id: 'all', label: 'Sab', icon: ListChecks, count: counts.all },
+      ]} />
+
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
+          : rows.length === 0 ? (
+            <div className="flex flex-col items-center px-6 py-16 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-7 w-7" /></span>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{tab === 'need' ? 'Abhi kuch mangwana nahi' : 'Is list me kuch nahi'}</h3>
+              <p className="mt-1 text-[0.875rem] text-slate-500">Zaroori items par reorder point lagayein taake waqt par pata chale.</p>
+              <button type="button" onClick={() => setForm({})} className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya point</button>
             </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">⚠️ Reorder Alerts</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Low stock notifications & reorder rules</p>
-          </div>
-          <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-            <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-            Refresh
-          </button>
-        </div>
+          ) : (
+            <Table minWidth="48rem">
+              <THead><Tr><Th>Item</Th><Th align="right">Stock</Th><Th align="right">Point</Th><Th align="right">Mangwana</Th><Th>Supplier</Th><Th>Haal</Th><Th align="right"> </Th></Tr></THead>
+              <TBody>
+                {rows.map((r) => {
+                  const sv = SEVERITY[r.severity ?? 'OK'];
+                  return (
+                    <Tr key={r.id}>
+                      <Td><Link to={`/hardware-products/${r.productId}`} className="font-medium text-slate-900 hover:text-brand-700">{r.product?.name ?? '—'}</Link></Td>
+                      <Td align="right" className={cn('font-semibold tabular-nums', r.needsReorder ? 'text-rose-600' : 'text-slate-900')}>{qty(r.currentStock ?? 0)} <span className="font-normal text-slate-500">{r.product?.unit}</span></Td>
+                      <Td align="right" className="tabular-nums">{qty(r.reorderPoint)}</Td>
+                      <Td align="right" className="tabular-nums">{qty(r.reorderQty)}</Td>
+                      <Td className="text-[0.8125rem] text-slate-600">{r.preferredSupplier || '—'}</Td>
+                      <Td><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold ring-1', sv.tone)}>{sv.label}</span></Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-1">
+                          <button type="button" title="Badlein" onClick={() => setForm({ rule: r })} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Edit3 className="h-4 w-4" /></button>
+                          <button type="button" title="Point hatayein" onClick={() => setRemoving(r)} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </TBody>
+            </Table>
+          )}
       </section>
 
-      {alerts && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Alerts" value={alerts.total} icon={AlertTriangle} color="rose" />
-          <StatCard label="Out of Stock" value={alerts.outOfStock} icon={X} color="red" />
-          <StatCard label="Critical" value={alerts.critical} icon={TrendingDown} color="orange" />
-          <StatCard label="Low" value={alerts.low} icon={AlertTriangle} color="amber" />
-        </section>
-      )}
-
-      <div className="flex gap-2">
-        <button onClick={() => setTab('alerts')} className={
-          'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'alerts' ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
-        }>
-          🚨 Alerts ({alerts?.total || 0})
-        </button>
-        <button onClick={() => setTab('rules')} className={
-          'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'rules' ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
-        }>
-          Rules
-        </button>
-      </div>
-
-      {tab === 'alerts' ? (
-        alertsLoading ? (
-          <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-        ) : !alerts?.alerts?.length ? (
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-emerald-300 p-12 text-center">
-            <div className="h-20 w-20 rounded-3xl bg-emerald-100 dark:bg-emerald-950/40 mx-auto flex items-center justify-center">
-              <Package className="h-10 w-10 text-emerald-600" />
-            </div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">All Stock OK!</h3>
-            <p className="mt-1 text-sm text-slate-500 font-semibold">No products need reordering</p>
-          </div>
-        ) : (
-          <section className="grid gap-3">
-            {alerts.alerts.map((alert: any) => <AlertCard key={alert.id} alert={alert} />)}
-          </section>
-        )
-      ) : (
-        <section className="grid gap-3">
-          {rules.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-              <AlertTriangle className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-              <p className="font-extrabold text-slate-700">No reorder rules set</p>
-            </div>
-          ) : (
-            rules.map((r) => <RuleCard key={r.id} rule={r} />)
-          )}
-        </section>
-      )}
-    </div>
+      {form && <RuleModal rule={form.rule} onClose={() => setForm(null)} />}
+      {removing && <RemoveModal rule={removing} onClose={() => setRemoving(null)} />}
+    </PageShell>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    rose: 'from-rose-500 to-red-600', red: 'from-red-600 to-red-800',
-    orange: 'from-orange-500 to-red-600', amber: 'from-amber-500 to-orange-600',
+function RuleModal({ rule, onClose }: { rule?: ReorderRule; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [item, setItem] = useState<{ id: string; name: string; unit: string } | null>(rule ? { id: rule.productId, name: rule.product?.name ?? '', unit: rule.product?.unit ?? '' } : null);
+  const [f, setF] = useState({ reorderPoint: rule?.reorderPoint ?? 0, minStock: rule?.minStock ?? 0, reorderQty: rule?.reorderQty ?? 0, preferredSupplier: rule?.preferredSupplier ?? '' });
+  const [error, setError] = useState('');
+  const num = (v: string) => Number(v.replace(/[^\d.]/g, '')) || 0;
+  const save = useMutation({
+    mutationFn: () => reorderRulesApi.upsert({ productId: item!.id, ...f, preferredSupplier: f.preferredSupplier.trim() || undefined, isActive: true }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['hardware-reorder'] }); qc.invalidateQueries({ queryKey: ['hardware-dashboard'] }); toast.success('Reorder point save'); onClose(); },
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+  });
+  const submit = () => {
+    if (!item) return setError('Item chunein');
+    if (!(f.reorderPoint > 0)) return setError('Reorder point 0 se zyada likhein');
+    if (f.minStock > f.reorderPoint) return setError('Kam se kam wali had reorder point se bari nahi');
+    if (!(f.reorderQty > 0)) return setError('Kitna mangwana hai likhein');
+    setError('');
+    save.mutate();
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+    <Modal open onClose={onClose} size="md" title={rule ? 'Reorder point badlein' : 'Naya reorder point'}
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={submit}>Save</Button></>}>
+      <div className="space-y-3">
+        {item ? (
+          <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
+            <span className="font-medium">{item.name}</span>
+            {!rule && <button type="button" onClick={() => setItem(null)} className="text-[0.8125rem] font-semibold text-brand-700">Badlein</button>}
+          </div>
+        ) : <ItemPick onPick={(i: PosItem) => setItem({ id: i.id, name: i.name, unit: i.unit })} />}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Reorder point" inputMode="decimal" value={f.reorderPoint || ''} onChange={(e) => setF({ ...f, reorderPoint: num(e.target.value) })} hint={item ? `Itna ${item.unit} reh jaye` : undefined} />
+          <Input label="Kam se kam" inputMode="decimal" value={f.minStock || ''} onChange={(e) => setF({ ...f, minStock: num(e.target.value) })} hint="Is se neeche laal" />
+          <Input label="Kitna mangwana" inputMode="decimal" value={f.reorderQty || ''} onChange={(e) => setF({ ...f, reorderQty: num(e.target.value) })} />
         </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
+        <Input label="Supplier" value={f.preferredSupplier} onChange={(e) => setF({ ...f, preferredSupplier: e.target.value })} placeholder="Naam / phone" />
+        {error && <p className="text-[0.8125rem] font-medium text-rose-600">{error}</p>}
       </div>
-    </div>
+    </Modal>
   );
 }
 
-function AlertCard({ alert }: any) {
-  const sev = SEVERITY_CONFIG[alert.severity];
-  const p = alert.product;
-
+function RemoveModal({ rule, onClose }: { rule: ReorderRule; onClose: () => void }) {
+  const qc = useQueryClient();
+  const run = useMutation({
+    mutationFn: () => reorderRulesApi.remove(rule.id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['hardware-reorder'] }); toast.success('Point hata diya'); onClose(); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hata')),
+  });
   return (
-    <div className={
-      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 ' +
-      (alert.severity === 'OUT_OF_STOCK' ? 'border-red-500 ring-2 ring-red-100' :
-       alert.severity === 'CRITICAL' ? 'border-rose-400' :
-       'border-amber-300')
-    }>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          {p?.images?.[0]?.url ? (
-            <img src={p.images[0].url} alt="" className="h-14 w-14 rounded-xl object-cover shrink-0" />
-          ) : (
-            <div className="h-14 w-14 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0">
-              <Package className="h-6 w-6 text-slate-400" />
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold">{p?.name || 'Product'}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + sev.color}>{sev.label}</span>
-            </div>
-            <div className="mt-1 grid grid-cols-3 gap-2 text-xs">
-              <div>
-                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Current</div>
-                <div className={
-                  'font-extrabold tabular-nums ' +
-                  (alert.currentStock <= 0 ? 'text-rose-700' : 'text-slate-900')
-                }>{alert.currentStock}</div>
-              </div>
-              <div>
-                <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Min Stock</div>
-                <div className="font-extrabold text-amber-700 tabular-nums">{alert.minStock}</div>
-              </div>
-              <div>
-                <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Reorder Qty</div>
-                <div className="font-extrabold text-blue-700 tabular-nums">{alert.reorderQty}</div>
-              </div>
-            </div>
-            {(alert.preferredSupplier || alert.emergencyContact) && (
-              <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                {alert.preferredSupplier && (
-                  <span className="inline-flex items-center gap-1 font-bold text-slate-700">
-                    <User className="h-3 w-3" />
-                    {alert.preferredSupplier}
-                  </span>
-                )}
-                {alert.emergencyContact && (
-                  <a href={'tel:' + alert.emergencyContact} className="inline-flex items-center gap-1 font-extrabold text-blue-700 hover:underline">
-                    <Phone className="h-3 w-3" />
-                    {alert.emergencyContact}
-                  </a>
-                )}
-                {alert.leadTimeDays && (
-                  <span className="inline-flex items-center gap-1 font-bold text-slate-500">
-                    <Clock className="h-3 w-3" />
-                    Lead: {alert.leadTimeDays}d
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RuleCard({ rule }: any) {
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex-1 min-w-0">
-          <div className="font-extrabold">{rule.product?.name || 'Product'}</div>
-          <div className="mt-1 grid grid-cols-4 gap-2 text-xs">
-            <div><span className="text-slate-500 font-semibold">Min: </span><span className="font-extrabold">{rule.minStock}</span></div>
-            <div><span className="text-slate-500 font-semibold">Reorder: </span><span className="font-extrabold">{rule.reorderPoint}</span></div>
-            <div><span className="text-slate-500 font-semibold">Qty: </span><span className="font-extrabold">{rule.reorderQty}</span></div>
-            {rule.maxStock && <div><span className="text-slate-500 font-semibold">Max: </span><span className="font-extrabold">{rule.maxStock}</span></div>}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Stock</div>
-          <div className="text-2xl font-extrabold tabular-nums">{rule.currentStock ?? 0}</div>
-        </div>
-      </div>
-    </div>
+    <Modal open onClose={onClose} size="sm" title="Reorder point hatayein?" description={`${rule.product?.name ?? 'Item'} ab reorder list me nahi aayega. Stock par koi asar nahi.`}
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button variant="danger" loading={run.isPending} onClick={() => run.mutate()}>Hatayein</Button></>}>
+      <p className="text-[0.875rem] text-slate-600">Dobara chahiye ho to naya point laga dein.</p>
+    </Modal>
   );
 }

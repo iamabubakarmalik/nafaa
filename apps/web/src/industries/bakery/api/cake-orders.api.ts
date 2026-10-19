@@ -71,6 +71,8 @@ export interface CakeOrder {
   discount: number;
   advanceRequired: number;
   advancePaid: number;
+  /** Single-order reads only: part of the money received that is held on the customer's khata. */
+  khataPaid?: number;
   total: number;
   paidAmount: number;
   paymentStatus: string;
@@ -131,6 +133,10 @@ export interface CakeOrderSummary {
 /** The sale made when an order was handed over. */
 export interface OrderBill { id: string; saleNumber: string; total: number; paidAmount: number; soldAt: string; status: string }
 
+/** How order money was paid, and whether it came with the delivery bill. */
+export interface OrderPayOptions { method?: OrderPayMethod; withBill?: boolean }
+export type OrderPayMethod = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const cakeOrdersApi = {
@@ -146,9 +152,13 @@ export const cakeOrdersApi = {
   getOne: (id: string) => apiClient.get('/bakery/cake-orders/' + id).then(unwrap<CakeOrder>),
   updateStatus: (id: string, status: string, cancellationReason?: string) =>
     apiClient.patch('/bakery/cake-orders/' + id + '/status', { status, cancellationReason }).then(unwrap<CakeOrder>),
-  /** `expectedPaid` = paid amount the screen showed; the server refuses a repeat. */
-  addPayment: (id: string, amount: number, expectedPaid?: number) =>
-    apiClient.post('/bakery/cake-orders/' + id + '/payment', { amount, expectedPaid }).then(unwrap<CakeOrder>),
+  /**
+   * `expectedPaid` = paid amount the screen showed; the server refuses a repeat.
+   * The money goes on the customer's khata as an advance, unless `withBill`
+   * (taken with the delivery bill, which records it).
+   */
+  addPayment: (id: string, amount: number, expectedPaid?: number, opts?: OrderPayOptions) =>
+    apiClient.post('/bakery/cake-orders/' + id + '/payment', { amount, expectedPaid, ...opts }).then(unwrap<CakeOrder>),
   assign: (id: string, bakerId: string, decoratorId?: string) =>
     apiClient.post('/bakery/cake-orders/' + id + '/assign', { bakerId, decoratorId }).then(unwrap<CakeOrder>),
   rate: (id: string, rating: number, feedback?: string, photoUrls?: string[]) =>

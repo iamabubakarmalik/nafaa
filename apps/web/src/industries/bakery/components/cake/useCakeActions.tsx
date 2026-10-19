@@ -15,7 +15,7 @@ import { CAKE_KEY, CAKE_PREV, apiError, cakeLine, cakeNext, dueOf, isDelivery, s
 function cakeBill(o: CakeOrder): OrderForBill {
   return {
     kind: 'cake', id: o.id, orderNumber: o.orderNumber, customerName: o.customerName, customerPhone: o.customerPhone,
-    total: Number(o.total || 0), paid: Number(o.paidAmount || 0),
+    total: Number(o.total || 0), paid: Number(o.paidAmount || 0), customerId: o.customerId ?? null,
     lines: [{ productId: o.productId ?? undefined, name: `Cake — ${cakeLine(o)}`, qty: 1, rate: Number(o.total || 0) }],
     deliveryAddress: isDelivery(o.deliveryType) ? o.deliveryAddress ?? undefined : undefined,
   };
@@ -51,7 +51,7 @@ export function useCakeActions(shopName: string) {
       {payOn && (
         <PayModal name={`${payOn.customerName} · ${payOn.orderNumber}`} due={dueOf(payOn)}
           advanceLeft={Math.max(Number(payOn.advanceRequired || 0) - Number(payOn.paidAmount || 0), 0)}
-          onPay={(amount) => cakeOrdersApi.addPayment(payOn.id, amount, payOn.paidAmount)}
+          onPay={(amount, method) => cakeOrdersApi.addPayment(payOn.id, amount, payOn.paidAmount, { method })}
           onClose={() => setPayOn(null)} onDone={() => { setPayOn(null); refresh(); }} />
       )}
       {cancelOn && (
@@ -62,7 +62,8 @@ export function useCakeActions(shopName: string) {
       {deliverOn && (
         <OrderDeliverModal order={cakeBill(deliverOn)} shopName={shopName}
           onClose={() => setDeliverOn(null)} onDone={() => setDeliverOn(null)}
-          recordPayment={(amount) => cakeOrdersApi.addPayment(deliverOn.id, amount, deliverOn.paidAmount)}
+          loadMoney={() => cakeOrdersApi.getOne(deliverOn.id)}
+          recordPayment={(amount, expectedPaid, method) => cakeOrdersApi.addPayment(deliverOn.id, amount, expectedPaid, { method, withBill: true })}
           markDelivered={() => cakeOrdersApi.updateStatus(deliverOn.id, 'DELIVERED')}
           findBill={() => cakeOrdersApi.bill(deliverOn.id)} />
       )}

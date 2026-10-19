@@ -12,6 +12,7 @@ import { Button, Input, Modal, Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { productionApi, type ProductionItem, type ProductionPlan } from '../../api/production.api';
 import { PRODUCTION_KEY, FRESH_KEY, RAW_KEY, apiError, fmtQty } from '../meta';
+import { useConfirm } from '../useConfirm';
 
 const ITEM_STATUS: Record<string, { label: string; tone: string }> = {
   PLANNED: { label: 'Banana hai', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
@@ -34,6 +35,7 @@ function readPrefs(): FinishPrefs {
 }
 
 export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan; canManage: boolean; onAddItems: (plan: ProductionPlan) => void }) {
+  const [ask, confirmDialog] = useConfirm();
   const qc = useQueryClient();
   const [bake, setBake] = useState<ProductionItem | null>(null);
   const [finish, setFinish] = useState<ProductionItem | null>(null);
@@ -58,6 +60,7 @@ export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan
 
   return (
     <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+      {confirmDialog}
       <header className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-4 py-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -71,7 +74,7 @@ export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan
           <div className="flex flex-wrap gap-1.5">
             {!closed && <Button size="sm" variant="secondary" onClick={() => onAddItems(plan)} leftIcon={<Plus className="h-4 w-4" />}>Cheez</Button>}
             {plan.status === 'PLANNED' && <Button size="sm" onClick={() => planStep.mutate('start')} loading={planStep.isPending} leftIcon={<Play className="h-4 w-4" />}>Kaam shuru</Button>}
-            {!closed && plan.status !== 'PLANNED' && <Button size="sm" variant="success" onClick={() => { if (done < items.length && !window.confirm(`${items.length - done} cheezein abhi "ban gaya" nahi hui. Phir bhi plan band karein?`)) return; planStep.mutate('complete'); }} loading={planStep.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Plan mukammal</Button>}
+            {!closed && plan.status !== 'PLANNED' && <Button size="sm" variant="success" onClick={async () => { if (done < items.length && !(await ask({ title: 'Plan band karein?', text: `${items.length - done} cheezein abhi "ban gaya" nahi hui. Phir bhi plan band karein?`, yes: 'Haan, band karein' }))) return; planStep.mutate('complete'); }} loading={planStep.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Plan mukammal</Button>}
           </div>
         )}
       </header>
@@ -109,7 +112,7 @@ export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan
                   {i.status === 'PLANNED' && <Button size="sm" variant="secondary" onClick={() => setBake(i)} leftIcon={<Flame className="h-4 w-4" />}>Oven me</Button>}
                   <Button size="sm" variant="success" onClick={() => setFinish(i)} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Ban gaya</Button>
                   {i.status === 'PLANNED' && (
-                    <button type="button" aria-label="Plan se hatayein" onClick={() => { if (window.confirm(`"${i.productName}" plan se hatayein?`)) remove.mutate(i); }}
+                    <button type="button" aria-label="Plan se hatayein" onClick={async () => { if (await ask({ title: `"${i.productName}" plan se hatayein?`, yes: 'Hatayein', danger: true })) remove.mutate(i); }}
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                   )}
                 </div>

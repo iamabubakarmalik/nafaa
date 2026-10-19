@@ -1,82 +1,155 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+/**
+ * Old gold and silver bought across the counter, and repairs.
+ *
+ * Buying: the metal is tested (karat), weighed, valued at today's buying
+ * rate less kaat, and goes into metal stock; cash paid comes out of the
+ * open drawer. Repairs (repair, resize, polish) keep the customer's piece
+ * on record and become a bill when handed back.
+ */
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ExchangeType, JewelryPurity, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { PURITY_FACTOR, postMetalEntry } from '../common/metal-ledger';
+import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+import { PURITY_FACTOR, metalTypeForPurity, postMetalEntry } from '../common/metal-ledger';
 import { payFromDrawer } from '../common/drawer';
 
-const PURITY_MAP = PURITY_FACTOR;
+const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
+const r3 = (n: number) => Math.round((Number(n) || 0) * 1000) / 1000;
 
 /** Exchange types where metal physically comes into the shop. */
-const METAL_IN = ['OLD_GOLD_EXCHANGE', 'OLD_SILVER_EXCHANGE', 'BROKEN_JEWELRY', 'PURE_METAL_DEPOSIT', 'COIN_EXCHANGE', 'MELT_AND_REMAKE'];
+const METAL_IN: ExchangeType[] = ['OLD_GOLD_EXCHANGE', 'OLD_SILVER_EXCHANGE', 'BROKEN_JEWELRY', 'PURE_METAL_DEPOSIT', 'COIN_EXCHANGE', 'MELT_AND_REMAKE'];
+/** Work done on the customer's own piece. */
+export const REPAIR_TYPES: ExchangeType[] = ['REPAIR', 'RESIZING', 'RENOVATION'];
+const PURITIES = Object.values(JewelryPurity) as string[];
+const TYPES = Object.values(ExchangeType) as string[];
+
+type Kind = 'buy' | 'repair' | 'repair-open' | 'all';
 
 @Injectable()
 export class ExchangesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: any) {
-    const count = await this.prisma.jewelryExchange.count({ where: { tenantId: user.tenantId } });
-    const exchangeNumber = 'JEX-' + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0');
+    const type = String(dto?.exchangeType ?? 'OLD_GOLD_EXCHANGE');
+    if (!TYPES.includes(type)) throw new BadRequestException('Kaam ki type ghalat hai');
+    const repair = REPAIR_TYPES.includes(type as ExchangeType);
+    const claimed = String(dto.claimedPurity ?? '');
+    if (!PURITIES.includes(claimed)) throw new BadRequestException('Karat chunein');
+    const tested = dto.testedPurity ? String(dto.testedPurity) : claimed;
+    if (!PURITIES.includes(tested)) throw new BadRequestException('Test ka karat ghalat hai');
+    const customerName = String(dto.customerName ?? '').trim() || 'Walk-in';
+    const customerPhone = String(dto.customerPhone ?? '').trim();
+    if (repair && !customerPhone) throw new BadRequestException('Repair ke liye customer ka phone likhein');
+    const itemDescription = String(dto.itemDescription ?? '').trim();
+    if (!itemDescription) throw new BadRequestException('Zewar ki tafseel likhein (kya cheez hai)');
 
-    // Auto-calculate fine gold/silver equivalent
-    const grossWeight = Number(dto.grossWeight) || 0;
-    const stoneWeight = Number(dto.stoneWeight) || 0;
-    const netWeight = dto.netWeight ? Number(dto.netWeight) : grossWeight - stoneWeight;
-    const testedPurity = dto.testedPurity ?? dto.claimedPurity;
-    const purityFactor = PURITY_MAP[testedPurity] ?? 1;
-    const fineGoldEquivalent = netWeight * purityFactor;
+    const grossWeight = r3(Number(dto.grossWeight) || 0);
+    const stoneWeight = r3(Math.max(Number(dto.stoneWeight) || 0, 0));
+    if (!(grossWeight > 0)) throw new BadRequestException('Wazan likhein');
+    if (stoneWeight >= grossWeight) throw new BadRequestException('Nag ka wazan kul wazan se kam hona chahiye');
+    const netWeight = dto.netWeight ? r3(Number(dto.netWeight)) : r3(grossWeight - stoneWeight);
+    const fineGoldEquivalent = r3(netWeight * (PURITY_FACTOR[tested] ?? 1));
 
-    const ratePerGram = Number(dto.ratePerGram) || 0;
-    const grossValue = fineGoldEquivalent * ratePerGram;
-    const deductions = Number(dto.deductions) || 0;
-    const meltingCharges = Number(dto.meltingCharges) || 0;
-    const testingCharges = Number(dto.testingCharges) || 0;
-    const netValue = Math.max(grossValue - deductions - meltingCharges - testingCharges, 0);
+    // Buying: value = net weight × rate (rate is per gram of the tested karat) less kaat and charges.
+    // Repair: netValue is the agreed charge for the work.
+    const ratePerGram = r2(Math.max(Number(dto.ratePerGram) || 0, 0));
+    const grossValue = repair ? 0 : r2(netWeight * ratePerGram);
+    const deductionPct = Math.min(Math.max(Number(dto.deductionPct) || 0, 0), 50);
+    const deductions = repair ? 0 : r2(dto.deductions != null ? Math.max(Number(dto.deductions) || 0, 0) : (grossValue * deductionPct) / 100);
+    const meltingCharges = r2(Math.max(Number(dto.meltingCharges) || 0, 0));
+    const testingCharges = r2(Math.max(Number(dto.testingCharges) || 0, 0));
+    const netValue = repair
+      ? r2(Math.max(Number(dto.repairCharge ?? dto.netValue) || 0, 0))
+      : r2(Math.max(grossValue - deductions - meltingCharges - testingCharges, 0));
+    if (!repair && !(ratePerGram > 0)) throw new BadRequestException('Rate likhein (aaj ka khareed rate)');
 
-    const { id: _id, tenantId: _t, exchangeNumber: _n, createdById: _c, paidInCash, ...fields } = dto ?? {};
-    const exchange = await this.prisma.jewelryExchange.create({
-      data: {
-        tenantId: user.tenantId,
-        ...fields,
-        exchangeNumber,
-        exchangeDate: dto.exchangeDate ? new Date(dto.exchangeDate) : new Date(),
-        grossWeight,
-        netWeight,
-        stoneWeight,
-        fineGoldEquivalent,
-        ratePerGram,
-        grossValue,
-        deductions,
-        netValue,
-        meltingCharges,
-        testingCharges,
-        createdById: user.id,
-      },
+    const exchange = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-exchange-no:${user.tenantId}`}))::text`;
+      const count = await tx.jewelryExchange.count({ where: { tenantId: user.tenantId } });
+      const exchangeNumber = (repair ? 'JRP-' : 'JEX-') + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0');
+      const row = await tx.jewelryExchange.create({
+        data: {
+          tenantId: user.tenantId,
+          exchangeNumber,
+          exchangeType: type as ExchangeType,
+          customerId: dto.customerId || null,
+          customerName,
+          customerPhone,
+          customerCnic: dto.customerCnic || null,
+          exchangeDate: new Date(),
+          itemDescription,
+          metalType: metalTypeForPurity(tested),
+          claimedPurity: claimed as JewelryPurity,
+          testedPurity: tested as JewelryPurity,
+          grossWeight, netWeight, stoneWeight, fineGoldEquivalent,
+          ratePerGram, grossValue, deductions, netValue, meltingCharges, testingCharges,
+          purpose: repair ? 'REPAIR' : 'BUY',
+          testingMethod: dto.testingMethod || null,
+          testedBy: dto.testedBy || null,
+          witnessedBy: dto.witnessedBy || null,
+          photoUrls: Array.isArray(dto.photoUrls) ? dto.photoUrls.slice(0, 10) : [],
+          cnicPhotoUrl: dto.cnicPhotoUrl || null,
+          notes: dto.notes || null,
+          createdById: user.id,
+        },
+      });
+      if (METAL_IN.includes(row.exchangeType) && netWeight > 0) {
+        await postMetalEntry(tx, user.tenantId, user.id, {
+          entryType: 'EXCHANGE_IN', metalType: row.metalType, purity: row.testedPurity ?? row.claimedPurity, grams: netWeight,
+          ratePerGram: netWeight > 0 ? r2(netValue / netWeight) : null, reference: exchangeNumber,
+          source: customerName, exchangeId: row.id, notes: itemDescription,
+        });
+      }
+      return row;
     });
 
-    // Old metal taken in goes into the metal stock ledger.
-    if (METAL_IN.includes(exchange.exchangeType) && netWeight > 0) {
-      await postMetalEntry(this.prisma, user.tenantId, user.id, {
-        entryType: 'EXCHANGE_IN',
-        metalType: exchange.metalType,
-        purity: exchange.testedPurity ?? exchange.claimedPurity,
-        grams: netWeight,
-        ratePerGram: netWeight > 0 ? netValue / netWeight : null,
-        reference: exchangeNumber,
-        source: exchange.customerName,
-        exchangeId: exchange.id,
-        notes: exchange.itemDescription,
-      });
-    }
-
     // Old metal bought for cash: the money leaves the drawer.
-    if (paidInCash === true && netValue > 0) {
+    if (!repair && dto.paidInCash === true && netValue > 0) {
       const paid = await payFromDrawer(this.prisma, {
-        tenantId: user.tenantId, userId: user.id, shopId: user.shopId, amount: Math.round(netValue * 100) / 100,
-        reason: `Purana zewar khareeda ${exchangeNumber}`, note: exchange.customerName, reference: `jewelry-exchange:${exchangeNumber}`,
+        tenantId: user.tenantId, userId: user.id, shopId: user.shopId, amount: netValue,
+        reason: `Purana zewar khareeda ${exchange.exchangeNumber}`, note: customerName, reference: `jewelry-exchange:${exchange.exchangeNumber}`,
       });
       return { ...exchange, paidFromDrawer: paid };
     }
     return exchange;
+  }
+
+  private kindWhere(kind: Kind): Prisma.JewelryExchangeWhereInput {
+    if (kind === 'buy') return { exchangeType: { notIn: REPAIR_TYPES } };
+    if (kind === 'repair') return { exchangeType: { in: REPAIR_TYPES } };
+    if (kind === 'repair-open') return { exchangeType: { in: REPAIR_TYPES }, purpose: 'REPAIR' };
+    return {};
+  }
+
+  async page(user: AuthenticatedUser, q: { kind?: string; search?: string; from?: string; to?: string; page?: number; limit?: number }) {
+    const kind: Kind = (['buy', 'repair', 'repair-open', 'all'] as string[]).includes(q.kind ?? '') ? (q.kind as Kind) : 'buy';
+    const limit = Math.min(Math.max(Number(q.limit) || 30, 1), 100);
+    const page = Math.max(Number(q.page) || 1, 1);
+    const search = q.search?.trim();
+    const where: Prisma.JewelryExchangeWhereInput = {
+      tenantId: user.tenantId,
+      ...this.kindWhere(kind),
+      ...(q.from || q.to ? { exchangeDate: { ...(q.from && { gte: new Date(q.from) }), ...(q.to && { lte: new Date(q.to) }) } } : {}),
+      ...(search && {
+        OR: [
+          { exchangeNumber: { contains: search, mode: 'insensitive' } },
+          { customerName: { contains: search, mode: 'insensitive' } },
+          { customerPhone: { contains: search } },
+          { customerCnic: { contains: search } },
+          { itemDescription: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+    const [total, items, sums] = await Promise.all([
+      this.prisma.jewelryExchange.count({ where }),
+      this.prisma.jewelryExchange.findMany({ where, orderBy: { exchangeDate: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.jewelryExchange.aggregate({ where, _sum: { netWeight: true, fineGoldEquivalent: true, netValue: true, deductions: true } }),
+    ]);
+    return {
+      kind, page, limit, total, pages: Math.max(Math.ceil(total / limit), 1), items,
+      totals: { grams: r3(sums._sum.netWeight ?? 0), fine: r3(sums._sum.fineGoldEquivalent ?? 0), value: r2(sums._sum.netValue ?? 0), deductions: r2(sums._sum.deductions ?? 0) },
+    };
   }
 
   async list(user: AuthenticatedUser, params: { customerId?: string; exchangeType?: string; from?: string; to?: string; search?: string }) {
@@ -84,12 +157,9 @@ export class ExchangesService {
       where: {
         tenantId: user.tenantId,
         ...(params.customerId && { customerId: params.customerId }),
-        ...(params.exchangeType && { exchangeType: params.exchangeType as any }),
+        ...(params.exchangeType && TYPES.includes(params.exchangeType) && { exchangeType: params.exchangeType as ExchangeType }),
         ...(params.from || params.to ? {
-          exchangeDate: {
-            ...(params.from && { gte: new Date(params.from) }),
-            ...(params.to && { lte: new Date(params.to) }),
-          },
+          exchangeDate: { ...(params.from && { gte: new Date(params.from) }), ...(params.to && { lte: new Date(params.to) }) },
         } : {}),
         ...(params.search && {
           OR: [
@@ -107,7 +177,7 @@ export class ExchangesService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const e = await this.prisma.jewelryExchange.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!e) throw new NotFoundException('Exchange not found');
+    if (!e) throw new NotFoundException('Record nahi mila');
     return e;
   }
 
@@ -116,28 +186,53 @@ export class ExchangesService {
     return this.prisma.jewelryExchange.update({ where: { id }, data: { saleId } });
   }
 
-  async summary(user: AuthenticatedUser, from?: string, to?: string) {
-    const where: any = { tenantId: user.tenantId };
-    if (from || to) {
-      where.exchangeDate = {
-        ...(from && { gte: new Date(from) }),
-        ...(to && { lte: new Date(to) }),
-      };
-    }
+  /**
+   * Hands a repaired piece back: the charge becomes a bill (Sale) so it
+   * reaches the day book, drawer and reports. Unpaid charge goes on khata.
+   */
+  async deliverRepair(user: AuthenticatedUser, id: string, dto: { charge?: number; paidAmount?: number; paymentMethod?: string }) {
+    const e = await this.getOne(user, id);
+    if (!REPAIR_TYPES.includes(e.exchangeType)) throw new BadRequestException('Yeh repair nahi hai');
+    if (e.purpose !== 'REPAIR') throw new BadRequestException('Yeh repair pehle hi wapas ho chuki hai');
+    const charge = r2(dto.charge != null ? Number(dto.charge) : e.netValue);
+    if (!(charge >= 0)) throw new BadRequestException('Repair ki amount sahi likhein');
+    const paid = r2(Math.min(Math.max(Number(dto.paidAmount ?? charge) || 0, 0), charge));
 
-    const [total, byType, totalValue] = await Promise.all([
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-repair:${e.id}`}))::text`;
+      const fresh = await tx.jewelryExchange.findFirst({ where: { id: e.id }, select: { purpose: true } });
+      if (fresh?.purpose !== 'REPAIR') throw new BadRequestException('Yeh repair pehle hi wapas ho chuki hai');
+      let saleId: string | null = null;
+      if (charge > 0) {
+        const shopId = await resolveIndustryShopId(tx, user, null);
+        const customerId = paid < charge
+          ? await ensureCustomer(tx, user, { customerId: e.customerId, name: e.customerName, phone: e.customerPhone, shopId })
+          : e.customerId;
+        const sale = await postIndustrySale(tx, user, {
+          saleNumber: e.exchangeNumber, sourceRef: e.exchangeNumber, shopId, customerId,
+          lines: [{ label: `Repair: ${e.itemDescription.slice(0, 60)}`, amount: charge }],
+          paidAmount: paid, paymentMethod: dto.paymentMethod,
+        });
+        saleId = sale.id;
+      }
+      return tx.jewelryExchange.update({ where: { id: e.id }, data: { purpose: 'REPAIR_DONE', netValue: charge, saleId } });
+    });
+  }
+
+  async summary(user: AuthenticatedUser, from?: string, to?: string) {
+    const where: Prisma.JewelryExchangeWhereInput = { tenantId: user.tenantId };
+    if (from || to) where.exchangeDate = { ...(from && { gte: new Date(from) }), ...(to && { lte: new Date(to) }) };
+    const [total, byType, totalValue, openRepairs] = await Promise.all([
       this.prisma.jewelryExchange.count({ where }),
       this.prisma.jewelryExchange.groupBy({
-        by: ['exchangeType'],
-        where,
-        _count: { _all: true },
-        _sum: { fineGoldEquivalent: true, netValue: true },
+        by: ['exchangeType'], where, _count: { _all: true }, _sum: { fineGoldEquivalent: true, netValue: true, netWeight: true },
       }),
       this.prisma.jewelryExchange.aggregate({
-        where,
-        _sum: { fineGoldEquivalent: true, netValue: true, grossWeight: true },
+        where: { ...where, exchangeType: { notIn: REPAIR_TYPES } },
+        _sum: { fineGoldEquivalent: true, netValue: true, grossWeight: true, netWeight: true, deductions: true },
       }),
+      this.prisma.jewelryExchange.count({ where: { tenantId: user.tenantId, exchangeType: { in: REPAIR_TYPES }, purpose: 'REPAIR' } }),
     ]);
-    return { total, byType, totals: totalValue._sum };
+    return { total, byType, totals: totalValue._sum, openRepairs };
   }
 }

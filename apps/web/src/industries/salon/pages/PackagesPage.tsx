@@ -1,546 +1,312 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Package, Plus, X, Save, Edit3, Trash2, RefreshCw, Sparkles, Star,
-  DollarSign, Calendar, User, Phone, CheckCircle2, Search, Clock,
-} from 'lucide-react';
-import { packagesApi, type Package as SalonPkg } from '../api/packages.api';
-import { salonServicesApi } from '../api/services.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Prepaid packages (5 facials, a bridal package with trials): the ones
+ * sold with sessions left, money still due on khata and the usage log;
+ * selling one with an advance (the rest on khata); and the package list.
+ * Sessions are used on counter bills.
+ *
+ * Keys: N sell package · / search · 1 sold · 2 packages · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+import { AlarmClock, BookmarkPlus, Filter, Gift, GraduationCap, ListChecks, Pencil, Plus, Receipt, Scissors, Wallet } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import type { PrintDoc } from '@core/print';
+import {
+  Badge, Button, Checkbox, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Switch,
+  Textarea, ViewTabs, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { packagesApi, type Package, type PackagePurchase } from '../api/packages.api';
+import { CancelModal, CustomerField, emptyCustomer, useServices, type CustomerValue } from '../components/fields';
+import { EmptyList, HeroPrint, ListSkeleton, LoadFailed } from '../components/ui';
+import { SALON_KEYS, apiError, dateOf } from '../lib/meta';
+import { useSalonCan } from '../lib/permissions';
+
+type Tab = 'sold' | 'packages';
+type Status = 'ACTIVE' | 'USED' | 'EXPIRED' | 'CANCELLED' | '';
+const STATUS_LABEL: Record<Exclude<Status, ''>, string> = { ACTIVE: 'Chalu', USED: 'Sessions khatam', EXPIRED: 'Muddat khatam', CANCELLED: 'Cancel' };
+const DAY = 86_400_000;
 
 export default function PackagesPage() {
-  const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'packages' | 'purchases'>('packages');
-  const [showPackageForm, setShowPackageForm] = useState(false);
-  const [showPurchase, setShowPurchase] = useState(false);
-  const [editing, setEditing] = useState<SalonPkg | null>(null);
-  const [purchaseStatus, setPurchaseStatus] = useState<string>('ACTIVE');
+  const qc = useQueryClient();
+  const can = useSalonCan();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('sold');
+  const [status, setStatus] = useState<Status>('ACTIVE');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [selling, setSelling] = useState<Package | true | null>(null);
+  const [editing, setEditing] = useState<Package | 'new' | null>(null);
+  const [cancel, setCancel] = useState<PackagePurchase | null>(null);
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
 
-  const { data: packages = [], isLoading: pkgLoading } = useQuery({
-    queryKey: ['salon-packages'],
-    queryFn: () => packagesApi.list({ active: true }),
+  const soldQ = useQuery({ queryKey: [SALON_KEYS.packages, 'sold', status, query], queryFn: () => packagesApi.purchases({ status: status || undefined, search: query || undefined }), placeholderData: (p) => p });
+  const activeQ = useQuery({ queryKey: [SALON_KEYS.packages, 'sold', 'ACTIVE', ''], queryFn: () => packagesApi.purchases({ status: 'ACTIVE' }) });
+  const pkgQ = useQuery({ queryKey: [SALON_KEYS.packages, 'list'], queryFn: () => packagesApi.list() });
+
+  const rows = soldQ.data ?? [];
+  const active = activeQ.data ?? [];
+  const pkgs = pkgQ.data ?? [];
+  const sessions = active.reduce((s, p) => s + p.sessionsRemaining, 0);
+  const ending = active.filter((p) => new Date(p.expiryDate).getTime() - Date.now() < 15 * DAY);
+  const owed = active.reduce((s, p) => s + Math.max(Number(p.sale?.creditAmount ?? 0), 0), 0);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && can.bill) { e.preventDefault(); setSelling(true); }
+      if (e.key === '1') setTab('sold');
+      if (e.key === '2') setTab('packages');
+      if (e.key === '/') { e.preventDefault(); setTab('sold'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
-  const { data: purchases = [], isLoading: purLoading } = useQuery({
-    queryKey: ['salon-package-purchases', purchaseStatus],
-    queryFn: () => packagesApi.purchases({ status: purchaseStatus === 'all' ? undefined : purchaseStatus }),
-    enabled: tab === 'purchases',
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => packagesApi.remove(id),
-    onSuccess: () => { toast.success('Package removed'); queryClient.invalidateQueries({ queryKey: ['salon-packages'] }); },
+  const printDoc = (): PrintDoc => ({
+    title: 'Packages — becha hua',
+    subtitle: status ? STATUS_LABEL[status] : 'Sab',
+    meta: [['Packages', String(rows.length)], ['Sessions baqi', String(rows.reduce((s, p) => s + p.sessionsRemaining, 0))]],
+    sections: [{
+      kind: 'table',
+      columns: [{ label: 'Number', wideOnly: true }, { label: 'Customer' }, { label: 'Package' }, { label: 'Baqi' }, { label: 'Khatam', wideOnly: true }, { label: 'Paid', align: 'right' }],
+      rows: rows.map((p) => [p.purchaseNumber, `${p.customer?.name ?? ''} ${p.customer?.phone ?? ''}`.trim(), p.package?.name ?? '', `${p.sessionsRemaining}/${p.package?.totalSessions ?? ''}`, dateOf(p.expiryDate), formatPKR(p.amountPaid)]),
+    }],
   });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Package className="h-3.5 w-3.5 text-amber-300" />
-              Prepaid Bundles
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🎁 Packages</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Bulk service bundles with sessions & validity</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {tab === 'packages' ? (
-              <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowPackageForm(true); }}>
-                <Plus className="h-4 w-4" />
-                New Package
-              </Button>
-            ) : (
-              <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowPurchase(true)}>
-                <Plus className="h-4 w-4" />
-                Sell Package
-              </Button>
-            )}
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Packages"
+        chip={<><Gift /> Prepaid</>}
+        meta="Pehle paisa, phir sessions — bridal packages advance ke saath"
+        busy={soldQ.isFetching && !soldQ.isLoading}
+        loading={activeQ.isLoading}
+        actions={<>
+          <HeroPrint doc={printDoc} disabled={tab !== 'sold' || !rows.length} />
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.bill && <button type="button" onClick={() => setSelling(true)} title="Package bechein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Package bechein</button>}
+        </>}
+        stats={[
+          { label: 'Chalu packages', value: active.length },
+          { label: 'Sessions baqi', value: sessions },
+          { label: 'Khate me baqi', value: formatPKR(owed), hint: 'In packages ke bill par' },
+        ]}
+      />
 
-      <div className="flex gap-2">
-        <button onClick={() => setTab('packages')} className={
-          'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'packages' ? 'bg-emerald-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
-        }>
-          Packages ({packages.length})
-        </button>
-        <button onClick={() => setTab('purchases')} className={
-          'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'purchases' ? 'bg-emerald-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
-        }>
-          Sold / Purchases
-        </button>
-      </div>
+      <KpiRow cols={4}>
+        {activeQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Gift} color="#16a34a" label="Chalu" value={active.length} hint={`${sessions} sessions dene hain`} onClick={() => { setTab('sold'); setStatus('ACTIVE'); }} active={tab === 'sold' && status === 'ACTIVE'} />
+          <KpiCard icon={AlarmClock} color={ending.length ? '#d97706' : '#64748b'} label="15 din me khatam" value={ending.length} hint="Customer ko yaad dilayein" />
+          <KpiCard icon={Wallet} color={owed ? '#e11d48' : '#64748b'} label="Advance ke baad baqi" value={formatPKR(owed)} hint="Khata se wasool karein" />
+          <KpiCard icon={BookmarkPlus} color="#db2777" label="Packages" value={pkgs.filter((p) => p.isActive).length} hint={`${pkgs.length - pkgs.filter((p) => p.isActive).length} band`} onClick={() => setTab('packages')} active={tab === 'packages'} />
+        </>}
+      </KpiRow>
 
-      {showPackageForm && (
-        <PackageForm
-          editing={editing}
-          onClose={() => { setShowPackageForm(false); setEditing(null); }}
-          onSaved={() => { setShowPackageForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['salon-packages'] }); }}
-        />
+      {tab === 'sold' && (
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer ka naam, phone ya PKG number…" />}
+          chips={query || status !== 'ACTIVE' ? <>
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+            {status !== 'ACTIVE' && <FilterChip onRemove={() => setStatus('ACTIVE')}>{status ? STATUS_LABEL[status] : 'Sab'}</FilterChip>}
+          </> : undefined}
+          onClear={() => { setSearch(''); setStatus('ACTIVE'); }}>
+          <FilterMenu icon={Filter} label={status ? STATUS_LABEL[status] : 'Sab'} value={status} active={status !== 'ACTIVE'} onChange={setStatus}
+            options={[{ value: 'ACTIVE', label: 'Chalu' }, { value: 'USED', label: 'Sessions khatam' }, { value: 'EXPIRED', label: 'Muddat khatam' }, { value: 'CANCELLED', label: 'Cancel' }, { value: '', label: 'Sab' }]} />
+        </FilterBar>
       )}
 
-      {showPurchase && (
-        <PurchaseForm
-          packages={packages}
-          onClose={() => setShowPurchase(false)}
-          onSaved={() => { setShowPurchase(false); queryClient.invalidateQueries({ queryKey: ['salon-package-purchases'] }); }}
-        />
-      )}
+      <ViewTabs value={tab} onChange={setTab} hint={<>{can.bill && <><Kbd>N</Kbd> bechein · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        tabs={[{ id: 'sold', label: 'Becha hua', icon: ListChecks, count: rows.length }, { id: 'packages', label: 'Packages', icon: Gift, count: pkgs.length }]} />
 
-      {tab === 'packages' ? (
-        pkgLoading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => <div key={i} className="h-72 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-          </div>
-        ) : packages.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-            <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-            <p className="font-extrabold text-slate-700">No packages yet</p>
-            <Button className="mt-4 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => { setEditing(null); setShowPackageForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Create First Package
-            </Button>
-          </div>
+      {tab === 'sold' ? (
+        soldQ.isLoading ? <ListSkeleton /> : soldQ.isError ? <LoadFailed what="Packages" retry={() => soldQ.refetch()} /> : !rows.length ? (
+          <EmptyList icon={Gift} title={query ? 'Is search me koi nahi' : 'Koi package nahi becha'} text="Package banayein (jaise 5 facial Rs 10,000) aur customer ko bechein. Har visit par counter se ek session katta hai.">
+            {can.bill && pkgs.length > 0 && <Button onClick={() => setSelling(true)} leftIcon={<Plus className="h-4 w-4" />}>Package bechein</Button>}
+            {can.catalog && !pkgs.length && <Button onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla package banayein</Button>}
+          </EmptyList>
         ) : (
-          <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {packages.map((pkg) => (
-              <PackageCard
-                key={pkg.id}
-                pkg={pkg}
-                onEdit={() => { setEditing(pkg); setShowPackageForm(true); }}
-                onDelete={() => { if (confirm('Remove "' + pkg.name + '"?')) removeMutation.mutate(pkg.id); }}
-              />
-            ))}
-          </section>
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {rows.map((p) => <PurchaseRow key={p.id} p={p} canCancel={can.bill} onCancel={() => setCancel(p)} />)}
+          </ul>
         )
       ) : (
-        <>
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
-            {['ACTIVE', 'all', 'USED', 'EXPIRED', 'CANCELLED', 'REFUNDED'].map((s) => (
-              <button key={s} onClick={() => setPurchaseStatus(s)} className={
-                'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-                (purchaseStatus === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-              }>{s === 'all' ? 'All' : s}</button>
-            ))}
-          </div>
-
-          {purLoading ? (
-            <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-          ) : purchases.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-              <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-              <p className="font-extrabold text-slate-700">No package purchases</p>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {pkgs.map((p) => (
+            <div key={p.id} className={cn('rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80', !p.isActive && 'opacity-60')}>
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-semibold text-slate-900">{p.name}</p>
+                <div className="flex gap-1">{p.isFeatured && <Badge size="xs" variant="accent">Khaas</Badge>}{!p.isActive && <Badge size="xs">Band</Badge>}</div>
+              </div>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-slate-900">{formatPKR(p.price)}</p>
+              {p.originalPrice != null && p.originalPrice > p.price && <p className="text-[0.8125rem] text-success-700">Bachat {formatPKR(p.originalPrice - p.price)} <span className="text-slate-400 line-through">{formatPKR(p.originalPrice)}</span></p>}
+              <p className="mt-1 text-[0.8125rem] text-slate-600">{p.totalSessions} sessions · {p.validityDays} din me</p>
+              {p.description && <p className="mt-1 line-clamp-2 text-[0.75rem] text-slate-500">{p.description}</p>}
+              <p className="mt-1 text-[0.75rem] text-slate-500">{p.totalSold} dafa bika</p>
+              <div className="mt-3 flex gap-1.5">
+                {can.bill && p.isActive && <Button size="sm" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => setSelling(p)}>Bechein</Button>}
+                {can.catalog && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setEditing(p)}>Badlein</Button>}
+              </div>
             </div>
-          ) : (
-            <section className="grid gap-3">
-              {purchases.map((p) => <PurchaseCard key={p.id} purchase={p} />)}
-            </section>
+          ))}
+          {can.catalog && (
+            <button type="button" onClick={() => setEditing('new')} className="flex min-h-[12rem] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-700">
+              <Plus className="h-6 w-6" /> Naya package
+            </button>
           )}
-        </>
+        </div>
       )}
-    </div>
+
+      {selling && <SellModal packages={pkgs.filter((p) => p.isActive)} initial={selling === true ? undefined : selling} onClose={() => setSelling(null)} />}
+      {editing && <PackageModal pkg={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+      {cancel && (
+        <CancelModal title={`${cancel.purchaseNumber} · ${cancel.customer?.name ?? ''}`} paid={0}
+          onConfirm={async (reason) => { await packagesApi.cancelPurchase(cancel.id, reason || undefined); qc.invalidateQueries({ queryKey: [SALON_KEYS.packages] }); }}
+          onClose={() => setCancel(null)} />
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Packages — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: BookmarkPlus, color: '#db2777', title: 'Package banayein', text: 'Naam, qeemat, kitne sessions, kitne din me, aur kin services par chalega (khali = har service).' },
+            { icon: Wallet, color: '#0891b2', title: 'Advance ke saath bechein', text: 'Bridal package me advance likhein — baqi customer ke khate me udhaar. Bill Sales me aaj ki tareekh me aata hai.' },
+            { icon: Scissors, color: '#16a34a', title: 'Session lena', text: 'Counter par customer chunein, service par "Package" chunein — session kat jata hai aur bill me paisa nahi lagta. Stylist ki commission banti hai.' },
+            { icon: Receipt, color: '#e11d48', title: 'Wapas', text: 'Package ka bill void ho to package khud cancel. Session wala bill void ho to session wapas mil jata hai.' },
+          ]}
+          shortcuts={[['N', 'bechein'], ['/', 'dhoondein'], ['1', 'becha hua'], ['2', 'packages'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function PackageCard({ pkg, onEdit, onDelete }: any) {
-  const savings = pkg.originalPrice ? pkg.originalPrice - pkg.price : 0;
-  const savingsPct = pkg.originalPrice ? (savings / pkg.originalPrice) * 100 : 0;
-
+function PurchaseRow({ p, canCancel, onCancel }: { p: PackagePurchase; canCancel: boolean; onCancel: () => void }) {
+  const [open, setOpen] = useState(false);
+  const total = p.package?.totalSessions ?? p.sessionsUsed + p.sessionsRemaining;
+  const log = (p.usageLog ?? []).filter((u) => !u.voided);
+  const dead = p.sale && ['VOIDED', 'FULLY_RETURNED'].includes(p.sale.status);
   return (
-    <div className={
-      'group rounded-3xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition overflow-hidden ' +
-      (pkg.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className="relative aspect-video bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 overflow-hidden">
-        {pkg.imageUrl ? (
-          <img src={pkg.imageUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="h-16 w-16 text-white/50" />
+    <li className="px-4 py-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-slate-900">{p.customer?.name ?? '—'}</span>
+            <Badge size="xs" variant={p.status === 'ACTIVE' ? 'success' : p.status === 'CANCELLED' ? 'danger' : 'default'}>{STATUS_LABEL[p.status as Exclude<Status, ''>] ?? p.status}</Badge>
+            {dead && <Badge size="xs" variant="danger">Bill {p.sale!.status === 'VOIDED' ? 'void' : 'wapas'}</Badge>}
+          </p>
+          <p className="text-[0.8125rem] text-slate-600">{p.package?.name} · {p.purchaseNumber} · {dateOf(p.expiryDate)} tak</p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-success-500" style={{ width: `${total ? (p.sessionsUsed / total) * 100 : 0}%` }} /></div>
+            <span className="text-[0.75rem] text-slate-600">{p.sessionsUsed}/{total} istemal · {p.sessionsRemaining} baqi</span>
           </div>
-        )}
-
-        {pkg.isFeatured && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-            <Star className="h-2 w-2 fill-current" />
-            Featured
-          </span>
-        )}
-
-        {savings > 0 && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-rose-500 text-white text-[0.6875rem] font-extrabold uppercase shadow">
-            SAVE {savingsPct.toFixed(0)}%
-          </span>
-        )}
-
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-slate-900/90 text-white flex items-center justify-center hover:bg-slate-900 shadow">
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="h-8 w-8 rounded-lg bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-600 shadow">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+        </div>
+        <div className="text-right text-[0.8125rem]">
+          <p className="font-semibold tabular-nums">{formatPKR(p.amountPaid)} paid</p>
+          {p.sale && p.sale.creditAmount > 0 && <p className="text-amber-700">{formatPKR(p.sale.creditAmount)} khate me tha</p>}
+        </div>
+        <div className="flex gap-1.5">
+          {!!log.length && <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>{open ? 'Band' : 'Visits'}</Button>}
+          {canCancel && p.status === 'ACTIVE' && <Button size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>}
         </div>
       </div>
-
-      <div className="p-4 space-y-2">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{pkg.name}</h3>
-        {pkg.description && (
-          <p className="text-xs text-slate-500 font-semibold line-clamp-2">{pkg.description}</p>
-        )}
-
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Sessions</div>
-            <div className="font-extrabold text-emerald-800 text-lg tabular-nums">{pkg.totalSessions}</div>
-          </div>
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-            <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Validity</div>
-            <div className="font-extrabold text-blue-800 text-lg tabular-nums">{pkg.validityDays}d</div>
-          </div>
-        </div>
-
-        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
-          <div>
-            {pkg.originalPrice && pkg.originalPrice > pkg.price && (
-              <div className="text-xs text-slate-400 line-through">{formatPKR(pkg.originalPrice)}</div>
-            )}
-            <div className="text-2xl font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(pkg.price)}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-[0.6875rem] font-extrabold text-slate-500">Sold</div>
-            <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{pkg.totalSold}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+      {open && (
+        <ul className="mt-2 space-y-1 rounded-xl bg-slate-50 p-3 text-[0.8125rem]">
+          {log.map((u, i) => <li key={i} className="flex justify-between gap-2"><span>{u.serviceName ?? 'Session'}{u.staffName ? ` · ${u.staffName}` : ''}</span><span className="text-slate-500">{u.appointmentNumber} · {dateOf(u.usedAt)}</span></li>)}
+        </ul>
+      )}
+    </li>
   );
 }
 
-function PurchaseCard({ purchase }: any) {
-  const daysLeft = differenceInDays(new Date(purchase.expiryDate), new Date());
-  const isExpiring = daysLeft <= 15 && daysLeft > 0 && purchase.status === 'ACTIVE';
-  const progressPct = (purchase.sessionsUsed / (purchase.sessionsUsed + purchase.sessionsRemaining)) * 100 || 0;
-
+function SellModal({ packages, initial, onClose }: { packages: Package[]; initial?: Package; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [customer, setCustomer] = useState<CustomerValue>(emptyCustomer);
+  const [pkgId, setPkgId] = useState(initial?.id ?? packages[0]?.id ?? '');
+  const p = packages.find((x) => x.id === pkgId);
+  const [paid, setPaid] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const [notes, setNotes] = useState('');
+  const amount = paid === '' ? p?.price ?? 0 : Number(paid) || 0;
+  const error = !customer.customerId ? 'Customer chunein' : !p ? 'Package chunein' : amount < 0 || amount > p.price ? `Zyada se zyada ${formatPKR(p.price)}` : undefined;
+  const save = useMutation({
+    mutationFn: () => packagesApi.purchase({ packageId: pkgId, customerId: customer.customerId, amountPaid: amount, paymentMethod: method, notes: notes.trim() || undefined }),
+    onSuccess: (r) => { toast.success(`${r.purchaseNumber} becha gaya`); [SALON_KEYS.packages, 'customers', 'salon-perks'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Package nahi bika')),
+  });
   return (
-    <div className={
-      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
-      (isExpiring ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow shrink-0">
-            <Package className="h-6 w-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white">{purchase.purchaseNumber}</span>
-              <span className={
-                'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
-                (purchase.status === 'ACTIVE' ? 'bg-emerald-600' :
-                 purchase.status === 'USED' ? 'bg-blue-600' :
-                 purchase.status === 'EXPIRED' ? 'bg-slate-500' :
-                 'bg-rose-500')
-              }>
-                {purchase.status}
-              </span>
-              {isExpiring && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
-                  {daysLeft}d left
-                </span>
-              )}
-            </div>
-            <div className="text-sm font-bold text-slate-900 dark:text-ink-white mt-1">{purchase.package?.name}</div>
-            <div className="text-xs text-slate-500 font-semibold">
-              Purchased: {format(new Date(purchase.purchaseDate), 'dd MMM yyyy')} • Expires: {format(new Date(purchase.expiryDate), 'dd MMM yyyy')}
-            </div>
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(purchase.amountPaid)}</div>
-        </div>
+    <Modal open onClose={onClose} size="md" title="Package bechein" description="Bill Sales me aata hai; advance ke baad baqi khate me udhaar"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()} leftIcon={<Wallet className="h-4 w-4" />}>Bechein {formatPKR(amount)}</Button></>}>
+      <div className="space-y-3">
+        <CustomerField value={customer} onChange={setCustomer} compact />
+        <Select label="Package" value={pkgId} onChange={(e) => setPkgId(e.target.value)} options={packages.map((x) => ({ value: x.id, label: `${x.name} · ${formatPKR(x.price)} · ${x.totalSessions} sessions` }))} />
+        <Input label="Abhi kitna mila (advance)" inputMode="decimal" value={paid} placeholder={String(p?.price ?? 0)} onChange={(e) => setPaid(e.target.value.replace(/[^\d.]/g, ''))}
+          hint={p && amount < p.price ? `${formatPKR(p.price - amount)} khate me udhaar — baad me Khata se wasool` : 'Poora paisa'} />
+        {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
+        <Textarea label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} placeholder="Shaadi 20 Nov, trial 10 Nov" hint="Marzi hai" />
       </div>
-
-      <div>
-        <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 mb-1">
-          <span>Sessions Used: {purchase.sessionsUsed}</span>
-          <span>Remaining: {purchase.sessionsRemaining}</span>
-        </div>
-        <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600" style={{ width: progressPct + '%' }} />
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
-function PackageForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    name: editing?.name ?? '',
-    description: editing?.description ?? '',
-    price: editing?.price ?? 0,
-    originalPrice: editing?.originalPrice ?? '',
-    totalSessions: editing?.totalSessions ?? 5,
-    validityDays: editing?.validityDays ?? 90,
-    imageUrl: editing?.imageUrl ?? '',
-    isFeatured: editing?.isFeatured ?? false,
-  });
-
-  const { data: allServices = [] } = useQuery({
-    queryKey: ['salon-services-for-package'],
-    queryFn: () => salonServicesApi.list({ active: true }),
-  });
-
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(() => {
-    if (!editing?.services) return [];
-    return Array.isArray(editing.services) ? editing.services.map((s: any) => s.serviceId || s.id).filter(Boolean) : [];
-  });
-
-  const saveMutation = useMutation({
+function PackageModal({ pkg, onClose }: { pkg: Package | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const { services } = useServices();
+  const [name, setName] = useState(pkg?.name ?? '');
+  const [price, setPrice] = useState(pkg ? String(pkg.price) : '');
+  const [original, setOriginal] = useState(pkg?.originalPrice != null ? String(pkg.originalPrice) : '');
+  const [sessions, setSessions] = useState(String(pkg?.totalSessions ?? 5));
+  const [days, setDays] = useState(String(pkg?.validityDays ?? 90));
+  const [picked, setPicked] = useState<string[]>(Array.isArray(pkg?.services) ? pkg!.services.filter((x) => typeof x === 'string') : []);
+  const [description, setDescription] = useState(pkg?.description ?? '');
+  const [featured, setFeatured] = useState(pkg?.isFeatured ?? false);
+  const [active, setActive] = useState(pkg?.isActive ?? true);
+  const error = name.trim().length < 2 ? 'Package ka naam likhein' : price === '' || !(Number(price) >= 0) ? 'Qeemat likhein' : !(Number(sessions) >= 1) ? 'Sessions likhein' : !(Number(days) >= 1) ? 'Din likhein' : undefined;
+  const save = useMutation({
     mutationFn: () => {
-      const payload: any = {
-        ...form,
-        price: Number(form.price),
-        originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
-        totalSessions: Number(form.totalSessions),
-        validityDays: Number(form.validityDays),
-        services: selectedServiceIds.map((id) => ({ serviceId: id })),
+      const body = {
+        name: name.trim(), price: Number(price), originalPrice: original === '' ? null : Number(original), services: picked,
+        totalSessions: Number(sessions), validityDays: Number(days), description: description.trim() || undefined, isFeatured: featured, isActive: active,
       };
-      return editing ? packagesApi.update(editing.id, payload) : packagesApi.create(payload);
+      return pkg ? packagesApi.update(pkg.id, body) : packagesApi.create(body);
     },
-    onSuccess: () => { toast.success(editing ? 'Package updated' : 'Package created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: () => { toast.success('Package save ho gaya'); qc.invalidateQueries({ queryKey: [SALON_KEYS.packages] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Package save nahi hua')),
   });
-
-  const toggleService = (id: string) => {
-    setSelectedServiceIds(selectedServiceIds.includes(id) ? selectedServiceIds.filter((s) => s !== id) : [...selectedServiceIds, id]);
-  };
-
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Package' : 'New Package'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Package Name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Package Price *</label>
-            <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Original Price</label>
-            <input type="number" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} placeholder="For showing savings" className="h-14 w-full rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
+    <Modal open onClose={onClose} size="lg" title={pkg ? `${pkg.name} — badlein` : 'Naya package'}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>Save</Button></>}>
+      <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Naam" value={name} onChange={(e) => setName(e.target.value)} placeholder="Bridal Gold" maxLength={120} />
+          <Input label="Qeemat" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder="50000" />
+          <Input label="Alag alag lene par" inputMode="decimal" value={original} onChange={(e) => setOriginal(e.target.value.replace(/[^\d.]/g, ''))} placeholder="60000" hint="Customer ko bachat dikhti hai" />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Sessions" inputMode="numeric" value={sessions} onChange={(e) => setSessions(e.target.value.replace(/\D/g, ''))} />
+            <Input label="Kitne din me" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} />
           </div>
         </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Total Sessions *</label>
-            <input type="number" value={form.totalSessions} onChange={(e) => setForm({ ...form, totalSessions: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days) *</label>
-            <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
         <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Included Services ({selectedServiceIds.length})</label>
-          <div className="max-h-60 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2 space-y-1">
-            {allServices.map((svc) => (
-              <label key={svc.id} className={
-                'flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ' +
-                (selectedServiceIds.includes(svc.id) ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'hover:bg-slate-50 dark:hover:bg-ink-800')
-              }>
-                <input type="checkbox" checked={selectedServiceIds.includes(svc.id)} onChange={() => toggleService(svc.id)} className="h-4 w-4 rounded" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-extrabold truncate">{svc.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500">{formatPKR(svc.price)}</div>
-                </div>
-              </label>
+          <p className="mb-1 text-[0.8125rem] font-medium text-slate-700">Kin services par chalega <span className="font-normal text-slate-500">(kuch na chunein = har service)</span></p>
+          <div className="grid max-h-48 gap-1 overflow-auto rounded-xl p-2 ring-1 ring-slate-200 sm:grid-cols-2">
+            {services.map((s) => (
+              <Checkbox key={s.id} label={s.name} checked={picked.includes(s.id)} onChange={(e) => setPicked((x) => (e.target.checked ? [...x, s.id] : x.filter((y) => y !== s.id)))} />
             ))}
           </div>
         </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Image</label>
-          {form.imageUrl ? (
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200">
-              <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setForm({ ...form, imageUrl: '' })} className="absolute top-2 right-2 h-8 w-8 rounded bg-rose-600 text-white flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, imageUrl: url });
-            }} />
-          )}
+        <Textarea label="Tafseel" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="2 trial + shaadi ka din + walima" />
+        <div className="flex flex-wrap gap-6">
+          <Switch label="Khaas" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
+          <Switch label="Chalu" description="Band package bikta nahi" checked={active} onChange={(e) => setActive(e.target.checked)} />
         </div>
-
-        <label className={
-          'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' +
-          (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')
-        }>
-          <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
-          <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
-          <span className="text-sm font-extrabold">Featured Package</span>
-        </label>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.price}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
+        {error && <p className="text-[0.8125rem] text-rose-600">{error}</p>}
       </div>
-    </section>
-  );
-}
-
-function PurchaseForm({ packages, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({ packageId: '', customerId: '', amountPaid: 0, paymentMethod: 'CASH', notes: '' });
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  const selectedPkg = packages.find((p: any) => p.id === form.packageId);
-
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-package', customerSearch],
-    queryFn: () => customersApi.list({ limit: 50, search: customerSearch || undefined }),
-    enabled: showPicker,
-  });
-
-  const purchaseMutation = useMutation({
-    mutationFn: () => packagesApi.purchase({
-      packageId: form.packageId,
-      customerId: form.customerId,
-      // 0 or less than the price is allowed: the rest goes on the customer's khata.
-      amountPaid: form.amountPaid === '' ? 0 : Math.max(Number(form.amountPaid) || 0, 0),
-      paymentMethod: form.paymentMethod,
-      notes: form.notes || undefined,
-    }),
-    onSuccess: () => { toast.success('Package sold'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Sell Package</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Choose Package *</label>
-          <div className="grid gap-2">
-            {packages.map((pkg: any) => (
-              <button key={pkg.id} onClick={() => setForm({ ...form, packageId: pkg.id, amountPaid: pkg.price })} className={
-                'p-3 rounded-xl border-2 text-left ' +
-                (form.packageId === pkg.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
-              }>
-                <div className="flex items-center gap-3">
-                  <Package className="h-8 w-8 text-emerald-600" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold truncate">{pkg.name}</div>
-                    <div className="text-xs text-slate-500 font-bold">{pkg.totalSessions} sessions • {pkg.validityDays}d validity</div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(pkg.price)}</div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Customer *</label>
-          {selectedCustomer ? (
-            <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3 flex items-center gap-3">
-              <User className="h-5 w-5 text-emerald-600" />
-              <div className="flex-1">
-                <div className="font-extrabold">{selectedCustomer.name}</div>
-                {selectedCustomer.phone && <div className="text-xs text-slate-600 font-bold">{selectedCustomer.phone}</div>}
-              </div>
-              <button onClick={() => { setSelectedCustomer(null); setForm({ ...form, customerId: '' }); }} className="text-xs font-extrabold text-emerald-600 hover:underline">Change</button>
-            </div>
-          ) : (
-            <>
-              <button onClick={() => setShowPicker(!showPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-sm font-extrabold text-slate-600 hover:border-emerald-400">
-                <Search className="h-4 w-4 inline mr-1" />
-                Search Customer
-              </button>
-              {showPicker && (
-                <div className="mt-2 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 p-3 space-y-2">
-                  <input autoFocus value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Search..." className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                  <div className="max-h-52 overflow-y-auto space-y-1">
-                    {(customersData?.items ?? []).map((c) => (
-                      <button key={c.id} onClick={() => { setSelectedCustomer(c); setForm({ ...form, customerId: c.id }); setShowPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
-                        <User className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                        <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {selectedPkg && (
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Amount Paid *</label>
-            <input type="number" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            {Number(form.amountPaid || 0) < selectedPkg.price && (
-              <div className="mt-1 text-xs font-bold text-amber-700">
-                Baqi {formatPKR(selectedPkg.price - Number(form.amountPaid || 0))} customer ke khate me udhaar jayega
-              </div>
-            )}
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'].map((m) => (
-                <button key={m} type="button" onClick={() => setForm({ ...form, paymentMethod: m })} className={
-                  'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                  (form.paymentMethod === m ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-                }>{m}</button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => purchaseMutation.mutate()} loading={purchaseMutation.isPending} disabled={!form.packageId || !form.customerId}>
-            <CheckCircle2 className="h-4 w-4" />
-            Confirm Sale
-          </Button>
-        </div>
-      </div>
-    </section>
+    </Modal>
   );
 }

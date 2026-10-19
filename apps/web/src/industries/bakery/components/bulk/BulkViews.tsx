@@ -11,7 +11,7 @@ import {
   Ban, Building2, CalendarDays, ChefHat, ChevronDown, Clock, Layers, MapPin, MessageCircle, Package, Pencil, Phone, Printer, Receipt, ShoppingBag,
   Undo2, Users, Wallet, Wrench,
 } from 'lucide-react';
-import { Button, Card, Skeleton } from '@/design-system/components';
+import { Button, Card, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { PrintButton, type PrintDoc } from '@core/print';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -161,26 +161,24 @@ export function BulkKitchen({ days }: { days: number }) {
         <p className="text-[0.8125rem] text-slate-600">{data.orders.length} pakke orders · {data.items.filter((i) => i.make > 0).length} cheezein banani hain</p>
         <PrintButton doc={doc} size="sm" label="Kitchen ke liye" />
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[40rem] text-[0.8125rem]">
-          <thead>
-            <tr className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-2.5">Cheez</th><th className="px-2 py-2.5 text-right">Chahiye</th><th className="px-2 py-2.5 text-right">Stock me</th><th className="px-2 py-2.5 text-right">Banana hai</th><th className="px-4 py-2.5">Orders</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+      <Table minWidth="40rem" className="text-[0.8125rem] [&_table]:text-[0.8125rem]">
+          <THead>
+            <Tr className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+              <Th className="px-4 py-2.5">Cheez</Th><Th className="px-2 py-2.5 text-right">Chahiye</Th><Th className="px-2 py-2.5 text-right">Stock me</Th><Th className="px-2 py-2.5 text-right">Banana hai</Th><Th className="px-4 py-2.5">Orders</Th>
+            </Tr>
+          </THead>
+          <TBody>
             {data.items.map((i) => (
-              <tr key={i.key} className={cn(i.make <= 0 && 'opacity-60')}>
-                <td className="px-4 py-2 font-medium text-slate-900">{i.name}{!i.productId && <span className="ml-1.5 rounded bg-amber-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-amber-800">Maal se nahi juri</span>}</td>
-                <td className="px-2 py-2 text-right tabular-nums">{fmtQty(i.qty)} {i.unit ?? ''}</td>
-                <td className="px-2 py-2 text-right tabular-nums text-slate-500">{i.have === null ? '—' : fmtQty(i.have)}</td>
-                <td className={cn('px-2 py-2 text-right font-semibold tabular-nums', i.make > 0 ? 'text-amber-700' : 'text-success-700')}>{i.make > 0 ? `${fmtQty(i.make)} ${i.unit ?? ''}` : 'Kaafi hai'}</td>
-                <td className="px-4 py-2 text-[0.75rem] text-slate-500">{i.orders.join(', ')}</td>
-              </tr>
+              <Tr key={i.key} className={cn(i.make <= 0 && 'opacity-60')}>
+                <Td className="px-4 py-2 font-medium text-slate-900">{i.name}{!i.productId && <span className="ml-1.5 rounded bg-amber-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-amber-800">Maal se nahi juri</span>}</Td>
+                <Td className="px-2 py-2 text-right tabular-nums">{fmtQty(i.qty)} {i.unit ?? ''}</Td>
+                <Td className="px-2 py-2 text-right tabular-nums text-slate-500">{i.have === null ? '—' : fmtQty(i.have)}</Td>
+                <Td className={cn('px-2 py-2 text-right font-semibold tabular-nums', i.make > 0 ? 'text-amber-700' : 'text-success-700')}>{i.make > 0 ? `${fmtQty(i.make)} ${i.unit ?? ''}` : 'Kaafi hai'}</Td>
+                <Td className="px-4 py-2 text-[0.75rem] text-slate-500">{i.orders.join(', ')}</Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TBody>
+        </Table>
       <ul className="space-y-1 border-t border-slate-100 px-4 py-3 text-[0.75rem] text-slate-600">
         {data.orders.map((o) => (
           <li key={o.id} className="flex flex-wrap items-center gap-x-2">

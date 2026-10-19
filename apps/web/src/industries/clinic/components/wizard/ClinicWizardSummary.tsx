@@ -47,7 +47,7 @@ export function ClinicWizardSummary({ draft, stats, allValid }: Props) {
       </div>
 
       <div className="rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-800 shadow-sm bg-white dark:bg-ink-900">
-        <div className={'relative aspect-square bg-gradient-to-br ' + (category?.color || 'from-cyan-400 to-blue-500')}>
+        <div className={'relative aspect-square bg-gradient-to-br ' + 'from-cyan-400 to-blue-500'}>
           {primaryImage ? (
             <img src={primaryImage} alt="" className="w-full h-full object-cover" />
           ) : (

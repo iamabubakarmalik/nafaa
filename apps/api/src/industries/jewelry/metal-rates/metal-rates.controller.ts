@@ -4,7 +4,9 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { MetalRatesService } from './metal-rates.service';
-import { UpsertMetalRateDto } from './dto/upsert-metal-rate.dto';
+import { BulkMetalRatesDto, UpsertMetalRateDto } from './dto/upsert-metal-rate.dto';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Jewelry - Metal Rates')
 @ApiBearerAuth()
@@ -13,6 +15,10 @@ import { UpsertMetalRateDto } from './dto/upsert-metal-rate.dto';
 export class MetalRatesController {
   constructor(private readonly service: MetalRatesService) {}
 
+  /** Rates set the price of every piece, so changing them needs the product edit right. */
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
+  @Post('bulk') bulk(@GetUser() user: AuthenticatedUser, @Body() dto: BulkMetalRatesDto) { return this.service.createMany(user, dto.rates); }
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertMetalRateDto) { return this.service.create(user, dto); }
   @Get('current') current(@GetUser() user: AuthenticatedUser) { return this.service.currentRates(user); }
   @Get('history') history(@GetUser() user: AuthenticatedUser, @Query() q: any) {
@@ -24,6 +30,8 @@ export class MetalRatesController {
   @Get('movement/:metalType/:purity') movement(@GetUser() user: AuthenticatedUser, @Param('metalType') metalType: string, @Param('purity') purity: string, @Query('days') days?: string) {
     return this.service.priceMovement(user, metalType, purity, days ? Number(days) : 30);
   }
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.update(user, id, dto); }
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

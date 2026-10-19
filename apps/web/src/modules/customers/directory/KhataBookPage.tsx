@@ -12,10 +12,14 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowDownWideNarrow, BarChart3, BookOpen, CloudOff, Download, FileText, GraduationCap, History, Lock, MessageCircle,
-  MessagesSquare, Plus, Search, Settings2, Users, Wallet, X, type LucideIcon,
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, BookOpen, Clock3, CloudOff, Download, FileText, GraduationCap, History, Lock, MessageCircle,
+  MessagesSquare, Plus, Settings2, Users, Wallet,
 } from 'lucide-react';
-import { Avatar, Button, Card, DateRangeMenu, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
+import {
+  Avatar, Button, Card, DateRangeMenu, EmptyState, FilterBar, FilterChip, FilterMenu, IconButton, Kbd, KpiCard, KpiRow, PageHero, PageShell,
+  SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, type FilterOption,
+} from '@/design-system/components';
+import { PageGuide, type GuideStep } from '@core/components/PageGuide';
 import { rangeLabel } from '@core/lib/dateRange';
 import { AppLockGate } from '@core/security/AppLockGate';
 import { PrintButton } from '@core/print';
@@ -40,9 +44,9 @@ const TYPES: Array<{ id: DirectoryType; label: string; icon: typeof Users }> = [
   { id: 'advance', label: 'Advance', icon: Wallet },
   { id: 'all', label: 'Sab customers', icon: Users },
 ];
-const AGING: Array<{ id: AgingBucket; label: string; tone: string }> = [
-  { id: 'd0', label: '7 din se kam', tone: 'bg-success-500' }, { id: 'd7', label: '7–30 din', tone: 'bg-amber-400' },
-  { id: 'd30', label: '30–90 din', tone: 'bg-orange-500' }, { id: 'd90', label: '90+ din', tone: 'bg-rose-600' },
+const AGING: Array<{ id: AgingBucket; label: string; tone: string; color: string }> = [
+  { id: 'd0', label: '7 din se kam', tone: 'bg-success-500', color: '#16a34a' }, { id: 'd7', label: '7–30 din', tone: 'bg-amber-400', color: '#d97706' },
+  { id: 'd30', label: '30–90 din', tone: 'bg-orange-500', color: '#ea580c' }, { id: 'd90', label: '90+ din', tone: 'bg-rose-600', color: '#e11d48' },
 ];
 const SORTS: Array<FilterOption<DirectoryFilters['sort']>> = [
   { value: 'balance', label: 'Zyada baqi pehle' }, { value: 'aging', label: 'Purana udhaar pehle' },
@@ -118,7 +122,7 @@ function KhataBook() {
   const month = summary.data?.thisMonth;
 
   return (
-    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
+    <PageShell>
       {act && <KhataActionModal action={act.action} customer={act.customer} money={money} onClose={() => setAct(null)} onDone={done} />}
       {picking && <CustomerPicker title={picking === 'opening' ? 'Kis ka purana khata?' : 'Kis ko udhaar?'} money={money} onClose={() => setPicking(null)} onPick={(c) => { setAct({ action: picking, customer: c }); setPicking(null); }} />}
       {wizard && <ReminderWizard customers={wizard} shop={shop} money={money} onClose={() => setWizard(null)} />}
@@ -136,7 +140,7 @@ function KhataBook() {
           <button type="button" onClick={() => void startReminders()} title="Sab ko ek ek kar ke (N)" className={heroButton}><MessagesSquare className="h-4 w-4" /><span className="hidden sm:inline">Yaad-dihani</span></button>
           <button type="button" onClick={() => void exportCsv()} className={heroIconButton} title="CSV"><Download className="h-4 w-4" /></button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={() => setTemplates(true)} title="Paigham badlein" className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setTemplates(true)} title="Message badlein" className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
           <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canManage && <button type="button" onClick={() => setPicking('opening')} title="Kaapi ka purana khata" className={heroButton}><History className="h-4 w-4" /><span className="hidden sm:inline">Purana khata</span></button>}
           {canManage && <button type="button" onClick={() => setPicking('udhaar')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Udhaar</button>}
@@ -159,77 +163,59 @@ function KhataBook() {
           <span className="text-[0.8125rem] font-semibold text-slate-900">{rangeLabel(d.data.period.from, d.data.period.to)}</span>
           <span className="text-[0.8125rem] text-slate-600">Udhaar diya <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong></span>
           <span className="text-[0.8125rem] text-slate-600">Receive hua <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
-          {d.data.period.credit > 0 && <span className="text-[0.8125rem] text-slate-600">Return ki sharah <strong className="tabular-nums">{Math.round((d.data.period.paid / d.data.period.credit) * 100)}%</strong></span>}
+          {d.data.period.credit > 0 && <span className="text-[0.8125rem] text-slate-600">Wapas aaya <strong className="tabular-nums">{Math.round((d.data.period.paid / d.data.period.credit) * 100)}%</strong></span>}
           <span className="text-[0.8125rem] text-slate-500">{d.count} customers ka len-den</span>
         </div>
       )}
 
-      {/* Ageing buckets */}
       {st && (
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <KpiRow cols={4}>
           {AGING.map((a) => {
             const on = d.f.aging === a.id;
             const b = st.aging[a.id];
             return (
-              <button key={a.id} type="button" onClick={() => { d.set('aging', on ? undefined : a.id); if (!on && d.f.type !== 'khata') d.set('type', 'khata'); }}
-                className={cn('rounded-2xl bg-white p-3.5 text-left shadow-sm ring-1 transition hover:-translate-y-0.5', on ? 'ring-2 ring-brand-500' : 'ring-slate-200/80')}>
-                <div className="flex items-center gap-2 text-[0.75rem] font-medium text-slate-500"><span className={cn('h-2.5 w-2.5 rounded-full', a.tone)} />{a.label}</div>
-                <p className="mt-1 text-[1.25rem] font-bold tabular-nums text-slate-900">{money(b.amount)}</p>
-                <p className="text-[0.6875rem] text-slate-500">{b.count} customers</p>
+              <KpiCard key={a.id} icon={Clock3} color={a.color} label={a.label} value={money(b.amount)} hint={`${b.count} customers`} active={on}
+                onClick={() => { d.set('aging', on ? undefined : a.id); if (!on && d.f.type !== 'khata') d.set('type', 'khata'); }} />
+            );
+          })}
+        </KpiRow>
+      )}
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={d.search} onChange={d.setSearch} placeholder="Naam ya phone…" label="Search" />}
+        chips={(d.f.aging || d.search || d.period) ? <>
+          {d.period && <FilterChip onRemove={() => d.setRange({ preset: 'all', custom: { from: '', to: '' } })}>{rangeLabel(d.period.from, d.period.to)}</FilterChip>}
+          {d.f.aging && <FilterChip onRemove={() => d.set('aging', undefined)}>{AGING.find((a) => a.id === d.f.aging)?.label}</FilterChip>}
+          {d.search && <FilterChip onRemove={() => d.setSearch('')}>“{d.search}”</FilterChip>}
+        </> : undefined}
+        onClear={d.clear}
+      >
+        <div className="-mx-1 flex max-w-full gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
+          {TYPES.map((t) => {
+            const on = d.f.type === t.id;
+            return (
+              <button key={t.id} type="button" onClick={() => d.set('type', t.id)} aria-pressed={on}
+                className={cn('inline-flex h-11 shrink-0 items-center gap-2 rounded-2xl px-3.5 text-[0.8125rem] font-semibold transition', on ? 'bg-slate-900 text-white shadow' : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/70')}>
+                <t.icon className="h-4 w-4" />{t.label}<span className={cn('rounded-full px-1.5 text-[0.6875rem] tabular-nums', on ? 'bg-white/20' : 'bg-white text-slate-600')}>{d.data?.tabs[t.id] ?? '·'}</span>
               </button>
             );
           })}
         </div>
-      )}
-
-      <div className="relative z-10 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
-        <div className="flex flex-col gap-2 lg:flex-row">
-          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
-            {TYPES.map((t) => {
-              const on = d.f.type === t.id;
-              return (
-                <button key={t.id} type="button" onClick={() => d.set('type', t.id)}
-                  className={cn('inline-flex h-11 shrink-0 items-center gap-2 rounded-2xl px-3.5 text-[0.8125rem] font-semibold transition', on ? 'bg-slate-900 text-white shadow' : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/70')}>
-                  <t.icon className="h-4 w-4" />{t.label}<span className={cn('rounded-full px-1.5 text-[0.6875rem] tabular-nums', on ? 'bg-white/20' : 'bg-white text-slate-600')}>{d.data?.tabs[t.id] ?? '·'}</span>
-                </button>
-              );
-            })}
-          </div>
-          <label className="group relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-            <input ref={searchRef} value={d.search} onChange={(e) => d.setSearch(e.target.value)} placeholder="Naam ya phone…" aria-label="Search"
-              className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-12 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
-            {d.search ? <button type="button" onClick={() => d.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
-              : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <DateRangeMenu value={d.range} onChange={d.setRange} startHour={d.startHour} label="Len-den" />
-            {hasShop && (
-              <button type="button" onClick={() => d.set('scope', d.f.scope === 'all' ? undefined : 'all')} title="Saari branches ka khata"
-                className={cn('h-11 rounded-2xl px-3 text-[0.8125rem] font-semibold transition', d.f.scope === 'all' ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200' : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/70')}>
-                {d.f.scope === 'all' ? 'Saari branches' : 'Is branch ka'}
-              </button>
-            )}
-            <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
-          </div>
-        </div>
-        {(d.f.aging || d.search || d.period) && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3 text-[0.75rem]">
-            {d.period && <span className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-2.5 pr-1 font-semibold text-brand-800">{rangeLabel(d.period.from, d.period.to)}<button type="button" onClick={() => d.setRange({ preset: 'all', custom: { from: '', to: '' } })} aria-label="Hatayein" className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3 w-3" /></button></span>}
-            {d.f.aging && <span className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-2.5 pr-1 font-semibold text-brand-800">{AGING.find((a) => a.id === d.f.aging)?.label}<button type="button" onClick={() => d.set('aging', undefined)} aria-label="Hatayein" className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3 w-3" /></button></span>}
-            <button type="button" onClick={d.clear} className="ml-auto font-semibold text-rose-700 hover:underline">Sab hatayein</button>
-          </div>
-        )}
-      </div>
-
-      <div role="tablist" className="inline-flex gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
-        {([['list', BookOpen, 'Khata', d.count], ['analytics', BarChart3, 'Analytics', null]] as const).map(([id, Icon, l, n]) => (
-          <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-            className={cn('inline-flex h-9 items-center gap-2 rounded-xl px-4 text-[0.875rem] font-semibold transition', tab === id ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100')}>
-            <Icon className="h-4 w-4" />{l}{n !== null && <span className={cn('rounded-full px-1.5 text-[0.6875rem] tabular-nums', tab === id ? 'bg-white/20' : 'bg-slate-100 text-slate-600')}>{n}</span>}
+        <DateRangeMenu value={d.range} onChange={d.setRange} startHour={d.startHour} label="Len-den" />
+        {hasShop && (
+          <button type="button" onClick={() => d.set('scope', d.f.scope === 'all' ? undefined : 'all')} title="Saari branches ka khata" aria-pressed={d.f.scope === 'all'}
+            className={cn('h-11 rounded-2xl px-3 text-[0.8125rem] font-semibold transition', d.f.scope === 'all' ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200' : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/70')}>
+            {d.f.scope === 'all' ? 'Saari branches' : 'Is branch ka'}
           </button>
-        ))}
-      </div>
+        )}
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
+      </FilterBar>
+
+      <ViewTabs
+        tabs={[{ id: 'list', label: 'Khata', icon: BookOpen, count: d.count }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]}
+        value={tab} onChange={setTab}
+        hint={<><Kbd>/</Kbd> search · <Kbd>U</Kbd> udhaar · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide</>}
+      />
 
       {tab === 'analytics' ? (
         <div className="grid gap-4 lg:grid-cols-3">
@@ -278,10 +264,10 @@ function KhataBook() {
       ) : d.loading ? (
         <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
       ) : d.items.length === 0 ? (
-        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
-          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-success-50 text-success-600"><BookOpen className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">{d.hasFilters ? 'Is filter mein koi nahi' : 'Kisi ka udhaar baqi nahi'}</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">{d.hasFilters ? 'Filter hata kar dekhein.' : 'Mubarak ho — sab ka hisaab saaf hai.'}</p>
+        <div className="rounded-3xl bg-white ring-1 ring-slate-200/80">
+          <EmptyState icon={<BookOpen className="h-6 w-6" />} title={d.hasFilters ? 'Is filter mein koi nahi' : 'Kisi ka udhaar baqi nahi'}
+            description={d.hasFilters ? 'Filter hata kar dekhein.' : 'Mubarak ho — sab ka hisaab saaf hai.'}
+            action={d.hasFilters ? <Button variant="secondary" onClick={d.clear}>Filter hatayein</Button> : undefined} />
         </div>
       ) : (
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -313,7 +299,7 @@ function KhataBook() {
                   </span>
                   <div className="flex shrink-0 items-center gap-1">
                     {canManage && c.balance > 0.009 && <Button size="sm" variant="success" onClick={() => setAct({ action: 'payment', customer: c })}>Payment</Button>}
-                    {canManage && <button type="button" onClick={() => setAct({ action: 'udhaar', customer: c })} title="Udhaar chadhayein" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100"><Plus className="h-4 w-4" /></button>}
+                    {canManage && <IconButton label="Udhaar chadhayein" onClick={() => setAct({ action: 'udhaar', customer: c })}><Plus className="h-4 w-4" /></IconButton>}
                     {wa && <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp yaad-dihani" className="flex h-9 w-9 items-center justify-center rounded-xl text-success-700 hover:bg-success-50"><MessageCircle className="h-4 w-4" /></a>}
                     <Link to={`/customers/${c.id}?tab=khata`} title="Statement" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100"><FileText className="h-4 w-4" /></Link>
                   </div>
@@ -326,17 +312,17 @@ function KhataBook() {
 
       {tab === 'list' && d.hasMore && (
         <div ref={sentinel}>
-          <button type="button" onClick={() => void d.loadMore()} disabled={d.loadingMore} className="w-full rounded-2xl bg-white py-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-brand-50 disabled:opacity-60">
+          <Button variant="secondary" fullWidth size="lg" loading={d.loadingMore} onClick={() => void d.loadMore()}>
             {d.loadingMore ? 'Aa rahe hain…' : `Aur dikhayein (${d.items.length} / ${d.count})`}
-          </button>
+          </Button>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }
 
 function KhataGuide({ onClose }: { onClose: () => void }) {
-  const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
+  const steps: GuideStep[] = [
     { icon: Wallet, color: '#16a34a', title: 'Payment lein', text: 'Customer ke saamne "Payment" dabayein, amount likhein. Poora baqi ek click mein bhar jata hai.' },
     { icon: Plus, color: '#e11d48', title: 'Udhaar chadhayein', text: 'Bina bill ke udhaar (naqd paise diye) — upar "Udhaar" ya customer ke saamne "+".' },
     { icon: History, color: '#7c3aed', title: 'Kaapi ka purana khata', text: '"Purana khata" — register ka purana baqi. Jo udhaar pehle se hai us mein jurta hai, kuch nahi mitta.' },
@@ -347,21 +333,7 @@ function KhataGuide({ onClose }: { onClose: () => void }) {
     { icon: CloudOff, color: '#0284c7', title: 'Internet ke bagair', text: 'Internet na ho to bhi payment aur udhaar likhein — internet aate hi khud server par chale jate hain.' },
   ];
   return (
-    <Modal open onClose={onClose} size="lg" title="Khata — aasaan tareeqa" description={`${steps.length} cheezein, bas itna yaad rakhein`}>
-      <ol className="grid gap-3 sm:grid-cols-2">
-        {steps.map((s, i) => (
-          <li key={s.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
-            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${s.color}17`, color: s.color }}>
-              <s.icon className="h-5 w-5" /><span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.625rem] font-bold text-white">{i + 1}</span>
-            </span>
-            <div><p className="text-[0.875rem] font-semibold text-slate-900">{s.title}</p><p className="mt-0.5 text-[0.8125rem] leading-relaxed text-slate-600">{s.text}</p></div>
-          </li>
-        ))}
-      </ol>
-      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
-        <span className="font-semibold text-slate-900">Jaldi ke liye:</span>
-        {[['/', 'dhoondein'], ['U', 'udhaar'], ['N', 'yaad-dihani'], ['A', 'analytics'], ['G', 'guide']].map(([k, t]) => <span key={k} className="inline-flex items-center gap-1"><Kbd>{k}</Kbd> {t}</span>)}
-      </div>
-    </Modal>
+    <PageGuide title="Khata — aasaan tareeqa" steps={steps} onClose={onClose}
+      shortcuts={[['/', 'dhoondein'], ['U', 'udhaar'], ['N', 'yaad-dihani'], ['A', 'analytics'], ['G', 'guide']]} />
   );
 }

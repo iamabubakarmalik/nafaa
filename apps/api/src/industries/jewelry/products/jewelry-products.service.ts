@@ -114,6 +114,24 @@ export class JewelryProductsService {
       .map((p) => ({ ...p, product: productsMap.get(p.productId) }));
   }
 
+  /** Slim profile of every piece (weight, karat, charges, stones) for the counter and lists. */
+  async facts(user: AuthenticatedUser) {
+    const rows = await this.prisma.jewelryProductProfile.findMany({
+      where: { tenantId: user.tenantId },
+      select: {
+        id: true, productId: true, itemCode: true, designNumber: true, category: true, style: true, metalType: true, purity: true,
+        grossWeight: true, netWeight: true, stoneWeight: true, size: true,
+        makingChargePerGram: true, makingChargeFixed: true, makingChargePct: true, wastagePct: true, wastageGrams: true,
+        designerCharge: true, polishCharge: true, hallmarkCharge: true, otherCharges: true,
+        hasStones: true, hasDiamond: true, hallmarkNumber: true, isCertified: true, isBridalCollection: true, isFeatured: true,
+        isBuyBackEligible: true, buyBackPct: true, karigarName: true,
+        gemstones: { select: { totalValue: true } },
+      },
+      take: 5000,
+    });
+    return rows.map(({ gemstones, ...r }) => ({ ...r, gemstones }));
+  }
+
   async byProduct(user: AuthenticatedUser, productId: string) {
     return this.prisma.jewelryProductProfile.findFirst({
       where: { productId, tenantId: user.tenantId },

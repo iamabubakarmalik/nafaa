@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { BakeryCategory, BakeryOrderStatus, BakerySize, CakeFlavor, CakeShape, CreamType, DeliveryType } from '@prisma/client';
+import { ORDER_PAY_METHODS } from '../../bakery-common';
 import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateCakeOrderDto {
@@ -69,6 +70,8 @@ export class CreateCakeOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() discount?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() advanceRequired?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() advancePaid?: number;
+  /** How the advance was paid; cash when left out. */
+  @ApiPropertyOptional({ enum: [...ORDER_PAY_METHODS] }) @IsOptional() @IsIn([...ORDER_PAY_METHODS]) paymentMethod?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() specialInstructions?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() internalNotes?: string;
@@ -79,12 +82,16 @@ export class CreateCakeOrderDto {
 }
 
 /** Editable details of a booked order; money already received is changed only through payments. */
-export class UpdateCakeOrderDto extends PartialType(OmitType(CreateCakeOrderDto, ['advancePaid', 'status', 'shopId'] as const)) {}
+export class UpdateCakeOrderDto extends PartialType(OmitType(CreateCakeOrderDto, ['advancePaid', 'paymentMethod', 'status', 'shopId'] as const)) {}
 
 export class CakeOrderPaymentDto {
   @ApiProperty() @IsNumber() amount!: number;
   /** Amount already paid as the client last saw it; a mismatch means the payment was already recorded. */
   @ApiPropertyOptional() @IsOptional() @IsNumber() expectedPaid?: number;
+  /** How it was paid; cash when left out. */
+  @ApiPropertyOptional({ enum: [...ORDER_PAY_METHODS] }) @IsOptional() @IsIn([...ORDER_PAY_METHODS]) method?: string;
+  /** Money taken with the delivery bill: the bill records it, so it is not put on the khata. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() withBill?: boolean;
 }
 
 export class CakeOrderRatingDto {

@@ -19,7 +19,7 @@ export default function TagsPage() {
       industry: { name: presets.industryName, emoji: presets.industryEmoji },
       guide: [
         { title: 'Tag kya hai', body: 'Product par chhota label — "Naya", "Sale", "Ramzan", "Imported". Ek product par kai tags lag sakte hain.' },
-        { title: 'Category se farq', body: 'Category ek hoti hai (maal ki qisam); tags kai ho sakte hain (khaas baat). Brand banane wali company hai.' },
+        { title: 'Category se farq', body: 'Category ek hoti hai (maal ka group); tags kai ho sakte hain (khaas baat). Brand banane wali company hai.' },
         { title: 'Sale dekhein', body: 'Period chunein — har tag wale products ki sale aur stock yahan milta hai, jaise "Sale" tag ne kitna becha.' },
         { title: 'Milana', body: 'Do jaise tags hon to "Doosri me milayein" — products par sirf ek tag reh jayega.' },
       ],

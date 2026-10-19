@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { startOfDayTz, endOfDayTz, weekdayInTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
@@ -8,20 +8,40 @@ import { UpsertDoctorDto } from './dto/upsert-doctor.dto';
 export class DoctorsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Creates or updates a doctor. Without `staffId` a staff record is made first (name, phone, "Doctor"). */
   async upsert(user: AuthenticatedUser, dto: UpsertDoctorDto) {
-    const staff = await this.prisma.staff.findFirst({ where: { id: dto.staffId, tenantId: user.tenantId } });
-    if (!staff) throw new NotFoundException('Staff not found');
-
-    const payload: any = {
-      ...dto,
-      licenseExpiry: dto.licenseExpiry ? new Date(dto.licenseExpiry) : undefined,
-    };
-
-    const existing = await this.prisma.clinicDoctorProfile.findUnique({ where: { staffId: dto.staffId } });
-    if (existing) {
-      return this.prisma.clinicDoctorProfile.update({ where: { staffId: dto.staffId }, data: payload });
+    const { staffId: givenStaff, phone, ...rest } = dto;
+    const fullName = (dto.fullName ?? '').trim();
+    if (fullName.length < 2) throw new BadRequestException('Doctor ka naam likhein');
+    let staffId = givenStaff;
+    if (staffId) {
+      const staff = await this.prisma.staff.findFirst({ where: { id: staffId, tenantId: user.tenantId }, select: { id: true } });
+      if (!staff) throw new NotFoundException('Staff nahi mila');
+    } else {
+      const digits = String(phone ?? '').replace(/\D/g, '');
+      if (digits.length < 10) throw new BadRequestException('Doctor ka phone likhein (03xx…)');
+      staffId = await this.prisma.$transaction(async (tx) => {
+        const rows = await tx.staff.findMany({ where: { tenantId: user.tenantId }, select: { staffNumber: true } });
+        const max = rows.reduce((m, r) => Math.max(m, Number(/(\d+)$/.exec(r.staffNumber)?.[1] ?? 0)), 0);
+        const st = await tx.staff.create({
+          data: { tenantId: user.tenantId, staffNumber: `EMP-${String(max + 1).padStart(4, '0')}`, fullName, phone: digits, designation: 'Doctor', department: 'Clinic', joinDate: new Date() },
+          select: { id: true },
+        });
+        return st.id;
+      });
     }
-    return this.prisma.clinicDoctorProfile.create({ data: { ...payload, tenantId: user.tenantId } });
+    if (rest.workStartTime && rest.workEndTime && rest.workStartTime >= rest.workEndTime) throw new BadRequestException('Clinic ka waqt sahi likhein');
+    if (rest.workingDays && rest.workingDays.some((d) => !(Number.isInteger(d) && d >= 0 && d <= 6))) throw new BadRequestException('Din ghalat hain');
+    if (rest.commissionType !== 'FIXED' && (rest.commissionPct ?? 0) > 100) throw new BadRequestException('Share 100% se zyada nahi ho sakta');
+
+    const payload = {
+      ...rest,
+      fullName,
+      licenseExpiry: rest.licenseExpiry ? new Date(rest.licenseExpiry) : undefined,
+    };
+    const existing = await this.prisma.clinicDoctorProfile.findFirst({ where: { staffId, tenantId: user.tenantId }, select: { id: true } });
+    if (existing) return this.prisma.clinicDoctorProfile.update({ where: { id: existing.id }, data: payload });
+    return this.prisma.clinicDoctorProfile.create({ data: { ...payload, staffId: staffId!, tenantId: user.tenantId } });
   }
 
   async list(user: AuthenticatedUser, params: { specialty?: string; search?: string; featured?: boolean; active?: boolean }) {

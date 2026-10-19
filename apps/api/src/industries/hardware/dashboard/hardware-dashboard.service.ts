@@ -20,7 +20,7 @@ export class HardwareDashboardService {
       this.prisma.hardwareBrand.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.hardwareProductProfile.count({ where: { tenantId: user.tenantId } }),
       this.prisma.hardwareProject.count({ where: { tenantId: user.tenantId, status: { in: ['APPROVED', 'IN_PROGRESS'] } } }),
-      this.prisma.hardwareQuotation.count({ where: { tenantId: user.tenantId, status: { in: ['SENT', 'VIEWED'] } } }),
+      this.prisma.hardwareQuotation.count({ where: { tenantId: user.tenantId, status: { in: ['DRAFT', 'SENT', 'VIEWED', 'REVISED'] }, validUntil: { gte: new Date() } } }),
       this.prisma.hardwareDelivery.count({ where: { tenantId: user.tenantId, status: { in: ['PENDING', 'SCHEDULED', 'LOADED', 'DISPATCHED', 'IN_TRANSIT'] } } }),
       this.prisma.hardwareDelivery.count({
         where: {
@@ -77,8 +77,8 @@ export class HardwareDashboardService {
     const upcomingDeliveries = await this.prisma.hardwareDelivery.findMany({
       where: {
         tenantId: user.tenantId,
-        status: { in: ['PENDING', 'SCHEDULED'] },
-        scheduledDate: { gte: new Date() },
+        status: { in: ['PENDING', 'SCHEDULED', 'LOADED'] },
+        scheduledDate: { gte: todayStart },
       },
       include: { items: { take: 2 } },
       orderBy: { scheduledDate: 'asc' },
@@ -92,7 +92,7 @@ export class HardwareDashboardService {
       where: { tenantId: user.tenantId, isActive: true },
     });
     const productIds = reorderRules.map((r) => r.productId);
-    const products = await this.prisma.product.findMany({ where: { id: { in: productIds } } });
+    const products = await this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: productIds } }, select: { id: true, stock: true } });
     const productMap = new Map(products.map((p) => [p.id, p]));
     const lowStockCount = reorderRules.filter((r) => (productMap.get(r.productId)?.stock ?? 0) <= r.reorderPoint).length;
 

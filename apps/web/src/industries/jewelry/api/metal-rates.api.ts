@@ -25,11 +25,8 @@ export interface MetalRate {
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const metalRatesApi = {
-  create: (data: Partial<MetalRate>) => apiClient.post('/jewelry/metal-rates', data).then(unwrap<MetalRate>),
+  bulk: (rates: Array<Pick<MetalRate, 'metalType' | 'purity' | 'ratePerGram'> & { buyRate?: number; source?: string }>) =>
+    apiClient.post('/jewelry/metal-rates/bulk', { rates }).then(unwrap<MetalRate[]>),
   current: () => apiClient.get('/jewelry/metal-rates/current').then(unwrap<MetalRate[]>),
   history: (params?: any) => apiClient.get('/jewelry/metal-rates/history', { params }).then(unwrap<MetalRate[]>),
-  getCurrent: (metalType: string, purity: string) => apiClient.get('/jewelry/metal-rates/current/' + metalType + '/' + purity).then(unwrap<MetalRate | null>),
-  movement: (metalType: string, purity: string, days?: number) => apiClient.get('/jewelry/metal-rates/movement/' + metalType + '/' + purity, { params: { days } }).then(unwrap<any>),
-  update: (id: string, data: Partial<MetalRate>) => apiClient.patch('/jewelry/metal-rates/' + id, data).then(unwrap<MetalRate>),
-  remove: (id: string) => apiClient.delete('/jewelry/metal-rates/' + id).then(unwrap),
 };

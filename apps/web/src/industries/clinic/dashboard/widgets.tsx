@@ -55,7 +55,7 @@ export const clinicKpis: KpiDef[] = [
     useValue: () => {
       const { monthDue, today, loading } = useClinicOps();
       const { cost } = useMasked();
-      return { loading, to: '/clinic/appointments', value: cost(monthDue), hint: today.unpaidCount ? `aaj ${today.unpaidCount} mareez` : '30 din me' };
+      return { loading, to: '/clinic/appointments', value: cost(monthDue), hint: today.unpaidCount ? `aaj ${today.unpaidCount} mareez ka bill baqi` : 'fees khata me, 30 din' };
     },
   },
 ];

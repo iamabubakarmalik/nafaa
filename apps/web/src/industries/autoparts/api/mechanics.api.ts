@@ -22,19 +22,22 @@ export interface MechanicProfile {
   avgRating?: number;
   totalReviews: number;
   isActive: boolean;
-  staff?: any;
-  activeJobs?: any[];
+  staff?: { id: string; fullName: string; phone?: string | null; designation?: string | null } | null;
+  /** Added by the list. */
+  openJobs?: number;
+  monthJobs?: number;
+  monthLabour?: number;
+  monthHours?: number;
+  monthCommission?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
 export const mechanicsApi = {
-  upsert: (data: Partial<MechanicProfile>) => apiClient.post('/autoparts/mechanics', data).then(unwrap<MechanicProfile>),
+  upsert: (data: Partial<Omit<MechanicProfile, 'staff'>>) => apiClient.post('/autoparts/mechanics', data).then(unwrap<MechanicProfile>),
   list: (params?: { available?: boolean; search?: string }) => apiClient.get('/autoparts/mechanics', { params }).then(unwrap<MechanicProfile[]>),
-  byStaff: (staffId: string) => apiClient.get('/autoparts/mechanics/by-staff/' + staffId).then(unwrap<MechanicProfile | null>),
-  getOne: (id: string) => apiClient.get('/autoparts/mechanics/' + id).then(unwrap<MechanicProfile>),
   toggleAvailability: (id: string) => apiClient.post('/autoparts/mechanics/' + id + '/toggle-availability').then(unwrap<MechanicProfile>),
-  remove: (id: string) => apiClient.delete('/autoparts/mechanics/' + id).then(unwrap),
+  remove: (id: string) => apiClient.delete('/autoparts/mechanics/' + id).then(unwrap<MechanicProfile>),
 };

@@ -1,207 +1,211 @@
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import {
-  Truck, Plus, Search, RefreshCw, Sparkles, Clock, User, Phone, MapPin,
-  CheckCircle2, X, ArrowRight, Package, Calendar, AlertCircle,
-} from 'lucide-react';
-import { deliveriesApi, type DeliveryStatus } from '../api/deliveries.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { format, differenceInDays } from 'date-fns';
+/**
+ * Delivery challans: goods going to sites. Open challans (today and late
+ * first), part-delivered ones with goods still to send, delivered and
+ * cancelled. Counts, search and paging come from the server; CSV and print
+ * take the whole filter.
+ */
 
-const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string }> = {
-  PENDING: { label: 'Pending', color: 'bg-slate-500' },
-  SCHEDULED: { label: 'Scheduled', color: 'bg-blue-500' },
-  LOADED: { label: 'Loaded', color: 'bg-cyan-500' },
-  DISPATCHED: { label: 'Dispatched', color: 'bg-amber-500' },
-  IN_TRANSIT: { label: 'In Transit', color: 'bg-orange-500' },
-  DELIVERED: { label: 'Delivered', color: 'bg-emerald-600' },
-  PARTIALLY_DELIVERED: { label: 'Partial', color: 'bg-amber-600' },
-  FAILED: { label: 'Failed', color: 'bg-rose-500' },
-  CANCELLED: { label: 'Cancelled', color: 'bg-rose-500' },
-  RETURNED: { label: 'Returned', color: 'bg-slate-600' },
-};
+import { useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Ban, CalendarRange, CheckCircle2, Clock, Download, GraduationCap, ListChecks, PackageCheck, Plus, Receipt, Truck } from 'lucide-react';
+import {
+  DateRangeMenu, FilterBar, FilterChip, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { rangeLabel } from '@core/lib/dateRange';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { deliveriesApi, type Delivery, type DeliveryQuery, type DeliveryTab } from '../api/deliveries.api';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { CHALLAN_STATUS, OPEN_CHALLAN, qty, shortDate, vehicleLabel } from '../lib/meta';
+
+const LIMIT = 25;
+const TABS: Array<{ id: DeliveryTab; label: string; icon: typeof ListChecks }> = [
+  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'open', label: 'Bhejna / raste me', icon: Truck },
+  { id: 'today', label: 'Aaj aur late', icon: Clock },
+  { id: 'partial', label: 'Kuch pohancha', icon: PackageCheck },
+  { id: 'delivered', label: 'Pohanch gaya', icon: CheckCircle2 },
+  { id: 'cancelled', label: 'Cancel', icon: Ban },
+];
+
+async function fetchAll(q: DeliveryQuery) {
+  const out: Delivery[] = [];
+  for (let page = 1; page <= 40; page++) {
+    const res = await deliveriesApi.page({ ...q, page, limit: 100 });
+    out.push(...res.items);
+    if (out.length >= res.total || !res.items.length) break;
+  }
+  return out;
+}
+
+const late = (d: Delivery) => OPEN_CHALLAN.includes(d.status) && !!d.scheduledDate && new Date(d.scheduledDate).getTime() < new Date().setHours(0, 0, 0, 0);
 
 export default function DeliveriesPage() {
+  const navigate = useNavigate();
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [params] = useSearchParams();
+  const saleId = params.get('sale') ?? undefined;
+  const projectId = params.get('project') ?? undefined;
+  const [tab, setTab] = useState<DeliveryTab>(saleId || projectId ? 'all' : 'open');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('active');
+  const [period, setPeriod] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
+  const q = useDebounced(search.trim());
+  const range = resolveRange(period, startHour);
 
-  const { data: deliveries = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['hardware-deliveries', statusFilter, search],
-    queryFn: () => deliveriesApi.list({
-      status: statusFilter === 'active' || statusFilter === 'all' ? undefined : statusFilter,
-      search: search.trim() || undefined,
-    }),
+  const query: DeliveryQuery = useMemo(() => ({ tab, search: q || undefined, from: range?.from, to: range?.to, saleId, projectId }), [tab, q, range?.from, range?.to, saleId, projectId]);
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['hardware-deliveries', query, page],
+    queryFn: () => deliveriesApi.page({ ...query, page, limit: LIMIT }),
+    placeholderData: keepPreviousData,
     refetchInterval: 60_000,
   });
+  const c = data?.counts;
+  const go = (t: DeliveryTab) => { setTab(t); setPage(1); };
+  usePageKeys(searchRef, { n: () => navigate('/hardware/deliveries/new') });
 
-  const { data: summary } = useQuery({
-    queryKey: ['hardware-deliveries-summary'],
-    queryFn: () => deliveriesApi.summary(),
-  });
-
-  const filtered = statusFilter === 'active'
-    ? deliveries.filter((d) => !['DELIVERED', 'CANCELLED', 'RETURNED'].includes(d.status))
-    : deliveries;
-
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Dispatch Manager
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🚚 Deliveries</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Truck dispatch with driver + POD tracking</p>
-          </div>
-          <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-            <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-            Refresh
-          </button>
-        </div>
-      </section>
-
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Pending" value={summary.pending} icon={Clock} color="amber" />
-          <StatCard label="In Transit" value={summary.inTransit} icon={Truck} color="orange" />
-          <StatCard label="Today Scheduled" value={summary.todayScheduled} icon={Calendar} color="blue" />
-          <StatCard label="Delivered" value={summary.deliveredCount} icon={CheckCircle2} color="emerald" sub={formatPKR(summary.deliveredRevenue)} />
-        </section>
-      )}
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search delivery #, customer, vehicle, driver..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {['active', 'all', ...Object.keys(STATUS_CONFIG)].map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>
-              {s === 'active' ? '🔥 Active' : s === 'all' ? 'All' : STATUS_CONFIG[s as DeliveryStatus]?.label || s}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Truck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No deliveries</p>
-        </div>
-      ) : (
-        <section className="grid gap-3">
-          {filtered.map((d) => <DeliveryCard key={d.id} d={d} />)}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    amber: 'from-amber-500 to-orange-600', orange: 'from-orange-500 to-red-600',
-    blue: 'from-blue-500 to-indigo-600', emerald: 'from-emerald-500 to-green-600',
+  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const rows = await fetchAll(query);
+      if (!rows.length) { toast.error('Is filter me koi challan nahi'); return; }
+      downloadCsv('challan.csv', [
+        ['Challan', 'Tareekh', 'Bill', 'Customer', 'Phone', 'Pata', 'Maal', 'Gaari', 'Driver', 'Bhejne ki tareekh', 'Kiraya', 'Status'],
+        ...rows.map((r) => [r.deliveryNumber, r.createdAt.slice(0, 10), r.saleNumber, r.customerName, r.customerPhone, r.deliveryAddress,
+          r.items.map((i) => `${i.itemName} x${qty(i.orderedQty)}`).join('; '), [vehicleLabel(r.vehicleType), r.vehicleNumber].filter(Boolean).join(' '),
+          r.driverName, r.scheduledDate?.slice(0, 10), r.totalCharges, CHALLAN_STATUS[r.status].label]),
+      ]);
+      toast.success(`${rows.length} challan CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
   };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs font-semibold text-slate-600 mt-1">{sub}</div>}
-        </div>
-        <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
+  const printDoc = async (): Promise<PrintDoc> => {
+    const rows = await fetchAll(query);
+    return {
+      title: 'Delivery challan', subtitle: label,
+      meta: [['Challan', String(rows.length)], ['Kiraya / mazdoori', money(data?.charges ?? 0)]],
+      sections: [{
+        kind: 'table', title: 'Challan',
+        columns: [{ label: 'Challan' }, { label: 'Customer' }, { label: 'Pata', wideOnly: true }, { label: 'Gaari', wideOnly: true }, { label: 'Status' }],
+        rows: rows.map((r) => [r.deliveryNumber, r.customerName, r.deliveryAddress, [vehicleLabel(r.vehicleType), r.vehicleNumber].filter(Boolean).join(' '), CHALLAN_STATUS[r.status].label]),
+      }],
+    };
+  };
 
-function DeliveryCard({ d }: any) {
-  const cfg = STATUS_CONFIG[d.status as DeliveryStatus];
-  const daysLeft = d.scheduledDate ? differenceInDays(new Date(d.scheduledDate), new Date()) : null;
-  const queryClient = useQueryClient();
-  const done = ['DELIVERED', 'PARTIALLY_DELIVERED', 'CANCELLED', 'RETURNED'].includes(d.status);
-
-  const act = useMutation({
-    mutationFn: async (step: 'DISPATCHED' | 'DELIVERED' | 'CANCELLED') => {
-      if (step === 'DELIVERED') {
-        const receivedByName = window.prompt('Maal kis ne receive kiya? (naam)') ?? undefined;
-        return deliveriesApi.confirmDelivery(d.id, { receivedByName: receivedByName || undefined });
-      }
-      if (step === 'CANCELLED') {
-        const reason = window.prompt('Cancel ki wajah?');
-        if (reason === null) throw new Error('skip');
-        return deliveriesApi.updateStatus(d.id, 'CANCELLED', { cancellationReason: reason || undefined });
-      }
-      return deliveriesApi.updateStatus(d.id, step);
-    },
-    onSuccess: () => {
-      toast.success('Delivery update ho gayi');
-      queryClient.invalidateQueries({ queryKey: ['hardware-deliveries'] });
-      queryClient.invalidateQueries({ queryKey: ['hardware-deliveries-summary'] });
-    },
-    onError: (e: any) => { if (e?.message !== 'skip') toast.error(e?.response?.data?.message || 'Update nahi hua'); },
-  });
+  const items = data?.items ?? [];
+  const pages = data ? Math.max(1, Math.ceil(data.total / LIMIT)) : 1;
 
   return (
-    <div className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-emerald-300 transition p-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow shrink-0">
-            <Truck className="h-6 w-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold">{d.deliveryNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
-              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{d.vehicleType}</span>
-            </div>
-            <div className="mt-1 font-bold">{d.customerName}</div>
-            <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">
-              {d.customerPhone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{d.customerPhone}</span>}
-              {d.city && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{d.city}</span>}
-              {d.vehicleNumber && <span className="inline-flex items-center gap-1 text-blue-700"><Truck className="h-3 w-3" />{d.vehicleNumber}</span>}
-              {d.driverName && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{d.driverName}</span>}
-            </div>
-            <div className="mt-1 text-xs text-slate-500 font-semibold">{d.items?.length || 0} items</div>
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(d.totalCharges)}</div>
-          {daysLeft !== null && d.scheduledDate && (
-            <div className={
-              'text-xs font-extrabold ' +
-              (daysLeft < 0 ? 'text-rose-700' : daysLeft === 0 ? 'text-amber-700' : 'text-slate-700')
-            }>
-              {daysLeft < 0 ? 'OVERDUE' : daysLeft === 0 ? 'TODAY' : daysLeft + 'd'}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {!done && (
-        <div className="mt-3 flex items-center gap-2 flex-wrap text-xs font-extrabold">
-          {!['DISPATCHED', 'IN_TRANSIT'].includes(d.status) && (
-            <button disabled={act.isPending} onClick={() => act.mutate('DISPATCHED')} className="rounded-lg bg-amber-50 text-amber-700 px-3 py-1.5 hover:bg-amber-100">Rawana ho gayi</button>
-          )}
-          <button disabled={act.isPending} onClick={() => act.mutate('DELIVERED')} className="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1.5 hover:bg-emerald-100">Pohanch gayi</button>
-          <button disabled={act.isPending} onClick={() => act.mutate('CANCELLED')} className="rounded-lg bg-rose-50 text-rose-700 px-3 py-1.5 hover:bg-rose-100">Cancel</button>
-        </div>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Challan — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Receipt, color: '#2563eb', title: 'Bill se challan', text: 'Bill banne ke baad "Challan banayein" — sirf wahi maal aata hai jo abhi bhejna baqi hai. Aadha aaj, baqi kal alag challan par.' },
+            { icon: Truck, color: '#7c3aed', title: 'Gaari aur driver', text: 'Gaari, number aur driver likhein, print kar ke driver ko dein. "Nikal gaya" dabayein.' },
+            { icon: PackageCheck, color: '#16a34a', title: 'Pohanch gaya', text: 'Site par jitna utra wo likhein. Kam utra to baqi maal bill par dobara bhejne ke liye aa jata hai.' },
+            { icon: Ban, color: '#e11d48', title: 'Stock aur paisa', text: 'Challan stock ya paisa nahi badalta — wo bill ne kar diya. Maal wapas aaye to Sales se Return karein.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya challan'], ['G', 'guide']]} />
       )}
-    </div>
+
+      <PageHero title="Delivery challan" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta="Site par maal — bill se challan, aadhi aur poori delivery"
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/hardware/deliveries/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya challan</Link>
+        </>}
+        stats={[
+          { label: 'Bhejna / raste me', value: String(c?.open ?? 0) },
+          { label: 'Aaj aur late', value: String(c?.today ?? 0) },
+          { label: 'Kiraya / mazdoori', value: money(data?.charges ?? 0) },
+        ]} />
+
+      <KpiRow cols={4}>
+        {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Clock} color="#d97706" label="Aaj aur late" value={c.today} hint="Gaari tayyar karein" onClick={() => go('today')} active={tab === 'today'} />
+            <KpiCard icon={Truck} color="#7c3aed" label="Bhejna / raste me" value={c.open} onClick={() => go('open')} active={tab === 'open'} />
+            <KpiCard icon={PackageCheck} color="#ea580c" label="Kuch pohancha" value={c.partial} hint="Baqi maal bhejna hai" onClick={() => go('partial')} active={tab === 'partial'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Pohanch gaya" value={c.delivered} onClick={() => go('delivered')} active={tab === 'delivered'} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Challan number, customer, pata, gaari, driver ya item…" />}
+        chips={search.trim() || saleId || projectId ? <>
+          {saleId && <FilterChip onRemove={() => navigate('/hardware/deliveries')}>Ek bill</FilterChip>}
+          {projectId && <FilterChip onRemove={() => navigate('/hardware/deliveries')}>Ek site</FilterChip>}
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); if (saleId || projectId) navigate('/hardware/deliveries'); }}>
+        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Date" />
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={go} hint={<>Challan par click kar ke kholein</>}
+        tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? c[t.id] : null }))} />
+
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {isLoading ? (
+          <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        ) : items.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-16 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Truck className="h-7 w-7" /></span>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'all' ? 'Is filter me koi challan nahi' : 'Abhi koi challan nahi'}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">Bill ke baad site par maal bhejna ho to challan banayein.</p>
+            <Link to="/hardware/deliveries/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya challan</Link>
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {items.map((r) => {
+              const st = CHALLAN_STATUS[r.status];
+              return (
+                <li key={r.id}>
+                  <Link to={`/hardware/deliveries/${r.id}`} className="grid gap-2 px-4 py-3 hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.2fr)_minmax(0,1.5fr)_minmax(0,1fr)_9rem] lg:items-center">
+                    <div>
+                      <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.deliveryNumber}</p>
+                      <p className="text-[0.75rem] text-slate-500">{r.saleNumber ? `Bill ${r.saleNumber}` : 'Bill ke bagair'}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-900">{r.customerName}</p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{r.deliveryAddress}</p>
+                    </div>
+                    <p className="min-w-0 truncate text-[0.8125rem] text-slate-600">{r.items.map((i) => `${i.itemName} ×${qty(i.orderedQty)}`).join(', ')}</p>
+                    <div className="min-w-0 text-[0.8125rem]">
+                      <p className="truncate text-slate-700">{[vehicleLabel(r.vehicleType), r.vehicleNumber].filter(Boolean).join(' · ')}</p>
+                      <p className={cn('truncate text-[0.75rem]', late(r) ? 'font-semibold text-rose-600' : 'text-slate-500')}>{r.scheduledDate ? `${late(r) ? 'Late · ' : ''}${shortDate(r.scheduledDate)}${r.scheduledTime ? ` ${r.scheduledTime}` : ''}` : 'Tareekh tay nahi'}</p>
+                    </div>
+                    <span className={cn('w-fit rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1 lg:justify-self-end', st.tone)}>{st.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {data && data.total > LIMIT && (
+          <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
+            <span>{(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, data.total)} / {data.total}</span>
+            <div className="flex gap-2">
+              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Pichla</button>
+              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Agla</button>
+            </div>
+          </footer>
+        )}
+      </section>
+    </PageShell>
   );
 }

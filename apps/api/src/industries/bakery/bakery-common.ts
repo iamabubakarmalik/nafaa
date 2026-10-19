@@ -10,6 +10,8 @@ import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.serv
 import { businessDayKey, safeDayStart, startOfBusinessDayTz, tzParts, zonedToUtc } from '../../common/helpers/business-time.helper';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ShopScope } from '../../common/shop-scope';
+import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
+import { ensureCustomer, paidOnKhata, recordKhataPayment, resolveIndustryShopId } from '../_shared/industry-sale.helper';
 
 export const DAY_MS = 86_400_000;
 const KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -155,3 +157,42 @@ export async function syncBatchesWithStock(prisma: PrismaService, tenantId: stri
     }
   }
 }
+
+/**
+ * Money taken on a cake or bulk order before its bill. It goes on the
+ * customer's khata as an advance (reference = order number) on the day it is
+ * paid, so the drawer, day book and khata show it that day. The delivery bill
+ * later puts its unpaid part on the same khata, where the advance cancels it.
+ * Returns the customer the money is held for.
+ */
+export async function postOrderAdvance(
+  tx: Prisma.TransactionClient,
+  user: AuthenticatedUser,
+  input: { orderNumber: string; kind: 'Cake' | 'Bulk'; amount: number; method?: string | null; customerId?: string | null; name?: string | null; phone?: string | null; shopId?: string | null },
+) {
+  const shopId = await resolveIndustryShopId(tx, user, input.shopId);
+  const customerId = await ensureCustomer(tx, user, { customerId: input.customerId, name: input.name, phone: input.phone, shopId });
+  await recordKhataPayment(tx, user, {
+    customerId,
+    shopId,
+    amount: input.amount,
+    reference: input.orderNumber,
+    note: `${input.kind} order advance: ${input.orderNumber}`,
+    method: input.method,
+  });
+  return customerId;
+}
+
+/**
+ * Money on an order split by where it sits: `khataPaid` is held on the
+ * customer's khata as an advance; `legacyPaid` is the rest (paid before khata
+ * posting existed, or taken with a delivery bill that was not saved), which
+ * the delivery bill counts as paid.
+ */
+export async function orderMoney(db: PrismaService | Prisma.TransactionClient, tenantId: string, orderNumber: string, paidAmount: number) {
+  const khataPaid = Math.min(await paidOnKhata(db as Prisma.TransactionClient, tenantId, orderNumber), r2(paidAmount));
+  return { khataPaid, legacyPaid: r2(Math.max(paidAmount - khataPaid, 0)) };
+}
+
+/** Payment methods an order advance can be taken by. */
+export const ORDER_PAY_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'] as const;

@@ -1,5 +1,5 @@
 import { apiClient } from '@core/api/client';
-import type { OrderBill } from './cake-orders.api';
+import type { OrderBill, OrderPayOptions } from './cake-orders.api';
 
 export interface BulkOrder {
   id: string;
@@ -19,6 +19,8 @@ export interface BulkOrder {
   quotedPrice: number;
   finalPrice?: number;
   advancePaid: number;
+  /** Single-order reads only: part of the money received that is held on the customer's khata. */
+  khataPaid?: number;
   paidAmount: number;
   paymentStatus: string;
   status: string;
@@ -75,6 +77,7 @@ export const bulkOrdersApi = {
   getOne: (id: string) => apiClient.get('/bakery/bulk-orders/' + id).then(unwrap<BulkOrder>),
   update: (id: string, data: any) => apiClient.patch('/bakery/bulk-orders/' + id, data).then(unwrap<BulkOrder>),
   updateStatus: (id: string, status: string) => apiClient.patch('/bakery/bulk-orders/' + id + '/status', { status }).then(unwrap<BulkOrder>),
-  payment: (id: string, amount: number, expectedPaid?: number) =>
-    apiClient.post('/bakery/bulk-orders/' + id + '/payment', { amount, expectedPaid }).then(unwrap<BulkOrder>),
+  /** Same rules as the cake order payment: khata advance unless `withBill`. */
+  payment: (id: string, amount: number, expectedPaid?: number, opts?: OrderPayOptions) =>
+    apiClient.post('/bakery/bulk-orders/' + id + '/payment', { amount, expectedPaid, ...opts }).then(unwrap<BulkOrder>),
 };

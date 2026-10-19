@@ -6,6 +6,8 @@ import { CakeOrdersModule } from './cake-orders/cake-orders.module';
 import { FreshnessModule } from './freshness/freshness.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { ProductionModule } from './production/production.module';
+import { OrderBillVoidService } from './order-bill-void.service';
+import { SalesModule } from '../../modules/sales/sales/sales.module';
 
 @Module({
   imports: [
@@ -16,7 +18,9 @@ import { ProductionModule } from './production/production.module';
     FreshnessModule,
     BulkOrdersModule,
     BakeryDashboardModule,
+    SalesModule,
   ],
+  providers: [OrderBillVoidService],
   exports: [
     BakeryProductsModule,
     CakeOrdersModule,

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { HardwareProjectStatus } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpsertProjectDto {
   @ApiProperty() @IsString() name!: string;

@@ -20,11 +20,14 @@ export interface MetalStockEntry {
   createdAt: string;
 }
 
+export interface MetalBalance { metalType: string; purity: string; balanceGrams: number; lastEntryDate: string | null }
+export interface MetalStockPage { page: number; limit: number; total: number; pages: number; items: MetalStockEntry[]; totals: { in: number; out: number } }
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const metalStockApi = {
   addEntry: (data: any) => apiClient.post('/jewelry/metal-stock', data).then(unwrap<MetalStockEntry>),
-  list: (params?: any) => apiClient.get('/jewelry/metal-stock', { params }).then(unwrap<MetalStockEntry[]>),
-  balance: () => apiClient.get('/jewelry/metal-stock/balance').then(unwrap<any[]>),
-  summary: (from?: string, to?: string) => apiClient.get('/jewelry/metal-stock/summary', { params: { from, to } }).then(unwrap<any[]>),
+  page: (params: { metalType?: string; purity?: string; entryType?: string; from?: string; to?: string; search?: string; page?: number; limit?: number }) =>
+    apiClient.get('/jewelry/metal-stock/page', { params }).then(unwrap<MetalStockPage>),
+  balance: () => apiClient.get('/jewelry/metal-stock/balance').then(unwrap<MetalBalance[]>),
 };

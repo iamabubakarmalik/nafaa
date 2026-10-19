@@ -11,10 +11,13 @@ export class VehicleModelsService {
     const make = await this.prisma.vehicleMake.findFirst({ where: { id: dto.makeId, tenantId: user.tenantId } });
     if (!make) throw new NotFoundException('Make not found');
 
-    const dup = await this.prisma.vehicleModel.findFirst({ where: { tenantId: user.tenantId, makeId: dto.makeId, name: dto.name } });
-    if (dup) throw new BadRequestException(`Model "${dto.name}" already exists for this make`);
+    const name = dto.name.trim();
+    if (!name) throw new BadRequestException('Model ka naam likhein');
+    if (dto.yearFrom && dto.yearTo && dto.yearFrom > dto.yearTo) throw new BadRequestException('Saal "se" saal "tak" se bara hai');
+    const dup = await this.prisma.vehicleModel.findFirst({ where: { tenantId: user.tenantId, makeId: dto.makeId, name: { equals: name, mode: 'insensitive' } } });
+    if (dup) throw new BadRequestException(`Model "${name}" is company me pehle se hai`);
 
-    return this.prisma.vehicleModel.create({ data: { tenantId: user.tenantId, ...dto } });
+    return this.prisma.vehicleModel.create({ data: { tenantId: user.tenantId, ...dto, name } });
   }
 
   async list(user: AuthenticatedUser, params: { makeId?: string; vehicleType?: string; search?: string; active?: boolean }) {
@@ -43,7 +46,15 @@ export class VehicleModelsService {
   async update(user: AuthenticatedUser, id: string, dto: UpsertVehicleModelDto) {
     const m = await this.prisma.vehicleModel.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!m) throw new NotFoundException('Model not found');
-    return this.prisma.vehicleModel.update({ where: { id }, data: dto });
+    const makeId = dto.makeId ?? m.makeId;
+    if (makeId !== m.makeId && !(await this.prisma.vehicleMake.findFirst({ where: { id: makeId, tenantId: user.tenantId }, select: { id: true } }))) {
+      throw new NotFoundException('Make not found');
+    }
+    const name = dto.name?.trim() || m.name;
+    const dup = await this.prisma.vehicleModel.findFirst({ where: { tenantId: user.tenantId, makeId, name, id: { not: id } }, select: { id: true } });
+    if (dup) throw new BadRequestException(`Model "${name}" is company me pehle se hai`);
+    if (dto.yearFrom && dto.yearTo && dto.yearFrom > dto.yearTo) throw new BadRequestException('Saal "se" saal "tak" se bara hai');
+    return this.prisma.vehicleModel.update({ where: { id }, data: { ...dto, makeId, name } });
   }
 
   async remove(user: AuthenticatedUser, id: string) {

@@ -10,7 +10,8 @@ import { BakeryOrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
-import { CLOSED_ORDER, DAY_MS, positive, r2, r3, shopClock, withNextNumber } from '../bakery-common';
+import { CLOSED_ORDER, DAY_MS, ORDER_PAY_METHODS, orderMoney, positive, postOrderAdvance, r2, r3, shopClock, withNextNumber } from '../bakery-common';
+import { ShopScope } from '../../../common/shop-scope';
 import { findOrderBill } from '../cake-orders/cake-orders.service';
 
 type Body = Record<string, unknown>;
@@ -27,6 +28,12 @@ const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null
 const price = (o: { finalPrice: number | null; quotedPrice: number }) => o.finalPrice ?? o.quotedPrice;
 const due = (o: { finalPrice: number | null; quotedPrice: number; paidAmount: number }) => Math.max(r2(price(o) - o.paidAmount), 0);
 
+const payMethod = (v: unknown) => {
+  if (v === undefined || v === null || v === '') return 'CASH';
+  if (!(ORDER_PAY_METHODS as readonly unknown[]).includes(v)) throw new BadRequestException('Payment ka tareeqa theek nahi');
+  return v as string;
+};
+
 function paymentStatusOf(paid: number, total: number) {
   if (paid <= 0) return 'QUOTED';
   return paid >= total - 0.005 ? 'PAID' : 'PARTIALLY_PAID';
@@ -39,7 +46,7 @@ export class BulkOrdersService {
     private readonly tz: TenantTimezoneService,
   ) {}
 
-  async create(user: AuthenticatedUser, dto: Body) {
+  async create(user: AuthenticatedUser, scope: ShopScope, dto: Body) {
     const organizationName = str(dto?.organizationName);
     const contactPhone = str(dto?.contactPhone);
     if (!organizationName) throw new BadRequestException('Kis ka order hai — naam likhein');
@@ -70,35 +77,41 @@ export class BulkOrdersService {
         where: { tenantId: user.tenantId, orderNumber: { startsWith: prefix } }, orderBy: { orderNumber: 'desc' }, select: { orderNumber: true },
       }))?.orderNumber,
       `BULK-${clock.year()}-`, 4,
-      (orderNumber) => this.prisma.bakeryBulkOrder.create({
-        data: {
-          tenantId: user.tenantId,
-          orderNumber,
-          customerId,
-          organizationName,
-          contactPerson: str(dto.contactPerson),
-          contactPhone,
-          contactEmail: str(dto.contactEmail),
-          orderType: str(dto.orderType) ?? 'OTHER',
-          eventDate,
-          eventTime: str(dto.eventTime),
-          venue: str(dto.venue),
-          totalGuests: Number(dto.totalGuests) > 0 ? Math.round(Number(dto.totalGuests)) : null,
-          totalItems: Math.round(items.reduce((s, l) => s + l.qty, 0)),
-          items: items as unknown as Prisma.InputJsonValue,
-          quotedPrice,
-          finalPrice,
-          advancePaid: advance,
-          paidAmount: advance,
-          paymentStatus: paymentStatusOf(advance, total),
-          status,
-          requiresDelivery: dto.requiresDelivery === undefined ? true : !!dto.requiresDelivery,
-          deliveryAddress: str(dto.deliveryAddress),
-          requiresSetup: !!dto.requiresSetup,
-          setupTime: str(dto.setupTime),
-          specialInstructions: str(dto.specialInstructions),
-          createdById: user.id,
-        },
+      (orderNumber) => this.prisma.$transaction(async (tx) => {
+        // The advance reaches the drawer and khata today, held for the customer.
+        const heldFor = advance > 0
+          ? await postOrderAdvance(tx, user, { orderNumber, kind: 'Bulk', amount: advance, method: payMethod(dto.paymentMethod), customerId, name: organizationName, phone: contactPhone, shopId: scope.shopId })
+          : customerId;
+        return tx.bakeryBulkOrder.create({
+          data: {
+            tenantId: user.tenantId,
+            orderNumber,
+            customerId: heldFor,
+            organizationName,
+            contactPerson: str(dto.contactPerson),
+            contactPhone,
+            contactEmail: str(dto.contactEmail),
+            orderType: str(dto.orderType) ?? 'OTHER',
+            eventDate,
+            eventTime: str(dto.eventTime),
+            venue: str(dto.venue),
+            totalGuests: Number(dto.totalGuests) > 0 ? Math.round(Number(dto.totalGuests)) : null,
+            totalItems: Math.round(items.reduce((s, l) => s + l.qty, 0)),
+            items: items as unknown as Prisma.InputJsonValue,
+            quotedPrice,
+            finalPrice,
+            advancePaid: advance,
+            paidAmount: advance,
+            paymentStatus: paymentStatusOf(advance, total),
+            status,
+            requiresDelivery: dto.requiresDelivery === undefined ? true : !!dto.requiresDelivery,
+            deliveryAddress: str(dto.deliveryAddress),
+            requiresSetup: !!dto.requiresSetup,
+            setupTime: str(dto.setupTime),
+            specialInstructions: str(dto.specialInstructions),
+            createdById: user.id,
+          },
+        });
       }),
     );
   }
@@ -230,8 +243,10 @@ export class BulkOrdersService {
     };
   }
 
+  /** One order, with `khataPaid`: the part of what was received that is held on the customer's khata. */
   async getOne(user: AuthenticatedUser, id: string) {
-    return this.mustFind(user, id);
+    const o = await this.mustFind(user, id);
+    return { ...o, ...(await orderMoney(this.prisma, user.tenantId, o.orderNumber, o.paidAmount)) };
   }
 
   async bill(user: AuthenticatedUser, id: string) {
@@ -280,8 +295,13 @@ export class BulkOrdersService {
     return this.mustFind(user, id);
   }
 
-  /** Money received. A quoted order becomes booked once money comes in; `expectedPaid` stops a repeated request. */
-  async addPayment(user: AuthenticatedUser, id: string, amount: number, expectedPaid?: number) {
+  /**
+   * Money received. A quoted order becomes booked once money comes in;
+   * `expectedPaid` stops a repeated request. The money goes on the customer's
+   * khata as an advance, except money taken with the delivery bill
+   * (`withBill`), which the bill itself records.
+   */
+  async addPayment(user: AuthenticatedUser, scope: ShopScope, id: string, amount: number, expectedPaid?: number, method?: unknown, withBill?: boolean) {
     const value = r2(positive(amount, 'Rakam likhein'));
     const o = await this.mustFind(user, id);
     if ((CLOSED_ORDER as readonly string[]).includes(o.status)) {
@@ -292,12 +312,20 @@ export class BulkOrdersService {
     const paid = r2(o.paidAmount + value);
     if (paid > total + 0.005) throw new BadRequestException(`Baqi sirf ${due(o)} hai`);
     const status: BakeryOrderStatus = o.status === 'DRAFT' || o.status === 'QUOTED' ? 'CONFIRMED' : o.status;
-    const done = await this.prisma.bakeryBulkOrder.updateMany({
-      where: { id, tenantId: user.tenantId, paidAmount: o.paidAmount, status: o.status },
-      data: { paidAmount: paid, advancePaid: r2(o.advancePaid + value), paymentStatus: paymentStatusOf(paid, total), status },
+    await this.prisma.$transaction(async (tx) => {
+      const done = await tx.bakeryBulkOrder.updateMany({
+        where: { id, tenantId: user.tenantId, paidAmount: o.paidAmount, status: o.status },
+        data: { paidAmount: paid, ...(!withBill && { advancePaid: r2(o.advancePaid + value) }), paymentStatus: paymentStatusOf(paid, total), status },
+      });
+      if (!done.count) throw new ConflictException('Order abhi badla gaya — safha taaza kar ke dobara koshish karein');
+      if (withBill) return;
+      const customerId = await postOrderAdvance(tx, user, {
+        orderNumber: o.orderNumber, kind: 'Bulk', amount: value, method: payMethod(method),
+        customerId: o.customerId, name: o.organizationName, phone: o.contactPhone, shopId: scope.shopId,
+      });
+      if (customerId !== o.customerId) await tx.bakeryBulkOrder.updateMany({ where: { id, tenantId: user.tenantId }, data: { customerId } });
     });
-    if (!done.count) throw new ConflictException('Order abhi badla gaya — safha taaza kar ke dobara koshish karein');
-    return this.mustFind(user, id);
+    return this.getOne(user, id);
   }
 
   /* ───────────────────────── helpers ───────────────────────── */

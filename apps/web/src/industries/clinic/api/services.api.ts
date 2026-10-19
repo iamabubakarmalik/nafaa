@@ -8,6 +8,7 @@ export type ServiceCategory =
 
 export interface ClinicService {
   id: string;
+  name?: string;
   productId: string;
   serviceCode?: string;
   category: ServiceCategory;
@@ -39,12 +40,14 @@ export interface ClinicService {
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: T } & T }): T => (res.data?.data ?? res.data) as T;
 
 export const clinicServicesApi = {
-  list: (params?: any) => apiClient.get('/clinic/services', { params }).then(unwrap<ClinicService[]>),
+  list: (params?: Record<string, unknown>) => apiClient.get('/clinic/services', { params }).then(unwrap<ClinicService[]>),
   getOne: (id: string) => apiClient.get('/clinic/services/' + id).then(unwrap<ClinicService>),
   byProduct: (productId: string) => apiClient.get('/clinic/services/by-product/' + productId).then(unwrap<ClinicService | null>),
+  /** Creates the service for a product, or updates the one already tied to it. */
   upsert: (data: Partial<ClinicService>) => apiClient.post('/clinic/services', data).then(unwrap<ClinicService>),
+  update: (id: string, data: Partial<ClinicService>) => apiClient.patch('/clinic/services/' + id, data).then(unwrap<ClinicService>),
   remove: (id: string) => apiClient.delete('/clinic/services/' + id).then(unwrap),
 };

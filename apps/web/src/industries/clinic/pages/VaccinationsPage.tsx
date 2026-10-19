@@ -1,258 +1,219 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Syringe, RefreshCw, Sparkles, Calendar, CheckCircle2, AlertCircle, User, X, Save, Baby } from 'lucide-react';
-import { vaccinationsApi } from '../api/vaccinations.api';
-import { patientsApi } from '../api/patients.api';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+/**
+ * Vaccine register: overdue, due this week, given. Add one dose or the full
+ * Pakistan EPI schedule for a child from the birth date; record the batch,
+ * maker and expiry when given; delay or skip with a note. Mothers can be
+ * called straight from the overdue list.
+ */
 
-const STATUS_COLORS: Record<string, string> = {
-  DUE: 'bg-amber-500', ADMINISTERED: 'bg-emerald-600',
-  DELAYED: 'bg-red-500', SKIPPED: 'bg-slate-500', CONTRAINDICATED: 'bg-rose-600',
-};
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Baby, CalendarClock, CheckCircle2, Download, GraduationCap, Phone, Plus, Syringe, TimerReset } from 'lucide-react';
+import {
+  Badge, Button, FilterBar, FilterChip, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Skeleton, Table, TBody, THead, Td, Th, Tr, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import type { Patient } from '../api/patients.api';
+import { patientsApi } from '../api/patients.api';
+import { vaccinationsApi, type VaccinationRow } from '../api/vaccinations.api';
+import { ListCard, ListFailed, ListLoading, Pager } from '../components/ListBits';
+import { PatientPicker } from '../components/PatientPicker';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { VACCINE_STATUS, ageOf, apiError, dayBounds, dayKey, shortDate } from '../lib/meta';
+
+type Tab = 'OVERDUE' | 'DUE' | 'ADMINISTERED' | 'all';
+const LIMIT = 30;
+
+function AddModal({ initial, onClose, onSaved }: { initial: Patient | null; onClose: () => void; onSaved: () => void }) {
+  const [patient, setPatient] = useState<Patient | null>(initial);
+  const [mode, setMode] = useState<'epi' | 'one'>('epi');
+  const [birth, setBirth] = useState(initial?.dateOfBirth?.slice(0, 10) ?? '');
+  const [name, setName] = useState('');
+  const [dueDate, setDueDate] = useState(dayKey());
+  const [dose, setDose] = useState('');
+  const [tried, setTried] = useState(false);
+  const errors = {
+    patient: !patient ? 'Mareez chunein' : undefined,
+    birth: mode === 'epi' && !birth ? 'Paidaish ki tareekh likhein' : mode === 'epi' && new Date(birth) > new Date() ? 'Aage ki tareekh nahi' : undefined,
+    name: mode === 'one' && !name.trim() ? 'Vaccine ka naam' : undefined,
+    due: mode === 'one' && !dueDate ? 'Tareekh likhein' : undefined,
+  };
+  const save = useMutation({
+    mutationFn: async () => (mode === 'epi'
+      ? `${(await vaccinationsApi.bulkEpi(patient!.id, birth)).added} doses lag gayi`
+      : (await vaccinationsApi.schedule({ patientId: patient!.id, vaccineName: name.trim(), dueDate: dayBounds(dueDate).from, doseNumber: dose ? Number(dose) : undefined }), 'Dose jur gayi')),
+    onSuccess: (msg) => { toast.success(msg); onSaved(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const submit = (e: FormEvent) => { e.preventDefault(); setTried(true); if (!Object.values(errors).some(Boolean)) save.mutate(); };
+  return (
+    <Modal open onClose={onClose} size="lg" title="Vaccine schedule" description="Bachay ka poora EPI schedule ek click me, ya ek dose"
+      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="vac-form" loading={save.isPending}>Save (Ctrl+S)</Button></div>}>
+      <form id="vac-form" onSubmit={submit} className="space-y-4" onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
+        <PatientPicker value={patient} onChange={(p) => { setPatient(p); if (p?.dateOfBirth) setBirth(p.dateOfBirth.slice(0, 10)); }} error={tried ? errors.patient : undefined} />
+        <Segmented<'epi' | 'one'> value={mode} onChange={setMode} label="Kya" items={[{ value: 'epi', label: 'Poora EPI schedule' }, { value: 'one', label: 'Ek dose' }]} />
+        {mode === 'epi' ? (
+          <Input label="Paidaish ki tareekh" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} error={tried ? errors.birth : undefined}
+            hint="BCG se Measles-2 tak har dose ki tareekh khud banti hai; jo pehle se lagi hain wo dobara nahi judti" />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Input label="Vaccine" value={name} onChange={(e) => setName(e.target.value)} placeholder="Hepatitis B, Flu…" error={tried ? errors.name : undefined} wrapperClassName="sm:col-span-2" />
+            <Input label="Dose no." inputMode="numeric" value={dose} onChange={(e) => setDose(e.target.value)} />
+            <Input label="Kab lagani hai" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} error={tried ? errors.due : undefined} />
+          </div>
+        )}
+      </form>
+    </Modal>
+  );
+}
+
+function GiveModal({ v, onClose, onSaved }: { v: VaccinationRow; onClose: () => void; onSaved: () => void }) {
+  const [f, setF] = useState({ batchNumber: '', manufacturer: '', expiryDate: '', siteAdministered: 'Left arm', administeredBy: '', adverseReactions: '' });
+  const set = (k: keyof typeof f, val: string) => setF((x) => ({ ...x, [k]: val }));
+  const expired = !!f.expiryDate && f.expiryDate < dayKey();
+  const save = useMutation({
+    mutationFn: () => vaccinationsApi.administer(v.id, { ...Object.fromEntries(Object.entries(f).map(([k, val]) => [k, val.trim() || undefined])), ...(f.expiryDate && { expiryDate: dayBounds(f.expiryDate).to }) }),
+    onSuccess: () => { toast.success(`${v.vaccineName} lag gayi`); onSaved(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  return (
+    <Modal open onClose={onClose} size="md" title={`${v.vaccineName} lagayein`} description={`${v.patient?.fullName ?? ''} · due ${shortDate(v.dueDate)}`}
+      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button disabled={expired} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Syringe className="h-4 w-4" />}>Lag gayi</Button></div>}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input label="Batch number" value={f.batchNumber} onChange={(e) => set('batchNumber', e.target.value)} autoFocus />
+        <Input label="Company" value={f.manufacturer} onChange={(e) => set('manufacturer', e.target.value)} />
+        <Input label="Expiry" type="date" value={f.expiryDate} onChange={(e) => set('expiryDate', e.target.value)} error={expired ? 'Expired vaccine nahi lag sakti' : undefined} />
+        <Input label="Kahan lagi" value={f.siteAdministered} onChange={(e) => set('siteAdministered', e.target.value)} placeholder="Left arm, thigh, mouth" />
+        <Input label="Kis ne lagayi" value={f.administeredBy} onChange={(e) => set('administeredBy', e.target.value)} />
+        <Input label="Koi reaction" value={f.adverseReactions} onChange={(e) => set('adverseReactions', e.target.value)} placeholder="Bukhar, sujan…" />
+      </div>
+    </Modal>
+  );
+}
 
 export default function VaccinationsPage() {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState('DUE');
-  const [showBulkEpi, setShowBulkEpi] = useState(false);
-  const [administering, setAdministering] = useState<any>(null);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const [params] = useSearchParams();
+  const canManage = usePermission(PERMISSIONS.SERVICE_BOOKINGS_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('OVERDUE');
+  const [search, setSearch] = useState('');
+  const [patientId, setPatientId] = useState(params.get('patient') ?? '');
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [giving, setGiving] = useState<VaccinationRow | null>(null);
+  const q = useDebounced(search.trim());
+  usePageKeys(searchRef, { n: () => canManage && setAdding(true) });
+  useEffect(() => { setPage(1); }, [q, tab, patientId]);
+  const { data: fixedPatient = null } = useQuery({ queryKey: ['clinic-patient', patientId], queryFn: () => patientsApi.getOne(patientId), enabled: !!patientId });
 
-  const { data: vaccinations = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['vaccinations', statusFilter],
-    queryFn: () => vaccinationsApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
+  const query = useMemo(() => {
+    const week = { from: dayBounds(dayKey()).from, to: dayBounds(dayKey(new Date(Date.now() + 7 * 86_400_000))).to };
+    return {
+      search: q || undefined, patientId: patientId || undefined, limit: LIMIT,
+      ...(tab === 'OVERDUE' && { status: 'OVERDUE' }), ...(tab === 'DUE' && { status: 'DUE', ...week }), ...(tab === 'ADMINISTERED' && { status: 'ADMINISTERED' }),
+    };
+  }, [q, tab, patientId]);
+  const list = useQuery({ queryKey: ['clinic-vaccinations', query, page], queryFn: () => vaccinationsApi.page({ ...query, page }), placeholderData: (p) => p });
+  const data = list.data;
+  const refresh = () => qc.invalidateQueries({ queryKey: ['clinic-vaccinations'] });
+  const delay = useMutation({
+    mutationFn: (v: VaccinationRow) => vaccinationsApi.setStatus(v.id, { status: 'DELAYED', dueDate: dayBounds(dayKey(new Date(Date.now() + 7 * 86_400_000))).from, notes: 'Ek hafta aage' }),
+    onSuccess: () => { toast.success('Ek hafta aage kar di'); refresh(); },
+    onError: (e) => toast.error(apiError(e)),
   });
 
+  const exportCsv = async () => {
+    try {
+      const all = await vaccinationsApi.page({ ...query, page: 1, limit: 200 });
+      if (!all.items.length) { toast.error('Koi record nahi'); return; }
+      downloadCsv('vaccines.csv', [['Bacha', 'MR', 'Walida', 'Phone', 'Vaccine', 'Due', 'Lagi', 'Status', 'Batch'],
+        ...all.items.map((v) => [v.patient?.fullName, v.patient?.mrn, v.patient?.motherName, v.patient?.phonePrimary, v.vaccineName, v.dueDate.slice(0, 10), v.administeredAt?.slice(0, 10), VACCINE_STATUS[v.status].label, v.batchNumber])]);
+    } catch (e) { toast.error(apiError(e, 'File nahi bani')); }
+  };
+
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-pink-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Syringe className="h-3.5 w-3.5 text-amber-300" />
-              EPI Schedule
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">💉 Vaccinations</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Pakistan EPI schedule + due reminders</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowBulkEpi(true)}>
-              <Baby className="h-4 w-4" />
-              Bulk EPI Schedule
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {['DUE', 'all', 'ADMINISTERED', 'DELAYED', 'SKIPPED'].map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>{s === 'all' ? 'All' : s === 'DUE' ? '🔥 Due Now' : s}</button>
-        ))}
-      </div>
-
-      {showBulkEpi && <BulkEpiModal onClose={() => setShowBulkEpi(false)} onSaved={() => { setShowBulkEpi(false); queryClient.invalidateQueries({ queryKey: ['vaccinations'] }); }} />}
-      {administering && <AdministerModal vaccine={administering} onClose={() => setAdministering(null)} onSaved={() => { setAdministering(null); queryClient.invalidateQueries({ queryKey: ['vaccinations'] }); }} />}
-
-      {isLoading ? (
-        <div className="grid gap-2">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : vaccinations.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Syringe className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No vaccinations scheduled</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 gap-3">
-          {vaccinations.map((v) => {
-            const daysUntilDue = differenceInDays(new Date(v.dueDate), new Date());
-            const isOverdue = daysUntilDue < 0 && v.status === 'DUE';
-            return (
-              <div key={v.id} className={
-                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-2 ' +
-                (isOverdue ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200 dark:border-ink-800')
-              }>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow">
-                      <Syringe className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{v.vaccineName}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[v.status]}>{v.status}</span>
-                        {isOverdue && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">OVERDUE</span>}
-                      </div>
-                      {v.doseNumber !== null && v.doseNumber !== undefined && (
-                        <div className="text-xs font-bold text-slate-600">Dose #{v.doseNumber}</div>
-                      )}
-                      {v.scheduleName && (
-                        <div className="text-[0.6875rem] font-extrabold text-rose-700">{v.scheduleName}</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-xs font-bold text-slate-600 inline-flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Due: {format(new Date(v.dueDate), 'dd MMM yyyy')}
-                  {v.status === 'DUE' && !isOverdue && ' (in ' + daysUntilDue + 'd)'}
-                </div>
-
-                {v.administeredAt && (
-                  <div className="text-xs font-bold text-emerald-700 inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Given: {format(new Date(v.administeredAt), 'dd MMM yyyy')}
-                    {v.administeredBy && ' by ' + v.administeredBy}
-                  </div>
-                )}
-
-                {v.batchNumber && (
-                  <div className="text-[0.6875rem] font-mono font-bold text-slate-500">Batch: {v.batchNumber}</div>
-                )}
-
-                {v.status === 'DUE' && (
-                  <Button size="sm" onClick={() => setAdministering(v)} className="w-full bg-gradient-to-r from-emerald-600 to-green-700">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Administer
-                  </Button>
-                )}
-              </div>
-            );
-          })}
-        </section>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Vaccines — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Baby, color: '#2563eb', title: 'EPI schedule', text: 'Bachay ki paidaish ki tareekh se BCG se Measles-2 tak saari doses ki tareekh khud ban jati hai.' },
+            { icon: CalendarClock, color: '#e11d48', title: 'Der ho gayi', text: '"Der" tab me jin ki tareekh guzar gayi — phone button se walida ko call karein.' },
+            { icon: Syringe, color: '#16a34a', title: 'Lagayein', text: 'Batch, company aur expiry likhein — expired vaccine nahi lagti.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya schedule'], ['G', 'guide']]} />
       )}
-    </div>
-  );
-}
+      {adding && <AddModal initial={fixedPatient} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); refresh(); }} />}
+      {giving && <GiveModal v={giving} onClose={() => setGiving(null)} onSaved={() => { setGiving(null); refresh(); }} />}
 
-function BulkEpiModal({ onClose, onSaved }: any) {
-  const [patientId, setPatientId] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [patientSearch, setPatientSearch] = useState('');
-  const [showPicker, setShowPicker] = useState(true);
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+      <PageHero title="Vaccines" chip={<><Syringe />{data?.summary.overdue ?? 0} der se</>} busy={list.isFetching && !list.isLoading} loading={list.isLoading}
+        meta="EPI aur doosri vaccines ka register"
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />Schedule</button>}
+        </>} />
 
-  const { data: patients = [] } = useQuery({
-    queryKey: ['patients-for-epi', patientSearch],
-    queryFn: () => patientsApi.list({ search: patientSearch || undefined }),
-    enabled: showPicker,
-  });
+      <KpiRow cols={3}>
+        {list.isLoading ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={CalendarClock} color="#e11d48" label="Der ho gayi" value={data?.summary.overdue ?? 0} onClick={() => setTab('OVERDUE')} active={tab === 'OVERDUE'} />
+            <KpiCard icon={TimerReset} color="#2563eb" label="Is hafte" value={data?.summary.thisWeek ?? 0} onClick={() => setTab('DUE')} active={tab === 'DUE'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="30 din me lagi" value={data?.summary.givenThisMonth ?? 0} onClick={() => setTab('ADMINISTERED')} active={tab === 'ADMINISTERED'} />
+          </>
+        )}
+      </KpiRow>
 
-  const bulkMutation = useMutation({
-    mutationFn: () => vaccinationsApi.bulkEpi(patientId, birthDate),
-    onSuccess: () => { toast.success('16 EPI vaccines scheduled'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bachay ka naam, walida, phone, MR ya vaccine…" />}
+        chips={(patientId || q) ? <>
+          {patientId && <FilterChip onRemove={() => setPatientId('')}>{fixedPatient?.fullName ?? 'Ek mareez'}</FilterChip>}
+          {q && <FilterChip onRemove={() => setSearch('')}>"{q}"</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setPatientId(''); }} />
 
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold">🍼 Bulk EPI Schedule</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-4">
-          <div className="rounded-lg bg-blue-50 border-2 border-blue-200 p-3 text-xs font-bold text-blue-800">
-            📋 Yeh 16 EPI doses schedule karega: BCG, OPV-0/1/2/3, Pentavalent-1/2/3, Rotavirus-1/2, PCV-1/2/3, IPV, Measles-1/2
-          </div>
+      <ViewTabs<Tab> value={tab} onChange={setTab} tabs={[{ id: 'OVERDUE', label: 'Der' }, { id: 'DUE', label: 'Is hafte' }, { id: 'ADMINISTERED', label: 'Lag gayi' }, { id: 'all', label: 'Sab' }]} />
 
-          {selectedPatient ? (
-            <div className="rounded-xl bg-rose-50 border-2 border-rose-200 p-3 flex items-center gap-3">
-              <User className="h-5 w-5 text-rose-600" />
-              <div className="flex-1">
-                <div className="font-extrabold">{selectedPatient.fullName}</div>
-                <div className="text-xs text-slate-600 font-bold">{selectedPatient.mrn}</div>
-              </div>
-              <button onClick={() => { setSelectedPatient(null); setPatientId(''); setShowPicker(true); }} className="text-xs font-extrabold text-rose-600 hover:underline">Change</button>
-            </div>
-          ) : (
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Select Baby/Patient</label>
-              <input autoFocus value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)} placeholder="Search..." className="h-11 w-full rounded-xl border-2 border-rose-200 bg-rose-50 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
-                {patients.map((p) => (
-                  <button key={p.id} onClick={() => { setSelectedPatient(p); setPatientId(p.id); setShowPicker(false); if (p.dateOfBirth) setBirthDate(p.dateOfBirth.slice(0, 10)); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-rose-50 text-left">
-                    <User className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="text-sm font-extrabold flex-1 truncate">{p.fullName}</span>
-                    <span className="text-[0.6875rem] font-mono text-blue-600">{p.mrn}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Birth Date *</label>
-            <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-rose-600 to-pink-700" onClick={() => bulkMutation.mutate()} loading={bulkMutation.isPending} disabled={!patientId || !birthDate}>
-              <Save className="h-4 w-4" />
-              Schedule 16 Doses
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AdministerModal({ vaccine, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    batchNumber: '', manufacturer: '', siteAdministered: '',
-    routeAdministered: 'Intramuscular', administeredBy: '',
-    expiryDate: '', adverseReactions: '',
-  });
-
-  const adminMutation = useMutation({
-    mutationFn: () => vaccinationsApi.administer(vaccine.id, form),
-    onSuccess: () => { toast.success('Vaccine administered'); onSaved(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-          <div>
-            <h3 className="font-extrabold">💉 Administer {vaccine.vaccineName}</h3>
-            {vaccine.doseNumber !== null && <p className="text-xs text-slate-500 font-semibold">Dose #{vaccine.doseNumber}</p>}
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <input value={form.batchNumber} onChange={(e) => setForm({ ...form, batchNumber: e.target.value })} placeholder="Batch #" className="h-11 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.manufacturer} onChange={(e) => setForm({ ...form, manufacturer: e.target.value })} placeholder="Manufacturer" className="h-11 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.siteAdministered} onChange={(e) => setForm({ ...form, siteAdministered: e.target.value })} placeholder="Site (left thigh)" className="h-11 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <select value={form.routeAdministered} onChange={(e) => setForm({ ...form, routeAdministered: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-              <option>Intramuscular</option><option>Subcutaneous</option><option>Oral</option><option>Intradermal</option>
-            </select>
-            <input value={form.administeredBy} onChange={(e) => setForm({ ...form, administeredBy: e.target.value })} placeholder="Given by" className="h-11 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input type="date" value={form.expiryDate} onChange={(e) => setForm({ ...form, expiryDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-          <textarea rows={2} value={form.adverseReactions} onChange={(e) => setForm({ ...form, adverseReactions: e.target.value })} placeholder="Adverse reactions (if any)..." className="w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => adminMutation.mutate()} loading={adminMutation.isPending}>
-              <CheckCircle2 className="h-4 w-4" />
-              Confirm
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <ListCard>
+        {list.isLoading ? <ListLoading /> : list.isError ? <ListFailed onRetry={() => list.refetch()} /> : !data?.items.length ? (
+          <p className="px-6 py-16 text-center text-[0.875rem] text-slate-500">Is list me kuch nahi. "Schedule" se bachay ka EPI schedule lagayein.</p>
+        ) : (
+          <>
+            <Table minWidth="54rem">
+              <THead><Tr><Th>Bacha</Th><Th>Vaccine</Th><Th>Tareekh</Th><Th>Status</Th><Th align="right" /></Tr></THead>
+              <TBody>
+                {data.items.map((v) => {
+                  const late = (v.status === 'DUE' || v.status === 'DELAYED') && v.dueDate < new Date().toISOString();
+                  return (
+                    <Tr key={v.id}>
+                      <Td>
+                        {v.patient ? <Link to={`/clinic/patients/${v.patient.id}`} className="font-semibold text-slate-900 hover:text-brand-700">{v.patient.fullName}</Link> : '—'}
+                        <p className="text-[0.75rem] text-slate-500">{[ageOf(v.patient?.dateOfBirth), v.patient?.motherName && `Walida: ${v.patient.motherName}`, v.patient?.mrn].filter(Boolean).join(' · ')}</p>
+                      </Td>
+                      <Td><p className="font-medium">{v.vaccineName}</p>{v.scheduleName && <p className="text-[0.75rem] text-slate-500">{v.scheduleName}{v.doseNumber != null ? ` · dose ${v.doseNumber}` : ''}</p>}</Td>
+                      <Td className={late ? 'font-semibold text-rose-700' : ''}>{v.administeredAt ? `Lagi ${shortDate(v.administeredAt)}` : shortDate(v.dueDate)}{v.batchNumber && <p className="text-[0.75rem] font-normal text-slate-500">Batch {v.batchNumber}</p>}</Td>
+                      <Td><Badge variant={late ? 'danger' : VACCINE_STATUS[v.status].variant}>{late ? 'Der' : VACCINE_STATUS[v.status].label}</Badge></Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-1">
+                          {v.patient?.phonePrimary && v.status !== 'ADMINISTERED' && <a href={`tel:${v.patient.phonePrimary}`} className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-100"><Phone className="h-3.5 w-3.5" />Call</a>}
+                          {canManage && (v.status === 'DUE' || v.status === 'DELAYED') && <Button size="xs" variant="ghost" onClick={() => delay.mutate(v)}>+7 din</Button>}
+                          {canManage && (v.status === 'DUE' || v.status === 'DELAYED') && <Button size="xs" leftIcon={<Syringe className="h-3.5 w-3.5" />} onClick={() => setGiving(v)}>Lagayein</Button>}
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </TBody>
+            </Table>
+            <Pager page={page} total={data.total} limit={LIMIT} onPage={setPage} />
+          </>
+        )}
+      </ListCard>
+    </PageShell>
   );
 }

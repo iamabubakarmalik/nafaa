@@ -2,9 +2,8 @@
  * Picks the products page for the current industry. Retail, Bakery,
  * Electronics, Pharmacy, Garments and businesses without an industry use the
  * shared page (modules/inventory/products/list) through their own config;
- * the rest keep their own pages for now,
- * and industries without one use the older general list (carpet rolls,
- * IMEI and other industry panels live there).
+ * the rest keep their own pages for now, and industries without one use the
+ * shared page with their own editor paths (ProductsListPage).
  */
 
 import { lazy, Suspense, type ComponentType, type LazyExoticComponent } from 'react';

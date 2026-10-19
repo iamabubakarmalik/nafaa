@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertReorderRuleDto } from './dto/upsert-reorder-rule.dto';
@@ -9,7 +9,10 @@ export class ReorderRulesService {
 
   async upsert(user: AuthenticatedUser, dto: UpsertReorderRuleDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Product nahi mila');
+    if ([dto.minStock, dto.reorderPoint, dto.reorderQty].some((v) => !(v >= 0))) throw new BadRequestException('Stock ki had manfi nahi ho sakti');
+    if (dto.reorderPoint < dto.minStock) throw new BadRequestException('Reorder point kam se kam stock se chhota nahi ho sakta');
+    if (!(dto.reorderQty > 0)) throw new BadRequestException('Kitna mangwana hai — 0 se zyada likhein');
 
     const existing = await this.prisma.hardwareReorderRule.findUnique({ where: { productId: dto.productId } });
     if (existing) {
@@ -32,11 +35,9 @@ export class ReorderRulesService {
       orderBy: { updatedAt: 'desc' },
     });
 
-    if (!params.needsReorder) return rules.map((r) => ({ ...r, needsReorder: false, currentStock: 0 }));
-
     const productIds = rules.map((r) => r.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { tenantId: user.tenantId, id: { in: productIds } },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const productsMap = new Map(products.map((p) => [p.id, p]));
@@ -47,7 +48,8 @@ export class ReorderRulesService {
         const currentStock = product?.stock ?? 0;
         const needsReorder = currentStock <= rule.reorderPoint;
         const stockDeficit = Math.max(rule.reorderPoint - currentStock, 0);
-        return { ...rule, product, currentStock, needsReorder, stockDeficit };
+        const severity = currentStock <= 0 ? 'OUT_OF_STOCK' : currentStock <= rule.minStock ? 'CRITICAL' : needsReorder ? 'LOW' : 'OK';
+        return { ...rule, product, currentStock, needsReorder, stockDeficit, severity };
       })
       .filter((r) => !params.needsReorder || r.needsReorder);
   }
@@ -80,7 +82,7 @@ export class ReorderRulesService {
 
     const productIds = rules.map((r) => r.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { tenantId: user.tenantId, id: { in: productIds } },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const productsMap = new Map(products.map((p) => [p.id, p]));

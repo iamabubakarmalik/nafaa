@@ -8,6 +8,24 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 export class ClinicDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Clinic money in a period, read from the fee and lab bills themselves
+   * (voided and fully returned bills left out), so it matches the day book.
+   */
+  private async feeBills(tenantId: string, from: Date, to: Date) {
+    const lines = await this.prisma.saleItem.findMany({
+      where: { product: { tenantId, sku: 'CLINIC-FEE', productType: 'SERVICE_FEE' }, sale: { tenantId, createdAt: { gte: from, lte: to }, status: { notIn: ['VOIDED', 'FULLY_RETURNED'] } } },
+      select: { total: true, sale: { select: { total: true, paidAmount: true } } },
+    });
+    let billed = 0;
+    let collected = 0;
+    for (const l of lines) {
+      billed += l.total;
+      collected += l.sale.total > 0 ? Math.min(l.sale.paidAmount, l.sale.total) * (l.total / l.sale.total) : 0;
+    }
+    return { billed: Math.round(billed * 100) / 100, collected: Math.round(collected * 100) / 100 };
+  }
+
   async overview(user: AuthenticatedUser) {
     const todayStart = startOfDayTz();
     const todayEnd = endOfDayTz(new Date());
@@ -45,22 +63,8 @@ export class ClinicDashboardService {
           status: { in: ['SCHEDULED', 'CONFIRMED', 'ARRIVED', 'IN_CONSULTATION'] },
         },
       }),
-      this.prisma.clinicAppointment.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          consultationEnd: { gte: todayStart, lte: todayEnd },
-          status: 'COMPLETED',
-        },
-        _sum: { total: true, paidAmount: true },
-      }),
-      this.prisma.clinicAppointment.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          consultationEnd: { gte: monthAgo },
-          status: 'COMPLETED',
-        },
-        _sum: { total: true, paidAmount: true },
-      }),
+      this.feeBills(user.tenantId, todayStart, todayEnd),
+      this.feeBills(user.tenantId, monthAgo, todayEnd),
       this.prisma.clinicLabOrder.count({
         where: {
           tenantId: user.tenantId,
@@ -90,8 +94,8 @@ export class ClinicDashboardService {
     const patientIds = upcoming.map((a) => a.patientId);
     const doctorIds = upcoming.map((a) => a.doctorId);
     const [patients, doctors] = await Promise.all([
-      this.prisma.clinicPatientProfile.findMany({ where: { id: { in: patientIds } } }),
-      this.prisma.clinicDoctorProfile.findMany({ where: { id: { in: doctorIds } } }),
+      this.prisma.clinicPatientProfile.findMany({ where: { tenantId: user.tenantId, id: { in: patientIds } }, select: { id: true, fullName: true, mrn: true, phonePrimary: true, gender: true } }),
+      this.prisma.clinicDoctorProfile.findMany({ where: { tenantId: user.tenantId, id: { in: doctorIds } }, select: { id: true, fullName: true, title: true, photoUrl: true } }),
     ]);
     const patientsMap = new Map(patients.map((p) => [p.id, p]));
     const doctorsMap = new Map(doctors.map((d) => [d.id, d]));
@@ -104,12 +108,12 @@ export class ClinicDashboardService {
         status: 'COMPLETED',
         consultationEnd: { gte: monthAgo },
       },
-      _sum: { total: true },
+      _sum: { paidAmount: true },
       _count: { _all: true },
     });
-    const topDocsSorted = topDocsRaw.sort((a, b) => (b._sum.total ?? 0) - (a._sum.total ?? 0)).slice(0, 5);
+    const topDocsSorted = topDocsRaw.sort((a, b) => (b._sum.paidAmount ?? 0) - (a._sum.paidAmount ?? 0)).slice(0, 5);
     const topDoctorIds = topDocsSorted.map((t) => t.doctorId);
-    const topDoctors = await this.prisma.clinicDoctorProfile.findMany({ where: { id: { in: topDoctorIds } } });
+    const topDoctors = await this.prisma.clinicDoctorProfile.findMany({ where: { tenantId: user.tenantId, id: { in: topDoctorIds } }, select: { id: true, fullName: true, title: true, photoUrl: true, specialties: true } });
     const topDocsMap = new Map(topDoctors.map((d) => [d.id, d]));
 
     // By gender
@@ -125,12 +129,12 @@ export class ClinicDashboardService {
         appointments: todayAppointments,
         completed: todayCompleted,
         inQueue: todayInQueue,
-        revenue: todayRevenue._sum.total ?? 0,
-        collected: todayRevenue._sum.paidAmount ?? 0,
+        revenue: todayRevenue.billed,
+        collected: todayRevenue.collected,
       },
       monthly: {
-        revenue: monthlyRevenue._sum.total ?? 0,
-        collected: monthlyRevenue._sum.paidAmount ?? 0,
+        revenue: monthlyRevenue.billed,
+        collected: monthlyRevenue.collected,
       },
       upcomingAppointments: upcoming.map((a) => ({
         ...a,
@@ -140,7 +144,7 @@ export class ClinicDashboardService {
       topDoctors: topDocsSorted.map((t) => ({
         doctorId: t.doctorId,
         doctor: topDocsMap.get(t.doctorId),
-        revenue: t._sum.total ?? 0,
+        revenue: t._sum.paidAmount ?? 0,
         consultations: t._count._all,
       })),
       byGender,

@@ -4,7 +4,7 @@
  */
 
 import {
-  BarChart3, Bell, BookOpen, Car, Cog, Package, Plus, Receipt, ShoppingCart, Truck, UserCog, Users, Wrench, Zap,
+  BarChart3, Bell, BookOpen, Car, Package, Plus, Receipt, ShoppingCart, Truck, UserCog, Users, Wrench, Zap,
 } from 'lucide-react';
 import { createDashboard } from '@modules/dashboard/createDashboard';
 import { ANY_SIZE, type QuickAction } from '@modules/dashboard/widgets';
@@ -15,7 +15,7 @@ import {
   AutoPartsJobs, AutoPartsMechanics, AutoPartsReminders, AutoPartsWorkshop, autoPartsKpis, useAutoPartsAttention,
 } from './widgets';
 
-const productPath = (id: string) => `/autoparts-products/${id}`;
+const productPath = (id: string) => `/autoparts-parts/${id}`;
 
 function useAutoPartsActions(): QuickAction[] {
   const { data } = useOverview();
@@ -25,14 +25,13 @@ function useAutoPartsActions(): QuickAction[] {
   return [
     { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Parts bechein' },
     { to: '/autoparts/jobs/new', icon: Zap, label: 'Naya job', hint: 'Gaari receive karein' },
-    { to: '/autoparts/jobs', icon: Wrench, label: 'Workshop jobs', hint: jobs.overdue.length ? `${jobs.overdue.length} late` : `${board.activeJobs} chal rahe` },
+    { to: jobs.overdue.length ? '/autoparts/jobs?view=late' : '/autoparts/jobs', icon: Wrench, label: 'Workshop jobs', hint: jobs.overdue.length ? `${jobs.overdue.length} late` : `${board.activeJobs} chal rahe` },
     { to: '/autoparts/vehicles', icon: Car, label: 'Gaariyan', hint: `${board.totalVehicles} darj` },
     { to: '/autoparts/reminders', icon: Bell, label: 'Reminders', hint: reminders.overdue.length ? `${reminders.overdue.length} guzar gaye` : `${reminders.upcoming.length} aane wale` },
     { to: '/autoparts/mechanics', icon: UserCog, label: 'Mechanic', hint: `${board.totalMechanics} log` },
-    { to: '/autoparts-products/new', icon: Plus, label: 'Naya part', hint: 'Maal me daalein' },
+    { to: '/autoparts-parts/new', icon: Plus, label: 'Naya part', hint: 'Maal me daalein' },
     { to: '/autoparts/parts', icon: Package, label: 'Parts', hint: `${s?.totalProducts ?? 0} items` },
-    { to: '/autoparts/makes', icon: Truck, label: 'Company', hint: 'Toyota, Suzuki...' },
-    { to: '/autoparts/models', icon: Cog, label: 'Model', hint: 'Kis gaari ka part' },
+    { to: '/autoparts/makes', icon: Truck, label: 'Company / model', hint: 'Toyota, Suzuki…' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
     { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },

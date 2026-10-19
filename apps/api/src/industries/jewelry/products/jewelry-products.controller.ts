@@ -26,6 +26,7 @@ export class JewelryProductsController {
       maxWeight: q.maxWeight ? Number(q.maxWeight) : undefined,
     });
   }
+  @Get('facts') facts(@GetUser() user: AuthenticatedUser) { return this.service.facts(user); }
   @Get('by-product/:productId') byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) {
     return this.service.byProduct(user, productId);
   }

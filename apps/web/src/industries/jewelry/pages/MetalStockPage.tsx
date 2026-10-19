@@ -1,242 +1,286 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Scale, Plus, X, Save, RefreshCw, Sparkles, ArrowUp, ArrowDown,
-  Package, Calendar, TrendingUp, DollarSign,
-} from 'lucide-react';
-import { metalStockApi } from '../api/metal-stock.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+/**
+ * Raw metal (kachcha sona / chandi) by karat: what is in the safe and its
+ * value at today's rate, and every movement — purchases, opening stock,
+ * old gold taken in, gold given to and taken back from karigars. Purchases,
+ * opening stock and corrections are added here; the rest comes from their
+ * own screens.
+ *
+ * Keys: N new entry · / search · 1 entries · 2 balance · G guide.
+ */
 
-const ENTRY_TYPES = [
-  { value: 'OPENING', label: 'Opening Balance', direction: 'in', emoji: '📥' },
-  { value: 'PURCHASE', label: 'Purchase', direction: 'in', emoji: '🛒' },
-  { value: 'RECEIVE', label: 'Receive from Karigar', direction: 'in', emoji: '✅' },
-  { value: 'RETURN', label: 'Return', direction: 'in', emoji: '↩️' },
-  { value: 'EXCHANGE_IN', label: 'Exchange Received', direction: 'in', emoji: '🔄' },
-  { value: 'SALE', label: 'Sale', direction: 'out', emoji: '💰' },
-  { value: 'ISSUE_TO_KARIGAR', label: 'Issue to Karigar', direction: 'out', emoji: '📤' },
-  { value: 'WASTAGE', label: 'Wastage', direction: 'out', emoji: '🗑️' },
-  { value: 'MELTING_LOSS', label: 'Melting Loss', direction: 'out', emoji: '🔥' },
-  { value: 'ADJUSTMENT', label: 'Adjustment', direction: 'out', emoji: '⚙️' },
+import { useEffect, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { ArrowDownLeft, ArrowUpRight, Coins, Filter, GraduationCap, Layers, ListChecks, Plus, Scale, Hammer, Repeat } from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton,
+  Table, TBody, THead, Td, Th, Tr, Textarea, ViewTabs, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton, type PrintDoc } from '@core/print';
+import { formatPKR } from '@core/lib/format';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { metalStockApi, type MetalStockEntry } from '../api/metal-stock.api';
+import type { Purity } from '../api/metal-rates.api';
+import { ChipPicker, EmptyList, KaratPill, LoadFailed, Pager } from '../components/ui';
+import { useMetalRates } from '../hooks/useJewelryFacts';
+import { ALL_PURITIES, COMMON_PURITIES, ENTRY_LABEL, KEYS, apiError, dayTime, entryLabel, grams, metalOf, purityLabel, r2, r3, rateFor, tola } from '../lib/meta';
+
+type Tab = 'entries' | 'balance';
+const MANUAL: Array<{ value: string; label: string; hint: string }> = [
+  { value: 'PURCHASE', label: 'Khareed', hint: 'Supplier / sarafa se aaya' },
+  { value: 'OPENING', label: 'Shuru ka stock', hint: 'Pehli dafa ginti' },
+  { value: 'ADJUSTMENT', label: 'Kami', hint: 'Tol me kam, galai ka loss' },
+  { value: 'SALE', label: 'Becha', hint: 'Kachcha sona bech diya' },
 ];
 
 export default function MetalStockPage() {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [entryTypeFilter, setEntryTypeFilter] = useState<string>('all');
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const { cost, costHidden } = useMasked();
+  const canAdd = usePermission(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE);
+  const { rates } = useMetalRates();
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const { data: balances = [], isLoading: balLoading } = useQuery({
-    queryKey: ['metal-stock-balance'],
-    queryFn: () => metalStockApi.balance(),
-    refetchInterval: 60_000,
+  const [tab, setTab] = useState<Tab>('entries');
+  const [purity, setPurity] = useState('');
+  const [type, setType] = useState('');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [purity, type, range, query]);
+
+  const period = resolveRange(range, startHour);
+  const q = { page, limit: 30, purity: purity || undefined, metalType: purity ? metalOf(purity) : undefined, entryType: type || undefined, search: query || undefined, ...(period ?? {}) };
+  const listQ = useQuery({ queryKey: [KEYS.metal, 'page', q], queryFn: () => metalStockApi.page(q), placeholderData: (p) => p, enabled: tab === 'entries' });
+  const balQ = useQuery({ queryKey: [KEYS.metal, 'balance'], queryFn: metalStockApi.balance });
+
+  const balances = (balQ.data ?? []).map((b) => {
+    const rate = rateFor(rates, b.metalType, b.purity);
+    return { ...b, value: rate ? r2(b.balanceGrams * (rate.buyRate || rate.ratePerGram)) : null };
   });
+  const goldGrams = r3(balances.filter((b) => b.metalType === 'GOLD').reduce((s, b) => s + b.balanceGrams, 0));
+  const silverGrams = r3(balances.filter((b) => b.metalType === 'SILVER').reduce((s, b) => s + b.balanceGrams, 0));
+  const totalValue = r2(balances.reduce((s, b) => s + (b.value ?? 0), 0));
 
-  const { data: entries = [], isLoading: entriesLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['metal-stock-entries', entryTypeFilter],
-    queryFn: () => metalStockApi.list({
-      entryType: entryTypeFilter === 'all' ? undefined : entryTypeFilter,
-      limit: 100,
-    }),
-  });
+  const filtered = !!purity || !!type || !!query || range.preset !== 'all';
+  const clear = () => { setPurity(''); setType(''); setSearch(''); setRange({ preset: 'all', custom: { from: '', to: '' } }); };
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canAdd) { e.preventDefault(); setAdding(true); }
+      if (e.key === '1') setTab('entries');
+      if (e.key === '2') setTab('balance');
+      if (e.key === '/') { e.preventDefault(); setTab('entries'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canAdd]);
+
+  const printDoc = async (): Promise<PrintDoc> => {
+    const all = tab === 'entries' ? await metalStockApi.page({ ...q, page: 1, limit: 100 }) : null;
+    return {
+      title: tab === 'entries' ? 'Metal stock — entries' : 'Metal stock — baqi',
+      subtitle: period ? rangeLabel(period.from, period.to) : 'Sab tareekhen',
+      meta: [['Sona', grams(goldGrams)], ['Chandi', grams(silverGrams)]],
+      sections: [all ? {
+        kind: 'table',
+        columns: [{ label: 'Kab' }, { label: 'Kya' }, { label: 'Karat' }, { label: 'Grams', align: 'right' }, { label: 'Kis se', wideOnly: true }, { label: 'Ref', wideOnly: true }],
+        rows: all.items.map((e) => [dayTime(e.entryDate), entryLabel(e.entryType).label, purityLabel(e.purity), `${entryLabel(e.entryType).in ? '+' : '−'}${r3(e.grams)}`, e.source ?? '', e.reference ?? '']),
+      } : {
+        kind: 'table',
+        columns: [{ label: 'Karat' }, { label: 'Grams', align: 'right' }, { label: 'Tola', align: 'right' }, { label: 'Qeemat', align: 'right' }],
+        rows: balances.map((b) => [purityLabel(b.purity), String(r3(b.balanceGrams)), tola(b.balanceGrams), b.value != null && !costHidden ? formatPKR(b.value) : '—']),
+      }],
+    };
+  };
+
+  const data = listQ.data;
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-800 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Scale className="h-3.5 w-3.5 text-amber-300" />
-              Bullion Register
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">⚖️ Metal Stock</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">In/Out tracking, running balance</p>
+    <PageShell>
+      <PageHero
+        title="Metal stock"
+        chip={<><Scale /> Kachcha sona · chandi</>}
+        meta="Tijori ka sona aur chandi, karat ke hisaab se — har aana jana record me"
+        busy={(listQ.isFetching && !listQ.isLoading) || balQ.isFetching}
+        loading={balQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canAdd && <button type="button" onClick={() => setAdding(true)} title="Nayi entry (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Entry</button>}
+        </>}
+        stats={[
+          { label: 'Sona', value: grams(goldGrams), hint: tola(goldGrams) },
+          { label: 'Chandi', value: grams(silverGrams), hint: tola(silverGrams) },
+          { label: 'Aaj ki qeemat', value: cost(totalValue), hint: 'Khareed rate par' },
+        ]}
+      />
+
+      <KpiRow cols={5}>
+        {balQ.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />)
+          : balances.length === 0 ? <KpiCard icon={Scale} color="#64748b" label="Metal" value="0 g" hint="Abhi koi entry nahi" />
+            : balances.slice(0, 5).map((b) => (
+              <KpiCard key={`${b.metalType}_${b.purity}`} icon={Coins} color={b.metalType === 'SILVER' ? '#64748b' : '#d97706'} label={purityLabel(b.purity)}
+                value={grams(b.balanceGrams)} hint={b.value != null ? cost(b.value) : 'Rate set nahi'}
+                onClick={() => { setPurity(b.purity); setTab('entries'); }} active={tab === 'entries' && purity === b.purity} />
+            ))}
+      </KpiRow>
+
+      {tab === 'entries' && (
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Kis se, reference, entry #…" label="Search" />}
+          chips={filtered ? <>
+            {purity && <FilterChip onRemove={() => setPurity('')}>{purityLabel(purity)}</FilterChip>}
+            {type && <FilterChip onRemove={() => setType('')}>{entryLabel(type).label}</FilterChip>}
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>{rangeLabel(period.from, period.to)}</FilterChip>}
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+          </> : undefined}
+          onClear={clear}>
+          <FilterMenu icon={Coins} label={purity ? purityLabel(purity) : 'Karat'} value={purity} active={!!purity} onChange={setPurity}
+            options={[{ value: '', label: 'Sab karat' }, ...ALL_PURITIES.filter((p) => p !== 'OTHER').map((p) => ({ value: p as string, label: purityLabel(p) }))]} />
+          <FilterMenu icon={Filter} label={type ? entryLabel(type).label : 'Entry'} value={type} active={!!type} onChange={setType}
+            options={[{ value: '', label: 'Sab entries' }, ...Object.entries(ENTRY_LABEL).map(([v, m]) => ({ value: v, label: m.label, icon: m.in ? ArrowDownLeft : ArrowUpRight }))]} />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} />
+        </FilterBar>
+      )}
+
+      <ViewTabs value={tab} onChange={setTab}
+        hint={<>{canAdd && <><Kbd>N</Kbd> entry · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        tabs={[{ id: 'entries', label: 'Entries', icon: ListChecks, count: data?.total ?? null }, { id: 'balance', label: 'Baqi', icon: Layers }]} />
+
+      {tab === 'balance' ? (
+        balQ.isError ? <LoadFailed what="Metal stock" retry={() => balQ.refetch()} />
+          : !balances.length ? <EmptyList icon={Scale} title="Tijori me abhi kuch nahi" text="Shuru ka stock ya khareed ki entry daalein — purana sona aur karigar ka hisaab khud judta hai." />
+            : (
+              <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+                <Table minWidth="36rem">
+                  <THead><Tr><Th>Karat</Th><Th align="right">Grams</Th><Th align="right">Tola</Th><Th align="right">Aaj ki qeemat</Th><Th>Aakhri entry</Th></Tr></THead>
+                  <TBody>
+                    {balances.map((b) => (
+                      <Tr key={`${b.metalType}_${b.purity}`} interactive onClick={() => { setPurity(b.purity); setTab('entries'); }}>
+                        <Td><KaratPill purity={b.purity} /></Td>
+                        <Td align="right" className={b.balanceGrams < 0 ? 'font-semibold text-rose-600' : 'font-semibold'}>{r3(b.balanceGrams)}</Td>
+                        <Td align="right">{tola(b.balanceGrams)}</Td>
+                        <Td align="right">{b.value != null ? cost(b.value) : '—'}</Td>
+                        <Td>{dayTime(b.lastEntryDate)}</Td>
+                      </Tr>
+                    ))}
+                  </TBody>
+                </Table>
+              </div>
+            )
+      ) : (<>
+        {data && data.total > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
+            <span className="font-semibold text-slate-900">{data.total} entries</span>
+            <span className="text-emerald-700">Aaya {grams(data.totals.in)}</span>
+            <span className="text-rose-700">Gaya {grams(data.totals.out)}</span>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              New Entry
-            </Button>
-          </div>
-        </div>
-      </section>
+        )}
+        {listQ.isLoading ? <Skeleton className="h-64 rounded-3xl" />
+          : listQ.isError && !data ? <LoadFailed what="Entries" retry={() => listQ.refetch()} />
+            : !data?.items.length ? (
+              <EmptyList icon={Scale} title={filtered ? 'Is filter me koi entry nahi' : 'Abhi koi entry nahi'} text="Khareed, shuru ka stock, purana sona aur karigar ka lena dena yahan aata hai.">
+                {canAdd && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Pehli entry</Button>}
+                {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+              </EmptyList>
+            ) : (
+              <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+                <Table minWidth="48rem">
+                  <THead><Tr><Th>Kab</Th><Th>Kya</Th><Th>Karat</Th><Th align="right">Grams</Th><Th align="right">Baqi</Th><Th>Kis se / ref</Th></Tr></THead>
+                  <TBody>
+                    {data.items.map((e: MetalStockEntry) => {
+                      const m = entryLabel(e.entryType);
+                      const Icon = e.entryType === 'EXCHANGE_IN' ? Repeat : e.karigarId ? Hammer : m.in ? ArrowDownLeft : ArrowUpRight;
+                      return (
+                        <Tr key={e.id}>
+                          <Td className="whitespace-nowrap">{dayTime(e.entryDate)}<span className="block text-[0.6875rem] text-slate-400">{e.entryNumber}</span></Td>
+                          <Td><span className={`inline-flex items-center gap-1 font-medium ${m.in ? 'text-emerald-700' : 'text-rose-700'}`}><Icon className="h-3.5 w-3.5" />{m.label}</span></Td>
+                          <Td><KaratPill purity={e.purity} /></Td>
+                          <Td align="right" className={m.in ? 'font-semibold text-emerald-700' : 'font-semibold text-rose-700'}>{m.in ? '+' : '−'}{r3(e.grams)}</Td>
+                          <Td align="right">{r3(e.balanceGrams)}</Td>
+                          <Td className="max-w-[16rem]"><span className="block truncate">{e.source || '—'}</span><span className="block truncate text-[0.75rem] text-slate-500">{[e.reference, e.notes].filter(Boolean).join(' · ')}</span></Td>
+                        </Tr>
+                      );
+                    })}
+                  </TBody>
+                </Table>
+              </div>
+            )}
+        {data && <Pager page={page} pages={data.pages} onPage={setPage} />}
+      </>)}
 
-      {/* Current Balances */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
-            <Package className="h-5 w-5 text-cyan-600" />
-            Current Balances
-          </h3>
-        </div>
-        <div className="p-4">
-          {balLoading ? (
-            <div className="grid sm:grid-cols-3 gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-          ) : balances.length === 0 ? (
-            <p className="text-sm text-slate-500 font-semibold text-center py-8">No stock entries yet</p>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {balances.map((b: any) => (
-                <div key={b.metalType + '_' + b.purity} className="rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 text-white p-4 shadow">
-                  <div className="text-xs uppercase font-extrabold text-white/80">{b.metalType.replace('_', ' ')}</div>
-                  <div className="text-sm font-extrabold">{b.purity.replace('KARAT_', '').replace('SILVER_', 'S')}K</div>
-                  <div className="mt-2 text-3xl font-extrabold tabular-nums">{b.balanceGrams.toFixed(2)}g</div>
-                  <div className="text-[0.6875rem] font-bold text-white/70 mt-1">
-                    Updated: {format(new Date(b.lastEntryDate), 'dd MMM')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      {adding && <EntryModal onClose={() => setAdding(false)} onSaved={() => { setAdding(false); qc.invalidateQueries({ queryKey: [KEYS.metal] }); qc.invalidateQueries({ queryKey: ['jewelry-dashboard'] }); }} />}
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setEntryTypeFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (entryTypeFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All</button>
-          {ENTRY_TYPES.map((t) => (
-            <button key={t.value} onClick={() => setEntryTypeFilter(t.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (entryTypeFilter === t.value ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{t.emoji} {t.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <StockEntryForm
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['metal-stock-balance'] }); queryClient.invalidateQueries({ queryKey: ['metal-stock-entries'] }); }}
+      {guide.isOpen && (
+        <PageGuide title="Metal stock — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#16a34a', title: 'Pehli dafa', text: 'Tijori ka sona karat ke hisaab se tol kar "Shuru ka stock" ki entry daalein.' },
+            { icon: ArrowDownLeft, color: '#0891b2', title: 'Khareed', text: 'Sarafa ya supplier se kachcha sona aaye to "Khareed" — grams aur rate likhein.' },
+            { icon: Repeat, color: '#a16207', title: 'Purana sona', text: 'Exchange aur bill par liya gaya purana sona khud yahan aa jata hai.' },
+            { icon: Hammer, color: '#7c3aed', title: 'Karigar', text: 'Karigar ko diya aur us se wapas aaya sona Karigar page se — yahan khud judta hai.' },
+          ]}
+          tips={['Tol me farq aaye to "Kami" ki entry wajah ke saath daalein.', 'Qeemat aaj ke khareed rate par dikhti hai.']}
+          shortcuts={[['N', 'nayi entry'], ['/', 'dhoondein'], ['1', 'entries'], ['2', 'baqi'], ['G', 'guide']]}
         />
       )}
-
-      {entriesLoading ? (
-        <div className="grid gap-2">{[1, 2, 3, 4].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
-      ) : entries.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Scale className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No entries yet</p>
-        </div>
-      ) : (
-        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 grid grid-cols-6 gap-2 text-[0.6875rem] uppercase font-extrabold text-slate-500">
-            <div>Entry #</div>
-            <div>Type</div>
-            <div>Metal / Purity</div>
-            <div className="text-right">Grams (± )</div>
-            <div className="text-right">Balance</div>
-            <div className="text-right">Date</div>
-          </div>
-          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
-            {entries.map((e) => {
-              const type = ENTRY_TYPES.find((t) => t.value === e.entryType);
-              const isIn = type?.direction === 'in';
-              return (
-                <div key={e.id} className="px-6 py-3 grid grid-cols-6 gap-2 items-center text-sm hover:bg-slate-50 dark:hover:bg-ink-800/30">
-                  <div className="font-mono font-bold text-xs">{e.entryNumber}</div>
-                  <div className="font-bold text-xs inline-flex items-center gap-1">
-                    <span className="text-lg">{type?.emoji}</span>
-                    <span>{type?.label || e.entryType}</span>
-                  </div>
-                  <div className="font-bold text-xs">{e.metalType.replace('_', ' ')} • {e.purity.replace('KARAT_', '').replace('SILVER_', 'S')}K</div>
-                  <div className={'text-right font-extrabold tabular-nums ' + (isIn ? 'text-emerald-700' : 'text-rose-700')}>
-                    {isIn ? '+' : '-'}{e.grams.toFixed(2)}g
-                  </div>
-                  <div className="text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{e.balanceGrams.toFixed(2)}g</div>
-                  <div className="text-right text-[0.6875rem] font-bold text-slate-500">{format(new Date(e.entryDate), 'dd MMM, HH:mm')}</div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-    </div>
+    </PageShell>
   );
 }
 
-function StockEntryForm({ onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    entryType: 'PURCHASE',
-    metalType: 'GOLD',
-    purity: 'KARAT_22',
-    grams: 0,
-    ratePerGram: '',
-    source: '',
-    reference: '',
-    notes: '',
-  });
-
-  const saveMutation = useMutation({
+function EntryModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [entryType, setEntryType] = useState('PURCHASE');
+  const [purity, setPurity] = useState<Purity>('KARAT_24');
+  const [gramsIn, setGrams] = useState('');
+  const [rate, setRate] = useState('');
+  const [source, setSource] = useState('');
+  const [reference, setReference] = useState('');
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const save = useMutation({
     mutationFn: () => metalStockApi.addEntry({
-      ...form,
-      grams: Number(form.grams),
-      ratePerGram: form.ratePerGram ? Number(form.ratePerGram) : undefined,
+      entryType, metalType: metalOf(purity), purity, grams: Number(gramsIn), ratePerGram: rate ? Number(rate) : undefined,
+      source: source.trim() || undefined, reference: reference.trim() || undefined, notes: notes.trim() || undefined,
     }),
-    onSuccess: () => { toast.success('Stock entry added'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: () => { toast.success('Entry save ho gayi'); onSaved(); },
+    onError: (e) => setError(apiError(e, 'Entry save nahi hui')),
   });
-
+  const submit = () => {
+    if (!(Number(gramsIn) > 0)) { setError('Grams likhein'); return; }
+    if (entryType === 'ADJUSTMENT' && !notes.trim()) { setError('Kami ki wajah likhein'); return; }
+    setError('');
+    save.mutate();
+  };
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">⚖️ New Stock Entry</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
-      </div>
-      <div className="p-5 space-y-4">
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Entry Type *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {ENTRY_TYPES.map((t) => (
-              <button key={t.value} onClick={() => setForm({ ...form, entryType: t.value })} className={
-                'p-3 rounded-xl border-2 text-center transition ' +
-                (form.entryType === t.value ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-cyan-300')
-              }>
-                <div className="text-2xl mb-1">{t.emoji}</div>
-                <div className="text-[0.625rem] font-extrabold">{t.label}</div>
-                <div className={'text-[0.625rem] font-bold ' + (t.direction === 'in' ? 'text-emerald-700' : 'text-rose-700')}>{t.direction === 'in' ? '+ IN' : '- OUT'}</div>
-              </button>
-            ))}
-          </div>
+    <Modal open onClose={onClose} title="Metal ki entry" description="Khareed, shuru ka stock ya kami" size="md"
+      footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending}>Save karein</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}
+        onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
+        <Select label="Entry" value={entryType} onChange={(e) => setEntryType(e.target.value)} options={MANUAL.map((m) => ({ value: m.value, label: `${m.label} — ${m.hint}` }))} />
+        <ChipPicker label="Karat" value={purity} onChange={setPurity} options={COMMON_PURITIES.map((p) => ({ value: p, label: purityLabel(p) }))} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Grams" required autoFocus inputMode="decimal" value={gramsIn} onChange={(e) => setGrams(e.target.value.replace(/[^\d.]/g, ''))}
+            hint={Number(gramsIn) > 0 ? tola(Number(gramsIn)) : 'Kaante ka wazan'} />
+          <Input label="Rate fi gram" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))} hint="Khareed ka rate (ikhtiyari)" />
+          <Input label={entryType === 'PURCHASE' ? 'Kis se liya' : 'Kis se / kahan'} value={source} onChange={(e) => setSource(e.target.value)} maxLength={80} />
+          <Input label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Bill / parchi number" maxLength={60} />
         </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.metalType} onChange={(e) => setForm({ ...form, metalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
-            <option value="GOLD">🥇 Gold</option><option value="SILVER">🥈 Silver</option><option value="PLATINUM">💠 Platinum</option><option value="ROSE_GOLD">🌹 Rose Gold</option><option value="WHITE_GOLD">⚪ White Gold</option>
-          </select>
-          <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
-            {['KARAT_24', 'KARAT_22', 'KARAT_21', 'KARAT_18', 'KARAT_14', 'SILVER_999', 'SILVER_925', 'PLATINUM_950'].map((p) => <option key={p} value={p}>{p.replace('KARAT_', '').replace('SILVER_', 'S')}K</option>)}
-          </select>
-          <div>
-            <input type="number" step="0.01" value={form.grams} onChange={(e) => setForm({ ...form, grams: e.target.value })} placeholder="Grams *" className="h-11 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 px-3 text-lg font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input type="number" value={form.ratePerGram} onChange={(e) => setForm({ ...form, ratePerGram: e.target.value })} placeholder="Rate per gram (optional)" className="h-11 rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          <input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Source (bank, vendor name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-        </div>
-
-        <input value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} placeholder="Reference # (invoice, receipt)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-cyan-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.grams}>
-            <Save className="h-4 w-4" />
-            Add Entry
-          </Button>
-        </div>
-      </div>
-    </section>
+        <Textarea label={entryType === 'ADJUSTMENT' ? 'Wajah' : 'Note'} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={300} required={entryType === 'ADJUSTMENT'} />
+        {Number(gramsIn) > 0 && Number(rate) > 0 && <p className="text-[0.8125rem] text-slate-600">Kul qeemat: <b>{formatPKR(Number(gramsIn) * Number(rate))}</b></p>}
+        {error && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{error}</p>}
+        <p className="text-[0.75rem] text-slate-500">Save: <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd></p>
+      </form>
+    </Modal>
   );
 }

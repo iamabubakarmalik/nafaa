@@ -1,9 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ClinicSpecialty } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpsertDoctorDto {
-  @ApiProperty() @IsString() staffId!: string;
+  /** Existing staff member; left out, a staff record is made from the name and phone. */
+  @ApiPropertyOptional() @IsOptional() @IsString() staffId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() phone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
   @ApiProperty() @IsString() fullName!: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() qualifications?: string[];
@@ -17,13 +19,13 @@ export class UpsertDoctorDto {
   @ApiPropertyOptional() @IsOptional() @IsString() licenseNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() licenseExpiry?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() registeredWith?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() consultationFee?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() followUpFee?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() followUpDays?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() telemedicineFee?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() homeVisitFee?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() emergencyFee?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() slotDurationMin?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) consultationFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) followUpFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(365) followUpDays?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) telemedicineFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) homeVisitFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) emergencyFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(5) @Max(240) slotDurationMin?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() bufferMin?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() maxDailyPatients?: number;
   @ApiPropertyOptional({ type: [Number] }) @IsOptional() @IsArray() workingDays?: number[];
@@ -31,7 +33,8 @@ export class UpsertDoctorDto {
   @ApiPropertyOptional() @IsOptional() @IsString() workEndTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() breakStartTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() breakEndTime?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() commissionPct?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) commissionPct?: number;
+  @ApiPropertyOptional({ enum: ['PERCENTAGE', 'FIXED'] }) @IsOptional() @IsIn(['PERCENTAGE', 'FIXED']) commissionType?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() languages?: string[];
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() services?: string[];
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() proceduresOffered?: string[];

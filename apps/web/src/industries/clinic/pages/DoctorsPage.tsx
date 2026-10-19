@@ -1,546 +1,293 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  UserCog, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Award, Star, Clock, Phone, Calendar, DollarSign, Video, Home,
-  Zap, CheckCircle2, User, GraduationCap, Languages, Stethoscope,
-} from 'lucide-react';
-import { doctorsApi, type Specialty, type Doctor } from '../api/doctors.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Doctors: fees (first visit, follow-up and its days, emergency), timings,
+ * daily limit and the doctor's share. The "Din ka hisaab" tab closes a day
+ * per doctor: patients seen, fees and lab billed (from the bills, so it
+ * matches the day book), cash vs khata, and the doctor's share to pay out.
+ * Doctors are switched off, never deleted, so old visits keep their name.
+ */
+
+import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiClient } from '@core/api/client';
+import { Banknote, BookOpen, CalendarDays, Clock, Download, GraduationCap, HandCoins, Pencil, Plus, Power, Printer, Stethoscope, UserCog, Users } from 'lucide-react';
+import {
+  Badge, Button, FilterBar, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Select, Skeleton,
+  Table, TBody, THead, Td, Th, Tr, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { appointmentsApi } from '../api/appointments.api';
+import { doctorsApi, type Doctor, type Specialty } from '../api/doctors.api';
+import { ListCard, ListFailed, ListLoading } from '../components/ListBits';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { DAYS, SPECIALTIES, apiError, dayBounds, dayKey, drName, shortDate, specialtyLabel } from '../lib/meta';
 
-const SPECIALTIES: { value: Specialty; label: string; emoji: string; category: string }[] = [
-  { value: 'GENERAL_PRACTITIONER', label: 'General Practitioner', emoji: '🩺', category: 'Primary' },
-  { value: 'FAMILY_PHYSICIAN', label: 'Family Physician', emoji: '👨‍⚕️', category: 'Primary' },
-  { value: 'INTERNAL_MEDICINE', label: 'Internal Medicine', emoji: '🫀', category: 'Primary' },
-  { value: 'PEDIATRICIAN', label: 'Pediatrician', emoji: '👶', category: 'Primary' },
-  { value: 'GYNECOLOGIST', label: 'Gynecologist', emoji: '🤰', category: 'Women' },
-  { value: 'OBSTETRICIAN', label: 'Obstetrician', emoji: '🤱', category: 'Women' },
-  { value: 'MIDWIFE', label: 'Midwife', emoji: '👩‍⚕️', category: 'Women' },
-  { value: 'DENTIST', label: 'Dentist', emoji: '🦷', category: 'Dental' },
-  { value: 'ORTHODONTIST', label: 'Orthodontist', emoji: '😬', category: 'Dental' },
-  { value: 'DERMATOLOGIST', label: 'Dermatologist', emoji: '🧴', category: 'Specialist' },
-  { value: 'CARDIOLOGIST', label: 'Cardiologist', emoji: '❤️', category: 'Specialist' },
-  { value: 'NEUROLOGIST', label: 'Neurologist', emoji: '🧠', category: 'Specialist' },
-  { value: 'PSYCHIATRIST', label: 'Psychiatrist', emoji: '🧘', category: 'Mental' },
-  { value: 'PSYCHOLOGIST', label: 'Psychologist', emoji: '💭', category: 'Mental' },
-  { value: 'ORTHOPEDIC', label: 'Orthopedic', emoji: '🦴', category: 'Specialist' },
-  { value: 'ENT_SPECIALIST', label: 'ENT Specialist', emoji: '👂', category: 'Specialist' },
-  { value: 'OPHTHALMOLOGIST', label: 'Eye Specialist', emoji: '👁️', category: 'Specialist' },
-  { value: 'UROLOGIST', label: 'Urologist', emoji: '💧', category: 'Specialist' },
-  { value: 'NEPHROLOGIST', label: 'Nephrologist', emoji: '🫘', category: 'Specialist' },
-  { value: 'ENDOCRINOLOGIST', label: 'Endocrinologist', emoji: '🧬', category: 'Specialist' },
-  { value: 'GASTROENTEROLOGIST', label: 'Gastroenterologist', emoji: '🫃', category: 'Specialist' },
-  { value: 'PULMONOLOGIST', label: 'Pulmonologist', emoji: '🫁', category: 'Specialist' },
-  { value: 'ONCOLOGIST', label: 'Oncologist', emoji: '🎗️', category: 'Specialist' },
-  { value: 'RADIOLOGIST', label: 'Radiologist', emoji: '📷', category: 'Diagnostic' },
-  { value: 'PATHOLOGIST', label: 'Pathologist', emoji: '🔬', category: 'Diagnostic' },
-  { value: 'ANESTHESIOLOGIST', label: 'Anesthesiologist', emoji: '💉', category: 'Surgery' },
-  { value: 'SURGEON', label: 'Surgeon', emoji: '🔪', category: 'Surgery' },
-  { value: 'PLASTIC_SURGEON', label: 'Plastic Surgeon', emoji: '✨', category: 'Surgery' },
-  { value: 'PHYSIOTHERAPIST', label: 'Physiotherapist', emoji: '💪', category: 'Therapy' },
-  { value: 'NUTRITIONIST', label: 'Nutritionist', emoji: '🥗', category: 'Wellness' },
-  { value: 'DIETITIAN', label: 'Dietitian', emoji: '🍎', category: 'Wellness' },
-  { value: 'HOMEOPATH', label: 'Homeopath', emoji: '🌿', category: 'Alternative' },
-  { value: 'HAKEEM', label: 'Hakeem', emoji: '📜', category: 'Alternative' },
-  { value: 'AYURVEDIC', label: 'Ayurvedic', emoji: '🕉️', category: 'Alternative' },
-  { value: 'ACUPUNCTURIST', label: 'Acupuncturist', emoji: '📌', category: 'Alternative' },
-  { value: 'VETERINARY', label: 'Veterinary', emoji: '🐾', category: 'Vet' },
-  { value: 'NURSE_PRACTITIONER', label: 'Nurse Practitioner', emoji: '👩‍⚕️', category: 'Support' },
-];
+type Tab = 'doctors' | 'day';
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+interface Draft {
+  fullName: string; phone: string; title: string; qualifications: string; specialties: Specialty[]; pmcNumber: string;
+  consultationFee: string; followUpFee: string; followUpDays: string; emergencyFee: string;
+  workStartTime: string; workEndTime: string; workingDays: number[]; slotDurationMin: string; maxDailyPatients: string;
+  commissionType: 'PERCENTAGE' | 'FIXED'; commissionPct: string;
+}
+const fromDoctor = (d: Doctor | null): Draft => ({
+  fullName: d?.fullName ?? '', phone: '', title: d?.title ?? 'Dr.', qualifications: (d?.qualifications ?? []).join(', '), specialties: d?.specialties ?? ['GENERAL_PRACTITIONER'],
+  pmcNumber: d?.pmcNumber ?? '', consultationFee: String(d?.consultationFee ?? ''), followUpFee: String(d?.followUpFee ?? ''), followUpDays: String(d?.followUpDays ?? 7),
+  emergencyFee: d?.emergencyFee != null ? String(d.emergencyFee) : '', workStartTime: d?.workStartTime ?? '09:00', workEndTime: d?.workEndTime ?? '21:00',
+  workingDays: d?.workingDays ?? [1, 2, 3, 4, 5, 6], slotDurationMin: String(d?.slotDurationMin ?? 15), maxDailyPatients: d?.maxDailyPatients != null ? String(d.maxDailyPatients) : '',
+  commissionType: d?.commissionType === 'FIXED' ? 'FIXED' : 'PERCENTAGE', commissionPct: String(d?.commissionPct ?? 0),
+});
+
+function DoctorModal({ doctor, onClose, onSaved }: { doctor: Doctor | null; onClose: () => void; onSaved: () => void }) {
+  const [d, setD] = useState<Draft>(() => fromDoctor(doctor));
+  const [tried, setTried] = useState(false);
+  const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
+  const num = (v: string) => (v.trim() === '' ? undefined : Number(v));
+  const errors: Partial<Record<keyof Draft, string>> = {
+    fullName: d.fullName.trim().length < 2 ? 'Naam likhein' : undefined,
+    phone: !doctor && d.phone.replace(/\D/g, '').length < 10 ? 'Phone likhein (03xx…)' : undefined,
+    consultationFee: !(Number(d.consultationFee) >= 0) || d.consultationFee.trim() === '' ? 'Fees likhein' : undefined,
+    followUpFee: d.followUpFee && !(Number(d.followUpFee) >= 0) ? 'Sahi likhein' : undefined,
+    workEndTime: d.workStartTime >= d.workEndTime ? 'Band hone ka waqt baad me ho' : undefined,
+    commissionPct: !(Number(d.commissionPct) >= 0) || (d.commissionType === 'PERCENTAGE' && Number(d.commissionPct) > 100) ? 'Share 0–100%' : undefined,
+    workingDays: d.workingDays.length === 0 ? 'Kam se kam ek din' : undefined,
+  };
+  const save = useMutation({
+    mutationFn: () => doctorsApi.upsert({
+      ...(doctor ? { staffId: doctor.staffId } : { phone: d.phone }),
+      fullName: d.fullName.trim(), title: d.title.trim() || undefined, qualifications: d.qualifications.split(',').map((x) => x.trim()).filter(Boolean),
+      specialties: d.specialties, pmcNumber: d.pmcNumber.trim() || undefined, consultationFee: Number(d.consultationFee) || 0, followUpFee: num(d.followUpFee) ?? 0,
+      followUpDays: num(d.followUpDays) ?? 7, emergencyFee: num(d.emergencyFee), workStartTime: d.workStartTime, workEndTime: d.workEndTime,
+      workingDays: [...d.workingDays].sort(), slotDurationMin: num(d.slotDurationMin) ?? 15, maxDailyPatients: num(d.maxDailyPatients),
+      commissionType: d.commissionType, commissionPct: Number(d.commissionPct) || 0, isActive: true,
+    }),
+    onSuccess: () => { toast.success(doctor ? 'Doctor update ho gaya' : 'Doctor jur gaya'); onSaved(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const submit = (e: FormEvent) => { e.preventDefault(); setTried(true); if (!Object.values(errors).some(Boolean)) save.mutate(); };
+  const err = (k: keyof Draft) => (tried ? errors[k] : undefined);
+
+  return (
+    <Modal open onClose={onClose} size="xl" title={doctor ? `${drName(doctor)} — badlein` : 'Naya doctor'} description="Fees, waqt aur share — reception par fees khud lagti hai"
+      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="doctor-form" loading={save.isPending}>Save (Ctrl+S)</Button></div>}>
+      <form id="doctor-form" onSubmit={submit} className="space-y-5"
+        onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Naam" required autoFocus value={d.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder="Ayesha Malik" error={err('fullName')} hint='"Dr." alag khane me' wrapperClassName="sm:col-span-2" />
+          <Input label="Title" value={d.title} onChange={(e) => set('title', e.target.value)} placeholder="Dr." />
+          {!doctor && <Input label="Phone" required inputMode="tel" value={d.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" error={err('phone')} hint="Staff list me bhi jurta hai" />}
+          <Input label="Degree" value={d.qualifications} onChange={(e) => set('qualifications', e.target.value)} placeholder="MBBS, FCPS" />
+          <Input label="PMDC number" value={d.pmcNumber} onChange={(e) => set('pmcNumber', e.target.value)} placeholder="12345-P" hint="Nuskhe par chhapta hai" />
+        </div>
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Specialist</span>
+          <div className="flex flex-wrap gap-1.5">
+            {SPECIALTIES.map((s) => {
+              const on = d.specialties.includes(s.value);
+              return <button key={s.value} type="button" aria-pressed={on} onClick={() => set('specialties', on ? d.specialties.filter((x) => x !== s.value) : [...d.specialties, s.value])}
+                className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium ring-1', on ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{s.label}</button>;
+            })}
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Input label="Fees (pehli visit)" required inputMode="decimal" value={d.consultationFee} onChange={(e) => set('consultationFee', e.target.value)} error={err('consultationFee')} />
+          <Input label="Follow-up fees" inputMode="decimal" value={d.followUpFee} onChange={(e) => set('followUpFee', e.target.value)} error={err('followUpFee')} hint="0 = poori fees" />
+          <Input label="Follow-up kitne din" inputMode="numeric" value={d.followUpDays} onChange={(e) => set('followUpDays', e.target.value)} hint="Is ke andar follow-up fees" />
+          <Input label="Emergency fees" inputMode="decimal" value={d.emergencyFee} onChange={(e) => set('emergencyFee', e.target.value)} placeholder="Wohi" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Input label="Clinic shuru" type="time" value={d.workStartTime} onChange={(e) => set('workStartTime', e.target.value)} />
+          <Input label="Clinic band" type="time" value={d.workEndTime} onChange={(e) => set('workEndTime', e.target.value)} error={err('workEndTime')} />
+          <Input label="Ek mareez (minute)" inputMode="numeric" value={d.slotDurationMin} onChange={(e) => set('slotDurationMin', e.target.value)} />
+          <Input label="Din me zyada se zyada" inputMode="numeric" value={d.maxDailyPatients} onChange={(e) => set('maxDailyPatients', e.target.value)} placeholder="Had nahi" hint="Is ke baad sirf emergency" />
+        </div>
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kin dinon</span>
+          <div className="flex flex-wrap gap-1.5">
+            {DAYS.map((label, i) => {
+              const on = d.workingDays.includes(i);
+              return <button key={label} type="button" aria-pressed={on} onClick={() => set('workingDays', on ? d.workingDays.filter((x) => x !== i) : [...d.workingDays, i])}
+                className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium ring-1', on ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{label}</button>;
+            })}
+          </div>
+          {err('workingDays') && <p className="mt-1 text-xs font-medium text-rose-600">{err('workingDays')}</p>}
+        </div>
+        <div className="grid gap-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-100 sm:grid-cols-[auto_12rem] sm:items-end">
+          <div>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Doctor ka share</span>
+            <Segmented<'PERCENTAGE' | 'FIXED'> value={d.commissionType} onChange={(v) => set('commissionType', v)} label="Share"
+              items={[{ value: 'PERCENTAGE', label: 'Fees ka %' }, { value: 'FIXED', label: 'Har mareez par Rs' }]} />
+            <p className="mt-1 text-[0.75rem] text-slate-500">"Din ka hisaab" me isi se doctor ka share banta hai</p>
+          </div>
+          <Input label={d.commissionType === 'FIXED' ? 'Rs har mareez' : '% fees ka'} inputMode="decimal" value={d.commissionPct} onChange={(e) => set('commissionPct', e.target.value)} error={err('commissionPct')} />
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function DayClose() {
+  const { sales: money } = useMasked();
+  const [day, setDay] = useState(dayKey());
+  const q = useQuery({ queryKey: ['clinic-day-close', day], queryFn: () => appointmentsApi.dayClose(dayBounds(day).from) });
+  const rows = q.data?.rows ?? [];
+  const t = q.data?.totals;
+  const exportCsv = () => downloadCsv(`doctor-hisaab-${day}.csv`, [
+    ['Doctor', 'Booked', 'Dekhe', 'Cancel', 'Fees', 'Lab', 'Cash/Card', 'Khata', 'Share', 'Clinic'],
+    ...rows.map((r) => [drName(r.doctor), r.booked, r.seen, r.cancelled, r.fees, r.labFees, r.collected, r.khata, r.share, r.clinicKeeps]),
+  ]);
+  return (
+    <div className="space-y-4 print:space-y-2">
+      <div className="flex flex-wrap items-end gap-2">
+        <Input label="Din" type="date" value={day} onChange={(e) => setDay(e.target.value || dayKey())} wrapperClassName="w-44" />
+        <Button variant="secondary" leftIcon={<Download className="h-4 w-4" />} onClick={exportCsv} disabled={!rows.length}>CSV</Button>
+        <Button variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Print</Button>
+        <Link to="/expenses" className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50"><HandCoins className="h-4 w-4" />Share ada karein (Expense)</Link>
+      </div>
+      <KpiRow>
+        <KpiCard icon={Users} color="#2563eb" label="Mareez dekhe" value={t?.seen ?? 0} hint={`${t?.booked ?? 0} booked`} />
+        <KpiCard icon={Stethoscope} color="#0891b2" label="Consultation fees" value={money(t?.fees)} />
+        <KpiCard icon={CalendarDays} color="#7c3aed" label="Lab fees" value={money(t?.labFees)} />
+        <KpiCard icon={Banknote} color="#16a34a" label="Haath me aaya" value={money(t?.collected)} hint={`Khata: ${money(t?.khata)}`} />
+        <KpiCard icon={HandCoins} color="#d97706" label="Doctors ka share" value={money(t?.share)} />
+      </KpiRow>
+      <ListCard>
+        {q.isLoading ? <ListLoading rows={3} /> : q.isError ? <ListFailed onRetry={() => q.refetch()} /> : rows.length === 0 ? (
+          <p className="px-6 py-14 text-center text-[0.875rem] text-slate-500">{shortDate(dayBounds(day).from)} ko koi visit ya bill nahi.</p>
+        ) : (
+          <Table minWidth="60rem">
+            <THead><Tr><Th>Doctor</Th><Th align="right">Mareez</Th><Th align="right">Fees</Th><Th align="right">Lab</Th><Th align="right">Cash / card</Th><Th align="right">Khata</Th><Th align="right">Share</Th><Th align="right">Clinic ka</Th></Tr></THead>
+            <TBody>
+              {rows.map((r) => (
+                <Tr key={r.doctorId}>
+                  <Td><p className="font-semibold text-slate-900">{drName(r.doctor) || 'Doctor'}</p><p className="text-[0.75rem] text-slate-500">{r.commissionType === 'FIXED' ? `${formatPKR(r.commissionPct)} har mareez` : `${r.commissionPct}% share`}</p></Td>
+                  <Td align="right"><p className="font-semibold">{r.seen}</p><p className="text-[0.75rem] text-slate-500">{r.booked} booked · {r.cancelled} cancel</p></Td>
+                  <Td align="right">{money(r.fees)}</Td>
+                  <Td align="right">{money(r.labFees)}</Td>
+                  <Td align="right">{money(r.collected)}</Td>
+                  <Td align="right" className={r.khata > 0 ? 'text-amber-700' : ''}>{money(r.khata)}</Td>
+                  <Td align="right" className="font-semibold text-slate-900">{money(r.share)}</Td>
+                  <Td align="right">{money(r.clinicKeeps)}</Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+        )}
+      </ListCard>
+      <p className="text-[0.75rem] text-slate-500">Amount bill se li jati hai (void aur poore wapas bill shamil nahi), is liye day book se milti hai. Share ki adaigi Expense me "Doctor share" likh kar karein.</p>
+    </div>
+  );
+}
 
 export default function DoctorsPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canManage = usePermission(PERMISSIONS.STAFF_MANAGE);
+  const canMoney = usePermission(PERMISSIONS.REPORTS_VIEW);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('doctors');
   const [search, setSearch] = useState('');
-  const [specialtyFilter, setSpecialtyFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Doctor | null>(null);
+  const [show, setShow] = useState<'active' | 'off'>('active');
+  const [spec, setSpec] = useState('');
+  const [editing, setEditing] = useState<Doctor | 'new' | null>(null);
+  const q = useDebounced(search.trim());
+  usePageKeys(searchRef, { n: () => canManage && setEditing('new') });
 
-  const { data: doctors = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['clinic-doctors', specialtyFilter, search],
-    queryFn: () => doctorsApi.list({
-      specialty: specialtyFilter === 'all' ? undefined : specialtyFilter,
-      search: search.trim() || undefined,
-      active: true,
-    }),
+  const list = useQuery({ queryKey: ['clinic-doctors', 'page', q], queryFn: () => doctorsApi.list({ search: q || undefined }) });
+  const today = dayBounds(dayKey());
+  const { data: todays = [] } = useQuery({ queryKey: ['clinic-appointments', 'today-count', today.from], queryFn: () => appointmentsApi.list(today) });
+  const refresh = () => qc.invalidateQueries({ queryKey: ['clinic-doctors'] });
+  const off = useMutation({
+    mutationFn: (d: Doctor) => (d.isActive ? doctorsApi.remove(d.id) : doctorsApi.upsert({ staffId: d.staffId, fullName: d.fullName, isActive: true })),
+    onSuccess: (_r, d) => { toast.success(d.isActive ? `${drName(d)} band — purani visits me naam rahega` : `${drName(d)} phir chalu`); refresh(); },
+    onError: (e) => toast.error(apiError(e)),
   });
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => doctorsApi.remove(id),
-    onSuccess: () => { toast.success('Doctor deactivated'); queryClient.invalidateQueries({ queryKey: ['clinic-doctors'] }); },
-  });
+  const all = list.data ?? [];
+  const rows = useMemo(() => all.filter((d) => (show === 'active' ? d.isActive : !d.isActive)).filter((d) => !spec || d.specialties.includes(spec as Specialty)), [all, show, spec]);
+  const load = (id: string) => todays.filter((a) => a.doctorId === id && a.status !== 'CANCELLED' && a.status !== 'NO_SHOW');
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Stethoscope className="h-3.5 w-3.5 text-amber-300" />
-              Medical Team
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">👨‍⚕️ Doctors</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">37 specialties, license tracking, consultation fees</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Doctor
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search doctor name, PMC #..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setSpecialtyFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (specialtyFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All Specialties</button>
-          {SPECIALTIES.slice(0, 15).map((s) => (
-            <button key={s.value} onClick={() => setSpecialtyFilter(s.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (specialtyFilter === s.value ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{s.emoji} {s.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <DoctorForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['clinic-doctors'] }); }}
-        />
+    <PageShell>
+      {editing && <DoctorModal doctor={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); }} />}
+      {guide.isOpen && (
+        <PageGuide title="Doctors — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: UserCog, color: '#2563eb', title: 'Doctor jorein', text: 'Naam, phone aur fees kaafi hain. Follow-up fees aur din likhein — reception par khud lagti hai.' },
+            { icon: Clock, color: '#0891b2', title: 'Waqt aur had', text: 'Clinic ka waqt, din aur din ki had — had poori ho to sirf emergency token banta hai.' },
+            { icon: HandCoins, color: '#d97706', title: 'Share', text: 'Fees ka % ya har mareez par Rs. "Din ka hisaab" me har doctor ka share banta hai.' },
+            { icon: BookOpen, color: '#16a34a', title: 'Din ka hisaab', text: 'Har shaam doctor wise mareez, fees, khata aur share — print kar ke dastakhat lein.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya doctor'], ['G', 'guide']]} />
       )}
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : doctors.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <UserCog className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No doctors yet</p>
-          <Button className="mt-4 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" />
-            Add First Doctor
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {doctors.map((doctor) => (
-            <DoctorCard
-              key={doctor.id}
-              doctor={doctor}
-              onEdit={() => { setEditing(doctor); setShowForm(true); }}
-              onDelete={() => { if (confirm('Deactivate ' + doctor.fullName + '?')) removeMutation.mutate(doctor.id); }}
-            />
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
+      <PageHero title="Doctors" chip={<><Stethoscope />{all.filter((d) => d.isActive).length} chalu</>} busy={list.isFetching && !list.isLoading} loading={list.isLoading}
+        meta="Fees, waqt, share aur din ka hisaab"
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canMoney && <button type="button" onClick={() => setTab('day')} className={heroButton}><BookOpen className="h-4 w-4" />Din ka hisaab</button>}
+          {canManage && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya doctor</button>}
+        </>}
+        stats={[
+          { label: 'Aaj ke mareez', value: String(todays.filter((a) => a.status !== 'CANCELLED' && a.status !== 'NO_SHOW').length) },
+          { label: 'Mukammal', value: String(todays.filter((a) => a.status === 'COMPLETED').length) },
+        ]} />
 
-function DoctorCard({ doctor, onEdit, onDelete }: any) {
-  const primary = SPECIALTIES.find((s) => s.value === doctor.specialties?.[0]);
+      <ViewTabs<Tab> value={tab} onChange={setTab}
+        tabs={[{ id: 'doctors', label: 'Doctors', icon: Stethoscope, count: all.length }, ...(canMoney ? [{ id: 'day' as const, label: 'Din ka hisaab', icon: BookOpen }] : [])]} />
 
-  return (
-    <div className={
-      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition-all overflow-hidden ' +
-      (doctor.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className="relative p-4 bg-gradient-to-br from-blue-500 via-cyan-600 to-teal-600 text-white">
-        <div className="flex items-start gap-3">
-          {doctor.photoUrl ? (
-            <img src={doctor.photoUrl} alt="" className="h-20 w-20 rounded-2xl object-cover ring-4 ring-white/30 shrink-0" />
-          ) : (
-            <div className="h-20 w-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-3xl font-extrabold shrink-0 ring-4 ring-white/30">
-              {doctor.fullName?.charAt(0).toUpperCase() || '?'}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold text-white/80">{doctor.title || 'Dr.'}</div>
-            <h3 className="text-lg font-extrabold truncate">{doctor.fullName}</h3>
-            <div className="mt-1 flex items-center gap-1 text-xs font-extrabold">
-              <span>{primary?.emoji}</span>
-              <span className="truncate">{primary?.label}</span>
-            </div>
-            {doctor.subSpecialty && (
-              <div className="text-[0.6875rem] font-bold text-white/70 truncate">{doctor.subSpecialty}</div>
+      {tab === 'day' && canMoney ? <DayClose /> : (
+        <>
+          <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya PMDC number…" />}>
+            <Segmented<'active' | 'off'> value={show} onChange={setShow} label="Kaun" items={[{ value: 'active', label: 'Chalu' }, { value: 'off', label: 'Band' }]} />
+            <Select aria-label="Specialist" value={spec} onChange={(e) => setSpec(e.target.value)} placeholder="Sab specialist" options={SPECIALTIES.map((s) => ({ value: s.value, label: s.label }))} />
+          </FilterBar>
+          <ListCard>
+            {list.isLoading ? <ListLoading rows={3} /> : list.isError ? <ListFailed onRetry={() => list.refetch()} /> : rows.length === 0 ? (
+              <div className="flex flex-col items-center px-6 py-16 text-center">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Stethoscope className="h-7 w-7" /></span>
+                <h3 className="mt-4 text-lg font-semibold text-slate-900">{show === 'off' ? 'Koi band doctor nahi' : 'Abhi koi doctor nahi'}</h3>
+                <p className="mt-1 text-[0.875rem] text-slate-500">Doctor jorein — fees aur waqt reception par khud lagte hain.</p>
+                {canManage && show === 'active' && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya doctor</Button>}
+              </div>
+            ) : (
+              <Table minWidth="56rem">
+                <THead><Tr><Th>Doctor</Th><Th align="right">Fees</Th><Th>Waqt</Th><Th align="right">Aaj</Th><Th align="right">Share</Th><Th align="right" /></Tr></THead>
+                <TBody>
+                  {rows.map((d) => {
+                    const l = load(d.id);
+                    return (
+                      <Tr key={d.id} className={cn(!d.isActive && 'opacity-60')}>
+                        <Td>
+                          <p className="font-semibold text-slate-900">{drName(d)}</p>
+                          <p className="text-[0.75rem] text-slate-500">{[d.specialties.map(specialtyLabel).join(', '), d.qualifications.join(', '), d.pmcNumber && `PMDC ${d.pmcNumber}`].filter(Boolean).join(' · ')}</p>
+                        </Td>
+                        <Td align="right"><p className="font-semibold">{money(d.consultationFee)}</p>{d.followUpFee > 0 && <p className="text-[0.75rem] text-slate-500">Follow-up {money(d.followUpFee)} · {d.followUpDays} din</p>}</Td>
+                        <Td><p>{d.workStartTime}–{d.workEndTime}</p><p className="text-[0.75rem] text-slate-500">{d.workingDays.length === 7 ? 'Har din' : d.workingDays.map((x) => DAYS[x]?.slice(0, 3)).join(', ')}</p></Td>
+                        <Td align="right"><p className="font-semibold">{l.length}{d.maxDailyPatients ? ` / ${d.maxDailyPatients}` : ''}</p><p className="text-[0.75rem] text-slate-500">{l.filter((a) => a.status === 'COMPLETED').length} mukammal</p></Td>
+                        <Td align="right">{d.commissionPct ? <Badge variant="accent">{d.commissionType === 'FIXED' ? `${money(d.commissionPct)} / mareez` : `${d.commissionPct}%`}</Badge> : '—'}</Td>
+                        <Td align="right">
+                          <div className="flex justify-end gap-1">
+                            {canManage && <button type="button" onClick={() => setEditing(d)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>}
+                            {canManage && <button type="button" onClick={() => off.mutate(d)} title={d.isActive ? 'Band karein' : 'Chalu karein'} aria-label={d.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>}
+                          </div>
+                        </Td>
+                      </Tr>
+                    );
+                  })}
+                </TBody>
+              </Table>
             )}
-          </div>
-        </div>
-        {doctor.isFeatured && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-            <Star className="h-2 w-2 fill-current" /> Featured
-          </span>
-        )}
-      </div>
-
-      <div className="p-4 space-y-3">
-        {doctor.qualifications?.length > 0 && (
-          <div className="flex items-start gap-1 text-xs">
-            <GraduationCap className="h-3 w-3 text-blue-600 mt-0.5 shrink-0" />
-            <span className="font-bold text-slate-700 line-clamp-1">
-              {doctor.qualifications.join(', ')}
-            </span>
-          </div>
-        )}
-
-        {doctor.yearsOfExperience && (
-          <div className="text-xs font-extrabold text-slate-600 inline-flex items-center gap-1">
-            <Award className="h-3 w-3" />
-            {doctor.yearsOfExperience} years experience
-          </div>
-        )}
-
-        {doctor.pmcNumber && (
-          <div className="text-[0.6875rem] font-mono font-bold text-emerald-700 inline-flex items-center gap-1">
-            <CheckCircle2 className="h-2.5 w-2.5" />
-            PMC: {doctor.pmcNumber}
-          </div>
-        )}
-
-        {doctor.languages?.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {doctor.languages.slice(0, 3).map((l: string, i: number) => (
-              <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.625rem] font-extrabold text-slate-700">
-                {l}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-1">
-          {doctor.acceptsTelemedicine && (
-            <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-              <Video className="h-2 w-2" /> TELE
-            </span>
-          )}
-          {doctor.acceptsHomeVisit && (
-            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-              <Home className="h-2 w-2" /> HOME
-            </span>
-          )}
-          {doctor.acceptsEmergency && (
-            <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-              <Zap className="h-2 w-2" /> EMERGENCY
-            </span>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
-          <div className="text-center">
-            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Patients</div>
-            <div className="font-extrabold tabular-nums">{doctor.totalPatients}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Fee</div>
-            <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(doctor.consultationFee).replace('Rs', '').trim()}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
-              <Star className="h-2 w-2 fill-current" />
-              Rating
-            </div>
-            <div className="font-extrabold text-amber-700 tabular-nums">
-              {doctor.avgRating ? doctor.avgRating.toFixed(1) : '—'}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-[0.6875rem] text-slate-600 font-bold">
-          <Clock className="h-3 w-3" />
-          {doctor.workStartTime}–{doctor.workEndTime}
-          <span className="ml-auto">
-            <Calendar className="h-3 w-3 inline mr-0.5" />
-            {doctor.workingDays.length}d/week
-          </span>
-        </div>
-
-        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <button onClick={onEdit} className="flex-1 h-9 rounded-lg bg-blue-100 dark:bg-blue-950/40 hover:bg-blue-200 text-blue-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-            <Edit3 className="h-3 w-3" />
-            Edit
-          </button>
-          <button onClick={onDelete} className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DoctorForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    staffId: editing?.staffId ?? '',
-    title: editing?.title ?? 'Dr.',
-    fullName: editing?.fullName ?? '',
-    qualifications: editing?.qualifications?.join(', ') ?? '',
-    specialties: editing?.specialties ?? ['GENERAL_PRACTITIONER'],
-    subSpecialty: editing?.subSpecialty ?? '',
-    yearsOfExperience: editing?.yearsOfExperience ?? '',
-    bio: editing?.bio ?? '',
-    photoUrl: editing?.photoUrl ?? '',
-    signatureUrl: editing?.signatureUrl ?? '',
-    pmcNumber: editing?.pmcNumber ?? '',
-    licenseNumber: editing?.licenseNumber ?? '',
-    licenseExpiry: editing?.licenseExpiry ? editing.licenseExpiry.slice(0, 10) : '',
-    registeredWith: editing?.registeredWith ?? 'PMC',
-    consultationFee: editing?.consultationFee ?? 1000,
-    followUpFee: editing?.followUpFee ?? 500,
-    followUpDays: editing?.followUpDays ?? 7,
-    telemedicineFee: editing?.telemedicineFee ?? '',
-    homeVisitFee: editing?.homeVisitFee ?? '',
-    emergencyFee: editing?.emergencyFee ?? '',
-    slotDurationMin: editing?.slotDurationMin ?? 15,
-    bufferMin: editing?.bufferMin ?? 0,
-    maxDailyPatients: editing?.maxDailyPatients ?? '',
-    workingDays: editing?.workingDays ?? [1, 2, 3, 4, 5, 6],
-    workStartTime: editing?.workStartTime ?? '09:00',
-    workEndTime: editing?.workEndTime ?? '21:00',
-    breakStartTime: editing?.breakStartTime ?? '',
-    breakEndTime: editing?.breakEndTime ?? '',
-    languages: editing?.languages?.join(', ') ?? 'English, Urdu',
-    services: editing?.services?.join(', ') ?? '',
-    acceptsTelemedicine: editing?.acceptsTelemedicine ?? false,
-    acceptsHomeVisit: editing?.acceptsHomeVisit ?? false,
-    acceptsEmergency: editing?.acceptsEmergency ?? false,
-    isFeatured: editing?.isFeatured ?? false,
-  });
-
-  const { data: staffList } = useQuery({
-    queryKey: ['staff-for-clinic'],
-    queryFn: () => apiClient.get('/staff?isActive=true&limit=200').then((r) => r.data?.data?.items ?? r.data?.items ?? r.data ?? []),
-    enabled: !editing,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => doctorsApi.upsert({
-      ...form,
-      qualifications: form.qualifications ? form.qualifications.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      languages: form.languages ? form.languages.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      services: form.services ? form.services.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-      yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
-      consultationFee: Number(form.consultationFee) || 0,
-      followUpFee: Number(form.followUpFee) || 0,
-      followUpDays: Number(form.followUpDays) || 7,
-      telemedicineFee: form.telemedicineFee ? Number(form.telemedicineFee) : undefined,
-      homeVisitFee: form.homeVisitFee ? Number(form.homeVisitFee) : undefined,
-      emergencyFee: form.emergencyFee ? Number(form.emergencyFee) : undefined,
-      slotDurationMin: Number(form.slotDurationMin) || 15,
-      bufferMin: Number(form.bufferMin) || 0,
-      maxDailyPatients: form.maxDailyPatients ? Number(form.maxDailyPatients) : undefined,
-    }),
-    onSuccess: () => { toast.success(editing ? 'Updated' : 'Doctor added'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const toggleSpecialty = (s: Specialty) => {
-    const set = new Set(form.specialties);
-    if (set.has(s)) set.delete(s); else set.add(s);
-    setForm({ ...form, specialties: Array.from(set) });
-  };
-
-  const toggleDay = (d: number) => {
-    const set = new Set(form.workingDays);
-    if (set.has(d)) set.delete(d); else set.add(d);
-    setForm({ ...form, workingDays: Array.from(set).sort() });
-  };
-
-  return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Doctor Profile' : 'New Doctor Profile'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        {!editing && (
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
-            <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-              <option value="">-- Pick from HR/Staff --</option>
-              {(staffList ?? []).map((s: any) => {
-                const nm = ((s.firstName || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
-                return <option key={s.id} value={s.id}>{nm}</option>;
-              })}
-            </select>
-          </div>
-        )}
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
-          {form.photoUrl ? (
-            <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200">
-              <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setForm({ ...form, photoUrl: '' })} className="absolute top-1 right-1 h-6 w-6 rounded bg-rose-600 text-white flex items-center justify-center">
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, photoUrl: url });
-            }} />
-          )}
-        </div>
-
-        <div className="grid sm:grid-cols-4 gap-3">
-          <select value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-            <option>Dr.</option><option>Prof.</option><option>Prof. Dr.</option><option>Assoc. Prof.</option>
-          </select>
-          <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full name *" className="sm:col-span-2 h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input type="number" value={form.yearsOfExperience} onChange={(e) => setForm({ ...form, yearsOfExperience: e.target.value })} placeholder="Years exp." className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <input value={form.qualifications} onChange={(e) => setForm({ ...form, qualifications: e.target.value })} placeholder="Qualifications (MBBS, FCPS, MD... comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-
-        {/* Specialties */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Specialties * ({form.specialties.length} selected)</label>
-          <div className="max-h-52 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2 grid grid-cols-2 sm:grid-cols-3 gap-1">
-            {SPECIALTIES.map((s) => (
-              <button key={s.value} onClick={() => toggleSpecialty(s.value)} className={
-                'p-2 rounded-lg border-2 text-xs font-extrabold text-left transition ' +
-                (form.specialties.includes(s.value) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300')
-              }>
-                {s.emoji} {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <input value={form.subSpecialty} onChange={(e) => setForm({ ...form, subSpecialty: e.target.value })} placeholder="Sub-specialty (e.g. Pediatric Cardiology)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-
-        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio / About..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-
-        {/* License */}
-        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-2">
-          <div className="text-sm font-extrabold text-emerald-900 flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            License / Registration
-          </div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            <input value={form.pmcNumber} onChange={(e) => setForm({ ...form, pmcNumber: e.target.value })} placeholder="PMC #" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.licenseNumber} onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })} placeholder="License #" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.registeredWith} onChange={(e) => setForm({ ...form, registeredWith: e.target.value })} placeholder="Registered with (PMC, PMDC, PDA...)" className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input type="date" value={form.licenseExpiry} onChange={(e) => setForm({ ...form, licenseExpiry: e.target.value })} className="h-10 rounded-lg border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        {/* Fees */}
-        <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-amber-900 flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Consultation Fees
-          </div>
-          <div className="grid sm:grid-cols-3 gap-2">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">First Visit</label>
-              <input type="number" value={form.consultationFee} onChange={(e) => setForm({ ...form, consultationFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">Follow-up</label>
-              <input type="number" value={form.followUpFee} onChange={(e) => setForm({ ...form, followUpFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">F-up Days</label>
-              <input type="number" value={form.followUpDays} onChange={(e) => setForm({ ...form, followUpDays: e.target.value })} className="h-11 w-full rounded-lg border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-0.5 block">Telemedicine</label>
-              <input type="number" value={form.telemedicineFee} onChange={(e) => setForm({ ...form, telemedicineFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-purple-300 bg-white dark:bg-purple-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Home Visit</label>
-              <input type="number" value={form.homeVisitFee} onChange={(e) => setForm({ ...form, homeVisitFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-red-700 mb-0.5 block">Emergency</label>
-              <input type="number" value={form.emergencyFee} onChange={(e) => setForm({ ...form, emergencyFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-red-300 bg-white dark:bg-red-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-red-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Schedule */}
-        <div className="rounded-xl border-2 border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-cyan-900 flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Schedule
-          </div>
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Working Days</label>
-            <div className="grid grid-cols-7 gap-1">
-              {DAYS.map((d, i) => (
-                <button key={d} onClick={() => toggleDay(i)} className={
-                  'py-2 rounded-lg text-xs font-extrabold transition ' +
-                  (form.workingDays.includes(i) ? 'bg-cyan-600 text-white shadow' : 'bg-white dark:bg-ink-800 border border-slate-200 text-slate-600 hover:border-cyan-300')
-                }>{d}</button>
-              ))}
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            <input type="time" value={form.workStartTime} onChange={(e) => setForm({ ...form, workStartTime: e.target.value })} className="h-11 rounded-xl border-2 border-cyan-300 bg-white dark:bg-cyan-950/40 px-3 text-sm font-extrabold focus:outline-none focus:border-cyan-500" />
-            <input type="time" value={form.workEndTime} onChange={(e) => setForm({ ...form, workEndTime: e.target.value })} className="h-11 rounded-xl border-2 border-cyan-300 bg-white dark:bg-cyan-950/40 px-3 text-sm font-extrabold focus:outline-none focus:border-cyan-500" />
-            <input type="number" value={form.slotDurationMin} onChange={(e) => setForm({ ...form, slotDurationMin: e.target.value })} placeholder="Slot duration (min)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
-            <input type="number" value={form.maxDailyPatients} onChange={(e) => setForm({ ...form, maxDailyPatients: e.target.value })} placeholder="Max daily patients" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
-          </div>
-        </div>
-
-        <input value={form.languages} onChange={(e) => setForm({ ...form, languages: e.target.value })} placeholder="Languages (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-
-        {/* Services */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsTelemedicine ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-ink-700')}>
-            <input type="checkbox" checked={form.acceptsTelemedicine} onChange={(e) => setForm({ ...form, acceptsTelemedicine: e.target.checked })} className="h-4 w-4 rounded" />
-            <Video className={'h-4 w-4 ' + (form.acceptsTelemedicine ? 'text-purple-600' : 'text-slate-400')} />
-            <span className="text-xs font-extrabold">Telemedicine</span>
-          </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsHomeVisit ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700')}>
-            <input type="checkbox" checked={form.acceptsHomeVisit} onChange={(e) => setForm({ ...form, acceptsHomeVisit: e.target.checked })} className="h-4 w-4 rounded" />
-            <Home className={'h-4 w-4 ' + (form.acceptsHomeVisit ? 'text-blue-600' : 'text-slate-400')} />
-            <span className="text-xs font-extrabold">Home Visit</span>
-          </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsEmergency ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-ink-700')}>
-            <input type="checkbox" checked={form.acceptsEmergency} onChange={(e) => setForm({ ...form, acceptsEmergency: e.target.checked })} className="h-4 w-4 rounded" />
-            <Zap className={'h-4 w-4 ' + (form.acceptsEmergency ? 'text-red-600' : 'text-slate-400')} />
-            <span className="text-xs font-extrabold">Emergency</span>
-          </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')}>
-            <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
-            <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
-            <span className="text-xs font-extrabold">Featured</span>
-          </label>
-        </div>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.staffId && !editing}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create Doctor'}
-          </Button>
-        </div>
-      </div>
-    </section>
+          </ListCard>
+        </>
+      )}
+    </PageShell>
   );
 }

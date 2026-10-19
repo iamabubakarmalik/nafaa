@@ -27,7 +27,7 @@ function bulkBill(o: BulkOrder): OrderForBill {
   const total = bulkPrice(o);
   return {
     kind: 'bulk', id: o.id, orderNumber: o.orderNumber, customerName: o.organizationName || o.contactPerson, customerPhone: o.contactPhone,
-    total, paid: Number(o.paidAmount || 0),
+    total, paid: Number(o.paidAmount || 0), customerId: o.customerId ?? null,
     lines: lines.length ? lines : [{ name: `${o.organizationName} ka order`, qty: 1, rate: total }],
     deliveryAddress: o.requiresDelivery ? o.deliveryAddress || o.venue || undefined : undefined,
   };
@@ -61,7 +61,7 @@ export function useBulkActions(shopName: string) {
       {payOn && (
         <PayModal name={`${payOn.organizationName} · ${payOn.orderNumber}`} due={Math.max(bulkPrice(payOn) - payOn.paidAmount, 0)}
           advanceLeft={Math.max(Math.round(bulkPrice(payOn) * 0.5) - payOn.paidAmount, 0)}
-          onPay={(amount) => bulkOrdersApi.payment(payOn.id, amount, payOn.paidAmount)}
+          onPay={(amount, method) => bulkOrdersApi.payment(payOn.id, amount, payOn.paidAmount, { method })}
           onClose={() => setPayOn(null)} onDone={() => { setPayOn(null); refresh(); }} />
       )}
       {cancelOn && (
@@ -71,7 +71,8 @@ export function useBulkActions(shopName: string) {
       {deliverOn && (
         <OrderDeliverModal order={bulkBill(deliverOn)} shopName={shopName}
           onClose={() => setDeliverOn(null)} onDone={() => setDeliverOn(null)}
-          recordPayment={(amount) => bulkOrdersApi.payment(deliverOn.id, amount, deliverOn.paidAmount)}
+          loadMoney={() => bulkOrdersApi.getOne(deliverOn.id)}
+          recordPayment={(amount, expectedPaid, method) => bulkOrdersApi.payment(deliverOn.id, amount, expectedPaid, { method, withBill: true })}
           markDelivered={() => bulkOrdersApi.updateStatus(deliverOn.id, 'DELIVERED')}
           findBill={() => bulkOrdersApi.bill(deliverOn.id)} />
       )}

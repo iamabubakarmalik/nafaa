@@ -1,176 +1,254 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, CheckCircle2, X, Ban, Sparkles, User, Phone, Mail, Receipt,
-  Printer, FileText, Calendar, Package, Building,
-} from 'lucide-react';
-import { quotationsApi } from '../api/quotations.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * One quotation: lines and totals, print and WhatsApp, the customer's
+ * answer, a revision, and the bill. Billing makes a normal sale at the
+ * quoted rates (cash, card, split or udhaar) with delivery and labour as
+ * bill charges, so stock, khata, day book and reports all see it; the
+ * quotation then points at that bill. A challan for site delivery follows
+ * from the bill.
+ */
+
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+import { Ban, CheckCircle2, Edit3, FileText, GraduationCap, MessageCircle, Receipt, Send, Truck } from 'lucide-react';
+import { Card, Modal, Button, PageHero, PageShell, Skeleton, Table, TBody, THead, Td, Th, Tr, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { useShopParam } from '@core/stores/auth.store';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { HeroBack } from '@core/components/HeroBack';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { withManagerPin } from '@core/security/ManagerPin';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { keepAdvance, salePayment } from '@modules/pos/lib/posCheckout';
+import { salesApi } from '@modules/sales/sales/api/sales.api';
+import { quotationsApi, type Quotation, type QuotationStatus } from '../api/quotations.api';
+import { QUOTE_STATUS, UNIT_LABEL, errorText, qty, shortDate } from '../lib/meta';
+import type { Unit } from '../api/products.api';
+
+const OPEN: QuotationStatus[] = ['DRAFT', 'SENT', 'VIEWED', 'REVISED'];
+
+function quoteDoc(q: Quotation): PrintDoc {
+  const charges = q.deliveryCharges + q.laborCharges + q.otherCharges;
+  return {
+    title: `Quotation ${q.quotationNumber}${q.revisionNumber ? ` (R${q.revisionNumber})` : ''}`,
+    subtitle: q.customerName,
+    meta: [['Tareekh', shortDate(q.quotationDate ?? q.createdAt)], ['Chalegi', shortDate(q.validUntil)], ...(q.customerPhone ? [['Phone', q.customerPhone] as [string, string]] : []), ...(q.project ? [['Site', q.project.name] as [string, string]] : [])],
+    sections: [
+      {
+        kind: 'table', title: 'Items',
+        columns: [{ label: '#', wideOnly: true }, { label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Rate', align: 'right', wideOnly: true }, { label: 'Amount', align: 'right' }],
+        rows: q.items.map((i, n) => [String(n + 1), [i.itemName, i.specifications].filter(Boolean).join(' — '), `${qty(i.quantity)} ${UNIT_LABEL[i.unit as Unit] ?? ''}`, formatPKR(i.unitPrice), formatPKR(i.total)]),
+      },
+      {
+        kind: 'rows', rows: [
+          { label: 'Items', value: formatPKR(q.subtotal) },
+          ...(q.discount > 0 ? [{ label: 'Discount', value: `−${formatPKR(q.discount)}` }] : []),
+          ...(q.taxAmount > 0 ? [{ label: `Tax ${q.taxPct ? `${q.taxPct}%` : ''}`, value: formatPKR(q.taxAmount) }] : []),
+          ...(charges > 0 ? [{ label: 'Kiraya / mazdoori', value: formatPKR(charges) }] : []),
+          { label: 'Kul', value: formatPKR(q.total), strong: true },
+        ],
+      },
+      ...(q.paymentTerms || q.deliveryTerms ? [{ kind: 'text' as const, title: 'Shartein', text: [q.paymentTerms && `Payment: ${q.paymentTerms}`, q.deliveryTerms && `Delivery: ${q.deliveryTerms}`].filter(Boolean).join('\n') }] : []),
+      ...(q.customerNotes ? [{ kind: 'text' as const, title: 'Note', text: q.customerNotes }] : []),
+    ],
+    footer: `Ye quotation ${shortDate(q.validUntil)} tak hai. Rate us ke baad badal sakte hain.`,
+  };
+}
+
+function whatsappText(q: Quotation) {
+  const lines = q.items.map((i) => `• ${i.itemName}${i.specifications ? ` (${i.specifications})` : ''} — ${qty(i.quantity)} x ${formatPKR(i.unitPrice)} = ${formatPKR(i.total)}`);
+  return [`*Quotation ${q.quotationNumber}*`, q.customerName, '', ...lines, '', `*Kul: ${formatPKR(q.total)}*`, `${shortDate(q.validUntil)} tak`, q.paymentTerms ? `Payment: ${q.paymentTerms}` : ''].filter((x) => x !== '').join('\n');
+}
 
 export default function QuotationDetailPage() {
-  const { id } = useParams();
+  const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const shopId = useShopParam();
+  const canSell = usePermission(PERMISSIONS.POS_USE);
+  const [billing, setBilling] = useState(false);
+  const [closing, setClosing] = useState(false);
 
-  const { data: q, isLoading } = useQuery({
-    queryKey: ['hardware-quotation', id],
-    queryFn: () => quotationsApi.getOne(id!),
-    enabled: !!id,
+  const { data: q, isLoading } = useQuery({ queryKey: ['hardware-quotation', id], queryFn: () => quotationsApi.getOne(id), enabled: !!id });
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ['hardware-quotation', id] });
+    qc.invalidateQueries({ queryKey: ['hardware-quotations'] });
+    qc.invalidateQueries({ queryKey: ['hardware-quotations-summary'] });
+  };
+  const status = useMutation({
+    mutationFn: (s: QuotationStatus) => quotationsApi.updateStatus(id, s),
+    onSuccess: (r) => { refresh(); toast.success(QUOTE_STATUS[r.status].label); },
+    onError: (e) => toast.error(errorText(e, 'Status nahi badla')),
+  });
+  const close = useMutation({
+    mutationFn: () => quotationsApi.close(id),
+    onSuccess: () => { refresh(); setClosing(false); toast.success('Quotation band ho gayi — record mehfooz hai'); },
+    onError: (e) => toast.error(errorText(e, 'Band nahi hui')),
   });
 
-  const statusMutation = useMutation({
-    mutationFn: (status: string) => quotationsApi.updateStatus(id!, status),
-    onSuccess: () => {
-      toast.success('Status updated');
-      queryClient.invalidateQueries({ queryKey: ['hardware-quotation', id] });
+  // The bill: quoted lines at their net rate; delivery, labour and other charges ride as bill charges.
+  const billTotal = q ? q.subtotal - q.discount + q.deliveryCharges + q.laborCharges + q.otherCharges : 0;
+  const bill = useMutation({
+    mutationFn: async (d: PosCheckoutResult) => {
+      if (!q) throw new Error('Quotation nahi mili');
+      if (!shopId) throw new Error('Pehle upar se shop chunein');
+      const serviceCharges = [
+        q.deliveryCharges > 0 && { type: 'DELIVERY', label: 'Delivery', amount: q.deliveryCharges },
+        q.laborCharges > 0 && { type: 'INSTALLATION', label: 'Mazdoori', amount: q.laborCharges },
+        q.otherCharges > 0 && { type: 'OTHER', label: 'Aur kharcha', amount: q.otherCharges },
+      ].filter(Boolean) as Array<{ type: string; label: string; amount: number }>;
+      const sale = await withManagerPin('Quotation ka bill', (managerPin) => salesApi.create({
+        ...(managerPin && { managerPin }),
+        shopId,
+        customerId: q.customerId || undefined,
+        ...salePayment(d, billTotal),
+        discount: q.discount || undefined,
+        serviceCharges: serviceCharges.length ? serviceCharges : undefined,
+        note: `Quotation ${q.quotationNumber}`,
+        items: q.items.map((i) => ({ productId: i.productId!, quantity: i.quantity, priceOverride: Math.round((i.total / i.quantity) * 10000) / 10000 })),
+      }));
+      await keepAdvance(d, billTotal, q.customerId || undefined, sale.saleNumber);
+      await quotationsApi.updateStatus(q.id, 'CONVERTED', `Bill ${sale.saleNumber}`, sale.id).catch(() => toast.error('Bill ban gaya, magar quotation par nishan nahi laga — dobara khol kar dekhein'));
+      return sale;
     },
+    onSuccess: (sale) => {
+      setBilling(false);
+      refresh();
+      ['products-for-pos', 'sales-history', 'customers', 'dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      toast.success(`Bill ${sale.saleNumber} ban gaya`, { action: { label: 'Challan banayein', onClick: () => navigate(`/hardware/deliveries/new?sale=${sale.id}`) }, duration: 8000 });
+    },
+    onError: (e) => { if ((e as Error)?.message !== 'Cancelled') toast.error(errorText(e, (e as Error)?.message || 'Bill nahi bana')); },
   });
 
   if (isLoading || !q) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
+    return <PageShell><Skeleton className="h-32 rounded-3xl" /><Skeleton className="h-80 rounded-3xl" /></PageShell>;
   }
 
-  const daysLeft = differenceInDays(new Date(q.validUntil), new Date());
+  const st = QUOTE_STATUS[q.status];
+  const open = canSell && (OPEN.includes(q.status) || q.status === 'EXPIRED');
+  const missing = q.items.filter((i) => !i.productId);
+  const canBill = canSell && q.status !== 'CONVERTED' && q.status !== 'REJECTED' && missing.length === 0;
+  const charges = q.deliveryCharges + q.laborCharges + q.otherCharges;
+  const wa = `https://wa.me/${(q.customerPhone ?? '').replace(/\D/g, '').replace(/^0/, '92')}?text=${encodeURIComponent(whatsappText(q))}`;
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <button onClick={() => navigate('/hardware/quotations')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                Rev {q.revisionNumber}
-              </div>
-              <h1 className="mt-1 text-3xl font-extrabold">{q.quotationNumber}</h1>
-              <div className="mt-1 flex items-center gap-2 flex-wrap text-sm">
-                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-extrabold uppercase">{q.status}</span>
-                <span className="text-white/80 font-semibold">Valid till {format(new Date(q.validUntil), 'dd MMM yyyy')}</span>
-                {daysLeft < 0 && <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-xs font-extrabold uppercase">EXPIRED</span>}
-                {daysLeft >= 0 && daysLeft <= 3 && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-xs font-extrabold uppercase animate-pulse">EXPIRES IN {daysLeft}d</span>}
-              </div>
-            </div>
-          </div>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Quotation — aage kya karein" onClose={guide.close}
+          steps={[
+            { icon: Send, color: '#0891b2', title: 'Bhejein', text: 'Print ya WhatsApp se customer ko bhejein, phir "Bhej di" dabayein.' },
+            { icon: Edit3, color: '#7c3aed', title: 'Revision', text: 'Customer rate ya quantity badalwaye to "Revision" — purana number hi rehta hai, R1, R2 lagta hai.' },
+            { icon: Receipt, color: '#16a34a', title: 'Bill', text: '"Bill banayein" se isi rate par sale banti hai — cash, card, split ya udhaar (customer ka khata).' },
+            { icon: Truck, color: '#a16207', title: 'Challan', text: 'Bill ke baad site par maal bhejne ke liye challan banayein; maal kai challan me bhi ja sakta hai.' },
+          ]}
+          shortcuts={[['G', 'guide']]} />
+      )}
 
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold border border-white/20">
-              <Printer className="h-4 w-4" />Print
-            </button>
-            {q.status === 'DRAFT' && (
-              <Button className="bg-white text-slate-900" onClick={() => statusMutation.mutate('SENT')}>
-                <FileText className="h-4 w-4" />Mark Sent
-              </Button>
-            )}
-            {['DRAFT', 'SENT', 'VIEWED', 'ACCEPTED', 'REVISED'].includes(q.status) && (
-              <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => navigate('/pos', { state: { quotationId: q.id } })}>
-                <Receipt className="h-4 w-4" />Bill banao
-              </Button>
-            )}
-            {['SENT', 'VIEWED'].includes(q.status) && (
-              <>
-                <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => statusMutation.mutate('ACCEPTED')}>
-                  <CheckCircle2 className="h-4 w-4" />Mark Accepted
-                </Button>
-                <Button variant="secondary" onClick={() => statusMutation.mutate('REJECTED')} className="bg-rose-50 text-rose-700 border-rose-300">
-                  <Ban className="h-4 w-4" />Rejected
-                </Button>
-              </>
-            )}
-          </div>
+      <PageHero
+        title={<HeroBack to="/hardware/quotations" label="Quotations">{q.quotationNumber}{q.revisionNumber ? ` · R${q.revisionNumber}` : ''}</HeroBack>}
+        chip={st.label}
+        meta={`${q.customerName}${q.project ? ` · ${q.project.name}` : ''} · ${shortDate(q.createdAt)}`}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => quoteDoc(q)} label="Print" /></span>
+          {q.customerPhone && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+          {canSell && q.status !== 'CONVERTED' && <Link to={`/hardware/quotations/${q.id}/edit`} className={heroButton}><Edit3 className="h-4 w-4" />Revision</Link>}
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canBill && <button type="button" onClick={() => setBilling(true)} className={heroPrimaryButton}><Receipt className="h-4 w-4" />Bill banayein</button>}
+        </>}
+        stats={[
+          { label: 'Kul amount', value: formatPKR(q.total) },
+          { label: 'Items', value: String(q.items.length) },
+          { label: 'Chalegi', value: shortDate(q.validUntil) },
+        ]} />
+
+      {q.sale && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-emerald-900 ring-1 ring-emerald-200">
+          <CheckCircle2 className="h-4 w-4" /><span className="text-[0.875rem] font-medium">Bill {q.sale.saleNumber} ban chuka hai{q.sale.status === 'VOIDED' ? ' (void ho gaya)' : ''}</span>
+          <Link to={`/sales?q=${encodeURIComponent(q.sale.saleNumber)}`} className="ml-auto text-[0.8125rem] font-semibold hover:underline">Bill dekhein →</Link>
+          {q.sale.status !== 'VOIDED' && <Link to={`/hardware/deliveries/new?sale=${q.sale.id}`} className="text-[0.8125rem] font-semibold hover:underline">Challan banayein →</Link>}
         </div>
-      </section>
+      )}
+      {missing.length > 0 && q.status !== 'CONVERTED' && (
+        <div className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">
+          {missing.map((i) => i.itemName).join(', ')} catalog me nahi — bill ke liye pehle product banayein, phir revision me catalog wala item chunein.
+        </div>
+      )}
 
-      <div className="grid lg:grid-cols-[1fr_380px] gap-6">
-        <section className="space-y-4">
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2"><User className="h-4 w-4 text-violet-600" />Customer</h3>
-            <div className="space-y-1 text-sm">
-              <div className="font-extrabold text-lg">{q.customerName}</div>
-              {q.customerPhone && <a href={'tel:' + q.customerPhone} className="flex items-center gap-1 text-blue-700 font-bold hover:underline"><Phone className="h-3 w-3" />{q.customerPhone}</a>}
-              {q.customerEmail && <a href={'mailto:' + q.customerEmail} className="flex items-center gap-1 text-blue-700 font-bold hover:underline"><Mail className="h-3 w-3" />{q.customerEmail}</a>}
-              {q.customerAddress && <div className="text-xs text-slate-600 font-semibold whitespace-pre-line">{q.customerAddress}</div>}
-              {q.project && <div className="mt-2 text-xs font-extrabold text-violet-700 inline-flex items-center gap-1"><Building className="h-3 w-3" />{q.project.projectNumber} • {q.project.name}</div>}
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800">
-              <h3 className="text-lg font-bold flex items-center gap-2"><Package className="h-5 w-5 text-violet-600" />Items ({q.items.length})</h3>
-            </div>
-            <div className="divide-y divide-slate-100 dark:divide-ink-800">
-              {q.items.map((item: any) => (
-                <div key={item.id} className="p-4">
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-lg font-extrabold text-violet-700 tabular-nums">{item.quantity} {item.unit}</span>
-                        <span className="font-extrabold">{item.itemName}</span>
-                        {item.brand && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">{item.brand}</span>}
-                      </div>
-                      {item.specifications && <div className="text-xs text-slate-500 font-semibold mt-1">Specs: {item.specifications}</div>}
-                      {item.itemDescription && <div className="text-xs text-slate-500 font-semibold italic mt-1">{item.itemDescription}</div>}
-                      <div className="mt-2 text-xs">
-                        <span className="text-slate-500 font-semibold">Unit: </span>
-                        <span className="font-extrabold text-emerald-700">{formatPKR(item.unitPrice)}</span>
-                        {item.discount > 0 && (
-                          <span className="ml-2 text-rose-700 font-extrabold">-{formatPKR(item.discount)}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(item.total)}</div>
-                    </div>
-                  </div>
-                </div>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <Card flush title="Items" description={`${q.items.length} line`}>
+          <Table minWidth="36rem">
+            <THead><Tr><Th>#</Th><Th>Item</Th><Th align="right">Quantity</Th><Th align="right">Rate</Th><Th align="right">Amount</Th></Tr></THead>
+            <TBody>
+              {q.items.map((i, n) => (
+                <Tr key={i.id ?? n}>
+                  <Td className="text-slate-400">{n + 1}</Td>
+                  <Td><p className="font-medium text-slate-900">{i.itemName}</p>{i.specifications && <p className="text-[0.75rem] text-slate-500">{i.specifications}</p>}</Td>
+                  <Td align="right" className="tabular-nums">{qty(i.quantity)} {UNIT_LABEL[i.unit as Unit] ?? ''}</Td>
+                  <Td align="right" className="tabular-nums">{formatPKR(i.unitPrice)}</Td>
+                  <Td align="right" className="font-semibold tabular-nums">{formatPKR(i.total)}</Td>
+                </Tr>
               ))}
-            </div>
-          </div>
-
-          {(q.paymentTerms || q.deliveryTerms || q.warrantyTerms || q.specialTerms) && (
-            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-extrabold">📋 Terms & Conditions</h3>
-              {q.paymentTerms && <div className="text-sm"><span className="font-extrabold text-slate-700">Payment: </span>{q.paymentTerms}</div>}
-              {q.deliveryTerms && <div className="text-sm"><span className="font-extrabold text-slate-700">Delivery: </span>{q.deliveryTerms}</div>}
-              {q.warrantyTerms && <div className="text-sm"><span className="font-extrabold text-slate-700">Warranty: </span>{q.warrantyTerms}</div>}
-              {q.specialTerms && <div className="text-sm"><span className="font-extrabold text-slate-700">Special: </span>{q.specialTerms}</div>}
-            </div>
-          )}
-
-          {q.customerNotes && (
-            <div className="rounded-3xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 p-4">
-              <div className="text-sm font-extrabold text-amber-900 mb-2">📝 Notes for Customer</div>
-              <p className="text-sm italic">{q.customerNotes}</p>
-            </div>
-          )}
-        </section>
+            </TBody>
+          </Table>
+        </Card>
 
         <aside className="space-y-4">
-          <div className="sticky top-4">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-violet-900 text-white p-5 shadow-xl">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-3">💰 Quote Summary</div>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(q.subtotal)}</span></div>
-                {q.discount > 0 && <div className="flex justify-between text-rose-300"><span>Discount</span><span className="font-bold tabular-nums">-{formatPKR(q.discount)}</span></div>}
-                {q.taxAmount > 0 && <div className="flex justify-between"><span className="text-white/70">Tax</span><span className="font-bold tabular-nums">{formatPKR(q.taxAmount)}</span></div>}
-                {q.deliveryCharges > 0 && <div className="flex justify-between"><span className="text-white/70">Delivery</span><span className="font-bold tabular-nums">{formatPKR(q.deliveryCharges)}</span></div>}
-                {q.laborCharges > 0 && <div className="flex justify-between"><span className="text-white/70">Labor</span><span className="font-bold tabular-nums">{formatPKR(q.laborCharges)}</span></div>}
-                {q.otherCharges > 0 && <div className="flex justify-between"><span className="text-white/70">Other</span><span className="font-bold tabular-nums">{formatPKR(q.otherCharges)}</span></div>}
+          <Card title="Hisaab">
+            <dl className="space-y-1.5 text-[0.875rem]">
+              <div className="flex justify-between"><dt className="text-slate-500">Items</dt><dd className="tabular-nums">{formatPKR(q.subtotal)}</dd></div>
+              {q.discount > 0 && <div className="flex justify-between"><dt className="text-slate-500">Discount</dt><dd className="tabular-nums">−{formatPKR(q.discount)}</dd></div>}
+              {q.taxAmount > 0 && <div className="flex justify-between"><dt className="text-slate-500">Tax</dt><dd className="tabular-nums">{formatPKR(q.taxAmount)}</dd></div>}
+              {charges > 0 && <div className="flex justify-between"><dt className="text-slate-500">Kiraya / mazdoori</dt><dd className="tabular-nums">{formatPKR(charges)}</dd></div>}
+              <div className="flex justify-between border-t border-slate-100 pt-2 text-[1.0625rem] font-bold"><dt>Kul</dt><dd className="tabular-nums">{formatPKR(q.total)}</dd></div>
+            </dl>
+          </Card>
+          {open && (
+            <Card title="Customer ka jawab">
+              <div className="grid gap-2">
+                {q.status !== 'SENT' && q.status !== 'VIEWED' && <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} loading={status.isPending && status.variables === 'SENT'} onClick={() => status.mutate('SENT')}>Bhej di</Button>}
+                <Button variant="success" leftIcon={<CheckCircle2 className="h-4 w-4" />} loading={status.isPending && status.variables === 'ACCEPTED'} onClick={() => status.mutate('ACCEPTED')}>Customer ne maan li</Button>
+                <Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setClosing(true)}>Na mani / band karein</Button>
               </div>
-              <div className="mt-3 pt-3 border-t border-white/20 flex justify-between items-center">
-                <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
-                <span className="text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(q.total)}</span>
-              </div>
-            </div>
-          </div>
+            </Card>
+          )}
+          {canSell && q.status === 'ACCEPTED' && (
+            <Card><Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setClosing(true)}>Band karein</Button></Card>
+          )}
+          {(q.paymentTerms || q.deliveryTerms || q.customerNotes || q.internalNotes) && (
+            <Card title="Shartein aur note">
+              <dl className="space-y-2 text-[0.875rem]">
+                {q.paymentTerms && <div><dt className="text-slate-500">Payment</dt><dd>{q.paymentTerms}</dd></div>}
+                {q.deliveryTerms && <div><dt className="text-slate-500">Delivery</dt><dd>{q.deliveryTerms}</dd></div>}
+                {q.customerNotes && <div><dt className="text-slate-500">Customer note</dt><dd>{q.customerNotes}</dd></div>}
+                {q.internalNotes && <div><dt className="text-slate-500">Andar ka note</dt><dd className="whitespace-pre-line">{q.internalNotes}</dd></div>}
+              </dl>
+            </Card>
+          )}
         </aside>
       </div>
-    </div>
+
+      {billing && (
+        <PosCheckoutModal total={billTotal} itemCount={q.items.length} loading={bill.isPending} initMode="full"
+          customerName={q.customerId ? q.customerName : undefined} hasCustomer={!!q.customerId} customerId={q.customerId}
+          allowSplit onConfirm={(d) => bill.mutate(d)} onClose={() => setBilling(false)} />
+      )}
+      {billing && q.taxAmount > 0 && (
+        <p className="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-md rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 shadow ring-1 ring-amber-200">
+          Quotation ka tax ({formatPKR(q.taxAmount)}) bill me nahi jata — bill {formatPKR(billTotal)} ka banega.
+        </p>
+      )}
+
+      <Modal open={closing} onClose={() => setClosing(false)} size="sm" title="Quotation band karein?"
+        description="Customer ne nahi mani ya ab zaroorat nahi. Record mehfooz rehta hai, dobara bheji ja sakti hai."
+        footer={<><Button variant="secondary" onClick={() => setClosing(false)}>Wapas</Button><Button variant="danger" loading={close.isPending} onClick={() => close.mutate()}>Band karein</Button></>}>
+        <p className={cn('flex items-center gap-2 text-[0.875rem] text-slate-600')}><FileText className="h-4 w-4" />{q.quotationNumber} · {formatPKR(q.total)}</p>
+      </Modal>
+    </PageShell>
   );
 }

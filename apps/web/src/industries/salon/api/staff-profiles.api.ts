@@ -30,20 +30,29 @@ export interface StaffProfile {
   avgRating?: number;
   totalReviews: number;
   isActive: boolean;
-  staff?: any;
-  services?: any[];
+  staff?: { id: string; fullName: string; phone?: string | null; designation?: string | null; avatarUrl?: string | null; userId?: string | null } | null;
+  services?: Array<{ serviceId: string; customPrice?: number | null; customDuration?: number | null; customCommissionPct?: number | null; isPrimary?: boolean }>;
   createdAt: string;
   updatedAt: string;
+}
+
+export type StaffProfileInput = Partial<Pick<StaffProfile, 'role' | 'specialization' | 'experienceYears' | 'bio' | 'commissionType' | 'commissionPct'
+  | 'commissionFixed' | 'workingDays' | 'workStartTime' | 'workEndTime' | 'isBookable' | 'maxDailyBookings' | 'bookingBuffer' | 'isActive'>>
+  & { staffId: string; breakStartTime?: string; breakEndTime?: string };
+
+export interface CommissionStatement {
+  from: string; to: string;
+  staff: Array<{ staffProfileId: string; name: string; services: number; revenue: number; commission: number; returned: number; net: number }>;
+  totals: { services: number; revenue: number; net: number };
+  lines?: Array<{ id: string; at: string; appointmentId: string; appointmentNumber: string; customerName?: string | null; saleNumber: string; serviceName: string; total: number; commission: number; returned: boolean; notes?: string | null }>;
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const staffProfilesApi = {
-  upsert: (data: Partial<StaffProfile>) => apiClient.post('/salon/staff-profiles', data).then(unwrap<StaffProfile>),
-  list: (params?: any) => apiClient.get('/salon/staff-profiles', { params }).then(unwrap<StaffProfile[]>),
-  byStaff: (staffId: string) => apiClient.get('/salon/staff-profiles/by-staff/' + staffId).then(unwrap<StaffProfile | null>),
-  getOne: (id: string) => apiClient.get('/salon/staff-profiles/' + id).then(unwrap<StaffProfile>),
-  assignServices: (id: string, services: any[]) => apiClient.post('/salon/staff-profiles/' + id + '/services', { services }).then(unwrap),
-  availability: (id: string, date: string) => apiClient.get('/salon/staff-profiles/' + id + '/availability', { params: { date } }).then(unwrap<any>),
+  upsert: (data: StaffProfileInput) => apiClient.post('/salon/staff-profiles', data).then(unwrap<StaffProfile>),
+  list: (params?: { bookable?: boolean; role?: string; search?: string }) => apiClient.get('/salon/staff-profiles', { params }).then(unwrap<StaffProfile[]>),
+  commission: (params: { from?: string; to?: string; staffProfileId?: string }) =>
+    apiClient.get('/salon/staff-profiles/commission', { params }).then(unwrap<CommissionStatement>),
   remove: (id: string) => apiClient.delete('/salon/staff-profiles/' + id).then(unwrap),
 };

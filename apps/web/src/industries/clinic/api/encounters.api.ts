@@ -25,8 +25,8 @@ export interface Encounter {
   referredTo?: string;
   referralNotes?: string;
   attachmentUrls: string[];
-  prescriptions?: any[];
-  labOrders?: any[];
+  prescriptions?: import('./prescriptions.api').Prescription[];
+  labOrders?: import('./lab-orders.api').LabOrder[];
   createdAt: string;
   updatedAt: string;
 }

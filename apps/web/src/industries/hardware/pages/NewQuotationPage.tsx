@@ -1,360 +1,314 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, Plus, Trash2, User, Phone, Sparkles, FileText, X,
-  Search, Package, DollarSign, Calendar,
-} from 'lucide-react';
-import { quotationsApi } from '../api/quotations.api';
-import { projectsApi } from '../api/projects.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
+/**
+ * Quotation (estimate) form, for a new quotation or a revision of an open
+ * one: customer and site, items from the catalog at retail or contractor
+ * rate (quantity rates apply by themselves), extra charges, validity and
+ * terms. The server prices the lines again on save.
+ *
+ * Keys: Ctrl+S save · G guide.
+ */
+
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Building2, CalendarClock, FileText, GraduationCap, HardHat, Package, Save, Store, Tags, Trash2, UserRound } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Segmented, Select, Skeleton, Textarea, heroIconButton } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { HeroBack } from '@core/components/HeroBack';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import type { PosItem } from '@modules/pos/engine';
+import { quotationsApi, type QuotationInput } from '../api/quotations.api';
+import { projectsApi } from '../api/projects.api';
+import type { Unit } from '../api/products.api';
+import { CustomerPick, type PickedCustomer } from '../components/CustomerPick';
+import { ItemPick } from '../components/ItemPick';
+import { tierFor, useTiers } from '../hooks/useHardwareFacts';
+import { useSaveKey } from '../hooks/usePageKeys';
+import { UNIT_LABEL, errorText, slipUnit } from '../lib/meta';
 
-const UNITS = ['BAG', 'KG', 'TON', 'PIECE', 'DOZEN', 'CARTON', 'METER', 'FEET', 'SQFT', 'SQMETER', 'CUBIC_FEET', 'LITER', 'BUNDLE', 'ROLL', 'SHEET', 'BOX', 'SET', 'TRIP'];
-
-interface QItem {
+interface Line {
+  key: string;
   productId?: string;
   itemName: string;
-  itemDescription: string;
-  brand: string;
   specifications: string;
   quantity: number;
-  unit: string;
+  unit: Unit;
   unitPrice: number;
+  /** Retail and wholesale rate of a catalog item, for the rate switch. */
+  retail?: number;
+  wholesale?: number;
   discount: number;
-  discountPct: number;
 }
 
+const VALIDITY = [7, 15, 30];
+const key = () => Math.random().toString(36).slice(2, 9);
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
 export default function NewQuotationPage() {
+  const { id } = useParams<{ id: string }>();
+  const [params] = useSearchParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const tiers = useTiers();
+  const editing = !!id;
 
-  const [form, setForm] = useState<any>({
-    projectId: '',
-    customerId: '',
-    customerName: '',
-    customerPhone: '',
-    customerEmail: '',
-    customerAddress: '',
-    validityDays: 15,
-    discount: 0,
-    discountPct: 0,
-    taxAmount: 0,
-    taxPct: 17,
-    deliveryCharges: 0,
-    laborCharges: 0,
-    otherCharges: 0,
-    paymentTerms: '50% advance, 50% before delivery',
-    deliveryTerms: 'Delivery within 3-5 working days',
-    warrantyTerms: 'Standard warranty as per brand',
-    specialTerms: '',
-    customerNotes: '',
-    internalNotes: '',
-  });
+  const { data: existing, isLoading } = useQuery({ queryKey: ['hardware-quotation', id], queryFn: () => quotationsApi.getOne(id!), enabled: editing });
+  const { data: projects = [] } = useQuery({ queryKey: ['hardware-projects', 'active'], queryFn: () => projectsApi.list({ active: true }).catch(() => []), staleTime: 60_000 });
 
-  const [items, setItems] = useState<QItem[]>([{
-    itemName: '', itemDescription: '', brand: '', specifications: '',
-    quantity: 1, unit: 'PIECE', unitPrice: 0, discount: 0, discountPct: 0,
-  }]);
+  const [customer, setCustomer] = useState<PickedCustomer | null>(null);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [projectId, setProjectId] = useState(params.get('project') ?? '');
+  const [rate, setRate] = useState<'retail' | 'wholesale'>('retail');
+  const [lines, setLines] = useState<Line[]>([]);
+  const [discount, setDiscount] = useState(0);
+  const [taxPct, setTaxPct] = useState(0);
+  const [delivery, setDelivery] = useState(0);
+  const [labour, setLabour] = useState(0);
+  const [other, setOther] = useState(0);
+  const [validity, setValidity] = useState(15);
+  const [paymentTerms, setPaymentTerms] = useState('50% advance, baqi delivery par');
+  const [deliveryTerms, setDeliveryTerms] = useState('');
+  const [notes, setNotes] = useState('');
+  const [internal, setInternal] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
-  const [showProductPicker, setShowProductPicker] = useState<number | null>(null);
-  const [productSearch, setProductSearch] = useState('');
+  useEffect(() => {
+    if (!existing) return;
+    setName(existing.customerName); setPhone(existing.customerPhone ?? ''); setAddress(existing.customerAddress ?? '');
+    if (existing.customerId) setCustomer({ id: existing.customerId, name: existing.customerName, phone: existing.customerPhone ?? null, address: existing.customerAddress ?? null, balance: 0, creditLimit: 0 });
+    setProjectId(existing.projectId ?? '');
+    setLines(existing.items.map((i) => ({
+      key: key(), productId: i.productId, itemName: i.itemName, specifications: i.specifications ?? '', quantity: i.quantity,
+      unit: (i.unit as Unit) || 'PIECE', unitPrice: i.unitPrice, discount: i.discount,
+    })));
+    setDiscount(existing.discount); setTaxPct(existing.taxPct); setDelivery(existing.deliveryCharges); setLabour(existing.laborCharges); setOther(existing.otherCharges);
+    setValidity(existing.validityDays); setPaymentTerms(existing.paymentTerms ?? ''); setDeliveryTerms(existing.deliveryTerms ?? '');
+    setNotes(existing.customerNotes ?? ''); setInternal(existing.internalNotes ?? '');
+  }, [existing]);
 
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-quotation', customerSearch],
-    queryFn: () => customersApi.list({ limit: 50, search: customerSearch || undefined }),
-    enabled: showCustomerPicker,
-  });
+  // A site carries its customer.
+  const project = projects.find((p) => p.id === projectId);
+  useEffect(() => {
+    if (!project || editing || customer || name) return;
+    setName(project.customerName); setPhone(project.customerPhone ?? ''); setAddress(project.siteAddress);
+  }, [project, editing, customer, name]);
 
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-quotation', productSearch],
-    queryFn: () => productsApi.list({ limit: 30, search: productSearch || undefined }),
-    enabled: showProductPicker !== null,
-  });
-
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects-for-quotation'],
-    queryFn: () => projectsApi.list({ active: true }),
-  });
-
-  const subtotal = items.reduce((s, it) => {
-    const base = it.quantity * it.unitPrice;
-    const disc = it.discount || (it.discountPct ? (base * it.discountPct) / 100 : 0);
-    return s + Math.max(base - disc, 0);
-  }, 0);
-
-  const overallDiscount = Number(form.discount) || (Number(form.discountPct) ? (subtotal * Number(form.discountPct)) / 100 : 0);
-  const taxCalc = Number(form.taxAmount) || (Number(form.taxPct) ? ((subtotal - overallDiscount) * Number(form.taxPct)) / 100 : 0);
-  const total = Math.max(subtotal - overallDiscount + taxCalc + Number(form.deliveryCharges) + Number(form.laborCharges) + Number(form.otherCharges), 0);
-
-  const createMutation = useMutation({
-    mutationFn: () => quotationsApi.create({
-      ...form,
-      projectId: form.projectId || undefined,
-      customerId: form.customerId || undefined,
-      validityDays: Number(form.validityDays) || 15,
-      discount: Number(form.discount) || 0,
-      discountPct: Number(form.discountPct) || 0,
-      taxAmount: Number(form.taxAmount) || 0,
-      taxPct: Number(form.taxPct) || 0,
-      deliveryCharges: Number(form.deliveryCharges) || 0,
-      laborCharges: Number(form.laborCharges) || 0,
-      otherCharges: Number(form.otherCharges) || 0,
-      items: items.filter((it) => it.itemName.trim()).map((it) => ({
-        ...it,
-        quantity: Number(it.quantity) || 1,
-        unitPrice: Number(it.unitPrice) || 0,
-        discount: Number(it.discount) || 0,
-        discountPct: Number(it.discountPct) || 0,
-      })),
-    }),
-    onSuccess: (q) => {
-      toast.success('Quotation ' + q.quotationNumber + ' created');
-      navigate('/hardware/quotations/' + q.id);
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const addItem = () => setItems([...items, { itemName: '', itemDescription: '', brand: '', specifications: '', quantity: 1, unit: 'PIECE', unitPrice: 0, discount: 0, discountPct: 0 }]);
-  const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
-  const updateItem = (i: number, patch: Partial<QItem>) => setItems(items.map((it, idx) => idx === i ? { ...it, ...patch } : it));
-
-  const pickProduct = (i: number, p: any) => {
-    updateItem(i, {
-      productId: p.id,
-      itemName: p.name,
-      brand: p.brand?.name || '',
-      unitPrice: p.price,
-    });
-    setShowProductPicker(null);
-    setProductSearch('');
+  const pickCustomer = (c: PickedCustomer | null) => {
+    setCustomer(c);
+    if (c) { setName(c.name); setPhone(c.phone ?? ''); setAddress(c.address ?? ''); }
   };
 
-  const canSubmit = items.some((it) => it.itemName.trim()) && form.customerName.trim();
+  const priceFor = (l: Pick<Line, 'productId' | 'retail' | 'wholesale'>, quantity: number, mode = rate) => {
+    const base = mode === 'wholesale' && l.wholesale && l.wholesale > 0 ? l.wholesale : l.retail ?? 0;
+    const t = l.productId ? tierFor(tiers.get(l.productId), quantity) : null;
+    return t && t.price < base ? t.price : base;
+  };
+  const addItem = (i: PosItem, facts?: string) => {
+    if (lines.some((l) => l.productId === i.id)) { toast.info(`${i.name} pehle se list me hai — quantity badlein`); return; }
+    const l = { productId: i.id, retail: i.price, wholesale: Number(i.product.wholesalePrice) || undefined };
+    setLines((p) => [...p, { key: key(), ...l, itemName: i.name, specifications: facts ?? '', quantity: 1, unit: slipUnit(i.unit), unitPrice: priceFor(l, 1), discount: 0 }]);
+  };
+  const addCustom = (itemName: string) => setLines((p) => [...p, { key: key(), itemName, specifications: '', quantity: 1, unit: 'PIECE', unitPrice: 0, discount: 0 }]);
+  const update = (k: string, patch: Partial<Line>) => setLines((p) => p.map((l) => {
+    if (l.key !== k) return l;
+    const next = { ...l, ...patch };
+    // Changing the quantity of a catalog item follows its quantity rate, unless the rate was typed by hand.
+    if (patch.quantity != null && l.productId && l.unitPrice === priceFor(l, l.quantity)) next.unitPrice = priceFor(next, next.quantity);
+    return next;
+  }));
+  const switchRate = (mode: 'retail' | 'wholesale') => {
+    setRate(mode);
+    setLines((p) => p.map((l) => (l.productId && l.retail != null ? { ...l, unitPrice: priceFor(l, l.quantity, mode) } : l)));
+  };
+
+  const totals = useMemo(() => {
+    const subtotal = r2(lines.reduce((s, l) => s + Math.max(l.quantity * l.unitPrice - l.discount, 0), 0));
+    const disc = Math.min(discount, subtotal);
+    const tax = r2(((subtotal - disc) * taxPct) / 100);
+    return { subtotal, disc, tax, total: r2(subtotal - disc + tax + delivery + labour + other) };
+  }, [lines, discount, taxPct, delivery, labour, other]);
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!name.trim()) e.name = 'Customer ka naam likhein';
+    if (phone.trim() && !/^[0-9+\-\s]{10,15}$/.test(phone.trim())) e.phone = 'Phone number theek likhein (03xx-xxxxxxx)';
+    if (!lines.length) e.items = 'Kam se kam ek item dalein';
+    lines.forEach((l) => {
+      if (!l.itemName.trim()) e[`n-${l.key}`] = 'Naam likhein';
+      if (!(l.quantity > 0)) e[`q-${l.key}`] = 'Quantity 0 se zyada';
+      if (!(l.unitPrice >= 0)) e[`p-${l.key}`] = 'Rate theek likhein';
+      if (l.discount < 0 || l.discount > l.quantity * l.unitPrice) e[`d-${l.key}`] = 'Discount line se zyada nahi';
+    });
+    if ([discount, taxPct, delivery, labour, other].some((v) => v < 0)) e.charges = 'Koi amount manfi nahi ho sakti';
+    if (discount > totals.subtotal) e.charges = 'Discount items se zyada hai';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const save = useMutation({
+    mutationFn: () => {
+      const body: QuotationInput = {
+        projectId: projectId || undefined, customerId: customer?.id, customerName: name.trim(), customerPhone: phone.trim() || undefined,
+        customerAddress: address.trim() || undefined, validityDays: validity, discount: totals.disc, taxPct, deliveryCharges: delivery,
+        laborCharges: labour, otherCharges: other, paymentTerms: paymentTerms.trim() || undefined, deliveryTerms: deliveryTerms.trim() || undefined,
+        customerNotes: notes.trim() || undefined, internalNotes: internal.trim() || undefined,
+        items: lines.map((l) => ({ productId: l.productId, itemName: l.itemName.trim(), specifications: l.specifications.trim() || undefined, quantity: l.quantity, unit: l.unit, unitPrice: l.unitPrice, discount: l.discount || undefined })),
+      };
+      return editing ? quotationsApi.revise(id!, body) : quotationsApi.create(body);
+    },
+    onSuccess: (q) => {
+      qc.invalidateQueries({ queryKey: ['hardware-quotations'] });
+      qc.invalidateQueries({ queryKey: ['hardware-quotation', q.id] });
+      qc.invalidateQueries({ queryKey: ['hardware-quotations-summary'] });
+      toast.success(editing ? `${q.quotationNumber} ki nayi revision save ho gayi` : `Quotation ${q.quotationNumber} ban gayi`);
+      navigate(`/hardware/quotations/${q.id}`);
+    },
+    onError: (e) => toast.error(errorText(e, 'Quotation save nahi hui')),
+  });
+  const submit = () => { if (!save.isPending && validate()) save.mutate(); else if (!save.isPending) toast.error('Laal nishan wali jagah theek karein'); };
+  useSaveKey(submit);
+
+  if (editing && isLoading) return <PageShell><Skeleton className="h-32 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></PageShell>;
+  if (editing && existing?.status === 'CONVERTED') {
+    return (
+      <PageShell>
+        <PageHero title={<HeroBack to={`/hardware/quotations/${id}`} label="Quotation">{existing.quotationNumber}</HeroBack>} meta="Is quotation ka bill ban chuka hai" />
+        <Card><p className="text-[0.9375rem] text-slate-700">Bill ban chuki quotation badli nahi ja sakti. Nayi quotation banayein.</p></Card>
+      </PageShell>
+    );
+  }
+
+  const field = 'h-10 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-[0.875rem] tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
+  const money = (label: string, value: number, set: (n: number) => void, hint?: string) => (
+    <Input label={label} hint={hint} inputMode="decimal" value={value || ''} onChange={(e) => set(Math.max(Number(e.target.value.replace(/[^\d.]/g, '')) || 0, 0))} placeholder="0" />
+  );
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/hardware/quotations')} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
-                <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                New Quotation
-              </div>
-              <h1 className="mt-1 text-2xl font-extrabold">📄 Create Estimate</h1>
-            </div>
-          </div>
-          <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} disabled={!canSubmit} className="bg-white text-slate-900 hover:bg-slate-100">
-            <Save className="h-4 w-4" />
-            Create Quotation
-          </Button>
-        </div>
-      </section>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Quotation — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: UserRound, color: '#2563eb', title: 'Customer aur site', text: 'Purana customer dhoondein ya naam aur phone likhein. Site chunein to pata khud aa jata hai.' },
+            { icon: Package, color: '#a16207', title: 'Items', text: 'Naam, size ya code likh kar Enter. Catalog me na ho to "catalog ke bagair line" — magar bill ke liye item catalog me hona chahiye.' },
+            { icon: HardHat, color: '#16a34a', title: 'Thekedar rate', text: 'Upar "Thekedar rate" chunein to wholesale rate lagta hai; zyada quantity par quantity rate khud lagta hai.' },
+            { icon: CalendarClock, color: '#d97706', title: 'Kitne din chalegi', text: 'Rate badalte rehte hain — quotation 7, 15 ya 30 din tak. Phir "Waqt guzar gaya" ho jati hai.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['G', 'guide']]} />
+      )}
 
-      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
-        <div className="space-y-6">
-          {/* Customer & Project */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold flex items-center gap-2"><User className="h-4 w-4 text-violet-600" />Customer & Project</h3>
+      <PageHero
+        title={<HeroBack to={editing ? `/hardware/quotations/${id}` : '/hardware/quotations'} label="Quotations">{editing ? `Revision · ${existing?.quotationNumber ?? ''}` : 'Nayi quotation'}</HeroBack>}
+        meta="Estimate jo customer ko diya jata hai — maan le to ek click me bill"
+        actions={<>
+          <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[{ label: 'Kul amount', value: formatPKR(totals.total) }, { label: 'Items', value: String(lines.length) }, { label: 'Chalegi', value: `${validity} din` }]} />
 
-            {form.customerId ? (
-              <div className="rounded-xl bg-violet-50 border-2 border-violet-200 p-3 flex items-center gap-3">
-                <User className="h-5 w-5 text-violet-600" />
-                <div className="flex-1">
-                  <div className="font-extrabold">{form.customerName}</div>
-                  {form.customerPhone && <div className="text-xs text-slate-600 font-bold">{form.customerPhone}</div>}
-                </div>
-                <button onClick={() => setForm({ ...form, customerId: '', customerName: '', customerPhone: '', customerEmail: '' })} className="text-xs font-extrabold text-violet-600 hover:underline">Change</button>
-              </div>
-            ) : (
-              <>
-                <button onClick={() => setShowCustomerPicker(!showCustomerPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-sm font-extrabold text-slate-600 hover:border-violet-400">
-                  <Search className="h-4 w-4 inline mr-1" />
-                  Search Existing Customer
-                </button>
-                {showCustomerPicker && (
-                  <div className="rounded-xl border-2 border-violet-300 bg-violet-50/50 p-3 space-y-2">
-                    <input autoFocus value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Search..." className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold" />
-                    <div className="max-h-52 overflow-y-auto space-y-1">
-                      {(customersData?.items ?? []).map((c) => (
-                        <button key={c.id} onClick={() => { setForm({ ...form, customerId: c.id, customerName: c.name, customerPhone: c.phone || '', customerEmail: (c as any).email || '' }); setShowCustomerPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
-                          <User className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                          <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                </div>
-                <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                <textarea rows={2} value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })} placeholder="Billing address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-              </>
-            )}
-
-            {projects.length > 0 && (
-              <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Link to Project</label>
-                <select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-                  <option value="">-- No project --</option>
-                  {projects.map((p) => <option key={p.id} value={p.id}>{p.projectNumber} • {p.name}</option>)}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days)</label>
-              <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
-            </div>
-          </section>
-
-          {/* Items */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold flex items-center gap-2"><Package className="h-4 w-4 text-violet-600" />Items ({items.length})</h3>
-              <Button size="sm" onClick={addItem} className="bg-gradient-to-r from-violet-600 to-purple-700">
-                <Plus className="h-3.5 w-3.5" />Add Item
-              </Button>
-            </div>
-
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="space-y-4">
+          <Card title="Customer aur site" description="Kis ke liye aur kahan ka maal">
             <div className="space-y-3">
-              {items.map((item, i) => (
-                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 dark:bg-ink-800/30 p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Item #{i + 1}</span>
-                    <div className="flex gap-1">
-                      <button onClick={() => setShowProductPicker(i)} className="h-7 px-2 rounded bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold hover:bg-violet-200 inline-flex items-center gap-1">
-                        <Package className="h-3 w-3" />Pick Product
-                      </button>
-                      {items.length > 1 && (
-                        <button onClick={() => removeItem(i)} className="h-7 w-7 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-2">
-                    <input value={item.itemName} onChange={(e) => updateItem(i, { itemName: e.target.value })} placeholder="Item name *" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                    <input value={item.brand} onChange={(e) => updateItem(i, { brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                  </div>
-
-                  <input value={item.specifications} onChange={(e) => updateItem(i, { specifications: e.target.value })} placeholder="Specifications (grade, size, model...)" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-
-                  <div className="grid grid-cols-4 gap-2">
-                    <div>
-                      <label className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</label>
-                      <input type="number" step="0.01" value={item.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-violet-500" />
-                    </div>
-                    <div>
-                      <label className="text-[0.625rem] uppercase font-extrabold text-slate-500">Unit</label>
-                      <select value={item.unit} onChange={(e) => updateItem(i, { unit: e.target.value })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-1 text-xs font-bold focus:outline-none focus:border-violet-500">
-                        {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Unit Price</label>
-                      <input type="number" step="0.01" value={item.unitPrice} onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-                    </div>
-                    <div>
-                      <label className="text-[0.625rem] uppercase font-extrabold text-rose-700">Disc %</label>
-                      <input type="number" step="0.1" value={item.discountPct} onChange={(e) => updateItem(i, { discountPct: Number(e.target.value), discount: 0 })} className="h-10 w-full rounded-lg border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
-                    </div>
-                  </div>
-
-                  <div className="text-right text-sm font-extrabold text-emerald-700 tabular-nums">
-                    = {formatPKR(Math.max(item.quantity * item.unitPrice - (item.discount || (item.quantity * item.unitPrice * item.discountPct) / 100), 0))}
-                  </div>
-                </div>
-              ))}
+              <CustomerPick value={customer} onChange={pickCustomer} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Naam" required value={name} onChange={(e) => setName(e.target.value)} error={errors.name} hint="Quotation par yahi naam chhapta hai" />
+                <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} error={errors.phone} inputMode="tel" placeholder="03xx-xxxxxxx" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select label="Site / project" value={projectId} onChange={(e) => setProjectId(e.target.value)}
+                  options={[{ value: '', label: 'Koi site nahi' }, ...projects.map((p) => ({ value: p.id, label: `${p.name} · ${p.customerName}` }))]}
+                  hint={<Link to="/hardware/projects" className="text-brand-700 hover:underline">Nayi site banayein</Link>} />
+                <Input label="Pata" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Site ya ghar ka pata" />
+              </div>
             </div>
-          </section>
+          </Card>
 
-          {/* Terms */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold">📋 Terms & Conditions</h3>
-            <textarea rows={2} value={form.paymentTerms} onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })} placeholder="Payment terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.deliveryTerms} onChange={(e) => setForm({ ...form, deliveryTerms: e.target.value })} placeholder="Delivery terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.warrantyTerms} onChange={(e) => setForm({ ...form, warrantyTerms: e.target.value })} placeholder="Warranty terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.specialTerms} onChange={(e) => setForm({ ...form, specialTerms: e.target.value })} placeholder="Special terms" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.customerNotes} onChange={(e) => setForm({ ...form, customerNotes: e.target.value })} placeholder="Notes visible to customer" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-          </section>
+          <Card title="Items" description="Rate quotation ke din ka — bill banate waqt yahi rate lagta hai"
+            actions={<Segmented label="Rate" value={rate} onChange={switchRate} items={[
+              { value: 'retail', label: <span className="inline-flex items-center gap-1"><Store className="h-3.5 w-3.5" />Retail</span> },
+              { value: 'wholesale', label: <span className="inline-flex items-center gap-1"><HardHat className="h-3.5 w-3.5" />Thekedar</span> },
+            ]} />}>
+            <ItemPick onPick={addItem} onCustom={addCustom} />
+            {errors.items && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{errors.items}</p>}
+            {lines.length > 0 && (
+              <ul className="mt-3 divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
+                {lines.map((l, i) => {
+                  const t = l.productId ? tierFor(tiers.get(l.productId), l.quantity) : null;
+                  return (
+                    <li key={l.key} className="grid gap-2 p-3 sm:grid-cols-[1.5rem_minmax(0,1fr)_6rem_5.5rem_7rem_6rem_2.25rem] sm:items-start">
+                      <span className="hidden pt-2.5 text-[0.75rem] font-semibold text-slate-400 sm:block">{i + 1}</span>
+                      <div className="min-w-0 space-y-1">
+                        <input value={l.itemName} onChange={(e) => update(l.key, { itemName: e.target.value })} aria-label="Item" className={cn(field, 'font-medium', errors[`n-${l.key}`] && 'border-rose-400')} />
+                        <input value={l.specifications} onChange={(e) => update(l.key, { specifications: e.target.value })} placeholder="Size, shade, brand (marzi)" aria-label="Tafseel" className={cn(field, 'h-8 text-[0.8125rem] text-slate-600')} />
+                        {!l.productId && <p className="text-[0.6875rem] text-amber-700">Catalog me nahi — bill se pehle product banayein</p>}
+                        {t && l.unitPrice === t.price && <p className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-emerald-700"><Tags className="h-3 w-3" />{t.minQuantity}+ wala rate</p>}
+                      </div>
+                      <label className="block"><span className="text-[0.6875rem] text-slate-500 sm:hidden">Quantity</span>
+                        <input inputMode="decimal" value={l.quantity || ''} onChange={(e) => update(l.key, { quantity: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} aria-label="Quantity" className={cn(field, errors[`q-${l.key}`] && 'border-rose-400')} /></label>
+                      <label className="block"><span className="text-[0.6875rem] text-slate-500 sm:hidden">Unit</span>
+                        <select value={l.unit} onChange={(e) => update(l.key, { unit: e.target.value as Unit })} aria-label="Unit" className={field}>
+                          {Object.entries(UNIT_LABEL).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+                        </select></label>
+                      <label className="block"><span className="text-[0.6875rem] text-slate-500 sm:hidden">Rate</span>
+                        <input inputMode="decimal" value={l.unitPrice || ''} onChange={(e) => update(l.key, { unitPrice: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} aria-label="Rate" className={cn(field, errors[`p-${l.key}`] && 'border-rose-400')} /></label>
+                      <p className="pt-2.5 text-right text-[0.875rem] font-semibold tabular-nums">{formatPKR(Math.max(l.quantity * l.unitPrice - l.discount, 0))}</p>
+                      <button type="button" onClick={() => setLines((p) => p.filter((x) => x.key !== l.key))} aria-label="Line hatayein" className="flex h-10 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Card>
+
+          <Card title="Shartein aur note" description="Quotation par chhapti hain">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Payment" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} placeholder="50% advance, baqi delivery par" />
+              <Input label="Delivery" value={deliveryTerms} onChange={(e) => setDeliveryTerms(e.target.value)} placeholder="3 din me site par" />
+              <Textarea label="Customer ke liye note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              <Textarea label="Andar ka note" hint="Sirf dukaan wale dekhte hain" rows={2} value={internal} onChange={(e) => setInternal(e.target.value)} />
+            </div>
+          </Card>
         </div>
 
-        {/* Summary sidebar */}
-        <aside className="space-y-4">
-          <div className="sticky top-4 space-y-4">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-violet-900 text-white p-5 shadow-xl">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-3">💰 Summary</div>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between"><span className="text-white/70">Items</span><span className="font-bold tabular-nums">{items.length}</span></div>
-                <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(subtotal)}</span></div>
-              </div>
-
-              <div className="mt-3 space-y-2">
-                <div className="grid grid-cols-2 gap-1">
-                  <input type="number" value={form.discountPct} onChange={(e) => setForm({ ...form, discountPct: e.target.value, discount: 0 })} placeholder="Disc %" className="h-9 rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40" />
-                  <input type="number" value={form.taxPct} onChange={(e) => setForm({ ...form, taxPct: e.target.value, taxAmount: 0 })} placeholder="Tax %" className="h-9 rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40" />
+        <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <Card title="Hisaab">
+            <div className="space-y-3">
+              {money('Discount (Rs)', discount, setDiscount)}
+              <Input label="Tax %" inputMode="decimal" value={taxPct || ''} onChange={(e) => setTaxPct(Math.min(Math.max(Number(e.target.value.replace(/[^\d.]/g, '')) || 0, 0), 100))} placeholder="0" />
+              {money('Delivery / kiraya', delivery, setDelivery)}
+              {money('Mazdoori', labour, setLabour, 'Utarai, fitting')}
+              {money('Aur kharcha', other, setOther)}
+              {errors.charges && <p className="text-[0.8125rem] font-medium text-rose-600">{errors.charges}</p>}
+              <dl className="space-y-1 border-t border-slate-100 pt-3 text-[0.875rem]">
+                <div className="flex justify-between"><dt className="text-slate-500">Items</dt><dd className="tabular-nums">{formatPKR(totals.subtotal)}</dd></div>
+                {totals.disc > 0 && <div className="flex justify-between"><dt className="text-slate-500">Discount</dt><dd className="tabular-nums">−{formatPKR(totals.disc)}</dd></div>}
+                {totals.tax > 0 && <div className="flex justify-between"><dt className="text-slate-500">Tax</dt><dd className="tabular-nums">{formatPKR(totals.tax)}</dd></div>}
+                {delivery + labour + other > 0 && <div className="flex justify-between"><dt className="text-slate-500">Kiraya / mazdoori</dt><dd className="tabular-nums">{formatPKR(delivery + labour + other)}</dd></div>}
+                <div className="flex justify-between border-t border-slate-100 pt-2 text-[1.0625rem] font-bold"><dt>Kul</dt><dd className="tabular-nums">{formatPKR(totals.total)}</dd></div>
+              </dl>
+              <div>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitne din chalegi</span>
+                <div className="flex gap-1.5">
+                  {VALIDITY.map((d) => (
+                    <button key={d} type="button" onClick={() => setValidity(d)}
+                      className={cn('h-9 flex-1 rounded-lg text-[0.8125rem] font-semibold ring-1', validity === d ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{d} din</button>
+                  ))}
                 </div>
-                <input type="number" value={form.deliveryCharges} onChange={(e) => setForm({ ...form, deliveryCharges: e.target.value })} placeholder="Delivery charges" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40" />
-                <input type="number" value={form.laborCharges} onChange={(e) => setForm({ ...form, laborCharges: e.target.value })} placeholder="Labor charges" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40" />
-                <input type="number" value={form.otherCharges} onChange={(e) => setForm({ ...form, otherCharges: e.target.value })} placeholder="Other charges" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40" />
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-white/20 flex justify-between items-center">
-                <span className="text-sm font-extrabold text-emerald-300">TOTAL</span>
-                <span className="text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>
-
-            <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} disabled={!canSubmit} size="lg" className="w-full bg-gradient-to-r from-violet-600 to-purple-700">
-              <Save className="h-5 w-5" />
-              Create Quotation
-            </Button>
+          </Card>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => navigate(editing ? `/hardware/quotations/${id}` : '/hardware/quotations')}>Wapas</Button>
+            <Button className="flex-1" onClick={submit} loading={save.isPending} leftIcon={<Save className="h-4 w-4" />}>{editing ? 'Revision save' : 'Save'}</Button>
           </div>
+          {projectId && <p className="flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Building2 className="h-3.5 w-3.5" />Site: {project?.name}</p>}
+          {!editing && <p className="flex items-center gap-1.5 text-[0.75rem] text-slate-500"><FileText className="h-3.5 w-3.5" />Save ke baad print, WhatsApp aur bill wahan se</p>}
         </aside>
       </div>
-
-      {/* Product picker */}
-      {showProductPicker !== null && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-              <h3 className="font-extrabold">Pick Product for Item #{showProductPicker + 1}</h3>
-              <button onClick={() => setShowProductPicker(null)} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="p-3">
-              <input autoFocus value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-            </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-1">
-              {(productsData?.items ?? []).map((p: any) => (
-                <button key={p.id} onClick={() => pickProduct(showProductPicker, p)} className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-slate-50 text-left">
-                  <Package className="h-4 w-4 text-slate-400" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-extrabold truncate">{p.name}</div>
-                    <div className="text-[0.6875rem] text-slate-500 font-bold">Stock: {p.stock}</div>
-                  </div>
-                  <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </PageShell>
   );
 }

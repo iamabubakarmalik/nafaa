@@ -21,6 +21,14 @@ function fits(compatibility: unknown, makeId?: string, modelId?: string, year?: 
   });
 }
 
+interface Fit { makeId?: string; modelId?: string; makeName?: string; modelName?: string; yearFrom?: number | null; yearTo?: number | null }
+
+/** "Toyota Corolla 2014-2020" */
+function fitText(f: Fit): string {
+  const years = f.yearFrom && f.yearTo ? `${f.yearFrom}-${f.yearTo}` : f.yearFrom ? `${f.yearFrom}+` : f.yearTo ? `-${f.yearTo}` : '';
+  return [f.makeName, f.modelName, years].filter(Boolean).join(' ');
+}
+
 @Injectable()
 export class PartProfilesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -97,6 +105,32 @@ export class PartProfilesService {
     return results.slice(0, 500);
   }
 
+  /**
+   * One light row per part for the counter, the parts list and the job card:
+   * numbers, brand, condition and which vehicles it fits, as text to search.
+   */
+  async facts(user: AuthenticatedUser) {
+    const rows = await this.prisma.autoPartProfile.findMany({
+      where: { tenantId: user.tenantId },
+      select: {
+        productId: true, partNumber: true, oemNumber: true, alternateNumbers: true, brand: true, condition: true,
+        category: true, warrantyMonths: true, compatibility: true, isFastMoving: true, isCritical: true,
+      },
+      take: 20_000,
+    });
+    return rows.map(({ compatibility, ...r }) => {
+      const c = (compatibility ?? null) as { isUniversal?: boolean; fitments?: Fit[] } | Fit[] | null;
+      const list: Fit[] = Array.isArray(c) ? c : Array.isArray(c?.fitments) ? c!.fitments! : [];
+      const universal = !Array.isArray(c) && !!c?.isUniversal;
+      return {
+        ...r,
+        universal,
+        fits: list.map((f) => ({ makeId: f.makeId ?? null, modelId: f.modelId ?? null, makeName: f.makeName ?? null, modelName: f.modelName ?? null, yearFrom: f.yearFrom ?? null, yearTo: f.yearTo ?? null })),
+        fitment: universal ? 'Har gaari' : list.map(fitText).filter(Boolean).join(', '),
+      };
+    });
+  }
+
   async byProduct(user: AuthenticatedUser, productId: string) {
     return this.prisma.autoPartProfile.findFirst({
       where: { productId, tenantId: user.tenantId },
@@ -116,7 +150,7 @@ export class PartProfilesService {
     });
     const productIds = profiles.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: productIds }, tenantId: user.tenantId },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const productMap = new Map(products.map((p) => [p.id, p]));
@@ -132,7 +166,7 @@ export class PartProfilesService {
 
     const productIds = filtered.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: productIds }, tenantId: user.tenantId },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const productMap = new Map(products.map((p) => [p.id, p]));

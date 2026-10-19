@@ -1,367 +1,172 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Award, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Star, Globe, Phone, User, Package, TrendingUp, MapPin,
-} from 'lucide-react';
-import { hardwareBrandsApi, type BrandTier, type HardwareBrand } from '../api/brands.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
-import { toast } from 'sonner';
+/**
+ * Brands (companies) for hardware: Lucky, DG Khan, Amreli, Master, ICI…
+ * These are the shop's product brands — the same list the item editor and
+ * product filters use — with the dealer's phone for reordering.
+ */
 
-const TIERS: { value: BrandTier; label: string; emoji: string; gradient: string }[] = [
-  { value: 'PREMIUM', label: 'Premium', emoji: '💎', gradient: 'from-purple-500 to-fuchsia-600' },
-  { value: 'STANDARD', label: 'Standard', emoji: '⭐', gradient: 'from-blue-500 to-cyan-600' },
-  { value: 'ECONOMY', label: 'Economy', emoji: '💰', gradient: 'from-emerald-500 to-teal-600' },
-  { value: 'IMPORTED', label: 'Imported', emoji: '🌐', gradient: 'from-amber-500 to-orange-600' },
-  { value: 'LOCAL', label: 'Local', emoji: '🇵🇰', gradient: 'from-green-500 to-emerald-600' },
-];
+import { useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Award, Download, Edit3, EyeOff, GraduationCap, ListChecks, Package, Phone, Plus, RotateCcw, Star } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Switch, Textarea, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { brandsApi, type Brand, type UpsertBrandPayload } from '@modules/inventory/brands/api/brands.api';
+import { usePageKeys } from '../hooks/usePageKeys';
+import { errorText } from '../lib/meta';
+
+type Tab = 'active' | 'featured' | 'off' | 'all';
+const SUGGEST = ['Lucky Cement', 'DG Khan Cement', 'Bestway', 'Amreli Steel', 'Mughal Steel', 'Dadex', 'Master', 'Porta', 'ICI Dulux', 'Berger', 'Nippon', 'Pak Fan', 'Faisal Ceramics', 'Sonex'];
 
 export default function BrandsPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('active');
   const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<HardwareBrand | null>(null);
+  const [form, setForm] = useState<{ brand?: Brand; name?: string } | null>(null);
+  const { data = [], isLoading, isFetching } = useQuery({ queryKey: ['brands', 'hardware'], queryFn: () => brandsApi.list() });
+  usePageKeys(searchRef, { n: () => setForm({}) });
 
-  const { data: brands = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['hardware-brands', tierFilter, search],
-    queryFn: () => hardwareBrandsApi.list({
-      tier: tierFilter === 'all' ? undefined : tierFilter,
-      search: search.trim() || undefined,
-      active: true,
-    }),
+  const toggle = useMutation({
+    mutationFn: (b: Brand) => brandsApi.update(b.id, { name: b.name, isActive: !b.isActive }),
+    onSuccess: (b) => { qc.invalidateQueries({ queryKey: ['brands'] }); toast.success(b.isActive ? `${b.name} dobara chalu` : `${b.name} band — purana maal waisa hi`); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: (id: string) => hardwareBrandsApi.toggleFeatured(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hardware-brands'] }),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => hardwareBrandsApi.remove(id),
-    onSuccess: () => {
-      toast.success('Brand removed');
-      queryClient.invalidateQueries({ queryKey: ['hardware-brands'] });
-    },
-  });
+  const term = search.trim().toLowerCase();
+  const match = (b: Brand) => (tab === 'active' ? b.isActive : tab === 'featured' ? b.isActive && !!b.isFeatured : tab === 'off' ? !b.isActive : true);
+  const rows = useMemo(() => data.filter((b) => match(b) && (!term || [b.name, b.dealerCode, b.supportPhone, b.countryOfOrigin].some((v) => (v ?? '').toLowerCase().includes(term))))
+    .sort((a, b) => Number(!!b.isFeatured) - Number(!!a.isFeatured) || (b._count?.products ?? 0) - (a._count?.products ?? 0) || a.name.localeCompare(b.name)), [data, tab, term]); // eslint-disable-line react-hooks/exhaustive-deps
+  const counts = { active: data.filter((b) => b.isActive).length, featured: data.filter((b) => b.isActive && b.isFeatured).length, off: data.filter((b) => !b.isActive).length, all: data.length };
+  const items = data.reduce((s, b) => s + (b._count?.products ?? 0), 0);
+  const missing = SUGGEST.filter((s) => !data.some((b) => b.name.toLowerCase() === s.toLowerCase())).slice(0, 8);
 
   return (
-    <div className="space-y-6">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-orange-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Brand Master
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🏆 Hardware Brands</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Fauji, DG Khan, Lucky, Amreli — supplier catalog</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              New Brand
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Brands — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Award, color: '#a16207', title: 'Company banayein', text: 'Har company ek baar — item banate waqt Brand me chunein. Products ki list brand se filter hoti hai.' },
+            { icon: Phone, color: '#16a34a', title: 'Dealer ka phone', text: 'Dealer ka number likhein — mangwana ho to yahin se call.' },
+            { icon: EyeOff, color: '#64748b', title: 'Band karein', text: 'Jo company ab nahi rakhte use band karein; purane item aur bill waise hi rehte hain.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya brand'], ['G', 'guide']]} />
+      )}
 
-      {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search brand name, code..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-orange-500" />
-        </div>
+      <PageHero title="Brands" chip={`${counts.active} chalu`} busy={isFetching && !isLoading} loading={isLoading}
+        meta="Companies jin ka maal rakhte hain — item editor aur filter me yahi"
+        actions={<>
+          <button type="button" onClick={() => downloadCsv('brands.csv', [['Brand', 'Items', 'Dealer code', 'Dealer phone', 'Mulk', 'Chalu'], ...rows.map((b) => [b.name, b._count?.products ?? 0, b.dealerCode, b.supportPhone, b.countryOfOrigin, b.isActive ? 'Haan' : 'Nahi'])])} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setForm({})} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya brand</button>
+        </>}
+        stats={[{ label: 'Chalu brands', value: String(counts.active) }, { label: 'In ke items', value: String(items) }]} />
 
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setTierFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (tierFilter === 'all' ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All Tiers</button>
-          {TIERS.map((t) => (
-            <button key={t.value} onClick={() => setTierFilter(t.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tierFilter === t.value ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>
-              {t.emoji} {t.label}
-            </button>
-          ))}
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        {isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Award} color="#a16207" label="Chalu" value={counts.active} onClick={() => setTab('active')} active={tab === 'active'} />
+            <KpiCard icon={Star} color="#d97706" label="Khaas (upar)" value={counts.featured} onClick={() => setTab('featured')} active={tab === 'featured'} />
+            <KpiCard icon={EyeOff} color="#64748b" label="Band" value={counts.off} onClick={() => setTab('off')} active={tab === 'off'} />
+            <KpiCard icon={Package} color="#2563eb" label="Items" value={items} />
+          </>
+        )}
+      </KpiRow>
 
-      {showForm && (
-        <BrandForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false);
-            setEditing(null);
-            queryClient.invalidateQueries({ queryKey: ['hardware-brands'] });
-          }}
-        />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Brand, dealer code ya phone…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')} />
+
+      <ViewTabs value={tab} onChange={setTab} tabs={[
+        { id: 'active', label: 'Chalu', icon: Award, count: counts.active }, { id: 'featured', label: 'Khaas', icon: Star, count: counts.featured },
+        { id: 'off', label: 'Band', icon: EyeOff, count: counts.off }, { id: 'all', label: 'Sab', icon: ListChecks, count: counts.all },
+      ]} />
+
+      {!isLoading && missing.length > 0 && tab === 'active' && !term && (
+        <div className="flex flex-wrap items-center gap-1.5 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80">
+          <span className="mr-1 text-[0.8125rem] font-medium text-slate-600">Jaldi jorein:</span>
+          {missing.map((n) => <button key={n} type="button" onClick={() => setForm({ name: n })} className="inline-flex h-7 items-center gap-1 rounded-full bg-slate-100 px-2.5 text-[0.75rem] font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-800"><Plus className="h-3 w-3" />{n}</button>)}
+        </div>
       )}
 
       {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : brands.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <Award className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No brands yet</p>
-          <Button className="mt-4 bg-gradient-to-r from-orange-600 to-amber-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" />
-            Add First Brand
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {brands.map((brand) => (
-            <BrandCard
-              key={brand.id}
-              brand={brand}
-              onEdit={() => { setEditing(brand); setShowForm(true); }}
-              onToggleFeatured={() => toggleMutation.mutate(brand.id)}
-              onDelete={() => { if (confirm('Remove "' + brand.name + '"?')) removeMutation.mutate(brand.id); }}
-            />
-          ))}
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
+      ) : rows.length === 0 ? (
+        <section className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center shadow-sm ring-1 ring-slate-200/80">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Award className="h-7 w-7" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{term ? 'Is search me koi brand nahi' : 'Is list me koi brand nahi'}</h3>
+          <button type="button" onClick={() => setForm({})} className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya brand</button>
         </section>
-      )}
-    </div>
-  );
-}
-
-function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
-  const tier = TIERS.find((t) => t.value === brand.tier);
-
-  return (
-    <div className={
-      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (brand.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className={'relative aspect-video overflow-hidden bg-gradient-to-br ' + (tier?.gradient ?? 'from-slate-500 to-slate-700')}>
-        {brand.logoUrl ? (
-          <img src={brand.logoUrl} alt="" className="w-full h-full object-contain bg-white/90 p-4" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-6xl">{tier?.emoji || '🏭'}</span>
-          </div>
-        )}
-
-        <div className="absolute top-2 left-2 flex gap-1">
-          {brand.isFeatured && (
-            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-              <Star className="h-2 w-2 fill-current" />
-              Featured
-            </span>
-          )}
-          <span className={'px-2 py-0.5 rounded-md text-white text-[0.625rem] font-extrabold uppercase shadow bg-gradient-to-r ' + (tier?.gradient ?? 'from-slate-500 to-slate-700')}>
-            {tier?.label}
-          </span>
-        </div>
-
-        <button
-          onClick={onToggleFeatured}
-          className={
-            'absolute top-2 right-2 h-8 w-8 rounded-lg backdrop-blur flex items-center justify-center transition shadow-lg ' +
-            (brand.isFeatured ? 'bg-amber-500 text-white' : 'bg-slate-900/60 text-white hover:bg-amber-500')
-          }
-        >
-          <Star className={'h-4 w-4 ' + (brand.isFeatured ? 'fill-current' : '')} />
-        </button>
-
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-slate-900/90 text-white flex items-center justify-center hover:bg-slate-900 shadow">
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="h-8 w-8 rounded-lg bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-600 shadow">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-2">
-        <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">{brand.name}</h3>
-          {brand.code && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{brand.code}</div>}
-          {brand.countryOfOrigin && (
-            <div className="text-xs font-bold text-slate-600 inline-flex items-center gap-1 mt-1">
-              <Globe className="h-3 w-3" />
-              {brand.countryOfOrigin}
-            </div>
-          )}
-        </div>
-
-        {brand.description && (
-          <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold line-clamp-2">{brand.description}</p>
-        )}
-
-        {(brand.supplierContact || brand.supplierPhone) && (
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-xs space-y-0.5">
-            {brand.supplierContact && (
-              <div className="inline-flex items-center gap-1 font-bold text-blue-800">
-                <User className="h-3 w-3" />
-                {brand.supplierContact}
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {rows.map((b) => (
+            <div key={b.id} className={cn('flex flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80', !b.isActive && 'opacity-60')}>
+              <div className="flex items-start gap-3">
+                {b.logoUrl ? <img src={b.logoUrl} alt="" className="h-10 w-10 rounded-lg object-contain ring-1 ring-slate-200" />
+                  : <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-[0.9375rem] font-bold text-amber-800">{b.name.slice(0, 2).toUpperCase()}</span>}
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1 truncate font-semibold text-slate-900">{b.name}{b.isFeatured && <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}</p>
+                  <p className="truncate text-[0.75rem] text-slate-500">{b._count?.products ?? 0} items{b.countryOfOrigin ? ` · ${b.countryOfOrigin}` : ''}</p>
+                </div>
               </div>
-            )}
-            {brand.supplierPhone && (
-              <a href={'tel:' + brand.supplierPhone} className="flex items-center gap-1 font-extrabold text-blue-700 hover:underline">
-                <Phone className="h-3 w-3" />
-                {brand.supplierPhone}
-              </a>
-            )}
-          </div>
-        )}
-
-        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 grid grid-cols-2 gap-2">
-          <div>
-            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 inline-flex items-center gap-0.5">
-              <Package className="h-2.5 w-2.5" />
-              Products
+              {(b.supportPhone || b.dealerCode) && (
+                <p className="mt-2 flex items-center gap-1 truncate text-[0.75rem] text-slate-600"><Phone className="h-3 w-3" />{[b.supportPhone, b.dealerCode && `Code ${b.dealerCode}`].filter(Boolean).join(' · ')}</p>
+              )}
+              <div className="mt-3 flex gap-1 border-t border-slate-100 pt-2">
+                <button type="button" onClick={() => setForm({ brand: b })} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-100"><Edit3 className="h-3.5 w-3.5" />Badlein</button>
+                <button type="button" onClick={() => toggle.mutate(b)} className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-semibold text-slate-600 hover:bg-slate-100">
+                  {b.isActive ? <><EyeOff className="h-3.5 w-3.5" />Band</> : <><RotateCcw className="h-3.5 w-3.5" />Chalu</>}
+                </button>
+              </div>
             </div>
-            <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{brand.productCount ?? brand.totalProducts}</div>
-          </div>
-          <div>
-            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 inline-flex items-center gap-0.5">
-              <TrendingUp className="h-2.5 w-2.5" />
-              Revenue
-            </div>
-            <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(brand.totalRevenue).replace('Rs', '').trim()}</div>
-          </div>
+          ))}
         </div>
-      </div>
-    </div>
+      )}
+
+      {form && <BrandModal brand={form.brand} name={form.name} onClose={() => setForm(null)} />}
+    </PageShell>
   );
 }
 
-function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | null; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState<any>({
-    name: editing?.name ?? '',
-    code: editing?.code ?? '',
-    tier: editing?.tier ?? 'STANDARD',
-    countryOfOrigin: editing?.countryOfOrigin ?? '',
-    description: editing?.description ?? '',
-    logoUrl: editing?.logoUrl ?? '',
-    supplierContact: editing?.supplierContact ?? '',
-    supplierPhone: editing?.supplierPhone ?? '',
-    isFeatured: editing?.isFeatured ?? false,
-    displayOrder: editing?.displayOrder ?? 0,
+function BrandModal({ brand, name, onClose }: { brand?: Brand; name?: string; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [f, setF] = useState<UpsertBrandPayload>({
+    name: brand?.name ?? name ?? '', countryOfOrigin: brand?.countryOfOrigin ?? 'Pakistan', dealerCode: brand?.dealerCode ?? '',
+    supportPhone: brand?.supportPhone ?? '', description: brand?.description ?? '', isFeatured: !!brand?.isFeatured,
   });
-
-  const saveMutation = useMutation({
-    mutationFn: () => editing ? hardwareBrandsApi.update(editing.id, form) : hardwareBrandsApi.create(form),
-    onSuccess: () => { toast.success(editing ? 'Brand updated' : 'Brand created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  const [error, setError] = useState('');
+  const save = useMutation({
+    mutationFn: () => {
+      const body = { ...f, name: f.name.trim(), dealerCode: f.dealerCode?.trim() || undefined, supportPhone: f.supportPhone?.trim() || undefined, description: f.description?.trim() || undefined };
+      return brand ? brandsApi.update(brand.id, body) : brandsApi.create(body);
+    },
+    onSuccess: (b) => { qc.invalidateQueries({ queryKey: ['brands'] }); toast.success(`${b.name} save`); onClose(); },
+    onError: (e) => toast.error(errorText(e, 'Brand save nahi hua')),
   });
-
+  const submit = () => {
+    if (f.name.trim().length < 2) return setError('Brand ka naam likhein');
+    if (f.supportPhone?.trim() && !/^[0-9+\-\s]{10,15}$/.test(f.supportPhone.trim())) return setError('Phone theek likhein');
+    setError('');
+    save.mutate();
+  };
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-orange-300 dark:border-orange-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Brand' : 'New Brand'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="sm:col-span-2">
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Brand Name *</label>
-            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Fauji Cement, Amreli Steel" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-          </div>
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (FAUJI)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-          <input value={form.countryOfOrigin} onChange={(e) => setForm({ ...form, countryOfOrigin: e.target.value })} placeholder="Country of origin" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+    <Modal open onClose={onClose} size="md" title={brand ? `${brand.name} badlein` : 'Naya brand'}
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={submit}>Save</Button></>}>
+      <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-3">
+        <Input label="Naam" required data-autofocus value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="Lucky Cement" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Dealer phone" inputMode="tel" value={f.supportPhone ?? ''} onChange={(e) => setF({ ...f, supportPhone: e.target.value })} />
+          <Input label="Dealer code" value={f.dealerCode ?? ''} onChange={(e) => setF({ ...f, dealerCode: e.target.value })} />
+          <Input label="Mulk" value={f.countryOfOrigin ?? ''} onChange={(e) => setF({ ...f, countryOfOrigin: e.target.value })} />
+          <div className="flex items-end pb-2"><Switch checked={!!f.isFeatured} onChange={(e) => setF({ ...f, isFeatured: e.target.checked })} label="Khaas — list me upar" /></div>
         </div>
-
-        {/* Tier picker */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Tier *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {TIERS.map((t) => {
-              const active = form.tier === t.value;
-              return (
-                <button
-                  key={t.value}
-                  onClick={() => setForm({ ...form, tier: t.value })}
-                  className={
-                    'p-3 rounded-xl border-2 text-center transition ' +
-                    (active
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 shadow'
-                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-orange-300')
-                  }
-                >
-                  <div className="text-2xl mb-1">{t.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">{t.label}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Brand description, quality notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
-
-        {/* Logo */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Brand Logo</label>
-          {form.logoUrl ? (
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200 bg-white flex items-center justify-center p-4">
-              <img src={form.logoUrl} alt="" className="max-w-full max-h-full object-contain" />
-              <button onClick={() => setForm({ ...form, logoUrl: '' })} className="absolute top-2 right-2 h-8 w-8 rounded bg-rose-600 text-white flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, logoUrl: url });
-            }} />
-          )}
-        </div>
-
-        {/* Supplier contact */}
-        <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-blue-900 dark:text-blue-300 flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Supplier Contact (for reordering)
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input value={form.supplierContact} onChange={(e) => setForm({ ...form, supplierContact: e.target.value })} placeholder="Contact person name" className="h-11 rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            <input value={form.supplierPhone} onChange={(e) => setForm({ ...form, supplierPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Display Order</label>
-            <input type="number" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
-          </div>
-          <label className={
-            'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-            (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
-          }>
-            <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
-            <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
-            <span className="text-sm font-extrabold">Featured brand</span>
-          </label>
-        </div>
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-orange-600 to-amber-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update Brand' : 'Create Brand'}
-          </Button>
-        </div>
-      </div>
-    </section>
+        <Textarea label="Note" rows={2} value={f.description ?? ''} onChange={(e) => setF({ ...f, description: e.target.value })} />
+        {error && <p className="text-[0.8125rem] font-medium text-rose-600">{error}</p>}
+      </form>
+    </Modal>
   );
 }

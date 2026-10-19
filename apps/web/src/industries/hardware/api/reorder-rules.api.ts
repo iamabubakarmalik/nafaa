@@ -13,7 +13,7 @@ export interface ReorderRule {
   autoAlert: boolean;
   lastAlertAt?: string;
   isActive: boolean;
-  product?: any;
+  product?: { id: string; name: string; unit: string; stock: number } | null;
   currentStock?: number;
   needsReorder?: boolean;
   stockDeficit?: number;

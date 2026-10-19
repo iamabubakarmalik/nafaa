@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, ChevronDown, Pencil, Wheat } from 'lucide-react';
-import { Button, Skeleton } from '@/design-system/components';
+import { Button, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -88,22 +88,20 @@ function RecipeRow({ r }: { r: RecipeCost }) {
       </div>
       {open && (
         <div className="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[34rem] text-[0.8125rem]">
-              <thead><tr className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="py-1.5">Saamaan</th><th className="py-1.5 text-right">Quantity</th><th className="py-1.5 text-right">Aaj ka rate</th><th className="py-1.5 text-right">Kharch</th><th className="py-1.5 text-right">Gudaam</th></tr></thead>
-              <tbody className="divide-y divide-slate-100">
+          <Table minWidth="34rem" className="text-[0.8125rem] [&_table]:text-[0.8125rem]">
+              <THead><Tr className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><Th className="py-1.5">Saamaan</Th><Th className="py-1.5 text-right">Quantity</Th><Th className="py-1.5 text-right">Aaj ka rate</Th><Th className="py-1.5 text-right">Kharch</Th><Th className="py-1.5 text-right">Gudaam</Th></Tr></THead>
+              <TBody>
                 {r.lines.map((l) => (
-                  <tr key={l.ingredientId} className={cn(l.missing && 'text-rose-700')}>
-                    <td className="py-1.5">{l.name}{l.missing && ' (nahi mila)'}</td>
-                    <td className="py-1.5 text-right tabular-nums">{fmtQty(l.qty)} {l.unit}</td>
-                    <td className="py-1.5 text-right tabular-nums">{l.cost ? <>{cost(l.cost.rate)}{l.cost.changed && <span className="ml-1 text-[0.6875rem] text-amber-700">(pehle {cost(l.cost.savedRate)})</span>}</> : '••••'}</td>
-                    <td className="py-1.5 text-right font-medium tabular-nums">{l.cost ? cost(l.cost.line) : '••••'}</td>
-                    <td className="py-1.5 text-right tabular-nums text-slate-600">{l.stock === null ? '—' : `${fmtQty(l.stock)} ${l.unit}`}</td>
-                  </tr>
+                  <Tr key={l.ingredientId} className={cn(l.missing && 'text-rose-700')}>
+                    <Td className="py-1.5">{l.name}{l.missing && ' (nahi mila)'}</Td>
+                    <Td className="py-1.5 text-right tabular-nums">{fmtQty(l.qty)} {l.unit}</Td>
+                    <Td className="py-1.5 text-right tabular-nums">{l.cost ? <>{cost(l.cost.rate)}{l.cost.changed && <span className="ml-1 text-[0.6875rem] text-amber-700">(pehle {cost(l.cost.savedRate)})</span>}</> : '••••'}</Td>
+                    <Td className="py-1.5 text-right font-medium tabular-nums">{l.cost ? cost(l.cost.line) : '••••'}</Td>
+                    <Td className="py-1.5 text-right tabular-nums text-slate-600">{l.stock === null ? '—' : `${fmtQty(l.stock)} ${l.unit}`}</Td>
+                  </Tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TBody>
+            </Table>
           {r.cost && !costHidden && (
             <p className="text-[0.8125rem] text-slate-700">Poori dafa {cost(r.cost.batch)} · ek {r.unit} {cost(r.cost.perUnit)} · product par likhi cost {cost(r.cost.current)}
               {off && <span className="ml-1 inline-flex items-center gap-1 text-amber-800"><AlertTriangle className="h-3.5 w-3.5" />farq {cost(Math.abs(r.cost.diff))}</span>}</p>

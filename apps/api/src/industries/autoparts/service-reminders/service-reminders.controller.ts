@@ -13,9 +13,12 @@ export class ServiceRemindersController {
   constructor(private readonly service: ServiceRemindersService) {}
 
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('vehicleId') vehicleId?: string, @Query('upcoming') upcoming?: string, @Query('overdue') overdue?: string) {
-    return this.service.list(user, { status, vehicleId, upcoming: upcoming === 'true', overdue: overdue === 'true' });
+  @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('vehicleId') vehicleId?: string, @Query('upcoming') upcoming?: string, @Query('overdue') overdue?: string, @Query('view') view?: string, @Query('search') search?: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+    const n = (v?: string) => (v && Number.isFinite(Number(v)) && Number(v) >= 1 ? Math.min(Math.floor(Number(v)), 200) : undefined);
+    return this.service.list(user, { status, vehicleId, upcoming: upcoming === 'true', overdue: overdue === 'true', view, search, page: n(page), limit: n(limit) });
   }
+  @Get('stats') stats(@GetUser() user: AuthenticatedUser) { return this.service.stats(user); }
+  @Post(':id/snooze') snooze(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { until: string }) { return this.service.snooze(user, id, body?.until); }
   @Get('by-vehicle/:vehicleId') byVehicle(@GetUser() user: AuthenticatedUser, @Param('vehicleId') vehicleId: string) { return this.service.byVehicle(user, vehicleId); }
   @Post(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string }) { return this.service.updateStatus(user, id, body.status); }
   @Post('auto-generate/:vehicleId') autoGen(@GetUser() user: AuthenticatedUser, @Param('vehicleId') vehicleId: string) { return this.service.autoGenerate(user, vehicleId); }

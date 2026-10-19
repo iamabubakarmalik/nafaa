@@ -1,12 +1,13 @@
 import {
-  Stethoscope, LayoutDashboard, Calendar, Timer, UserCog, Users,
-  Pill, TestTube, Syringe, Activity,
+  Stethoscope, LayoutDashboard, Calendar, CalendarPlus, Timer, UserCog, Users, Pill, TestTube, Syringe,
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
+import { PERMISSIONS } from '@core/lib/permissions';
 
 import ClinicDashboard from './dashboard/ClinicDashboard';
 import DoctorsPage from './pages/DoctorsPage';
 import PatientsPage from './pages/PatientsPage';
+import PatientDetailPage from './pages/PatientDetailPage';
 import ClinicAppointmentsPage from './pages/ClinicAppointmentsPage';
 import ClinicNewAppointmentPage from './pages/ClinicNewAppointmentPage';
 import ClinicAppointmentDetailPage from './pages/ClinicAppointmentDetailPage';
@@ -15,10 +16,13 @@ import LabOrdersPage from './pages/LabOrdersPage';
 import VaccinationsPage from './pages/VaccinationsPage';
 import QueuePage from './pages/QueuePage';
 
+const BOOKINGS = PERMISSIONS.SERVICE_BOOKINGS_VIEW;
+
 /**
- * Clinic / Doctor / Medical Practice industry pack.
- * Appointments, patient records (EMR-lite), prescriptions,
- * lab orders, vaccinations, live token queue.
+ * Clinic / Doctor / Dental / Lab pack: reception and tokens, live line,
+ * visits (vitals, notes, prescriptions, lab), patient records, doctors with
+ * fees and day close, vaccines. Medical pages need bookings view; the
+ * patient directory needs customers view.
  */
 export const ClinicPack: IndustryPack = {
   id: 'clinic',
@@ -27,7 +31,7 @@ export const ClinicPack: IndustryPack = {
   emoji: '🩺',
   priority: 66,
   description:
-    'Appointments, patient records, prescriptions, lab orders, vaccinations, live token queue.',
+    'Reception tokens, live line, visits with prescriptions and lab, patient records, doctor fees and day close, vaccines.',
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -53,15 +57,15 @@ export const ClinicPack: IndustryPack = {
       color: '#0891b2',
       order: 20,
       items: [
-        { to: '/clinic/dashboard', label: 'Clinic Dashboard', icon: LayoutDashboard, badge: 'NEW' },
-        { to: '/clinic/appointments/new', label: 'New Appointment', icon: Calendar, badge: 'FAST' },
-        { to: '/clinic/appointments', label: 'Appointments', icon: Calendar },
-        { to: '/clinic/queue', label: 'Live Queue', icon: Timer },
-        { to: '/clinic/doctors', label: 'Doctors', icon: UserCog },
-        { to: '/clinic/patients', label: 'Patients', icon: Users },
-        { to: '/clinic/prescriptions', label: 'Prescriptions', icon: Pill },
-        { to: '/clinic/lab-orders', label: 'Lab Orders', icon: TestTube },
-        { to: '/clinic/vaccinations', label: 'Vaccinations', icon: Syringe },
+        { to: '/clinic/dashboard', label: 'Clinic Dashboard', icon: LayoutDashboard },
+        { to: '/clinic/appointments/new', label: 'Reception (token)', icon: CalendarPlus, permission: BOOKINGS },
+        { to: '/clinic/queue', label: 'Live line', icon: Timer, permission: BOOKINGS },
+        { to: '/clinic/appointments', label: 'Appointments', icon: Calendar, permission: BOOKINGS },
+        { to: '/clinic/patients', label: 'Mareez', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/clinic/doctors', label: 'Doctors', icon: UserCog, permission: BOOKINGS },
+        { to: '/clinic/prescriptions', label: 'Nuskhe', icon: Pill, permission: BOOKINGS },
+        { to: '/clinic/lab-orders', label: 'Lab', icon: TestTube, permission: BOOKINGS },
+        { to: '/clinic/vaccinations', label: 'Vaccines', icon: Syringe, permission: BOOKINGS },
       ],
     },
   ],
@@ -69,15 +73,16 @@ export const ClinicPack: IndustryPack = {
   routes: [
     { path: '/clinic', element: ClinicDashboard },
     { path: '/clinic/dashboard', element: ClinicDashboard },
-    { path: '/clinic/appointments/new', element: ClinicNewAppointmentPage },
-    { path: '/clinic/appointments/:id', element: ClinicAppointmentDetailPage },
-    { path: '/clinic/appointments', element: ClinicAppointmentsPage },
-    { path: '/clinic/queue', element: QueuePage },
-    { path: '/clinic/doctors', element: DoctorsPage },
-    { path: '/clinic/patients', element: PatientsPage },
-    { path: '/clinic/prescriptions', element: ClinicPrescriptionsPage },
-    { path: '/clinic/lab-orders', element: LabOrdersPage },
-    { path: '/clinic/vaccinations', element: VaccinationsPage },
+    { path: '/clinic/appointments/new', element: ClinicNewAppointmentPage, permission: BOOKINGS },
+    { path: '/clinic/appointments/:id', element: ClinicAppointmentDetailPage, permission: BOOKINGS },
+    { path: '/clinic/appointments', element: ClinicAppointmentsPage, permission: BOOKINGS },
+    { path: '/clinic/queue', element: QueuePage, permission: BOOKINGS },
+    { path: '/clinic/doctors', element: DoctorsPage, permission: BOOKINGS },
+    { path: '/clinic/patients/:id', element: PatientDetailPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/clinic/patients', element: PatientsPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/clinic/prescriptions', element: ClinicPrescriptionsPage, permission: BOOKINGS },
+    { path: '/clinic/lab-orders', element: LabOrdersPage, permission: BOOKINGS },
+    { path: '/clinic/vaccinations', element: VaccinationsPage, permission: BOOKINGS },
   ],
 
   dashboardComponent: ClinicDashboard,

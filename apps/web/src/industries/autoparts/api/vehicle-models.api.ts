@@ -8,23 +8,25 @@ export interface VehicleModel {
   makeId: string;
   name: string;
   vehicleType: VehicleType;
-  yearFrom?: number;
-  yearTo?: number;
+  yearFrom?: number | null;
+  yearTo?: number | null;
   engineOptions: string[];
-  imageUrl?: string;
   isActive: boolean;
-  make?: any;
+  make?: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface VehicleModelInput {
+  makeId?: string; name?: string; vehicleType?: VehicleType; yearFrom?: number; yearTo?: number; engineOptions?: string[]; isActive?: boolean;
+}
+
+const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
 export const vehicleModelsApi = {
-  create: (data: Partial<VehicleModel>) => apiClient.post('/autoparts/vehicle-models', data).then(unwrap<VehicleModel>),
+  create: (data: VehicleModelInput) => apiClient.post('/autoparts/vehicle-models', data).then(unwrap<VehicleModel>),
   list: (params?: { makeId?: string; vehicleType?: string; search?: string; active?: boolean }) =>
     apiClient.get('/autoparts/vehicle-models', { params }).then(unwrap<VehicleModel[]>),
-  getOne: (id: string) => apiClient.get('/autoparts/vehicle-models/' + id).then(unwrap<VehicleModel>),
-  update: (id: string, data: Partial<VehicleModel>) => apiClient.patch('/autoparts/vehicle-models/' + id, data).then(unwrap<VehicleModel>),
-  remove: (id: string) => apiClient.delete('/autoparts/vehicle-models/' + id).then(unwrap),
+  update: (id: string, data: VehicleModelInput) => apiClient.patch('/autoparts/vehicle-models/' + id, data).then(unwrap<VehicleModel>),
+  remove: (id: string) => apiClient.delete('/autoparts/vehicle-models/' + id).then(unwrap<VehicleModel>),
 };

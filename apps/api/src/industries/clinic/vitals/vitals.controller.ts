@@ -3,16 +3,21 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { VitalsService } from './vitals.service';
 
+/** Vitals are medical records: read with bookings view, written with bookings manage. */
 @ApiTags('Clinic - Vitals')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_VIEW)
 @Controller('clinic/vitals')
 export class VitalsController {
   constructor(private readonly service: VitalsService) {}
 
-  @Post('appointment/:appointmentId') record(@GetUser() user: AuthenticatedUser, @Param('appointmentId') appointmentId: string, @Body() dto: any) {
+  @Post('appointment/:appointmentId') @RequirePermissions(PERMISSIONS.SERVICE_BOOKINGS_MANAGE)
+  record(@GetUser() user: AuthenticatedUser, @Param('appointmentId') appointmentId: string, @Body() dto: any) {
     return this.service.record(user, appointmentId, dto);
   }
   @Get('appointment/:appointmentId') byAppointment(@GetUser() user: AuthenticatedUser, @Param('appointmentId') appointmentId: string) {

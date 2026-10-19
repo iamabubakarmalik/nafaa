@@ -1,424 +1,329 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router-dom';
-import {
-  Car, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  User, Phone, Calendar, AlertCircle, Wrench, Fuel, Settings,
-  Shield, FileText, Eye,
-} from 'lucide-react';
-import { customerVehiclesApi, type CustomerVehicle, type FuelType, type TransmissionType } from '../api/customer-vehicles.api';
-import { vehicleMakesApi } from '../api/vehicle-makes.api';
-import { vehicleModelsApi } from '../api/vehicle-models.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
-import { formatPKR } from '@core/lib/format';
-import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+/**
+ * Customer vehicles: every vehicle that came to the workshop with its owner,
+ * visits, money spent and paper dates. A vehicle opens its full service
+ * history and reminders, and starts a new job in one click.
+ *
+ * Keys: N new vehicle · / search · G guide.
+ */
 
-const FUEL_TYPES: { value: FuelType; label: string; emoji: string }[] = [
-  { value: 'PETROL', label: 'Petrol', emoji: '⛽' },
-  { value: 'DIESEL', label: 'Diesel', emoji: '🛢️' },
-  { value: 'CNG', label: 'CNG', emoji: '💨' },
-  { value: 'LPG', label: 'LPG', emoji: '🔥' },
-  { value: 'HYBRID', label: 'Hybrid', emoji: '⚡' },
-  { value: 'ELECTRIC', label: 'Electric', emoji: '🔋' },
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  ArrowDownWideNarrow, Bell, Car, Download, FileWarning, Filter, GraduationCap, History, ListChecks, MessageCircle, Pencil, Plus, Power, Star, UserX, Wrench,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { formatPKR } from '@core/lib/format';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { customerVehiclesApi, type CustomerVehicle, type VehicleInput, type VehicleSort, type VehicleView } from '../api/customer-vehicles.api';
+import { serviceRemindersApi } from '../api/service-reminders.api';
+import { VehicleFormModal } from '../components/VehicleFormModal';
+import { REMINDER_KEY, VEHICLE_KEY, apiError, dayOnly, daysTo, jobTypeOf, km, statusOf, vehicleName, vehicleTypeOf, waLink } from '../components/meta';
+
+const VIEWS: Array<{ id: VehicleView; label: string; icon: typeof Car }> = [
+  { id: 'all', label: 'Sab gaariyan', icon: ListChecks },
+  { id: 'papers', label: 'Kaghzat khatam hone wale', icon: FileWarning },
+  { id: 'regular', label: 'Pakke customer (3+ dafa)', icon: Star },
+  { id: 'away', label: '4 mahine se nahi aaye', icon: UserX },
+  { id: 'inactive', label: 'Band ki hui', icon: Power },
+];
+const SORTS: Array<{ value: VehicleSort; label: string }> = [
+  { value: 'recent', label: 'Haal me aayi' }, { value: 'visits', label: 'Zyada dafa aayi' }, { value: 'spent', label: 'Zyada kharcha' }, { value: 'name', label: 'Number se' },
 ];
 
-const TRANSMISSION_TYPES: TransmissionType[] = ['MANUAL', 'AUTOMATIC', 'CVT', 'DCT', 'SEMI_AUTO'];
+/** Paper dates ending within 30 days (or already ended). */
+function papers(v: CustomerVehicle) {
+  return ([['Insurance', v.insuranceExpiry], ['Token', v.tokenTaxExpiry], ['Fitness', v.fitnessExpiry]] as Array<[string, string | undefined]>)
+    .map(([label, d]) => ({ label, d, left: daysTo(d) }))
+    .filter((x) => x.left !== null && x.left <= 30);
+}
 
 export default function CustomerVehiclesPage() {
-  const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
-  const filter = searchParams.get('filter');
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const canEdit = usePermission(PERMISSIONS.CUSTOMERS_EDIT);
+  const canJob = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const { sales } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<VehicleView>((params.get('view') as VehicleView) || 'all');
+  const [sort, setSort] = useState<VehicleSort>('recent');
   const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<CustomerVehicle | null>(null);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [form, setForm] = useState<CustomerVehicle | 'new' | null>(null);
+  const openId = params.get('open');
 
-  const { data: vehicles = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['customer-vehicles', search, filter],
-    queryFn: () => customerVehiclesApi.list({
-      search: search.trim() || undefined,
-      active: true,
-    }),
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [view, sort, query]);
+
+  const q = { view, sort, search: query || undefined, page, limit: 40 };
+  const listQ = useQuery({ queryKey: [VEHICLE_KEY, 'page', q], queryFn: () => customerVehiclesApi.page(q), placeholderData: (p) => p });
+  const statsQ = useQuery({ queryKey: [VEHICLE_KEY, 'stats'], queryFn: () => customerVehiclesApi.stats() });
+  const data = listQ.data;
+  const s = statsQ.data;
+  const filtered = !!query || view !== 'all';
+
+  const save = useMutation({
+    mutationFn: (v: VehicleInput) => (form && form !== 'new' ? customerVehiclesApi.update(form.id, v) : customerVehiclesApi.create(v)),
+    onSuccess: (v) => {
+      toast.success(form === 'new' ? `${v.registrationNumber} darj ho gayi` : 'Gaari save ho gayi');
+      [VEHICLE_KEY, 'customers'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      setForm(null);
+    },
+    onError: (e) => toast.error(apiError(e, 'Gaari save nahi hui')),
   });
 
-  const { data: expiringData } = useQuery({
-    queryKey: ['expiring-documents'],
-    queryFn: () => customerVehiclesApi.expiringDocuments(30),
-    enabled: !!filter,
-  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if ((e.key === 'n' || e.key === 'N') && canEdit) { e.preventDefault(); setForm('new'); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canEdit]);
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => customerVehiclesApi.remove(id),
-    onSuccess: () => { toast.success('Vehicle removed'); queryClient.invalidateQueries({ queryKey: ['customer-vehicles'] }); },
-  });
-
-  const filtered = filter === 'insurance-expiring' ? (expiringData?.insuranceExpiring || [])
-    : filter === 'token-expiring' ? (expiringData?.tokenExpiring || [])
-    : filter === 'fitness-expiring' ? (expiringData?.fitnessExpiring || [])
-    : vehicles;
-
-  const stats = {
-    total: vehicles.length,
-    insuranceExpiring: expiringData?.insuranceExpiring?.length || 0,
-    tokenExpiring: expiringData?.tokenExpiring?.length || 0,
-    fitnessExpiring: expiringData?.fitnessExpiring?.length || 0,
+  const exportCsv = async () => {
+    const all = await customerVehiclesApi.page({ ...q, page: 1, limit: 200 });
+    downloadCsv('gaariyan.csv', [
+      ['Number', 'Company', 'Model', 'Saal', 'Type', 'Malik', 'Phone', 'Meter', 'Dafa aayi', 'Kharcha', 'Aakhri dafa', 'Insurance', 'Token', 'Fitness'],
+      ...all.items.map((v) => [v.registrationNumber, v.makeName ?? '', v.modelName ?? '', v.year ?? '', vehicleTypeOf(v.vehicleType), v.ownerName ?? '', v.ownerPhone ?? '',
+        v.odometerKm ?? '', v.totalServices, v.totalSpent, v.lastServiceAt ? dayOnly(v.lastServiceAt) : '', v.insuranceExpiry ? dayOnly(v.insuranceExpiry) : '',
+        v.tokenTaxExpiry ? dayOnly(v.tokenTaxExpiry) : '', v.fitnessExpiry ? dayOnly(v.fitnessExpiry) : '']),
+    ]);
   };
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Registered Vehicles
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🚗 Customer Vehicles</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Registration, chassis, insurance, service history</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Register Vehicle
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Gaariyan"
+        chip={<><Car /> Customer vehicles</>}
+        meta="Har gaari ki service history, kaghzat aur malik — ek jagah"
+        busy={listQ.isFetching && !listQ.isLoading}
+        loading={statsQ.isLoading}
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} disabled={!data?.items.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <Link to="/autoparts/makes" className={heroButton}><Car className="h-4 w-4" /><span className="hidden sm:inline">Company / model</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title="Nayi gaari (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi gaari</button>}
+        </>}
+        stats={s ? [
+          { label: 'Darj gaariyan', value: s.total },
+          { label: 'Abhi workshop me', value: s.inShop },
+          { label: 'Kaghzat khatam hone wale', value: s.papers },
+        ] : [{ label: 'Darj gaariyan', value: '—' }]}
+      />
 
-      {/* Filter tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        <Link to="/autoparts/vehicles" className={
-          'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-          (!filter ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-        }>All Vehicles ({stats.total})</Link>
-        <Link to="?filter=insurance-expiring" className={
-          'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-          (filter === 'insurance-expiring' ? 'bg-amber-600 text-white shadow' : 'bg-amber-100 text-amber-700 hover:bg-amber-200')
-        }>🛡️ Insurance Expiring ({stats.insuranceExpiring})</Link>
-        <Link to="?filter=token-expiring" className={
-          'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-          (filter === 'token-expiring' ? 'bg-orange-600 text-white shadow' : 'bg-orange-100 text-orange-700 hover:bg-orange-200')
-        }>💰 Token Tax Due ({stats.tokenExpiring})</Link>
-        <Link to="?filter=fitness-expiring" className={
-          'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-          (filter === 'fitness-expiring' ? 'bg-rose-600 text-white shadow' : 'bg-rose-100 text-rose-700 hover:bg-rose-200')
-        }>✅ Fitness Expiring ({stats.fitnessExpiring})</Link>
+      <KpiRow cols={4}>
+        {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Car} color="#2563eb" label="Sab gaariyan" value={s.total} onClick={() => setView('all')} active={view === 'all'} />
+          <KpiCard icon={FileWarning} color={s.papers ? '#e11d48' : '#64748b'} label="Kaghzat" value={s.papers} hint="30 din me khatam" onClick={() => setView('papers')} active={view === 'papers'} />
+          <KpiCard icon={Star} color="#d97706" label="Pakke customer" value={s.regular} hint="3 ya zyada dafa" onClick={() => setView('regular')} active={view === 'regular'} />
+          <KpiCard icon={UserX} color="#7c3aed" label="Door ho gaye" value={s.away} hint="4 mahine se nahi aaye — call karein" onClick={() => setView('away')} active={view === 'away'} />
+        </>}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Gaari number, malik, phone, model, chassis…" label="Search" />}
+        chips={filtered ? <>
+          {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+          {view !== 'all' && <FilterChip onRemove={() => setView('all')}>{VIEWS.find((v) => v.id === view)?.label}</FilterChip>}
+        </> : undefined}
+        onClear={() => { setSearch(''); setView('all'); }}>
+        <FilterMenu icon={Filter} label={VIEWS.find((v) => v.id === view)?.label ?? 'Sab'} value={view} active={view !== 'all'} onChange={setView} width="w-72"
+          options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon }))} />
+        <FilterMenu icon={ArrowDownWideNarrow} label={SORTS.find((x) => x.value === sort)?.label ?? 'Tarteeb'} value={sort} onChange={setSort} align="right" options={SORTS} />
+      </FilterBar>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-[0.8125rem] text-slate-600">
+        <span><strong className="text-slate-900">{data?.total ?? 0}</strong> gaariyan</span>
+        <span className="hidden items-center gap-1 sm:inline-flex">{canEdit && <><Kbd>N</Kbd> nayi · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</span>
       </div>
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by registration, name, phone, chassis..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-        </div>
-      </section>
-
-      {showForm && (
-        <VehicleForm editing={editing} onClose={() => { setShowForm(false); setEditing(null); }} onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['customer-vehicles'] }); }} />
-      )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <Car className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No vehicles found</p>
+      {listQ.isLoading ? (
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+      ) : !data?.items.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <Car className="mx-auto h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi gaari nahi' : 'Abhi koi gaari darj nahi'}</p>
+          <p className="mt-1 text-sm text-slate-500">Naya job banate hi gaari khud darj ho jati hai. Yahan se bhi darj kar sakte hain.</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {canEdit && <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Nayi gaari</Button>}
+            {filtered && <Button variant="ghost" onClick={() => { setSearch(''); setView('all'); }}>Filter saaf karein</Button>}
+          </div>
         </div>
       ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((v: any) => <VehicleCard key={v.id} vehicle={v} onEdit={() => { setEditing(v); setShowForm(true); }} onDelete={() => { if (confirm('Remove ' + v.registrationNumber + '?')) removeMutation.mutate(v.id); }} />)}
-        </section>
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          {data.items.map((v) => {
+            const due = papers(v);
+            return (
+              <li key={v.id}>
+                <button type="button" onClick={() => setParams({ open: v.id })} className="flex w-full items-start gap-3 px-3 py-3 text-left hover:bg-slate-50 sm:px-4">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><Car className="h-5 w-5" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-semibold text-slate-900">{v.registrationNumber}</span>
+                      <span className="text-[0.8125rem] text-slate-600">{vehicleName(v) || vehicleTypeOf(v.vehicleType)}</span>
+                      {v.openJobs > 0 && <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[0.6875rem] font-medium text-violet-700 ring-1 ring-violet-200">Workshop me</span>}
+                      {due.map((p) => <span key={p.label} className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-medium text-rose-700 ring-1 ring-rose-200">{p.label} {p.left! < 0 ? 'khatam' : `${p.left} din`}</span>)}
+                      {!v.isActive && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-medium text-slate-600">Band</span>}
+                    </span>
+                    <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{[v.ownerName, v.ownerPhone].filter(Boolean).join(' · ') || 'Malik nahi likha'}</span>
+                    <span className="mt-0.5 block text-[0.75rem] text-slate-500">{v.totalServices ? `${v.totalServices} dafa aayi · aakhri ${dayOnly(v.lastServiceAt)}` : 'Abhi tak koi service nahi'}{v.odometerKm ? ` · ${km(v.odometerKm)}` : ''}</span>
+                  </span>
+                  <span className="shrink-0 text-right">
+                    <span className="block font-semibold tabular-nums text-slate-900">{sales(v.totalSpent)}</span>
+                    <span className="text-[0.75rem] text-slate-500">kul kharcha</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </div>
-  );
-}
 
-function VehicleCard({ vehicle, onEdit, onDelete }: any) {
-  const now = new Date();
-  const insDaysLeft = vehicle.insuranceExpiry ? differenceInDays(new Date(vehicle.insuranceExpiry), now) : null;
-  const tokenDaysLeft = vehicle.tokenTaxExpiry ? differenceInDays(new Date(vehicle.tokenTaxExpiry), now) : null;
-  const fitDaysLeft = vehicle.fitnessExpiry ? differenceInDays(new Date(vehicle.fitnessExpiry), now) : null;
-  const hasAlerts = (insDaysLeft !== null && insDaysLeft <= 30) || (tokenDaysLeft !== null && tokenDaysLeft <= 30) || (fitDaysLeft !== null && fitDaysLeft <= 30);
-  const fuel = FUEL_TYPES.find((f) => f.value === vehicle.fuelType);
-
-  return (
-    <div className={
-      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition p-4 space-y-3 ' +
-      (hasAlerts ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
-    }>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow shrink-0 overflow-hidden">
-            {vehicle.photoUrls?.[0] ? <img src={vehicle.photoUrls[0]} alt="" className="w-full h-full object-cover" /> : <Car className="h-7 w-7" />}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{vehicle.registrationNumber}</span>
-              {hasAlerts && <AlertCircle className="h-4 w-4 text-amber-600" />}
-            </div>
-            <div className="text-xs font-extrabold text-blue-600">{vehicle.makeName} {vehicle.modelName}</div>
-            {vehicle.year && <div className="text-[0.6875rem] font-bold text-slate-500">{vehicle.year} • {vehicle.color}</div>}
-          </div>
-        </div>
-        <div className="opacity-0 group-hover:opacity-100 transition flex gap-1 shrink-0">
-          <Link to={'/autoparts/vehicles/' + vehicle.id} className="h-8 w-8 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 flex items-center justify-center">
-            <Eye className="h-3.5 w-3.5" />
-          </Link>
-          <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-1.5 text-xs">
-        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
-          <Fuel className="h-3 w-3 mx-auto text-slate-500" />
-          <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">{fuel?.emoji} {vehicle.fuelType}</div>
-        </div>
-        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
-          <Settings className="h-3 w-3 mx-auto text-slate-500" />
-          <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">{vehicle.transmission}</div>
-        </div>
-        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
-          <div className="text-[0.625rem] font-bold text-slate-500">{vehicle.odometerKm || 0} km</div>
-        </div>
-      </div>
-
-      {vehicle.ownerName && (
-        <div className="flex items-center gap-1 text-xs text-slate-700 font-bold">
-          <User className="h-3 w-3" />
-          {vehicle.ownerName}
-          {vehicle.ownerPhone && (
-            <>
-              <Phone className="h-3 w-3 ml-2" />
-              {vehicle.ownerPhone}
-            </>
-          )}
+      {data && data.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+          <span className="text-sm text-slate-600">Safha {page} / {data.totalPages}</span>
+          <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
         </div>
       )}
 
-      {/* Document alerts */}
-      {(insDaysLeft !== null || tokenDaysLeft !== null || fitDaysLeft !== null) && (
-        <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-ink-800">
-          {insDaysLeft !== null && (
-            <DocAlert icon={Shield} label="Insurance" days={insDaysLeft} date={vehicle.insuranceExpiry} />
-          )}
-          {tokenDaysLeft !== null && (
-            <DocAlert icon={FileText} label="Token" days={tokenDaysLeft} date={vehicle.tokenTaxExpiry} />
-          )}
-          {fitDaysLeft !== null && (
-            <DocAlert icon={FileText} label="Fitness" days={fitDaysLeft} date={vehicle.fitnessExpiry} />
-          )}
-        </div>
+      {openId && <VehicleDetail id={openId} canEdit={canEdit} canJob={canJob} onEdit={(v) => setForm(v)} onClose={() => setParams({})} onNewJob={(v) => navigate(`/autoparts/jobs/new?vehicle=${v.id}`)} />}
+      {form && <VehicleFormModal vehicle={form === 'new' ? null : form} pending={save.isPending} onSave={(v) => save.mutate(v)} onClose={() => setForm(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Gaariyan — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Car, color: '#2563eb', title: 'Khud darj hoti hain', text: 'Naya job banate hi gaari is list me aa jati hai. Malik ka phone ho to us ke khata se jurti hai.' },
+            { icon: History, color: '#7c3aed', title: 'Service history', text: 'Gaari kholein — har job, kab aayi, kya kaam hua, meter aur kitna bill. Customer ko bata sakte hain pichli dafa kya badla tha.' },
+            { icon: FileWarning, color: '#e11d48', title: 'Kaghzat', text: 'Insurance, token aur fitness ki date likhein — 30 din pehle laal nishan aata hai. "Reminder banayein" se reminders me chali jati hain.' },
+            { icon: UserX, color: '#d97706', title: 'Door ho gaye', text: '4 mahine se na aane wale customer — WhatsApp karein, wapas aate hain.' },
+          ]}
+          shortcuts={[['N', 'nayi gaari'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
       )}
-
-      <div className="grid grid-cols-2 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Services</div>
-          <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{vehicle.totalServices}</div>
-        </div>
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total Spent</div>
-          <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(vehicle.totalSpent).replace('Rs', '').trim()}</div>
-        </div>
-      </div>
-
-      <Link to={'/autoparts/jobs/new?vehicleId=' + vehicle.id} className="w-full h-9 rounded-lg bg-gradient-to-r from-orange-600 to-red-700 text-white text-xs font-extrabold flex items-center justify-center gap-1 hover:shadow-lg transition">
-        <Wrench className="h-3 w-3" />
-        New Service Job
-      </Link>
-    </div>
+    </PageShell>
   );
 }
 
-function DocAlert({ icon: Icon, label, days, date }: any) {
-  const color = days < 0 ? 'text-rose-700 bg-rose-50' : days <= 15 ? 'text-amber-700 bg-amber-50' : days <= 30 ? 'text-orange-700 bg-orange-50' : 'text-slate-600';
-  return (
-    <div className={'flex items-center justify-between px-2 py-1 rounded text-[0.6875rem] font-extrabold ' + color}>
-      <span className="flex items-center gap-1">
-        <Icon className="h-2.5 w-2.5" />
-        {label}
-      </span>
-      <span>
-        {days < 0 ? 'Expired' : days <= 30 ? days + 'd left' : format(new Date(date), 'dd MMM yy')}
-      </span>
-    </div>
-  );
-}
-
-function VehicleForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerId: editing?.customerId ?? '',
-    registrationNumber: editing?.registrationNumber ?? '',
-    chassisNumber: editing?.chassisNumber ?? '',
-    engineNumber: editing?.engineNumber ?? '',
-    makeId: editing?.makeId ?? '',
-    modelId: editing?.modelId ?? '',
-    vehicleType: editing?.vehicleType ?? 'CAR',
-    year: editing?.year ?? '',
-    color: editing?.color ?? '',
-    fuelType: editing?.fuelType ?? 'PETROL',
-    transmission: editing?.transmission ?? 'MANUAL',
-    engineCC: editing?.engineCC ?? '',
-    odometerKm: editing?.odometerKm ?? '',
-    ownerName: editing?.ownerName ?? '',
-    ownerPhone: editing?.ownerPhone ?? '',
-    ownerCnic: editing?.ownerCnic ?? '',
-    insuranceProvider: editing?.insuranceProvider ?? '',
-    insurancePolicyNumber: editing?.insurancePolicyNumber ?? '',
-    insuranceExpiry: editing?.insuranceExpiry ? editing.insuranceExpiry.slice(0, 10) : '',
-    tokenTaxExpiry: editing?.tokenTaxExpiry ? editing.tokenTaxExpiry.slice(0, 10) : '',
-    fitnessExpiry: editing?.fitnessExpiry ? editing.fitnessExpiry.slice(0, 10) : '',
-    photoUrls: editing?.photoUrls ?? [],
-    documentUrls: editing?.documentUrls ?? [],
-    notes: editing?.notes ?? '',
+function VehicleDetail({ id, canEdit, canJob, onEdit, onClose, onNewJob }: {
+  id: string; canEdit: boolean; canJob: boolean; onEdit: (v: CustomerVehicle) => void; onClose: () => void; onNewJob: (v: CustomerVehicle) => void;
+}) {
+  const qc = useQueryClient();
+  const shopName = useAuthStore((s) => s.tenant?.name) || 'Dukaan';
+  const { sales } = useMasked();
+  const vQ = useQuery({ queryKey: [VEHICLE_KEY, 'one', id], queryFn: () => customerVehiclesApi.getOne(id) });
+  const v = vQ.data;
+  const refresh = () => [VEHICLE_KEY, REMINDER_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const autoRem = useMutation({
+    mutationFn: () => serviceRemindersApi.autoGenerate(id),
+    onSuccess: (r) => { toast.success(r.created ? `${r.created} reminder ban gaye` : 'Naye reminder ki zaroorat nahi'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Reminder nahi bane')),
   });
-
-  const { data: makes = [] } = useQuery({ queryKey: ['makes-for-vehicle-form'], queryFn: () => vehicleMakesApi.list({ active: true }) });
-  const { data: models = [] } = useQuery({ queryKey: ['models-for-vehicle-form', form.makeId], queryFn: () => vehicleModelsApi.list({ makeId: form.makeId, active: true }), enabled: !!form.makeId });
-  const { data: customersData } = useQuery({ queryKey: ['customers-for-vehicle-form'], queryFn: () => customersApi.list({ limit: 500 }) });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        ...form,
-        year: form.year ? Number(form.year) : undefined,
-        engineCC: form.engineCC ? Number(form.engineCC) : undefined,
-        odometerKm: form.odometerKm ? Number(form.odometerKm) : undefined,
-        insuranceExpiry: form.insuranceExpiry || undefined,
-        tokenTaxExpiry: form.tokenTaxExpiry || undefined,
-        fitnessExpiry: form.fitnessExpiry || undefined,
-      };
-      return editing ? customerVehiclesApi.update(editing.id, payload) : customerVehiclesApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Updated' : 'Registered'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  const toggle = useMutation({
+    mutationFn: () => (v!.isActive ? customerVehiclesApi.remove(id) : customerVehiclesApi.update(id, { isActive: true })),
+    onSuccess: () => { toast.success(v!.isActive ? 'Gaari band kar di — history waisi hi hai' : 'Gaari dobara chalu'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
+  const wa = v ? waLink(v.ownerPhone, `Assalam o alaikum ${v.ownerName ?? ''},\n${shopName}: aap ki gaari ${v.registrationNumber} ki service ka waqt ho gaya hai. Tashreef laayein. Shukriya!`) : undefined;
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Vehicle' : 'Register New Vehicle'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        {/* Registration */}
-        <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-blue-900 dark:text-blue-300">🚗 Vehicle Registration</div>
-          <input autoFocus value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value.toUpperCase() })} placeholder="Registration # * (e.g. LEA-1234)" className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold uppercase focus:outline-none focus:border-blue-500" />
-          <div className="grid sm:grid-cols-2 gap-2">
-            <input value={form.chassisNumber} onChange={(e) => setForm({ ...form, chassisNumber: e.target.value })} placeholder="Chassis Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
-            <input value={form.engineNumber} onChange={(e) => setForm({ ...form, engineNumber: e.target.value })} placeholder="Engine Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
+    <Modal open onClose={onClose} size="xl" title={v ? `${v.registrationNumber} — ${vehicleName(v) || vehicleTypeOf(v.vehicleType)}` : 'Gaari'}
+      description={v ? [v.ownerName, v.ownerPhone].filter(Boolean).join(' · ') : undefined}
+      footer={v ? <>
+        {canEdit && <Button variant="ghost" leftIcon={<Power className="h-4 w-4" />} loading={toggle.isPending} onClick={() => toggle.mutate()}>{v.isActive ? 'Band karein' : 'Chalu karein'}</Button>}
+        {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+        {canEdit && <Button variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => onEdit(v)}>Badlein</Button>}
+        {canJob && v.isActive && <Button leftIcon={<Wrench className="h-4 w-4" />} onClick={() => onNewJob(v)}>Naya job</Button>}
+      </> : undefined}>
+      {!v ? <Skeleton className="h-64 rounded-2xl" /> : (
+        <div className="space-y-4">
+          <dl className="grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-3 text-[0.8125rem] sm:grid-cols-4">
+            <Box label="Dafa aayi" value={String(v.totalServices)} />
+            <Box label="Kul kharcha" value={sales(v.totalSpent)} />
+            <Box label="Meter" value={km(v.odometerKm ?? v.lastOdometerKm)} />
+            <Box label="Khata" value={v.customer ? (v.customer.balance > 0 ? `${formatPKR(v.customer.balance)} udhaar` : v.customer.balance < 0 ? `${formatPKR(-v.customer.balance)} jama` : 'Saaf') : '—'} />
+          </dl>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <section>
+              <h3 className="mb-2 flex items-center gap-1.5 text-[0.875rem] font-semibold text-slate-900"><History className="h-4 w-4 text-slate-500" />Service history</h3>
+              {!v.serviceHistory?.length ? <p className="rounded-xl bg-slate-50 px-3 py-6 text-center text-[0.8125rem] text-slate-500">Abhi koi job nahi</p> : (
+                <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
+                  {v.serviceHistory.map((j) => (
+                    <li key={j.id}>
+                      <Link to={`/autoparts/jobs/${j.id}`} className="flex items-start gap-3 px-3 py-2.5 hover:bg-slate-50">
+                        <span className="min-w-0 flex-1">
+                          <span className="flex flex-wrap items-center gap-1.5 text-[0.8125rem]">
+                            <span className="font-semibold text-slate-900">{dayOnly(j.receivedAt)}</span>
+                            <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', statusOf(j.status).tone)}>{statusOf(j.status).label}</span>
+                            {j.odometerKm ? <span className="text-slate-500">{km(j.odometerKm)}</span> : null}
+                          </span>
+                          <span className="mt-0.5 block truncate text-[0.75rem] text-slate-600">{j.customerComplaint || jobTypeOf(j.jobType)}</span>
+                          {j.partsUsed.length > 0 && <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">Parts: {j.partsUsed.map((p) => p.partName).join(', ')}</span>}
+                        </span>
+                        <span className="shrink-0 text-[0.8125rem] font-semibold tabular-nums text-slate-900">{sales(j.total)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            <section className="space-y-3">
+              <div>
+                <h3 className="mb-2 flex items-center gap-1.5 text-[0.875rem] font-semibold text-slate-900"><FileWarning className="h-4 w-4 text-slate-500" />Kaghzat</h3>
+                <dl className="space-y-1 rounded-xl p-3 text-[0.8125rem] ring-1 ring-slate-200">
+                  {([['Insurance', v.insuranceExpiry], ['Token tax', v.tokenTaxExpiry], ['Fitness', v.fitnessExpiry]] as Array<[string, string | undefined]>).map(([label, d]) => {
+                    const left = daysTo(d);
+                    return (
+                      <div key={label} className="flex justify-between gap-2">
+                        <dt className="text-slate-500">{label}</dt>
+                        <dd className={cn('font-medium', left !== null && left <= 30 ? 'text-rose-700' : 'text-slate-800')}>{d ? `${dayOnly(d)}${left !== null && left <= 30 ? (left < 0 ? ' (khatam)' : ` (${left} din)`) : ''}` : '—'}</dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+                {canEdit && (v.insuranceExpiry || v.tokenTaxExpiry || v.fitnessExpiry) && (
+                  <Button className="mt-2" size="sm" variant="secondary" leftIcon={<Bell className="h-3.5 w-3.5" />} loading={autoRem.isPending} onClick={() => autoRem.mutate()}>Kaghzat ke reminder banayein</Button>
+                )}
+              </div>
+              <div>
+                <h3 className="mb-2 flex items-center gap-1.5 text-[0.875rem] font-semibold text-slate-900"><Bell className="h-4 w-4 text-slate-500" />Reminders</h3>
+                {!v.reminders?.length ? <p className="text-[0.8125rem] text-slate-500">Koi reminder nahi</p> : (
+                  <ul className="space-y-1.5">
+                    {v.reminders.map((r) => (
+                      <li key={r.id} className="flex justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-[0.8125rem]">
+                        <span className="font-medium text-slate-800">{r.title}</span>
+                        <span className="text-slate-600">{[r.dueDate && dayOnly(r.dueDate), r.dueOdometerKm && km(r.dueOdometerKm)].filter(Boolean).join(' / ') || '—'}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link to="/autoparts/reminders" className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Sab reminders →</Link>
+              </div>
+              {v.notes && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900">{v.notes}</p>}
+            </section>
           </div>
         </div>
-
-        {/* Make/Model */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <select value={form.makeId} onChange={(e) => setForm({ ...form, makeId: e.target.value, modelId: '' })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-            <option value="">Select Make</option>
-            {makes.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-          <select value={form.modelId} onChange={(e) => setForm({ ...form, modelId: e.target.value })} disabled={!form.makeId} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500 disabled:opacity-50">
-            <option value="">Select Model</option>
-            {models.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="Year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-          <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input type="number" value={form.engineCC} onChange={(e) => setForm({ ...form, engineCC: e.target.value })} placeholder="Engine CC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-            {FUEL_TYPES.map((f) => <option key={f.value} value={f.value}>{f.emoji} {f.label}</option>)}
-          </select>
-          <select value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-            {TRANSMISSION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <input type="number" value={form.odometerKm} onChange={(e) => setForm({ ...form, odometerKm: e.target.value })} placeholder="Odometer (km)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-        </div>
-
-        {/* Owner */}
-        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-emerald-900 dark:text-emerald-300">👤 Owner Details</div>
-          <select value={form.customerId} onChange={(e) => setForm({ ...form, customerId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-            <option value="">-- Link to Customer (optional) --</option>
-            {(customersData?.items ?? []).map((c) => <option key={c.id} value={c.id}>{c.name} • {c.phone}</option>)}
-          </select>
-          <div className="grid sm:grid-cols-3 gap-2">
-            <input value={form.ownerName} onChange={(e) => setForm({ ...form, ownerName: e.target.value })} placeholder="Owner Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.ownerPhone} onChange={(e) => setForm({ ...form, ownerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.ownerCnic} onChange={(e) => setForm({ ...form, ownerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        {/* Documents */}
-        <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-amber-900 dark:text-amber-300">📋 Documents & Insurance</div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            <input value={form.insuranceProvider} onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })} placeholder="Insurance Provider (e.g. EFU, Jubilee)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            <input value={form.insurancePolicyNumber} onChange={(e) => setForm({ ...form, insurancePolicyNumber: e.target.value })} placeholder="Policy Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-          <div className="grid sm:grid-cols-3 gap-2">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Insurance Expiry</label>
-              <input type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Token Tax Expiry</label>
-              <input type="date" value={form.tokenTaxExpiry} onChange={(e) => setForm({ ...form, tokenTaxExpiry: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fitness Expiry</label>
-              <input type="date" value={form.fitnessExpiry} onChange={(e) => setForm({ ...form, fitnessExpiry: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Photos */}
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Vehicle Photos</label>
-          {form.photoUrls.length > 0 && (
-            <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 mb-2">
-              {form.photoUrls.map((url: string, i: number) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setForm({ ...form, photoUrls: form.photoUrls.filter((_: any, idx: number) => idx !== i) })} className="absolute top-0 right-0 h-5 w-5 rounded-bl bg-rose-600 text-white flex items-center justify-center">
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <UploadDropzone onUploaded={(records) => {
-            const urls = Array.isArray(records) ? records.map((r: any) => r.url || r).filter(Boolean) : [(records as any)?.url || records];
-            setForm({ ...form, photoUrls: [...form.photoUrls, ...urls] });
-          }} />
-        </div>
-
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.registrationNumber.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Register'}
-          </Button>
-        </div>
-      </div>
-    </section>
+      )}
+    </Modal>
   );
+}
+
+function Box({ label, value }: { label: string; value: string }) {
+  return <div><dt className="text-slate-500">{label}</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{value}</dd></div>;
 }

@@ -1,4 +1,4 @@
-import { Scissors, LayoutDashboard, Calendar, Timer, UserCheck, Award, BookmarkPlus, Heart, Sparkles } from 'lucide-react';
+import { Scissors, LayoutDashboard, Calendar, Timer, UserCheck, Award, BookmarkPlus, Heart, Receipt } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import SalonDashboard from './dashboard/SalonDashboard';
@@ -48,21 +48,21 @@ export const SalonPack: IndustryPack = {
       color: '#db2777',
       order: 20,
       items: [
-        { to: '/salon-services/new', label: '+ Add Service', icon: Sparkles, badge: 'FAST' },
-        { to: '/salon/dashboard', label: 'Salon Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/salon/dashboard', label: 'Salon Dashboard', icon: LayoutDashboard },
+        { to: '/pos', label: 'Salon counter', icon: Receipt },
         { to: '/salon/appointments', label: 'Appointments', icon: Calendar },
-        { to: '/salon/calendar', label: 'Calendar View', icon: Timer },
+        { to: '/salon/calendar', label: 'Calendar', icon: Timer },
         { to: '/salon/services', label: 'Services', icon: Scissors },
-        { to: '/salon/staff', label: 'Staff', icon: UserCheck },
+        { to: '/salon/staff', label: 'Stylist aur commission', icon: UserCheck },
         { to: '/salon/memberships', label: 'Memberships', icon: Award },
         { to: '/salon/packages', label: 'Packages', icon: BookmarkPlus },
-        { to: '/salon/customers', label: 'Customer Profiles', icon: Heart },
+        { to: '/salon/customers', label: 'Salon customers', icon: Heart },
       ],
     },
   ],
 
   routes: [
-    // ✅ VERY IMPORTANT — wizard FIRST
+    // The service form comes before the detail route so "new" is not read as an id.
     { path: '/salon-services/new', element: SalonServiceWizardPage },
     { path: '/salon-services/:id/edit', element: SalonServiceWizardPage },
 
@@ -74,8 +74,6 @@ export const SalonPack: IndustryPack = {
     { path: '/salon/calendar', element: CalendarViewPage },
 
     { path: '/salon/services', element: ServicesPage },
-
-    // optional detail page
     { path: '/salon-services/:id', element: SalonServiceDetailPage },
 
     { path: '/salon/staff', element: StaffPage },

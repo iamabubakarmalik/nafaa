@@ -1,7 +1,8 @@
 /**
  * Picks the sales history for the current industry. Retail, Bakery,
- * Electronics, Pharmacy and businesses without an industry use the shared history
- * (modules/sales/history); the rest keep their own pages for now.
+ * Electronics, Pharmacy, Mobile, Restaurant, Garments and businesses without an
+ * industry use the shared history (modules/sales/history) through their config;
+ * the rest keep their own pages for now.
  */
 import { lazy, Suspense } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';

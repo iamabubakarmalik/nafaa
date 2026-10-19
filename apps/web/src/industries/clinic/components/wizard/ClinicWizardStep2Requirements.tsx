@@ -4,7 +4,10 @@ import {
   Info, ArrowRight, ArrowLeft, Plus, X, CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/design-system/components';
-import { COMMON_TESTS, COMMON_PROCEDURES, HEALTH_PACKAGES } from '../../api/constants';
+import { COMMON_TESTS } from '../../api/constants';
+
+const COMMON_PROCEDURES: string[] = [];
+const HEALTH_PACKAGES: string[] = [];
 import type { ClinicWizardRequirements } from '../../hooks/useClinicWizard';
 
 interface Props {

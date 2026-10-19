@@ -64,5 +64,6 @@ export class ConfirmDeliveryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() receiverSignatureUrl?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() deliveryProofUrls?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() gateEntryNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() issueReported?: string;
   @ApiPropertyOptional({ type: [Object] }) @IsOptional() @IsArray() @Type(() => Object) deliveredItems?: Array<{ itemId: string; deliveredQty: number; damagedQty?: number; returnedQty?: number }>;
 }

@@ -3,8 +3,11 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { KarigarsService } from './karigars.service';
 
+/** Karigars are outside makers (supplier rights); gold given and taken back moves metal stock. */
 @ApiTags('Jewelry - Karigars')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -12,7 +15,10 @@ import { KarigarsService } from './karigars.service';
 export class KarigarsController {
   constructor(private readonly service: KarigarsService) {}
 
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
   @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_VIEW)
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: any) {
     return this.service.list(user, {
       skillLevel: q.skillLevel, search: q.search,
@@ -20,17 +26,35 @@ export class KarigarsController {
       isInHouse: q.isInHouse === 'true' ? true : q.isInHouse === 'false' ? false : undefined,
     });
   }
+
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_VIEW)
   @Get('summary') summary(@GetUser() user: AuthenticatedUser) { return this.service.summary(user); }
+
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_VIEW)
+  @Get(':id/ledger') ledger(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.ledger(user, id); }
+
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_VIEW)
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
+
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.update(user, id, dto); }
-  @Post(':id/issue-metal') issueMetal(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { grams: number }) {
-    return this.service.issueMetal(user, id, body.grams);
+
+  @RequirePermissions(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE)
+  @Post(':id/issue-metal') issueMetal(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: any) {
+    return this.service.issueMetal(user, id, body ?? {});
   }
-  @Post(':id/receive-metal') receiveMetal(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { receivedGrams: number; wastageGrams: number }) {
-    return this.service.receiveMetal(user, id, body.receivedGrams, body.wastageGrams);
+
+  @RequirePermissions(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE)
+  @Post(':id/receive-metal') receiveMetal(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: any) {
+    return this.service.receiveMetal(user, id, body ?? {});
   }
+
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
   @Post(':id/record-order') recordOrder(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { earnings: number }) {
     return this.service.recordOrder(user, id, body.earnings);
   }
+
+  /** Switches the karigar off; history stays. */
+  @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

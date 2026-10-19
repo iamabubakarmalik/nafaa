@@ -22,6 +22,7 @@ export class PartProfilesController {
       critical: critical === 'true' ? true : undefined,
     });
   }
+  @Get('facts') facts(@GetUser() user: AuthenticatedUser) { return this.service.facts(user); }
   @Get('by-product/:productId') byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) { return this.service.byProduct(user, productId); }
   @Get('by-part-number/:partNumber') byPartNumber(@GetUser() user: AuthenticatedUser, @Param('partNumber') partNumber: string) { return this.service.findByPartNumber(user, partNumber); }
   @Get('compatible/:makeId/:modelId') compatible(@GetUser() user: AuthenticatedUser, @Param('makeId') makeId: string, @Param('modelId') modelId: string, @Query('year') year?: string) {

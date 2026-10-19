@@ -45,15 +45,12 @@ export const GarmentsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Garments Industry',
+      label: 'Garments Extras',
       icon: Shirt,
       emoji: '👗',
       color: '#ec4899',
       order: 20,
       items: [
-        { to: '/garment-products/new', label: '+ Naya kapra', icon: Sparkles, badge: 'FAST' },
-        { to: '/garments/dashboard', label: 'Garments dashboard', icon: LayoutDashboard },
-        { to: '/garments/products', label: 'Products', icon: Shirt },
         { to: '/garments/tailoring', label: 'Silai orders', icon: Scissors },
         { to: '/garments/alterations', label: 'Alterations', icon: Ruler },
         { to: '/garments/measurements', label: 'Naap', icon: Ruler },

@@ -1,338 +1,212 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import {
-  CreditCard, Plus, Search, X, Save, RefreshCw, Sparkles, AlertCircle,
-  User, Phone, DollarSign, Calendar, Ban, CheckCircle2, ArrowRight,
-} from 'lucide-react';
-import { creditAccountsApi, type AccountStatus, type CreditAccount } from '../api/credit-accounts.api';
-import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
+/**
+ * Contractor khata: every contractor's live udhaar from the customer khata
+ * (the same figures as Khata, day book and reports), how old it is, the
+ * limit, and the terms (days, guarantor, cheque). Payments are taken on the
+ * customer's khata page.
+ */
 
-const STATUS_CONFIG: Record<AccountStatus, { label: string; color: string }> = {
-  ACTIVE: { label: 'Active', color: 'bg-emerald-600' },
-  SUSPENDED: { label: 'Suspended', color: 'bg-amber-500' },
-  CLOSED: { label: 'Closed', color: 'bg-slate-500' },
-  DEFAULTED: { label: 'Defaulted', color: 'bg-red-600' },
-  OVERDUE: { label: 'Overdue', color: 'bg-rose-500' },
-};
+import { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AlertTriangle, Ban, BookOpen, Clock, Download, Edit3, GraduationCap, HardHat, ListChecks, Lock, Plus, RotateCcw, Wallet } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Table, TBody, THead, Td, Th, Tr, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { creditAccountsApi, type CreditAccount } from '../api/credit-accounts.api';
+import { ContractorFormModal } from '../components/ContractorFormModal';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { errorText, shortDate } from '../lib/meta';
+
+type Linked = CreditAccount & { khataLinked?: boolean };
+type Tab = 'owing' | 'over' | 'old' | 'all' | 'stopped';
+const TABS: Array<{ id: Tab; label: string; icon: typeof ListChecks; match: (a: Linked) => boolean }> = [
+  { id: 'owing', label: 'Udhaar wale', icon: Wallet, match: (a) => a.currentBalance > 0.009 && a.status !== 'CLOSED' },
+  { id: 'over', label: 'Had se upar', icon: AlertTriangle, match: (a) => a.creditLimit > 0 && a.currentBalance > a.creditLimit },
+  { id: 'old', label: '90 din se purana', icon: Clock, match: (a) => a.ageOver90Days > 0 },
+  { id: 'all', label: 'Sab', icon: ListChecks, match: (a) => a.status !== 'CLOSED' },
+  { id: 'stopped', label: 'Roka / band', icon: Lock, match: (a) => a.status === 'SUSPENDED' || a.status === 'CLOSED' },
+];
 
 export default function CreditAccountsPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const { sales: money } = useMasked();
+  const guide = usePageGuide();
+  const canManage = usePermission(PERMISSIONS.KHATA_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('owing');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<CreditAccount | null>(null);
+  const [form, setForm] = useState<{ account?: Linked } | null>(null);
+  const [action, setAction] = useState<{ account: Linked; kind: 'suspend' | 'close' } | null>(null);
+  const q = useDebounced(search.trim());
 
-  const { data: accounts = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['credit-accounts', statusFilter, search],
-    queryFn: () => creditAccountsApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      search: search.trim() || undefined,
-    }),
+  const { data = [], isLoading, isFetching } = useQuery({ queryKey: ['hardware-contractors', q], queryFn: () => creditAccountsApi.list({ search: q || undefined }) as Promise<Linked[]> });
+  usePageKeys(searchRef, canManage ? { n: () => setForm({}) } : {});
+
+  const counts = useMemo(() => Object.fromEntries(TABS.map((t) => [t.id, data.filter(t.match).length])) as Record<Tab, number>, [data]);
+  const rows = useMemo(() => data.filter(TABS.find((t) => t.id === tab)!.match), [data, tab]);
+  const open = data.filter((a) => a.status !== 'CLOSED');
+  const total = open.reduce((s, a) => s + Math.max(a.currentBalance, 0), 0);
+  const age = (k: 'age0To30Days' | 'age31To60Days' | 'age61To90Days' | 'ageOver90Days') => open.reduce((s, a) => s + (a[k] || 0), 0);
+
+  const reactivate = useMutation({
+    mutationFn: (id: string) => creditAccountsApi.reactivate(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['hardware-contractors'] }); toast.success('Udhaar dobara chalu'); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
   });
 
-  const { data: aging } = useQuery({
-    queryKey: ['credit-aging'],
-    queryFn: () => creditAccountsApi.agingReport(),
-  });
-
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-red-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Khata / Credit
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">💳 Credit Accounts</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Customer khata with credit limits & aging</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />New Account
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {aging && (
-        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
-          <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">📊 Aging Analysis</h3>
-          <div className="grid sm:grid-cols-5 gap-3">
-            <div className="rounded-xl bg-slate-100 dark:bg-ink-800 p-3 text-center">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total Outstanding</div>
-              <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(aging.totalOutstanding)}</div>
-              <div className="text-[0.6875rem] font-bold text-slate-500">{aging.accountsCount} accounts</div>
-            </div>
-            <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3 text-center">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">0-30 Days</div>
-              <div className="text-lg font-extrabold text-emerald-900 tabular-nums">{formatPKR(aging.age0To30)}</div>
-            </div>
-            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 p-3 text-center">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">31-60 Days</div>
-              <div className="text-lg font-extrabold text-blue-900 tabular-nums">{formatPKR(aging.age31To60)}</div>
-            </div>
-            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 p-3 text-center">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">61-90 Days</div>
-              <div className="text-lg font-extrabold text-amber-900 tabular-nums">{formatPKR(aging.age61To90)}</div>
-            </div>
-            <div className="rounded-xl bg-rose-50 dark:bg-rose-950/30 p-3 text-center border-2 border-rose-300">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700">90+ Days</div>
-              <div className="text-lg font-extrabold text-rose-900 tabular-nums">{formatPKR(aging.ageOver90)}</div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search account #, customer, phone, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500" />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setStatusFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === 'all' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All</button>
-          {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-            <button key={k} onClick={() => setStatusFilter(k)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === k ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{v.label}</button>
-          ))}
-        </div>
-      </section>
-
-      {showForm && (
-        <AccountForm
-          editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false);
-            setEditing(null);
-            queryClient.invalidateQueries({ queryKey: ['credit-accounts'] });
-          }}
-        />
-      )}
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : accounts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
-          <CreditCard className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No credit accounts</p>
-        </div>
-      ) : (
-        <section className="grid gap-3">
-          {accounts.map((a) => <AccountCard key={a.id} a={a} onEdit={() => { setEditing(a); setShowForm(true); }} />)}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function AccountCard({ a, onEdit }: { a: any; onEdit: () => void }) {
-  const cfg = STATUS_CONFIG[a.status as AccountStatus];
-  const utilizationPct = a.creditLimit > 0 ? (a.currentBalance / a.creditLimit) * 100 : 0;
-
-  return (
-    <div className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow shrink-0">
-            <CreditCard className="h-6 w-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold">{a.accountNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
-              {a.ageOver90Days > 0 && (
-                <span className="px-2 py-0.5 rounded bg-red-600 text-white text-[0.625rem] font-extrabold uppercase animate-pulse inline-flex items-center gap-0.5">
-                  <AlertCircle className="h-2 w-2" />
-                  90+ Days
-                </span>
-              )}
-            </div>
-            <div className="mt-1 font-extrabold">{a.customerName}</div>
-            {a.businessName && <div className="text-xs text-slate-600 font-bold">{a.businessName}</div>}
-            <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">
-              {a.customerPhone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{a.customerPhone}</span>}
-              {a.customerCnic && <span className="font-mono">CNIC: {a.customerCnic}</span>}
-              <span>Credit Days: {a.creditDays}</span>
-            </div>
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <div className={
-            'text-2xl font-extrabold tabular-nums ' +
-            (a.currentBalance > a.creditLimit ? 'text-rose-700' : 'text-slate-900 dark:text-ink-white')
-          }>{formatPKR(a.currentBalance)}</div>
-          <div className="text-[0.6875rem] font-bold text-slate-500">Limit: {formatPKR(a.creditLimit)}</div>
-        </div>
-      </div>
-
-      {a.creditLimit > 0 && (
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
-            <span className="text-slate-500">Credit Utilization</span>
-            <span className={utilizationPct > 100 ? 'text-rose-700' : utilizationPct > 80 ? 'text-amber-700' : 'text-emerald-700'}>
-              {utilizationPct.toFixed(1)}%
-            </span>
-          </div>
-          <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
-            <div className={
-              'h-full ' +
-              (utilizationPct > 100 ? 'bg-gradient-to-r from-rose-500 to-red-600' :
-               utilizationPct > 80 ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
-               'bg-gradient-to-r from-emerald-500 to-green-600')
-            } style={{ width: Math.min(utilizationPct, 100) + '%' }} />
-          </div>
-        </div>
-      )}
-
-      <div className="mt-3 flex items-center gap-2 flex-wrap text-xs font-extrabold">
-        {a.customerId ? (
-          <Link to={'/customers/' + a.customerId} className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1.5 hover:bg-emerald-100">
-            Khata dekhein <ArrowRight className="h-3 w-3" />
-          </Link>
-        ) : (
-          <span className="rounded-lg bg-amber-50 text-amber-700 px-3 py-1.5">Khate se nahi jura — badal kar customer chunein</span>
-        )}
-        <button onClick={onEdit} className="rounded-lg bg-slate-100 dark:bg-ink-800 px-3 py-1.5 hover:bg-slate-200">Badlein</button>
-      </div>
-    </div>
-  );
-}
-
-function AccountForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    customerId: editing?.customerId ?? '',
-    customerName: editing?.customerName ?? '',
-    customerPhone: editing?.customerPhone ?? '',
-    customerCnic: editing?.customerCnic ?? '',
-    businessName: editing?.businessName ?? '',
-    businessAddress: editing?.businessAddress ?? '',
-    creditLimit: editing?.creditLimit ?? 100000,
-    creditDays: editing?.creditDays ?? 30,
-    interestRateMonthly: editing?.interestRateMonthly ?? 0,
-    guarantorName: editing?.guarantorName ?? '',
-    guarantorPhone: editing?.guarantorPhone ?? '',
-    guarantorCnic: editing?.guarantorCnic ?? '',
-    guarantorRelation: editing?.guarantorRelation ?? '',
-    chequeSecurity: editing?.chequeSecurity ?? '',
-    referredBy: editing?.referredBy ?? '',
-    notes: editing?.notes ?? '',
-  });
-
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-credit-account'],
-    queryFn: () => customersApi.list({ limit: 500 }),
-  });
-  const customers = customersData?.items ?? [];
-
-  const pickCustomer = (id: string) => {
-    const c = customers.find((x) => x.id === id);
-    setForm({
-      ...form,
-      customerId: id,
-      ...(c && { customerName: c.name, customerPhone: c.phone ?? form.customerPhone }),
-    });
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is list me koi thekedar nahi'); return; }
+    downloadCsv('thekedar-khata.csv', [
+      ['Account', 'Naam', 'Karobar', 'Phone', 'Udhaar', 'Had', '0-30', '31-60', '61-90', '90+', 'Aakhri payment', 'Status'],
+      ...rows.map((a) => [a.accountNumber, a.customerName, a.businessName, a.customerPhone, a.currentBalance, a.creditLimit, a.age0To30Days, a.age31To60Days, a.age61To90Days, a.ageOver90Days, a.lastPaymentDate?.slice(0, 10), a.status]),
+    ]);
   };
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload: any = {
-        ...form,
-        creditLimit: Number(form.creditLimit) || 0,
-        creditDays: Number(form.creditDays) || 30,
-        interestRateMonthly: Number(form.interestRateMonthly) || 0,
-      };
-      return editing ? creditAccountsApi.update(editing.id, payload) : creditAccountsApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Account updated' : 'Account created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+  const printDoc = (): PrintDoc => ({
+    title: 'Thekedar khata', subtitle: TABS.find((t) => t.id === tab)!.label,
+    meta: [['Kul udhaar', money(total)], ['90 din se purana', money(age('ageOver90Days'))]],
+    sections: [{
+      kind: 'table', title: 'Thekedar',
+      columns: [{ label: 'Naam' }, { label: 'Phone', wideOnly: true }, { label: 'Udhaar', align: 'right' }, { label: '90+', align: 'right', wideOnly: true }],
+      rows: rows.map((a) => [a.businessName ? `${a.customerName} (${a.businessName})` : a.customerName, a.customerPhone ?? '', money(a.currentBalance), money(a.ageOver90Days)]),
+    }],
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">{editing ? 'Edit Account' : 'New Credit Account'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-1">
-          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 block">Customer khata se jorein</label>
-          <select value={form.customerId} onChange={(e) => pickCustomer(e.target.value)} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-            <option value="">Koi customer nahi</option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}{c.phone ? ` • ${c.phone}` : ''}</option>
-            ))}
-          </select>
-          <p className="text-[0.6875rem] font-semibold text-emerald-800 dark:text-emerald-300">
-            Jora hua account POS ke udhaar aur khate ki receiving se khud chalta hai — wohi amount har report me aati hai.
-          </p>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} placeholder="Business name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        </div>
-        <textarea rows={2} value={form.businessAddress} onChange={(e) => setForm({ ...form, businessAddress: e.target.value })} placeholder="Business address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Thekedar khata — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: HardHat, color: '#a16207', title: 'Thekedar jorein', text: 'Customer chunein, udhaar ki had aur din likhein. Had POS par bhi lagti hai.' },
+            { icon: Wallet, color: '#2563eb', title: 'Udhaar', text: 'POS par bill "Udhaar" se banayein — ye khud yahan aur Khata me aata hai.' },
+            { icon: BookOpen, color: '#16a34a', title: 'Paisa lena', text: '"Paisa lein" se customer ka khata khulta hai — wahan receiving, statement aur WhatsApp yaad dihani.' },
+            { icon: Clock, color: '#e11d48', title: 'Purana udhaar', text: '90 din se purana udhaar laal me. Had se upar ho to "Rokein" — naya udhaar band.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya thekedar'], ['G', 'guide']]} />
+      )}
 
-        <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-amber-900 flex items-center gap-2"><DollarSign className="h-4 w-4" />Credit Terms</div>
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Limit *</label>
-              <input type="number" value={form.creditLimit} onChange={(e) => setForm({ ...form, creditLimit: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
-              <input type="number" value={form.creditDays} onChange={(e) => setForm({ ...form, creditDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Interest %/month</label>
-              <input type="number" step="0.1" value={form.interestRateMonthly} onChange={(e) => setForm({ ...form, interestRateMonthly: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
+      <PageHero title="Thekedar khata" chip={`${counts.owing} par udhaar`} busy={isFetching && !isLoading} loading={isLoading}
+        meta="Contractor ka udhaar — customer khate se live"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setForm({})} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya thekedar</button>}
+        </>}
+        stats={[
+          { label: 'Kul udhaar', value: money(total) },
+          { label: '90 din se purana', value: money(age('ageOver90Days')) },
+          { label: 'Had se upar', value: String(counts.over), hint: 'thekedar' },
+        ]} />
+
+      <KpiRow cols={4}>
+        {isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Wallet} color="#16a34a" label="0–30 din" value={money(age('age0To30Days'))} />
+            <KpiCard icon={Clock} color="#d97706" label="31–60 din" value={money(age('age31To60Days'))} />
+            <KpiCard icon={Clock} color="#ea580c" label="61–90 din" value={money(age('age61To90Days'))} />
+            <KpiCard icon={AlertTriangle} color="#e11d48" label="90 din se upar" value={money(age('ageOver90Days'))} onClick={() => setTab('old')} active={tab === 'old'} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, karobar, phone, CNIC ya account…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')} />
+
+      <ViewTabs value={tab} onChange={setTab} tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: counts[t.id] }))} />
+
+      <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        {isLoading ? (
+          <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+        ) : rows.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-16 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><HardHat className="h-7 w-7" /></span>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search ? 'Is search me koi thekedar nahi' : 'Is list me koi thekedar nahi'}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">Udhaar par maal lene wale thekedar ka khata banayein.</p>
+            <button type="button" onClick={() => setForm({})} className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya thekedar</button>
           </div>
-        </div>
+        ) : (
+          <Table minWidth="56rem">
+            <THead><Tr><Th>Thekedar</Th><Th align="right">Udhaar</Th><Th>Had</Th><Th>Purana</Th><Th>Aakhri payment</Th><Th align="right">Kaam</Th></Tr></THead>
+            <TBody>
+              {rows.map((a) => {
+                const pct = a.creditLimit > 0 ? Math.min((a.currentBalance / a.creditLimit) * 100, 100) : 0;
+                const over = a.creditLimit > 0 && a.currentBalance > a.creditLimit;
+                return (
+                  <Tr key={a.id}>
+                    <Td>
+                      <p className="font-semibold text-slate-900">{a.customerName}{a.status === 'SUSPENDED' && <span className="ml-1.5 rounded bg-rose-100 px-1.5 text-[0.6875rem] font-semibold text-rose-700">Roka hua</span>}{a.status === 'CLOSED' && <span className="ml-1.5 rounded bg-slate-100 px-1.5 text-[0.6875rem] font-semibold text-slate-600">Band</span>}</p>
+                      <p className="text-[0.75rem] text-slate-500">{[a.businessName, a.customerPhone, a.accountNumber].filter(Boolean).join(' · ')}</p>
+                      {!a.khataLinked && <p className="text-[0.6875rem] font-medium text-amber-700">Customer khate se nahi jura — "Badlein" se customer chunein</p>}
+                    </Td>
+                    <Td align="right" className={cn('text-[0.9375rem] font-bold tabular-nums', a.currentBalance > 0 ? 'text-slate-900' : 'text-slate-400')}>{money(a.currentBalance)}</Td>
+                    <Td>
+                      {a.creditLimit > 0 ? (
+                        <div className="w-28">
+                          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', over ? 'bg-rose-500' : pct > 80 ? 'bg-amber-500' : 'bg-emerald-500')} style={{ width: `${pct}%` }} /></div>
+                          <p className={cn('mt-0.5 text-[0.6875rem] tabular-nums', over ? 'font-semibold text-rose-600' : 'text-slate-500')}>{money(a.creditLimit)}{a.creditDays ? ` · ${a.creditDays} din` : ''}</p>
+                        </div>
+                      ) : <span className="text-[0.75rem] text-slate-400">Koi had nahi</span>}
+                    </Td>
+                    <Td className="text-[0.75rem] tabular-nums">
+                      {a.ageOver90Days > 0 ? <span className="font-semibold text-rose-600">90+ : {money(a.ageOver90Days)}</span>
+                        : a.age61To90Days > 0 ? <span className="text-orange-600">61–90 : {money(a.age61To90Days)}</span>
+                          : a.age31To60Days > 0 ? <span className="text-amber-700">31–60 : {money(a.age31To60Days)}</span> : <span className="text-slate-400">—</span>}
+                    </Td>
+                    <Td className="text-[0.8125rem] text-slate-600">{a.lastPaymentDate ? shortDate(a.lastPaymentDate) : 'Kabhi nahi'}</Td>
+                    <Td align="right">
+                      <div className="flex justify-end gap-1">
+                        {a.customerId && <Link to={`/customers/${a.customerId}`} className="inline-flex h-8 items-center gap-1 rounded-lg bg-brand-600 px-2.5 text-[0.75rem] font-semibold text-brand-fg"><BookOpen className="h-3.5 w-3.5" />Paisa lein</Link>}
+                        {canManage && <button type="button" title="Badlein" onClick={() => setForm({ account: a })} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Edit3 className="h-4 w-4" /></button>}
+                        {!canManage ? null : a.status === 'SUSPENDED' || a.status === 'CLOSED'
+                          ? <button type="button" title="Dobara chalu" onClick={() => reactivate.mutate(a.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50"><RotateCcw className="h-4 w-4" /></button>
+                          : <button type="button" title="Naya udhaar rokein" onClick={() => setAction({ account: a, kind: 'suspend' })} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Ban className="h-4 w-4" /></button>}
+                      </div>
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </TBody>
+          </Table>
+        )}
+      </section>
 
-        <div className="rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-violet-900 flex items-center gap-2"><User className="h-4 w-4" />Guarantor</div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input value={form.guarantorName} onChange={(e) => setForm({ ...form, guarantorName: e.target.value })} placeholder="Guarantor name" className="h-11 rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-            <input value={form.guarantorPhone} onChange={(e) => setForm({ ...form, guarantorPhone: e.target.value })} placeholder="Guarantor phone" className="h-11 rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-            <input value={form.guarantorCnic} onChange={(e) => setForm({ ...form, guarantorCnic: e.target.value })} placeholder="Guarantor CNIC" className="h-11 rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-            <input value={form.guarantorRelation} onChange={(e) => setForm({ ...form, guarantorRelation: e.target.value })} placeholder="Relation (father, brother)" className="h-11 rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-        </div>
+      {form && <ContractorFormModal account={form.account} onClose={() => setForm(null)} />}
+      {action && <StopModal account={action.account} onClose={() => setAction(null)} />}
+    </PageShell>
+  );
+}
 
-        <input value={form.chequeSecurity} onChange={(e) => setForm({ ...form, chequeSecurity: e.target.value })} placeholder="Cheque security (bank + amount)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <input value={form.referredBy} onChange={(e) => setForm({ ...form, referredBy: e.target.value })} placeholder="Referred by" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
-
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create Account'}
-          </Button>
-        </div>
-      </div>
-    </section>
+function StopModal({ account, onClose }: { account: Linked; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [reason, setReason] = useState('');
+  const settled = account.currentBalance <= 0.01;
+  const run = useMutation({
+    mutationFn: (kind: 'suspend' | 'close') => (kind === 'close' ? creditAccountsApi.close(account.id, reason.trim()) : creditAccountsApi.suspend(account.id, reason.trim())),
+    onSuccess: (_, kind) => { qc.invalidateQueries({ queryKey: ['hardware-contractors'] }); toast.success(kind === 'close' ? 'Khata band — record mehfooz' : 'Naya udhaar ruk gaya'); onClose(); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${account.customerName} — udhaar rokein?`}
+      description="Counter par udhaar ki had abhi ke baqi tak aa jayegi — naya udhaar manager PIN ke bagair nahi. Purana hisaab nahi badalta."
+      footer={<>
+        <Button variant="secondary" onClick={onClose}>Wapas</Button>
+        {settled && <Button variant="ghost" loading={run.isPending && run.variables === 'close'} onClick={() => run.mutate('close')}>Khata band</Button>}
+        <Button variant="danger" loading={run.isPending && run.variables === 'suspend'} onClick={() => run.mutate('suspend')}>Udhaar rokein</Button>
+      </>}>
+      <label className="block">
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Wajah</span>
+        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Payment late, had se upar…" className="h-10 w-full rounded-lg border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+      </label>
+    </Modal>
   );
 }

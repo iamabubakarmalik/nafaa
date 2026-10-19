@@ -209,6 +209,7 @@ export default function CakeOrderDetailPage() {
               <Row k="Kul" v={formatPKR(o.total)} strong />
               <Row k="Advance chahiye tha" v={formatPKR(o.advanceRequired)} />
               <Row k="Mila" v={formatPKR(o.paidAmount)} />
+              {!closed && Number(o.khataPaid) > 0 && <Row k="Is me se khate me advance" v={formatPKR(Number(o.khataPaid))} />}
             </dl>
             <div className={cn('mt-3 flex items-center justify-between rounded-xl px-3 py-2.5 ring-1', due > 0.5 ? 'bg-amber-50 ring-amber-200' : 'bg-success-50 ring-success-200')}>
               <span className="text-[0.8125rem] font-medium text-slate-700">{o.status === 'DELIVERED' ? (due > 0.5 ? 'Khate me gaya' : 'Poora mil gaya') : due > 0.5 ? 'Lete waqt baqi' : 'Poora mil gaya'}</span>

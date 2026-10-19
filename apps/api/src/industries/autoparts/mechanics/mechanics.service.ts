@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { startOfMonthTz } from '../../../common/helpers/business-time.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -53,18 +54,38 @@ export class MechanicsService {
     const staffIds = profiles.map((p) => p.staffId);
     const staffs = await this.prisma.staff.findMany({
       where: {
+        tenantId: user.tenantId,
         id: { in: staffIds },
-        ...(params.search && { OR: [{ firstName: { contains: params.search, mode: 'insensitive' } }, { lastName: { contains: params.search, mode: 'insensitive' } }] } as any),
-      } as any,
+        ...(params.search && { OR: [{ fullName: { contains: params.search, mode: 'insensitive' } }, { phone: { contains: params.search } }] }),
+      },
     });
     const staffMap = new Map(staffs.map((s) => [s.id, s]));
-    return profiles.filter((p) => staffMap.has(p.staffId)).map((p) => ({ ...p, staff: staffMap.get(p.staffId) }));
+    const kept = profiles.filter((p) => staffMap.has(p.staffId));
+    const ids = kept.map((p) => p.id);
+    const month = startOfMonthTz();
+    const [open, labour, done] = ids.length ? await Promise.all([
+      this.prisma.workshopJob.groupBy({ by: ['primaryMechanicId'], where: { tenantId: user.tenantId, primaryMechanicId: { in: ids }, status: { notIn: ['DELIVERED', 'CANCELLED'] } }, _count: { _all: true } }),
+      this.prisma.workshopJobLabor.groupBy({ by: ['mechanicId'], where: { mechanicId: { in: ids }, job: { tenantId: user.tenantId, status: 'DELIVERED', deliveredAt: { gte: month } } }, _sum: { total: true, hours: true } }),
+      this.prisma.workshopJob.groupBy({ by: ['primaryMechanicId'], where: { tenantId: user.tenantId, primaryMechanicId: { in: ids }, status: 'DELIVERED', deliveredAt: { gte: month } }, _count: { _all: true } }),
+    ]) : [[], [], []];
+    const openOf = new Map(open.map((o) => [o.primaryMechanicId, o._count._all]));
+    const doneOf = new Map(done.map((o) => [o.primaryMechanicId, o._count._all]));
+    const labourOf = new Map(labour.map((l) => [l.mechanicId, l._sum]));
+    return kept.map((p) => {
+      const l = labourOf.get(p.id);
+      const monthLabour = Math.round(Number(l?.total ?? 0) * 100) / 100;
+      return {
+        ...p, staff: staffMap.get(p.staffId),
+        openJobs: openOf.get(p.id) ?? 0, monthJobs: doneOf.get(p.id) ?? 0, monthLabour, monthHours: Number(l?.hours ?? 0),
+        monthCommission: Math.round(monthLabour * (p.commissionPct || 0)) / 100,
+      };
+    });
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.mechanicProfile.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Mechanic not found');
-    const staff = await this.prisma.staff.findUnique({ where: { id: p.staffId } });
+    const staff = await this.prisma.staff.findFirst({ where: { id: p.staffId, tenantId: user.tenantId } });
 
     // Current active jobs
     const activeJobs = await this.prisma.workshopJob.findMany({

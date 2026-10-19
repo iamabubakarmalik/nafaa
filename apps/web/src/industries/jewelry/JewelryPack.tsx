@@ -1,8 +1,9 @@
 import {
   Gem, LayoutDashboard, Sparkles, Users, TrendingUp, Coins,
-  Palette, Repeat, ShoppingBag,
+  Palette, Repeat, ShoppingBag, ShoppingCart, Wrench,
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
+import { PERMISSIONS } from '@core/lib/permissions';
 
 import JewelryDashboard from './dashboard/JewelryDashboard';
 import JewelryProductsPage from './pages/JewelryProductsPage';
@@ -16,6 +17,12 @@ import MetalStockPage from './pages/MetalStockPage';
 import JewelryItemWizardPage from './pages/JewelryItemWizardPage';
 import JewelryItemDetailPage from './pages/JewelryItemDetailPage';
 
+/**
+ * Jewelry / sonar pack: pieces by weight and karat on the shared product
+ * pages, a counter priced from today's rate with old gold as trade-in,
+ * custom orders with karigar gold, old gold buying and repairs, metal stock
+ * and daily rates. Sales history, receipts and reports are the shared ones.
+ */
 export const JewelryPack: IndustryPack = {
   id: 'jewelry',
   name: 'Jewelry / Sonar',
@@ -46,15 +53,17 @@ export const JewelryPack: IndustryPack = {
       color: '#d97706',
       order: 20,
       items: [
-        { to: '/jewelry-items/new', label: '+ Add Jewelry Item', icon: Sparkles, badge: 'FAST' },
-        { to: '/jewelry/dashboard', label: 'Jewelry Dashboard', icon: LayoutDashboard },
-        { to: '/jewelry/products', label: 'Jewelry Catalog', icon: Gem },
-        { to: '/jewelry/sales', label: 'Sales', icon: ShoppingBag },
-        { to: '/jewelry/custom-orders', label: 'Custom Orders', icon: Palette, badge: 'NEW' },
-        { to: '/jewelry/exchanges', label: 'Exchanges', icon: Repeat },
-        { to: '/jewelry/karigars', label: 'Karigars', icon: Users },
-        { to: '/jewelry/metal-rates', label: 'Metal Rates', icon: TrendingUp },
-        { to: '/jewelry/metal-stock', label: 'Metal Stock', icon: Coins },
+        { to: '/pos', label: 'Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE },
+        { to: '/jewelry/metal-rates', label: 'Aaj ka rate', icon: TrendingUp },
+        { to: '/jewelry-items/new', label: 'Naya zewar', icon: Sparkles, permission: PERMISSIONS.PRODUCTS_CREATE },
+        { to: '/jewelry/products', label: 'Zewar', icon: Gem, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/jewelry/sales', label: 'Sales', icon: ShoppingBag, permission: PERMISSIONS.SALES_VIEW },
+        { to: '/jewelry/custom-orders', label: 'Custom orders', icon: Palette, permission: PERMISSIONS.POS_USE },
+        { to: '/jewelry/exchanges', label: 'Purana sona', icon: Repeat, permission: PERMISSIONS.PURCHASES_VIEW },
+        { to: '/jewelry/exchanges?tab=repair', label: 'Repair', icon: Wrench, permission: PERMISSIONS.POS_USE },
+        { to: '/jewelry/karigars', label: 'Karigar', icon: Users, permission: PERMISSIONS.SUPPLIERS_VIEW },
+        { to: '/jewelry/metal-stock', label: 'Metal stock', icon: Coins, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+        { to: '/jewelry/dashboard', label: 'Jewelry dashboard', icon: LayoutDashboard },
       ],
     },
   ],

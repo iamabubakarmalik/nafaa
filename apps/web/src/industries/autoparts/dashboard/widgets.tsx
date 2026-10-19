@@ -14,7 +14,7 @@ export const autoPartsKpis: KpiDef[] = [
     useValue: () => {
       const { board, jobs, loading } = useAutoPartsOps();
       return {
-        loading, to: '/autoparts/jobs', value: board.activeJobs, alert: jobs.overdue.length > 0,
+        loading, to: '/autoparts/jobs?view=working', value: board.activeJobs, alert: jobs.overdue.length > 0,
         hint: jobs.overdue.length ? `${jobs.overdue.length} late!` : `${board.waitingParts} parts ke intezar me`,
       };
     },
@@ -23,14 +23,14 @@ export const autoPartsKpis: KpiDef[] = [
     id: 'autoparts-ready', label: 'Gaari tayyar', icon: CheckCircle2, tone: 'success',
     useValue: () => {
       const { board, loading } = useAutoPartsOps();
-      return { loading, to: '/autoparts/jobs', value: board.readyDelivery, hint: `aaj ${board.today.deliveredCount} di gayin` };
+      return { loading, to: '/autoparts/jobs?view=ready', value: board.readyDelivery, hint: `aaj ${board.today.deliveredCount} di gayin` };
     },
   },
   {
     id: 'autoparts-parts-wait', label: 'Parts ka intezar', icon: Package, tone: 'warning',
     useValue: () => {
       const { board, loading } = useAutoPartsOps();
-      return { loading, to: '/autoparts/jobs', value: board.waitingParts, alert: board.waitingParts > 0, hint: 'job ruke hue' };
+      return { loading, to: '/autoparts/jobs?view=waiting', value: board.waitingParts, alert: board.waitingParts > 0, hint: 'job ruke hue' };
     },
   },
   {
@@ -56,10 +56,10 @@ export const autoPartsKpis: KpiDef[] = [
 export function useAutoPartsAttention(): AttentionItem[] {
   const { board, jobs, reminders } = useAutoPartsOps();
   const items: AttentionItem[] = [];
-  if (jobs.overdue.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${jobs.overdue.length} gaari ka waada guzar gaya — customer ko batayein`, to: '/autoparts/jobs', cta: 'Jobs dekhein' });
-  if (board.waitingParts) items.push({ icon: Package, level: 'warning', text: `${board.waitingParts} job parts ke intezar me ruke hain — parts mangwayein`, to: '/autoparts/jobs', cta: 'Dekhein' });
+  if (jobs.overdue.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${jobs.overdue.length} gaari ka waada guzar gaya — customer ko batayein`, to: '/autoparts/jobs?view=late', cta: 'Jobs dekhein' });
+  if (board.waitingParts) items.push({ icon: Package, level: 'warning', text: `${board.waitingParts} job parts ke intezar me ruke hain — parts mangwayein`, to: '/autoparts/jobs?view=waiting', cta: 'Dekhein' });
   if (reminders.overdue.length) items.push({ icon: Bell, level: 'warning', text: `${reminders.overdue.length} service reminder ki date guzar gayi — customer ko call karein`, to: '/autoparts/reminders', cta: 'Reminders' });
-  if (board.readyDelivery) items.push({ icon: CheckCircle2, level: 'info', text: `${board.readyDelivery} gaari tayyar hai — customer ko bula lein`, to: '/autoparts/jobs', cta: 'Dekhein' });
+  if (board.readyDelivery) items.push({ icon: CheckCircle2, level: 'info', text: `${board.readyDelivery} gaari tayyar hai — customer ko bula lein`, to: '/autoparts/jobs?view=ready', cta: 'Dekhein' });
   if (jobs.today.length) items.push({ icon: Wrench, level: 'info', text: `${jobs.today.length} gaari aaj deni hai`, to: '/autoparts/jobs', cta: 'Jobs' });
   if (reminders.papersTotal) items.push({ icon: FileWarning, level: 'neutral', text: `${reminders.papersTotal} gaariyon ki insurance, token ya fitness 30 din me khatam — customer ko bata kar kaam lein`, to: '/autoparts/vehicles', cta: 'Gaariyan' });
   return items;

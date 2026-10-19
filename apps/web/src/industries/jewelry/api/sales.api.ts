@@ -50,12 +50,7 @@ const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 export const jewelrySalesApi = {
   create: (data: any) => apiClient.post('/jewelry/sales', data).then(unwrap<JewelrySale>),
   list: (params?: any) => apiClient.get('/jewelry/sales', { params }).then(unwrap<JewelrySale[]>),
+  /** Jewelry details of shared bills, by bill number. */
+  byNumbers: (numbers: string[]) => apiClient.get('/jewelry/sales', { params: { numbers: numbers.join(',') } }).then(unwrap<JewelrySale[]>),
   getOne: (id: string) => apiClient.get('/jewelry/sales/' + id).then(unwrap<JewelrySale>),
-  updateStatus: (id: string, status: string, cancellationReason?: string) =>
-    apiClient.patch('/jewelry/sales/' + id + '/status', { status, cancellationReason }).then(unwrap<JewelrySale>),
-  addPayment: (id: string, amount: number, paymentMethod?: string) =>
-    apiClient.post('/jewelry/sales/' + id + '/payment', { amount, paymentMethod }).then(unwrap<JewelrySale>),
-  markReturned: (id: string, reason: string, managerPin?: string) =>
-    apiClient.post('/jewelry/sales/' + id + '/return', { reason, managerPin }).then(unwrap<JewelrySale>),
-  markExchanged: (id: string, exchangeType: string) => apiClient.post('/jewelry/sales/' + id + '/exchange', { exchangeType }).then(unwrap<JewelrySale>),
 };

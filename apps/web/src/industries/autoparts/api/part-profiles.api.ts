@@ -8,6 +8,8 @@ export type PartCategory = 'ENGINE' | 'TRANSMISSION' | 'BRAKES' | 'SUSPENSION' |
 
 export type PartCondition = 'NEW' | 'USED' | 'REFURBISHED' | 'GENUINE' | 'OEM' | 'AFTERMARKET' | 'LOCAL';
 
+export interface PartFitment { makeId?: string; makeName?: string; modelId?: string; modelName?: string; yearFrom?: number | null; yearTo?: number | null; notes?: string }
+
 export interface PartProfile {
   id: string;
   productId: string;
@@ -30,25 +32,29 @@ export interface PartProfile {
   installationMinutes?: number;
   requiresSpecialTool: boolean;
   installationDifficulty?: string;
-  compatibility?: any;
+  compatibility?: { isUniversal?: boolean; fitments?: PartFitment[] } | null;
   minStockAlert: number;
   isFastMoving: boolean;
   isCritical: boolean;
   totalSold: number;
   totalInstalled: number;
-  product?: any;
   createdAt: string;
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+/** One light row per part: numbers, brand, condition and the vehicles it fits. */
+export interface PartFacts {
+  productId: string; partNumber?: string | null; oemNumber?: string | null; alternateNumbers: string[]; brand?: string | null;
+  condition: PartCondition; category: PartCategory; warrantyMonths: number; isFastMoving: boolean; isCritical: boolean;
+  universal: boolean; fitment: string;
+  fits: Array<{ makeId: string | null; modelId: string | null; makeName: string | null; modelName: string | null; yearFrom: number | null; yearTo: number | null }>;
+}
+
+const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
 export const partProfilesApi = {
-  upsert: (data: Partial<PartProfile>) => apiClient.post('/autoparts/part-profiles', data).then(unwrap<PartProfile>),
-  list: (params?: any) => apiClient.get('/autoparts/part-profiles', { params }).then(unwrap<PartProfile[]>),
+  upsert: (data: Partial<Omit<PartProfile, 'id' | 'product' | 'createdAt' | 'updatedAt' | 'totalSold' | 'totalInstalled'>> & { productId: string }) =>
+    apiClient.post('/autoparts/part-profiles', data).then(unwrap<PartProfile>),
+  facts: () => apiClient.get('/autoparts/part-profiles/facts').then(unwrap<PartFacts[]>),
   byProduct: (productId: string) => apiClient.get('/autoparts/part-profiles/by-product/' + productId).then(unwrap<PartProfile | null>),
-  byPartNumber: (partNumber: string) => apiClient.get('/autoparts/part-profiles/by-part-number/' + encodeURIComponent(partNumber)).then(unwrap<PartProfile[]>),
-  compatible: (makeId: string, modelId: string, year?: number) =>
-    apiClient.get('/autoparts/part-profiles/compatible/' + makeId + '/' + modelId, { params: year ? { year } : {} }).then(unwrap<PartProfile[]>),
-  remove: (id: string) => apiClient.delete('/autoparts/part-profiles/' + id).then(unwrap),
 };

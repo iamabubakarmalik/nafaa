@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { ChevronDown, Sparkles } from 'lucide-react';
 import { useIndustryPresets } from '@industries/_shared/presets/useIndustryPresets';
 import { cn } from '@core/lib/cn';
+import { Checkbox, Input, Textarea } from '@/design-system/components';
 import { TaxonomyPage, type Draft } from '../../taxonomy/TaxonomyPage';
 
 const TEXT = ['description', 'logoUrl', 'website', 'countryOfOrigin', 'dealerCode', 'supportPhone', 'supportEmail', 'warrantyPolicy', 'serviceCenter'] as const;
@@ -18,23 +19,12 @@ const payload = (d: Draft) => ({
   ...Object.fromEntries(FLAGS.filter((k) => d[k] != null).map((k) => [k, !!d[k]])),
 });
 
-const input = 'h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
-
-function Text({ label, k, d, set, placeholder, type = 'text' }: { label: string; k: string; d: Draft; set: (k: string, v: unknown) => void; placeholder?: string; type?: string }) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">{label}</span>
-      <input type={type} value={d[k] ?? ''} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} className={input} />
-    </label>
-  );
+function Text({ label, k, d, set, placeholder, hint, type = 'text' }: { label: string; k: string; d: Draft; set: (k: string, v: unknown) => void; placeholder?: string; hint?: string; type?: string }) {
+  return <Input label={label} type={type} value={String(d[k] ?? '')} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} hint={hint} maxLength={300} />;
 }
 
-function Check({ label, k, d, set }: { label: string; k: string; d: Draft; set: (k: string, v: unknown) => void }) {
-  return (
-    <label className="flex items-center gap-2 text-sm text-slate-700">
-      <input type="checkbox" checked={!!d[k]} onChange={(e) => set(k, e.target.checked)} className="h-4 w-4 accent-brand-600" /> {label}
-    </label>
-  );
+function Flag({ label, description, k, d, set }: { label: string; description?: string; k: string; d: Draft; set: (k: string, v: unknown) => void }) {
+  return <Checkbox label={label} description={description} checked={!!d[k]} onChange={(e) => set(k, e.target.checked)} />;
 }
 
 function BrandFields({ d, set }: { d: Draft; set: (k: string, v: unknown) => void }) {
@@ -42,17 +32,13 @@ function BrandFields({ d, set }: { d: Draft; set: (k: string, v: unknown) => voi
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Text label="Logo ka link" k="logoUrl" d={d} set={set} placeholder="https://…/logo.png" />
-        <Text label="Website" k="website" d={d} set={set} placeholder="https://…" />
+        <Text label="Logo ka link" k="logoUrl" d={d} set={set} placeholder="https://…/logo.png" hint="Brand list aur bill par dikhta hai" type="url" />
+        <Text label="Website" k="website" d={d} set={set} placeholder="https://…" type="url" />
       </div>
-      <label className="block">
-        <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">Details</span>
-        <textarea value={d.description ?? ''} onChange={(e) => set('description', e.target.value)} rows={2}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500" />
-      </label>
-      <Check label="Khaas brand (list me upar)" k="isFeatured" d={d} set={set} />
+      <Textarea label="Details" rows={2} value={String(d.description ?? '')} onChange={(e) => set('description', e.target.value)} maxLength={500} />
+      <Flag label="Khaas brand" description="List mein upar dikhega" k="isFeatured" d={d} set={set} />
       <button type="button" onClick={() => setMore((m) => !m)} aria-expanded={more}
-        className="flex w-full items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-left text-sm font-semibold text-slate-800">
+        className="flex w-full items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-left text-sm font-semibold text-slate-800 ring-1 ring-slate-100 hover:bg-slate-100">
         <Sparkles className="h-4 w-4 text-brand-600" /> <span className="flex-1">Dealer, warranty aur service</span>
         <ChevronDown className={cn('h-4 w-4 transition', more && 'rotate-180')} />
       </button>
@@ -60,20 +46,16 @@ function BrandFields({ d, set }: { d: Draft; set: (k: string, v: unknown) => voi
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Text label="Mulk" k="countryOfOrigin" d={d} set={set} placeholder="Japan, China…" />
-            <Text label="Dealer code" k="dealerCode" d={d} set={set} />
-            <Text label="Support phone" k="supportPhone" d={d} set={set} type="tel" />
+            <Text label="Dealer code" k="dealerCode" d={d} set={set} hint="Company ki taraf se mila code" />
+            <Text label="Support phone" k="supportPhone" d={d} set={set} type="tel" placeholder="0800-…" />
             <Text label="Support email" k="supportEmail" d={d} set={set} type="email" />
           </div>
-          <Text label="Service center" k="serviceCenter" d={d} set={set} placeholder="Pata ya naam" />
-          <label className="block">
-            <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">Warranty ki shartein</span>
-            <textarea value={d.warrantyPolicy ?? ''} onChange={(e) => set('warrantyPolicy', e.target.value)} rows={2}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500" />
-          </label>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <Check label="Authorized dealer" k="authorizedDealer" d={d} set={set} />
-            <Check label="Installation shamil" k="installationIncluded" d={d} set={set} />
-            <Check label="Demo shamil" k="demoIncluded" d={d} set={set} />
+          <Text label="Service center" k="serviceCenter" d={d} set={set} placeholder="Pata ya naam" hint="Warranty claim par customer ko yahi batayein" />
+          <Textarea label="Warranty ki shartein" rows={2} value={String(d.warrantyPolicy ?? '')} onChange={(e) => set('warrantyPolicy', e.target.value)} maxLength={1000} />
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Flag label="Authorized dealer" k="authorizedDealer" d={d} set={set} />
+            <Flag label="Installation shamil" k="installationIncluded" d={d} set={set} />
+            <Flag label="Demo shamil" k="demoIncluded" d={d} set={set} />
           </div>
         </div>
       )}

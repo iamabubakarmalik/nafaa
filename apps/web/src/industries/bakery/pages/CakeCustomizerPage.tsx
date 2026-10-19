@@ -25,11 +25,11 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { useReceiptSetup } from '@core/receipt/setup';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
-import { cakeOrdersApi, type CakeOrder } from '../api/cake-orders.api';
+import { cakeOrdersApi, type CakeOrder, type OrderPayMethod } from '../api/cake-orders.api';
 import type { BakerySize, CakeFlavor, CakeShape, CreamType } from '../api/products.api';
 import { CREAMS, FLAVORS, OCCASIONS, SHAPES, SIZES } from '../api/constants';
 import { cakeMessage, printCakeSlip } from '../components/orderSlip';
-import { CAKE_KEY, DELIVERY, apiError, dateTime, fromLocalInput, isClosed, isDelivery, toLocalInput, waLink } from '../components/meta';
+import { CAKE_KEY, DELIVERY, PAY_METHODS, apiError, dateTime, fromLocalInput, isClosed, isDelivery, toLocalInput, waLink } from '../components/meta';
 
 interface Draft {
   customerId: string; customerName: string; customerPhone: string; customerEmail: string;
@@ -43,7 +43,7 @@ interface Draft {
   occasion: string; celebrantName: string; celebrantAge: string; eventDate: string; eventTime: string; eventVenue: string;
   deliveryType: string; neededBy: string; deliveryAddress: string; deliveryLandmark: string; deliveryCharges: string;
   basePrice: string; customizationCharges: string; photoCakeCharges: string; taxAmount: string; discount: string;
-  advanceRequired: string; advancePaid: string; confirmed: boolean;
+  advanceRequired: string; advancePaid: string; payMethod: OrderPayMethod; confirmed: boolean;
   specialInstructions: string; internalNotes: string;
 }
 
@@ -58,7 +58,7 @@ const EMPTY: Draft = {
   occasion: 'BIRTHDAY', celebrantName: '', celebrantAge: '', eventDate: '', eventTime: '', eventVenue: '',
   deliveryType: 'SELF_PICKUP', neededBy: '', deliveryAddress: '', deliveryLandmark: '', deliveryCharges: '',
   basePrice: '', customizationCharges: '', photoCakeCharges: '', taxAmount: '', discount: '',
-  advanceRequired: '', advancePaid: '', confirmed: true, specialInstructions: '', internalNotes: '',
+  advanceRequired: '', advancePaid: '', payMethod: 'CASH', confirmed: true, specialInstructions: '', internalNotes: '',
 };
 
 const QUICK_SIZES: BakerySize[] = ['HALF_POUND', 'ONE_POUND', 'TWO_POUND', 'THREE_POUND', 'FIVE_POUND', 'ONE_KG', 'TWO_KG', 'CUSTOM'];
@@ -98,7 +98,7 @@ function fromOrder(o: CakeOrder): Draft {
     deliveryCharges: o.deliveryCharges ? String(o.deliveryCharges) : '',
     basePrice: o.basePrice ? String(o.basePrice) : '', customizationCharges: o.customizationCharges ? String(o.customizationCharges) : '',
     photoCakeCharges: o.photoCakeCharges ? String(o.photoCakeCharges) : '', taxAmount: o.taxAmount ? String(o.taxAmount) : '', discount: o.discount ? String(o.discount) : '',
-    advanceRequired: String(o.advanceRequired ?? ''), advancePaid: '', confirmed: !['DRAFT', 'QUOTED'].includes(o.status),
+    advanceRequired: String(o.advanceRequired ?? ''), advancePaid: '', payMethod: 'CASH', confirmed: !['DRAFT', 'QUOTED'].includes(o.status),
     specialInstructions: s(o.specialInstructions), internalNotes: s(o.internalNotes),
   };
 }
@@ -171,7 +171,7 @@ export default function CakeCustomizerPage() {
         specialInstructions: opt(f.specialInstructions), internalNotes: opt(f.internalNotes),
       };
       if (editing) return cakeOrdersApi.update(id!, body);
-      return cakeOrdersApi.create({ ...body, advancePaid: advanceNow, status: f.confirmed || advanceNow > 0 ? 'CONFIRMED' : 'QUOTED' });
+      return cakeOrdersApi.create({ ...body, advancePaid: advanceNow, ...(advanceNow > 0 && { paymentMethod: f.payMethod }), status: f.confirmed || advanceNow > 0 ? 'CONFIRMED' : 'QUOTED' });
     },
     onSuccess: (o) => {
       qc.invalidateQueries({ queryKey: [CAKE_KEY] });
@@ -386,6 +386,11 @@ export default function CakeCustomizerPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {[advanceAsk, total].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map((v) => <Chip key={v} on={num(f.advancePaid) === v} onClick={() => set('advancePaid', String(v))}>{v === total ? 'Poora' : 'Advance'} {formatPKR(v)}</Chip>)}
                   </div>
+                  {advanceNow > 0 && (
+                    <div role="radiogroup" aria-label="Advance kaise mila" className="flex flex-wrap gap-1.5">
+                      {PAY_METHODS.map((m) => <Chip key={m.id} on={f.payMethod === m.id} onClick={() => set('payMethod', m.id)}>{m.label}</Chip>)}
+                    </div>
+                  )}
                   {advanceNow <= 0 && <Switch checked={f.confirmed} onChange={(e) => set('confirmed', e.target.checked)} label="Order pakka hai" description={f.confirmed ? 'Bina advance ke bhi pakka' : 'Sirf rate bataya — abhi pakka nahi'} />}
                 </>
               )}

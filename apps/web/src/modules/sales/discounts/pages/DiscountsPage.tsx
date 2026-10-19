@@ -10,21 +10,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
-  BadgePercent, CalendarClock, Check, Copy, Download, GraduationCap, MessageCircle, Pencil, Percent, Plus, Search, Store, Tag,
-  Trash2, TrendingUp, Trophy, Users, Wallet, Wand2, X, type LucideIcon,
+  ArrowDownWideNarrow, BadgePercent, BarChart3, CalendarClock, Check, Copy, Download, GraduationCap, ListChecks, MessageCircle, Pencil,
+  Percent, Plus, Store, Tag, Trash2, TrendingUp, Trophy, Users, Wallet, Wand2,
 } from 'lucide-react';
 import {
-  Button, Card, DateRangeMenu, Kbd, Modal, PageHero, Skeleton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+  Button, Card, DateRangeMenu, EmptyState, FilterBar, FilterChip, FilterMenu, IconButton, Input, KpiCard, KpiRow, Modal, PageHero, PageShell,
+  SearchField, Skeleton, Switch, Table, TBody, THead, Td, Th, Tr, ViewTabs, heroIconButton, heroPrimaryButton, resolveRange,
+  type DateRangeValue, type FilterOption,
 } from '@/design-system/components';
+import { PageGuide, type GuideStep } from '@core/components/PageGuide';
 import { PrintButton, type PrintDoc } from '@core/print';
+import { downloadCsv } from '@core/lib/csv';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useBusinessDayStart } from '@core/lib/business-day';
 import { useAuthStore } from '@core/stores/auth.store';
 import { formatPKR } from '@core/lib/format';
+import { rangeLabel } from '@core/lib/dateRange';
 import { cn } from '@core/lib/cn';
+import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { discountsApi, type CreateDiscountPayload, type DiscountCode, type DiscountStatus, type DiscountType } from '../api/discounts.api';
 
 const STATUS: Record<DiscountStatus, { label: string; tone: string }> = {
@@ -37,6 +44,17 @@ const STATUS: Record<DiscountStatus, { label: string; tone: string }> = {
 const TABS: Array<{ id: 'all' | DiscountStatus; label: string }> = [
   { id: 'active', label: 'Chalu' }, { id: 'scheduled', label: 'Shuru hone wale' }, { id: 'used_up', label: 'Had poori' },
   { id: 'expired', label: 'Period khatam' }, { id: 'inactive', label: 'Band' }, { id: 'all', label: 'Sab' },
+];
+type Sort = 'revenue' | 'given' | 'ending' | 'new' | 'code';
+const SORTS: Array<FilterOption<Sort>> = [
+  { value: 'revenue', label: 'Zyada Sale pehle' }, { value: 'given', label: 'Zyada Discount diya' }, { value: 'ending', label: 'Jald khatam hone wale' },
+  { value: 'new', label: 'Naye pehle' }, { value: 'code', label: 'Code (A–Z)' },
+];
+type Kind = 'all' | DiscountType;
+const KINDS: Array<FilterOption<Kind>> = [
+  { value: 'all', label: 'Har tarah', icon: ListChecks, color: '#475569' },
+  { value: 'PERCENTAGE', label: 'Percent (%)', icon: Percent, color: '#7c3aed' },
+  { value: 'FIXED_AMOUNT', label: 'Seedhi amount', icon: Wallet, color: '#16a34a' },
 ];
 const PRESETS: Array<{ code: string; description: string; type: DiscountType; value: number; minPurchase?: number; maxDiscount?: number }> = [
   { code: 'EID2026', description: 'Eid special', type: 'PERCENTAGE', value: 20, minPurchase: 1000, maxDiscount: 1000 },
@@ -54,56 +72,80 @@ const keyOf = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-CA'
 
 export default function DiscountsPage() {
   const qc = useQueryClient();
+  const theme = useChartTheme();
   const canManage = usePermission(PERMISSIONS.DISCOUNTS_MANAGE);
   const shopName = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
   const startHour = useBusinessDayStart();
   const [range, setRange] = useState<DateRangeValue>({ preset: 'thisMonth', custom: { from: '', to: '' } });
   const period = resolveRange(range, startHour);
+  const [view, setView] = useState<'codes' | 'analytics'>('codes');
   const [tab, setTab] = useState<'all' | DiscountStatus>('active');
+  const [kind, setKind] = useState<Kind>('all');
+  const [sort, setSort] = useState<Sort>('revenue');
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<DiscountCode | 'new' | null>(null);
+  const [removing, setRemoving] = useState<DiscountCode | null>(null);
   const [guide, setGuide] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const list = useQuery({ queryKey: ['discounts', period?.from, period?.to], queryFn: () => discountsApi.list(period ?? undefined), placeholderData: (p) => p });
   const refresh = () => qc.invalidateQueries({ queryKey: ['discounts'] });
   const toggle = useMutation({ mutationFn: discountsApi.toggle, onSuccess: (d) => { toast.success(d.isActive ? 'Code chalu' : 'Code band'); void refresh(); } });
-  const remove = useMutation({ mutationFn: discountsApi.remove, onSuccess: (r) => { toast.success(r.message); void refresh(); } });
+  const remove = useMutation({ mutationFn: discountsApi.remove, onSuccess: (r) => { toast.success(r.message); setRemoving(null); void refresh(); } });
 
+  const all = useMemo(() => list.data?.items ?? [], [list.data]);
   const items = useMemo(() => {
     const t = search.trim().toLowerCase();
-    return (list.data?.items ?? []).filter((d) => (tab === 'all' || d.status === tab) && (!t || d.code.toLowerCase().includes(t) || d.description?.toLowerCase().includes(t)));
-  }, [list.data, tab, search]);
+    const out = all.filter((d) => (tab === 'all' || d.status === tab) && (kind === 'all' || d.type === kind)
+      && (!t || d.code.toLowerCase().includes(t) || d.description?.toLowerCase().includes(t)));
+    const end = (d: DiscountCode) => (d.validUntil ? new Date(d.validUntil).getTime() : Infinity);
+    const by: Record<Sort, (a: DiscountCode, b: DiscountCode) => number> = {
+      revenue: (a, b) => b.revenue - a.revenue, given: (a, b) => b.discountGiven - a.discountGiven, ending: (a, b) => end(a) - end(b),
+      new: () => 0, code: (a, b) => a.code.localeCompare(b.code),
+    };
+    return sort === 'new' ? out : [...out].sort(by[sort]);
+  }, [all, tab, kind, sort, search]);
   const counts = useMemo(() => {
-    const m: Record<string, number> = { all: list.data?.items.length ?? 0 };
-    for (const d of list.data?.items ?? []) m[d.status] = (m[d.status] ?? 0) + 1;
+    const m: Record<string, number> = { all: all.length };
+    for (const d of all) m[d.status] = (m[d.status] ?? 0) + 1;
     return m;
-  }, [list.data]);
-  const top = useMemo(() => [...(list.data?.items ?? [])].filter((d) => d.uses > 0).sort((a, b) => b.revenue - a.revenue).slice(0, 6), [list.data]);
+  }, [all]);
+  const endingSoon = useMemo(() => all.filter((d) => d.status === 'active' && (daysLeft(d.validUntil) ?? 99) <= 7).length, [all]);
+  const top = useMemo(() => [...all].filter((d) => d.uses > 0).sort((a, b) => b.revenue - a.revenue), [all]);
   const t = list.data?.totals;
+  const hasFilters = !!(search.trim() || kind !== 'all');
+  const clear = () => { setSearch(''); setKind('all'); };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
-      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
-      else if (e.key.toLowerCase() === 'n' && canManage) setEditing('new');
-      else if (e.key.toLowerCase() === 'g') setGuide(true);
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); setView('codes'); setTimeout(() => searchRef.current?.focus(), 0); }
+      else if (k === 'n' && canManage) setEditing('new');
+      else if (k === 'a') setView((v) => (v === 'codes' ? 'analytics' : 'codes'));
+      else if (k === 'g') setGuide(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [canManage]);
 
+  const periodText = period ? rangeLabel(period.from, period.to) : 'Sab waqt';
   const exportCsv = () => {
-    const rows = [['Code', 'Details', 'Discount', 'Kam se kam', 'Had', 'Istemal', 'Har customer', 'Shuru', 'Khatam', 'Halat', 'Is period: bill', 'Sale', 'Discount diya', 'Customers'],
-      ...items.map((d) => [d.code, d.description ?? '', offText(d), d.minPurchase, d.usageLimit ?? '', d.usageCount, d.perCustomerLimit ?? '', day(d.validFrom) ?? '', day(d.validUntil) ?? '', STATUS[d.status].label, d.uses, d.revenue.toFixed(2), d.discountGiven.toFixed(2), d.customers])];
-    const url = URL.createObjectURL(new Blob(['﻿' + rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a'); a.href = url; a.download = `discount-codes-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+    if (!items.length) return toast.error('Koi code nahi');
+    downloadCsv(`discount-codes-${new Date().toISOString().slice(0, 10)}.csv`, [
+      ['Code', 'Details', 'Discount', 'Kam se kam', 'Had', 'Istemal', 'Har customer', 'Shuru', 'Khatam', 'Halat', 'Is period: bill', 'Sale', 'Discount diya', 'Customers'],
+      ...items.map((d) => [d.code, d.description ?? '', offText(d), d.minPurchase, d.usageLimit ?? '', d.usageCount, d.perCustomerLimit ?? '', day(d.validFrom) ?? '', day(d.validUntil) ?? '', STATUS[d.status].label, d.uses, d.revenue.toFixed(2), d.discountGiven.toFixed(2), d.customers]),
+    ]);
   };
   const printDoc = (): PrintDoc => ({
-    title: 'Discount codes', subtitle: period ? `${period.from} — ${period.to}` : 'Sab waqt',
-    meta: [['Codes', String(t?.codes ?? 0)], ['Discount diya', formatPKR(t?.discountGiven ?? 0)]],
-    sections: [{ kind: 'table', columns: [{ label: 'Code' }, { label: 'Discount' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }, { label: 'Discount diya', align: 'right' }],
-      rows: items.map((d) => [d.code, offText(d), String(d.uses), formatPKR(d.revenue), formatPKR(d.discountGiven)]) }],
+    title: 'Discount codes', subtitle: periodText,
+    meta: [['Codes', String(items.length)], ['Sale', formatPKR(t?.revenue ?? 0)], ['Discount diya', formatPKR(t?.discountGiven ?? 0)]],
+    sections: [{
+      kind: 'table',
+      columns: [{ label: 'Code' }, { label: 'Discount' }, { label: 'Halat', wideOnly: true }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }, { label: 'Discount diya', align: 'right' }],
+      rows: items.map((d) => [d.code, offText(d), STATUS[d.status].label, String(d.uses), formatPKR(d.revenue), formatPKR(d.discountGiven)]),
+      footer: ['Kul', '', '', String(items.reduce((a, d) => a + d.uses, 0)), formatPKR(items.reduce((a, d) => a + d.revenue, 0)), formatPKR(items.reduce((a, d) => a + d.discountGiven, 0))],
+    }],
   });
   const share = (d: DiscountCode) => {
     const text = `🎁 ${shopName} ki taraf se khaas offer!\n\nCode: *${d.code}* — ${offText(d)}${d.minPurchase ? `\nKam se kam ${formatPKR(d.minPurchase)} ki khareedari par` : ''}${d.validUntil ? `\n${day(d.validUntil)} tak` : ''}\n\nBill banwate waqt yeh code batayein. Shukriya!`;
@@ -111,13 +153,21 @@ export default function DiscountsPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
+    <PageShell>
       {editing && <CodeEditor code={editing === 'new' ? null : editing} shops={list.data?.shops ?? []} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); void refresh(); }} />}
+      {removing && (
+        <Modal open onClose={() => setRemoving(null)} size="sm" title={removing.usageCount ? `${removing.code} band karein?` : `${removing.code} mitayein?`}
+          description={removing.usageCount ? 'Yeh code bills par lag chuka hai — mitega nahi, band ho jayega. Purane bills ka hisaab bacha rahega.' : 'Yeh code kabhi istemal nahi hua.'}
+          footer={<><Button variant="secondary" onClick={() => setRemoving(null)}>Rehne dein</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate(removing.id)}>{removing.usageCount ? 'Band karein' : 'Mitayein'}</Button></>}>
+          <p className="text-[0.875rem] text-slate-600">{offText(removing)}{removing.description ? ` · ${removing.description}` : ''}</p>
+        </Modal>
+      )}
       {guide && <DiscountsGuide onClose={() => setGuide(false)} />}
 
       <PageHero
         title="Discount codes"
         chip={<><Tag />{t ? `${t.active} chalu` : '…'}</>}
+        meta={periodText}
         busy={list.isFetching && !list.isLoading}
         loading={list.isLoading}
         actions={<>
@@ -127,40 +177,114 @@ export default function DiscountsPage() {
           {canManage && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya code</button>}
         </>}
         stats={[
-          { label: 'Codes se sale', value: formatPKR(t?.revenue ?? 0), hint: `${t?.uses ?? 0} bill` },
-          { label: 'Discount diya', value: formatPKR(t?.discountGiven ?? 0), hint: t?.revenue ? `sale ka ${((t.discountGiven / t.revenue) * 100).toFixed(1)}%` : '' },
+          { label: 'Codes se Sale', value: formatPKR(t?.revenue ?? 0), hint: `${t?.uses ?? 0} bill` },
+          { label: 'Discount diya', value: formatPKR(t?.discountGiven ?? 0), hint: t?.revenue ? `Sale ka ${((t.discountGiven / t.revenue) * 100).toFixed(1)}%` : '' },
           { label: 'Customers', value: String(t?.customers ?? 0), hint: 'jinhon ne code lagaya' },
-          { label: 'Har Rs 1 discount par', value: t?.discountGiven ? formatPKR(t.revenue / t.discountGiven) : '—', hint: 'sale aayi' },
+          { label: 'Har Rs 1 Discount par', value: t?.discountGiven ? formatPKR(t.revenue / t.discountGiven) : '—', hint: 'Sale aayi' },
         ]}
       />
 
-      <div className="relative z-10 flex flex-col gap-2 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4 xl:flex-row">
-        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
+      <KpiRow cols={4}>
+        <KpiCard icon={Tag} color="#16a34a" label="Chalu codes" value={counts.active ?? 0} hint={`${counts.all ?? 0} mein se`} active={tab === 'active'} onClick={() => { setTab('active'); setView('codes'); }} />
+        <KpiCard icon={CalendarClock} color="#d97706" label="7 din mein khatam" value={endingSoon} hint="Chalu codes" onClick={() => { setTab('active'); setSort('ending'); setView('codes'); }} />
+        <KpiCard icon={CalendarClock} color="#0284c7" label="Shuru hone wale" value={counts.scheduled ?? 0} active={tab === 'scheduled'} onClick={() => { setTab('scheduled'); setView('codes'); }} />
+        <KpiCard icon={BadgePercent} color="#e11d48" label="Had poori" value={counts.used_up ?? 0} hint="Jitni dafa chalna tha chal gaya" active={tab === 'used_up'} onClick={() => { setTab('used_up'); setView('codes'); }} />
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Code ya details…" label="Code dhoondein" />}
+        chips={hasFilters ? <>
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>“{search.trim()}”</FilterChip>}
+          {kind !== 'all' && <FilterChip onRemove={() => setKind('all')}>{KINDS.find((k) => k.value === kind)?.label}</FilterChip>}
+        </> : undefined}
+        onClear={clear}
+      >
+        <div className="-mx-1 flex max-w-full gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
           {TABS.map((x) => (
-            <button key={x.id} type="button" onClick={() => setTab(x.id)}
+            <button key={x.id} type="button" onClick={() => setTab(x.id)} aria-pressed={tab === x.id}
               className={cn('inline-flex h-11 shrink-0 items-center gap-2 rounded-2xl px-3.5 text-[0.8125rem] font-semibold transition', tab === x.id ? 'bg-slate-900 text-white shadow' : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/70')}>
               {x.label}<span className={cn('rounded-full px-1.5 text-[0.6875rem] tabular-nums', tab === x.id ? 'bg-white/20' : 'bg-white text-slate-600')}>{counts[x.id] ?? 0}</span>
             </button>
           ))}
         </div>
-        <label className="group relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-          <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Code ya details…" aria-label="Code search"
-            className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-12 text-[0.9375rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
-          {search ? <button type="button" onClick={() => setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
-            : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
-        </label>
+        <FilterMenu icon={Percent} label="Tarah" value={kind} options={KINDS} onChange={setKind} active={kind !== 'all'} width="w-56" />
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Hisaab" defaultPreset="thisMonth" />
-      </div>
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-60" />
+      </FilterBar>
 
-      {list.isLoading ? (
+      <ViewTabs
+        tabs={[{ id: 'codes', label: 'Codes', icon: Tag, count: items.length }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]}
+        value={view} onChange={setView}
+        hint={<>Sale aur Discount: {periodText}</>}
+      />
+
+      {view === 'analytics' ? (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="rounded-2xl lg:col-span-2" title="Har code: Sale aur Discount" description={periodText}>
+            {list.isLoading ? <Skeleton className="h-64 rounded-xl" /> : top.length === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Is period mein koi code istemal nahi hua</p> : (
+              <div className="h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={top.slice(0, 10)} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                    <CartesianGrid stroke={theme.grid} vertical={false} />
+                    <XAxis dataKey="code" tick={theme.axis} axisLine={false} tickLine={false} />
+                    <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={56} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+                    <Tooltip contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} formatter={(v) => formatPKR(Number(v) || 0)} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="revenue" name="Sale" fill={theme.primary} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="discountGiven" name="Discount" fill={theme.highlight} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </Card>
+          <Card className="rounded-2xl" title="Percent ya amount" description="Percent ya seedhi amount">
+            <ul className="space-y-3 text-[0.8125rem]">
+              {KINDS.slice(1).map((k) => {
+                const rows = all.filter((d) => d.type === k.value);
+                const rev = rows.reduce((a, d) => a + d.revenue, 0);
+                const given = rows.reduce((a, d) => a + d.discountGiven, 0);
+                return (
+                  <li key={k.value} className="rounded-xl bg-slate-50 p-3">
+                    <p className="font-semibold text-slate-900">{k.label} <span className="font-normal text-slate-500">· {rows.length} codes</span></p>
+                    <p className="mt-1 flex justify-between text-slate-600"><span>Sale</span><strong className="tabular-nums">{formatPKR(rev)}</strong></p>
+                    <p className="flex justify-between text-slate-600"><span>Discount</span><strong className="tabular-nums text-pink-700">{formatPKR(given)}</strong></p>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+          <Card className="rounded-2xl lg:col-span-3" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-brand-600" />Kaunsa code kaam aaya</span>} description="Har Rs 1 Discount par kitni Sale" flush>
+            {top.length === 0 ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Abhi kuch nahi</p> : (
+              <Table minWidth="40rem">
+                <THead><Tr><Th>Code</Th><Th align="right">Bill</Th><Th align="right">Customers</Th><Th align="right">Sale</Th><Th align="right">Discount</Th><Th align="right">Rs 1 par</Th><Th>Branches</Th></Tr></THead>
+                <TBody>
+                  {top.map((d) => (
+                    <Tr key={d.id} interactive onClick={() => canManage && setEditing(d)}>
+                      <Td className="font-mono font-semibold text-slate-900">{d.code}</Td>
+                      <Td align="right">{d.uses}</Td>
+                      <Td align="right">{d.customers}</Td>
+                      <Td align="right" className="font-semibold">{formatPKR(d.revenue)}</Td>
+                      <Td align="right" className="text-pink-700">{formatPKR(d.discountGiven)}</Td>
+                      <Td align="right" className="font-semibold text-success-700">{d.discountGiven ? formatPKR(d.revenue / d.discountGiven) : '—'}</Td>
+                      <Td className="max-w-[16rem] truncate text-[0.75rem] text-slate-500">{d.branches.map((b) => `${b.name}: ${b.uses}`).join(' · ') || '—'}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            )}
+          </Card>
+        </div>
+      ) : list.isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
-          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><BadgePercent className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'all' ? 'Is filter mein koi code nahi' : 'Abhi koi discount code nahi'}</h3>
-          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">Code banayein, WhatsApp par customers ko bhejein — POS par bill banate waqt lagta hai.</p>
-          {canManage && <Button className="mt-4" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEditing('new')}>Pehla code banayein</Button>}
+        <div className="rounded-3xl bg-white ring-1 ring-slate-200/80">
+          <EmptyState icon={<BadgePercent className="h-6 w-6" />}
+            title={hasFilters || tab !== 'all' ? 'Is filter mein koi code nahi' : 'Abhi koi discount code nahi'}
+            description="Code banayein, WhatsApp par customers ko bhejein — POS par bill banate waqt lagta hai."
+            action={<>
+              {(hasFilters || tab !== 'all') && <Button variant="secondary" onClick={() => { clear(); setTab('all'); }}>Filter hatayein</Button>}
+              {canManage && <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEditing('new')}>Naya code</Button>}
+            </>} />
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -172,7 +296,7 @@ export default function DiscountsPage() {
               <article key={d.id} className={cn('flex flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80', d.status !== 'active' && 'opacity-85')}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <button type="button" onClick={() => { void navigator.clipboard.writeText(d.code); toast.success(`${d.code} copy ho gaya`); }}
+                    <button type="button" onClick={() => { void navigator.clipboard.writeText(d.code); toast.success(`${d.code} copy ho gaya`); }} title="Copy"
                       className="group inline-flex items-center gap-2 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50 px-3 py-1.5 font-mono text-[1.0625rem] font-bold tracking-wider text-brand-800 hover:bg-brand-100">
                       {d.code}<Copy className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100" />
                     </button>
@@ -204,14 +328,13 @@ export default function DiscountsPage() {
                 </dl>
                 {d.branches.length > 1 && <p className="mt-2 truncate text-[0.6875rem] text-slate-500">{d.branches.map((b) => `${b.name}: ${b.uses}`).join(' · ')}</p>}
                 <div className="mt-auto flex items-center gap-1 pt-3">
-                  <button type="button" onClick={() => share(d)} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-success-50 text-[0.8125rem] font-semibold text-success-700 hover:bg-success-100"><MessageCircle className="h-4 w-4" />Bhejein</button>
+                  <Button size="sm" variant="secondary" className="flex-1 text-success-700" leftIcon={<MessageCircle className="h-4 w-4" />} onClick={() => share(d)}>Bhejein</Button>
                   {canManage && (
                     <>
-                      <button type="button" onClick={() => setEditing(d)} title="Badlein" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
-                      <button type="button" onClick={() => toggle.mutate(d.id)} title={d.isActive ? 'Band karein' : 'Chalu karein'} className={cn('relative h-6 w-11 shrink-0 rounded-full transition', d.isActive ? 'bg-brand-600' : 'bg-slate-300')}>
-                        <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition', d.isActive ? 'left-[1.375rem]' : 'left-0.5')} />
-                      </button>
-                      <button type="button" onClick={() => { if (confirm(d.usageCount ? `${d.code} istemal ho chuka hai — band ho jayega, mitega nahi. Theek?` : `${d.code} mitayein?`)) remove.mutate(d.id); }} title="Mitayein" className="flex h-9 w-9 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                      <IconButton label="Badlein" onClick={() => setEditing(d)}><Pencil className="h-4 w-4" /></IconButton>
+                      <Switch aria-label={d.isActive ? 'Band karein' : 'Chalu karein'} title={d.isActive ? 'Band karein' : 'Chalu karein'} checked={d.isActive}
+                        disabled={toggle.isPending} onChange={() => toggle.mutate(d.id)} />
+                      <IconButton label={d.usageCount ? 'Band karein' : 'Mitayein'} className="text-rose-600 hover:bg-rose-50" onClick={() => setRemoving(d)}><Trash2 className="h-4 w-4" /></IconButton>
                     </>
                   )}
                 </div>
@@ -220,29 +343,7 @@ export default function DiscountsPage() {
           })}
         </div>
       )}
-
-      {top.length > 0 && (
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-brand-600" />Kaunsa code kaam aaya</span>} description="Is period mein — har Rs 1 discount par kitni sale" flush>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-[0.8125rem]">
-              <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-2.5">Code</th><th className="px-3 py-2.5 text-right">Bill</th><th className="px-3 py-2.5 text-right">Customers</th><th className="px-3 py-2.5 text-right">Sale</th><th className="px-3 py-2.5 text-right">Discount</th><th className="px-5 py-2.5 text-right">Rs 1 par</th></tr></thead>
-              <tbody className="divide-y divide-slate-100">
-                {top.map((d) => (
-                  <tr key={d.id}>
-                    <td className="px-5 py-2.5 font-mono font-semibold">{d.code}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{d.uses}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{d.customers}</td>
-                    <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{formatPKR(d.revenue)}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-pink-700">{formatPKR(d.discountGiven)}</td>
-                    <td className="px-5 py-2.5 text-right font-semibold tabular-nums text-success-700">{d.discountGiven ? formatPKR(d.revenue / d.discountGiven) : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-    </div>
+    </PageShell>
   );
 }
 
@@ -253,10 +354,11 @@ function CodeEditor({ code, shops, onClose, onSaved }: { code: DiscountCode | nu
     shopIds: code.shopIds ?? [], validFrom: keyOf(code.validFrom) || null, validUntil: keyOf(code.validUntil) || null, isActive: code.isActive,
   } : { code: '', description: '', type: 'PERCENTAGE', value: 10, minPurchase: 0, maxDiscount: null, usageLimit: null, perCustomerLimit: null, shopIds: [], validFrom: null, validUntil: null, isActive: true });
   const [sample, setSample] = useState(2000);
+  const [tried, setTried] = useState(false);
   const set = (p: Partial<CreateDiscountPayload>) => setF((x) => ({ ...x, ...p }));
   const save = useMutation({
     mutationFn: () => {
-      const payload = { ...f, code: f.code.toUpperCase().replace(/\s+/g, ''), description: f.description || undefined, maxDiscount: f.type === 'PERCENTAGE' ? f.maxDiscount : null };
+      const payload = { ...f, code: f.code.toUpperCase().replace(/\s+/g, ''), description: f.description?.trim() || undefined, maxDiscount: f.type === 'PERCENTAGE' ? f.maxDiscount : null };
       return code ? discountsApi.update(code.id, payload) : discountsApi.create(payload);
     },
     onSuccess: () => { toast.success(code ? 'Code badal diya' : 'Code ban gaya'); onSaved(); },
@@ -268,94 +370,90 @@ function CodeEditor({ code, shops, onClose, onSaved }: { code: DiscountCode | nu
     if (f.type === 'PERCENTAGE' && f.maxDiscount) off = Math.min(off, f.maxDiscount);
     return Math.min(off, sample);
   })();
-  const ok = f.code.trim().length >= 3 && f.value > 0 && (f.type !== 'PERCENTAGE' || f.value <= 100) && (!f.validFrom || !f.validUntil || f.validFrom <= f.validUntil);
+  const errors = {
+    code: f.code.trim().length < 3 ? 'Code kam se kam 3 harf ka ho' : undefined,
+    value: !(f.value > 0) ? 'Discount 0 se zyada likhein' : f.type === 'PERCENTAGE' && f.value > 100 ? '100% se zyada nahi ho sakta' : undefined,
+    validUntil: f.validFrom && f.validUntil && f.validFrom > f.validUntil ? '"Kab tak" ki date "Kab se" ke baad honi chahiye' : undefined,
+  };
+  const ok = !Object.values(errors).some(Boolean);
+  const submit = () => { setTried(true); if (ok && !save.isPending) save.mutate(); };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+  const show = (k: keyof typeof errors) => (tried ? errors[k] : undefined);
   const num = (v: string) => (v === '' ? null : Number(v.replace(/[^\d.]/g, '')));
-  const input = 'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
   return (
-    <Modal open onClose={onClose} size="lg" title={code ? `Badlein: ${code.code}` : 'Naya discount code'}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>{code ? 'Save karein' : 'Bana dein'}</Button></>}>
-      <div className="space-y-4">
+    <Modal open onClose={onClose} size="lg" title={code ? `Badlein: ${code.code}` : 'Naya discount code'} description="Ctrl+S se save"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit}>{code ? 'Save karein' : 'Bana dein'}</Button></>}>
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         {!code && (
-          <div className="flex flex-wrap gap-1.5">
-            {PRESETS.map((p) => <button key={p.code} type="button" onClick={() => set({ ...p, maxDiscount: p.maxDiscount ?? null, minPurchase: p.minPurchase ?? 0 })} className="h-8 rounded-full bg-amber-50 px-3 text-[0.75rem] font-semibold text-amber-800 hover:bg-amber-100">{p.code}</button>)}
+          <div>
+            <p className="mb-1.5 text-[0.75rem] font-medium text-slate-500">Tayyar misalein</p>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESETS.map((p) => <Button key={p.code} size="xs" variant="secondary" onClick={() => set({ ...p, maxDiscount: p.maxDiscount ?? null, minPurchase: p.minPurchase ?? 0 })}>{p.code}</Button>)}
+            </div>
           </div>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-[0.8125rem] font-medium text-slate-700">Code
-            <div className="mt-1 flex gap-2">
-              <input value={f.code} onChange={(e) => set({ code: e.target.value.toUpperCase().replace(/\s+/g, '') })} maxLength={40} placeholder="EID2026" className={cn(input, 'font-mono font-bold tracking-wider')} />
-              <button type="button" onClick={() => set({ code: `NF${Math.random().toString(36).slice(2, 7).toUpperCase()}` })} title="Khud banayein" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"><Wand2 className="h-4 w-4" /></button>
-            </div>
-          </label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Details<input value={f.description ?? ''} onChange={(e) => set({ description: e.target.value })} placeholder="Eid special" className={cn(input, 'mt-1')} /></label>
+          <div className="flex items-end gap-2">
+            <Input autoFocus label="Code" required value={f.code} onChange={(e) => set({ code: e.target.value.toUpperCase().replace(/\s+/g, '') })} maxLength={40} placeholder="EID2026"
+              className="font-mono font-bold tracking-wider" wrapperClassName="flex-1" error={show('code')} hint="Customer yahi bolega; khali jagah nahi" />
+            <IconButton label="Khud banayein" variant="secondary" className="mb-6" onClick={() => set({ code: `NF${Math.random().toString(36).slice(2, 7).toUpperCase()}` })}><Wand2 className="h-4 w-4" /></IconButton>
+          </div>
+          <Input label="Details" value={f.description ?? ''} onChange={(e) => set({ description: e.target.value })} placeholder="Eid special" hint="Sirf aap ke liye — kis liye banaya" maxLength={120} />
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Discount ka tareeqa">
           {([['PERCENTAGE', Percent, 'Percent (%)', 'Bill ka hissa'], ['FIXED_AMOUNT', Wallet, 'Seedhi amount', 'Itne rupay kam']] as const).map(([v, Icon, l, h]) => (
-            <button key={v} type="button" onClick={() => set({ type: v })} className={cn('flex items-center gap-3 rounded-xl border p-3 text-left', f.type === v ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' : 'border-slate-200 hover:bg-slate-50')}>
+            <button key={v} type="button" role="radio" aria-checked={f.type === v} onClick={() => set({ type: v })} className={cn('flex items-center gap-3 rounded-xl border p-3 text-left', f.type === v ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' : 'border-slate-200 hover:bg-slate-50')}>
               <Icon className="h-5 w-5 text-brand-600" /><span><span className="block text-[0.875rem] font-semibold">{l}</span><span className="block text-[0.75rem] text-slate-500">{h}</span></span>
             </button>
           ))}
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <label className="text-[0.8125rem] font-medium text-slate-700">{f.type === 'PERCENTAGE' ? 'Kitna %' : 'Kitne rupay'}<input inputMode="decimal" value={f.value || ''} onChange={(e) => set({ value: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(input, 'mt-1 tabular-nums')} /></label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Kam se kam khareedari<input inputMode="decimal" value={f.minPurchase || ''} onChange={(e) => set({ minPurchase: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} placeholder="Koi shart nahi" className={cn(input, 'mt-1 tabular-nums')} /></label>
-          {f.type === 'PERCENTAGE' && <label className="text-[0.8125rem] font-medium text-slate-700">Zyada se zyada discount<input inputMode="decimal" value={f.maxDiscount ?? ''} onChange={(e) => set({ maxDiscount: num(e.target.value) })} placeholder="Koi had nahi" className={cn(input, 'mt-1 tabular-nums')} /></label>}
+          <Input label={f.type === 'PERCENTAGE' ? 'Kitna %' : 'Kitne rupay'} required inputMode="decimal" value={f.value || ''} onChange={(e) => set({ value: Number(e.target.value.replace(/[^\d.]/g, '')) })} className="tabular-nums" error={show('value')} />
+          <Input label="Kam se kam khareedari" inputMode="decimal" value={f.minPurchase || ''} onChange={(e) => set({ minPurchase: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} placeholder="Koi shart nahi" className="tabular-nums" hint="Is se chhote bill par nahi lagega" />
+          {f.type === 'PERCENTAGE' && <Input label="Zyada se zyada Discount" inputMode="decimal" value={f.maxDiscount ?? ''} onChange={(e) => set({ maxDiscount: num(e.target.value) })} placeholder="Koi had nahi" className="tabular-nums" hint="Bare bill par bhi is se zyada nahi" />}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-[0.8125rem] font-medium text-slate-700">Kul kitni dafa chalega<input inputMode="numeric" value={f.usageLimit ?? ''} onChange={(e) => set({ usageLimit: num(e.target.value) })} placeholder="Koi had nahi" className={cn(input, 'mt-1 tabular-nums')} /></label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Ek customer kitni dafa<input inputMode="numeric" value={f.perCustomerLimit ?? ''} onChange={(e) => set({ perCustomerLimit: num(e.target.value) })} placeholder="Koi had nahi" className={cn(input, 'mt-1 tabular-nums')} /></label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Kab se<input type="date" value={f.validFrom ?? ''} onChange={(e) => set({ validFrom: e.target.value || null })} className={cn(input, 'mt-1')} /></label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Kab tak (us din ke aakhir tak)<input type="date" value={f.validUntil ?? ''} onChange={(e) => set({ validUntil: e.target.value || null })} className={cn(input, 'mt-1')} /></label>
+          <Input label="Kul kitni dafa chalega" inputMode="numeric" value={f.usageLimit ?? ''} onChange={(e) => set({ usageLimit: num(e.target.value) })} placeholder="Koi had nahi" className="tabular-nums" />
+          <Input label="Ek customer kitni dafa" inputMode="numeric" value={f.perCustomerLimit ?? ''} onChange={(e) => set({ perCustomerLimit: num(e.target.value) })} placeholder="Koi had nahi" className="tabular-nums" hint="Naam wale customer par lagta hai" />
+          <Input label="Kab se" type="date" value={f.validFrom ?? ''} onChange={(e) => set({ validFrom: e.target.value || null })} hint="Khali = abhi se" />
+          <Input label="Kab tak" type="date" value={f.validUntil ?? ''} onChange={(e) => set({ validUntil: e.target.value || null })} error={show('validUntil')} hint="Us din ke aakhir tak chalega" />
         </div>
         {shops.length > 1 && (
           <div>
             <span className="text-[0.8125rem] font-medium text-slate-700">Kis branch par chalega</span>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              <button type="button" onClick={() => set({ shopIds: [] })} className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium', !f.shopIds?.length ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700')}>Har branch</button>
+              <button type="button" aria-pressed={!f.shopIds?.length} onClick={() => set({ shopIds: [] })} className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium', !f.shopIds?.length ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700')}>Har branch</button>
               {shops.map((s) => {
                 const on = f.shopIds?.includes(s.id);
-                return <button key={s.id} type="button" onClick={() => set({ shopIds: on ? f.shopIds!.filter((x) => x !== s.id) : [...(f.shopIds ?? []), s.id] })} className={cn('inline-flex h-8 items-center gap-1 rounded-full px-3 text-[0.8125rem] font-medium', on ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700')}>{on && <Check className="h-3.5 w-3.5" />}{s.name}</button>;
+                return <button key={s.id} type="button" aria-pressed={on} onClick={() => set({ shopIds: on ? f.shopIds!.filter((x) => x !== s.id) : [...(f.shopIds ?? []), s.id] })} className={cn('inline-flex h-8 items-center gap-1 rounded-full px-3 text-[0.8125rem] font-medium', on ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700')}>{on && <Check className="h-3.5 w-3.5" />}{s.name}</button>;
               })}
             </div>
           </div>
         )}
         <div className="rounded-2xl bg-slate-50 p-3.5">
           <div className="flex items-center justify-between text-[0.8125rem]"><span className="text-slate-600">Agar bill ho</span><span className="font-semibold tabular-nums">{formatPKR(sample)}</span></div>
-          <input type="range" min={100} max={50000} step={100} value={sample} onChange={(e) => setSample(Number(e.target.value))} className="mt-1 w-full accent-[rgb(var(--brand-600))]" />
+          <input type="range" aria-label="Misal ka bill" min={100} max={50000} step={100} value={sample} onChange={(e) => setSample(Number(e.target.value))} className="mt-1 w-full accent-[rgb(var(--brand-600))]" />
           <p className="mt-1 text-[0.875rem]">{preview === null ? <span className="text-amber-700">Kam se kam {formatPKR(f.minPurchase ?? 0)} ki khareedari par chalega</span>
             : <>Discount <strong className="text-pink-700">{formatPKR(preview)}</strong> · customer dega <strong>{formatPKR(sample - preview)}</strong></>}</p>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }
 
 function DiscountsGuide({ onClose }: { onClose: () => void }) {
-  const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
-    { icon: Plus, color: '#2563eb', title: 'Code banayein', text: '"Naya code" — naam, kitna discount (% ya seedhi amount), aur sharten. Tayyar presets bhi hain.' },
-    { icon: MessageCircle, color: '#16a34a', title: 'Customers ko bhejein', text: 'Card par "Bhejein" — WhatsApp par code ka paigham tayyar.' },
+  const steps: GuideStep[] = [
+    { icon: Plus, color: '#2563eb', title: 'Code banayein', text: '"Naya code" — naam, kitna Discount (% ya seedhi amount), aur sharten. Tayyar misalein bhi hain.' },
+    { icon: MessageCircle, color: '#16a34a', title: 'Customers ko bhejein', text: 'Card par "Bhejein" — WhatsApp par code ka message tayyar.' },
     { icon: Tag, color: '#7c3aed', title: 'POS par lagayein', text: 'Bill banate waqt Discount mein code likhein — sharten khud check hoti hain.' },
     { icon: Store, color: '#0891b2', title: 'Branch aur had', text: 'Code sirf kuch branches par, kul itni dafa, ya ek customer itni dafa — sab rakh sakte hain.' },
-    { icon: CalendarClock, color: '#d97706', title: 'Period', text: '"Kab tak" wala din poora chalta hai — raat tak.' },
-    { icon: TrendingUp, color: '#db2777', title: 'Kaunsa kaam aaya', text: 'Har code ki sale, discount aur customers — upar period badal kar dekhein.' },
+    { icon: CalendarClock, color: '#d97706', title: 'Period', text: '"Kab tak" wala din poora chalta hai — raat tak. Upar ka dabba batata hai kaun se 7 din mein khatam honge.' },
+    { icon: TrendingUp, color: '#db2777', title: 'Kaunsa kaam aaya', text: 'Analytics tab: har code ki Sale, Discount aur customers — "Hisaab" se period badlein.' },
     { icon: Users, color: '#475569', title: 'Mehfooz', text: 'Jo code istemal ho chuka woh mitta nahi, band hota hai — purane bill ka hisaab bacha rehta hai.' },
   ];
-  return (
-    <Modal open onClose={onClose} size="lg" title="Discount codes — aasaan tareeqa" description={`${steps.length} cheezein`}>
-      <ol className="grid gap-3 sm:grid-cols-2">
-        {steps.map((s, i) => (
-          <li key={s.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
-            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${s.color}17`, color: s.color }}>
-              <s.icon className="h-5 w-5" /><span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.625rem] font-bold text-white">{i + 1}</span>
-            </span>
-            <div><p className="text-[0.875rem] font-semibold text-slate-900">{s.title}</p><p className="mt-0.5 text-[0.8125rem] leading-relaxed text-slate-600">{s.text}</p></div>
-          </li>
-        ))}
-      </ol>
-      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
-        <span className="font-semibold text-slate-900">Jaldi ke liye:</span>
-        {[['/', 'dhoondein'], ['N', 'naya code'], ['G', 'guide']].map(([k, t]) => <span key={k} className="inline-flex items-center gap-1"><Kbd>{k}</Kbd> {t}</span>)}
-      </div>
-    </Modal>
-  );
+  return <PageGuide title="Discount codes — aasaan tareeqa" steps={steps} onClose={onClose} shortcuts={[['/', 'dhoondein'], ['N', 'naya code'], ['A', 'analytics'], ['G', 'guide']]} />;
 }

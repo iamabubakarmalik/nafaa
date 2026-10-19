@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { BulkOrdersService } from './bulk-orders.service';
 
 @ApiTags('Bakery - Bulk Orders')
@@ -12,7 +13,7 @@ import { BulkOrdersService } from './bulk-orders.service';
 export class BulkOrdersController {
   constructor(private readonly service: BulkOrdersService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: any) { return this.service.create(user, shop, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('search') search?: string, @Query('open') open?: string) {
     return this.service.list(user, { status, from, to, search, open });
   }
@@ -30,7 +31,10 @@ export class BulkOrdersController {
 
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.update(user, id, dto); }
   @Patch(':id/status') status(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string }) { return this.service.updateStatus(user, id, body?.status); }
-  @Post(':id/payment') payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { amount: number; expectedPaid?: number }) {
-    return this.service.addPayment(user, id, body?.amount, body?.expectedPaid);
+  @Post(':id/payment') payment(
+    @GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string,
+    @Body() body: { amount: number; expectedPaid?: number; method?: string; withBill?: boolean },
+  ) {
+    return this.service.addPayment(user, shop, id, body?.amount, body?.expectedPaid, body?.method, body?.withBill === true);
   }
 }

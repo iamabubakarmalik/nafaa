@@ -39,12 +39,18 @@ export interface Exchange {
   updatedAt: string;
 }
 
+export type ExchangeKind = 'buy' | 'repair' | 'repair-open' | 'all';
+export interface ExchangePage {
+  kind: ExchangeKind; page: number; limit: number; total: number; pages: number; items: Exchange[];
+  totals: { grams: number; fine: number; value: number; deductions: number };
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const exchangesApi = {
-  create: (data: any) => apiClient.post('/jewelry/exchanges', data).then(unwrap<Exchange>),
-  list: (params?: any) => apiClient.get('/jewelry/exchanges', { params }).then(unwrap<Exchange[]>),
-  summary: (from?: string, to?: string) => apiClient.get('/jewelry/exchanges/summary', { params: { from, to } }).then(unwrap<any>),
-  getOne: (id: string) => apiClient.get('/jewelry/exchanges/' + id).then(unwrap<Exchange>),
-  linkToSale: (id: string, saleId: string) => apiClient.post('/jewelry/exchanges/' + id + '/link-sale', { saleId }).then(unwrap<Exchange>),
+  create: (data: any) => apiClient.post('/jewelry/exchanges', data).then(unwrap<Exchange & { paidFromDrawer?: boolean }>),
+  page: (params: { kind?: ExchangeKind; search?: string; from?: string; to?: string; page?: number; limit?: number }) =>
+    apiClient.get('/jewelry/exchanges/page', { params }).then(unwrap<ExchangePage>),
+  deliverRepair: (id: string, data: { charge: number; paidAmount: number; paymentMethod: string }) =>
+    apiClient.post('/jewelry/exchanges/' + id + '/deliver', data).then(unwrap<Exchange>),
 };

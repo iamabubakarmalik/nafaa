@@ -88,7 +88,7 @@ export function useClinicOps() {
     const map = new Map<string, DoctorLoad>();
     (apts.data ?? []).filter((a) => a.status !== 'CANCELLED').forEach((a) => {
       const d = map.get(a.doctorId) ?? {
-        id: a.doctorId, name: a.doctor?.fullName ?? 'Doctor', photoUrl: a.doctor?.photoUrl,
+        id: a.doctorId, name: a.doctor?.fullName ?? 'Doctor', photoUrl: a.doctor?.photoUrl ?? undefined,
         total: 0, waiting: 0, done: 0, inRoom: false,
       };
       d.total += 1;
@@ -110,6 +110,7 @@ export function useClinicOps() {
     dueVaccines: o?.totals?.dueVaccinations ?? 0,
     totalDoctors: o?.totals?.totalDoctors ?? 0,
     activePatients: o?.totals?.activePatients ?? 0,
+    /** Fee and lab bills of the last 30 days still on khata. */
     monthDue: Math.max(monthly.revenue - monthly.collected, 0),
     loading: apts.isLoading || overview.isLoading,
   };

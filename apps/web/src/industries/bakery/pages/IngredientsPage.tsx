@@ -35,6 +35,7 @@ import { MovementRecord, RawAnalytics } from '../components/raw/RawMovements';
 import { RecipeCosting, useRecipes, type RecipeFilter } from '../components/raw/RecipeCosting';
 import { LoadFailed } from '../components/charts';
 import { RAW_KEY, apiError, downloadCsv, fmtQty, waLink } from '../components/meta';
+import { useConfirm } from '../components/useConfirm';
 
 type Tab = 'stock' | 'recipes' | 'record' | 'analytics';
 type State = 'all' | 'low' | 'out' | 'critical' | 'fridge' | 'hidden';
@@ -50,6 +51,7 @@ const isLow = (i: Ingredient) => !isOut(i) && Number(i.currentStock || 0) <= lev
 const shortOf = (i: Ingredient) => Math.max(levelOf(i) - Number(i.currentStock || 0), 0);
 
 export default function IngredientsPage() {
+  const [ask, confirmDialog] = useConfirm();
   const qc = useQueryClient();
   const [params, setParams] = useSearchParams();
   const startHour = useBusinessDayStart();
@@ -239,11 +241,12 @@ export default function IngredientsPage() {
                     {shown.map((i) => (
                       <RawRow key={i.id} i={i} canManage={canManage} usedIn={recipesQ.data?.usedIn[i.id] ?? 0}
                         onStock={(mode) => setStockOn({ item: i, mode })} onEdit={() => setForm({ item: i })} onHistory={() => setHistory(i)}
-                        onToggle={() => { if (i.isActive === false || window.confirm(`"${i.name}" list se hatayein? Record aur recipes rehti hain.`)) restore.mutate(i); }} />
+                        onToggle={async () => { if (i.isActive === false || (await ask({ title: `"${i.name}" list se hatayein?`, text: 'Record aur recipes rehti hain.', yes: 'Hatayein', danger: true }))) restore.mutate(i); }} />
                     ))}
                   </ul>
                 )}
 
+      {confirmDialog}
       {form && <IngredientForm item={form.item} onClose={() => setForm(null)} />}
       {stockOn && <StockModal item={stockOn.item} mode={stockOn.mode} onClose={() => setStockOn(null)} />}
       {history && <HistoryModal item={history} onClose={() => setHistory(null)} />}

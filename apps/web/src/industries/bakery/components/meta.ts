@@ -4,7 +4,7 @@
  */
 
 import { Bike, Building2, Package, Store, Truck, type LucideIcon } from 'lucide-react';
-import type { BakeryOrderStatus, CakeOrder, DeliveryType } from '../api/cake-orders.api';
+import type { BakeryOrderStatus, CakeOrder, DeliveryType, OrderPayMethod } from '../api/cake-orders.api';
 import { FLAVORS, OCCASIONS, SIZES, SHAPES, CREAMS } from '../api/constants';
 
 /** Query roots; every bakery order screen invalidates these after a change. */
@@ -113,6 +113,15 @@ export const DELIVERY: Array<{ id: DeliveryType; label: string; hint: string; ic
   { id: 'HOME_DELIVERY', label: 'Ghar pahunchana', hint: 'Hamara rider le jayega', icon: Bike },
   { id: 'VENUE_DELIVERY', label: 'Hall / venue', hint: 'Shadi hall ya daftar', icon: Building2 },
   { id: 'COURIER', label: 'Courier', hint: 'Doosre shehar', icon: Package },
+];
+
+/** Ways an order advance can be paid (same names as the sale's payment methods). */
+export const PAY_METHODS: Array<{ id: OrderPayMethod; label: string }> = [
+  { id: 'CASH', label: 'Cash' },
+  { id: 'CARD', label: 'Card' },
+  { id: 'JAZZCASH', label: 'JazzCash' },
+  { id: 'EASYPAISA', label: 'EasyPaisa' },
+  { id: 'BANK_TRANSFER', label: 'Bank' },
 ];
 
 export const isDelivery = (t?: string | null) => !!t && !['SELF_PICKUP', 'PICKUP', 'DINE_IN'].includes(t);

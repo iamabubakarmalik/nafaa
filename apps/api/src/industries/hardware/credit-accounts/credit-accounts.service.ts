@@ -30,12 +30,29 @@ export class CreditAccountsService {
         select: { id: true },
       });
       if (existing) throw new BadRequestException('Is customer ka credit account pehle se bana hua hai');
+      // An unlinked account with its own ledger balance would drop that money from view once linked.
+      if (accountId) {
+        const current = await this.prisma.hardwareCreditAccount.findFirst({ where: { id: accountId }, select: { customerId: true, currentBalance: true } });
+        if (current && !current.customerId && Math.abs(current.currentBalance) > 0.009) {
+          throw new BadRequestException(`Is account ka purana hisaab Rs ${Math.round(current.currentBalance)} hai — ye purane register me hai. Customer khate me jorne ke liye support se rabta karein taake ye paisa khate me sahi muntaqil ho`);
+        }
+      }
     }
-    return { ...dto, customerId, shopId: dto.shopId?.trim() || null };
+    if (dto.creditLimit != null && dto.creditLimit < 0) throw new BadRequestException('Udhaar ki had manfi nahi ho sakti');
+    if (dto.creditDays != null && dto.creditDays < 0) throw new BadRequestException('Din manfi nahi ho sakte');
+    if (!dto.customerName?.trim()) throw new BadRequestException('Contractor ka naam likhein');
+    return { ...dto, customerName: dto.customerName.trim(), customerId, shopId: dto.shopId?.trim() || null };
+  }
+
+  /** The counter checks the customer's own limit, so a linked account keeps it the same. */
+  private async syncLimit(tenantId: string, customerId: string | null, creditLimit?: number) {
+    if (!customerId || creditLimit == null) return;
+    await this.prisma.customer.updateMany({ where: { id: customerId, tenantId }, data: { creditLimit } });
   }
 
   async create(user: AuthenticatedUser, input: UpsertCreditAccountDto) {
     const dto = await this.cleanLinks(user, input);
+    await this.syncLimit(user.tenantId, dto.customerId, dto.creditLimit);
 
     const prefix = `KHT-${new Date().getFullYear()}-`;
     return createWithDocNumber({
@@ -99,22 +116,33 @@ export class CreditAccountsService {
   async update(user: AuthenticatedUser, id: string, dto: UpsertCreditAccountDto) {
     const a = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Account not found');
-    return this.prisma.hardwareCreditAccount.update({ where: { id }, data: await this.cleanLinks(user, dto, id) });
+    const data = await this.cleanLinks(user, dto, id);
+    // A stopped account keeps the customer's limit at what is owed until it is reactivated.
+    if (a.status !== 'SUSPENDED' && a.status !== 'CLOSED') await this.syncLimit(user.tenantId, data.customerId, data.creditLimit);
+    return this.prisma.hardwareCreditAccount.update({ where: { id }, data });
   }
 
+  /**
+   * Stops new udhaar: the customer's limit drops to what is owed now (at
+   * least Rs 1, since 0 means no limit), so the counter refuses a credit
+   * bill without a manager PIN. Reactivating puts the account's limit back.
+   */
   async suspend(user: AuthenticatedUser, id: string, reason?: string) {
-    const a = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Account not found');
+    const found = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!found) throw new NotFoundException('Account nahi mila');
+    const [a] = await this.live(user.tenantId, [found]);
+    await this.syncLimit(user.tenantId, a.customerId, Math.max(Math.ceil(a.currentBalance), 1));
     return this.prisma.hardwareCreditAccount.update({
       where: { id },
-      data: { status: 'SUSPENDED', notes: ((a.notes || '') + '\nSuspended: ' + (reason || 'No reason')).trim() },
+      data: { status: 'SUSPENDED', notes: ((found.notes || '') + '\nRoka: ' + (reason || 'wajah nahi likhi')).trim() },
     });
   }
 
   async reactivate(user: AuthenticatedUser, id: string) {
     const a = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Account not found');
-    return this.prisma.hardwareCreditAccount.update({ where: { id }, data: { status: 'ACTIVE' } });
+    if (!a) throw new NotFoundException('Account nahi mila');
+    await this.syncLimit(user.tenantId, a.customerId, a.creditLimit);
+    return this.prisma.hardwareCreditAccount.update({ where: { id }, data: { status: 'ACTIVE', closedAt: null } });
   }
 
   async close(user: AuthenticatedUser, id: string, reason?: string) {
@@ -122,9 +150,10 @@ export class CreditAccountsService {
     if (!found) throw new NotFoundException('Account not found');
     const [a] = await this.live(user.tenantId, [found]);
     if (a.currentBalance > 0.01) throw new BadRequestException('Udhaar baqi hai — pehle receiving karein, phir khata band karein');
+    await this.syncLimit(user.tenantId, a.customerId, 1);
     return this.prisma.hardwareCreditAccount.update({
       where: { id },
-      data: { status: 'CLOSED', closedAt: new Date(), notes: ((a.notes || '') + '\nClosed: ' + (reason || '')).trim() },
+      data: { status: 'CLOSED', closedAt: new Date(), notes: ((found.notes || '') + '\nBand: ' + (reason || '')).trim() },
     });
   }
 

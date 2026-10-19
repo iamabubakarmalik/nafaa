@@ -23,6 +23,8 @@ export class HardwareProductsController {
       requiresTruck: requiresTruck === 'true' ? true : undefined,
     });
   }
+  /** Light hardware facts for every profiled product (size, shade, pack), for lists and the counter. */
+  @Get('facts') facts(@GetUser() user: AuthenticatedUser) { return this.service.facts(user); }
   @Get('by-category-count') byCategory(@GetUser() user: AuthenticatedUser) { return this.service.byCategory(user); }
   @Get('by-product/:productId') byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) { return this.service.byProduct(user, productId); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }

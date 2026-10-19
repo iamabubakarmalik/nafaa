@@ -1,359 +1,198 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Wrench,
-  Plus, AlertTriangle, Trash2, Eye, Edit3, Package,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { useAutoPartsWizard, type WizardStep } from '../hooks/useAutoPartsWizard';
-import { AutoPartsWizardStepper } from '../components/wizard/AutoPartsWizardStepper';
-import { AutoPartsWizardStep1Basic } from '../components/wizard/AutoPartsWizardStep1Basic';
-import { AutoPartsWizardStep2Details } from '../components/wizard/AutoPartsWizardStep2Details';
-import { AutoPartsWizardStep3Fitment } from '../components/wizard/AutoPartsWizardStep3Fitment';
-import { AutoPartsWizardSummary } from '../components/wizard/AutoPartsWizardSummary';
-import { saveAutoPartsWizard, type AutoPartsWizardSaveResult } from '../api/autoparts-wizard.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { partProfilesApi } from '../api/part-profiles.api';
-import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
+/**
+ * Auto part editor on the shared product editor: name and part number (the
+ * part number is the SKU unless one is typed), OEM and other numbers, the
+ * part's group, genuine/local/used, brand, warranty, the vehicles it fits,
+ * and opening stock.
+ */
 
-export default function AutoPartWizardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+import { useState } from 'react';
+import { BadgeCheck, Car, Hash, ShieldCheck, Star, X, Zap } from 'lucide-react';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { Chip, NumberField, Section, TextField, Tiles, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { partProfilesApi, type PartCategory, type PartCondition, type PartFitment } from '../api/part-profiles.api';
+import { FitmentEditor } from '../components/FitmentEditor';
+import { CATEGORIES, CONDITIONS, categoryOf, conditionOf } from '../components/meta';
+import { PART_FACTS_KEY } from '../hooks/usePartFacts';
 
-  const {
-    draft, draftRestored, validation, stats,
-    goToStep, nextStep, prevStep,
-    updateBasic, updateDetails,
-    addAlternateNumber, removeAlternateNumber,
-    setHasFitment, setIsUniversal,
-    addFitment, updateFitment, removeFitment,
-    reset,
-  } = useAutoPartsWizard({ autoLoadDraft: !isEdit });
+export interface PartExtra {
+  partNumber: string; oemNumber: string; alternateNumbers: string[]; category: PartCategory; condition: PartCondition;
+  brand: string; countryOfOrigin: string; warrantyMonths: number; warrantyKm: number | null;
+  isFastMoving: boolean; isCritical: boolean; universal: boolean; fitments: PartFitment[];
+}
 
-  const [savedResult, setSavedResult] = useState<AutoPartsWizardSaveResult | null>(null);
-  const [editLoaded, setEditLoaded] = useState(false);
+const initial: PartExtra = {
+  partNumber: '', oemNumber: '', alternateNumbers: [], category: 'OTHER', condition: 'NEW', brand: '', countryOfOrigin: '',
+  warrantyMonths: 0, warrantyKm: null, isFastMoving: false, isCritical: false, universal: false, fitments: [],
+};
 
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product-for-wizard', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
+const opt = (v: string) => v.trim() || undefined;
+const POPULAR: PartCategory[] = ['ENGINE', 'BRAKES', 'FILTERS', 'OILS_FLUIDS', 'SUSPENSION', 'ELECTRICAL', 'LIGHTING', 'BATTERY', 'TIRES_WHEELS', 'BODY', 'IGNITION', 'BELTS_HOSES'];
+const BRANDS = ['Toyota Genuine', 'Honda Genuine', 'Suzuki Genuine', 'Denso', 'Bosch', 'NGK', 'Shell', 'Total', 'Zic', 'Exide', 'AGS', 'Osaka'];
+const ORIGINS = ['Japan', 'China', 'Taiwan', 'Thailand', 'Pakistan', 'Korea'];
 
-  const { data: existingProfile } = useQuery({
-    queryKey: ['part-profile-for-wizard', id],
-    queryFn: () => partProfilesApi.byProduct(id!),
-    enabled: isEdit,
-  });
-
-  useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
-
-    updateBasic({
-      name: existingProduct.name,
-      description: existingProduct.description ?? '',
-      categoryId: existingProduct.categoryId ?? '',
-      brandId: existingProduct.brandId ?? '',
-      sku: existingProduct.sku ?? '',
-      barcode: existingProduct.barcode ?? '',
-      unit: existingProduct.unit ?? 'pcs',
-      costPrice: existingProduct.costPrice ?? 0,
-      salePrice: existingProduct.price ?? 0,
-      wholesalePrice: existingProduct.wholesalePrice ?? '',
-      taxRate: existingProduct.taxRate ?? 0,
-      stock: existingProduct.stock ?? 0,
-      lowStockAlert: existingProduct.lowStockAlert ?? 5,
-      isActive: existingProduct.isActive,
-      isFeatured: existingProduct.isFeatured,
-      imageUrls: (existingProduct.images ?? []).map((img: any) => img?.url).filter(Boolean),
-      tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
-      partCategory: existingProfile?.category ?? 'ENGINE',
-      subCategory: existingProfile?.subCategory ?? '',
-    });
-
-    if (existingProfile) {
-      updateDetails({
-        partNumber: existingProfile.partNumber ?? '',
-        oemNumber: existingProfile.oemNumber ?? '',
-        alternateNumbers: existingProfile.alternateNumbers ?? [],
-        condition: existingProfile.condition ?? 'NEW',
-        brand: existingProfile.brand ?? '',
-        countryOfOrigin: existingProfile.countryOfOrigin ?? '',
-        manufacturer: existingProfile.manufacturer ?? '',
-        weightGrams: existingProfile.weightGrams ?? '',
-        dimensions: existingProfile.dimensions ?? '',
-        color: existingProfile.color ?? '',
-        material: existingProfile.material ?? '',
-        warrantyMonths: existingProfile.warrantyMonths ?? 6,
-        warrantyKm: existingProfile.warrantyKm ?? '',
-        warrantyNotes: existingProfile.warrantyNotes ?? '',
-        installationMinutes: existingProfile.installationMinutes ?? '',
-        installationDifficulty: existingProfile.installationDifficulty ?? 'MEDIUM',
-        requiresSpecialTool: existingProfile.requiresSpecialTool ?? false,
-        isFastMoving: existingProfile.isFastMoving ?? false,
-        isCritical: existingProfile.isCritical ?? false,
-        minStockAlert: existingProfile.minStockAlert ?? 5,
-      });
-
-      // Load compatibility if exists
-      if (existingProfile.compatibility) {
-        const comp: any = existingProfile.compatibility;
-        setHasFitment(true);
-        if (comp.isUniversal) {
-          setIsUniversal(true);
-        } else if (Array.isArray(comp.fitments)) {
-          comp.fitments.forEach((f: any) => {
-            addFitment({
-              makeId: f.makeId,
-              makeName: f.makeName,
-              modelId: f.modelId,
-              modelName: f.modelName,
-              yearFrom: f.yearFrom ?? '',
-              yearTo: f.yearTo ?? '',
-              engineOptions: f.engineOptions ?? [],
-              notes: f.notes ?? '',
-            });
-          });
-        }
-      }
-    }
-
-    setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, setHasFitment, setIsUniversal, addFitment]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => saveAutoPartsWizard(draft, isEdit ? id : undefined),
-    onSuccess: (result) => {
-      setSavedResult(result);
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['auto-parts'] });
-      queryClient.invalidateQueries({ queryKey: ['part-profile-for-wizard'] });
-      forceRefreshProducts().catch(() => {});
-      toast.success(`${result.productName} ${isEdit ? 'updated' : 'created'}`);
-      if (!isEdit) reset();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to save part'),
-  });
-
-  const currentValidation =
-    draft.step === 1 ? validation.step1 :
-    draft.step === 2 ? validation.step2 : validation.step3;
-
-  const canGoNext = currentValidation.valid && draft.step < 3;
-  const canSave = validation.step1.valid && validation.step2.valid && validation.step3.valid;
-
-  if (isEdit && !editLoaded && !existingProduct) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-slate-200 border-t-slate-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (savedResult) {
-    return (
-      <div className="max-w-2xl mx-auto py-12 space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-300 p-8 text-center shadow-xl">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center shadow-xl mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-slate-900">
-            Part {isEdit ? 'Updated' : 'Created'}!
-          </h1>
-          <p className="text-slate-800 font-semibold mt-1">
-            <strong>{savedResult.productName}</strong> catalog par ready hai
-          </p>
-          <div className="grid grid-cols-2 gap-3 mt-6">
-            <SuccessStat label="Alt Numbers" value={savedResult.alternateNumberCount} />
-            <SuccessStat label="Fitments" value={savedResult.isUniversal ? 'Universal' : savedResult.fitmentCount} />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <button
-            onClick={() => {
-              setSavedResult(null);
-              reset();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              if (isEdit) navigate('/autoparts-products/new');
-            }}
-            className="rounded-2xl bg-slate-700 hover:bg-slate-800 text-white p-5 flex flex-col items-center gap-2 shadow-md transition"
-          >
-            <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another Part</div>
-          </button>
-          <button
-            onClick={() => navigate(`/autoparts-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition"
-          >
-            <Eye className="h-6 w-6 text-slate-600" />
-            <div className="font-extrabold text-slate-900">View Part</div>
-          </button>
-          <button
-            onClick={() => navigate('/autoparts/parts')}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition"
-          >
-            <Package className="h-6 w-6 text-slate-600" />
-            <div className="font-extrabold text-slate-900">Parts Catalog</div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+/* ── Basic step addition: numbers and group ── */
+function Numbers({ ctx }: { ctx: StepContext<PartExtra> }) {
+  const x = ctx.draft.extra;
+  const [alt, setAlt] = useState('');
+  const [more, setMore] = useState(POPULAR.includes(x.category) ? false : x.category !== 'OTHER');
+  const addAlt = () => {
+    const v = alt.trim();
+    if (!v || x.alternateNumbers.includes(v)) { setAlt(''); return; }
+    ctx.setExtra({ alternateNumbers: [...x.alternateNumbers, v] });
+    setAlt('');
+  };
   return (
-    <div className="space-y-5 pb-24">
-      {draftRestored && !isEdit && (
-        <div className="rounded-2xl bg-slate-100 border-2 border-slate-200 p-3 flex items-center gap-3 flex-wrap">
-          <Sparkles className="h-4 w-4 text-slate-700" />
-          <div className="text-xs text-slate-900 flex-1 min-w-0">
-            <strong>Draft restored</strong> — pichli bar ki values load ho gayi hain
-          </div>
-          <button
-            onClick={() => { if (confirm('Draft delete kar ke naya start karein?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200"
-          >
-            <Trash2 className="h-3 w-3" /> Fresh Start
-          </button>
-        </div>
-      )}
-
-      {isEdit && (
-        <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-3">
-          <Edit3 className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 flex-1">
-            <div className="font-extrabold mb-0.5">Edit Mode</div>
-            <div className="font-semibold">
-              Basic info, part details aur fitments edit ho sakte hain. Save karne pe overwrite honge.
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <button
-          onClick={() => navigate(isEdit ? `/autoparts-products/${id}` : '/autoparts/parts')}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 font-bold transition"
-        >
-          <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Part' : 'Back to Parts Catalog'}
-        </button>
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <TextField label="Part number" value={x.partNumber} onChange={(partNumber) => ctx.setExtra({ partNumber })} placeholder="04465-02220"
+          hint="Dabbe ya part par likha number — SKU khali ho to yahi SKU banta hai" />
+        <TextField label="OEM number" value={x.oemNumber} onChange={(oemNumber) => ctx.setExtra({ oemNumber })} placeholder="Company ka asal number" hint="Marzi hai" />
       </div>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-800 to-slate-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-slate-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-orange-400/15 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <Wrench className="h-3.5 w-3.5 text-amber-300" />
-            {isEdit ? 'Editing Auto Part' : 'Auto Parts Wizard'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? draft.basic.name || 'Edit Part' : 'Add New Auto Part'}
-          </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-xl">
-            Part identity, technical details, vehicle fitment — sab ek page mein.
-          </p>
+      <div>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Doosre number (cross reference)</span>
+        <div className="flex gap-2">
+          <input value={alt} onChange={(e) => setAlt(e.target.value)} placeholder="Doosri company ka number likh kar Enter" className={inputClass}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addAlt(); } }} />
+          <button type="button" onClick={addAlt} className="h-11 shrink-0 rounded-xl bg-slate-100 px-4 text-[0.875rem] font-semibold text-slate-700 hover:bg-slate-200">Jorein</button>
         </div>
-      </section>
-
-      <AutoPartsWizardStepper
-        currentStep={draft.step}
-        stepValidation={validation}
-        onStepClick={(s) => {
-          if (s === 1) goToStep(1);
-          else if (s === 2 && validation.step1.valid) goToStep(s as WizardStep);
-          else if (s === 3 && validation.step1.valid && validation.step2.valid) goToStep(s as WizardStep);
-        }}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-        <div className="min-w-0">
-          {draft.step === 1 && (
-            <AutoPartsWizardStep1Basic
-              isEdit={isEdit}
-              basic={draft.basic}
-              onChange={updateBasic}
-              errors={validation.step1.errors}
-            />
-          )}
-          {draft.step === 2 && (
-            <AutoPartsWizardStep2Details
-              details={draft.details}
-              onChange={updateDetails}
-              onAddAlternate={addAlternateNumber}
-              onRemoveAlternate={removeAlternateNumber}
-              errors={validation.step2.errors}
-            />
-          )}
-          {draft.step === 3 && (
-            <AutoPartsWizardStep3Fitment
-              compatibility={draft.compatibility}
-              onToggleHasFitment={setHasFitment}
-              onSetUniversal={setIsUniversal}
-              onAddFitment={addFitment}
-              onUpdateFitment={updateFitment}
-              onRemoveFitment={removeFitment}
-              errors={validation.step3.errors}
-            />
-          )}
-        </div>
-
-        <AutoPartsWizardSummary draft={draft} stats={stats} allValid={canSave} />
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
-          <button
-            onClick={prevStep}
-            disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-extrabold transition disabled:opacity-40"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
-          <div className="text-xs font-extrabold text-slate-500 hidden sm:block">
-            Step {draft.step} of 3
-            {!currentValidation.valid && (
-              <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
-                <AlertTriangle className="h-3 w-3" />
-                {currentValidation.errors[0]}
+        {x.alternateNumbers.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {x.alternateNumbers.map((a) => (
+              <span key={a} className="inline-flex items-center gap-1 rounded-full bg-slate-100 py-1 pl-3 pr-1 font-mono text-[0.75rem] text-slate-700">
+                {a}
+                <button type="button" aria-label="Hatayein" onClick={() => ctx.setExtra({ alternateNumbers: x.alternateNumbers.filter((y) => y !== a) })}
+                  className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-slate-200"><X className="h-3 w-3" /></button>
               </span>
-            )}
+            ))}
           </div>
-
-          {draft.step < 3 ? (
-            <button
-              onClick={nextStep}
-              disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition"
-            >
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <Button
-              onClick={() => saveMutation.mutate()}
-              loading={saveMutation.isPending}
-              disabled={!canSave}
-              className="bg-gradient-to-r from-slate-700 to-slate-900"
-            >
-              <Save className="h-4 w-4" />
-              {isEdit ? 'Save Changes' : 'Save Auto Part'}
-            </Button>
-          )}
+        )}
+      </div>
+      <div>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Part ka group</span>
+        <div className="flex flex-wrap gap-1.5">
+          {(more ? CATEGORIES : POPULAR).map((c) => <Chip key={c} on={x.category === c} onClick={() => ctx.setExtra({ category: x.category === c ? 'OTHER' : c })}>{categoryOf(c)}</Chip>)}
+          {!more && <Chip on={false} onClick={() => setMore(true)}>Aur…</Chip>}
         </div>
       </div>
     </div>
   );
 }
 
-function SuccessStat({ label, value }: { label: string; value: number | string }) {
+/* ── Details step: quality, brand, warranty ── */
+function Quality({ ctx }: { ctx: StepContext<PartExtra> }) {
+  const x = ctx.draft.extra;
+  const set = ctx.setExtra;
   return (
-    <div className="rounded-xl bg-white border-2 border-slate-200 p-3">
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-700">{label}</div>
-      <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-0.5">{value}</div>
+    <div className="space-y-4">
+      <Section icon={BadgeCheck} title="Part kaisa hai" hint="Card aur bill par likha aata hai — customer ko pata ho ke genuine hai ya local">
+        <Tiles value={x.condition} onChange={(condition) => set({ condition })} columns="grid-cols-2 sm:grid-cols-4"
+          options={CONDITIONS.map((c) => ({ value: c, label: conditionOf(c).label, hint: conditionOf(c).hint }))} />
+      </Section>
+      <Section icon={Star} title="Brand aur kahan ka bana">
+        <TextField label="Brand" value={x.brand} onChange={(brand) => set({ brand })} placeholder="Denso, Bosch, Toyota Genuine…" />
+        <div className="mt-2 flex flex-wrap gap-1.5">{BRANDS.map((b) => <Chip key={b} on={x.brand === b} onClick={() => set({ brand: x.brand === b ? '' : b })}>{b}</Chip>)}</div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <span className="mr-1 self-center text-[0.8125rem] text-slate-600">Bana:</span>
+          {ORIGINS.map((o) => <Chip key={o} on={x.countryOfOrigin === o} onClick={() => set({ countryOfOrigin: x.countryOfOrigin === o ? '' : o })}>{o}</Chip>)}
+        </div>
+      </Section>
+      <Section icon={ShieldCheck} title="Warranty" hint="Counter par bechte waqt bill me khud lag jati hai">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <NumberField label="Kitne mahine" value={x.warrantyMonths} onChange={(v) => set({ warrantyMonths: Math.max(0, Math.round(v ?? 0)) })} suffix="mahine" error={ctx.errors.warranty} />
+          <NumberField label="Ya kitne km" allowEmpty value={x.warrantyKm} onChange={(warrantyKm) => set({ warrantyKm })} suffix="km" hint="Marzi hai" />
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">{[0, 1, 3, 6, 12].map((m) => <Chip key={m} on={x.warrantyMonths === m} onClick={() => set({ warrantyMonths: m })}>{m ? `${m} mahine` : 'Koi nahi'}</Chip>)}</div>
+      </Section>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Toggle on={x.isFastMoving} onChange={(isFastMoving) => set({ isFastMoving })} icon={Zap} title="Zyada bikne wala" hint="Counter par aage aur “Zyada bikta” ka nishan" />
+        <Toggle on={x.isCritical} onChange={(isCritical) => set({ isCritical })} icon={Hash} title="Hamesha stock me rakhna hai" hint="Khatam hone se pehle mangwayein" />
+      </div>
     </div>
   );
+}
+
+const core: CoreOptions = {
+  units: [
+    { value: 'pcs', label: 'Adad (pcs)' }, { value: 'set', label: 'Set' }, { value: 'pair', label: 'Joda' }, { value: 'liter', label: 'Liter' },
+    { value: 'ml', label: 'ml' }, { value: 'meter', label: 'Meter' }, { value: 'feet', label: 'Feet' }, { value: 'kg', label: 'Kg' },
+  ],
+  skuPrefix: 'AP',
+  packs: true,
+  variants: false,
+  batches: false,
+  markups: [10, 15, 20, 25, 30],
+};
+
+const fitStep: StepDef<PartExtra> = {
+  id: 'fitment', title: 'Gaari', hint: 'Kis gaari ka part', icon: Car,
+  render: (ctx) => <FitmentEditor universal={ctx.draft.extra.universal} fitments={ctx.draft.extra.fitments} onChange={(v) => ctx.setExtra(v)} />,
+};
+const qualityStep: StepDef<PartExtra> = {
+  id: 'quality', title: 'Quality', hint: 'Genuine, brand, warranty', icon: BadgeCheck, render: (ctx) => <Quality ctx={ctx} />,
+  validate: (d): Errors => (d.extra.warrantyMonths > 120 ? { warranty: '120 mahine se zyada nahi' } : {}),
+};
+
+const config: EditorConfig<PartExtra> = {
+  label: 'Auto Parts',
+  draftKey: 'nafaa.product-editor.autoparts',
+  paths: { list: '/autoparts/parts', detail: (id) => `/autoparts-parts/${id}`, create: '/autoparts-parts/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const p = await partProfilesApi.byProduct(productId).catch(() => null);
+      if (!p) return {};
+      const c = p.compatibility;
+      return {
+        partNumber: p.partNumber ?? '', oemNumber: p.oemNumber ?? '', alternateNumbers: p.alternateNumbers ?? [], category: p.category, condition: p.condition,
+        brand: p.brand ?? '', countryOfOrigin: p.countryOfOrigin ?? '', warrantyMonths: p.warrantyMonths ?? 0, warrantyKm: p.warrantyKm ?? null,
+        isFastMoving: p.isFastMoving, isCritical: p.isCritical, universal: !!c?.isUniversal, fitments: Array.isArray(c?.fitments) ? c!.fitments! : [],
+      };
+    },
+    save: async (productId, d) => {
+      const x = d.extra;
+      await partProfilesApi.upsert({
+        productId, partNumber: opt(x.partNumber), oemNumber: opt(x.oemNumber), alternateNumbers: x.alternateNumbers, category: x.category,
+        condition: x.condition, brand: opt(x.brand), countryOfOrigin: opt(x.countryOfOrigin), warrantyMonths: x.warrantyMonths,
+        warrantyKm: x.warrantyKm ?? undefined, isFastMoving: x.isFastMoving, isCritical: x.isCritical,
+        compatibility: { isUniversal: x.universal, fitments: x.universal ? [] : x.fitments },
+      });
+    },
+    // The part number is the SKU unless the owner typed one.
+    product: (d, payload) => (!String(payload.sku ?? '').trim() && d.extra.partNumber.trim() ? { ...payload, sku: d.extra.partNumber.trim() } : payload),
+  },
+  steps: [
+    basicStep<PartExtra>(core, {
+      extra: (ctx) => <Numbers ctx={ctx} />, namePlaceholder: 'Jaise: Brake pad Corolla 2015 (front)',
+      categorySuggestions: ['Engine parts', 'Brake', 'Filter', 'Oil aur lubricants', 'Suspension', 'Bijli ka saman', 'Lights', 'Battery', 'Tyre aur tube', 'Body parts', 'Bike parts'],
+    }),
+    priceStep<PartExtra>(core),
+    fitStep,
+    qualityStep,
+    stockStep<PartExtra>(core, { quick: [1, 2, 5, 10, 20, 50] }),
+  ],
+  summary: (d) => {
+    const x = d.extra;
+    const fits = x.universal ? 'Har gaari' : x.fitments.map((f) => [f.makeName, f.modelName].filter(Boolean).join(' ')).join(', ');
+    return (
+      <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
+        {x.partNumber && <p className="font-mono text-slate-700">{x.partNumber}{x.oemNumber ? ` · OEM ${x.oemNumber}` : ''}</p>}
+        <p className="text-slate-600">{[categoryOf(x.category), conditionOf(x.condition).label, x.brand].filter(Boolean).join(' · ')}</p>
+        {fits && <p className="text-slate-600">{fits}</p>}
+        {x.warrantyMonths > 0 && <p className="text-emerald-700">{x.warrantyMonths} mahine warranty</p>}
+      </div>
+    );
+  },
+  refresh: [PART_FACTS_KEY, 'autoparts-part-detail'],
+  guide: [
+    { icon: Hash, color: '#2563eb', title: 'Part number', text: 'Dabbe par likha number likhein. Counter par is number se, OEM se ya doosre number se part mil jata hai.' },
+    { icon: Car, color: '#0891b2', title: 'Kis gaari ka', text: 'Company, model aur saal jorein — counter par “corolla brake” likhne se yahi part aata hai.' },
+    { icon: BadgeCheck, color: '#16a34a', title: 'Genuine ya local', text: 'Quality step me batayein — card aur bill par likha aata hai, customer ko dhoka nahi hota.' },
+  ],
+};
+
+export default function AutoPartWizardPage() {
+  return <ProductEditorPage config={config} />;
 }

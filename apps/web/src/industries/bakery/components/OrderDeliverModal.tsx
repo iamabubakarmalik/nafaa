@@ -3,8 +3,14 @@
  * products take their stock out, the amount shows in Sales, and what is
  * still owed goes on the customer's account.
  *
+ * Advances taken earlier are already on the customer's khata (they reached
+ * the drawer on the day they were paid). The bill counts as paid only the
+ * money taken now; its unpaid part goes on the same khata, where the advance
+ * cancels it. Orders paid before khata posting existed carry that older
+ * money as paid on this bill, as before.
+ *
  * Order of work, so that a failure half-way loses nothing:
- *   1. money received now is recorded on the order;
+ *   1. money taken now is noted on the order (not on the khata: the bill records it);
  *   2. the bill (sale) is made, its lines noted "Order <number>";
  *   3. the order is marked delivered.
  * Before starting, the server is asked whether a bill with that note already
@@ -14,7 +20,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Banknote, Building2, CheckCircle2, CreditCard, Link2, Link2Off, Package, Printer, Search, Smartphone, User, UserPlus, Wallet, X, Zap } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Link2, Link2Off, Lock, Package, Printer, Search, User, UserPlus, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
@@ -24,11 +30,13 @@ import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProduc
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import type { SalePaymentPart } from '@modules/sales/sales/api/sales.api';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { printReceipt } from '@core/receipt/print';
 import { withManagerPin } from '@core/security/ManagerPin';
 import { getReceiptSetup, printPaper } from '@core/receipt/setup';
-import type { OrderBill } from '../api/cake-orders.api';
+import type { OrderBill, OrderPayMethod } from '../api/cake-orders.api';
 import { BULK_KEY, CAKE_KEY, apiError, fmtQty } from './meta';
 
 interface OrderBillLine {
@@ -47,8 +55,9 @@ export interface OrderForBill {
   customerPhone?: string;
   /** Agreed order amount; the lines may add up to more or less. */
   total: number;
-  /** Received on the order so far (advance and later payments). */
+  /** Received on the order so far (advance and later payments), as the list showed it. */
   paid: number;
+  customerId?: string | null;
   lines: OrderBillLine[];
   deliveryAddress?: string;
 }
@@ -56,13 +65,10 @@ export interface OrderForBill {
 /** Note on every bill line made from an order; the server finds the bill by it. */
 const orderNote = (orderNumber: string) => `Order ${orderNumber}`;
 
-const METHODS: Array<{ id: PaymentMethod; label: string; icon: typeof Banknote }> = [
-  { id: 'CASH', label: 'Cash', icon: Banknote },
-  { id: 'CARD', label: 'Card', icon: CreditCard },
-  { id: 'JAZZCASH', label: 'JazzCash', icon: Smartphone },
-  { id: 'EASYPAISA', label: 'EasyPaisa', icon: Zap },
-  { id: 'BANK_TRANSFER', label: 'Bank', icon: Building2 },
-];
+/** Money read fresh from the server when the dialog opens. */
+export interface OrderMoney { paidAmount: number; khataPaid?: number; customerId?: string | null }
+
+const r2 = (n: number) => Math.round(n * 100) / 100;
 
 const digits = (s?: string) => String(s ?? '').replace(/\D/g, '').slice(-10);
 const stockOf = (p: { shopStock?: number; stock?: number }) => Number(p.shopStock ?? p.stock ?? 0);
@@ -70,13 +76,15 @@ const stockOf = (p: { shopStock?: number; stock?: number }) => Number(p.shopStoc
 interface ProductLite { id: string; name: string; unit?: string; isActive?: boolean; shopStock?: number; stock?: number }
 interface CustomerLite { id: string; name: string; phone?: string | null; balance?: number | string | null }
 
-export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPayment, markDelivered, findBill }: {
+export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney, recordPayment, markDelivered, findBill }: {
   order: OrderForBill;
   shopName: string;
   onClose: () => void;
   onDone: () => void;
-  /** Records money on the order (cake or bulk payment endpoint). */
-  recordPayment: (amount: number) => Promise<unknown>;
+  /** The order as saved now: money received and the part held on khata. */
+  loadMoney: () => Promise<OrderMoney>;
+  /** Notes money taken with the bill on the order (`expectedPaid` guards a repeat). */
+  recordPayment: (amount: number, expectedPaid: number, method: OrderPayMethod) => Promise<unknown>;
   /** Marks the order delivered. */
   markDelivered: () => Promise<unknown>;
   /** Bill already made for this order, if any. */
@@ -85,17 +93,24 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
   const navigate = useNavigate();
   const qc = useQueryClient();
   const shopId = useShopParam();
-  const due0 = Math.max(Math.round((order.total - order.paid) * 100) / 100, 0);
-
   const [lines, setLines] = useState<OrderBillLine[]>(() => order.lines.map((l) => ({ ...l })));
   const [linking, setLinking] = useState<number | null>(null);
   const [q, setQ] = useState('');
-  const [collect, setCollect] = useState(String(due0));
-  const [method, setMethod] = useState<PaymentMethod>('CASH');
   const [customerId, setCustomerId] = useState('');
   const [custQ, setCustQ] = useState('');
   const [printBill, setPrintBill] = useState(true);
+  const [paying, setPaying] = useState(false);
   const [step, setStep] = useState('');
+
+  const moneyQ = useQuery({ queryKey: [order.kind === 'cake' ? CAKE_KEY : BULK_KEY, 'money', order.id], queryFn: loadMoney, staleTime: 0 });
+  const { data: counter } = useQuery({ queryKey: ['settings', 'counter'], queryFn: () => settingsApi.counter(), staleTime: 5 * 60_000 });
+  const paid0 = Number(moneyQ.data?.paidAmount ?? order.paid) || 0;
+  const khataPaid = Math.min(Number(moneyQ.data?.khataPaid) || 0, paid0);
+  /** Received before khata posting existed: counts as paid on this bill. */
+  const legacyPaid = r2(Math.max(paid0 - khataPaid, 0));
+  /** Customer whose khata holds the advance; the bill must go to the same khata. */
+  const heldFor = khataPaid > 0 ? moneyQ.data?.customerId ?? order.customerId ?? undefined : undefined;
+  const due0 = Math.max(r2(order.total - paid0), 0);
 
   const billQ = useQuery({ queryKey: [order.kind === 'cake' ? CAKE_KEY : BULK_KEY, 'bill', order.id], queryFn: findBill, staleTime: 0 });
   const productsQ = useQuery({ queryKey: ['bakery-all-products'], queryFn: () => fetchAllProducts({ isActive: undefined }), staleTime: 60_000 });
@@ -109,7 +124,9 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
     const d = digits(order.customerPhone);
     return d.length >= 7 ? customers.find((c) => digits(c.phone ?? '') === d) : undefined;
   }, [customers, order.customerPhone]);
-  const chosen = customerId === '__none__' ? undefined : customers.find((c) => c.id === (customerId || autoCustomer?.id));
+  const chosen = heldFor
+    ? customers.find((c) => c.id === heldFor)
+    : customerId === '__none__' ? undefined : customers.find((c) => c.id === (customerId || order.customerId || autoCustomer?.id));
 
   const linked = lines.filter((l) => l.productId);
   const linesTotal = lines.reduce((s, l) => s + l.qty * l.rate, 0);
@@ -118,18 +135,15 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
   /* The bill total must equal the order total: lines above it become a discount, below it an extra. */
   const discount = Math.max(linesTotal - order.total, 0);
   const extra = unlinkedTotal + Math.max(order.total - linesTotal, 0);
-  const now = Math.min(Math.max(Number(collect) || 0, 0), due0);
-  const paidTotal = order.paid + now;
-  const dueAfter = Math.max(order.total - paidTotal, 0);
   const short = linked.filter((l) => { const p = productBy.get(l.productId!); return p && stockOf(p) < l.qty; });
 
   const errors: string[] = [];
-  if (billQ.isLoading) errors.push('Pehle ka bill dekh rahe hain…');
+  if (billQ.isLoading || moneyQ.isLoading) errors.push('Order ka hisaab dekh rahe hain…');
+  if (moneyQ.isError) errors.push('Order ka hisaab nahi mila — dobara kholein');
   if (already) errors.push('Is order ka bill pehle hi ban chuka hai');
   if (!shopId) errors.push('Upar se branch chunein');
   if (!linked.length) errors.push('Kam se kam ek cheez apne maal se jorein — warna bill me koi cheez nahi hogi');
-  if (dueAfter > 0.5 && !chosen) errors.push(`${formatPKR(dueAfter)} baqi rahega — udhaar ke liye customer chunein`);
-  if ((Number(collect) || 0) > due0 + 0.005) errors.push(`Baqi sirf ${formatPKR(due0)} hai`);
+  if (heldFor && !chosen && !customersQ.isLoading) errors.push('Advance wala customer nahi mila — Customers me check karein');
 
   const addCustomer = useMutation({
     mutationFn: () => customersApi.create({ name: order.customerName || 'Order customer', phone: order.customerPhone || undefined }),
@@ -138,18 +152,25 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
   });
 
   const bill = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (pay: PosCheckoutResult) => {
+      // Change given back is not order money; only what stays with the shop counts.
+      const now = Math.min(Math.max(pay.paidAmount, 0), due0);
       setStep('Pehle ka bill dekh rahe hain…');
       if (await findBill()) throw new Error('Is order ka bill pehle hi ban chuka hai');
-      if (now > 0) { setStep('Paisa order par darj ho raha hai…'); await recordPayment(now); }
+      if (now > 0) { setStep('Paisa order par darj ho raha hai…'); await recordPayment(now, paid0, pay.paymentMethod as OrderPayMethod); }
       setStep('Bill ban raha hai…');
+      // Older money (no khata row) is paid on this bill; the khata advance cancels the unpaid part.
+      const parts = netOfChange(pay.payments?.length ? pay.payments : [{ method: pay.paymentMethod, amount: pay.paidAmount }], now);
+      if (legacyPaid > 0) parts.push({ method: 'CASH', amount: legacyPaid });
+      const paidOnBill = r2(parts.reduce((s, p) => s + p.amount, 0));
       // A khata above the customer's limit needs the owner's PIN; the dialog asks once and retries.
       const sale = await withManagerPin('Udhaar ke liye malik ka PIN', (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: shopId!,
         customerId: chosen?.id || undefined,
-        paymentMethod: method,
-        paidAmount: paidTotal,
+        paymentMethod: (parts.length === 1 ? parts[0].method : pay.paymentMethod) as PosCheckoutResult['paymentMethod'],
+        paidAmount: paidOnBill,
+        ...(parts.length > 1 && { payments: parts }),
         discount,
         // The sale takes charges as a list; a bare number crashed the bill (400 / "reduce is not a function").
         serviceCharges: extra > 0 ? [{ type: 'OTHER', label: 'Order ke izafi charges', amount: Math.round(extra * 100) / 100 }] : undefined,
@@ -157,10 +178,13 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
       } as Parameters<typeof offlineSalesApi.create>[0]), 'credit') as { id?: string; saleNumber?: string };
       setStep('Order "De diya" ho raha hai…');
       try { await markDelivered(); } catch { toast.warning('Bill ban gaya magar order ki halat nahi badli — order khol kar "De diya" dobara dabayein'); }
-      return sale;
+      return { sale, now };
     },
-    onSuccess: (sale) => {
+    onSuccess: ({ sale, now }) => {
       setStep('');
+      setPaying(false);
+      const paidTotal = r2(paid0 + now);
+      const dueAfter = Math.max(r2(order.total - paidTotal), 0);
       ['sales-list', 'sales-summary', 'products', 'bakery-all-products', 'products-for-pos', 'customers', 'customers-for-pos', CAKE_KEY, BULK_KEY, 'cake-order']
         .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       forceRefreshProducts().catch(() => undefined);
@@ -190,8 +214,20 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
       });
       onDone();
     },
-    onError: (e) => { setStep(''); toast.error(apiError(e, 'Bill nahi bana — order jaisa tha waisa hai')); },
+    onError: (e) => {
+      setStep('');
+      setPaying(false);
+      qc.invalidateQueries({ queryKey: [order.kind === 'cake' ? CAKE_KEY : BULK_KEY, 'money', order.id] });
+      toast.error(apiError(e, 'Bill nahi bana — order jaisa tha waisa hai'));
+    },
   });
+
+  /** Nothing left to collect: bill straight away; otherwise take the money in the checkout dialog. */
+  const start = () => {
+    if (errors.length) return;
+    if (due0 > 0) setPaying(true);
+    else bill.mutate({ paymentMethod: 'CASH', paidAmount: 0, isCredit: false, depositExtra: false });
+  };
 
   const needle = q.trim().toLowerCase();
   const options = useMemo(() => {
@@ -223,8 +259,8 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
       footer={<>
         {errors[0] && <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{errors[0]}</p>}
         <Button variant="secondary" onClick={onClose} disabled={bill.isPending}>Rehne dein</Button>
-        <Button variant="success" onClick={() => bill.mutate()} disabled={errors.length > 0} loading={bill.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
-          {bill.isPending ? step || 'Ho raha hai…' : 'Bill banao — de diya'}
+        <Button variant="success" onClick={start} disabled={errors.length > 0} loading={bill.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+          {bill.isPending ? step || 'Ho raha hai…' : due0 > 0 ? `${formatPKR(due0)} lein — bill banao` : 'Bill banao — de diya'}
         </Button>
       </>}>
       <div className="space-y-5">
@@ -284,26 +320,7 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
         </section>
 
         <section className="space-y-2">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><Wallet className="h-4 w-4 text-brand-600" /> Abhi kitna mil raha hai</h3>
-          <Input inputMode="decimal" value={collect} onChange={(e) => setCollect(e.target.value.replace(/[^\d.]/g, ''))} size="lg" className="text-center text-xl font-bold tabular-nums" />
-          <div className="flex gap-1.5">
-            <Button size="sm" variant="secondary" className="flex-1" onClick={() => setCollect(String(due0))}>Poora {formatPKR(due0)}</Button>
-            <Button size="sm" variant="secondary" className="flex-1" onClick={() => setCollect('0')}>Kuch nahi — udhaar</Button>
-          </div>
-          {now > 0 && (
-            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
-              {METHODS.map((m) => (
-                <button key={m.id} type="button" onClick={() => setMethod(m.id)}
-                  className={cn('inline-flex h-9 items-center justify-center gap-1 rounded-lg text-[0.75rem] font-semibold ring-1', method === m.id ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
-                  <m.icon className="h-3.5 w-3.5" />{m.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-2">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><User className="h-4 w-4 text-brand-600" /> Customer {dueAfter > 0.5 ? <span className="text-rose-600">*</span> : <span className="text-[0.75rem] font-normal text-slate-500">— marzi</span>}</h3>
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><User className="h-4 w-4 text-brand-600" /> Customer <span className="text-[0.75rem] font-normal text-slate-500">{heldFor ? '— advance isi ke khate me hai' : '— udhaar ho to zaroori'}</span></h3>
           {chosen ? (
             <div className="flex items-center gap-2 rounded-xl bg-success-50 px-3 py-2.5 ring-1 ring-success-200">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-success-700" />
@@ -311,7 +328,9 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
                 <p className="truncate text-[0.875rem] font-medium text-slate-900">{chosen.name}</p>
                 <p className="text-[0.75rem] text-slate-500">{chosen.phone ?? ''}{Number(chosen.balance) > 0 ? ` · pehle se ${formatPKR(Number(chosen.balance))} udhaar` : ''}{!customerId && autoCustomer ? ' · phone se khud mila' : ''}</p>
               </div>
-              <button type="button" aria-label="Customer hatayein" onClick={() => { setCustomerId('__none__'); setCustQ(''); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
+              {heldFor
+                ? <Lock className="h-4 w-4 shrink-0 text-slate-400" aria-label="Advance wala customer badla nahi ja sakta" />
+                : <button type="button" aria-label="Customer hatayein" onClick={() => { setCustomerId('__none__'); setCustQ(''); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>}
             </div>
           ) : (
             <>
@@ -339,19 +358,42 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
           {extra > 0 && <Line k="Extra (juri nahi / farq)" v={`+${formatPKR(extra)}`} />}
           {discount > 0 && <Line k="Discount (order ka rate kam)" v={`−${formatPKR(discount)}`} />}
           <Line k="Bill ka total" v={formatPKR(order.total)} strong />
-          <Line k="Pehle mila" v={formatPKR(order.paid)} />
-          {now > 0 && <Line k="Abhi mila" v={formatPKR(now)} />}
-          <Line k={dueAfter > 0.5 ? 'Khate me jayega' : 'Baqi'} v={formatPKR(dueAfter)} strong />
+          {khataPaid > 0 && <Line k="Advance (khate me jama, us din drawer me aa chuka)" v={`−${formatPKR(khataPaid)}`} />}
+          {legacyPaid > 0 && <Line k="Pehle mila (is bill me gina jayega)" v={`−${formatPKR(legacyPaid)}`} />}
+          <Line k="Ab lena hai" v={formatPKR(due0)} strong />
         </dl>
 
         <label className="flex cursor-pointer items-center gap-2 text-[0.8125rem] text-slate-700">
           <input type="checkbox" checked={printBill} onChange={(e) => setPrintBill(e.target.checked)} className="h-4 w-4 rounded accent-brand-600" />
           <Printer className="h-4 w-4 text-slate-500" /> Bill bante hi print karein
         </label>
-        <p className="text-[0.75rem] text-slate-500">Pehle ka advance bhi is bill me "mila" gina jata hai, taake sale ka poora hisaab ek jagah rahe.</p>
+        <p className="flex items-start gap-1.5 text-[0.75rem] text-slate-500"><Wallet className="mt-0.5 h-3.5 w-3.5 shrink-0" />Bill poore order ka banta hai. Advance khate se kat jata hai, is liye Sale aur drawer me do baar nahi aata.</p>
       </div>
+      {paying && (
+        <PosCheckoutModal total={due0} itemCount={linked.length} loading={bill.isPending} initMode="full"
+          customerName={chosen?.name} customerBalance={Number(chosen?.balance ?? 0)} hasCustomer={!!chosen}
+          allowCredit={counter?.allowCredit ?? true} initMethod={(counter?.defaultPaymentMethod as PosCheckoutResult['paymentMethod']) || 'CASH'}
+          onConfirm={(d) => bill.mutate(d)} onClose={() => { if (!bill.isPending) setPaying(false); }} />
+      )}
     </Modal>
   );
+}
+
+/**
+ * What each method actually left with the shop: the change handed back comes
+ * off the cash first. With an advance on khata the bill total is more than
+ * what is due now, so the sale itself cannot see the change.
+ */
+function netOfChange(handed: SalePaymentPart[], keep: number): SalePaymentPart[] {
+  let over = r2(handed.reduce((s, p) => s + p.amount, 0) - keep);
+  const parts = handed.map((p) => ({ ...p }));
+  for (const p of [...parts].sort((a, b) => (a.method === 'CASH' ? -1 : 0) - (b.method === 'CASH' ? -1 : 0))) {
+    if (over <= 0) break;
+    const take = Math.min(p.amount, over);
+    p.amount = r2(p.amount - take);
+    over = r2(over - take);
+  }
+  return parts.filter((p) => p.amount > 0);
 }
 
 function Line({ k, v, strong }: { k: string; v: string; strong?: boolean }) {

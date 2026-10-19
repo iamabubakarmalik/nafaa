@@ -1,9 +1,9 @@
-import { Car, LayoutDashboard, Wrench, Package, Truck, Cog, Users, Bell, Sparkles } from 'lucide-react';
+import { Bell, Car, Package, Plus, Truck, UserCog, Wrench } from 'lucide-react';
+import { PERMISSIONS } from '@core/lib/permissions';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import AutoPartsDashboard from './dashboard/AutoPartsDashboard';
 import VehicleMakesPage from './pages/VehicleMakesPage';
-import VehicleModelsPage from './pages/VehicleModelsPage';
 import CustomerVehiclesPage from './pages/CustomerVehiclesPage';
 import PartsPage from './pages/PartsPage';
 import WorkshopJobsPage from './pages/WorkshopJobsPage';
@@ -15,8 +15,10 @@ import AutoPartWizardPage from './pages/AutoPartWizardPage';
 import AutoPartDetailPage from './pages/AutoPartDetailPage';
 
 /**
- * Auto Parts / Workshop / Mechanic / Garage industry pack.
- * Vehicle registry, part compatibility, workshop jobs, mechanics, reminders.
+ * Auto parts shop and workshop: parts with part numbers, quality and the
+ * vehicles they fit on the shared product pages and counter; workshop job
+ * cards that bill through the shared sale; customer vehicles with service
+ * history; mechanics; and service reminders.
  */
 export const AutoPartsPack: IndustryPack = {
   id: 'autoparts',
@@ -30,16 +32,9 @@ export const AutoPartsPack: IndustryPack = {
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
-    return (
-      type.includes('AUTO') ||
-      type.includes('WORKSHOP') ||
-      type.includes('GARAGE') ||
-      type.includes('MECHANIC') ||
-      type.includes('SPARE') ||
-      type.includes('MOTOR') ||
-      type.includes('VEHICLE') ||
-      type.includes('CAR')
-    );
+    // "CAR" only as a whole word, so CARPET or SKIN_CARE never land here.
+    const words = type.split(/[^A-Z]+/);
+    return ['AUTO', 'WORKSHOP', 'GARAGE', 'MECHANIC', 'SPARE', 'MOTOR', 'VEHICLE'].some((w) => type.includes(w)) || words.includes('CAR') || words.includes('CARS');
   },
 
   navGroups: [
@@ -50,37 +45,34 @@ export const AutoPartsPack: IndustryPack = {
       color: '#475569',
       order: 20,
       items: [
-        { to: '/autoparts-products/new', label: '+ Add Auto Part', icon: Sparkles, badge: 'FAST' },
-        { to: '/autoparts/dashboard', label: 'Workshop Dashboard', icon: LayoutDashboard },
-        { to: '/autoparts/jobs', label: 'Workshop Jobs', icon: Wrench },
-        { to: '/autoparts/vehicles', label: 'Customer Vehicles', icon: Car },
-        { to: '/autoparts/parts', label: 'Parts Catalog', icon: Package },
-        { to: '/autoparts/makes', label: 'Vehicle Makes', icon: Truck },
-        { to: '/autoparts/models', label: 'Vehicle Models', icon: Cog },
-        { to: '/autoparts/mechanics', label: 'Mechanics', icon: Users },
-        { to: '/autoparts/reminders', label: 'Service Reminders', icon: Bell },
+        { to: '/autoparts/jobs/new', label: 'Naya job', icon: Plus, permission: PERMISSIONS.SERVICE_JOBS_MANAGE },
+        { to: '/autoparts/jobs', label: 'Workshop jobs', icon: Wrench, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+        { to: '/autoparts/parts', label: 'Parts', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/autoparts/vehicles', label: 'Gaariyan', icon: Car, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/autoparts/reminders', label: 'Service reminders', icon: Bell, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/autoparts/mechanics', label: 'Mechanic', icon: UserCog, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+        { to: '/autoparts/makes', label: 'Company / model', icon: Truck, permission: PERMISSIONS.PRODUCTS_VIEW },
       ],
     },
   ],
 
   routes: [
-    // Wizard + Detail — highest priority auto part routes
-    { path: '/autoparts-products/new', element: AutoPartWizardPage },
-    { path: '/autoparts-products/:id/edit', element: AutoPartWizardPage },
-    { path: '/autoparts-products/:id', element: AutoPartDetailPage },
+    // Parts on the shared product editor and detail.
+    { path: '/autoparts-parts/new', element: AutoPartWizardPage, permission: PERMISSIONS.PRODUCTS_CREATE },
+    { path: '/autoparts-parts/:id/edit', element: AutoPartWizardPage, permission: PERMISSIONS.PRODUCTS_EDIT },
+    { path: '/autoparts-parts/:id', element: AutoPartDetailPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/autoparts/parts', element: PartsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
 
-    // Existing pages
     { path: '/autoparts', element: AutoPartsDashboard },
     { path: '/autoparts/dashboard', element: AutoPartsDashboard },
-    { path: '/autoparts/jobs/new', element: NewWorkshopJobPage },
-    { path: '/autoparts/jobs/:id', element: WorkshopJobDetailPage },
-    { path: '/autoparts/jobs', element: WorkshopJobsPage },
-    { path: '/autoparts/vehicles', element: CustomerVehiclesPage },
-    { path: '/autoparts/parts', element: PartsPage },
-    { path: '/autoparts/makes', element: VehicleMakesPage },
-    { path: '/autoparts/models', element: VehicleModelsPage },
-    { path: '/autoparts/mechanics', element: MechanicsPage },
-    { path: '/autoparts/reminders', element: ServiceRemindersPage },
+    { path: '/autoparts/jobs/new', element: NewWorkshopJobPage, permission: PERMISSIONS.SERVICE_JOBS_MANAGE },
+    { path: '/autoparts/jobs/:id', element: WorkshopJobDetailPage, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+    { path: '/autoparts/jobs', element: WorkshopJobsPage, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+    { path: '/autoparts/vehicles', element: CustomerVehiclesPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/autoparts/makes', element: VehicleMakesPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/autoparts/models', element: VehicleMakesPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/autoparts/mechanics', element: MechanicsPage, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+    { path: '/autoparts/reminders', element: ServiceRemindersPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
   ],
 
   dashboardComponent: AutoPartsDashboard,

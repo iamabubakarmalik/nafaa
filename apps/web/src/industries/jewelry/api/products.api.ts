@@ -110,14 +110,18 @@ export interface JewelryProductProfile {
   updatedAt: string;
 }
 
+/** Slim profile used by the counter and lists. */
+export type JewelryFacts = Pick<JewelryProductProfile,
+  'id' | 'productId' | 'itemCode' | 'designNumber' | 'category' | 'style' | 'metalType' | 'purity' | 'grossWeight' | 'netWeight' | 'stoneWeight' | 'size'
+  | 'makingChargePerGram' | 'makingChargeFixed' | 'makingChargePct' | 'wastagePct' | 'wastageGrams' | 'designerCharge' | 'polishCharge' | 'hallmarkCharge'
+  | 'otherCharges' | 'hasStones' | 'hasDiamond' | 'hallmarkNumber' | 'isCertified' | 'isBridalCollection' | 'isFeatured' | 'isBuyBackEligible'
+  | 'buyBackPct' | 'karigarName'> & { gemstones: Array<{ totalValue?: number | null }> };
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const jewelryProductsApi = {
   upsert: (data: Partial<JewelryProductProfile>) => apiClient.post('/jewelry/products', data).then(unwrap<JewelryProductProfile>),
   list: (params?: any) => apiClient.get('/jewelry/products', { params }).then(unwrap<JewelryProductProfile[]>),
+  facts: () => apiClient.get('/jewelry/products/facts').then(unwrap<JewelryFacts[]>),
   byProduct: (productId: string) => apiClient.get('/jewelry/products/by-product/' + productId).then(unwrap<JewelryProductProfile | null>),
-  getOne: (id: string) => apiClient.get('/jewelry/products/' + id).then(unwrap<JewelryProductProfile>),
-  currentPrice: (id: string) => apiClient.get('/jewelry/products/' + id + '/current-price').then(unwrap<any>),
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/jewelry/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

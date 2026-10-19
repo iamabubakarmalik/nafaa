@@ -1,7 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { addDays } from 'date-fns';
+import { Prisma } from '@prisma/client';
+import { DEFAULT_TZ } from '../../../common/helpers/business-time.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+
+/** "12 Nov 2026" in Pakistan time. */
+const day = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: DEFAULT_TZ });
 
 @Injectable()
 export class ServiceRemindersService {
@@ -33,21 +38,68 @@ export class ServiceRemindersService {
     });
   }
 
-  async list(user: AuthenticatedUser, params: { status?: string; vehicleId?: string; upcoming?: boolean; overdue?: boolean }) {
+  /**
+   * Reminders with their vehicle and owner, for calling the customer.
+   * Views: due (date passed or within 7 days), upcoming (next 30 days),
+   * overdue, done, all. Without `page` the old plain array is returned.
+   */
+  async list(user: AuthenticatedUser, params: { status?: string; vehicleId?: string; upcoming?: boolean; overdue?: boolean; view?: string; search?: string; page?: number; limit?: number }) {
     const now = new Date();
-    const in30d = addDays(now, 30);
+    const open = { in: ['PENDING', 'SENT', 'SNOOZED'] };
+    const and: Prisma.VehicleServiceReminderWhereInput[] = [{ tenantId: user.tenantId }];
+    if (params.status) and.push({ status: params.status });
+    if (params.vehicleId) and.push({ vehicleId: params.vehicleId });
+    if (params.upcoming || params.view === 'upcoming') and.push({ dueDate: { gte: now, lte: addDays(now, 30) }, status: open });
+    if (params.overdue || params.view === 'overdue') and.push({ dueDate: { lt: now }, status: open });
+    if (params.view === 'due') and.push({ status: open, OR: [{ dueDate: { lte: addDays(now, 7) } }, { dueDate: null }] });
+    if (params.view === 'open') and.push({ status: open });
+    if (params.view === 'done') and.push({ status: { in: ['DONE', 'ACKNOWLEDGED'] } });
+    const q = params.search?.trim();
+    if (q) {
+      const vehicles = await this.prisma.customerVehicle.findMany({
+        where: { tenantId: user.tenantId, OR: [{ registrationNumber: { contains: q, mode: 'insensitive' } }, { ownerName: { contains: q, mode: 'insensitive' } }, { ownerPhone: { contains: q } }] },
+        select: { id: true }, take: 500,
+      });
+      and.push({ OR: [{ title: { contains: q, mode: 'insensitive' } }, { vehicleId: { in: vehicles.map((v) => v.id) } }] });
+    }
+    const where = { AND: and };
+    const orderBy: Prisma.VehicleServiceReminderOrderByWithRelationInput[] = params.view === 'done' ? [{ doneAt: 'desc' }] : [{ dueDate: { sort: 'asc', nulls: 'last' } }];
+    const limit = params.limit ?? 40;
+    const [rows, total] = await Promise.all([
+      this.prisma.vehicleServiceReminder.findMany({ where, orderBy, skip: params.page ? (params.page - 1) * limit : 0, take: params.page ? limit : 200 }),
+      params.page ? this.prisma.vehicleServiceReminder.count({ where }) : Promise.resolve(0),
+    ]);
+    const vehicles = rows.length ? await this.prisma.customerVehicle.findMany({
+      where: { tenantId: user.tenantId, id: { in: [...new Set(rows.map((r) => r.vehicleId))] } },
+      select: { id: true, registrationNumber: true, makeName: true, modelName: true, ownerName: true, ownerPhone: true, customerId: true, odometerKm: true, lastOdometerKm: true },
+    }) : [];
+    const vOf = new Map(vehicles.map((v) => [v.id, v]));
+    const items = rows.map((r) => ({ ...r, vehicle: vOf.get(r.vehicleId) ?? null }));
+    if (!params.page) return items;
+    return { items, total, page: params.page, limit, totalPages: Math.max(Math.ceil(total / limit), 1) };
+  }
 
-    return this.prisma.vehicleServiceReminder.findMany({
-      where: {
-        tenantId: user.tenantId,
-        ...(params.status && { status: params.status }),
-        ...(params.vehicleId && { vehicleId: params.vehicleId }),
-        ...(params.upcoming && { dueDate: { gte: now, lte: in30d }, status: { in: ['PENDING', 'SENT'] } }),
-        ...(params.overdue && { dueDate: { lt: now }, status: { in: ['PENDING', 'SENT'] } }),
-      },
-      orderBy: { dueDate: 'asc' },
-      take: 200,
-    });
+  /** Counts for the reminders page. */
+  async stats(user: AuthenticatedUser) {
+    const now = new Date();
+    const open = { in: ['PENDING', 'SENT', 'SNOOZED'] };
+    const base = { tenantId: user.tenantId };
+    const [overdue, week, month, done] = await Promise.all([
+      this.prisma.vehicleServiceReminder.count({ where: { ...base, status: open, dueDate: { lt: now } } }),
+      this.prisma.vehicleServiceReminder.count({ where: { ...base, status: open, dueDate: { gte: now, lte: addDays(now, 7) } } }),
+      this.prisma.vehicleServiceReminder.count({ where: { ...base, status: open, dueDate: { gte: now, lte: addDays(now, 30) } } }),
+      this.prisma.vehicleServiceReminder.count({ where: { ...base, status: 'DONE', doneAt: { gte: addDays(now, -30) } } }),
+    ]);
+    return { overdue, week, month, done };
+  }
+
+  /** Puts a reminder off to a later date. */
+  async snooze(user: AuthenticatedUser, id: string, until: string) {
+    const r = await this.prisma.vehicleServiceReminder.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!r) throw new NotFoundException('Reminder nahi mila');
+    const due = new Date(until);
+    if (Number.isNaN(due.getTime()) || due.getTime() < Date.now() - 86_400_000) throw new BadRequestException('Aage ki date likhein');
+    return this.prisma.vehicleServiceReminder.update({ where: { id }, data: { status: 'SNOOZED', dueDate: due } });
   }
 
   async byVehicle(user: AuthenticatedUser, vehicleId: string) {
@@ -93,8 +145,8 @@ export class ServiceRemindersService {
             tenantId: user.tenantId,
             vehicleId,
             reminderType: 'INSURANCE',
-            title: 'Insurance Renewal Due',
-            description: `Insurance expires on ${v.insuranceExpiry.toDateString()}`,
+            title: 'Insurance renew karwani hai',
+            description: `Insurance ${day(v.insuranceExpiry)} ko khatam`,
             dueDate,
             autoCreated: true,
           },
@@ -115,8 +167,8 @@ export class ServiceRemindersService {
             tenantId: user.tenantId,
             vehicleId,
             reminderType: 'TOKEN_TAX',
-            title: 'Token Tax Renewal Due',
-            description: `Token tax expires on ${v.tokenTaxExpiry.toDateString()}`,
+            title: 'Token tax jama karwana hai',
+            description: `Token tax ${day(v.tokenTaxExpiry)} ko khatam`,
             dueDate,
             autoCreated: true,
           },
@@ -137,8 +189,8 @@ export class ServiceRemindersService {
             tenantId: user.tenantId,
             vehicleId,
             reminderType: 'FITNESS',
-            title: 'Fitness Certificate Renewal',
-            description: `Fitness expires on ${v.fitnessExpiry.toDateString()}`,
+            title: 'Fitness certificate renew karwana hai',
+            description: `Fitness ${day(v.fitnessExpiry)} ko khatam`,
             dueDate,
             autoCreated: true,
           },

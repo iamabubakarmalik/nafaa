@@ -4,7 +4,7 @@
  * reports all see it. The jewelry row keeps the weight, karat, rate and making
  * breakdown and carries the same bill number as the shared sale.
  */
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, type OnModuleInit } from '@nestjs/common';
 import { JewelryPurity, PaymentMethod } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
@@ -23,13 +23,30 @@ const METHOD: Record<string, PaymentMethod> = {
 const KARAT_LABEL = (p: string) => p.replace('KARAT_', '') + (p.startsWith('KARAT_') ? 'K' : '');
 
 @Injectable()
-export class SalesService {
+export class SalesService implements OnModuleInit {
   private readonly logger = new Logger('JewelrySales');
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly coreSales: CoreSalesService,
   ) {}
+
+  /** A bill voided anywhere (sales history, receipt) cancels its jewelry row and gives back its old gold. */
+  onModuleInit() {
+    this.coreSales.onVoid((tenantId, saleId) => this.afterCoreVoid(tenantId, saleId));
+  }
+
+  private async afterCoreVoid(tenantId: string, saleId: string) {
+    const core = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId, status: 'VOIDED' }, select: { saleNumber: true } });
+    if (!core) return;
+    const s = await this.prisma.jewelrySale.findFirst({ where: { tenantId, invoiceNumber: core.saleNumber }, select: { id: true } });
+    if (!s) return;
+    const log = await this.prisma.activityLog.findFirst({
+      where: { tenantId, action: 'SALE_VOIDED', entityType: 'Sale', entityId: saleId },
+      orderBy: { createdAt: 'desc' }, select: { userId: true },
+    });
+    await this.settleCancelled(tenantId, log?.userId ?? null, s.id, 'Bill void');
+  }
 
   async create(user: AuthenticatedUser, scope: ShopScope, dto: CreateJewelrySaleDto) {
     if (!dto.items?.length) throw new BadRequestException('Kam az kam ek item zaroori hai');
@@ -38,7 +55,11 @@ export class SalesService {
       where: { tenantId: user.tenantId, isActive: true },
     });
     const ratesMap: Record<string, number> = {};
-    rates.forEach((r) => { ratesMap[`${r.metalType}_${r.purity}`] = r.ratePerGram; });
+    const buyMap: Record<string, number> = {};
+    rates.forEach((r) => {
+      ratesMap[`${r.metalType}_${r.purity}`] = r.ratePerGram;
+      buyMap[`${r.metalType}_${r.purity}`] = r.buyRate || r.ratePerGram;
+    });
 
     let totalGrossWeight = 0;
     let totalNetWeight = 0;
@@ -110,18 +131,29 @@ export class SalesService {
     const gstAmount = Math.max(Number(dto.gstAmount) || 0, 0);
     const otherCharges = Math.max(Number(dto.otherCharges) || 0, 0);
     const discount = Math.max(Number(dto.discount) || 0, 0);
-    const exchangeValue = Math.max(Number(dto.exchangeValue) || 0, 0);
     const exchangeGrams = Math.max(Number(dto.exchangeMetalGrams) || 0, 0);
+    if (exchangeGrams > 0 && !dto.exchangeMetalPurity) throw new BadRequestException('Purane sone ka karat chunein');
+    const exchangeValue = dto.exchangeValue != null
+      ? Math.max(Number(dto.exchangeValue) || 0, 0)
+      : this.oldGoldValue(buyMap, exchangeGrams, dto.exchangeMetalPurity, dto.exchangeDeductionPct);
+    if (exchangeValue > 0 && !(exchangeGrams > 0)) throw new BadRequestException('Purane sone ka wazan likhein');
 
     const subtotal = r2(enrichedItems.reduce((s, i) => s + i.itemTotal, 0));
     // What the customer still pays after the old gold (kept on the jewelry bill).
     const total = r2(Math.max(subtotal + gstAmount + otherCharges - discount - exchangeValue, 0));
 
-    const paidAmount = Math.max(Number(dto.paidAmount) || 0, 0);
+    // Money parts of a split payment; old gold is never taken from the client here.
+    const parts = (dto.payments ?? []).filter((p) => p.method !== 'TRADE_IN' && Number(p.amount) > 0)
+      .map((p) => ({ method: p.method, amount: r2(Number(p.amount)), reference: p.reference, note: p.note }));
+    const paidAmount = parts.length
+      ? r2(parts.reduce((sum, p) => sum + p.amount, 0))
+      : Math.max(Number(dto.paidAmount) || 0, 0);
     if (paidAmount < total - 0.005 && !dto.customerId) {
       throw new BadRequestException('Baqi amount (udhaar) ke liye customer chunein');
     }
-    const paymentMethod = METHOD[(dto.paymentMethod || 'CASH').toUpperCase()];
+    const paymentMethod = parts.length
+      ? parts.reduce((a, b) => (b.amount > a.amount ? b : a)).method
+      : METHOD[(dto.paymentMethod || 'CASH').toUpperCase()];
     if (!paymentMethod) throw new BadRequestException('Payment ka tareeqa ghalat hai');
 
     // Catalog pieces become bill lines; hand-typed pieces (not in the catalog)
@@ -149,7 +181,7 @@ export class SalesService {
     // Old gold is part of the payment (TRADE_IN), not a discount: the bill
     // keeps its full value, so profit is right and the discount rules stay out.
     const payments = [
-      ...(paidAmount > 0 ? [{ method: paymentMethod, amount: paidAmount }] : []),
+      ...(parts.length ? parts : paidAmount > 0 ? [{ method: paymentMethod, amount: paidAmount }] : []),
       ...(exchangeValue > 0 ? [{ method: 'TRADE_IN' as const, amount: exchangeValue, note: oldGold }] : []),
     ];
     const core: any = await this.coreSales.create(user, scope, {
@@ -196,7 +228,7 @@ export class SalesService {
           subtotal,
           discount,
           total,
-          paidAmount: Math.min(paidAmount, total),
+          paidAmount: r2(Math.min(paidAmount, total)),
           paymentStatus: paidAmount >= total - 0.005 ? 'PAID' : paidAmount > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
           paymentMethod,
           exchangeMetalGrams: exchangeGrams,
@@ -219,53 +251,67 @@ export class SalesService {
     }
 
     if (exchangeGrams > 0 || exchangeValue > 0) {
-      await this.recordOldGold(user, jewelrySale.id, core.saleNumber, dto, exchangeGrams, exchangeValue)
+      await this.recordOldGold(user, jewelrySale.id, core.saleNumber, dto, exchangeGrams, exchangeValue, buyMap)
         .catch((e) => this.logger.warn(`Old gold entry failed for ${core.saleNumber}: ${e?.message}`));
     }
 
     return { ...jewelrySale, saleId: core.id, saleNumber: core.saleNumber };
   }
 
+  /** Old gold at today's buying rate (or selling rate) for its karat, less the kaat percent. */
+  private oldGoldValue(rates: Record<string, number>, grams: number, purity?: JewelryPurity, deductionPct?: number) {
+    if (!(grams > 0) || !purity) return 0;
+    const rate = rates[`${metalTypeForPurity(purity)}_${purity}`] ?? 0;
+    if (!(rate > 0)) throw new BadRequestException('Is karat ka aaj ka rate set nahi — Metal rates me rate likhein ya purane sone ki qeemat khud likhein');
+    return r2(grams * rate * (1 - Math.min(Math.max(Number(deductionPct) || 0, 0), 50) / 100));
+  }
+
   /** Old gold taken in on a bill: an exchange record plus metal stock in. */
   private async recordOldGold(
     user: AuthenticatedUser, jewelrySaleId: string, saleNumber: string,
-    dto: CreateJewelrySaleDto, grams: number, value: number,
+    dto: CreateJewelrySaleDto, grams: number, value: number, rates: Record<string, number>,
   ) {
     const purity: JewelryPurity = dto.exchangeMetalPurity ?? 'OTHER';
     const metalType = metalTypeForPurity(dto.exchangeMetalPurity);
     const fine = grams * (PURITY_FACTOR[purity] ?? 1);
-    const count = await this.prisma.jewelryExchange.count({ where: { tenantId: user.tenantId } });
-    const exchange = await this.prisma.jewelryExchange.create({
-      data: {
-        tenantId: user.tenantId,
-        exchangeNumber: 'JEX-' + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0'),
-        exchangeType: dto.exchangeType ?? (metalType === 'SILVER' ? 'OLD_SILVER_EXCHANGE' : 'OLD_GOLD_EXCHANGE'),
-        customerId: dto.customerId,
-        customerName: dto.customerName || 'Walk-in',
-        customerPhone: dto.customerPhone || '',
-        customerCnic: dto.customerCnic,
-        itemDescription: `Bill ${saleNumber} par liya gaya purana zewar`,
-        metalType,
-        claimedPurity: purity,
-        grossWeight: grams,
-        netWeight: grams,
-        fineGoldEquivalent: fine,
-        ratePerGram: grams > 0 ? r2(value / grams) : 0,
-        grossValue: value,
-        netValue: value,
-        saleId: jewelrySaleId,
-        purpose: 'SALE',
-        createdById: user.id,
-      },
-    });
-    if (grams > 0 && dto.exchangeMetalPurity) {
-      await postMetalEntry(this.prisma, user.tenantId, user.id, {
-        entryType: 'EXCHANGE_IN', metalType, purity, grams,
-        ratePerGram: r2(value / grams), reference: saleNumber,
-        source: dto.customerName || 'Customer', saleId: jewelrySaleId, exchangeId: exchange.id,
-        notes: 'Bill par purana zewar liya',
+    const fullValue = r2(grams * (rates[`${metalType}_${purity}`] ?? 0));
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-exchange-no:${user.tenantId}`}))::text`;
+      const count = await tx.jewelryExchange.count({ where: { tenantId: user.tenantId } });
+      const exchange = await tx.jewelryExchange.create({
+        data: {
+          tenantId: user.tenantId,
+          exchangeNumber: 'JEX-' + new Date().getFullYear() + '-' + String(count + 1).padStart(4, '0'),
+          exchangeType: dto.exchangeType ?? (metalType === 'SILVER' ? 'OLD_SILVER_EXCHANGE' : 'OLD_GOLD_EXCHANGE'),
+          customerId: dto.customerId,
+          customerName: dto.customerName || 'Walk-in',
+          customerPhone: dto.customerPhone || '',
+          customerCnic: dto.customerCnic,
+          itemDescription: `Bill ${saleNumber} par liya gaya purana zewar`,
+          metalType,
+          claimedPurity: purity,
+          testedPurity: purity,
+          grossWeight: grams,
+          netWeight: grams,
+          fineGoldEquivalent: fine,
+          ratePerGram: grams > 0 ? r2(value / grams) : 0,
+          grossValue: Math.max(fullValue, value),
+          deductions: r2(Math.max(fullValue - value, 0)),
+          netValue: value,
+          saleId: jewelrySaleId,
+          purpose: 'SALE',
+          createdById: user.id,
+        },
       });
-    }
+      if (grams > 0 && dto.exchangeMetalPurity) {
+        await postMetalEntry(tx, user.tenantId, user.id, {
+          entryType: 'EXCHANGE_IN', metalType, purity, grams,
+          ratePerGram: r2(value / grams), reference: saleNumber,
+          source: dto.customerName || 'Customer', saleId: jewelrySaleId, exchangeId: exchange.id,
+          notes: 'Bill par purana zewar liya',
+        });
+      }
+    });
   }
 
   /** Bill number → shared sale (id, status), for linking and status sync. */
@@ -283,10 +329,11 @@ export class SalesService {
     return { ...s, saleId: core.id, status: core.status === 'VOIDED' ? 'CANCELLED' : s.status };
   }
 
-  async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; from?: string; to?: string; search?: string }) {
+  async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; from?: string; to?: string; search?: string; numbers?: string[] }) {
     const rows = await this.prisma.jewelrySale.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(params.numbers?.length && { invoiceNumber: { in: params.numbers.slice(0, 200) } }),
         ...(params.status && { status: params.status as any }),
         ...(params.customerId && { customerId: params.customerId }),
         ...(params.from || params.to ? {
@@ -346,27 +393,42 @@ export class SalesService {
     }
   }
 
-  /** Old gold taken on a cancelled bill goes back to the customer: take it out of metal stock once. */
-  private async giveBackOldGold(user: AuthenticatedUser, s: { id: string; invoiceNumber: string; exchangeMetalGrams: number; exchangeMetalPurity: JewelryPurity | null; exchangeValue: number; customerName: string | null }) {
-    if (!(s.exchangeMetalGrams > 0) || !s.exchangeMetalPurity) return;
-    const taken = await this.prisma.jewelryMetalStock.findFirst({
-      where: { tenantId: user.tenantId, saleId: s.id, entryType: 'EXCHANGE_IN' }, select: { id: true },
-    });
-    const done = await this.prisma.jewelryMetalStock.findFirst({
-      where: { tenantId: user.tenantId, saleId: s.id, entryType: 'ADJUSTMENT' }, select: { id: true },
-    });
-    if (!taken || done) return;
-    await postMetalEntry(this.prisma, user.tenantId, user.id, {
-      entryType: 'ADJUSTMENT',
-      metalType: metalTypeForPurity(s.exchangeMetalPurity),
-      purity: s.exchangeMetalPurity,
-      grams: s.exchangeMetalGrams,
-      ratePerGram: r2(s.exchangeValue / s.exchangeMetalGrams),
-      reference: s.invoiceNumber,
-      source: s.customerName || 'Customer',
-      saleId: s.id,
-      notes: 'Bill cancel: purana zewar customer ko wapas',
-    }).catch((e) => this.logger.warn(`Old gold give-back failed for ${s.invoiceNumber}: ${e?.message}`));
+  /**
+   * Marks a jewelry bill cancelled once its shared sale is void, and takes
+   * the old gold taken on it back out of metal stock (it goes back to the
+   * customer). Safe to call more than once and from parallel paths.
+   */
+  private async settleCancelled(tenantId: string, userId: string | null, id: string, reason?: string) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`jewelry-void:${id}`}))::text`;
+      const s = await tx.jewelrySale.findFirst({ where: { id, tenantId } });
+      if (!s) return;
+      if (s.exchangeMetalGrams > 0 && s.exchangeMetalPurity) {
+        const [taken, done] = await Promise.all([
+          tx.jewelryMetalStock.findFirst({ where: { tenantId, saleId: s.id, entryType: 'EXCHANGE_IN' }, select: { id: true } }),
+          tx.jewelryMetalStock.findFirst({ where: { tenantId, saleId: s.id, entryType: 'ADJUSTMENT' }, select: { id: true } }),
+        ]);
+        if (taken && !done) {
+          await postMetalEntry(tx, tenantId, userId ?? s.createdById, {
+            entryType: 'ADJUSTMENT',
+            metalType: metalTypeForPurity(s.exchangeMetalPurity),
+            purity: s.exchangeMetalPurity,
+            grams: s.exchangeMetalGrams,
+            ratePerGram: r2(s.exchangeValue / s.exchangeMetalGrams),
+            reference: s.invoiceNumber,
+            source: s.customerName || 'Customer',
+            saleId: s.id,
+            notes: 'Bill cancel: purana zewar customer ko wapas',
+          });
+        }
+      }
+      if (s.status !== 'CANCELLED') {
+        await tx.jewelrySale.update({
+          where: { id: s.id },
+          data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: s.cancellationReason ?? reason },
+        });
+      }
+    }, { timeout: 30_000 });
   }
 
   async updateStatus(user: AuthenticatedUser, scope: ShopScope, id: string, dto: UpdateSaleStatusDto) {
@@ -374,9 +436,8 @@ export class SalesService {
     const patch: any = { status: dto.status };
     if (dto.status === 'CANCELLED') {
       await this.voidCore(user, scope, core, dto.cancellationReason, dto.managerPin);
-      await this.giveBackOldGold(user, s);
-      patch.cancelledAt = new Date();
-      patch.cancellationReason = dto.cancellationReason;
+      await this.settleCancelled(user.tenantId, user.id, s.id, dto.cancellationReason);
+      return this.prisma.jewelrySale.findFirstOrThrow({ where: { id }, include: { items: true } });
     } else if (s.status === 'CANCELLED' || core?.status === 'VOIDED') {
       throw new BadRequestException('Cancel hua bill dobara khol nahi sakte, naya bill banayein');
     }
@@ -405,7 +466,7 @@ export class SalesService {
     const { s, core } = await this.own(user, id);
     if (s.isReturned || s.status === 'CANCELLED') throw new BadRequestException('Yeh bill pehle hi wapas / cancel ho chuka hai');
     await this.voidCore(user, scope, core, reason || 'Wapsi', managerPin);
-    await this.giveBackOldGold(user, s);
+    await this.settleCancelled(user.tenantId, user.id, s.id, reason || 'Wapsi');
     return this.prisma.jewelrySale.update({
       where: { id },
       data: { isReturned: true, returnedAt: new Date(), returnReason: reason, status: 'CANCELLED' },

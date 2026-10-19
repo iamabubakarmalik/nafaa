@@ -19,13 +19,24 @@ export interface ServiceReminder {
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export type ReminderView = 'due' | 'overdue' | 'upcoming' | 'open' | 'done' | 'all';
+export interface ReminderRow extends ServiceReminder {
+  vehicle: { id: string; registrationNumber: string; makeName?: string | null; modelName?: string | null; ownerName?: string | null; ownerPhone?: string | null; customerId: string; odometerKm?: number | null; lastOdometerKm?: number | null } | null;
+}
+export interface ReminderPage { items: ReminderRow[]; total: number; page: number; limit: number; totalPages: number }
+export interface ReminderStats { overdue: number; week: number; month: number; done: number }
+
+const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
 export const serviceRemindersApi = {
-  create: (data: Partial<ServiceReminder>) => apiClient.post('/autoparts/service-reminders', data).then(unwrap<ServiceReminder>),
-  list: (params?: any) => apiClient.get('/autoparts/service-reminders', { params }).then(unwrap<ServiceReminder[]>),
-  byVehicle: (vehicleId: string) => apiClient.get('/autoparts/service-reminders/by-vehicle/' + vehicleId).then(unwrap<ServiceReminder[]>),
+  create: (data: { vehicleId: string; reminderType: string; title: string; description?: string; dueDate?: string; dueOdometerKm?: number; notes?: string }) =>
+    apiClient.post('/autoparts/service-reminders', data).then(unwrap<ServiceReminder>),
+  /** Plain list (dashboard). */
+  list: (params?: { upcoming?: boolean; overdue?: boolean; vehicleId?: string }) => apiClient.get('/autoparts/service-reminders', { params }).then(unwrap<ReminderRow[]>),
+  page: (params: { view?: ReminderView; search?: string; page?: number; limit?: number }) =>
+    apiClient.get('/autoparts/service-reminders', { params: { ...params, page: params.page ?? 1 } }).then(unwrap<ReminderPage>),
+  stats: () => apiClient.get('/autoparts/service-reminders/stats').then(unwrap<ReminderStats>),
   updateStatus: (id: string, status: string) => apiClient.post('/autoparts/service-reminders/' + id + '/status', { status }).then(unwrap<ServiceReminder>),
-  autoGenerate: (vehicleId: string) => apiClient.post('/autoparts/service-reminders/auto-generate/' + vehicleId).then(unwrap<any>),
-  remove: (id: string) => apiClient.delete('/autoparts/service-reminders/' + id).then(unwrap),
+  snooze: (id: string, until: string) => apiClient.post('/autoparts/service-reminders/' + id + '/snooze', { until }).then(unwrap<ServiceReminder>),
+  autoGenerate: (vehicleId: string) => apiClient.post('/autoparts/service-reminders/auto-generate/' + vehicleId).then(unwrap<{ created: number }>),
 };

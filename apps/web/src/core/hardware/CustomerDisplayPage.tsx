@@ -24,23 +24,26 @@ interface Skin {
   newest: string;
   aside: string;
   accentText: string;
+  /** Soft colour wash behind the screen. */
+  glow: string;
+  chip: string;
 }
 
 const SKINS: Record<DisplayTheme, Skin> = {
   dark: {
     page: 'bg-ink-950 text-ink-white', muted: 'text-ink-white/65', faint: 'text-ink-white/40', line: 'border-ink-white/10',
     card: 'bg-ink-900 ring-1 ring-ink-white/10', newest: 'bg-brand-600/20 ring-1 ring-brand-500/40', aside: 'bg-brand-700 text-ink-white',
-    accentText: 'text-brand-400',
+    accentText: 'text-brand-400', glow: 'bg-brand-600/25', chip: 'bg-ink-white/10 text-ink-white/80',
   },
   black: {
     page: 'bg-black text-ink-200', muted: 'text-ink-400', faint: 'text-ink-600', line: 'border-ink-800',
     card: 'bg-ink-950 ring-1 ring-ink-800', newest: 'bg-ink-900 ring-1 ring-brand-500/30', aside: 'bg-ink-950 text-ink-100 ring-1 ring-ink-800',
-    accentText: 'text-brand-400',
+    accentText: 'text-brand-400', glow: 'bg-brand-600/10', chip: 'bg-ink-900 text-ink-400',
   },
   light: {
     page: 'bg-ink-50 text-ink-900', muted: 'text-ink-500', faint: 'text-ink-400', line: 'border-ink-200',
     card: 'bg-ink-white ring-1 ring-ink-200', newest: 'bg-brand-600/10 ring-1 ring-brand-500/40', aside: 'bg-brand-600 text-ink-white',
-    accentText: 'text-brand-600',
+    accentText: 'text-brand-600', glow: 'bg-brand-500/15', chip: 'bg-ink-white text-ink-600 ring-1 ring-ink-200',
   },
 };
 
@@ -96,8 +99,12 @@ export default function CustomerDisplayPage() {
   };
 
   return (
-    <div className={cn('flex h-screen select-none flex-col overflow-hidden antialiased', skin.page, !pointer && 'cursor-none')} onDoubleClick={fullScreen}>
-      <header className={cn('flex shrink-0 items-center justify-between gap-6 border-b px-6 py-4 sm:px-10', skin.line)}>
+    <div className={cn('relative flex h-screen select-none flex-col overflow-hidden antialiased', skin.page, !pointer && 'cursor-none')} onDoubleClick={fullScreen}>
+      <span className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <span className={cn('absolute -left-40 -top-40 h-[32rem] w-[32rem] rounded-full blur-3xl', skin.glow)} />
+        <span className={cn('absolute -bottom-48 right-1/4 h-[28rem] w-[28rem] rounded-full blur-3xl', skin.glow)} />
+      </span>
+      <header className={cn('relative flex shrink-0 items-center justify-between gap-6 border-b px-6 py-4 sm:px-10', skin.line)}>
         <div className="flex min-w-0 items-center gap-4">
           {s.showLogo && brand.logoUrl && (
             <img src={brand.logoUrl} alt="" className="h-12 w-12 shrink-0 rounded-xl bg-ink-white object-contain p-1 sm:h-14 sm:w-14" />
@@ -105,23 +112,22 @@ export default function CustomerDisplayPage() {
           <div className="truncate text-[clamp(1.375rem,2.6vw,2.25rem)] font-extrabold tracking-tight">{brand.name || 'Nafaa POS'}</div>
         </div>
         <div className="flex shrink-0 items-center gap-5">
-          {hint && <span className={cn('hidden text-sm font-semibold md:inline', skin.faint)}>Double-click = full screen</span>}
+          {hint && <span className={cn('hidden rounded-full px-3 py-1 text-sm font-semibold md:inline', skin.chip)}>Double-click = full screen</span>}
           {now && <span className={cn('text-[clamp(1.25rem,2.2vw,2rem)] font-bold tabular-nums', skin.muted)}>{now}</span>}
         </div>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col">
+      <main className="relative flex min-h-0 flex-1 flex-col">
         {m?.kind === 'cart' ? <CartView m={m} skin={skin} />
           : m?.kind === 'qr' ? <QrView m={m} skin={skin} />
           : m?.kind === 'thanks' ? <ThanksView m={m} skin={skin} />
           : <IdleView skin={skin} welcome={s.welcome} promos={s.promos} name={brand.name} logoUrl={s.showLogo ? brand.logoUrl : null} />}
       </main>
 
-      {m?.kind === 'cart' && s.promos.length > 0 && (
-        <footer className={cn('shrink-0 border-t px-6 py-3 sm:px-10', skin.line)}>
-          <PromoLine promos={s.promos} skin={skin} />
-        </footer>
-      )}
+      <footer className={cn('relative flex shrink-0 items-center gap-6 border-t px-6 py-3 sm:px-10', skin.line)}>
+        <div className="min-w-0 flex-1">{m?.kind === 'cart' && s.promos.length > 0 && <PromoLine promos={s.promos} skin={skin} />}</div>
+        <span className={cn('shrink-0 text-sm font-semibold', skin.faint)}>Nafaa POS</span>
+      </footer>
     </div>
   );
 }
@@ -137,20 +143,29 @@ function CartView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'cart' }>; skin:
         <div className={cn('flex shrink-0 items-center justify-between pb-2 text-sm font-bold uppercase tracking-widest', skin.faint)}>
           <span>Cheez</span><span>Amount</span>
         </div>
-        <ul className="min-h-0 flex-1 space-y-2 overflow-hidden">
-          {lines.map((it, i) => (
-            <li key={`${pieces - i}-${it.name}`}
-              className={cn('flex items-baseline justify-between gap-6 rounded-2xl px-4 py-3', i === 0 ? skin.newest : '')}>
-              <span className="min-w-0">
-                <span className="block truncate text-[clamp(1.25rem,2.3vw,2.125rem)] font-bold leading-tight">{it.name}</span>
-                <span className={cn('block text-[clamp(0.95rem,1.4vw,1.25rem)] font-semibold', skin.muted)}>× {it.qty}</span>
-              </span>
-              <span className="shrink-0 text-[clamp(1.25rem,2.3vw,2.125rem)] font-extrabold tabular-nums">{formatPKR(it.total)}</span>
-            </li>
-          ))}
-        </ul>
+        {lines.length === 0 ? (
+          <div className={cn('flex flex-1 flex-col items-center justify-center gap-3 text-center', skin.muted)}>
+            <ShoppingBag className={cn('h-16 w-16', skin.accentText)} />
+            <p className="text-[clamp(1.25rem,2.3vw,2rem)] font-bold">Bill shuru ho raha hai…</p>
+          </div>
+        ) : (
+          <ul className="min-h-0 flex-1 space-y-2 overflow-hidden">
+            {lines.map((it, i) => (
+              <li key={`${pieces - i}-${it.name}`}
+                className={cn('flex items-center justify-between gap-5 rounded-2xl px-4 py-3', i === 0 ? cn(skin.newest, 'animate-fade-in') : '')}>
+                <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base font-bold tabular-nums', i === 0 ? 'bg-brand-600 text-ink-white' : skin.chip)}>{pieces - i}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[clamp(1.25rem,2.3vw,2.125rem)] font-bold leading-tight">{it.name}</span>
+                  <span className={cn('block text-[clamp(0.95rem,1.4vw,1.25rem)] font-semibold', skin.muted)}>× {it.qty}</span>
+                </span>
+                <span className="shrink-0 text-[clamp(1.25rem,2.3vw,2.125rem)] font-extrabold tabular-nums">{formatPKR(it.total)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
-      <aside className={cn('flex flex-col justify-end gap-3 p-6 sm:p-10', skin.aside)}>
+      <aside className={cn('relative flex flex-col justify-end gap-3 overflow-hidden p-6 sm:p-10', skin.aside)}>
+        <span className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-ink-white/10 blur-3xl" aria-hidden />
         <Row label="Cheezein" value={String(pieces)} />
         {m.discount > 0 && <>
           <Row label="Kul" value={formatPKR(m.subtotal)} />
@@ -189,14 +204,17 @@ function QrView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'qr' }>; skin: Ski
 function ThanksView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'thanks' }>; skin: Skin }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
-      <CheckCircle2 className={cn('h-20 w-20', skin.accentText)} />
+      <span className="relative flex h-28 w-28 items-center justify-center">
+        <span className="absolute inset-0 animate-ping rounded-full bg-brand-500/25 [animation-iteration-count:2]" aria-hidden />
+        <span className="relative flex h-28 w-28 items-center justify-center rounded-full bg-brand-600 text-ink-white shadow-2xl"><CheckCircle2 className="h-16 w-16" /></span>
+      </span>
       <div className="text-[clamp(3rem,7vw,6rem)] font-black leading-none">Shukriya!</div>
       <div className={cn('text-[clamp(1.25rem,2.4vw,2.25rem)] font-bold tabular-nums', skin.muted)}>
         Bill {formatPKR(m.total)} · Diye {formatPKR(m.paid)}
       </div>
       {m.change > 0 && (
-        <div className="rounded-[2rem] bg-brand-600 px-12 py-6 text-ink-white shadow-xl">
-          <div className="text-[clamp(1rem,1.5vw,1.375rem)] font-bold uppercase tracking-[0.2em] opacity-80">Aap ki return</div>
+        <div className="rounded-[2rem] bg-gradient-to-br from-brand-500 to-brand-700 px-12 py-6 text-ink-white shadow-2xl">
+          <div className="text-[clamp(1rem,1.5vw,1.375rem)] font-bold uppercase tracking-[0.2em] opacity-80">Aap ke paise wapas</div>
           <div className="text-[clamp(3rem,7vw,6.5rem)] font-black leading-none tabular-nums">{formatPKR(m.change)}</div>
         </div>
       )}
@@ -211,7 +229,7 @@ function IdleView({ skin, welcome, promos, name, logoUrl }: { skin: Skin; welcom
     <div className="flex flex-1 flex-col items-center justify-center gap-8 p-6 text-center">
       {logoUrl
         ? <img src={logoUrl} alt="" className="h-32 w-32 rounded-[2rem] bg-ink-white object-contain p-3 shadow-xl" />
-        : <span className="flex h-28 w-28 items-center justify-center rounded-[2rem] bg-brand-600 text-ink-white shadow-xl"><ShoppingBag className="h-14 w-14" /></span>}
+        : <span className="flex h-28 w-28 items-center justify-center rounded-[2rem] bg-gradient-to-br from-brand-500 to-brand-700 text-ink-white shadow-2xl"><ShoppingBag className="h-14 w-14" /></span>}
       <div>
         <div className="text-[clamp(2.5rem,6vw,5.5rem)] font-black leading-tight">{welcome || 'Khush-amdeed'}</div>
         {name && <div className={cn('mt-2 text-[clamp(1.25rem,2.4vw,2.25rem)] font-semibold', skin.muted)}>{name}</div>}
