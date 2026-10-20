@@ -22733,6 +22733,433 @@ model BlogPostAnalytics {
   @@index([publishedAt])
 }
 
+// ═══════════════════════════════════════════════════════════════
+// MARKETING CMS — content of the public site (nafaa.pk, apps/site)
+// Edited in apps/admin (Marketing → Website). Platform-level, no tenant.
+// Architecture: nafaa-backups/marketing-audit/ARCH.md
+//
+// Draft/publish model: CmsEntry columns hold the working draft. Publishing
+// copies the draft into `published` (a JSON snapshot) and rebuilds the
+// published index tables (CmsEntryRelation, CmsEntryFaq). The public read
+// API serves only `published`, so draft edits never leak.
+// ═══════════════════════════════════════════════════════════════
+
+/// Page type. Each type maps to one site template and one URL pattern
+/// (see ARCH.md "Templates"). Industries, cities, posts and so on are rows,
+/// so adding one needs no code change.
+enum CmsEntryType {
+  PAGE // free path: home "/", pricing, hubs, about, contact, legal
+  PRODUCT // /product/{slug}
+  INDUSTRY // /industries/{slug}
+  SOLUTION // /solutions/{slug}
+  SERVICE // /services/{slug}
+  INTEGRATION // /integrations/{slug}
+  COMPLIANCE // /compliance/{slug}
+  CITY // /pos-software/{slug}
+  CITY_INDUSTRY // /pos-software/{city}/{slug}; parent = CITY entry
+  BEST_OF // /best/{slug}
+  COMPARE // /compare/{slug}
+  ALTERNATIVE // /alternatives/{slug}
+  BLOG_POST // /blog/{slug}
+  BLOG_CATEGORY // /blog/category/{slug}
+  GUIDE // /guides/{slug}
+  GLOSSARY_TERM // /glossary/{slug}
+  TOOL // /tools/{slug}
+  TEMPLATE // /templates/{slug}
+  CASE_STUDY // /customers/{slug}
+  PERSON // /team/{slug}; also the author / reviewer of other entries
+  DOC // /developers/{parent path}/{slug}
+  CHANGELOG // /changelog/{slug}
+}
+
+enum CmsStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CmsRelationKind {
+  TAG // subject tag: industry, city, product, category, solution
+  RELATED // hand-picked internal link shown in "Related" blocks
+  MENTIONS // link found in the body at publish time (inbound-link counts)
+}
+
+enum CmsMediaKind {
+  IMAGE
+  SCREENSHOT
+  LOGO
+  ILLUSTRATION
+  VIDEO
+  DOCUMENT
+}
+
+enum CmsRedirectSource {
+  MANUAL
+  SLUG_CHANGE
+  UNPUBLISH
+  IMPORT
+}
+
+model CmsEntry {
+  id             String       @id @default(cuid())
+  type           CmsEntryType
+  /// "en" now, "ur" later. Not an enum, so a new locale needs no migration.
+  locale         String       @default("en")
+  /// Shared by the language versions of one page (hreflang pairs).
+  translationKey String?
+  slug           String
+  /// Public path without the locale prefix, computed by the API from type,
+  /// slug and parent. Draft value; the live one is publishedPath.
+  path           String
+  parentId       String?
+  status         CmsStatus    @default(DRAFT)
+
+  // ─── Draft content ───
+  title      String
+  /// Direct answer / card text, 40-60 words. Used by AnswerBox, cards,
+  /// meta description fallback and llms.txt.
+  summary    String?  @db.Text
+  /// Typed blocks, validated by the shared CMS contract (zod).
+  blocks     Json     @default("[]")
+  /// Type-specific fields (industry icon and group, glossary definition, ...).
+  data       Json     @default("{}")
+  /// Draft tags and related links: [{ entryId, kind, sortOrder }].
+  relations  Json     @default("[]")
+  /// Draft FAQ list, in display order.
+  faqIds     String[] @default([])
+  /// Card and hero image.
+  imageId    String?
+
+  // ─── Draft SEO ───
+  seoTitle       String?
+  seoDescription String?
+  focusKeyword   String?
+  /// Only set when the canonical is another URL; empty means self.
+  canonicalUrl   String?
+  noindex        Boolean @default(false)
+  nofollow       Boolean @default(false)
+  ogImageId      String?
+  /// Extra JSON-LD nodes merged into the page @graph (advanced).
+  schemaExtra    Json?
+  /// 0-100, computed on every save.
+  seoScore       Int?
+  wordCount      Int     @default(0)
+
+  // ─── People and fact-checking ───
+  authorId        String?
+  reviewerId      String?
+  factCheckedAt   DateTime?
+  factCheckedById String?
+
+  // ─── Publishing ───
+  /// Snapshot served to the public site. Null until first publish.
+  published             Json?
+  publishedPath         String?
+  publishedRevisionId   String?
+  publishedAt           DateTime?
+  firstPublishedAt      DateTime?
+  /// The visible "Updated" date, dateModified and sitemap lastmod. Moved by
+  /// the editor on a real content change, not on every typo fix.
+  contentUpdatedAt      DateTime?
+  publishAt             DateTime?
+  scheduledRevisionId   String?
+  hasUnpublishedChanges Boolean   @default(false)
+  publishedById         String?
+  archivedAt            DateTime?
+
+  sortOrder   Int      @default(0)
+  featured    Boolean  @default(false)
+  /// Optimistic lock: a save must send the version it started from.
+  version     Int      @default(1)
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent   CmsEntry?  @relation("CmsEntryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children CmsEntry[] @relation("CmsEntryTree")
+  author   CmsEntry?  @relation("CmsEntryAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authored CmsEntry[] @relation("CmsEntryAuthor")
+  reviewer CmsEntry?  @relation("CmsEntryReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewed CmsEntry[] @relation("CmsEntryReviewer")
+  image    CmsMedia?  @relation("CmsEntryImage", fields: [imageId], references: [id], onDelete: SetNull)
+  ogImage  CmsMedia?  @relation("CmsEntryOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  revisions           CmsRevision[]
+  relationsFrom       CmsEntryRelation[] @relation("CmsRelationFrom")
+  relationsTo         CmsEntryRelation[] @relation("CmsRelationTo")
+  entryFaqs           CmsEntryFaq[]
+  redirects           CmsRedirect[]
+  customersInCity     CmsCustomer[]      @relation("CmsCustomerCity")
+  customersInIndustry CmsCustomer[]      @relation("CmsCustomerIndustry")
+
+  @@unique([locale, path])
+  @@unique([locale, publishedPath])
+  @@index([type, locale, status])
+  @@index([status, publishAt])
+  @@index([parentId])
+  @@index([authorId])
+  @@index([reviewerId])
+  @@index([translationKey])
+  @@index([updatedAt])
+}
+
+/// History for entries (and, with entryId null, for menus, settings and FAQs:
+/// subject + subjectKey say which). Every publish, schedule and restore
+/// writes one; draft saves write at most one per editor every 10 minutes.
+model CmsRevision {
+  id              String    @id @default(cuid())
+  entryId         String?
+  /// ENTRY | FAQ | MENU | SETTING
+  subject         String    @default("ENTRY")
+  subjectKey      String?
+  version         Int
+  /// SAVE | PUBLISH | UNPUBLISH | SCHEDULE | RESTORE
+  action          String
+  snapshot        Json
+  note            String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  /// Result of the site revalidation call that followed this change.
+  revalidatedAt   DateTime?
+  revalidateError String?   @db.Text
+
+  entry CmsEntry? @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, version])
+  @@index([entryId, createdAt])
+  @@index([subject, subjectKey, createdAt])
+}
+
+/// Published index of entry-to-entry links, rebuilt from the snapshot on
+/// publish. Used for "posts about pharmacy", related cards, orphan checks
+/// and to find which pages to revalidate when an entry changes.
+model CmsEntryRelation {
+  id        String          @id @default(cuid())
+  fromId    String
+  toId      String
+  kind      CmsRelationKind
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+
+  from CmsEntry @relation("CmsRelationFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   CmsEntry @relation("CmsRelationTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId, kind])
+  @@index([toId, kind])
+}
+
+/// A question and answer that can appear on many pages. Shown in FAQ blocks
+/// and mirrored into FAQPage JSON-LD. Has no URL of its own.
+model CmsFaq {
+  id                    String    @id @default(cuid())
+  locale                String    @default("en")
+  translationKey        String?
+  /// Grouping on the /faq hub: pricing, fbr, offline, khata, ...
+  topic                 String?
+  question              String
+  /// Markdown, 40-80 words, direct answer first.
+  answer                String    @db.Text
+  status                CmsStatus @default(DRAFT)
+  publishedQuestion     String?
+  publishedAnswer       String?   @db.Text
+  publishedAt           DateTime?
+  hasUnpublishedChanges Boolean   @default(false)
+  /// Where the question came from (sales call, WhatsApp, GSC query).
+  sourceNote            String?
+  sortOrder             Int       @default(0)
+  createdById           String?
+  updatedById           String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  entryFaqs CmsEntryFaq[]
+
+  @@index([locale, status])
+  @@index([topic])
+  @@index([translationKey])
+}
+
+/// Published index of which FAQs an entry shows, in order.
+model CmsEntryFaq {
+  id        String @id @default(cuid())
+  entryId   String
+  faqId     String
+  sortOrder Int    @default(0)
+
+  entry CmsEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  faq   CmsFaq   @relation(fields: [faqId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, faqId])
+  @@index([faqId])
+}
+
+/// Media library. Files live on Cloudinary; the site requests sized AVIF/WebP
+/// through a Cloudinary loader. Alt text is required.
+model CmsMedia {
+  id              String       @id @default(cuid())
+  kind            CmsMediaKind @default(IMAGE)
+  provider        String       @default("cloudinary")
+  publicId        String       @unique
+  url             String
+  fileName        String
+  mimeType        String
+  bytes           Int
+  width           Int?
+  height          Int?
+  durationSec     Int?
+  alt             String
+  /// Alt text in other locales: { "ur": "..." }.
+  altTranslations Json?
+  caption         String?
+  credit          String?
+  sourceUrl       String?
+  /// Tiny base64 WebP used as the next/image blur placeholder.
+  blurDataUrl     String?      @db.Text
+  dominantColor   String?
+  focalX          Float?
+  focalY          Float?
+  tags            String[]     @default([])
+  folder          String?
+  /// SHA-1 of the uploaded file, to stop duplicate uploads.
+  checksum        String?
+  createdById     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  entryImages       CmsEntry[]       @relation("CmsEntryImage")
+  entryOgImages     CmsEntry[]       @relation("CmsEntryOgImage")
+  customerLogos     CmsCustomer[]
+  testimonialPhotos CmsTestimonial[]
+
+  @@index([kind])
+  @@index([checksum])
+  @@index([createdAt])
+}
+
+/// 301/302/410 rules. fromPath is the full public path (with /ur prefix when
+/// relevant). Patterns use ":param" segments, e.g. /lahore/:industry.
+model CmsRedirect {
+  id          String            @id @default(cuid())
+  fromPath    String            @unique
+  toPath      String?
+  /// 301 permanent, 302 temporary, 410 gone (toPath empty)
+  statusCode  Int               @default(301)
+  isPattern   Boolean           @default(false)
+  isActive    Boolean           @default(true)
+  source      CmsRedirectSource @default(MANUAL)
+  /// Target entry, so the rule follows the entry when its path changes.
+  entryId     String?
+  hits        Int               @default(0)
+  lastHitAt   DateTime?
+  note        String?
+  createdById String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  entry CmsEntry? @relation(fields: [entryId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, isPattern])
+  @@index([entryId])
+  @@index([toPath])
+}
+
+/// Navigation trees (header mega menu, footer, legal links). Items are a JSON
+/// tree validated by the CMS contract; items point at entries by id, so a
+/// slug change never breaks a menu.
+model CmsMenu {
+  id          String   @id @default(cuid())
+  key         String
+  locale      String   @default("en")
+  title       String
+  items       Json     @default("[]")
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([key, locale])
+}
+
+/// Site settings and entity facts, one JSON document per key and locale:
+/// site, entity, pricing, seo, analytics, industry-groups. Counts and prices
+/// are never stored here; the API computes them from live data.
+model CmsSetting {
+  id          String   @id @default(cuid())
+  key         String
+  locale      String   @default("en")
+  value       Json
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([key, locale])
+}
+
+/// A real customer business. Shown on the site only with recorded consent
+/// (consentAt set and the matching consentScope entry).
+model CmsCustomer {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  logoId          String?
+  cityEntryId     String?
+  industryEntryId String?
+  website         String?
+  /// The tenant in the app, when the business uses Nafaa (proof it is real).
+  tenantId        String?
+  /// LOGO | NAME | QUOTE | CASE_STUDY | PHOTO
+  consentScope    String[]  @default([])
+  consentAt       DateTime?
+  /// How consent was given and where the proof is kept.
+  consentEvidence String?   @db.Text
+  verifiedById    String?
+  verifiedAt      DateTime?
+  isPublic        Boolean   @default(false)
+  sortOrder       Int       @default(0)
+  notes           String?   @db.Text
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  logo          CmsMedia?        @relation(fields: [logoId], references: [id], onDelete: SetNull)
+  cityEntry     CmsEntry?        @relation("CmsCustomerCity", fields: [cityEntryId], references: [id], onDelete: SetNull)
+  industryEntry CmsEntry?        @relation("CmsCustomerIndustry", fields: [industryEntryId], references: [id], onDelete: SetNull)
+  testimonials  CmsTestimonial[]
+
+  @@index([isPublic])
+  @@index([cityEntryId])
+  @@index([industryEntryId])
+  @@index([tenantId])
+}
+
+/// A quote from a real customer. Publishing needs the customer's QUOTE consent.
+model CmsTestimonial {
+  id          String    @id @default(cuid())
+  customerId  String
+  locale      String    @default("en")
+  personName  String
+  personRole  String?
+  quote       String    @db.Text
+  photoId     String?
+  /// DIRECT | GOOGLE | PLAY_STORE | G2 | CAPTERRA | OTHER
+  sourceType  String    @default("DIRECT")
+  sourceUrl   String?
+  collectedAt DateTime?
+  status      CmsStatus @default(DRAFT)
+  sortOrder   Int       @default(0)
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  customer CmsCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  photo    CmsMedia?   @relation(fields: [photoId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([status])
+}
+
 /// Suba'i tax authority (PRA / SRB / KPRA) ko bheja gaya bill — fiscal number bill par chhapta hai
 model TaxAuthorityInvoice {
   id            String    @id @default(cuid())
