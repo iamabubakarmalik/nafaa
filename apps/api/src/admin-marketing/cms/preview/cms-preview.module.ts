@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
+import { CmsPathsModule } from '../paths/cms-paths.module';
+import { CmsPreviewService } from './cms-preview.service';
 
-/**
- * Signed preview tokens.
- *
- * Empty shell registered in cms.module.ts by A0 so the CMS module tree
- * compiles before Phase 2. Owner: A1, who fills it in (controllers,
- * providers, exports) and keeps this file name and class name.
- */
-@Module({})
+/** Signed preview tokens. A2's public preview endpoint uses `CmsPreviewService.verify`. */
+@Module({
+  imports: [CmsPathsModule],
+  providers: [CmsPreviewService],
+  exports: [CmsPreviewService],
+})
 export class CmsPreviewModule {}

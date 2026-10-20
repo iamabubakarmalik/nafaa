@@ -50,6 +50,7 @@ import { HeatmapsPage } from '@/features/marketing/heatmaps/pages/HeatmapsPage';
 import { BlogAnalyticsPage } from '@/features/marketing/blog-analytics/pages/BlogAnalyticsPage';
 import { FunnelPage } from '@/features/marketing/conversions/pages/FunnelPage';
 import { ExportsPage as MarketingExportsPage } from '@/features/marketing/exports/pages/ExportsPage';
+import { CmsRoutes } from '@/features/marketing/cms/routes';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -128,6 +129,9 @@ export default function App() {
               <Route path="blog" element={<BlogAnalyticsPage />} />
               <Route path="conversions" element={<FunnelPage />} />
               <Route path="exports" element={<MarketingExportsPage />} />
+
+              {/* Website CMS (/marketing/website) */}
+              <Route path="website/*" element={<CmsRoutes />} />
             </Route>
           </Route>
 

@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
+import { CmsPublicCoreModule } from '../public/cms-public-core.module';
+import { CmsCustomersController } from './cms-customers.controller';
+import { CmsCustomersService } from './cms-customers.service';
 
-/**
- * Customers (with consent) and testimonials.
- *
- * Empty shell registered in cms.module.ts by A0 so the CMS module tree
- * compiles before Phase 2. Owner: A2, who fills it in (controllers,
- * providers, exports) and keeps this file name and class name.
- */
-@Module({})
+/** Customers and testimonials with consent rules (API-CONTRACT 8.8). */
+@Module({
+  imports: [CmsPublicCoreModule],
+  controllers: [CmsCustomersController],
+  providers: [CmsCustomersService],
+  exports: [CmsCustomersService],
+})
 export class CmsCustomersModule {}

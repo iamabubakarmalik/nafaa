@@ -654,3 +654,19 @@ Storage keys stay the same as `apps/api/public/nafaa-tracker.js` (`nafaa_vid`, `
   - Fetch only section 2 endpoints with section 2.2 tags.
   - Render blocks from section 4.
   - Never compute paths, prices or counts locally. Use `path`/`url`, `/plans`, `/stats` and resolved tokens.
+
+---
+
+## 11. Amendments: contract 1.1.0 (Phase 2, A1)
+
+The zod file (`CMS_CONTRACT_VERSION = '1.1.0'`) is the source of truth; these notes override the sections above where they differ.
+
+- **Feature status (owner rule).** `FEATURE_STATUSES = live | beta | coming` on PRODUCT, SOLUTION, SERVICE (default `live`) and INTEGRATION (required; `planned` is now `coming`). `featuresGrid` items take an optional `status`. `entryGrid.filter.status` and `GET /public/site/entries?status=coming,beta` filter by it. `EntryCard.status` is typed as a FeatureStatus. A `coming` entry is always noindex with robots reason `coming` (was `planned`). Badge text: `FEATURE_STATUS_BADGES` ("Coming soon" / "Jald aa raha hai"; "Beta"). Not-built features are never shown as live.
+- **Roadmap.** New PAGE template `roadmap` (starter: hero, answerBox, entryGrid PRODUCT coming/beta, entryGrid INTEGRATION coming/beta, cta, faq).
+- **Blocks per type.** `entryGrid` is also allowed on PRODUCT, SERVICE and INTEGRATION; `hero`, `answerBox` and `faq` on BLOG_CATEGORY (Hub template).
+- **Reserved paths.** `/pricing`, `/faq` and `/roadmap` are PAGE entries read by their own routes. A PAGE may sit at a type root (`/industries`) but not below it. `_next` needs no rule (paths never contain `_`).
+- **Title variants.** `seo.titlePatterns` keys may be `<TYPE>:<variant>`; `titlePatternVariant()` gives `PAGE:<template>` and `SERVICE:worldwide` (default "{title} for Businesses Worldwide"). Home title: no "Free Plan" (the Rs 0 plan is a 7-day free trial).
+- **Issue codes.** `INVALID_DATA` (data present but wrong) and `MEDIA_MISSING` (a referenced media file is missing or deleted) block publish. `zodErrorToIssues(error, 'data', undefined, input)` tells MISSING_DATA from INVALID_DATA.
+- **CTA keywords.** The API resolves `signup` / `demo` / `whatsapp` in every public response. A keyword left in an href means settings lack the target; the site renders no link.
+- **Lead forms.** `leadForm.form` adds `quote` ("Quote lein"): posts to `/public/marketing/contact-form` with `formType: SALES`, budget and currency in the message; `currencies` (PKR, USD) and `whatsapp` (show the WhatsApp button). Every form creates a MarketingLead.
+- **Snapshots.** `CmsEntry.published` is a `PublishedSnapshot` (`publishedSnapshotSchema`); revision snapshots are `DraftSnapshot` (+ `published` on PUBLISH). Tokens and `entry:` links in the snapshot are resolved at read time. A live entry with a scheduled update keeps status PUBLISHED (`publishAt` set); SCHEDULED is only for entries that are not live.

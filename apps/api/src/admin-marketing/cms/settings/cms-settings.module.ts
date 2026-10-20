@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
+import { CmsPublicCoreModule } from '../public/cms-public-core.module';
+import { CmsSettingsController } from './cms-settings.controller';
+import { CmsSettingsService } from './cms-settings.service';
 
-/**
- * Site settings with history.
- *
- * Empty shell registered in cms.module.ts by A0 so the CMS module tree
- * compiles before Phase 2. Owner: A2, who fills it in (controllers,
- * providers, exports) and keeps this file name and class name.
- */
-@Module({})
+/** Site settings with history (API-CONTRACT 8.7). Exports the reader for the other CMS modules. */
+@Module({
+  imports: [CmsPublicCoreModule],
+  controllers: [CmsSettingsController],
+  providers: [CmsSettingsService],
+  exports: [CmsSettingsService],
+})
 export class CmsSettingsModule {}

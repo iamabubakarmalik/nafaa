@@ -37,6 +37,10 @@ import {
   zodErrorToIssues,
   DEFAULT_SEO_SETTINGS,
   ENTRY_DATA_SCHEMAS,
+  featureStatusOf,
+  titlePatternFor,
+  titlePatternVariant,
+  publicEntriesQuerySchema,
 } from '../src/cms-contract';
 
 let passed = 0;
@@ -246,6 +250,33 @@ test('cache policy and revalidation payload', () => {
 test('contrast helper', () => {
   assert.ok(contrastRatioWithWhite('#047857') > 5);
   assert.ok(contrastRatioWithWhite('#ffffff') < 1.01);
+});
+
+test('1.1 amendments: blocks per type, roadmap, feature status', () => {
+  assert.ok(ALLOWED_BLOCKS.PRODUCT.includes('entryGrid'));
+  assert.ok(ALLOWED_BLOCKS.SERVICE.includes('entryGrid'));
+  assert.ok(ALLOWED_BLOCKS.BLOG_CATEGORY.includes('hero'));
+  assert.ok(ALLOWED_BLOCKS.BLOG_CATEGORY.includes('faq'));
+  assert.ok(PAGE_TEMPLATE_STARTER_BLOCKS.roadmap.length > 0);
+  assert.equal(featureStatusOf('PRODUCT', {}), 'live');
+  assert.equal(featureStatusOf('INTEGRATION', {}), 'coming');
+  assert.equal(featureStatusOf('PRODUCT', { status: 'coming' }), 'coming');
+  assert.equal(featureStatusOf('INDUSTRY', { status: 'coming' }), null);
+  assert.ok(!parseEntryData('INTEGRATION', { status: 'planned', category: 'x' }, 'publish').success);
+  assert.ok(parseEntryData('INTEGRATION', { status: 'coming', category: 'Payments' }, 'publish').success);
+  const q = publicEntriesQuerySchema.parse({ type: 'PRODUCT', status: 'coming,beta' });
+  assert.deepEqual(q.status, ['coming', 'beta']);
+});
+
+test('1.1 amendments: title variants and INVALID_DATA', () => {
+  assert.equal(titlePatternVariant('SERVICE', { areaServed: 'worldwide' }), 'worldwide');
+  assert.equal(titlePatternFor({}, 'SERVICE', 'worldwide'), '{title} for Businesses Worldwide');
+  assert.equal(titlePatternFor({}, 'SERVICE'), '{title} in Pakistan');
+  assert.equal(titlePatternFor({}, 'PAGE', 'home'), DEFAULT_TITLE_PATTERNS['PAGE:home']);
+  const input = { icon: 'store', shortName: 'POS', benefit: 'x', status: 'gone' };
+  const result = parseEntryData('PRODUCT', input, 'publish');
+  assert.ok(!result.success);
+  if (!result.success) assert.deepEqual(zodErrorToIssues(result.error, 'data', undefined, input).map((i) => i.code), ['INVALID_DATA']);
 });
 
 console.log(`cms-contract: ${passed} checks passed`);

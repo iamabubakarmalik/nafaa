@@ -1,6 +1,6 @@
 /* eslint-disable */
 // GENERATED FILE. Do not edit.
-// Source: packages/cms-contract/src/cms-contract.ts (sha256 1064e7549a5b3ba2).
+// Source: packages/cms-contract/src/cms-contract.ts (sha256 3455fa31627acf01).
 // Edit the source, then run `node scripts/sync-cms-contract.mjs`.
 /**
  * Marketing CMS contract: the shared shapes of the nafaa.pk content system.
@@ -21,7 +21,22 @@
  */
 import { z } from 'zod';
 
-export const CMS_CONTRACT_VERSION = '1.0.0';
+export const CMS_CONTRACT_VERSION = '1.1.0';
+/*
+ * 1.1.0 (Phase 2, A1):
+ * - Feature status `live | beta | coming` on PRODUCT, SOLUTION, SERVICE and
+ *   INTEGRATION data, on featuresGrid items and as an entryGrid / public
+ *   entries filter. INTEGRATION `planned` is now `coming`; robots reason
+ *   `planned` is now `coming`.
+ * - PAGE template `roadmap`.
+ * - entryGrid allowed on PRODUCT, SERVICE, INTEGRATION; hero, answerBox and
+ *   faq allowed on BLOG_CATEGORY.
+ * - Title pattern variants (`SERVICE:worldwide`), `titlePatternVariant`.
+ * - Issue codes INVALID_DATA and MEDIA_MISSING (both block publish).
+ * - leadForm `form: 'quote'` with `currencies` and `whatsapp`.
+ * - `PublishedSnapshot` / `DraftSnapshot` (the `published` column and
+ *   revision snapshots).
+ */
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. Primitives
@@ -187,7 +202,7 @@ export type CodeLanguage = z.infer<typeof codeLanguageSchema>;
 
 export const LEAD_FORM_TYPES = ['SALES', 'ENTERPRISE', 'PARTNERSHIP', 'GENERAL'] as const;
 
-export const ROBOTS_REASONS = ['editor', 'quality_gate', 'planned', 'similarity', 'site_not_indexable'] as const;
+export const ROBOTS_REASONS = ['editor', 'quality_gate', 'coming', 'similarity', 'site_not_indexable'] as const;
 export const robotsReasonSchema = z.enum(ROBOTS_REASONS);
 export type RobotsReason = z.infer<typeof robotsReasonSchema>;
 
@@ -195,17 +210,35 @@ export const REDIRECT_STATUS_CODES = [301, 302, 410] as const;
 export const redirectStatusSchema = z.union([z.literal(301), z.literal(302), z.literal(410)]);
 export type RedirectStatus = z.infer<typeof redirectStatusSchema>;
 
+/**
+ * Feature status (owner rule): a feature that is not built yet may be
+ * marketed only with a visible badge and on the roadmap page, never as live.
+ * `coming` entries are always noindex (robots reason `coming`).
+ */
+export const FEATURE_STATUSES = ['live', 'beta', 'coming'] as const;
+export const featureStatusSchema = z.enum(FEATURE_STATUSES);
+export type FeatureStatus = z.infer<typeof featureStatusSchema>;
+/** Badge text per locale. `live` shows no badge. */
+export const FEATURE_STATUS_BADGES: Record<Exclude<FeatureStatus, 'live'>, Record<'en' | 'ur', string>> = {
+  beta: { en: 'Beta', ur: 'Beta' },
+  coming: { en: 'Coming soon', ur: 'Jald aa raha hai' },
+};
+
+/** Currencies a quote form can ask for (worldwide services quote in PKR or USD). */
+export const LEAD_CURRENCIES = ['PKR', 'USD'] as const;
+export type LeadCurrency = (typeof LEAD_CURRENCIES)[number];
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 3. Entry types: routes, templates, sitemap sections, block maps, gates
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const PAGE_TEMPLATES = ['home', 'pricing', 'hub', 'default', 'legal', 'contact'] as const;
+export const PAGE_TEMPLATES = ['home', 'pricing', 'hub', 'default', 'legal', 'contact', 'roadmap'] as const;
 export const pageTemplateSchema = z.enum(PAGE_TEMPLATES);
 export type PageTemplate = z.infer<typeof pageTemplateSchema>;
 
 /** Template folders in apps/site/src/templates (PAGE picks one by `data.template`). */
 export const SITE_TEMPLATES = [
-  'home', 'pricing', 'hub', 'default', 'legal', 'contact', 'product', 'industry', 'solution', 'service',
+  'home', 'pricing', 'hub', 'default', 'legal', 'contact', 'roadmap', 'product', 'industry', 'solution', 'service',
   'city', 'compliance', 'bestof', 'compare', 'article', 'glossary', 'person', 'docs', 'tool',
 ] as const;
 export type SiteTemplate = (typeof SITE_TEMPLATES)[number];
@@ -264,6 +297,11 @@ export function templateFor(type: CmsEntryType, pageTemplate?: PageTemplate): Si
  * First path segments owned by typed routes. A PAGE may sit exactly at one of
  * them (the hub, e.g. `/industries`), but never below it (`/industries/x`
  * belongs to the INDUSTRY route).
+ *
+ * Resolved (Phase 2): `/pricing`, `/faq` and `/roadmap` are ordinary PAGE
+ * entries (templates pricing, hub, roadmap); their site routes read the PAGE
+ * at that path. `_next` needs no entry here because SITE_PATH_PATTERN never
+ * allows `_`; `.xml`/`.txt` routes are unreachable for the same reason.
  */
 export const TYPE_ROOT_SEGMENTS = [
   'product', 'industries', 'solutions', 'services', 'integrations', 'compliance', 'pos-software',
@@ -345,7 +383,12 @@ const MARKETING_TYPES: readonly CmsEntryType[] = [
   'COMPLIANCE', 'COMPARE', 'ALTERNATIVE', 'BEST_OF', 'TOOL',
 ];
 const BLOCK_EXTRA_TYPES: Partial<Record<BlockType, readonly CmsEntryType[]>> = {
-  entryGrid: ['PAGE', 'BLOG_CATEGORY', 'PERSON', 'CITY', 'INDUSTRY'],
+  // Hub template on blog categories (ARCH 8).
+  hero: ['BLOG_CATEGORY'],
+  answerBox: ['BLOG_CATEGORY'],
+  faq: ['BLOG_CATEGORY'],
+  // Product/integration "industries using it" and service "work examples" (ARCH 8).
+  entryGrid: ['PAGE', 'BLOG_CATEGORY', 'PERSON', 'CITY', 'INDUSTRY', 'PRODUCT', 'SERVICE', 'INTEGRATION'],
   cityFacts: ['CITY', 'CITY_INDUSTRY'],
   codeSample: ['DOC', 'BLOG_POST', 'GUIDE', 'SERVICE'],
   leadForm: ['PAGE', 'SERVICE', 'SOLUTION', 'INDUSTRY'],
@@ -374,10 +417,10 @@ export function isBlockAllowed(entryType: CmsEntryType, blockType: BlockType): b
 /** Blocks a new entry starts with (ARCH 8 block order, limited to ALLOWED_BLOCKS). */
 export const STARTER_BLOCKS: Record<CmsEntryType, readonly BlockType[]> = {
   PAGE: ['hero', 'richText'],
-  PRODUCT: ['hero', 'answerBox', 'steps', 'featuresGrid', 'comparisonTable', 'pricingTable', 'faq'],
+  PRODUCT: ['hero', 'answerBox', 'steps', 'featuresGrid', 'entryGrid', 'comparisonTable', 'pricingTable', 'faq'],
   INDUSTRY: ['hero', 'answerBox', 'featuresGrid', 'screenshot', 'steps', 'pricingTable', 'richText', 'comparisonTable', 'faq'],
   SOLUTION: ['hero', 'answerBox', 'featuresGrid', 'diagram', 'richText', 'faq'],
-  SERVICE: ['hero', 'richText', 'diagram', 'steps', 'richText', 'faq', 'leadForm'],
+  SERVICE: ['hero', 'richText', 'diagram', 'steps', 'richText', 'entryGrid', 'faq', 'leadForm'],
   INTEGRATION: ['hero', 'answerBox', 'steps', 'featuresGrid', 'faq'],
   COMPLIANCE: ['hero', 'answerBox', 'richText', 'steps', 'richText', 'richText', 'faq', 'sources'],
   CITY: ['hero', 'answerBox', 'cityFacts', 'richText', 'cityFacts', 'cityFacts', 'faq', 'relatedLinks'],
@@ -386,7 +429,7 @@ export const STARTER_BLOCKS: Record<CmsEntryType, readonly BlockType[]> = {
   COMPARE: ['hero', 'answerBox', 'comparisonTable', 'richText', 'richText', 'steps', 'faq'],
   ALTERNATIVE: ['hero', 'answerBox', 'comparisonTable', 'richText', 'richText', 'steps', 'faq'],
   BLOG_POST: ['richText'],
-  BLOG_CATEGORY: ['richText', 'entryGrid'],
+  BLOG_CATEGORY: ['hero', 'answerBox', 'entryGrid', 'faq'],
   GUIDE: ['richText'],
   GLOSSARY_TERM: ['richText'],
   TOOL: ['hero', 'tool', 'richText', 'richText', 'faq'],
@@ -404,6 +447,8 @@ export const PAGE_TEMPLATE_STARTER_BLOCKS: Record<PageTemplate, readonly BlockTy
   default: ['hero', 'richText'],
   legal: ['richText'],
   contact: ['hero', 'leadForm'],
+  /** Entries with status coming/beta, grouped by type (entryGrid `filter.status`). */
+  roadmap: ['hero', 'answerBox', 'entryGrid', 'entryGrid', 'cta', 'faq'],
 };
 
 /** `data` fields that must be present at publish (MISSING_DATA), per type. */
@@ -434,6 +479,21 @@ export const REQUIRED_DATA_FIELDS: Record<CmsEntryType, readonly string[]> = {
 
 /** Copied from `data` onto EntryCard when the type has them. */
 export const CARD_DATA_FIELDS = ['icon', 'color', 'group', 'shortName', 'status'] as const;
+
+/** Types whose `data.status` is a FeatureStatus. */
+export const FEATURE_STATUS_TYPES = ['PRODUCT', 'SOLUTION', 'SERVICE', 'INTEGRATION'] as const satisfies readonly CmsEntryType[];
+
+/**
+ * Feature status of an entry, or null for types without one. A missing value
+ * on a status type reads as `live` (the schema default), except INTEGRATION
+ * where status is required and a missing value reads as `coming`.
+ */
+export function featureStatusOf(type: CmsEntryType, data: unknown): FeatureStatus | null {
+  if (!(FEATURE_STATUS_TYPES as readonly string[]).includes(type)) return null;
+  const raw = data && typeof data === 'object' ? (data as { status?: unknown }).status : undefined;
+  if (typeof raw === 'string' && (FEATURE_STATUSES as readonly string[]).includes(raw)) return raw as FeatureStatus;
+  return type === 'INTEGRATION' ? 'coming' : 'live';
+}
 
 // ─── Quality gates and text limits (ARCH 5.5, 8) ───
 
@@ -633,7 +693,13 @@ export function toEntryLink(id: string, anchor?: string | null): string {
   return anchor ? `entry:${id}#${anchor}` : `entry:${id}`;
 }
 
-/** Special CTA hrefs: site settings `signupUrl`, `demoPath`, and a WhatsApp deep link. */
+/**
+ * Special CTA hrefs: site settings `signupUrl`, `demoPath`, and a WhatsApp deep
+ * link. Resolved (Phase 2): the API turns them into real links in every
+ * public response (`href`, `ctaHref`, `url` fields), so the site never sees a
+ * keyword. If settings lack the target the keyword is left as is; the site
+ * must then render the CTA without a link (or hide it).
+ */
 export const CTA_HREF_KEYWORDS = ['signup', 'demo', 'whatsapp'] as const;
 export type CtaHrefKeyword = (typeof CTA_HREF_KEYWORDS)[number];
 export function isCtaKeyword(href: string): href is CtaHrefKeyword {
@@ -878,7 +944,16 @@ export const featuresGridBlockSchema = z.object({
   intro: inlineMdSchema.optional(),
   columns: z.union([z.literal(2), z.literal(3), z.literal(4)]),
   items: z
-    .array(z.object({ icon: iconNameSchema, title: shortText(80), body: inlineMdSchema.min(1).max(600), href: hrefSchema.optional() }))
+    .array(
+      z.object({
+        icon: iconNameSchema,
+        title: shortText(80),
+        body: inlineMdSchema.min(1).max(600),
+        href: hrefSchema.optional(),
+        /** Absent means live. `beta`/`coming` render a badge (FEATURE_STATUS_BADGES). */
+        status: featureStatusSchema.optional(),
+      }),
+    )
     .min(BLOCK_LIMITS.featureItems.min)
     .max(BLOCK_LIMITS.featureItems.max),
 });
@@ -1069,7 +1144,14 @@ export const entryGridBlockSchema = z.object({
   intro: inlineMdSchema.optional(),
   entryType: cmsEntryTypeSchema,
   filter: z
-    .object({ tagId: idSchema.optional(), group: keySchema.optional(), featured: z.boolean().optional(), parentId: idSchema.optional() })
+    .object({
+      tagId: idSchema.optional(),
+      group: keySchema.optional(),
+      featured: z.boolean().optional(),
+      parentId: idSchema.optional(),
+      /** Feature status filter (types with `data.status`), e.g. ['coming'] on the roadmap. */
+      status: z.array(featureStatusSchema).min(1).max(3).optional(),
+    })
     .optional(),
   sort: entrySortSchema.optional(),
   limit: z.number().int().min(1).max(BLOCK_LIMITS.entryGridLimitMax).optional(),
@@ -1106,11 +1188,19 @@ export const leadFormBlockSchema = z.object({
   type: z.literal('leadForm'),
   heading: shortText(120),
   intro: inlineMdSchema.optional(),
-  /** contact → POST /public/marketing/contact-form; demo → /public/marketing/demo-booking. */
-  form: z.enum(['contact', 'demo']),
+  /**
+   * contact → POST /public/marketing/contact-form; demo → /public/marketing/demo-booking;
+   * quote ("Quote lein") → contact-form with formType SALES, the budget and
+   * currency written into the message. Every form creates a MarketingLead.
+   */
+  form: z.enum(['contact', 'demo', 'quote']),
   formType: z.enum(LEAD_FORM_TYPES).optional(),
   subjectPrefix: z.string().trim().max(80).optional(),
   successMessage: shortText(300),
+  /** quote only: currencies offered for the budget field; default both. */
+  currencies: z.array(z.enum(LEAD_CURRENCIES)).min(1).max(2).optional(),
+  /** Show a WhatsApp button (site settings `whatsapp`) next to the form. */
+  whatsapp: z.boolean().optional(),
 });
 
 export const toolBlockSchema = z.object({
@@ -1239,7 +1329,8 @@ const productDataShape = z.object({
   icon: iconNameSchema,
   shortName: shortText(40),
   benefit: shortText(60),
-  status: z.enum(['live', 'beta']).default('live'),
+  /** `coming`: marketed with a badge and on the roadmap only; always noindex. */
+  status: featureStatusSchema.default('live'),
   planFeature: planFeatureKeySchema.optional(),
   /** App route the feature lives at, e.g. "/pos" (for screenshots and links to the app). */
   appRoute: z.string().regex(/^\/[A-Za-z0-9/_-]*$/).max(200).optional(),
@@ -1263,6 +1354,7 @@ const solutionDataShape = z.object({
   shortName: shortText(40),
   outcome: shortText(60),
   segment: z.string().trim().max(60).optional(),
+  status: featureStatusSchema.default('live'),
 });
 const serviceDataShape = z.object({
   type: z.literal('SERVICE'),
@@ -1271,13 +1363,14 @@ const serviceDataShape = z.object({
   areaServed: z.enum(['PK', 'worldwide']),
   pricingModel: z.string().trim().max(200).optional(),
   timeline: z.string().trim().max(200).optional(),
+  status: featureStatusSchema.default('live'),
 });
 const integrationDataShape = z.object({
   type: z.literal('INTEGRATION'),
   logoMediaId: idSchema.optional(),
   icon: iconNameSchema.optional(),
-  /** `planned` is always noindex. */
-  status: z.enum(['live', 'beta', 'planned']),
+  /** `coming` is always noindex. */
+  status: featureStatusSchema,
   category: shortText(60),
   vendorUrl: httpUrlSchema.optional(),
   /** Required when status is "live". */
@@ -1685,9 +1778,12 @@ export const pricingSettingsSchema = z.object({
 });
 export type PricingSettings = z.infer<typeof pricingSettingsSchema>;
 
-/** Keys of `seo.titlePatterns`: an entry type, or "PAGE:<template>". */
-export type TitlePatternKey = CmsEntryType | `PAGE:${string}`;
-export const TITLE_PATTERN_KEY_PATTERN = new RegExp(`^(?:${CMS_ENTRY_TYPES.join('|')}|PAGE:[a-z0-9-]+)$`);
+/**
+ * Keys of `seo.titlePatterns`: an entry type, or "<TYPE>:<variant>" where the
+ * variant comes from `titlePatternVariant` ("PAGE:home", "SERVICE:worldwide").
+ */
+export type TitlePatternKey = CmsEntryType | `${CmsEntryType}:${string}`;
+export const TITLE_PATTERN_KEY_PATTERN = new RegExp(`^(?:${CMS_ENTRY_TYPES.join('|')})(?::[a-z0-9-]+)?$`);
 export function isTitlePatternKey(key: string): key is TitlePatternKey {
   return TITLE_PATTERN_KEY_PATTERN.test(key);
 }
@@ -1704,7 +1800,7 @@ export const qualityGateSchema = z.object({
 const seoSettingsObject = z.object({
   /** "%s | Nafaa". */
   titleTemplate: z.string().trim().min(3).max(60).refine((v) => v.includes('%s'), 'Template must contain %s'),
-  titlePatterns: z.record(z.string().regex(TITLE_PATTERN_KEY_PATTERN, 'Key: an entry type or PAGE:<template>'), z.string().trim().min(1).max(120)).default({}),
+  titlePatterns: z.record(z.string().regex(TITLE_PATTERN_KEY_PATTERN, 'Key: an entry type or TYPE:<variant>'), z.string().trim().min(1).max(120)).default({}),
   qualityGates: z.partialRecord(cmsEntryTypeSchema, qualityGateSchema).default({}),
   officialDomains: z.array(z.string().regex(/^(?:[a-z0-9-]+\.)+[a-z]{2,}$/, 'Domain like fbr.gov.pk')).max(100).default([]),
   /** IndexNow key (8-128 chars of a-z, A-Z, 0-9, -). */
@@ -1756,9 +1852,8 @@ export interface SettingsBundle {
 }
 
 /**
- * Default title patterns (ARCH 8). The home pattern leaves out "Free Plan"
- * until owner decision O1. SERVICE uses the PK pattern; see the worldwide
- * variant note in the API (ARCH 8 Service row).
+ * Default title patterns (ARCH 8). The home pattern does not say "Free Plan":
+ * the Rs 0 plan is a 7-day free trial (owner decision O1).
  */
 export const DEFAULT_TITLE_PATTERNS: Partial<Record<TitlePatternKey, string>> = {
   'PAGE:home': 'Nafaa: POS & Business Software for Pakistan',
@@ -1769,6 +1864,7 @@ export const DEFAULT_TITLE_PATTERNS: Partial<Record<TitlePatternKey, string>> = 
   INDUSTRY: '{title} Software in Pakistan: POS, Stock & Khata',
   SOLUTION: '{title} Software in Pakistan: {data.outcome}',
   SERVICE: '{title} in Pakistan',
+  'SERVICE:worldwide': '{title} for Businesses Worldwide',
   CITY: 'POS Software in {title}: Billing, Stock & {data.authority} Tax',
   CITY_INDUSTRY: '{title}',
   COMPLIANCE: '{data.authority} POS Integration: Who Must Comply & How ({year})',
@@ -1786,7 +1882,7 @@ export const DEFAULT_TITLE_PATTERNS: Partial<Record<TitlePatternKey, string>> = 
   PERSON: '{title}, {data.role} at Nafaa',
   DOC: '{title} | Nafaa API Docs',
 };
-/** Worldwide SERVICE title (ARCH 8); applied by the API when `data.areaServed` is "worldwide". */
+/** @deprecated Use the `SERVICE:worldwide` key of DEFAULT_TITLE_PATTERNS. */
 export const SERVICE_WORLDWIDE_TITLE_PATTERN = '{title} for Businesses Worldwide';
 
 export const DEFAULT_OFFICIAL_DOMAINS = ['fbr.gov.pk', 'pra.punjab.gov.pk', 'srb.gos.pk', 'kpra.kp.gov.pk', 'bra.gob.pk'] as const;
@@ -1799,14 +1895,27 @@ export const DEFAULT_SEO_SETTINGS: SeoSettings = {
 };
 export const DEFAULT_ANALYTICS_SETTINGS: AnalyticsSettings = { claritySample: 0.1, allowPlatformStats: false };
 
-/** Picks the title pattern for an entry: "PAGE:<template>" first, then the type. */
+/** Title pattern variant of an entry: the PAGE template, or "worldwide" for a worldwide SERVICE. */
+export function titlePatternVariant(type: CmsEntryType, data: unknown): string | undefined {
+  const d = data && typeof data === 'object' ? (data as Record<string, unknown>) : {};
+  if (type === 'PAGE') return typeof d.template === 'string' ? d.template : 'default';
+  if (type === 'SERVICE' && d.areaServed === 'worldwide') return 'worldwide';
+  return undefined;
+}
+
+/**
+ * Picks the title pattern for an entry: "<TYPE>:<variant>" first (settings,
+ * then defaults), then the type. `variant` is the PAGE template or a value
+ * from `titlePatternVariant`.
+ */
 export function titlePatternFor(
   patterns: Partial<Record<TitlePatternKey, string>>,
   type: CmsEntryType,
-  pageTemplate?: PageTemplate,
+  variant?: string,
 ): string {
-  if (type === 'PAGE' && pageTemplate) {
-    const specific = patterns[`PAGE:${pageTemplate}`];
+  if (variant) {
+    const key = `${type}:${variant}` as TitlePatternKey;
+    const specific = patterns[key] ?? DEFAULT_TITLE_PATTERNS[key];
     if (specific) return specific;
   }
   return patterns[type] ?? DEFAULT_TITLE_PATTERNS[type] ?? '{title}';
@@ -1856,7 +1965,8 @@ export const entryCardSchema = z.object({
   color: z.string().optional(),
   group: z.string().optional(),
   shortName: z.string().optional(),
-  status: z.string().optional(),
+  /** Feature status for PRODUCT, SOLUTION, SERVICE, INTEGRATION; absent elsewhere. */
+  status: featureStatusSchema.optional(),
   contentUpdatedAt: z.string().nullable(),
 });
 export type EntryCard = z.infer<typeof entryCardSchema>;
@@ -2119,6 +2229,8 @@ export const publicEntriesQuerySchema = z.object({
   group: keySchema.optional(),
   featured: z.stringbool().optional(),
   parentId: idSchema.optional(),
+  /** Comma list of feature statuses, e.g. "coming,beta" (roadmap). */
+  status: commaList(featureStatusSchema, 3).optional(),
   sort: entrySortSchema.default('order'),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   cursor: z.string().max(200).optional(),
@@ -2307,6 +2419,7 @@ export const ISSUE_CODES = [
   'TITLE_LENGTH', 'DESCRIPTION_LENGTH', 'FOCUS_KEYWORD', 'WORDS_BELOW_GATE', 'SIMILARITY', 'FAQ_COUNT',
   'FAQ_ANSWER_LENGTH', 'SUMMARY_LENGTH', 'FEW_INTERNAL_LINKS', 'REQUIRED_LINK', 'ORPHAN', 'NO_SOURCE',
   'NOT_FACT_CHECKED', 'COMPETITOR_UNDATED', 'NO_CONSENT', 'TYPED_PRICE', 'STALE', 'NO_OG_IMAGE', 'MEDIA_ALT',
+  'INVALID_DATA', 'MEDIA_MISSING',
 ] as const;
 export const issueCodeSchema = z.enum(ISSUE_CODES);
 export type IssueCode = z.infer<typeof issueCodeSchema>;
@@ -2315,7 +2428,7 @@ export type IssueCode = z.infer<typeof issueCodeSchema>;
 export const HARD_ERROR_CODES = [
   'MISSING_TITLE', 'MISSING_SUMMARY', 'MISSING_DATA', 'INVALID_BLOCK', 'BLOCK_NOT_ALLOWED', 'HERO_NOT_FIRST',
   'HEADING_LEVEL', 'UNKNOWN_TOKEN', 'UNKNOWN_ICON', 'BROKEN_LINK', 'DUPLICATE_TITLE', 'DUPLICATE_PATH',
-  'NO_SOURCE', 'NOT_FACT_CHECKED', 'COMPETITOR_UNDATED', 'NO_CONSENT',
+  'NO_SOURCE', 'NOT_FACT_CHECKED', 'COMPETITOR_UNDATED', 'NO_CONSENT', 'INVALID_DATA', 'MEDIA_MISSING',
 ] as const satisfies readonly IssueCode[];
 /** Warnings that force noindex instead of blocking. */
 export const NOINDEX_ISSUE_CODES = ['WORDS_BELOW_GATE', 'SIMILARITY'] as const satisfies readonly IssueCode[];
@@ -2355,26 +2468,44 @@ export function formatIssuePath(path: readonly PropertyKey[], prefix?: string): 
   return out;
 }
 
+function valueAtPath(root: unknown, path: readonly PropertyKey[]): unknown {
+  let cur: unknown = root;
+  for (const key of path) {
+    if (cur === null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<PropertyKey, unknown>)[key];
+  }
+  return cur;
+}
+
 /**
  * Turns a failed parse of `blocks` or `data` into publish issues.
  * - `blocks`: INVALID_BLOCK, or UNKNOWN_ICON when the bad value is an icon.
- * - `data`: MISSING_DATA, or UNKNOWN_ICON for icon fields.
+ * - `data`: MISSING_DATA when the value is absent or empty, INVALID_DATA when
+ *   it is present but wrong (needs `input`, the parsed value; without it
+ *   every data issue is MISSING_DATA), or UNKNOWN_ICON for icon fields.
  */
 export function zodErrorToIssues(
   error: z.ZodError,
   target: 'blocks' | 'data',
   blocks?: readonly { id?: unknown }[],
+  input?: unknown,
 ): Issue[] {
   return error.issues.map((zi) => {
     const last = zi.path[zi.path.length - 1];
     const isIcon = last === 'icon';
     const field = formatIssuePath(zi.path, target);
+    let dataCode: IssueCode = 'MISSING_DATA';
+    if (input !== undefined) {
+      const v = valueAtPath(input, zi.path);
+      const absent = v === undefined || v === null || (typeof v === 'string' && v.trim() === '') || (Array.isArray(v) && v.length === 0);
+      if (!absent) dataCode = 'INVALID_DATA';
+    }
     let blockId: string | undefined;
     if (target === 'blocks' && typeof zi.path[0] === 'number' && blocks) {
       const id = blocks[zi.path[0]]?.id;
       if (typeof id === 'string') blockId = id;
     }
-    const code: IssueCode = isIcon ? 'UNKNOWN_ICON' : target === 'blocks' ? 'INVALID_BLOCK' : 'MISSING_DATA';
+    const code: IssueCode = isIcon ? 'UNKNOWN_ICON' : target === 'blocks' ? 'INVALID_BLOCK' : dataCode;
     const label = target === 'blocks' ? 'Block' : 'Data';
     return {
       code,
@@ -2589,6 +2720,88 @@ export interface LinkSuggestion { id: string; type: CmsEntryType; title: string;
 export interface EntryConflictError { statusCode: 409; message: string; current: AdminEntry }
 /** 422 when publish or validation checks fail. */
 export interface ChecksFailedError { statusCode: 422; message: string; issues: Issue[] }
+
+// ─── Snapshots (CmsRevision.snapshot and CmsEntry.published) ───
+
+/** Editable draft fields copied into every revision snapshot; restore copies them back. */
+export const DRAFT_SNAPSHOT_FIELDS = [
+  'title', 'summary', 'slug', 'parentId', 'translationKey', 'blocks', 'data', 'relations', 'faqIds', 'imageId',
+  'seoTitle', 'seoDescription', 'focusKeyword', 'canonicalUrl', 'noindex', 'nofollow', 'ogImageId', 'schemaExtra',
+  'authorId', 'reviewerId', 'sortOrder', 'featured',
+] as const;
+export type DraftSnapshotField = (typeof DRAFT_SNAPSHOT_FIELDS)[number];
+
+/** `CmsRevision.snapshot` for entries: the draft fields, plus the live snapshot on PUBLISH. */
+export interface DraftSnapshot {
+  title: string; summary: string | null; slug: string; parentId: string | null; translationKey: string | null;
+  blocks: DraftBlock[]; data: Record<string, unknown>; relations: DraftRelation[]; faqIds: string[]; imageId: string | null;
+  seoTitle: string | null; seoDescription: string | null; focusKeyword: string | null; canonicalUrl: string | null;
+  noindex: boolean; nofollow: boolean; ogImageId: string | null; schemaExtra: Record<string, unknown>[] | null;
+  authorId: string | null; reviewerId: string | null; sortOrder: number; featured: boolean;
+}
+export interface EntryRevisionSnapshot extends DraftSnapshot { published?: PublishedSnapshot }
+
+export const PUBLISHED_SNAPSHOT_FORMAT = 1;
+
+/**
+ * `CmsEntry.published`: the frozen live version, written only by publishing.
+ * The public API builds `PublicEntry` from it:
+ * - `blocks`, `data`, `summary`, `seo.title` and `seo.description` still hold
+ *   `{{tokens}}` and `entry:` links; resolve them at read time
+ *   (CmsContentService.resolve, mode `published`), so a plan price change or
+ *   a slug change shows without republishing.
+ * - `seo.canonicalUrl` null means self (`SITE_URL + locale prefix + path`).
+ * - `robots` already merges editor noindex, the quality gate, similarity and
+ *   feature status `coming`; the site adds `SITE_INDEXABLE`.
+ * - `mediaIds` and `referencedIds` list what the entry points at, so the
+ *   public API can load media and cards in one query each.
+ */
+export const publishedSnapshotSchema = z.object({
+  format: z.literal(PUBLISHED_SNAPSHOT_FORMAT),
+  id: z.string(),
+  type: cmsEntryTypeSchema,
+  locale: z.string(),
+  path: z.string(),
+  slug: z.string(),
+  parentId: z.string().nullable(),
+  translationKey: z.string().nullable(),
+  template: z.enum(SITE_TEMPLATES),
+  title: z.string(),
+  summary: z.string().nullable(),
+  /** Visible blocks only, publish shape. */
+  blocks: z.array(blockSchema),
+  data: entryDataSchema,
+  relations: z.array(draftRelationSchema),
+  faqIds: z.array(z.string()),
+  imageId: z.string().nullable(),
+  authorId: z.string().nullable(),
+  reviewerId: z.string().nullable(),
+  factCheckedAt: z.string().nullable(),
+  featureStatus: featureStatusSchema.nullable(),
+  seo: z.object({
+    title: z.string(),
+    titleIncludesBrand: z.boolean(),
+    description: z.string(),
+    canonicalUrl: z.string().nullable(),
+    robots: publicRobotsSchema,
+    ogImageId: z.string().nullable(),
+    schemaExtra: z.array(z.record(z.string(), z.unknown())),
+    focusKeyword: z.string().nullable(),
+  }),
+  quality: z.object({ wordCount: z.number().int(), gate: z.number().int().nullable(), passed: z.boolean(), similarity: z.number().optional() }),
+  mediaIds: z.array(z.string()),
+  referencedIds: z.array(z.string()),
+  /** Hash of the draft fields this snapshot came from (drives hasUnpublishedChanges). */
+  draftHash: z.string(),
+  sortOrder: z.number().int(),
+  featured: z.boolean(),
+  publishedAt: z.string(),
+  firstPublishedAt: z.string(),
+  contentUpdatedAt: z.string().nullable(),
+  /** The PUBLISH revision; null in preview builds. */
+  revisionId: z.string().nullable(),
+});
+export type PublishedSnapshot = z.infer<typeof publishedSnapshotSchema>;
 
 // ─── Revisions ───
 

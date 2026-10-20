@@ -2,13 +2,23 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SiteRevalidationService } from '../../admin-marketing/cms/revalidation/site-revalidation.service';
 import { UpsertPlanDto } from './dto/upsert-plan.dto';
 
 @Injectable()
 export class AdminPlansService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    // Public site: prices and plan features are read from Plan (CMS revalidation, global module).
+    @Optional() private readonly siteRevalidation?: SiteRevalidationService,
+  ) {}
+
+  private revalidateSite(): void {
+    void this.siteRevalidation?.revalidatePlans();
+  }
 
   list() {
     return this.prisma.plan.findMany({
@@ -25,7 +35,9 @@ export class AdminPlansService {
     });
     if (exists) throw new ConflictException('Plan with same slug or name exists');
 
-    return this.prisma.plan.create({ data: dto });
+    const created = await this.prisma.plan.create({ data: dto });
+    this.revalidateSite();
+    return created;
   }
 
   async update(id: string, dto: UpsertPlanDto) {
@@ -37,7 +49,9 @@ export class AdminPlansService {
     });
     if (slugExists) throw new ConflictException('Slug already in use');
 
-    return this.prisma.plan.update({ where: { id }, data: dto });
+    const updated = await this.prisma.plan.update({ where: { id }, data: dto });
+    this.revalidateSite();
+    return updated;
   }
 
   async remove(id: string) {
@@ -48,13 +62,16 @@ export class AdminPlansService {
     if (!plan) throw new NotFoundException('Plan not found');
 
     if (plan._count.subscriptions > 0) {
-      return this.prisma.plan.update({
+      const hidden = await this.prisma.plan.update({
         where: { id },
         data: { isActive: false, isPublic: false },
       });
+      this.revalidateSite();
+      return hidden;
     }
 
     await this.prisma.plan.delete({ where: { id } });
+    this.revalidateSite();
     return { message: 'Plan deleted permanently' };
   }
 }

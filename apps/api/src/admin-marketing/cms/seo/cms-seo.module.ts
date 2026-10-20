@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
+import { CmsContentModule } from '../content/cms-content.module';
+import { CmsChecksService } from './cms-checks.service';
 
-/**
- * SEO score, quality gates, 5-gram similarity and title uniqueness.
- *
- * Empty shell registered in cms.module.ts by A0 so the CMS module tree
- * compiles before Phase 2. Owner: A1, who fills it in (controllers,
- * providers, exports) and keeps this file name and class name.
- */
-@Module({})
+/** Publish checks, SEO score, quality gates, similarity and title uniqueness. */
+@Module({
+  imports: [CmsContentModule],
+  providers: [CmsChecksService],
+  exports: [CmsChecksService],
+})
 export class CmsSeoModule {}

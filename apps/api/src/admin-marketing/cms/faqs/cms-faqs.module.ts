@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
+import { CmsPublicCoreModule } from '../public/cms-public-core.module';
+import { CmsFaqsController } from './cms-faqs.controller';
+import { CmsFaqsService } from './cms-faqs.service';
 
-/**
- * Reusable FAQs with draft and publish.
- *
- * Empty shell registered in cms.module.ts by A0 so the CMS module tree
- * compiles before Phase 2. Owner: A2, who fills it in (controllers,
- * providers, exports) and keeps this file name and class name.
- */
-@Module({})
+/** Reusable FAQs with draft and publish (API-CONTRACT 8.3). */
+@Module({
+  imports: [CmsPublicCoreModule],
+  controllers: [CmsFaqsController],
+  providers: [CmsFaqsService],
+  exports: [CmsFaqsService],
+})
 export class CmsFaqsModule {}

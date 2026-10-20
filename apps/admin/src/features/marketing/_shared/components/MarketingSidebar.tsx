@@ -2,11 +2,28 @@ import { NavLink, Link } from 'react-router-dom';
 import {
   BarChart3, Mail, MessageSquare, Calendar, Users, Bot, Megaphone,
   TrendingUp, Search, Beaker, MousePointer2, FileText, Target, Download,
-  ChevronLeft, LayoutDashboard,
+  ChevronLeft, LayoutDashboard, Globe, CircleHelp, Images, Menu, Signpost, Settings2, Handshake,
+  type LucideIcon,
 } from 'lucide-react';
 import { cn } from '../../../../lib/cn';
+import { ENTRY_SECTIONS } from '../../cms/entries/sections';
 
-const NAV = [
+type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean } | { type: 'section'; label: string };
+
+// Website (CMS) section: entry lists per section plus the resource screens.
+const WEBSITE_NAV: NavItem[] = [
+  { type: 'section', label: 'Website' },
+  { to: '/marketing/website', label: 'Overview', icon: Globe, end: true },
+  ...ENTRY_SECTIONS.map((s) => ({ to: `/marketing/website/${s.key}`, label: s.label, icon: s.icon })),
+  { to: '/marketing/website/faqs', label: 'FAQs', icon: CircleHelp },
+  { to: '/marketing/website/customers', label: 'Customers & testimonials', icon: Handshake },
+  { to: '/marketing/website/media', label: 'Media', icon: Images },
+  { to: '/marketing/website/menus', label: 'Menus', icon: Menu },
+  { to: '/marketing/website/redirects', label: 'Redirects', icon: Signpost },
+  { to: '/marketing/website/settings', label: 'Settings', icon: Settings2 },
+];
+
+const NAV: NavItem[] = [
   { to: '/marketing', label: 'Dashboard', icon: BarChart3, end: true },
   { to: '/marketing/newsletter', label: 'Newsletter', icon: Mail },
   { to: '/marketing/contact-forms', label: 'Contact Forms', icon: MessageSquare },
@@ -14,6 +31,7 @@ const NAV = [
   { to: '/marketing/leads', label: 'Leads', icon: Users },
   { to: '/marketing/chatbot', label: 'Chatbot', icon: Bot },
   { to: '/marketing/campaigns', label: 'Campaigns', icon: Megaphone },
+  ...WEBSITE_NAV,
   { type: 'section', label: 'Analytics' },
   { to: '/marketing/analytics', label: 'Traffic', icon: TrendingUp },
   { to: '/marketing/seo', label: 'SEO', icon: Search },
@@ -23,7 +41,7 @@ const NAV = [
   { to: '/marketing/conversions', label: 'Conversions', icon: Target },
   { type: 'section', label: 'Data' },
   { to: '/marketing/exports', label: 'Exports', icon: Download },
-] as const;
+];
 
 export function MarketingSidebar() {
   return (
@@ -61,7 +79,7 @@ export function MarketingSidebar() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={(item as any).end}
+                end={item.end}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition',

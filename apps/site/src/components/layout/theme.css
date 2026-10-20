@@ -1,0 +1,139 @@
+/*
+ * Site-wide light and dark theme.
+ *
+ * - Default: follows the device (prefers-color-scheme). This works with no
+ *   JavaScript at all.
+ * - Manual choice: ThemeScript sets <html data-theme="light|dark"> before the
+ *   first paint from localStorage (nafaa_theme), so there is no flash.
+ * - While the resolved theme is dark, ThemeScript also puts `theme-ink` on
+ *   <html>. Diagrams, frames and the Tailwind `ink:` variant already key on
+ *   `.theme-ink`, so they switch to their dark palette with no changes.
+ *
+ * The values below re-map the semantic colours (--c-*) from globals.css.
+ * `.theme-default` and `.theme-muted` sections set their own light values, so
+ * they are re-mapped too. `.theme-ink` bands stay ink in both themes (a
+ * darker band on the dark page). Contrast is AA for body text:
+ * fg-subtle (slate-400) on the dark canvas is 7.4:1, fg-muted (slate-300) 11.9:1.
+ */
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+  }
+
+  :root:not([data-theme='light']),
+  :root:not([data-theme='light']) .theme-default {
+    --c-canvas: 9 13 22;
+    --c-surface: 15 23 42; /* slate-900 */
+    --c-surface-2: 22 31 49;
+    --c-surface-3: 30 41 59; /* slate-800 */
+    --c-fg-strong: 248 250 252;
+    --c-fg: 226 232 240; /* slate-200 */
+    --c-fg-muted: 203 213 225; /* slate-300 */
+    --c-fg-subtle: 148 163 184; /* slate-400 */
+    --c-line: 30 41 59;
+    --c-line-strong: 51 65 85;
+    --c-link: var(--brand-400);
+    --c-ring: var(--brand-400);
+  }
+
+  :root:not([data-theme='light']) .theme-muted {
+    --c-canvas: 15 21 34;
+    --c-surface: 22 31 49;
+    --c-surface-2: 30 41 59;
+  }
+}
+
+:root[data-theme='dark'],
+:root[data-theme='dark'] .theme-default {
+  --c-canvas: 9 13 22;
+  --c-surface: 15 23 42;
+  --c-surface-2: 22 31 49;
+  --c-surface-3: 30 41 59;
+  --c-fg-strong: 248 250 252;
+  --c-fg: 226 232 240;
+  --c-fg-muted: 203 213 225;
+  --c-fg-subtle: 148 163 184;
+  --c-line: 30 41 59;
+  --c-line-strong: 51 65 85;
+  --c-link: var(--brand-400);
+  --c-ring: var(--brand-400);
+}
+
+:root[data-theme='dark'] .theme-muted {
+  --c-canvas: 15 21 34;
+  --c-surface: 22 31 49;
+  --c-surface-2: 30 41 59;
+}
+
+/* Header glass: the canvas colour at 85% with blur. */
+.site-header {
+  background-color: rgb(var(--c-canvas) / 0.85);
+  backdrop-filter: saturate(1.4) blur(12px);
+  -webkit-backdrop-filter: saturate(1.4) blur(12px);
+}
+
+/* Mega menu: opens on hover (pointer devices) and on keyboard focus. A short
+   close delay stops it flickering when the pointer crosses the gap. */
+.mega-panel {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 150ms var(--ease-out, ease-out),
+    transform 150ms var(--ease-out, ease-out),
+    visibility 0s linear 150ms;
+}
+
+.mega-item:focus-within > .mega-panel,
+.mega-item[data-open] > .mega-panel {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+
+@media (hover: hover) {
+  .mega-item:hover > .mega-panel {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition-delay: 60ms;
+  }
+}
+
+.mega-item:is(:hover, :focus-within) > button .mega-chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-panel,
+  .mega-chevron {
+    transition: none;
+  }
+}
+
+/* Theme toggle icons: show the icon for the theme you would switch to. */
+.theme-icon-dark {
+  display: none;
+}
+:root.theme-ink .theme-icon-light {
+  display: none;
+}
+:root.theme-ink .theme-icon-dark {
+  display: inline-block;
+}
+
+/* Escape closed the panel: keep it hidden while focus stays on the trigger. */
+.mega-item[data-closed] > .mega-panel {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}

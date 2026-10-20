@@ -1,11 +1,17 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { CmsFanoutService } from './cms-fanout.service';
+import { IndexNowService } from './indexnow.service';
+import { SiteRevalidationService } from './site-revalidation.service';
 
 /**
- * Site revalidation client (HMAC, retries) and IndexNow. Exports SiteRevalidationService.
+ * Site revalidation (HMAC, retries), tag fan-out and IndexNow.
  *
- * Empty shell registered in cms.module.ts by A0 so the CMS module tree
- * compiles before Phase 2. Owner: A1, who fills it in (controllers,
- * providers, exports) and keeps this file name and class name.
+ * Global so code outside the CMS (Admin → Plans) can inject
+ * SiteRevalidationService without changing its own module.
  */
-@Module({})
+@Global()
+@Module({
+  providers: [SiteRevalidationService, CmsFanoutService, IndexNowService],
+  exports: [SiteRevalidationService, CmsFanoutService, IndexNowService],
+})
 export class CmsRevalidationModule {}

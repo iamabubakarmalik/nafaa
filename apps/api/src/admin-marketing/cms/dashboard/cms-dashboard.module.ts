@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
+import { CmsPublicCoreModule } from '../public/cms-public-core.module';
+import { CmsDashboardController } from './cms-dashboard.controller';
+import { CmsDashboardService } from './cms-dashboard.service';
 
-/**
- * Website overview, health report and revalidate-all.
- *
- * Empty shell registered in cms.module.ts by A0 so the CMS module tree
- * compiles before Phase 2. Owner: A2, who fills it in (controllers,
- * providers, exports) and keeps this file name and class name.
- */
-@Module({})
+/** Website dashboard and health report (API-CONTRACT 8.9). */
+@Module({
+  imports: [CmsPublicCoreModule],
+  controllers: [CmsDashboardController],
+  providers: [CmsDashboardService],
+})
 export class CmsDashboardModule {}
