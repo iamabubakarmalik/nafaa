@@ -1,6 +1,6 @@
 import {
   Dumbbell, LayoutDashboard, Users, LogIn, Award, Target, Calendar,
-  Flame, Activity, UserPlus,
+  Flame, Activity, UserPlus, KeyRound,
 } from 'lucide-react';
 import { PERMISSIONS } from '@core/lib/permissions';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
@@ -16,12 +16,14 @@ import ClassesPage from './pages/ClassesPage';
 import PTSessionsPage from './pages/PTSessionsPage';
 import EquipmentPage from './pages/EquipmentPage';
 import MemberFormPage from './pages/MemberFormPage';
+import LockersPage from './pages/LockersPage';
 
 /**
  * Gym / fitness industry pack: members and joining, check-in at the desk,
- * memberships (renew, freeze, dues), plans, personal training with trainer
- * commission, group classes and machines. Supplements, shakes, day passes
- * and locker rent sell on the shared POS.
+ * memberships (renew, freeze, dues), plans, personal training (single,
+ * plan and PT packages) with trainer commission, group classes, lockers
+ * with monthly rent and machines. Supplements, shakes and day passes sell
+ * on the shared POS.
  */
 export const GymPack: IndustryPack = {
   id: 'gym',
@@ -30,7 +32,7 @@ export const GymPack: IndustryPack = {
   emoji: '💪',
   priority: 54,
   description:
-    'Members, check-in, memberships aur renewal, PT aur trainer commission, classes, machines.',
+    'Members, check-in, memberships aur renewal, PT packages aur trainer commission, classes, lockers, machines.',
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -63,6 +65,7 @@ export const GymPack: IndustryPack = {
         { to: '/gym/personal-training', label: 'Personal training', icon: Flame },
         { to: '/gym/trainers', label: 'Trainers', icon: Dumbbell },
         { to: '/gym/classes', label: 'Group classes', icon: Calendar },
+        { to: '/gym/lockers', label: 'Lockers', icon: KeyRound },
         { to: '/gym/equipment', label: 'Machines', icon: Activity },
       ],
     },
@@ -82,6 +85,7 @@ export const GymPack: IndustryPack = {
     { path: '/gym/classes', element: ClassesPage },
     { path: '/gym/personal-training', element: PTSessionsPage },
     { path: '/gym/equipment', element: EquipmentPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/gym/lockers', element: LockersPage },
   ],
 
   dashboardComponent: GymDashboard,

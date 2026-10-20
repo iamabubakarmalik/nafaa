@@ -1,374 +1,217 @@
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+/**
+ * Add or change a live animal: what it is (species, breed, age, colour),
+ * its health on arrival, where it came from, cage and feeding, photos, and
+ * its cost and asking price. A sold or closed record cannot be changed.
+ *
+ * Keys: Ctrl+S save · Esc back.
+ */
+
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, X, Heart, Camera, Star, Syringe, FileText,
-  AlertCircle, Sparkles, Image as ImageIcon,
-} from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { liveAnimalsApi } from '../api/live-animals.api';
-import { Button, Input } from '@/design-system/components';
+import { AlertTriangle, ArrowLeft, HeartPulse, Home, Image as ImageIcon, PawPrint, Wallet, X } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen } from '@core/lib/shortcuts';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { liveAnimalsApi, type PetLiveAnimal } from '../api/live-animals.api';
+import type { PetSpeciesType } from '../api/products.api';
+import { useSaveKey } from '../hooks/usePageKeys';
+import { PET_KEYS, SPECIES, dayKey, errorText, numIn } from '../lib/meta';
 
-const SPECIES = [
-  { v: 'DOG', l: 'Dog', e: '🐕' },
-  { v: 'CAT', l: 'Cat', e: '🐈' },
-  { v: 'BIRD', l: 'Bird', e: '🦜' },
-  { v: 'FISH', l: 'Fish', e: '🐠' },
-  { v: 'RABBIT', l: 'Rabbit', e: '🐰' },
-  { v: 'HAMSTER', l: 'Hamster', e: '🐹' },
-  { v: 'GUINEA_PIG', l: 'Guinea Pig', e: '🐹' },
-  { v: 'PARROT', l: 'Parrot', e: '🦜' },
-  { v: 'TURTLE', l: 'Turtle', e: '🐢' },
-  { v: 'REPTILE', l: 'Reptile', e: '🦎' },
-  { v: 'HORSE', l: 'Horse', e: '🐴' },
-  { v: 'FARM_ANIMAL', l: 'Farm', e: '🐄' },
-];
+interface Draft {
+  species: PetSpeciesType | ''; breed: string; name: string; gender: string; ageMonths: string; color: string; weightKg: string;
+  acquiredDate: string; sourceType: string; sourceName: string;
+  isVaccinated: boolean; vaccinationDetails: string; isDewormed: boolean; dewormingDetails: string; hasHealthCertificate: boolean; healthNotes: string;
+  costPrice: string; askingPrice: string; currentCage: string; feedingSchedule: string; specialNeeds: string; isFeatured: boolean; notes: string;
+  imageUrls: string[];
+}
 
-const SOURCES = ['Breeder', 'Rescue', 'Owner Surrender', 'Import', 'Born Here', 'Other'];
+const blank: Draft = {
+  species: '', breed: '', name: '', gender: '', ageMonths: '', color: '', weightKg: '', acquiredDate: dayKey(), sourceType: 'BREEDER', sourceName: '',
+  isVaccinated: false, vaccinationDetails: '', isDewormed: false, dewormingDetails: '', hasHealthCertificate: false, healthNotes: '',
+  costPrice: '', askingPrice: '', currentCage: '', feedingSchedule: '', specialNeeds: '', isFeatured: false, notes: '', imageUrls: [],
+};
+
+const fromAnimal = (a: PetLiveAnimal): Draft => ({
+  species: a.species, breed: a.breed ?? '', name: a.name ?? '', gender: a.gender ?? '', ageMonths: a.ageMonths != null ? String(a.ageMonths) : '',
+  color: a.color ?? '', weightKg: a.weightKg != null ? String(a.weightKg) : '', acquiredDate: a.acquiredDate ? dayKey(new Date(a.acquiredDate)) : '',
+  sourceType: a.sourceType ?? '', sourceName: a.sourceName ?? '', isVaccinated: a.isVaccinated, vaccinationDetails: a.vaccinationDetails ?? '',
+  isDewormed: a.isDewormed, dewormingDetails: a.dewormingDetails ?? '', hasHealthCertificate: a.hasHealthCertificate, healthNotes: a.healthNotes ?? '',
+  costPrice: a.costPrice != null ? String(a.costPrice) : '', askingPrice: String(a.askingPrice), currentCage: a.currentCage ?? '',
+  feedingSchedule: a.feedingSchedule ?? '', specialNeeds: a.specialNeeds ?? '', isFeatured: a.isFeatured, notes: a.notes ?? '', imageUrls: a.imageUrls ?? [],
+});
+
+const SOURCES = [{ value: '', label: '—' }, { value: 'BREEDER', label: 'Breeder' }, { value: 'MANDI', label: 'Mandi' }, { value: 'IMPORT', label: 'Import' }, { value: 'CUSTOMER', label: 'Customer se liya' }, { value: 'OWN', label: 'Apni nasal' }];
+const GENDERS = [{ value: '', label: '—' }, { value: 'Male', label: 'Nar (male)' }, { value: 'Female', label: 'Mada (female)' }, { value: 'Pair', label: 'Jora' }];
 
 export default function LiveAnimalFormPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const editing = !!id;
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const isEdit = !!id;
+  const { cost: costMoney, costHidden } = useMasked();
+  const [d, setD] = useState<Draft>(blank);
+  const [touched, setTouched] = useState(false);
+  const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
 
-  const [form, setForm] = useState({
-    species: 'DOG',
-    breed: '',
-    subBreed: '',
-    name: '',
-    gender: 'Male',
-    ageMonths: '' as number | '',
-    color: '',
-    weightKg: '' as number | '',
-    birthDate: '',
-    acquiredDate: format(new Date(), 'yyyy-MM-dd'),
-    sourceType: '',
-    sourceName: '',
-    isVaccinated: false,
-    vaccinationDetails: '',
-    isDewormed: false,
-    dewormingDetails: '',
-    hasHealthCertificate: false,
-    healthNotes: '',
-    costPrice: '' as number | '',
-    askingPrice: 0,
-    currentCage: '',
-    feedingSchedule: '',
-    specialNeeds: '',
-    imageUrls: [] as string[],
-    videoUrl: '',
-    isFeatured: false,
-    notes: '',
-  });
+  const animalQ = useQuery({ queryKey: [PET_KEYS.animal, id], queryFn: () => liveAnimalsApi.getOne(id!), enabled: editing });
+  useEffect(() => { if (animalQ.data) setD(fromAnimal(animalQ.data)); }, [animalQ.data]);
+  const locked = !!animalQ.data && ['SOLD', 'DECEASED', 'RETURNED', 'ADOPTED'].includes(animalQ.data.status);
 
-  const { data: existing } = useQuery({
-    queryKey: ['live-animal', id],
-    queryFn: () => liveAnimalsApi.getOne(id!),
-    enabled: isEdit,
-  });
-
-  useEffect(() => {
-    if (existing) {
-      setForm({
-        species: existing.species,
-        breed: existing.breed ?? '',
-        subBreed: existing.subBreed ?? '',
-        name: existing.name ?? '',
-        gender: existing.gender ?? 'Male',
-        ageMonths: existing.ageMonths ?? '',
-        color: existing.color ?? '',
-        weightKg: existing.weightKg ?? '',
-        birthDate: existing.birthDate ? existing.birthDate.slice(0, 10) : '',
-        acquiredDate: existing.acquiredDate ? existing.acquiredDate.slice(0, 10) : format(new Date(), 'yyyy-MM-dd'),
-        sourceType: existing.sourceType ?? '',
-        sourceName: existing.sourceName ?? '',
-        isVaccinated: existing.isVaccinated,
-        vaccinationDetails: existing.vaccinationDetails ?? '',
-        isDewormed: existing.isDewormed,
-        dewormingDetails: existing.dewormingDetails ?? '',
-        hasHealthCertificate: existing.hasHealthCertificate,
-        healthNotes: existing.healthNotes ?? '',
-        costPrice: existing.costPrice ?? '',
-        askingPrice: existing.askingPrice,
-        currentCage: existing.currentCage ?? '',
-        feedingSchedule: existing.feedingSchedule ?? '',
-        specialNeeds: existing.specialNeeds ?? '',
-        imageUrls: existing.imageUrls ?? [],
-        videoUrl: existing.videoUrl ?? '',
-        isFeatured: existing.isFeatured,
-        notes: existing.notes ?? '',
-      });
-    }
-  }, [existing]);
+  const cost = numIn(d.costPrice);
+  const price = numIn(d.askingPrice);
+  const errors: Partial<Record<keyof Draft, string>> = {};
+  if (!d.species) errors.species = 'Kaun sa janwar — chunein';
+  if (price === null || price <= 0) errors.askingPrice = 'Bechne ka rate likhein';
+  if (cost !== null && cost < 0) errors.costPrice = 'Cost sahi likhein';
+  if (d.ageMonths && (numIn(d.ageMonths) ?? -1) < 0) errors.ageMonths = 'Umar mahinon me';
+  if (d.weightKg && !((numIn(d.weightKg) ?? 0) > 0)) errors.weightKg = 'Wazan sahi likhein';
+  if (d.acquiredDate && d.acquiredDate > dayKey()) errors.acquiredDate = 'Aane ki date aage ki nahi ho sakti';
+  const problems = Object.values(errors);
 
   const save = useMutation({
     mutationFn: () => {
-      const payload: any = {
-        ...form,
-        ageMonths: form.ageMonths === '' ? undefined : Number(form.ageMonths),
-        weightKg: form.weightKg === '' ? undefined : Number(form.weightKg),
-        costPrice: form.costPrice === '' ? undefined : Number(form.costPrice),
-        askingPrice: Number(form.askingPrice),
+      const t = (v: string) => v.trim() || undefined;
+      const body: Partial<PetLiveAnimal> = {
+        species: d.species as PetSpeciesType, breed: t(d.breed), name: t(d.name), gender: t(d.gender),
+        ageMonths: d.ageMonths ? Math.round(numIn(d.ageMonths) ?? 0) : undefined, color: t(d.color), weightKg: d.weightKg ? numIn(d.weightKg) ?? undefined : undefined,
+        acquiredDate: d.acquiredDate || undefined, sourceType: t(d.sourceType), sourceName: t(d.sourceName),
+        isVaccinated: d.isVaccinated, vaccinationDetails: t(d.vaccinationDetails), isDewormed: d.isDewormed, dewormingDetails: t(d.dewormingDetails),
+        hasHealthCertificate: d.hasHealthCertificate, healthNotes: t(d.healthNotes), costPrice: cost ?? undefined, askingPrice: price ?? 0,
+        currentCage: t(d.currentCage), feedingSchedule: t(d.feedingSchedule), specialNeeds: t(d.specialNeeds), isFeatured: d.isFeatured, notes: t(d.notes),
+        imageUrls: d.imageUrls,
       };
-      return isEdit
-        ? liveAnimalsApi.update(id!, payload)
-        : liveAnimalsApi.create(payload);
+      return editing ? liveAnimalsApi.update(id!, body) : liveAnimalsApi.create(body);
     },
-    onSuccess: (result) => {
-      toast.success(isEdit ? 'Animal updated' : 'Animal added');
-      qc.invalidateQueries({ queryKey: ['live-animals-list'] });
-      qc.invalidateQueries({ queryKey: ['live-animals-summary'] });
-      navigate(`/petshop/live-animals/${result.id}`);
+    onSuccess: (a) => {
+      [PET_KEYS.animals, PET_KEYS.animal, 'petshop-pos-animals', 'petshop-dashboard-overview'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      toast.success(editing ? 'Save ho gaya' : `${a.animalNumber} darj ho gaya — counter par card aa gaya`);
+      navigate(`/petshop/live-animals/${a.id}`);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
   });
+  const submit = () => { setTouched(true); if (problems.length) { toast.error(problems[0]); return; } if (!save.isPending && !locked) save.mutate(); };
+  useSaveKey(submit);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !isDialogOpen()) navigate(-1); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+  const err = (k: keyof Draft) => (touched ? errors[k] : undefined);
 
-  const canSave = form.species && form.askingPrice > 0;
+  if (editing && animalQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
+  if (editing && !animalQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Ye janwar nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/petshop/live-animals')}>Wapas</Button></div></PageShell>;
+
+  const margin = cost !== null && price ? price - cost : null;
 
   return (
-    <div className="space-y-5 pb-24">
-      <button onClick={() => navigate('/petshop/live-animals')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-rose-600 font-bold">
-        <ArrowLeft className="h-4 w-4" /> Back to Animals
-      </button>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-pink-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <Heart className="h-3.5 w-3.5 text-amber-300" /> {isEdit ? 'Edit Animal' : 'New Animal'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? form.name || `Edit ${form.species}` : '❤️ Add Live Animal'}
-          </h1>
+    <PageShell>
+      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
+        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-xl font-bold">{editing ? `${animalQ.data?.animalNumber} — badlein` : 'Naya janwar'}</h1>
+          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Darj hote hi counter par iska card aa jata hai'}</p>
         </div>
-      </section>
+        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
+      </div>
 
-      {/* IDENTITY */}
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead icon={Heart} title="Identity" tone="rose" />
+      {locked && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Ye janwar {animalQ.data?.status === 'SOLD' ? 'bik chuka' : 'record se band'} hai — badla nahi ja sakta.</p>}
 
-        <div>
-          <Lbl>Species *</Lbl>
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-            {SPECIES.map((s) => (
-              <button key={s.v} type="button" onClick={() => setForm({ ...form, species: s.v })}
-                className={`p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-0.5 ${
-                  form.species === s.v ? 'border-rose-600 bg-rose-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-rose-400'}`}>
-                <span className="text-xl">{s.e}</span>
-                <span className="text-[0.6875rem] font-extrabold">{s.l}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Breed" placeholder="German Shepherd, Persian..."
-            value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })} />
-          <Input label="Sub-breed / Type"
-            value={form.subBreed} onChange={(e) => setForm({ ...form, subBreed: e.target.value })} />
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Pet Name (optional)" placeholder="Buddy, Whiskers..."
-            value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <div>
-            <Lbl>Gender</Lbl>
-            <div className="flex gap-2">
-              {['Male', 'Female', 'Unknown'].map((g) => (
-                <button key={g} type="button" onClick={() => setForm({ ...form, gender: g })}
-                  className={`flex-1 h-11 rounded-xl border-2 text-sm font-extrabold ${
-                    form.gender === g ? 'border-rose-500 bg-rose-500 text-white' : 'border-slate-200 bg-white text-slate-700'}`}>
-                  {g}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <Input label="Age (months)" type="number" value={form.ageMonths}
-            onChange={(e) => setForm({ ...form, ageMonths: e.target.value === '' ? '' : Number(e.target.value) })} />
-          <Input label="Color" placeholder="Golden, Black & White..."
-            value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />
-          <Input label="Weight (kg)" type="number" step="0.1" value={form.weightKg}
-            onChange={(e) => setForm({ ...form, weightKg: e.target.value === '' ? '' : Number(e.target.value) })} />
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Birth Date (optional)" type="date"
-            value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} />
-          <Input label="Acquired Date *" type="date"
-            value={form.acquiredDate} onChange={(e) => setForm({ ...form, acquiredDate: e.target.value })} />
-        </div>
-      </section>
-
-      {/* SOURCE */}
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead icon={FileText} title="Source" tone="blue" />
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl>Source Type</Lbl>
-            <select value={form.sourceType} onChange={(e) => setForm({ ...form, sourceType: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-              <option value="">Select source</option>
-              {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <Input label="Source Name" placeholder="Breeder name, shelter..."
-            value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} />
-        </div>
-      </section>
-
-      {/* HEALTH */}
-      <section className="rounded-3xl bg-white border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
-        <SectionHead icon={Syringe} title="Health Status" tone="emerald" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <Toggle checked={form.isVaccinated} onChange={(v: boolean) => setForm({ ...form, isVaccinated: v })} label="Vaccinated" emoji="💉" />
-          <Toggle checked={form.isDewormed} onChange={(v: boolean) => setForm({ ...form, isDewormed: v })} label="Dewormed" emoji="🐛" />
-          <Toggle checked={form.hasHealthCertificate} onChange={(v: boolean) => setForm({ ...form, hasHealthCertificate: v })} label="Health Cert" emoji="📄" />
-        </div>
-
-        {form.isVaccinated && (
-          <div>
-            <Lbl>Vaccination Details</Lbl>
-            <textarea rows={2} value={form.vaccinationDetails}
-              onChange={(e) => setForm({ ...form, vaccinationDetails: e.target.value })}
-              placeholder="DHPP, Rabies, dates..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-          </div>
-        )}
-
-        {form.isDewormed && (
-          <div>
-            <Lbl>Deworming Details</Lbl>
-            <textarea rows={2} value={form.dewormingDetails}
-              onChange={(e) => setForm({ ...form, dewormingDetails: e.target.value })}
-              placeholder="Product used, dates..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-          </div>
-        )}
-
-        <div>
-          <Lbl>Health Notes</Lbl>
-          <textarea rows={2} value={form.healthNotes}
-            onChange={(e) => setForm({ ...form, healthNotes: e.target.value })}
-            placeholder="Any allergies, conditions, medications..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section className="rounded-3xl bg-white border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white p-5 space-y-4">
-        <SectionHead icon={Sparkles} title="Pricing" tone="amber" />
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Cost Price" type="number" step="0.01" value={form.costPrice}
-            onChange={(e) => setForm({ ...form, costPrice: e.target.value === '' ? '' : Number(e.target.value) })} />
-          <div>
-            <Lbl>Asking Price *</Lbl>
-            <input type="number" step="0.01" value={form.askingPrice}
-              onChange={(e) => setForm({ ...form, askingPrice: Number(e.target.value) })}
-              className="h-14 w-full rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 text-2xl font-extrabold tabular-nums text-amber-900 focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-200" />
-          </div>
-        </div>
-      </section>
-
-      {/* CARE */}
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead icon={FileText} title="Care & Location" tone="violet" />
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Current Cage / Location" placeholder="Cage A-1, Aquarium 3"
-            value={form.currentCage} onChange={(e) => setForm({ ...form, currentCage: e.target.value })} />
-          <Input label="Feeding Schedule" placeholder="2x daily, morning & evening"
-            value={form.feedingSchedule} onChange={(e) => setForm({ ...form, feedingSchedule: e.target.value })} />
-        </div>
-        <div>
-          <Lbl>Special Needs</Lbl>
-          <textarea rows={2} value={form.specialNeeds}
-            onChange={(e) => setForm({ ...form, specialNeeds: e.target.value })}
-            placeholder="Special diet, medications, temperature requirements..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-        </div>
-      </section>
-
-      {/* MEDIA */}
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead icon={ImageIcon} title="Photos & Video" tone="pink" />
-        <UploadDropzone purpose="animal-photo" maxFiles={10}
-          onUploaded={(recs: any[]) => setForm({ ...form, imageUrls: [...form.imageUrls, ...recs.map((r: any) => r.url)] })}
-          hint="Up to 10 photos" />
-        {form.imageUrls.length > 0 && (
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-            {form.imageUrls.map((url, i) => (
-              <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
-                <img src={url} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[0.625rem] font-extrabold">MAIN</div>}
-                <button onClick={() => setForm({ ...form, imageUrls: form.imageUrls.filter((_, x) => x !== i) })}
-                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-extrabold">×</button>
+      <fieldset disabled={locked} className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={PawPrint}>Janwar</T>}>
+            <div className="space-y-3">
+              <div>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kaun sa janwar <span className="text-rose-600">*</span></span>
+                <div className="flex flex-wrap gap-1.5">
+                  {(Object.keys(SPECIES) as Array<keyof typeof SPECIES>).map((k) => (
+                    <button key={k} type="button" onClick={() => set('species', k)}
+                      className={cn('h-8 rounded-lg px-2.5 text-[0.8125rem] font-medium ring-1', d.species === k ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
+                      {SPECIES[k].emoji} {SPECIES[k].label}
+                    </button>
+                  ))}
+                </div>
+                {err('species') && <p className="mt-1 text-[0.75rem] text-rose-600">{err('species')}</p>}
               </div>
-            ))}
-          </div>
-        )}
-        <Input label="Video URL (YouTube)" placeholder="https://youtube.com/..."
-          value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} />
-      </section>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Nasal (breed)" value={d.breed} onChange={(e) => set('breed', e.target.value)} placeholder="Persian, German Shepherd, Budgie" hint="Counter par isi se dhoondte hain" />
+                <Input label="Naam (marzi)" value={d.name} onChange={(e) => set('name', e.target.value)} placeholder="Tiger" />
+                <Select label="Jins" value={d.gender} onChange={(e) => set('gender', e.target.value)} options={GENDERS} />
+                <Input label="Umar (mahine)" inputMode="numeric" value={d.ageMonths} onChange={(e) => set('ageMonths', e.target.value)} error={err('ageMonths')} placeholder="3" />
+                <Input label="Rang" value={d.color} onChange={(e) => set('color', e.target.value)} placeholder="Safed, bhoora" />
+                <Input label="Wazan (kg)" inputMode="decimal" value={d.weightKg} onChange={(e) => set('weightKg', e.target.value)} error={err('weightKg')} />
+              </div>
+            </div>
+          </Card>
 
-      {/* FLAGS */}
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead icon={Star} title="Marketing & Notes" tone="amber" />
-        <div>
-          <Toggle checked={form.isFeatured} onChange={(v: boolean) => setForm({ ...form, isFeatured: v })} label="Featured Animal" emoji="⭐" />
-        </div>
-        <div>
-          <Lbl>Additional Notes</Lbl>
-          <textarea rows={3} value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Personality, training, any other important info..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-        </div>
-      </section>
+          <Card className="rounded-2xl" title={<T icon={HeartPulse}>Sehat</T>}>
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2"><Switch label="Vaccine lagi hai" checked={d.isVaccinated} onChange={(e) => set('isVaccinated', e.target.checked)} />
+                  {d.isVaccinated && <Input aria-label="Kaun si vaccine" value={d.vaccinationDetails} onChange={(e) => set('vaccinationDetails', e.target.value)} placeholder="DHPP, Rabies — date" />}</div>
+                <div className="space-y-2"><Switch label="Deworming hui hai" checked={d.isDewormed} onChange={(e) => set('isDewormed', e.target.checked)} />
+                  {d.isDewormed && <Input aria-label="Deworming tafseel" value={d.dewormingDetails} onChange={(e) => set('dewormingDetails', e.target.value)} placeholder="Dawa aur date" />}</div>
+              </div>
+              <Switch label="Sehat ka certificate hai" checked={d.hasHealthCertificate} onChange={(e) => set('hasHealthCertificate', e.target.checked)} />
+              <Textarea label="Sehat ke note (marzi)" rows={2} value={d.healthNotes} onChange={(e) => set('healthNotes', e.target.value)} placeholder="Khaansi thi, ab theek…" />
+              <p className="text-[0.75rem] text-slate-500">Baad ki vaccine / doctor visit janwar ke page par "Sehat record" se likhein.</p>
+            </div>
+          </Card>
 
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <Button variant="secondary" onClick={() => navigate('/petshop/live-animals')}>Cancel</Button>
-          <Button className="bg-gradient-to-r from-rose-600 to-pink-700"
-            onClick={() => save.mutate()} loading={save.isPending} disabled={!canSave}>
-            <Save className="h-4 w-4" /> {isEdit ? 'Update' : 'Add Animal'}
-          </Button>
+          <Card className="rounded-2xl" title={<T icon={Home}>Kahan se, kahan rakha</T>}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Select label="Kahan se aaya" value={d.sourceType} onChange={(e) => set('sourceType', e.target.value)} options={SOURCES} />
+              <Input label="Kis se (marzi)" value={d.sourceName} onChange={(e) => set('sourceName', e.target.value)} placeholder="Breeder ka naam" />
+              <Input label="Aane ki date" type="date" max={dayKey()} value={d.acquiredDate} onChange={(e) => set('acquiredDate', e.target.value)} error={err('acquiredDate')} hint="Kitne din se dukaan me — isi se ginti" />
+              <Input label="Cage" value={d.currentCage} onChange={(e) => set('currentCage', e.target.value)} placeholder="A-3" />
+              <Input label="Khana kab" value={d.feedingSchedule} onChange={(e) => set('feedingSchedule', e.target.value)} placeholder="Subah 9, shaam 6" />
+              <Input label="Khaas dekh bhaal" value={d.specialNeeds} onChange={(e) => set('specialNeeds', e.target.value)} placeholder="Garam jagah" />
+              <div className="sm:col-span-2"><Textarea label="Note (marzi)" rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} /></div>
+            </div>
+          </Card>
         </div>
+
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>Paisa</T>}>
+            <div className="space-y-3">
+              <Input label="Bechne ka rate (Rs)" required inputMode="decimal" value={d.askingPrice} onChange={(e) => set('askingPrice', e.target.value)} error={err('askingPrice')} hint="Counter par yahi rate aata hai; bill par kam kar sakte hain" />
+              {!costHidden && <Input label="Cost (Rs)" inputMode="decimal" value={d.costPrice} onChange={(e) => set('costPrice', e.target.value)} error={err('costPrice')} hint="Kitne ka liya — profit aur mar jane par loss isi se" />}
+              {!costHidden && margin !== null && <p className={cn('text-[0.8125rem] font-semibold', margin >= 0 ? 'text-emerald-700' : 'text-rose-700')}>Profit: {costMoney(margin)}</p>}
+              <Switch label="Counter par upar dikhayein" checked={d.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={ImageIcon}>Tasveerein</T>}>
+            <UploadDropzone purpose="animal-photo" maxFiles={10} hint="Counter card par pehli tasveer aati hai"
+              onUploaded={(recs) => set('imageUrls', [...d.imageUrls, ...recs.map((r) => r.url)])} />
+            {d.imageUrls.length > 0 && (
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {d.imageUrls.map((url, i) => (
+                  <div key={url} className="relative">
+                    <img src={url} alt="" className="aspect-square w-full rounded-xl object-cover ring-1 ring-slate-200" />
+                    <button type="button" onClick={() => set('imageUrls', d.imageUrls.filter((_, x) => x !== i))} aria-label="Tasveer hatayein"
+                      className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-700 ring-1 ring-slate-200"><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+      </fieldset>
+
+      <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
+        {touched && problems.length > 0
+          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
+          : <p className="mr-auto text-[0.8125rem] text-slate-500">{price ? `Rate ${formatPKR(price)}` : 'Janwar aur rate zaroori hain'}</p>}
+        <Button variant="secondary" onClick={() => navigate(-1)}>Rehne dein</Button>
+        <Button onClick={submit} loading={save.isPending} disabled={locked}>{editing ? 'Save karein' : 'Janwar darj karein'}</Button>
       </div>
-    </div>
+    </PageShell>
   );
 }
 
-function SectionHead({ icon: Icon, title, tone }: any) {
-  const tones: Record<string, string> = {
-    rose: 'from-rose-500 to-pink-700', blue: 'from-blue-500 to-cyan-700',
-    emerald: 'from-emerald-500 to-teal-700', amber: 'from-amber-500 to-orange-700',
-    violet: 'from-violet-500 to-purple-700', pink: 'from-pink-500 to-rose-700',
-  };
-  return (
-    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100">
-      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <h3 className="font-extrabold text-slate-900">{title}</h3>
-    </div>
-  );
-}
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
-}
-function Toggle({ checked, onChange, label, emoji }: any) {
-  return (
-    <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition ${
-      checked ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300'}`}>
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-5 w-5 rounded" />
-      <span className="text-2xl">{emoji}</span>
-      <span className="font-extrabold text-sm text-slate-900">{label}</span>
-    </label>
-  );
-}
+const T = ({ icon: Icon, children }: { icon: typeof PawPrint; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;

@@ -1,7 +1,4 @@
-import {
-  LayoutDashboard, PawPrint, Scissors, Heart, Package,
-  Users, Sparkles,
-} from 'lucide-react';
+import { LayoutDashboard, PawPrint, Scissors, Heart, Users } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import PetshopDashboard from './dashboard/PetshopDashboard';
@@ -43,7 +40,7 @@ export const PetshopPack: IndustryPack = {
       order: 20,
       items: [
         { to: '/petshop/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/petshop/live-animals', label: 'Live Animals', icon: Heart, badge: 'NEW' },
+        { to: '/petshop/live-animals', label: 'Live animals', icon: Heart },
         { to: '/petshop/grooming', label: 'Grooming', icon: Scissors },
         { to: '/petshop/groomers', label: 'Groomers', icon: Users },
       ],

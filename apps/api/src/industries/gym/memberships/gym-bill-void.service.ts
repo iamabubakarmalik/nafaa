@@ -1,6 +1,8 @@
 /**
  * A gym bill voided at the counter or returned in full. The shared void
- * has already put the money and khata back; this settles the gym records:
+ * has already put the money and khata back; this settles the gym records.
+ * The record is found by its saleId; bills made before saleId existed are
+ * matched by bill number:
  *
  * - Membership bill (GYM-<membership number>): the membership is cancelled
  *   and the plan and member totals are taken back out. Later payments made
@@ -10,6 +12,9 @@
  * - Single PT session bill (GYM-PT-…): the session is cancelled and the
  *   trainer's commission for it is taken back.
  * - Freeze fee bill (…-F1): nothing changes on the membership.
+ * - PT package bill (GYM-PTP-…): the package and its open sessions are cancelled.
+ * - Class booking bill (GYM-CB-…): the booking is cancelled and the seat freed.
+ * - Locker rent bill (GYM-LKR-…): "paid until" moves back by the months billed.
  *
  * Every step runs once: a second call finds nothing left to change.
  */
@@ -18,7 +23,9 @@ import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ReturnsService } from '../../../modules/sales/returns/returns.service';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
-import { GYM_SALE, r2 } from '../common/gym-common';
+import { GYM_SALE, LOCKER_SALE, r2 } from '../common/gym-common';
+import { LockersService } from '../lockers/lockers.service';
+import { PtPackagesService } from '../personal-training/pt-packages.service';
 
 const MEMBERSHIP_BILL = /^GYM-(GYM-M-\d{4}-\d+)(?:-([PF])\d+)?$/;
 const PT_BILL = /^GYM-(PT-\d{4}-\d+)$/;
@@ -31,6 +38,8 @@ export class GymBillVoidService implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly sales: SalesService,
     private readonly returns: ReturnsService,
+    private readonly packages: PtPackagesService,
+    private readonly lockers: LockersService,
   ) {}
 
   onModuleInit() {
@@ -43,9 +52,27 @@ export class GymBillVoidService implements OnModuleInit {
   }
 
   async settle(tenantId: string, saleId: string, status: 'VOIDED' | 'FULLY_RETURNED') {
-    const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { id: true, saleNumber: true, status: true, total: true } });
+    const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { id: true, saleNumber: true, status: true, total: true, sourceRef: true, customerId: true } });
     if (!sale || sale.status !== status || !sale.saleNumber.startsWith(GYM_SALE)) return null;
     const note = `Bill ${sale.saleNumber} ${status === 'VOIDED' ? 'void' : 'wapas'}`;
+
+    const [membership, pkg, session, booking] = await Promise.all([
+      this.prisma.gymMemberMembership.findFirst({ where: { tenantId, saleId }, select: { membershipNumber: true } }),
+      this.prisma.gymPersonalTrainingPackage.findFirst({ where: { tenantId, saleId }, select: { id: true } }),
+      this.prisma.gymPersonalTraining.findFirst({ where: { tenantId, saleId, isFromPackage: false }, select: { sessionNumber: true } }),
+      this.prisma.gymClassBooking.findFirst({ where: { tenantId, saleId }, select: { id: true } }),
+    ]);
+    if (membership) return this.cancelMembership(tenantId, membership.membershipNumber, note);
+    if (pkg) {
+      return this.prisma.$transaction(async (tx) => {
+        const closed = await this.packages.close(tx, tenantId, pkg.id, note);
+        if (closed) await tx.gymMember.updateMany({ where: { id: closed.memberId, totalSpent: { gte: closed.price } }, data: { totalSpent: { decrement: closed.price } } });
+        return closed;
+      });
+    }
+    if (session) return this.cancelSession(tenantId, session.sessionNumber, note);
+    if (booking) return this.cancelBooking(tenantId, booking.id, note);
+    if (sale.saleNumber.startsWith(LOCKER_SALE)) return this.lockers.rentBack(tenantId, sale);
 
     const m = MEMBERSHIP_BILL.exec(sale.saleNumber);
     if (m) {
@@ -72,6 +99,17 @@ export class GymBillVoidService implements OnModuleInit {
       });
       await tx.gymMember.updateMany({ where: { id: ms.memberId, totalSpent: { gte: ms.totalPrice } }, data: { totalSpent: { decrement: ms.totalPrice } } });
       return { membershipId: ms.id };
+    });
+  }
+
+  private cancelBooking(tenantId: string, id: string, note: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const b = await tx.gymClassBooking.findFirst({ where: { id, tenantId } });
+      if (!b || b.status === 'CANCELLED') return null;
+      await tx.gymClassBooking.update({ where: { id }, data: { status: 'CANCELLED', cancelledAt: new Date(), cancellationReason: note } });
+      if (b.status === 'BOOKED') await tx.gymClass.updateMany({ where: { id: b.classId, currentEnrolled: { gt: 0 } }, data: { currentEnrolled: { decrement: 1 } } });
+      await tx.gymMember.updateMany({ where: { id: b.memberId, totalSpent: { gte: b.price } }, data: { totalSpent: { decrement: b.price } } });
+      return { bookingId: id };
     });
   }
 

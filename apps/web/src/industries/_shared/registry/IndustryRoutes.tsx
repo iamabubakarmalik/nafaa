@@ -3,6 +3,7 @@ import { RequireShop } from '@modules/pos/components';
 import PermissionRoute from '@app/router/PermissionRoute';
 import { permissionForPath } from '@core/lib/route-permissions';
 import { IndustryRegistry } from './IndustryRegistry';
+import { useCurrentIndustry } from './useCurrentIndustry';
 import type { IndustryRoute } from '../types/industry-pack';
 import type { ReactElement } from 'react';
 
@@ -22,7 +23,11 @@ import type { ReactElement } from 'react';
  */
 export function industryRoutes(): ReactElement[] {
   const packs = IndustryRegistry.all();
-  const nodes: ReactElement[] = [];
+
+  // Several packs may declare the same path (e.g. `/emi-plans/:id` in mobile
+  // and appliances). React Router would always open the first one, so each
+  // path gets one route that renders the active pack's page.
+  const byPath = new Map<string, Array<{ packId: string; node: ReactElement }>>();
 
   for (const pack of packs) {
     for (const r of pack.routes) {
@@ -46,13 +51,24 @@ export function industryRoutes(): ReactElement[] {
         node = <PermissionRoute permission={permission}>{node}</PermissionRoute>;
       }
 
-      nodes.push(
-        <Route key={`${pack.id}::${r.path}`} path={r.path} element={node} />,
-      );
+      const list = byPath.get(r.path) ?? [];
+      list.push({ packId: pack.id, node });
+      byPath.set(r.path, list);
     }
   }
 
+  const nodes: ReactElement[] = [];
+  for (const [path, options] of byPath) {
+    const element = options.length === 1 ? options[0].node : <ActivePackRoute options={options} />;
+    nodes.push(<Route key={`${options[0].packId}::${path}`} path={path} element={element} />);
+  }
   return nodes;
+}
+
+/** Renders the active pack's page for a path that several packs declare; the first pack's otherwise. */
+function ActivePackRoute({ options }: { options: Array<{ packId: string; node: ReactElement }> }) {
+  const industry = useCurrentIndustry();
+  return (options.find((o) => o.packId === industry?.id) ?? options[0]).node;
 }
 
 /** Alias for readability at call site */

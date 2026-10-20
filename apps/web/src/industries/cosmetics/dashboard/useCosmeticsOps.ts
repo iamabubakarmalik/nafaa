@@ -1,72 +1,37 @@
 /**
- * Cosmetics numbers for the dashboard: batch expiry and loyalty birthdays.
- * `available` is false when the overview request fails, so widgets can say
- * the data is missing instead of showing an "all clear".
+ * Cosmetics numbers for the dashboard: batch expiry from the shared product
+ * batches and this month's customer birthdays from the customer directory.
+ * `available` is false when the requests fail, so widgets can say the data
+ * is missing instead of showing an "all clear".
  */
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { cosmeticsDashboardApi } from '../api/dashboard.api';
+import { productBatchesApi } from '@modules/inventory/products/api/product-batches.api';
+import { directoryApi } from '@modules/customers/directory/api';
+import { COSMETICS_KEYS, daysFrom } from '../lib/meta';
 
 const MINUTE = 60_000;
-const DAY = 86_400_000;
-
-interface ExpiringBatch {
-  id: string;
-  batchNumber: string;
-  currentStock?: number;
-  expiryDate: string;
-  product?: { name?: string } | null;
-}
-
-interface BirthdayMember {
-  id: string;
-  name: string;
-  phone?: string | null;
-  tier?: string | null;
-  dateOfBirth?: string | null;
-}
-
-interface CosmeticsOverview {
-  totals?: { totalBrands?: number; totalProducts?: number; totalBatches?: number; activeBundles?: number; totalLoyaltyMembers?: number; expiredBatches?: number; expiringSoonBatches?: number };
-  expiringBatches?: ExpiringBatch[];
-  birthdayMembers?: BirthdayMember[];
-}
 
 export function useCosmeticsOps() {
-  const overview = useQuery({
-    queryKey: ['cosmetics-dashboard-overview'],
-    queryFn: () => cosmeticsDashboardApi.overview().catch(() => null) as Promise<CosmeticsOverview | null>,
-    refetchInterval: MINUTE,
+  const soon = useQuery({ queryKey: [COSMETICS_KEYS.expiry, 'soon', 30], queryFn: () => productBatchesApi.expiringSoon(30), refetchInterval: 5 * MINUTE });
+  const expired = useQuery({ queryKey: [COSMETICS_KEYS.expiry, 'expired'], queryFn: productBatchesApi.expired, refetchInterval: 5 * MINUTE });
+  const birthdays = useQuery({
+    queryKey: ['cosmetics-birthdays'],
+    queryFn: () => directoryApi.list({ status: 'active', type: 'all', activity: 'all', sort: 'name', birthday: 'month', scope: 'all' }, 1, 1),
+    staleTime: 30 * MINUTE,
   });
 
   return useMemo(() => {
-    const d = overview.data;
-    const t: NonNullable<CosmeticsOverview['totals']> = d?.totals ?? {};
-    const batches = (d?.expiringBatches ?? [])
-      .map((b) => ({ ...b, days: Math.ceil((new Date(b.expiryDate).getTime() - Date.now()) / DAY) }))
-      .sort((a, b) => a.days - b.days);
-    const dayOfMonth = (iso?: string | null) => (iso ? new Date(iso).getDate() : 99);
+    const live = <T extends { isActive: boolean; quantity: number }>(rows?: T[]) => (rows ?? []).filter((b) => b.isActive && b.quantity > 0);
+    const list = live(soon.data).map((b) => ({ ...b, days: daysFrom(b.expiryDate) ?? 999 })).sort((a, b) => a.days - b.days);
     const today = new Date().getDate();
-    const members = [...(d?.birthdayMembers ?? [])].sort((a, b) => dayOfMonth(a.dateOfBirth) - dayOfMonth(b.dateOfBirth));
-
+    const people = [...(birthdays.data?.stats.birthdays ?? [])].sort((a, b) => a.day - b.day);
     return {
-      available: !!d,
-      expiry: {
-        expired: t.expiredBatches ?? 0,
-        soon: t.expiringSoonBatches ?? 0,
-        week: batches.filter((b) => b.days <= 7).length,
-        list: batches,
-      },
-      loyalty: {
-        members: t.totalLoyaltyMembers ?? 0,
-        birthdays: members,
-        upcoming: members.filter((m) => dayOfMonth(m.dateOfBirth) >= today),
-      },
-      totals: {
-        brands: t.totalBrands ?? 0, products: t.totalProducts ?? 0, batches: t.totalBatches ?? 0, bundles: t.activeBundles ?? 0,
-      },
-      loading: overview.isLoading,
+      available: !soon.isError && !expired.isError,
+      expiry: { expired: live(expired.data).length, soon: list.length, week: list.filter((b) => b.days <= 7).length, list },
+      birthdays: { all: people, upcoming: people.filter((p) => p.day >= today) },
+      loading: soon.isLoading || expired.isLoading,
     };
-  }, [overview.data, overview.isLoading]);
+  }, [soon.data, soon.isError, soon.isLoading, expired.data, expired.isError, expired.isLoading, birthdays.data]);
 }

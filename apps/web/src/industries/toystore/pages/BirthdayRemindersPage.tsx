@@ -1,409 +1,224 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Cake, Plus, Search, X, RefreshCw, User, Phone, Calendar,
-  ArrowRight, Save, Trash2, Sparkles, Gift, TrendingUp,
-  Users, Baby, DollarSign, AlertTriangle,
-} from 'lucide-react';
+/**
+ * Children's birthdays: the shop keeps each child's birth date and the
+ * parent's number, and a week before the day sends the parent a WhatsApp
+ * with gift ideas. Turning off a reminder keeps the child's record and
+ * gift history.
+ *
+ * Keys: N new · / search · G guide.
+ */
+
+import { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Bell, Cake, GraduationCap, MessageCircle, Pencil, Plus, Power, Users } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, SkeletonTable, Table, TBody, THead, Td, Th, Tr, ViewTabs,
+  heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { PrintButton } from '@core/print';
+import { waLink } from '@core/lib/whatsapp/templates';
 import { toyBirthdaysApi, type ToyBirthdayReminder } from '../api/birthday-reminders.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+import { GENDERS, KEYS, apiError, labelOf } from '../lib/meta';
+import { ConfirmModal, EmptyBox, usePageKeys, useSaveKey } from '../components/ui';
+
+type Tab = 'soon' | 'all' | 'off';
+
+const whenText = (d: number) => (d === 0 ? 'Aaj' : d === 1 ? 'Kal' : `${d} din baad`);
+const dob = (v: string) => new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+/** WhatsApp text for the parent before the birthday. */
+export function reminderText(r: ToyBirthdayReminder, shop?: string) {
+  const days = r.computed?.daysUntilBirthday ?? 0;
+  return `Assalam o Alaikum ${r.customerName}! ${r.childName} ki saalgirah ${days === 0 ? 'aaj' : days === 1 ? 'kal' : `${days} din baad`} hai — ${r.computed?.turningAge ?? ''} saal ke ho rahe hain. 🎂 Un ki umar ke naye khilone aur gift packs${shop ? ` ${shop} par` : ''} aa gaye hain. Gift wrap bhi hota hai.`;
+}
 
 export default function BirthdayRemindersPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const canEdit = usePermission(PERMISSIONS.CUSTOMERS_EDIT);
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [activeOnly, setActiveOnly] = useState(true);
-  const [genderFilter, setGenderFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
+  const [tab, setTab] = useState<Tab>('soon');
+  const [form, setForm] = useState<ToyBirthdayReminder | 'new' | null>(null);
+  const [off, setOff] = useState<ToyBirthdayReminder | null>(null);
 
-  const { data: reminders = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['birthday-reminders-list', activeOnly, genderFilter],
-    queryFn: () => toyBirthdaysApi.list({
-      active: activeOnly ? true : undefined,
-      gender: genderFilter === 'all' ? undefined : genderFilter,
-    }),
+  const listQ = useQuery({ queryKey: [KEYS.birthdays, 'all'], queryFn: () => toyBirthdaysApi.list() });
+  const all = useMemo(() => listQ.data ?? [], [listQ.data]);
+  const days = (r: ToyBirthdayReminder) => r.computed?.daysUntilBirthday ?? 999;
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return all.filter((r) => (tab === 'off' ? !r.isActive : r.isActive && (tab === 'all' || days(r) <= 30))
+      && (!q || [r.childName, r.customerName, r.customerPhone].some((v) => v?.toLowerCase().includes(q))));
+  }, [all, search, tab]);
+  const active = all.filter((r) => r.isActive);
+  const week = active.filter((r) => days(r) <= 7);
+  const due = active.filter((r) => days(r) <= r.reminderDaysBefore && (!r.lastReminderSent || Date.now() - new Date(r.lastReminderSent).getTime() > 30 * 86_400_000));
+
+  const refresh = () => qc.invalidateQueries({ queryKey: [KEYS.birthdays] });
+  const sent = useMutation({ mutationFn: (r: ToyBirthdayReminder) => toyBirthdaysApi.markReminderSent(r.id), onSuccess: refresh });
+  const switchOff = useMutation({
+    mutationFn: (r: ToyBirthdayReminder) => toyBirthdaysApi.remove(r.id),
+    onSuccess: () => { refresh(); setOff(null); toast.success('Yaad dihani band — record mehfooz hai'); },
+    onError: (e) => toast.error(apiError(e, 'Band nahi hua')),
   });
 
-  const { data: summary } = useQuery({
-    queryKey: ['birthday-summary'],
-    queryFn: () => toyBirthdaysApi.summary(),
-    refetchInterval: 60_000,
-  });
+  const remind = (r: ToyBirthdayReminder) => {
+    const link = waLink(r.customerPhone, reminderText(r));
+    if (!link) { toast.error('Phone number sahi nahi'); return; }
+    window.open(link, '_blank', 'noopener');
+    if (canEdit) sent.mutate(r);
+  };
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return reminders;
-    return reminders.filter((r) =>
-      r.customerName.toLowerCase().includes(q) ||
-      r.childName.toLowerCase().includes(q) ||
-      r.customerPhone.includes(q)
-    );
-  }, [reminders, search]);
+  usePageKeys(searchRef, canEdit ? { n: () => setForm('new') } : {});
 
-  const remove = useMutation({
-    mutationFn: (id: string) => toyBirthdaysApi.remove(id),
-    onSuccess: () => {
-      toast.success('Birthday reminder deleted');
-      qc.invalidateQueries({ queryKey: ['birthday-reminders-list'] });
-    },
+  const doc = () => ({
+    title: 'Bachon ki saalgirah',
+    subtitle: tab === 'soon' ? 'Agle 30 din' : tab === 'off' ? 'Band' : 'Sab',
+    sections: [{
+      kind: 'table' as const,
+      columns: [{ label: 'Bacha' }, { label: 'Walid / walida' }, { label: 'Phone' }, { label: 'Saalgirah' }, { label: 'Umar', align: 'right' as const }],
+      rows: rows.map((r) => [r.childName, r.customerName, r.customerPhone, `${dob(r.childBirthDate)} · ${whenText(days(r))}`, String(r.computed?.turningAge ?? '')]),
+    }],
   });
 
   return (
-    <div className="space-y-5">
-      {showForm && (
-        <NewBirthdayModal
-          onClose={() => setShowForm(false)}
-          onSaved={() => {
-            setShowForm(false);
-            qc.invalidateQueries({ queryKey: ['birthday-reminders-list'] });
-            qc.invalidateQueries({ queryKey: ['birthday-summary'] });
-          }} />
-      )}
+    <PageShell>
+      <PageHero
+        title="Saalgirah"
+        chip={<><Cake /> Bachon ki birthday</>}
+        meta="Saalgirah se pehle walidain ko WhatsApp — gift yahin se"
+        loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya bacha (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Bacha</button>}
+        </>}
+        stats={[{ label: 'Bachay', value: active.length }, { label: 'Is hafte', value: week.length }]}
+      />
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Cake className="h-3.5 w-3.5 text-amber-300" /> Repeat-customer engine
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🎂 Birthday Reminders</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {summary?.totalRegistered ?? 0} children • {summary?.birthdaysThisWeek ?? 0} this week •{' '}
-              <strong className="text-emerald-300">{formatPKR(summary?.lifetimeRevenue || 0)}</strong> lifetime revenue
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" /> Add Birthday
-            </Button>
-          </div>
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        <KpiCard icon={Cake} color="#db2777" label="Agle 30 din" value={active.filter((r) => days(r) <= 30).length} onClick={() => setTab('soon')} active={tab === 'soon'} />
+        <KpiCard icon={Bell} color="#d97706" label="Message bhejna hai" value={due.length} hint="Yaad dihani ka waqt" onClick={() => setTab('soon')} />
+        <KpiCard icon={Users} color="#0891b2" label="Sab bachay" value={active.length} onClick={() => setTab('all')} active={tab === 'all'} />
+        <KpiCard icon={Power} color="#64748b" label="Band" value={all.length - active.length} onClick={() => setTab('off')} active={tab === 'off'} />
+      </KpiRow>
 
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Total" value={summary.totalRegistered} icon={Cake} tone="pink" />
-          <StatCard label="This Week" value={summary.birthdaysThisWeek} icon={AlertTriangle} tone="amber" />
-          <StatCard label="This Month" value={summary.birthdaysThisMonth} icon={Calendar} tone="violet" />
-          <StatCard label="Avg Spend" value={formatPKR(summary.avgSpendPerPurchase)} icon={DollarSign} tone="emerald" />
-        </section>
-      )}
+      <ViewTabs<Tab> tabs={[{ id: 'soon', label: 'Qareeb' }, { id: 'all', label: 'Sab' }, { id: 'off', label: 'Band' }]} value={tab} onChange={setTab}
+        right={<PrintButton doc={doc} disabled={!rows.length} size="sm" />} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bachay ya walid ka naam, phone" label="Search" />} />
 
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Customer / child name / phone..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2 flex-wrap items-center">
-          <button onClick={() => setActiveOnly(!activeOnly)}
-            className={`h-10 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-              activeOnly ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-700'}`}>
-            Active Only
-          </button>
-          <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 bg-white px-3 text-xs font-bold focus:outline-none focus:border-pink-500">
-            <option value="all">All genders</option>
-            <option value="BOYS">👦 Boys</option>
-            <option value="GIRLS">👧 Girls</option>
-            <option value="UNISEX">⚧️ Unisex</option>
-          </select>
-          <div className="ml-auto text-xs font-extrabold text-slate-500">{filtered.length} children</div>
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Cake className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No birthdays registered</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">
-            Add customers' children's birthdays to send gift reminders and boost repeat sales
-          </p>
-          <Button className="mt-4 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4" /> Register First Birthday
-          </Button>
-        </div>
+      {listQ.isLoading ? <SkeletonTable /> : rows.length === 0 ? (
+        <EmptyBox icon={Cake} title={search ? 'Koi nahi mila' : tab === 'soon' ? 'Agle 30 din me koi saalgirah nahi' : 'Abhi koi bacha nahi'}
+          text="Bill ke waqt walidain se bachay ki paidaish ki tareekh pooch kar likh lein — saalgirah se pehle message bhej kar gift yahin se bikta hai."
+          action={canEdit && !search ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Bacha jorein</Button> : undefined} />
       ) : (
-        <div className="space-y-3">
-          {filtered.map((r) => (
-            <BirthdayCard key={r.id} reminder={r}
-              onDelete={() => { if (confirm(`Delete birthday reminder for ${r.childName}?`)) remove.mutate(r.id); }} />
-          ))}
-        </div>
+        <Table minWidth="52rem">
+          <THead><Tr><Th>Bacha</Th><Th>Walid / walida</Th><Th>Saalgirah</Th><Th align="right">Gift</Th><Th align="right">{' '}</Th></Tr></THead>
+          <TBody>
+            {rows.map((r) => {
+              const d = days(r);
+              return (
+                <Tr key={r.id} interactive onClick={() => navigate(`/toystore/birthdays/${r.id}`)}>
+                  <Td>
+                    <p className="font-medium text-slate-900">{r.childName}</p>
+                    <p className="text-[0.75rem] text-slate-500">{[labelOf(GENDERS, r.childGender), `${Math.floor(r.computed?.currentAge ?? 0)} saal`].filter(Boolean).join(' · ')}</p>
+                  </Td>
+                  <Td><p>{r.customerName}</p><p className="text-[0.75rem] tabular-nums text-slate-500">{r.customerPhone}</p></Td>
+                  <Td>
+                    <span className={cn('inline-flex rounded-md px-2 py-0.5 text-[0.75rem] font-semibold ring-1', d <= 7 ? 'bg-pink-50 text-pink-700 ring-pink-200' : 'bg-slate-50 text-slate-600 ring-slate-200')}>{whenText(d)}</span>
+                    <p className="mt-0.5 text-[0.75rem] text-slate-500">{dob(r.childBirthDate)} · {r.computed?.turningAge} saal ka</p>
+                  </Td>
+                  <Td align="right" className="text-[0.8125rem]">{r.lastGiftGiven ? <span className="text-slate-700">{r.lastGiftGiven}</span> : <span className="text-slate-400">—</span>}</Td>
+                  <Td align="right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-end gap-1">
+                      {r.isActive && <button type="button" onClick={() => remind(r)} title="WhatsApp" className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-semibold text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" />Message</button>}
+                      {canEdit && <button type="button" onClick={() => setForm(r)} aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>}
+                      {canEdit && r.isActive && <button type="button" onClick={() => setOff(r)} aria-label="Band karein" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Power className="h-4 w-4" /></button>}
+                    </div>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </TBody>
+        </Table>
       )}
-    </div>
+
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> naya bacha · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+
+      {form && <BirthdayForm value={form === 'new' ? null : form} onClose={() => setForm(null)} onSaved={() => { refresh(); setForm(null); }} />}
+      {off && (
+        <ConfirmModal title={`${off.childName} ki yaad dihani band karein?`} confirm="Band karein" danger pending={switchOff.isPending}
+          text="Message ki list se hat jayega. Bachay ka record aur gift ki history rahegi."
+          onConfirm={() => switchOff.mutate(off)} onClose={() => setOff(null)} />
+      )}
+      {guide.isOpen && (
+        <PageGuide title="Saalgirah — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#db2777', title: 'Bacha jorein', text: 'Walid ka naam, phone aur bachay ki paidaish ki tareekh. Kitne din pehle yaad dilana hai wo bhi.' },
+            { icon: MessageCircle, color: '#16a34a', title: 'Message', text: '"Message" WhatsApp kholta hai — umar ke hisaab se khilone aur gift pack ka message tayyar hota hai.' },
+            { icon: Cake, color: '#d97706', title: 'Gift', text: 'Bachay ko kholein — us ki umar ke khilone aur pack nazar aate hain. Gift bikne ke baad "Gift likhein".' },
+          ]}
+          shortcuts={[['N', 'naya bacha'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function BirthdayCard({ reminder: r, onDelete }: any) {
-  const days = r.computed?.daysUntilBirthday ?? 0;
-  const isToday = days === 0;
-  const isSoon = days > 0 && days <= 7;
+interface Draft { childName: string; childBirthDate: string; childGender: string; customerName: string; customerPhone: string; parentRelation: string; budgetRange: string; reminderDaysBefore: string; notes: string }
 
-  return (
-    <Link to={`/toystore/birthdays/${r.id}`}
-      className={`block rounded-2xl bg-white border-2 shadow-sm p-4 hover:shadow-lg transition ${
-        isToday ? 'border-rose-400 ring-2 ring-rose-200' :
-        isSoon ? 'border-amber-300' : 'border-slate-200 hover:border-pink-300'}`}>
-      <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
-        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 font-extrabold text-white text-lg ${
-          isToday ? 'bg-rose-500' : isSoon ? 'bg-amber-500' : 'bg-pink-500'}`}>
-          {isToday ? '🎉' : days}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-extrabold text-slate-900 text-lg">{r.childName}</h3>
-            <span className="text-xs font-extrabold text-pink-700">turning {r.computed?.turningAge}</span>
-            {r.childGender && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">
-                {r.childGender === 'BOYS' ? '👦' : r.childGender === 'GIRLS' ? '👧' : '⚧️'} {r.childGender}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 mt-2 text-xs text-slate-600 font-bold flex-wrap">
-            <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {r.customerName}</span>
-            <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {r.customerPhone}</span>
-            {r.parentRelation && (<><span>•</span><span>{r.parentRelation}</span></>)}
-          </div>
-
-          {r.childInterests?.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {r.childInterests.slice(0, 4).map((i: string) => (
-                <span key={i} className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold">{i}</span>
-              ))}
-            </div>
-          )}
-
-          {r.lastGiftGiven && (
-            <div className="mt-2 text-[0.6875rem] text-slate-500 font-semibold italic">
-              Last gift: "{r.lastGiftGiven}"
-            </div>
-          )}
-        </div>
-
-        <div className="text-right shrink-0 flex flex-col items-end gap-2">
-          <div>
-            <div className={`text-xs font-extrabold uppercase ${
-              isToday ? 'text-rose-700' : isSoon ? 'text-amber-700' : 'text-pink-700'}`}>
-              {isToday ? '🎉 Today!' : days === 1 ? 'Tomorrow' : `${days} days`}
-            </div>
-            {r.budgetRange && <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Budget: {r.budgetRange}</div>}
-          </div>
-          {r.totalPurchases > 0 && (
-            <div className="text-right">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Lifetime</div>
-              <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(r.totalSpent)}</div>
-              <div className="text-[0.6875rem] font-bold text-slate-500">{r.totalPurchases} orders</div>
-            </div>
-          )}
-          <div className="flex gap-1.5">
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
-              className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-            <ArrowRight className="h-4 w-4 text-slate-400 self-center" />
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function NewBirthdayModal({ onClose, onSaved }: any) {
-  const [form, setForm] = useState({
-    customerName: '',
-    customerPhone: '',
-    childName: '',
-    childBirthDate: '',
-    childGender: 'UNISEX',
-    parentRelation: '',
-    budgetRange: '',
-    childInterests: [] as string[],
-    reminderDaysBefore: 7,
-    notes: '',
-  });
-  const [interestInput, setInterestInput] = useState('');
-
+/** Add or change a child; used here and on the child's page. */
+export function BirthdayForm({ value, onClose, onSaved }: { value: ToyBirthdayReminder | null; onClose: () => void; onSaved: () => void }) {
+  const [d, setD] = useState<Draft>(() => ({
+    childName: value?.childName ?? '', childBirthDate: value?.childBirthDate?.slice(0, 10) ?? '', childGender: value?.childGender ?? '',
+    customerName: value?.customerName ?? '', customerPhone: value?.customerPhone ?? '', parentRelation: value?.parentRelation ?? '',
+    budgetRange: value?.budgetRange ?? '', reminderDaysBefore: String(value?.reminderDaysBefore ?? 7), notes: value?.notes ?? '',
+  }));
+  const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }));
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' });
+  const problem = !d.childName.trim() ? 'Bachay ka naam likhein'
+    : !d.childBirthDate ? 'Paidaish ki tareekh chunein'
+      : d.childBirthDate > today ? 'Paidaish ki tareekh aage ki nahi ho sakti'
+        : !d.customerName.trim() ? 'Walid / walida ka naam likhein'
+          : d.customerPhone.replace(/\D/g, '').length < 10 ? 'Phone number poora likhein'
+            : !(Number(d.reminderDaysBefore) >= 0 && Number(d.reminderDaysBefore) <= 60) ? 'Yaad dihani 0 se 60 din pehle' : null;
   const save = useMutation({
-    mutationFn: () => toyBirthdaysApi.create(form as any),
-    onSuccess: () => {
-      toast.success('Birthday reminder added');
-      onSaved();
+    mutationFn: () => {
+      if (problem) throw new Error(problem);
+      const body = {
+        childName: d.childName.trim(), childBirthDate: d.childBirthDate, childGender: d.childGender || undefined, customerName: d.customerName.trim(),
+        customerPhone: d.customerPhone.trim(), parentRelation: d.parentRelation.trim() || undefined, budgetRange: d.budgetRange.trim() || undefined,
+        reminderDaysBefore: Math.round(Number(d.reminderDaysBefore) || 7), notes: d.notes.trim() || undefined,
+      };
+      return value ? toyBirthdaysApi.update(value.id, body) : toyBirthdaysApi.create(body);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
+    onSuccess: () => { toast.success(value ? 'Save ho gaya' : 'Bacha jur gaya'); onSaved(); },
+    onError: (e) => toast.error(apiError(e, (e as Error).message || 'Save nahi hua')),
   });
-
-  const addInterest = () => {
-    const t = interestInput.trim();
-    if (t && !form.childInterests.includes(t)) {
-      setForm({ ...form, childInterests: [...form.childInterests, t] });
-      setInterestInput('');
-    }
-  };
-
+  useSaveKey(() => { if (!save.isPending) save.mutate(); });
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-pink-600 to-rose-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">🎂 New Birthday Reminder</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="rounded-xl bg-pink-50 border-2 border-pink-200 p-3 text-xs text-pink-900 font-semibold">
-            💡 <strong>Repeat-customer magic:</strong> When you register a child's birthday, you can send reminders + gift suggestions to the parent before every birthday.
-          </div>
-
-          <div>
-            <Lbl>Parent Name *</Lbl>
-            <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-              placeholder="Parent's full name"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-          </div>
-          <div>
-            <Lbl>Parent Phone *</Lbl>
-            <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-              placeholder="03XX XXXXXXX"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Child's Name *</Lbl>
-              <input value={form.childName} onChange={(e) => setForm({ ...form, childName: e.target.value })}
-                placeholder="Child's name"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-            </div>
-            <div>
-              <Lbl>Child's Birth Date *</Lbl>
-              <input type="date" value={form.childBirthDate} onChange={(e) => setForm({ ...form, childBirthDate: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Child's Gender</Lbl>
-              <select value={form.childGender} onChange={(e) => setForm({ ...form, childGender: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-pink-500">
-                <option value="UNISEX">⚧️ Prefer not to say</option>
-                <option value="BOYS">👦 Boy</option>
-                <option value="GIRLS">👧 Girl</option>
-              </select>
-            </div>
-            <div>
-              <Lbl>Parent's Relation</Lbl>
-              <input value={form.parentRelation} onChange={(e) => setForm({ ...form, parentRelation: e.target.value })}
-                placeholder="Mother, Father, Aunt..."
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Child's Interests</Lbl>
-            <div className="flex gap-2 mb-2">
-              <input value={interestInput} onChange={(e) => setInterestInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addInterest())}
-                placeholder="Add interest (dinosaurs, cars, dolls...)"
-                className="h-11 flex-1 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-              <button type="button" onClick={addInterest}
-                className="h-11 px-4 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-sm">
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            {form.childInterests.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {form.childInterests.map((i) => (
-                  <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-violet-100 text-violet-800 text-xs font-extrabold">
-                    {i}
-                    <button onClick={() => setForm({ ...form, childInterests: form.childInterests.filter((x) => x !== i) })}
-                      className="hover:text-rose-700">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Budget Range</Lbl>
-              <input value={form.budgetRange} onChange={(e) => setForm({ ...form, budgetRange: e.target.value })}
-                placeholder="e.g. 2000-5000"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-            </div>
-            <div>
-              <Lbl>Remind days before</Lbl>
-              <input type="number" min="1" max="60" value={form.reminderDaysBefore}
-                onChange={(e) => setForm({ ...form, reminderDaysBefore: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Notes</Lbl>
-            <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Any special notes about the child or family..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-pink-500" />
-          </div>
-        </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700"
-            onClick={() => save.mutate()} loading={save.isPending}
-            disabled={!form.customerName.trim() || !form.customerPhone.trim() || !form.childName.trim() || !form.childBirthDate}>
-            <Save className="h-4 w-4" /> Save Birthday
-          </Button>
-        </div>
+    <Modal open onClose={onClose} size="lg" title={value ? `${value.childName} — badlein` : 'Naya bacha'} description="Saalgirah se pehle walidain ko message jata hai"
+      footer={<>
+        {problem && (d.childName || d.customerName) ? <p className="mr-auto text-[0.8125rem] text-amber-800">{problem}</p> : <span className="mr-auto hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button onClick={() => save.mutate()} loading={save.isPending}>{value ? 'Save karein' : 'Jorein'}</Button>
+      </>}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input label="Bachay ka naam" required value={d.childName} onChange={(e) => set({ childName: e.target.value })} placeholder="Ayaan" autoFocus />
+        <Input label="Paidaish ki tareekh" required type="date" max={today} value={d.childBirthDate} onChange={(e) => set({ childBirthDate: e.target.value })} hint="Isi se umar aur saalgirah ka din" />
+        <Select label="Bacha / bachi" value={d.childGender} onChange={(e) => set({ childGender: e.target.value })} options={[{ value: '', label: '—' }, { value: 'BOYS', label: 'Larka' }, { value: 'GIRLS', label: 'Larki' }]} hint="Gift ke mashwaray ke liye" />
+        <Input label="Budget" value={d.budgetRange} onChange={(e) => set({ budgetRange: e.target.value })} placeholder="1000-3000" hint="Is se mehnge khilone mashwaray me nahi aate" />
+        <Input label="Walid / walida ka naam" required value={d.customerName} onChange={(e) => set({ customerName: e.target.value })} placeholder="Imran Khan" />
+        <Input label="WhatsApp number" required inputMode="tel" value={d.customerPhone} onChange={(e) => set({ customerPhone: e.target.value })} placeholder="03001234567" />
+        <Input label="Rishta" value={d.parentRelation} onChange={(e) => set({ parentRelation: e.target.value })} placeholder="Walid, mamu, phuppo" hint="Marzi hai" />
+        <Input label="Kitne din pehle yaad dilayein" inputMode="numeric" value={d.reminderDaysBefore} onChange={(e) => set({ reminderDaysBefore: e.target.value.replace(/\D/g, '') })} hint="Aam tor par 7 din" />
+        <Input label="Note" value={d.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Cars pasand hain" wrapperClassName="sm:col-span-2" hint="Marzi hai" />
       </div>
-    </div>
+    </Modal>
   );
-}
-
-function StatCard({ label, value, icon: Icon, tone }: any) {
-  const tones: Record<string, string> = {
-    pink: 'from-pink-500 to-rose-700', amber: 'from-amber-500 to-orange-600',
-    violet: 'from-violet-500 to-purple-700', emerald: 'from-emerald-500 to-emerald-700',
-  };
-  return (
-    <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
 }

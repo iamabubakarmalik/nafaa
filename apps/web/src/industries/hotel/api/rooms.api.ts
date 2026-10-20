@@ -7,6 +7,8 @@ export type HousekeepingStatus = 'DIRTY' | 'CLEAN' | 'INSPECTED' | 'OUT_OF_ORDER
 
 export interface HotelRoom {
   id: string;
+  /** Branch of the room; null = shows in every branch. */
+  shopId?: string | null;
   roomTypeId: string;
   roomNumber: string;
   floor?: string | null;
@@ -46,7 +48,7 @@ export interface BoardRoom extends HotelRoom {
 export interface RoomSummary { total: number; available: number; occupied: number; reserved: number; cleaning: number; maintenance: number; dirty: number; occupancyPct: number }
 
 /** Status and cleaning state are taken only when a room is created. */
-export type RoomInput = Partial<Pick<HotelRoom, 'roomTypeId' | 'roomNumber' | 'floor' | 'building' | 'wing' | 'viewType' | 'facing' | 'customPrice' | 'customNotes' | 'isActive' | 'status' | 'housekeepingStatus'>>;
+export type RoomInput = Partial<Pick<HotelRoom, 'roomTypeId' | 'roomNumber' | 'floor' | 'building' | 'wing' | 'viewType' | 'facing' | 'customPrice' | 'customNotes' | 'isActive' | 'status' | 'housekeepingStatus' | 'shopId'>>;
 
 const unwrap = <T,>(res: { data: unknown }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 

@@ -1,6 +1,6 @@
 import { apiClient } from '@core/api/client';
 
-export type StationeryCategory = 'PEN_BALLPOINT' | 'PEN_GEL' | 'PEN_FOUNTAIN' | 'PEN_MARKER'
+type StationeryCategory = 'PEN_BALLPOINT' | 'PEN_GEL' | 'PEN_FOUNTAIN' | 'PEN_MARKER'
   | 'PENCIL_HB' | 'PENCIL_COLOR' | 'PENCIL_MECHANICAL' | 'HIGHLIGHTER' | 'CRAYON' | 'CHALK'
   | 'NOTEBOOK' | 'REGISTER' | 'DIARY' | 'SKETCHBOOK' | 'PAD' | 'LOOSE_PAPER' | 'GRAPH_PAPER'
   | 'ENVELOPE' | 'LETTER_HEAD' | 'CHART_PAPER' | 'CARD_PAPER' | 'STICKY_NOTES' | 'ERASER'
@@ -41,5 +41,4 @@ export const stationeryProfilesApi = {
   upsert: (data: any) => apiClient.post('/bookstore/stationery-profiles', data).then(unwrap<StationeryProfile>),
   list: (params?: any) => apiClient.get('/bookstore/stationery-profiles', { params }).then(unwrap<StationeryProfile[]>),
   byProduct: (productId: string) => apiClient.get('/bookstore/stationery-profiles/by-product/' + productId).then(unwrap<StationeryProfile | null>),
-  remove: (id: string) => apiClient.delete('/bookstore/stationery-profiles/' + id).then(unwrap),
 };

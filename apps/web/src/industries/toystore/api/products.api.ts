@@ -114,44 +114,37 @@ export interface ToyProductProfile {
   updatedAt: string;
 }
 
+/** Slim toy details of one catalog item (GET /toystore/products/facts). */
+export interface ToyFact {
+  productId: string; categoryType?: ToyCategoryType | null; ageGroup: ToyAgeGroup; ageGroups: ToyAgeGroup[];
+  ageMinYears?: number | null; ageMaxYears?: number | null; genderTarget: ToyGenderTarget; brand?: string | null;
+  characterFranchise?: string | null; isEducational: boolean; requiresBatteries: boolean; batteriesIncluded: boolean;
+  batteryType?: string | null; batteryQuantity?: number | null; isRemoteControlled: boolean; chokingHazard: boolean;
+  smallPartsWarning: boolean; safetyCertifications: ToySafetyCertification[]; isEidGift: boolean; isBirthdayGift: boolean;
+  giftWrapAvailable: boolean;
+}
+
+export interface GiftWrap { id: string; name: string; price: number; isActive: boolean }
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const toyProductsApi = {
   upsert: (data: Partial<ToyProductProfile>) =>
     apiClient.post('/toystore/products', data).then(unwrap<ToyProductProfile>),
 
-  list: (params?: {
-    categoryType?: string; ageGroup?: string; genderTarget?: string;
-    brand?: string; franchise?: string;
-    educational?: boolean; rc?: boolean; requiresBatteries?: boolean;
-    montessori?: boolean; collectible?: boolean; multiplayer?: boolean;
-    noChokingHazard?: boolean;
-    featured?: boolean; bestSeller?: boolean; newArrival?: boolean; trending?: boolean;
-    birthdayGift?: boolean; eidGift?: boolean;
-    minPrice?: number; maxPrice?: number; search?: string;
-  }) => apiClient.get('/toystore/products', { params }).then(unwrap<ToyProductProfile[]>),
-
   forAge: (params: {
     years: number; gender?: string; maxBudget?: number;
     educationalOnly?: boolean; safeOnly?: boolean;
   }) => apiClient.get('/toystore/products/for-age', { params }).then(unwrap<any>),
 
+  facts: () => apiClient.get('/toystore/products/facts').then(unwrap<ToyFact[]>),
+
+  giftWrap: () => apiClient.get('/toystore/products/gift-wrap').then(unwrap<GiftWrap | null>),
+  setGiftWrap: (body: { price: number; name?: string }) => apiClient.post('/toystore/products/gift-wrap', body).then(unwrap<GiftWrap>),
+
   safetyReview: () =>
     apiClient.get('/toystore/products/safety-review').then(unwrap<any[]>),
 
-  batteryUpsell: () =>
-    apiClient.get('/toystore/products/battery-upsell').then(unwrap<any[]>),
-
-  counts: () => apiClient.get('/toystore/products/counts').then(unwrap<any>),
-
-  brands: () => apiClient.get('/toystore/products/brands').then(unwrap<any>),
-
   byProduct: (productId: string) =>
     apiClient.get('/toystore/products/by-product/' + productId).then(unwrap<ToyProductProfile | null>),
-
-  getOne: (id: string) =>
-    apiClient.get('/toystore/products/' + id).then(unwrap<ToyProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/toystore/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

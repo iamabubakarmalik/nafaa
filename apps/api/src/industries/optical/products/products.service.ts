@@ -9,7 +9,7 @@ export class OpticalProductsService {
 
   async upsert(user: AuthenticatedUser, dto: UpsertOpticalProductDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Product nahi mila');
 
     const existing = await this.prisma.opticalProductProfile.findUnique({ where: { productId: dto.productId } });
     const data: any = { ...dto, tenantId: user.tenantId };
@@ -114,19 +114,34 @@ export class OpticalProductsService {
       .map((p) => ({ ...p, product: map.get(p.productId) }));
   }
 
+  /** Slim facts per product for the shared products page and the counter. */
+  async facts(user: AuthenticatedUser) {
+    return this.prisma.opticalProductProfile.findMany({
+      where: { tenantId: user.tenantId },
+      select: {
+        productId: true, categoryType: true, brand: true, modelNumber: true, colorName: true, colorHex: true,
+        frameShape: true, frameMaterial: true, gender: true, frameSizeMm: true, bridgeSizeMm: true, templeLengthMm: true,
+        lensType: true, lensIndex: true, lensCoatings: true, hasBlueCut: true, isPhotochromic: true, isPolarized: true,
+        isContactLens: true, clDuration: true, clBaseCurve: true, clDiameter: true, clForAstigmatism: true,
+        supportsMinSph: true, supportsMaxSph: true, supportsMaxCyl: true, supportsProgressive: true, warrantyMonths: true,
+      },
+      take: 5000,
+    });
+  }
+
   async byProduct(user: AuthenticatedUser, productId: string) {
     return this.prisma.opticalProductProfile.findFirst({ where: { productId, tenantId: user.tenantId } });
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.opticalProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Optical details nahi mili');
     return p;
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.opticalProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Optical details nahi mili');
     return this.prisma.opticalProductProfile.delete({ where: { id } });
   }
 

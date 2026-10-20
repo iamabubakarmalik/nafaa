@@ -9,10 +9,14 @@ import {
   GroomingPaymentDto, PickupGroomingDto, RateGroomingDto, UpdateGroomingAppointmentDto, UpdateGroomingStatusDto,
 } from './dto/create-appointment.dto';
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Pet Shop - Grooming')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+// Appointments are counter work: booking, taking advances and the pickup bill.
+@RequirePermissions(PERMISSIONS.POS_USE)
 @Controller('petshop/grooming')
 export class GroomingController {
   constructor(private readonly service: GroomingService) {}
@@ -32,6 +36,20 @@ export class GroomingController {
     return this.service.list(user, { status, customerId, groomerId, species, from, to, search, today: today === 'true' });
   }
 
+  @Get('paged') paged(@GetUser() user: AuthenticatedUser,
+    @Query('status') status?: string,
+    @Query('groomerId') groomerId?: string,
+    @Query('species') species?: string,
+    @Query('today') today?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.paged(user, { status, groomerId, species, from, to, search, today: today === 'true', page: Number(page) || 1, limit: Number(limit) || 25 });
+  }
+  @Get('analytics') analytics(@GetUser() user: AuthenticatedUser, @Query('from') from?: string, @Query('to') to?: string) { return this.service.analytics(user, { from, to }); }
   @Get('summary') summary(@GetUser() user: AuthenticatedUser) { return this.service.summary(user); }
   @Get('today') today(@GetUser() user: AuthenticatedUser) { return this.service.todaySchedule(user); }
   @Get('available-slots') slots(@GetUser() user: AuthenticatedUser, @Query('groomerId') groomerId: string, @Query('date') date: string) {
@@ -45,6 +63,7 @@ export class GroomingController {
   @Post(':id/check-in') checkIn(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CheckInDto) { return this.service.checkIn(user, id, dto); }
   @Post(':id/start') start(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.start(user, id); }
   @Post(':id/complete') complete(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: CompleteGroomingDto) { return this.service.complete(user, id, dto); }
+  /** Makes the bill; money at the counter. */
   @Post(':id/pickup') pickup(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: PickupGroomingDto) {
     return this.service.pickup(user, scope, id, dto ?? {});
   }
@@ -54,5 +73,6 @@ export class GroomingController {
   @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateGroomingAppointmentDto) { return this.service.update(user, id, dto); }
   @Post(':id/rate') rate(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: RateGroomingDto) { return this.service.rate(user, id, dto); }
   @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateGroomingStatusDto) { return this.service.updateStatus(user, id, dto); }
+  /** Cancels the appointment; nothing is deleted. */
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

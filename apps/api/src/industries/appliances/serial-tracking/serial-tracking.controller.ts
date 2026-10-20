@@ -5,8 +5,9 @@ import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { ApplianceSerialService } from './serial-tracking.service';
-import { AssignSaleSerialsDto, BulkSerialDto, UpdateApplianceSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
+import { AssignSaleSerialsDto, BulkSerialDto, CreateApplianceSerialDto, MoveSerialsDto, UpdateApplianceSerialDto } from './dto/upsert-serial.dto';
 
 @ApiTags('Appliances - Serial Tracking')
 @ApiBearerAuth()
@@ -16,19 +17,47 @@ export class ApplianceSerialController {
   constructor(private readonly service: ApplianceSerialService) {}
 
   @Post()
-  create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertApplianceSerialDto) {
-    return this.service.create(user, dto);
+  create(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: CreateApplianceSerialDto) {
+    return this.service.create(user, shop, dto);
   }
 
-  /** Aik shipment ke saare serial ek sath. */
+  /** All serials of one shipment at once. */
   @Post('bulk')
-  bulk(@GetUser() user: AuthenticatedUser, @Body() dto: BulkSerialDto) {
-    return this.service.bulkCreate(user, dto);
+  bulk(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: BulkSerialDto) {
+    return this.service.bulkCreate(user, shop, dto);
+  }
+
+  /** Puts in-stock units in a branch (with a received transfer, or first placement). */
+  @Post('move')
+  @RequirePermissions(PERMISSIONS.ELECTRONICS_SERIALS_MANAGE)
+  move(@GetUser() user: AuthenticatedUser, @Body() dto: MoveSerialsDto) {
+    return this.service.move(user, dto);
+  }
+
+  /** Branches and recently received transfers, for the move dialog. */
+  @Get('branches')
+  @RequirePermissions(PERMISSIONS.ELECTRONICS_SERIALS_MANAGE)
+  branches(@GetUser() user: AuthenticatedUser) {
+    return this.service.branches(user);
+  }
+
+  /** In-stock units this counter can sell; part of selling, so it follows the counter right. */
+  @Get('counter')
+  @RequirePermissions(PERMISSIONS.POS_USE)
+  counter(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('productId') productId?: string) {
+    return this.service.counterUnits(user, shop, productId || undefined);
+  }
+
+  @Get('counter/lookup/:code')
+  @RequirePermissions(PERMISSIONS.POS_USE)
+  counterLookup(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('code') code: string) {
+    return this.service.counterLookup(user, shop, code);
   }
 
   @Get()
   list(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('productId') productId?: string,
     @Query('status') status?: string,
     @Query('installationStatus') installationStatus?: string,
@@ -37,7 +66,7 @@ export class ApplianceSerialController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.service.list(user, {
+    return this.service.list(user, shop, {
       productId, status, installationStatus, warranty, search,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
@@ -65,8 +94,8 @@ export class ApplianceSerialController {
   }
 
   @Get('summary')
-  summary(@GetUser() user: AuthenticatedUser) {
-    return this.service.summary(user);
+  summary(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
+    return this.service.summary(user, shop);
   }
 
   @Get('lookup/:code')

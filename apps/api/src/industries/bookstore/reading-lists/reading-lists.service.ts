@@ -22,7 +22,7 @@ export class ReadingListsService {
 
   async addItem(user: AuthenticatedUser, listId: string, dto: any) {
     const list = await this.prisma.customerReadingList.findFirst({ where: { id: listId, tenantId: user.tenantId } });
-    if (!list) throw new NotFoundException('Reading list not found');
+    if (!list) throw new NotFoundException('Reading list nahi mili');
 
     const item = await this.prisma.customerReadingListItem.upsert({
       where: { listId_productId: { listId, productId: dto.productId } },
@@ -38,9 +38,9 @@ export class ReadingListsService {
 
   async removeItem(user: AuthenticatedUser, listId: string, itemId: string) {
     const list = await this.prisma.customerReadingList.findFirst({ where: { id: listId, tenantId: user.tenantId }, select: { id: true } });
-    if (!list) throw new NotFoundException('Reading list not found');
+    if (!list) throw new NotFoundException('Reading list nahi mili');
     const item = await this.prisma.customerReadingListItem.findFirst({ where: { id: itemId, listId }, select: { id: true } });
-    if (!item) throw new NotFoundException('Item not found');
+    if (!item) throw new NotFoundException('Item nahi mila');
     await this.prisma.customerReadingListItem.delete({ where: { id: itemId } });
     const total = await this.prisma.customerReadingListItem.count({ where: { listId } });
     return this.prisma.customerReadingList.update({ where: { id: listId }, data: { totalItems: total } });
@@ -48,7 +48,7 @@ export class ReadingListsService {
 
   async markAsRead(user: AuthenticatedUser, itemId: string) {
     const item = await this.prisma.customerReadingListItem.findFirst({ where: { id: itemId, list: { tenantId: user.tenantId } }, select: { id: true } });
-    if (!item) throw new NotFoundException('Item not found');
+    if (!item) throw new NotFoundException('Item nahi mila');
     return this.prisma.customerReadingListItem.update({
       where: { id: itemId },
       data: { isRead: true, readAt: new Date() },

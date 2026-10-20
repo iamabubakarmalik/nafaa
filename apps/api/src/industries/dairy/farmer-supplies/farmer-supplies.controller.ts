@@ -30,7 +30,9 @@ export class FarmerSuppliesController {
     return this.service.byFarmer(user, farmerId, { from, to });
   }
   @Post(':id/mark-paid') @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
-  markPaid(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: SupplyPayDto) { return this.service.markPaid(user, id, dto?.paymentMethod); }
+  markPaid(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: SupplyPayDto) {
+    return this.service.markPaid(user, scope, id, dto ?? {});
+  }
   @Post(':id/cancel') @RequirePermissions(PERMISSIONS.PURCHASES_CREATE)
   cancel(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: SupplyCancelDto) { return this.service.cancel(user, id, dto?.reason); }
   /** Kept for old screens: cancels the entry (never deletes it). */

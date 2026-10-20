@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { startOfDayTz, endOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
@@ -26,6 +26,9 @@ export class ShoeExchangesService {
     if (dto.productId) {
       const p = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId }, select: { id: true } });
       if (!p) throw new NotFoundException('Product nahi mila');
+    }
+    if (dto.customerId && !(await this.prisma.customer.count({ where: { id: dto.customerId, tenantId: user.tenantId } }))) {
+      throw new BadRequestException('Customer is dukaan ka nahi');
     }
 
     return this.prisma.shoeExchange.create({
@@ -105,6 +108,9 @@ export class ShoeExchangesService {
       throw new BadRequestException('Paise wapas dene hon to purane bill ki Return (Returns) karein aur naya bill banayein');
     }
     return this.prisma.$transaction(async (tx) => {
+      // Claim the request first so a double click cannot move the stock twice.
+      const claimed = await tx.shoeExchange.updateMany({ where: { id, status: e.status }, data: { status: 'COMPLETED' } });
+      if (!claimed.count) throw new ConflictException('Exchange abhi kisi aur ne badla — safha taaza karein');
       const shopId = await resolveIndustryShopId(tx, user, activeShopId);
       if (e.productId) {
         const sizes = await tx.shoeSizeVariant.findMany({ where: { tenantId: user.tenantId, productId: e.productId } });
@@ -146,11 +152,12 @@ export class ShoeExchangesService {
     });
   }
 
+  /** A request is rejected, never deleted; a completed one already moved stock and stays. */
   async remove(user: AuthenticatedUser, id: string) {
     const e = await this.prisma.shoeExchange.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!e) throw new NotFoundException('Exchange not found');
-    if (e.status === 'COMPLETED') throw new BadRequestException('Mukammal exchange ka stock badal chuka hai — ise mitaya nahi ja sakta');
-    return this.prisma.shoeExchange.delete({ where: { id } });
+    if (e.status === 'COMPLETED') throw new BadRequestException('Mukammal exchange ka stock badal chuka hai — ise band nahi kiya ja sakta');
+    return this.prisma.shoeExchange.update({ where: { id }, data: { status: 'REJECTED' } });
   }
 
   async summary(user: AuthenticatedUser) {

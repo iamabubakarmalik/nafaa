@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Barcode, BarChart3, CreditCard, FileSignature, HardHat, Home, Shield, Truck, Wrench, Zap } from 'lucide-react';
+import { Barcode, BarChart3, CreditCard, FileSignature, HardHat, Home, Recycle, Shield, Truck, Wrench, Zap } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import AppliancesDashboard from './dashboard/AppliancesDashboard';
@@ -13,16 +13,19 @@ import AmcContractFormPage from './pages/AmcContractFormPage';
 import DeliveriesPage from './pages/DeliveriesPage';
 import ApplianceSerialsPage from './pages/ApplianceSerialsPage';
 import ApplianceWarrantyClaimsPage from './pages/ApplianceWarrantyClaimsPage';
+import TradeInsPage from './pages/TradeInsPage';
+import QistPlanPage from './pages/QistPlanPage';
 import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
-// Qist plans run on the shared /emi-plans API; their pages live with the mobile pack for now.
+// Qist plans run on the shared /emi-plans API; the list lives with the mobile pack for now.
+// QistPlanPage is the shared plan page with the guarantor and the qist agreement print.
 import EmiPlansPage from '@industries/mobile/pages/EmiPlansPage';
-import EmiPlanDetailPage from '@industries/mobile/pages/EmiPlanDetailPage';
 
 const JOBS_VIEW = 'service.jobs.view';
 const JOBS_MANAGE = 'service.jobs.manage';
 const SERIALS_VIEW = 'electronics.serials.view';
 const WARRANTY_VIEW = 'electronics.warranty.view';
 const KHATA_VIEW = 'khata.view';
+const RETURNS_VIEW = 'returns.view';
 
 /** The old appliance profit page now opens the shared profit report. */
 const ProfitRedirect = () => createElement(Navigate, { to: '/profit-report', replace: true });
@@ -34,7 +37,7 @@ export const AppliancesPack: IndustryPack = {
   emoji: '🏠',
   priority: 82,
   description:
-    'Serial and warranty, installations, repairs, technicians, AMC contracts, heavy delivery, qist plans and brand warranty claims.',
+    'Serial and warranty by branch, installations, repairs, technicians, AMC contracts, heavy delivery, qist plans with guarantor, old appliance trade-ins and brand warranty claims.',
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -57,6 +60,7 @@ export const AppliancesPack: IndustryPack = {
         { to: '/appliances/amc-contracts', label: 'AMC contracts', icon: FileSignature, permission: JOBS_VIEW },
         { to: '/emi-plans', label: 'Qist plans', icon: CreditCard, permission: KHATA_VIEW },
         { to: '/appliances/serials', label: 'Serial register', icon: Barcode, permission: SERIALS_VIEW },
+        { to: '/appliances/trade-ins', label: 'Purana saman', icon: Recycle, permission: RETURNS_VIEW },
         { to: '/appliances/warranty-claims', label: 'Warranty claims', icon: Shield, permission: WARRANTY_VIEW },
         { to: '/reports', label: 'Reports', icon: BarChart3 },
       ],
@@ -78,7 +82,8 @@ export const AppliancesPack: IndustryPack = {
     { path: '/appliances/serials', element: ApplianceSerialsPage, permission: SERIALS_VIEW },
     { path: '/appliances/warranty-claims', element: ApplianceWarrantyClaimsPage, permission: WARRANTY_VIEW },
     { path: '/emi-plans', element: EmiPlansPage, permission: KHATA_VIEW },
-    { path: '/emi-plans/:id', element: EmiPlanDetailPage, permission: KHATA_VIEW },
+    { path: '/emi-plans/:id', element: QistPlanPage, permission: KHATA_VIEW },
+    { path: '/appliances/trade-ins', element: TradeInsPage, permission: RETURNS_VIEW },
     { path: '/appliances/low-stock', element: LowStockPage },
     { path: '/appliances/profit-report', element: ProfitRedirect },
   ],

@@ -1,15 +1,16 @@
 /**
  * One gawala: what the shop owes, the last 60 collection slips (pay one,
- * cancel a wrong one), cash paid from the drawer, and a printable
- * statement for the weekly or monthly settlement.
+ * cancel a wrong one), every payment (drawer cash, bank, JazzCash), and a
+ * statement for a period (milk in, payments out, running balance) to print
+ * for the weekly or monthly settlement.
  */
 
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Ban, CheckCircle2, Droplets, GraduationCap, Milk, Pencil, Phone, Plus, Wallet } from 'lucide-react';
-import { Button, Card, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { Ban, CheckCircle2, Droplets, FileText, GraduationCap, Milk, Pencil, Phone, Plus, Wallet } from 'lucide-react';
+import { Button, Card, Input, KpiCard, KpiRow, PageHero, PageShell, Skeleton, TBody, THead, Table, Td, Th, Tr, ViewTabs, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { HeroBack } from '@core/components/HeroBack';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print/PrintButton';
@@ -17,13 +18,16 @@ import type { PrintDoc } from '@core/print/types';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
-import { farmersApi } from '../api/farmers.api';
+import { farmersApi, type FarmerPayInput, type FarmerStatement } from '../api/farmers.api';
 import { farmerSuppliesApi, isCancelledSupply, type FarmerSupply } from '../api/farmer-supplies.api';
 import { FarmerFormModal } from '../components/FarmerFormModal';
-import { Empty, MoneyModal, Pill, ReasonModal } from '../components/ui';
-import { CYCLE, MONEY_KEYS, QUALITY, dateTime, errorText, liters, qty, shortDate, slotLabel } from '../lib/meta';
+import { FarmerPayModal } from '../components/FarmerPayModal';
+import { Empty, Pill, ReasonModal } from '../components/ui';
+import { CYCLE, MONEY_KEYS, PAY_METHODS, QUALITY, dateTime, dayKey, errorText, liters, qty, shortDate, slotLabel } from '../lib/meta';
 
-type Tab = 'slips' | 'paid';
+type Tab = 'slips' | 'paid' | 'statement';
+
+const methodLabel = (m: string) => PAY_METHODS.find((x) => x.value === m)?.label ?? m;
 
 export default function FarmerDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
@@ -36,17 +40,20 @@ export default function FarmerDetailPage() {
   const [tab, setTab] = useState<Tab>('slips');
   const [modal, setModal] = useState<'pay' | 'edit' | null>(null);
   const [cancelling, setCancelling] = useState<FarmerSupply | null>(null);
+  const [period, setPeriod] = useState(() => { const to = dayKey(); return { from: `${to.slice(0, 8)}01`, to }; });
 
   const q = useQuery({ queryKey: ['dairy-farmer', id], queryFn: () => farmersApi.getOne(id) });
+  const periodOk = !!period.from && !!period.to && period.from <= period.to;
+  const stQ = useQuery({ queryKey: ['dairy-farmer', id, 'statement', period], queryFn: () => farmersApi.statement(id, period), enabled: tab === 'statement' && periodOk });
   const f = q.data;
   const refresh = () => MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const pay = useMutation({
-    mutationFn: (v: { amount: number; paymentMethod: string; reference?: string; notes?: string }) => farmersApi.payment(id, v),
-    onSuccess: () => { refresh(); setModal(null); toast.success('Payment likh di'); },
+    mutationFn: (v: FarmerPayInput) => farmersApi.payment(id, v),
+    onSuccess: () => { refresh(); qc.invalidateQueries({ queryKey: ['cash-register'] }); setModal(null); toast.success('Payment likh di'); },
     onError: (e) => toast.error(errorText(e, 'Payment save nahi hui')),
   });
   const paySlip = useMutation({
-    mutationFn: (s: FarmerSupply) => farmerSuppliesApi.pay(s.id, 'CASH'),
+    mutationFn: (s: FarmerSupply) => farmerSuppliesApi.pay(s.id, { paymentMethod: 'CASH' }),
     onSuccess: () => { refresh(); toast.success('Parchi ada — cash drawer se nikla'); },
     onError: (e) => toast.error(errorText(e, 'Nahi hua')),
   });
@@ -62,7 +69,23 @@ export default function FarmerDetailPage() {
   const slips = f.recentSupplies ?? [];
   const live = slips.filter((s) => !isCancelledSupply(s));
   const unpaid = live.filter((s) => !s.isPaid && s.totalAmount > 0);
-  const printDoc = (): PrintDoc => ({
+  const payments = f.payments ?? [];
+  const st = stQ.data;
+  const statementDoc = (x: FarmerStatement): PrintDoc => ({
+    title: `Gawala statement — ${f.name}`, subtitle: `${f.farmerNumber}${f.village ? ` · ${f.village}` : ''}`,
+    meta: [['Period', `${shortDate(x.from)} – ${shortDate(x.to)}`], ['Rate', `${f.ratePerLiter}/L`]],
+    sections: [
+      { kind: 'rows', rows: [{ label: 'Shuru ka baqi', value: money(x.opening) }] },
+      {
+        kind: 'table',
+        columns: [{ label: 'Tareekh' }, { label: 'Tafseel' }, { label: 'Liter', wideOnly: true }, { label: 'Doodh', align: 'right' }, { label: 'Payment', align: 'right' }, { label: 'Baqi', align: 'right' }],
+        rows: x.lines.map((l) => [shortDate(l.date), l.text, l.quantity != null ? qty(l.quantity) : '', l.milk ? money(l.milk) : '', l.paid ? money(l.paid) : '', money(l.balance)]),
+        footer: ['Kul', '', qty(x.liters), money(x.milkIn), money(x.paidOut), money(x.closing)],
+      },
+      { kind: 'rows', rows: [{ label: 'Aakhir ka baqi (dena hai)', value: money(x.closing), strong: true }] },
+    ],
+  });
+  const printDoc = (): PrintDoc => (tab === 'statement' && st ? statementDoc(st) : {
     title: `Gawala hisaab — ${f.name}`, subtitle: `${f.farmerNumber}${f.village ? ` · ${f.village}` : ''}`,
     meta: [['Rate', `${f.ratePerLiter}/L`], ['Dena hai', money(f.currentBalance)]],
     sections: [
@@ -81,7 +104,8 @@ export default function FarmerDetailPage() {
       {guide.isOpen && (
         <PageGuide title="Gawale ka hisaab" onClose={guide.close}
           steps={[
-            { icon: Wallet, color: '#d97706', title: 'Payment', text: '"Payment dein" se hafte ya mahine ka hisaab ada karein — purani parchiyan pehle ada hoti hain.' },
+            { icon: Wallet, color: '#d97706', title: 'Payment', text: '"Payment dein" se hafte ya mahine ka hisaab ada karein — galle se cash, ya bank / JazzCash account se. Purani parchiyan pehle ada hoti hain.' },
+            { icon: FileText, color: '#0f766e', title: 'Statement', text: 'Statement tab me period chunein: doodh aaya, payment gayi aur har line ke baad baqi. Print kar ke gawale ko dein.' },
             { icon: Ban, color: '#e11d48', title: 'Ghalat entry', text: 'Ghalat parchi cancel karein — doodh stock se aur paise gawale ke hisaab se nikal jate hain. Ada parchi cancel nahi hoti.' },
             { icon: Droplets, color: '#0ea5e9', title: 'Fat', text: 'Har parchi par fat likhein to bonus khud lagta hai aur ausat fat yahan dikhta hai.' },
           ]} />
@@ -91,7 +115,7 @@ export default function FarmerDetailPage() {
         meta={[f.phone, f.village, `${CYCLE[f.paymentCycle] ?? ''} payment`].filter(Boolean).join(' · ')}
         actions={<>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Hisaab print" /></span>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tab === 'statement' ? 'Statement print' : 'Hisaab print'} /></span>
           {f.phone && <a href={`tel:${f.phone}`} className={heroButton}><Phone className="h-4 w-4" />Call</a>}
           {canPay && <button type="button" onClick={() => setModal('edit')} className={heroButton}><Pencil className="h-4 w-4" />Badlein</button>}
           {canBuy && <Link to={`/dairy/supplies?farmer=${f.id}`} className={heroButton}><Plus className="h-4 w-4" />Doodh ki entry</Link>}
@@ -110,7 +134,7 @@ export default function FarmerDetailPage() {
         <KpiCard icon={CheckCircle2} color="#16a34a" label="Aakhri payment" value={f.lastPaymentDate ? shortDate(f.lastPaymentDate) : '—'} />
       </KpiRow>
 
-      <ViewTabs value={tab} onChange={setTab} tabs={[{ id: 'slips', label: 'Parchiyan', icon: Milk, count: slips.length }, { id: 'paid', label: 'Cash payment', icon: Wallet, count: f.cashPayments?.length ?? 0 }]} />
+      <ViewTabs value={tab} onChange={setTab} tabs={[{ id: 'slips', label: 'Parchiyan', icon: Milk, count: slips.length }, { id: 'paid', label: 'Payments', icon: Wallet, count: payments.length }, { id: 'statement', label: 'Statement', icon: FileText }]} />
 
       {tab === 'slips' ? (
         <Card className="rounded-3xl" flush>
@@ -139,22 +163,62 @@ export default function FarmerDetailPage() {
           )}
         </Card>
       ) : (
-        <Card className="rounded-3xl" flush description="Drawer se diya cash. Bank ya JazzCash payment gawale ke hisaab me hai magar yahan list nahi hoti.">
-          {!f.cashPayments?.length ? <Empty icon={Wallet} title="Abhi koi cash payment nahi" /> : (
+        tab === 'paid' ? (
+        <Card className="rounded-3xl" flush description="Har payment: galle se cash, ya bank / JazzCash account se.">
+          {!payments.length ? <Empty icon={Wallet} title="Abhi koi payment nahi" /> : (
             <ul className="divide-y divide-slate-100">
-              {f.cashPayments.map((p) => (
+              {payments.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-3 px-5 py-3 text-[0.875rem]">
-                  <span className="min-w-0"><span className="font-medium text-slate-800">{dateTime(p.createdAt)}</span><span className="block truncate text-[0.75rem] text-slate-500">{p.reason}</span></span>
+                  <span className="min-w-0">
+                    <span className="font-medium text-slate-800">{dateTime(p.date)}</span>
+                    <Pill tone="bg-slate-100 text-slate-700 ring-slate-200" className="ml-2">{p.accountName ?? (p.method === 'CASH' ? 'Galla' : methodLabel(p.method))}</Pill>
+                    <span className="block truncate text-[0.75rem] text-slate-500">{[p.reference, p.note].filter(Boolean).join(' · ') || (p.legacy ? 'Galle se cash' : '')}</span>
+                  </span>
                   <span className="font-semibold tabular-nums text-slate-900">{money(p.amount)}</span>
                 </li>
               ))}
             </ul>
           )}
         </Card>
+        ) : (
+        <Card className="rounded-3xl" flush>
+          <div className="flex flex-wrap items-end gap-3 px-5 pt-4">
+            <Input label="Se" type="date" value={period.from} max={period.to} onChange={(e) => setPeriod((x) => ({ ...x, from: e.target.value }))} />
+            <Input label="Tak" type="date" value={period.to} min={period.from} onChange={(e) => setPeriod((x) => ({ ...x, to: e.target.value }))}
+              error={periodOk ? undefined : 'Tareekh sahi chunein'} />
+          </div>
+          {stQ.isLoading ? <div className="p-5"><Skeleton className="h-40 rounded-2xl" /></div> : st && (
+            <>
+              <div className="px-5 pt-4"><KpiRow cols={4}>
+                <KpiCard icon={Wallet} color="#64748b" label="Shuru ka baqi" value={money(st.opening)} hint={Math.abs(st.unrecorded) > 0.5 ? `Is me ${money(st.unrecorded)} purana farq` : undefined} />
+                <KpiCard icon={Milk} color="#0ea5e9" label="Doodh aaya" value={money(st.milkIn)} hint={liters(st.liters)} />
+                <KpiCard icon={CheckCircle2} color="#16a34a" label="Payment di" value={money(st.paidOut)} />
+                <KpiCard icon={Wallet} color="#e11d48" label="Aakhir ka baqi" value={money(st.closing)} />
+              </KpiRow></div>
+              {st.lines.length === 0 ? <Empty icon={FileText} title="Is period me koi entry nahi" /> : (
+                <Table className="mt-3" minWidth="40rem">
+                  <THead><Tr><Th>Tareekh</Th><Th>Tafseel</Th><Th align="right">Liter</Th><Th align="right">Doodh</Th><Th align="right">Payment</Th><Th align="right">Baqi</Th></Tr></THead>
+                  <TBody>
+                    {st.lines.map((l, i) => (
+                      <Tr key={i}>
+                        <Td>{shortDate(l.date)}</Td>
+                        <Td><span className="text-slate-800">{l.text}</span>{l.kind === 'MILK' && <span className="block text-[0.75rem] text-slate-500">@ {money(l.rate ?? 0)}{l.fat ? ` · fat ${l.fat}%` : ''}</span>}</Td>
+                        <Td align="right" className="tabular-nums">{l.quantity != null ? qty(l.quantity) : '—'}</Td>
+                        <Td align="right" className="tabular-nums">{l.milk ? money(l.milk) : '—'}</Td>
+                        <Td align="right" className="tabular-nums text-emerald-700">{l.paid ? money(l.paid) : '—'}</Td>
+                        <Td align="right" className="font-semibold tabular-nums text-slate-900">{money(l.balance)}</Td>
+                      </Tr>
+                    ))}
+                  </TBody>
+                </Table>
+              )}
+            </>
+          )}
+        </Card>
+        )
       )}
 
-      {modal === 'pay' && <MoneyModal title={`${f.name} ko payment`} description={`Dena hai ${money(f.currentBalance)}`} due={f.currentBalance} withNote busy={pay.isPending} cta="Payment dein"
-        hint="Cash ho to khule drawer se nikalta hai" onSubmit={(v) => pay.mutate(v)} onClose={() => setModal(null)} />}
+      {modal === 'pay' && <FarmerPayModal name={f.name} due={Math.max(f.currentBalance, 0)} busy={pay.isPending} onSubmit={(v) => pay.mutate(v)} onClose={() => setModal(null)} />}
       {modal === 'edit' && <FarmerFormModal farmer={f} onClose={() => setModal(null)} />}
       {cancelling && <ReasonModal title="Parchi cancel" danger cta="Cancel karein" busy={cancel.isPending}
         description={`${liters(cancelling.quantity)} — ${money(cancelling.totalAmount)}. Doodh stock se nikal jayega.`}

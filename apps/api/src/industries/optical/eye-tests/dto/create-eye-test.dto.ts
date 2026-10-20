@@ -1,23 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OpticalAppointmentStatus } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 export class CreateEyeTestDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() customerId?: string;
-  @ApiProperty() @IsString() customerName!: string;
-  @ApiProperty() @IsString() customerPhone!: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() customerAge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() customerId?: string;
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(120) customerName!: string;
+  @ApiProperty() @IsString() @MaxLength(20) customerPhone!: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(120) customerAge?: number;
 
-  @ApiProperty() @IsString() appointmentDate!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() scheduledSlot?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() optometristId?: string;
+  @ApiProperty() @IsDateString() appointmentDate!: string;
+  @ApiPropertyOptional() @IsOptional() @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'Waqt HH:MM likhein' }) scheduledSlot?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() optometristId?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() chiefComplaint?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() medicalHistory?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() currentMedications?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() familyEyeHistory?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsNumber() testFee?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) testFee?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 }
 
@@ -45,22 +45,24 @@ export class RecordTestResultsDto {
   @ApiPropertyOptional() @IsOptional() @IsString() recommendation?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresFollowUp?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsString() followUpDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() followUpDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() followUpReason?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsBoolean() issuePrescription?: boolean;
-  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() imageUrls?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) imageUrls?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
 }
 
 export class UpdateTestStatusDto {
   @ApiProperty({ enum: OpticalAppointmentStatus }) @IsEnum(OpticalAppointmentStatus) status!: OpticalAppointmentStatus;
   @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() rescheduledDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() rescheduledDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) scheduledSlot?: string;
 }
 
 export class RecordTestPaymentDto {
-  @ApiProperty() @IsNumber() amount!: number;
+  @ApiPropertyOptional({ description: 'Left out with onKhata or waiveOff' }) @IsOptional() @IsNumber() @Min(0) amount?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() waiveOff?: boolean;
+  @ApiPropertyOptional({ description: 'Put the whole remaining fee on the customer\'s khata' }) @IsOptional() @IsBoolean() onKhata?: boolean;
 }

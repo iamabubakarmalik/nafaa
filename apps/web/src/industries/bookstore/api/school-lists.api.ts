@@ -39,11 +39,19 @@ export interface SchoolBookList {
   updatedAt: string;
 }
 
+/** An active list as the counter sees it, with today's product prices. */
+export interface PosSchoolList {
+  id: string; title: string; grade: string; section?: string | null; session: string;
+  school: { id: string; name: string }; bundlePrice: number | null; discountPct: number;
+  items: Array<{ id: string; productId: string | null; itemName: string; itemType: string; quantity: number; unitPrice: number; total: number; isOptional: boolean; subject?: string | null; currentPrice: number | null }>;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const schoolListsApi = {
   create: (data: any) => apiClient.post('/bookstore/school-lists', data).then(unwrap<SchoolBookList>),
   list: (params?: any) => apiClient.get('/bookstore/school-lists', { params }).then(unwrap<SchoolBookList[]>),
+  forPos: () => apiClient.get('/bookstore/school-lists/for-pos').then(unwrap<PosSchoolList[]>),
   getOne: (id: string) => apiClient.get('/bookstore/school-lists/' + id).then(unwrap<SchoolBookList>),
   update: (id: string, data: any) => apiClient.patch('/bookstore/school-lists/' + id, data).then(unwrap<SchoolBookList>),
   updateStatus: (id: string, status: string) => apiClient.post('/bookstore/school-lists/' + id + '/status', { status }).then(unwrap<SchoolBookList>),

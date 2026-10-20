@@ -39,7 +39,7 @@ export class WorkoutsService {
 
   async list(user: AuthenticatedUser, memberId: string) {
     return this.prisma.gymWorkoutSession.findMany({
-      where: { memberId, tenantId: user.tenantId },
+      where: { memberId, tenantId: user.tenantId, isVoided: false },
       orderBy: { sessionDate: 'desc' },
       take: 100,
     });
@@ -52,7 +52,8 @@ export class WorkoutsService {
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateWorkoutDto) {
-    await this.getOne(user, id);
+    const s = await this.getOne(user, id);
+    if (s.isVoided) throw new BadRequestException('Void workout badla nahi jata');
     return this.prisma.gymWorkoutSession.update({
       where: { id },
       data: {
@@ -66,7 +67,7 @@ export class WorkoutsService {
   async summary(user: AuthenticatedUser, memberId: string) {
     const [total, thisMonth, byType] = await Promise.all([
       this.prisma.gymWorkoutSession.aggregate({
-        where: { memberId, tenantId: user.tenantId },
+        where: { memberId, tenantId: user.tenantId, isVoided: false },
         _sum: { durationMinutes: true, caloriesBurned: true, totalWeight: true, totalReps: true, totalSets: true },
         _count: { _all: true },
       }),
@@ -74,20 +75,23 @@ export class WorkoutsService {
         where: {
           memberId,
           tenantId: user.tenantId,
+          isVoided: false,
           sessionDate: { gte: new Date(Date.now() - 30 * 86_400_000) },
         },
       }),
       this.prisma.gymWorkoutSession.groupBy({
         by: ['workoutType'],
-        where: { memberId, tenantId: user.tenantId },
+        where: { memberId, tenantId: user.tenantId, isVoided: false },
         _count: { _all: true },
       }),
     ]);
     return { total, thisMonth, byType };
   }
 
-  /** Workout logs are the member's history and are kept. */
-  remove(): never {
-    throw new BadRequestException('Workout record mitaya nahi jata — ghalti ho to usi ko badlein');
+  /** A wrong log is voided, not deleted: it stays in the database and drops out of lists and totals. */
+  async remove(user: AuthenticatedUser, id: string) {
+    const s = await this.getOne(user, id);
+    if (s.isVoided) throw new BadRequestException('Ye workout pehle hi void hai');
+    return this.prisma.gymWorkoutSession.update({ where: { id }, data: { isVoided: true } });
   }
 }

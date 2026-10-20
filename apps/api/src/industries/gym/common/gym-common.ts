@@ -71,10 +71,19 @@ export async function gymClock(tz: TenantTimezoneService, tenantId: string) {
     const p = tzParts(start, zone);
     return new Date(zonedToUtc(p.year, p.month, p.day + Math.max(days, 1), 0, 0, 0, zone).getTime() - 1);
   };
+  /** Last moment before the same calendar day `months` later (1 Nov + 1 month ends 30 Nov; 31 Jan + 1 ends 27/28 Feb). */
+  const monthsEnd = (start: Date, months: number) => {
+    const p = tzParts(start, zone);
+    const total = p.month - 1 + months;
+    const y = p.year + Math.floor(total / 12);
+    const m = (((total % 12) + 12) % 12) + 1;
+    const day = Math.min(p.day, new Date(Date.UTC(y, m, 0)).getUTCDate());
+    return new Date(zonedToUtc(y, m, day, 0, 0, 0, zone).getTime() - 1);
+  };
   const keyOf = (d: Date) => dateKeyTz(d, zone);
   const year = (d = new Date()) => tzParts(d, zone).year;
   const hour = (d: Date) => tzParts(d, zone).hour;
-  return { zone, dayStartHour, range, today, todayKey, dayStart, periodEnd, keyOf, year, hour };
+  return { zone, dayStartHour, range, today, todayKey, dayStart, periodEnd, monthsEnd, keyOf, year, hour };
 }
 
 export type GymClock = Awaited<ReturnType<typeof gymClock>>;
@@ -105,3 +114,10 @@ export function paging(page?: string | number, limit?: string | number, max = 10
 
 /** Every gym bill number starts with this, so voids and reports can find them. */
 export const GYM_SALE = 'GYM-';
+
+/** Locker rent bills: `GYM-LKR-2026-00001`, sourceRef `Locker <number>`. */
+export const LOCKER_SALE = `${GYM_SALE}LKR-`;
+export const lockerRef = (number: string) => `Locker ${number}`;
+
+/** Expense.sourceType of a trainer commission payout (sourceId = trainer id). */
+export const TRAINER_PAYOUT = 'GYM_TRAINER_PAYOUT';

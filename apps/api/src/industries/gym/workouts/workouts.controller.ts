@@ -23,5 +23,5 @@ export class WorkoutsController {
   @Get('summary/:memberId') @RequirePermissions(P.CUSTOMERS_VIEW) summary(@GetUser() user: AuthenticatedUser, @Param('memberId') memberId: string) { return this.service.summary(user, memberId); }
   @Get(':id') @RequirePermissions(P.CUSTOMERS_VIEW) getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id') @RequirePermissions(P.CUSTOMERS_EDIT) update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateWorkoutDto) { return this.service.update(user, id, dto); }
-  @Delete(':id') @RequirePermissions(P.CUSTOMERS_EDIT) remove() { return this.service.remove(); }
+  @Delete(':id') @RequirePermissions(P.CUSTOMERS_EDIT) remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

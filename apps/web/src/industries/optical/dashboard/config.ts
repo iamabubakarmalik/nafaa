@@ -32,7 +32,7 @@ function useOpticalActions(): QuickAction[] {
     { to: '/optical/prescriptions', icon: FileText, label: 'Nuskhe', hint: 'Prescriptions' },
     { to: '/optical/optometrists', icon: UserCog, label: 'Doctors', hint: 'Optometrists' },
     { to: '/optical-products/new', icon: Plus, label: 'Naya product', hint: 'Frame / lens' },
-    { to: '/optical-products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} items` },
+    { to: '/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} items` },
     { to: '/purchases', icon: ShoppingBag, label: 'Purchase', hint: 'Maal mangwayein' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
@@ -58,7 +58,7 @@ export const opticalDashboard = createDashboard({
     { id: 'optical-rx-expiring', title: 'Nuskha purana ho raha', description: '60 din me khatam hone wale nuskhe — naye test ka mauqa', size: 'third', sizes: ANY_SIZE, Component: OpticalRxExpiring },
   ],
   useQuickActions: useOpticalActions,
-  moneyMap: { productsPath: '/optical-products' },
+  moneyMap: { productsPath: '/products' },
   guide: [
     { icon: FlaskConical, title: 'Lab aur pickup', text: 'Jo order lab se late hai wo laal me, aur jo chashma tayyar para hai us ke customer ka number saath — call karein aur baqi paisa bhi le lein.' },
     { icon: FileText, title: 'Eye test aur nuskhe', text: 'Aaj ke eye test waqt ke hisaab se. Jin ka nuskha purana ho raha hai unhein naye test ke liye bulayein — ye naya chashma bikne ka sab se acha mauqa hai.' },

@@ -4,6 +4,7 @@ import { ClassesModule } from './classes/classes.module';
 import { DietPlansModule } from './diet-plans/diet-plans.module';
 import { EquipmentModule } from './equipment/equipment.module';
 import { GymDashboardModule } from './dashboard/gym-dashboard.module';
+import { LockersModule } from './lockers/lockers.module';
 import { MembersModule } from './members/members.module';
 import { MembershipPlansModule } from './membership-plans/membership-plans.module';
 import { MembershipsModule } from './memberships/memberships.module';
@@ -26,6 +27,7 @@ import { WorkoutsModule } from './workouts/workouts.module';
     EquipmentModule,
     DietPlansModule,
     GymDashboardModule,
+    LockersModule,
   ],
   exports: [
     MembersModule,
@@ -40,6 +42,7 @@ import { WorkoutsModule } from './workouts/workouts.module';
     EquipmentModule,
     DietPlansModule,
     GymDashboardModule,
+    LockersModule,
   ],
 })
 export class GymModule {}

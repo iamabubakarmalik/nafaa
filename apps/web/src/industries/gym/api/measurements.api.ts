@@ -36,4 +36,6 @@ const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const measurementsApi = {
   create: (data: Partial<BodyMeasurement> & { memberId: string }) => apiClient.post('/gym/measurements', data).then(unwrap<BodyMeasurement>),
+  /** Voids a wrong entry; the row is kept and drops out of lists. */
+  void: (id: string) => apiClient.delete('/gym/measurements/' + id).then(unwrap<BodyMeasurement>),
 };

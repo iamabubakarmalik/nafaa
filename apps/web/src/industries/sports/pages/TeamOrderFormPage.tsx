@@ -1,780 +1,295 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, X, Plus, Trash2, Search, Package, Sparkles,
-  Users, Building, Phone, Mail, MapPin, Calendar, DollarSign,
-  Percent, Truck, Upload, CheckCircle2, AlertCircle, Trophy,
-  Award, Image as ImageIcon,
-} from 'lucide-react';
+/**
+ * New or edited team order: the team, the kit lines (product, size, rate
+ * and printing per piece), the players' names / numbers / sizes, discount,
+ * delivery and the advance. Ctrl+S saves, Esc goes back, G opens the guide.
+ */
+
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { teamOrdersApi, type TeamOrderStatus, type TeamOrderItem } from '../api/team-orders.api';
+import { ArrowLeft, ClipboardPaste, GraduationCap, ListOrdered, Plus, Shirt, Trash2, Users, Wallet } from 'lucide-react';
+import { Alert, Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea, heroIconButton } from '@/design-system/components';
+import { formatPKR } from '@core/lib/format';
+import { isDialogOpen } from '@core/lib/shortcuts';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { ProductPick, type PickedProduct } from '@industries/garments/components/ProductPick';
 import { sportsProductsApi } from '../api/products.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+import { teamOrdersApi, type RosterRow, type TeamOrderInput } from '../api/team-orders.api';
+import { META_KEY, MONEY_KEYS, TEAM_KEY, apiError, dateInput, opt, r2 } from '../components/meta';
+import { Line } from '../components/ui';
 
-const DISCOUNT_PRESETS = [0, 5, 10, 15, 20, 25];
-const APPAREL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-const PAY_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'];
+interface KitLine { key: string; productId: string; variantId?: string; productName: string; quantity: string; unitPrice: string; printingPrice: string; size: string; color: string; note: string }
 
-const STATUSES: TeamOrderStatus[] = ['DRAFT', 'QUOTED', 'CONFIRMED', 'IN_PRODUCTION', 'READY', 'DELIVERED', 'CANCELLED'];
+const num = (s: string) => Number(s) || 0;
+const clean = (s: string) => s.replace(/[^\d.]/g, '');
+let seq = 0;
+const key = () => `k${++seq}`;
+
+/** "Ali 10 M" or "Ali, 10, M" per line → a roster row. */
+function parseRoster(text: string): RosterRow[] {
+  return text.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+    const parts = l.includes(',') || l.includes('\t') ? l.split(/[,\t]/).map((s) => s.trim()) : l.split(/\s+/);
+    const numberAt = parts.findIndex((p) => /^\d{1,3}$/.test(p));
+    if (numberAt < 0) return { name: parts.join(' '), number: '', size: '' };
+    return { name: parts.slice(0, numberAt).join(' '), number: parts[numberAt], size: parts.slice(numberAt + 1).join(' ') };
+  });
+}
 
 export default function TeamOrderFormPage() {
   const { id } = useParams();
+  const isEdit = !!id;
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const isEdit = !!id;
+  const guide = usePageGuide();
+  const [loaded, setLoaded] = useState(!isEdit);
+  const [team, setTeam] = useState({ teamName: '', organization: '', contactPerson: '', contactPhone: '', city: '', address: '', poNumber: '' });
+  const [lines, setLines] = useState<KitLine[]>([]);
+  const [pick, setPick] = useState<PickedProduct | null>(null);
+  const [roster, setRoster] = useState<RosterRow[]>([]);
+  const [paste, setPaste] = useState<string | null>(null);
+  const [printing, setPrinting] = useState({ on: false, details: '' });
+  const [money, setMoney] = useState({ discountPct: '', shippingCharge: '', advance: '', method: 'CASH' as PaymentMethod });
+  const [delivery, setDelivery] = useState('');
+  const [notes, setNotes] = useState({ notes: '', internalNotes: '' });
+  const [tried, setTried] = useState(false);
 
-  const [form, setForm] = useState({
-    teamName: '',
-    contactPerson: '',
-    contactPhone: '',
-    contactEmail: '',
-    organization: '',
-    city: '',
-    address: '',
-    discountPct: 0,
-    taxAmount: 0,
-    shippingCharge: 0,
-    hasCustomJerseys: false,
-    customizationDetails: '',
-    teamLogoUrl: '',
-    advancePaid: 0,
-    paymentMethod: 'CASH',
-    expectedDeliveryDate: '',
-    poNumber: '',
-    notes: '',
-    internalNotes: '',
-    status: 'DRAFT' as TeamOrderStatus,
-  });
-
-  const [items, setItems] = useState<TeamOrderItem[]>([]);
-  const [playerRoster, setPlayerRoster] = useState<Array<{ name: string; number: string; size: string }>>([]);
-  const [productSearch, setProductSearch] = useState('');
-  const [showProductSearch, setShowProductSearch] = useState(false);
-
-  const { data: existing, isLoading: loadingOrder } = useQuery({
-    queryKey: ['team-order', id],
-    queryFn: () => teamOrdersApi.getOne(id!),
-    enabled: isEdit,
-  });
+  const metaQ = useQuery({ queryKey: [META_KEY], queryFn: sportsProductsApi.meta, staleTime: 5 * 60_000 });
+  const orderQ = useQuery({ queryKey: [TEAM_KEY, 'one', id], queryFn: () => teamOrdersApi.getOne(id!), enabled: isEdit });
 
   useEffect(() => {
-    if (existing) {
-      setForm({
-        teamName: existing.teamName,
-        contactPerson: existing.contactPerson,
-        contactPhone: existing.contactPhone,
-        contactEmail: existing.contactEmail || '',
-        organization: existing.organization || '',
-        city: existing.city || '',
-        address: existing.address || '',
-        discountPct: existing.discountPct,
-        taxAmount: existing.taxAmount,
-        shippingCharge: existing.shippingCharge,
-        hasCustomJerseys: existing.hasCustomJerseys,
-        customizationDetails: existing.customizationDetails || '',
-        teamLogoUrl: existing.teamLogoUrl || '',
-        advancePaid: existing.advancePaid,
-        paymentMethod: PAY_METHODS.includes(existing.paymentMethod as string) ? existing.paymentMethod as string : 'CASH',
-        expectedDeliveryDate: existing.expectedDeliveryDate ? existing.expectedDeliveryDate.slice(0, 10) : '',
-        poNumber: existing.poNumber || '',
-        notes: existing.notes || '',
-        internalNotes: existing.internalNotes || '',
-        status: existing.status,
-      });
-      setItems(existing.items || []);
-      // Reconstruct player roster from playerNames + playerNumbers if arrays
-      const names = Array.isArray(existing.playerNames) ? existing.playerNames : [];
-      const numbers = Array.isArray(existing.playerNumbers) ? existing.playerNumbers : [];
-      if (names.length > 0) {
-        setPlayerRoster(names.map((n: any, i: number) => ({
-          name: typeof n === 'string' ? n : (n?.name || ''),
-          number: numbers[i] ? String(numbers[i]) : '',
-          size: typeof n === 'object' ? n?.size || '' : '',
-        })));
-      }
-    }
-  }, [existing]);
+    const o = orderQ.data;
+    if (!o || loaded) return;
+    setTeam({ teamName: o.teamName, organization: o.organization ?? '', contactPerson: o.contactPerson, contactPhone: o.contactPhone, city: o.city ?? '', address: o.address ?? '', poNumber: o.poNumber ?? '' });
+    setLines(o.items.map((i) => ({
+      key: key(), productId: i.productId, variantId: i.variantId, productName: i.productName, quantity: String(i.quantity), unitPrice: String(i.unitPrice),
+      printingPrice: i.printingPrice ? String(i.printingPrice) : '', size: i.size ?? '', color: i.color ?? '', note: i.customizationNotes ?? '',
+    })));
+    setRoster(o.playerNames ?? []);
+    setPrinting({ on: o.hasCustomJerseys, details: o.customizationDetails ?? '' });
+    setMoney((m) => ({ ...m, discountPct: o.discountPct ? String(o.discountPct) : '', shippingCharge: o.shippingCharge ? String(o.shippingCharge) : '' }));
+    setDelivery(dateInput(o.expectedDeliveryDate));
+    setNotes({ notes: o.notes ?? '', internalNotes: o.internalNotes ?? '' });
+    setLoaded(true);
+  }, [orderQ.data, loaded]);
 
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-team-order', productSearch],
-    queryFn: () => productsApi.list({ page: 1, limit: 30, search: productSearch || undefined } as any),
-    enabled: showProductSearch,
-  });
+  // A picked product becomes a line at the team rate, when one is set.
+  useEffect(() => {
+    if (!pick) return;
+    const m = metaQ.data?.items.find((x) => x.productId === pick.productId);
+    const rate = m?.teamPrice && m.teamPrice > 0 ? m.teamPrice : pick.price;
+    setLines((ls) => [...ls, {
+      key: key(), productId: pick.productId, variantId: pick.variantId, productName: pick.name, quantity: String(Math.max(m?.minTeamOrder ?? 1, 1)),
+      unitPrice: String(rate), printingPrice: '', size: pick.variantName ?? '', color: '', note: '',
+    }]);
+    setPick(null);
+  }, [pick, metaQ.data]);
 
-  const { data: teamOrderableProfiles = [] } = useQuery({
-    queryKey: ['sports-team-orderable-profiles'],
-    queryFn: () => sportsProductsApi.teamOrderable(),
-  });
+  const totals = useMemo(() => {
+    const subtotal = r2(lines.reduce((s, l) => s + num(l.quantity) * (num(l.unitPrice) + num(l.printingPrice)), 0));
+    const discount = r2((subtotal * num(money.discountPct)) / 100);
+    const total = r2(subtotal - discount + num(money.shippingCharge));
+    return { subtotal, discount, total, pieces: lines.reduce((s, l) => s + num(l.quantity), 0) };
+  }, [lines, money.discountPct, money.shippingCharge]);
 
-  const teamProductIds = useMemo(() => new Set(
-    (teamOrderableProfiles as any[]).map((p) => p.productId)
-  ), [teamOrderableProfiles]);
-
-  const subtotal = useMemo(() =>
-    items.reduce((s, it) => s + (it.total || (it.unitPrice * it.quantity)), 0),
-    [items]);
-  const discountAmount = (subtotal * form.discountPct) / 100;
-  const totalAmount = Math.max(0, subtotal - discountAmount + form.taxAmount + form.shippingCharge);
-  const balanceAmount = Math.max(0, totalAmount - form.advancePaid);
-  const totalQty = items.reduce((s, it) => s + Number(it.quantity || 0), 0);
+  const errors = useMemo(() => {
+    const e: Record<string, string> = {};
+    if (team.teamName.trim().length < 2) e.teamName = 'Team ya school ka naam likhein';
+    if (team.contactPerson.trim().length < 2) e.contactPerson = 'Rabte wale ka naam likhein';
+    if (!/^[0-9+\-\s]{7,16}$/.test(team.contactPhone.trim())) e.contactPhone = 'Phone number sahi likhein (03001234567)';
+    if (!lines.length) e.lines = 'Kam az kam ek item daalein';
+    if (lines.some((l) => !(num(l.quantity) >= 1) || !Number.isInteger(num(l.quantity)))) e.lines = 'Har item ki ginti 1 ya zyada (poora adad)';
+    const d = num(money.discountPct);
+    if (d < 0 || d > 100) e.discountPct = 'Discount 0 se 100% tak';
+    if (!isEdit && num(money.advance) > totals.total + 0.01) e.advance = `Advance kul (${formatPKR(totals.total)}) se zyada nahi`;
+    return e;
+  }, [team, lines, money, totals.total, isEdit]);
 
   const save = useMutation({
-    mutationFn: async () => {
-      // Status and money already taken change through their own buttons.
-      const { status: _status, advancePaid, ...rest } = form;
-      const payload: any = {
-        ...rest,
-        ...(isEdit ? {} : { advancePaid }),
-        expectedDeliveryDate: form.expectedDeliveryDate || undefined,
-        items,
-        playerNames: form.hasCustomJerseys && playerRoster.length > 0
-          ? playerRoster.map((p) => ({ name: p.name, size: p.size }))
-          : undefined,
-        playerNumbers: form.hasCustomJerseys && playerRoster.length > 0
-          ? playerRoster.map((p) => p.number)
-          : undefined,
+    mutationFn: () => {
+      const body: TeamOrderInput = {
+        teamName: team.teamName.trim(), organization: opt(team.organization), contactPerson: team.contactPerson.trim(), contactPhone: team.contactPhone.trim(),
+        city: opt(team.city), address: opt(team.address), poNumber: opt(team.poNumber),
+        items: lines.map((l) => ({
+          productId: l.productId, ...(l.variantId ? { variantId: l.variantId } : {}), productName: l.productName, quantity: num(l.quantity),
+          unitPrice: num(l.unitPrice), printingPrice: num(l.printingPrice), size: opt(l.size), color: opt(l.color), customizationNotes: opt(l.note),
+        })),
+        discountPct: num(money.discountPct), shippingCharge: num(money.shippingCharge),
+        hasCustomJerseys: printing.on || roster.length > 0, customizationDetails: opt(printing.details),
+        playerNames: roster.filter((p) => p.name.trim() || p.number.trim()),
+        expectedDeliveryDate: delivery || undefined, notes: opt(notes.notes), internalNotes: opt(notes.internalNotes),
       };
-      return isEdit
-        ? teamOrdersApi.update(id!, payload)
-        : teamOrdersApi.create(payload);
+      if (isEdit) return teamOrdersApi.update(id!, body);
+      return teamOrdersApi.create({ ...body, advancePaid: num(money.advance) || undefined, paymentMethod: money.method });
     },
-    onSuccess: () => {
-      toast.success(isEdit ? 'Order updated' : 'Order created');
-      qc.invalidateQueries({ queryKey: ['team-orders-list'] });
-      qc.invalidateQueries({ queryKey: ['team-orders-summary'] });
-      navigate('/sports/team-orders');
+    onSuccess: (o) => {
+      toast.success(isEdit ? `${o.orderNumber} save ho gaya` : `Order ${o.orderNumber} ban gaya`);
+      [TEAM_KEY, 'sports-team-orders-summary', 'sports-dashboard-overview', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      navigate(`/sports/team-orders?open=${o.id}`);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
+    onError: (e) => toast.error(apiError(e)),
   });
 
-  const updateStatus = useMutation({
-    mutationFn: (v: { status: TeamOrderStatus; paidNow?: number }) =>
-      teamOrdersApi.updateStatus(id!, { status: v.status, paidNow: v.paidNow, paymentMethod: form.paymentMethod }),
-    onSuccess: (data) => {
-      toast.success(`Status → ${data.status.replace(/_/g, ' ')}`);
-      setForm({ ...form, status: data.status, advancePaid: data.advancePaid });
-      qc.invalidateQueries({ queryKey: ['team-order', id] });
-      qc.invalidateQueries({ queryKey: ['team-orders-list'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
+  const submit = () => {
+    setTried(true);
+    const first = Object.values(errors)[0];
+    if (first) { toast.error(first); return; }
+    if (!save.isPending) save.mutate();
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); }
+      if (e.key === 'Escape' && !isDialogOpen()) navigate(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
-  /** Delivery makes the bill: ask how much is taken now, the rest goes to the team's khata. */
-  const changeStatus = (s: TeamOrderStatus) => {
-    if (s === 'CANCELLED' && !window.confirm('Order cancel karein? Liya hua advance team ke khate me jama rahega.')) return;
-    if (s !== 'DELIVERED') { updateStatus.mutate({ status: s }); return; }
-    const due = Math.max(0, Math.round((totalAmount - Number(form.advancePaid || 0)) * 100) / 100);
-    if (due <= 0) {
-      if (window.confirm('Order deliver karein? Bill ban jayega aur stock kam ho jayega.')) updateStatus.mutate({ status: s });
-      return;
-    }
-    const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh team ke khate me jayega)`, String(due));
-    if (input === null) return;
-    const paidNow = Number(input);
-    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Amount sahi likhein'); return; }
-    updateStatus.mutate({ status: s, paidNow });
-  };
+  const err = (k: string) => (tried ? errors[k] : undefined);
+  const setLine = (k: string, patch: Partial<KitLine>) => setLines((ls) => ls.map((l) => (l.key === k ? { ...l, ...patch } : l)));
+  const setPlayer = (i: number, patch: Partial<RosterRow>) => setRoster((rs) => rs.map((p, n) => (n === i ? { ...p, ...patch } : p)));
+  const closed = orderQ.data && ['DELIVERED', 'CANCELLED'].includes(orderQ.data.status);
 
-  const recordPayment = useMutation({
-    mutationFn: (amount: number) => teamOrdersApi.recordPayment(id!, { amount, paymentMethod: form.paymentMethod }),
-    onSuccess: (data) => {
-      toast.success(`Payment recorded: ${formatPKR(data.advancePaid - Number(existing?.advancePaid || 0))}`);
-      setForm({ ...form, advancePaid: data.advancePaid });
-      qc.invalidateQueries({ queryKey: ['team-order', id] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment darj nahi hui'),
-  });
-
-  const addProduct = (product: any) => {
-    const existing = items.find((i) => i.productId === product.id);
-    if (existing) {
-      setItems(items.map((i) => i.productId === product.id
-        ? { ...i, quantity: i.quantity + 1, total: (i.quantity + 1) * i.unitPrice }
-        : i));
-    } else {
-      setItems([...items, {
-        productId: product.id,
-        productName: product.name,
-        quantity: 1,
-        unitPrice: product.price,
-        total: product.price,
-        size: undefined,
-        color: undefined,
-      }]);
-    }
-    setProductSearch('');
-    setShowProductSearch(false);
-  };
-
-  const updateItem = (i: number, patch: Partial<TeamOrderItem>) => {
-    setItems(items.map((it, idx) => {
-      if (idx !== i) return it;
-      const next = { ...it, ...patch };
-      next.total = next.quantity * next.unitPrice;
-      return next;
-    }));
-  };
-
-  const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
-
-  const addPlayer = () => setPlayerRoster([...playerRoster, { name: '', number: '', size: '' }]);
-  const updatePlayer = (i: number, patch: Partial<{ name: string; number: string; size: string }>) => {
-    setPlayerRoster(playerRoster.map((p, idx) => idx === i ? { ...p, ...patch } : p));
-  };
-  const removePlayer = (i: number) => setPlayerRoster(playerRoster.filter((_, idx) => idx !== i));
-
-  const generateRoster = (count: number) => {
-    setPlayerRoster(Array.from({ length: count }, (_, i) => ({
-      name: `Player ${i + 1}`,
-      number: String(i + 1),
-      size: 'M',
-    })));
-    toast.success(`${count} player slots created`);
-  };
-
-  const canSave = form.teamName.trim() && form.contactPerson.trim() && form.contactPhone.trim() && items.length > 0;
-
-  if (isEdit && loadingOrder) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
-      </div>
-    );
+  if (isEdit && (orderQ.isLoading || !loaded)) {
+    return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></PageShell>;
   }
 
   return (
-    <div className="space-y-5 pb-24">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex items-start gap-4 flex-wrap">
-          <button onClick={() => navigate('/sports/team-orders')}
-            className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 backdrop-blur flex items-center justify-center border border-white/20">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div className="flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Users className="h-3.5 w-3.5 text-amber-300" />
-              {isEdit ? 'Edit Team Order' : 'New Team Order'}
-              {isEdit && existing && ` • ${existing.orderNumber}`}
-            </div>
-            <h1 className="mt-2 text-3xl sm:text-4xl font-extrabold leading-tight">
-              🏆 {isEdit ? form.teamName || 'Team Order' : 'Create Team Order'}
-            </h1>
-            <p className="mt-1 text-sm text-white/80 font-semibold">
-              School teams, cricket clubs, corporate leagues with jersey customization
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {isEdit && (
-        <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4">
-          <div className="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-2">Update Status</div>
-          <div className="flex flex-wrap gap-1.5">
-            {STATUSES.map((s) => (
-              <button key={s} onClick={() => changeStatus(s)}
-                disabled={form.status === s || updateStatus.isPending || form.status === 'DELIVERED' || form.status === 'CANCELLED'}
-                className={`px-3 py-2 rounded-xl border-2 text-xs font-extrabold transition disabled:opacity-100 ${
-                  form.status === s
-                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-md cursor-default'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-400'}`}>
-                {s.replace(/_/g, ' ')}
-              </button>
-            ))}
-          </div>
-        </section>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Team order — kaise likhein" onClose={guide.close}
+          steps={[
+            { icon: Users, color: '#2563eb', title: 'Team', text: 'Team / school ka naam aur rabte wale ka phone. Isi naam se team ka khata banta hai.' },
+            { icon: Shirt, color: '#7c3aed', title: 'Kit', text: 'Product chunein (size wala ho to size bhi). Team rate khud aata hai; printing ka rate per piece alag likhein.' },
+            { icon: ListOrdered, color: '#ea580c', title: 'Printing list', text: 'Har player ka naam, number aur size. Excel / WhatsApp se list paste bhi kar sakte hain.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance aaj ke cash me ginta hai aur team ke khate me jama rehta hai. Deliver par bill me lag jata hai.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
       )}
 
-      <div className="grid xl:grid-cols-[1fr_380px] gap-5 items-start">
-        <div className="space-y-5 min-w-0">
-          {/* 1 — TEAM INFO */}
-          <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-            <SectionHead n="1" icon={Users} title="Team & Contact Info" desc="Who is placing this order?" tone="emerald" />
+      <header className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
+        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-bold">{isEdit ? `Order ${orderQ.data?.orderNumber} badlein` : 'Naya team order'}</h1>
+          <p className="text-[0.8125rem] text-white/75">School, club ya team ki kit — printing ke saath</p>
+        </div>
+        <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+      </header>
 
-            <div>
-              <Lbl>Team Name *</Lbl>
-              <input autoFocus value={form.teamName} onChange={(e) => setForm({ ...form, teamName: e.target.value })}
-                placeholder="Karachi Kings U-19"
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 px-4 text-lg font-extrabold focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200" />
+      {closed && <Alert tone="warning" title="Ye order band ho chuka">Deliver ya cancel shuda order badla nahi ja sakta.</Alert>}
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-5">
+          <Card className="rounded-2xl" title="Team">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input label="Team / school ka naam" required value={team.teamName} error={err('teamName')} maxLength={80} placeholder="Shaheen XI" onChange={(e) => setTeam({ ...team, teamName: e.target.value })} hint="Bill aur khate par yahi naam" />
+              <Input label="Idara (school / club)" value={team.organization} maxLength={80} placeholder="Govt High School No. 1" onChange={(e) => setTeam({ ...team, organization: e.target.value })} hint="Marzi hai" />
+              <Input label="Rabte wala" required value={team.contactPerson} error={err('contactPerson')} maxLength={80} placeholder="Coach Imran" onChange={(e) => setTeam({ ...team, contactPerson: e.target.value })} hint="Captain, coach ya PT teacher" />
+              <Input label="Phone" required inputMode="tel" value={team.contactPhone} error={err('contactPhone')} placeholder="03001234567" onChange={(e) => setTeam({ ...team, contactPhone: e.target.value })} hint="WhatsApp isi par" />
+              <Input label="Shehar" value={team.city} placeholder="Sialkot" onChange={(e) => setTeam({ ...team, city: e.target.value })} hint="Marzi hai" />
+              <Input label="PO / letter number" value={team.poNumber} placeholder="PO-114" onChange={(e) => setTeam({ ...team, poNumber: e.target.value })} hint="School ka purchase order ho to" />
+              <Input wrapperClassName="sm:col-span-2" label="Pata (delivery)" value={team.address} placeholder="Ground / school ka pata" onChange={(e) => setTeam({ ...team, address: e.target.value })} hint="Marzi hai" />
             </div>
+          </Card>
 
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Lbl>Contact Person *</Lbl>
-                <input value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })}
-                  placeholder="Coach Ali Ahmed"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-              </div>
-              <div>
-                <Lbl>Phone *</Lbl>
-                <div className="relative">
-                  <Phone className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
-                    placeholder="03XX XXXXXXX"
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <Card className="rounded-2xl" title="Kit ka maal" description="Product chunein — size wale product me size bhi">
+            <ProductPick value={pick} onChange={setPick} label="Product" hint="Naam likhein ya barcode scan karein — team rate khud aa jata hai" />
+            {err('lines') && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{err('lines')}</p>}
+            {lines.length > 0 && (
+              <ul className="mt-4 space-y-3">
+                {lines.map((l) => (
+                  <li key={l.key} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                    <div className="mb-2 flex items-center gap-2">
+                      <p className="min-w-0 flex-1 truncate font-semibold text-slate-900">{l.productName}</p>
+                      <span className="text-[0.8125rem] font-semibold tabular-nums text-slate-700">{formatPKR(num(l.quantity) * (num(l.unitPrice) + num(l.printingPrice)))}</span>
+                      <button type="button" aria-label="Hatayein" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                      <Input label="Ginti" inputMode="numeric" value={l.quantity} onChange={(e) => setLine(l.key, { quantity: e.target.value.replace(/\D/g, '') })} />
+                      <Input label="Rate" inputMode="decimal" value={l.unitPrice} onChange={(e) => setLine(l.key, { unitPrice: clean(e.target.value) })} hint="Per piece" />
+                      <Input label="Printing" inputMode="decimal" value={l.printingPrice} placeholder="0" onChange={(e) => setLine(l.key, { printingPrice: clean(e.target.value) })} hint="Naam / number per piece" />
+                      <Input label="Size" value={l.size} disabled={!!l.variantId} placeholder="M / 32" onChange={(e) => setLine(l.key, { size: e.target.value })} hint={l.variantId ? 'Product ka size' : 'Size wale product me zaroori'} />
+                      <Input label="Rang" value={l.color} placeholder="Green" onChange={(e) => setLine(l.key, { color: e.target.value })} />
+                      <Input label="Note" value={l.note} placeholder="Logo seene par" onChange={(e) => setLine(l.key, { note: e.target.value })} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="rounded-2xl" title="Printing list" description={`${roster.length} players — naam, number aur size`}
+            actions={<div className="flex gap-2">
+              <Button variant="secondary" size="sm" leftIcon={<ClipboardPaste className="h-4 w-4" />} onClick={() => setPaste('')}>List paste</Button>
+              <Button variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setRoster((r) => [...r, { name: '', number: '', size: '' }])}>Player</Button>
+            </div>}>
+            <Switch checked={printing.on || roster.length > 0} onChange={(e) => setPrinting({ ...printing, on: e.target.checked })} label="Kit par naam / number / logo printing" description="Players ki list ho to khud on" />
+            {paste !== null && (
+              <div className="mt-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                <Textarea label="Har line par ek player" rows={5} value={paste} onChange={(e) => setPaste(e.target.value)} placeholder={'Ali Raza 10 M\nUsman 7 L\nHamza, 18, XL'} hint="Naam, number, size — space ya comma se" />
+                <div className="mt-2 flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setPaste(null)}>Band</Button>
+                  <Button size="sm" onClick={() => { const rows = parseRoster(paste); setRoster((r) => [...r, ...rows]); setPaste(null); toast.success(`${rows.length} players jur gaye`); }}>List me daalein</Button>
                 </div>
               </div>
-              <div>
-                <Lbl>Email</Lbl>
-                <div className="relative">
-                  <Mail className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input type="email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
-                    placeholder="coach@team.com"
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                </div>
+            )}
+            {roster.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {roster.map((p, i) => (
+                  <div key={i} className="grid grid-cols-[2rem_minmax(0,1fr)_5rem_5rem_2rem] items-center gap-2">
+                    <span className="text-center text-[0.75rem] text-slate-500">{i + 1}</span>
+                    <Input aria-label="Naam" value={p.name} placeholder="Naam" maxLength={40} onChange={(e) => setPlayer(i, { name: e.target.value })} />
+                    <Input aria-label="Number" value={p.number} placeholder="No." maxLength={4} onChange={(e) => setPlayer(i, { number: e.target.value })} />
+                    <Input aria-label="Size" value={p.size} placeholder="Size" maxLength={12} onChange={(e) => setPlayer(i, { size: e.target.value })} />
+                    <button type="button" aria-label="Hatayein" onClick={() => setRoster((r) => r.filter((_, n) => n !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                ))}
               </div>
-              <div>
-                <Lbl>Organization</Lbl>
-                <div className="relative">
-                  <Building className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input value={form.organization} onChange={(e) => setForm({ ...form, organization: e.target.value })}
-                    placeholder="Beaconhouse School System"
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                </div>
-              </div>
-              <div>
-                <Lbl>City</Lbl>
-                <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder="Karachi"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-              </div>
-              <div>
-                <Lbl>PO Number</Lbl>
-                <input value={form.poNumber} onChange={(e) => setForm({ ...form, poNumber: e.target.value })}
-                  placeholder="PO-2026-001"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-              </div>
-            </div>
+            )}
+            {(printing.on || roster.length > 0) && (
+              <Textarea wrapperClassName="mt-3" label="Printing / design" rows={2} value={printing.details} onChange={(e) => setPrinting({ ...printing, details: e.target.value })} placeholder="Peeche naam aur number, seene par school ka logo" hint="Printer ko yahi batana hai" />
+            )}
+          </Card>
 
-            <div>
-              <Lbl>Address</Lbl>
-              <div className="relative">
-                <MapPin className="h-4 w-4 text-slate-400 absolute left-3 top-3" />
-                <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  placeholder="Delivery address..."
-                  className="w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-              </div>
+          <Card className="rounded-2xl" title="Note">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Textarea label="Team ke liye" rows={2} value={notes.notes} onChange={(e) => setNotes({ ...notes, notes: e.target.value })} hint="Slip par chhapta hai" />
+              <Textarea label="Andar ka note" rows={2} value={notes.internalNotes} onChange={(e) => setNotes({ ...notes, internalNotes: e.target.value })} hint="Sirf dukaan ke liye" />
             </div>
-          </section>
+          </Card>
+        </div>
 
-          {/* 2 — ITEMS */}
-          <section className="rounded-3xl bg-white border-2 border-blue-300 shadow-sm p-5 space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <SectionHead n="2" icon={Package} title="Order Items" desc="Add products to the order" tone="blue" />
-              <span className={`px-3 py-1.5 rounded-full text-xs font-extrabold ${
-                items.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                {items.length} items • {totalQty} pcs
-              </span>
+        <aside className="h-fit space-y-4 lg:sticky lg:top-4">
+          <Card className="rounded-2xl" title="Hisaab">
+            <Input label="Delivery ki date" type="date" value={delivery} onChange={(e) => setDelivery(e.target.value)} hint="Kab tak tayyar dena hai" />
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <Input label="Discount %" inputMode="decimal" value={money.discountPct} error={err('discountPct')} placeholder="0" onChange={(e) => setMoney({ ...money, discountPct: clean(e.target.value) })} />
+              <Input label="Delivery Rs" inputMode="decimal" value={money.shippingCharge} placeholder="0" onChange={(e) => setMoney({ ...money, shippingCharge: clean(e.target.value) })} />
             </div>
-
-            <div className="rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-3 space-y-2">
-              <div className="relative">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input value={productSearch}
-                  onChange={(e) => { setProductSearch(e.target.value); setShowProductSearch(true); }}
-                  onFocus={() => setShowProductSearch(true)}
-                  placeholder="Search product to add..."
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-              </div>
-              {showProductSearch && productSearch && (
-                <div className="max-h-64 overflow-y-auto space-y-1 border-t border-blue-200 pt-2">
-                  {((productsData as any)?.items ?? []).map((p: any) => {
-                    const isTeamOrderable = teamProductIds.has(p.id);
-                    return (
-                      <button key={p.id} onClick={() => addProduct(p)}
-                        className="w-full px-3 py-2 flex items-center gap-3 rounded-lg bg-white hover:bg-blue-50 border-2 border-transparent hover:border-blue-200 transition text-left">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                          {p.images?.[0]?.url ? <img src={p.images[0].url} alt="" className="w-full h-full object-cover" /> : <Package className="h-full w-full p-2 text-slate-400" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-extrabold text-sm truncate">{p.name}</div>
-                          <div className="text-xs text-slate-500 font-semibold">
-                            {formatPKR(p.price)}
-                            {isTeamOrderable && <span className="ml-2 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">TEAM</span>}
-                          </div>
-                        </div>
-                        <Plus className="h-4 w-4 text-blue-600" />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+            <div className="mt-3">
+              <Line label={`Maal (${totals.pieces} piece)`} value={formatPKR(totals.subtotal)} />
+              {totals.discount > 0 && <Line label="Discount" value={`- ${formatPKR(totals.discount)}`} />}
+              {num(money.shippingCharge) > 0 && <Line label="Delivery" value={formatPKR(num(money.shippingCharge))} />}
+              <Line strong label="Kul" value={formatPKR(totals.total)} />
             </div>
-
-            {items.length === 0 ? (
-              <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                <Package className="h-12 w-12 text-slate-400 mx-auto mb-2" />
-                <p className="font-extrabold text-slate-700">No items yet</p>
-                <p className="text-xs text-slate-500 font-semibold mt-1">Search above to add products</p>
+            {!isEdit ? (
+              <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+                <Input label="Advance (abhi mila)" inputMode="decimal" value={money.advance} error={err('advance')} placeholder="0" onChange={(e) => setMoney({ ...money, advance: clean(e.target.value) })} hint="Team ke khate me jama hoga" />
+                {num(money.advance) > 0 && <PaymentMethodPicker value={money.method} onChange={(m) => setMoney({ ...money, method: m })} label="Advance kaise mila" />}
+                <Line label="Baqi" value={formatPKR(Math.max(totals.total - num(money.advance), 0))} />
               </div>
             ) : (
-              <div className="space-y-2">
-                {items.map((item, i) => (
-                  <div key={i} className="rounded-xl border-2 border-slate-200 bg-white p-3">
-                    <div className="flex items-start gap-3">
-                      <div className="h-11 w-11 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                        <Package className="h-5 w-5 text-slate-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-extrabold text-sm truncate">{item.productName}</div>
-                      </div>
-                      <button onClick={() => removeItem(i)}
-                        className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <div>
-                        <label className="block text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Qty</label>
-                        <input type="number" min="1" value={item.quantity}
-                          onChange={(e) => updateItem(i, { quantity: Math.max(1, Number(e.target.value)) })}
-                          className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-                      </div>
-                      <div>
-                        <label className="block text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Unit Price</label>
-                        <input type="number" step="0.01" value={item.unitPrice}
-                          onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })}
-                          className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-                      </div>
-                      <div>
-                        <label className="block text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Size</label>
-                        <input value={item.size || ''} onChange={(e) => updateItem(i, { size: e.target.value })}
-                          placeholder="M, L, XL..."
-                          className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                      </div>
-                      <div>
-                        <label className="block text-[0.625rem] uppercase font-extrabold text-emerald-700 mb-1">Total</label>
-                        <div className="h-10 w-full rounded-lg border-2 border-emerald-200 bg-emerald-50 px-2 flex items-center text-sm font-extrabold text-emerald-800 tabular-nums">
-                          {formatPKR(item.total || (item.quantity * item.unitPrice))}
-                        </div>
-                      </div>
-                    </div>
-                    {item.customizationNotes !== undefined && (
-                      <input value={item.customizationNotes || ''}
-                        onChange={(e) => updateItem(i, { customizationNotes: e.target.value })}
-                        placeholder="Customization notes for this item..."
-                        className="mt-2 h-10 w-full rounded-lg border-2 border-violet-200 bg-violet-50/50 px-3 text-xs font-bold focus:outline-none focus:border-violet-500" />
-                    )}
-                    {item.customizationNotes === undefined && (
-                      <button onClick={() => updateItem(i, { customizationNotes: '' })}
-                        className="mt-2 text-[0.6875rem] font-extrabold text-violet-700 hover:underline">
-                        + Add customization note
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <p className="mt-3 text-[0.75rem] text-slate-500">Advance {formatPKR(orderQ.data?.advancePaid ?? 0)} mil chuka. Nayi payment order kholein aur "Payment lein" dabayein.</p>
             )}
-          </section>
-
-          {/* 3 — CUSTOM JERSEYS */}
-          <section className="rounded-3xl bg-white border-2 border-violet-300 shadow-sm p-5 space-y-4">
-            <SectionHead n="3" icon={Sparkles} title="Custom Jerseys" desc="Player names, numbers, team logo" tone="violet" />
-
-            <button type="button" onClick={() => setForm({ ...form, hasCustomJerseys: !form.hasCustomJerseys })}
-              className={`w-full rounded-2xl border-2 p-4 text-left transition ${
-                form.hasCustomJerseys ? 'border-violet-500 bg-violet-50 shadow-md' : 'border-slate-200 bg-white hover:border-violet-300'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                  form.hasCustomJerseys ? 'bg-violet-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-extrabold text-slate-900">Include Jersey Customization</div>
-                  <div className="text-xs text-slate-600 font-semibold">Player names, numbers, team logo printing</div>
-                </div>
-                <div className={`h-6 w-11 rounded-full transition ${form.hasCustomJerseys ? 'bg-violet-600' : 'bg-slate-300'}`}>
-                  <div className={`h-5 w-5 mt-0.5 rounded-full bg-white transition ${form.hasCustomJerseys ? 'ml-6' : 'ml-0.5'}`} />
-                </div>
-              </div>
-            </button>
-
-            {form.hasCustomJerseys && (
-              <div className="space-y-4 rounded-2xl bg-violet-50 border-2 border-violet-200 p-4">
-                <div>
-                  <Lbl>Customization Details</Lbl>
-                  <textarea rows={2} value={form.customizationDetails}
-                    onChange={(e) => setForm({ ...form, customizationDetails: e.target.value })}
-                    placeholder="Font style, colour combinations, sponsor placement..."
-                    className="w-full rounded-xl border-2 border-violet-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-                </div>
-
-                <div>
-                  <Lbl>Team Logo</Lbl>
-                  {form.teamLogoUrl ? (
-                    <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-violet-300">
-                      <img src={form.teamLogoUrl} alt="" className="w-full h-full object-contain bg-white p-2" />
-                      <button onClick={() => setForm({ ...form, teamLogoUrl: '' })}
-                        className="absolute top-1 right-1 h-7 w-7 rounded-lg bg-rose-600 text-white flex items-center justify-center">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <UploadDropzone purpose="team-logo" maxFiles={1}
-                      onUploaded={(recs: any[]) => {
-                        const first = Array.isArray(recs) ? recs[0] : recs;
-                        const url = typeof first === 'string' ? first : (first as any)?.url;
-                        if (url) setForm({ ...form, teamLogoUrl: url });
-                      }} />
-                  )}
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Lbl>Player Roster ({playerRoster.length})</Lbl>
-                    <div className="flex gap-1">
-                      {[11, 15, 20, 25].map((n) => (
-                        <button key={n} onClick={() => generateRoster(n)}
-                          className="px-2 py-1 rounded-lg bg-white border-2 border-violet-200 hover:border-violet-400 text-violet-700 text-[0.6875rem] font-extrabold">
-                          {n} players
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {playerRoster.map((player, i) => (
-                      <div key={i} className="rounded-xl bg-white border-2 border-violet-200 p-2 grid grid-cols-[auto_1fr_80px_100px_auto] gap-2 items-center">
-                        <div className="h-9 w-9 rounded-lg bg-violet-600 text-white flex items-center justify-center font-extrabold text-xs">
-                          {i + 1}
-                        </div>
-                        <input value={player.name} onChange={(e) => updatePlayer(i, { name: e.target.value })}
-                          placeholder="Player name"
-                          className="h-9 rounded-lg border-2 border-slate-200 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                        <input value={player.number} onChange={(e) => updatePlayer(i, { number: e.target.value })}
-                          placeholder="No."
-                          className="h-9 rounded-lg border-2 border-slate-200 px-2 text-sm font-mono font-bold text-center focus:outline-none focus:border-violet-500" />
-                        <select value={player.size} onChange={(e) => updatePlayer(i, { size: e.target.value })}
-                          className="h-9 rounded-lg border-2 border-slate-200 bg-white px-2 text-xs font-bold focus:outline-none focus:border-violet-500">
-                          <option value="">Size</option>
-                          {APPAREL_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        <button onClick={() => removePlayer(i)}
-                          className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <button onClick={addPlayer}
-                      className="w-full h-11 rounded-xl border-2 border-dashed border-violet-300 hover:border-violet-500 hover:bg-violet-50 text-violet-700 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition">
-                      <Plus className="h-4 w-4" /> Add Player
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* 4 — PRICING & DELIVERY */}
-          <section className="rounded-3xl bg-white border-2 border-emerald-300 shadow-sm p-5 space-y-4">
-            <SectionHead n="4" icon={DollarSign} title="Pricing & Delivery" desc="Discount, tax, shipping, dates" tone="emerald" />
-
-            <div>
-              <Lbl>Discount %</Lbl>
-              <div className="flex gap-1">
-                {DISCOUNT_PRESETS.map((d) => (
-                  <button key={d} onClick={() => setForm({ ...form, discountPct: d })}
-                    className={`flex-1 h-11 rounded-xl border-2 text-xs font-extrabold transition ${
-                      form.discountPct === d ? 'border-amber-600 bg-amber-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400'}`}>
-                    {d === 0 ? 'None' : `${d}%`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-3 gap-3">
-              <div>
-                <Lbl>Tax Amount</Lbl>
-                <input type="number" value={form.taxAmount}
-                  onChange={(e) => setForm({ ...form, taxAmount: Number(e.target.value) })}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-              </div>
-              <div>
-                <Lbl>Shipping</Lbl>
-                <input type="number" value={form.shippingCharge}
-                  onChange={(e) => setForm({ ...form, shippingCharge: Number(e.target.value) })}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-              </div>
-              <div>
-                <Lbl>Advance Paid</Lbl>
-                <input type="number" value={form.advancePaid} readOnly={isEdit}
-                  title={isEdit ? 'Nayi amount neeche "Add Payment" se darj karein' : undefined}
-                  onChange={(e) => setForm({ ...form, advancePaid: Number(e.target.value) })}
-                  className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-              </div>
-            </div>
-
-            {isEdit && (
-              <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3 space-y-2">
-                <div className="text-xs font-extrabold text-emerald-800">Add Payment</div>
-                <div className="flex gap-2">
-                  <input type="number" id="new-payment" placeholder="Amount"
-                    className="h-10 flex-1 rounded-lg border-2 border-emerald-300 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                  <button onClick={() => {
-                    const el = document.getElementById('new-payment') as HTMLInputElement;
-                    const amount = Number(el?.value || 0);
-                    if (amount > 0) { recordPayment.mutate(amount); el.value = ''; }
-                  }} className="h-10 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold">
-                    Record
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Lbl>Payment Method</Lbl>
-                <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-                  <option value="CASH">Cash</option>
-                  <option value="CARD">Card</option>
-                  <option value="BANK_TRANSFER">Bank Transfer</option>
-                  <option value="JAZZCASH">JazzCash</option>
-                  <option value="EASYPAISA">Easypaisa</option>
-                </select>
-              </div>
-              <div>
-                <Lbl>Expected Delivery Date</Lbl>
-                <div className="relative">
-                  <Calendar className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input type="date" value={form.expectedDeliveryDate}
-                    onChange={(e) => setForm({ ...form, expectedDeliveryDate: e.target.value })}
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <Lbl>Customer Notes</Lbl>
-              <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Any notes from customer..."
-                className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-            </div>
-
-            <div>
-              <Lbl>Internal Notes <span className="text-slate-400 normal-case font-bold">(staff only)</span></Lbl>
-              <textarea rows={2} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })}
-                placeholder="Staff notes, production tracking..."
-                className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-            </div>
-          </section>
-        </div>
-
-        {/* SIDEBAR - ORDER SUMMARY */}
-        <aside className="flex flex-col gap-3 xl:sticky xl:top-4 xl:self-start">
-          <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-5 shadow-xl overflow-hidden relative">
-            <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
-            <div className="relative">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-90 flex items-center gap-1">
-                <Trophy className="h-3 w-3" /> Order Summary
-              </div>
-              <h3 className="mt-2 font-extrabold text-xl truncate">{form.teamName || 'Team name...'}</h3>
-              <div className="mt-3 text-4xl font-extrabold tabular-nums text-emerald-300">
-                {formatPKRFull(totalAmount)}
-              </div>
-              <div className="text-xs font-bold text-white/70 mt-0.5">
-                {items.length} items • {totalQty} pieces
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2.5">
-            <Row label="Subtotal" value={formatPKRFull(subtotal)} />
-            {form.discountPct > 0 && (
-              <Row label={`Discount (${form.discountPct}%)`} value={`-${formatPKRFull(discountAmount)}`} tone="amber" />
-            )}
-            {form.taxAmount > 0 && <Row label="Tax" value={formatPKRFull(form.taxAmount)} />}
-            {form.shippingCharge > 0 && <Row label="Shipping" value={formatPKRFull(form.shippingCharge)} />}
-            <div className="pt-2 border-t-2 border-slate-100 flex items-center justify-between">
-              <span className="text-sm font-extrabold text-slate-900">Total</span>
-              <span className="text-xl font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(totalAmount)}</span>
-            </div>
-            {form.advancePaid > 0 && (
-              <>
-                <Row label="Advance paid" value={formatPKRFull(form.advancePaid)} tone="emerald" />
-                <div className="flex items-center justify-between text-sm font-extrabold">
-                  <span className="text-rose-700">Balance</span>
-                  <span className="text-rose-700 tabular-nums">{formatPKRFull(balanceAmount)}</span>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" /> Checklist
-            </div>
-            <Chk done={!!form.teamName.trim()} label="Team name" />
-            <Chk done={!!form.contactPerson.trim() && !!form.contactPhone.trim()} label="Contact person + phone" />
-            <Chk done={items.length > 0} label="At least 1 item" />
-            <Chk done={!form.hasCustomJerseys || playerRoster.length > 0} label="Player roster (if custom)" />
-          </div>
+          </Card>
+          <Button fullWidth size="lg" loading={save.isPending} disabled={!!closed} onClick={submit}>
+            {isEdit ? 'Save karein' : 'Order banayein'} <Kbd className="ml-2 bg-white/20 text-white">Ctrl S</Kbd>
+          </Button>
+          <Link to="/sports/team-orders" className="block text-center text-[0.8125rem] font-medium text-slate-500 hover:text-slate-700">Sab team orders</Link>
         </aside>
       </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <Button variant="secondary" onClick={() => navigate('/sports/team-orders')}>Cancel</Button>
-          <Button className="bg-gradient-to-r from-emerald-600 to-teal-700"
-            onClick={() => save.mutate()} loading={save.isPending} disabled={!canSave}>
-            <Save className="h-4 w-4" />
-            {isEdit ? 'Save Changes' : `Create Order (${formatPKR(totalAmount)})`}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SectionHead({ n, icon: Icon, title, desc, tone }: any) {
-  const tones: Record<string, string> = {
-    emerald: 'from-emerald-500 to-teal-700',
-    blue: 'from-blue-500 to-cyan-700',
-    violet: 'from-violet-500 to-purple-700',
-  };
-  return (
-    <div className="flex items-center gap-3">
-      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <div>
-        <h3 className="font-extrabold text-slate-900 text-base leading-tight">
-          <span className="text-slate-400">{n}.</span> {title}
-        </h3>
-        <p className="text-xs text-slate-500 font-semibold">{desc}</p>
-      </div>
-    </div>
-  );
-}
-
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
-}
-
-function Row({ label, value, tone }: any) {
-  const tones: Record<string, string> = {
-    amber: 'text-amber-700',
-    emerald: 'text-emerald-700',
-  };
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-slate-600 font-semibold">{label}</span>
-      <span className={`font-extrabold tabular-nums ${tone ? tones[tone] : 'text-slate-900'}`}>{value}</span>
-    </div>
-  );
-}
-
-function Chk({ done, label }: { done: boolean; label: string }) {
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      <div className={`h-4 w-4 rounded-md flex items-center justify-center shrink-0 ${
-        done ? 'bg-emerald-500 text-white' : 'bg-white border-2 border-slate-300'}`}>
-        {done && <CheckCircle2 className="h-3 w-3" />}
-      </div>
-      <span className={`font-bold ${done ? 'text-emerald-800 line-through' : 'text-slate-600'}`}>{label}</span>
-    </div>
+    </PageShell>
   );
 }

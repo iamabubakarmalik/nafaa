@@ -1,14 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
 import { PaymentMethod, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { ShopScope, applyStockDelta, resolveWriteShopId } from '../../../common/shop-scope';
+import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 /**
  * Optical bills things that hold no stock (eye test fee, lenses made at the
  * lab, fitting). Each kind is a service product that only exists to carry a
- * bill line: it is switched on and given exactly the units a bill needs, and
+ * bill line: it is switched on for the bill and
  * switched off again afterwards so it never shows in stock lists or alerts.
  */
 export const OPTICAL_LINES = {
@@ -31,8 +31,8 @@ export function toPaymentMethod(v?: string | null): PaymentMethod {
 
 type Tx = Prisma.TransactionClient;
 
-/** Turns the line on and makes sure `units` are on the shelf at `shopId`. */
-export async function openServiceLine(tx: Tx, user: AuthenticatedUser, line: OpticalLine, shopId: string | null, units: number) {
+/** Turns the line on. It holds no stock: sales and booking bills skip service lines. */
+export async function openServiceLine(tx: Tx, user: AuthenticatedUser, line: OpticalLine) {
   const { sku, name } = OPTICAL_LINES[line];
   let product = await tx.product.findFirst({ where: { tenantId: user.tenantId, sku, productType: LINE_TYPE } });
   if (!product) {
@@ -45,16 +45,6 @@ export async function openServiceLine(tx: Tx, user: AuthenticatedUser, line: Opt
   } else if (!product.isActive) {
     await tx.product.update({ where: { id: product.id }, data: { isActive: true } });
   }
-  if (shopId && units > 0) {
-    const row = await tx.shopStock.findFirst({ where: { shopId, productId: product.id, variantId: null }, select: { stock: true } });
-    const here = row?.stock ?? 0;
-    if (here < units) {
-      await applyStockDelta({
-        tx, tenantId: user.tenantId, shopId, productId: product.id, delta: units - here,
-        movementType: 'OPENING_BALANCE', reference: sku, note: 'Service bill line', userId: user.id, unitCost: 0,
-      });
-    }
-  }
   return product.id;
 }
 
@@ -63,24 +53,28 @@ export async function closeServiceLine(prisma: PrismaService, productId: string)
   await prisma.product.updateMany({ where: { id: productId }, data: { isActive: false } }).catch(() => undefined);
 }
 
-/** Bills one fee as a fully paid sale (cash basis). */
+/**
+ * Bills one fee as a sale through the counter engine. Paid in full, or with
+ * `onKhata` the whole amount goes on the customer's khata as udhaar.
+ */
 export async function billServiceFee(
   prisma: PrismaService,
   sales: SalesService,
   user: AuthenticatedUser,
   scope: ShopScope,
-  input: { line: OpticalLine; amount: number; paymentMethod?: string | null; customerId?: string | null; lineNote: string; note?: string },
+  input: { line: OpticalLine; amount: number; paymentMethod?: string | null; customerId?: string | null; lineNote: string; note?: string; onKhata?: boolean },
 ) {
   const amount = Math.round(Number(input.amount) * 100) / 100;
   if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
+  if (input.onKhata && !input.customerId) throw new BadRequestException('Khata ke liye customer zaroori hai');
   const shopId = await resolveWriteShopId(prisma, user.tenantId, scope);
-  const productId = await prisma.$transaction((tx) => openServiceLine(tx, user, input.line, shopId, 1));
+  const productId = await prisma.$transaction((tx) => openServiceLine(tx, user, input.line));
   try {
     const sale: any = await sales.create(user, scope, {
       shopId,
       customerId: input.customerId || undefined,
       paymentMethod: toPaymentMethod(input.paymentMethod),
-      paidAmount: amount,
+      paidAmount: input.onKhata ? 0 : amount,
       note: input.note || undefined,
       items: [{ productId, quantity: 1, priceOverride: amount, note: input.lineNote }],
     } as any);

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { DairyBillingCycle } from '@prisma/client';
-import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min } from 'class-validator';
 
 export class UpsertFarmerDto {
   @ApiProperty() @IsString() @MaxLength(120) name!: string;
@@ -30,7 +30,15 @@ export class UpdateFarmerDto extends PartialType(UpsertFarmerDto) {}
 
 export class FarmerPaymentDto {
   @ApiProperty() @IsNumber() @Min(0.01) amount!: number;
-  @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
+  /** CASH, BANK_TRANSFER, JAZZCASH, EASYPAISA or CARD; blank means cash. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) paymentMethod?: string;
+  /** Money account the payment leaves from; without it cash leaves the drawer. */
+  @ApiPropertyOptional() @IsOptional() @IsUUID() accountId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) reference?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) notes?: string;
+}
+
+export class FarmerStatementQuery {
+  @ApiPropertyOptional() @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) from?: string;
+  @ApiPropertyOptional() @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) to?: string;
 }

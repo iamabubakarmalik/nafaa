@@ -1,323 +1,226 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Dumbbell,
-  Plus, AlertTriangle, Trash2, Eye, Edit3,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { useSportsWizard, type WizardStep } from '../hooks/useSportsWizard';
-import { SportsWizardStepper } from '../components/wizard/SportsWizardStepper';
-import { SportsWizardStep1Basic } from '../components/wizard/SportsWizardStep1Basic';
-import { SportsWizardStep2Specs } from '../components/wizard/SportsWizardStep2Specs';
-import { SportsWizardStep3Team } from '../components/wizard/SportsWizardStep3Team';
-import { SportsWizardStep4Stock } from '../components/wizard/SportsWizardStep4Stock';
-import { SportsWizardSummary } from '../components/wizard/SportsWizardSummary';
-import { saveSportsWizard, type SportsWizardSaveResult } from '../api/sports-wizard.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
+/**
+ * Sports product editor on the shared editor: sport and type, age group,
+ * bat / ball / kit specs that show only for that kind of item, MRP and the
+ * team rate (with minimum pieces and team discount), sizes for kits and
+ * shoes as variants with their own barcode and opening stock, warranty and
+ * marks.
+ */
+
+import { Award, BadgePercent, Shirt, Trophy, Users } from 'lucide-react';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { Chip, Section, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { sportsProductsApi } from '../api/products.api';
+import { AGE_GROUPS, APPAREL_SIZES, BAT_SIZES, KIDS_SIZES, META_KEY, SPORTS, SPORT_TYPES, isApparel, isBat, opt, typeLabel } from '../components/meta';
 
-export default function SportsProductWizardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+export interface SportsExtra {
+  sport: string; categoryType: string; ageGroup: string;
+  batWood: string; batGrade: string; batSize: string; batWeightGrams: string; handleType: string;
+  ballType: string; ballWeight: string; size: string; material: string; fit: string; weight: string;
+  mrp: number | null; teamPrice: number | null; minTeamOrder: string; bulkDiscountPct: string;
+  isTeamOrderable: boolean; hasCustomization: boolean;
+  warrantyMonths: number; warrantyType: string; careInstructions: string;
+  isNewArrival: boolean; isBestSeller: boolean; isProfessional: boolean;
+}
 
-  const {
-    draft, draftRestored, validation, stats,
-    goToStep, nextStep, prevStep,
-    updateBasic, updateSpecs, updateTeam,
-    setHasVariants, addVariant, updateVariant, removeVariant,
-    updateStock, reset,
-  } = useSportsWizard({ autoLoadDraft: !isEdit });
+const initial: SportsExtra = {
+  sport: 'Cricket', categoryType: 'CRICKET_BAT', ageGroup: 'ADULT', batWood: '', batGrade: '', batSize: '', batWeightGrams: '', handleType: '',
+  ballType: '', ballWeight: '', size: '', material: '', fit: '', weight: '', mrp: null, teamPrice: null, minTeamOrder: '', bulkDiscountPct: '',
+  isTeamOrderable: false, hasCustomization: false, warrantyMonths: 0, warrantyType: '', careInstructions: '',
+  isNewArrival: true, isBestSeller: false, isProfessional: false,
+};
 
-  const [savedResult, setSavedResult] = useState<SportsWizardSaveResult | null>(null);
-  const [editLoaded, setEditLoaded] = useState(false);
+const label = (t: string) => <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t}</span>;
+const num = (v: string) => v.replace(/[^\d.]/g, '');
 
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product-for-sports-wizard', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
-  const { data: existingProfile } = useQuery({
-    queryKey: ['sports-profile-for-wizard', id],
-    queryFn: () => sportsProductsApi.byProduct(id!),
-    enabled: isEdit,
-  });
-
-  useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
-
-    updateBasic({
-      name: existingProduct.name,
-      description: existingProduct.description ?? '',
-      categoryId: existingProduct.categoryId ?? '',
-      brandId: existingProfile?.brandId ?? '',
-      categoryType: existingProfile?.categoryType ?? 'CRICKET_BAT',
-      sport: existingProfile?.sport ?? 'Cricket',
-      ageGroup: existingProfile?.ageGroup ?? 'ADULT',
-      genderTarget: existingProfile?.genderTarget ?? 'UNISEX',
-      sku: existingProduct.sku ?? '',
-      barcode: existingProduct.barcode ?? '',
-      color: existingProfile?.color ?? '',
-      colorHex: existingProfile?.colorHex ?? '',
-      countryOfMake: existingProfile?.countryOfMake ?? '',
-      costPrice: existingProduct.costPrice ?? 0,
-      retailPrice: existingProduct.price ?? 0,
-      wholesalePrice: existingProduct.wholesalePrice ?? '',
-      mrp: existingProfile?.mrp ?? '',
-      taxRate: existingProduct.taxRate ?? 0,
-      warrantyMonths: existingProfile?.warrantyMonths ?? '',
-      warrantyType: existingProfile?.warrantyType ?? '',
-      isActive: existingProduct.isActive,
-      isFeatured: existingProduct.isFeatured,
-      isBestSeller: existingProfile?.isBestSeller ?? false,
-      isNewArrival: existingProfile?.isNewArrival ?? false,
-      isProfessional: existingProfile?.isProfessional ?? false,
-      imageUrls: (existingProduct.images ?? []).map((i: any) => i?.url).filter(Boolean),
-      tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
-      notes: existingProfile?.notes ?? '',
-      careInstructions: existingProfile?.careInstructions ?? '',
-    });
-
-    if (existingProfile) {
-      updateSpecs({
-        batWood: existingProfile.batWood ?? '',
-        batWeightGrams: existingProfile.batWeightGrams ?? '',
-        batGrade: existingProfile.batGrade ?? '',
-        batSize: existingProfile.batSize ?? '',
-        handleType: existingProfile.handleType ?? '',
-        ballType: existingProfile.ballType ?? '',
-        ballWeight: existingProfile.ballWeight ?? '',
-        ballCircumference: existingProfile.ballCircumference ?? '',
-        ballMaterial: existingProfile.ballMaterial ?? '',
-        size: existingProfile.size ?? '',
-        material: existingProfile.material ?? '',
-        fit: existingProfile.fit ?? '',
-        hasCustomization: existingProfile.hasCustomization ?? false,
-        shoeSize: existingProfile.shoeSize ?? '',
-        soleType: existingProfile.soleType ?? '',
-        studType: existingProfile.studType ?? '',
-        weight: existingProfile.weight ?? '',
-        maxUserWeight: existingProfile.maxUserWeight ?? '',
-        dimensions: existingProfile.dimensions ?? '',
-        powerRating: existingProfile.powerRating ?? '',
-        motorType: existingProfile.motorType ?? '',
-        foldable: existingProfile.foldable ?? false,
-        material2: existingProfile.material2 ?? '',
-        certifications: existingProfile.certifications ?? [],
-      });
-      updateTeam({
-        isTeamOrderable: existingProfile.isTeamOrderable ?? false,
-        minTeamOrder: existingProfile.minTeamOrder ?? '',
-        bulkDiscountPct: existingProfile.bulkDiscountPct ?? '',
-        teamPrice: existingProfile.teamPrice ?? '',
-        customizationOptions: existingProfile.customizationOptions ?? [],
-      });
-    }
-
-    setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateSpecs, updateTeam]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => saveSportsWizard(draft, isEdit ? id : undefined),
-    onSuccess: (result) => {
-      setSavedResult(result);
-      queryClient.invalidateQueries({ queryKey: ['sports-products-list'] });
-      queryClient.invalidateQueries({ queryKey: ['sports-profiles-all'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success(`${result.productName} ${isEdit ? 'updated' : 'created'}`);
-      if (!isEdit) reset();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to save'),
-  });
-
-  const currentValidation =
-    draft.step === 1 ? validation.step1 :
-    draft.step === 2 ? validation.step2 :
-    draft.step === 3 ? validation.step3 : validation.step4;
-
-  const canGoNext = currentValidation.valid && draft.step < 4;
-  const canSave = validation.allValid;
-
-  if (isEdit && !editLoaded && !existingProduct) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (savedResult) {
-    return (
-      <div className="max-w-2xl mx-auto py-12 space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 p-8 text-center shadow-xl">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xl mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-emerald-900">
-            Product {isEdit ? 'Updated' : 'Created'}
-          </h1>
-          <p className="text-emerald-800 font-semibold mt-1">
-            <strong>{savedResult.productName}</strong> is live in your catalogue
-          </p>
-          <div className="grid grid-cols-3 gap-3 mt-6">
-            <SuccessStat label="Profile" value={savedResult.profileCreated ? '✓' : '—'} />
-            <SuccessStat label="Variants" value={savedResult.variantCount} />
-            <SuccessStat label="Stock" value={savedResult.totalStock} />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <button onClick={() => { setSavedResult(null); reset(); window.scrollTo({ top: 0, behavior: 'smooth' }); if (isEdit) navigate('/sports-products/new'); }}
-            className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white p-5 flex flex-col items-center gap-2 shadow-md transition">
-            <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another</div>
-          </button>
-          <button onClick={() => navigate(`/sports-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Eye className="h-6 w-6 text-emerald-600" />
-            <div className="font-extrabold text-slate-900">View Product</div>
-          </button>
-          <button onClick={() => navigate('/sports-products')}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Dumbbell className="h-6 w-6 text-emerald-600" />
-            <div className="font-extrabold text-slate-900">All Products</div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+function Field({ ctx, k, title, ph, max = 60, hint }: { ctx: StepContext<SportsExtra>; k: keyof SportsExtra; title: string; ph?: string; max?: number; hint?: string }) {
   return (
-    <div className="space-y-5 pb-24">
-      {draftRestored && !isEdit && (
-        <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-3 flex items-center gap-3 flex-wrap">
-          <Sparkles className="h-4 w-4 text-emerald-700" />
-          <div className="text-xs text-emerald-900 flex-1 min-w-0">
-            <strong>Draft restored</strong> — previous entries loaded
-          </div>
-          <button onClick={() => { if (confirm('Discard draft and start fresh?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200">
-            <Trash2 className="h-3 w-3" /> Fresh Start
-          </button>
+    <label className="block">
+      {label(title)}
+      <input value={String(ctx.draft.extra[k] ?? '')} onChange={(e) => ctx.setExtra({ [k]: e.target.value } as Partial<SportsExtra>)} placeholder={ph} className={inputClass} maxLength={max} />
+      {hint && <span className="mt-1 block text-[0.75rem] text-slate-500">{hint}</span>}
+    </label>
+  );
+}
+
+/* ── Basic step additions: sport, type, age group ── */
+function Identity({ ctx }: { ctx: StepContext<SportsExtra> }) {
+  const x = ctx.draft.extra;
+  const types = SPORT_TYPES.filter((t) => t.sport === x.sport || t.sport === 'Other');
+  return (
+    <div className="space-y-4">
+      <div>
+        {label('Sport')}
+        <div className="flex flex-wrap gap-1.5">
+          {SPORTS.map((s) => <Chip key={s} on={x.sport === s} onClick={() => ctx.setExtra({ sport: s, categoryType: SPORT_TYPES.find((t) => t.sport === s)?.value ?? 'OTHER' })}>{s}</Chip>)}
         </div>
-      )}
-
-      {isEdit && (
-        <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-3">
-          <Edit3 className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 flex-1">
-            <div className="font-extrabold mb-0.5">Edit mode</div>
-            <div className="font-semibold">Basic info, specs and team settings editable. New variants will be added on save.</div>
-          </div>
-        </div>
-      )}
-
-      <button onClick={() => navigate(isEdit ? `/sports-products/${id}` : '/sports/dashboard')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-emerald-600 font-bold transition">
-        <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Dashboard'}
-      </button>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <Dumbbell className="h-3.5 w-3.5 text-amber-300" />
-            {isEdit ? 'Editing Sports Product' : 'Sports Product Wizard'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? draft.basic.name || 'Edit Product' : 'Add New Sports Product'}
-          </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-xl">
-            Cricket bats, jerseys, gym equipment — everything with team ordering and warranty.
-          </p>
-        </div>
-      </section>
-
-      <SportsWizardStepper
-        currentStep={draft.step}
-        stepValidation={validation}
-        onStepClick={(s) => {
-          if (s === 1) goToStep(1);
-          else if (s === 2 && validation.step1.valid) goToStep(s as WizardStep);
-          else if (s === 3 && validation.step1.valid && validation.step2.valid) goToStep(s as WizardStep);
-          else if (s === 4 && validation.step1.valid && validation.step2.valid && validation.step3.valid) goToStep(s as WizardStep);
-        }}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-        <div className="min-w-0">
-          {draft.step === 1 && (
-            <SportsWizardStep1Basic basic={draft.basic} onChange={updateBasic} errors={validation.step1.errors} />
-          )}
-          {draft.step === 2 && (
-            <SportsWizardStep2Specs specs={draft.specs} onChange={updateSpecs}
-              categoryType={draft.basic.categoryType} errors={validation.step2.errors} />
-          )}
-          {draft.step === 3 && (
-            <SportsWizardStep3Team basic={draft.basic} onBasicChange={updateBasic}
-              team={draft.team} onChange={updateTeam} errors={validation.step3.errors} />
-          )}
-          {draft.step === 4 && (
-            <SportsWizardStep4Stock
-              basic={draft.basic}
-              hasVariants={draft.hasVariants}
-              onToggleVariants={setHasVariants}
-              variants={draft.variants}
-              stock={draft.stock}
-              onAddVariant={addVariant}
-              onUpdateVariant={updateVariant}
-              onRemoveVariant={removeVariant}
-              onUpdateStock={updateStock}
-              errors={validation.step4.errors}
-            />
-          )}
-        </div>
-
-        <SportsWizardSummary draft={draft} stats={stats} allValid={canSave} />
       </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
-          <button onClick={prevStep} disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-extrabold transition disabled:opacity-40">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
-          <div className="text-xs font-extrabold text-slate-500 hidden sm:block">
-            Step {draft.step} of 4
-            {!currentValidation.valid && (
-              <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
-                <AlertTriangle className="h-3 w-3" /> {currentValidation.errors[0]}
-              </span>
-            )}
-          </div>
-
-          {draft.step < 4 ? (
-            <button onClick={nextStep} disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}
-              disabled={!canSave} className="bg-gradient-to-r from-emerald-600 to-teal-700">
-              <Save className="h-4 w-4" />
-              {isEdit ? 'Save Changes' : `Save Product (${stats.totalStock} pcs)`}
-            </Button>
-          )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          {label('Item ki type')}
+          <select value={x.categoryType} onChange={(e) => ctx.setExtra({ categoryType: e.target.value })} className={inputClass}>
+            {types.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+          <span className="mt-1 block text-[0.75rem] text-slate-500">Bat, ball ya kit ki tafseel isi se khulti hai</span>
+        </label>
+        <div>
+          {label('Kis ke liye')}
+          <div className="flex flex-wrap gap-1.5">{AGE_GROUPS.map((a) => <Chip key={a.value} on={x.ageGroup === a.value} onClick={() => ctx.setExtra({ ageGroup: a.value })}>{a.label}</Chip>)}</div>
         </div>
       </div>
     </div>
   );
 }
 
-function SuccessStat({ label, value }: { label: string; value: number | string }) {
+/* ── Price step addition: MRP and team rate ── */
+function TeamRate({ ctx }: { ctx: StepContext<SportsExtra> }) {
+  const x = ctx.draft.extra;
+  const money = (k: 'mrp' | 'teamPrice') => (e: React.ChangeEvent<HTMLInputElement>) => { const v = num(e.target.value); ctx.setExtra({ [k]: v ? Number(v) : null } as Partial<SportsExtra>); };
   return (
-    <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">{label}</div>
-      <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-0.5">{value}</div>
+    <div className="space-y-4">
+      <Section icon={BadgePercent} title="MRP" hint="MRP se kam rate ho to Sale ka nishan lagta hai">
+        <input inputMode="decimal" value={x.mrp ?? ''} onChange={money('mrp')} placeholder="0" className={`${inputClass} w-40 tabular-nums`} />
+      </Section>
+      <Section icon={Users} title="Team / school order" hint="Bulk order me yahi rate khud lagta hai">
+        <Toggle on={x.isTeamOrderable} onChange={(v) => ctx.setExtra({ isTeamOrderable: v })} title="Team order me bikta hai" hint="Kit, ball, bat — team ke liye" />
+        {x.isTeamOrderable && (
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <label className="block">{label('Team rate (har piece)')}<input inputMode="decimal" value={x.teamPrice ?? ''} onChange={money('teamPrice')} placeholder="0" className={`${inputClass} tabular-nums`} /></label>
+            <label className="block">{label('Kam se kam piece')}<input inputMode="numeric" value={x.minTeamOrder} onChange={(e) => ctx.setExtra({ minTeamOrder: e.target.value.replace(/\D/g, '') })} placeholder="11" className={`${inputClass} tabular-nums`} /></label>
+            <label className="block">{label('Team discount %')}<input inputMode="decimal" value={x.bulkDiscountPct} onChange={(e) => ctx.setExtra({ bulkDiscountPct: num(e.target.value) })} placeholder="0" className={`${inputClass} tabular-nums`} /></label>
+          </div>
+        )}
+      </Section>
     </div>
   );
+}
+
+const core: CoreOptions = {
+  units: [{ value: 'pcs', label: 'Piece' }, { value: 'pair', label: 'Jora' }, { value: 'set', label: 'Set' }, { value: 'box', label: 'Dabba' }, { value: 'kg', label: 'Kg' }],
+  skuPrefix: 'SP',
+  packs: true,
+  variants: { presets: [{ group: 'Kit size', values: APPAREL_SIZES }, { group: 'Bachon ki kit', values: KIDS_SIZES }, { group: 'Bat size', values: BAT_SIZES }] },
+  markups: [20, 30, 40, 50, 80, 100],
+};
+
+const specs: StepDef<SportsExtra> = {
+  id: 'sports', title: 'Tafseel', hint: 'Bat, ball, kit, warranty', icon: Trophy,
+  validate: (d) => {
+    const e: Record<string, string> = {};
+    if (Number(d.extra.bulkDiscountPct) > 100) e.bulkDiscountPct = 'Discount 100% se zyada nahi';
+    if (d.extra.warrantyMonths < 0 || d.extra.warrantyMonths > 60) e.warrantyMonths = 'Warranty 0 se 60 mahine';
+    return e;
+  },
+  render: (ctx) => {
+    const x = ctx.draft.extra;
+    return (
+      <div className="space-y-4">
+        {isBat(x.categoryType) && (
+          <Section icon={Trophy} title="Bat">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field ctx={ctx} k="batWood" title="Lakri" ph="English willow, Kashmir willow" />
+              <Field ctx={ctx} k="batGrade" title="Grade" ph="1, 2, Players" max={20} />
+              <Field ctx={ctx} k="batSize" title="Size" ph="SH, LH, Size 6" max={20} />
+              <label className="block">{label('Wazan (gram)')}<input inputMode="numeric" value={x.batWeightGrams} onChange={(e) => ctx.setExtra({ batWeightGrams: e.target.value.replace(/\D/g, '') })} placeholder="1180" className={`${inputClass} tabular-nums`} /></label>
+              <Field ctx={ctx} k="handleType" title="Handle" ph="Round, oval" max={30} />
+            </div>
+          </Section>
+        )}
+        {/BALL|SHUTTLE/.test(x.categoryType) && x.categoryType !== 'FOOTBALL_SHOES' && (
+          <Section icon={Trophy} title="Ball">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field ctx={ctx} k="ballType" title="Type" ph="Hard, tape, tennis, size 5" />
+              <Field ctx={ctx} k="ballWeight" title="Wazan" ph="156 g" max={20} />
+            </div>
+          </Section>
+        )}
+        {isApparel(x.categoryType) && (
+          <Section icon={Shirt} title="Kit / jersey" hint="Sizes Stock step me variant bana kar daalein">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field ctx={ctx} k="material" title="Kapra" ph="Dri-fit, polyester" />
+              <Field ctx={ctx} k="fit" title="Fitting" ph="Regular, slim" max={30} />
+            </div>
+            <div className="mt-3"><Toggle on={x.hasCustomization} onChange={(v) => ctx.setExtra({ hasCustomization: v })} title="Naam / number print hota hai" hint="Team order me printing ka rate alag lagta hai" /></div>
+          </Section>
+        )}
+        <Section icon={Award} title="Warranty aur nishan">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Field ctx={ctx} k="weight" title="Wazan / size" ph="5 kg, 20 inch" max={30} />
+            <label className="block">
+              {label('Warranty (mahine)')}
+              <input inputMode="numeric" value={x.warrantyMonths || ''} onChange={(e) => ctx.setExtra({ warrantyMonths: Number(e.target.value.replace(/\D/g, '')) || 0 })} placeholder="0" className={`${inputClass} tabular-nums`} />
+              {ctx.errors.warrantyMonths && <span className="mt-1 block text-[0.75rem] text-rose-600">{ctx.errors.warrantyMonths}</span>}
+            </label>
+            <Field ctx={ctx} k="warrantyType" title="Warranty kis cheez ki" ph="Handle crack, silai" />
+          </div>
+          <div className="mt-3"><Field ctx={ctx} k="careInstructions" title="Dekh bhaal" ph="Naye bat ko oil aur knocking karein" max={200} /></div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <Chip on={x.isNewArrival} onClick={() => ctx.setExtra({ isNewArrival: !x.isNewArrival })}>Naya maal</Chip>
+            <Chip on={x.isBestSeller} onClick={() => ctx.setExtra({ isBestSeller: !x.isBestSeller })}>Best seller</Chip>
+            <Chip on={x.isProfessional} onClick={() => ctx.setExtra({ isProfessional: !x.isProfessional })}>Pro / match ka</Chip>
+          </div>
+        </Section>
+      </div>
+    );
+  },
+};
+
+const s = (v?: string | null) => v ?? '';
+
+const config: EditorConfig<SportsExtra> = {
+  label: 'Sports',
+  draftKey: 'nafaa.product-editor.sports',
+  paths: { list: '/sports-products', detail: (id) => `/sports-products/${id}`, create: '/sports-products/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const p = await sportsProductsApi.byProduct(productId).catch(() => null);
+      if (!p) return {};
+      return {
+        sport: s(p.sport) || 'Other', categoryType: s(p.categoryType) || 'OTHER', ageGroup: p.ageGroup ?? 'ADULT',
+        batWood: s(p.batWood), batGrade: s(p.batGrade), batSize: s(p.batSize), batWeightGrams: p.batWeightGrams ? String(p.batWeightGrams) : '', handleType: s(p.handleType),
+        ballType: s(p.ballType), ballWeight: s(p.ballWeight), size: s(p.size), material: s(p.material), fit: s(p.fit), weight: s(p.weight),
+        mrp: p.mrp ?? null, teamPrice: p.teamPrice ?? null, minTeamOrder: p.minTeamOrder ? String(p.minTeamOrder) : '', bulkDiscountPct: p.bulkDiscountPct ? String(p.bulkDiscountPct) : '',
+        isTeamOrderable: p.isTeamOrderable, hasCustomization: p.hasCustomization, warrantyMonths: p.warrantyMonths ?? 0, warrantyType: s(p.warrantyType),
+        careInstructions: s(p.careInstructions), isNewArrival: p.isNewArrival, isBestSeller: p.isBestSeller, isProfessional: p.isProfessional,
+      };
+    },
+    save: async (productId, d) => {
+      const x = d.extra;
+      await sportsProductsApi.upsert({
+        productId, sport: x.sport, categoryType: x.categoryType, ageGroup: x.ageGroup,
+        batWood: opt(x.batWood), batGrade: opt(x.batGrade), batSize: opt(x.batSize), batWeightGrams: x.batWeightGrams ? Number(x.batWeightGrams) : undefined, handleType: opt(x.handleType),
+        ballType: opt(x.ballType), ballWeight: opt(x.ballWeight), size: opt(x.size), material: opt(x.material), fit: opt(x.fit), weight: opt(x.weight),
+        mrp: x.mrp ?? undefined, teamPrice: x.isTeamOrderable ? x.teamPrice ?? undefined : undefined,
+        minTeamOrder: x.isTeamOrderable && x.minTeamOrder ? Number(x.minTeamOrder) : undefined,
+        bulkDiscountPct: x.isTeamOrderable && x.bulkDiscountPct ? Number(x.bulkDiscountPct) : undefined,
+        isTeamOrderable: x.isTeamOrderable, hasCustomization: x.hasCustomization, warrantyMonths: x.warrantyMonths, warrantyType: opt(x.warrantyType),
+        careInstructions: opt(x.careInstructions), isNewArrival: x.isNewArrival, isBestSeller: x.isBestSeller, isProfessional: x.isProfessional, isFeatured: d.core.isFeatured,
+      });
+    },
+  },
+  steps: [
+    basicStep<SportsExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: 'Jaise: CA Plus 15000 English Willow Bat', categorySuggestions: ['Cricket', 'Football', 'Badminton', 'Gym', 'Kits', 'Trophies'] }),
+    priceStep<SportsExtra>(core, { extra: (ctx) => <TeamRate ctx={ctx} /> }),
+    stockStep<SportsExtra>(core, { quick: [1, 6, 12, 24, 50] }),
+    specs,
+  ],
+  summary: (d) => (
+    <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
+      <p className="text-slate-600">{[d.extra.sport, typeLabel(d.extra.categoryType)].filter(Boolean).join(' · ')}</p>
+      {d.extra.isTeamOrderable && d.extra.teamPrice ? <p className="text-teal-700">Team rate Rs {d.extra.teamPrice}</p> : null}
+      {d.core.variants.length > 0 && <p className="text-violet-700">{d.core.variants.length} size</p>}
+    </div>
+  ),
+  refresh: [META_KEY],
+  guide: [
+    { icon: Users, color: '#0d9488', title: 'Team rate', text: 'Price step me "Team order me bikta hai" lagayein aur team rate likhein — team order banate waqt khud aata hai.' },
+    { icon: Shirt, color: '#7c3aed', title: 'Kit ke sizes', text: 'Stock step me "Variants" se S, M, L… banayein; har size ka apna barcode aur stock.' },
+  ],
+};
+
+export default function SportsProductWizardPage() {
+  return <ProductEditorPage config={config} />;
 }

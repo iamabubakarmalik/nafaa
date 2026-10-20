@@ -49,11 +49,6 @@ export const toyBirthdaysApi = {
   list: (params?: { active?: boolean; customerId?: string; gender?: string; search?: string }) =>
     apiClient.get('/toystore/birthday-reminders', { params }).then(unwrap<ToyBirthdayReminder[]>),
 
-  upcoming: (days = 30) =>
-    apiClient.get('/toystore/birthday-reminders/upcoming', { params: { days } }).then(unwrap<ToyBirthdayReminder[]>),
-
-  summary: () => apiClient.get('/toystore/birthday-reminders/summary').then(unwrap<any>),
-
   getOne: (id: string) =>
     apiClient.get('/toystore/birthday-reminders/' + id).then(unwrap<ToyBirthdayReminder>),
 

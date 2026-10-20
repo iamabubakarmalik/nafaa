@@ -58,6 +58,8 @@ export interface ApplianceProductProfile {
   compressorWarrantyMonths?: number;
   motorWarrantyMonths?: number;
   warrantyType?: string;
+  /** The shop's own warranty on top of the company's, months. */
+  shopWarrantyMonths?: number | null;
   requiresInstallation: boolean;
   installationCharge: number;
   installationCovered: boolean;

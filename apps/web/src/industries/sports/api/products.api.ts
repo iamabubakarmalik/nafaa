@@ -1,127 +1,54 @@
 import { apiClient } from '@core/api/client';
 
-export type SportsCategoryType =
-  | 'CRICKET_BAT' | 'CRICKET_BALL' | 'CRICKET_HELMET' | 'CRICKET_PADS' | 'CRICKET_GLOVES'
-  | 'CRICKET_KIT_BAG' | 'CRICKET_STUMPS' | 'CRICKET_JERSEY' | 'CRICKET_SHOES' | 'CRICKET_GUARD'
-  | 'FOOTBALL' | 'FOOTBALL_JERSEY' | 'FOOTBALL_SHOES' | 'FOOTBALL_KIT' | 'SHIN_GUARDS'
-  | 'GOALKEEPER_GLOVES' | 'GOAL_POST'
-  | 'BASKETBALL' | 'BASKETBALL_JERSEY' | 'BASKETBALL_SHOES' | 'BASKETBALL_HOOP'
-  | 'VOLLEYBALL' | 'VOLLEYBALL_NET' | 'NETBALL'
-  | 'BADMINTON_RACKET' | 'BADMINTON_SHUTTLECOCK' | 'TENNIS_RACKET' | 'TENNIS_BALL'
-  | 'TABLE_TENNIS_BAT' | 'TABLE_TENNIS_BALL' | 'SQUASH_RACKET'
-  | 'DUMBBELL' | 'BARBELL' | 'WEIGHT_PLATE' | 'KETTLEBELL' | 'BENCH_PRESS'
-  | 'TREADMILL' | 'EXERCISE_BIKE' | 'ELLIPTICAL' | 'ROWING_MACHINE'
-  | 'YOGA_MAT' | 'RESISTANCE_BAND' | 'SKIPPING_ROPE' | 'BOXING_GLOVES' | 'PUNCHING_BAG'
-  | 'PROTEIN_SUPPLEMENT' | 'GYM_ACCESSORY'
-  | 'SWIMMING_GOGGLES' | 'SWIMSUIT' | 'SWIMMING_CAP'
-  | 'CAMPING_TENT' | 'SLEEPING_BAG' | 'HIKING_BAG' | 'CYCLING_HELMET' | 'BICYCLE'
-  | 'TROPHY' | 'MEDAL' | 'WHISTLE' | 'STOPWATCH' | 'UMPIRE_GEAR' | 'OTHER';
+const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
-export type SportsAgeGroup = 'KIDS' | 'YOUTH' | 'ADULT' | 'SENIOR' | 'UNIVERSAL';
-export type SportsGenderTarget = 'MALE' | 'FEMALE' | 'UNISEX' | 'KIDS';
-
+/** Sports details kept next to a product. */
 export interface SportsProductProfile {
   id: string;
   productId: string;
-  brandId?: string;
-  categoryType?: SportsCategoryType;
-  sport?: string;
-  ageGroup: SportsAgeGroup;
-  genderTarget: SportsGenderTarget;
-
-  batWood?: string;
-  batWeightGrams?: number;
-  batGrade?: string;
-  batSize?: string;
-  handleType?: string;
-
-  ballType?: string;
-  ballWeight?: string;
-  ballCircumference?: string;
-  ballMaterial?: string;
-
-  size?: string;
-  material?: string;
-  fit?: string;
+  categoryType?: string | null;
+  sport?: string | null;
+  ageGroup: string;
+  genderTarget: string;
+  batWood?: string | null;
+  batWeightGrams?: number | null;
+  batGrade?: string | null;
+  batSize?: string | null;
+  handleType?: string | null;
+  ballType?: string | null;
+  ballWeight?: string | null;
+  size?: string | null;
+  material?: string | null;
+  fit?: string | null;
   hasCustomization: boolean;
-
-  shoeSize?: string;
-  soleType?: string;
-  studType?: string;
-
-  weight?: string;
-  maxUserWeight?: string;
-  dimensions?: string;
-  powerRating?: string;
-  motorType?: string;
-  foldable: boolean;
-
-  color?: string;
-  colorHex?: string;
-  material2?: string;
-  countryOfMake?: string;
-  certifications: string[];
-
+  weight?: string | null;
+  color?: string | null;
   isTeamOrderable: boolean;
-  minTeamOrder?: number;
-  bulkDiscountPct?: number;
-  customizationOptions: string[];
-
+  minTeamOrder?: number | null;
+  bulkDiscountPct?: number | null;
+  teamPrice?: number | null;
   warrantyMonths: number;
-  warrantyType?: string;
-
-  mrp?: number;
-  costPrice?: number;
-  wholesalePrice?: number;
-  retailPrice?: number;
-  teamPrice?: number;
-
+  warrantyType?: string | null;
+  mrp?: number | null;
   isFeatured: boolean;
   isBestSeller: boolean;
   isNewArrival: boolean;
   isProfessional: boolean;
-
-  totalSold: number;
-  totalRevenue: number;
-  avgRating?: number;
-  totalReviews: number;
-
-  notes?: string;
-  careInstructions?: string;
-  product?: any;
-  brand?: any;
-  createdAt: string;
-  updatedAt: string;
+  careInstructions?: string | null;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+/** The small set of sports facts the POS and lists need for every product. */
+export interface SportsMeta {
+  productId: string; categoryType: string | null; sport: string | null; ageGroup: string; genderTarget: string;
+  size: string | null; color: string | null; isTeamOrderable: boolean; minTeamOrder: number | null; teamPrice: number | null;
+  bulkDiscountPct: number | null; hasCustomization: boolean; mrp: number | null; isNewArrival: boolean; isBestSeller: boolean;
+  isProfessional: boolean; warrantyMonths: number;
+}
 
 export const sportsProductsApi = {
-  upsert: (data: Partial<SportsProductProfile>) =>
-    apiClient.post('/sports/products', data).then(unwrap<SportsProductProfile>),
-
-  list: (params?: {
-    brandId?: string; categoryType?: string; sport?: string;
-    ageGroup?: string; genderTarget?: string;
-    featured?: boolean; bestSeller?: boolean; newArrival?: boolean;
-    professional?: boolean; teamOrderable?: boolean; search?: string;
-  }) => apiClient.get('/sports/products', { params }).then(unwrap<SportsProductProfile[]>),
-
-  byProduct: (productId: string) =>
-    apiClient.get('/sports/products/by-product/' + productId).then(unwrap<SportsProductProfile | null>),
-
-  byCategory: () =>
-    apiClient.get('/sports/products/by-category-count').then(unwrap<Record<string, number>>),
-
-  bySport: () =>
-    apiClient.get('/sports/products/by-sport-count').then(unwrap<Record<string, number>>),
-
-  teamOrderable: () =>
-    apiClient.get('/sports/products/team-orderable').then(unwrap<SportsProductProfile[]>),
-
-  getOne: (id: string) =>
-    apiClient.get('/sports/products/' + id).then(unwrap<SportsProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/sports/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
+  upsert: (data: Partial<SportsProductProfile> & { productId: string }) => apiClient.post('/sports/products', data).then(unwrap<SportsProductProfile>),
+  byProduct: (productId: string) => apiClient.get('/sports/products/by-product/' + productId).then(unwrap<SportsProductProfile | null>),
+  meta: () => apiClient.get('/sports/products/meta').then(unwrap<{ items: SportsMeta[] }>),
+  splitVariantStock: (productId: string) => apiClient.post(`/sports/products/${productId}/variant-stock-split`).then(unwrap),
+  syncBrands: () => apiClient.post('/sports/products/brands/sync').then(unwrap<{ brands: number; products: number }>),
 };

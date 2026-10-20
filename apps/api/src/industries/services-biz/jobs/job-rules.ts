@@ -78,3 +78,36 @@ export function dayRange(from: string, to: string) {
   const [ty, tm, td] = to.split('-').map(Number);
   return { gte: zonedToUtc(fy, fm, fd), lte: new Date(zonedToUtc(ty, tm, td + 1).getTime() - 1) };
 }
+
+/** Text a job part prints on its bill line. */
+export const partLabel = (p: { partName: string; isUnderWarranty: boolean; isCustomerSupplied: boolean }) =>
+  `${p.partName}${p.isUnderWarranty ? ' (warranty)' : ''}${p.isCustomerSupplied ? ' — customer ka apna' : ''}`;
+
+/** What a job bill line is: technician work, one of the job's parts, or another charge (travel, tax). */
+export type BillItemRole = { kind: 'work' } | { kind: 'part'; partId: string } | { kind: 'other' };
+
+/**
+ * Matches the lines of a job bill to the job. Bill lines carry the text
+ * written by the bill step (see JobsService.billLines): parts by their
+ * label, work as "<service> — visit" / "<service> — kaam" / "Emergency
+ * charge". Two parts with the same label take the lines in order.
+ */
+export function billItemRoles(
+  parts: Array<{ id: string; partName: string; isUnderWarranty: boolean; isCustomerSupplied: boolean }>,
+  items: Array<{ id: string; note: string | null }>,
+) {
+  const waiting = new Map<string, string[]>();
+  for (const p of parts) {
+    const key = partLabel(p);
+    waiting.set(key, [...(waiting.get(key) ?? []), p.id]);
+  }
+  const roles = new Map<string, BillItemRole>();
+  for (const it of items) {
+    const note = it.note ?? '';
+    const partId = waiting.get(note)?.shift();
+    if (partId) roles.set(it.id, { kind: 'part', partId });
+    else if (note.endsWith(' — visit') || note.endsWith(' — kaam') || note === 'Emergency charge') roles.set(it.id, { kind: 'work' });
+    else roles.set(it.id, { kind: 'other' });
+  }
+  return roles;
+}

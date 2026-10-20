@@ -25,6 +25,9 @@ export interface JobPart {
   warrantyDays: number;
   serialNumber?: string | null;
   notes?: string | null;
+  /** Quantity and value (after the bill discount) returned on the bill. */
+  returnedQty?: number;
+  returnedAmount?: number;
 }
 
 export interface JobHistory { id: string; fromStatus?: JobStatus | null; toStatus: JobStatus; reason?: string | null; notes?: string | null; changedAt: string }

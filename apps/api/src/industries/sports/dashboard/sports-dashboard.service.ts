@@ -17,7 +17,7 @@ export class SportsDashboardService {
       totalBrands, totalProducts, teamOrderableCount,
       activeTeamOrders, pendingRepairs, completedRepairs,
     ] = await Promise.all([
-      this.prisma.sportsBrand.count({ where: { tenantId: user.tenantId, isActive: true } }),
+      this.prisma.brand.count({ where: { tenantId: user.tenantId, isActive: true } }),
       this.prisma.sportsProductProfile.count({ where: { tenantId: user.tenantId } }),
       this.prisma.sportsProductProfile.count({
         where: { tenantId: user.tenantId, isTeamOrderable: true },
@@ -84,12 +84,20 @@ export class SportsDashboardService {
       take: 10,
     });
 
-    // Top brands
-    const topBrands = await this.prisma.sportsBrand.findMany({
-      where: { tenantId: user.tenantId, isActive: true },
-      orderBy: { totalRevenue: 'desc' },
-      take: 5,
+    // Top brands: the shop's product brands by net sale in the last 30 days.
+    const soldLines = await this.prisma.saleItem.findMany({
+      where: { sale: { tenantId: user.tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, createdAt: { gte: monthAgo } }, product: { brandId: { not: null } } },
+      select: { quantity: true, returnedQty: true, total: true, product: { select: { brandId: true } } },
     });
+    const brandSales = new Map<string, number>();
+    for (const it of soldLines) {
+      const share = Number(it.quantity) > 0 ? (Number(it.quantity) - Number(it.returnedQty || 0)) / Number(it.quantity) : 0;
+      brandSales.set(it.product!.brandId!, (brandSales.get(it.product!.brandId!) ?? 0) + Number(it.total) * share);
+    }
+    const topBrands = (await this.prisma.brand.findMany({ where: { tenantId: user.tenantId, id: { in: [...brandSales.keys()] } }, select: { id: true, name: true, logoUrl: true } }))
+      .map((b) => ({ ...b, totalRevenue: Math.round((brandSales.get(b.id) ?? 0) * 100) / 100 }))
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .slice(0, 5);
 
     // Category breakdown
     const byCategory = await this.prisma.sportsProductProfile.groupBy({

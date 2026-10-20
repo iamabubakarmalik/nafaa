@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpsertPublisherDto {
   @ApiProperty() @IsString() name!: string;
@@ -12,8 +12,8 @@ export class UpsertPublisherDto {
   @ApiPropertyOptional() @IsOptional() @IsString() contactPerson?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() logoUrl?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() defaultDiscountPct?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(100) defaultDiscountPct?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() paymentTerms?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() creditDays?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) creditDays?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }

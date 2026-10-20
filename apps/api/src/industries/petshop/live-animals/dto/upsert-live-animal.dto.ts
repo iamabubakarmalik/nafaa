@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod, PetSaleStatus, PetSpeciesType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 export class UpsertLiveAnimalDto {
@@ -9,9 +9,9 @@ export class UpsertLiveAnimalDto {
   @ApiPropertyOptional() @IsOptional() @IsString() subBreed?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() gender?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() ageMonths?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) ageMonths?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() color?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() weightKg?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) weightKg?: number;
 
   @ApiPropertyOptional() @IsOptional() @IsString() birthDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() acquiredDate?: string;
@@ -25,8 +25,8 @@ export class UpsertLiveAnimalDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() hasHealthCertificate?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() healthNotes?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsNumber() costPrice?: number;
-  @ApiProperty() @IsNumber() askingPrice!: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) costPrice?: number;
+  @ApiProperty() @IsNumber() @Min(0) askingPrice!: number;
 
   @ApiPropertyOptional() @IsOptional() @IsString() currentCage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() feedingSchedule?: string;
@@ -51,11 +51,14 @@ export class SellAnimalDto {
 }
 
 export class AddMedicalRecordDto {
-  @ApiProperty() @IsString() type!: string;
-  @ApiProperty() @IsString() description!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() vetName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() cost?: number;
+  @ApiProperty() @IsIn(['VACCINATION', 'DEWORMING', 'VET_VISIT', 'TREATMENT', 'OTHER'], { message: 'Record ka type chunein' }) type!: string;
+  @ApiProperty() @IsString() @IsNotEmpty({ message: 'Kya kiya — likhein' }) @MaxLength(300) description!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) vetName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) cost?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() nextDueDate?: string;
+  /** The cost was paid now: written as a shop expense. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() paidNow?: boolean;
+  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsIn(MONEY_METHODS) paymentMethod?: PaymentMethod;
 }
 
 export class UpdateAnimalStatusDto {

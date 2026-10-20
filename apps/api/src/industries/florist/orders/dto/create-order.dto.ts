@@ -1,7 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { FloristDeliveryTimeSlot, FloristOrderStatus, FloristOrderType } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsEmail, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsEmail, IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateFloristOrderDto {
   @ApiPropertyOptional({ enum: FloristOrderType }) @IsOptional() @IsEnum(FloristOrderType) orderType?: FloristOrderType;
@@ -35,10 +35,10 @@ export class CreateFloristOrderDto {
     customization?: string;
   }>;
 
-  @ApiPropertyOptional() @IsOptional() @IsNumber() discountAmount?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() deliveryCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() wrappingCharge?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() advancePaid?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discountAmount?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) deliveryCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) wrappingCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) advancePaid?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
 
   // Delivery
@@ -58,6 +58,8 @@ export class CreateFloristOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() internalNotes?: string;
 }
 
+export class UpdateFloristOrderDto extends PartialType(CreateFloristOrderDto) {}
+
 export class UpdateOrderStatusDto {
   @ApiProperty({ enum: FloristOrderStatus }) @IsEnum(FloristOrderStatus) status!: FloristOrderStatus;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
@@ -67,4 +69,25 @@ export class DeliveryConfirmDto {
   @ApiPropertyOptional() @IsOptional() @IsString() deliveredBy?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() deliveredToName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() deliveryPhotoUrl?: string;
+}
+
+/** Delivery details for a bill rung up at the counter; money comes from the bill. */
+export class OrderFromSaleDto {
+  @ApiProperty() @IsUUID() saleId!: string;
+  @ApiPropertyOptional({ enum: FloristOrderType }) @IsOptional() @IsEnum(FloristOrderType) orderType?: FloristOrderType;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) senderName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) recipientName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) recipientPhone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) deliveryAddress?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) city?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) area?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) landmark?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) messageCard?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isAnonymous?: boolean;
+  @ApiPropertyOptional({ enum: FloristDeliveryTimeSlot }) @IsOptional() @IsEnum(FloristDeliveryTimeSlot) deliveryTimeSlot?: FloristDeliveryTimeSlot;
+  @ApiPropertyOptional() @IsOptional() @IsString() scheduledDeliveryDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) scheduledDeliveryTime?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) eventName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) eventVenue?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) specialInstructions?: string;
 }

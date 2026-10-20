@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { ApplianceInstallationStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
 /** Unit states the shop sets by hand; SOLD comes from a bill, REMOVED from the remove button. */
 export const SERIAL_STATES = ['IN_STOCK', 'RESERVED', 'SOLD', 'IN_TRANSIT', 'IN_REPAIR', 'RETURNED', 'DEFECTIVE', 'LOST'] as const;
@@ -29,9 +29,15 @@ export class UpsertApplianceSerialDto {
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() imageUrls?: string[];
 }
 
-/** Aik shipment ke saare serial ek sath register karne ke liye */
+/** One unit entered by hand; it is placed in the given branch or the one being viewed. */
+export class CreateApplianceSerialDto extends UpsertApplianceSerialDto {
+  @ApiPropertyOptional({ description: 'Branch the unit sits in' }) @IsOptional() @IsString() shopId?: string;
+}
+
+/** All serials of one shipment at once. */
 export class BulkSerialDto {
   @ApiProperty() @IsString() productId!: string;
+  @ApiPropertyOptional({ description: 'Branch the units sit in' }) @IsOptional() @IsString() shopId?: string;
   @ApiProperty({ type: [String], example: ['SN-001', 'SN-002'] })
   @IsArray() @IsString({ each: true }) serialNumbers!: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() modelNumber?: string;
@@ -61,4 +67,17 @@ export class SaleUnitDto {
 export class AssignSaleSerialsDto {
   @ApiProperty() @IsString() saleId!: string;
   @ApiProperty({ type: [SaleUnitDto] }) @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => SaleUnitDto) units!: SaleUnitDto[];
+}
+
+/**
+ * Puts units in a branch. With a received stock transfer, units of its
+ * products move from its source branch to its destination, up to the
+ * quantity received. Without one, only units that have no branch yet are
+ * placed in `toShopId`.
+ */
+export class MoveSerialsDto {
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(200) @IsString({ each: true }) serialIds?: string[];
+  @ApiPropertyOptional({ type: [String], description: 'Scanned serial numbers, instead of ids' }) @IsOptional() @IsArray() @ArrayMaxSize(200) @IsString({ each: true }) serialNumbers?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsString() transferId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() toShopId?: string;
 }

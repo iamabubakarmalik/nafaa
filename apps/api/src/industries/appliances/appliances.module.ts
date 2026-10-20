@@ -16,6 +16,8 @@ import { InstallationsModule } from './installations/installations.module';
 import { ServiceRequestsModule } from './service-requests/service-requests.module';
 import { TechniciansModule } from './technicians/technicians.module';
 import { ApplianceWarrantyClaimsModule } from './warranty-claims/warranty-claims.module';
+import { ApplianceTradeInsModule } from './trade-ins/trade-ins.module';
+import { ApplianceQistModule } from './qist/qist.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { ApplianceWarrantyClaimsModule } from './warranty-claims/warranty-claims
     AppliancesDashboardModule,
     AppliancesAnalyticsModule,
     ApplianceWarrantyClaimsModule,
+    ApplianceTradeInsModule,
+    ApplianceQistModule,
   ],
   providers: [ApplianceBillVoidService],
   exports: [

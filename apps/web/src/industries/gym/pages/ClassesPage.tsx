@@ -20,9 +20,11 @@ import { formatPKR } from '@core/lib/format';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { classesApi, type ClassStatus, type ClassType, type GymClass } from '../api/classes.api';
 import { trainersApi } from '../api/trainers.api';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { MemberPicker, type PickedMember } from '../components/MemberPicker';
 import { EmptyList, ListSkeleton, LoadFailed, Panel } from '../components/ui';
-import { GYM_KEYS, WEEKDAYS, apiError, num, opt, shortDate, timeOf, toIso, todayInput } from '../lib/meta';
+import { GYM_KEYS, MONEY_KEYS, WEEKDAYS, apiError, num, opt, shortDate, timeOf, toIso, todayInput } from '../lib/meta';
 import { useGymCan } from '../lib/permissions';
 
 const TYPES: ClassType[] = ['YOGA', 'ZUMBA', 'AEROBICS', 'HIIT', 'CROSSFIT', 'SPINNING', 'BOXING', 'KICKBOXING', 'MMA', 'KARATE', 'DANCE', 'PILATES', 'STRETCHING', 'BOOTCAMP', 'MEDITATION', 'BODY_PUMP', 'OTHER'];
@@ -189,14 +191,18 @@ function ClassDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const [member, setMember] = useState<PickedMember | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState('');
-  const refresh = () => qc.invalidateQueries({ queryKey: [GYM_KEYS.classes] });
+  const [paid, setPaid] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const refresh = () => [GYM_KEYS.classes, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const run = useMutation({
     mutationFn: (fn: () => Promise<unknown>) => fn(),
-    onSuccess: () => { refresh(); setMember(null); },
+    onSuccess: () => { refresh(); setMember(null); setPaid(''); },
     onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
   const openClass = c && (c.status === 'SCHEDULED' || c.status === 'IN_PROGRESS');
   const booked = (c?.bookings ?? []).filter((b) => b.status !== 'CANCELLED');
+  const fee = c && !c.isFree ? c.memberPrice : 0;
+  const amount = paid === '' ? fee : Number(paid) || 0;
   return (
     <Modal open onClose={onClose} size="lg" title={c ? `${c.name} · ${shortDate(c.scheduledStart)} ${timeOf(c.scheduledStart)}` : 'Class'}
       description={c ? `${c.currentEnrolled} / ${c.maxParticipants} seats${c.trainer?.staff?.fullName ? ` · ${c.trainer.staff.fullName}` : ''}${!c.isFree && c.memberPrice ? ` · fee ${formatPKR(c.memberPrice)}` : ''}` : undefined}
@@ -210,9 +216,22 @@ function ClassDetail({ id, onClose }: { id: string; onClose: () => void }) {
       {q.isLoading || !c ? <ListSkeleton rows={2} /> : (
         <div className="space-y-4">
           {can.book && openClass && c.currentEnrolled < c.maxParticipants && (
-            <div className="flex flex-wrap items-end gap-2">
-              <div className="min-w-[16rem] flex-1"><MemberPicker label="Member jorein" value={member} onChange={setMember} /></div>
-              <Button disabled={!member} loading={run.isPending} onClick={() => member && run.mutate(() => classesApi.book(c.id, member.id))}>Book karein</Button>
+            <div className="space-y-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="min-w-[16rem] flex-1"><MemberPicker label="Member jorein" value={member} onChange={setMember} /></div>
+                <Button disabled={!member || amount > fee || (fee > 0 && !can.bill)} loading={run.isPending}
+                  onClick={() => member && run.mutate(() => classesApi.book(c.id, { memberId: member.id, ...(fee > 0 && { paidAmount: amount, paymentMethod: method }) }))}>
+                  {fee > 0 ? 'Book aur bill' : 'Book karein'}
+                </Button>
+              </div>
+              {fee > 0 && member && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input label="Abhi kitna mila" inputMode="decimal" value={paid} placeholder={String(fee)} onChange={(e) => setPaid(num(e.target.value))} className="text-right font-semibold tabular-nums"
+                    hint={!can.bill ? 'Bill ke liye POS ki permission chahiye' : amount < fee ? `${formatPKR(fee - amount)} member ke khate me udhaar` : `Fee ${formatPKR(fee)} — bill Sales me`}
+                    error={amount > fee ? `Fee sirf ${formatPKR(fee)} hai` : undefined} />
+                  {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
+                </div>
+              )}
             </div>
           )}
           {!booked.length ? <p className="py-6 text-center text-sm text-slate-500">Abhi koi booking nahi</p> : (
@@ -222,12 +241,12 @@ function ClassDetail({ id, onClose }: { id: string; onClose: () => void }) {
                 <TBody>{booked.map((b) => (
                   <Tr key={b.id}>
                     <Td><p className="font-medium text-slate-900">{b.member?.customer?.name ?? b.member?.memberNumber}</p><p className="text-[0.75rem] text-slate-500">{b.member?.memberNumber}</p></Td>
-                    <Td>{b.bookingNumber}</Td>
+                    <Td>{b.bookingNumber}{b.price > 0 && <p className="text-[0.75rem] text-slate-500">{formatPKR(b.price)}{b.paidAmount < b.price ? ` · ${formatPKR(b.price - b.paidAmount)} khate me` : ''}</p>}</Td>
                     <Td>{b.attended ? <Badge size="xs" variant="success">Aaya</Badge> : <Badge size="xs" variant="info">Booked</Badge>}</Td>
                     <Td align="right">{can.book && !b.attended && c.status !== 'CANCELLED' && (
                       <div className="flex justify-end gap-1.5">
                         <Button size="sm" variant="secondary" leftIcon={<UserCheck className="h-3.5 w-3.5" />} onClick={() => run.mutate(() => classesApi.checkInBooking(b.id))}>Aaya</Button>
-                        <Button size="sm" variant="ghost" onClick={() => run.mutate(() => classesApi.cancelBooking(b.id))}>Cancel</Button>
+                        <Button size="sm" variant="ghost" title={b.saleId ? 'Paisa wapas ke liye Sales me bill ka Return karein' : undefined} onClick={() => run.mutate(() => classesApi.cancelBooking(b.id))}>Cancel</Button>
                       </div>
                     )}</Td>
                   </Tr>

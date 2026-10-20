@@ -21,5 +21,5 @@ export class MeasurementsController {
   @Post() @RequirePermissions(P.CUSTOMERS_EDIT) create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateMeasurementDto) { return this.service.create(user, dto); }
   @Get('by-member/:memberId') @RequirePermissions(P.CUSTOMERS_VIEW) list(@GetUser() user: AuthenticatedUser, @Param('memberId') memberId: string) { return this.service.list(user, memberId); }
   @Get('progress/:memberId') @RequirePermissions(P.CUSTOMERS_VIEW) progress(@GetUser() user: AuthenticatedUser, @Param('memberId') memberId: string) { return this.service.progress(user, memberId); }
-  @Delete(':id') @RequirePermissions(P.CUSTOMERS_EDIT) remove() { return this.service.remove(); }
+  @Delete(':id') @RequirePermissions(P.CUSTOMERS_EDIT) remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

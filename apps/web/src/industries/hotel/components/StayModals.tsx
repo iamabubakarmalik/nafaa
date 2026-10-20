@@ -277,12 +277,16 @@ export function EditBookingModal({ b, onClose, onDone }: Base) {
     arrivalTime: b.arrivalTime ?? '', specialRequests: b.specialRequests ?? '', notes: b.notes ?? '',
   });
   const set = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
+  const [billTo, setBillTo] = useState<{ id: string; name: string } | null>(b.billTo ? { id: b.billTo.id, name: b.billTo.name } : null);
+  const [picking, setPicking] = useState(false);
+  const billToChanged = (billTo?.id ?? null) !== (b.billTo?.id ?? null);
   const go = useMutation({
     mutationFn: () => bookingsApi.update(b.id, {
       guestName: f.guestName.trim(), guestPhone: f.guestPhone.trim(), source: f.source as BookingSource, bookedBy: f.bookedBy, sourceRef: f.sourceRef,
       mealPlan: f.mealPlan as MealPlan, discount: num(f.discount), taxAmount: num(f.taxAmount), serviceCharge: num(f.serviceCharge),
       arrivalTime: f.arrivalTime, specialRequests: f.specialRequests, notes: f.notes,
       ...(open && { checkInDate: f.checkInDate, checkOutDate: f.checkOutDate, status: f.status as 'TENTATIVE' | 'CONFIRMED' }),
+      ...(billToChanged && { customerId: billTo?.id ?? null }),
     }),
     onSuccess: () => { toast.success('Booking badal gayi'); onDone(); },
     onError: (e) => toast.error(apiError(e, 'Booking nahi badli')),
@@ -308,6 +312,16 @@ export function EditBookingModal({ b, onClose, onDone }: Base) {
         </>}
         <Select label="Kahan se aayi" value={f.source} onChange={(e) => set('source', e.target.value)} options={SOURCES.map((s) => ({ value: s.id, label: s.label }))} />
         <Input label="Company / agent" value={f.bookedBy} onChange={(e) => set('bookedBy', e.target.value)} placeholder="Bill par chhapta hai" />
+        <div className="sm:col-span-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[0.8125rem] text-slate-700"><Building2 className="mr-1 inline h-4 w-4 text-slate-400" />Bill kis ke khate me: <b>{billTo?.name ?? 'Guest khud'}</b></p>
+            <span className="flex gap-1.5">
+              <Button size="sm" variant="secondary" onClick={() => setPicking(true)}>{billTo ? 'Khata badlein' : 'Company ka khata'}</Button>
+              {billTo && <Button size="sm" variant="ghost" onClick={() => setBillTo(null)}>Hatayein</Button>}
+            </span>
+          </div>
+          <p className="mt-1 text-[0.75rem] text-slate-500">Check-out par baqi bill is khate me udhaar jata hai, jab tak paisa na liya jaye.</p>
+        </div>
         <Input label="Online booking ID" value={f.sourceRef} onChange={(e) => set('sourceRef', e.target.value)} placeholder="Booking.com / Agoda number" />
         <Select label="Khana" value={f.mealPlan} onChange={(e) => set('mealPlan', e.target.value)} options={MEAL_PLANS.map((m) => ({ value: m.id, label: m.label }))} />
         <Input label="Aane ka waqt" value={f.arrivalTime} onChange={(e) => set('arrivalTime', e.target.value)} placeholder="Shaam 6 baje" />
@@ -317,6 +331,7 @@ export function EditBookingModal({ b, onClose, onDone }: Base) {
         <Textarea wrapperClassName="sm:col-span-2" label="Guest ki farmaish" rows={2} value={f.specialRequests} onChange={(e) => set('specialRequests', e.target.value)} />
         <Textarea wrapperClassName="sm:col-span-2" label="Andar ka note" rows={2} value={f.notes} onChange={(e) => set('notes', e.target.value)} />
       </div>
+      {picking && <CustomerPicker title="Company ka khata" money={formatPKR} onClose={() => setPicking(false)} onPick={(c) => { setBillTo({ id: c.id, name: c.name }); setPicking(false); }} />}
     </Modal>
   );
 }
@@ -401,10 +416,11 @@ export function CheckOutModal({ b, onClose, onDone }: Omit<Base, 'onDone'> & { o
   const advance = b.money.khataPaid + b.money.legacyPaid;
   const due = Math.max(Math.round((total - advance) * 100) / 100, 0);
 
-  const [mode, setMode] = useState<'pay' | 'khata'>(b.bookedBy ? 'khata' : 'pay');
+  const [mode, setMode] = useState<'pay' | 'khata'>(b.billTo || b.bookedBy ? 'khata' : 'pay');
   const [rows, setRows] = useState<SplitRow[]>([{ method: 'CASH', amount: String(due) }]);
   const [active, setActive] = useState(0);
-  const [company, setCompany] = useState<{ id: string; name: string } | null>(null);
+  // A stay booked for a company starts with its khata.
+  const [company, setCompany] = useState<{ id: string; name: string } | null>(b.billTo && (!b.money.khataPaid || b.khata?.id === b.billTo.id) ? { id: b.billTo.id, name: b.billTo.name } : null);
   const [picking, setPicking] = useState(false);
   useEffect(() => { setRows([{ method: 'CASH', amount: String(due) }]); }, [due]);
   const sum = splitSummary(rows, due);

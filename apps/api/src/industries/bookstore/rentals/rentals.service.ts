@@ -40,6 +40,7 @@ export class RentalsService {
       const c = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
       if (!c) throw new NotFoundException('Customer nahi mila');
     }
+    if (!customerId && !String(dto.customerName ?? '').trim()) throw new BadRequestException('Customer chunein ya naam likhein');
     const quantity = Math.max(Math.floor(Number(dto.quantity) || 1), 1);
     const rentalPrice = r2(Math.max(Number(dto.rentalPrice) || 0, 0));
     const depositAmount = r2(Math.max(Number(dto.depositAmount) || 0, 0));
@@ -47,7 +48,7 @@ export class RentalsService {
     const dueDate = parseDay(dto.dueDate) ?? addDaysTz(dayStart(), days);
 
     const count = await this.prisma.bookRental.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
+    const year = dayKey().slice(0, 4);
     let n = count + 1;
     let rentalNumber = `RENT-${year}-${String(n).padStart(4, '0')}`;
     while (await this.prisma.bookRental.findFirst({ where: { tenantId: user.tenantId, rentalNumber }, select: { id: true } })) {
@@ -153,8 +154,8 @@ export class RentalsService {
     dto: { conditionOnReturn?: string; damageNotes?: string; waiveFine?: boolean },
   ) {
     const rental = await this.prisma.bookRental.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rental) throw new NotFoundException('Rental not found');
-    if (rental.status !== 'ACTIVE' && rental.status !== 'OVERDUE') throw new BadRequestException('Rental is not active');
+    if (!rental) throw new NotFoundException('Rental nahi mili');
+    if (rental.status !== 'ACTIVE' && rental.status !== 'OVERDUE') throw new BadRequestException('Ye rental chal nahi rahi');
 
     const now = new Date();
     const fineAmount = dto?.waiveFine ? 0 : r2(this.daysLate(rental.dueDate) * rental.finePerDay);
@@ -226,8 +227,8 @@ export class RentalsService {
   /** The copy is not coming back: the customer pays its price (out of the deposit first). */
   async markLost(user: AuthenticatedUser, scope: ShopScope, id: string) {
     const rental = await this.prisma.bookRental.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rental) throw new NotFoundException('Rental not found');
-    if (rental.status !== 'ACTIVE' && rental.status !== 'OVERDUE') throw new BadRequestException('Rental is not active');
+    if (!rental) throw new NotFoundException('Rental nahi mili');
+    if (rental.status !== 'ACTIVE' && rental.status !== 'OVERDUE') throw new BadRequestException('Ye rental chal nahi rahi');
     const product = await this.prisma.product.findFirst({
       where: { id: rental.productId, tenantId: user.tenantId },
       select: { name: true, price: true, costPrice: true },
@@ -258,7 +259,7 @@ export class RentalsService {
   /** Issued by mistake: the copy goes back on the shelf and the deposit is returned. */
   async cancel(user: AuthenticatedUser, scope: ShopScope, id: string) {
     const rental = await this.prisma.bookRental.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rental) throw new NotFoundException('Rental not found');
+    if (!rental) throw new NotFoundException('Rental nahi mili');
     if (rental.status !== 'ACTIVE' && rental.status !== 'OVERDUE') throw new BadRequestException('Sirf chalti rental cancel ho sakti hai');
 
     return this.prisma.$transaction(async (tx) => {

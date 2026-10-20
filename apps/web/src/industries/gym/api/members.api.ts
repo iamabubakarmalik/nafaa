@@ -75,6 +75,7 @@ export interface GymMember {
 
 export interface MemberDetail extends GymMember {
   ptSessions: PTSession[];
+  lockers: Array<{ id: string; number: string; monthlyRent: number; startDate: string | null; endDate: string | null; status: string }>;
   bills: Array<{ id: string; saleNumber: string; total: number; paidAmount: number; creditAmount: number; status: string; paymentMethod: string; createdAt: string }>;
 }
 

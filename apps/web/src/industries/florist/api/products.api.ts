@@ -1,15 +1,18 @@
 import { apiClient } from '@core/api/client';
 
+/** Same values as the server enums. */
 export type FloristCategoryType =
-  | 'FRESH_FLOWER_STEM' | 'BOUQUET' | 'ARRANGEMENT' | 'BASKET' | 'WREATH' | 'GARLAND'
-  | 'CENTERPIECE' | 'BRIDAL_BOUQUET' | 'BOUTONNIERE' | 'CORSAGE' | 'FLOWER_CROWN'
-  | 'POTTED_PLANT' | 'INDOOR_PLANT' | 'OUTDOOR_PLANT' | 'SUCCULENT' | 'CACTUS'
-  | 'DRIED_FLOWER' | 'PRESERVED_FLOWER' | 'ARTIFICIAL_FLOWER' | 'SILK_FLOWER'
-  | 'FLOWER_GIFT_BOX' | 'CHOCOLATE_BOUQUET' | 'BALLOON_BOUQUET' | 'CAKE_ADDON'
-  | 'VASE' | 'PLANTER' | 'FLORAL_FOAM' | 'RIBBON' | 'WRAPPING_PAPER' | 'CARD'
-  | 'ACCESSORY' | 'OTHER';
+  | 'ROSE_RED' | 'ROSE_WHITE' | 'ROSE_PINK' | 'ROSE_YELLOW' | 'ROSE_MIXED' | 'TULIP' | 'LILY' | 'ORCHID' | 'SUNFLOWER'
+  | 'CARNATION' | 'GERBERA' | 'CHRYSANTHEMUM' | 'DAISY' | 'JASMINE' | 'MARIGOLD' | 'IRIS' | 'HYDRANGEA' | 'PEONY'
+  | 'ANTHURIUM' | 'BIRD_OF_PARADISE' | 'BABY_BREATH' | 'GREENERY_FILLER'
+  | 'BOUQUET_BIRTHDAY' | 'BOUQUET_ANNIVERSARY' | 'BOUQUET_WEDDING' | 'BOUQUET_ROMANCE' | 'BOUQUET_CONDOLENCE' | 'BOUQUET_GET_WELL'
+  | 'BOUQUET_CONGRATULATIONS' | 'BOUQUET_MIXED' | 'BASKET_ARRANGEMENT' | 'VASE_ARRANGEMENT' | 'BOX_ARRANGEMENT' | 'TABLE_CENTREPIECE'
+  | 'STANDING_ARRANGEMENT' | 'WEDDING_GARLAND' | 'BRIDAL_BOUQUET' | 'BOUTONNIERE' | 'CAR_DECORATION' | 'STAGE_DECORATION'
+  | 'MEHNDI_DECORATION' | 'FUNERAL_WREATH' | 'SYMPATHY_ARRANGEMENT'
+  | 'POTTED_PLANT_INDOOR' | 'POTTED_PLANT_OUTDOOR' | 'SUCCULENT' | 'BONSAI' | 'AIR_PLANT'
+  | 'CHOCOLATE_BOX' | 'TEDDY_BEAR' | 'BALLOON' | 'GREETING_CARD' | 'GIFT_ITEM' | 'VASE_EMPTY' | 'RIBBON' | 'WRAPPING_PAPER' | 'FLORAL_FOAM' | 'OTHER';
 
-export type FloristFreshnessGrade = 'PREMIUM_A' | 'GRADE_A' | 'GRADE_B' | 'CLEARANCE' | 'WITHERED';
+export type FloristFreshnessGrade = 'A_PREMIUM' | 'B_STANDARD' | 'C_ECONOMY' | 'IMPORTED' | 'LOCAL';
 
 export interface FloristProductProfile {
   id: string;
@@ -54,6 +57,12 @@ export interface FloristProductProfile {
   updatedAt: string;
 }
 
+export interface FreshnessRow extends FloristProductProfile {
+  product: { id: string; name: string; unit: string; stock: number; costPrice: number; price: number } | null;
+}
+interface FreshnessAlerts { witheringToday: FreshnessRow[]; witheringSoon: FreshnessRow[]; witheringLater: FreshnessRow[] }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- axios envelope varies by endpoint
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const floristProductsApi = {
@@ -70,17 +79,5 @@ export const floristProductsApi = {
     apiClient.get('/florist/products/by-product/' + productId).then(unwrap<FloristProductProfile | null>),
 
   freshnessAlerts: () =>
-    apiClient.get('/florist/products/freshness-alerts').then(unwrap<any>),
-
-  byCategory: () =>
-    apiClient.get('/florist/products/by-category-count').then(unwrap<Record<string, number>>),
-
-  byOccasion: (occasion: string) =>
-    apiClient.get('/florist/products/by-occasion/' + occasion).then(unwrap<FloristProductProfile[]>),
-
-  getOne: (id: string) =>
-    apiClient.get('/florist/products/' + id).then(unwrap<FloristProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/florist/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
+    apiClient.get('/florist/products/freshness-alerts').then(unwrap<FreshnessAlerts>),
 };

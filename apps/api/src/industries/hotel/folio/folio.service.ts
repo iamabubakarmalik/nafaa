@@ -2,8 +2,11 @@
  * Folio: room service, restaurant, laundry and other charges on a stay,
  * billed with the room nights at check-out. A charge for a catalog item
  * (minibar, food) takes its stock when it is posted; voiding the charge
- * puts it back. The item and its cost are kept in the charge reference
- * (`stock:<productId>:<unitCost>:<shopId>`) so the bill carries the cost.
+ * puts it back. The item, its cost and the branch whose stock was used are
+ * kept on the charge (productId, unitCost, shopId) so the bill carries the
+ * cost. Charges posted before those columns existed keep them in
+ * `reference` as `stock:<productId>:<unitCost>:<shopId|->`; folioStock
+ * reads both.
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -11,7 +14,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { applyStockDelta, isServiceProduct } from '../../../common/shop-scope';
 import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
-import { IN_HOUSE, found, r2 } from '../common/hotel-common';
+import { IN_HOUSE, folioStock, found, r2 } from '../common/hotel-common';
 import { FolioChargeDto } from '../common/hotel.dto';
 
 /** Charges can be posted to a stay that is booked or in the hotel. */
@@ -38,23 +41,22 @@ export class FolioService {
     if (!(totalAmount > 0)) throw new BadRequestException('Charge ki amount 0 se zyada honi chahiye');
 
     return this.prisma.$transaction(async (tx) => {
-      let reference: string | null = null;
+      // shopId is set only when stock was taken, so a void knows where to put it back.
+      let stockShopId: string | null = null;
       if (product && !isServiceProduct(product)) {
-        const shopId = await resolveIndustryShopId(tx, user, booking.shopId);
+        stockShopId = await resolveIndustryShopId(tx, user, booking.shopId);
         await applyStockDelta({
-          tx, tenantId: user.tenantId, shopId, productId: product.id, delta: -quantity, movementType: 'SALE_OUT',
+          tx, tenantId: user.tenantId, shopId: stockShopId, productId: product.id, delta: -quantity, movementType: 'SALE_OUT',
           reference: booking.bookingNumber, note: `Room folio: ${description}`, preventNegative: true, label: product.name, userId: user.id,
         });
-        reference = `stock:${product.id}:${r2(product.costPrice ?? 0)}:${shopId}`;
-      } else if (product) {
-        reference = `stock:${product.id}:${r2(product.costPrice ?? 0)}:-`;
       }
       const count = await tx.hotelFolioCharge.count({ where: { bookingId: booking.id } });
       const charge = await tx.hotelFolioCharge.create({
         data: {
           bookingId: booking.id, chargeNumber: `FC-${booking.bookingNumber}-${String(count + 1).padStart(3, '0')}`,
           chargeDate: new Date(), chargeType: dto.chargeType, description, quantity, unitPrice, taxAmount, discount, totalAmount,
-          reference, postedById: user.id, notes: dto.notes?.trim() || null,
+          postedById: user.id, notes: dto.notes?.trim() || null,
+          productId: product?.id ?? null, unitCost: product ? r2(product.costPrice ?? 0) : null, shopId: stockShopId,
         },
       });
       await this.retotal(tx, booking.id, totalAmount);
@@ -90,10 +92,10 @@ export class FolioService {
     return this.prisma.$transaction(async (tx) => {
       const done = await tx.hotelFolioCharge.updateMany({ where: { id, isVoid: false }, data: { isVoid: true, voidedAt: new Date(), voidReason: why } });
       if (!done.count) throw new BadRequestException('Ye charge pehle hi hat chuka');
-      const m = /^stock:([^:]+):[\d.]+:([^:]+)$/.exec(c.reference ?? '');
-      if (m && m[2] !== '-') {
+      const stock = folioStock(c);
+      if (stock?.shopId) {
         await applyStockDelta({
-          tx, tenantId: user.tenantId, shopId: m[2], productId: m[1], delta: c.quantity, movementType: 'RETURN_IN',
+          tx, tenantId: user.tenantId, shopId: stock.shopId, productId: stock.productId, delta: c.quantity, movementType: 'RETURN_IN',
           reference: c.booking.bookingNumber, note: `Folio charge hata: ${c.description}`, userId: user.id,
         });
       }

@@ -93,7 +93,7 @@ export default function FarmerSuppliesPage() {
     add.mutate();
   };
 
-  const pay = useMutation({ mutationFn: (x: FarmerSupply) => farmerSuppliesApi.pay(x.id, 'CASH'), onSuccess: () => { refresh(); toast.success('Parchi ada — cash drawer se'); }, onError: (e) => toast.error(errorText(e, 'Nahi hua')) });
+  const pay = useMutation({ mutationFn: (x: FarmerSupply) => farmerSuppliesApi.pay(x.id, { paymentMethod: 'CASH' }), onSuccess: () => { refresh(); toast.success('Parchi ada — cash drawer se'); }, onError: (e) => toast.error(errorText(e, 'Nahi hua')) });
   const cancel = useMutation({
     mutationFn: ({ x, reason }: { x: FarmerSupply; reason: string }) => farmerSuppliesApi.cancel(x.id, reason || undefined),
     onSuccess: () => { refresh(); setCancelling(null); toast.success('Entry cancel'); },

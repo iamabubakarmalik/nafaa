@@ -17,6 +17,10 @@ export interface FolioCharge {
   discount: number;
   totalAmount: number;
   reference?: string | null;
+  /** Catalog item served (minibar, food), its cost and the branch whose stock was used. */
+  productId?: string | null;
+  unitCost?: number | null;
+  shopId?: string | null;
   isVoid: boolean;
   voidedAt?: string | null;
   voidReason?: string | null;

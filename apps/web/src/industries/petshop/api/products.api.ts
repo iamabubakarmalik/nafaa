@@ -1,19 +1,20 @@
 import { apiClient } from '@core/api/client';
 
+/** Same values as the server enums. */
 export type PetCategoryType =
-  | 'DRY_FOOD' | 'WET_FOOD' | 'TREATS' | 'SUPPLEMENTS' | 'PRESCRIPTION_DIET'
-  | 'TOYS' | 'BEDS' | 'CARRIERS' | 'LEASHES_COLLARS' | 'CLOTHING'
-  | 'GROOMING_SUPPLIES' | 'HYGIENE' | 'TRAINING' | 'LITTER'
-  | 'AQUARIUM_TANK' | 'AQUARIUM_FILTER' | 'AQUARIUM_DECOR' | 'AQUARIUM_FOOD' | 'AQUARIUM_MEDICINE'
-  | 'BIRD_CAGE' | 'BIRD_FOOD' | 'BIRD_ACCESSORIES'
-  | 'REPTILE_HABITAT' | 'REPTILE_FOOD' | 'REPTILE_HEATING'
-  | 'VET_MEDICINE' | 'VET_VACCINE' | 'FIRST_AID' | 'OTHER';
+  | 'DOG_FOOD_DRY' | 'DOG_FOOD_WET' | 'DOG_TREATS' | 'DOG_ACCESSORY' | 'DOG_TOY' | 'DOG_LEASH_COLLAR' | 'DOG_BED'
+  | 'CAT_FOOD_DRY' | 'CAT_FOOD_WET' | 'CAT_TREATS' | 'CAT_LITTER' | 'CAT_ACCESSORY' | 'CAT_TOY' | 'CAT_BED' | 'CAT_SCRATCH_POST'
+  | 'BIRD_FOOD' | 'BIRD_CAGE' | 'BIRD_ACCESSORY' | 'FISH_FOOD'
+  | 'AQUARIUM_TANK' | 'AQUARIUM_FILTER' | 'AQUARIUM_DECOR' | 'AQUARIUM_PLANT' | 'AQUARIUM_HEATER' | 'AQUARIUM_LIGHT' | 'AQUARIUM_ACCESSORY'
+  | 'RABBIT_FOOD' | 'RABBIT_ACCESSORY' | 'HAMSTER_FOOD' | 'HAMSTER_CAGE' | 'REPTILE_FOOD' | 'REPTILE_ACCESSORY'
+  | 'LIVE_ANIMAL_DOG' | 'LIVE_ANIMAL_CAT' | 'LIVE_ANIMAL_BIRD' | 'LIVE_ANIMAL_FISH' | 'LIVE_ANIMAL_RABBIT' | 'LIVE_ANIMAL_HAMSTER' | 'LIVE_ANIMAL_REPTILE' | 'LIVE_ANIMAL_OTHER'
+  | 'VET_MEDICINE' | 'VET_VACCINE' | 'VET_DEWORMER' | 'VET_SUPPLEMENT' | 'VET_SHAMPOO' | 'VET_GROOMING' | 'VET_HYGIENE'
+  | 'TRAINING_TREATS' | 'TRAINING_TOOL' | 'CARRIER' | 'TRANSPORT_CAGE' | 'OTHER';
 
 export type PetSpeciesType =
-  | 'DOG' | 'CAT' | 'BIRD' | 'FISH' | 'RABBIT' | 'HAMSTER' | 'GUINEA_PIG'
-  | 'TURTLE' | 'REPTILE' | 'PARROT' | 'HORSE' | 'FARM_ANIMAL' | 'OTHER' | 'ALL';
+  | 'DOG' | 'CAT' | 'BIRD' | 'FISH' | 'RABBIT' | 'HAMSTER' | 'GUINEA_PIG' | 'REPTILE' | 'TURTLE' | 'SNAKE' | 'FERRET' | 'OTHER';
 
-export type PetLifeStage = 'PUPPY_KITTEN' | 'JUNIOR' | 'ADULT' | 'SENIOR' | 'ALL_STAGES';
+export type PetLifeStage = 'PUPPY' | 'KITTEN' | 'ADULT' | 'SENIOR' | 'ALL_STAGES';
 
 export interface PetProductProfile {
   id: string;
@@ -84,27 +85,6 @@ export const petProductsApi = {
     minPrice?: number; maxPrice?: number; search?: string;
   }) => apiClient.get('/petshop/products', { params }).then(unwrap<PetProductProfile[]>),
 
-  forPet: (species: string, lifeStage?: string) =>
-    apiClient.get('/petshop/products/for-pet', { params: { species, lifeStage } }).then(unwrap<PetProductProfile[]>),
-
-  expiringSoon: (days = 90) =>
-    apiClient.get('/petshop/products/expiring-soon', { params: { days } }).then(unwrap<any[]>),
-
-  expired: () =>
-    apiClient.get('/petshop/products/expired').then(unwrap<any[]>),
-
-  byCategory: () =>
-    apiClient.get('/petshop/products/by-category-count').then(unwrap<{ byCategory: Record<string, number>; bySpecies: Record<string, number> }>),
-
-  brands: () =>
-    apiClient.get('/petshop/products/brands').then(unwrap<Array<{ brand: string; count: number; revenue: number }>>),
-
   byProduct: (productId: string) =>
     apiClient.get('/petshop/products/by-product/' + productId).then(unwrap<PetProductProfile | null>),
-
-  getOne: (id: string) =>
-    apiClient.get('/petshop/products/' + id).then(unwrap<PetProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/petshop/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

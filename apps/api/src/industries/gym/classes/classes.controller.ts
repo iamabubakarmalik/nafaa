@@ -52,7 +52,7 @@ export class ClassesController {
   status(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: ClassStatusDto) { return this.service.updateStatus(user, id, body.status, body.cancelledReason); }
 
   @Post(':id/book') @RequirePermissions(P.SERVICE_BOOKINGS_MANAGE)
-  book(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: BookClassDto) { return this.service.book(user, id, body.memberId); }
+  book(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: BookClassDto) { return this.service.book(user, id, body); }
 
   @Post('bookings/:bookingId/cancel') @RequirePermissions(P.SERVICE_BOOKINGS_MANAGE)
   cancelBooking(@GetUser() user: AuthenticatedUser, @Param('bookingId') bookingId: string, @Body() body: CancelBookingDto) { return this.service.cancelBooking(user, bookingId, body.reason); }

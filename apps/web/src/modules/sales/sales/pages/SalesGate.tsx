@@ -1,7 +1,8 @@
 /**
  * Picks the sales history for the current industry. Retail, Bakery,
  * Electronics, Pharmacy, Mobile, Restaurant, Garments, Clinic, Jewelry,
- * Hardware, Auto parts, Salon, Gym, Hotel, Dairy, Meat, Services, Appliances
+ * Hardware, Auto parts, Salon, Gym, Hotel, Dairy, Meat, Services, Appliances,
+ * Optical, Toy store, Sports, Florist, Pet shop
  * and businesses without an industry use the shared
  * history (modules/sales/history) through their config; the rest keep their
  * own pages for now.
@@ -31,6 +32,11 @@ const AutoPartsSalesPage = lazy(() => import('@industries/autoparts/pages/AutoPa
 const BookstoreSalesPage = lazy(() => import('@industries/bookstore/pages/BookstoreSalesPage'));
 const SalonSalesPage = lazy(() => import('@industries/salon/pages/SalonSalesPage'));
 const HotelSalesPage = lazy(() => import('@industries/hotel/pages/HotelSalesPage'));
+const OpticalSales = lazy(() => import('@industries/optical/sales/OpticalSales'));
+const ToystoreSalesPage = lazy(() => import('@industries/toystore/pages/ToystoreSalesPage'));
+const SportsSalesPage = lazy(() => import('@industries/sports/pages/SportsSalesPage'));
+const FloristSalesPage = lazy(() => import('@industries/florist/pages/FloristSalesPage'));
+const PetshopSalesPage = lazy(() => import('@industries/petshop/pages/PetshopSalesPage'));
 
 function Loader() {
   return (
@@ -64,6 +70,11 @@ export default function SalesGate() {
   if (industry?.id === 'bookstore') return <Suspense fallback={<Loader />}><BookstoreSalesPage /></Suspense>;
   if (industry?.id === 'salon') return <Suspense fallback={<Loader />}><SalonSalesPage /></Suspense>;
   if (industry?.id === 'hotel') return <Suspense fallback={<Loader />}><HotelSalesPage /></Suspense>;
+  if (industry?.id === 'optical') return <Suspense fallback={<Loader />}><OpticalSales /></Suspense>;
+  if (industry?.id === 'toystore') return <Suspense fallback={<Loader />}><ToystoreSalesPage /></Suspense>;
+  if (industry?.id === 'sports') return <Suspense fallback={<Loader />}><SportsSalesPage /></Suspense>;
+  if (industry?.id === 'florist') return <Suspense fallback={<Loader />}><FloristSalesPage /></Suspense>;
+  if (industry?.id === 'petshop') return <Suspense fallback={<Loader />}><PetshopSalesPage /></Suspense>;
 
   return <Suspense fallback={<Loader />}><GeneralSales /></Suspense>;
 }

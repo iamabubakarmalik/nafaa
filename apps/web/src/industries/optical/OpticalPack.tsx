@@ -1,14 +1,12 @@
-import {
-  LayoutDashboard, Glasses, Eye, FileText, UserCog, FlaskConical,
-  Calendar, Sparkles,
-} from 'lucide-react';
+import { Navigate, useParams } from 'react-router-dom';
+import { Eye, FilePlus, FileText, FlaskConical, Glasses, LayoutDashboard, UserCog, Wrench } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
+import { PERMISSIONS } from '@core/lib/permissions';
 
 import OpticalDashboard from './dashboard/OpticalDashboard';
 import OpticalProductsPage from './pages/OpticalProductsPage';
 import OpticalProductWizardPage from './pages/OpticalProductWizardPage';
 import OpticalProductDetailPage from './pages/OpticalProductDetailPage';
-import OpticalPosPage from './pages/OpticalPosPage';
 import PrescriptionsPage from './pages/PrescriptionsPage';
 import PrescriptionFormPage from './pages/PrescriptionFormPage';
 import PrescriptionDetailPage from './pages/PrescriptionDetailPage';
@@ -19,6 +17,12 @@ import LensOrdersPage from './pages/LensOrdersPage';
 import LensOrderFormPage from './pages/LensOrderFormPage';
 import LensOrderDetailPage from './pages/LensOrderDetailPage';
 
+/* Orders have no edit form: price and power are fixed once booked. */
+function ToOrder() {
+  const { id } = useParams();
+  return <Navigate to={`/optical/lens-orders/${id ?? ''}`} replace />;
+}
+
 export const OpticalPack: IndustryPack = {
   id: 'optical',
   name: 'Optical & Eyewear',
@@ -26,7 +30,7 @@ export const OpticalPack: IndustryPack = {
   emoji: '👓',
   priority: 76,
   description:
-    'Prescriptions (SPH/CYL/AXIS), frames, lenses, contact lenses, eye tests with optometrists, lab lens orders.',
+    'Eye tests, nuskhe (SPH/CYL/AXIS/ADD/PD), chashma orders with advance, lab tracking and pickup, repairs, frames and contact lenses.',
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -45,22 +49,22 @@ export const OpticalPack: IndustryPack = {
       color: '#06b6d4',
       order: 20,
       items: [
-        { to: '/optical/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/optical/eye-tests', label: 'Eye Tests', icon: Eye, badge: 'TODAY' },
-        { to: '/optical/prescriptions', label: 'Prescriptions', icon: FileText },
+        { to: '/optical/dashboard', label: 'Optical dashboard', icon: LayoutDashboard },
+        { to: '/optical/lens-orders/new', label: 'Naya chashma order', icon: FilePlus, permission: PERMISSIONS.POS_USE },
+        { to: '/optical/lens-orders', label: 'Chashma orders', icon: FlaskConical },
+        { to: '/optical/lens-orders?view=repairs', label: 'Repair', icon: Wrench },
+        { to: '/optical/eye-tests', label: 'Eye tests', icon: Eye },
+        { to: '/optical/prescriptions', label: 'Nuskhe', icon: FileText },
         { to: '/optical/optometrists', label: 'Optometrists', icon: UserCog },
-        { to: '/optical/lens-orders', label: 'Lens Orders', icon: FlaskConical, badge: 'LAB' },
       ],
     },
   ],
 
   routes: [
-    { path: '/pos', element: OpticalPosPage },
-
-    { path: '/optical-products/new', element: OpticalProductWizardPage },
-    { path: '/optical-products/:id/edit', element: OpticalProductWizardPage },
-    { path: '/optical-products/:id', element: OpticalProductDetailPage },
-    { path: '/optical-products', element: OpticalProductsPage },
+    { path: '/optical-products/new', element: OpticalProductWizardPage, permission: PERMISSIONS.PRODUCTS_CREATE },
+    { path: '/optical-products/:id/edit', element: OpticalProductWizardPage, permission: PERMISSIONS.PRODUCTS_EDIT },
+    { path: '/optical-products/:id', element: OpticalProductDetailPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/optical-products', element: OpticalProductsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
 
     { path: '/optical', element: OpticalDashboard },
     { path: '/optical/dashboard', element: OpticalDashboard },
@@ -75,7 +79,8 @@ export const OpticalPack: IndustryPack = {
 
     { path: '/optical/optometrists', element: OptometristsPage },
 
-    { path: '/optical/lens-orders/new', element: LensOrderFormPage },
+    { path: '/optical/lens-orders/new', element: LensOrderFormPage, permission: PERMISSIONS.POS_USE },
+    { path: '/optical/lens-orders/:id/edit', element: ToOrder },
     { path: '/optical/lens-orders/:id', element: LensOrderDetailPage },
     { path: '/optical/lens-orders', element: LensOrdersPage },
   ],

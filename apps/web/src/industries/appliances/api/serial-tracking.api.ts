@@ -7,6 +7,9 @@ export type ApplianceInstallationStatus =
 export interface ApplianceSerial {
   id: string;
   productId: string;
+  /** Branch the unit sits in; empty for units entered before branches were tracked. */
+  shopId?: string | null;
+  shopName?: string | null;
   serialNumber: string;
   modelNumber?: string;
   batchNumber?: string;
@@ -34,6 +37,8 @@ export interface ApplianceSerial {
   warrantyEndDate?: string;
   compressorWarrantyEndDate?: string;
   motorWarrantyEndDate?: string;
+  /** End of the shop's own warranty (from the warranty start and the product's shop months). */
+  shopWarrantyEndDate?: string | null;
   notes?: string;
   imageUrls: string[];
   product?: {
@@ -44,14 +49,16 @@ export interface ApplianceSerial {
     warrantyMonths: number | null;
     compressorWarrantyMonths: number | null;
     motorWarrantyMonths: number | null;
+    shopWarrantyMonths: number | null;
     requiresInstallation: boolean;
     installationCharge: number;
   } | null;
-  /** Teen warranty — main, compressor, motor. Jo pehle khatam ho wahi asal */
+  /** Company warranty (main, compressor, motor) and the shop's own; the one ending first is shown on lists. */
   warranty?: {
     mainDaysLeft: number | null;
     compressorDaysLeft: number | null;
     motorDaysLeft: number | null;
+    shopDaysLeft: number | null;
     isUnderWarranty: boolean;
     soonestKind: string | null;
     soonestDays: number | null;
@@ -88,6 +95,9 @@ export interface SerialWarrantyCheck {
     motorValid: boolean;
     motorEndDate: string | null;
     motorDaysRemaining: number | null;
+    shopValid: boolean;
+    shopEndDate: string | null;
+    shopDaysRemaining: number | null;
     soonestKind: string | null;
     soonestDays: number | null;
   };
@@ -112,6 +122,19 @@ export interface Paged<T> {
   meta: { page: number; limit: number; total: number; totalPages: number };
 }
 
+/** An in-stock unit the counter can sell. */
+export interface CounterUnit { id: string; productId: string; serialNumber: string; modelNumber?: string | null; batchNumber?: string | null; purchaseDate?: string | null; createdAt: string }
+
+/** Branches and recently received stock transfers, for putting units in a branch. */
+export interface SerialBranches {
+  shops: Array<{ id: string; name: string; isMain: boolean }>;
+  transfers: Array<{
+    id: string; transferNumber: string; fromShopId: string; toShopId: string; receivedAt: string;
+    fromShop: { name: string }; toShop: { name: string };
+    items: Array<{ productId: string; receivedQty: number }>;
+  }>;
+}
+
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const applianceSerialApi = {
@@ -121,7 +144,7 @@ export const applianceSerialApi = {
   bulkCreate: (data: {
     productId: string; serialNumbers: string[];
     modelNumber?: string; batchNumber?: string;
-    purchasePrice?: number; purchaseDate?: string; supplierRef?: string;
+    purchasePrice?: number; purchaseDate?: string; supplierRef?: string; shopId?: string;
   }) => apiClient.post('/appliances/serial-tracking/bulk', data)
     .then(unwrap<{ created: number; skipped: number; skippedSerials: string[]; message: string }>),
   list: (params?: {
@@ -141,13 +164,24 @@ export const applianceSerialApi = {
     apiClient.patch('/appliances/serial-tracking/' + id, data).then(unwrap<ApplianceSerial>),
   remove: (id: string) =>
     apiClient.delete('/appliances/serial-tracking/' + id).then(unwrap<{ message: string }>),
+  /** In-stock units this counter's branch can sell (one product, or all). */
+  counter: (productId?: string) =>
+    apiClient.get('/appliances/serial-tracking/counter', { params: productId ? { productId } : undefined }).then(unwrap<CounterUnit[]>),
+  /** A serial scanned at the counter; `otherBranch` names the branch when it sits elsewhere. */
+  counterLookup: (code: string) =>
+    apiClient.get('/appliances/serial-tracking/counter/lookup/' + encodeURIComponent(code))
+      .then(unwrap<{ id: string; productId: string; serialNumber: string; status: string; invoiceNumber?: string | null; otherBranch: string | null } | null>),
+  branches: () => apiClient.get('/appliances/serial-tracking/branches').then(unwrap<SerialBranches>),
+  /** Puts units in a branch: by a received transfer, or a first placement for units with no branch. */
+  move: (data: { serialIds?: string[]; serialNumbers?: string[]; transferId?: string; toShopId?: string }) =>
+    apiClient.post('/appliances/serial-tracking/move', data).then(unwrap<{ moved: number; message: string }>),
   /** Marks the units that left on a counter bill as sold (warranty starts on the bill date). */
   assignSale: (saleId: string, serialIds: string[]) =>
     apiClient.post('/appliances/serial-tracking/assign-sale', { saleId, units: serialIds.map((serialId) => ({ serialId })) }).then(unwrap),
   /** Units sold on many bills, for the sales history. */
   forSales: (saleIds: string[]) =>
     apiClient.get('/appliances/serial-tracking/for-sales', { params: { ids: saleIds.join(',') } })
-      .then(unwrap<Array<{ id: string; saleId: string; productId: string; serialNumber: string; warrantyEndDate?: string | null; installationStatus: string }>>),
+      .then(unwrap<Array<{ id: string; saleId: string; productId: string; serialNumber: string; warrantyEndDate?: string | null; shopWarrantyEndDate?: string | null; installationStatus: string }>>),
   /** Units sold on one bill, for the warranty card. */
   forSale: (saleId: string) =>
     apiClient.get('/appliances/serial-tracking/for-sale/' + saleId).then(unwrap<SaleUnit[]>),
@@ -156,4 +190,5 @@ export const applianceSerialApi = {
 export interface SaleUnit {
   id: string; productId: string; serialNumber: string; modelNumber?: string | null;
   warrantyStartDate?: string | null; warrantyEndDate?: string | null; compressorWarrantyEndDate?: string | null; motorWarrantyEndDate?: string | null;
+  shopWarrantyEndDate?: string | null;
 }

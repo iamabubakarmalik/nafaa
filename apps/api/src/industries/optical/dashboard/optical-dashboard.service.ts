@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { startOfDayTz, endOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
+import { addDaysTz, startOfDayTz, endOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class OpticalDashboardService {
     const monthStart = startOfMonthTz(now);
     const todayStart = startOfDayTz();
     const todayEnd = endOfDayTz();
-    const in60 = new Date(); in60.setDate(in60.getDate() + 60);
+    const in60 = addDaysTz(todayStart, 60);
 
     const [
       totalProducts, totalOptometrists, activeOptometrists,
@@ -60,8 +60,9 @@ export class OpticalDashboardService {
         where: { tenantId: user.tenantId, testCompletedAt: { gte: todayStart, lte: todayEnd } },
         _sum: { paidAmount: true }, _count: { _all: true },
       }),
+      // Open orders only: a delivered order's unpaid part is already on the customer's khata.
       this.prisma.opticalLensOrder.aggregate({
-        where: { tenantId: user.tenantId, status: { not: 'CANCELLED' } },
+        where: { tenantId: user.tenantId, status: { notIn: ['CANCELLED', 'DELIVERED'] } },
         _sum: { remainingAmount: true },
       }),
     ]);

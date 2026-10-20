@@ -43,7 +43,8 @@ const config: DetailConfig<Extra> = {
     if (!p) return [];
     const rows: Array<[string, ReactNode]> = [
       ['Model', p.modelNumber], ['Size', sizeLine(p)], ['Rang', p.colorName], ['Bijli', p.powerConsumption],
-      ['Warranty', p.warrantyMonths ? `${p.warrantyMonths} mahine (${p.warrantyType === 'SHOP' ? 'dukaan' : p.warrantyType === 'BOTH' ? 'company + dukaan' : 'company'})` : undefined],
+      ['Company warranty', p.warrantyMonths && !(p.warrantyType === 'SHOP' && p.shopWarrantyMonths == null) ? `${p.warrantyMonths} mahine` : undefined],
+      ['Dukaan ki warranty', p.shopWarrantyMonths ? `${p.shopWarrantyMonths} mahine` : p.warrantyType === 'SHOP' && p.warrantyMonths ? `${p.warrantyMonths} mahine` : undefined],
       ['Compressor', p.compressorWarrantyMonths ? `${p.compressorWarrantyMonths} mahine` : undefined], ['Motor', p.motorWarrantyMonths ? `${p.motorWarrantyMonths} mahine` : undefined],
       ['Installation', p.requiresInstallation ? (p.installationCovered ? 'Free' : money(Number(p.installationCharge) || 0)) : undefined],
       ['MRP', p.mrp ? money(p.mrp) : undefined], ['Delivery', p.freeDelivery ? 'Free' : p.requiresLargeVehicle ? 'Bari gaari' : undefined],

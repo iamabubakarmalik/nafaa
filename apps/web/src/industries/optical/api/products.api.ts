@@ -1,111 +1,38 @@
 import { apiClient } from '@core/api/client';
 
 export type OpticalCategoryType =
-  | 'EYEGLASSES_FRAME' | 'PRESCRIPTION_LENS' | 'CONTACT_LENS' | 'SUNGLASSES'
-  | 'READING_GLASSES' | 'SPORTS_EYEWEAR' | 'SAFETY_GOGGLES' | 'KIDS_EYEWEAR'
-  | 'PROGRESSIVE_LENS' | 'BIFOCAL_LENS' | 'BLUE_CUT_LENS' | 'PHOTOCHROMIC_LENS'
-  | 'ACCESSORY' | 'CLEANING_KIT' | 'CASE' | 'CHAIN' | 'OTHER';
+  | 'FRAME_FULL_RIM' | 'FRAME_HALF_RIM' | 'FRAME_RIMLESS' | 'FRAME_SPORTS' | 'FRAME_KIDS' | 'FRAME_READING'
+  | 'SUNGLASSES' | 'SUNGLASSES_POLARIZED' | 'SUNGLASSES_KIDS'
+  | 'LENS_SINGLE_VISION' | 'LENS_BIFOCAL' | 'LENS_PROGRESSIVE' | 'LENS_PHOTOCHROMIC' | 'LENS_BLUE_CUT' | 'LENS_ANTI_GLARE' | 'LENS_CYLINDRICAL' | 'LENS_SPHERICAL'
+  | 'CONTACT_LENS_MONTHLY' | 'CONTACT_LENS_DAILY' | 'CONTACT_LENS_YEARLY' | 'CONTACT_LENS_COLORED' | 'CONTACT_LENS_TORIC' | 'CONTACT_LENS_MULTIFOCAL'
+  | 'CLEANING_SOLUTION' | 'LENS_CASE' | 'ACCESSORY' | 'OTHER';
+export type OpticalFrameShape = 'ROUND' | 'SQUARE' | 'RECTANGLE' | 'OVAL' | 'CAT_EYE' | 'AVIATOR' | 'WAYFARER' | 'BROWLINE' | 'GEOMETRIC' | 'BUTTERFLY' | 'HEART' | 'OTHER';
+export type OpticalFrameMaterial = 'ACETATE' | 'METAL' | 'TITANIUM' | 'STAINLESS_STEEL' | 'PLASTIC' | 'TR90' | 'WOOD' | 'ALUMINIUM' | 'MIXED' | 'OTHER';
+export type OpticalGender = 'MENS' | 'WOMENS' | 'UNISEX' | 'KIDS' | 'KIDS_BOYS' | 'KIDS_GIRLS';
 
-export type OpticalFrameShape =
-  | 'ROUND' | 'SQUARE' | 'RECTANGLE' | 'OVAL' | 'CAT_EYE'
-  | 'AVIATOR' | 'WAYFARER' | 'CLUBMASTER' | 'GEOMETRIC' | 'RIMLESS'
-  | 'SEMI_RIMLESS' | 'BROWLINE' | 'BUTTERFLY' | 'OTHER';
-
-export type OpticalFrameMaterial =
-  | 'METAL' | 'PLASTIC' | 'ACETATE' | 'TITANIUM' | 'STAINLESS_STEEL'
-  | 'WOOD' | 'BAMBOO' | 'TR90' | 'ULTEM' | 'MIXED' | 'OTHER';
-
-export type OpticalGender = 'MEN' | 'WOMEN' | 'UNISEX' | 'KIDS';
-
-export interface OpticalProductProfile {
-  id: string;
+/** What the products page, editor, detail and counter read per product. */
+export interface OpticalFacts {
   productId: string;
-  categoryType?: OpticalCategoryType;
-  frameShape?: OpticalFrameShape;
-  frameMaterial?: OpticalFrameMaterial;
-  gender?: OpticalGender;
-  brand?: string;
-  modelNumber?: string;
-  collectionName?: string;
-  frameSizeMm?: number;
-  bridgeSizeMm?: number;
-  templeLengthMm?: number;
-  lensWidthMm?: number;
-  lensHeightMm?: number;
-  frameWeightG?: number;
-  colorName?: string;
-  colorHex?: string;
-  frameColorOptions: string[];
-  lensType?: string;
-  lensMaterial?: string;
-  lensIndex?: string;
-  lensCoatings: string[];
-  hasBlueCut: boolean;
-  hasAntiGlare: boolean;
-  hasUvProtection: boolean;
-  isPolarized: boolean;
-  isPhotochromic: boolean;
-  isContactLens: boolean;
-  clDuration?: string;
-  clWaterContent?: string;
-  clBaseCurve?: string;
-  clDiameter?: string;
-  clUvProtection: boolean;
-  clForAstigmatism: boolean;
-  supportsMinSph?: number;
-  supportsMaxSph?: number;
-  supportsMinCyl?: number;
-  supportsMaxCyl?: number;
-  supportsProgressive: boolean;
-  warrantyMonths?: number;
-  warrantyType?: string;
-  mrp?: number;
-  costPrice?: number;
-  retailPrice?: number;
-  discountedPrice?: number;
-  isFeatured: boolean;
-  isBestSeller: boolean;
-  isNewArrival: boolean;
-  isDesigner: boolean;
-  totalSold: number;
-  totalRevenue: number;
-  imageUrls3d: string[];
-  tryOnUrl?: string;
-  notes?: string;
-  product?: any;
-  createdAt: string;
-  updatedAt: string;
+  categoryType: OpticalCategoryType | null;
+  brand: string | null; modelNumber: string | null; colorName: string | null; colorHex: string | null;
+  frameShape: OpticalFrameShape | null; frameMaterial: OpticalFrameMaterial | null; gender: OpticalGender | null;
+  frameSizeMm: number | null; bridgeSizeMm: number | null; templeLengthMm: number | null;
+  lensType: string | null; lensIndex: string | null; lensCoatings: string[];
+  hasBlueCut: boolean; isPhotochromic: boolean; isPolarized: boolean;
+  isContactLens: boolean; clDuration: string | null; clBaseCurve: string | null; clDiameter: string | null; clForAstigmatism: boolean;
+  supportsMinSph: number | null; supportsMaxSph: number | null; supportsMaxCyl: number | null; supportsProgressive: boolean;
+  warrantyMonths: number;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+/** Fields kept on the full profile besides the facts. */
+export interface OpticalProfileMore { collectionName?: string | null; lensMaterial?: string | null; clWaterContent?: string | null; hasUvProtection?: boolean; notes?: string | null }
+
+type OpticalProfileInput = Partial<Omit<OpticalFacts, 'productId'>> & Omit<OpticalProfileMore, 'notes'> & { productId: string; notes?: string; retailPrice?: number; costPrice?: number };
+
+const unwrap = <T,>(res: { data: { data?: T } & T }): T => (res.data?.data ?? res.data) as T;
 
 export const opticalProductsApi = {
-  upsert: (data: Partial<OpticalProductProfile>) =>
-    apiClient.post('/optical/products', data).then(unwrap<OpticalProductProfile>),
-
-  list: (params?: {
-    categoryType?: string; frameShape?: string; frameMaterial?: string; gender?: string;
-    brand?: string; contactLensOnly?: boolean;
-    blueCut?: boolean; polarized?: boolean; photochromic?: boolean; progressive?: boolean;
-    featured?: boolean; bestSeller?: boolean; newArrival?: boolean; designer?: boolean;
-    minPrice?: number; maxPrice?: number; search?: string;
-  }) => apiClient.get('/optical/products', { params }).then(unwrap<OpticalProductProfile[]>),
-
-  matchPrescription: (params: { sph: number; cyl?: number; progressive?: boolean; contactLens?: boolean }) =>
-    apiClient.get('/optical/products/match-prescription', { params }).then(unwrap<OpticalProductProfile[]>),
-
-  byCategory: () =>
-    apiClient.get('/optical/products/by-category-count').then(unwrap<Record<string, number>>),
-
-  brands: () =>
-    apiClient.get('/optical/products/brands').then(unwrap<Array<{ brand: string; count: number; revenue: number }>>),
-
-  byProduct: (productId: string) =>
-    apiClient.get('/optical/products/by-product/' + productId).then(unwrap<OpticalProductProfile | null>),
-
-  getOne: (id: string) =>
-    apiClient.get('/optical/products/' + id).then(unwrap<OpticalProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/optical/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
+  upsert: (data: OpticalProfileInput) => apiClient.post('/optical/products', data).then(unwrap<OpticalFacts>),
+  facts: () => apiClient.get('/optical/products/facts').then(unwrap<OpticalFacts[]>),
+  byProduct: (productId: string) => apiClient.get('/optical/products/by-product/' + productId).then(unwrap<(OpticalFacts & OpticalProfileMore & { id: string }) | null>),
 };

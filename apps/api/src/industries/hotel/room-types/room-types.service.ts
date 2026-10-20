@@ -23,7 +23,8 @@ export class RoomTypesService {
     if (!(Number(basePrice) > 0)) throw new BadRequestException('Ek raat ka rate likhein');
   }
 
-  async create(user: AuthenticatedUser, dto: CreateRoomTypeDto) {
+  /** `shopId`: branch for the new rooms (null = every branch). */
+  async create(user: AuthenticatedUser, dto: CreateRoomTypeDto, shopId: string | null = null) {
     const name = dto.name?.trim();
     if (!name) throw new BadRequestException('Room type ka naam likhein');
     const code = (dto.code?.trim() || name.replace(/[^A-Za-z0-9]+/g, '').slice(0, 6) || 'RT').toUpperCase();
@@ -45,7 +46,7 @@ export class RoomTypesService {
       if (rooms.length) {
         await tx.hotelRoom.createMany({
           data: rooms.map((r) => ({
-            tenantId: user.tenantId, roomTypeId: rt.id, roomNumber: r.roomNumber.trim(),
+            tenantId: user.tenantId, shopId, roomTypeId: rt.id, roomNumber: r.roomNumber.trim(),
             floor: r.floor?.trim() || null, building: r.building?.trim() || null, wing: r.wing?.trim() || null,
             viewType: r.viewType?.trim() || null, facing: r.facing?.trim() || null,
             customPrice: r.customPrice && r.customPrice > 0 ? r.customPrice : null, customNotes: r.customNotes?.trim() || null,

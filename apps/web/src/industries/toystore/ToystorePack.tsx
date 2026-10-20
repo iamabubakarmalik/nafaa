@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Baby, Cake, Gift, ShieldAlert, Package, Sparkles,
+  LayoutDashboard, Baby, Cake, Gift, ShieldAlert, Sparkles,
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
@@ -39,10 +39,10 @@ export const ToystorePack: IndustryPack = {
       order: 20,
       items: [
         { to: '/toystore/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/toystore/gift-finder', label: 'Gift Finder', icon: Sparkles, badge: 'AI' },
-        { to: '/toystore/birthdays', label: 'Birthdays', icon: Cake, badge: 'HOT' },
-        { to: '/toystore/gift-packs', label: 'Gift Packs', icon: Gift },
-        { to: '/toystore/safety-review', label: 'Safety Review', icon: ShieldAlert },
+        { to: '/toystore/gift-finder', label: 'Gift finder', icon: Sparkles },
+        { to: '/toystore/gift-packs', label: 'Gift packs', icon: Gift },
+        { to: '/toystore/birthdays', label: 'Saalgirah', icon: Cake },
+        { to: '/toystore/safety-review', label: 'Safety review', icon: ShieldAlert },
       ],
     },
   ],
@@ -50,10 +50,14 @@ export const ToystorePack: IndustryPack = {
   routes: [
     { path: '/pos', element: ToystorePosPage },
 
+    { path: '/toystore-products/new', element: ToyProductWizardPage },
+    { path: '/toystore-products/:id/edit', element: ToyProductWizardPage },
+    { path: '/toystore-products/:id', element: ToyProductDetailPage },
+    { path: '/toystore-products', element: ToyProductsPage },
+    // Older links.
     { path: '/toy-products/new', element: ToyProductWizardPage },
     { path: '/toy-products/:id/edit', element: ToyProductWizardPage },
     { path: '/toy-products/:id', element: ToyProductDetailPage },
-    { path: '/toy-products', element: ToyProductsPage },
 
     { path: '/toystore', element: ToystoreDashboard },
     { path: '/toystore/dashboard', element: ToystoreDashboard },
@@ -62,6 +66,8 @@ export const ToystorePack: IndustryPack = {
 
     { path: '/toystore/birthdays', element: BirthdayRemindersPage },
     { path: '/toystore/birthdays/:id', element: BirthdayDetailPage },
+    { path: '/toystore/birthday-reminders', element: BirthdayRemindersPage },
+    { path: '/toystore/birthday-reminders/:id', element: BirthdayDetailPage },
 
     { path: '/toystore/gift-packs', element: ToyGiftPacksPage },
     { path: '/toystore/gift-packs/new', element: GiftPackFormPage },

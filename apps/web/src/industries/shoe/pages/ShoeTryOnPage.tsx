@@ -1,289 +1,255 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  HandMetal, Plus, Search, X, RefreshCw, Phone, Package,
-  Clock, CheckCircle2, XCircle, Calendar, Save,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { shoeTryOnApi } from '../api/try-on.api';
-import { Button } from '@/design-system/components';
+/**
+ * Size requests ("farmaish"): a customer wants a size or colour the shop
+ * does not have now. The number is noted; when the asked size is back in
+ * this branch the row says so, the customer is told on WhatsApp, and the
+ * request is closed as bought / not bought. Nothing is deleted.
+ */
 
-const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
-  PENDING: { label: 'Pending', bg: 'bg-amber-100', color: 'text-amber-700' },
-  SCHEDULED: { label: 'Scheduled', bg: 'bg-blue-100', color: 'text-blue-700' },
-  COMPLETED: { label: 'Completed', bg: 'bg-emerald-100', color: 'text-emerald-700' },
-  CANCELLED: { label: 'Cancelled', bg: 'bg-slate-100', color: 'text-slate-700' },
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  Ban, BellRing, CheckCircle2, ClipboardList, GraduationCap, HandMetal, Hourglass, MessageCircle, PackageCheck, Plus, ShoppingBag, XCircle,
+} from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea, ViewTabs,
+  heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { ProductPick, type PickedProduct } from '@industries/garments/components/ProductPick';
+import { shoeTryOnApi, type RequestView, type SizeRequest } from '../api/try-on.api';
+import { COLORS, GENDERS, REQUEST_KEY, SIZE_SYSTEMS, apiError, opt } from '../components/meta';
+import { EmptyBlock, Pager, StatusPill, card, useDebounced, useListKeys } from '../components/ui';
+
+const LIMIT = 30;
+const TABS: Array<{ id: RequestView; label: string; icon: typeof ClipboardList }> = [
+  { id: 'open', label: 'Khuli', icon: ClipboardList },
+  { id: 'waiting', label: 'Maal ka intezar', icon: Hourglass },
+  { id: 'told', label: 'Bata diya', icon: BellRing },
+  { id: 'bought', label: 'Khareed liya', icon: ShoppingBag },
+  { id: 'closed', label: 'Nahi liya / cancel', icon: XCircle },
+  { id: 'all', label: 'Sab', icon: ClipboardList },
+];
+const STATUS: Record<string, { label: string; tone: string }> = {
+  PENDING: { label: 'Intezar', tone: 'bg-amber-50 text-amber-800' },
+  SCHEDULED: { label: 'Bata diya', tone: 'bg-sky-50 text-sky-700' },
+  COMPLETED: { label: 'Band', tone: 'bg-slate-100 text-slate-700' },
+  CANCELLED: { label: 'Cancel', tone: 'bg-rose-50 text-rose-700' },
 };
+const KEYS = [REQUEST_KEY, 'shoe-try-on-summary', 'shoe-dashboard-overview'];
+
+const waPhone = (p: string) => { const d = p.replace(/\D/g, ''); return d.startsWith('0') ? `92${d.slice(1)}` : d; };
+const day = (d?: string | null) => (d ? new Date(d).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }) : '—');
+const avail = (r: SizeRequest) => r.available.map((a) => [a.size, a.color].filter(Boolean).join(' ') || 'Stock').join(', ');
+
+function NewRequestModal({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const [pick, setPick] = useState<PickedProduct | null>(null);
+  const [f, setF] = useState({ customerName: '', customerPhone: '', productName: '', colorPreference: '', gender: '', notes: '', other: '' });
+  const [sizes, setSizes] = useState<string[]>([]);
+  const [system, setSystem] = useState<string>('UK');
+  const [tried, setTried] = useState(false);
+  const errors = useMemo(() => {
+    const e: Record<string, string> = {};
+    if (f.customerName.trim().length < 2) e.customerName = 'Customer ka naam likhein';
+    if (!/^[0-9+\-\s]{7,16}$/.test(f.customerPhone.trim())) e.customerPhone = 'Phone number sahi likhein (03001234567)';
+    if (!pick && f.productName.trim().length < 2) e.productName = 'Joota chunein ya article / naam likhein';
+    return e;
+  }, [f, pick]);
+  const save = useMutation({
+    mutationFn: () => shoeTryOnApi.create({
+      customerName: f.customerName.trim(), customerPhone: f.customerPhone.trim(), productId: pick?.productId,
+      productName: pick ? pick.name : f.productName.trim(),
+      requestedSizes: [...sizes, ...f.other.split(',').map((s) => s.trim()).filter(Boolean)],
+      colorPreference: opt(f.colorPreference), gender: f.gender || undefined, notes: opt(f.notes),
+    }),
+    onSuccess: (r) => { toast.success(`Farmaish ${r.requestNumber} likh li`); KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const submit = () => {
+    setTried(true);
+    const first = Object.values(errors)[0];
+    if (first) { toast.error(first); return; }
+    save.mutate();
+  };
+  const err = (k: string) => (tried ? errors[k] : undefined);
+  const set = SIZE_SYSTEMS.find((s) => s.value === system) ?? SIZE_SYSTEMS[0];
+  const toggle = (s: string) => {
+    const label = system === 'UK' ? s : `${system} ${s}`;
+    setSizes((xs) => (xs.includes(label) ? xs.filter((x) => x !== label) : [...xs, label]));
+  };
+
+  return (
+    <Modal open onClose={onClose} size="lg" title="Nayi farmaish" description="Jo size ya rang abhi nahi — maal aane par customer ko batayein"
+      footer={<div className="flex w-full gap-2"><Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button><Button className="flex-1" loading={save.isPending} onClick={submit}>Likh lein</Button></div>}>
+      <form className="grid gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Input label="Customer" required value={f.customerName} error={err('customerName')} maxLength={80} placeholder="Sana" onChange={(e) => setF({ ...f, customerName: e.target.value })} />
+        <Input label="Phone" required inputMode="tel" value={f.customerPhone} error={err('customerPhone')} placeholder="03001234567" onChange={(e) => setF({ ...f, customerPhone: e.target.value })} hint="Maal aane par WhatsApp" />
+        <div className="sm:col-span-2">
+          <ProductPick value={pick} onChange={setPick} label="Joota (catalog se)" hint="Chunein to stock aate hi yahan dikhega — warna neeche naam likhein" />
+        </div>
+        {!pick && <Input wrapperClassName="sm:col-span-2" label="Ya article / naam" value={f.productName} error={err('productName')} maxLength={120} placeholder="Bata loafer brown 8231" onChange={(e) => setF({ ...f, productName: e.target.value })} />}
+        <div className="sm:col-span-2">
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <span className="text-[0.8125rem] font-medium text-slate-700">Size</span>
+            <div className="flex gap-1">{SIZE_SYSTEMS.map((s) => (
+              <button key={s.value} type="button" onClick={() => setSystem(s.value)} className={cn('rounded-lg px-2 py-0.5 text-[0.75rem] font-semibold', system === s.value ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600')}>{s.label}</button>
+            ))}</div>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {set.sizes.map((s) => {
+              const label = system === 'UK' ? s : `${system} ${s}`;
+              return <button key={s} type="button" onClick={() => toggle(s)} className={cn('h-9 min-w-[2.5rem] rounded-xl px-2 text-[0.875rem] font-semibold ring-1', sizes.includes(label) ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:ring-brand-300')}>{s}</button>;
+            })}
+          </div>
+          <Input wrapperClassName="mt-2" label="Doosra size" value={f.other} placeholder="6.5, 44" onChange={(e) => setF({ ...f, other: e.target.value })} hint={sizes.length ? `Chune: ${sizes.join(', ')}` : 'Comma se kai size'} />
+        </div>
+        <Select label="Rang" value={f.colorPreference} onChange={(e) => setF({ ...f, colorPreference: e.target.value })} options={[{ value: '', label: 'Koi bhi' }, ...COLORS.map(([c]) => ({ value: c, label: c }))]} />
+        <Select label="Kis ke liye" value={f.gender} onChange={(e) => setF({ ...f, gender: e.target.value })} options={[{ value: '', label: '—' }, ...GENDERS.map((g) => ({ value: g.value, label: g.label }))]} />
+        <Textarea wrapperClassName="sm:col-span-2" label="Note" rows={2} value={f.notes} maxLength={500} placeholder="Eid se pehle chahiye" onChange={(e) => setF({ ...f, notes: e.target.value })} />
+      </form>
+    </Modal>
+  );
+}
 
 export default function ShoeTryOnPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const canUse = usePermission(PERMISSIONS.POS_USE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<RequestView>('open');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
-  const [completing, setCompleting] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [closing, setClosing] = useState<SizeRequest | null>(null);
+  const [boughtSize, setBoughtSize] = useState('');
+  const term = useDebounced(search.trim());
 
-  const { data: requests = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['shoe-try-on', statusFilter],
-    queryFn: () => shoeTryOnApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: [REQUEST_KEY, 'page', tab, term, page],
+    queryFn: () => shoeTryOnApi.page({ view: tab, search: term || undefined, page, limit: LIMIT }),
+    placeholderData: keepPreviousData,
+    refetchInterval: 120_000,
   });
+  const c = data?.counts;
+  const go = (t: RequestView) => { setTab(t); setPage(1); };
+  const add = useCallback(() => { if (canUse) setAdding(true); }, [canUse]);
+  useListKeys(searchRef, add);
 
-  const { data: summary } = useQuery({
-    queryKey: ['shoe-try-on-summary'],
-    queryFn: () => shoeTryOnApi.summary(),
-  });
+  const refresh = (msg: string) => { toast.success(msg); setClosing(null); KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); };
+  const fail = (e: unknown) => toast.error(apiError(e));
+  const told = useMutation({ mutationFn: (id: string) => shoeTryOnApi.notified(id), onSuccess: () => refresh('Bata diya — customer ka intezar'), onError: fail });
+  const finish = useMutation({ mutationFn: (v: { id: string; purchased: boolean; size?: string }) => shoeTryOnApi.complete(v.id, { purchased: v.purchased, purchasedSize: v.size }), onSuccess: () => refresh('Farmaish band'), onError: fail });
+  const cancel = useMutation({ mutationFn: (id: string) => shoeTryOnApi.cancel(id), onSuccess: () => refresh('Farmaish cancel'), onError: fail });
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return requests;
-    return requests.filter((r) => r.customerName.toLowerCase().includes(q) || r.productName.toLowerCase().includes(q) || r.customerPhone.includes(q));
-  }, [requests, search]);
-
-  const cancel = useMutation({
-    mutationFn: (id: string) => shoeTryOnApi.cancel(id),
-    onSuccess: () => { toast.success('Request cancelled'); qc.invalidateQueries({ queryKey: ['shoe-try-on'] }); },
-  });
+  const items = data?.items ?? [];
+  const ready = items.filter((r) => r.available.length > 0).length;
+  const message = (r: SizeRequest) => `https://wa.me/${waPhone(r.customerPhone)}?text=${encodeURIComponent(
+    `Assalam o alaikum ${r.customerName}, aap ne ${r.productName}${r.requestedSizes.length ? ` size ${r.requestedSizes.join(', ')}` : ''} ka poocha tha — ab dukaan par aa gaya hai. Aa kar le jayein.`,
+  )}`;
 
   return (
-    <div className="space-y-5">
-      {showForm && (
-        <RequestFormModal onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); qc.invalidateQueries({ queryKey: ['shoe-try-on'] }); qc.invalidateQueries({ queryKey: ['shoe-try-on-summary'] }); }} />
-      )}
-      {completing && (
-        <CompleteModal request={completing} onClose={() => setCompleting(null)}
-          onCompleted={() => { setCompleting(null); qc.invalidateQueries({ queryKey: ['shoe-try-on'] }); qc.invalidateQueries({ queryKey: ['shoe-try-on-summary'] }); }} />
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Size farmaish — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: HandMetal, color: '#2563eb', title: 'Likh lein', text: 'Customer ka size ya rang nahi mila? Naam, phone aur size likh lein. Catalog se joota chunein to stock khud check hota hai.' },
+            { icon: PackageCheck, color: '#16a34a', title: 'Maal aa gaya', text: 'Purchase se size aate hi row par "Stock aa gaya" dikhta hai.' },
+            { icon: MessageCircle, color: '#0ea5e9', title: 'Batayein', text: 'WhatsApp se message bhejein aur "Bata diya" dabayein.' },
+            { icon: ShoppingBag, color: '#7c3aed', title: 'Band karein', text: 'Customer le gaya to "Le gaya", warna "Nahi liya". Bill counter (POS) par hi banta hai.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'nayi farmaish'], ['G', 'guide']]} />
       )}
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <HandMetal className="h-3.5 w-3.5 text-amber-300" /> Try-On Requests
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">🖐️ Try-On Requests</h1>
-            <p className="mt-2 text-sm text-white/80">
-              Customer bring size X in color Y — {summary?.pending ?? 0} pending • {summary?.conversion ?? 0} converted
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" /> New Request
-            </Button>
-          </div>
-        </div>
+      <PageHero title="Size farmaish" chip={<><HandMetal />{c ? `${c.open} khuli` : '…'}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta="Jo size / rang abhi nahi — number likhein, maal aane par batayein"
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canUse && <button type="button" onClick={add} className={heroPrimaryButton}><Plus className="h-4 w-4" />Nayi farmaish</button>}
+        </>}
+        stats={[
+          { label: 'Khuli farmaish', value: String(c?.open ?? 0) },
+          { label: 'Is safhe par stock aa gaya', value: String(ready) },
+          { label: 'Khareed liya', value: String(c?.bought ?? 0) },
+        ]} />
+
+      <KpiRow cols={4}>
+        {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Hourglass} color="#d97706" label="Maal ka intezar" value={c.waiting} onClick={() => go('waiting')} active={tab === 'waiting'} />
+            <KpiCard icon={BellRing} color="#0284c7" label="Bata diya" value={c.told} hint="Customer ke aane ka intezar" onClick={() => go('told')} active={tab === 'told'} />
+            <KpiCard icon={ShoppingBag} color="#16a34a" label="Khareed liya" value={c.bought} onClick={() => go('bought')} active={tab === 'bought'} />
+            <KpiCard icon={XCircle} color="#64748b" label="Nahi liya / cancel" value={c.closed} onClick={() => go('closed')} active={tab === 'closed'} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Number, customer, phone ya joota…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
+        onClear={() => setSearch('')} />
+
+      <ViewTabs value={tab} onChange={go} tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? c[t.id] : null }))} />
+
+      <section className={card}>
+        {isLoading ? (
+          <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        ) : items.length === 0 ? (
+          <EmptyBlock icon={HandMetal} title={search || tab !== 'open' ? 'Is filter me kuch nahi' : 'Koi khuli farmaish nahi'}
+            text="Customer ko size na mile to uska number likh lein — maal aate hi bata sakenge."
+            action={canUse ? <button type="button" onClick={add} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Nayi farmaish</button> : undefined} />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {items.map((r) => {
+              const open = r.status === 'PENDING' || r.status === 'SCHEDULED';
+              const st = r.status === 'COMPLETED' ? { label: r.purchased ? `Le gaya${r.purchasedSize ? ` · ${r.purchasedSize}` : ''}` : 'Nahi liya', tone: r.purchased ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-700' } : STATUS[r.status];
+              return (
+                <li key={r.id} className="grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[8rem_minmax(0,1fr)_minmax(0,1.4fr)_auto] lg:items-center">
+                  <div>
+                    <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.requestNumber}</p>
+                    <p className="text-[0.75rem] text-slate-500">{day(r.createdAt)}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">{r.customerName}</p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{r.customerPhone}</p>
+                  </div>
+                  <div className="min-w-0 text-[0.8125rem]">
+                    <p className="truncate font-medium text-slate-800">{r.productName}</p>
+                    <p className="truncate text-slate-500">{[r.requestedSizes.length ? `Size ${r.requestedSizes.join(', ')}` : null, r.colorPreference].filter(Boolean).join(' · ') || 'Koi bhi size'}{r.notes ? ` · ${r.notes}` : ''}</p>
+                    {open && r.available.length > 0 && <p className="mt-0.5 inline-flex items-center gap-1 rounded-md bg-success-50 px-1.5 py-0.5 text-[0.75rem] font-semibold text-success-700"><PackageCheck className="h-3.5 w-3.5" />Stock aa gaya: {avail(r)}</p>}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
+                    <StatusPill tone={st.tone}>{st.label}</StatusPill>
+                    {open && canUse && (
+                      <>
+                        <a href={message(r)} target="_blank" rel="noreferrer" title="WhatsApp" className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" />WhatsApp</a>
+                        {r.status === 'PENDING' && <Button size="sm" variant="secondary" leftIcon={<BellRing className="h-3.5 w-3.5" />} onClick={() => told.mutate(r.id)}>Bata diya</Button>}
+                        <Button size="sm" variant="secondary" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => { setClosing(r); setBoughtSize(r.available[0]?.size ?? r.requestedSizes[0] ?? ''); }}>Band</Button>
+                        <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => cancel.mutate(r.id)}>Cancel</Button>
+                      </>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {data && <Pager page={page} limit={LIMIT} total={data.total} onPage={setPage} />}
       </section>
 
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Pending" value={summary.pending} icon={Clock} tone="amber" onClick={() => setStatusFilter('PENDING')} />
-          <StatCard label="Scheduled" value={summary.scheduled} icon={Calendar} tone="blue" onClick={() => setStatusFilter('SCHEDULED')} />
-          <StatCard label="Completed" value={summary.completed} icon={CheckCircle2} tone="emerald" onClick={() => setStatusFilter('COMPLETED')} />
-          <StatCard label="Conversion" value={summary.conversion} icon={Package} tone="violet" />
-        </section>
+      {adding && <NewRequestModal onClose={() => setAdding(false)} />}
+      {closing && (
+        <Modal open onClose={() => setClosing(null)} size="sm" title={`${closing.requestNumber} band karein`} description={`${closing.customerName} · ${closing.productName}`}
+          footer={<div className="flex w-full gap-2">
+            <Button variant="secondary" className="flex-1" loading={finish.isPending} onClick={() => finish.mutate({ id: closing.id, purchased: false })}>Nahi liya</Button>
+            <Button className="flex-1" loading={finish.isPending} onClick={() => finish.mutate({ id: closing.id, purchased: true, size: opt(boughtSize) })}>Le gaya</Button>
+          </div>}>
+          <Input label="Kaunsa size liya" value={boughtSize} maxLength={20} onChange={(e) => setBoughtSize(e.target.value)} hint="Bill counter (POS) par banayein — yahan sirf farmaish band hoti hai" />
+        </Modal>
       )}
-
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Customer, product, phone..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-        </div>
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-          {['all', 'PENDING', 'SCHEDULED', 'COMPLETED', 'CANCELLED'].map((v) => (
-            <button key={v} onClick={() => setStatusFilter(v)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${statusFilter === v ? 'bg-emerald-600 text-white' : 'text-slate-600'}`}>
-              {v === 'all' ? 'All' : STATUS_META[v]?.label || v}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid gap-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 animate-pulse" />)}</div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <HandMetal className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No try-on requests</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Customer requests appear here</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((r) => {
-            const meta = STATUS_META[r.status] || STATUS_META.PENDING;
-            return (
-              <div key={r.id} className="rounded-2xl bg-white border-2 border-slate-200 p-4 hover:shadow-md transition">
-                <div className="flex items-start gap-3 flex-wrap sm:flex-nowrap">
-                  <div className={`h-12 w-12 rounded-xl ${meta.bg} flex items-center justify-center shrink-0`}>
-                    <HandMetal className={`h-5 w-5 ${meta.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-extrabold text-sm">{r.requestNumber}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>{meta.label}</span>
-                    </div>
-                    <div className="mt-1 font-extrabold text-slate-900 text-sm truncate">{r.productName}</div>
-                    <div className="mt-1 text-xs text-slate-600 font-bold flex items-center gap-3 flex-wrap">
-                      <span>👤 {r.customerName}</span>
-                      <span className="inline-flex items-center gap-0.5"><Phone className="h-3 w-3" /> {r.customerPhone}</span>
-                      {r.requestedSizes?.length > 0 && (
-                        <span className="inline-flex items-center gap-1">
-                          Sizes: {r.requestedSizes.map((s: string) => (
-                            <span key={s} className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[0.6875rem] font-extrabold">{s}</span>
-                          ))}
-                        </span>
-                      )}
-                      {r.colorPreference && <span>🎨 {r.colorPreference}</span>}
-                    </div>
-                  </div>
-                  {r.status === 'PENDING' || r.status === 'SCHEDULED' ? (
-                    <div className="flex gap-1.5 shrink-0">
-                      <button onClick={() => setCompleting(r)}
-                        className="h-9 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-extrabold inline-flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Complete
-                      </button>
-                      <button onClick={() => cancel.mutate(r.id)}
-                        className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RequestFormModal({ onClose, onSaved }: any) {
-  const [form, setForm] = useState({
-    customerName: '', customerPhone: '', productName: '',
-    requestedSizes: '', colorPreference: '', notes: '',
-  });
-
-  const save = useMutation({
-    mutationFn: () => shoeTryOnApi.create({
-      customerName: form.customerName,
-      customerPhone: form.customerPhone,
-      productName: form.productName,
-      requestedSizes: form.requestedSizes.split(',').map((s) => s.trim()).filter(Boolean),
-      colorPreference: form.colorPreference || undefined,
-      notes: form.notes || undefined,
-    }),
-    onSuccess: () => { toast.success('Request created'); onSaved(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">🖐️ New Try-On Request</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 flex items-center justify-center"><X className="h-5 w-5" /></button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *"
-              className="h-11 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="03XX XXXXXXX *"
-              className="h-11 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-          <input value={form.productName} onChange={(e) => setForm({ ...form, productName: e.target.value })} placeholder="Product name / description *"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input value={form.requestedSizes} onChange={(e) => setForm({ ...form, requestedSizes: e.target.value })} placeholder="Sizes: 8, 9, 10"
-              className="h-11 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.colorPreference} onChange={(e) => setForm({ ...form, colorPreference: e.target.value })} placeholder="Colour"
-              className="h-11 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-          <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-        </div>
-        <div className="px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700"
-            onClick={() => save.mutate()} loading={save.isPending}
-            disabled={!form.customerName.trim() || !form.customerPhone.trim() || !form.productName.trim()}>
-            <Save className="h-4 w-4" /> Create Request
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CompleteModal({ request, onClose, onCompleted }: any) {
-  const [purchased, setPurchased] = useState(true);
-  const [purchasedSize, setPurchasedSize] = useState('');
-
-  const complete = useMutation({
-    mutationFn: () => shoeTryOnApi.complete(request.id, { purchased, purchasedSize: purchasedSize || undefined }),
-    onSuccess: () => { toast.success('Request completed'); onCompleted(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-green-700 text-white">
-          <h3 className="font-extrabold text-xl">Complete Try-On</h3>
-          <p className="text-sm font-bold text-white/85 mt-1">{request.productName}</p>
-        </div>
-        <div className="p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-extrabold uppercase mb-2">Did customer purchase?</label>
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setPurchased(true)}
-                className={`h-14 rounded-2xl border-2 font-extrabold ${purchased ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-200'}`}>
-                ✓ Yes, purchased
-              </button>
-              <button onClick={() => setPurchased(false)}
-                className={`h-14 rounded-2xl border-2 font-extrabold ${!purchased ? 'border-rose-500 bg-rose-500 text-white' : 'border-slate-200'}`}>
-                ✗ No, didn't buy
-              </button>
-            </div>
-          </div>
-          {purchased && (
-            <div>
-              <label className="block text-xs font-extrabold uppercase mb-1.5">Which size was purchased?</label>
-              <input value={purchasedSize} onChange={(e) => setPurchasedSize(e.target.value)} placeholder="e.g. 9"
-                className="h-11 w-full rounded-xl border-2 border-emerald-300 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            </div>
-          )}
-        </div>
-        <div className="px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => complete.mutate()} loading={complete.isPending}>
-            <CheckCircle2 className="h-4 w-4" /> Complete
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    amber: 'from-amber-500 to-orange-600', blue: 'from-blue-500 to-cyan-700',
-    emerald: 'from-emerald-500 to-teal-700', violet: 'from-violet-500 to-purple-700',
-  };
-  const C: any = onClick ? 'button' : 'div';
-  return (
-    <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-emerald-300 hover:shadow-md transition' : ''}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </C>
+    </PageShell>
   );
 }

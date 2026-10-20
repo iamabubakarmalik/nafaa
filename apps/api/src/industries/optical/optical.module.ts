@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { OpticalBillingModule } from './billing/optical-billing.module';
 import { OpticalDashboardModule } from './dashboard/optical-dashboard.module';
 import { EyeTestsModule } from './eye-tests/eye-tests.module';
 import { LensOrdersModule } from './lens-orders/lens-orders.module';
@@ -14,6 +15,7 @@ import { OpticalProductsModule } from './products/products.module';
     OptometristsModule,
     LensOrdersModule,
     OpticalDashboardModule,
+    OpticalBillingModule,
   ],
   exports: [
     OpticalProductsModule,

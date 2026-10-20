@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { addVariantOpeningStock, OpeningStockDto, splitLegacyVariantStock } from '../common/opening-stock.helper';
@@ -19,9 +19,38 @@ export function ageGroupsForYears(years: number): string[] {
   return groups;
 }
 
+/** The gift wrapping charge is a service line: billed at the counter, never counted as stock. */
+const GIFT_WRAP_SKU = 'TOY-GIFT-WRAP';
+
 @Injectable()
 export class ToyProductsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /** The shop's gift wrapping service, or null before it is set up. */
+  giftWrap(user: AuthenticatedUser) {
+    return this.prisma.product.findFirst({
+      where: { tenantId: user.tenantId, sku: GIFT_WRAP_SKU },
+      select: { id: true, name: true, price: true, isActive: true },
+    });
+  }
+
+  /**
+   * Sets the gift wrapping charge. The first call creates a service product
+   * (unit "service", no stock) that the toy counter shows as a one-tap line;
+   * a charge of 0 switches it off.
+   */
+  async setGiftWrap(user: AuthenticatedUser, body: { price?: number; name?: string }) {
+    const price = Math.round(Number(body?.price) * 100) / 100;
+    if (!(price >= 0) || price > 100_000) throw new BadRequestException('Gift wrap ka charge sahi likhein');
+    const name = String(body?.name ?? '').trim() || 'Gift wrapping';
+    const found = await this.prisma.product.findFirst({ where: { tenantId: user.tenantId, sku: GIFT_WRAP_SKU }, select: { id: true } });
+    const data = { name, price, costPrice: 0, unit: 'service', productType: 'SERVICE', isActive: price > 0 };
+    if (found) return this.prisma.product.update({ where: { id: found.id }, data, select: { id: true, name: true, price: true, isActive: true } });
+    return this.prisma.product.create({
+      data: { ...data, tenantId: user.tenantId, sku: GIFT_WRAP_SKU, stock: 0, lowStockAlert: 0 },
+      select: { id: true, name: true, price: true, isActive: true },
+    });
+  }
 
   openingStock(user: AuthenticatedUser, productId: string, dto: OpeningStockDto, activeShopId?: string | null) {
     return this.prisma.$transaction((tx) => addVariantOpeningStock(tx, user, productId, dto.items, activeShopId));
@@ -33,12 +62,25 @@ export class ToyProductsService {
 
   async upsert(user: AuthenticatedUser, dto: UpsertToyProductDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Khilona nahi mila');
 
     const existing = await this.prisma.toyProductProfile.findUnique({ where: { productId: dto.productId } });
     const data: any = { ...dto, tenantId: user.tenantId };
     if (existing) return this.prisma.toyProductProfile.update({ where: { productId: dto.productId }, data });
     return this.prisma.toyProductProfile.create({ data });
+  }
+
+  /** One slim row per toy with the details cards, filters and the counter use. */
+  facts(user: AuthenticatedUser) {
+    return this.prisma.toyProductProfile.findMany({
+      where: { tenantId: user.tenantId },
+      select: {
+        productId: true, categoryType: true, ageGroup: true, ageGroups: true, ageMinYears: true, ageMaxYears: true, genderTarget: true,
+        brand: true, characterFranchise: true, isEducational: true, requiresBatteries: true, batteriesIncluded: true, batteryType: true,
+        batteryQuantity: true, isRemoteControlled: true, chokingHazard: true, smallPartsWarning: true, safetyCertifications: true,
+        isEidGift: true, isBirthdayGift: true, giftWrapAvailable: true,
+      },
+    });
   }
 
   async list(user: AuthenticatedUser, params: {
@@ -55,12 +97,11 @@ export class ToyProductsService {
       where: {
         tenantId: user.tenantId,
         ...(params.categoryType && { categoryType: params.categoryType as any }),
-        ...(params.ageGroup && {
-          OR: [{ ageGroup: params.ageGroup as any }, { ageGroups: { has: params.ageGroup as any } }, { ageGroup: 'ALL_AGES' }],
-        }),
-        ...(params.genderTarget && {
-          OR: [{ genderTarget: params.genderTarget as any }, { genderTarget: 'UNISEX' }],
-        }),
+        // Age and gender each need their own OR, so both go under AND.
+        AND: [
+          ...(params.ageGroup ? [{ OR: [{ ageGroup: params.ageGroup as any }, { ageGroups: { has: params.ageGroup as any } }, { ageGroup: 'ALL_AGES' as const }] }] : []),
+          ...(params.genderTarget ? [{ OR: [{ genderTarget: params.genderTarget as any }, { genderTarget: 'UNISEX' as const }] }] : []),
+        ],
         ...(params.brand && { brand: { contains: params.brand, mode: 'insensitive' } }),
         ...(params.franchise && { characterFranchise: { contains: params.franchise, mode: 'insensitive' } }),
         ...(params.educational !== undefined && { isEducational: params.educational }),
@@ -90,6 +131,7 @@ export class ToyProductsService {
     const productIds = profiles.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
       where: {
+        tenantId: user.tenantId,
         id: { in: productIds },
         ...(params.search && {
           OR: [
@@ -169,13 +211,20 @@ export class ToyProductsService {
     });
 
     const productIds = risky.map((p) => p.productId);
-    const products = await this.prisma.product.findMany({ where: { id: { in: productIds } } });
+    const products = await this.prisma.product.findMany({
+      where: { tenantId: user.tenantId, id: { in: productIds }, isActive: true },
+      select: { id: true, name: true, sku: true, price: true, stock: true },
+    });
     const map = new Map(products.map((p) => [p.id, p]));
+    const UNDER_THREE = ['NEWBORN_0_6M', 'INFANT_6_12M', 'TODDLER_1_2Y', 'TODDLER_2_3Y'];
 
-    return risky.map((p) => ({
+    // Switched-off toys are left out; a small-parts toy marked for under three comes first.
+    return risky.filter((p) => map.has(p.productId)).map((p) => ({
       ...p,
       product: map.get(p.productId),
       riskFlags: [
+        (p.chokingHazard || p.smallPartsWarning) && ((p.ageMinYears ?? 99) < 3 || [p.ageGroup, ...p.ageGroups].some((g) => UNDER_THREE.includes(g)))
+          ? 'UNDER_THREE' : null,
         p.chokingHazard ? 'CHOKING_HAZARD' : null,
         p.smallPartsWarning ? 'SMALL_PARTS' : null,
         !p.isNonToxic ? 'NOT_CERTIFIED_NON_TOXIC' : null,
@@ -205,13 +254,13 @@ export class ToyProductsService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.toyProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Khilone ki tafseel nahi mili');
     return p;
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.toyProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Khilone ki tafseel nahi mili');
     return this.prisma.toyProductProfile.delete({ where: { id } });
   }
 

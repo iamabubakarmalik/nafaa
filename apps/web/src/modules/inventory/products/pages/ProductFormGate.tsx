@@ -53,6 +53,8 @@ export default function ProductFormGate() {
       return <Navigate to={edit ? `/appliances-products/${id}/edit` : '/appliances-products/new'} replace />;
     case 'electronics':
       return <Navigate to={edit ? `/electronics-products/${id}/edit` : '/electronics-products/new'} replace />;
+    case 'cosmetics':
+      return <Navigate to={edit ? `/cosmetics-products/${id}/edit` : '/cosmetics-products/new'} replace />;
     case 'florist':
       return <Navigate to={edit ? `/florist-products/${id}/edit` : '/florist-products/new'} replace />;
     case 'furniture':

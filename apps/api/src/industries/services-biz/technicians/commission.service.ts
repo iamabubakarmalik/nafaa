@@ -3,8 +3,8 @@
  *
  * A job earns its technician's terms on the work part of the bill (visit,
  * labour, emergency; not parts, travel or tax), after its share of the
- * discount and less what was refunded on the bill. Voided bills earn
- * nothing. A payout is one PAID expense through the shared expenses service
+ * discount and less the work lines returned on the bill (a returned part
+ * does not cut commission). Voided bills earn nothing. A payout is one PAID expense through the shared expenses service
  * (cash from the drawer by default), so the drawer, day book and profit see
  * it; each paid job gets a COMMISSION_PAID entry in its time log carrying the
  * expense number, which is also the slip number.
@@ -17,7 +17,7 @@ import { ShopScope } from '../../../common/shop-scope';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
-import { dayRange, jobBillPrefix, jobNumberOfBill, r2, workCharge } from '../jobs/job-rules';
+import { billItemRoles, dayRange, jobBillPrefix, jobNumberOfBill, r2, workCharge } from '../jobs/job-rules';
 import { CommissionQuery, PayCommissionDto } from './dto/technician.dto';
 
 const PAID = 'COMMISSION_PAID';
@@ -40,6 +40,8 @@ export interface CommissionLine {
   bill: number;
   work: number;
   refunded: number;
+  /** Work value returned on the bill, after the bill discount. */
+  workReturned: number;
   commission: number;
   paidRef: string | null;
 }
@@ -57,7 +59,11 @@ export class CommissionService {
     const range = dayRange(from, to);
     const sales = await this.prisma.sale.findMany({
       where: { tenantId, saleNumber: { startsWith: 'SVC-JOB-' }, status: { not: 'VOIDED' }, createdAt: range },
-      select: { id: true, saleNumber: true, subtotal: true, total: true, createdAt: true, returns: { select: { refundAmount: true } } },
+      select: {
+        id: true, saleNumber: true, subtotal: true, total: true, createdAt: true,
+        returns: { select: { refundAmount: true } },
+        items: { where: { returnedQty: { gt: 0 } }, select: { id: true, note: true, price: true, returnedQty: true } },
+      },
     });
     const byJob = new Map(sales.map((s) => [jobNumberOfBill(s.saleNumber), s]));
     const numbers = [...byJob.keys()].filter((x): x is string => !!x);
@@ -67,6 +73,7 @@ export class CommissionService {
       select: {
         id: true, jobNumber: true, customerName: true, serviceName: true, primaryTechnicianId: true,
         visitCharge: true, labourCharge: true, emergencyCharge: true,
+        parts: { select: { id: true, partName: true, isUnderWarranty: true, isCustomerSupplied: true } },
       },
     });
     const staffIds = [...new Set(jobs.map((j) => j.primaryTechnicianId!))];
@@ -80,17 +87,23 @@ export class CommissionService {
       const sale = byJob.get(j.jobNumber)!;
       const total = Number(sale.total) || 0;
       const refunded = r2(sale.returns.reduce((s, r) => s + (Number(r.refundAmount) || 0), 0));
-      const kept = total > 0 ? Math.max(0, 1 - refunded / total) : 0;
+      // Only returned work lines cut commission; returned parts, travel and tax do not.
+      const roles = billItemRoles(j.parts, sale.items);
+      const workBack = sale.items.reduce((s, it) => (roles.get(it.id)?.kind === 'work' ? s + (Number(it.returnedQty) || 0) * (Number(it.price) || 0) : s), 0);
+      const gross = workCharge(j);
+      const left = Math.max(gross - workBack, 0);
       // The work's share of the bill discount, from the bill itself.
       const subtotal = Number(sale.subtotal) || 0;
-      const work = r2(workCharge(j) * (subtotal > 0 ? total / subtotal : 0) * kept);
+      const factor = subtotal > 0 ? total / subtotal : 0;
+      const work = r2(left * factor);
+      const kept = gross > 0 ? left > 0.005 : total > 0 && refunded < total - 0.005;
       const t = termsOf.get(j.primaryTechnicianId!);
       const type = (t?.commissionType ?? 'PERCENTAGE').toUpperCase();
       const pct = ['PERCENTAGE', 'BOTH'].includes(type) ? work * (t?.commissionPct ?? 0) / 100 : 0;
-      const fixed = ['FIXED', 'BOTH'].includes(type) && kept > 0 ? t?.fixedPerJob ?? 0 : 0;
+      const fixed = ['FIXED', 'BOTH'].includes(type) && kept ? t?.fixedPerJob ?? 0 : 0;
       return {
         jobId: j.id, jobNumber: j.jobNumber, saleNumber: sale.saleNumber, billedAt: sale.createdAt, customerName: j.customerName, serviceName: j.serviceName,
-        technicianId: j.primaryTechnicianId!, bill: total, work, refunded, commission: r2(pct + fixed), paidRef: paidOf.get(j.id) ?? null,
+        technicianId: j.primaryTechnicianId!, bill: total, work, refunded, workReturned: r2(Math.min(workBack, gross) * factor), commission: r2(pct + fixed), paidRef: paidOf.get(j.id) ?? null,
       };
     }).sort((a, b) => a.billedAt.getTime() - b.billedAt.getTime());
   }

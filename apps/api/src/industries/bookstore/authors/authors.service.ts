@@ -44,25 +44,25 @@ export class AuthorsService {
         },
       },
     });
-    if (!a) throw new NotFoundException('Author not found');
+    if (!a) throw new NotFoundException('Author nahi mila');
     return a;
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertAuthorDto) {
     const a = await this.prisma.author.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Author not found');
+    if (!a) throw new NotFoundException('Author nahi mila');
     return this.prisma.author.update({ where: { id }, data: dto });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const a = await this.prisma.author.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Author not found');
+    if (!a) throw new NotFoundException('Author nahi mila');
     return this.prisma.author.update({ where: { id }, data: { isActive: false } });
   }
 
   async toggleFeatured(user: AuthenticatedUser, id: string) {
     const a = await this.prisma.author.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!a) throw new NotFoundException('Author not found');
+    if (!a) throw new NotFoundException('Author nahi mila');
     return this.prisma.author.update({ where: { id }, data: { isFeatured: !a.isFeatured } });
   }
 }

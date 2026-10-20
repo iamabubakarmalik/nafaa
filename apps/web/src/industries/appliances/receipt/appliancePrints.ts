@@ -27,7 +27,7 @@ interface SaleLike {
 
 const saleDate = (s: SaleLike) => new Date(s.soldAt ?? s.createdAt ?? Date.now());
 
-/** One card per serial on the bill: model, serial, bill date and each warranty end date. */
+/** One card per serial on the bill: model, serial, bill date, company warranty ends and the shop's own warranty. */
 export async function printWarrantyCards(sale: SaleLike, setup: ReceiptSetup) {
   let units: Awaited<ReturnType<typeof applianceSerialApi.forSale>> = [];
   try { units = await applianceSerialApi.forSale(sale.id); } catch { toast.error('Serial load nahi hue — internet check karein'); return; }
@@ -47,9 +47,10 @@ export async function printWarrantyCards(sale: SaleLike, setup: ReceiptSetup) {
         ...row('Model', u.modelNumber),
         { label: 'Serial', value: u.serialNumber, bold: true },
         ...row('Warranty shuru', u.warrantyStartDate ? dayOnly(u.warrantyStartDate) : dayOnly(saleDate(sale).toISOString())),
-        ...row('Warranty khatam', u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : null, true),
-        ...row('Compressor', u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : null),
-        ...row('Motor', u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : null),
+        ...row('Company warranty tak', u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : null, true),
+        ...row('Compressor tak', u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : null),
+        ...row('Motor tak', u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : null),
+        ...row('Dukaan warranty tak', u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : null, true),
       ],
       lines: [],
       subtotal: 0, discount: 0, total: 0, paid: 0, paymentLabel: '',
@@ -144,5 +145,48 @@ export function printRepairJob(r: ServiceRequest, shopName: string) {
     paymentLabel: paid > 0 ? 'Mila' : 'Abhi kuch nahi mila',
     footerNote: total > paid && !r.coveredUnderAmc && !r.coveredUnderWarranty ? `Baqi ${formatPKR(total - paid)}.` : undefined,
     signLabels: ['Customer', 'Technician'],
+  }, { paper: printPaper(setup), setup, copies: 1 });
+}
+
+/** What the qist agreement needs from a plan (the shared /emi-plans detail). */
+export interface QistPlanLike {
+  planNumber: string; createdAt: string; startDate: string;
+  customerName: string; customerPhone?: string | null;
+  customer?: { address?: string | null; cnic?: string | null } | null;
+  sale?: { saleNumber: string } | null;
+  totalAmount: number; downPayment: number; financedAmount: number; installmentCount: number; installmentAmount: number;
+  installments: Array<{ installmentNumber: number; dueDate: string; amount: number }>;
+  guarantorName?: string | null; guarantorPhone?: string | null; guarantorCnic?: string | null; guarantorAddress?: string | null;
+}
+
+/** Qist agreement (iqrarnama): the schedule, the customer and the guarantor, with signature lines. */
+export function printQistAgreement(p: QistPlanLike, shopName: string) {
+  const setup = getReceiptSetup(shopName);
+  const financed = Number(p.financedAmount) || 0;
+  printReceipt({
+    saleNumber: p.planNumber,
+    date: new Date(p.createdAt),
+    stamp: 'QIST IQRARNAMA',
+    customerName: p.customerName,
+    customerPhone: p.customerPhone ?? undefined,
+    customerAddress: p.customer?.address ?? undefined,
+    partyLabel: 'Customer',
+    infoRows: [
+      ...row('Bill', p.sale?.saleNumber),
+      ...row('Customer CNIC', p.customer?.cnic),
+      { label: 'Kul qeemat', value: formatPKR(p.totalAmount) },
+      { label: 'Advance', value: formatPKR(p.downPayment) },
+      { label: 'Qiston me', value: `${p.installmentCount} × ${formatPKR(p.installmentAmount)}`, bold: true },
+      ...row('Pehli qist', dayOnly(p.startDate)),
+    ],
+    lines: p.installments.map((i) => ({ name: `Qist ${i.installmentNumber} — ${dayOnly(i.dueDate)}`, qty: 1, unit: '', price: Number(i.amount), total: Number(i.amount) })),
+    subtotal: financed, discount: 0, total: financed, paid: 0,
+    paymentLabel: 'Qiston me',
+    boxes: p.guarantorName ? [{
+      title: 'Zamin (guarantor)',
+      lines: [p.guarantorName, p.guarantorPhone ? `Phone: ${p.guarantorPhone}` : '', p.guarantorCnic ? `CNIC: ${p.guarantorCnic}` : '', p.guarantorAddress ?? ''].filter(Boolean),
+    }] : undefined,
+    footerNote: 'Har qist waqt par jama karwayein. Qist na dene par zamin zimmedar hoga. Saman poori qeemat ada hone tak dukaan ki amanat hai.',
+    signLabels: ['Customer', 'Zamin'],
   }, { paper: printPaper(setup), setup, copies: 1 });
 }

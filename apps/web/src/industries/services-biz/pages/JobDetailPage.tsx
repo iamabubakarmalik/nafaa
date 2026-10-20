@@ -133,6 +133,7 @@ export default function JobDetailPage() {
             : onSite && j.status === 'EN_ROUTE' ? { label: 'Pohanch gaya', icon: MapPin, run: () => status.mutate('ARRIVED') }
               : { label: 'Kaam shuru', icon: PlayCircle, run: () => status.mutate('IN_PROGRESS') };
   const charges: Array<[string, number]> = ([['Visit charge', j.visitCharge], ['Kaam (labour)', j.labourCharge], ['Transport', j.transportCharge], ['Emergency charge', j.emergencyCharge], ['Tax', j.taxAmount]] as Array<[string, number]>).filter(([, v]) => v > 0);
+  const returnedParts = j.parts.reduce((s, p) => s + (p.returnedAmount ?? 0), 0);
   const warrantyLeft = j.jobWarrantyExpiryDate ? Math.ceil((new Date(j.jobWarrantyExpiryDate).getTime() - Date.now()) / 86_400_000) : null;
 
   return (
@@ -245,9 +246,9 @@ export default function JobDetailPage() {
                         <span className="font-medium text-slate-900">{p.partName}</span>
                         <Sub>{[p.isCustomerSupplied ? 'Customer ka apna' : p.productId ? (j.status === 'COMPLETED' ? 'Stock se laga' : 'Bill par stock se niklega') : 'Bahar se liya', p.isUnderWarranty ? 'Warranty me muft' : null, p.serialNumber ? `SN ${p.serialNumber}` : null].filter(Boolean).join(' · ')}</Sub>
                       </Td>
-                      <Td align="right">{Number(p.quantity)}</Td>
+                      <Td align="right">{Number(p.quantity)}{(p.returnedQty ?? 0) > 0 && <span className="block text-[0.6875rem] font-semibold text-rose-600">{Number(p.returnedQty)} wapas</span>}</Td>
                       <Td align="right">{formatPKR(p.isUnderWarranty ? 0 : p.unitPrice)}</Td>
-                      <Td align="right" className="font-semibold text-slate-900">{formatPKR(p.isUnderWarranty ? 0 : p.total)}</Td>
+                      <Td align="right" className="font-semibold text-slate-900">{formatPKR(p.isUnderWarranty ? 0 : p.total)}{(p.returnedAmount ?? 0) > 0 && <span className="block text-[0.6875rem] text-rose-600">−{formatPKR(p.returnedAmount!)}</span>}</Td>
                       {edit && <Td align="right"><button type="button" onClick={() => delPart.mutate(p.id)} disabled={delPart.isPending} aria-label={`${p.partName} hatayein`} title="Hatayein" className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-40"><Trash2 className="h-4 w-4" /></button></Td>}
                     </Tr>
                   ))}
@@ -305,6 +306,7 @@ export default function JobDetailPage() {
               <Line label="Bill" value={j.totalCharge} />
               <Line label="Mila" value={j.paidAmount} />
               {j.returned > 0 && <Line label="Return hua" value={-j.returned} />}
+              {j.returned > 0 && returnedParts > 0 && <p className="text-[0.75rem] text-slate-500">Is me parts {formatPKR(returnedParts)} — technician ki commission sirf kaam ke return par kam hoti hai</p>}
               <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold text-slate-900"><dt>Baqi</dt><dd className={cn('tabular-nums', j.due > 0 && 'text-amber-700')}>{formatPKR(j.due)}</dd></div>
             </dl>
             {j.advanceOnKhata > 0 && j.status !== 'COMPLETED' && (

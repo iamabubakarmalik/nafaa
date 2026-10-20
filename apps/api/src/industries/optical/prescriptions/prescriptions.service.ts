@@ -1,49 +1,43 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { addMonths, differenceInDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { UpsertPrescriptionDto } from './dto/upsert-prescription.dto';
+import { addDaysTz, startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
+import { ensureCustomer } from '../../_shared/industry-sale.helper';
+import { checkEyePower, nextNumber, pageArgs, type PageArgs } from '../common/optical-common';
+import { UpdatePrescriptionDto, UpsertPrescriptionDto } from './dto/upsert-prescription.dto';
 
-const AXIS_MIN = 0;
-const AXIS_MAX = 180;
+export type RxView = 'active' | 'expiring' | 'expired' | 'inactive' | 'all';
 
 @Injectable()
 export class PrescriptionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private validate(dto: UpsertPrescriptionDto) {
-    const errors: string[] = [];
-    const checkAxis = (axis: number | undefined, side: string) => {
-      if (axis == null) return;
-      if (axis < AXIS_MIN || axis > AXIS_MAX) errors.push(`${side} axis must be between 0 and 180`);
-    };
-    checkAxis(dto.rightAxis, 'Right');
-    checkAxis(dto.leftAxis, 'Left');
+  private validate(dto: Partial<UpsertPrescriptionDto>) {
+    checkEyePower(dto);
+    const date = dto.prescriptionDate ? new Date(dto.prescriptionDate) : null;
+    const expiry = dto.expiryDate ? new Date(dto.expiryDate) : null;
+    if (date && Number.isNaN(date.getTime())) throw new BadRequestException('Prescription ki date sahi nahi');
+    if (expiry && Number.isNaN(expiry.getTime())) throw new BadRequestException('Muddat ki date sahi nahi');
+    if (date && expiry && expiry <= date) throw new BadRequestException('Muddat prescription ki date ke baad honi chahiye');
+  }
 
-    // If CYL entered, AXIS is mandatory (optical rule)
-    if (dto.rightCyl != null && dto.rightCyl !== 0 && dto.rightAxis == null) {
-      errors.push('Right axis is required when right CYL is entered');
-    }
-    if (dto.leftCyl != null && dto.leftCyl !== 0 && dto.leftAxis == null) {
-      errors.push('Left axis is required when left CYL is entered');
-    }
-
-    const checkSph = (v: number | undefined, side: string) => {
-      if (v == null) return;
-      if (v < -30 || v > 30) errors.push(`${side} SPH out of realistic range (-30 to +30)`);
-    };
-    checkSph(dto.rightSph, 'Right');
-    checkSph(dto.leftSph, 'Left');
-
-    if (errors.length) throw new BadRequestException(errors.join('; '));
+  private numberFor(user: AuthenticatedUser, count: number) {
+    return nextNumber('RX', count, async (n) =>
+      !!(await this.prisma.opticalPrescription.findFirst({ where: { tenantId: user.tenantId, prescriptionNumber: n }, select: { id: true } })));
   }
 
   async create(user: AuthenticatedUser, dto: UpsertPrescriptionDto) {
     this.validate(dto);
+    if (!dto.customerName?.trim()) throw new BadRequestException('Customer ka naam likhein');
 
     const count = await this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const prescriptionNumber = `RX-${year}-${String(count + 1).padStart(5, '0')}`;
+    const prescriptionNumber = await this.numberFor(user, count);
+    // Linked to the customer's record when there is a phone, so their history stays together.
+    const customerId = dto.customerId || dto.customerPhone?.trim()
+      ? await ensureCustomer(this.prisma, user, { customerId: dto.customerId, name: dto.customerName, phone: dto.customerPhone })
+      : undefined;
 
     const prescriptionDate = dto.prescriptionDate ? new Date(dto.prescriptionDate) : new Date();
     const expiryDate = dto.expiryDate ? new Date(dto.expiryDate) : addMonths(prescriptionDate, 12);
@@ -53,6 +47,8 @@ export class PrescriptionsService {
         tenantId: user.tenantId,
         prescriptionNumber,
         ...dto,
+        customerId,
+        customerName: dto.customerName.trim(),
         prescriptionDate,
         expiryDate,
         imageUrls: dto.imageUrls ?? [],
@@ -65,8 +61,8 @@ export class PrescriptionsService {
     customerId?: string; active?: boolean; expiringSoon?: boolean; expired?: boolean;
     prescriptionType?: string; from?: string; to?: string; search?: string;
   }) {
-    const now = new Date();
-    const in60 = new Date(); in60.setDate(in60.getDate() + 60);
+    const now = startOfDayTz();
+    const in60 = addDaysTz(now, 60);
 
     return this.prisma.opticalPrescription.findMany({
       where: {
@@ -98,7 +94,7 @@ export class PrescriptionsService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const rx = await this.prisma.opticalPrescription.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rx) throw new NotFoundException('Prescription not found');
+    if (!rx) throw new NotFoundException('Prescription nahi mila');
 
     const lensOrders = await this.prisma.opticalLensOrder.findMany({
       where: { tenantId: user.tenantId, prescriptionId: id },
@@ -138,10 +134,10 @@ export class PrescriptionsService {
     });
   }
 
-  async update(user: AuthenticatedUser, id: string, dto: UpsertPrescriptionDto) {
+  async update(user: AuthenticatedUser, id: string, dto: UpdatePrescriptionDto) {
     const rx = await this.prisma.opticalPrescription.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rx) throw new NotFoundException('Prescription not found');
-    this.validate(dto);
+    if (!rx) throw new NotFoundException('Prescription nahi mila');
+    this.validate({ ...rx, ...dto } as Partial<UpsertPrescriptionDto>);
 
     return this.prisma.opticalPrescription.update({
       where: { id },
@@ -156,11 +152,12 @@ export class PrescriptionsService {
   /** Create a fresh copy (renewal) from an existing prescription */
   async renew(user: AuthenticatedUser, id: string, overrides?: Partial<UpsertPrescriptionDto>) {
     const rx = await this.prisma.opticalPrescription.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rx) throw new NotFoundException('Prescription not found');
+    if (!rx) throw new NotFoundException('Prescription nahi mila');
 
+    const merged = { ...rx, ...overrides } as Partial<UpsertPrescriptionDto>;
+    this.validate({ ...merged, prescriptionDate: undefined, expiryDate: undefined });
     const count = await this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const prescriptionNumber = `RX-${year}-${String(count + 1).padStart(5, '0')}`;
+    const prescriptionNumber = await this.numberFor(user, count);
     const prescriptionDate = new Date();
 
     await this.prisma.opticalPrescription.update({ where: { id }, data: { isActive: false } });
@@ -196,7 +193,7 @@ export class PrescriptionsService {
         clLeftBaseCurve: rx.clLeftBaseCurve,
         clRightDiameter: rx.clRightDiameter,
         clLeftDiameter: rx.clLeftDiameter,
-        notes: `Renewed from ${rx.prescriptionNumber}`,
+        notes: `${rx.prescriptionNumber} se renew`,
         isActive: true,
       },
     });
@@ -204,22 +201,54 @@ export class PrescriptionsService {
 
   async deactivate(user: AuthenticatedUser, id: string) {
     const rx = await this.prisma.opticalPrescription.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rx) throw new NotFoundException('Prescription not found');
+    if (!rx) throw new NotFoundException('Prescription nahi mila');
     return this.prisma.opticalPrescription.update({ where: { id }, data: { isActive: false } });
   }
 
+  /** Kept for old callers: prescriptions are history, so removing one switches it off. */
   async remove(user: AuthenticatedUser, id: string) {
-    const rx = await this.prisma.opticalPrescription.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!rx) throw new NotFoundException('Prescription not found');
-    const used = await this.prisma.opticalLensOrder.count({ where: { prescriptionId: id } });
-    if (used > 0) throw new BadRequestException('Prescription used in lens orders — deactivate instead');
-    return this.prisma.opticalPrescription.delete({ where: { id } });
+    return this.deactivate(user, id);
+  }
+
+  private viewWhere(view: RxView): Prisma.OpticalPrescriptionWhereInput {
+    const today = startOfDayTz();
+    switch (view) {
+      case 'active': return { isActive: true, OR: [{ expiryDate: null }, { expiryDate: { gte: today } }] };
+      case 'expiring': return { isActive: true, expiryDate: { gte: today, lte: addDaysTz(today, 60) } };
+      case 'expired': return { expiryDate: { lt: today } };
+      case 'inactive': return { isActive: false };
+      default: return {};
+    }
+  }
+
+  async page(user: AuthenticatedUser, q: PageArgs & { view?: string; search?: string; from?: string; to?: string; customerId?: string; type?: string }) {
+    const { page, limit, skip } = pageArgs(q);
+    const term = q.search?.trim();
+    const where: Prisma.OpticalPrescriptionWhereInput = {
+      tenantId: user.tenantId,
+      AND: [
+        this.viewWhere((q.view ?? 'active') as RxView),
+        ...(term ? [{ OR: [
+          { prescriptionNumber: { contains: term, mode: 'insensitive' as const } },
+          { customerName: { contains: term, mode: 'insensitive' as const } },
+          { customerPhone: { contains: term } },
+          { doctorName: { contains: term, mode: 'insensitive' as const } },
+        ] }] : []),
+      ],
+      ...(q.customerId && { customerId: q.customerId }),
+      ...(q.type && { prescriptionType: q.type as Prisma.OpticalPrescriptionWhereInput['prescriptionType'] }),
+      ...(q.from || q.to ? { prescriptionDate: { ...(q.from && { gte: new Date(q.from) }), ...(q.to && { lte: new Date(q.to) }) } } : {}),
+    };
+    const [items, total] = await Promise.all([
+      this.prisma.opticalPrescription.findMany({ where, orderBy: { prescriptionDate: 'desc' }, skip, take: limit }),
+      this.prisma.opticalPrescription.count({ where }),
+    ]);
+    return { items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) };
   }
 
   async expiringSoon(user: AuthenticatedUser, days = 60) {
-    const now = new Date();
-    const future = new Date();
-    future.setDate(future.getDate() + days);
+    const now = startOfDayTz();
+    const future = addDaysTz(now, Math.min(Math.max(Number(days) || 60, 1), 365));
     return this.prisma.opticalPrescription.findMany({
       where: { tenantId: user.tenantId, isActive: true, expiryDate: { gte: now, lte: future } },
       orderBy: { expiryDate: 'asc' },
@@ -227,13 +256,13 @@ export class PrescriptionsService {
   }
 
   async summary(user: AuthenticatedUser) {
-    const now = new Date();
-    const in60 = new Date(); in60.setDate(in60.getDate() + 60);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const now = startOfDayTz();
+    const in60 = addDaysTz(now, 60);
+    const monthStart = startOfMonthTz();
 
     const [total, active, expiringSoon, expired, thisMonth] = await Promise.all([
       this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId } }),
-      this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId, isActive: true } }),
+      this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId, ...this.viewWhere('active') } }),
       this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId, isActive: true, expiryDate: { gte: now, lte: in60 } } }),
       this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId, expiryDate: { lt: now } } }),
       this.prisma.opticalPrescription.count({ where: { tenantId: user.tenantId, prescriptionDate: { gte: monthStart } } }),

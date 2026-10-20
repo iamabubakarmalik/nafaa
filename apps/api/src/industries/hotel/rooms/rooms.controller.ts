@@ -4,6 +4,7 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { requireAny } from '../common/hotel-common';
 import { CreateRoomDto, RoomHousekeepingDto, RoomStatusDto, UpdateRoomDto } from '../common/hotel.dto';
@@ -23,19 +24,19 @@ export class RoomsController {
   constructor(private readonly service: RoomsService) {}
 
   @RequirePermissions(PERMISSIONS.PRODUCTS_CREATE)
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateRoomDto) { return this.service.create(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: Record<string, string | undefined>) {
+  @Post() create(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() dto: CreateRoomDto) { return this.service.create(user, dto, scope); }
+  @Get() list(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Query() q: Record<string, string | undefined>) {
     requireAny(user, READ, 'Rooms dekhne');
-    return this.service.list(user, { status: q.status, roomTypeId: q.roomTypeId, housekeepingStatus: q.housekeepingStatus, floor: q.floor, search: q.search, includeInactive: q.includeInactive === 'true' });
+    return this.service.list(user, { status: q.status, roomTypeId: q.roomTypeId, housekeepingStatus: q.housekeepingStatus, floor: q.floor, search: q.search, includeInactive: q.includeInactive === 'true' }, scope);
   }
-  @Get('board') board(@GetUser() user: AuthenticatedUser) { requireAny(user, READ, 'Rooms dekhne'); return this.service.board(user); }
-  @Get('summary') summary(@GetUser() user: AuthenticatedUser) { requireAny(user, READ, 'Rooms dekhne'); return this.service.summary(user); }
-  @Get('availability') availability(@GetUser() user: AuthenticatedUser, @Query() q: Record<string, string | undefined>) {
+  @Get('board') board(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) { requireAny(user, READ, 'Rooms dekhne'); return this.service.board(user, scope); }
+  @Get('summary') summary(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) { requireAny(user, READ, 'Rooms dekhne'); return this.service.summary(user, scope); }
+  @Get('availability') availability(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Query() q: Record<string, string | undefined>) {
     requireAny(user, READ, 'Rooms dekhne');
     return this.service.checkAvailability(user, {
       checkInDate: q.checkInDate ?? '', checkOutDate: q.checkOutDate ?? '', roomTypeId: q.roomTypeId, exceptBookingId: q.exceptBookingId,
       adults: q.adults ? Number(q.adults) : undefined, children: q.children ? Number(q.children) : undefined,
-    });
+    }, scope);
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { requireAny(user, READ, 'Rooms dekhne'); return this.service.getOne(user, id); }
   @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)

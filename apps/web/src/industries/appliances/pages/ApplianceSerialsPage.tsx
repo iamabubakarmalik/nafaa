@@ -2,9 +2,10 @@
  * Serial register: every AC, fridge and LED by its serial number — units on
  * the shelf, units sold with their customer and warranty, warranties ending
  * soon, units waiting for installation, and each unit's service history.
- * New stock from a dealer is entered here in one go (scan or paste).
+ * New stock from a dealer is entered here in one go (scan or paste). Each
+ * unit sits in a branch; a received stock transfer moves its units.
  *
- * Keys: N add serials · W warranty check · / search · 1 list · 2 analytics · G guide.
+ * Keys: N add serials · B branch · W warranty check · / search · 1 list · 2 analytics · G guide.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -12,13 +13,13 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowRight, BarChart3, Barcode, Boxes, CheckCircle2, ClipboardPaste, Download, Filter, GraduationCap, HardHat, ListChecks, Package, Plus,
-  Search, ShieldAlert, ShieldCheck, Trash2, Wrench,
+  ArrowLeftRight, ArrowRight, BarChart3, Barcode, Boxes, CheckCircle2, ClipboardPaste, Download, Filter, GraduationCap, HardHat, ListChecks, Package, Plus,
+  Search, ShieldAlert, ShieldCheck, Store, Trash2, Wrench,
 } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton, type PrintDoc } from '@core/print';
 import {
-  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Textarea, ViewTabs,
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea, ViewTabs,
   heroButton, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
@@ -66,6 +67,7 @@ export default function ApplianceSerialsPage() {
   const [page, setPage] = useState(1);
   const [adding, setAdding] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [moving, setMoving] = useState<string[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(params.get('id'));
   useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
   useEffect(() => { setPage(1); }, [view, status, query]);
@@ -91,6 +93,7 @@ export default function ApplianceSerialsPage() {
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
       if ((e.key === 'n' || e.key === 'N') && canManage) { e.preventDefault(); setAdding(true); }
       if (e.key === 'w' || e.key === 'W') { e.preventDefault(); setChecking(true); }
+      if ((e.key === 'b' || e.key === 'B') && canManage) { e.preventDefault(); setMoving([]); }
       if (e.key === '1') setTab('list');
       if (e.key === '2') setTab('analytics');
       if (e.key === '/') { e.preventDefault(); setTab('list'); window.setTimeout(() => searchRef.current?.focus(), 0); }
@@ -105,17 +108,17 @@ export default function ApplianceSerialsPage() {
     return {
       title: `Serial register — ${viewLabel(view)}`,
       meta: [['Units', String(all.meta.total)]],
-      sections: [{ kind: 'table', columns: [{ label: 'Serial' }, { label: 'Product' }, { label: 'Halat' }, { label: 'Customer', wideOnly: true }, { label: 'Bill', wideOnly: true }, { label: 'Warranty' }],
-        rows: all.items.map((u) => [u.serialNumber, u.product?.name ?? '—', serialStatusOf(u.status).label, u.customerName ?? '—', u.invoiceNumber ?? '—', u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—']) }],
+      sections: [{ kind: 'table', columns: [{ label: 'Serial' }, { label: 'Product' }, { label: 'Halat' }, { label: 'Branch', wideOnly: true }, { label: 'Customer', wideOnly: true }, { label: 'Bill', wideOnly: true }, { label: 'Warranty' }, { label: 'Dukaan warranty', wideOnly: true }],
+        rows: all.items.map((u) => [u.serialNumber, u.product?.name ?? '—', serialStatusOf(u.status).label, u.shopName ?? '—', u.customerName ?? '—', u.invoiceNumber ?? '—', u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—', u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : '—']) }],
     };
   };
   const exportCsv = async () => {
     const all = await fetchAll();
     downloadCsv('serials.csv', [
-      ['Serial', 'Model', 'Product', 'Halat', 'Kharida', 'Khareed qeemat', 'Supplier', 'Bika', 'Bill', 'Qeemat', 'Customer', 'Phone', 'Warranty', 'Compressor', 'Motor', 'Installation'],
-      ...all.items.map((u) => [u.serialNumber, u.modelNumber ?? '', u.product?.name ?? '', serialStatusOf(u.status).label, u.purchaseDate ? dayOnly(u.purchaseDate) : '', u.purchasePrice ?? '', u.supplierRef ?? '',
+      ['Serial', 'Model', 'Product', 'Halat', 'Branch', 'Kharida', 'Khareed qeemat', 'Supplier', 'Bika', 'Bill', 'Qeemat', 'Customer', 'Phone', 'Warranty', 'Compressor', 'Motor', 'Dukaan warranty', 'Installation'],
+      ...all.items.map((u) => [u.serialNumber, u.modelNumber ?? '', u.product?.name ?? '', serialStatusOf(u.status).label, u.shopName ?? '', u.purchaseDate ? dayOnly(u.purchaseDate) : '', u.purchasePrice ?? '', u.supplierRef ?? '',
         u.soldAt ? dayOnly(u.soldAt) : '', u.invoiceNumber ?? '', u.soldPrice ?? '', u.customerName ?? '', u.customerPhone ?? '', u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '',
-        u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '', u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '', installStatusOf(u.installationStatus).label]),
+        u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '', u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '', u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : '', installStatusOf(u.installationStatus).label]),
     ]);
   };
 
@@ -131,6 +134,7 @@ export default function ApplianceSerialsPage() {
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
           <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
           <button type="button" onClick={() => setChecking(true)} title="Warranty check (W)" className={heroButton}><ShieldCheck className="h-4 w-4" /><span className="hidden sm:inline">Warranty check</span></button>
+          {canManage && <button type="button" onClick={() => setMoving([])} title="Branch badlein (B)" className={heroButton}><ArrowLeftRight className="h-4 w-4" /><span className="hidden sm:inline">Branch</span></button>}
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canManage && <button type="button" onClick={() => setAdding(true)} title="Serial jorein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Serial jorein</button>}
         </>}
@@ -160,7 +164,7 @@ export default function ApplianceSerialsPage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> jorein · </>}<Kbd>W</Kbd> warranty · <Kbd>/</Kbd> search</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> jorein · <Kbd>B</Kbd> branch · </>}<Kbd>W</Kbd> warranty · <Kbd>/</Kbd> search</>}
         tabs={[{ id: 'list', label: 'Units', icon: ListChecks, count: data?.meta.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <Analytics s={s} sales={sales} cost={cost} /> : (<>
@@ -178,17 +182,19 @@ export default function ApplianceSerialsPage() {
 
       {adding && <AddSerialsModal onClose={() => setAdding(false)} />}
       {checking && <WarrantyCheckModal onClose={() => setChecking(false)} onOpen={(id) => { setChecking(false); setOpenId(id); }} />}
-      {openId && <UnitCard id={openId} canManage={canManage} onClose={() => setOpenId(null)} />}
+      {openId && <UnitCard id={openId} canManage={canManage} onClose={() => setOpenId(null)} onMove={(id) => { setOpenId(null); setMoving([id]); }} />}
+      {moving && <MoveSerialsModal preset={moving} onClose={() => setMoving(null)} />}
       {guide.isOpen && (
         <PageGuide title="Serial register — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Package, color: '#2563eb', title: 'Naya maal', text: 'Dealer se maal aaye: pehle Purchase banayein (stock aur dealer ka hisaab), phir "Serial jorein" — product chunein aur sab serial scan ya Excel se paste karein.' },
-            { icon: Barcode, color: '#7c3aed', title: 'Bechna', text: 'POS par AC ya fridge tap karein to stock wale serial dikhte hain — jo unit diya wohi chunein. Warranty bill ki date se shuru hoti hai.' },
-            { icon: ShieldCheck, color: '#16a34a', title: 'Warranty check', text: 'Customer aaye to "Warranty check" (W) me serial likhein — warranty, compressor, motor aur AMC sab ek nazar me.' },
+            { icon: Barcode, color: '#7c3aed', title: 'Bechna', text: 'POS par AC ya fridge tap karein to isi branch ke stock wale serial dikhte hain — jo unit diya wohi chunein. Warranty bill ki date se shuru hoti hai.' },
+            { icon: Store, color: '#0891b2', title: 'Branch', text: 'Har unit kisi branch me hota hai. Maal doosri branch bhejna ho to pehle Stock transfer receive karein, phir "Branch" (B) me wo transfer chun kar serial scan karein.' },
+            { icon: ShieldCheck, color: '#16a34a', title: 'Warranty check', text: 'Customer aaye to "Warranty check" (W) me serial likhein — company warranty, compressor, motor, dukaan ki warranty aur AMC sab ek nazar me.' },
             { icon: Wrench, color: '#d97706', title: 'Service history', text: 'Unit kholein — us ki installation, har repair aur kharcha. Wapas ya void bill par unit khud stock me aa jata hai.' },
           ]}
           tips={['"Warranty khatam hone wali" list se customers ko AMC bechein.', 'Serial jorne ke liye "Serials manage" permission chahiye.']}
-          shortcuts={[['N', 'serial jorein'], ['W', 'warranty check'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['N', 'serial jorein'], ['B', 'branch badlein'], ['W', 'warranty check'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -206,6 +212,7 @@ function UnitRow({ u, onOpen }: { u: ApplianceSerial; onOpen: () => void }) {
             <span className="font-mono font-semibold text-slate-900">{u.serialNumber}</span>
             <Pill meta={serialStatusOf(u.status)} />
             {u.status === 'SOLD' && u.installationRequired && u.installationStatus !== 'COMPLETED' && <Pill meta={installStatusOf(u.installationStatus)} />}
+            {u.shopName && <span className="inline-flex items-center gap-1 rounded-md bg-cyan-50 px-1.5 py-0.5 text-[0.6875rem] text-cyan-800"><Store className="h-3 w-3" />{u.shopName}</span>}
           </span>
           <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{u.product?.name ?? 'Product'}{u.modelNumber ? ` · ${u.modelNumber}` : ''}</span>
           <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">
@@ -247,11 +254,14 @@ function AddSerialsModal({ onClose }: { onClose: () => void }) {
   const [price, setPrice] = useState('');
   const [date, setDate] = useState(todayKey());
   const [supplier, setSupplier] = useState('');
+  const [shopId, setShopId] = useState('');
+  const branchesQ = useQuery({ queryKey: [SERIAL_KEY, 'branches'], queryFn: applianceSerialApi.branches, staleTime: 60_000 });
+  const shops = branchesQ.data?.shops ?? [];
   const list = [...new Set(text.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean))];
   const dupes = text.split(/[\s,;]+/).filter(Boolean).length - list.length;
   const save = useMutation({
     mutationFn: () => applianceSerialApi.bulkCreate({ productId: product!.id, serialNumbers: list, modelNumber: model.trim() || undefined, batchNumber: batch.trim() || undefined,
-      purchasePrice: Number(price) || product!.costPrice || undefined, purchaseDate: date || undefined, supplierRef: supplier.trim() || undefined }),
+      purchasePrice: Number(price) || product!.costPrice || undefined, purchaseDate: date || undefined, supplierRef: supplier.trim() || undefined, shopId: shopId || undefined }),
     onSuccess: (r) => { toast.success(r.message || `${r.created} serial jur gaye`); if (r.skipped) toast.info(`${r.skipped} pehle se the: ${r.skippedSerials.slice(0, 5).join(', ')}`); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
     onError: (e) => toast.error(apiError(e, 'Serial nahi jure')),
   });
@@ -270,6 +280,8 @@ function AddSerialsModal({ onClose }: { onClose: () => void }) {
           <Input label="Kab aaya" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
         <Input label="Dealer / bill number" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Haier distributor · INV-221" />
+        {shops.length > 1 && <Select label="Branch" value={shopId} onChange={(e) => setShopId(e.target.value)} placeholder="Jo branch abhi khuli hai"
+          options={shops.map((x) => ({ value: x.id, label: x.name }))} hint="Jis branch me ye dabbe rakhe hain — POS sirf apni branch ke serial dikhata hai" />}
       </div>
     </Modal>
   );
@@ -286,7 +298,7 @@ function WarrantyCheckModal({ onClose, onOpen }: { onClose: () => void; onOpen: 
   );
 }
 
-function UnitCard({ id, canManage, onClose }: { id: string; canManage: boolean; onClose: () => void }) {
+function UnitCard({ id, canManage, onClose, onMove }: { id: string; canManage: boolean; onClose: () => void; onMove: (id: string) => void }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: [SERIAL_KEY, 'one', id], queryFn: () => applianceSerialApi.getOne(id) });
   const remove = useMutation({
@@ -304,20 +316,23 @@ function UnitCard({ id, canManage, onClose }: { id: string; canManage: boolean; 
           ? <><span className="text-[0.8125rem] text-rose-700">Galti se likha tha? Register se hatayein — record mehfooz rehta hai.</span><Button variant="danger" size="sm" loading={remove.isPending} onClick={() => remove.mutate()}>Haan, hatayein</Button></>
           : <Button variant="ghost" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => setConfirm(true)}>Register se hatayein</Button>)}
         <span className="flex-1" />
+        {canManage && u.status === 'IN_STOCK' && !confirm && <Button variant="secondary" leftIcon={<ArrowLeftRight className="h-4 w-4" />} onClick={() => onMove(u.id)}>Branch</Button>}
         {u.status === 'SOLD' && <Link to={`/appliances/service-requests?new=1`} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"><Wrench className="h-4 w-4" />Shikayat darj</Link>}
         {u.saleId && <Link to={`/sales/${u.saleId}`} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-sm font-medium text-white hover:bg-brand-700">Bill {u.invoiceNumber}</Link>}
       </>}>
       {!u ? <Skeleton className="h-52 rounded-2xl" /> : (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2"><Pill meta={serialStatusOf(u.status)} />{u.installationRequired && <Pill meta={installStatusOf(u.installationStatus)} />}</div>
-          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Box label="Warranty" value={u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—'} tone={w?.mainDaysLeft != null && w.mainDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />
+          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <Box label="Company warranty" value={u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—'} tone={w?.mainDaysLeft != null && w.mainDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />
+            {(u.shopWarrantyEndDate || u.product?.shopWarrantyMonths) && <Box label="Dukaan warranty" value={u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : `${u.product?.shopWarrantyMonths} mahine`} tone={w?.shopDaysLeft != null && w.shopDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />}
             <Box label="Compressor" value={u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '—'} />
             <Box label="Motor" value={u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '—'} />
             <Box label="Service kharcha" value={formatPKR(u.serviceCost || 0)} />
           </dl>
           <dl className="grid gap-x-6 gap-y-2 text-[0.875rem] sm:grid-cols-2">
             <Row k="Aaya" v={`${dayOnly(u.purchaseDate ?? u.createdAt)}${u.supplierRef ? ` · ${u.supplierRef}` : ''}`} />
+            <Row k="Branch" v={u.shopName ?? 'Abhi kisi branch me nahi'} />
             {u.status === 'SOLD' && <Row k="Customer" v={[u.customerName, u.customerPhone].filter(Boolean).join(' · ')} />}
             {u.status === 'SOLD' && <Row k="Bika" v={`${dayOnly(u.soldAt)} · bill ${u.invoiceNumber ?? '—'}`} />}
             {u.deliveryAddress && <Row k="Pata" v={u.deliveryAddress} />}
@@ -333,6 +348,65 @@ function UnitCard({ id, canManage, onClose }: { id: string; canManage: boolean; 
           </Panel>
           {u.notes && <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 font-sans text-[0.8125rem] text-slate-600">{u.notes}</pre>}
         </div>
+      )}
+    </Modal>
+  );
+}
+
+/**
+ * Puts in-stock units in a branch: with a received stock transfer (units move
+ * from its source branch to its destination), or a first placement for units
+ * entered before branches were tracked.
+ */
+function MoveSerialsModal({ preset, onClose }: { preset: string[]; onClose: () => void }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: [SERIAL_KEY, 'branches'], queryFn: applianceSerialApi.branches, staleTime: 60_000 });
+  const [mode, setMode] = useState<'transfer' | 'place'>('transfer');
+  const [transferId, setTransferId] = useState('');
+  const [toShopId, setToShopId] = useState('');
+  const [text, setText] = useState('');
+  const [tried, setTried] = useState(false);
+  const numbers = [...new Set(text.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean))];
+  const transfers = q.data?.transfers ?? [];
+  const shops = q.data?.shops ?? [];
+  const t = transfers.find((x) => x.id === transferId);
+  const errors = {
+    target: mode === 'transfer' ? (!transferId ? 'Transfer chunein' : undefined) : (!toShopId ? 'Branch chunein' : undefined),
+    serials: !preset.length && !numbers.length ? 'Serial scan ya paste karein' : undefined,
+  };
+  const save = useMutation({
+    mutationFn: () => applianceSerialApi.move({
+      ...(preset.length ? { serialIds: preset } : { serialNumbers: numbers }),
+      ...(mode === 'transfer' ? { transferId } : { toShopId }),
+    }),
+    onSuccess: (r) => { toast.success(r.message || `${r.moved} unit badal gaye`); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, 'Branch nahi badli')),
+  });
+  const submit = () => { setTried(true); if (!errors.target && !errors.serials) save.mutate(); };
+  return (
+    <Modal open onClose={onClose} size="lg" title="Serial ki branch" description="Stock transfer se aaye units us branch me likhein — POS sirf apni branch ke serial bechta hai"
+      footer={<><span className="mr-auto text-[0.8125rem] text-slate-600">{preset.length ? `${preset.length} unit` : `${numbers.length} serial`}</span>
+        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button loading={save.isPending} onClick={submit} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>Branch badlein</Button></>}>
+      {q.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : (
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+          <div className="flex flex-wrap gap-1.5">
+            <Button size="sm" variant={mode === 'transfer' ? 'primary' : 'secondary'} onClick={() => setMode('transfer')}>Stock transfer se</Button>
+            <Button size="sm" variant={mode === 'place' ? 'primary' : 'secondary'} onClick={() => setMode('place')}>Pehli dafa branch likhein</Button>
+          </div>
+          {mode === 'transfer' ? (<>
+            <Select label="Transfer" required value={transferId} onChange={(e) => setTransferId(e.target.value)} placeholder={transfers.length ? 'Receive hua transfer chunein' : 'Pichle 60 din me koi transfer receive nahi hua'}
+              options={transfers.map((x) => ({ value: x.id, label: `${x.transferNumber} · ${x.fromShop.name} → ${x.toShop.name} · ${dayOnly(x.receivedAt)}` }))}
+              error={tried ? errors.target : undefined} hint="Pehle Inventory → Stock transfer se maal bhejein aur receive karein" />
+            {t && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">{t.items.reduce((n, i) => n + Number(i.receivedQty), 0)} unit receive hue — itne hi serial {t.toShop.name} me ja sakte hain.</p>}
+          </>) : (
+            <Select label="Branch" required value={toShopId} onChange={(e) => setToShopId(e.target.value)} placeholder="Branch chunein"
+              options={shops.map((x) => ({ value: x.id, label: x.name }))} error={tried ? errors.target : undefined}
+              hint="Sirf un units ke liye jo abhi kisi branch me nahi (purane units)" />
+          )}
+          {!preset.length && <Textarea label="Serial numbers" required rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder={'SN12345\nSN12346'} className="font-mono"
+            hint="Har line me ek — scanner har scan ke baad khud nayi line deta hai" error={tried ? errors.serials : undefined} />}
+        </form>
       )}
     </Modal>
   );

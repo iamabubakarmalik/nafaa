@@ -267,6 +267,7 @@ export default function HotelBookingDetailPage() {
             <div className="flex justify-between"><span className="text-slate-500">Advance khate me</span><span className="tabular-nums">{formatPKR(b.money.khataPaid)}</span></div>
             {b.money.refunded > 0 && <div className="flex justify-between"><span className="text-slate-500">Wapas diya</span><span className="tabular-nums">{formatPKR(b.money.refunded)}</span></div>}
             <div className="flex justify-between font-semibold"><span>Baqi</span><span className="tabular-nums">{formatPKR(b.money.due)}</span></div>
+            {b.billTo && b.billTo.id !== b.khata?.id && <Link to={`/customers/${b.billTo.id}`} className="flex items-center gap-1.5 text-brand-700 hover:underline"><BookOpen className="h-4 w-4" />Bill ka khata: {b.billTo.name}</Link>}
             {b.khata && <Link to={`/customers/${b.khata.id}`} className="flex items-center gap-1.5 text-brand-700 hover:underline"><BookOpen className="h-4 w-4" />Khata: {b.khata.name} ({b.khata.balance < 0 ? `${formatPKR(-b.khata.balance)} jama` : `${formatPKR(b.khata.balance)} lena`})</Link>}
             {b.sales.map((s) => (
               <Link key={s.id} to={`/sales/${s.id}/receipt`} className={cn('flex justify-between rounded-lg px-2 py-1.5 ring-1 ring-slate-200 hover:bg-slate-50', s.status === 'VOIDED' && 'opacity-50 line-through')}>

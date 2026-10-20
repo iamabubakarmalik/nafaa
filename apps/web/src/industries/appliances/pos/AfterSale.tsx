@@ -6,6 +6,7 @@
  */
 
 import { useMemo, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CalendarClock, HardHat, ShieldCheck, Truck } from 'lucide-react';
@@ -33,6 +34,7 @@ export function AfterSale({ sale, lines, units, profiles, onClose }: {
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const canJobs = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
   const canQist = usePermission(PERMISSIONS.KHATA_MANAGE);
   const fit = useMemo(() => lines.filter((l) => profiles.get(l.productId)?.requiresInstallation), [lines, profiles]);
@@ -61,6 +63,7 @@ export function AfterSale({ sale, lines, units, profiles, onClose }: {
   const [gName, setGName] = useState('');
   const [gPhone, setGPhone] = useState('');
   const [gCnic, setGCnic] = useState('');
+  const [gAddress, setGAddress] = useState('');
 
   const needParty = doFit || doTrip;
   const problems = [
@@ -69,7 +72,8 @@ export function AfterSale({ sale, lines, units, profiles, onClose }: {
     needParty && address.trim().length < 5 ? 'Poora pata likhein' : '',
     doQist && gName.trim().length < 2 ? 'Zamin ka naam likhein' : '',
     doQist && gPhone && !phoneOk(gPhone) ? 'Zamin ka sahi phone' : '',
-    doQist && !cnicOk(gCnic) ? 'Zamin ka CNIC 13 hindse' : '',
+    doQist && (!gCnic.trim() || !cnicOk(gCnic)) ? 'Zamin ka CNIC 13 hindse' : '',
+    doQist && gPhone && phoneOk(gPhone) && digits(gPhone).slice(-10) === digits(sale.customer?.phone ?? '').slice(-10) ? 'Zamin customer khud nahi ho sakta' : '',
     doQist && start < todayKey() ? 'Pehli qist aaj se pehle nahi' : '',
   ].filter(Boolean);
 
@@ -77,6 +81,7 @@ export function AfterSale({ sale, lines, units, profiles, onClose }: {
     mutationFn: async () => {
       const party = { customerId: sale.customer?.id, customerName: name.trim(), customerPhone: phone.trim() };
       const done: string[] = [];
+      let planId: string | null = null;
       if (doFit) {
         const left = [...units];
         for (const l of fit) {
@@ -102,17 +107,28 @@ export function AfterSale({ sale, lines, units, profiles, onClose }: {
         done.push('delivery');
       }
       if (doQist && sale.customer) {
-        await qistApi.create({
+        const plan = await qistApi.create({
           saleId: sale.id, customerId: sale.customer.id, customerName: sale.customer.name, customerPhone: sale.customer.phone ?? undefined,
           totalAmount: total, downPayment: Math.max(total - credit, 0), installmentCount: count, startDate: start,
-          notes: `Zamin: ${gName.trim()}${gPhone ? ` · ${gPhone.trim()}` : ''}${gCnic ? ` · CNIC ${gCnic.trim()}` : ''}`,
         });
+        try {
+          await qistApi.setGuarantor(plan.id, {
+            guarantorName: gName.trim(), guarantorPhone: gPhone.replace(/[\s-]/g, '') || undefined, guarantorCnic: gCnic.trim(), guarantorAddress: gAddress.trim() || undefined,
+          });
+        } catch (e) {
+          toast.error(apiError(e, `Plan ${plan.planNumber} ban gaya, zamin save nahi hua — Qist plans me plan khol kar zamin likhein`));
+        }
+        planId = plan.id;
         done.push('qist plan');
       }
-      return done;
+      return { done, planId };
     },
-    onSuccess: (done) => {
-      if (done.length) toast.success(`${done.join(', ')} book ho gaya`);
+    onSuccess: ({ done, planId }) => {
+      if (done.length) {
+        toast.success(`${done.join(', ')} book ho gaya`, planId
+          ? { action: { label: 'Iqrarnama', onClick: () => navigate(`/emi-plans/${planId}`) }, duration: 10_000 }
+          : undefined);
+      }
       [INSTALL_KEY, DELIVERY_KEY, 'emi-plans', 'emi-stats'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
@@ -170,9 +186,10 @@ export function AfterSale({ sale, lines, units, profiles, onClose }: {
             <p className="text-[0.8125rem] text-slate-700">{count} qist × <strong>{formatPKR(Math.round((credit / count) * 100) / 100)}</strong> · advance {formatPKR(Math.max(total - credit, 0))}</p>
             <Input label="Pehli qist" type="date" value={start} onChange={(e) => setStart(e.target.value)} hint="Har mahine isi tareekh ko" />
             <div className="grid gap-3 sm:grid-cols-3">
-              <Input label="Zamin (guarantor)" value={gName} onChange={(e) => setGName(e.target.value)} placeholder="Naam" />
-              <Input label="Zamin ka phone" inputMode="tel" value={gPhone} onChange={(e) => setGPhone(e.target.value)} />
-              <Input label="Zamin ka CNIC" value={gCnic} onChange={(e) => setGCnic(e.target.value)} placeholder="35202-1234567-1" />
+              <Input label="Zamin (guarantor)" required value={gName} onChange={(e) => setGName(e.target.value)} placeholder="Naam" />
+              <Input label="Zamin ka phone" inputMode="tel" value={gPhone} onChange={(e) => setGPhone(e.target.value)} placeholder="0300-1234567" />
+              <Input label="Zamin ka CNIC" required value={gCnic} onChange={(e) => setGCnic(e.target.value)} placeholder="35202-1234567-1" />
+              <Input wrapperClassName="sm:col-span-3" label="Zamin ka pata" value={gAddress} onChange={(e) => setGAddress(e.target.value)} placeholder="Ghar ya dukaan ka pata" hint="Iqrarnama par chhapta hai" />
             </div>
           </Section>
         )}

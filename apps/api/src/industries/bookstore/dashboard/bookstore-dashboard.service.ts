@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { dayStart } from '../bookstore-common';
 
 @Injectable()
 export class BookstoreDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const todayStart = startOfDay(new Date());
-    const monthAgo = subDays(new Date(), 30);
+    // A rental is overdue from the shop day after its due date (same rule as the rentals list).
+    const today = dayStart();
+    const late = { status: { in: ['ACTIVE', 'OVERDUE'] as Array<'ACTIVE' | 'OVERDUE'> }, dueDate: { lt: today } };
 
     const tenantFilter = { tenantId: user.tenantId };
 
-    // ✅ Parallel queries (fast)
+    // Parallel queries (fast)
     const [
       totalPublishers,
       totalAuthors,
@@ -35,31 +36,21 @@ export class BookstoreDashboardService {
       this.prisma.artSupplyProfile.count({ where: tenantFilter }),
       this.prisma.school.count({ where: { ...tenantFilter, isActive: true } }),
       this.prisma.schoolBookList.count({ where: { ...tenantFilter, status: 'ACTIVE' } }),
-      this.prisma.bookRental.count({ where: { ...tenantFilter, status: 'ACTIVE' } }),
-      this.prisma.bookRental.count({
-        where: {
-          ...tenantFilter,
-          status: 'ACTIVE',
-          dueDate: { lt: new Date() },
-        },
-      }),
+      this.prisma.bookRental.count({ where: { ...tenantFilter, status: { in: ['ACTIVE', 'OVERDUE'] } } }),
+      this.prisma.bookRental.count({ where: { ...tenantFilter, ...late } }),
       this.prisma.bookProfile.count({ where: { ...tenantFilter, isBestSeller: true } }),
       this.prisma.bookProfile.count({ where: { ...tenantFilter, isNewArrival: true } }),
       this.prisma.bookProfile.count({ where: { ...tenantFilter, isFeatured: true } }),
     ]);
 
-    // ✅ Overdue rentals detail
+    // Overdue rentals detail
     const overdueDetail = await this.prisma.bookRental.findMany({
-      where: {
-        ...tenantFilter,
-        status: 'ACTIVE',
-        dueDate: { lt: new Date() },
-      },
+      where: { ...tenantFilter, ...late },
       orderBy: { dueDate: 'asc' },
       take: 10,
     });
 
-    // ✅ Books by category
+    // Books by category
     const booksByCategory = await this.prisma.bookProfile.groupBy({
       by: ['category'],
       where: tenantFilter,
@@ -69,7 +60,7 @@ export class BookstoreDashboardService {
       },
     });
 
-    // ✅ Books by publisher (FIXED)
+    // Books by publisher (FIXED)
     const booksByPublisherRaw = await this.prisma.bookProfile.groupBy({
       by: ['publisherId'],
       where: {
@@ -90,7 +81,7 @@ export class BookstoreDashboardService {
     const pubIds = booksByPublisherRaw.map(p => p.publisherId!) as string[];
 
     const publishers = await this.prisma.publisher.findMany({
-      where: { id: { in: pubIds } },
+      where: { tenantId: user.tenantId, id: { in: pubIds } },
     });
 
     const pubMap = new Map(publishers.map(p => [p.id, p]));
@@ -100,7 +91,7 @@ export class BookstoreDashboardService {
       count: p._count.publisherId,
     }));
 
-    // ✅ Textbooks by grade
+    // Textbooks by grade
     const textbooksByGrade = await this.prisma.bookProfile.groupBy({
       by: ['grade'],
       where: {
@@ -114,7 +105,7 @@ export class BookstoreDashboardService {
       },
     });
 
-    // ✅ Final response
+    // Final response
     return {
       totals: {
         publishers: totalPublishers,

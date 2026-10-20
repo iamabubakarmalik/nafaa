@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
 import { PERMISSIONS } from '../../../common/constants/permissions.constants';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { requireAny } from '../common/hotel-common';
 import { RoomTypesService } from './room-types.service';
 import { CreateRoomTypeDto, UpdateRoomTypeDto } from './dto/upsert-room-type.dto';
@@ -20,7 +21,7 @@ export class RoomTypesController {
   constructor(private readonly service: RoomTypesService) {}
 
   @RequirePermissions(PERMISSIONS.PRODUCTS_CREATE)
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateRoomTypeDto) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() dto: CreateRoomTypeDto) { return this.service.create(user, dto, scope.shopId); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('type') type?: string, @Query('active') active?: string, @Query('search') search?: string) {
     requireAny(user, READ, 'Room types dekhne');
     return this.service.list(user, { type, search, active: active === 'true' ? true : active === 'false' ? false : undefined });

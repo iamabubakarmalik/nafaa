@@ -7,6 +7,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { postIndustrySale } from '../../_shared/industry-sale.helper';
 import { DAY_MS, GYM_SALE, assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
 import { CreatePtDto, PtRateDto, PtStatusDto, PtWorkoutLogDto } from './dto/pt.dto';
+import { PtPackagesService } from './pt-packages.service';
 
 const P = PERMISSIONS;
 type Db = Prisma.TransactionClient;
@@ -16,7 +17,11 @@ export const ptSaleNumber = (sessionNumber: string) => `${GYM_SALE}${sessionNumb
 
 @Injectable()
 export class PersonalTrainingService {
-  constructor(private readonly prisma: PrismaService, private readonly tz: TenantTimezoneService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tz: TenantTimezoneService,
+    private readonly packages: PtPackagesService,
+  ) {}
 
   /** The member's running membership with PT sessions still unused (counting sessions already booked). */
   private async packageFor(db: Db, tenantId: string, memberId: string, at: Date) {
@@ -25,7 +30,8 @@ export class PersonalTrainingService {
       include: { plan: { select: { name: true, personalTrainingSessions: true } } },
       orderBy: { endDate: 'asc' },
     });
-    const booked = await db.gymPersonalTraining.count({ where: { tenantId, memberId, isFromPackage: true, status: { in: ['SCHEDULED', 'IN_PROGRESS'] } } });
+    // Sessions from a PT package carry its saleId; plan sessions have none.
+    const booked = await db.gymPersonalTraining.count({ where: { tenantId, memberId, isFromPackage: true, saleId: null, status: { in: ['SCHEDULED', 'IN_PROGRESS'] } } });
     let pending = booked;
     for (const m of rows) {
       const left = m.plan.personalTrainingSessions - m.ptSessionsUsed;
@@ -49,14 +55,20 @@ export class PersonalTrainingService {
     if (!(minutes >= 15 && minutes <= 240)) throw new BadRequestException('Session 15 minute se 4 ghante tak ka ho');
     if (start.getTime() < Date.now() - DAY_MS) throw new BadRequestException('Guzra hua waqt book nahi hota');
     const weeks = dto.weeks ?? 1;
-    const price = dto.isFromPackage ? 0 : r2(dto.price ?? trainer.perSessionRate);
+    const fromPackage = !!dto.isFromPackage || !!dto.packageId;
+    const price = fromPackage ? 0 : r2(dto.price ?? trainer.perSessionRate);
     const clock = await gymClock(this.tz, tenantId);
 
     return this.prisma.$transaction(async (tx) => {
-      if (dto.isFromPackage) {
-        const pkg = await this.packageFor(tx, tenantId, member.id, start);
-        if (!pkg) throw new BadRequestException('Is member ke plan me PT sessions baqi nahi — single session book karein ya PT package bechein');
-        if (pkg.left < weeks) throw new BadRequestException(`Plan me sirf ${pkg.left} PT sessions baqi hain`);
+      // A package session uses the membership plan's PT first, then a PT package.
+      let packageSaleId: string | null = null;
+      if (fromPackage) {
+        const plan = dto.packageId ? null : await this.packageFor(tx, tenantId, member.id, start);
+        const ptp = plan ? null : await this.packages.pick(tx, tenantId, member.id, trainer.id, start, dto.packageId);
+        if (!plan && !ptp) throw new BadRequestException('Is member ke paas PT sessions baqi nahi — single session book karein ya PT package bechein');
+        const left = plan?.left ?? ptp!.left;
+        if (left < weeks) throw new BadRequestException(`Sirf ${left} PT sessions baqi hain`);
+        packageSaleId = ptp?.pkg.saleId ?? null;
       }
       const made = [];
       for (let w = 0; w < weeks; w += 1) {
@@ -81,7 +93,8 @@ export class PersonalTrainingService {
             scheduledEnd: e,
             durationMinutes: minutes,
             price,
-            isFromPackage: !!dto.isFromPackage,
+            isFromPackage: fromPackage,
+            saleId: packageSaleId,
             focusArea: opt(dto.focusArea),
             trainerNotes: opt(dto.trainerNotes),
           },
@@ -163,7 +176,12 @@ export class PersonalTrainingService {
       const member = await tx.gymMember.findFirst({ where: { id: pt.memberId, tenantId }, select: { customerId: true, shopId: true } });
       if (!member) throw new NotFoundException('Member nahi mila');
       let base = pt.price;
-      if (pt.isFromPackage) {
+      let saleId = pt.saleId;
+      const perSession = pt.isFromPackage && pt.saleId ? await this.packages.useOne(tx, tenantId, pt.saleId) : null;
+      if (perSession !== null) {
+        // PT package session: the trainer earns on the package's per-session value.
+        base = pt.trainer.perSessionRate > 0 ? pt.trainer.perSessionRate : perSession;
+      } else if (pt.isFromPackage) {
         const rows = await tx.gymMemberMembership.findMany({
           where: { tenantId, memberId: pt.memberId, status: { in: ['ACTIVE', 'FROZEN'] }, endDate: { gte: pt.scheduledStart }, plan: { includesPersonalTraining: true } },
           include: { plan: { select: { personalTrainingSessions: true } } },
@@ -175,7 +193,7 @@ export class PersonalTrainingService {
         // The trainer earns on the session's value: the per-session rate, or the plan's share.
         base = pt.trainer.perSessionRate > 0 ? pt.trainer.perSessionRate : r2(pkg.totalPrice / Math.max(pkg.plan.personalTrainingSessions, 1));
       } else if (pt.price > 0) {
-        await postIndustrySale(tx, user, {
+        const sale = await postIndustrySale(tx, user, {
           saleNumber: ptSaleNumber(pt.sessionNumber),
           sourceRef: pt.sessionNumber,
           shopId: member.shopId,
@@ -184,6 +202,7 @@ export class PersonalTrainingService {
           paidAmount: paid,
           paymentMethod: dto.paymentMethod,
         });
+        saleId = sale.id;
         await tx.gymMember.update({ where: { id: pt.memberId }, data: { totalSpent: { increment: pt.price } } });
       }
       const commissionAmount = r2((base * pt.trainer.commissionPct) / 100 + pt.trainer.commissionFixed);
@@ -193,7 +212,7 @@ export class PersonalTrainingService {
       });
       return tx.gymPersonalTraining.update({
         where: { id },
-        data: { ...patch, actualStart: pt.actualStart ?? now, actualEnd: now, paidAmount: paid, commissionAmount },
+        data: { ...patch, actualStart: pt.actualStart ?? now, actualEnd: now, paidAmount: paid, commissionAmount, saleId },
         include: { trainer: true },
       });
     });

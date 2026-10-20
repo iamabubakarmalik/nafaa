@@ -1,6 +1,6 @@
 /** Cosmetics-only dashboard widgets. */
 
-import { CalendarClock, Cake, CloudOff, Heart, PackageX } from 'lucide-react';
+import { CalendarClock, Cake, CloudOff, PackageX } from 'lucide-react';
 import { Badge } from '@/design-system/components';
 import { EmptyHint, fmtQty, IconBubble, ListRow, RowList, WidgetCard, type KpiDef } from '@modules/dashboard/engine';
 import type { AttentionItem } from '@modules/dashboard/widgets';
@@ -15,55 +15,43 @@ export const cosmeticsKpis: KpiDef[] = [
     id: 'cosmetics-expiry', label: 'Expiry qareeb', icon: CalendarClock, tone: 'danger',
     useValue: () => {
       const { expiry, available, loading } = useCosmeticsOps();
-      if (!available) return { loading, value: '—', hint: 'data nahi mila', to: '/cosmetics/batches' };
-      return {
-        loading, to: '/cosmetics/batches?expiringInDays=30', value: expiry.soon, alert: expiry.expired > 0,
-        hint: expiry.expired ? `${expiry.expired} expire ho chuke` : '30 din me',
-      };
+      if (!available) return { loading, value: '—', hint: 'data nahi mila', to: '/cosmetics/expiry' };
+      return { loading, to: '/cosmetics/expiry', value: expiry.soon, alert: expiry.expired > 0, hint: expiry.expired ? `${expiry.expired} expire ho chuke` : '30 din me' };
     },
   },
   {
-    id: 'cosmetics-loyalty', label: 'Loyalty members', icon: Heart, tone: 'brand',
+    id: 'cosmetics-birthdays', label: 'Is mahine salgirah', icon: Cake, tone: 'brand',
     useValue: () => {
-      const { loyalty, available, loading } = useCosmeticsOps();
-      if (!available) return { loading, value: '—', hint: 'data nahi mila', to: '/cosmetics/loyalty' };
-      return { loading, to: '/cosmetics/loyalty', value: loyalty.members, hint: `${loyalty.upcoming.length} salgirah baqi is mahine` };
+      const { birthdays, loading } = useCosmeticsOps();
+      return { loading, to: '/customers', value: birthdays.all.length, hint: `${birthdays.upcoming.length} abhi baqi` };
     },
   },
 ];
 
 export function useCosmeticsAttention(): AttentionItem[] {
-  const { expiry, loyalty } = useCosmeticsOps();
+  const { expiry, birthdays } = useCosmeticsOps();
   const items: AttentionItem[] = [];
-  if (expiry.expired) items.push({ icon: PackageX, level: 'danger', text: `${expiry.expired} batch expire ho chuke — shelf se hata dein`, to: '/cosmetics/batches?expired=true', cta: 'Batches dekhein' });
-  if (expiry.week) items.push({ icon: CalendarClock, level: 'warning', text: `${expiry.week} batch 7 din me expire honge — discount laga kar nikaal dein`, to: '/cosmetics/batches?expiringInDays=30', cta: 'Jaldi bechein' });
-  else if (expiry.soon) items.push({ icon: CalendarClock, level: 'info', text: `${expiry.soon} batch 30 din me expire honge`, to: '/cosmetics/batches?expiringInDays=30', cta: 'Dekhein' });
-  if (loyalty.upcoming.length) items.push({ icon: Cake, level: 'info', text: `${loyalty.upcoming.length} loyalty members ki salgirah is mahine — birthday offer bhejein`, to: '/cosmetics/loyalty', cta: 'Offer bhejein' });
+  if (expiry.expired) items.push({ icon: PackageX, level: 'danger', text: `${expiry.expired} batch expire ho chuke — shelf se hata dein`, to: '/cosmetics/expiry', cta: 'Expiry dekhein' });
+  if (expiry.week) items.push({ icon: CalendarClock, level: 'warning', text: `${expiry.week} batch 7 din me expire honge — discount laga kar nikaal dein`, to: '/cosmetics/expiry', cta: 'Jaldi bechein' });
+  else if (expiry.soon) items.push({ icon: CalendarClock, level: 'info', text: `${expiry.soon} batch 30 din me expire honge`, to: '/cosmetics/expiry', cta: 'Dekhein' });
+  if (birthdays.upcoming.length) items.push({ icon: Cake, level: 'info', text: `${birthdays.upcoming.length} customers ki salgirah is mahine — offer bhejein`, to: '/customers', cta: 'Customers' });
   return items;
 }
 
 export function CosmeticsExpiry() {
   const { expiry, available } = useCosmeticsOps();
   return (
-    <WidgetCard
-      title="Expiry qareeb"
-      icon={CalendarClock}
-      description={expiry.expired ? `${expiry.expired} expire ho chuke · ${expiry.soon} 30 din me` : `${expiry.soon} batch 30 din me`}
-      to="/cosmetics/batches?expiringInDays=30"
-      flush
-    >
+    <WidgetCard title="Expiry qareeb" icon={CalendarClock} description={expiry.expired ? `${expiry.expired} expire ho chuke · ${expiry.soon} 30 din me` : `${expiry.soon} batch 30 din me`} to="/cosmetics/expiry" flush>
       {!available ? <EmptyHint icon={CloudOff} text={UNAVAILABLE} /> : (
         <RowList empty="30 din me koi batch expire nahi ho raha" emptyIcon={CalendarClock}>
           {expiry.list.slice(0, 6).map((b) => {
             const tone = b.days <= 7 ? 'danger' : b.days <= 15 ? 'warning' : 'neutral';
             return (
-              <ListRow
-                key={b.id}
+              <ListRow key={b.id} to={`/cosmetics-products/${b.productId}`}
                 leading={<IconBubble icon={CalendarClock} tone={tone} />}
                 title={b.product?.name ?? <span className="font-mono">{b.batchNumber}</span>}
-                meta={`${b.product?.name ? `${b.batchNumber} · ` : ''}${fmtQty(b.currentStock)} baqi · ${fmtDay(b.expiryDate)}`}
-                value={<Badge variant={tone === 'neutral' ? 'default' : tone} size="xs">{b.days <= 0 ? 'Expire' : `${b.days} din`}</Badge>}
-              />
+                meta={`${[b.variant?.name, b.batchNumber].filter(Boolean).join(' · ')} · ${fmtQty(b.quantity)} baqi${b.expiryDate ? ` · ${fmtDay(b.expiryDate)}` : ''}`}
+                value={<Badge variant={tone === 'neutral' ? 'default' : tone} size="xs">{b.days <= 0 ? 'Expire' : `${b.days} din`}</Badge>} />
             );
           })}
         </RowList>
@@ -73,29 +61,18 @@ export function CosmeticsExpiry() {
 }
 
 export function CosmeticsBirthdays() {
-  const { loyalty, available } = useCosmeticsOps();
+  const { birthdays } = useCosmeticsOps();
   const today = new Date().getDate();
   return (
-    <WidgetCard title="Is mahine salgirah" icon={Cake} description={`${loyalty.birthdays.length} loyalty members`} to="/cosmetics/loyalty" linkLabel="Offer bhejein" flush>
-      {!available ? <EmptyHint icon={CloudOff} text={UNAVAILABLE} /> : (
-        <RowList empty="Is mahine kisi member ki salgirah nahi" emptyIcon={Cake}>
-          {loyalty.birthdays.slice(0, 6).map((m) => {
-            const day = m.dateOfBirth ? new Date(m.dateOfBirth).getDate() : null;
-            const isToday = day === today;
-            const past = day !== null && day < today;
-            return (
-              <ListRow
-                key={m.id}
-                to="/cosmetics/loyalty"
-                leading={<IconBubble icon={Cake} tone={isToday ? 'success' : past ? 'neutral' : 'brand'} />}
-                title={m.name}
-                meta={[m.phone, m.tier].filter(Boolean).join(' · ')}
-                value={m.dateOfBirth ? <Badge variant={isToday ? 'success' : 'default'} size="xs">{isToday ? 'Aaj' : fmtDay(m.dateOfBirth)}</Badge> : undefined}
-              />
-            );
-          })}
-        </RowList>
-      )}
+    <WidgetCard title="Is mahine salgirah" icon={Cake} description={`${birthdays.all.length} customers`} to="/customers" linkLabel="Customers" flush>
+      <RowList empty="Is mahine kisi customer ki salgirah nahi" emptyIcon={Cake}>
+        {birthdays.all.slice(0, 6).map((m) => (
+          <ListRow key={m.id} to={`/customers/${m.id}`}
+            leading={<IconBubble icon={Cake} tone={m.day === today ? 'success' : m.day < today ? 'neutral' : 'brand'} />}
+            title={m.name} meta={m.phone ?? undefined}
+            value={<Badge variant={m.day === today ? 'success' : 'default'} size="xs">{m.day === today ? 'Aaj' : `${m.day} tareekh`}</Badge>} />
+        ))}
+      </RowList>
     </WidgetCard>
   );
 }

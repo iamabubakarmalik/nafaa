@@ -1,259 +1,238 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  FlaskConical, Plus, Search, X, RefreshCw, Clock, CheckCircle2,
-  XCircle, AlertTriangle, User, Phone, Calendar, DollarSign,
-  Eye, Package, Send, Trash2, ArrowRight,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { lensOrdersApi, type OpticalLensOrder } from '../api/lens-orders.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Glasses and repair orders: the optical shop's main desk. Every order from
+ * booking (advance) through the lab to hand-over, with server-side views,
+ * search and period. From a row: send to lab, mark back / ready, take a
+ * payment, hand over (the bill is made then), cancel, print the slip. The
+ * Analytics tab shows labs (turnaround, late) and where orders stand.
+ */
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  ORDERED: { label: 'Ordered', color: 'text-slate-700', bg: 'bg-slate-100', icon: Clock },
-  SENT_TO_LAB: { label: 'Sent to Lab', color: 'text-amber-700', bg: 'bg-amber-100', icon: Send },
-  AT_LAB: { label: 'At Lab', color: 'text-amber-700', bg: 'bg-amber-100', icon: FlaskConical },
-  RECEIVED: { label: 'Received', color: 'text-blue-700', bg: 'bg-blue-100', icon: Package },
-  QC_PASSED: { label: 'QC Passed', color: 'text-cyan-700', bg: 'bg-cyan-100', icon: CheckCircle2 },
-  FITTED: { label: 'Fitted', color: 'text-violet-700', bg: 'bg-violet-100', icon: CheckCircle2 },
-  READY: { label: 'Ready', color: 'text-emerald-700', bg: 'bg-emerald-100', icon: CheckCircle2 },
-  DELIVERED: { label: 'Delivered', color: 'text-slate-700', bg: 'bg-slate-100', icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancelled', color: 'text-rose-700', bg: 'bg-rose-100', icon: XCircle },
-};
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  AlarmClock, BarChart3, CheckCircle2, Download, FlaskConical, Glasses, GraduationCap, ListChecks, MessageCircle, MoreHorizontal, Plus, Printer, Wallet, Wrench, XCircle,
+} from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, Table, TBody, THead, Td, Th, Tr, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { usePrinter } from '@core/print';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { lensOrdersApi, type LensOrderView, type OpticalLensOrder } from '../api/lens-orders.api';
+import { OrderDialogs, useOrderActions, type OrderDialog } from '../components/OrderModals';
+import { Bars, ListCard, ListState, Pager, Panel, Pill } from '../components/ui';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import {
+  OPTICAL_KEYS, REPAIR, apiError, dayOnly, daysFrom, isOrderClosed, isOrderReady, nextOrderStep, orderStatusOf, rangeParams, waLink,
+} from '../lib/meta';
+import { labDoc, orderDoc } from '../lib/print';
+
+type Tab = LensOrderView | 'analytics';
+const LIMIT = 30;
+const TABS: Array<{ id: Tab; label: string; icon?: typeof Glasses }> = [
+  { id: 'open', label: 'Chal rahe', icon: Glasses }, { id: 'lab', label: 'Lab me' }, { id: 'ready', label: 'Tayyar' }, { id: 'late', label: 'Late' },
+  { id: 'unpaid', label: 'Paisa baqi' }, { id: 'repairs', label: 'Repair' }, { id: 'delivered', label: 'De diye' }, { id: 'cancelled', label: 'Cancel' }, { id: 'all', label: 'Sab' },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+];
 
 export default function LensOrdersPage() {
-  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const { print } = usePrinter();
+  const canBill = usePermission(PERMISSIONS.POS_USE);
+  const [params, setParams] = useSearchParams();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>((params.get('view') as Tab) || 'open');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [pendingPayment, setPendingPayment] = useState(false);
-  const [overdue, setOverdue] = useState(false);
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const [page, setPage] = useState(1);
+  const [dialog, setDialog] = useState<OrderDialog>(null);
+  const [menu, setMenu] = useState<string | null>(null);
+  const q = useDebounced(search.trim());
+  const actions = useOrderActions(() => setDialog(null));
+  usePageKeys(searchRef, { n: () => canBill && navigate('/optical/lens-orders/new'), r: () => canBill && navigate('/optical/lens-orders/new?type=repair'), a: () => setTab('analytics') });
+  useEffect(() => { setPage(1); }, [q, range, tab]);
+  useEffect(() => { if (tab !== 'open') setParams({ view: tab }, { replace: true }); else setParams({}, { replace: true }); }, [tab, setParams]);
+  useEffect(() => { const v = (params.get('view') as Tab) || 'open'; if (v !== tab) setTab(v); }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { data: orders = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['lens-orders-list', statusFilter, pendingPayment, overdue],
-    queryFn: () => lensOrdersApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      pendingPayment: pendingPayment ? true : undefined,
-      overdue: overdue ? true : undefined,
-    }),
-  });
+  const query = useMemo(() => ({ view: tab === 'analytics' ? 'all' as const : tab, search: q || undefined, limit: LIMIT, ...rangeParams(resolveRange(range, 0)) }), [tab, q, range]);
+  const list = useQuery({ queryKey: [OPTICAL_KEYS.orders, 'page', query, page], queryFn: () => lensOrdersApi.page({ ...query, page }), placeholderData: (p) => p, enabled: tab !== 'analytics', refetchInterval: 60_000 });
+  const summary = useQuery({ queryKey: [OPTICAL_KEYS.orders, 'summary'], queryFn: lensOrdersApi.summary, refetchInterval: 60_000 });
+  const s = summary.data;
+  const data = list.data;
 
-  const { data: summary } = useQuery({
-    queryKey: ['lens-orders-summary-page'],
-    queryFn: () => lensOrdersApi.summary(),
-    refetchInterval: 60_000,
-  });
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return orders;
-    return orders.filter((o) =>
-      o.orderNumber.toLowerCase().includes(q) ||
-      o.customerName.toLowerCase().includes(q) ||
-      (o.customerPhone || '').includes(q) ||
-      o.frameName.toLowerCase().includes(q) ||
-      (o.labName || '').toLowerCase().includes(q)
-    );
-  }, [orders, search]);
-
-  const remove = useMutation({
-    mutationFn: (id: string) => lensOrdersApi.remove(id),
-    onSuccess: () => {
-      toast.success('Order deleted');
-      qc.invalidateQueries({ queryKey: ['lens-orders-list'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete failed'),
-  });
-
-  return (
-    <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <FlaskConical className="h-3.5 w-3.5 text-amber-300" /> Lens Orders — Lab Workflow
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔬 Lens Orders</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {summary?.atLab ?? 0} at lab • {summary?.ready ?? 0} ready • {summary?.overdue ?? 0} overdue
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Link to="/optical/lens-orders/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" /> New Order
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-          <StatCard label="Ordered" value={summary.ordered} icon={Clock} tone="slate" onClick={() => setStatusFilter('ORDERED')} />
-          <StatCard label="At Lab" value={summary.atLab} icon={FlaskConical} tone="amber" onClick={() => setStatusFilter('AT_LAB')} />
-          <StatCard label="Received" value={summary.received} icon={Package} tone="blue" onClick={() => setStatusFilter('RECEIVED')} />
-          <StatCard label="Ready" value={summary.ready} icon={CheckCircle2} tone="emerald" onClick={() => setStatusFilter('READY')} />
-          <StatCard label="Overdue" value={summary.overdue} icon={AlertTriangle} tone="rose" onClick={() => setOverdue(!overdue)} />
-          <StatCard label="Receivable" value={formatPKR(summary.totalReceivable)} icon={DollarSign} tone="violet" onClick={() => setPendingPayment(!pendingPayment)} />
-        </section>
-      )}
-
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Order #, customer, frame, lab..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-          {['all', 'ORDERED', 'SENT_TO_LAB', 'AT_LAB', 'RECEIVED', 'FITTED', 'READY', 'DELIVERED', 'CANCELLED'].map((v) => (
-            <button key={v} onClick={() => setStatusFilter(v)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${statusFilter === v ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600'}`}>
-              {v === 'all' ? 'All' : v.replace(/_/g, ' ')}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => setPendingPayment(!pendingPayment)}
-            className={`h-9 px-3 rounded-lg border-2 text-xs font-extrabold inline-flex items-center gap-1.5 ${pendingPayment ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200'}`}>
-            <DollarSign className="h-3 w-3" /> Pending Payment
-          </button>
-          <button onClick={() => setOverdue(!overdue)}
-            className={`h-9 px-3 rounded-lg border-2 text-xs font-extrabold inline-flex items-center gap-1.5 ${overdue ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>
-            <AlertTriangle className="h-3 w-3" /> Overdue only
-          </button>
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid gap-3">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <FlaskConical className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No lens orders yet</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Create your first order to send to lab</p>
-          <Link to="/optical/lens-orders/new">
-            <Button className="mt-4 bg-gradient-to-r from-violet-600 to-fuchsia-700">
-              <Plus className="h-4 w-4" /> Create First Order
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((o) => <OrderCard key={o.id} order={o}
-            onDelete={() => { if (confirm(`Delete "${o.orderNumber}"?`)) remove.mutate(o.id); }} />)}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function OrderCard({ order, onDelete }: any) {
-  const meta = STATUS_META[order.status] || STATUS_META.ORDERED;
-  const StatusIcon = meta.icon;
-  const isOverdue = order.expectedDate && new Date(order.expectedDate) < new Date() && !['DELIVERED', 'CANCELLED'].includes(order.status);
-
-  return (
-    <div className={`rounded-2xl bg-white border-2 shadow-sm p-4 hover:shadow-md transition ${isOverdue ? 'border-rose-300' : 'border-slate-200'}`}>
-      <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
-        <div className={`h-14 w-14 rounded-2xl ${meta.bg} flex items-center justify-center shrink-0`}>
-          <StatusIcon className={`h-6 w-6 ${meta.color}`} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link to={`/optical/lens-orders/${order.id}`} className="font-mono font-extrabold text-slate-900 text-sm hover:text-violet-700">
-              {order.orderNumber}
-            </Link>
-            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
-              <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
-            </span>
-            {isOverdue && <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase">Overdue</span>}
-          </div>
-
-          <div className="mt-1 font-extrabold text-slate-900 text-sm truncate">
-            {order.frameName} • {order.lensType}
-          </div>
-
-          <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-bold flex-wrap">
-            <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {order.customerName}</span>
-            <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {order.customerPhone}</span>
-            {order.labName && <span>Lab: {order.labName}</span>}
-            {order.labOrderRef && <span className="font-mono">Ref: {order.labOrderRef}</span>}
-          </div>
-
-          <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-500 font-bold">
-            <span className="inline-flex items-center gap-0.5">
-              <Calendar className="h-2.5 w-2.5" />
-              Ordered {new Date(order.orderedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
-            </span>
-            {order.expectedDate && (
-              <span className={`inline-flex items-center gap-0.5 ${isOverdue ? 'text-rose-700' : ''}`}>
-                Expected {new Date(order.expectedDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total</div>
-          <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(order.totalPrice)}</div>
-          {order.remainingAmount > 0 && (
-            <div className="text-[0.6875rem] font-bold text-rose-700 mt-0.5">Due {formatPKR(order.remainingAmount)}</div>
-          )}
-          <div className="mt-2 flex gap-1 justify-end">
-            <Link to={`/optical/lens-orders/${order.id}`}
-              className="h-9 w-9 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 flex items-center justify-center">
-              <Eye className="h-4 w-4" />
-            </Link>
-            {!['FITTED', 'DELIVERED'].includes(order.status) && (
-              <button onClick={onDelete}
-                className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    slate: 'from-slate-500 to-slate-700', amber: 'from-amber-500 to-orange-600',
-    blue: 'from-blue-500 to-cyan-700', emerald: 'from-emerald-500 to-teal-700',
-    rose: 'from-rose-500 to-red-700', violet: 'from-violet-500 to-fuchsia-700',
+  const exportCsv = async () => {
+    try {
+      const all = await lensOrdersApi.page({ ...query, page: 1, limit: 100 });
+      if (!all.items.length) { toast.error('Is filter me koi order nahi'); return; }
+      downloadCsv('chashma-orders.csv', [['Order', 'Date', 'Customer', 'Mobile', 'Frame', 'Lens', 'Lab', 'Tayyar date', 'Halat', 'Kul', 'Mila', 'Baqi'],
+        ...all.items.map((o) => [o.orderNumber, o.orderedAt.slice(0, 10), o.customerName, o.customerPhone, o.frameName, o.lensType === REPAIR ? 'Repair' : [o.lensType, o.lensIndex].filter(Boolean).join(' '), o.labName, o.expectedDate?.slice(0, 10), orderStatusOf(o.status).label, o.totalPrice, o.paidAmount, o.remainingAmount])]);
+      if (all.total > all.items.length) toast.info(`Pehle ${all.items.length} order file me — period chhota karein`);
+    } catch (e) { toast.error(apiError(e, 'File nahi bani')); }
   };
-  const C: any = onClick ? 'button' : 'div';
+
+  const nextStep = (o: OpticalLensOrder) => {
+    const step = nextOrderStep(o.status, o.lensType === REPAIR);
+    if (!step) return null;
+    if (step[0] === 'SENT_TO_LAB') return <Button size="xs" variant="secondary" leftIcon={<FlaskConical className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'lab', order: o })}>{step[1]}</Button>;
+    return <Button size="xs" variant="secondary" loading={actions.step.isPending && actions.step.variables?.o.id === o.id} onClick={() => actions.step.mutate({ o, status: step[0] as OpticalLensOrder['status'] })}>{step[1]}</Button>;
+  };
+
   return (
-    <C onClick={onClick}
-      className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </C>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Chashma orders — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#2563eb', title: 'Order aur advance', text: 'Naya order: customer, nuskha, frame aur lens. Advance yahin lein — cash drawer me aaj ki date par aata hai.' },
+            { icon: FlaskConical, color: '#7c3aed', title: 'Lab', text: '"Lab bhejein" par lab ka naam aur wapas aane ki date. Date guzar jaye to order "Late" me aata hai.' },
+            { icon: CheckCircle2, color: '#16a34a', title: 'Tayyar', text: 'Lab se aaye to "Lab se aa gaya", fit karke "Tayyar". Customer ko WhatsApp button se bata dein.' },
+            { icon: Wallet, color: '#d97706', title: 'Dene par bill', text: '"De diya" par bill banta hai: frame stock se nikalta hai, baqi paisa lein ya khata me likhein.' },
+          ]}
+          tips={['Cancel par advance wapas dein ya khata me jama rakhein — dono hisaab me sahi aate hain.', 'Repair bhi isi desk par: "Repair" button (R).']}
+          shortcuts={[['/', 'search'], ['N', 'naya order'], ['R', 'repair'], ['A', 'analytics'], ['G', 'guide']]} />
+      )}
+      <OrderDialogs dialog={dialog} close={() => setDialog(null)} actions={actions} />
+
+      <PageHero title="Chashma orders" chip={<><Glasses />{tab === 'analytics' ? (s ? s.ordered + s.atLab + s.received + s.ready : 0) : data?.total ?? 0}</>}
+        busy={list.isFetching && !list.isLoading} loading={summary.isLoading}
+        meta="Advance → lab → tayyar → customer ko diya"
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canBill && <Link to="/optical/lens-orders/new?type=repair" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">Repair</span></Link>}
+          {canBill && <Link to="/optical/lens-orders/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya order</Link>}
+        </>}
+        stats={[
+          { label: 'Chal rahe orders ki qeemat', value: money(s?.totalBilled ?? 0) },
+          { label: 'Advance mil chuka', value: money(s?.totalCollected ?? 0) },
+          { label: 'Lena baqi', value: money(s?.totalReceivable ?? 0) },
+        ]} />
+
+      <KpiRow>
+        {summary.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={ListChecks} color="#64748b" label="Naye order" value={s?.ordered ?? 0} hint="Abhi lab nahi gaye" onClick={() => setTab('lab')} />
+            <KpiCard icon={FlaskConical} color="#2563eb" label="Lab me" value={s?.atLab ?? 0} hint={s?.dueToday ? `${s.dueToday} aaj aane hain` : undefined} onClick={() => setTab('lab')} active={tab === 'lab'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label="Tayyar" value={(s?.received ?? 0) + (s?.ready ?? 0)} hint="Customer ko bulayein" onClick={() => setTab('ready')} active={tab === 'ready'} />
+            <KpiCard icon={AlarmClock} color="#e11d48" label="Late" value={s?.overdue ?? 0} hint="Date guzar gayi" onClick={() => setTab('late')} active={tab === 'late'} />
+            <KpiCard icon={Wrench} color="#a16207" label="Repair chal rahi" value={s?.repairsOpen ?? 0} onClick={() => setTab('repairs')} active={tab === 'repairs'} />
+          </>
+        )}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Order number, customer, mobile, frame ya lab…" />}
+        chips={q || range.preset !== 'all' ? <>{q && <FilterChip onRemove={() => setSearch('')}>"{q}"</FilterChip>}{range.preset !== 'all' && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>Period</FilterChip>}</> : undefined}
+        onClear={() => { setSearch(''); setRange({ preset: 'all', custom: { from: '', to: '' } }); }}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={0} label="Order ki date" />
+      </FilterBar>
+
+      <ViewTabs<Tab> value={tab} onChange={setTab} tabs={TABS} hint={data && tab !== 'analytics' ? <>Is list me: kul {money(data.totals.value)} · baqi {money(data.totals.due)}</> : undefined} />
+
+      {tab === 'analytics' ? <OrdersAnalytics /> : (
+        <ListCard>
+          <ListState loading={list.isLoading} error={list.isError} empty={!data?.items.length} onRetry={() => void list.refetch()} icon={Glasses}
+            title={q ? `"${q}" se koi order nahi mila` : 'Is list me koi order nahi'} hint="Naya order banayein — advance, lab aur pickup sab yahin se."
+            actions={canBill && <Button onClick={() => navigate('/optical/lens-orders/new')} leftIcon={<Plus className="h-4 w-4" />}>Naya order</Button>}>
+            {data && (
+              <>
+                <Table minWidth="64rem">
+                  <THead><Tr><Th>Order</Th><Th>Customer</Th><Th>Chashma</Th><Th>Lab / date</Th><Th>Halat</Th><Th align="right">Paisa</Th><Th align="right" /></Tr></THead>
+                  <TBody>
+                    {data.items.map((o) => {
+                      const repair = o.lensType === REPAIR;
+                      const closed = isOrderClosed(o.status);
+                      const days = daysFrom(o.expectedDate);
+                      const wa = waLink(o.customerPhone, isOrderReady(o.status)
+                        ? `Assalam o alaikum ${o.customerName}, aap ka ${repair ? 'chashma repair ho kar' : 'chashma'} tayyar hai (${o.orderNumber}).${o.remainingAmount > 0 ? ` Baqi: Rs ${o.remainingAmount}.` : ''} Shukriya.`
+                        : `Assalam o alaikum ${o.customerName}, aap ka order ${o.orderNumber} ${dayOnly(o.expectedDate)} tak tayyar hoga.`);
+                      return (
+                        <Tr key={o.id} interactive onClick={() => navigate(`/optical/lens-orders/${o.id}`)}>
+                          <Td className="whitespace-nowrap">
+                            <p className="font-semibold text-slate-900">{o.orderNumber}</p>
+                            <p className="text-[0.75rem] text-slate-500">{dayOnly(o.orderedAt)}{repair && <span className="ml-1 rounded bg-amber-100 px-1 text-[0.6875rem] font-semibold text-amber-800">Repair</span>}</p>
+                          </Td>
+                          <Td><p className="font-medium text-slate-900">{o.customerName}</p><p className="text-[0.75rem] text-slate-500">{o.customerPhone}</p></Td>
+                          <Td className="max-w-[16rem]"><p className="truncate text-slate-800">{o.frameName}</p><p className="truncate text-[0.75rem] text-slate-500">{repair ? 'Repair' : [o.lensType, o.lensIndex, o.lensCoatings.slice(0, 2).join(', ')].filter(Boolean).join(' · ')}</p></Td>
+                          <Td className="whitespace-nowrap">
+                            <p className="text-slate-700">{o.labName ?? (repair ? 'Dukaan me' : '—')}</p>
+                            <p className={days != null && days < 0 && !closed ? 'text-[0.75rem] font-semibold text-rose-600' : 'text-[0.75rem] text-slate-500'}>
+                              {o.expectedDate ? (closed ? dayOnly(o.expectedDate) : days === 0 ? 'Aaj' : days != null && days < 0 ? `${-days} din late` : dayOnly(o.expectedDate)) : '—'}
+                            </p>
+                          </Td>
+                          <Td><Pill meta={orderStatusOf(o.status)} /></Td>
+                          <Td align="right" className="whitespace-nowrap"><p className="font-semibold tabular-nums">{money(o.totalPrice)}</p>{o.remainingAmount > 0.009 && o.status !== 'CANCELLED' && <p className="text-[0.75rem] font-medium text-amber-700">{money(o.remainingAmount)} baqi</p>}</Td>
+                          <Td align="right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1">
+                              {canBill && !closed && nextStep(o)}
+                              {canBill && !closed && isOrderReady(o.status) && <Button size="xs" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'deliver', order: o })}>De diya</Button>}
+                              {canBill && !closed && o.remainingAmount > 0.009 && <Button size="xs" variant="ghost" aria-label="Payment lein" onClick={() => setDialog({ kind: 'pay', order: o })}><Wallet className="h-3.5 w-3.5" /></Button>}
+                              {wa && !closed && <a href={wa} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></a>}
+                              <div className="relative">
+                                <Button size="xs" variant="ghost" aria-label="Aur" onClick={() => setMenu(menu === o.id ? null : o.id)}><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                                {menu === o.id && (
+                                  <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 text-left shadow-lg" onMouseLeave={() => setMenu(null)}>
+                                    <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[0.8125rem] hover:bg-slate-50" onClick={() => { setMenu(null); void print(orderDoc(o, repair)); }}><Printer className="h-3.5 w-3.5" />Customer parchi</button>
+                                    {!repair && <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[0.8125rem] hover:bg-slate-50" onClick={() => { setMenu(null); void print(labDoc(o)); }}><FlaskConical className="h-3.5 w-3.5" />Lab parchi</button>}
+                                    {canBill && !closed && <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[0.8125rem] text-rose-700 hover:bg-rose-50" onClick={() => { setMenu(null); setDialog({ kind: 'cancel', order: o }); }}><XCircle className="h-3.5 w-3.5" />Cancel</button>}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </TBody>
+                </Table>
+                <Pager page={page} total={data.total} limit={LIMIT} onPage={setPage} />
+              </>
+            )}
+          </ListState>
+        </ListCard>
+      )}
+    </PageShell>
+  );
+}
+
+function OrdersAnalytics() {
+  const { sales: money } = useMasked();
+  const labs = useQuery({ queryKey: [OPTICAL_KEYS.orders, 'labs'], queryFn: lensOrdersApi.labPerformance });
+  const summary = useQuery({ queryKey: [OPTICAL_KEYS.orders, 'summary'], queryFn: lensOrdersApi.summary });
+  const s = summary.data;
+  const rows = s ? [
+    { key: 'o', label: 'Naye', value: s.ordered, color: '#64748b' },
+    { key: 'l', label: 'Lab me', value: s.atLab, color: '#2563eb' },
+    { key: 'r', label: 'Lab se aaye', value: s.received, color: '#7c3aed' },
+    { key: 't', label: 'Tayyar', value: s.ready, color: '#16a34a' },
+    { key: 'x', label: 'Late', value: s.overdue, color: '#e11d48' },
+  ] : [];
+  return (
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      <Panel title="Orders kahan hain" hint={s ? `Is mahine ${s.monthlyOrders} order · ${money(s.monthlyValue)}` : undefined}>
+        {summary.isLoading ? <Skeleton className="h-40 rounded-xl" /> : <Bars rows={rows} />}
+      </Panel>
+      <Panel title="Labs" hint="Kitne order, kitne din me wapas, kitne late">
+        {labs.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !labs.data?.length ? <p className="text-[0.8125rem] text-slate-500">Abhi kisi lab ko order nahi gaya</p> : (
+          <Table minWidth="32rem">
+            <THead><Tr><Th>Lab</Th><Th align="right">Order</Th><Th align="right">Ausat din</Th><Th align="right">Late</Th><Th align="right">Waqt par</Th><Th align="right">Lens ki sale</Th></Tr></THead>
+            <TBody>
+              {labs.data.map((l) => (
+                <Tr key={l.labName}>
+                  <Td className="font-medium">{l.labName}</Td><Td align="right">{l.totalOrders}</Td><Td align="right">{l.avgTurnaroundDays}</Td>
+                  <Td align="right" className={l.lateDeliveries ? 'font-semibold text-rose-600' : ''}>{l.lateDeliveries}</Td><Td align="right">{l.onTimePct}%</Td><Td align="right">{money(l.lensRevenue)}</Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+        )}
+      </Panel>
+    </div>
   );
 }

@@ -1,8 +1,9 @@
 import { apiClient } from '@core/api/client';
 
-export type FloristOrderType = 'WALK_IN' | 'PHONE_ORDER' | 'DELIVERY' | 'EVENT_ORDER' | 'CORPORATE' | 'SUBSCRIPTION' | 'ONLINE';
-export type FloristOrderStatus = 'DRAFT' | 'CONFIRMED' | 'IN_PREPARATION' | 'READY_FOR_DELIVERY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
-export type FloristDeliveryTimeSlot = 'MORNING' | 'AFTERNOON' | 'EVENING' | 'EXPRESS' | 'SCHEDULED';
+/** Same values as the server enums. */
+export type FloristOrderType = 'WALK_IN' | 'DELIVERY' | 'EVENT' | 'WEDDING' | 'SUBSCRIPTION' | 'CORPORATE';
+export type FloristOrderStatus = 'DRAFT' | 'CONFIRMED' | 'IN_PREPARATION' | 'READY_FOR_DELIVERY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED';
+export type FloristDeliveryTimeSlot = 'MORNING_9_12' | 'AFTERNOON_12_3' | 'EVENING_3_6' | 'NIGHT_6_9' | 'URGENT' | 'SCHEDULED';
 
 export interface FloristOrder {
   id: string;
@@ -53,13 +54,59 @@ export interface FloristOrder {
   updatedAt: string;
 }
 
+/** Delivery details sent with a counter bill; money and items come from the bill. */
+export interface OrderFromSale {
+  saleId: string;
+  orderType: FloristOrderType;
+  senderName?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  deliveryAddress?: string;
+  area?: string;
+  city?: string;
+  landmark?: string;
+  messageCard?: string;
+  isAnonymous?: boolean;
+  deliveryTimeSlot?: FloristDeliveryTimeSlot;
+  scheduledDeliveryDate?: string;
+  scheduledDeliveryTime?: string;
+  eventName?: string;
+  eventVenue?: string;
+  specialInstructions?: string;
+}
+
+export interface OrdersQuery { status?: string; orderType?: string; scheduledDate?: string; from?: string; to?: string; search?: string; page?: number; limit?: number }
+
+export interface OrdersPage {
+  items: FloristOrder[];
+  total: number;
+  page: number;
+  limit: number;
+  totals: { value: number; received: number; delivery: number };
+  counts: Partial<Record<FloristOrderStatus, number>>;
+}
+
+interface Bucket { key: string; count: number; value: number }
+export interface OrdersAnalytics {
+  orders: number; value: number; delivered: number; deliveryCharges: number;
+  byDay: Bucket[]; bySlot: Bucket[]; byArea: Bucket[]; byType: Bucket[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- axios envelope varies by endpoint
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const floristOrdersApi = {
-  create: (data: Partial<FloristOrder>) =>
-    apiClient.post('/florist/orders', data).then(unwrap<FloristOrder>),
+  fromSale: (data: OrderFromSale) =>
+    apiClient.post('/florist/orders/from-sale', data).then(unwrap<FloristOrder>),
 
-  list: (params?: { orderType?: string; status?: string; scheduledDate?: string; from?: string; to?: string; search?: string }) =>
+  paged: (params: OrdersQuery) =>
+    apiClient.get('/florist/orders/paged', { params }).then(unwrap<OrdersPage>),
+
+  analytics: (params: { from?: string; to?: string }) =>
+    apiClient.get('/florist/orders/analytics', { params }).then(unwrap<OrdersAnalytics>),
+
+  /** `bills`: comma separated bill numbers, to find the orders of those bills. */
+  list: (params?: { orderType?: string; status?: string; scheduledDate?: string; from?: string; to?: string; search?: string; bills?: string }) =>
     apiClient.get('/florist/orders', { params }).then(unwrap<FloristOrder[]>),
 
   summary: () => apiClient.get('/florist/orders/summary').then(unwrap<any>),
@@ -69,7 +116,6 @@ export const floristOrdersApi = {
   byTimeSlot: (date: string) =>
     apiClient.get('/florist/orders/by-time-slot', { params: { date } }).then(unwrap<Record<string, FloristOrder[]>>),
 
-  getOne: (id: string) => apiClient.get('/florist/orders/' + id).then(unwrap<FloristOrder>),
 
   update: (id: string, data: Partial<FloristOrder>) =>
     apiClient.patch('/florist/orders/' + id, data).then(unwrap<FloristOrder>),

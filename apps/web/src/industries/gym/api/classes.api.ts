@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import type { Trainer } from './trainers.api';
 
 export type ClassType = 'YOGA' | 'ZUMBA' | 'AEROBICS' | 'CROSSFIT' | 'HIIT' | 'SPINNING'
@@ -44,7 +45,7 @@ export interface GymClass {
 
 export interface ClassBooking {
   id: string; classId: string; memberId: string; bookingNumber: string; status: string; bookedAt: string; checkedInAt?: string | null;
-  attended: boolean; price: number;
+  attended: boolean; price: number; paidAmount: number; saleId?: string | null;
   member?: { id: string; memberNumber: string; customer?: { id: string; name: string; phone?: string | null } | null };
 }
 
@@ -63,7 +64,9 @@ export const classesApi = {
   getOne: (id: string) => apiClient.get('/gym/classes/' + id).then(unwrap<GymClass>),
   update: (id: string, data: Partial<ClassInput>) => apiClient.patch('/gym/classes/' + id, data).then(unwrap<GymClass>),
   updateStatus: (id: string, status: ClassStatus, cancelledReason?: string) => apiClient.post('/gym/classes/' + id + '/status', { status, cancelledReason }).then(unwrap<GymClass>),
-  book: (id: string, memberId: string) => apiClient.post('/gym/classes/' + id + '/book', { memberId }).then(unwrap<ClassBooking>),
+  /** A paid class is billed at once; money not taken goes on the member's khata. */
+  book: (id: string, body: { memberId: string; paidAmount?: number; paymentMethod?: PaymentMethod }) =>
+    apiClient.post('/gym/classes/' + id + '/book', body).then(unwrap<ClassBooking>),
   cancelBooking: (bookingId: string, reason?: string) => apiClient.post('/gym/classes/bookings/' + bookingId + '/cancel', { reason }).then(unwrap<ClassBooking>),
   checkInBooking: (bookingId: string) => apiClient.post('/gym/classes/bookings/' + bookingId + '/checkin').then(unwrap<ClassBooking>),
 };

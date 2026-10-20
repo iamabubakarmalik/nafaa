@@ -1,4 +1,4 @@
-/** Shoe-only dashboard widgets: size gaps, best-selling sizes, try-on/exchange desk and brands. */
+/** Shoe-only dashboard widgets: size gaps, best-selling sizes, size-request / exchange desk and brands. */
 
 import { AlertTriangle, Award, CheckCircle2, Footprints, HandMetal, PackageX, RefreshCw, Ruler } from 'lucide-react';
 import { Badge } from '@/design-system/components';
@@ -29,7 +29,7 @@ export const shoeKpis: KpiDef[] = [
     },
   },
   {
-    id: 'shoe-tryons', label: 'Try-on baqi', icon: HandMetal, tone: 'info',
+    id: 'shoe-tryons', label: 'Size farmaish baqi', icon: HandMetal, tone: 'info',
     useValue: () => {
       const s = useShoeOps();
       return { loading: s.loading, to: '/shoe/try-on', value: s.tryOn.pending + s.tryOn.scheduled, hint: `${s.tryOn.conversion} ne khareeda` };
@@ -50,7 +50,7 @@ export function useShoeAttention(): AttentionItem[] {
   const items: AttentionItem[] = [];
   if (s.exchanges.requested) items.push({ icon: RefreshCw, level: 'warning', text: `${s.exchanges.requested} exchange ki darkhwast — haan ya na kar dein`, to: '/shoe/exchanges', cta: 'Exchanges' });
   if (t.outOfStockCount) items.push({ icon: PackageX, level: 'warning', text: `${t.outOfStockCount} size bilkul khatam — customer us size ke liye wapas chala jayega`, to: `${PRODUCTS}?stockFilter=out`, cta: 'Sizes dekhein' });
-  if (s.tryOn.pending) items.push({ icon: HandMetal, level: 'info', text: `${s.tryOn.pending} customer try-on ke intezar me — size mangwa kar rakhein`, to: '/shoe/try-on', cta: 'Try-on' });
+  if (s.tryOn.pending) items.push({ icon: HandMetal, level: 'info', text: `${s.tryOn.pending} customer size ke intezar me — maal mangwa kar batayein`, to: '/shoe/try-on', cta: 'Size farmaish' });
   if (t.lowStockCount) items.push({ icon: AlertTriangle, level: 'info', text: `${t.lowStockCount} size kam reh gaye — agle order me shamil karein`, to: `${PRODUCTS}?stockFilter=low`, cta: 'Kam sizes' });
   return items;
 }
@@ -108,14 +108,14 @@ export function ShoeTopSizes() {
   );
 }
 
-/** Try-on requests and exchanges waiting at the counter. */
+/** Size requests and exchanges waiting at the counter. */
 export function ShoeDesk() {
   const s = useShoeOps();
   return (
-    <WidgetCard title="Try-on aur exchange" icon={HandMetal} description="Counter par jo kaam baqi hai">
+    <WidgetCard title="Size farmaish aur exchange" icon={HandMetal} description="Counter par jo kaam baqi hai">
       <div className="grid grid-cols-2 gap-2">
-        <MetricTile icon={HandMetal} tone="info" label="Try-on baqi" value={s.tryOn.pending} hint={`${s.tryOn.scheduled} waqt tay`} to="/shoe/try-on" />
-        <MetricTile icon={CheckCircle2} tone="success" label="Try-on se bika" value={s.tryOn.conversion} hint={`${s.tryOn.completed} mukammal`} to="/shoe/try-on" />
+        <MetricTile icon={HandMetal} tone="info" label="Farmaish baqi" value={s.tryOn.pending} hint={`${s.tryOn.scheduled} ko bata diya`} to="/shoe/try-on" />
+        <MetricTile icon={CheckCircle2} tone="success" label="Farmaish se bika" value={s.tryOn.conversion} hint={`${s.tryOn.completed} mukammal`} to="/shoe/try-on" />
         <MetricTile icon={RefreshCw} tone="warning" label="Exchange darkhwast" value={s.exchanges.requested} alert={s.exchanges.requested > 0} to="/shoe/exchanges" />
         <MetricTile icon={RefreshCw} tone="neutral" label="Exchange mukammal" value={s.exchanges.completed} hint={`${s.exchanges.approved} approve`} to="/shoe/exchanges" />
       </div>

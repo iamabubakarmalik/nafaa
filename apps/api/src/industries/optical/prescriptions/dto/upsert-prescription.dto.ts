@@ -1,19 +1,19 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { OpticalPrescriptionType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 export class UpsertPrescriptionDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() customerId?: string;
-  @ApiProperty() @IsString() customerName!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() customerPhone?: string;
-  @ApiPropertyOptional() @IsOptional() @IsInt() customerAge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() customerId?: string;
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(120) customerName!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) customerPhone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(120) customerAge?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() customerGender?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() prescribedBy?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() doctorName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() clinicName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() prescriptionDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() expiryDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() prescriptionDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() expiryDate?: string;
   @ApiPropertyOptional({ enum: OpticalPrescriptionType }) @IsOptional() @IsEnum(OpticalPrescriptionType) prescriptionType?: OpticalPrescriptionType;
 
   // Right eye (OD)
@@ -43,7 +43,9 @@ export class UpsertPrescriptionDto {
   @ApiPropertyOptional() @IsOptional() @IsString() clLeftDiameter?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
-  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() imageUrls?: string[];
-  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() documentUrls?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) imageUrls?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) documentUrls?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
+
+export class UpdatePrescriptionDto extends PartialType(UpsertPrescriptionDto) {}

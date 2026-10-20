@@ -6,10 +6,14 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { TeamOrdersService } from './team-orders.service';
 import { CreateTeamOrderDto, RecordPaymentDto, UpdateTeamOrderDto, UpdateTeamOrderStatusDto } from './dto/create-team-order.dto';
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Sports - Team Orders')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+/** Orders take money at the counter (advance, delivery bill): pos.use. Cash refunds also need returns.create. */
+@RequirePermissions(PERMISSIONS.POS_USE)
 @Controller('sports/team-orders')
 export class TeamOrdersController {
   constructor(private readonly service: TeamOrdersService) {}
@@ -32,6 +36,15 @@ export class TeamOrdersController {
       status, from, to, search,
       hasCustomJerseys: hasCustom === 'true' ? true : hasCustom === 'false' ? false : undefined,
     });
+  }
+
+  @Get('page')
+  page(
+    @GetUser() user: AuthenticatedUser,
+    @Query('view') view?: string, @Query('page') page?: string, @Query('limit') limit?: string,
+    @Query('search') search?: string, @Query('from') from?: string, @Query('to') to?: string,
+  ) {
+    return this.service.page(user, { view, page, limit, search, from, to });
   }
 
   @Get('summary')
@@ -64,6 +77,13 @@ export class TeamOrdersController {
     return this.service.recordPayment(user, id, dto, shop);
   }
 
+  @Post(':id/refund')
+  @RequirePermissions(PERMISSIONS.POS_USE, PERMISSIONS.RETURNS_CREATE)
+  refund(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() body: { managerPin?: string }) {
+    return this.service.refund(user, id, shop, body?.managerPin);
+  }
+
+  /** Cancels the order (kept for older screens); nothing is deleted. */
   @Delete(':id')
   remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.service.remove(user, id);

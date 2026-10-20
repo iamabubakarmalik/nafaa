@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { startOfDayTz, endOfDayTz, subDaysTz, tzParts } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
+import { turningAgeOf } from '../birthday-reminders/birthday-reminders.service';
 
 function daysUntilNextBirthday(birthDate: Date, from = new Date()): number {
   // "Today" is the shop's day (Pakistan time); the birth date is a calendar date stored at UTC midnight.
@@ -51,7 +52,7 @@ export class ToystoreDashboardService {
         childGender: r.childGender, budgetRange: r.budgetRange, lastGiftGiven: r.lastGiftGiven,
         totalSpent: r.totalSpent,
         daysUntil: daysUntilNextBirthday(r.childBirthDate),
-        turningAge: Math.floor((Date.now() - new Date(r.childBirthDate).getTime()) / (365.25 * 86400000)) + 1,
+        turningAge: turningAgeOf(r.childBirthDate),
       }))
       .filter((r) => r.daysUntil <= 30)
       .sort((a, b) => a.daysUntil - b.daysUntil)

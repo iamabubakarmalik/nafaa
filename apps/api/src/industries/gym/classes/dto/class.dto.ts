@@ -1,6 +1,7 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { GymClassStatus, GymClassType } from '@prisma/client';
-import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 export class CreateClassDto {
   @IsString() @MinLength(2, { message: 'Class ka naam likhein' }) @MaxLength(80) name!: string;
@@ -33,6 +34,9 @@ export class ClassStatusDto {
 
 export class BookClassDto {
   @IsString() memberId!: string;
+  /** Paid class: money taken now; the rest goes on the member's khata. Left out, all on khata. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(10_000_000) paidAmount?: number;
+  @ApiPropertyOptional() @IsOptional() @IsIn(MONEY_METHODS, { message: 'Payment ka tareeqa sahi chunein' }) paymentMethod?: string;
 }
 
 export class CancelBookingDto {

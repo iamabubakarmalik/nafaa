@@ -6,6 +6,10 @@
  * warranty starts on the bill date. Accessories and small items sell like
  * any product.
  *
+ * Units come from this counter's branch only (and older units with no
+ * branch). An old appliance the customer hands in is recorded from the cart
+ * and taken off the bill under Trade-in at checkout.
+ *
  * Offline: products sell from the offline store; a bill with picked serial
  * units needs the internet, because the units are matched on the server.
  */
@@ -18,9 +22,10 @@ import { useProductCatalog, type PosEngineApi, type PosFilter, type PosIndustryC
 import type { PosCartLine } from '@modules/pos/lib/posCart';
 import type { ApplianceProductProfile } from '../api/products.api';
 import { useApplianceProfiles } from '../components/profiles';
-import { applianceSerialApi, type ApplianceSerial } from '../api/serial-tracking.api';
-import { CATEGORY_GROUPS, PROFILE_KEY, SERIAL_KEY, catMeta } from '../components/meta';
+import { applianceSerialApi, type CounterUnit } from '../api/serial-tracking.api';
+import { CATEGORY_GROUPS, PROFILE_KEY, SERIAL_KEY, TRADE_IN_KEY, catMeta } from '../components/meta';
 import { SerialPicker } from './SerialPicker';
+import { TradeInTake, useApplianceTradeIns } from './TradeInTake';
 
 /** A unit picked for the bill; marked sold once the bill is saved. */
 export interface PickedUnit { productId: string; serialId: string; serialNumber: string }
@@ -36,9 +41,15 @@ export const applianceSaleListener: { current: ((sale: PosSavedSale, units: Pick
 
 const STOCK_KEY = [SERIAL_KEY, 'pos-in-stock'];
 
-/** Serial units on the shelf per product (first 200), to know which products ask for a unit. */
+/** Serial units on this branch's shelf, to know which products ask for a unit. */
 function useShelf() {
-  return useQuery({ queryKey: STOCK_KEY, queryFn: () => applianceSerialApi.list({ status: 'IN_STOCK', limit: 200 }), staleTime: 30_000, enabled: navigator.onLine });
+  return useQuery({ queryKey: STOCK_KEY, queryFn: () => applianceSerialApi.counter(), staleTime: 30_000, enabled: navigator.onLine });
+}
+
+/** Line note: the serial, and the shop's own warranty when the product has one. */
+function lineNote(item: PosItem, serial?: string) {
+  const shopMonths = Number((item.meta?.profile as ApplianceProductProfile | undefined)?.shopWarrantyMonths) || 0;
+  return [serial ? `S/N ${serial}` : '', shopMonths ? `Dukaan warranty ${shopMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined;
 }
 
 function decorate(profiles: Map<string, ApplianceProductProfile>, shelf: Map<string, number>) {
@@ -58,7 +69,7 @@ function decorate(profiles: Map<string, ApplianceProductProfile>, shelf: Map<str
         ...(p.isNewArrival ? [{ label: 'Naya', tone: 'success' as const, icon: Sparkles }] : []),
         ...(p.freeDelivery ? [{ label: 'Free delivery', tone: 'success' as const, icon: Truck }] : []),
       ],
-      subline: [p.brand?.name, p.modelNumber, p.acTonnage ? `${p.acTonnage} ton` : p.capacity, p.warrantyMonths ? `${p.warrantyMonths}m warranty` : ''].filter(Boolean).join(' · ') || undefined,
+      subline: [p.brand?.name, p.modelNumber, p.acTonnage ? `${p.acTonnage} ton` : p.capacity, p.warrantyMonths ? `${p.warrantyMonths}m warranty` : '', p.shopWarrantyMonths ? `+${p.shopWarrantyMonths}m dukaan` : ''].filter(Boolean).join(' · ') || undefined,
       meta: { ...it.meta, group: m.group, units, warrantyMonths: p.warrantyMonths || undefined, profile: p },
     };
   };
@@ -69,19 +80,19 @@ function useApplianceCatalog() {
   const shelfQ = useShelf();
   const shelf = useMemo(() => {
     const m = new Map<string, number>();
-    for (const u of shelfQ.data?.items ?? []) m.set(u.productId, (m.get(u.productId) ?? 0) + 1);
+    for (const u of shelfQ.data ?? []) m.set(u.productId, (m.get(u.productId) ?? 0) + 1);
     return m;
   }, [shelfQ.data]);
   const catalog = useProductCatalog(decorate(profiles, shelf), [profiles, shelf]);
-  return { ...catalog, refreshKeys: [...catalog.refreshKeys, SERIAL_KEY, PROFILE_KEY] };
+  return { ...catalog, refreshKeys: [...catalog.refreshKeys, SERIAL_KEY, PROFILE_KEY, TRADE_IN_KEY] };
 }
 
 /** Puts one exact unit on the bill and remembers it for marking sold. */
-function addUnit(item: PosItem, u: Pick<ApplianceSerial, 'id' | 'serialNumber'>, api: PosEngineApi) {
+function addUnit(item: PosItem, u: Pick<CounterUnit, 'id' | 'serialNumber'>, api: PosEngineApi) {
   if (!api.cart.length) counter.picked = [];
   if (counter.picked.some((p) => p.serialId === u.id)) { toast.info('Ye unit pehle se bill me hai'); return; }
   counter.picked.push({ productId: item.id, serialId: u.id, serialNumber: u.serialNumber });
-  api.addItem(item, { confirmed: ['serial'], note: `S/N ${u.serialNumber}`, warrantyMonths: item.meta?.warrantyMonths as number | undefined });
+  api.addItem(item, { confirmed: ['serial'], note: lineNote(item, u.serialNumber), warrantyMonths: item.meta?.warrantyMonths as number | undefined });
 }
 
 /** Keeps no more picked units per product than the bill sells. */
@@ -106,6 +117,8 @@ export const appliancesPos: PosIndustryConfig = {
   useCatalog: useApplianceCatalog,
   filters: [{ id: 'accessories', label: 'Accessories', match: (i) => !i.meta?.profile }, ...filters],
   quickKeys: true,
+  CartExtra: TradeInTake,
+  useTradeIns: useApplianceTradeIns,
   searchHint: 'Model, brand, ton, liter — ya barcode / serial scan karein',
   receiptFooter: 'Warranty ke liye ye bill aur warranty card sambhaal kar rakhein. Bijli ke utaar charhao, paani ya tootne ka nuqsan warranty me nahi.',
   beforeCheckout: (cart) => {
@@ -130,8 +143,8 @@ export const appliancesPos: PosIndustryConfig = {
     const taken = new Set(counter.picked.map((p) => p.serialId));
     api.openPicker(createElement(SerialPicker, {
       item, taken,
-      onPick: (u: ApplianceSerial) => { api.closePicker(); addUnit(item, u, api); },
-      onSkip: () => { api.closePicker(); api.addItem(item, { ...opts, confirmed: [...(opts.confirmed ?? []), 'serial'], warrantyMonths: item.meta?.warrantyMonths as number | undefined }); },
+      onPick: (u: CounterUnit) => { api.closePicker(); addUnit(item, u, api); },
+      onSkip: () => { api.closePicker(); api.addItem(item, { ...opts, confirmed: [...(opts.confirmed ?? []), 'serial'], note: opts.note ?? lineNote(item), warrantyMonths: item.meta?.warrantyMonths as number | undefined }); },
       onClose: api.closePicker,
     }));
     return 'handled';
@@ -139,9 +152,10 @@ export const appliancesPos: PosIndustryConfig = {
   scan: async (code, api) => {
     if (api.findItemByCode(code) || !navigator.onLine || code.trim().length < 4) return false;
     try {
-      const s = await applianceSerialApi.lookup(code.trim());
+      const s = await applianceSerialApi.counterLookup(code.trim());
       if (!s) return false;
       if (s.status !== 'IN_STOCK') { toast.error(`Serial ${s.serialNumber} — ${s.status === 'SOLD' ? `pehle bik chuka (${s.invoiceNumber ?? ''})` : 'stock me nahi'}`); return true; }
+      if (s.otherBranch) { toast.error(`Serial ${s.serialNumber} ${s.otherBranch} me hai — pehle Transfer karein`); return true; }
       const item = api.itemById(s.productId);
       if (!item) { toast.error('Is serial ka product counter par nahi'); return true; }
       addUnit(item, s, api);

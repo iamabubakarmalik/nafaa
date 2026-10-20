@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertFloristProductDto } from './dto/upsert-product.dto';
+import { addDaysTz, parseDay } from '../florist-common';
+import { endOfDayTz } from '../../../common/helpers/business-time.helper';
 
 @Injectable()
 export class FloristProductsService {
@@ -18,8 +21,11 @@ export class FloristProductsService {
     });
 
     const data: any = { ...dto, tenantId: user.tenantId };
-    if (dto.arrivalDate) data.arrivalDate = new Date(dto.arrivalDate);
-    if (dto.freshUntil) data.freshUntil = new Date(dto.freshUntil);
+    if (dto.arrivalDate) data.arrivalDate = parseDay(dto.arrivalDate);
+    if (dto.freshUntil) data.freshUntil = parseDay(dto.freshUntil);
+    // Fresh-until follows the arrival day and shelf life when not given.
+    const days = dto.daysToWither ?? existing?.daysToWither;
+    if (data.arrivalDate && !dto.freshUntil && days && days > 0) data.freshUntil = endOfDayTz(addDaysTz(data.arrivalDate, days - 1));
 
     if (existing) {
       return this.prisma.floristProductProfile.update({
@@ -100,35 +106,32 @@ export class FloristProductsService {
     return this.prisma.floristProductProfile.delete({ where: { id } });
   }
 
+  /**
+   * Flowers past or near their fresh-until date, with the product's name,
+   * stock and cost so the freshness page can write the wastage off.
+   */
   async freshnessAlerts(user: AuthenticatedUser) {
     const now = new Date();
     const in2Days = new Date(now.getTime() + 2 * 86400000);
     const in5Days = new Date(now.getTime() + 5 * 86400000);
-
+    const find = (freshUntil: Prisma.DateTimeNullableFilter) => this.prisma.floristProductProfile.findMany({
+      where: { tenantId: user.tenantId, freshUntil },
+      orderBy: { freshUntil: 'asc' },
+      take: 50,
+    });
     const [witheringToday, witheringSoon, witheringLater] = await Promise.all([
-      this.prisma.floristProductProfile.findMany({
-        where: {
-          tenantId: user.tenantId,
-          freshUntil: { lt: now },
-        },
-        take: 50,
-      }),
-      this.prisma.floristProductProfile.findMany({
-        where: {
-          tenantId: user.tenantId,
-          freshUntil: { gte: now, lte: in2Days },
-        },
-        take: 50,
-      }),
-      this.prisma.floristProductProfile.findMany({
-        where: {
-          tenantId: user.tenantId,
-          freshUntil: { gt: in2Days, lte: in5Days },
-        },
-        take: 50,
-      }),
+      find({ lt: now }), find({ gte: now, lte: in2Days }), find({ gt: in2Days, lte: in5Days }),
     ]);
-    return { witheringToday, witheringSoon, witheringLater };
+    const ids = [...witheringToday, ...witheringSoon, ...witheringLater].map((p) => p.productId);
+    const products = await this.prisma.product.findMany({
+      where: { tenantId: user.tenantId, id: { in: ids } },
+      select: { id: true, name: true, unit: true, stock: true, costPrice: true, price: true, isActive: true },
+    });
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const withProduct = <T extends { productId: string }>(rows: T[]) => rows
+      .filter((r) => byId.get(r.productId)?.isActive !== false)
+      .map((r) => ({ ...r, product: byId.get(r.productId) ?? null }));
+    return { witheringToday: withProduct(witheringToday), witheringSoon: withProduct(witheringSoon), witheringLater: withProduct(witheringLater) };
   }
 
   async byOccasion(user: AuthenticatedUser, occasion: string) {

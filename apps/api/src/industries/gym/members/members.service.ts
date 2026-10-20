@@ -271,12 +271,12 @@ export class MembersService {
       where: { id, tenantId: user.tenantId },
       include: {
         memberships: { include: { plan: true }, orderBy: { createdAt: 'desc' }, take: 30 },
-        measurements: { orderBy: { measurementDate: 'desc' }, take: 12 },
+        measurements: { where: { isVoided: false }, orderBy: { measurementDate: 'desc' }, take: 12 },
         attendances: { orderBy: { checkInAt: 'desc' }, take: 30 },
       },
     });
     if (!m) throw new NotFoundException('Member nahi mila');
-    const [customer, ptSessions, bills] = await Promise.all([
+    const [customer, ptSessions, bills, ptPackages, lockers] = await Promise.all([
       this.prisma.customer.findFirst({ where: { id: m.customerId, tenantId: user.tenantId } }),
       this.prisma.gymPersonalTraining.findMany({ where: { tenantId: user.tenantId, memberId: m.id }, include: { trainer: { select: { id: true, trainerNumber: true, staffId: true } } }, orderBy: { scheduledStart: 'desc' }, take: 20 }),
       this.prisma.sale.findMany({
@@ -285,10 +285,12 @@ export class MembersService {
         orderBy: { createdAt: 'desc' },
         take: 20,
       }),
+      this.prisma.gymPersonalTrainingPackage.findMany({ where: { tenantId: user.tenantId, memberId: m.id }, orderBy: { createdAt: 'desc' }, take: 10 }),
+      this.prisma.gymLocker.findMany({ where: { tenantId: user.tenantId, memberId: m.id } }),
     ]);
     const now = new Date();
     const current = this.currentOf(m.memberships.filter((x) => x.status !== 'CANCELLED'), now);
-    return { ...m, customer, ptSessions, bills, current, state: this.state(current, now, new Date(now.getTime() + 7 * DAY_MS)) };
+    return { ...m, customer, ptSessions, bills, ptPackages, lockers, current, state: this.state(current, now, new Date(now.getTime() + 7 * DAY_MS)) };
   }
 
   async byQrCode(user: AuthenticatedUser, qrCode: string) {

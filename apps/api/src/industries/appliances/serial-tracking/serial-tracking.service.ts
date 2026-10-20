@@ -1,12 +1,25 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, type ApplianceInstallationStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { addMonths } from 'date-fns';
-import { AssignSaleSerialsDto, BulkSerialDto, UpdateApplianceSerialDto, UpsertApplianceSerialDto } from './dto/upsert-serial.dto';
+import { ShopScope, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
+import { addMonths, subMonths } from 'date-fns';
+import { AssignSaleSerialsDto, BulkSerialDto, CreateApplianceSerialDto, MoveSerialsDto, UpdateApplianceSerialDto } from './dto/upsert-serial.dto';
 import { UNSOLD } from '../common/appliance-bill-void.service';
 import { optDate, stamp } from '../common/appliance-common';
 
 const DAY = 86_400_000;
+
+type Where = Prisma.ApplianceSerialTrackingWhereInput;
+
+/** End of the shop's own warranty: it runs from the customer warranty start for the product's shop months. */
+export const shopWarrantyEnd = (start: Date | null | undefined, months: number | null | undefined) =>
+  (start && months && months > 0 ? addMonths(new Date(start), months) : null);
+
+/** Units of this branch, plus units entered before branches were tracked (no branch). */
+const inBranch = (shopId: string | null | undefined): Where => (shopId ? { OR: [{ shopId }, { shopId: null }] } : {});
+
+const isOwner = (user: AuthenticatedUser) => user.role === 'OWNER' || user.role === 'SUPER_ADMIN';
 
 @Injectable()
 export class ApplianceSerialService {
@@ -34,7 +47,7 @@ export class ApplianceSerialService {
 
   /** Serial ke sath uske product ka naam/brand/warranty — sirf id se page khali lagta hai. */
   private async attachProducts<T extends { productId: string }>(tenantId: string, rows: T[]) {
-    if (!rows.length) return rows as (T & { product: any })[];
+    if (!rows.length) return [];
 
     const ids = [...new Set(rows.map((r) => r.productId))];
     const [products, profiles, brands] = await Promise.all([
@@ -47,12 +60,15 @@ export class ApplianceSerialService {
         select: {
           productId: true, categoryType: true, brandId: true, modelNumber: true,
           capacity: true, energyRating: true, isInverter: true,
-          warrantyMonths: true, compressorWarrantyMonths: true, motorWarrantyMonths: true,
+          warrantyMonths: true, compressorWarrantyMonths: true, motorWarrantyMonths: true, shopWarrantyMonths: true,
           requiresInstallation: true, installationCharge: true,
         },
       }),
       this.prisma.brand.findMany({ where: { tenantId }, select: { id: true, name: true } }),
     ]);
+    const shopIds = [...new Set(rows.map((r) => (r as { shopId?: string | null }).shopId).filter((x): x is string => !!x))];
+    const shops = shopIds.length ? await this.prisma.shop.findMany({ where: { tenantId, id: { in: shopIds } }, select: { id: true, name: true } }) : [];
+    const shopName = new Map(shops.map((x) => [x.id, x.name]));
 
     const byId = new Map(products.map((p) => [p.id, p]));
     const profById = new Map(profiles.map((p) => [p.productId, p]));
@@ -61,8 +77,11 @@ export class ApplianceSerialService {
     return rows.map((r) => {
       const p = byId.get(r.productId);
       const prof = profById.get(r.productId);
+      const own = r as { shopId?: string | null; warrantyStartDate?: Date | null };
       return {
         ...r,
+        shopName: own.shopId ? shopName.get(own.shopId) ?? null : null,
+        shopWarrantyEndDate: shopWarrantyEnd(own.warrantyStartDate, prof?.shopWarrantyMonths),
         product: p
           ? {
               ...p,
@@ -75,6 +94,7 @@ export class ApplianceSerialService {
               warrantyMonths: prof?.warrantyMonths ?? null,
               compressorWarrantyMonths: prof?.compressorWarrantyMonths ?? null,
               motorWarrantyMonths: prof?.motorWarrantyMonths ?? null,
+              shopWarrantyMonths: prof?.shopWarrantyMonths ?? null,
               requiresInstallation: prof?.requiresInstallation ?? false,
               installationCharge: Number(prof?.installationCharge) || 0,
             }
@@ -83,34 +103,50 @@ export class ApplianceSerialService {
     });
   }
 
-  /** Warranty ki teen tareekhein — jo pehle khatam ho rahi ho wahi asal hai. */
+  /**
+   * Company warranty (whole unit, compressor, motor) and the shop's own
+   * warranty; the one ending first is shown on lists.
+   */
   private warrantyInfo(s: {
     warrantyEndDate: Date | null;
     compressorWarrantyEndDate: Date | null;
     motorWarrantyEndDate: Date | null;
+    shopWarrantyEndDate?: Date | null;
   }) {
     const now = Date.now();
-    const left = (d: Date | null) => (d ? Math.floor((new Date(d).getTime() - now) / DAY) : null);
+    const left = (d: Date | null | undefined) => (d ? Math.floor((new Date(d).getTime() - now) / DAY) : null);
     const main = left(s.warrantyEndDate);
     const compressor = left(s.compressorWarrantyEndDate);
     const motor = left(s.motorWarrantyEndDate);
+    const shop = left(s.shopWarrantyEndDate);
     const live = [
       main !== null ? { kind: 'MAIN', days: main } : null,
       compressor !== null ? { kind: 'COMPRESSOR', days: compressor } : null,
       motor !== null ? { kind: 'MOTOR', days: motor } : null,
+      shop !== null ? { kind: 'SHOP', days: shop } : null,
     ].filter((x): x is { kind: string; days: number } => x !== null);
     const soonest = live.filter((x) => x.days >= 0).sort((a, b) => a.days - b.days)[0] ?? null;
     return {
       mainDaysLeft: main,
       compressorDaysLeft: compressor,
       motorDaysLeft: motor,
+      shopDaysLeft: shop,
       isUnderWarranty: live.some((x) => x.days >= 0),
       soonestKind: soonest?.kind ?? null,
       soonestDays: soonest?.days ?? null,
     };
   }
 
-  async create(user: AuthenticatedUser, dto: UpsertApplianceSerialDto) {
+  /** Branch a new unit goes into: the one named, the one being viewed, else the main shop. */
+  private async entryShop(user: AuthenticatedUser, scope: ShopScope, shopId?: string) {
+    const id = await resolveWriteShopId(this.prisma, user.tenantId, scope, shopId);
+    assertShopAccess(user, id, 'Serial jorna');
+    return id;
+  }
+
+  async create(user: AuthenticatedUser, scope: ShopScope, input: CreateApplianceSerialDto) {
+    const { shopId: wanted, ...dto } = input;
+    const shopId = await this.entryShop(user, scope, wanted);
     const dup = await this.prisma.applianceSerialTracking.findFirst({
       where: { tenantId: user.tenantId, serialNumber: dto.serialNumber },
     });
@@ -125,7 +161,7 @@ export class ApplianceSerialService {
       // A unit taken off the register by mistake comes back instead of a duplicate.
       return this.prisma.applianceSerialTracking.update({
         where: { id: dup.id },
-        data: { productId: dto.productId, status: dto.status && dto.status !== 'SOLD' ? dto.status : 'IN_STOCK', modelNumber: dto.modelNumber, purchasePrice: dto.purchasePrice, purchaseDate: optDate(dto.purchaseDate), notes: stamp(dup.notes, 'Register me wapas') },
+        data: { productId: dto.productId, shopId, status: dto.status && dto.status !== 'SOLD' ? dto.status : 'IN_STOCK', modelNumber: dto.modelNumber, purchasePrice: dto.purchasePrice, purchaseDate: optDate(dto.purchaseDate), notes: stamp(dup.notes, 'Register me wapas') },
       });
     }
     if (dto.status === 'SOLD') throw new BadRequestException('Naya unit "bika hua" darj nahi hota — bill se bechein');
@@ -134,6 +170,7 @@ export class ApplianceSerialService {
       data: {
         ...dto,
         tenantId: user.tenantId,
+        shopId,
         manufactureDate: dto.manufactureDate ? new Date(dto.manufactureDate) : null,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : null,
         installationScheduledFor: dto.installationScheduledFor ? new Date(dto.installationScheduledFor) : null,
@@ -152,7 +189,7 @@ export class ApplianceSerialService {
    * daalna aadha ghanta le leta hai. Warranty ke mahine product profile
    * se khud lag jate hain.
    */
-  async bulkCreate(user: AuthenticatedUser, dto: BulkSerialDto) {
+  async bulkCreate(user: AuthenticatedUser, scope: ShopScope, dto: BulkSerialDto) {
     const numbers = [...new Set(
       dto.serialNumbers.map((s) => String(s).trim()).filter(Boolean),
     )];
@@ -184,10 +221,12 @@ export class ApplianceSerialService {
     });
 
     const purchaseDate = dto.purchaseDate ? new Date(dto.purchaseDate) : new Date();
+    const shopId = await this.entryShop(user, scope, dto.shopId);
 
     await this.prisma.applianceSerialTracking.createMany({
       data: fresh.map((serialNumber) => ({
         tenantId: user.tenantId,
+        shopId,
         productId: dto.productId,
         serialNumber,
         modelNumber: dto.modelNumber ?? profile?.modelNumber ?? null,
@@ -213,7 +252,33 @@ export class ApplianceSerialService {
     };
   }
 
-  async list(user: AuthenticatedUser, params: {
+  /**
+   * Sold units by warranty state, company or shop warranty. The shop warranty
+   * has no stored end date, so it is matched per product by its months.
+   */
+  private async warrantyWhere(tenantId: string, state: 'active' | 'expiring' | 'expired'): Promise<Where> {
+    const now = new Date();
+    const in30 = new Date(now.getTime() + 30 * DAY);
+    const profiles = await this.prisma.applianceProductProfile.findMany({
+      where: { tenantId, shopWarrantyMonths: { gt: 0 } },
+      select: { productId: true, shopWarrantyMonths: true },
+    });
+    const byMonths = new Map<number, string[]>();
+    for (const p of profiles) byMonths.set(p.shopWarrantyMonths!, [...(byMonths.get(p.shopWarrantyMonths!) ?? []), p.productId]);
+    const ending = (from: Date, to?: Date): Where[] => {
+      const range = { gte: from, ...(to && { lte: to }) };
+      return [
+        { warrantyEndDate: range }, { compressorWarrantyEndDate: range }, { motorWarrantyEndDate: range },
+        // shop end = start + months, so start lies in the range moved back by those months
+        ...[...byMonths].map(([m, ids]): Where => ({ productId: { in: ids }, warrantyStartDate: { gte: subMonths(from, m), ...(to && { lte: subMonths(to, m) }) } })),
+      ];
+    };
+    if (state === 'expiring') return { status: 'SOLD', OR: ending(now, in30) };
+    if (state === 'active') return { status: 'SOLD', OR: ending(now) };
+    return { status: 'SOLD', NOT: { OR: ending(now) } };
+  }
+
+  async list(user: AuthenticatedUser, scope: ShopScope, params: {
     productId?: string;
     status?: string;
     installationStatus?: string;
@@ -225,12 +290,15 @@ export class ApplianceSerialService {
     await this.releaseVoided(user.tenantId);
     const page = Math.max(1, Number(params.page) || 1);
     const limit = Math.min(500, Math.max(1, Number(params.limit) || 100));
+    const and: Where[] = [inBranch(scope.shopId)];
+    if (params.warranty && ['active', 'expiring', 'expired'].includes(params.warranty)) and.push(await this.warrantyWhere(user.tenantId, params.warranty));
 
-    const where: any = {
+    const where: Where = {
       tenantId: user.tenantId,
       ...(params.productId && { productId: params.productId }),
       status: params.status || { not: 'REMOVED' },
-      ...(params.installationStatus && { installationStatus: params.installationStatus as any }),
+      ...(params.installationStatus && { installationStatus: params.installationStatus as ApplianceInstallationStatus }),
+      AND: and,
       ...(params.search && {
         OR: [
           { serialNumber: { contains: params.search, mode: 'insensitive' } },
@@ -254,14 +322,7 @@ export class ApplianceSerialService {
     ]);
 
     const withProducts = await this.attachProducts(user.tenantId, rows);
-    let items = withProducts.map((r) => ({ ...r, warranty: this.warrantyInfo(r) }));
-
-    if (params.warranty === 'active') items = items.filter((r) => r.warranty.isUnderWarranty);
-    if (params.warranty === 'expired') items = items.filter((r) => !r.warranty.isUnderWarranty);
-    if (params.warranty === 'expiring') {
-      items = items.filter((r) => r.warranty.soonestDays !== null && r.warranty.soonestDays <= 30);
-    }
-
+    const items = withProducts.map((r) => ({ ...r, warranty: this.warrantyInfo(r) }));
     return { items, meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) } };
   }
 
@@ -301,7 +362,7 @@ export class ApplianceSerialService {
 
     return {
       ...withProduct,
-      warranty: this.warrantyInfo(s),
+      warranty: this.warrantyInfo(withProduct),
       installations,
       services,
       /** Is unit par ab tak kitna kharcha aaya — warranty ka asli bojh */
@@ -316,7 +377,37 @@ export class ApplianceSerialService {
     });
     if (!s) return null;
     const [withProduct] = await this.attachProducts(user.tenantId, [s]);
-    return { ...withProduct, warranty: this.warrantyInfo(s) };
+    return { ...withProduct, warranty: this.warrantyInfo(withProduct) };
+  }
+
+  /**
+   * In-stock units the counter can sell: the selling branch's own and those
+   * with no branch yet. The branch is the one a bill from this counter goes to.
+   */
+  async counterUnits(user: AuthenticatedUser, scope: ShopScope, productId?: string) {
+    await this.releaseVoided(user.tenantId);
+    const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
+    return this.prisma.applianceSerialTracking.findMany({
+      where: { tenantId: user.tenantId, status: 'IN_STOCK', ...(productId && { productId }), ...inBranch(shopId) },
+      orderBy: { createdAt: 'asc' },
+      take: 1000,
+      select: { id: true, productId: true, serialNumber: true, modelNumber: true, batchNumber: true, purchaseDate: true, createdAt: true },
+    });
+  }
+
+  /** A scanned serial at the counter, with the branch it sits in when that is not this counter's. */
+  async counterLookup(user: AuthenticatedUser, scope: ShopScope, code: string) {
+    await this.releaseVoided(user.tenantId);
+    const s = await this.prisma.applianceSerialTracking.findFirst({
+      where: { tenantId: user.tenantId, serialNumber: code.trim() },
+      select: { id: true, productId: true, serialNumber: true, status: true, invoiceNumber: true, shopId: true },
+    });
+    if (!s) return null;
+    const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
+    const other = s.shopId && s.shopId !== shopId
+      ? (await this.prisma.shop.findFirst({ where: { id: s.shopId, tenantId: user.tenantId }, select: { name: true } }))?.name ?? 'doosri branch'
+      : null;
+    return { id: s.id, productId: s.productId, serialNumber: s.serialNumber, status: s.status, invoiceNumber: s.invoiceNumber, otherBranch: other };
   }
 
   async warrantyCheck(user: AuthenticatedUser, code: string) {
@@ -327,7 +418,7 @@ export class ApplianceSerialService {
     if (!s) return { found: false };
 
     const [withProduct] = await this.attachProducts(user.tenantId, [s]);
-    const w = this.warrantyInfo(s);
+    const w = this.warrantyInfo(withProduct);
     const now = new Date();
 
     // Agar is unit par koi AMC chal raha ho to wo warranty se bhi
@@ -359,6 +450,9 @@ export class ApplianceSerialService {
         motorValid: (w.motorDaysLeft ?? -1) >= 0,
         motorEndDate: s.motorWarrantyEndDate,
         motorDaysRemaining: w.motorDaysLeft,
+        shopValid: (w.shopDaysLeft ?? -1) >= 0,
+        shopEndDate: withProduct.shopWarrantyEndDate,
+        shopDaysRemaining: w.shopDaysLeft,
         soonestKind: w.soonestKind,
         soonestDays: w.soonestDays,
       },
@@ -454,7 +548,7 @@ export class ApplianceSerialService {
   async assignSale(user: AuthenticatedUser, dto: AssignSaleSerialsDto) {
     const sale = await this.prisma.sale.findFirst({
       where: { id: dto.saleId, tenantId: user.tenantId },
-      select: { id: true, saleNumber: true, status: true, customerId: true, createdAt: true, customer: { select: { name: true, phone: true, address: true } }, items: { select: { productId: true, quantity: true, returnedQty: true, price: true } } },
+      select: { id: true, saleNumber: true, status: true, shopId: true, customerId: true, createdAt: true, customer: { select: { name: true, phone: true, address: true } }, items: { select: { productId: true, quantity: true, returnedQty: true, price: true } } },
     });
     if (!sale) throw new NotFoundException('Bill nahi mila');
     if (sale.status === 'VOIDED') throw new BadRequestException('Void bill par serial nahi lagta');
@@ -475,6 +569,7 @@ export class ApplianceSerialService {
     for (const u of units) {
       if (u.status === 'SOLD' && u.saleId === sale.id) continue;
       if (u.status !== 'IN_STOCK') throw new BadRequestException(`Serial ${u.serialNumber} ${u.status === 'SOLD' ? `pehle hi bill ${u.invoiceNumber ?? ''} par bik chuka` : `ki halat ${u.status} hai`}`);
+      if (u.shopId && sale.shopId && u.shopId !== sale.shopId) throw new BadRequestException(`Serial ${u.serialNumber} doosri branch me hai — pehle Transfer karein`);
       const line = onBill.get(u.productId);
       if (!line) throw new BadRequestException(`Serial ${u.serialNumber} ka product is bill par nahi`);
       const n = (used.get(u.productId) ?? 0) + 1;
@@ -494,7 +589,7 @@ export class ApplianceSerialService {
       return this.prisma.applianceSerialTracking.update({
         where: { id: u.id },
         data: {
-          status: 'SOLD', saleId: sale.id, invoiceNumber: sale.saleNumber, soldAt, soldPrice: onBill.get(u.productId)?.price ?? null,
+          status: 'SOLD', shopId: u.shopId ?? sale.shopId, saleId: sale.id, invoiceNumber: sale.saleNumber, soldAt, soldPrice: onBill.get(u.productId)?.price ?? null,
           soldToCustomerId: sale.customerId, customerName: sale.customer?.name ?? null, customerPhone: sale.customer?.phone ?? null,
           deliveryAddress: u.deliveryAddress ?? sale.customer?.address ?? null,
           // Dates set by hand on the unit (a start date) are kept; otherwise the warranty runs from the bill.
@@ -506,56 +601,59 @@ export class ApplianceSerialService {
     }));
   }
 
-  /** Units sold on one bill, for the bill page and the warranty card. */
-  forSale(user: AuthenticatedUser, saleId: string) {
-    return this.prisma.applianceSerialTracking.findMany({
+  /** Adds the end of the shop's own warranty to sold units, from each product's shop months. */
+  private async withShopWarranty<T extends { productId: string; warrantyStartDate: Date | null }>(tenantId: string, units: T[]) {
+    if (!units.length) return [];
+    const profiles = await this.prisma.applianceProductProfile.findMany({
+      where: { tenantId, productId: { in: [...new Set(units.map((u) => u.productId))] }, shopWarrantyMonths: { gt: 0 } },
+      select: { productId: true, shopWarrantyMonths: true },
+    });
+    const months = new Map(profiles.map((p) => [p.productId, p.shopWarrantyMonths]));
+    return units.map((u) => ({ ...u, shopWarrantyEndDate: shopWarrantyEnd(u.warrantyStartDate, months.get(u.productId)) }));
+  }
+
+  /** Units sold on one bill, for the bill page and the warranty card (company and shop warranty). */
+  async forSale(user: AuthenticatedUser, saleId: string) {
+    const units = await this.prisma.applianceSerialTracking.findMany({
       where: { tenantId: user.tenantId, saleId, status: 'SOLD' },
       select: { id: true, productId: true, serialNumber: true, modelNumber: true, warrantyStartDate: true, warrantyEndDate: true, compressorWarrantyEndDate: true, motorWarrantyEndDate: true },
     });
+    return this.withShopWarranty(user.tenantId, units);
   }
 
   /** Units sold on any of the given bills. */
-  forSales(user: AuthenticatedUser, saleIds: string[]) {
+  async forSales(user: AuthenticatedUser, saleIds: string[]) {
     if (!saleIds.length) return [];
-    return this.prisma.applianceSerialTracking.findMany({
+    const units = await this.prisma.applianceSerialTracking.findMany({
       where: { tenantId: user.tenantId, saleId: { in: saleIds }, status: 'SOLD' },
-      select: { id: true, saleId: true, productId: true, serialNumber: true, warrantyEndDate: true, installationStatus: true },
+      select: { id: true, saleId: true, productId: true, serialNumber: true, warrantyStartDate: true, warrantyEndDate: true, installationStatus: true },
     });
+    return this.withShopWarranty(user.tenantId, units);
   }
 
   /** Serial register ki ek nazar me haalat. */
-  async summary(user: AuthenticatedUser) {
+  async summary(user: AuthenticatedUser, scope: ShopScope) {
     await this.releaseVoided(user.tenantId);
     const tenantId = user.tenantId;
-    const now = new Date();
-    const in30 = new Date(now.getTime() + 30 * DAY);
+    const branch = inBranch(scope.shopId);
+    const expiringWhere = await this.warrantyWhere(tenantId, 'expiring');
 
     const [byStatus, byInstall, inStock, sold, expiring] = await Promise.all([
       this.prisma.applianceSerialTracking.groupBy({
-        by: ['status'], where: { tenantId }, _count: { _all: true },
+        by: ['status'], where: { tenantId, ...branch }, _count: { _all: true },
       }),
       this.prisma.applianceSerialTracking.groupBy({
-        by: ['installationStatus'], where: { tenantId, status: 'SOLD' }, _count: { _all: true },
+        by: ['installationStatus'], where: { tenantId, status: 'SOLD', ...branch }, _count: { _all: true },
       }),
       this.prisma.applianceSerialTracking.aggregate({
-        where: { tenantId, status: 'IN_STOCK' },
+        where: { tenantId, status: 'IN_STOCK', ...branch },
         _sum: { purchasePrice: true }, _count: { _all: true },
       }),
       this.prisma.applianceSerialTracking.aggregate({
-        where: { tenantId, status: 'SOLD' },
+        where: { tenantId, status: 'SOLD', ...branch },
         _sum: { soldPrice: true, purchasePrice: true }, _count: { _all: true },
       }),
-      this.prisma.applianceSerialTracking.count({
-        where: {
-          tenantId,
-          status: 'SOLD',
-          OR: [
-            { warrantyEndDate: { gte: now, lte: in30 } },
-            { compressorWarrantyEndDate: { gte: now, lte: in30 } },
-            { motorWarrantyEndDate: { gte: now, lte: in30 } },
-          ],
-        },
-      }),
+      this.prisma.applianceSerialTracking.count({ where: { tenantId, AND: [branch, expiringWhere] } }),
     ]);
 
     const statusMap = Object.fromEntries(byStatus.map((r) => [r.status, r._count._all]));
@@ -585,5 +683,99 @@ export class ApplianceSerialService {
       },
       warrantyExpiringSoon: expiring,
     };
+  }
+
+  /** Branches, and stock transfers received in the last 60 days, for putting units in a branch. */
+  async branches(user: AuthenticatedUser) {
+    const since = new Date(Date.now() - 60 * DAY);
+    const [shops, transfers] = await Promise.all([
+      this.prisma.shop.findMany({ where: { tenantId: user.tenantId, isActive: true }, orderBy: [{ isMain: 'desc' }, { name: 'asc' }], select: { id: true, name: true, isMain: true } }),
+      this.prisma.stockTransfer.findMany({
+        where: { tenantId: user.tenantId, status: 'RECEIVED', receivedAt: { gte: since } },
+        orderBy: { receivedAt: 'desc' },
+        take: 40,
+        select: {
+          id: true, transferNumber: true, fromShopId: true, toShopId: true, receivedAt: true,
+          fromShop: { select: { name: true } }, toShop: { select: { name: true } },
+          items: { where: { productId: { not: null }, receivedQty: { gt: 0 } }, select: { productId: true, receivedQty: true } },
+        },
+      }),
+    ]);
+    return { shops, transfers: transfers.filter((t) => t.items.length) };
+  }
+
+  /**
+   * Puts in-stock units in a branch. With a received transfer, units of its
+   * products move from its source branch to its destination, no more per
+   * product than arrived. Without one, only units with no branch yet are
+   * placed; a unit already in a branch moves only with a transfer, so the
+   * branch stock and the register stay the same.
+   */
+  async move(user: AuthenticatedUser, dto: MoveSerialsDto) {
+    const numbers = [...new Set((dto.serialNumbers ?? []).map((x) => x.trim()).filter(Boolean))];
+    const wanted = [...new Set(dto.serialIds ?? [])];
+    if (!numbers.length && !wanted.length) throw new BadRequestException('Serial chunein ya scan karein');
+    const units = await this.prisma.applianceSerialTracking.findMany({
+      where: { tenantId: user.tenantId, OR: [{ id: { in: wanted } }, { serialNumber: { in: numbers } }] },
+    });
+    const missing = numbers.filter((n) => !units.some((u) => u.serialNumber === n));
+    if (missing.length) throw new NotFoundException(`Ye serial register me nahi: ${missing.slice(0, 5).join(', ')}`);
+    if (wanted.some((id) => !units.some((u) => u.id === id))) throw new NotFoundException('Ek ya zyada serial nahi mile');
+    const ids = units.map((u) => u.id);
+    for (const u of units) {
+      if (u.status !== 'IN_STOCK') throw new BadRequestException(`Serial ${u.serialNumber} abhi ${u.status} hai — sirf stock wala unit branch badalta hai`);
+    }
+
+    let toShopId: string;
+    let label: string;
+    let dest: string;
+    if (dto.transferId) {
+      const t = await this.prisma.stockTransfer.findFirst({
+        where: { id: dto.transferId, tenantId: user.tenantId },
+        select: {
+          transferNumber: true, status: true, fromShopId: true, toShopId: true,
+          fromShop: { select: { name: true } }, toShop: { select: { name: true } },
+          items: { select: { productId: true, receivedQty: true } },
+        },
+      });
+      if (!t) throw new NotFoundException('Transfer nahi mila');
+      if (t.status !== 'RECEIVED') throw new BadRequestException(`Transfer ${t.transferNumber} abhi receive nahi hua`);
+      if (!isOwner(user) && user.shopId && user.shopId !== t.fromShopId && user.shopId !== t.toShopId) {
+        throw new ForbiddenException('Ye transfer aap ki branch ka nahi');
+      }
+      const tag = `(Transfer ${t.transferNumber})`;
+      const arrived = new Map<string, number>();
+      for (const it of t.items) if (it.productId) arrived.set(it.productId, (arrived.get(it.productId) ?? 0) + Math.floor(Number(it.receivedQty)));
+      const earlier = await this.prisma.applianceSerialTracking.groupBy({
+        by: ['productId'], where: { tenantId: user.tenantId, notes: { contains: tag }, id: { notIn: ids } }, _count: { _all: true },
+      });
+      const room = new Map([...arrived].map(([pid, qty]) => [pid, qty - (earlier.find((e) => e.productId === pid)?._count._all ?? 0)]));
+      for (const u of units) {
+        if (u.shopId === t.toShopId) throw new BadRequestException(`Serial ${u.serialNumber} pehle se ${t.toShop.name} me hai`);
+        if (u.shopId && u.shopId !== t.fromShopId) throw new BadRequestException(`Serial ${u.serialNumber} ${t.fromShop.name} me nahi — is transfer se nahi badalta`);
+        const left = room.get(u.productId);
+        if (left === undefined) throw new BadRequestException(`Serial ${u.serialNumber} ka product transfer ${t.transferNumber} me nahi`);
+        if (left <= 0) throw new BadRequestException(`Transfer ${t.transferNumber} me is product ke itne unit nahi aaye`);
+        room.set(u.productId, left - 1);
+      }
+      toShopId = t.toShopId;
+      dest = t.toShop.name;
+      label = `Branch ${t.fromShop.name} → ${t.toShop.name} ${tag}`;
+    } else {
+      if (!dto.toShopId) throw new BadRequestException('Branch chunein');
+      const shop = await this.prisma.shop.findFirst({ where: { id: dto.toShopId, tenantId: user.tenantId, isActive: true }, select: { id: true, name: true } });
+      if (!shop) throw new NotFoundException('Branch nahi mili');
+      assertShopAccess(user, shop.id, 'Serial branch me rakhna');
+      const placed = units.find((u) => u.shopId);
+      if (placed) throw new BadRequestException(`Serial ${placed.serialNumber} pehle se kisi branch me hai — doosri branch bhejne ke liye stock Transfer karein, phir us transfer se branch badlein`);
+      toShopId = shop.id;
+      dest = shop.name;
+      label = `Branch: ${shop.name}`;
+    }
+
+    await this.prisma.$transaction(units.map((u) => this.prisma.applianceSerialTracking.update({
+      where: { id: u.id }, data: { shopId: toShopId, notes: stamp(u.notes, label) },
+    })));
+    return { moved: units.length, message: `${units.length} unit ${dest} me rakh diye` };
   }
 }

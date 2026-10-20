@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DairyDeliverySlot, DairyMilkQuality, DairyUnit } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateSupplyDto {
   @ApiProperty() @IsString() farmerId!: string;
@@ -21,7 +21,9 @@ export class CreateSupplyDto {
 }
 
 export class SupplyPayDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) paymentMethod?: string;
+  /** Money account the payment leaves from; without it cash leaves the drawer. */
+  @ApiPropertyOptional() @IsOptional() @IsUUID() accountId?: string;
 }
 
 export class SupplyCancelDto {

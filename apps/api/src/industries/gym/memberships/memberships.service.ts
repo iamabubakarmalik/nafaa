@@ -121,9 +121,10 @@ export class MembershipsService {
         });
         sale = { id: posted.id, saleNumber: posted.saleNumber };
         await tx.gymMember.update({ where: { id: member.id }, data: { totalSpent: { increment: totalPrice } } });
+        await tx.gymMemberMembership.update({ where: { id: membership.id }, data: { saleId: posted.id } });
       }
 
-      return { ...membership, plan, sale };
+      return { ...membership, saleId: sale?.id ?? null, plan, sale };
     });
   }
 
@@ -209,7 +210,10 @@ export class MembershipsService {
     const [customer, bills, payments] = await Promise.all([
       this.prisma.customer.findFirst({ where: { id: m.member.customerId, tenantId: user.tenantId }, select: { id: true, name: true, phone: true, balance: true } }),
       this.prisma.sale.findMany({
-        where: { tenantId: user.tenantId, saleNumber: { startsWith: membershipSaleNumber(m.membershipNumber) } },
+        where: {
+          tenantId: user.tenantId,
+          OR: [...(m.saleId ? [{ id: m.saleId }] : []), { saleNumber: { startsWith: membershipSaleNumber(m.membershipNumber) } }],
+        },
         select: { id: true, saleNumber: true, total: true, paidAmount: true, creditAmount: true, status: true, paymentMethod: true, createdAt: true },
         orderBy: { createdAt: 'asc' },
       }),
@@ -235,10 +239,11 @@ export class MembershipsService {
 
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, m.member.shopId);
-      const billed = await tx.sale.findFirst({
+      // Older memberships have no saleId: their bill is found by number.
+      const billed = m.saleId ?? (await tx.sale.findFirst({
         where: { tenantId: user.tenantId, saleNumber: membershipSaleNumber(m.membershipNumber) },
         select: { id: true },
-      });
+      }))?.id;
       if (billed) {
         await recordKhataPayment(tx, user, {
           customerId: m.member.customerId,

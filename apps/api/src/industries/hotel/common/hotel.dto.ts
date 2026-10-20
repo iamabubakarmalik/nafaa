@@ -2,7 +2,7 @@
 
 import { Type } from 'class-transformer';
 import {
-  ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min, ValidateNested,
+  ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 import { BookingSource, FolioChargeType, GuestIdType, HousekeepingStatus, MealPlan, RoomStatus } from '@prisma/client';
 
@@ -37,6 +37,8 @@ export class CreateRoomDto {
   @IsOptional() @IsEnum(RoomStatus) status?: RoomStatus;
   @IsOptional() @IsEnum(HousekeepingStatus) housekeepingStatus?: HousekeepingStatus;
   @IsOptional() @IsBoolean() isActive?: boolean;
+  /** Branch of the room; left out, the branch being viewed (none in "All shops" = every branch). */
+  @IsOptional() @IsUUID() shopId?: string | null;
 }
 
 export class UpdateRoomDto {
@@ -50,6 +52,8 @@ export class UpdateRoomDto {
   @IsOptional() @IsNumber() @Min(0) customPrice?: number | null;
   @IsOptional() @IsString() @MaxLength(300) customNotes?: string;
   @IsOptional() @IsBoolean() isActive?: boolean;
+  /** Moves the room to a branch; null makes it show in every branch. */
+  @IsOptional() @IsUUID() shopId?: string | null;
 }
 
 export class RoomStatusDto {
@@ -171,6 +175,8 @@ export class UpdateBookingDto {
   @IsOptional() @IsString() @MaxLength(20) arrivalTime?: string;
   @IsOptional() @IsString() @MaxLength(200) purposeOfVisit?: string;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
+  /** Company / regular khata the stay is billed to; null clears it. */
+  @IsOptional() @IsUUID() customerId?: string | null;
 }
 
 export class BookingPaymentDto {
@@ -268,4 +274,10 @@ export class RatePlanDto {
   @IsOptional() @IsArray() @IsEnum(BookingSource, { each: true }) applicableSources?: BookingSource[];
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsInt() displayOrder?: number;
+}
+
+export class CloseNightAuditDto {
+  /** `yyyy-mm-dd`; left out, today. */
+  @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'Date sahi likhein' }) date?: string;
+  @IsOptional() @IsString() @MaxLength(1000) notes?: string;
 }

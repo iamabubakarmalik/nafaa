@@ -1,9 +1,27 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { cleanInput, drawerCash, nextNumbered, r2, shopYear } from '../dairy-common';
+import { ShopScope } from '../../../common/shop-scope';
+import { cleanInput, dayKey, dayRange, nextNumbered, r2, shopYear } from '../dairy-common';
 import { LIVE_SLIP } from '../farmer-supplies/farmer-supplies.service';
-import { FarmerPaymentDto, UpdateFarmerDto, UpsertFarmerDto } from './dto/upsert-farmer.dto';
+import { FarmerPaymentDto, FarmerStatementQuery, UpdateFarmerDto, UpsertFarmerDto } from './dto/upsert-farmer.dto';
+import { payAccountsWhere, payFarmer, paymentRef } from './farmer-payment';
+
+const METHOD_LABEL: Record<string, string> = { BANK_TRANSFER: 'Bank', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa', CARD: 'Card' };
+
+export interface FarmerPaymentLine {
+  id: string;
+  date: Date;
+  amount: number;
+  method: string;
+  /** Account the money left from; null for drawer cash. */
+  accountName: string | null;
+  reference: string | null;
+  note: string | null;
+  /** Cash paid before payments were recorded on their own (read from the drawer). */
+  legacy: boolean;
+}
 
 
 @Injectable()
@@ -55,15 +73,113 @@ export class FarmersService {
       orderBy: { supplyDate: 'desc' },
       take: 60,
     });
-    // Cash paid from the drawer (account payments and single slips); bank payments have no row yet.
-    const cashPayments = await this.prisma.cashTransaction.findMany({
-      where: { tenantId: user.tenantId, type: 'CASH_OUT', reference: { in: [f.farmerNumber, ...recentSupplies.map((s) => s.id)] } },
-      orderBy: { createdAt: 'desc' },
-      take: 60,
-      select: { id: true, amount: true, reason: true, createdAt: true },
-    });
+    const payments = await this.payments(user.tenantId, f, undefined, 60);
+    // Old shape, kept for older screens: cash payments only.
+    const cashPayments = payments.filter((p) => p.method === 'CASH' && !p.accountName)
+      .map((p) => ({ id: p.id, amount: p.amount, reason: p.note ?? p.reference ?? 'Gawale ko payment', createdAt: p.date }));
 
-    return { ...f, recentSupplies, cashPayments };
+    return { ...f, recentSupplies, payments, cashPayments };
+  }
+
+  /**
+   * Payments to a gawala, newest first: the recorded rows, plus cash paid
+   * from the drawer before payments had their own rows (CASH_OUT with the
+   * gawala number or a slip id as reference).
+   */
+  private async payments(tenantId: string, f: { id: string; farmerNumber: string }, range?: Prisma.DateTimeFilter, take = 2000): Promise<FarmerPaymentLine[]> {
+    const slipIds = (await this.prisma.dairyFarmerSupply.findMany({ where: { tenantId, farmerId: f.id }, select: { id: true } })).map((s) => s.id);
+    const [rows, legacy] = await Promise.all([
+      this.prisma.dairyFarmerPayment.findMany({
+        where: { tenantId, farmerId: f.id, ...(range && { createdAt: range }) }, orderBy: { createdAt: 'desc' }, take,
+      }),
+      this.prisma.cashTransaction.findMany({
+        where: { tenantId, type: 'CASH_OUT', reference: { in: [f.farmerNumber, ...slipIds] }, ...(range && { createdAt: range }) },
+        orderBy: { createdAt: 'desc' }, take, select: { id: true, amount: true, reason: true, createdAt: true },
+      }),
+    ]);
+    const entries = rows.length
+      ? await this.prisma.moneyAccountEntry.findMany({
+        where: { tenantId, requestId: { in: rows.map((r) => paymentRef(r.id)) } }, select: { requestId: true, account: { select: { name: true } } },
+      })
+      : [];
+    const accountOf = new Map(entries.map((e) => [e.requestId, e.account.name]));
+    return [
+      ...rows.map((r) => ({
+        id: r.id, date: r.createdAt, amount: r.amount, method: r.method, accountName: accountOf.get(paymentRef(r.id)) ?? null,
+        reference: r.reference, note: r.note, legacy: false,
+      })),
+      ...legacy.map((c) => ({
+        id: c.id, date: c.createdAt, amount: Number(c.amount), method: 'CASH', accountName: null, reference: null, note: c.reason, legacy: true,
+      })),
+    ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, take);
+  }
+
+  /**
+   * Gawala statement for a period: opening balance, milk in (live slips) and
+   * payments out, and the closing balance. Older balance moves with no
+   * record (bank payments before payments were recorded) go into the
+   * opening, so the closing on today's date equals what the shop owes.
+   */
+  async statement(user: AuthenticatedUser, id: string, q: FarmerStatementQuery) {
+    const f = await this.prisma.dairyFarmer.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!f) throw new NotFoundException('Gawala nahi mila');
+    const to = q.to ?? dayKey();
+    const from = q.from ?? `${to.slice(0, 8)}01`;
+    if (from > to) throw new BadRequestException('Period sahi chunein');
+    const range = dayRange(from, to)!;
+    const before = { lt: range.gte! };
+    const after = { gt: range.lte! };
+    const slipWhere = { tenantId: user.tenantId, farmerId: f.id, totalAmount: { gt: 0 }, ...LIVE_SLIP };
+
+    const [slips, inBefore, inAfter, paid, paidBefore, paidAfter] = await Promise.all([
+      this.prisma.dairyFarmerSupply.findMany({ where: { ...slipWhere, supplyDate: range }, orderBy: [{ supplyDate: 'asc' }, { createdAt: 'asc' }] }),
+      this.prisma.dairyFarmerSupply.aggregate({ where: { ...slipWhere, supplyDate: before }, _sum: { totalAmount: true } }),
+      this.prisma.dairyFarmerSupply.aggregate({ where: { ...slipWhere, supplyDate: after }, _sum: { totalAmount: true } }),
+      this.payments(user.tenantId, f, range),
+      this.payments(user.tenantId, f, before),
+      this.payments(user.tenantId, f, after),
+    ]);
+    const sum = (list: FarmerPaymentLine[]) => list.reduce((t, p) => t + p.amount, 0);
+    const milkIn = r2(slips.reduce((t, s) => t + s.totalAmount, 0));
+    const paidOut = r2(sum(paid));
+    const recordedBefore = (inBefore._sum.totalAmount ?? 0) - sum(paidBefore);
+    const recordedAll = recordedBefore + milkIn - paidOut + (inAfter._sum.totalAmount ?? 0) - sum(paidAfter);
+    const unrecorded = r2(f.currentBalance - recordedAll);
+    const opening = r2(recordedBefore + unrecorded);
+
+    type Line = { date: Date; kind: 'MILK' | 'PAYMENT'; text: string; quantity: number | null; fat: number | null; rate: number | null; milk: number; paid: number; balance: number };
+    const lines: Line[] = [
+      ...slips.map((s) => ({
+        date: s.supplyDate, kind: 'MILK' as const, text: s.slot === 'EVENING' ? 'Shaam ka doodh' : 'Subah ka doodh',
+        quantity: s.quantity, fat: s.fatContent, rate: s.ratePerLiter, milk: s.totalAmount, paid: 0, balance: 0,
+      })),
+      ...paid.map((p) => ({
+        date: p.date, kind: 'PAYMENT' as const,
+        text: `Payment — ${p.accountName ?? (p.method === 'CASH' ? 'Galle se cash' : METHOD_LABEL[p.method] ?? p.method)}${p.reference ? ` · ${p.reference}` : ''}`,
+        quantity: null, fat: null, rate: null, milk: 0, paid: p.amount, balance: 0,
+      })),
+    ].sort((a, b) => a.date.getTime() - b.date.getTime());
+    let run = opening;
+    for (const l of lines) { run = r2(run + l.milk - l.paid); l.balance = run; }
+
+    return {
+      farmer: { id: f.id, name: f.name, farmerNumber: f.farmerNumber, phone: f.phone, village: f.village, ratePerLiter: f.ratePerLiter },
+      from, to, opening, unrecorded,
+      liters: Math.round(slips.reduce((t, s) => t + s.quantity, 0) * 1000) / 1000,
+      milkIn, paidOut, closing: r2(opening + milkIn - paidOut),
+      currentBalance: f.currentBalance,
+      lines,
+    };
+  }
+
+  /** Money accounts a gawala can be paid from, for the payment form. */
+  async payAccounts(user: AuthenticatedUser, scope: ShopScope) {
+    const rows = await this.prisma.moneyAccount.findMany({
+      where: payAccountsWhere(user, scope.shopId),
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true, kind: true, method: true, isDefault: true, shop: { select: { name: true } } },
+    });
+    return rows.map((a) => ({ id: a.id, name: a.name, kind: a.kind, method: a.method, isDefault: a.isDefault, shopName: a.shop?.name ?? null }));
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateFarmerDto) {
@@ -79,7 +195,7 @@ export class FarmersService {
     return this.prisma.dairyFarmer.update({ where: { id }, data: { isActive: false } });
   }
 
-  async recordPayment(user: AuthenticatedUser, id: string, dto: FarmerPaymentDto) {
+  async recordPayment(user: AuthenticatedUser, scope: ShopScope, id: string, dto: FarmerPaymentDto) {
     const f = await this.prisma.dairyFarmer.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!f) throw new NotFoundException('Gawala nahi mila');
 
@@ -95,10 +211,10 @@ export class FarmersService {
           lastPaymentDate: new Date(),
         },
       });
-      await drawerCash(tx, user, {
-        direction: 'OUT', amount, method: dto.paymentMethod,
-        reason: `Gawale ko doodh ka payment: ${f.name} (${f.farmerNumber})${dto.reference?.trim() ? ` · ${dto.reference.trim()}` : ''}${dto.notes?.trim() ? ` — ${dto.notes.trim()}` : ''}`,
-        reference: f.farmerNumber,
+      await payFarmer(tx, user, {
+        farmer: f, amount, method: dto.paymentMethod, accountId: dto.accountId, shopId: scope.shopId,
+        reference: dto.reference, note: dto.notes,
+        reason: `Gawale ko doodh ka payment: ${f.name} (${f.farmerNumber})`,
       });
 
       /* Settle the oldest collection slips that all payments so far fully

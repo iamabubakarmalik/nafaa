@@ -1,14 +1,22 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { addDays } from 'date-fns';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { startOfMonthTz } from '../../../common/helpers/business-time.helper';
+import { addDaysTz, startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { BookingsService } from '../../../modules/bookings/bookings.service';
+import { ensureCustomer } from '../../_shared/industry-sale.helper';
 import { closeServiceLine, openServiceLine, toPaymentMethod } from '../billing/service-line';
-import { CreateLensOrderDto, LensOrderPaymentDto, UpdateLensOrderStatusDto } from './dto/create-lens-order.dto';
+import { checkEyePower, nextNumber, pageArgs, r2, type PageArgs } from '../common/optical-common';
+import { CreateLensOrderDto, DeliverLensOrderDto, LensOrderPaymentDto, SendToLabDto, UpdateLensOrderStatusDto } from './dto/create-lens-order.dto';
 
 const VALID_STATUSES = ['ORDERED', 'SENT_TO_LAB', 'AT_LAB', 'RECEIVED', 'QC_PASSED', 'FITTED', 'READY', 'DELIVERED', 'CANCELLED'];
+const CLOSED = ['DELIVERED', 'CANCELLED'];
+const BOOKING_OPEN = ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'];
+/** A repair job rides on the order flow with this lens type. */
+export const REPAIR = 'REPAIR';
+
+export type LensOrderView = 'open' | 'lab' | 'ready' | 'late' | 'unpaid' | 'repairs' | 'delivered' | 'cancelled' | 'all';
 
 @Injectable()
 export class LensOrdersService {
@@ -30,26 +38,6 @@ export class LensOrdersService {
     });
   }
 
-  /** Customer for the booking: the chosen one, else found by phone, else a new one. */
-  private async customerFor(user: AuthenticatedUser, shopId: string, dto: CreateLensOrderDto) {
-    if (dto.customerId) {
-      const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } });
-      if (!c) throw new NotFoundException('Customer nahi mila');
-      return c.id;
-    }
-    const phone = dto.customerPhone?.trim();
-    if (phone) {
-      const c = await this.prisma.customer.findFirst({ where: { tenantId: user.tenantId, phone, isActive: true }, select: { id: true } });
-      if (c) return c.id;
-    }
-    const defaults = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { defaultCreditLimit: true } });
-    const c = await this.prisma.customer.create({
-      data: { tenantId: user.tenantId, shopId, name: dto.customerName.trim(), phone: phone || undefined, creditLimit: defaults?.defaultCreditLimit ?? 0 },
-      select: { id: true },
-    });
-    return c.id;
-  }
-
   /**
    * A lens order is billed through a shared booking: the advance and later
    * payments land in the drawer on the day they are taken, and delivery turns
@@ -57,12 +45,10 @@ export class LensOrdersService {
    */
   async create(user: AuthenticatedUser, scope: ShopScope, dto: CreateLensOrderDto) {
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
+    const repair = dto.lensType === REPAIR;
     const count = await this.prisma.opticalLensOrder.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    let orderNumber = `LO-${year}-${String(count + 1).padStart(5, '0')}`;
-    for (let seq = count + 2; await this.prisma.opticalLensOrder.findFirst({ where: { tenantId: user.tenantId, orderNumber }, select: { id: true } }); seq++) {
-      orderNumber = `LO-${year}-${String(seq).padStart(5, '0')}`;
-    }
+    const orderNumber = await nextNumber(repair ? 'RP' : 'LO', count, async (n) =>
+      !!(await this.prisma.opticalLensOrder.findFirst({ where: { tenantId: user.tenantId, orderNumber: n }, select: { id: true } })));
 
     // Pull prescription values if linked
     let rx: any = null;
@@ -70,13 +56,20 @@ export class LensOrdersService {
       rx = await this.prisma.opticalPrescription.findFirst({
         where: { id: dto.prescriptionId, tenantId: user.tenantId },
       });
-      if (!rx) throw new NotFoundException('Prescription not found');
+      if (!rx) throw new NotFoundException('Prescription nahi mila');
+      if (!rx.isActive) throw new BadRequestException('Ye prescription band hai — naya ya renew wala chunein');
       if (rx.expiryDate && new Date(rx.expiryDate) < new Date()) {
-        throw new BadRequestException('Prescription has expired — renew it before ordering lenses');
+        throw new BadRequestException('Prescription ki muddat khatam — pehle renew karein');
       }
     }
-
-    const r2 = (v: number) => Math.round(v * 100) / 100;
+    const power = {
+      rightSph: dto.rightSph ?? rx?.rightSph, rightCyl: dto.rightCyl ?? rx?.rightCyl, rightAxis: dto.rightAxis ?? rx?.rightAxis, rightAdd: dto.rightAdd ?? rx?.rightAdd,
+      leftSph: dto.leftSph ?? rx?.leftSph, leftCyl: dto.leftCyl ?? rx?.leftCyl, leftAxis: dto.leftAxis ?? rx?.leftAxis, leftAdd: dto.leftAdd ?? rx?.leftAdd,
+      pupilDistance: dto.pupilDistance ?? rx?.pupilDistance,
+    };
+    checkEyePower(power);
+    if (!dto.customerName?.trim()) throw new BadRequestException('Customer ka naam likhein');
+    if ((dto.customerPhone ?? '').replace(/\D/g, '').length < 10) throw new BadRequestException('Sahi mobile number likhein (03xx-xxxxxxx)');
     const framePrice = r2(Math.max(dto.framePrice ?? 0, 0));
     const lensPrice = r2(Math.max(dto.lensPrice ?? 0, 0));
     const fittingCharge = r2(Math.max(dto.fittingCharge ?? 0, 0));
@@ -89,7 +82,9 @@ export class LensOrdersService {
       ? await this.prisma.product.findFirst({ where: { id: dto.frameProductId, tenantId: user.tenantId, isActive: true }, select: { id: true, costPrice: true } })
       : null;
     if (dto.frameProductId && !frame) throw new NotFoundException('Frame product nahi mila');
-    const customerId = await this.customerFor(user, shopId, dto);
+    const customerId = await ensureCustomer(this.prisma, user, { customerId: dto.customerId, name: dto.customerName, phone: dto.customerPhone, shopId });
+    const expectedDate = dto.expectedDate ? new Date(dto.expectedDate) : addDaysTz(new Date(), repair ? 2 : 7);
+    if (Number.isNaN(expectedDate.getTime())) throw new BadRequestException('Tayyari ki date sahi nahi');
 
     const created = await this.prisma.$transaction(async (tx) => {
       const order = await tx.opticalLensOrder.create({
@@ -97,8 +92,8 @@ export class LensOrdersService {
           tenantId: user.tenantId,
           orderNumber,
           customerId,
-          customerName: dto.customerName,
-          customerPhone: dto.customerPhone,
+          customerName: dto.customerName.trim(),
+          customerPhone: dto.customerPhone.trim(),
           prescriptionId: dto.prescriptionId,
           frameProductId: dto.frameProductId,
           frameName: dto.frameName,
@@ -106,18 +101,10 @@ export class LensOrdersService {
           lensMaterial: dto.lensMaterial,
           lensIndex: dto.lensIndex,
           lensCoatings: dto.lensCoatings ?? [],
-          rightSph: dto.rightSph ?? rx?.rightSph,
-          rightCyl: dto.rightCyl ?? rx?.rightCyl,
-          rightAxis: dto.rightAxis ?? rx?.rightAxis,
-          rightAdd: dto.rightAdd ?? rx?.rightAdd,
-          leftSph: dto.leftSph ?? rx?.leftSph,
-          leftCyl: dto.leftCyl ?? rx?.leftCyl,
-          leftAxis: dto.leftAxis ?? rx?.leftAxis,
-          leftAdd: dto.leftAdd ?? rx?.leftAdd,
-          pupilDistance: dto.pupilDistance ?? rx?.pupilDistance,
+          ...power,
           labName: dto.labName,
           labOrderRef: dto.labOrderRef,
-          expectedDate: dto.expectedDate ? new Date(dto.expectedDate) : addDays(new Date(), 7),
+          expectedDate,
           framePrice, lensPrice, fittingCharge, totalPrice,
           paidAmount,
           remainingAmount: Math.max(r2(totalPrice - paidAmount), 0),
@@ -136,7 +123,7 @@ export class LensOrdersService {
 
     // Frame from stock is a real product line; lenses (and a frame not kept in
     // stock) ride on the lens service line; fitting is a service charge.
-    const lensLine = await this.prisma.$transaction((tx) => openServiceLine(tx, user, 'LENS', null, 0));
+    const lensLine = await this.prisma.$transaction((tx) => openServiceLine(tx, user, 'LENS'));
     const items: any[] = [];
     if (framePrice > 0 && frame) {
       items.push({ productId: frame.id, quantity: 1, price: framePrice, costPrice: frame.costPrice ?? 0, note: `${dto.frameName} · ${orderNumber}` });
@@ -144,11 +131,12 @@ export class LensOrdersService {
       items.push({ productId: lensLine, quantity: 1, price: framePrice, costPrice: 0, note: `Frame: ${dto.frameName} · ${orderNumber}` });
     }
     if (lensPrice > 0) {
-      items.push({ productId: lensLine, quantity: 1, price: lensPrice, costPrice: 0, note: `Lens: ${dto.lensType}${dto.lensIndex ? ' ' + dto.lensIndex : ''} · ${orderNumber}` });
+      const what = repair ? 'Repair' : `Lens: ${dto.lensType}${dto.lensIndex ? ' ' + dto.lensIndex : ''}`;
+      items.push({ productId: lensLine, quantity: 1, price: lensPrice, costPrice: dto.lensCost ? r2(Math.max(dto.lensCost, 0)) : 0, note: `${what} · ${orderNumber}` });
     }
     if (!items.length) {
       // Fitting only: the booking still needs one line.
-      items.push({ productId: lensLine, quantity: 1, price: 0, costPrice: 0, note: `Fitting · ${orderNumber}` });
+      items.push({ productId: lensLine, quantity: 1, price: 0, costPrice: 0, note: `${repair ? 'Repair' : 'Fitting'} · ${orderNumber}` });
     }
 
     let booking: { bookingNumber: string };
@@ -157,15 +145,19 @@ export class LensOrdersService {
         shopId,
         customerId,
         items,
-        serviceCharges: fittingCharge > 0 ? [{ type: 'CUSTOM', label: 'Fitting', amount: fittingCharge }] : undefined,
+        serviceCharges: fittingCharge > 0 ? [{ type: 'CUSTOM', label: repair ? 'Repair' : 'Fitting', amount: fittingCharge }] : undefined,
         initialAdvance: paidAmount || undefined,
         paymentMethod: toPaymentMethod(dto.paymentMethod),
         expectedPickupAt: created.expectedDate?.toISOString(),
-        notes: `Chashma order ${orderNumber}`,
+        notes: `${repair ? 'Chashma repair' : 'Chashma order'} ${orderNumber}`,
         internalNotes: `Lens order ${this.marker(orderNumber)}`,
       } as any)) as any;
     } catch (e) {
-      await this.prisma.opticalLensOrder.delete({ where: { id: created.id } }).catch(() => undefined);
+      // No money was taken: the order is closed, not removed.
+      await this.prisma.opticalLensOrder.update({
+        where: { id: created.id },
+        data: { status: 'CANCELLED', paidAmount: 0, remainingAmount: 0, notes: [dto.notes, 'Booking nahi bani — order band'].filter(Boolean).join('\n') },
+      }).catch(() => undefined);
       throw e;
     } finally {
       await closeServiceLine(this.prisma, lensLine);
@@ -175,6 +167,21 @@ export class LensOrdersService {
       where: { id: created.id },
       data: { notes: [dto.notes, `Booking ${booking.bookingNumber}`].filter(Boolean).join('\n') },
     });
+  }
+
+  private searchWhere(search?: string): Prisma.OpticalLensOrderWhereInput {
+    const q = search?.trim();
+    if (!q) return {};
+    return {
+      OR: [
+        { orderNumber: { contains: q, mode: 'insensitive' } },
+        { customerName: { contains: q, mode: 'insensitive' } },
+        { customerPhone: { contains: q } },
+        { frameName: { contains: q, mode: 'insensitive' } },
+        { labName: { contains: q, mode: 'insensitive' } },
+        { labOrderRef: { contains: q, mode: 'insensitive' } },
+      ],
+    };
   }
 
   async list(user: AuthenticatedUser, params: {
@@ -189,193 +196,267 @@ export class LensOrdersService {
         ...(params.customerId && { customerId: params.customerId }),
         ...(params.labName && { labName: { contains: params.labName, mode: 'insensitive' } }),
         ...(params.pendingPayment && { remainingAmount: { gt: 0 } }),
-        ...(params.overdue && {
-          status: { notIn: ['DELIVERED', 'CANCELLED'] },
-          expectedDate: { lt: new Date() },
-        }),
+        ...(params.overdue && { status: { notIn: CLOSED }, expectedDate: { lt: startOfDayTz() } }),
         ...(params.from || params.to ? {
           orderedAt: {
             ...(params.from && { gte: new Date(params.from) }),
             ...(params.to && { lte: new Date(params.to) }),
           },
         } : {}),
-        ...(params.search && {
-          OR: [
-            { orderNumber: { contains: params.search, mode: 'insensitive' } },
-            { customerName: { contains: params.search, mode: 'insensitive' } },
-            { customerPhone: { contains: params.search } },
-            { frameName: { contains: params.search, mode: 'insensitive' } },
-            { labOrderRef: { contains: params.search, mode: 'insensitive' } },
-          ],
-        }),
+        ...this.searchWhere(params.search),
       },
       orderBy: [{ status: 'asc' }, { orderedAt: 'desc' }],
       take: 200,
     });
   }
 
+  private viewWhere(view: LensOrderView): Prisma.OpticalLensOrderWhereInput {
+    switch (view) {
+      case 'open': return { status: { notIn: CLOSED } };
+      case 'lab': return { status: { in: ['ORDERED', 'SENT_TO_LAB', 'AT_LAB'] } };
+      case 'ready': return { status: { in: ['RECEIVED', 'QC_PASSED', 'FITTED', 'READY'] } };
+      case 'late': return { status: { notIn: CLOSED }, expectedDate: { lt: startOfDayTz() } };
+      case 'unpaid': return { status: { notIn: ['CANCELLED'] }, remainingAmount: { gt: 0.009 } };
+      case 'repairs': return { lensType: REPAIR };
+      case 'delivered': return { status: 'DELIVERED' };
+      case 'cancelled': return { status: 'CANCELLED' };
+      default: return {};
+    }
+  }
+
+  /** One page of orders for a desk view, with the money in that view. */
+  async page(user: AuthenticatedUser, q: PageArgs & { view?: string; search?: string; from?: string; to?: string; customerId?: string }) {
+    const { page, limit, skip } = pageArgs(q);
+    const view = (q.view ?? 'open') as LensOrderView;
+    const where: Prisma.OpticalLensOrderWhereInput = {
+      tenantId: user.tenantId,
+      ...this.viewWhere(view),
+      ...(q.customerId && { customerId: q.customerId }),
+      ...(q.from || q.to ? { orderedAt: { ...(q.from && { gte: new Date(q.from) }), ...(q.to && { lte: new Date(q.to) }) } } : {}),
+      ...this.searchWhere(q.search),
+    };
+    const late = ['late', 'open', 'lab'].includes(view);
+    const [items, total, sums] = await Promise.all([
+      this.prisma.opticalLensOrder.findMany({
+        where, skip, take: limit,
+        orderBy: late ? [{ expectedDate: 'asc' }, { orderedAt: 'desc' }] : [{ orderedAt: 'desc' }],
+      }),
+      this.prisma.opticalLensOrder.count({ where }),
+      this.prisma.opticalLensOrder.aggregate({ where, _sum: { totalPrice: true, paidAmount: true, remainingAmount: true } }),
+    ]);
+    return {
+      items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)),
+      totals: { value: r2(sums._sum.totalPrice ?? 0), paid: r2(sums._sum.paidAmount ?? 0), due: r2(sums._sum.remainingAmount ?? 0) },
+    };
+  }
+
   async getOne(user: AuthenticatedUser, id: string) {
     const o = await this.prisma.opticalLensOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Lens order not found');
+    if (!o) throw new NotFoundException('Order nahi mila');
 
-    let prescription = null;
-    if (o.prescriptionId) {
-      prescription = await this.prisma.opticalPrescription.findUnique({ where: { id: o.prescriptionId } });
-    }
+    const [prescription, booking] = await Promise.all([
+      o.prescriptionId ? this.prisma.opticalPrescription.findFirst({ where: { id: o.prescriptionId, tenantId: user.tenantId } }) : null,
+      this.bookingFor(user.tenantId, o.orderNumber),
+    ]);
+    const sale = booking ? await this.prisma.sale.findFirst({ where: { tenantId: user.tenantId, bookingId: booking.id }, select: { id: true, saleNumber: true, status: true, total: true } }) : null;
 
     const daysWaiting = Math.floor((Date.now() - new Date(o.orderedAt).getTime()) / 86400000);
-    const isOverdue = o.expectedDate ? new Date(o.expectedDate) < new Date() && !['DELIVERED', 'CANCELLED'].includes(o.status) : false;
+    const isOverdue = !!o.expectedDate && new Date(o.expectedDate) < startOfDayTz() && !CLOSED.includes(o.status);
 
-    return { ...o, prescription, computed: { daysWaiting, isOverdue } };
+    return { ...o, prescription, booking, sale, computed: { daysWaiting, isOverdue, isRepair: o.lensType === REPAIR } };
+  }
+
+  private async load(user: AuthenticatedUser, id: string) {
+    const o = await this.prisma.opticalLensOrder.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!o) throw new NotFoundException('Order nahi mila');
+    return o;
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, dto: UpdateLensOrderStatusDto) {
-    const o = await this.prisma.opticalLensOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Lens order not found');
-    if (!VALID_STATUSES.includes(dto.status)) {
-      throw new BadRequestException(`Invalid status. Valid: ${VALID_STATUSES.join(', ')}`);
-    }
-    if (o.status === 'DELIVERED' || o.status === 'CANCELLED') {
-      throw new BadRequestException('Deliver ya cancel ho chuka order badla nahi ja sakta');
-    }
+    const o = await this.load(user, id);
+    if (!VALID_STATUSES.includes(dto.status)) throw new BadRequestException('Ye halat nahi chalti');
+    if (CLOSED.includes(o.status)) throw new BadRequestException('Deliver ya cancel ho chuka order badla nahi ja sakta');
     // Handing over bills the order, so it must go through deliver().
-    if (dto.status === 'DELIVERED') return this.deliver(user, id, { fittingNotes: dto.fittingNotes });
+    if (dto.status === 'DELIVERED') throw new BadRequestException('Dene ke liye "Customer ko dein" use karein — wahan bill banta hai');
+    const booking = await this.bookingFor(user.tenantId, o.orderNumber);
     if (dto.status === 'CANCELLED') {
-      const booking = await this.bookingFor(user.tenantId, o.orderNumber);
-      if (booking && ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'].includes(booking.status)) {
+      if (booking && BOOKING_OPEN.includes(booking.status)) {
+        if (booking.totalPaid > 0 && dto.refundAdvance === undefined) {
+          throw new BadRequestException('Advance liya hua hai — batayein wapas karna hai ya nahi');
+        }
         await this.bookings.cancel(user, booking.id, {
-          reason: dto.notes || `Lens order ${o.orderNumber} cancel`,
+          reason: dto.notes || `Order ${o.orderNumber} cancel`,
           refundAdvance: !!dto.refundAdvance,
           refundMethod: dto.refundAdvance ? toPaymentMethod(dto.refundMethod) : undefined,
           managerPin: dto.managerPin,
         } as any);
       }
+    } else if (booking) {
+      // Keep the shared booking's "ready for pickup" in step with the order.
+      const ready = ['FITTED', 'READY'].includes(dto.status);
+      if (ready && ['PENDING', 'ADVANCE_PAID'].includes(booking.status)) await this.bookings.markReady(user, booking.id, true).catch(() => undefined);
+      if (!ready && booking.status === 'READY_FOR_PICKUP') await this.bookings.markReady(user, booking.id, false).catch(() => undefined);
     }
 
     const now = new Date();
-    const patch: any = { status: dto.status };
-
+    const patch: Prisma.OpticalLensOrderUpdateInput = { status: dto.status };
     if (dto.status === 'RECEIVED' || dto.status === 'QC_PASSED') patch.receivedAt = o.receivedAt ?? now;
-    if (dto.status === 'FITTED') patch.fittedAt = now;
-    if (dto.status === 'DELIVERED') patch.deliveredAt = now;
+    if (dto.status === 'FITTED' || dto.status === 'READY') { patch.receivedAt = o.receivedAt ?? now; patch.fittedAt = o.fittedAt ?? now; }
+    // A cancelled order owes nothing; an advance handed back is no longer held.
+    if (dto.status === 'CANCELLED') patch.remainingAmount = 0;
+    if (dto.status === 'CANCELLED' && booking && dto.refundAdvance) patch.paidAmount = 0;
     if (dto.labOrderRef) patch.labOrderRef = dto.labOrderRef;
     if (dto.qcNotes) patch.qcNotes = dto.qcNotes;
     if (dto.fittingNotes) patch.fittingNotes = dto.fittingNotes;
-    if (dto.notes) patch.notes = ((o.notes || '') + '\n' + dto.notes).trim();
+    if (dto.notes) patch.notes = [o.notes, dto.notes].filter(Boolean).join('\n');
+    if (dto.status === 'CANCELLED') patch.notes = [o.notes, dto.notes, dto.refundAdvance ? `Advance Rs ${o.paidAmount} wapas` : o.paidAmount > 0 ? `Advance Rs ${o.paidAmount} khata me jama` : null].filter(Boolean).join('\n');
 
     return this.prisma.opticalLensOrder.update({ where: { id }, data: patch });
   }
 
-  async sendToLab(user: AuthenticatedUser, id: string, body: { labName: string; labOrderRef?: string; expectedDate?: string }) {
-    const o = await this.prisma.opticalLensOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Lens order not found');
-
+  async sendToLab(user: AuthenticatedUser, id: string, body: SendToLabDto) {
+    const o = await this.load(user, id);
+    if (CLOSED.includes(o.status)) throw new BadRequestException('Band order lab nahi ja sakta');
+    const expectedDate = body.expectedDate ? new Date(body.expectedDate) : o.expectedDate;
+    if (expectedDate && Number.isNaN(expectedDate.getTime())) throw new BadRequestException('Tayyari ki date sahi nahi');
     return this.prisma.opticalLensOrder.update({
       where: { id },
       data: {
-        labName: body.labName,
-        labOrderRef: body.labOrderRef ?? o.labOrderRef,
-        expectedDate: body.expectedDate ? new Date(body.expectedDate) : o.expectedDate,
+        labName: body.labName.trim(),
+        labOrderRef: body.labOrderRef?.trim() || o.labOrderRef,
+        expectedDate,
         status: 'SENT_TO_LAB',
       },
     });
   }
 
   async recordPayment(user: AuthenticatedUser, id: string, dto: LensOrderPaymentDto) {
-    const o = await this.prisma.opticalLensOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Lens order not found');
-    if (o.status === 'CANCELLED' || o.status === 'DELIVERED') throw new BadRequestException('Band order par payment nahi li ja sakti');
-    const amount = Math.round(Number(dto.amount) * 100) / 100;
+    const o = await this.load(user, id);
+    if (CLOSED.includes(o.status)) throw new BadRequestException('Band order par payment nahi li ja sakti');
+    const amount = r2(Number(dto.amount));
     if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
-
-    const newPaid = Math.round((o.paidAmount + amount) * 100) / 100;
+    const newPaid = r2(o.paidAmount + amount);
     if (newPaid > o.totalPrice + 0.009) throw new BadRequestException(`Sirf Rs ${o.remainingAmount} baqi hain`);
 
     const booking = await this.bookingFor(user.tenantId, o.orderNumber);
-    if (booking) {
-      await this.bookings.addPayment(user, booking.id, { amount, paymentMethod: toPaymentMethod(dto.paymentMethod) } as any);
-    }
+    if (!booking || !BOOKING_OPEN.includes(booking.status)) throw new BadRequestException('Is order ki booking nahi mili — payment counter par bill se lein');
+    await this.bookings.addPayment(user, booking.id, { amount, paymentMethod: toPaymentMethod(dto.paymentMethod), notes: `Order ${o.orderNumber}` } as any);
 
     return this.prisma.opticalLensOrder.update({
       where: { id },
-      data: {
-        paidAmount: newPaid,
-        remainingAmount: Math.max(Math.round((o.totalPrice - newPaid) * 100) / 100, 0),
-      },
+      data: { paidAmount: newPaid, remainingAmount: Math.max(r2(o.totalPrice - newPaid), 0) },
     });
   }
 
-  async deliver(user: AuthenticatedUser, id: string, body?: { fittingNotes?: string }) {
-    const o = await this.prisma.opticalLensOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Lens order not found');
+  /**
+   * Hands the glasses over: the booking becomes the bill (frame stock out,
+   * revenue in the reports). Money taken now is added; what is still unpaid
+   * goes on the customer's khata only when the counter says so.
+   */
+  async deliver(user: AuthenticatedUser, id: string, body: DeliverLensOrderDto = {}) {
+    const o = await this.load(user, id);
     if (o.status === 'DELIVERED') throw new BadRequestException('Order pehle hi de diya gaya hai');
     if (o.status === 'CANCELLED') throw new BadRequestException('Cancel order deliver nahi ho sakta');
-    if (o.remainingAmount > 0.009) {
-      throw new BadRequestException(`Pehle baqi Rs ${o.remainingAmount} wasool karein, phir order dein`);
+    const pay = r2(Math.max(Number(body.payment) || 0, 0));
+    if (pay > o.remainingAmount + 0.009) throw new BadRequestException(`Sirf Rs ${o.remainingAmount} baqi hain`);
+    const credit = r2(Math.max(o.remainingAmount - pay, 0));
+    if (credit > 0 && !body.onKhata) {
+      throw new BadRequestException(`Rs ${credit} baqi hain — poore lein ya "Baqi khata me" chunein`);
     }
 
-    let saleNote = '';
     const booking = await this.bookingFor(user.tenantId, o.orderNumber);
-    if (booking && ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'].includes(booking.status)) {
-      const lines = await this.prisma.bookingItem.findMany({ where: { bookingId: booking.id }, select: { productId: true, quantity: true } });
-      const lensLine = await this.prisma.$transaction(async (tx) => {
-        const pid = await openServiceLine(tx, user, 'LENS', null, 0);
-        const units = lines.filter((l) => l.productId === pid).reduce((a, l) => a + l.quantity, 0);
-        if (units > 0) await openServiceLine(tx, user, 'LENS', booking.shopId, units);
-        return pid;
-      });
-      try {
-        const res: any = await this.bookings.convertToSale(user, booking.id, {} as any);
-        const saleNumber = res?.sale?.saleNumber ?? res?.saleNumber;
-        if (saleNumber) saleNote = `Bill ${saleNumber}`;
-      } finally {
-        await closeServiceLine(this.prisma, lensLine);
-      }
+    if (!booking) throw new BadRequestException('Is order ki booking nahi mili — counter par bill banayein');
+    if (!BOOKING_OPEN.includes(booking.status)) throw new BadRequestException('Is order ki booking band hai');
+
+    // The lens line is a service product, so the booking bill takes no stock for it.
+    const lensLine = await this.prisma.$transaction((tx) => openServiceLine(tx, user, 'LENS'));
+    let saleNumber: string | undefined;
+    try {
+      const res: any = await this.bookings.convertToSale(user, booking.id, {
+        additionalPayment: pay || undefined,
+        paymentMethod: pay > 0 ? toPaymentMethod(body.paymentMethod) : undefined,
+        notes: pay > 0 ? `Order ${o.orderNumber} dete waqt` : undefined,
+      } as any);
+      saleNumber = res?.sale?.saleNumber;
+    } finally {
+      await closeServiceLine(this.prisma, lensLine);
     }
 
+    const now = new Date();
     return this.prisma.opticalLensOrder.update({
       where: { id },
       data: {
         status: 'DELIVERED',
-        deliveredAt: new Date(),
-        fittedAt: o.fittedAt ?? new Date(),
-        fittingNotes: body?.fittingNotes ?? o.fittingNotes,
-        ...(saleNote && { notes: [o.notes, saleNote].filter(Boolean).join('\n') }),
+        deliveredAt: now,
+        receivedAt: o.receivedAt ?? now,
+        fittedAt: o.fittedAt ?? now,
+        paidAmount: r2(o.paidAmount + pay),
+        remainingAmount: credit,
+        fittingNotes: body.fittingNotes?.trim() || o.fittingNotes,
+        notes: [o.notes, saleNumber && `Bill ${saleNumber}`, credit > 0 && `Rs ${credit} khata me`].filter(Boolean).join('\n'),
       },
     });
   }
 
+  /** Orders are never removed: one with no money taken is cancelled. */
   async remove(user: AuthenticatedUser, id: string) {
-    const o = await this.prisma.opticalLensOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Lens order not found');
-    if (['FITTED', 'DELIVERED'].includes(o.status)) {
-      throw new BadRequestException('Cannot delete a fitted/delivered order');
+    const o = await this.load(user, id);
+    if (CLOSED.includes(o.status)) throw new BadRequestException('Order pehle hi band hai');
+    if (o.paidAmount > 0) throw new BadRequestException('Is order par advance liya hua hai — cancel karte waqt batayein advance wapas karna hai ya nahi');
+    return this.updateStatus(user, id, { status: 'CANCELLED', notes: 'Order hataya' });
+  }
+
+  /** Bills from delivered orders, for the sales history: sale id → order. */
+  async forSales(user: AuthenticatedUser, saleIds: string[]) {
+    const sales = await this.prisma.sale.findMany({
+      where: { tenantId: user.tenantId, id: { in: saleIds.slice(0, 200) }, bookingId: { not: null } },
+      select: { id: true, booking: { select: { internalNotes: true } } },
+    });
+    const numbers = new Map<string, string>();
+    for (const s of sales) {
+      const m = /\[((?:LO|RP)-\d{4}-\d+)\]/.exec(s.booking?.internalNotes ?? '');
+      if (m) numbers.set(m[1], s.id);
     }
-    const booking = await this.bookingFor(user.tenantId, o.orderNumber);
-    if (booking && ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'].includes(booking.status)) {
-      if (booking.totalPaid > 0) {
-        throw new BadRequestException('Is order par advance liya hua hai — pehle order cancel karein (advance return ke sath)');
-      }
-      await this.bookings.cancel(user, booking.id, { reason: `Lens order ${o.orderNumber} mitaya`, refundAdvance: false } as any);
-    }
-    return this.prisma.opticalLensOrder.delete({ where: { id } });
+    if (!numbers.size) return {};
+    const orders = await this.prisma.opticalLensOrder.findMany({
+      where: { tenantId: user.tenantId, orderNumber: { in: [...numbers.keys()] } },
+      select: { id: true, orderNumber: true, lensType: true, status: true },
+    });
+    return Object.fromEntries(orders.map((o) => [numbers.get(o.orderNumber)!, { id: o.id, number: o.orderNumber, repair: o.lensType === REPAIR, status: o.status }]));
+  }
+
+  /** A voided or fully returned delivery bill closes its order; the shared void already settled money and stock. */
+  async onBillUndone(tenantId: string, saleId: string, why: string) {
+    const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId, bookingId: { not: null } }, select: { saleNumber: true, booking: { select: { internalNotes: true } } } });
+    const m = /\[((?:LO|RP)-\d{4}-\d+)\]/.exec(sale?.booking?.internalNotes ?? '');
+    if (!sale || !m) return;
+    const o = await this.prisma.opticalLensOrder.findFirst({ where: { tenantId, orderNumber: m[1], status: 'DELIVERED' } });
+    if (!o) return;
+    await this.prisma.opticalLensOrder.update({
+      where: { id: o.id },
+      data: { status: 'CANCELLED', remainingAmount: 0, notes: [o.notes, `Bill ${sale.saleNumber} ${why} — order band`].filter(Boolean).join('\n') },
+    });
   }
 
   async summary(user: AuthenticatedUser) {
     const monthStart = startOfMonthTz();
 
-    const [ordered, atLab, received, ready, delivered, overdue, financial] = await Promise.all([
+    const [ordered, atLab, received, ready, delivered, overdue, financial, repairsOpen, dueToday] = await Promise.all([
       this.prisma.opticalLensOrder.count({ where: { tenantId: user.tenantId, status: 'ORDERED' } }),
       this.prisma.opticalLensOrder.count({ where: { tenantId: user.tenantId, status: { in: ['SENT_TO_LAB', 'AT_LAB'] } } }),
       this.prisma.opticalLensOrder.count({ where: { tenantId: user.tenantId, status: { in: ['RECEIVED', 'QC_PASSED'] } } }),
       this.prisma.opticalLensOrder.count({ where: { tenantId: user.tenantId, status: { in: ['FITTED', 'READY'] } } }),
       this.prisma.opticalLensOrder.count({ where: { tenantId: user.tenantId, status: 'DELIVERED' } }),
       this.prisma.opticalLensOrder.count({
-        where: { tenantId: user.tenantId, status: { notIn: ['DELIVERED', 'CANCELLED'] }, expectedDate: { lt: new Date() } },
+        where: { tenantId: user.tenantId, status: { notIn: CLOSED }, expectedDate: { lt: startOfDayTz() } },
       }),
       this.prisma.opticalLensOrder.aggregate({
-        where: { tenantId: user.tenantId, status: { not: 'CANCELLED' } },
+        where: { tenantId: user.tenantId, status: { notIn: CLOSED } },
         _sum: { totalPrice: true, paidAmount: true, remainingAmount: true },
+      }),
+      this.prisma.opticalLensOrder.count({ where: { tenantId: user.tenantId, lensType: REPAIR, status: { notIn: CLOSED } } }),
+      this.prisma.opticalLensOrder.count({
+        where: { tenantId: user.tenantId, status: { notIn: CLOSED }, expectedDate: { gte: startOfDayTz(), lt: addDaysTz(startOfDayTz(), 1) } },
       }),
     ]);
 
@@ -386,7 +467,7 @@ export class LensOrdersService {
     });
 
     return {
-      ordered, atLab, received, ready, delivered, overdue,
+      ordered, atLab, received, ready, delivered, overdue, repairsOpen, dueToday,
       totalBilled: financial._sum.totalPrice ?? 0,
       totalCollected: financial._sum.paidAmount ?? 0,
       totalReceivable: financial._sum.remainingAmount ?? 0,

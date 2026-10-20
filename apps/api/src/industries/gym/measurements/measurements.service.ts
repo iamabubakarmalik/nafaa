@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateMeasurementDto } from './dto/measurement.dto';
@@ -40,14 +41,14 @@ export class MeasurementsService {
 
   async list(user: AuthenticatedUser, memberId: string) {
     return this.prisma.gymBodyMeasurement.findMany({
-      where: { memberId, tenantId: user.tenantId },
+      where: { memberId, tenantId: user.tenantId, isVoided: false },
       orderBy: { measurementDate: 'desc' },
     });
   }
 
   async progress(user: AuthenticatedUser, memberId: string) {
     const measurements = await this.prisma.gymBodyMeasurement.findMany({
-      where: { memberId, tenantId: user.tenantId },
+      where: { memberId, tenantId: user.tenantId, isVoided: false },
       orderBy: { measurementDate: 'asc' },
     });
 
@@ -68,8 +69,25 @@ export class MeasurementsService {
     return { measurements, changes };
   }
 
-  /** Measurements are the member's history and are kept; a wrong entry is corrected by recording a new one. */
-  remove(): never {
-    throw new BadRequestException('Naap record mitaya nahi jata — sahi naap dobara likhein, naya record upar aa jayega');
+  /**
+   * A wrong entry is voided, not deleted: the row stays for history and
+   * drops out of lists. The member card goes back to the latest valid one.
+   */
+  async remove(user: AuthenticatedUser, id: string) {
+    const row = await this.prisma.gymBodyMeasurement.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!row) throw new NotFoundException('Naap record nahi mila');
+    if (row.isVoided) throw new BadRequestException('Ye record pehle hi void hai');
+    return this.prisma.$transaction(async (tx) => {
+      const voided = await tx.gymBodyMeasurement.update({ where: { id }, data: { isVoided: true } });
+      const latest = await tx.gymBodyMeasurement.findFirst({
+        where: { tenantId: user.tenantId, memberId: row.memberId, isVoided: false },
+        orderBy: { measurementDate: 'desc' },
+      });
+      const card: Prisma.GymMemberUpdateInput = latest
+        ? { currentWeightKg: latest.weightKg, bmi: latest.bmi, bodyFatPct: latest.bodyFatPct, muscleMassPct: latest.muscleMassPct, ...(latest.heightCm != null && { heightCm: latest.heightCm }) }
+        : { currentWeightKg: null, bmi: null, bodyFatPct: null, muscleMassPct: null };
+      await tx.gymMember.update({ where: { id: row.memberId }, data: card });
+      return voided;
+    });
   }
 }

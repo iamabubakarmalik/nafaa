@@ -1,244 +1,172 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Users, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Star, Globe, BookOpen, Award,
-} from 'lucide-react';
-import { authorsApi, type Author } from '../api/authors.api';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Authors: writers the shop's books are linked to, so a customer asking
+ * for "Mustansar Hussain Tarar ki koi kitab" is found by name on the
+ * products page and at the counter. Featured authors come first.
+ *
+ * Keys: N new · / search · G guide.
+ */
+
+import { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { BookOpen, GraduationCap, Pencil, Plus, Power, Star, Users } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { authorsApi, type Author } from '../api/authors.api';
+import { KEYS, LANGUAGES, apiError } from '../lib/meta';
+import { ConfirmModal, EmptyBox, cardAction, cardDanger, cardLink, usePageKeys, useSaveKey } from '../components/ui';
+
+type Tab = 'active' | 'off';
 
 export default function AuthorsPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [tagFilter, setTagFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Author | null>(null);
+  const [tab, setTab] = useState<Tab>('active');
+  const [form, setForm] = useState<Author | 'new' | null>(null);
+  const [off, setOff] = useState<Author | null>(null);
 
-  const { data: authors = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['authors', search, tagFilter],
-    queryFn: () => authorsApi.list({
-      search: search.trim() || undefined,
-      featured: tagFilter === 'featured' ? true : undefined,
-      active: true,
-    }),
+  const listQ = useQuery({ queryKey: [KEYS.authors, 'all'], queryFn: () => authorsApi.list() });
+  const all = useMemo(() => listQ.data ?? [], [listQ.data]);
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return all.filter((a) => (tab === 'active' ? a.isActive : !a.isActive) && (!q || [a.name, a.penName, a.nationality].some((v) => v?.toLowerCase().includes(q))));
+  }, [all, search, tab]);
+  const active = all.filter((a) => a.isActive);
+  const books = active.reduce((s, a) => s + (a._count?.bookAuthors ?? 0), 0);
+
+  const refresh = () => { void qc.invalidateQueries({ queryKey: [KEYS.authors] }); void qc.invalidateQueries({ queryKey: [KEYS.facts] }); };
+  const save = useMutation({
+    mutationFn: ({ id, body }: { id?: string; body: Partial<Author> }) => (id ? authorsApi.update(id, body) : authorsApi.create(body)),
+    onSuccess: () => { toast.success('Author save ho gaya'); setForm(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+  });
+  const feature = useMutation({
+    mutationFn: (a: Author) => authorsApi.toggleFeatured(a.id),
+    onSuccess: () => refresh(),
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+  });
+  const toggle = useMutation({
+    mutationFn: (a: Author) => (a.isActive ? authorsApi.remove(a.id) : authorsApi.update(a.id, { name: a.name, isActive: true })),
+    onSuccess: (_r, a) => { toast.success(a.isActive ? `${a.name} band` : `${a.name} chalu`); setOff(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: (id: string) => authorsApi.toggleFeatured(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['authors'] }),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => authorsApi.remove(id),
-    onSuccess: () => { toast.success('Author deactivated'); queryClient.invalidateQueries({ queryKey: ['authors'] }); },
-  });
+  usePageKeys(searchRef, canEdit ? { n: () => setForm('new') } : {});
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-teal-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-teal-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Writers & Poets
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">✍️ Authors</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Authors, poets, translators, editors</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              New Author
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Authors"
+        chip={<><Users /> Likhne wale</>}
+        meta="Kitab author ke naam se bhi dhoondi jati hai"
+        loading={listQ.isLoading}
+        actions={<>
+          <Link to="/bookstore/books" className={heroButton}><BookOpen className="h-4 w-4" /><span className="hidden sm:inline">Kitaben</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya author (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Author</button>}
+        </>}
+        stats={[{ label: 'Author', value: active.length }, { label: 'Kitaben jori', value: books }]}
+      />
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search authors, pen names..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-teal-500" />
-        </div>
-        <div className="flex gap-1.5">
-          {[{ v: 'all', label: 'All' }, { v: 'featured', label: '⭐ Featured' }].map((f) => (
-            <button key={f.v} onClick={() => setTagFilter(f.v)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === f.v ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{f.label}</button>
-          ))}
-        </div>
-      </section>
+      <KpiRow cols={3}>
+        <KpiCard icon={Users} color="#2563eb" label="Chalu author" value={active.length} hint={`${all.length - active.length} band`} />
+        <KpiCard icon={Star} color="#d97706" label="Khaas (featured)" value={active.filter((a) => a.isFeatured).length} hint="List me upar" />
+        <KpiCard icon={BookOpen} color="#0891b2" label="Kitaben jori hui" value={books} />
+      </KpiRow>
 
-      {showForm && (
-        <AuthorForm editing={editing} onClose={() => { setShowForm(false); setEditing(null); }} onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['authors'] }); }} />
+      <ViewTabs<Tab> tabs={[{ id: 'active', label: 'Chalu', count: active.length }, { id: 'off', label: 'Band', count: all.length - active.length }]} value={tab} onChange={setTab} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya qalami naam" label="Search" />} />
+
+      {listQ.isLoading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-32 rounded-3xl" />)}</div>
+        : rows.length === 0 ? (
+          <EmptyBox icon={Users} title={search ? 'Koi author nahi mila' : 'Abhi koi author nahi'}
+            text="Author yahan banayein ya kitab banate waqt naam likh kar 'Naya' dabayein."
+            action={canEdit && !search && tab === 'active' ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Author banayein</Button> : undefined} />
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {rows.map((a) => (
+              <li key={a.id} className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-[1rem] font-bold text-violet-700">{a.name.slice(0, 1).toUpperCase()}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-slate-900">{a.name}</p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[a.penName && `"${a.penName}"`, a.nationality, a.languages.join(', ')].filter(Boolean).join(' · ') || '—'}</p>
+                  </div>
+                  <button type="button" disabled={!canEdit} onClick={() => feature.mutate(a)} aria-label={a.isFeatured ? 'Khaas se hatayein' : 'Khaas banayein'}
+                    className={cn('rounded-lg p-1.5', a.isFeatured ? 'text-amber-500' : 'text-slate-300 hover:text-amber-400')}><Star className={cn('h-5 w-5', a.isFeatured && 'fill-current')} /></button>
+                </div>
+                <p className="mt-3 text-[0.8125rem] text-slate-600"><BookOpen className="mr-1 inline h-3.5 w-3.5" />{a._count?.bookAuthors ?? 0} kitaben</p>
+                {canEdit && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <button type="button" onClick={() => setForm(a)} className={cardAction}><Pencil className="h-3.5 w-3.5" />Badlein</button>
+                    {a.isActive
+                      ? <button type="button" onClick={() => setOff(a)} className={`ml-auto ${cardDanger}`}><Power className="h-3.5 w-3.5" />Band</button>
+                      : <button type="button" onClick={() => toggle.mutate(a)} className={`ml-auto ${cardLink}`}><Power className="h-3.5 w-3.5" />Chalu</button>}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+
+      {form && <AuthorModal author={form === 'new' ? null : form} pending={save.isPending} onSave={(body) => save.mutate({ id: form === 'new' ? undefined : form.id, body })} onClose={() => setForm(null)} />}
+      {off && <ConfirmModal title={`${off.name} band karein?`} text="Kitab banate waqt ye author nahi dikhega; jin kitabon par laga hai un par rahega." confirm="Band karein" danger pending={toggle.isPending} onConfirm={() => toggle.mutate(off)} onClose={() => setOff(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Authors — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Users, color: '#2563eb', title: 'Author', text: 'Naam aur qalami naam likhein. Kitab ke editor me author chunne se POS par us ke naam se kitab milti hai.' },
+            { icon: Star, color: '#d97706', title: 'Khaas', text: 'Sitara dabane se author list me upar aata hai — jin ki kitaben zyada bikti hain.' },
+          ]}
+          shortcuts={[['N', 'naya'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
       )}
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : authors.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No authors yet</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {authors.map((a) => (
-            <div key={a.id} className={
-              'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition p-4 space-y-3 ' +
-              (a.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
-            }>
-              <div className="flex items-start justify-between">
-                {a.photoUrl ? (
-                  <img src={a.photoUrl} alt={a.name} className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200" />
-                ) : (
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center text-2xl font-extrabold shadow">
-                    {a.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex gap-1">
-                  <button onClick={() => toggleMutation.mutate(a.id)} className={
-                    'h-8 w-8 rounded-lg flex items-center justify-center transition ' +
-                    (a.isFeatured ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-amber-100 hover:text-amber-600')
-                  }>
-                    <Star className={'h-4 w-4 ' + (a.isFeatured ? 'fill-current' : '')} />
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{a.name}</h3>
-                {a.penName && <div className="text-xs italic text-slate-500 font-bold">"{a.penName}"</div>}
-                {a.nationality && (
-                  <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 font-bold">
-                    <Globe className="h-2.5 w-2.5" />
-                    {a.nationality}
-                  </div>
-                )}
-                {(a.bornYear || a.diedYear) && (
-                  <div className="text-[0.6875rem] font-bold text-slate-500">
-                    {a.bornYear || '?'} — {a.diedYear || 'Present'}
-                  </div>
-                )}
-              </div>
-
-              {a.genres?.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {a.genres.slice(0, 3).map((g, i) => (
-                    <span key={i} className="px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950/40 text-teal-700 text-[0.625rem] font-extrabold uppercase">{g}</span>
-                  ))}
-                </div>
-              )}
-
-              <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-1 text-slate-600 font-bold">
-                  <BookOpen className="h-3 w-3" />
-                  {a._count?.bookAuthors || 0} books
-                </span>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={() => { setEditing(a); setShowForm(true); }} className="h-7 w-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
-                    <Edit3 className="h-3 w-3" />
-                  </button>
-                  <button onClick={() => { if (confirm('Remove?')) removeMutation.mutate(a.id); }} className="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </div>
+    </PageShell>
   );
 }
 
-function AuthorForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    name: editing?.name ?? '',
-    penName: editing?.penName ?? '',
-    nationality: editing?.nationality ?? '',
-    bornYear: editing?.bornYear ?? '',
-    diedYear: editing?.diedYear ?? '',
-    bio: editing?.bio ?? '',
-    photoUrl: editing?.photoUrl ?? '',
-    genres: editing?.genres?.join(', ') ?? '',
-    languages: editing?.languages?.join(', ') ?? '',
-    isFeatured: editing?.isFeatured ?? false,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload = {
-        ...form,
-        bornYear: form.bornYear ? Number(form.bornYear) : undefined,
-        diedYear: form.diedYear ? Number(form.diedYear) : undefined,
-        genres: form.genres ? form.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : [],
-        languages: form.languages ? form.languages.split(',').map((l: string) => l.trim()).filter(Boolean) : [],
-      };
-      return editing ? authorsApi.update(editing.id, payload) : authorsApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Updated' : 'Created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
+function AuthorModal({ author, pending, onSave, onClose }: { author: Author | null; pending: boolean; onSave: (v: Partial<Author>) => void; onClose: () => void }) {
+  const [name, setName] = useState(author?.name ?? '');
+  const [penName, setPenName] = useState(author?.penName ?? '');
+  const [nationality, setNationality] = useState(author?.nationality ?? 'Pakistani');
+  const [languages, setLanguages] = useState<string[]>(author?.languages ?? ['Urdu']);
+  const [tried, setTried] = useState(false);
+  const submit = () => {
+    setTried(true);
+    if (!name.trim() || pending) return;
+    onSave({ name: name.trim(), penName: penName.trim() || undefined, nationality: nationality.trim() || undefined, languages });
+  };
+  useSaveKey(submit);
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-teal-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-teal-50 dark:bg-teal-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">{editing ? 'Edit Author' : 'New Author'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
-      </div>
-      <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Author name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.penName} onChange={(e) => setForm({ ...form, penName: e.target.value })} placeholder="Pen name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+    <Modal open onClose={onClose} size="md" title={author ? `${author.name} — badlein` : 'Naya author'} description="Ctrl+S se save"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={pending}>Save</Button></>}>
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Input label="Naam" required autoFocus value={name} onChange={(e) => setName(e.target.value)} error={tried && !name.trim() ? 'Naam likhein' : undefined} placeholder="Jaise: Ashfaq Ahmed" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Qalami naam" value={penName} onChange={(e) => setPenName(e.target.value)} placeholder="Marzi hai" />
+          <Input label="Mulk" value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="Pakistani" />
         </div>
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} placeholder="Nationality" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input type="number" value={form.bornYear} onChange={(e) => setForm({ ...form, bornYear: e.target.value })} placeholder="Born year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-teal-500" />
-          <input type="number" value={form.diedYear} onChange={(e) => setForm({ ...form, diedYear: e.target.value })} placeholder="Died year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-teal-500" />
-        </div>
-        <input value={form.genres} onChange={(e) => setForm({ ...form, genres: e.target.value })} placeholder="Genres (comma separated) e.g. Fiction, Poetry, History" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-        <input value={form.languages} onChange={(e) => setForm({ ...form, languages: e.target.value })} placeholder="Languages (comma separated) e.g. English, Urdu, Arabic" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-        <textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
-
         <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
-          {form.photoUrl ? (
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
-              <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setForm({ ...form, photoUrl: '' })} className="absolute top-1 right-1 h-6 w-6 rounded bg-rose-600 text-white flex items-center justify-center"><X className="h-3 w-3" /></button>
-            </div>
-          ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, photoUrl: url });
-            }} />
-          )}
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Zubaan</span>
+          <div className="flex flex-wrap gap-1.5">
+            {LANGUAGES.map((l) => (
+              <button key={l} type="button" aria-pressed={languages.includes(l)} onClick={() => setLanguages(languages.includes(l) ? languages.filter((x) => x !== l) : [...languages, l])}
+                className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium ring-1', languages.includes(l) ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200')}>{l}</button>
+            ))}
+          </div>
         </div>
-
-        <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 cursor-pointer">
-          <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-5 w-5 rounded" />
-          <Star className={'h-5 w-5 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
-          <span className="text-sm font-extrabold text-amber-900">Featured Author</span>
-        </label>
-
-        <div className="flex gap-2 pt-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-teal-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </section>
+      </form>
+    </Modal>
   );
 }

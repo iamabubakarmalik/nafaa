@@ -19,6 +19,8 @@ export interface Publisher {
   totalRevenue: number;
   isActive: boolean;
   _count?: { books: number };
+  /** The publisher as a supplier (same name), when opened. */
+  supplier?: { id: string; outstandingDue: number; totalPurchased: number } | null;
   books?: any[];
   createdAt: string;
   updatedAt: string;
@@ -31,7 +33,7 @@ export const publishersApi = {
   list: (params?: { search?: string; active?: boolean; country?: string }) =>
     apiClient.get('/bookstore/publishers', { params }).then(unwrap<Publisher[]>),
   seedPakistani: () => apiClient.post('/bookstore/publishers/seed-pakistani').then(unwrap<{ created: number; total: number }>),
-  getOne: (id: string) => apiClient.get('/bookstore/publishers/' + id).then(unwrap<Publisher>),
   update: (id: string, data: Partial<Publisher>) => apiClient.patch('/bookstore/publishers/' + id, data).then(unwrap<Publisher>),
+  openSupplier: (id: string) => apiClient.post('/bookstore/publishers/' + id + '/supplier').then(unwrap<{ id: string; name: string }>),
   remove: (id: string) => apiClient.delete('/bookstore/publishers/' + id).then(unwrap),
 };

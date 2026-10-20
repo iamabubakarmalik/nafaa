@@ -50,6 +50,14 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/hotel\/(housekeeping|rooms)/, P.SERVICE_BOOKINGS_VIEW],
   [/^\/hotel\/reports/, P.REPORTS_VIEW],
 
+  // Gym
+  [/^\/gym\/lockers/, P.SERVICE_BOOKINGS_VIEW],
+
+  // Pet shop animals are stock
+  [/^\/petshop\/live-animals\/new$/, P.PRODUCTS_CREATE],
+  [/^\/petshop\/live-animals\/[^/]+\/edit$/, P.PRODUCTS_EDIT],
+  [/^\/petshop\/live-animals/, P.PRODUCTS_VIEW],
+
   // Services business
   [/^\/services-biz\/warranty/, P.ELECTRONICS_WARRANTY_VIEW],
   [/^\/services-biz\/(technicians|amc)/, P.SERVICE_JOBS_VIEW],

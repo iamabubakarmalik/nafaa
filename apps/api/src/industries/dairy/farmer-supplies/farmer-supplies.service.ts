@@ -3,7 +3,7 @@
  * litres into the branch stock of the shop's milk product at the price paid
  * (fat bonus included), so counter sales and deliveries carry the real cost
  * into the profit report, and adds what is owed to the gawala's account.
- * Paying the gawala is a cash-out from the drawer (FarmersService).
+ * Paying the gawala goes through payFarmer (drawer or money account).
  *
  * A wrong entry is cancelled, not deleted: the litres and money are taken
  * back out and the slip keeps what it said.
@@ -14,7 +14,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope, applyStockDelta } from '../../../common/shop-scope';
 import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
-import { dayEnd, dayKey, dayRange, dayStart, drawerCash, milkProduct, parseDay, r2, r3 } from '../dairy-common';
+import { dayEnd, dayKey, dayRange, dayStart, milkProduct, parseDay, r2, r3 } from '../dairy-common';
+import { payFarmer } from '../farmers/farmer-payment';
 import { CreateSupplyDto } from './dto/create-supply.dto';
 
 /** Notes of a cancelled slip start with this. */
@@ -140,9 +141,9 @@ export class FarmerSuppliesService {
     });
   }
 
-  /** Pays one slip in full: the gawala's balance goes down and cash leaves the drawer. */
-  async markPaid(user: AuthenticatedUser, id: string, method?: string) {
-    const s = await this.prisma.dairyFarmerSupply.findFirst({ where: { id, tenantId: user.tenantId }, include: { farmer: { select: { name: true } } } });
+  /** Pays one slip in full: the gawala's balance goes down and the money leaves the drawer or an account. */
+  async markPaid(user: AuthenticatedUser, scope: ShopScope, id: string, pay: { paymentMethod?: string; accountId?: string }) {
+    const s = await this.prisma.dairyFarmerSupply.findFirst({ where: { id, tenantId: user.tenantId }, include: { farmer: { select: { id: true, name: true, farmerNumber: true } } } });
     if (!s) throw new NotFoundException('Entry nahi mili');
     if (s.notes?.startsWith(CANCELLED)) throw new BadRequestException('Cancel entry ka payment nahi hota');
     if (s.isPaid || s.totalAmount <= 0) return s;
@@ -154,9 +155,10 @@ export class FarmerSuppliesService {
         where: { id: s.farmerId },
         data: { currentBalance: { decrement: s.totalAmount }, totalPaid: { increment: s.totalAmount }, lastPaymentDate: new Date() },
       });
-      await drawerCash(tx, user, {
-        direction: 'OUT', amount: s.totalAmount, method,
-        reason: `Gawale ko doodh ka payment: ${s.farmer.name} (${s.quantity} L, ${dayKey(s.supplyDate)})`, reference: s.id,
+      await payFarmer(tx, user, {
+        farmer: s.farmer, amount: s.totalAmount, method: pay.paymentMethod, accountId: pay.accountId, shopId: scope.shopId,
+        note: `Parchi ${dayKey(s.supplyDate)} · ${s.quantity} L`,
+        reason: `Gawale ko doodh ka payment: ${s.farmer.name} (${s.quantity} L, ${dayKey(s.supplyDate)})`,
       });
       return tx.dairyFarmerSupply.findUniqueOrThrow({ where: { id } });
     });

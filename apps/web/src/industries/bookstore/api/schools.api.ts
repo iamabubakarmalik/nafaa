@@ -24,6 +24,8 @@ export interface School {
   outstandingAmount: number;
   isActive: boolean;
   _count?: { bookLists: number };
+  /** The school's khata (a customer of the same name), when opened. */
+  customer?: { id: string; balance: number; creditLimit: number } | null;
   bookLists?: any[];
   createdAt: string;
   updatedAt: string;
@@ -36,5 +38,6 @@ export const schoolsApi = {
   list: (params?: any) => apiClient.get('/bookstore/schools', { params }).then(unwrap<School[]>),
   getOne: (id: string) => apiClient.get('/bookstore/schools/' + id).then(unwrap<School>),
   update: (id: string, data: Partial<School>) => apiClient.patch('/bookstore/schools/' + id, data).then(unwrap<School>),
+  openKhata: (id: string) => apiClient.post('/bookstore/schools/' + id + '/khata').then(unwrap<{ id: string; name: string; balance: number }>),
   remove: (id: string) => apiClient.delete('/bookstore/schools/' + id).then(unwrap),
 };

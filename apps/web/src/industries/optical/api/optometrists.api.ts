@@ -4,51 +4,35 @@ export interface OpticalOptometrist {
   id: string;
   employeeCode: string;
   name: string;
-  qualification?: string;
-  registrationNumber?: string;
+  qualification?: string | null;
+  registrationNumber?: string | null;
   phone: string;
-  email?: string;
+  email?: string | null;
   specializations: string[];
-  yearsExperience?: number;
-  languages: string[];
+  yearsExperience?: number | null;
   workingDays: number[];
   workStartTime: string;
   workEndTime: string;
   consultationFee: number;
-  followUpFee?: number;
+  followUpFee: number;
   isActive: boolean;
-  photoUrl?: string;
-  bio?: string;
+  bio?: string | null;
   totalTests: number;
   totalRevenue: number;
-  todayAppointments?: any[];
-  upcoming?: any[];
-  recentCompleted?: any[];
-  createdAt: string;
-  updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface Workload {
+  totals: { total: number; completed: number; cancelled: number; noShow: number; prescriptionsIssued: number; revenue: number; avgDurationMinutes: number };
+}
+
+export type OptometristInput = Partial<Omit<OpticalOptometrist, 'id' | 'totalTests' | 'totalRevenue'>>;
+
+const unwrap = <T,>(res: { data: { data?: T } & T }): T => (res.data?.data ?? res.data) as T;
 
 export const optometristsApi = {
-  create: (data: Partial<OpticalOptometrist>) =>
-    apiClient.post('/optical/optometrists', data).then(unwrap<OpticalOptometrist>),
-
-  list: (params?: { active?: boolean; availableToday?: boolean; search?: string }) =>
-    apiClient.get('/optical/optometrists', { params }).then(unwrap<OpticalOptometrist[]>),
-
-  topPerformers: (limit = 10) =>
-    apiClient.get('/optical/optometrists/top', { params: { limit } }).then(unwrap<OpticalOptometrist[]>),
-
-  getOne: (id: string) =>
-    apiClient.get('/optical/optometrists/' + id).then(unwrap<OpticalOptometrist>),
-
-  workload: (id: string, from: string, to: string) =>
-    apiClient.get('/optical/optometrists/' + id + '/workload', { params: { from, to } }).then(unwrap<any>),
-
-  update: (id: string, data: Partial<OpticalOptometrist>) =>
-    apiClient.patch('/optical/optometrists/' + id, data).then(unwrap<OpticalOptometrist>),
-
-  remove: (id: string) =>
-    apiClient.delete('/optical/optometrists/' + id).then(unwrap),
+  create: (data: OptometristInput) => apiClient.post('/optical/optometrists', data).then(unwrap<OpticalOptometrist>),
+  list: (params?: { active?: boolean; availableToday?: boolean; search?: string }) => apiClient.get('/optical/optometrists', { params }).then(unwrap<OpticalOptometrist[]>),
+  workload: (id: string, from: string, to: string) => apiClient.get('/optical/optometrists/' + id + '/workload', { params: { from, to } }).then(unwrap<Workload>),
+  update: (id: string, data: OptometristInput) => apiClient.patch('/optical/optometrists/' + id, data).then(unwrap<OpticalOptometrist>),
+  deactivate: (id: string) => apiClient.delete('/optical/optometrists/' + id).then(unwrap<OpticalOptometrist>),
 };

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertPetProductDto } from './dto/upsert-pet-product.dto';
+import { addDaysTz, cleanInput, dayEnd, parseDay } from '../petshop-common';
 
 @Injectable()
 export class PetProductsService {
@@ -11,10 +12,11 @@ export class PetProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product not found');
 
-    const data: any = {
-      ...dto,
+    const data = {
+      ...cleanInput(dto),
       tenantId: user.tenantId,
-      expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
+      // A `yyyy-mm-dd` expiry is the end of that shop day.
+      expiryDate: dto.expiryDate ? (parseDay(dto.expiryDate) ? dayEnd(dto.expiryDate) : undefined) : dto.expiryDate === '' ? null : undefined,
     };
 
     const existing = await this.prisma.petProductProfile.findUnique({ where: { productId: dto.productId } });
@@ -86,7 +88,7 @@ export class PetProductsService {
 
     const productIds = profiles.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds }, isActive: true },
+      where: { tenantId: user.tenantId, id: { in: productIds }, isActive: true },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const map = new Map(products.map((p) => [p.id, p]));
@@ -96,8 +98,7 @@ export class PetProductsService {
   /** Medicines / food expiring soon (vet store safety) */
   async expiringSoon(user: AuthenticatedUser, days = 90) {
     const now = new Date();
-    const future = new Date();
-    future.setDate(future.getDate() + days);
+    const future = addDaysTz(dayEnd(), Math.min(Math.max(Math.floor(Number(days) || 90), 1), 730));
 
     const profiles = await this.prisma.petProductProfile.findMany({
       where: { tenantId: user.tenantId, expiryDate: { gte: now, lte: future } },
@@ -107,7 +108,7 @@ export class PetProductsService {
 
     const productIds = profiles.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { tenantId: user.tenantId, id: { in: productIds } },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const map = new Map(products.map((p) => [p.id, p]));
@@ -125,7 +126,7 @@ export class PetProductsService {
       take: 200,
     });
     const productIds = profiles.map((p) => p.productId);
-    const products = await this.prisma.product.findMany({ where: { id: { in: productIds } } });
+    const products = await this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: productIds } } });
     const map = new Map(products.map((p) => [p.id, p]));
     return profiles.map((p) => ({ ...p, product: map.get(p.productId) }));
   }

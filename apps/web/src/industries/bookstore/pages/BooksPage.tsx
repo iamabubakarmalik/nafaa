@@ -1,216 +1,145 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import {
-  BookOpen, Search, RefreshCw, Sparkles, Star, TrendingUp, Award,
-  BookMarked, Zap, Filter, Building2, Users,
-} from 'lucide-react';
-import { bookProfilesApi, type BookCategory } from '../api/book-profiles.api';
-import { publishersApi } from '../api/publishers.api';
-import { formatPKR } from '@core/lib/format';
+/**
+ * Books: the shop's titles by ISBN, author, publisher, edition and class,
+ * with today's rate and stock. Search goes to the server (title, ISBN or
+ * publisher code); class, publisher and textbook filters narrow it. The
+ * list prints as a stock or order sheet for a publisher.
+ *
+ * Keys: N new book · / search · G guide.
+ */
 
-const POPULAR_CATEGORIES: { value: BookCategory; label: string; emoji: string }[] = [
-  { value: 'TEXTBOOK', label: 'Textbook', emoji: '📚' },
-  { value: 'NOVEL', label: 'Novel', emoji: '📖' },
-  { value: 'CHILDREN', label: 'Children', emoji: '🧒' },
-  { value: 'QURAN', label: 'Quran', emoji: '🕌' },
-  { value: 'ISLAMIC_STUDIES', label: 'Islamic', emoji: '☪️' },
-  { value: 'BIOGRAPHY', label: 'Biography', emoji: '👤' },
-  { value: 'HISTORY', label: 'History', emoji: '🏛️' },
-  { value: 'POETRY', label: 'Poetry', emoji: '✒️' },
-  { value: 'SELF_HELP', label: 'Self Help', emoji: '💪' },
-  { value: 'BUSINESS', label: 'Business', emoji: '💼' },
-  { value: 'SCIENCE', label: 'Science', emoji: '🔬' },
-  { value: 'DICTIONARY', label: 'Dictionary', emoji: '📕' },
-  { value: 'MAGAZINE', label: 'Magazine', emoji: '📰' },
-  { value: 'COMICS', label: 'Comics', emoji: '💥' },
-];
+import { useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { BookOpen, Building2, GraduationCap, Package, Plus, ScanLine, Timer, Users } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Select, SkeletonTable, Table, TBody, THead, Td, Th, Tr, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { PrintButton } from '@core/print';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { bookProfilesApi, type BookProfile } from '../api/book-profiles.api';
+import { publishersApi } from '../api/publishers.api';
+import { BOOK_CATEGORIES, KEYS, labelOf } from '../lib/meta';
+import { EmptyBox, useDebounced, usePageKeys } from '../components/ui';
+
+type Tab = 'all' | 'text' | 'rent' | 'low';
+
+const authorsOf = (b: BookProfile) => (b.bookAuthors ?? []).map((a: { author?: { name: string } }) => a.author?.name).filter(Boolean).join(', ');
 
 export default function BooksPage() {
+  const navigate = useNavigate();
+  const canCreate = usePermission(PERMISSIONS.PRODUCTS_CREATE);
+  const { sales } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [publisherFilter, setPublisherFilter] = useState<string>('');
-  const [tagFilter, setTagFilter] = useState<string>('all');
+  const [tab, setTab] = useState<Tab>('all');
+  const [grade, setGrade] = useState('');
+  const [publisherId, setPublisherId] = useState('');
+  const term = useDebounced(search.trim(), 300);
 
-  const { data: publishers = [] } = useQuery({
-    queryKey: ['publishers-for-books'],
-    queryFn: () => publishersApi.list({ active: true }),
+  const listQ = useQuery({
+    queryKey: [KEYS.books, term, publisherId],
+    queryFn: () => bookProfilesApi.list({ search: term || undefined, publisherId: publisherId || undefined }),
   });
+  const pubsQ = useQuery({ queryKey: [KEYS.publishers, 'active'], queryFn: () => publishersApi.list({ active: true }), staleTime: 60_000 });
+  const all = useMemo(() => listQ.data ?? [], [listQ.data]);
+  const grades = useMemo(() => [...new Set(all.map((b) => b.grade).filter((g): g is string => !!g))].sort(), [all]);
+  const stock = (b: BookProfile) => Number(b.product?.stock ?? 0);
+  const low = (b: BookProfile) => stock(b) <= Math.max(Number(b.product?.lowStockAlert ?? 0), b.reorderLevel ?? 0, 0);
+  const rows = useMemo(() => all.filter((b) => (!grade || b.grade === grade)
+    && (tab === 'all' || (tab === 'text' && b.isTextbook) || (tab === 'rent' && b.isRentable) || (tab === 'low' && low(b)))), [all, grade, tab]);
+  const copies = all.reduce((s, b) => s + Math.max(stock(b), 0), 0);
+  const value = all.reduce((s, b) => s + Math.max(stock(b), 0) * Number(b.product?.price ?? 0), 0);
 
-  const { data: books = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['books', search, categoryFilter, publisherFilter, tagFilter],
-    queryFn: () => bookProfilesApi.list({
-      search: search.trim() || undefined,
-      category: categoryFilter === 'all' ? undefined : categoryFilter,
-      publisherId: publisherFilter || undefined,
-      isBestSeller: tagFilter === 'bestseller' ? true : undefined,
-      isNewArrival: tagFilter === 'new' ? true : undefined,
-      isFeatured: tagFilter === 'featured' ? true : undefined,
-      isAwardWinner: tagFilter === 'award' ? true : undefined,
-      isRentable: tagFilter === 'rentable' ? true : undefined,
-    }),
+  usePageKeys(searchRef, canCreate ? { n: () => navigate('/bookstore-products/new') } : {});
+
+  const doc = () => ({
+    title: 'Kitabon ki list',
+    subtitle: [grade, pubsQ.data?.find((p) => p.id === publisherId)?.name].filter(Boolean).join(' · ') || undefined,
+    sections: [{
+      kind: 'table' as const,
+      columns: [{ label: 'Kitab' }, { label: 'ISBN', wideOnly: true }, { label: 'Publisher', wideOnly: true }, { label: 'Class', wideOnly: true }, { label: 'Rate', align: 'right' as const }, { label: 'Stock', align: 'right' as const }],
+      rows: rows.map((b) => [b.product?.name ?? b.title, b.isbn13 ?? b.isbn10 ?? '', b.publisher?.name ?? '', [b.grade, b.subject].filter(Boolean).join(' '), String(b.product?.price ?? ''), String(stock(b))]),
+    }],
   });
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Book Catalog
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">📖 Books</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Complete book catalog with ISBN, publishers & authors</p>
-          </div>
-          <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-            <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-            Refresh
-          </button>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Kitaben"
+        chip={<><BookOpen /> ISBN, author, publisher</>}
+        meta="Har kitab ka edition, class, rate aur stock"
+        loading={listQ.isLoading}
+        actions={<>
+          <Link to="/bookstore/authors" className={heroButton}><Users className="h-4 w-4" /><span className="hidden sm:inline">Authors</span></Link>
+          <Link to="/bookstore/publishers" className={heroButton}><Building2 className="h-4 w-4" /><span className="hidden sm:inline">Publishers</span></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <Link to="/bookstore-products/new" title="Nayi kitab (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Kitab</Link>}
+        </>}
+        stats={[{ label: 'Kitaben', value: all.length }, { label: 'Copies', value: copies }, { label: 'Stock ki value', value: sales(value) }]}
+      />
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search title, ISBN, code..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-        </div>
+      <KpiRow cols={4}>
+        <KpiCard icon={BookOpen} color="#0891b2" label="Titles" value={all.length} onClick={() => setTab('all')} active={tab === 'all'} />
+        <KpiCard icon={GraduationCap} color="#7c3aed" label="School ki" value={all.filter((b) => b.isTextbook).length} onClick={() => setTab('text')} active={tab === 'text'} />
+        <KpiCard icon={Timer} color="#d97706" label="Kiraye wali" value={all.filter((b) => b.isRentable).length} onClick={() => setTab('rent')} active={tab === 'rent'} />
+        <KpiCard icon={Package} color="#e11d48" label="Stock kam" value={all.filter(low).length} onClick={() => setTab('low')} active={tab === 'low'} hint="Mangwani hain" />
+      </KpiRow>
 
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setCategoryFilter('all')} className={
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (categoryFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-          }>All Categories</button>
-          {POPULAR_CATEGORIES.map((c) => (
-            <button key={c.value} onClick={() => setCategoryFilter(c.value)} className={
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (categoryFilter === c.value ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{c.emoji} {c.label}</button>
-          ))}
-        </div>
+      <ViewTabs<Tab> tabs={[{ id: 'all', label: 'Sab' }, { id: 'text', label: 'School ki' }, { id: 'rent', label: 'Kiraye wali' }, { id: 'low', label: 'Stock kam' }]} value={tab} onChange={setTab}
+        right={<PrintButton doc={doc} disabled={!rows.length} size="sm" />} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, ISBN ya publisher code" label="Search" />}>
+        <Select size="sm" aria-label="Class" value={grade} onChange={(e) => setGrade(e.target.value)} options={[{ value: '', label: 'Har class' }, ...grades.map((g) => ({ value: g, label: g }))]} />
+        <Select size="sm" aria-label="Publisher" value={publisherId} onChange={(e) => setPublisherId(e.target.value)} options={[{ value: '', label: 'Har publisher' }, ...(pubsQ.data ?? []).map((p) => ({ value: p.id, label: p.name }))]} />
+      </FilterBar>
 
-        <div className="flex gap-2 flex-wrap">
-          <select value={publisherFilter} onChange={(e) => setPublisherFilter(e.target.value)} className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-blue-500">
-            <option value="">All Publishers</option>
-            {publishers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          {[
-            { v: 'all', label: 'All' },
-            { v: 'bestseller', label: '🏆 Best Sellers' },
-            { v: 'new', label: '✨ New' },
-            { v: 'featured', label: '⭐ Featured' },
-            { v: 'award', label: '🥇 Award Winner' },
-            { v: 'rentable', label: '📚 Rentable' },
-          ].map((t) => (
-            <button key={t.v} onClick={() => setTagFilter(t.v)} className={
-              'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === t.v ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
-            }>{t.label}</button>
-          ))}
-        </div>
-      </section>
+      {listQ.isLoading ? <SkeletonTable />
+        : rows.length === 0 ? (
+          <EmptyBox icon={BookOpen} title={search ? 'Koi kitab nahi mili' : 'Abhi koi kitab nahi'}
+            text="Nayi kitab banayein: ISBN, author, publisher aur class likhein — POS par in sab se dhoondi jati hai."
+            action={canCreate && !search ? <Button onClick={() => navigate('/bookstore-products/new')} leftIcon={<Plus className="h-4 w-4" />}>Kitab banayein</Button> : undefined} />
+        ) : (
+          <Table minWidth="56rem">
+            <THead><Tr><Th>Kitab</Th><Th>Author</Th><Th>Publisher</Th><Th>Class</Th><Th align="right">Rate</Th><Th align="right">Stock</Th></Tr></THead>
+            <TBody>
+              {rows.map((b) => (
+                <Tr key={b.id} interactive onClick={() => navigate(`/bookstore-products/${b.productId}`)}>
+                  <Td>
+                    <p className="font-medium text-slate-900">{b.product?.name ?? b.title}</p>
+                    <p className="text-[0.75rem] text-slate-500">
+                      {[b.isbn13 || b.isbn10, b.edition && `${b.edition} ed`, labelOf(BOOK_CATEGORIES, b.category)].filter(Boolean).join(' · ')}
+                      {b.isRentable && <span className="ml-1 font-semibold text-amber-700">· Kiraya</span>}
+                    </p>
+                  </Td>
+                  <Td>{authorsOf(b) || <span className="text-slate-400">—</span>}</Td>
+                  <Td>{b.publisher?.name ?? <span className="text-slate-400">—</span>}</Td>
+                  <Td>{b.isTextbook ? [b.grade, b.subject].filter(Boolean).join(' · ') || '—' : <span className="text-slate-400">—</span>}</Td>
+                  <Td align="right" className="tabular-nums">{sales(Number(b.product?.price ?? 0))}</Td>
+                  <Td align="right" className={cn('tabular-nums font-semibold', low(b) ? 'text-rose-600' : 'text-slate-900')}>{stock(b)}</Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+        )}
+      {all.length >= 300 && <p className="px-1 text-[0.75rem] text-slate-500">Pehli 300 kitaben dikh rahi hain — naam ya ISBN se dhoondein.</p>}
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : books.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <BookOpen className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No books found</p>
-          <p className="text-xs text-slate-500 mt-1">Go to Products page to add book profiles</p>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {books.map((book) => {
-            const cat = POPULAR_CATEGORIES.find((c) => c.value === book.category);
-            const primaryAuthor = book.bookAuthors?.find((ba: any) => ba.role === 'AUTHOR')?.author;
-            return (
-              <Link key={book.id} to={'/products/' + book.productId + '/edit'} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition overflow-hidden">
-                <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-500 via-cyan-600 to-teal-700 overflow-hidden">
-                  {book.product?.images?.[0]?.url ? (
-                    <img src={book.product.images[0].url} alt={book.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-4 text-white">
-                      <BookOpen className="h-12 w-12 mb-2" />
-                      <div className="text-sm font-extrabold text-center line-clamp-3">{book.title}</div>
-                    </div>
-                  )}
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canCreate && <><Kbd>N</Kbd> nayi kitab · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
 
-                  <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    {book.isBestSeller && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-                        <TrendingUp className="h-2 w-2" />BEST
-                      </span>
-                    )}
-                    {book.isNewArrival && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-                        <Sparkles className="h-2 w-2" />NEW
-                      </span>
-                    )}
-                    {book.isAwardWinner && (
-                      <span className="px-1.5 py-0.5 rounded bg-purple-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-                        <Award className="h-2 w-2" />AWARD
-                      </span>
-                    )}
-                    {book.isRentable && (
-                      <span className="px-1.5 py-0.5 rounded bg-blue-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
-                        <BookMarked className="h-2 w-2" />RENT
-                      </span>
-                    )}
-                  </div>
-
-                  {book.condition !== 'NEW' && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[0.625rem] font-extrabold uppercase shadow">
-                      {book.condition.replace('USED_', '').replace('_', ' ')}
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-3 space-y-1.5">
-                  <div>
-                    <h3 className="font-extrabold text-sm text-slate-900 dark:text-ink-white line-clamp-2 leading-tight">{book.title}</h3>
-                    {book.subtitle && <div className="text-[0.6875rem] italic text-slate-500 line-clamp-1">{book.subtitle}</div>}
-                  </div>
-
-                  {primaryAuthor && (
-                    <div className="text-[0.6875rem] font-extrabold text-blue-600 truncate">by {primaryAuthor.name}</div>
-                  )}
-
-                  <div className="flex flex-wrap gap-1">
-                    {cat && <span className="text-[0.625rem] font-extrabold uppercase text-slate-500">{cat.emoji} {cat.label}</span>}
-                    {book.isTextbook && book.grade && (
-                      <span className="text-[0.625rem] font-extrabold uppercase text-violet-600">• {book.grade}</span>
-                    )}
-                  </div>
-
-                  {book.isbn13 && (
-                    <div className="text-[0.625rem] font-mono text-slate-400">ISBN: {book.isbn13}</div>
-                  )}
-
-                  {book.publisher && (
-                    <div className="flex items-center gap-1 text-[0.625rem] text-slate-500 font-bold">
-                      <Building2 className="h-2.5 w-2.5" />
-                      {book.publisher.name}
-                    </div>
-                  )}
-
-                  <div className="pt-1 flex items-end justify-between">
-                    <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(book.product?.price ?? 0)}</div>
-                    {book.avgRating && (
-                      <div className="text-[0.6875rem] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
-                        <Star className="h-2.5 w-2.5 fill-current" />
-                        {book.avgRating.toFixed(1)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </section>
+      {guide.isOpen && (
+        <PageGuide title="Kitaben — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: ScanLine, color: '#0891b2', title: 'ISBN se', text: 'Search me ISBN likhein ya scan karein — kitab foran milti hai. Row dabane se poori tafseel aur stock khulta hai.' },
+            { icon: GraduationCap, color: '#7c3aed', title: 'Class aur publisher', text: 'Class ya publisher chun kar list print karein — publisher ko order bhejne ya season se pehle stock ginne ke liye.' },
+            { icon: Package, color: '#e11d48', title: 'Stock kam', text: '"Stock kam" tab me wo kitaben jo had tak aa gayin — Publishers se purchase karein.' },
+          ]}
+          shortcuts={[['N', 'nayi kitab'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
       )}
-    </div>
+    </PageShell>
   );
 }

@@ -4,7 +4,10 @@ import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShoeProductsService } from './products.service';
-import { UpsertShoeProductDto } from './dto/upsert-product.dto';
+import { UpsertShoeProductDto, VariantSizesDto } from './dto/upsert-product.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Shoe - Products')
 @ApiBearerAuth()
@@ -12,6 +15,14 @@ import { UpsertShoeProductDto } from './dto/upsert-product.dto';
 @Controller('shoe/products')
 export class ShoeProductsController {
   constructor(private readonly service: ShoeProductsService) {}
+  @Get('meta') meta(@GetUser() u: AuthenticatedUser) { return this.service.meta(u); }
+  @Get('reorder') reorder(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('limit') limit?: string) { return this.service.reorder(u, shop, { limit }); }
+  /** Brand sync touches the shop's brand list, so it needs products.edit. */
+  @Post('brands/sync') @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT) syncBrands(@GetUser() u: AuthenticatedUser) { return this.service.syncBrands(u); }
+  @Get(':productId/size-grid') sizeGrid(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') p: string) { return this.service.sizeGrid(u, shop, p); }
+  @Post(':productId/variant-sizes') @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT) variantSizes(@GetUser() u: AuthenticatedUser, @Param('productId') p: string, @Body() dto: VariantSizesDto) { return this.service.saveVariantSizes(u, p, dto); }
+  /** Selling an older size product moves its stock to the sizes once; needed at the counter. */
+  @Post(':productId/variant-stock-split') @RequirePermissions(PERMISSIONS.POS_USE) split(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') p: string) { return this.service.splitVariantStock(u, p, shop.shopId); }
   @Post() upsert(@GetUser() u: AuthenticatedUser, @Body() dto: UpsertShoeProductDto) { return this.service.upsert(u, dto); }
   @Get() list(
     @GetUser() u: AuthenticatedUser,

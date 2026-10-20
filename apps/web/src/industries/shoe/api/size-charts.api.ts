@@ -1,34 +1,26 @@
 import { apiClient } from '@core/api/client';
-import type { ShoeCategoryType, ShoeGender } from './products.api';
+
+const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
+
+/** One row of a chart: the same foot in each system, e.g. { pk: '8', eu: '42', us: '9', cm: '26.5' }. */
+export type ChartRow = Record<string, string>;
 
 export interface ShoeSizeChart {
   id: string;
   name: string;
-  brandId?: string;
-  gender?: ShoeGender;
-  categoryType?: ShoeCategoryType;
-  mappings: any;
-  notes?: string;
+  gender?: string | null;
+  categoryType?: string | null;
+  mappings: ChartRow[];
+  notes?: string | null;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface SizeChartInput { name: string; gender?: string; mappings: ChartRow[]; notes?: string; isActive?: boolean }
 
 export const shoeSizeChartsApi = {
-  create: (data: Partial<ShoeSizeChart>) =>
-    apiClient.post('/shoe/size-charts', data).then(unwrap<ShoeSizeChart>),
-
-  list: (params?: { brandId?: string; gender?: string; categoryType?: string; active?: boolean }) =>
-    apiClient.get('/shoe/size-charts', { params }).then(unwrap<ShoeSizeChart[]>),
-
-  getOne: (id: string) =>
-    apiClient.get('/shoe/size-charts/' + id).then(unwrap<ShoeSizeChart>),
-
-  update: (id: string, data: Partial<ShoeSizeChart>) =>
-    apiClient.patch('/shoe/size-charts/' + id, data).then(unwrap<ShoeSizeChart>),
-
-  remove: (id: string) =>
-    apiClient.delete('/shoe/size-charts/' + id).then(unwrap),
+  list: () => apiClient.get('/shoe/size-charts').then(unwrap<ShoeSizeChart[]>),
+  create: (data: SizeChartInput) => apiClient.post('/shoe/size-charts', data).then(unwrap<ShoeSizeChart>),
+  update: (id: string, data: Partial<SizeChartInput>) => apiClient.patch('/shoe/size-charts/' + id, data).then(unwrap<ShoeSizeChart>),
+  /** Hides the chart; nothing is deleted. */
+  deactivate: (id: string) => apiClient.delete('/shoe/size-charts/' + id).then(unwrap<ShoeSizeChart>),
 };

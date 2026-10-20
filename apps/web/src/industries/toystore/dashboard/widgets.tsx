@@ -9,7 +9,7 @@ import { useToystoreOps } from './useToystoreOps';
 /** Toy store headline numbers, offered next to the common ones. */
 export const toystoreKpis: KpiDef[] = [
   {
-    id: 'toystore-birthdays', label: 'Is hafte salgirah', icon: Cake, tone: 'brand',
+    id: 'toystore-birthdays', label: 'Is hafte saalgirah', icon: Cake, tone: 'brand',
     useValue: () => {
       const { birthdays, loading } = useToystoreOps();
       return { loading, to: '/toystore/birthdays', value: birthdays.week, hint: `${birthdays.month} is mahine` };
@@ -35,17 +35,17 @@ export function useToystoreAttention(): AttentionItem[] {
   const { birthdays, safetyIssues, batteryUpsell } = useToystoreOps();
   const items: AttentionItem[] = [];
   if (safetyIssues) items.push({ icon: ShieldAlert, level: 'warning', text: `${safetyIssues} khilonon me safety ki kami — certificate ya choking warning check karein`, to: '/toystore/safety-review', cta: 'Safety dekhein' });
-  if (birthdays.soon) items.push({ icon: Cake, level: 'warning', text: `${birthdays.soon} bachon ki salgirah 3 din me hai — parents ko gift idea bhej dein`, to: '/toystore/birthdays', cta: 'Salgirah dekhein' });
-  else if (birthdays.week) items.push({ icon: Cake, level: 'info', text: `Is hafte ${birthdays.week} bachon ki salgirah hai`, to: '/toystore/birthdays', cta: 'Salgirah dekhein' });
-  if (batteryUpsell) items.push({ icon: Battery, level: 'neutral', text: `${batteryUpsell} khilone bina battery ke bikte hain — counter par battery saath bechein`, to: '/toy-products?filter=battery', cta: 'Dekhein' });
+  if (birthdays.soon) items.push({ icon: Cake, level: 'warning', text: `${birthdays.soon} bachon ki saalgirah 3 din me hai — parents ko gift idea bhej dein`, to: '/toystore/birthdays', cta: 'Saalgirah dekhein' });
+  else if (birthdays.week) items.push({ icon: Cake, level: 'info', text: `Is hafte ${birthdays.week} bachon ki saalgirah hai`, to: '/toystore/birthdays', cta: 'Saalgirah dekhein' });
+  if (batteryUpsell) items.push({ icon: Battery, level: 'neutral', text: `${batteryUpsell} khilone bina battery ke bikte hain — counter par battery saath bechein`, to: '/products', cta: 'Dekhein' });
   return items;
 }
 
 export function ToystoreBirthdays() {
   const { birthdays } = useToystoreOps();
   return (
-    <WidgetCard title="Aane wali salgirah" icon={Cake} description={`${birthdays.month} agle 30 din me · ${birthdays.registered} bachay darj`} to="/toystore/birthdays" flush>
-      <RowList empty="Agle 30 din koi salgirah nahi" emptyIcon={Cake}>
+    <WidgetCard title="Aane wali saalgirah" icon={Cake} description={`${birthdays.month} agle 30 din me · ${birthdays.registered} bachay darj`} to="/toystore/birthdays" flush>
+      <RowList empty="Agle 30 din koi saalgirah nahi" emptyIcon={Cake}>
         {birthdays.list.slice(0, 6).map((b) => {
           const tone = b.daysUntil <= 3 ? 'danger' : b.daysUntil <= 7 ? 'warning' : 'neutral';
           const when = b.daysUntil === 0 ? 'Aaj' : b.daysUntil === 1 ? 'Kal' : `${b.daysUntil} din`;
@@ -70,7 +70,7 @@ export function ToystoreAgeGroups() {
   const { sales } = useMasked();
   const top = ages.filter((g) => g.count > 0).slice(0, 8);
   return (
-    <WidgetCard title="Umar ke hisaab se" icon={Baby} description={`${totalProducts} khilone · ${educational} educational`} to="/toy-products">
+    <WidgetCard title="Umar ke hisaab se" icon={Baby} description={`${totalProducts} khilone · ${educational} educational`} to="/products">
       {top.length === 0 ? (
         <EmptyHint icon={Baby} text="Khilonon par umar (age group) likhein — yahan pata chalega kis umar ka maal zyada bikta hai" />
       ) : (
@@ -97,7 +97,7 @@ export function ToystoreGiftPacks() {
   const { sales } = useMasked();
   return (
     <WidgetCard title="Top gift packs" icon={Gift} description={`${giftPacks.active} chaalu · ${giftPacks.sold} bik chuke`} to="/toystore/gift-packs" flush>
-      <RowList empty="Abhi koi gift pack nahi — bana kar salgirah par bechein" emptyIcon={Gift}>
+      <RowList empty="Abhi koi gift pack nahi — bana kar saalgirah par bechein" emptyIcon={Gift}>
         {giftPacks.top.slice(0, 5).map((g) => (
           <ListRow
             key={g.id}

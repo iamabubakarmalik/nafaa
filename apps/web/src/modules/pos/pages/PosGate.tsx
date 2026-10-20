@@ -1,7 +1,7 @@
 /**
  * Picks the POS for the current industry. Retail, Bakery, Electronics,
  * Pharmacy, Mobile, Garments, Clinic, Jewelry, Hardware, Auto parts, Sports,
- * Toy store, Gym, Hotel, Dairy, Meat, Services, Appliances and businesses
+ * Toy store, Cosmetics, Gym, Hotel, Dairy, Meat, Services, Appliances and businesses
  * without an industry run on the shared POS engine
  * (modules/pos/engine); the rest still use their own pages until their
  * industry flow is rebuilt.
@@ -33,6 +33,7 @@ const HotelPosPage = lazy(() => import('@industries/hotel/pages/HotelPosPage'));
 // ─── 10 NEW industries ───
 const AppliancesPos = lazy(() => import('@industries/appliances/pos/AppliancesPos'));
 const ElectronicsPos = lazy(() => import('@industries/electronics/pos/ElectronicsPos'));
+const CosmeticsPosPage = lazy(() => import('@industries/cosmetics/pages/CosmeticsPosPage'));
 const GeneralPos = lazy(() => import('../general/GeneralPos'));
 const FloristPosPage = lazy(() => import('@industries/florist/pages/FloristPosPage'));
 const FurniturePosPage = lazy(() => import('@industries/furniture/pages/FurniturePosPage'));
@@ -78,6 +79,7 @@ export default function PosGate() {
   // ─── 10 NEW ───
   if (industry?.id === 'appliances') return <Suspense fallback={<Loader />}><AppliancesPos /></Suspense>;
   if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsPos /></Suspense>;
+  if (industry?.id === 'cosmetics') return <Suspense fallback={<Loader />}><CosmeticsPosPage /></Suspense>;
   if (industry?.id === 'florist') return <Suspense fallback={<Loader />}><FloristPosPage /></Suspense>;
   if (industry?.id === 'furniture') return <Suspense fallback={<Loader />}><FurniturePosPage /></Suspense>;
   if (industry?.id === 'gaming') return <Suspense fallback={<Loader />}><GamingPosPage /></Suspense>;

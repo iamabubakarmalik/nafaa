@@ -118,8 +118,8 @@ export default function TechniciansPage() {
   const exportCsv = () => {
     if (tab === 'commission' && st) {
       downloadCsv(`commission-${period.from}-${period.to}.csv`, [
-        ['Technician', 'Job', 'Bill #', 'Date', 'Customer', 'Kaam', 'Bill', 'Kaam ka hissa', 'Return', 'Commission', 'Di gayi'],
-        ...st.lines.map((l) => [l.technicianName, l.jobNumber, l.saleNumber, dayOnly(l.billedAt), l.customerName ?? '', l.serviceName, l.bill, l.work, l.refunded, l.commission, l.paidRef ?? '']),
+        ['Technician', 'Job', 'Bill #', 'Date', 'Customer', 'Kaam', 'Bill', 'Kaam ka hissa', 'Return', 'Kaam ka return', 'Commission', 'Di gayi'],
+        ...st.lines.map((l) => [l.technicianName, l.jobNumber, l.saleNumber, dayOnly(l.billedAt), l.customerName ?? '', l.serviceName, l.bill, l.work, l.refunded, l.workReturned, l.commission, l.paidRef ?? '']),
       ]);
       return;
     }
@@ -249,7 +249,7 @@ export default function TechniciansPage() {
                   <Td>{l.technicianName}</Td>
                   <Td><span className="line-clamp-1">{l.serviceName}</span><span className="block text-[0.75rem] text-slate-500">{l.customerName ?? ''}</span></Td>
                   <Td align="right" className="tabular-nums">{sales(l.work)}</Td>
-                  <Td align="right" className="tabular-nums">{l.refunded ? sales(l.refunded) : '—'}</Td>
+                  <Td align="right" className="tabular-nums">{l.refunded ? sales(l.refunded) : '—'}{l.refunded > 0 && <span className="block text-[0.6875rem] text-slate-500">{l.workReturned > 0 ? `Kaam ${sales(l.workReturned)} kata` : 'Sirf parts — commission nahi kati'}</span>}</Td>
                   <Td align="right" className="font-semibold tabular-nums">{sales(l.commission)}</Td>
                   <Td>{l.paidRef && !l.paidRef.startsWith('HOLD-') ? <button type="button" onClick={() => void openSlip(l.paidRef!)} className="font-mono text-[0.75rem] text-emerald-700 hover:underline">{l.paidRef}</button> : <span className="text-[0.75rem] text-amber-700">Baqi</span>}</Td>
                 </Tr>

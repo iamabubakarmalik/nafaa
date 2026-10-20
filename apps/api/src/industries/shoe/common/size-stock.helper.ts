@@ -74,15 +74,6 @@ export async function withLiveStock<T extends SizeKey & { id: string; productId:
   return rows;
 }
 
-/** Shop-wide refresh of the counts kept on shoe size rows. */
-export async function refreshSizeStock(db: Db, tenantId: string) {
-  const sizes = await db.shoeSizeVariant.findMany({
-    where: { tenantId },
-    select: { id: true, productId: true, size: true, sizeSystem: true, width: true, stock: true },
-  });
-  await withLiveStock(db, sizes);
-}
-
 /**
  * Makes sure a size has its core variant, creating it if needed and moving
  * any stock recorded before the link from the product row of `shopId`.

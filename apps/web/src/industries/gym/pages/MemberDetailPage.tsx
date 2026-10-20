@@ -12,7 +12,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Activity, ArrowLeft, Award, CalendarCheck, Flame, GraduationCap, HandCoins, HeartPulse, LogIn, PauseCircle, Pencil, PlayCircle, Plus, Receipt,
+  Activity, ArrowLeft, Award, CalendarCheck, Flame, GraduationCap, HandCoins, HeartPulse, KeyRound, LogIn, Package, PauseCircle, Pencil, PlayCircle, Plus, Receipt,
   RefreshCw, Ruler, ShieldAlert, UserMinus, UserCheck, XCircle,
 } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -27,11 +27,12 @@ import { measurementsApi } from '../api/measurements.api';
 import { membershipsApi, type Membership } from '../api/memberships.api';
 import { CancelModal, FreezeModal, PayModal, ReminderLink, RenewModal, SellModal } from '../components/MembershipModals';
 import { toPicked } from '../components/MemberPicker';
+import { PackagesPanel, SellPackageModal } from '../components/PtPackages';
 import { EmptyList, Panel } from '../components/ui';
 import { GYM_KEYS, MEMBERSHIP_STATUS, MEMBER_STATE, PT_STATUS, apiError, dateOf, daysLeft, goalLabel, minutes, num, timeOf } from '../lib/meta';
 import { useGymCan } from '../lib/permissions';
 
-type Tab = 'memberships' | 'visits' | 'pt' | 'bills' | 'body';
+type Tab = 'memberships' | 'visits' | 'pt' | 'bills' | 'body' | 'locker';
 
 export default function MemberDetailPage() {
   const { id } = useParams();
@@ -44,6 +45,8 @@ export default function MemberDetailPage() {
   const [selling, setSelling] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [measure, setMeasure] = useState(false);
+  const [sellPackage, setSellPackage] = useState(false);
+  const [voiding, setVoiding] = useState<string | null>(null);
   const q = useQuery({ queryKey: [GYM_KEYS.members, 'one', id], queryFn: () => gymMembersApi.getOne(id!), enabled: !!id });
   const m = q.data;
   const cur = m?.current ? { ...m.current, member: { id: m.id, memberNumber: m.memberNumber, customerId: m.customerId, customer: m.customer } } : null;
@@ -53,6 +56,11 @@ export default function MemberDetailPage() {
     mutationFn: () => attendanceApi.checkIn({ memberId: m!.id, method: 'MANUAL' }),
     onSuccess: (r) => { toast.success(`Check-in ho gaya${r.warnings.length ? ` · ${r.warnings.join(' · ')}` : ''}`); refresh(); },
     onError: (e) => toast.error(apiError(e, 'Check-in nahi hua')),
+  });
+  const voidMeasure = useMutation({
+    mutationFn: (mid: string) => measurementsApi.void(mid),
+    onSuccess: () => { toast.success('Naap void — record mehfooz hai'); setVoiding(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Void nahi hua')),
   });
   const unfreeze = useMutation({
     mutationFn: (mid: string) => membershipsApi.unfreeze(mid),
@@ -71,7 +79,7 @@ export default function MemberDetailPage() {
       if (e.key === 'Escape') navigate(-1);
       if ((e.key === 'e' || e.key === 'E') && can.members) navigate(`/gym/members/${m.id}/edit`);
       if ((e.key === 'r' || e.key === 'R') && can.bill && cur) setModal({ kind: 'renew', m: cur });
-      const tabs: Tab[] = ['memberships', 'visits', 'pt', 'bills', 'body'];
+      const tabs: Tab[] = ['memberships', 'visits', 'pt', 'bills', 'body', 'locker'];
       const i = Number(e.key);
       if (i >= 1 && i <= tabs.length) setTab(tabs[i - 1]);
     };
@@ -158,13 +166,14 @@ export default function MemberDetailPage() {
         </Card>
       </div>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>5</Kbd> tabs{can.members && <> · <Kbd>E</Kbd> badlein</>}{can.bill && <> · <Kbd>R</Kbd> renew</>}</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>6</Kbd> tabs{can.members && <> · <Kbd>E</Kbd> badlein</>}{can.bill && <> · <Kbd>R</Kbd> renew</>}</>}
         tabs={[
           { id: 'memberships', label: 'Memberships', icon: Award, count: m.memberships?.length ?? 0 },
           { id: 'visits', label: 'Visits', icon: LogIn, count: m.attendances?.length ?? 0 },
           { id: 'pt', label: 'PT', icon: Flame, count: m.ptSessions.length },
           { id: 'bills', label: 'Bills', icon: Receipt, count: m.bills.length },
           { id: 'body', label: 'Naap', icon: Ruler, count: m.measurements?.length ?? 0 },
+          { id: 'locker', label: 'Locker', icon: KeyRound, count: m.lockers?.length ?? 0 },
         ]} />
 
       <Panel>
@@ -179,13 +188,37 @@ export default function MemberDetailPage() {
             </Table>
           ))}
         {tab === 'pt' && (
+          <div className="space-y-3 border-b border-slate-100 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[0.875rem] font-semibold text-slate-900">PT packages</p>
+              {can.book && can.bill && m.isActive && <Button size="sm" variant="secondary" onClick={() => setSellPackage(true)} leftIcon={<Package className="h-4 w-4" />}>Package bechein</Button>}
+            </div>
+            <PackagesPanel memberId={m.id} onSell={m.isActive ? () => setSellPackage(true) : undefined} />
+          </div>
+        )}
+        {tab === 'locker' && (
+          !m.lockers?.length ? <p className="px-4 py-10 text-center text-sm text-slate-500">Is member ke paas koi locker nahi. <Link to="/gym/lockers" className="font-semibold text-brand-700 hover:underline">Locker dein</Link></p> : (
+            <Table minWidth="32rem">
+              <THead><Tr><Th>Locker</Th><Th align="right">Mahine ka rent</Th><Th>Kab se</Th><Th>Rent kab tak</Th></Tr></THead>
+              <TBody>{m.lockers.map((l) => {
+                const due = !l.endDate || daysLeft(l.endDate) <= 0;
+                return (
+                  <Tr key={l.id} interactive onClick={() => navigate(`/gym/lockers?search=${encodeURIComponent(l.number)}`)}>
+                    <Td className="font-medium">#{l.number}</Td><Td align="right" className="tabular-nums">{formatPKR(l.monthlyRent)}</Td><Td>{dateOf(l.startDate)}</Td>
+                    <Td>{dateOf(l.endDate)}{due && <Badge size="xs" variant="warning" className="ml-1">Rent baqi</Badge>}</Td>
+                  </Tr>
+                );
+              })}</TBody>
+            </Table>
+          ))}
+        {tab === 'pt' && (
           !m.ptSessions.length ? <p className="px-4 py-10 text-center text-sm text-slate-500">Koi PT session nahi. <Link to="/gym/personal-training" className="font-semibold text-brand-700 hover:underline">PT book karein</Link></p> : (
             <Table minWidth="36rem">
               <THead><Tr><Th>Session</Th><Th>Waqt</Th><Th>Trainer</Th><Th>Haal</Th><Th align="right">Fee</Th></Tr></THead>
               <TBody>{m.ptSessions.map((s) => (
                 <Tr key={s.id}><Td className="font-medium">{s.sessionNumber}</Td><Td>{dateOf(s.scheduledStart)} {timeOf(s.scheduledStart)}</Td><Td>{s.trainer?.trainerNumber}</Td>
                   <Td><Badge size="xs" variant={PT_STATUS[s.status]?.variant ?? 'default'}>{PT_STATUS[s.status]?.label ?? s.status}</Badge></Td>
-                  <Td align="right" className="tabular-nums">{s.isFromPackage ? 'Plan se' : formatPKR(s.price)}</Td></Tr>
+                  <Td align="right" className="tabular-nums">{s.isFromPackage ? (s.saleId ? 'Package se' : 'Plan se') : formatPKR(s.price)}</Td></Tr>
               ))}</TBody>
             </Table>
           ))}
@@ -207,9 +240,12 @@ export default function MemberDetailPage() {
             {can.members && <div className="flex justify-end border-b border-slate-100 p-3"><Button size="sm" onClick={() => setMeasure(true)} leftIcon={<Plus className="h-4 w-4" />}>Naya naap</Button></div>}
             {!m.measurements?.length ? <p className="px-4 py-10 text-center text-sm text-slate-500">Abhi koi naap nahi. Har mahine wazan aur naap likhein taake member ko apni tarakki nazar aaye.</p> : (
               <Table minWidth="36rem">
-                <THead><Tr><Th>Din</Th><Th align="right">Wazan</Th><Th align="right">BMI</Th><Th align="right">Fat %</Th><Th align="right">Kamar</Th><Th align="right">Seena</Th><Th>Note</Th></Tr></THead>
+                <THead><Tr><Th>Din</Th><Th align="right">Wazan</Th><Th align="right">BMI</Th><Th align="right">Fat %</Th><Th align="right">Kamar</Th><Th align="right">Seena</Th><Th>Note</Th><Th /></Tr></THead>
                 <TBody>{m.measurements.map((x) => (
-                  <Tr key={x.id}><Td>{dateOf(x.measurementDate)}</Td><Td align="right">{x.weightKg ?? '—'}</Td><Td align="right">{x.bmi?.toFixed(1) ?? '—'}</Td><Td align="right">{x.bodyFatPct ?? '—'}</Td><Td align="right">{x.waistCm ?? '—'}</Td><Td align="right">{x.chestCm ?? '—'}</Td><Td className="max-w-[12rem] truncate">{x.notes ?? ''}</Td></Tr>
+                  <Tr key={x.id}><Td>{dateOf(x.measurementDate)}</Td><Td align="right">{x.weightKg ?? '—'}</Td><Td align="right">{x.bmi?.toFixed(1) ?? '—'}</Td><Td align="right">{x.bodyFatPct ?? '—'}</Td><Td align="right">{x.waistCm ?? '—'}</Td><Td align="right">{x.chestCm ?? '—'}</Td><Td className="max-w-[12rem] truncate">{x.notes ?? ''}</Td>
+                    <Td align="right">{can.members && (voiding === x.id
+                      ? <span className="inline-flex gap-1"><Button size="sm" variant="danger" loading={voidMeasure.isPending} onClick={() => voidMeasure.mutate(x.id)}>Haan, void</Button><Button size="sm" variant="ghost" onClick={() => setVoiding(null)}>Nahi</Button></span>
+                      : <Button size="sm" variant="ghost" onClick={() => setVoiding(x.id)}>Ghalat hai</Button>)}</Td></Tr>
                 ))}</TBody>
               </Table>
             )}
@@ -218,6 +254,7 @@ export default function MemberDetailPage() {
       </Panel>
 
       {selling && <SellModal member={toPicked(m)} onClose={() => setSelling(false)} />}
+      {sellPackage && <SellPackageModal member={toPicked(m)} onClose={() => setSellPackage(false)} />}
       {modal?.kind === 'renew' && <RenewModal membership={modal.m} onClose={() => setModal(null)} />}
       {modal?.kind === 'pay' && <PayModal membership={modal.m} onClose={() => setModal(null)} />}
       {modal?.kind === 'freeze' && <FreezeModal membership={modal.m} onClose={() => setModal(null)} />}

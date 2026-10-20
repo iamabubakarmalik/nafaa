@@ -4,6 +4,7 @@ import { SportsProductsModule } from './products/products.module';
 import { TeamOrdersModule } from './team-orders/team-orders.module';
 import { RepairServicesModule } from './repair-services/repair-services.module';
 import { SportsDashboardModule } from './dashboard/sports-dashboard.module';
+import { SportsBillsModule } from './bills/sports-bills.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SportsDashboardModule } from './dashboard/sports-dashboard.module';
     TeamOrdersModule,
     RepairServicesModule,
     SportsDashboardModule,
+    SportsBillsModule,
   ],
   exports: [
     SportsBrandsModule,

@@ -7,6 +7,8 @@ import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { OpeningStockDto } from '../common/opening-stock.helper';
 import { SportsProductsService } from './products.service';
 import { UpsertSportsProductDto } from './dto/upsert-sports-product.dto';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Sports - Products')
 @ApiBearerAuth()
@@ -21,8 +23,21 @@ export class SportsProductsController {
     return this.service.openingStock(user, productId, dto, shop.shopId);
   }
 
-  /** Moves units of an older variant product from the product row to its variants, when exact. */
+  @Get('meta')
+  meta(@GetUser() user: AuthenticatedUser) {
+    return this.service.meta(user);
+  }
+
+  /** Brand sync touches the shop's brand list, so it needs products.edit. */
+  @Post('brands/sync')
+  @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
+  syncBrands(@GetUser() user: AuthenticatedUser) {
+    return this.service.syncBrands(user);
+  }
+
+  /** Moves units of an older variant product from the product row to its variants, when exact; needed at the counter. */
   @Post(':productId/variant-stock-split')
+  @RequirePermissions(PERMISSIONS.POS_USE)
   splitVariantStock(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') productId: string) {
     return this.service.splitVariantStock(user, productId, shop.shopId);
   }

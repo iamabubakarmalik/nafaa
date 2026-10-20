@@ -12,10 +12,10 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 import { PERMISSIONS } from '../../../common/constants/permissions.constants';
-import { postIndustrySale, recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+import { ensureCustomer, postIndustrySale, recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import {
   HOLDING, IN_HOUSE, OPEN_RESERVATION, addDays, bookingMoney, checkRefundPin, cleanIdNumber, cleanPhone, dayOf, found, guestCustomer,
-  keyOf, khataHolder, nextGuestNumber, nextTaskNumber, nightsBetween, plansFor, postHotelBill, quoteNights, r2, readTender, refundAdvance, requireAny, today, type BillLine, type Db,
+  folioStock, keyOf, khataHolder, nextGuestNumber, nextTaskNumber, nightsBetween, plansFor, postHotelBill, quoteNights, r2, readTender, refundAdvance, requireAny, today, type BillLine, type Db,
 } from '../common/hotel-common';
 import {
   BookingPaymentDto, CancelBookingDto, ChangeRoomDto, CheckInGuestDto, CheckOutDto, CreateBookingDto, RefundAdvanceDto, UpdateBookingDto,
@@ -23,12 +23,15 @@ import {
 
 const INCLUDE = { bookedRooms: true } as const;
 type BookingRow = Prisma.HotelBookingGetPayload<{ include: { bookedRooms: true } }>;
-type FolioRow = { chargeNumber: string; chargeType: string; description: string; quantity: number; totalAmount: number; reference: string | null };
+type FolioRow = {
+  chargeNumber: string; chargeType: string; description: string; quantity: number; totalAmount: number;
+  reference: string | null; productId: string | null; unitCost: number | null; shopId: string | null;
+};
 
-/** Cost of a stocked folio item, kept in its reference as `stock:<productId>:<unitCost>:<shopId>`. */
-export function folioCost(c: { reference: string | null; quantity: number }) {
-  const m = /^stock:[^:]+:([\d.]+):/.exec(c.reference ?? '');
-  return m ? r2(Number(m[1]) * c.quantity) : 0;
+/** Cost of a catalog item on a folio charge (0 for a plain charge). */
+export function folioCost(c: Parameters<typeof folioStock>[0] & { quantity: number }) {
+  const stock = folioStock(c);
+  return stock ? r2(stock.unitCost * c.quantity) : 0;
 }
 
 const paymentStatus = (total: number, paid: number) => (paid >= total - 0.009 ? 'PAID' : paid > 0 ? 'PARTIAL' : 'UNPAID');
@@ -59,7 +62,7 @@ export class BookingsService {
     const advancePaid = r2(dto.advancePaid ?? 0);
     const source = dto.source ?? (dto.checkInNow ? 'WALK_IN' : 'DIRECT');
 
-    const rooms = await this.pickRooms(user.tenantId, dto, checkIn, checkOut);
+    const rooms = await this.pickRooms(user.tenantId, dto, checkIn, checkOut, await resolveIndustryShopId(this.db, user, dto.shopId));
     const plans = await plansFor(this.db, user.tenantId, checkIn, checkOut);
     let roomTotal = 0;
     const bookedRooms = rooms.map(({ line, room, type }) => {
@@ -93,9 +96,11 @@ export class BookingsService {
     const created = await this.withNumber(user.tenantId, async (bookingNumber) => this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, dto.shopId);
       if (dto.primaryGuestId) found(await tx.hotelGuest.findFirst({ where: { id: dto.primaryGuestId, tenantId: user.tenantId, isActive: true } }), 'Guest');
+      // A company or regular khata picked at booking: the stay is billed to it at check-out.
+      const billTo = dto.customerId ? await ensureCustomer(tx, user, { customerId: dto.customerId }) : null;
       const booking = await tx.hotelBooking.create({
         data: {
-          tenantId: user.tenantId, shopId, bookingNumber,
+          tenantId: user.tenantId, shopId, bookingNumber, customerId: billTo,
           confirmationCode: 'HTL' + Date.now().toString(36).toUpperCase(),
           primaryGuestId: dto.primaryGuestId ?? null,
           guestName, guestPhone, guestEmail: dto.guestEmail?.trim() || null,
@@ -116,7 +121,7 @@ export class BookingsService {
       });
       // The advance is the guest's money until the bill: it sits on the khata from the day it is paid.
       if (advancePaid > 0) {
-        const customerId = await guestCustomer(tx, user, { customerId: dto.customerId, primaryGuestId: dto.primaryGuestId, guestName, guestPhone, shopId });
+        const customerId = billTo ?? await guestCustomer(tx, user, { primaryGuestId: dto.primaryGuestId, guestName, guestPhone, shopId });
         await recordKhataPayment(tx, user, {
           customerId, shopId, amount: advancePaid, reference: bookingNumber, method: dto.paymentMethod, note: `Hotel advance: ${bookingNumber}`,
         });
@@ -145,7 +150,7 @@ export class BookingsService {
   }
 
   /** Rooms for a new booking: the picked room, or the first free room of the type. */
-  private async pickRooms(tenantId: string, dto: CreateBookingDto, from: Date, to: Date) {
+  private async pickRooms(tenantId: string, dto: CreateBookingDto, from: Date, to: Date, shopId: string) {
     const picked = dto.rooms.map((r) => r.roomId).filter(Boolean) as string[];
     if (new Set(picked).size !== picked.length) throw new BadRequestException('Ek room do dafa chuna gaya hai');
     await this.assertRoomsFree(tenantId, picked, from, to);
@@ -155,11 +160,16 @@ export class BookingsService {
       let room;
       if (line.roomId) {
         room = found(await this.prisma.hotelRoom.findFirst({ where: { id: line.roomId, tenantId, isActive: true }, include: { roomType: true } }), 'Room');
+        if (room.shopId && room.shopId !== shopId) throw new BadRequestException(`Room ${room.roomNumber} doosri branch ka hai`);
         if (line.roomTypeId && room.roomTypeId !== line.roomTypeId) throw new BadRequestException(`Room ${room.roomNumber} is type ka nahi`);
       } else {
         if (!line.roomTypeId) throw new BadRequestException('Room ya room type chunein');
         room = await this.prisma.hotelRoom.findFirst({
-          where: { tenantId, roomTypeId: line.roomTypeId, isActive: true, status: { notIn: ['MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'] }, id: { notIn: [...taken] } },
+          where: {
+            tenantId, roomTypeId: line.roomTypeId, isActive: true, status: { notIn: ['MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'] }, id: { notIn: [...taken] },
+            // Rooms of this branch, or rooms not tied to any branch (older rows).
+            OR: [{ shopId }, { shopId: null }],
+          },
           include: { roomType: true }, orderBy: [{ floor: 'asc' }, { roomNumber: 'asc' }],
         });
         if (!room) throw new BadRequestException('Is type ka koi room in dates me khali nahi');
@@ -264,6 +274,7 @@ export class BookingsService {
         this.viewWhere(q.view),
         q.source ? { source: q.source as any } : {},
         q.guestId ? { primaryGuestId: q.guestId } : {},
+        q.customerId ? { customerId: q.customerId } : {},
         q.from || q.to ? { checkInDate: { ...(q.from && { gte: dayOf(q.from) }), ...(q.to && { lte: dayOf(q.to) }) } } : {},
         search ? {
           OR: [
@@ -367,8 +378,10 @@ export class BookingsService {
       bookingMoney(this.db, user.tenantId, b.bookingNumber, b.paidAmount),
       khataHolder(this.db, user.tenantId, b.bookingNumber),
     ]);
-    const customerId = holder ?? guest?.customerId ?? null;
+    const customerId = holder ?? b.customerId ?? guest?.customerId ?? null;
     const khata = customerId ? await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true, name: true, phone: true, balance: true } }) : null;
+    const billTo = !b.customerId ? null : b.customerId === khata?.id ? khata
+      : await this.prisma.customer.findFirst({ where: { id: b.customerId, tenantId: user.tenantId }, select: { id: true, name: true, phone: true, balance: true } });
     const rtMap = new Map(types.map((t) => [t.id, t]));
     const roomMap = new Map(rooms.map((r) => [r.id, r]));
     const t = today();
@@ -382,6 +395,7 @@ export class BookingsService {
       sales,
       saleId: sales.find((s) => s.status !== 'VOIDED')?.id ?? null,
       khata: khata ? { ...khata, balance: r2(Number(khata.balance)) } : null,
+      billTo: billTo ? { ...billTo, balance: r2(Number(billTo.balance)) } : null,
       money: {
         ...money,
         due: r2(Math.max(b.grandTotal - money.khataPaid - money.legacyPaid, 0)),
@@ -438,6 +452,13 @@ export class BookingsService {
     if (datesChanged) await this.assertRoomsFree(user.tenantId, b.bookedRooms.map((r) => r.roomId).filter(Boolean) as string[], checkIn, checkOut, b.id);
 
     return this.prisma.$transaction(async (tx) => {
+      let billTo: string | null | undefined;
+      if (dto.customerId !== undefined) {
+        billTo = dto.customerId ? await ensureCustomer(tx, user, { customerId: dto.customerId }) : null;
+        const holder = await khataHolder(tx, user.tenantId, b.bookingNumber);
+        const { khataPaid } = await bookingMoney(tx, user.tenantId, b.bookingNumber, b.paidAmount);
+        if (billTo && holder && holder !== billTo && khataPaid > 0) throw new BadRequestException('Advance guest ke khata me hai — company khata ke liye pehle advance wapas karein');
+      }
       let roomTotal = b.roomTotal;
       if (datesChanged) {
         roomTotal = 0;
@@ -467,6 +488,7 @@ export class BookingsService {
           ...(dto.bookedBy !== undefined && { bookedBy: dto.bookedBy.trim() || null }),
           ...(dto.mealPlan && { mealPlan: dto.mealPlan }),
           ...(dto.status && { status: dto.status }),
+          ...(billTo !== undefined && { customerId: billTo }),
           ...(dto.specialRequests !== undefined && { specialRequests: dto.specialRequests.trim() || null }),
           ...(dto.arrivalTime !== undefined && { arrivalTime: dto.arrivalTime || null }),
           ...(dto.purposeOfVisit !== undefined && { purposeOfVisit: dto.purposeOfVisit.trim() || null }),
@@ -653,7 +675,7 @@ export class BookingsService {
         : null;
       if (b.status === 'CHECKED_OUT' && !bill?.customerId && !holder) throw new BadRequestException('Is bill ka baqi kisi khata me nahi');
       const customerId = holder ?? bill?.customerId ?? await guestCustomer(tx, user, {
-        customerId: dto.customerId, primaryGuestId: b.primaryGuestId, guestName: b.guestName, guestPhone: b.guestPhone, shopId,
+        customerId: dto.customerId ?? b.customerId, primaryGuestId: b.primaryGuestId, guestName: b.guestName, guestPhone: b.guestPhone, shopId,
       });
       await recordKhataPayment(tx, user, {
         customerId, shopId, amount: value, reference: b.bookingNumber, method: dto.paymentMethod,
@@ -700,16 +722,19 @@ export class BookingsService {
       const shopId = await resolveIndustryShopId(tx, user, booking.shopId);
       const { khataPaid, legacyPaid } = await bookingMoney(tx, user.tenantId, booking.bookingNumber, booking.paidAmount);
       const due = r2(Math.max(booking.grandTotal - khataPaid - legacyPaid, 0));
-      const tender = readTender(due, dto);
+      // A stay billed to a company goes on its khata unless money is entered.
+      const noMoneyEntered = dto.paidAmount == null && !dto.payments?.length;
+      const tender = readTender(due, booking.customerId && noMoneyEntered ? { ...dto, onCredit: true } : dto);
       const money = r2(tender.rows.reduce((s, p) => s + p.amount, 0));
       const stillOwed = r2(due - money);
 
       const holder = await khataHolder(tx, user.tenantId, booking.bookingNumber);
-      if (dto.customerId && holder && dto.customerId !== holder && khataPaid > 0) {
+      const billTo = dto.customerId ?? booking.customerId ?? null;
+      if (billTo && holder && billTo !== holder && khataPaid > 0) {
         throw new BadRequestException('Advance guest ke khata me hai — bill bhi usi khata me jayega');
       }
       const guest = booking.primaryGuestId ? await tx.hotelGuest.findFirst({ where: { id: booking.primaryGuestId, tenantId: user.tenantId }, select: { customerId: true } }) : null;
-      let customerId = (khataPaid > 0 ? holder : null) ?? dto.customerId ?? null;
+      let customerId = (khataPaid > 0 ? holder : null) ?? billTo;
       if (!customerId && stillOwed > 0) {
         customerId = await guestCustomer(tx, user, { primaryGuestId: booking.primaryGuestId, guestName: booking.guestName, guestPhone: booking.guestPhone, shopId });
       }
@@ -760,7 +785,7 @@ export class BookingsService {
       let sale: { id: string; saleNumber: string } | null = null;
       if (charge > 0) {
         const shopId = await resolveIndustryShopId(tx, user, b.shopId);
-        const customerId = await khataHolder(tx, user.tenantId, b.bookingNumber)
+        const customerId = await khataHolder(tx, user.tenantId, b.bookingNumber) ?? b.customerId
           ?? await guestCustomer(tx, user, { primaryGuestId: b.primaryGuestId, guestName: b.guestName, guestPhone: b.guestPhone, shopId });
         const kind = dto.noShow ? 'No-show' : 'Cancellation';
         const s = await postIndustrySale(tx, user, {

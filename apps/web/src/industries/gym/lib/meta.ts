@@ -17,6 +17,8 @@ export const GYM_KEYS = {
   pt: 'gym-pt',
   classes: 'gym-classes',
   equipment: 'gym-equipment',
+  lockers: 'gym-lockers',
+  ptPackages: 'gym-pt-packages',
 } as const;
 
 /** Keys to refresh after money moved (bill, khata, dashboard). */

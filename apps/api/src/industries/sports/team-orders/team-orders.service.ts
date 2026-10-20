@@ -1,6 +1,15 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+/**
+ * Team and school bulk orders: kits, jerseys and equipment with name /
+ * number printing, an advance on the team's khata, and the sale on
+ * delivery through the normal sale engine (stock leaves then). A cancelled
+ * order's advance can be given back in cash; a voided delivery bill puts
+ * the order back to "ready" (see SportsBillVoidService).
+ */
+
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, TeamOrderStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { startOfDayTz, endOfDayTz } from '../../../common/helpers/business-time.helper';
+import { startOfDayTz, endOfDayTz, addDaysTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
@@ -8,18 +17,38 @@ import {
   ensureCustomer, paidOnKhata, recordKhataPayment, resolveIndustryShopId,
 } from '../../_shared/industry-sale.helper';
 import { nextRunningNumber } from '../common/service-sale.helper';
+import { checkRefundPin, khataCustomerOf, paging, r2, refundAdvance, refundedOnKhata, text } from '../common/sports-common';
 import { CreateTeamOrderDto, RecordPaymentDto, UpdateTeamOrderDto, UpdateTeamOrderStatusDto } from './dto/create-team-order.dto';
-
-const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
 type TeamItem = CreateTeamOrderDto['items'][number];
 
-/** Totals of an order from its lines; line totals are recomputed from qty x price. */
+const ACTIVE = ['DRAFT', 'QUOTED', 'CONFIRMED', 'IN_PRODUCTION', 'READY'] as const;
+export const TEAM_VIEWS = ['active', 'quote', 'production', 'ready', 'late', 'unpaid', 'done', 'all'] as const;
+export type TeamView = typeof TEAM_VIEWS[number];
+
+/** Players for name / number printing: [{ name, number, size }]. */
+function cleanRoster(v: unknown) {
+  if (!Array.isArray(v)) return undefined;
+  if (v.length > 200) throw new BadRequestException('Zyada se zyada 200 players');
+  return v
+    .map((p) => ({ name: text(p?.name, 40) ?? '', number: text(p?.number, 4) ?? '', size: text(p?.size, 12) ?? '' }))
+    .filter((p) => p.name || p.number);
+}
+
+/** Totals of an order from its lines; line totals are recomputed from qty x (rate + printing). */
 function orderTotals(items: TeamItem[], discountPct: number, taxAmount: number, shippingCharge: number) {
+  if (items.length > 100) throw new BadRequestException('Ek order me zyada se zyada 100 items');
+  if (taxAmount < 0 || shippingCharge < 0) throw new BadRequestException('Tax ya delivery manfi nahi ho sakti');
   const clean = items.map((it) => {
     const quantity = Math.max(Math.round(Number(it.quantity) || 0), 0);
     const unitPrice = r2(Math.max(Number(it.unitPrice) || 0, 0));
-    return { ...it, quantity, unitPrice, total: r2(quantity * unitPrice) };
+    const printingPrice = r2(Math.max(Number(it.printingPrice) || 0, 0));
+    return {
+      productId: String(it.productId), ...(it.variantId ? { variantId: String(it.variantId) } : {}),
+      productName: text(it.productName, 120) ?? 'Item', quantity, unitPrice, printingPrice,
+      total: r2(quantity * (unitPrice + printingPrice)),
+      size: text(it.size, 20), color: text(it.color, 30), customizationNotes: text(it.customizationNotes, 200),
+    };
   });
   if (clean.some((it) => it.quantity <= 0)) throw new BadRequestException('Har item ki quantity 1 ya zyada honi chahiye');
   if (discountPct < 0 || discountPct > 100) throw new BadRequestException('Discount 0 se 100% ke beech honi chahiye');
@@ -37,8 +66,14 @@ export class TeamOrdersService {
     private readonly sales: SalesService,
   ) {}
 
-  /** Khata account for the team; advances and any unpaid balance are kept there. */
-  private teamCustomer(tx: any, user: AuthenticatedUser, o: { contactPerson: string; teamName: string; contactPhone: string }, shopId: string) {
+  /**
+   * Khata account for the team; advances and any unpaid balance are kept
+   * there. An order that already took an advance keeps that account even if
+   * the contact phone was edited later.
+   */
+  private async teamCustomer(tx: any, user: AuthenticatedUser, o: { orderNumber?: string; contactPerson: string; teamName: string; contactPhone: string }, shopId: string) {
+    const held = o.orderNumber ? await khataCustomerOf(tx, user.tenantId, o.orderNumber) : null;
+    if (held) return held;
     return ensureCustomer(tx, user, {
       name: `${o.contactPerson} (${o.teamName})`, phone: o.contactPhone, shopId,
     });
@@ -62,6 +97,7 @@ export class TeamOrdersService {
     const { items, totalQuantity, subtotal, discountAmount, totalAmount } = orderTotals(dto.items, discountPct, taxAmount, shippingCharge);
     const advancePaid = r2(dto.advancePaid ?? 0);
     if (advancePaid > totalAmount + 0.01) throw new BadRequestException('Advance order ki kul amount se zyada nahi ho sakta');
+    const roster = cleanRoster(dto.playerNames);
     const balanceAmount = r2(totalAmount - advancePaid);
 
     return this.prisma.$transaction(async (tx) => {
@@ -93,10 +129,10 @@ export class TeamOrdersService {
           taxAmount,
           shippingCharge,
           totalAmount,
-          hasCustomJerseys: dto.hasCustomJerseys ?? false,
+          hasCustomJerseys: dto.hasCustomJerseys ?? (!!roster?.length || items.some((it) => it.printingPrice > 0)),
           customizationDetails: dto.customizationDetails,
-          playerNames: dto.playerNames,
-          playerNumbers: dto.playerNumbers,
+          playerNames: roster as any,
+          playerNumbers: roster ? roster.map((p) => p.number) as any : undefined,
           teamLogoUrl: dto.teamLogoUrl,
           advancePaid,
           balanceAmount,
@@ -112,12 +148,84 @@ export class TeamOrdersService {
     });
   }
 
-  /** Every line must point at a product of this shop. */
+  /** Every line must point at a product (and size) of this shop. */
   private async checkProducts(user: AuthenticatedUser, items: TeamItem[]) {
     if (items.some((it) => !it?.productId)) throw new BadRequestException('Har item ke liye product chunein');
-    const ids = [...new Set(items.map((it) => it.productId))];
-    const found = await this.prisma.product.count({ where: { tenantId: user.tenantId, id: { in: ids } } });
-    if (found !== ids.length) throw new BadRequestException('Order me koi product nahi mila');
+    const ids = [...new Set(items.map((it) => String(it.productId)))];
+    const found = await this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: ids } }, select: { id: true, variants: { select: { id: true } } } });
+    if (found.length !== ids.length) throw new BadRequestException('Order me koi product nahi mila');
+    const variantsOf = new Map(found.map((p) => [p.id, new Set(p.variants.map((v) => v.id))]));
+    if (items.some((it) => it.variantId && !variantsOf.get(String(it.productId))?.has(String(it.variantId)))) {
+      throw new BadRequestException('Size is product ka nahi');
+    }
+  }
+
+  /**
+   * One page of orders for a view, with the count of every view and the
+   * money of the matching orders (value, advance taken, still to collect).
+   */
+  async page(user: AuthenticatedUser, q: { view?: string; page?: string; limit?: string; search?: string; from?: string; to?: string }) {
+    const view = (TEAM_VIEWS as readonly string[]).includes(q.view ?? '') ? q.view as TeamView : 'active';
+    const { page, limit, skip } = paging(q);
+    const today = startOfDayTz();
+    const base: Prisma.SportsTeamOrderWhereInput = {
+      tenantId: user.tenantId,
+      ...(q.from || q.to ? { createdAt: { ...(q.from && { gte: startOfDayTz(new Date(q.from)) }), ...(q.to && { lte: endOfDayTz(new Date(q.to)) }) } } : {}),
+      ...(q.search?.trim() && {
+        OR: ['orderNumber', 'teamName', 'contactPerson', 'organization', 'poNumber'].map((k) => ({ [k]: { contains: q.search!.trim(), mode: 'insensitive' } }))
+          .concat([{ contactPhone: { contains: q.search.trim() } } as any]),
+      }),
+    };
+    const views: Record<TeamView, Prisma.SportsTeamOrderWhereInput> = {
+      active: { status: { in: [...ACTIVE] } },
+      quote: { status: { in: ['DRAFT', 'QUOTED'] } },
+      production: { status: { in: ['CONFIRMED', 'IN_PRODUCTION'] } },
+      ready: { status: 'READY' },
+      late: { status: { in: ['CONFIRMED', 'IN_PRODUCTION', 'READY'] }, expectedDeliveryDate: { lt: today } },
+      unpaid: { status: { in: [...ACTIVE] }, balanceAmount: { gt: 0.009 } },
+      done: { status: { in: ['DELIVERED', 'CANCELLED'] } },
+      all: {},
+    };
+    const where = { AND: [base, views[view]] };
+    const [items, total, totals, ...counts] = await Promise.all([
+      this.prisma.sportsTeamOrder.findMany({
+        where,
+        orderBy: view === 'done' || view === 'all' ? [{ createdAt: 'desc' }] : [{ expectedDeliveryDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }],
+        skip, take: limit,
+      }),
+      this.prisma.sportsTeamOrder.count({ where }),
+      this.prisma.sportsTeamOrder.aggregate({ where: { AND: [where, { status: { not: 'CANCELLED' } }] }, _sum: { totalAmount: true, advancePaid: true, balanceAmount: true } }),
+      ...TEAM_VIEWS.map((v) => this.prisma.sportsTeamOrder.count({ where: { AND: [base, views[v]] } })),
+    ]);
+    return {
+      items, total, page, pages: Math.max(Math.ceil(total / limit), 1),
+      counts: Object.fromEntries(TEAM_VIEWS.map((v, i) => [v, counts[i]])) as Record<TeamView, number>,
+      totals: { value: r2(totals._sum.totalAmount ?? 0), advance: r2(totals._sum.advancePaid ?? 0), due: r2(totals._sum.balanceAmount ?? 0) },
+    };
+  }
+
+  /**
+   * Gives back in cash the advance of a cancelled order (khata REFUND line
+   * plus a cash-out from the open drawer).
+   */
+  async refund(user: AuthenticatedUser, id: string, scope?: ShopScope, managerPin?: string) {
+    const o = await this.getOne(user, id);
+    if (o.status !== 'CANCELLED') throw new BadRequestException('Pehle order cancel karein, phir advance wapas hota hai');
+    await checkRefundPin(this.prisma, user, managerPin);
+    const shopId = await resolveIndustryShopId(this.prisma as any, user, scope?.shopId);
+    const customerId = await this.teamCustomer(this.prisma, user, o, shopId);
+    return this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.sportsTeamOrder.updateMany({ where: { id, tenantId: user.tenantId, status: 'CANCELLED', updatedAt: o.updatedAt }, data: { updatedAt: new Date() } });
+      if (!claimed.count) throw new ConflictException('Order abhi kisi aur ne badla — safha taaza karein');
+      const amount = await refundAdvance(tx, user, { reference: o.orderNumber, label: 'Team order', customerId, shopId });
+      return tx.sportsTeamOrder.update({
+        where: { id },
+        data: {
+          advancePaid: r2(Math.max(Number(o.advancePaid) - amount, 0)),
+          internalNotes: [o.internalNotes, `Advance wapas: Rs ${amount}`].filter(Boolean).join('\n'),
+        },
+      });
+    });
   }
 
   async list(user: AuthenticatedUser, params: {
@@ -130,7 +238,7 @@ export class TeamOrdersService {
     return this.prisma.sportsTeamOrder.findMany({
       where: {
         tenantId: user.tenantId,
-        ...(params.status && { status: params.status as any }),
+        ...(params.status && (Object.values(TeamOrderStatus) as string[]).includes(params.status) && { status: params.status as TeamOrderStatus }),
         ...(params.hasCustomJerseys !== undefined && { hasCustomJerseys: params.hasCustomJerseys }),
         ...(params.from || params.to
           ? {
@@ -157,8 +265,12 @@ export class TeamOrdersService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const o = await this.prisma.sportsTeamOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Team order not found');
-    return o;
+    if (!o) throw new NotFoundException('Team order nahi mila');
+    const [sale, refunded] = await Promise.all([
+      this.prisma.sale.findFirst({ where: { tenantId: user.tenantId, sourceRef: o.orderNumber, status: { not: 'VOIDED' } }, select: { id: true, saleNumber: true } }),
+      refundedOnKhata(this.prisma, user.tenantId, o.orderNumber),
+    ]);
+    return { ...o, sale, refunded };
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, dto: UpdateTeamOrderStatusDto, scope?: ShopScope) {
@@ -202,7 +314,7 @@ export class TeamOrdersService {
       shopId,
       customerId,
       paymentMethod: (dto.paymentMethod ?? o.paymentMethod ?? 'CASH') as any,
-      paidAmount: r2(takenNow + legacyPaid),
+      paidAmount: r2(kept + legacyPaid),
       discount: r2(o.discountAmount),
       allowCredit: customerId ? true : undefined,
       items: lines,
@@ -243,12 +355,13 @@ export class TeamOrdersService {
         if (!match) throw new BadRequestException(`${p.name}: size likhein (${p.variants.map((v) => v.size || v.name).join(', ')})`);
         variantId = match.id;
       }
-      const extra = [it.size && `Size ${it.size}`, it.color, it.customizationNotes].filter(Boolean).join(' · ');
+      const printing = r2(Number(it.printingPrice) || 0);
+      const extra = [it.size && `Size ${it.size}`, it.color, printing > 0 && `Printing Rs ${printing}/piece`, it.customizationNotes].filter(Boolean).join(' · ');
       return {
         productId: it.productId,
         ...(variantId ? { variantId } : {}),
         quantity: Number(it.quantity),
-        priceOverride: r2(it.unitPrice),
+        priceOverride: r2(Number(it.unitPrice) + printing),
         ...(extra ? { note: extra } : {}),
       };
     });
@@ -265,8 +378,13 @@ export class TeamOrdersService {
     }
 
     // Money fields are kept out; totals are recomputed below.
-    const { advancePaid: _a, items: newItems, ...rest } = dto;
+    const { advancePaid: _a, items: newItems, playerNames, playerNumbers: _n, ...rest } = dto;
     const patch: any = { ...rest };
+    if (playerNames !== undefined) {
+      const roster = cleanRoster(playerNames) ?? [];
+      patch.playerNames = roster;
+      patch.playerNumbers = roster.map((p) => p.number);
+    }
     if (dto.expectedDeliveryDate) patch.expectedDeliveryDate = new Date(dto.expectedDeliveryDate);
 
     const items = (newItems ?? (o.items as unknown as TeamItem[]));
@@ -320,16 +438,12 @@ export class TeamOrdersService {
     });
   }
 
+  /** Orders are cancelled, never deleted; the advance stays on the team's khata until refunded. */
   async remove(user: AuthenticatedUser, id: string) {
-    const o = await this.prisma.sportsTeamOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Team order not found');
-    if (o.status === 'DELIVERED') {
-      throw new BadRequestException('Deliver shuda order mitaya nahi ja sakta');
-    }
-    if (Number(o.advancePaid || 0) > 0) {
-      throw new BadRequestException('Is order par paise liye ja chuke hain — mitane ke bajaye Cancel karein');
-    }
-    return this.prisma.sportsTeamOrder.delete({ where: { id } });
+    const o = await this.getOne(user, id);
+    if (o.status === 'DELIVERED') throw new BadRequestException('Deliver shuda order cancel nahi hota — bill ki Return karein');
+    if (o.status === 'CANCELLED') return o;
+    return this.prisma.sportsTeamOrder.update({ where: { id }, data: { status: 'CANCELLED' } });
   }
 
   async summary(user: AuthenticatedUser) {
@@ -358,9 +472,8 @@ export class TeamOrdersService {
   }
 
   async upcomingDeliveries(user: AuthenticatedUser, days = 14) {
-    const now = new Date();
-    const future = new Date();
-    future.setDate(future.getDate() + days);
+    const now = startOfDayTz();
+    const future = endOfDayTz(addDaysTz(now, Math.min(Math.max(days, 1), 90)));
 
     return this.prisma.sportsTeamOrder.findMany({
       where: {

@@ -28,7 +28,7 @@ export class ApplianceWarrantyClaimsService {
     return nextInSequence(prefix, last?.claimNumber);
   }
 
-  /** parts + labor + baqi = dukaan ki kul lagat */
+  /** Parts + labor + other: the shop's full cost of the claim. */
   private claimed(parts = 0, labor = 0, other = 0) {
     return (Number(parts) || 0) + (Number(labor) || 0) + (Number(other) || 0);
   }

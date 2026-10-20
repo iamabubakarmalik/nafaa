@@ -5,10 +5,18 @@
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { ShopScope } from '../../../common/shop-scope';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { HOLDING, IN_HOUSE, OPEN_RESERVATION, dayOf, found, keyOf, nightsBetween, today } from '../common/hotel-common';
 import { CreateRoomDto, UpdateRoomDto } from '../common/hotel.dto';
+
+/**
+ * Rooms of the branch being viewed plus rooms tied to no branch (rooms made
+ * before branches were recorded show everywhere). "All shops" sees all.
+ */
+export const roomScope = (shopId?: string | null): Prisma.HotelRoomWhereInput => (shopId ? { OR: [{ shopId }, { shopId: null }] } : {});
 
 /** Statuses the desk may set by hand; OCCUPIED comes only from check-in. */
 const MANUAL = ['AVAILABLE', 'CLEANING', 'MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED', 'RESERVED'];
@@ -17,20 +25,28 @@ const MANUAL = ['AVAILABLE', 'CLEANING', 'MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED
 export class RoomsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateRoomDto) {
+  /** A branch id from a form: checked against the tenant; null means every branch. */
+  private async branch(tenantId: string, shopId: string | null | undefined) {
+    if (!shopId) return null;
+    return found(await this.prisma.shop.findFirst({ where: { id: shopId, tenantId }, select: { id: true } }), 'Branch').id;
+  }
+
+  async create(user: AuthenticatedUser, dto: CreateRoomDto, scope?: ShopScope) {
     const roomNumber = dto.roomNumber.trim();
     if (!roomNumber) throw new BadRequestException('Room number likhein');
     const dup = await this.prisma.hotelRoom.findFirst({ where: { tenantId: user.tenantId, roomNumber } });
     if (dup) throw new BadRequestException(dup.isActive ? `Room ${roomNumber} pehle se hai` : `Room ${roomNumber} band para hai — use dobara chalu karein`);
     found(await this.prisma.hotelRoomType.findFirst({ where: { id: dto.roomTypeId, tenantId: user.tenantId } }), 'Room type');
     if (dto.status === 'OCCUPIED') throw new BadRequestException('Naya room bhara hua nahi ho sakta');
-    return this.prisma.hotelRoom.create({ data: { ...dto, roomNumber, tenantId: user.tenantId } });
+    const shopId = await this.branch(user.tenantId, dto.shopId !== undefined ? dto.shopId : scope?.shopId);
+    return this.prisma.hotelRoom.create({ data: { ...dto, roomNumber, tenantId: user.tenantId, shopId } });
   }
 
-  async list(user: AuthenticatedUser, params: { status?: string; roomTypeId?: string; housekeepingStatus?: string; floor?: string; search?: string; includeInactive?: boolean }) {
+  async list(user: AuthenticatedUser, params: { status?: string; roomTypeId?: string; housekeepingStatus?: string; floor?: string; search?: string; includeInactive?: boolean }, scope?: ShopScope) {
     return this.prisma.hotelRoom.findMany({
       where: {
         tenantId: user.tenantId,
+        AND: [roomScope(scope?.shopId)],
         ...(!params.includeInactive && { isActive: true }),
         ...(params.status && { status: params.status as any }),
         ...(params.roomTypeId && { roomTypeId: params.roomTypeId }),
@@ -56,10 +72,10 @@ export class RoomsService {
    * a guest is checked in, reserved when an arrival is due, else the room's
    * own status.
    */
-  async board(user: AuthenticatedUser) {
+  async board(user: AuthenticatedUser, scope?: ShopScope) {
     const t = today();
     const [rooms, held] = await Promise.all([
-      this.list(user, {}),
+      this.list(user, {}, scope),
       this.prisma.hotelBookedRoom.findMany({
         where: { roomId: { not: null }, booking: { tenantId: user.tenantId, status: { in: [...HOLDING] }, checkOutDate: { gte: t } } },
         select: {
@@ -102,7 +118,12 @@ export class RoomsService {
     }
     if (dto.roomTypeId) found(await this.prisma.hotelRoomType.findFirst({ where: { id: dto.roomTypeId, tenantId: user.tenantId } }), 'Room type');
     if (dto.isActive === false) await this.assertNotHeld(user.tenantId, id, 'band');
-    return this.prisma.hotelRoom.update({ where: { id }, data: dto, include: { roomType: true } });
+    const { shopId, ...rest } = dto;
+    return this.prisma.hotelRoom.update({
+      where: { id },
+      data: { ...rest, ...(shopId !== undefined && { shopId: await this.branch(user.tenantId, shopId) }) },
+      include: { roomType: true },
+    });
   }
 
   private async assertNotHeld(tenantId: string, roomId: string, what: string) {
@@ -152,7 +173,7 @@ export class RoomsService {
     return this.prisma.hotelRoom.update({ where: { id }, data: { isActive: false } });
   }
 
-  async checkAvailability(user: AuthenticatedUser, params: { checkInDate: string; checkOutDate: string; roomTypeId?: string; adults?: number; children?: number; exceptBookingId?: string }) {
+  async checkAvailability(user: AuthenticatedUser, params: { checkInDate: string; checkOutDate: string; roomTypeId?: string; adults?: number; children?: number; exceptBookingId?: string }, scope?: ShopScope) {
     const checkIn = dayOf(params.checkInDate, 'Check-in date');
     const checkOut = dayOf(params.checkOutDate, 'Check-out date');
     const nights = nightsBetween(checkIn, checkOut);
@@ -171,6 +192,7 @@ export class RoomsService {
     const available = await this.prisma.hotelRoom.findMany({
       where: {
         tenantId: user.tenantId, isActive: true, roomType: { isActive: true, ...(people > 0 && { maxOccupancy: { gte: people } }) },
+        AND: [roomScope(scope?.shopId)],
         id: { notIn: occupied.map((o) => o.roomId!) },
         status: { notIn: ['MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'] },
         ...(params.roomTypeId && { roomTypeId: params.roomTypeId }),
@@ -188,8 +210,8 @@ export class RoomsService {
     return { checkIn, checkOut, nights, totalAvailable: available.length, byRoomType: [...grouped.values()] };
   }
 
-  async summary(user: AuthenticatedUser) {
-    const board = await this.board(user);
+  async summary(user: AuthenticatedUser, scope?: ShopScope) {
+    const board = await this.board(user, scope);
     const count = (s: string) => board.rooms.filter((r) => r.live === s).length;
     const total = board.rooms.length;
     const occupied = count('OCCUPIED');

@@ -17,7 +17,7 @@ import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.serv
 import { businessDayKey, startOfBusinessDayTz } from '../../common/helpers/business-time.helper';
 import { PIN_NEEDS, requireManagerPin } from '../../common/helpers/manager-pin.helper';
 import { hasPermission, PERMISSIONS } from '../../common/constants/permissions.constants';
-import { ShopScope, applyStockDelta, assertShopAccess, recordSaleBatches } from '../../common/shop-scope';
+import { ShopScope, applyStockDelta, assertShopAccess, isServiceProduct, recordSaleBatches } from '../../common/shop-scope';
 import { periodRange } from '../inventory/taxonomy/taxonomy.helper';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { AddBookingPaymentDto } from './dto/add-payment.dto';
@@ -781,9 +781,11 @@ export class BookingsService {
     const [settings, shop, products] = await Promise.all([
       this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { allowNegativeStock: true } }),
       this.prisma.shop.findUnique({ where: { id: shopId }, select: { name: true } }),
-      this.prisma.product.findMany({ where: { id: { in: booking.items.map((i) => i.productId) } }, select: { id: true, name: true } }),
+      this.prisma.product.findMany({ where: { id: { in: booking.items.map((i) => i.productId) } }, select: { id: true, name: true, productType: true, unit: true } }),
     ]);
     const names = new Map(products.map((p) => [p.id, p.name]));
+    // Services and fees hold no shelf stock, the same as at the counter.
+    const serviceIds = new Set(products.filter((p) => isServiceProduct(p)).map((p) => p.id));
 
     return this.prisma.$transaction(async (tx) => {
       const claimed = await tx.booking.updateMany({
@@ -853,6 +855,8 @@ export class BookingsService {
               reference: saleNumber, note: `Booking ${booking.bookingNumber} • ${shop?.name ?? ''}${it.note ? ` • ${it.note}` : ''}`, createdById: user.id,
             },
           });
+        } else if (serviceIds.has(it.productId)) {
+          // Service line: billed, no stock out.
         } else {
           const moved = await applyStockDelta({
             tx, tenantId: user.tenantId, shopId, productId: it.productId, variantId: it.variantId, delta: -it.quantity,

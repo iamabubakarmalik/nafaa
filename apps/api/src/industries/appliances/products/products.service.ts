@@ -9,7 +9,10 @@ export class ApplianceProductsService {
 
   async upsert(user: AuthenticatedUser, dto: UpsertApplianceProductDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Product nahi mila');
+    if (dto.brandId && !(await this.prisma.brand.findFirst({ where: { id: dto.brandId, tenantId: user.tenantId }, select: { id: true } }))) {
+      throw new NotFoundException('Brand nahi mila');
+    }
 
     const existing = await this.prisma.applianceProductProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) {
@@ -72,13 +75,13 @@ export class ApplianceProductsService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.applianceProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Product ki details nahi milin');
     return this.byProduct(user, p.productId);
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.applianceProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Product ki details nahi milin');
     // Warranty and installation details stay with the product; switching the product off hides it.
     throw new BadRequestException('Product ki details nahi mitti — product band karna ho to Products se band karein');
   }

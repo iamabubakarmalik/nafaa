@@ -25,7 +25,7 @@ import {
 } from '../../_shared/industry-sale.helper';
 import { serviceProductIds } from '../catalog/service-product';
 import {
-  BOOKED, CLOSED, NOT_STARTED, OPEN, READY, WAITING, WORKING, blank, dayRange, jobBillNumber, jobBillPrefix, jobNumberOfBill, jobTotal, nextJobNumber, payStatus, r2,
+  BOOKED, CLOSED, NOT_STARTED, OPEN, READY, WAITING, WORKING, billItemRoles, blank, dayRange, jobBillNumber, jobBillPrefix, jobNumberOfBill, jobTotal, nextJobNumber, partLabel, payStatus, r2,
 } from './job-rules';
 import type {
   AssignJobDto, BillJobDto, CounterSaleDto, CreateJobDto, JobDetailsDto, JobPartDto, JobStatusDto, ListJobsQuery, RatingDto, ReturnVisitDto, UpdateJobDto,
@@ -72,19 +72,46 @@ export class JobsService implements OnModuleInit {
   /**
    * Goods or work returned on a job bill. The shared return already took the
    * refund off the udhaar first and paid the rest back, so the job now owes
-   * at most its bill less what came back.
+   * at most its bill less what came back. The job keeps the money returned
+   * and each part keeps how much of it came back, so commission is cut only
+   * for returned work (CommissionService) and the job page lists returns.
    */
   async afterReturn(tenantId: string, saleId: string) {
-    const sale = await this.prisma.sale.findFirst({ where: { id: saleId, tenantId }, select: { saleNumber: true, returns: { select: { refundAmount: true, returnNumber: true }, orderBy: { createdAt: 'desc' } } } });
-    const jobNumber = sale ? jobNumberOfBill(sale.saleNumber) : null;
+    const sale = await this.prisma.sale.findFirst({
+      where: { id: saleId, tenantId },
+      select: {
+        saleNumber: true, status: true, subtotal: true, total: true,
+        items: { select: { id: true, note: true, price: true, returnedQty: true } },
+        returns: { select: { refundAmount: true, returnNumber: true }, orderBy: { createdAt: 'desc' } },
+      },
+    });
+    const jobNumber = sale && sale.status !== 'VOIDED' ? jobNumberOfBill(sale.saleNumber) : null;
     if (!sale || !jobNumber) return;
-    const job = await this.prisma.serviceJob.findFirst({ where: { tenantId, jobNumber }, select: { id: true, status: true, totalCharge: true, paidAmount: true } });
+    const job = await this.prisma.serviceJob.findFirst({ where: { tenantId, jobNumber }, include: { parts: true } });
     if (!job || job.status !== 'COMPLETED') return;
     const returned = r2(sale.returns.reduce((a, x) => a + (Number(x.refundAmount) || 0), 0));
     const owes = r2(Math.max(job.totalCharge - returned, 0));
     const paid = r2(Math.min(job.paidAmount, owes));
+
+    // Each part's returned quantity and value after its share of the bill discount.
+    const subtotal = Number(sale.subtotal) || 0;
+    const factor = subtotal > 0 ? (Number(sale.total) || 0) / subtotal : 0;
+    const roles = billItemRoles(job.parts, sale.items);
+    const back = new Map<string, { qty: number; amount: number }>();
+    for (const it of sale.items) {
+      const role = roles.get(it.id);
+      if (role?.kind !== 'part') continue;
+      const cur = back.get(role.partId) ?? { qty: 0, amount: 0 };
+      back.set(role.partId, { qty: cur.qty + (Number(it.returnedQty) || 0), amount: cur.amount + (Number(it.returnedQty) || 0) * (Number(it.price) || 0) * factor });
+    }
+    const partUpdates = job.parts
+      .map((p) => ({ p, qty: Math.round((back.get(p.id)?.qty ?? 0) * 1000) / 1000, amount: r2(back.get(p.id)?.amount ?? 0) }))
+      .filter((x) => Math.abs(x.qty - x.p.returnedQty) > 0.0005 || Math.abs(x.amount - x.p.returnedAmount) > 0.005)
+      .map((x) => this.prisma.serviceJobPart.update({ where: { id: x.p.id }, data: { returnedQty: x.qty, returnedAmount: x.amount } }));
+
     await this.prisma.$transaction([
-      this.prisma.serviceJob.update({ where: { id: job.id }, data: { paidAmount: paid, paymentStatus: payStatus(paid, owes) } }),
+      this.prisma.serviceJob.update({ where: { id: job.id }, data: { paidAmount: paid, paymentStatus: payStatus(paid, owes), returnedAmount: returned } }),
+      ...partUpdates,
       this.prisma.serviceJobStatusHistory.create({
         data: { jobId: job.id, fromStatus: 'COMPLETED', toStatus: 'COMPLETED', reason: `Return ${sale.returns[0]?.returnNumber ?? ''}: bill se Rs ${returned} wapas`.replace('  ', ' ') },
       }),
@@ -396,7 +423,7 @@ export class JobsService implements OnModuleInit {
     ]);
     const [names, returned] = await Promise.all([
       this.staffNames(user.tenantId, items.map((j) => j.primaryTechnicianId)),
-      this.returnedOn(user.tenantId, items.filter((j) => j.status === 'COMPLETED').map((j) => j.jobNumber)),
+      this.returnedOn(user.tenantId, items.filter((j) => j.status === 'COMPLETED' && !(j.returnedAmount > 0)).map((j) => j.jobNumber)),
     ]);
     const bill = r2(sums._sum.totalCharge ?? 0);
     const paid = r2(sums._sum.paidAmount ?? 0);
@@ -405,8 +432,8 @@ export class JobsService implements OnModuleInit {
       items: items.map((j) => ({
         ...j,
         technicianName: j.primaryTechnicianId ? names.get(j.primaryTechnicianId) ?? null : null,
-        returned: returned.get(j.jobNumber) ?? 0,
-        due: r2(Math.max(j.totalCharge - (returned.get(j.jobNumber) ?? 0) - j.paidAmount, 0)),
+        returned: j.returnedAmount > 0 ? j.returnedAmount : returned.get(j.jobNumber) ?? 0,
+        due: r2(Math.max(j.totalCharge - (j.returnedAmount > 0 ? j.returnedAmount : returned.get(j.jobNumber) ?? 0) - j.paidAmount, 0)),
         isLate: this.isLate(j, now),
       })),
       total,
@@ -481,9 +508,9 @@ export class JobsService implements OnModuleInit {
     ]);
     const [assistants, returnedMap] = await Promise.all([
       this.staffNames(user.tenantId, j.assistantTechnicianIds),
-      billSale ? this.returnedOn(user.tenantId, [j.jobNumber]) : new Map<string, number>(),
+      billSale && !(j.returnedAmount > 0) ? this.returnedOn(user.tenantId, [j.jobNumber]) : new Map<string, number>(),
     ]);
-    const returned = returnedMap.get(j.jobNumber) ?? 0;
+    const returned = j.returnedAmount > 0 ? j.returnedAmount : returnedMap.get(j.jobNumber) ?? 0;
     return {
       ...j,
       customer: customer ? { ...customer, balance: Number(customer.balance) } : null,
@@ -691,7 +718,7 @@ export class JobsService implements OnModuleInit {
     const partLines: IndustrySaleLine[] = j.parts.map((p) => {
       const prod = p.productId && !p.isCustomerSupplied ? productOf.get(p.productId) : undefined;
       return {
-        label: `${p.partName}${p.isUnderWarranty ? ' (warranty)' : ''}${p.isCustomerSupplied ? ' — customer ka apna' : ''}`,
+        label: partLabel(p),
         amount: p.isUnderWarranty ? 0 : r2(p.total),
         // A shelf part costs the shop its product cost even when free to the customer.
         // A part bought outside is paid as an expense, so it adds no cost here.
@@ -904,8 +931,10 @@ export class JobsService implements OnModuleInit {
         const paid = r2(Math.min(onKhata, fresh.totalCharge || onKhata));
         await tx.serviceJob.update({
           where: { id: job.id },
-          data: { status: 'QUALITY_CHECK', completedAt: null, jobWarrantyExpiryDate: null, paidAmount: paid, paymentStatus: payStatus(paid, fresh.totalCharge) },
+          data: { status: 'QUALITY_CHECK', completedAt: null, jobWarrantyExpiryDate: null, paidAmount: paid, paymentStatus: payStatus(paid, fresh.totalCharge), returnedAmount: 0 },
         });
+        // Returns on a voided bill no longer count; the next bill starts clean.
+        await tx.serviceJobPart.updateMany({ where: { jobId: job.id }, data: { returnedQty: 0, returnedAmount: 0 } });
         await tx.serviceJobStatusHistory.create({
           data: { jobId: job.id, fromStatus: 'COMPLETED', toStatus: 'QUALITY_CHECK', changedBy: voidBy?.userId ?? null, reason: `Bill ${sale.saleNumber} void hua — job dobara khuli, theek kar ke dobara bill banayein` },
         });

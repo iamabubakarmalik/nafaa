@@ -1,313 +1,149 @@
+/**
+ * Write or correct a nuskha: customer, who prescribed it, the date and how
+ * long it holds, eye power for both eyes (checked like a lab reads it),
+ * nazar, fitting height and contact lens fit. Saved nuskhe feed glasses
+ * orders and the "muddat qareeb" call-back list.
+ */
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, User, Eye, Calendar, Info, AlertCircle,
-  FileText, Stethoscope,
-} from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button, Input } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
-import { prescriptionsApi } from '../api/prescriptions.api';
-import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
+import { Eye, FileText, Save, Stethoscope, UserRound } from 'lucide-react';
+import { Button, Card, Input, PageShell, Select, Skeleton, Textarea } from '@/design-system/components';
+import { prescriptionsApi, type RxInput } from '../api/prescriptions.api';
+import { CustomerFields, FormHeader, PowerGrid, emptyParty, emptyPower, partyErrors, powerDraftOf, powerOf, type PartyDraft, type PowerDraft } from '../components/ui';
+import { useFormKeys } from '../hooks/usePageKeys';
+import { OPTICAL_KEYS, RX_TYPES, apiError, powerErrors, toDateInput, todayInput } from '../lib/meta';
 
-const RX_TYPES = ['DISTANCE', 'READING', 'BIFOCAL', 'PROGRESSIVE', 'CONTACT_LENS', 'OTHER'];
+const plusYear = (d: string) => { const x = new Date(`${d}T12:00:00`); x.setFullYear(x.getFullYear() + 1); return x.toLocaleDateString('en-CA'); };
+const T = ({ icon: Icon, children }: { icon: typeof Eye; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
 
 export default function PrescriptionFormPage() {
   const { id } = useParams();
+  const editing = !!id;
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const isEdit = !!id;
+  const existing = useQuery({ queryKey: [OPTICAL_KEYS.rx, 'one', id], queryFn: () => prescriptionsApi.getOne(id!), enabled: editing });
 
-  const [form, setForm] = useState<any>({
-    customerId: '', customerName: '', customerPhone: '', customerAge: '', customerGender: '',
-    doctorName: '', clinicName: '',
-    prescriptionDate: new Date().toISOString().slice(0, 10),
-    expiryDate: '',
-    prescriptionType: 'DISTANCE',
-    rightSph: '', rightCyl: '', rightAxis: '', rightAdd: '', rightPd: '',
-    leftSph: '', leftCyl: '', leftAxis: '', leftAdd: '', leftPd: '',
-    pupilDistance: '',
-    notes: '', imageUrls: [], documentUrls: [],
-    isActive: true,
-  });
-
-  const { data: existing } = useQuery({
-    queryKey: ['prescription', id],
-    queryFn: () => prescriptionsApi.getOne(id!),
-    enabled: isEdit,
-  });
-
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-pos'],
-    queryFn: () => customersApi.list({ page: 1, limit: 500 }),
-  });
-  const customers = customersData?.items ?? [];
+  const [party, setParty] = useState<PartyDraft>(emptyParty);
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [type, setType] = useState('DISTANCE');
+  const [doctor, setDoctor] = useState('');
+  const [clinic, setClinic] = useState('');
+  const [date, setDate] = useState(todayInput());
+  const [expiry, setExpiry] = useState(plusYear(todayInput()));
+  const [power, setPower] = useState<PowerDraft>(emptyPower);
+  const [rva, setRva] = useState('');
+  const [lva, setLva] = useState('');
+  const [seg, setSeg] = useState('');
+  const [cl, setCl] = useState({ rbc: '', lbc: '', rdia: '', ldia: '' });
+  const [notes, setNotes] = useState('');
+  const [tried, setTried] = useState(false);
+  const [loaded, setLoaded] = useState(!editing);
 
   useEffect(() => {
-    if (existing) {
-      setForm({
-        customerId: existing.customerId || '',
-        customerName: existing.customerName,
-        customerPhone: existing.customerPhone || '',
-        customerAge: existing.customerAge ?? '',
-        customerGender: existing.customerGender || '',
-        doctorName: existing.doctorName || '',
-        clinicName: existing.clinicName || '',
-        prescriptionDate: existing.prescriptionDate?.slice(0, 10),
-        expiryDate: existing.expiryDate?.slice(0, 10) || '',
-        prescriptionType: existing.prescriptionType || 'DISTANCE',
-        rightSph: existing.rightSph ?? '', rightCyl: existing.rightCyl ?? '',
-        rightAxis: existing.rightAxis ?? '', rightAdd: existing.rightAdd ?? '',
-        rightPd: existing.rightPd ?? '',
-        leftSph: existing.leftSph ?? '', leftCyl: existing.leftCyl ?? '',
-        leftAxis: existing.leftAxis ?? '', leftAdd: existing.leftAdd ?? '',
-        leftPd: existing.leftPd ?? '',
-        pupilDistance: existing.pupilDistance ?? '',
-        notes: existing.notes || '',
-        imageUrls: existing.imageUrls || [],
-        documentUrls: existing.documentUrls || [],
-        isActive: existing.isActive,
-      });
-    }
-  }, [existing]);
+    const r = existing.data;
+    if (!r || loaded) return;
+    setParty({ customerId: r.customerId ?? undefined, name: r.customerName, phone: r.customerPhone ?? '' });
+    setAge(r.customerAge != null ? String(r.customerAge) : ''); setGender(r.customerGender ?? ''); setType(r.prescriptionType ?? '');
+    setDoctor(r.doctorName ?? r.prescribedBy ?? ''); setClinic(r.clinicName ?? '');
+    setDate(toDateInput(r.prescriptionDate)); setExpiry(toDateInput(r.expiryDate));
+    setPower(powerDraftOf(r)); setRva(r.rightVa ?? ''); setLva(r.leftVa ?? ''); setSeg(r.segHeight != null ? String(r.segHeight) : '');
+    setCl({ rbc: r.clRightBaseCurve ?? '', lbc: r.clLeftBaseCurve ?? '', rdia: r.clRightDiameter ?? '', ldia: r.clLeftDiameter ?? '' });
+    setNotes(r.notes ?? '');
+    setLoaded(true);
+  }, [existing.data, loaded]);
+
+  const p = powerOf(power);
+  const pErr = powerErrors(p);
+  const pe = partyErrors(party, false);
+  const ageN = age ? Number(age) : null;
+  const errors: Record<string, string> = { ...pe };
+  if (ageN != null && (!Number.isInteger(ageN) || ageN > 120)) errors.age = 'Umar 0 se 120';
+  if (!Object.keys(p).length) errors.power = 'Kam se kam ek aankh ka number likhein';
+  if (Object.keys(pErr).length) errors.power = Object.values(pErr)[0];
+  if (date && expiry && expiry <= date) errors.expiry = 'Muddat nuskhe ki date ke baad honi chahiye';
+  if (date > todayInput()) errors.date = 'Aage ki date nahi ho sakti';
 
   const save = useMutation({
     mutationFn: () => {
-      const payload: any = {};
-      Object.entries(form).forEach(([k, v]) => {
-        if (v === '' || v == null) return;
-        if (['rightSph', 'rightCyl', 'rightAdd', 'rightPd', 'leftSph', 'leftCyl', 'leftAdd', 'leftPd', 'pupilDistance'].includes(k)) {
-          payload[k] = Number(v);
-        } else if (['rightAxis', 'leftAxis', 'customerAge'].includes(k)) {
-          payload[k] = parseInt(String(v), 10);
-        } else {
-          payload[k] = v;
-        }
-      });
-      return isEdit ? prescriptionsApi.update(id!, payload) : prescriptionsApi.create(payload);
+      const body: RxInput = {
+        customerId: party.customerId, customerName: party.name.trim(), customerPhone: party.phone.trim() || undefined,
+        customerAge: ageN ?? undefined, customerGender: gender || undefined, prescriptionType: type || undefined,
+        doctorName: doctor.trim() || undefined, prescribedBy: doctor.trim() || undefined, clinicName: clinic.trim() || undefined,
+        prescriptionDate: new Date(`${date}T12:00:00`).toISOString(), expiryDate: expiry ? new Date(`${expiry}T12:00:00`).toISOString() : undefined,
+        ...Object.fromEntries(Object.keys(emptyPower).map((k) => [k, (p as Record<string, number | undefined>)[k] ?? null])),
+        rightVa: rva.trim() || undefined, leftVa: lva.trim() || undefined, segHeight: seg ? Number(seg) : undefined,
+        clRightBaseCurve: cl.rbc.trim() || undefined, clLeftBaseCurve: cl.lbc.trim() || undefined, clRightDiameter: cl.rdia.trim() || undefined, clLeftDiameter: cl.ldia.trim() || undefined,
+        notes: notes.trim() || undefined,
+      };
+      return editing ? prescriptionsApi.update(id!, body) : prescriptionsApi.create(body);
     },
-    onSuccess: (rx) => {
-      toast.success(isEdit ? 'Prescription updated' : 'Prescription created');
-      qc.invalidateQueries({ queryKey: ['prescriptions-list'] });
-      navigate(`/optical/prescriptions/${rx.id}`);
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
+    onSuccess: (r) => { toast.success(editing ? 'Nuskha save ho gaya' : `${r.prescriptionNumber} ban gaya`); qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.rx] }); navigate(`/optical/prescriptions/${r.id}`, { replace: true }); },
+    onError: (e) => toast.error(apiError(e, 'Nuskha save nahi hua')),
   });
-
-  const canSave = form.customerName?.trim() && form.prescriptionDate;
-
-  return (
-    <div className="space-y-5 pb-24">
-      <button onClick={() => navigate('/optical/prescriptions')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-blue-600 font-bold">
-        <ArrowLeft className="h-4 w-4" /> Back to Prescriptions
-      </button>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <FileText className="h-3.5 w-3.5 text-amber-300" />
-            {isEdit ? 'Edit Prescription' : 'New Prescription'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            📄 {isEdit ? existing?.prescriptionNumber : 'Enter Rx Details'}
-          </h1>
-        </div>
-      </section>
-
-      <div className="rounded-2xl bg-blue-50 border-2 border-blue-200 p-4 flex items-start gap-3">
-        <Info className="h-5 w-5 text-blue-700 shrink-0 mt-0.5" />
-        <div className="text-sm text-blue-900">
-          <div className="font-extrabold mb-1">Medical validation active</div>
-          <div className="font-semibold">If CYL is entered, AXIS becomes mandatory (0-180°). SPH range: -30 to +30.</div>
-        </div>
-      </div>
-
-      {/* CUSTOMER */}
-      <section className="rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-white p-5 space-y-4">
-        <SectionHead icon={User} title="Customer Info" tone="blue" />
-        <div>
-          <Lbl>Existing Customer <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-          <select value={form.customerId} onChange={(e) => {
-            const c = customers.find((x: any) => x.id === e.target.value);
-            setForm({
-              ...form,
-              customerId: e.target.value,
-              customerName: c?.name || form.customerName,
-              customerPhone: c?.phone || form.customerPhone,
-            });
-          }}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-            <option value="">-- Or enter manually below --</option>
-            {customers.map((c: any) => (<option key={c.id} value={c.id}>{c.name} ({c.phone})</option>))}
-          </select>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Customer Name *" value={form.customerName}
-            onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Full name" />
-          <Input label="Phone" value={form.customerPhone}
-            onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="03XX XXXXXXX" />
-          <Input label="Age" type="number" value={form.customerAge}
-            onChange={(e) => setForm({ ...form, customerAge: e.target.value })} placeholder="35" />
-          <div>
-            <Lbl>Gender</Lbl>
-            <select value={form.customerGender} onChange={(e) => setForm({ ...form, customerGender: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-              <option value="">Not specified</option>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
-              <option value="OTHER">Other</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      {/* DOCTOR & DATE */}
-      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
-        <SectionHead icon={Stethoscope} title="Doctor & Date" tone="emerald" />
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Doctor Name" value={form.doctorName}
-            onChange={(e) => setForm({ ...form, doctorName: e.target.value })} placeholder="Dr. Ahmed Khan" />
-          <Input label="Clinic Name" value={form.clinicName}
-            onChange={(e) => setForm({ ...form, clinicName: e.target.value })} placeholder="City Eye Clinic" />
-          <div>
-            <Lbl>Prescription Date *</Lbl>
-            <input type="date" value={form.prescriptionDate}
-              onChange={(e) => setForm({ ...form, prescriptionDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <Lbl>Expiry Date <span className="text-slate-400 normal-case font-bold">(auto: +12 months)</span></Lbl>
-            <input type="date" value={form.expiryDate}
-              onChange={(e) => setForm({ ...form, expiryDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          </div>
-        </div>
-        <div>
-          <Lbl>Prescription Type</Lbl>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {RX_TYPES.map((t) => (
-              <button key={t} type="button" onClick={() => setForm({ ...form, prescriptionType: t })}
-                className={`px-3 py-2 rounded-xl border-2 text-xs font-extrabold ${
-                  form.prescriptionType === t ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300'}`}>
-                {t.replace(/_/g, ' ')}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* RIGHT EYE (OD) */}
-      <section className="rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-white p-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
-            <Eye className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="font-extrabold text-blue-900">OD — Right Eye</h3>
-            <p className="text-xs text-blue-700 font-semibold">Oculus Dexter</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <Input label="SPH" type="number" step="0.25" value={form.rightSph}
-            onChange={(e) => setForm({ ...form, rightSph: e.target.value })} placeholder="-2.00" />
-          <Input label="CYL" type="number" step="0.25" value={form.rightCyl}
-            onChange={(e) => setForm({ ...form, rightCyl: e.target.value })} placeholder="-0.50" />
-          <Input label="AXIS (0-180°)" type="number" value={form.rightAxis}
-            onChange={(e) => setForm({ ...form, rightAxis: e.target.value })} placeholder="90" />
-          <Input label="ADD" type="number" step="0.25" value={form.rightAdd}
-            onChange={(e) => setForm({ ...form, rightAdd: e.target.value })} placeholder="+1.50" />
-          <Input label="PD" type="number" step="0.5" value={form.rightPd}
-            onChange={(e) => setForm({ ...form, rightPd: e.target.value })} placeholder="32" />
-        </div>
-      </section>
-
-      {/* LEFT EYE (OS) */}
-      <section className="rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
-            <Eye className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="font-extrabold text-emerald-900">OS — Left Eye</h3>
-            <p className="text-xs text-emerald-700 font-semibold">Oculus Sinister</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <Input label="SPH" type="number" step="0.25" value={form.leftSph}
-            onChange={(e) => setForm({ ...form, leftSph: e.target.value })} placeholder="-1.75" />
-          <Input label="CYL" type="number" step="0.25" value={form.leftCyl}
-            onChange={(e) => setForm({ ...form, leftCyl: e.target.value })} placeholder="-0.25" />
-          <Input label="AXIS (0-180°)" type="number" value={form.leftAxis}
-            onChange={(e) => setForm({ ...form, leftAxis: e.target.value })} placeholder="180" />
-          <Input label="ADD" type="number" step="0.25" value={form.leftAdd}
-            onChange={(e) => setForm({ ...form, leftAdd: e.target.value })} placeholder="+1.50" />
-          <Input label="PD" type="number" step="0.5" value={form.leftPd}
-            onChange={(e) => setForm({ ...form, leftPd: e.target.value })} placeholder="32" />
-        </div>
-      </section>
-
-      {/* PD & Extras */}
-      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
-        <SectionHead icon={Info} title="Additional Info" tone="violet" />
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Total PD (Pupil Distance)" type="number" step="0.5" value={form.pupilDistance}
-            onChange={(e) => setForm({ ...form, pupilDistance: e.target.value })} placeholder="64" />
-        </div>
-        <div>
-          <Lbl>Notes</Lbl>
-          <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Any special instructions..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-        </div>
-        <div>
-          <Lbl>Attach Rx Photo / Scan</Lbl>
-          <UploadDropzone purpose="prescription-image" maxFiles={5}
-            onUploaded={(recs: any[]) => setForm({ ...form, imageUrls: [...form.imageUrls, ...recs.map((r) => r.url)] })} />
-          {form.imageUrls.length > 0 && (
-            <div className="mt-2 grid grid-cols-4 gap-2">
-              {form.imageUrls.map((url: string, i: number) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setForm({ ...form, imageUrls: form.imageUrls.filter((_: any, x: number) => x !== i) })}
-                    className="absolute top-1 right-1 h-6 w-6 rounded-full bg-rose-600 text-white flex items-center justify-center font-extrabold">×</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <Button variant="secondary" onClick={() => navigate('/optical/prescriptions')}>Cancel</Button>
-          <Button className="bg-gradient-to-r from-blue-600 to-cyan-700"
-            onClick={() => save.mutate()} loading={save.isPending} disabled={!canSave}>
-            <Save className="h-4 w-4" /> {isEdit ? 'Update Rx' : 'Create Rx'}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SectionHead({ icon: Icon, title, tone }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-cyan-700',
-    emerald: 'from-emerald-500 to-teal-700',
-    violet: 'from-violet-500 to-purple-700',
+  const submit = () => {
+    setTried(true);
+    const first = Object.values(errors)[0];
+    if (first) { toast.error(first); return; }
+    if (!save.isPending) save.mutate();
   };
+  useFormKeys(submit);
+  const show = (k: string) => (tried ? errors[k] : undefined);
+
+  if (editing && !loaded) {
+    if (existing.isError) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold">Ye nuskha nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/optical/prescriptions')}>Nuskhe par wapas</Button></div></PageShell>;
+    return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
+  }
+
   return (
-    <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-        <Icon className="h-5 w-5" />
+    <PageShell>
+      <FormHeader title={editing ? `${existing.data?.prescriptionNumber} — badlein` : 'Naya nuskha'} hint="Customer, doctor, date aur dono aankhon ka number" />
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>}>
+            <CustomerFields value={party} onChange={setParty} errors={tried ? pe : {}} phoneRequired={false} />
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Input label="Umar" inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value.replace(/\D/g, '').slice(0, 3))} error={show('age')} hint="ADD (parhne ka number) umar ke saath barhta hai" />
+              <Select label="Jins" value={gender} onChange={(e) => setGender(e.target.value)} options={[{ value: '', label: '—' }, { value: 'MALE', label: 'Mard' }, { value: 'FEMALE', label: 'Aurat' }, { value: 'OTHER', label: 'Doosra' }]} hint="Marzi hai" />
+            </div>
+          </Card>
+          <Card className="rounded-2xl" title={<T icon={Eye}>Number</T>} description="Dayan (R) aur bayan (L) — SPH, CYL, AXIS, ADD aur PD">
+            <PowerGrid value={power} onChange={setPower} errors={tried ? pErr : {}} />
+            {show('power') && !Object.keys(pErr).length && <p className="mt-1.5 text-[0.8125rem] font-medium text-rose-600">{show('power')}</p>}
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <Input label="Nazar R (VA)" value={rva} onChange={(e) => setRva(e.target.value)} placeholder="6/6" />
+              <Input label="Nazar L (VA)" value={lva} onChange={(e) => setLva(e.target.value)} placeholder="6/9" />
+              <Input label="Fitting height (mm)" inputMode="decimal" value={seg} onChange={(e) => setSeg(e.target.value.replace(/[^\d.]/g, ''))} hint="Progressive / bifocal ke liye" />
+            </div>
+          </Card>
+          <Card className="rounded-2xl" title={<T icon={Eye}>Contact lens</T>} description="Sirf contact lens ke nuskhe me — warna khali chhor dein">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Input label="R base curve" value={cl.rbc} onChange={(e) => setCl({ ...cl, rbc: e.target.value })} placeholder="8.6" />
+              <Input label="R DIA" value={cl.rdia} onChange={(e) => setCl({ ...cl, rdia: e.target.value })} placeholder="14.2" />
+              <Input label="L base curve" value={cl.lbc} onChange={(e) => setCl({ ...cl, lbc: e.target.value })} placeholder="8.6" />
+              <Input label="L DIA" value={cl.ldia} onChange={(e) => setCl({ ...cl, ldia: e.target.value })} placeholder="14.2" />
+            </div>
+          </Card>
+        </div>
+        <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <Card className="rounded-2xl" title={<T icon={Stethoscope}>Doctor aur muddat</T>}>
+            <div className="space-y-3">
+              <Select label="Type" value={type} onChange={(e) => setType(e.target.value)} options={[{ value: '', label: '—' }, ...RX_TYPES]} />
+              <Input label="Doctor" value={doctor} onChange={(e) => setDoctor(e.target.value)} placeholder="Dr. Ahmed / dukaan ka optometrist" maxLength={120} />
+              <Input label="Clinic / hospital" value={clinic} onChange={(e) => setClinic(e.target.value)} hint="Marzi hai" maxLength={120} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Nuskhe ki date" type="date" max={todayInput()} value={date} onChange={(e) => { setDate(e.target.value); if (!editing && e.target.value) setExpiry(plusYear(e.target.value)); }} error={show('date')} />
+                <Input label="Kab tak chalega" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} error={show('expiry')} hint="Aam taur par 1 saal" />
+              </div>
+              <Textarea label="Note" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} hint="Marzi hai" maxLength={2000} />
+              <Button fullWidth size="lg" onClick={submit} loading={save.isPending} leftIcon={editing ? <Save className="h-4 w-4" /> : <FileText className="h-4 w-4" />}>{editing ? 'Save karein' : 'Nuskha save karein'}</Button>
+            </div>
+          </Card>
+        </div>
       </div>
-      <h3 className="font-extrabold text-slate-900">{title}</h3>
-    </div>
+    </PageShell>
   );
-}
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
 }

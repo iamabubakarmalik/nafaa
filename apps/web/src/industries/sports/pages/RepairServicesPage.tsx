@@ -1,722 +1,203 @@
-import { useState, useMemo } from 'react';
-import { PaymentMethodPicker, TakePaymentModal } from '@modules/pos/components';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Wrench, Plus, Search, X, Clock, CheckCircle2, XCircle,
-  RefreshCw, AlertTriangle, Phone, User, DollarSign,
-  Eye, Trash2, Package, Calendar, Camera, Save, Sparkles,
-  Image as ImageIcon,
-} from 'lucide-react';
+/**
+ * Repair desk: bat repair, grip, racket stringing, ball and shoe work.
+ * Jobs in hand (late first), ready to collect, with advance, and done.
+ * Views, counts, search and paging come from the server; CSV and print
+ * take the whole filter.
+ */
+
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { repairServicesApi, type SportsRepairService } from '../api/repair-services.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+import {
+  AlarmClock, CalendarRange, CheckCircle2, ClipboardList, Download, GraduationCap, Hammer, ListChecks, PackageCheck, Plus, Wallet, Wrench,
+} from 'lucide-react';
+import {
+  DateRangeMenu, FilterBar, FilterChip, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { rangeLabel } from '@core/lib/dateRange';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { repairServicesApi, type RepairQuery, type RepairView, type SportsRepairService } from '../api/repair-services.api';
+import { REPAIR_KEY, REPAIR_STATUS, dayOnly } from '../components/meta';
+import { NewRepairModal, RepairModal } from '../components/RepairModals';
+import { EmptyBlock, Pager, StatusPill, card, fetchAll, useDebounced, useListKeys } from '../components/ui';
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  RECEIVED: { label: 'Received', color: 'text-blue-700', bg: 'bg-blue-100', icon: Package },
-  IN_PROGRESS: { label: 'In Progress', color: 'text-amber-700', bg: 'bg-amber-100', icon: Wrench },
-  ON_HOLD: { label: 'On Hold', color: 'text-slate-700', bg: 'bg-slate-100', icon: Clock },
-  COMPLETED: { label: 'Completed', color: 'text-emerald-700', bg: 'bg-emerald-100', icon: CheckCircle2 },
-  DELIVERED: { label: 'Delivered', color: 'text-teal-700', bg: 'bg-teal-100', icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancelled', color: 'text-rose-700', bg: 'bg-rose-100', icon: XCircle },
-};
-
-const ITEM_TYPES = [
-  'Cricket Bat', 'Racket (Badminton)', 'Racket (Tennis)', 'Racket (Squash)',
-  'Football', 'Cricket Ball', 'Boxing Gloves', 'Cricket Kit Bag',
-  'Helmet', 'Cricket Pads', 'Football Studs', 'Cricket Spikes',
-  'Gym Equipment', 'Other',
+const LIMIT = 25;
+const TABS: Array<{ id: RepairView; label: string; icon: typeof ListChecks }> = [
+  { id: 'active', label: 'Chalu', icon: ListChecks },
+  { id: 'work', label: 'Kaam baqi', icon: Hammer },
+  { id: 'ready', label: 'Tayyar — le jana', icon: PackageCheck },
+  { id: 'late', label: 'Late', icon: AlarmClock },
+  { id: 'advance', label: 'Advance wali', icon: Wallet },
+  { id: 'done', label: 'De di / cancel', icon: CheckCircle2 },
+  { id: 'all', label: 'Sab', icon: ClipboardList },
 ];
 
-const REPAIR_TYPES = [
-  'Bat Re-gripping', 'Bat Knocking', 'Bat Oil Treatment', 'Bat Handle Repair', 'Bat Edge Repair',
-  'Racket Restringing', 'Racket Grip Replacement',
-  'Ball Stitching', 'Ball Re-stitching', 'Football Repair',
-  'Kit Bag Zip Repair', 'Kit Bag Handle Repair',
-  'Boxing Glove Repair', 'Padding Replacement',
-  'Shoe Sole Repair', 'Stud Replacement',
-  'General Cleaning', 'Restoration', 'Custom Repair',
-];
+const isLate = (r: SportsRepairService) => ['RECEIVED', 'IN_PROGRESS', 'ON_HOLD'].includes(r.status) && !!r.estimatedReadyAt && new Date(r.estimatedReadyAt).getTime() < Date.now();
 
 export default function RepairServicesPage() {
-  const qc = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [itemTypeFilter, setItemTypeFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
-  const [showDetail, setShowDetail] = useState<SportsRepairService | null>(null);
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const guide = usePageGuide();
+  const canCreate = usePermission(PERMISSIONS.POS_USE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState<RepairView>(params.get('q') ? 'all' : 'active');
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const [period, setPeriod] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const [page, setPage] = useState(1);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const term = useDebounced(search.trim());
+  const range = resolveRange(period, startHour);
 
-  const { data: repairs = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['repair-services-list', statusFilter, itemTypeFilter],
-    queryFn: () => repairServicesApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      itemType: itemTypeFilter === 'all' ? undefined : itemTypeFilter,
-    }),
-  });
-
-  const { data: summary } = useQuery({
-    queryKey: ['repair-services-summary'],
-    queryFn: () => repairServicesApi.summary(),
+  const query: RepairQuery = useMemo(() => ({ view: tab, search: term || undefined, from: range?.from, to: range?.to }), [tab, term, range?.from, range?.to]);
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: [REPAIR_KEY, 'page', query, page],
+    queryFn: () => repairServicesApi.page({ ...query, page, limit: LIMIT }),
+    placeholderData: keepPreviousData,
     refetchInterval: 60_000,
   });
+  const c = data?.counts;
+  const go = (t: RepairView) => { setTab(t); setPage(1); };
+  const add = useCallback(() => { if (canCreate) setAdding(true); }, [canCreate]);
+  useListKeys(searchRef, add);
 
-  const { data: overdue = [] } = useQuery({
-    queryKey: ['repair-services-overdue'],
-    queryFn: () => repairServicesApi.overdue(),
-    refetchInterval: 5 * 60_000,
-  });
+  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
+  const all = () => fetchAll((p) => repairServicesApi.page({ ...query, page: p, limit: 100 }));
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const rows = await all();
+      if (!rows.length) { toast.error('Is filter me koi repair nahi'); return; }
+      downloadCsv('repairs.csv', [
+        ['Number', 'Jama', 'Customer', 'Phone', 'Cheez', 'Brand', 'Kaam', 'Masla', 'Tayyar kab', 'Andaza', 'Charge', 'Advance', 'Status'],
+        ...rows.map((r) => [r.serviceNumber, r.receivedAt.slice(0, 10), r.customerName, r.customerPhone, r.itemType, r.itemBrand, r.repairType, r.issue,
+          r.estimatedReadyAt?.slice(0, 10), r.estimatedCost, r.finalCost, r.advancePaid, REPAIR_STATUS[r.status]?.label]),
+      ]);
+      toast.success(`${rows.length} repairs CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+  };
+  const printDoc = async (): Promise<PrintDoc> => {
+    const rows = await all();
+    return {
+      title: 'Repairs', subtitle: `${TABS.find((t) => t.id === tab)?.label} · ${label}`,
+      meta: [['Repairs', String(rows.length)], ['Value', money(data?.totals.value ?? 0)], ['Advance', money(data?.totals.advance ?? 0)]],
+      sections: [{
+        kind: 'table', title: 'Repairs',
+        columns: [{ label: 'Number' }, { label: 'Customer' }, { label: 'Cheez / kaam', wideOnly: true }, { label: 'Tayyar', wideOnly: true }, { label: 'Status' }],
+        rows: rows.map((r) => [r.serviceNumber, `${r.customerName} ${r.customerPhone}`, `${r.itemType} · ${r.repairType ?? r.issue}`, dayOnly(r.estimatedReadyAt), REPAIR_STATUS[r.status]?.label ?? r.status]),
+      }],
+    };
+  };
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return repairs;
-    return repairs.filter((r) =>
-      r.serviceNumber.toLowerCase().includes(q) ||
-      r.customerName.toLowerCase().includes(q) ||
-      r.customerPhone.includes(q) ||
-      r.itemType.toLowerCase().includes(q) ||
-      (r.itemBrand || '').toLowerCase().includes(q) ||
-      (r.repairType || '').toLowerCase().includes(q)
-    );
-  }, [repairs, search]);
-
-  const remove = useMutation({
-    mutationFn: (id: string) => repairServicesApi.remove(id),
-    onSuccess: () => {
-      toast.success('Service deleted');
-      qc.invalidateQueries({ queryKey: ['repair-services-list'] });
-      qc.invalidateQueries({ queryKey: ['repair-services-summary'] });
-    },
-  });
-
+  const items = data?.items ?? [];
   return (
-    <div className="space-y-5">
-      {showForm && (
-        <RepairFormModal onClose={() => setShowForm(false)}
-          onSaved={() => {
-            setShowForm(false);
-            qc.invalidateQueries({ queryKey: ['repair-services-list'] });
-            qc.invalidateQueries({ queryKey: ['repair-services-summary'] });
-          }} />
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Repairs — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Wrench, color: '#2563eb', title: 'Jama karein', text: 'Customer, phone, kya cheez aur kya kaam. Haalat aur photo likhein taake baad me jhagra na ho. Parchi print kar ke dein.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance customer ke khate me jama hota hai aur aaj ke cash me ginta hai.' },
+            { icon: Hammer, color: '#7c3aed', title: 'Kaam', text: 'Kaam shuru → Tayyar. Tayyar par WhatsApp se customer ko batayein.' },
+            { icon: PackageCheck, color: '#ea580c', title: 'Deliver + bill', text: 'Kaam ka charge aur stock se lagi string / grip ek bill me. Advance bill me lag jata hai, baqi udhaar khate me.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'nayi repair'], ['G', 'guide']]} />
       )}
 
-      {showDetail && (
-        <RepairDetailModal repair={showDetail}
-          onClose={() => setShowDetail(null)}
-          onUpdated={() => {
-            setShowDetail(null);
-            qc.invalidateQueries({ queryKey: ['repair-services-list'] });
-            qc.invalidateQueries({ queryKey: ['repair-services-summary'] });
-          }} />
-      )}
+      <PageHero title="Repairs" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta="Bat repair, grip, racket stringing, ball silai — jama se deliver tak"
+        actions={<>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <button type="button" onClick={add} className={heroPrimaryButton}><Plus className="h-4 w-4" />Nayi repair</button>}
+        </>}
+        stats={[
+          { label: 'Is filter ki value', value: money(data?.totals.value ?? 0) },
+          { label: 'Advance (hath me)', value: money(data?.totals.advance ?? 0) },
+          { label: 'Lena baqi', value: money(data?.totals.due ?? 0) },
+        ]} />
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Wrench className="h-3.5 w-3.5 text-amber-300" /> Repair Services
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔧 Repair Services</h1>
-            <p className="mt-2 text-sm text-white/80">
-              Bat re-gripping, racket restringing, ball stitching, general repairs
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" /> New Repair
-            </Button>
-          </div>
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Hammer} color="#7c3aed" label="Kaam baqi" value={c.work} onClick={() => go('work')} active={tab === 'work'} />
+            <KpiCard icon={AlarmClock} color="#e11d48" label="Late" value={c.late} hint="Batayi date guzar gayi" onClick={() => go('late')} active={tab === 'late'} />
+            <KpiCard icon={PackageCheck} color="#16a34a" label="Tayyar — le jana" value={c.ready} hint="Customer ko batayein" onClick={() => go('ready')} active={tab === 'ready'} />
+            <KpiCard icon={Wallet} color="#d97706" label="Advance wali" value={c.advance} onClick={() => go('advance')} active={tab === 'advance'} />
+          </>
+        )}
+      </KpiRow>
 
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Received" value={summary.received} icon={Package} tone="blue" onClick={() => setStatusFilter('RECEIVED')} />
-          <StatCard label="In Progress" value={summary.inProgress} icon={Wrench} tone="amber" onClick={() => setStatusFilter('IN_PROGRESS')} />
-          <StatCard label="Completed" value={summary.completed} icon={CheckCircle2} tone="emerald" onClick={() => setStatusFilter('COMPLETED')} />
-          <StatCard label="Revenue" value={formatPKR(summary.totalRevenue || 0)} icon={DollarSign} tone="violet" />
-        </section>
-      )}
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Number, customer, phone, cheez ya brand…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
+        onClear={() => setSearch('')}>
+        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Jama ki date" />
+      </FilterBar>
 
-      {overdue.length > 0 && (
-        <section className="rounded-3xl bg-gradient-to-br from-rose-50 via-red-50 to-orange-50 border-2 border-rose-300 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-10 w-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-lg">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-rose-900">{overdue.length} Overdue Repairs</h3>
-              <p className="text-xs text-rose-800 font-bold">Follow up with customers immediately</p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {overdue.slice(0, 6).map((r) => (
-              <button key={r.id} onClick={() => setShowDetail(r)}
-                className="rounded-xl bg-white border-2 border-rose-200 hover:border-rose-400 p-3 text-left transition">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-mono font-extrabold text-sm text-rose-900">{r.serviceNumber}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-rose-700">
-                    {r.estimatedReadyAt && Math.abs(Math.floor((Date.now() - new Date(r.estimatedReadyAt).getTime()) / 86400000))} days late
-                  </div>
-                </div>
-                <div className="text-xs font-bold text-slate-700 mt-1">{r.customerName} • {r.itemType}</div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      <ViewTabs value={tab} onChange={go} hint={<>Repair par click kar ke kholein</>}
+        tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? c[t.id] : null }))} />
 
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Service #, customer, item, repair type..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-            {['all', 'RECEIVED', 'IN_PROGRESS', 'COMPLETED', 'DELIVERED', 'CANCELLED'].map((v) => (
-              <button key={v} onClick={() => setStatusFilter(v)}
-                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  statusFilter === v ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600'}`}>
-                {v === 'all' ? 'All' : STATUS_META[v]?.label || v}
-              </button>
-            ))}
-          </div>
-          <select value={itemTypeFilter} onChange={(e) => setItemTypeFilter(e.target.value)}
-            className="h-9 rounded-xl border-2 border-slate-200 bg-white px-3 text-xs font-bold focus:outline-none focus:border-amber-500">
-            <option value="all">All items</option>
-            {ITEM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <div className="ml-auto text-xs font-extrabold text-slate-500">{filtered.length} services</div>
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Wrench className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No repair services</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Accept items for bat re-gripping, racket restringing, etc.</p>
-          <Button className="mt-4 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4" /> Accept Item for Repair
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((r) => (
-            <RepairCard key={r.id} repair={r}
-              onView={() => setShowDetail(r)}
-              onDelete={() => { if (confirm(`Delete "${r.serviceNumber}"?`)) remove.mutate(r.id); }} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RepairCard({ repair: r, onView, onDelete }: any) {
-  const meta = STATUS_META[r.status] || STATUS_META.RECEIVED;
-  const StatusIcon = meta.icon;
-  const balance = Number(r.finalCost || r.estimatedCost || 0) - Number(r.advancePaid || 0);
-  const now = new Date();
-  const readyDate = r.estimatedReadyAt ? new Date(r.estimatedReadyAt) : null;
-  const isOverdue = readyDate && readyDate < now && (r.status === 'RECEIVED' || r.status === 'IN_PROGRESS');
-  const daysLate = isOverdue ? Math.floor((now.getTime() - readyDate!.getTime()) / 86400000) : 0;
-
-  return (
-    <div className={`rounded-2xl bg-white border-2 shadow-sm p-4 hover:shadow-md transition ${
-      isOverdue ? 'border-rose-300' : 'border-slate-200'}`}>
-      <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
-        <div className={`h-14 w-14 rounded-2xl ${meta.bg} flex items-center justify-center shrink-0`}>
-          <StatusIcon className={`h-6 w-6 ${meta.color}`} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono font-extrabold text-slate-900 text-sm">{r.serviceNumber}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
-              <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
-            </span>
-            {isOverdue && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold">
-                {daysLate}d late
-              </span>
-            )}
-          </div>
-
-          <div className="mt-1 font-extrabold text-slate-900 text-base truncate">
-            {r.itemType}{r.itemBrand ? ` • ${r.itemBrand}` : ''}
-          </div>
-          {r.repairType && (
-            <div className="text-xs font-bold text-amber-700 mt-0.5">🔧 {r.repairType}</div>
-          )}
-
-          <div className="flex items-center gap-3 mt-2 text-xs text-slate-600 font-bold flex-wrap">
-            <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {r.customerName}</span>
-            {r.customerPhone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {r.customerPhone}</span>}
-          </div>
-
-          <div className="text-xs text-slate-500 font-semibold italic mt-1 line-clamp-1">"{r.issue}"</div>
-
-          <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-500 font-bold">
-            <span className="inline-flex items-center gap-0.5">
-              <Calendar className="h-2.5 w-2.5" />
-              Received: {new Date(r.receivedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
-            </span>
-            {r.estimatedReadyAt && (
-              <span className={isOverdue ? 'text-rose-700' : ''}>
-                Ready: {new Date(r.estimatedReadyAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
-              </span>
-            )}
-            {r.photosBeforeUrls?.length > 0 && (
-              <span className="inline-flex items-center gap-0.5">
-                <ImageIcon className="h-2.5 w-2.5" /> {r.photosBeforeUrls.length} photos
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">
-            {r.finalCost ? 'Final' : 'Estimated'}
-          </div>
-          <div className="text-lg font-extrabold text-slate-900 tabular-nums">
-            {formatPKR(r.finalCost || r.estimatedCost || 0)}
-          </div>
-          {r.advancePaid > 0 && (
-            <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">
-              Paid: <span className="text-emerald-700">{formatPKR(r.advancePaid)}</span>
-            </div>
-          )}
-          {balance > 0 && (
-            <div className="text-[0.6875rem] font-extrabold text-rose-700 mt-0.5">
-              Balance: {formatPKR(balance)}
-            </div>
-          )}
-          <div className="mt-2 flex gap-1 justify-end">
-            <button onClick={onView}
-              className="h-9 px-3 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-extrabold inline-flex items-center gap-1">
-              <Eye className="h-3.5 w-3.5" /> Manage
-            </button>
-            <button onClick={onDelete}
-              className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RepairFormModal({ onClose, onSaved }: any) {
-  const [form, setForm] = useState({
-    customerName: '',
-    customerPhone: '',
-    itemType: 'Cricket Bat',
-    itemBrand: '',
-    itemDescription: '',
-    issue: '',
-    repairType: '',
-    estimatedCost: 0,
-    advancePaid: 0,
-    paymentMethod: 'CASH' as PaymentMethod,
-    estimatedReadyAt: '',
-    notes: '',
-    photosBeforeUrls: [] as string[],
-  });
-
-  const create = useMutation({
-    mutationFn: () => repairServicesApi.create({
-      ...form,
-      estimatedReadyAt: form.estimatedReadyAt || undefined,
-    }),
-    onSuccess: () => {
-      toast.success('Service ticket created');
-      onSaved();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">🔧 New Repair Ticket</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Customer Name *</Lbl>
-              <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                placeholder="Customer full name"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <Lbl>Phone *</Lbl>
-              <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-                placeholder="03XX XXXXXXX"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Item Type *</Lbl>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-              {ITEM_TYPES.map((t) => {
-                const active = form.itemType === t;
-                return (
-                  <button key={t} type="button" onClick={() => setForm({ ...form, itemType: t })}
-                    className={`p-2 rounded-xl border-2 text-xs font-extrabold transition ${
-                      active ? 'border-amber-600 bg-amber-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400'}`}>
-                    {t}
+      <section className={card}>
+        {isLoading ? (
+          <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        ) : items.length === 0 ? (
+          <EmptyBlock icon={Wrench} title={search || tab !== 'active' ? 'Is filter me koi repair nahi' : 'Abhi koi repair hath me nahi'}
+            text="Bat, racket ya ball repair ke liye aaye to yahan jama karein aur parchi dein."
+            action={canCreate ? <button type="button" onClick={add} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Nayi repair</button> : undefined} />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {items.map((r) => {
+              const st = REPAIR_STATUS[r.status];
+              const late = isLate(r);
+              const value = r.finalCost || r.estimatedCost;
+              return (
+                <li key={r.id}>
+                  <button type="button" onClick={() => setOpenId(r.id)}
+                    className="grid w-full gap-2 px-4 py-3 text-left hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.1fr)_minmax(0,1.6fr)_8rem_9rem_9rem] lg:items-center">
+                    <div>
+                      <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.serviceNumber}</p>
+                      <p className="text-[0.75rem] text-slate-500">{dayOnly(r.receivedAt)}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-900">{r.customerName}</p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{r.customerPhone}</p>
+                    </div>
+                    <div className="min-w-0 text-[0.8125rem]">
+                      <p className="truncate font-medium text-slate-800">{r.itemType}{r.itemBrand ? ` · ${r.itemBrand}` : ''}</p>
+                      <p className="truncate text-slate-500">{r.repairType ? `${r.repairType} — ` : ''}{r.issue}</p>
+                    </div>
+                    <p className={cn('text-[0.8125rem]', late ? 'font-semibold text-rose-600' : 'text-slate-600')}>
+                      {r.estimatedReadyAt ? `${late ? 'Late · ' : ''}${dayOnly(r.estimatedReadyAt)}` : 'Date tay nahi'}
+                    </p>
+                    <div className="text-[0.8125rem] lg:text-right">
+                      <p className="font-semibold tabular-nums text-slate-900">{value ? money(value) : '—'}</p>
+                      {r.advancePaid > 0 && <p className="tabular-nums text-emerald-700">Advance {money(r.advancePaid)}</p>}
+                    </div>
+                    <span className="lg:justify-self-end"><StatusPill tone={st.tone}>{st.label}</StatusPill></span>
                   </button>
-                );
-              })}
-            </div>
-          </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {data && <Pager page={page} limit={LIMIT} total={data.total} onPage={setPage} />}
+      </section>
 
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Brand</Lbl>
-              <input value={form.itemBrand} onChange={(e) => setForm({ ...form, itemBrand: e.target.value })}
-                placeholder="SS, MRF, Yonex..."
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <Lbl>Repair Type</Lbl>
-              <select value={form.repairType} onChange={(e) => setForm({ ...form, repairType: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-                <option value="">Select type</option>
-                {REPAIR_TYPES.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Item Description *</Lbl>
-            <textarea rows={2} value={form.itemDescription} onChange={(e) => setForm({ ...form, itemDescription: e.target.value })}
-              placeholder="SS Ton English Willow, 2 years old, Grade 1"
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-          </div>
-
-          <div>
-            <Lbl>Issue / Problem *</Lbl>
-            <textarea rows={3} value={form.issue} onChange={(e) => setForm({ ...form, issue: e.target.value })}
-              placeholder="Handle grip loose, needs replacement. Small crack on the toe."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div>
-              <Lbl>Estimated Cost</Lbl>
-              <input type="number" value={form.estimatedCost}
-                onChange={(e) => setForm({ ...form, estimatedCost: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <Lbl>Advance Paid</Lbl>
-              <input type="number" value={form.advancePaid}
-                onChange={(e) => setForm({ ...form, advancePaid: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <Lbl>Ready By</Lbl>
-              <input type="date" value={form.estimatedReadyAt}
-                onChange={(e) => setForm({ ...form, estimatedReadyAt: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-            {form.advancePaid > 0 && (
-              <PaymentMethodPicker className="sm:col-span-3" label="Advance kaise mila" value={form.paymentMethod} onChange={(m) => setForm({ ...form, paymentMethod: m })} />
-            )}
-          </div>
-
-          <div>
-            <Lbl>Before Photos (recommended)</Lbl>
-            <UploadDropzone purpose="repair-before" maxFiles={5}
-              onUploaded={(recs: any[]) => setForm({ ...form, photosBeforeUrls: [...form.photosBeforeUrls, ...recs.map((r: any) => r.url)] })}
-              hint="Up to 5 photos showing current condition" />
-            {form.photosBeforeUrls.length > 0 && (
-              <div className="mt-2 grid grid-cols-5 gap-2">
-                {form.photosBeforeUrls.map((url, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200">
-                    <img src={url} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => setForm({ ...form, photosBeforeUrls: form.photosBeforeUrls.filter((_, x) => x !== i) })}
-                      className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white flex items-center justify-center">×</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <Lbl>Notes</Lbl>
-            <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Any special instructions..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700"
-            onClick={() => create.mutate()} loading={create.isPending}
-            disabled={!form.customerName.trim() || !form.customerPhone.trim() || !form.itemDescription.trim() || !form.issue.trim()}>
-            <Save className="h-4 w-4" /> Create Ticket
-          </Button>
-        </div>
-      </div>
-    </div>
+      {adding && <NewRepairModal onClose={() => setAdding(false)} onCreated={(id) => { setAdding(false); setOpenId(id); }} />}
+      {openId && <RepairModal id={openId} onClose={() => setOpenId(null)} />}
+    </PageShell>
   );
-}
-
-function RepairDetailModal({ repair, onClose, onUpdated }: any) {
-  const [status, setStatus] = useState(repair.status);
-  const [workDone, setWorkDone] = useState(repair.workDone || '');
-  const [finalCost, setFinalCost] = useState(Number(repair.finalCost || repair.estimatedCost || 0));
-  const [addPayment, setAddPayment] = useState(0);
-  const [payMethod, setPayMethod] = useState<PaymentMethod>('CASH');
-  /** Amount still due when delivery asks what is taken now. */
-  const [deliverDue, setDeliverDue] = useState<number | null>(null);
-  const [photosAfter, setPhotosAfter] = useState<string[]>(repair.photosAfterUrls || []);
-  const [notes, setNotes] = useState('');
-
-  const update = useMutation({
-    mutationFn: (money?: { paidNow: number; paymentMethod: PaymentMethod }) => repairServicesApi.updateStatus(repair.id, {
-      status, workDone, finalCost, photosAfterUrls: photosAfter, notes: notes || undefined,
-      ...(money ?? {}),
-    }),
-    onSuccess: () => {
-      toast.success('Updated');
-      onUpdated();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update nahi hua'),
-  });
-
-  /** Delivery makes the bill: ask what is taken now; the rest goes to the customer's khata. */
-  const save = () => {
-    if (status !== 'DELIVERED' || repair.status === 'DELIVERED') { update.mutate(undefined); return; }
-    const due = Math.max(0, Math.round((finalCost - Number(repair.advancePaid || 0)) * 100) / 100);
-    if (due <= 0) { update.mutate(undefined); return; }
-    setDeliverDue(due);
-  };
-
-  const payment = useMutation({
-    mutationFn: () => repairServicesApi.recordPayment(repair.id, addPayment, payMethod),
-    onSuccess: () => {
-      toast.success(`Payment: ${formatPKR(addPayment)}`);
-      setAddPayment(0);
-      onUpdated();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment darj nahi hui'),
-  });
-
-  const balance = finalCost - Number(repair.advancePaid || 0);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      {deliverDue !== null && (
-        <TakePaymentModal title={`Deliver · ${repair.serviceNumber}`}
-          description="Delivery par bill banta hai. Jo abhi nahi mila wo customer ke khate me udhaar jata hai."
-          amount={deliverDue} max={deliverDue} allowZero confirmLabel="Deliver karein" loading={update.isPending}
-          onConfirm={(paidNow, paymentMethod) => { setDeliverDue(null); update.mutate({ paidNow, paymentMethod }); }}
-          onClose={() => setDeliverDue(null)} />
-      )}
-      <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs uppercase font-extrabold text-white/70 tracking-wider">Repair Service</div>
-              <h3 className="text-xl font-extrabold font-mono">{repair.serviceNumber}</h3>
-            </div>
-            <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <InfoBox label="Customer" value={repair.customerName} />
-            <InfoBox label="Phone" value={repair.customerPhone} />
-            <InfoBox label="Item" value={`${repair.itemType}${repair.itemBrand ? ` — ${repair.itemBrand}` : ''}`} />
-            <InfoBox label="Received" value={new Date(repair.receivedAt).toLocaleDateString('en-PK')} />
-          </div>
-
-          <div>
-            <Lbl>Issue Description</Lbl>
-            <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 text-sm font-semibold text-slate-700">
-              {repair.issue}
-            </div>
-          </div>
-
-          {repair.repairType && (
-            <div>
-              <Lbl>Repair Type</Lbl>
-              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-100 border-2 border-amber-200 text-sm font-extrabold text-amber-800">
-                🔧 {repair.repairType}
-              </div>
-            </div>
-          )}
-
-          {repair.photosBeforeUrls?.length > 0 && (
-            <div>
-              <Lbl>Before Photos</Lbl>
-              <div className="grid grid-cols-5 gap-2">
-                {repair.photosBeforeUrls.map((url: string, i: number) => (
-                  <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-xl overflow-hidden border-2 border-slate-200 hover:border-amber-400">
-                    <img src={url} alt="" className="w-full h-full object-cover" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div>
-            <Lbl>Update Status</Lbl>
-            <select value={status} onChange={(e) => setStatus(e.target.value)}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-              {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <Lbl>Work Done</Lbl>
-            <textarea rows={3} value={workDone} onChange={(e) => setWorkDone(e.target.value)}
-              placeholder="Handle regripped with premium grip, applied linseed oil, sanded lightly..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-          </div>
-
-          <div>
-            <Lbl>After Photos</Lbl>
-            <UploadDropzone purpose="repair-after" maxFiles={5}
-              onUploaded={(recs: any[]) => setPhotosAfter([...photosAfter, ...recs.map((r: any) => r.url)])}
-              hint="Show completed work" />
-            {photosAfter.length > 0 && (
-              <div className="mt-2 grid grid-cols-5 gap-2">
-                {photosAfter.map((url, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200">
-                    <img src={url} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => setPhotosAfter(photosAfter.filter((_, x) => x !== i))}
-                      className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white flex items-center justify-center">×</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-4 space-y-3">
-            <div className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">💰 Billing</div>
-            <div className="grid sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-[0.6875rem] font-extrabold text-emerald-700 mb-1">Estimated</label>
-                <div className="h-11 rounded-xl border-2 border-emerald-200 bg-white px-3 flex items-center text-sm font-extrabold tabular-nums text-slate-600">
-                  {formatPKR(repair.estimatedCost || 0)}
-                </div>
-              </div>
-              <div>
-                <label className="block text-[0.6875rem] font-extrabold text-emerald-700 mb-1">Final Cost</label>
-                <input type="number" value={finalCost} onChange={(e) => setFinalCost(Number(e.target.value))}
-                  className="h-11 w-full rounded-xl border-2 border-emerald-400 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-600" />
-              </div>
-              <div>
-                <label className="block text-[0.6875rem] font-extrabold text-emerald-700 mb-1">Advance Paid</label>
-                <div className="h-11 rounded-xl border-2 border-emerald-200 bg-white px-3 flex items-center text-sm font-extrabold tabular-nums text-emerald-800">
-                  {formatPKR(repair.advancePaid || 0)}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t-2 border-emerald-200">
-              <span className="text-sm font-extrabold text-emerald-900">Balance Due</span>
-              <span className={`text-xl font-extrabold tabular-nums ${balance > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
-                {formatPKR(balance)}
-              </span>
-            </div>
-
-            {balance > 0 && (
-              <div className="pt-2 border-t border-emerald-200 flex gap-2">
-                <input type="number" value={addPayment} onChange={(e) => setAddPayment(Number(e.target.value))}
-                  placeholder="Payment amount"
-                  className="h-10 flex-1 rounded-lg border-2 border-emerald-300 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-                <button onClick={() => payment.mutate()} disabled={addPayment <= 0 || payment.isPending}
-                  className="h-10 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold disabled:opacity-50">
-                  Record Payment
-                </button>
-              </div>
-            )}
-            {balance > 0 && addPayment > 0 && <PaymentMethodPicker value={payMethod} onChange={setPayMethod} />}
-          </div>
-
-          <div>
-            <Lbl>Add Note</Lbl>
-            <input value={notes} onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional note to append..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Close</Button>
-          <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700"
-            onClick={save} loading={update.isPending}>
-            <Save className="h-4 w-4" /> Update Repair
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InfoBox({ label, value }: any) {
-  return (
-    <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-      <div className="text-sm font-extrabold text-slate-900 mt-0.5">{value}</div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-700', amber: 'from-amber-500 to-orange-600',
-    emerald: 'from-emerald-500 to-emerald-700', violet: 'from-violet-500 to-purple-700',
-  };
-  const C: any = onClick ? 'button' : 'div';
-  return (
-    <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-amber-300 hover:shadow-md transition' : ''}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </C>
-  );
-}
-
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
 }

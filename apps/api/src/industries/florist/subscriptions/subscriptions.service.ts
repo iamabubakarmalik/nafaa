@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -27,11 +28,17 @@ export class FloristSubscriptionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: CreateSubscriptionDto) {
-    const count = await this.prisma.floristSubscription.count({ where: { tenantId: user.tenantId } });
-    const year = new Date().getFullYear();
-    const subscriptionNumber = `FS-${year}-${String(count + 1).padStart(4, '0')}`;
+    const year = dayKey().slice(0, 4);
+    let n = (await this.prisma.floristSubscription.count({ where: { tenantId: user.tenantId } })) + 1;
+    let subscriptionNumber = `FS-${year}-${String(n).padStart(4, '0')}`;
+    while (await this.prisma.floristSubscription.findFirst({ where: { tenantId: user.tenantId, subscriptionNumber }, select: { id: true } })) {
+      n += 1;
+      subscriptionNumber = `FS-${year}-${String(n).padStart(4, '0')}`;
+    }
     const start = parseDay(dto.startDate);
     if (!start) throw new BadRequestException('Shuru ki date likhein');
+    const end = parseDay(dto.endDate);
+    if (end && end < start) throw new BadRequestException('Khatam ki date shuru se pehle nahi ho sakti');
     if (dto.customerId) {
       const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } });
       if (!c) throw new NotFoundException('Customer nahi mila');
@@ -50,7 +57,7 @@ export class FloristSubscriptionsService {
         bouquetType: dto.bouquetType,
         pricePerDelivery: dto.pricePerDelivery,
         startDate: start,
-        endDate: parseDay(dto.endDate),
+        endDate: end,
         nextDeliveryDate: start,
         preferences: dto.preferences,
         notes: dto.notes,
@@ -75,6 +82,41 @@ export class FloristSubscriptionsService {
       orderBy: { nextDeliveryDate: 'asc' },
       take: 200,
     });
+  }
+
+  /** Paged subscriptions with status counts and the value of one round for the page. */
+  async paged(user: AuthenticatedUser, params: { status?: string; search?: string; due?: boolean; page?: number; limit?: number }) {
+    const page = Math.max(1, Math.floor(Number(params.page) || 1));
+    const limit = Math.min(100, Math.max(1, Math.floor(Number(params.limit) || 25)));
+    const base: Prisma.FloristSubscriptionWhereInput = {
+      tenantId: user.tenantId,
+      ...(params.search && {
+        OR: [
+          { subscriptionNumber: { contains: params.search, mode: 'insensitive' } },
+          { customerName: { contains: params.search, mode: 'insensitive' } },
+          { customerPhone: { contains: params.search } },
+          { planName: { contains: params.search, mode: 'insensitive' } },
+          { deliveryAddress: { contains: params.search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+    const status = ['ACTIVE', 'PAUSED', 'CANCELLED'].includes(params.status ?? '') ? params.status : undefined;
+    const where: Prisma.FloristSubscriptionWhereInput = {
+      ...base,
+      ...(params.due ? { status: 'ACTIVE', nextDeliveryDate: { lte: dayEnd() } } : status ? { status } : {}),
+    };
+    const [items, total, byStatus, due, round] = await Promise.all([
+      this.prisma.floristSubscription.findMany({ where, orderBy: [{ nextDeliveryDate: 'asc' }], skip: (page - 1) * limit, take: limit }),
+      this.prisma.floristSubscription.count({ where }),
+      this.prisma.floristSubscription.groupBy({ by: ['status'], where: base, _count: { _all: true } }),
+      this.prisma.floristSubscription.count({ where: { ...base, status: 'ACTIVE', nextDeliveryDate: { lte: dayEnd() } } }),
+      this.prisma.floristSubscription.aggregate({ where: { ...base, status: 'ACTIVE' }, _sum: { pricePerDelivery: true } }),
+    ]);
+    return {
+      items, total, page, limit, due,
+      perRound: Math.round((round._sum.pricePerDelivery ?? 0) * 100) / 100,
+      counts: Object.fromEntries(byStatus.map((b) => [b.status, b._count._all])),
+    };
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
@@ -127,16 +169,40 @@ export class FloristSubscriptionsService {
     });
   }
 
+  /** Plan details (address, price, frequency, end day). Past delivery bills keep their price. */
+  async update(user: AuthenticatedUser, id: string, dto: Partial<CreateSubscriptionDto>) {
+    const s = await this.prisma.floristSubscription.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!s) throw new NotFoundException('Subscription not found');
+    if (s.status === 'CANCELLED') throw new BadRequestException('Band subscription badli nahi ja sakti');
+    const end = dto.endDate === undefined ? undefined : parseDay(dto.endDate);
+    if (end && end < s.startDate) throw new BadRequestException('Khatam ki date shuru se pehle nahi ho sakti');
+    return this.prisma.floristSubscription.update({
+      where: { id },
+      data: {
+        customerName: dto.customerName, customerPhone: dto.customerPhone, deliveryAddress: dto.deliveryAddress,
+        planName: dto.planName, frequency: dto.frequency, bouquetType: dto.bouquetType, pricePerDelivery: dto.pricePerDelivery,
+        ...(end !== undefined && { endDate: end }), preferences: dto.preferences, notes: dto.notes,
+      },
+    });
+  }
+
   async pause(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.floristSubscription.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Subscription not found');
+    if (s.status !== 'ACTIVE') throw new BadRequestException('Sirf chalti subscription rok sakte hain');
     return this.prisma.floristSubscription.update({ where: { id }, data: { status: 'PAUSED' } });
   }
 
   async resume(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.floristSubscription.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Subscription not found');
-    return this.prisma.floristSubscription.update({ where: { id }, data: { status: 'ACTIVE' } });
+    if (s.status !== 'PAUSED') throw new BadRequestException('Sirf ruki hui subscription dobara chalti hai');
+    // Missed days while paused are not owed; the next delivery is from today.
+    const today = dayStart();
+    return this.prisma.floristSubscription.update({
+      where: { id },
+      data: { status: 'ACTIVE', ...(s.nextDeliveryDate && s.nextDeliveryDate < today && { nextDeliveryDate: today }) },
+    });
   }
 
   async cancel(user: AuthenticatedUser, id: string) {
@@ -148,7 +214,9 @@ export class FloristSubscriptionsService {
   async remove(user: AuthenticatedUser, id: string) {
     const s = await this.prisma.floristSubscription.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Subscription not found');
-    return this.prisma.floristSubscription.delete({ where: { id } });
+    // DELETE keeps its route but cancels; past delivery bills stay.
+    if (s.status === 'CANCELLED') return s;
+    return this.prisma.floristSubscription.update({ where: { id }, data: { status: 'CANCELLED' } });
   }
 
   async dueToday(user: AuthenticatedUser) {
@@ -169,6 +237,8 @@ export class FloristSubscriptionsService {
       this.prisma.floristSubscription.count({ where: { tenantId: user.tenantId, status: 'PAUSED' } }),
       this.prisma.floristSubscription.count({ where: { tenantId: user.tenantId, status: 'CANCELLED' } }),
     ]);
-    return { active, paused, cancelled };
+    const due = await this.prisma.floristSubscription.count({ where: { tenantId: user.tenantId, status: 'ACTIVE', nextDeliveryDate: { lte: dayEnd() } } });
+    const value = await this.prisma.floristSubscription.aggregate({ where: { tenantId: user.tenantId, status: 'ACTIVE' }, _sum: { pricePerDelivery: true } });
+    return { active, paused, cancelled, due, perRound: value._sum.pricePerDelivery ?? 0 };
   }
 }

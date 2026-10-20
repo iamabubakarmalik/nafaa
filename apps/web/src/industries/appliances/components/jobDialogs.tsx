@@ -67,7 +67,8 @@ export function SerialLookup({ value, onChange, onFound }: {
         r.found && r.warranty ? (
           <p className={cn('mt-2 flex flex-wrap items-center gap-1.5 rounded-xl px-3 py-2 text-[0.8125rem] ring-1', r.warranty.isValid ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-amber-50 text-amber-900 ring-amber-200')}>
             {r.warranty.isValid ? <ShieldCheck className="h-4 w-4" /> : <ShieldX className="h-4 w-4" />}
-            {r.serial?.product?.name ?? 'Unit'} — {r.warranty.isValid ? `warranty ${dayOnly(r.warranty.endDate)} tak` : 'warranty khatam'}
+            {r.serial?.product?.name ?? 'Unit'} — {!r.warranty.isValid ? 'warranty khatam' : r.warranty.daysRemaining > 0 && r.warranty.endDate ? `company warranty ${dayOnly(r.warranty.endDate)} tak` : 'company warranty khatam'}
+            {r.warranty.shopValid && r.warranty.shopEndDate ? ` · dukaan warranty ${dayOnly(r.warranty.shopEndDate)} tak (kharcha dukaan ka)` : ''}
             {r.warranty.compressorValid && r.warranty.compressorEndDate ? ` · compressor ${dayOnly(r.warranty.compressorEndDate)} tak` : ''}
             {r.amc ? ` · AMC ${r.amc.contractNumber} (${r.amc.visitsLeft} visit baqi)` : ''}
           </p>

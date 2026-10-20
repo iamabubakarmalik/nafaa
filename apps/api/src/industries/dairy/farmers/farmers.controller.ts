@@ -6,7 +6,8 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
 import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { FarmersService } from './farmers.service';
-import { FarmerPaymentDto, UpdateFarmerDto, UpsertFarmerDto } from './dto/upsert-farmer.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
+import { FarmerPaymentDto, FarmerStatementQuery, UpdateFarmerDto, UpsertFarmerDto } from './dto/upsert-farmer.dto';
 
 /** Gawalas are the shop's milk suppliers: the supplier rights apply. */
 @ApiTags('Dairy - Farmers')
@@ -24,12 +25,20 @@ export class FarmersController {
   }
   @Get('summary') @RequirePermissions(PERMISSIONS.SUPPLIERS_VIEW)
   summary(@GetUser() user: AuthenticatedUser) { return this.service.summary(user); }
+  /** Accounts a payment can leave from (bank, JazzCash, safe). */
+  @Get('pay-accounts') @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
+  payAccounts(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) { return this.service.payAccounts(user, scope); }
   @Get(':id') @RequirePermissions(PERMISSIONS.SUPPLIERS_VIEW)
   getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id') @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
   update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateFarmerDto) { return this.service.update(user, id, dto); }
+  /** Milk in, payments out and the running balance for a period. */
+  @Get(':id/statement') @RequirePermissions(PERMISSIONS.SUPPLIERS_VIEW)
+  statement(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query() q: FarmerStatementQuery) { return this.service.statement(user, id, q); }
   @Post(':id/payments') @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
-  payment(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: FarmerPaymentDto) { return this.service.recordPayment(user, id, dto); }
+  payment(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: FarmerPaymentDto) {
+    return this.service.recordPayment(user, scope, id, dto);
+  }
   /** Switches the gawala off; the account and its slips stay. */
   @Delete(':id') @RequirePermissions(PERMISSIONS.SUPPLIERS_EDIT)
   remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }

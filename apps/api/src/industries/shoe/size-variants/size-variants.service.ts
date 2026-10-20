@@ -200,9 +200,9 @@ export class ShoeSizeVariantsService {
       throw new BadRequestException(`Size ${sizeLabel(v)} me abhi ${v.stock} joray hain — pehle stock 0 karein`);
     }
     return this.prisma.$transaction(async (tx) => {
-      // The stock row is kept for sale history; it is only switched off.
+      // Both rows are kept for sale history; they are only switched off.
       if (v.variantId) await tx.productVariant.update({ where: { id: v.variantId }, data: { isActive: false } });
-      return tx.shoeSizeVariant.delete({ where: { id } });
+      return tx.shoeSizeVariant.update({ where: { id }, data: { isActive: false } });
     });
   }
 

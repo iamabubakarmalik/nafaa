@@ -26,7 +26,6 @@ const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 export const authorsApi = {
   create: (data: Partial<Author>) => apiClient.post('/bookstore/authors', data).then(unwrap<Author>),
   list: (params?: any) => apiClient.get('/bookstore/authors', { params }).then(unwrap<Author[]>),
-  getOne: (id: string) => apiClient.get('/bookstore/authors/' + id).then(unwrap<Author>),
   update: (id: string, data: Partial<Author>) => apiClient.patch('/bookstore/authors/' + id, data).then(unwrap<Author>),
   toggleFeatured: (id: string) => apiClient.post('/bookstore/authors/' + id + '/toggle-featured').then(unwrap<Author>),
   remove: (id: string) => apiClient.delete('/bookstore/authors/' + id).then(unwrap),

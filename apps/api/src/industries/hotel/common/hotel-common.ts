@@ -312,6 +312,17 @@ export async function nextTaskNumber(db: Db, tenantId: string) {
   return prefix + String((last ? Number(last.taskNumber.slice(prefix.length)) || 0 : 0) + 1).padStart(5, '0');
 }
 
+/**
+ * The catalog item on a folio charge: from its columns, or for charges
+ * posted before they existed, from `reference` (`stock:<productId>:<unitCost>:<shopId|->`).
+ * shopId is null when no stock was taken (a service item).
+ */
+export function folioStock(c: { productId?: string | null; unitCost?: number | null; shopId?: string | null; reference: string | null }) {
+  if (c.productId) return { productId: c.productId, unitCost: r2(c.unitCost ?? 0), shopId: c.shopId ?? null };
+  const m = /^stock:([^:]+):([\d.]+):([^:]+)$/.exec(c.reference ?? '');
+  return m ? { productId: m[1], unitCost: r2(Number(m[2])), shopId: m[3] === '-' ? null : m[3] } : null;
+}
+
 /** Throws a clean 404 when a row is missing. */
 export function found<T>(row: T | null | undefined, what: string): T {
   if (!row) throw new NotFoundException(`${what} nahi mila`);

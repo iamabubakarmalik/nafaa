@@ -1,476 +1,249 @@
-import { useState, useMemo } from 'react';
-import { format } from 'date-fns';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Repeat, Plus, Search, X, Calendar, Phone, DollarSign, MapPin,
-  RefreshCw, Save, Edit3, Trash2, CheckCircle2, Play, Pause,
-  XCircle, Truck, Clock,
-} from 'lucide-react';
+/**
+ * Flower subscriptions: fresh flowers delivered on a fixed round (daily,
+ * weekly, every two weeks, monthly) to a home or office. Each delivery
+ * written here becomes a bill on the customer's khata, so it shows in
+ * sales, profit and udhaar; the customer pays through the khata. Paused
+ * rounds are not owed. Subscriptions are closed, never deleted.
+ */
+
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { floristSubscriptionsApi, type FloristSubscription } from '../api/subscriptions.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+import { CalendarClock, CheckCircle2, Download, GraduationCap, ListChecks, Pause, Pencil, Play, Plus, Repeat, Truck, Wallet, XCircle } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import {
+  floristSubscriptionsApi, type FloristSubscription, type SubscriptionFrequency, type SubscriptionInput,
+} from '../api/subscriptions.api';
+import { ConfirmModal, Empty, ListCard, ListLoading, Pager, Pill, actionBtn, primaryBtn } from '../components/ui';
+import { useDebounced, usePageKeys, useSaveKey } from '../hooks/usePageKeys';
+import { FLORIST_KEYS, FREQUENCY, MONEY_KEYS, SUB_STATUS, dayKey, daysFromToday, errorText, longDate, numIn, phoneOk, shortDate } from '../lib/meta';
 
-const STATUS_META: Record<string, { l: string; cls: string; icon: any }> = {
-  ACTIVE: { l: 'Active', cls: 'bg-emerald-100 text-emerald-700', icon: Play },
-  PAUSED: { l: 'Paused', cls: 'bg-amber-100 text-amber-700', icon: Pause },
-  CANCELLED: { l: 'Cancelled', cls: 'bg-rose-100 text-rose-700', icon: XCircle },
-  COMPLETED: { l: 'Completed', cls: 'bg-blue-100 text-blue-700', icon: CheckCircle2 },
-};
-
-const FREQUENCIES = [
-  { v: 'DAILY', l: 'Daily', desc: 'Every day' },
-  { v: 'WEEKLY', l: 'Weekly', desc: 'Once per week' },
-  { v: 'BIWEEKLY', l: 'Bi-weekly', desc: 'Every 2 weeks' },
-  { v: 'MONTHLY', l: 'Monthly', desc: 'Once per month' },
-];
-
-const BOUQUET_TYPES = [
-  'Small Fresh Bouquet', 'Medium Fresh Bouquet', 'Premium Bouquet',
-  'Seasonal Special', 'Roses Only', 'Mixed Colours', 'Corporate Arrangement',
-  'Table Centrepiece', 'Custom Selection',
-];
+type Tab = 'due' | 'ACTIVE' | 'PAUSED' | 'all';
+const LIMIT = 25;
+const STATUS_OPTIONS = [{ value: '', label: 'Sab halat' }, ...Object.entries(SUB_STATUS).map(([value, s]) => ({ value, label: s.label }))];
 
 export default function FloristSubscriptionsPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canWork = usePermission(PERMISSIONS.POS_USE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('due');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<FloristSubscription | null>(null);
+  const q = useDebounced(search.trim());
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(1);
+  const [form, setForm] = useState<FloristSubscription | 'new' | null>(null);
+  const [ask, setAsk] = useState<{ s: FloristSubscription; kind: 'deliver' | 'cancel' } | null>(null);
 
-  const { data: subs = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['florist-subs-list', statusFilter],
-    queryFn: () => floristSubscriptionsApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-    }),
+  const params = {
+    search: q || undefined, page, limit: LIMIT,
+    due: tab === 'due' ? true : undefined,
+    status: tab === 'ACTIVE' || tab === 'PAUSED' ? tab : status || undefined,
+  };
+  const listQ = useQuery({ queryKey: [FLORIST_KEYS.subscriptions, 'paged', params], queryFn: () => floristSubscriptionsApi.paged(params), placeholderData: (p) => p });
+  const headQ = useQuery({ queryKey: [FLORIST_KEYS.subscriptions, 'head'], queryFn: () => floristSubscriptionsApi.paged({ limit: 1 }) });
+  const rows = listQ.data?.items ?? [];
+  const counts = headQ.data?.counts ?? {};
+  usePageKeys(searchRef, { n: () => canWork && setForm('new'), t: () => setTab('due') });
+
+  const refresh = () => [FLORIST_KEYS.subscriptions, 'florist-dashboard-overview', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const deliver = useMutation({
+    mutationFn: (s: FloristSubscription) => floristSubscriptionsApi.markDelivered(s.id),
+    onSuccess: (r) => { refresh(); setAsk(null); toast.success(r.sale ? `Delivery likhi — bill ${r.sale.saleNumber} khate me` : 'Delivery likh di'); },
+    onError: (e) => toast.error(errorText(e, 'Delivery nahi likhi')),
+  });
+  const act = useMutation({
+    mutationFn: ({ s, kind }: { s: FloristSubscription; kind: 'pause' | 'resume' | 'cancel' }) => floristSubscriptionsApi[kind](s.id),
+    onSuccess: (s) => { refresh(); setAsk(null); toast.success(`${s.subscriptionNumber}: ${SUB_STATUS[s.status]?.label}`); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
   });
 
-  const { data: summary } = useQuery({
-    queryKey: ['florist-subs-summary'],
-    queryFn: () => floristSubscriptionsApi.summary(),
-    refetchInterval: 60_000,
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is filter me kuch nahi'); return; }
+    downloadCsv('florist-subscriptions.csv', [
+      ['Number', 'Customer', 'Phone', 'Pata', 'Plan', 'Bouquet', 'Kitni dafa', 'Rate', 'Agli delivery', 'Deliveries', 'Halat'],
+      ...rows.map((s) => [s.subscriptionNumber, s.customerName, s.customerPhone, s.deliveryAddress, s.planName, s.bouquetType, FREQUENCY[s.frequency],
+        s.pricePerDelivery, s.nextDeliveryDate?.slice(0, 10) ?? '', s.completedDeliveries, SUB_STATUS[s.status]?.label]),
+    ]);
+  };
+  const printList = (): PrintDoc => ({
+    title: tab === 'due' ? 'Aaj ki subscription delivery' : 'Subscriptions', subtitle: longDate(dayKey()),
+    meta: [['Kitni', String(rows.length)]],
+    sections: [{
+      kind: 'table', title: 'Delivery',
+      columns: [{ label: 'Customer' }, { label: 'Pata' }, { label: 'Bouquet' }, { label: 'Rate', align: 'right' }],
+      rows: rows.map((s) => [`${s.customerName} ${s.customerPhone}`, s.deliveryAddress, s.bouquetType, money(s.pricePerDelivery)]),
+    }],
   });
-
-  const { data: dueToday = [] } = useQuery({
-    queryKey: ['florist-subs-due-today'],
-    queryFn: () => floristSubscriptionsApi.dueToday(),
-    refetchInterval: 60_000,
-  });
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return subs;
-    return subs.filter((s) =>
-      s.subscriptionNumber.toLowerCase().includes(q) ||
-      s.customerName.toLowerCase().includes(q) ||
-      s.customerPhone.includes(q) ||
-      s.planName.toLowerCase().includes(q)
-    );
-  }, [subs, search]);
-
-  const markDelivered = useMutation({
-    mutationFn: (id: string) => floristSubscriptionsApi.markDelivered(id),
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delivery nahi likhi gayi'),
-    onSuccess: (r: any) => {
-      // Each delivery is billed to the customer's khata.
-      toast.success(r?.sale ? `Delivery likh di — ${r.sale.saleNumber} khate me` : 'Delivery likh di, agli date set');
-      qc.invalidateQueries({ queryKey: ['florist-subs-list'] });
-      qc.invalidateQueries({ queryKey: ['florist-subs-due-today'] });
-    },
-  });
-  const pause = useMutation({
-    mutationFn: (id: string) => floristSubscriptionsApi.pause(id),
-    onSuccess: () => { toast.success('Paused'); qc.invalidateQueries({ queryKey: ['florist-subs-list'] }); },
-  });
-  const resume = useMutation({
-    mutationFn: (id: string) => floristSubscriptionsApi.resume(id),
-    onSuccess: () => { toast.success('Resumed'); qc.invalidateQueries({ queryKey: ['florist-subs-list'] }); },
-  });
-  const cancel = useMutation({
-    mutationFn: (id: string) => floristSubscriptionsApi.cancel(id),
-    onSuccess: () => { toast.success('Cancelled'); qc.invalidateQueries({ queryKey: ['florist-subs-list'] }); },
-  });
-  const remove = useMutation({
-    mutationFn: (id: string) => floristSubscriptionsApi.remove(id),
-    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['florist-subs-list'] }); },
-  });
+  const clear = () => { setSearch(''); setStatus(''); setPage(1); };
+  const filtered = !!(search.trim() || status);
 
   return (
-    <div className="space-y-5">
-      {showForm && (
-        <SubForm editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false); setEditing(null);
-            qc.invalidateQueries({ queryKey: ['florist-subs-list'] });
-            qc.invalidateQueries({ queryKey: ['florist-subs-summary'] });
-          }} />
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Phool subscriptions" onClose={guide.close}
+          steps={[
+            { icon: Repeat, color: '#db2777', title: 'Plan', text: '"Nayi subscription" me customer, pata, bouquet, rate aur kitni dafa (roz, hafta, mahina) likhein.' },
+            { icon: Truck, color: '#0284c7', title: 'Aaj', text: '"Aaj" tab me aaj ki (aur reh jane wali) deliveries. List print kar ke rider ko dein.' },
+            { icon: Wallet, color: '#16a34a', title: 'Paisa', text: '"Delivery ho gayi" dabane par us delivery ka bill customer ke khate me udhaar banta hai. Paisa Khata se wasool karein.' },
+            { icon: Pause, color: '#d97706', title: 'Rokna', text: 'Customer bahar ho to "Rokein". Dobara chalane par agli delivery aaj se ginti hai — ruke din ka paisa nahi banta.' },
+          ]}
+          shortcuts={[['N', 'nayi'], ['T', 'aaj'], ['/', 'search'], ['G', 'guide']]} />
       )}
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Repeat className="h-3.5 w-3.5 text-amber-300" /> Recurring Subscriptions
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔄 Subscriptions</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {summary?.active ?? 0} active • {dueToday.length} due today
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100"
-              onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" /> New Subscription
-            </Button>
-          </div>
-        </div>
-      </section>
+      <PageHero title="Phool subscriptions" busy={listQ.isFetching && !listQ.isLoading} loading={headQ.isLoading} meta="Roz / hafta / mahina — har delivery ka bill khate me"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canWork && <button type="button" onClick={() => setForm('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Nayi subscription</button>}
+        </>}
+        stats={[
+          { label: 'Aaj deni hain', value: String(headQ.data?.due ?? 0) },
+          { label: 'Chalu', value: String(counts.ACTIVE ?? 0) },
+          { label: 'Ek round ki value', value: money(headQ.data?.perRound ?? 0) },
+        ]} />
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Active" value={summary?.active ?? 0} icon={Play} tone="emerald" onClick={() => setStatusFilter('ACTIVE')} />
-        <StatCard label="Paused" value={summary?.paused ?? 0} icon={Pause} tone="amber" onClick={() => setStatusFilter('PAUSED')} />
-        <StatCard label="Cancelled" value={summary?.cancelled ?? 0} icon={XCircle} tone="rose" onClick={() => setStatusFilter('CANCELLED')} />
-        <StatCard label="Due Today" value={dueToday.length} icon={Truck} tone="violet" />
-      </section>
+      <KpiRow cols={4}>
+        {headQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (<>
+          <KpiCard icon={Truck} color="#e11d48" label="Aaj deni hain" value={headQ.data?.due ?? 0} active={tab === 'due'} onClick={() => { setTab('due'); setPage(1); }} />
+          <KpiCard icon={Play} color="#16a34a" label="Chalu" value={counts.ACTIVE ?? 0} active={tab === 'ACTIVE'} onClick={() => { setTab('ACTIVE'); setPage(1); }} />
+          <KpiCard icon={Pause} color="#d97706" label="Ruki hui" value={counts.PAUSED ?? 0} active={tab === 'PAUSED'} onClick={() => { setTab('PAUSED'); setPage(1); }} />
+          <KpiCard icon={Wallet} color="#0284c7" label="Ek round ki value" value={money(headQ.data?.perRound ?? 0)} hint="Sab chalu subscriptions" />
+        </>)}
+      </KpiRow>
 
-      {dueToday.length > 0 && (
-        <section className="rounded-3xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-300 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Truck className="h-5 w-5 text-violet-700" />
-            <h3 className="font-extrabold text-violet-900">🔔 Due for delivery today</h3>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {dueToday.map((s) => (
-              <div key={s.id} className="rounded-xl bg-white border-2 border-violet-200 p-3 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center shrink-0">
-                  <Truck className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-sm truncate">{s.customerName}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{s.bouquetType}</div>
-                </div>
-                <button onClick={() => markDelivered.mutate(s.id)}
-                  className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shrink-0">
-                  ✓ Deliver
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Naam, phone, number, plan ya pata…" />}
+        chips={filtered ? <>
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+          {status && <FilterChip onRemove={() => setStatus('')}>{SUB_STATUS[status]?.label}</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        {tab === 'all' && <FilterMenu icon={ListChecks} label={status ? SUB_STATUS[status]?.label : 'Halat'} value={status} active={!!status} options={STATUS_OPTIONS} onChange={(v) => { setStatus(v); setPage(1); }} />}
+      </FilterBar>
 
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Subscription #, customer, plan..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+      <ViewTabs value={tab} onChange={(t) => { setTab(t); setPage(1); }}
+        tabs={[
+          { id: 'due', label: 'Aaj', icon: Truck, count: headQ.data?.due ?? null },
+          { id: 'ACTIVE', label: 'Chalu', icon: Play, count: counts.ACTIVE ?? null },
+          { id: 'PAUSED', label: 'Ruki hui', icon: Pause, count: counts.PAUSED ?? null },
+          { id: 'all', label: 'Sab', icon: ListChecks },
+        ]} />
 
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-          {['all', ...Object.keys(STATUS_META)].map((v) => (
-            <button key={v} onClick={() => setStatusFilter(v)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                statusFilter === v ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600'}`}>
-              {v === 'all' ? 'All' : STATUS_META[v]?.l || v}
-            </button>
-          ))}
-        </div>
-      </section>
+      <ListCard footer={listQ.data && <Pager page={page} total={listQ.data.total} limit={LIMIT} onPage={setPage} />}>
+        {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
+          <Empty icon={Repeat} title={tab === 'due' ? 'Aaj koi delivery baqi nahi' : 'Is filter me kuch nahi'}
+            text="Ghar ya office me har hafte phool — subscription banayein, har delivery ka bill khud khate me jayega."
+            action={canWork ? <button type="button" onClick={() => setForm('new')} className={primaryBtn}><Plus className="h-4 w-4" />Nayi subscription</button> : undefined} />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {rows.map((s) => {
+              const left = daysFromToday(s.nextDeliveryDate);
+              const dueNow = s.status === 'ACTIVE' && left !== null && left <= 0;
+              return (
+                <li key={s.id} className="grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.6fr)_10rem_9rem_auto] lg:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">{s.customerName} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{s.subscriptionNumber}</span></p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[s.planName, s.bouquetType, FREQUENCY[s.frequency]].filter(Boolean).join(' · ')}</p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{s.deliveryAddress} · {s.customerPhone}</p>
+                  </div>
+                  <p className="text-[0.8125rem] text-slate-700">{s.status === 'ACTIVE' ? shortDate(s.nextDeliveryDate) : '—'}
+                    <span className={cn('block text-[0.75rem]', dueNow ? 'font-semibold text-rose-700' : 'text-slate-500')}>
+                      {s.status !== 'ACTIVE' ? `${s.completedDeliveries} deliveries` : left === null ? '' : left < 0 ? `${-left} din se reh gayi` : left === 0 ? 'Aaj' : `${left} din baad`}
+                    </span></p>
+                  <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(s.pricePerDelivery)}<span className="block text-[0.75rem] font-normal text-slate-500">har delivery</span></p>
+                  <div className="flex flex-wrap items-center justify-end gap-1.5">
+                    <Pill tone={SUB_STATUS[s.status]?.tone ?? ''}>{SUB_STATUS[s.status]?.label ?? s.status}</Pill>
+                    {canWork && s.status !== 'CANCELLED' && <button type="button" onClick={() => setForm(s)} className={actionBtn} aria-label="Badlein"><Pencil className="h-4 w-4" /></button>}
+                    {canWork && s.status === 'ACTIVE' && <button type="button" disabled={act.isPending} onClick={() => act.mutate({ s, kind: 'pause' })} className={actionBtn}><Pause className="h-4 w-4" />Rokein</button>}
+                    {canWork && s.status === 'PAUSED' && <button type="button" disabled={act.isPending} onClick={() => act.mutate({ s, kind: 'resume' })} className={actionBtn}><Play className="h-4 w-4" />Chalayein</button>}
+                    {canWork && s.status !== 'CANCELLED' && <button type="button" onClick={() => setAsk({ s, kind: 'cancel' })} className={actionBtn} aria-label="Band karein"><XCircle className="h-4 w-4" /></button>}
+                    {canWork && dueNow && <button type="button" onClick={() => setAsk({ s, kind: 'deliver' })} className={primaryBtn}><CheckCircle2 className="h-4 w-4" />Delivery ho gayi</button>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </ListCard>
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Repeat className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No subscriptions yet</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Set up weekly/monthly recurring bouquet deliveries</p>
-          <Button className="mt-4 bg-gradient-to-r from-violet-600 to-purple-700"
-            onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" /> Create First Subscription
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((s) => (
-            <SubCard key={s.id} sub={s}
-              onEdit={() => { setEditing(s); setShowForm(true); }}
-              onDelivered={() => markDelivered.mutate(s.id)}
-              onPause={() => pause.mutate(s.id)}
-              onResume={() => resume.mutate(s.id)}
-              onCancel={() => { if (confirm('Cancel this subscription?')) cancel.mutate(s.id); }}
-              onDelete={() => { if (confirm('Delete permanently?')) remove.mutate(s.id); }} />
-          ))}
-        </section>
-      )}
-    </div>
+      {ask?.kind === 'deliver' && <ConfirmModal title="Delivery ho gayi?" cta="Haan, likhein" busy={deliver.isPending} onConfirm={() => deliver.mutate(ask.s)} onClose={() => setAsk(null)}
+        text={<>{ask.s.customerName} ki {ask.s.completedDeliveries + 1}vi delivery. {ask.s.pricePerDelivery > 0 ? <>{money(ask.s.pricePerDelivery)} ka bill unke khate me udhaar banega — paisa <Link to="/customers" className="font-semibold text-brand-700 underline">Khata</Link> se lein.</> : 'Is ka koi paisa nahi.'}</>} />}
+      {ask?.kind === 'cancel' && <ConfirmModal title="Subscription band?" cta="Haan, band" danger busy={act.isPending} onConfirm={() => act.mutate({ s: ask.s, kind: 'cancel' })} onClose={() => setAsk(null)}
+        text="Aage koi delivery nahi banegi. Pichli deliveries ke bill aur khata waise hi rahenge." />}
+      {form && <SubscriptionForm sub={form === 'new' ? null : form} onClose={() => setForm(null)} onSaved={() => { refresh(); setForm(null); }} />}
+    </PageShell>
   );
 }
 
-function SubCard({ sub: s, onEdit, onDelivered, onPause, onResume, onCancel, onDelete }: any) {
-  const meta = STATUS_META[s.status] || STATUS_META.ACTIVE;
-  const StatusIcon = meta.icon;
-  const daysToNext = Math.ceil((new Date(s.nextDeliveryDate).getTime() - Date.now()) / 86400000);
-
-  return (
-    <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 hover:shadow-lg transition">
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <span className="font-mono font-extrabold text-slate-900 text-xs">{s.subscriptionNumber}</span>
-        <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.cls}`}>
-          <StatusIcon className="h-2.5 w-2.5" /> {meta.l}
-        </span>
-      </div>
-
-      <h3 className="font-extrabold text-slate-900 text-sm">{s.customerName}</h3>
-      <div className="text-xs font-bold text-slate-500 inline-flex items-center gap-1 mt-0.5">
-        <Phone className="h-3 w-3" /> {s.customerPhone}
-      </div>
-      <div className="text-[0.6875rem] font-semibold text-slate-500 mt-1 truncate flex items-start gap-1">
-        <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-        <span className="line-clamp-2">{s.deliveryAddress}</span>
-      </div>
-
-      <div className="mt-2 pt-2 border-t border-slate-100">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Plan</div>
-        <div className="font-extrabold text-slate-900 text-sm">{s.planName}</div>
-        <div className="text-[0.6875rem] font-bold text-slate-500">{s.bouquetType}</div>
-      </div>
-
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <div className="rounded-lg bg-violet-50 border border-violet-200 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-violet-700">Frequency</div>
-          <div className="text-sm font-extrabold text-violet-900">{s.frequency}</div>
-        </div>
-        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Per Delivery</div>
-          <div className="text-sm font-extrabold text-emerald-900 tabular-nums">{formatPKR(s.pricePerDelivery)}</div>
-        </div>
-      </div>
-
-      <div className="mt-2 rounded-lg bg-slate-50 border border-slate-200 p-2 flex items-center justify-between">
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Next Delivery</div>
-          <div className="text-xs font-extrabold text-slate-900">
-            {new Date(s.nextDeliveryDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
-          </div>
-        </div>
-        <div className={`px-2 py-1 rounded-full text-[0.6875rem] font-extrabold ${
-          daysToNext < 0 ? 'bg-rose-500 text-white'
-            : daysToNext === 0 ? 'bg-amber-500 text-white animate-pulse'
-              : daysToNext <= 2 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>
-          {daysToNext < 0 ? `Overdue ${Math.abs(daysToNext)}d` : daysToNext === 0 ? 'Today' : `${daysToNext}d`}
-        </div>
-      </div>
-
-      <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
-        <span><Clock className="h-2.5 w-2.5 inline mr-0.5" /> Started {new Date(s.startDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}</span>
-        <span>{s.completedDeliveries} delivered</span>
-      </div>
-
-      <div className="mt-3 flex gap-1.5 pt-2 border-t border-slate-100">
-        {s.status === 'ACTIVE' && (
-          <>
-            <button onClick={onDelivered}
-              className="flex-1 h-9 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Delivered
-            </button>
-            <button onClick={onPause}
-              className="h-9 w-9 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 flex items-center justify-center">
-              <Pause className="h-3.5 w-3.5" />
-            </button>
-          </>
-        )}
-        {s.status === 'PAUSED' && (
-          <button onClick={onResume}
-            className="flex-1 h-9 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-            <Play className="h-3.5 w-3.5" /> Resume
-          </button>
-        )}
-        {s.status !== 'CANCELLED' && (
-          <button onClick={onCancel}
-            className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-            <XCircle className="h-3.5 w-3.5" />
-          </button>
-        )}
-        <button onClick={onEdit}
-          className="h-9 w-9 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 flex items-center justify-center">
-          <Edit3 className="h-3.5 w-3.5" />
-        </button>
-        <button onClick={onDelete}
-          className="h-9 w-9 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 flex items-center justify-center">
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SubForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState({
-    customerName: editing?.customerName ?? '',
-    customerPhone: editing?.customerPhone ?? '',
-    deliveryAddress: editing?.deliveryAddress ?? '',
-    planName: editing?.planName ?? '',
-    frequency: editing?.frequency ?? 'WEEKLY',
-    bouquetType: editing?.bouquetType ?? '',
-    pricePerDelivery: editing?.pricePerDelivery ?? 1500,
-    startDate: editing?.startDate ? editing.startDate.slice(0, 10) : format(new Date(), 'yyyy-MM-dd'),
-    endDate: editing?.endDate ? editing.endDate.slice(0, 10) : '',
-    notes: editing?.notes ?? '',
+function SubscriptionForm({ sub, onClose, onSaved }: { sub: FloristSubscription | null; onClose: () => void; onSaved: () => void }) {
+  const [d, setD] = useState({
+    customerName: sub?.customerName ?? '', customerPhone: sub?.customerPhone ?? '', deliveryAddress: sub?.deliveryAddress ?? '',
+    planName: sub?.planName ?? '', bouquetType: sub?.bouquetType ?? '', frequency: (sub?.frequency ?? 'WEEKLY') as SubscriptionFrequency,
+    pricePerDelivery: sub ? String(sub.pricePerDelivery) : '', startDate: sub?.startDate ? dayKey(new Date(sub.startDate)) : dayKey(),
+    endDate: sub?.endDate ? dayKey(new Date(sub.endDate)) : '', notes: sub?.notes ?? '',
   });
+  const [touched, setTouched] = useState(false);
+  const set = (k: keyof typeof d, v: string) => setD((x) => ({ ...x, [k]: v }));
+  const price = numIn(d.pricePerDelivery);
+  const errors: Partial<Record<keyof typeof d, string>> = {};
+  if (!d.customerName.trim()) errors.customerName = 'Customer ka naam likhein';
+  if (!phoneOk(d.customerPhone)) errors.customerPhone = 'Phone 10 se 15 hindse';
+  if (!d.deliveryAddress.trim()) errors.deliveryAddress = 'Pata likhein';
+  if (!d.planName.trim()) errors.planName = 'Plan ka naam likhein';
+  if (!d.bouquetType.trim()) errors.bouquetType = 'Kaun sa bouquet — likhein';
+  if (price === null || price < 0) errors.pricePerDelivery = 'Rate likhein';
+  if (!d.startDate) errors.startDate = 'Shuru ki date chunein';
+  if (d.endDate && d.startDate && d.endDate < d.startDate) errors.endDate = 'Khatam ki date shuru se pehle nahi';
+  const problems = Object.values(errors);
 
   const save = useMutation({
-    mutationFn: () => floristSubscriptionsApi.create(form as any),
-    onSuccess: () => { toast.success('Subscription created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
+    mutationFn: () => {
+      const body: SubscriptionInput = {
+        customerName: d.customerName.trim(), customerPhone: d.customerPhone.trim(), deliveryAddress: d.deliveryAddress.trim(), planName: d.planName.trim(),
+        bouquetType: d.bouquetType.trim(), frequency: d.frequency, pricePerDelivery: price ?? 0, startDate: d.startDate,
+        endDate: d.endDate || undefined, notes: d.notes.trim() || undefined,
+      };
+      if (sub) { const { startDate: _s, ...rest } = body; return floristSubscriptionsApi.update(sub.id, rest); }
+      return floristSubscriptionsApi.create(body);
+    },
+    onSuccess: (s) => { toast.success(sub ? 'Save ho gaya' : `Subscription ${s.subscriptionNumber} ban gayi`); onSaved(); },
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
   });
+  const submit = () => { setTouched(true); if (problems.length) { toast.error(problems[0]); return; } if (!save.isPending) save.mutate(); };
+  useSaveKey(submit);
+  const err = (k: keyof typeof d) => (touched ? errors[k] : undefined);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-violet-600 to-purple-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">{editing ? '✏️ Edit' : '🔄 New Subscription'}</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div>
-            <Lbl>Customer Name *</Lbl>
-            <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-          <div>
-            <Lbl>Phone *</Lbl>
-            <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-              placeholder="03XX XXXXXXX"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-          <div>
-            <Lbl>Delivery Address *</Lbl>
-            <textarea rows={2} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })}
-              placeholder="Full address..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-          </div>
-
-          <div>
-            <Lbl>Plan Name *</Lbl>
-            <input value={form.planName} onChange={(e) => setForm({ ...form, planName: e.target.value })}
-              placeholder="Corporate Weekly, Home Delivery..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-
-          <div>
-            <Lbl>Frequency</Lbl>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {FREQUENCIES.map((f) => {
-                const a = form.frequency === f.v;
-                return (
-                  <button key={f.v} type="button" onClick={() => setForm({ ...form, frequency: f.v })}
-                    className={`p-2.5 rounded-xl border-2 transition text-center ${
-                      a ? 'border-violet-500 bg-violet-500 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'}`}>
-                    <div className="font-extrabold text-sm">{f.l}</div>
-                    <div className={`text-[0.6875rem] font-semibold ${a ? 'text-white/85' : 'text-slate-500'}`}>{f.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Bouquet Type *</Lbl>
-            <div className="flex flex-wrap gap-1.5">
-              {BOUQUET_TYPES.map((b) => {
-                const a = form.bouquetType === b;
-                return (
-                  <button key={b} type="button" onClick={() => setForm({ ...form, bouquetType: b })}
-                    className={`px-3 py-1.5 rounded-full border-2 text-xs font-extrabold transition ${
-                      a ? 'border-violet-500 bg-violet-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-300'}`}>
-                    {b}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Price per Delivery *</Lbl>
-            <input type="number" value={form.pricePerDelivery}
-              onChange={(e) => setForm({ ...form, pricePerDelivery: Number(e.target.value) })}
-              className="h-12 w-full rounded-xl border-2 border-emerald-400 bg-emerald-50 px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-emerald-600" />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Start Date *</Lbl>
-              <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-            </div>
-            <div>
-              <Lbl>End Date <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-              <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Notes</Lbl>
-            <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Preferences, allergies, special requests..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-          </div>
-        </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700"
-            onClick={() => save.mutate()} loading={save.isPending}
-            disabled={!form.customerName.trim() || !form.customerPhone.trim() || !form.deliveryAddress.trim() ||
-              !form.planName.trim() || !form.bouquetType || form.pricePerDelivery <= 0 || !form.startDate}>
-            <Save className="h-4 w-4" /> {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <Modal open onClose={onClose} size="lg" title={sub ? `${sub.subscriptionNumber} badlein` : 'Nayi subscription'} description="Ctrl+S se save"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit}>{sub ? 'Save karein' : 'Banayein'}</Button></>}>
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Input label="Customer" required value={d.customerName} onChange={(e) => set('customerName', e.target.value)} error={err('customerName')} hint="Pehli delivery par isi naam / phone ka khata khulta ya milta hai" />
+        <Input label="Phone" required inputMode="tel" value={d.customerPhone} onChange={(e) => set('customerPhone', e.target.value)} error={err('customerPhone')} placeholder="0300 1234567" />
+        <div className="sm:col-span-2"><Textarea label="Pata" required rows={2} value={d.deliveryAddress} onChange={(e) => set('deliveryAddress', e.target.value)} error={err('deliveryAddress')} /></div>
+        <Input label="Plan" required value={d.planName} onChange={(e) => set('planName', e.target.value)} error={err('planName')} placeholder="Office reception, ghar ka guldasta" />
+        <Input label="Bouquet" required value={d.bouquetType} onChange={(e) => set('bouquetType', e.target.value)} error={err('bouquetType')} placeholder="12 gulab mix" />
+        <Select label="Kitni dafa" value={d.frequency} onChange={(e) => set('frequency', e.target.value)} options={Object.entries(FREQUENCY).map(([value, label]) => ({ value, label }))} />
+        <Input label="Rate har delivery (Rs)" required inputMode="decimal" value={d.pricePerDelivery} onChange={(e) => set('pricePerDelivery', e.target.value)} error={err('pricePerDelivery')} hint="Har delivery par itne ka bill khate me" />
+        <Input label="Shuru" required type="date" disabled={!!sub} value={d.startDate} onChange={(e) => set('startDate', e.target.value)} error={err('startDate')} hint={sub ? 'Shuru ki date badli nahi jati' : 'Pehli delivery isi din'} />
+        <Input label="Khatam (marzi)" type="date" value={d.endDate} onChange={(e) => set('endDate', e.target.value)} error={err('endDate')} />
+        <div className="sm:col-span-2"><Textarea label="Note (marzi)" rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Rang, phool, gate ke guard ko dein…" /></div>
+        <p className="flex items-center gap-1.5 text-[0.75rem] text-slate-500 sm:col-span-2"><CalendarClock className="h-3.5 w-3.5" />Ruki hui subscription ka paisa nahi banta.</p>
+      </form>
+    </Modal>
   );
-}
-
-function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    emerald: 'from-emerald-500 to-teal-700', amber: 'from-amber-500 to-orange-600',
-    rose: 'from-rose-500 to-red-700', violet: 'from-violet-500 to-purple-700',
-  };
-  const C: any = onClick ? 'button' : 'div';
-  return (
-    <C onClick={onClick}
-      className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </C>
-  );
-}
-
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
 }

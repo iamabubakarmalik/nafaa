@@ -41,8 +41,8 @@ export const FloristPack: IndustryPack = {
       items: [
         { to: '/florist/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/florist/orders', label: 'Orders', icon: ShoppingBag },
-        { to: '/florist/deliveries', label: 'Today Deliveries', icon: Truck, badge: 'LIVE' },
-        { to: '/florist/weddings', label: 'Weddings', icon: Heart },
+        { to: '/florist/deliveries', label: 'Aaj ki delivery', icon: Truck },
+        { to: '/florist/weddings', label: 'Shaadi contracts', icon: Heart },
         { to: '/florist/subscriptions', label: 'Subscriptions', icon: Repeat },
         { to: '/florist/freshness', label: 'Freshness', icon: Sparkles },
       ],

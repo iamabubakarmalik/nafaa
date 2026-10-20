@@ -9,17 +9,17 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 /**
  * AppliancesAnalyticsService — home appliances wale ka asli hisab kitab.
  *
- * Electronics ya retail shop ki kamai sirf maal bechne se aati hai.
- * Home appliances wale ki kamai PAANCH raston se aati hai:
+ * A retail shop earns from goods alone. An appliance shop earns from five
+ * streams:
  *
- *   1. Maal ki bikri        — fridge, AC, washing machine…
- *   2. Installation         — AC lagana, geyser fit karna (labor + material)
- *   3. Repair / Service     — gas refill, motor change, deep cleaning
- *   4. AMC contracts        — saal bhar ka maintenance package
- *   5. Delivery             — bhari saman ka kiraya, loading/unloading, floor charge
+ *   1. Goods sales          — fridge, AC, washing machine…
+ *   2. Installation         — AC fitting, geyser fitting (labor + material)
+ *   3. Repair / service     — gas refill, motor change, deep cleaning
+ *   4. AMC contracts        — yearly maintenance packages
+ *   5. Delivery             — heavy goods transport, loading, floor charge
  *
- * Agar sirf product ka munafa dekho to aadha karobaar nazar hi nahi aata.
- * Is liye yahan paanchon alag alag bhi milte hain aur mila kar bhi.
+ * Goods profit alone hides half the business, so the five streams are
+ * reported separately and together.
  *
  * NOTE: ApplianceProductProfile ka Product se Prisma relation nahi hai
  * (sirf productId hai), is liye join JS me hota hai — bilkul waise hi
@@ -231,7 +231,7 @@ export class AppliancesAnalyticsService {
     }
 
     // ── Installation ──────────────────────────────────────────
-    // Material ki lagat cost hai, labor + visit khaalis kamai.
+    // Material is cost; labor and visit charges are pure earnings.
     // Warranty me covered installation ki kamai 0 hoti hai lekin
     // material ka kharcha phir bhi dukaan ke sar par aata hai.
     let instJobs = 0, instFree = 0;
@@ -311,7 +311,7 @@ export class AppliancesAnalyticsService {
         salesCount: figures.bills,
       },
 
-      /** Sirf maal bechne ka munafa — services isme shamil nahi */
+      /** Profit from goods only, services excluded. */
       goods: withMargin(goods),
 
       /** Kamai ke raste alag alag — har raasta bills se, is liye jor report ke barabar */

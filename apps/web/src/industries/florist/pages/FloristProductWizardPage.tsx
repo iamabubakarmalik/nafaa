@@ -1,310 +1,198 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Flower2,
-  Plus, AlertTriangle, Trash2, Eye, Edit3,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { useFloristWizard, type WizardStep } from '../hooks/useFloristWizard';
-import { FloristWizardStepper } from '../components/wizard/FloristWizardStepper';
-import { FloristWizardStep1Basic } from '../components/wizard/FloristWizardStep1Basic';
-import { FloristWizardStep2Details } from '../components/wizard/FloristWizardStep2Details';
-import { FloristWizardStep3Occasions } from '../components/wizard/FloristWizardStep3Occasions';
-import { FloristWizardStep4Stock } from '../components/wizard/FloristWizardStep4Stock';
-import { FloristWizardSummary } from '../components/wizard/FloristWizardSummary';
-import { saveFloristWizard, type FloristWizardSaveResult } from '../api/florist-wizard.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { floristProductsApi } from '../api/products.api';
+/**
+ * Florist item editor on the shared product editor: what kind of item it
+ * is (stem, bouquet, decoration, plant, gift), the flower, colour and stem
+ * count, how many days it stays fresh, occasions, and a wedding rate.
+ * Stems are sold by stem, bunch or dozen through units and packs.
+ */
 
-export default function FloristProductWizardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+import { Calendar, Flower2, Gift, Leaf, Sparkles } from 'lucide-react';
+import { Input } from '@/design-system/components';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { Chip, NumberField, Section, TextField, Toggle } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { floristProductsApi, type FloristCategoryType } from '../api/products.api';
+import { CATEGORY_GROUPS, FLORIST_KEYS, OCCASIONS, categoryGroup, categoryLabel, dayKey } from '../lib/meta';
 
-  const {
-    draft, draftRestored, validation, stats,
-    goToStep, nextStep, prevStep,
-    updateBasic, updateDetails, updateOccasions,
-    setHasVariants, addVariant, updateVariant, removeVariant,
-    updateStock, reset,
-  } = useFloristWizard({ autoLoadDraft: !isEdit });
+interface FloristExtra {
+  categoryType: FloristCategoryType | '';
+  flowerType: string; color: string; stemLengthCm: number | null; stemCount: number | null; bouquetSize: string; wrapType: string;
+  isPreArranged: boolean; daysToWither: number | null; arrivalDate: string; isImported: boolean; origin: string;
+  occasions: string[]; isCustomizable: boolean; minLeadTimeHours: number | null; weddingPrice: number | null; careInstructions: string;
+}
 
-  const [savedResult, setSavedResult] = useState<FloristWizardSaveResult | null>(null);
-  const [editLoaded, setEditLoaded] = useState(false);
+const initial: FloristExtra = {
+  categoryType: '', flowerType: '', color: '', stemLengthCm: null, stemCount: null, bouquetSize: '', wrapType: '',
+  isPreArranged: false, daysToWither: null, arrivalDate: '', isImported: false, origin: '',
+  occasions: [], isCustomizable: false, minLeadTimeHours: null, weddingPrice: null, careInstructions: '',
+};
 
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product-for-florist-wizard', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
-  const { data: existingProfile } = useQuery({
-    queryKey: ['florist-profile-for-wizard', id],
-    queryFn: () => floristProductsApi.byProduct(id!),
-    enabled: isEdit,
-  });
+const COLORS = ['Laal', 'Safed', 'Gulabi', 'Peela', 'Narangi', 'Jamni', 'Mix'];
+const SIZES = ['Chhota', 'Darmiyana', 'Bara', 'Bohat bara'];
+const WRAPS = ['Kaghaz', 'Jute', 'Box', 'Tokri', 'Vase'];
+const opt = (v: string) => v.trim() || undefined;
+const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 
-  useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
-
-    updateBasic({
-      name: existingProduct.name,
-      description: existingProduct.description ?? '',
-      categoryId: existingProduct.categoryId ?? '',
-      categoryType: existingProfile?.categoryType ?? 'BOUQUET',
-      freshnessGrade: existingProfile?.freshnessGrade ?? 'PREMIUM_A',
-      sku: existingProduct.sku ?? '',
-      barcode: existingProduct.barcode ?? '',
-      unit: existingProduct.unit ?? 'pcs',
-      costPrice: existingProduct.costPrice ?? 0,
-      retailPrice: existingProduct.price ?? 0,
-      wholesalePrice: existingProfile?.wholesalePrice ?? '',
-      weddingPrice: existingProfile?.weddingPrice ?? '',
-      mrp: existingProfile?.mrp ?? '',
-      taxRate: existingProduct.taxRate ?? 0,
-      isActive: existingProduct.isActive,
-      isFeatured: existingProduct.isFeatured,
-      isBestSeller: existingProfile?.isBestSeller ?? false,
-      isSeasonalSpecial: existingProfile?.isSeasonalSpecial ?? false,
-      imageUrls: (existingProduct.images ?? []).map((i: any) => i?.url).filter(Boolean),
-      tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
-      notes: existingProfile?.notes ?? '',
-    });
-    // Show the real stock; it is saved only if changed.
-    updateStock({ currentStock: existingProduct.stock ?? 0, lowStockAlert: existingProduct.lowStockAlert ?? 3 });
-
-    if (existingProfile) {
-      updateDetails({
-        flowerType: existingProfile.flowerType ?? '',
-        color: existingProfile.color ?? '',
-        colorHex: existingProfile.colorHex ?? '',
-        stemLengthCm: existingProfile.stemLengthCm ?? '',
-        isImported: existingProfile.isImported ?? false,
-        origin: existingProfile.origin ?? '',
-        season: existingProfile.season ?? [],
-        arrivalDate: existingProfile.arrivalDate ? existingProfile.arrivalDate.slice(0, 10) : '',
-        freshUntil: existingProfile.freshUntil ? existingProfile.freshUntil.slice(0, 10) : '',
-        daysToWither: existingProfile.daysToWither ?? 5,
-        isPreArranged: existingProfile.isPreArranged ?? true,
-        bouquetSize: existingProfile.bouquetSize ?? '',
-        stemCount: existingProfile.stemCount ?? '',
-        wrapType: existingProfile.wrapType ?? '',
-        ribbonColor: existingProfile.ribbonColor ?? '',
-        hasVase: existingProfile.hasVase ?? false,
-      });
-      updateOccasions({
-        occasions: existingProfile.occasions ?? [],
-        meaning: existingProfile.meaning ?? '',
-        careInstructions: existingProfile.careInstructions ?? '',
-        isCustomizable: existingProfile.isCustomizable ?? false,
-        customizationOptions: existingProfile.customizationOptions ?? [],
-        minLeadTimeHours: existingProfile.minLeadTimeHours ?? 2,
-      });
-    }
-
-    setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateOccasions, updateStock]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => saveFloristWizard(draft, isEdit ? id : undefined, isEdit ? existingProduct?.stock : undefined),
-    onSuccess: (result) => {
-      setSavedResult(result);
-      queryClient.invalidateQueries({ queryKey: ['florist-products-list'] });
-      queryClient.invalidateQueries({ queryKey: ['florist-profiles-all'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success(`${result.productName} ${isEdit ? 'updated' : 'created'}`);
-      if (!isEdit) reset();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to save'),
-  });
-
-  const currentValidation =
-    draft.step === 1 ? validation.step1 :
-    draft.step === 2 ? validation.step2 :
-    draft.step === 3 ? validation.step3 : validation.step4;
-
-  const canGoNext = currentValidation.valid && draft.step < 4;
-  const canSave = validation.allValid;
-
-  if (isEdit && !editLoaded && !existingProduct) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-pink-200 border-t-pink-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (savedResult) {
-    return (
-      <div className="max-w-2xl mx-auto py-12 space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-300 p-8 text-center shadow-xl">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-xl mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-pink-900">
-            Product {isEdit ? 'Updated' : 'Created'}
-          </h1>
-          <p className="text-pink-800 font-semibold mt-1">
-            <strong>{savedResult.productName}</strong> is live in your catalogue
-          </p>
-          <div className="grid grid-cols-3 gap-3 mt-6">
-            <SuccessStat label="Profile" value={savedResult.profileCreated ? '✓' : '—'} />
-            <SuccessStat label="Variants" value={savedResult.variantCount} />
-            <SuccessStat label="Stock" value={savedResult.totalStock} />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <button onClick={() => { setSavedResult(null); reset(); window.scrollTo({ top: 0, behavior: 'smooth' }); if (isEdit) navigate('/florist-products/new'); }}
-            className="rounded-2xl bg-pink-600 hover:bg-pink-700 text-white p-5 flex flex-col items-center gap-2 shadow-md transition">
-            <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another</div>
-          </button>
-          <button onClick={() => navigate(`/florist-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-pink-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Eye className="h-6 w-6 text-pink-600" />
-            <div className="font-extrabold text-slate-900">View Product</div>
-          </button>
-          <button onClick={() => navigate('/florist-products')}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-pink-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Flower2 className="h-6 w-6 text-pink-600" />
-            <div className="font-extrabold text-slate-900">All Products</div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+function Kind({ ctx }: { ctx: StepContext<FloristExtra> }) {
+  const x = ctx.draft.extra;
   return (
-    <div className="space-y-5 pb-24">
-      {draftRestored && !isEdit && (
-        <div className="rounded-2xl bg-pink-50 border-2 border-pink-200 p-3 flex items-center gap-3 flex-wrap">
-          <Sparkles className="h-4 w-4 text-pink-700" />
-          <div className="text-xs text-pink-900 flex-1 min-w-0">
-            <strong>Draft restored</strong> — your previous entries were loaded
-          </div>
-          <button onClick={() => { if (confirm('Discard the draft and start fresh?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200">
-            <Trash2 className="h-3 w-3" /> Fresh Start
-          </button>
-        </div>
-      )}
-
-      {isEdit && (
-        <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-3">
-          <Edit3 className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 flex-1">
-            <div className="font-extrabold mb-0.5">Edit mode</div>
-            <div className="font-semibold">Basic info, flower details and occasion tags can be edited. New variants will be added on save.</div>
+    <div className="space-y-2">
+      <span className="block text-[0.8125rem] font-medium text-slate-700">Ye kya hai</span>
+      {CATEGORY_GROUPS.map((g) => (
+        <div key={g.id}>
+          <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">{g.label}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {g.items.map(([v, l]) => <Chip key={v} on={x.categoryType === v} onClick={() => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })}>{l}</Chip>)}
           </div>
         </div>
-      )}
-
-      <button onClick={() => navigate(isEdit ? `/florist-products/${id}` : '/florist/dashboard')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-pink-600 font-bold transition">
-        <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Dashboard'}
-      </button>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <Flower2 className="h-3.5 w-3.5 text-amber-300" />
-            {isEdit ? 'Editing Florist Product' : 'Florist Product Wizard'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? draft.basic.name || 'Edit Product' : 'Add New Florist Product'}
-          </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-xl">
-            Bouquets, stems, plants and gifts — with freshness tracking and occasion tags.
-          </p>
-        </div>
-      </section>
-
-      <FloristWizardStepper
-        currentStep={draft.step}
-        stepValidation={validation}
-        onStepClick={(s) => {
-          if (s === 1) goToStep(1);
-          else if (s === 2 && validation.step1.valid) goToStep(s as WizardStep);
-          else if (s === 3 && validation.step1.valid && validation.step2.valid) goToStep(s as WizardStep);
-          else if (s === 4 && validation.step1.valid && validation.step2.valid && validation.step3.valid) goToStep(s as WizardStep);
-        }}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-        <div className="min-w-0">
-          {draft.step === 1 && (
-            <FloristWizardStep1Basic basic={draft.basic} onChange={updateBasic} errors={validation.step1.errors} />
-          )}
-          {draft.step === 2 && (
-            <FloristWizardStep2Details details={draft.details} onChange={updateDetails}
-              categoryType={draft.basic.categoryType} errors={validation.step2.errors} />
-          )}
-          {draft.step === 3 && (
-            <FloristWizardStep3Occasions occasions={draft.occasions} onChange={updateOccasions}
-              errors={validation.step3.errors} />
-          )}
-          {draft.step === 4 && (
-            <FloristWizardStep4Stock
-              basic={draft.basic}
-              hasVariants={draft.hasVariants}
-              onToggleVariants={setHasVariants}
-              variants={draft.variants}
-              stock={draft.stock}
-              onAddVariant={addVariant}
-              onUpdateVariant={updateVariant}
-              onRemoveVariant={removeVariant}
-              onUpdateStock={updateStock}
-              errors={validation.step4.errors}
-            />
-          )}
-        </div>
-
-        <FloristWizardSummary draft={draft} stats={stats} allValid={canSave} />
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
-          <button onClick={prevStep} disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-extrabold transition disabled:opacity-40">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
-          <div className="text-xs font-extrabold text-slate-500 hidden sm:block">
-            Step {draft.step} of 4
-            {!currentValidation.valid && (
-              <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
-                <AlertTriangle className="h-3 w-3" /> {currentValidation.errors[0]}
-              </span>
-            )}
-          </div>
-
-          {draft.step < 4 ? (
-            <button onClick={nextStep} disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-600 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}
-              disabled={!canSave} className="bg-gradient-to-r from-pink-500 to-rose-600">
-              <Save className="h-4 w-4" />
-              {isEdit ? 'Save Changes' : `Save Product (${stats.totalStock} ${draft.basic.unit})`}
-            </Button>
-          )}
-        </div>
-      </div>
+      ))}
+      <p className="text-[0.75rem] text-slate-500">Isi se counter ke filter (khule phool, bouquet, paude) aur taazgi ka hisaab chalta hai.</p>
     </div>
   );
 }
 
-function SuccessStat({ label, value }: { label: string; value: number | string }) {
+function Flower({ ctx }: { ctx: StepContext<FloristExtra> }) {
+  const x = ctx.draft.extra;
+  const set = ctx.setExtra;
+  const group = categoryGroup(x.categoryType || null);
+  const fresh = group === 'stem' || group === 'made' || group === 'decor';
   return (
-    <div className="rounded-xl bg-white border-2 border-pink-200 p-3">
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-pink-700">{label}</div>
-      <div className="text-2xl font-extrabold text-pink-900 tabular-nums mt-0.5">{value}</div>
+    <div className="space-y-4">
+      <Section icon={Flower2} title="Phool" hint="Bill aur counter par naam ke neeche dikhta hai">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <TextField label="Phool" value={x.flowerType} onChange={(flowerType) => set({ flowerType })} placeholder="Gulab, motia, lily" />
+          <TextField label="Rang" value={x.color} onChange={(color) => set({ color })} placeholder="Laal" />
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">{COLORS.map((c) => <Chip key={c} on={x.color === c} onClick={() => set({ color: x.color === c ? '' : c })}>{c}</Chip>)}</div>
+        {group === 'stem' && (
+          <div className="mt-3"><NumberField label="Dandi ki lambai" allowEmpty value={x.stemLengthCm} onChange={(stemLengthCm) => set({ stemLengthCm })} suffix="cm" hint="Marzi hai" /></div>
+        )}
+      </Section>
+      {(group === 'made' || group === 'decor') && (
+        <Section icon={Gift} title="Bouquet / sajawat" hint="Kitne phool aur kaisa — asal phool stock se nikalne ke liye Combo (bouquet recipe) banayein">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <NumberField label="Kitne phool" allowEmpty value={x.stemCount} onChange={(stemCount) => set({ stemCount: stemCount == null ? null : Math.round(stemCount) })} />
+            <TextField label="Wrapping" value={x.wrapType} onChange={(wrapType) => set({ wrapType })} placeholder="Kaghaz, jute, box" />
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {SIZES.map((v) => <Chip key={v} on={x.bouquetSize === v} onClick={() => set({ bouquetSize: x.bouquetSize === v ? '' : v })}>{v}</Chip>)}
+            {WRAPS.map((v) => <Chip key={v} on={x.wrapType === v} onClick={() => set({ wrapType: x.wrapType === v ? '' : v })}>{v}</Chip>)}
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Toggle on={x.isPreArranged} onChange={(isPreArranged) => set({ isPreArranged })} icon={Sparkles} title="Pehle se tayyar" hint="Shelf par bana hua rakha hai" />
+            <Toggle on={x.isCustomizable} onChange={(isCustomizable) => set({ isCustomizable })} title="Order par banta hai" hint="Customer apni marzi ke phool chun sakta hai" />
+          </div>
+          {x.isCustomizable && <div className="mt-3"><NumberField label="Banane me kitne ghante" allowEmpty value={x.minLeadTimeHours} onChange={(minLeadTimeHours) => set({ minLeadTimeHours })} suffix="ghante" /></div>}
+        </Section>
+      )}
+      {fresh && (
+        <Section icon={Leaf} title="Taazgi" hint="Freshness page aur counter par 'murjha gaya' isi se aata hai">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <NumberField label="Kitne din fresh rehta hai" allowEmpty value={x.daysToWither} onChange={(daysToWither) => set({ daysToWither: daysToWither == null ? null : Math.round(daysToWither) })} suffix="din" error={ctx.errors.daysToWither} hint="Gulab 4–5, motia 1, lily 7" />
+            <Input label="Maal kab aaya" type="date" max={dayKey()} value={x.arrivalDate} onChange={(e) => set({ arrivalDate: e.target.value })} hint="Fresh ki date isi se ginti hai" />
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Toggle on={x.isImported} onChange={(isImported) => set({ isImported })} title="Bahar se aaya (imported)" />
+            {x.isImported && <TextField label="Kahan se" value={x.origin} onChange={(origin) => set({ origin })} placeholder="Holland, Kenya" />}
+          </div>
+        </Section>
+      )}
+      <Section icon={Calendar} title="Mauqa" hint="Counter par 'birthday' ya 'shaadi' likhne se ye cheez milti hai">
+        <div className="flex flex-wrap gap-1.5">
+          {OCCASIONS.map((o) => <Chip key={o} on={x.occasions.includes(o)} onClick={() => set({ occasions: x.occasions.includes(o) ? x.occasions.filter((v) => v !== o) : [...x.occasions, o] })}>{o}</Chip>)}
+        </div>
+        <div className="mt-3"><TextField label="Dekh bhaal (marzi)" value={x.careInstructions} onChange={(careInstructions) => set({ careInstructions })} placeholder="Roz paani badlein, dhoop se door" /></div>
+      </Section>
     </div>
   );
+}
+
+function WeddingRate({ ctx }: { ctx: StepContext<FloristExtra> }) {
+  return (
+    <Section title="Shaadi ka rate (marzi)" hint="Shaadi ke contract me quote banate waqt yaad rakhne ke liye">
+      <NumberField label="Shaadi rate" prefix="Rs" allowEmpty value={ctx.draft.extra.weddingPrice} onChange={(weddingPrice) => ctx.setExtra({ weddingPrice })} />
+    </Section>
+  );
+}
+
+const core: CoreOptions = {
+  units: [
+    { value: 'stem', label: 'Dandi (stem)' }, { value: 'bunch', label: 'Gucha (bunch)' }, { value: 'dozen', label: 'Darjan' }, { value: 'pcs', label: 'Adad' },
+    { value: 'kg', label: 'Kg (genda, patti)' }, { value: 'set', label: 'Set' },
+  ],
+  skuPrefix: 'FL',
+  packs: true,
+  variants: { presets: [{ group: 'Rang', values: COLORS }, { group: 'Size', values: SIZES }] },
+  batches: false,
+  markups: [30, 50, 80, 100],
+};
+
+const flowerStep: StepDef<FloristExtra> = { id: 'flower', title: 'Phool aur taazgi', hint: 'Phool, rang, kitne din', icon: Flower2, render: (ctx) => <Flower ctx={ctx} />,
+  validate: (d) => {
+    const e: Errors = {};
+    if (d.extra.daysToWither != null && (d.extra.daysToWither < 1 || d.extra.daysToWither > 365)) e.daysToWither = '1 se 365 din';
+    return e;
+  } };
+
+const config: EditorConfig<FloristExtra> = {
+  label: 'Florist',
+  draftKey: 'nafaa.product-editor.florist',
+  paths: { list: '/products', detail: (id) => `/florist-products/${id}`, create: '/florist-products/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const p = await floristProductsApi.byProduct(productId).catch(() => null);
+      if (!p) return {};
+      return {
+        categoryType: p.categoryType ?? '', flowerType: p.flowerType ?? '', color: p.color ?? '', stemLengthCm: p.stemLengthCm ?? null,
+        stemCount: p.stemCount ?? null, bouquetSize: p.bouquetSize ?? '', wrapType: p.wrapType ?? '', isPreArranged: p.isPreArranged,
+        daysToWither: p.daysToWither ?? null, arrivalDate: p.arrivalDate?.slice(0, 10) ?? '', isImported: p.isImported, origin: p.origin ?? '',
+        occasions: p.occasions ?? [], isCustomizable: p.isCustomizable, minLeadTimeHours: p.minLeadTimeHours ?? null,
+        weddingPrice: p.weddingPrice ?? null, careInstructions: p.careInstructions ?? '',
+      };
+    },
+    save: async (productId, d) => {
+      const x = d.extra;
+      const body = {
+        productId, categoryType: x.categoryType || undefined, flowerType: opt(x.flowerType), color: opt(x.color), stemLengthCm: num(x.stemLengthCm),
+        stemCount: num(x.stemCount), bouquetSize: opt(x.bouquetSize), wrapType: opt(x.wrapType), isPreArranged: x.isPreArranged,
+        daysToWither: num(x.daysToWither), arrivalDate: x.arrivalDate || undefined, isImported: x.isImported, origin: opt(x.origin),
+        occasions: x.occasions, isCustomizable: x.isCustomizable, minLeadTimeHours: num(x.minLeadTimeHours), weddingPrice: num(x.weddingPrice),
+        careInstructions: opt(x.careInstructions), costPrice: num(d.core.costPrice), retailPrice: num(d.core.price),
+      };
+      await floristProductsApi.upsert(Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined)));
+    },
+  },
+  steps: [
+    basicStep<FloristExtra>(core, {
+      extra: (ctx) => <Kind ctx={ctx} />,
+      namePlaceholder: 'Jaise: Laal gulab ya Birthday bouquet (12 gulab)',
+      categorySuggestions: ['Khule phool', 'Bouquet', 'Haar aur sehra', 'Paude', 'Gift'],
+    }),
+    flowerStep,
+    priceStep<FloristExtra>(core, { extra: (ctx) => <WeddingRate ctx={ctx} /> }),
+    stockStep<FloristExtra>(core, { quick: [10, 25, 50, 100, 200] }),
+  ],
+  summary: (d) => {
+    const x = d.extra;
+    const facts = [x.categoryType ? categoryLabel(x.categoryType) : null, x.flowerType, x.color, x.stemCount ? `${x.stemCount} phool` : null].filter(Boolean);
+    return (
+      <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
+        {facts.length > 0 && <p className="text-slate-700">{facts.join(' · ')}</p>}
+        {x.daysToWither != null && <p className="text-slate-600">{x.daysToWither} din fresh</p>}
+        {x.occasions.length > 0 && <p className="text-slate-600">{x.occasions.join(', ')}</p>}
+      </div>
+    );
+  },
+  refresh: [FLORIST_KEYS.profiles, FLORIST_KEYS.freshness, 'florist-product-detail'],
+  guide: [
+    { icon: Flower2, color: '#db2777', title: 'Dandi, gucha, darjan', text: 'Base unit "dandi" rakhein; Price step me "Gucha = 10" ya "Darjan = 12" pack jorein — dono tarah bikta hai, stock dandi me ginta hai.' },
+    { icon: Leaf, color: '#16a34a', title: 'Taazgi', text: '"Kitne din fresh" aur "kab aaya" likhein — counter aur Freshness page par murjhane se pehle khabar milti hai.' },
+    { icon: Gift, color: '#7c3aed', title: 'Bouquet recipe', text: 'Bouquet ke phool stock se kam karne ke liye Combo banayein (12 gulab + wrapping) aur counter par Combo bechein.' },
+  ],
+};
+
+export default function FloristProductWizardPage() {
+  return <ProductEditorPage config={config} />;
 }

@@ -20,22 +20,23 @@ export interface ApplianceExtra {
   model: string; modelYear: number | null; colorName: string;
   acTonnage: string; fridgeLiters: number | null; washerKg: number | null; screenInch: number | null; capacity: string;
   energy: ApplianceEnergyRating | ''; inverter: boolean; power: string;
-  warrantyMonths: number; compressorMonths: number | null; motorMonths: number | null; warrantyBy: 'COMPANY' | 'SHOP' | 'BOTH';
+  warrantyMonths: number; compressorMonths: number | null; motorMonths: number | null; shopMonths: number | null;
   install: boolean; installCharge: number | null; installFree: boolean; bigVehicle: boolean; freeDelivery: boolean;
   serialTracked: boolean; serials: string; mrp: number | null; bestSeller: boolean; newArrival: boolean;
 }
 
 const initial: ApplianceExtra = {
   categoryType: '', model: '', modelYear: null, colorName: '', acTonnage: '', fridgeLiters: null, washerKg: null, screenInch: null, capacity: '',
-  energy: '', inverter: false, power: '', warrantyMonths: 12, compressorMonths: null, motorMonths: null, warrantyBy: 'COMPANY',
+  energy: '', inverter: false, power: '', warrantyMonths: 12, compressorMonths: null, motorMonths: null, shopMonths: null,
   install: false, installCharge: null, installFree: false, bigVehicle: false, freeDelivery: false,
   serialTracked: true, serials: '', mrp: null, bestSeller: false, newArrival: false,
 };
 
 const TONS = ['0.75', '1', '1.5', '2', '2.5', '4'];
 const WARRANTY = [0, 6, 12, 24, 36];
-const BY: Array<{ value: ApplianceExtra['warrantyBy']; label: string }> = [{ value: 'COMPANY', label: 'Company ki' }, { value: 'SHOP', label: 'Dukaan ki' }, { value: 'BOTH', label: 'Dono' }];
 const opt = (v: string) => v.trim() || undefined;
+/** Whose warranty the unit carries, kept for older screens and reports. */
+const warrantyType = (company: number, shop: number) => (company > 0 && shop > 0 ? 'BOTH' : shop > 0 ? 'SHOP' : 'COMPANY');
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 const serialList = (text: string) => [...new Set(text.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean))];
 
@@ -99,14 +100,15 @@ function Warranty({ ctx }: { ctx: StepContext<ApplianceExtra> }) {
   const t = x.categoryType || null;
   return (
     <div className="space-y-4">
-      <Section icon={ShieldCheck} title="Warranty" hint="Bechne ke din se har unit ki warranty chalti hai — warranty card par chhapti hai">
+      <Section icon={ShieldCheck} title="Warranty" hint="Bechne ke din se har unit ki warranty chalti hai — bill, warranty card aur warranty check par alag alag dikhti hai">
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Company warranty</span>
         <div className="flex flex-wrap gap-1.5">{WARRANTY.map((m) => <Chip key={m} on={x.warrantyMonths === m} onClick={() => set({ warrantyMonths: m })}>{m === 0 ? 'Koi nahi' : `${m} mahine`}</Chip>)}</div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <NumberField label="Poori warranty" value={x.warrantyMonths} onChange={(v) => set({ warrantyMonths: Math.max(Math.round(v ?? 0), 0) })} suffix="mahine" error={ctx.errors.warranty} />
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <NumberField label="Company warranty" value={x.warrantyMonths} onChange={(v) => set({ warrantyMonths: Math.max(Math.round(v ?? 0), 0) })} suffix="mahine" hint="Poore unit ki, brand deta hai" error={ctx.errors.warranty} />
+          <NumberField label="Dukaan ki warranty" allowEmpty value={x.shopMonths} onChange={(v) => set({ shopMonths: v == null ? null : Math.max(Math.round(v), 0) })} suffix="mahine" hint="Apni taraf se — kharcha dukaan ka" error={ctx.errors.shopWarranty} />
           {(isAc(t) || isFridge(t) || !t) && <NumberField label="Compressor" allowEmpty value={x.compressorMonths} onChange={(compressorMonths) => set({ compressorMonths })} suffix="mahine" hint="Aksar 5–10 saal" />}
           {(isWasher(t) || !t) && <NumberField label="Motor" allowEmpty value={x.motorMonths} onChange={(motorMonths) => set({ motorMonths })} suffix="mahine" />}
         </div>
-        <div className="mt-3"><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Warranty kis ki</span><div className="flex flex-wrap gap-1.5">{BY.map((b) => <Chip key={b.value} on={x.warrantyBy === b.value} onClick={() => set({ warrantyBy: b.value })}>{b.label}</Chip>)}</div></div>
       </Section>
       <Section icon={HardHat} title="Fitting aur delivery" hint="POS par bechte hi installation aur delivery book karne ka option inhi se aata hai">
         <div className="space-y-3">
@@ -160,6 +162,7 @@ const warrantyStep: StepDef<ApplianceExtra> = {
   id: 'warranty', title: 'Warranty / fitting', hint: 'Mahine, installation', icon: ShieldCheck, render: (ctx) => <Warranty ctx={ctx} />,
   validate: (d) => ({
     ...(d.extra.warrantyMonths < 0 || (d.extra.compressorMonths ?? 0) < 0 ? { warranty: 'Mahine ulte nahi ho sakte' } : {}),
+    ...((d.extra.shopMonths ?? 0) > 120 ? { shopWarranty: 'Dukaan ki warranty 120 mahine se zyada nahi' } : {}),
     ...(d.extra.install && !d.extra.installFree && (d.extra.installCharge ?? 0) < 0 ? { install: 'Charge manfi nahi' } : {}),
   }),
 };
@@ -184,13 +187,14 @@ const config: EditorConfig<ApplianceExtra> = {
     load: async (productId) => {
       const p = await applianceProductsApi.byProduct(productId).catch(() => null);
       if (!p) return {};
-      const by = (p.warrantyType ?? '').toUpperCase();
+      // Older products kept a shop-only warranty in the company months with type SHOP.
+      const shopOnly = (p.warrantyType ?? '').toUpperCase() === 'SHOP' && p.shopWarrantyMonths == null;
       return {
         categoryType: p.categoryType ?? '', model: p.modelNumber ?? '', modelYear: p.modelYear ?? null, colorName: p.colorName ?? '',
         acTonnage: p.acTonnage ?? '', fridgeLiters: p.fridgeCapacityLiters ?? null, washerKg: p.washingCapacityKg ?? null, screenInch: p.screenSizeInch ?? null, capacity: p.capacity ?? '',
         energy: p.energyRating ?? '', inverter: p.isInverter, power: p.powerConsumption ?? '',
-        warrantyMonths: p.warrantyMonths ?? 0, compressorMonths: p.compressorWarrantyMonths ?? null, motorMonths: p.motorWarrantyMonths ?? null,
-        warrantyBy: by === 'SHOP' || by === 'BOTH' ? by : 'COMPANY',
+        warrantyMonths: shopOnly ? 0 : p.warrantyMonths ?? 0, compressorMonths: p.compressorWarrantyMonths ?? null, motorMonths: p.motorWarrantyMonths ?? null,
+        shopMonths: shopOnly ? p.warrantyMonths ?? null : p.shopWarrantyMonths ?? null,
         install: p.requiresInstallation, installCharge: Number(p.installationCharge) || null, installFree: p.installationCovered, bigVehicle: p.requiresLargeVehicle, freeDelivery: p.freeDelivery,
         serialTracked: p.requiresSerial, mrp: p.mrp ?? null, bestSeller: p.isBestSeller, newArrival: p.isNewArrival,
       };
@@ -207,7 +211,8 @@ const config: EditorConfig<ApplianceExtra> = {
         productId, brandId: c.brandId ?? undefined, categoryType: x.categoryType || undefined, modelNumber: opt(x.model), modelYear: num(x.modelYear), colorName: opt(x.colorName),
         acTonnage: opt(x.acTonnage), fridgeCapacityLiters: num(x.fridgeLiters), washingCapacityKg: num(x.washerKg), screenSizeInch: num(x.screenInch), capacity: opt(x.capacity),
         energyRating: x.energy || undefined, isInverter: x.inverter, powerConsumption: opt(x.power),
-        warrantyMonths: x.warrantyMonths, compressorWarrantyMonths: num(x.compressorMonths), motorWarrantyMonths: num(x.motorMonths), warrantyType: x.warrantyBy,
+        warrantyMonths: x.warrantyMonths, compressorWarrantyMonths: num(x.compressorMonths), motorWarrantyMonths: num(x.motorMonths),
+        shopWarrantyMonths: x.shopMonths ?? 0, warrantyType: warrantyType(x.warrantyMonths, x.shopMonths ?? 0),
         requiresInstallation: x.install, installationCharge: x.install && !x.installFree ? num(x.installCharge) ?? 0 : 0, installationCovered: x.install && x.installFree,
         requiresLargeVehicle: x.bigVehicle, freeDelivery: x.freeDelivery, requiresSerial: x.serialTracked,
         mrp: num(x.mrp), costPrice: c.costPrice, wholesalePrice: c.wholesalePrice ?? undefined, retailPrice: c.price, isFeatured: c.isFeatured, isBestSeller: x.bestSeller, isNewArrival: x.newArrival,
@@ -244,7 +249,8 @@ const config: EditorConfig<ApplianceExtra> = {
   summary: (d) => (
     <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
       {d.extra.categoryType && <p className="text-slate-700">{catMeta(d.extra.categoryType).label}{d.extra.model ? ` · ${d.extra.model}` : ''}</p>}
-      {d.extra.warrantyMonths > 0 && <p className="text-emerald-700">Warranty {d.extra.warrantyMonths} mahine{d.extra.compressorMonths ? ` · compressor ${d.extra.compressorMonths}` : ''}</p>}
+      {d.extra.warrantyMonths > 0 && <p className="text-emerald-700">Company warranty {d.extra.warrantyMonths} mahine{d.extra.compressorMonths ? ` · compressor ${d.extra.compressorMonths}` : ''}</p>}
+      {(d.extra.shopMonths ?? 0) > 0 && <p className="text-emerald-700">Dukaan ki warranty {d.extra.shopMonths} mahine</p>}
       {d.extra.install && <p className="text-blue-700">Fitting {d.extra.installFree ? 'free' : d.extra.installCharge ? `Rs ${d.extra.installCharge}` : ''}</p>}
       {serialList(d.extra.serials).length > 0 && <p className="text-violet-700">{serialList(d.extra.serials).length} serial</p>}
     </div>
@@ -252,7 +258,7 @@ const config: EditorConfig<ApplianceExtra> = {
   refresh: [PROFILE_KEY, SERIAL_KEY, 'appliance-product-detail'],
   guide: [
     { icon: Barcode, color: '#7c3aed', title: 'Serial', text: 'Naye product par opening stock ke serial yahin scan karein — stock serial ki ginti ke barabar hota hai.' },
-    { icon: ShieldCheck, color: '#16a34a', title: 'Warranty', text: 'Company ki poori warranty aur compressor / motor ki alag mahine. Dukaan apni warranty de to "Dukaan ki" ya "Dono".' },
+    { icon: ShieldCheck, color: '#16a34a', title: 'Warranty', text: 'Company ki warranty, compressor / motor ke alag mahine, aur dukaan apni taraf se warranty de to "Dukaan ki warranty" — bill aur card par dono alag chhapti hain.' },
     { icon: HardHat, color: '#2563eb', title: 'Fitting', text: 'Fitting wale product par charge likhein — POS par bechte hi installation book hoti hai aur kaam ke baad bill banta hai.' },
   ],
 };

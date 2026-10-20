@@ -9,7 +9,9 @@
  *   billed again (the next bill gets a `-2` suffix).
  * - AMC bill voided: the contract is cancelled.
  * - Delivery bill voided: the trip goes back to "arrived".
- * - Goods bill voided: its serial units go back in stock, and installations
+ * - Sale bill of an old unit taken in trade voided: the unit is back in the shop.
+ * - Goods bill voided: its serial units go back in stock, its trade-ins are
+ *   free for another bill, and installations
  *   or deliveries booked for it that have not happened are cancelled.
  * - Goods returned: serial units beyond what is still kept go back in stock.
  *
@@ -79,14 +81,20 @@ export class ApplianceBillVoidService implements OnModuleInit {
           data: { receivedAmount: received, ...(received <= 0 && { status: 'APPROVED', settledAt: null }), notes: stamp(c.notes, `${note} — brand ka wusool wapas`) },
         });
       }
+      if (job?.startsWith('ATI-')) {
+        // An old unit's sale bill voided: the unit is back in the shop.
+        return tx.applianceTradeIn.updateMany({ where: { tenantId, code: job, status: 'SOLD' }, data: { status: 'HELD' } });
+      }
       if (job?.startsWith('APDL-')) {
         const d = await tx.applianceDelivery.findFirst({ where: { tenantId, deliveryNumber: job, status: 'DELIVERED' } });
         if (!d) return null;
         return tx.applianceDelivery.update({ where: { id: d.id }, data: { status: 'ARRIVED', deliveredAt: null, notes: stamp(d.notes, `${note} — dobara confirm karein`) } });
       }
 
-      // A goods bill: units back on the shelf, visits that have not happened called off.
+      // A goods bill: units back on the shelf, old units taken in trade free for
+      // another bill, visits that have not happened called off.
       await tx.applianceSerialTracking.updateMany({ where: { tenantId, saleId: sale.id, status: 'SOLD' }, data: UNSOLD });
+      await tx.applianceTradeIn.updateMany({ where: { tenantId, saleId: sale.id }, data: { saleId: null } });
       const installs = await tx.applianceInstallation.findMany({
         where: { tenantId, saleId: sale.id, status: { in: ['PENDING', 'SCHEDULED', 'ASSIGNED', 'RESCHEDULED'] } },
         select: { id: true, internalNotes: true },

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { SaleStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { saleFigures } from '../../../common/helpers/business-math.helper';
-import { dayEnd, dayKey, dayStart } from '../petshop-common';
+import { addDaysTz, dayEnd, dayKey, dayRange, dayStart } from '../petshop-common';
 
 @Injectable()
 export class PetshopDashboardService {
@@ -14,7 +15,7 @@ export class PetshopDashboardService {
     const monthStart = dayStart(dayKey().slice(0, 8) + '01');
     const todayStart = dayStart();
     const todayEnd = dayEnd();
-    const in90 = new Date(); in90.setDate(in90.getDate() + 90);
+    const in90 = addDaysTz(todayEnd, 90);
 
     const [
       totalProducts, totalGroomers, activeGroomers,
@@ -122,8 +123,21 @@ export class PetshopDashboardService {
       saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthStart }),
     ]);
 
-    const groomRev = groomingMonth._sum.paidAmount ?? 0;
-    const animalRev = animalsMonth._sum.soldPrice ?? 0;
+    // Grooming and animal money from their bills (voided bills left out), as the reports count it.
+    const billed = async (range: { gte: Date; lte?: Date }) => {
+      const live = { tenantId: user.tenantId, status: { notIn: ['VOIDED', 'FULLY_RETURNED'] as SaleStatus[] }, createdAt: range };
+      const [groom, animals] = await Promise.all([
+        this.prisma.saleItem.findMany({ where: { sale: { ...live, saleNumber: { startsWith: 'PGR-' } } }, select: { total: true, quantity: true, returnedQty: true } }),
+        this.prisma.saleItem.findMany({ where: { sale: live, product: { productType: 'PET_ANIMAL' } }, select: { total: true, quantity: true, returnedQty: true } }),
+      ]);
+      // A line's money less what came back on returns.
+      const kept = (rows: Array<{ total: number; quantity: number; returnedQty: number | null }>) =>
+        Math.round(rows.reduce((t, r) => t + r.total * Math.max(r.quantity - Number(r.returnedQty ?? 0), 0) / (r.quantity || 1), 0) * 100) / 100;
+      return { grooming: kept(groom), animals: kept(animals) };
+    };
+    const [billedToday, billedMonth] = await Promise.all([billed({ gte: todayStart, lte: todayEnd }), billed({ gte: monthStart })]);
+    const groomRev = billedMonth.grooming;
+    const animalRev = billedMonth.animals;
 
     return {
       totals: {
@@ -138,9 +152,9 @@ export class PetshopDashboardService {
       },
       today: {
         groomingCount: groomingToday._count._all,
-        groomingRevenue: groomingToday._sum.paidAmount ?? 0,
+        groomingRevenue: billedToday.grooming,
         animalSalesCount: animalsToday._count._all,
-        animalRevenue: animalsToday._sum.soldPrice ?? 0,
+        animalRevenue: billedToday.animals,
         totalRevenue: salesToday.net,
         bills: salesToday.bills,
       },
@@ -168,16 +182,15 @@ export class PetshopDashboardService {
   }
 
   async salesReport(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    const range = dayRange(from, to) ?? { gte: dayStart(dayKey().slice(0, 8) + '01'), lte: dayEnd() };
 
     const [grooming, animals] = await Promise.all([
       this.prisma.petGroomingAppointment.findMany({
-        where: { tenantId: user.tenantId, completedAt: { gte: start, lte: end } },
+        where: { tenantId: user.tenantId, completedAt: range },
         orderBy: { completedAt: 'desc' },
       }),
       this.prisma.petLiveAnimal.findMany({
-        where: { tenantId: user.tenantId, status: 'SOLD', soldAt: { gte: start, lte: end } },
+        where: { tenantId: user.tenantId, status: 'SOLD', soldAt: range },
         orderBy: { soldAt: 'desc' },
       }),
     ]);
@@ -210,14 +223,13 @@ export class PetshopDashboardService {
   }
 
   async groomerPerformance(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    const range = dayRange(from, to) ?? { gte: dayStart(dayKey().slice(0, 8) + '01'), lte: dayEnd() };
     const groomers = await this.prisma.petGroomer.findMany({ where: { tenantId: user.tenantId, isActive: true } });
 
     const performance = await Promise.all(
       groomers.map(async (g) => {
         const appts = await this.prisma.petGroomingAppointment.findMany({
-          where: { groomerId: g.id, scheduledDate: { gte: start, lte: end } },
+          where: { tenantId: user.tenantId, groomerId: g.id, scheduledDate: range },
         });
         const completed = appts.filter((a) => ['COMPLETED', 'READY_FOR_PICKUP'].includes(a.status));
         const revenue = completed.reduce((s, a) => s + a.totalFee, 0);

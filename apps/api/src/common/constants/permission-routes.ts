@@ -99,6 +99,19 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /^autoparts\/(part-profiles|vehicle-makes|vehicle-models)(\/|$)/, GET: P.PRODUCTS_VIEW, write: P.PRODUCTS_EDIT },
   { match: /^autoparts\/mechanics(\/|$)/, GET: P.SERVICE_JOBS_VIEW, write: P.STAFF_MANAGE },
 
+  /* Toy store: the counter reads toy badges (age, cells, safety), so pos.use is
+     enough to read them. Must stay above the general products rule. */
+  { match: /^toystore\/products\/facts$/, GET: [P.PRODUCTS_VIEW, P.POS_USE] },
+
+  /* Gym lockers and PT packages are bookings. Write routes also carry decorators. */
+  { match: /^gym\/(lockers|pt-packages)(\/|$)/, GET: P.SERVICE_BOOKINGS_VIEW, write: P.SERVICE_BOOKINGS_MANAGE },
+
+  /* Optical records. The counter reads them too; decorated routes keep their own checks. */
+  { match: /^optical\/(eye-tests|prescriptions|optometrists|lens-orders)(\/|$)/, GET: [P.CUSTOMERS_VIEW, P.POS_USE], write: P.POS_USE },
+
+  /* Pet shop animals are stock. The counter lists animals on sale, so pos.use can read. */
+  { match: /^petshop\/live-animals(\/|$)/, GET: [P.PRODUCTS_VIEW, P.POS_USE], write: P.PRODUCTS_EDIT },
+
   /* ── Bikri aur counter ── */
   { match: /(^|\/)pos(\/|$)/, GET: P.POS_USE, write: P.POS_USE },
   /* Cancelling a bill always needs the void permission, whatever the PIN setting. */

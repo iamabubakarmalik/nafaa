@@ -29,11 +29,20 @@ export interface NightAudit {
   checkedOut: AuditStay[];
   inHouseDue: number;
   openTasks: number;
+  shopId: string | null;
+  /** The saved close of this day for the branch, if it was closed. */
+  closed: ClosedDay | null;
   money: {
     bills: number; billed: number; takenAtBill: number; onKhata: number; advances: number; refunds: number;
     byMethod: Record<string, number>;
     sales: Array<{ id: string; saleNumber: string; bookingNumber: string | null; total: number; creditAmount: number }>;
   };
+}
+
+/** A business day closed by the night audit, with the numbers saved at closing. */
+export interface ClosedDay {
+  id: string; shopId: string | null; businessDate: string; date?: string; occupiedRooms: number; revenue: number; roomRevenue: number;
+  adr: number; occupancyPct: number; notes: string | null; closedById: string | null; closedByName: string | null; shopName?: string | null; createdAt: string;
 }
 
 export interface HotelOverview {
@@ -50,4 +59,6 @@ export const hotelDashboardApi = {
   overview: () => apiClient.get('/hotel/dashboard/overview').then(unwrap<HotelOverview>),
   occupancy: (params: { from?: string; to?: string }) => apiClient.get('/hotel/reports/occupancy', { params }).then(unwrap<OccupancyReport>),
   nightAudit: (date?: string) => apiClient.get('/hotel/reports/night-audit', { params: { date } }).then(unwrap<NightAudit>),
+  closeDay: (body: { date?: string; notes?: string }) => apiClient.post('/hotel/reports/night-audit/close', body).then(unwrap<ClosedDay>),
+  closedDays: (params?: { from?: string; to?: string }) => apiClient.get('/hotel/reports/night-audit/closed', { params }).then(unwrap<ClosedDay[]>),
 };

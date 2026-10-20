@@ -1,241 +1,220 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Building2, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles,
-  Globe, Phone, Mail, User, Zap, BookOpen, MapPin,
-} from 'lucide-react';
-import { publishersApi, type Publisher } from '../api/publishers.api';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
-import { formatPKR } from '@core/lib/format';
+/**
+ * Publishers: who the shop's books come from, their usual discount and
+ * credit days, and what the shop owes them. A publisher becomes a supplier
+ * of the same name on first purchase, so buying, returning books to the
+ * publisher and paying them run through the shared purchases and supplier
+ * khata.
+ *
+ * Keys: N new · / search · G guide.
+ */
+
+import { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { BookOpen, Building2, Download, GraduationCap, Pencil, Percent, Plus, Power, ShoppingCart, Undo2, Wallet } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  Button, FilterBar, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { publishersApi, type Publisher } from '../api/publishers.api';
+import { KEYS, apiError, decimal, digits } from '../lib/meta';
+import { ConfirmModal, EmptyBox, cardAction, cardDanger, cardLink, usePageKeys, useSaveKey } from '../components/ui';
+
+type Tab = 'active' | 'off';
 
 export default function PublishersPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const canPurchase = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const canEditSuppliers = usePermission(PERMISSIONS.SUPPLIERS_EDIT);
+  const canSuppliers = usePermission(PERMISSIONS.SUPPLIERS_VIEW);
+  const canBuy = canPurchase && canEditSuppliers;
+  const { cost } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Publisher | null>(null);
+  const [tab, setTab] = useState<Tab>('active');
+  const [form, setForm] = useState<Publisher | 'new' | null>(null);
+  const [off, setOff] = useState<Publisher | null>(null);
 
-  const { data: publishers = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['publishers', search],
-    queryFn: () => publishersApi.list({ search: search.trim() || undefined, active: true }),
+  const listQ = useQuery({ queryKey: [KEYS.publishers, 'all'], queryFn: () => publishersApi.list() });
+  const all = useMemo(() => listQ.data ?? [], [listQ.data]);
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return all.filter((p) => (tab === 'active' ? p.isActive : !p.isActive) && (!q || [p.name, p.city, p.contactPerson, p.phone].some((v) => v?.toLowerCase().includes(q))));
+  }, [all, search, tab]);
+  const totals = useMemo(() => {
+    const active = all.filter((p) => p.isActive);
+    return {
+      active: active.length,
+      books: active.reduce((s, p) => s + (p._count?.books ?? 0), 0),
+      owed: active.reduce((s, p) => s + (p.supplier?.outstandingDue ?? 0), 0),
+      bought: active.reduce((s, p) => s + (p.supplier?.totalPurchased ?? 0), 0),
+    };
+  }, [all]);
+
+  const refresh = () => qc.invalidateQueries({ queryKey: [KEYS.publishers] });
+  const save = useMutation({
+    mutationFn: ({ id, body }: { id?: string; body: Partial<Publisher> }) => (id ? publishersApi.update(id, body) : publishersApi.create(body)),
+    onSuccess: () => { toast.success('Publisher save ho gaya'); setForm(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
   });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => publishersApi.remove(id),
-    onSuccess: () => { toast.success('Publisher deactivated'); queryClient.invalidateQueries({ queryKey: ['publishers'] }); },
+  const toggle = useMutation({
+    mutationFn: (p: Publisher) => (p.isActive ? publishersApi.remove(p.id) : publishersApi.update(p.id, { name: p.name, isActive: true })),
+    onSuccess: (_r, p) => { toast.success(p.isActive ? `${p.name} band — kitaben waisi hi` : `${p.name} wapas chalu`); setOff(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
-
-  const seedMutation = useMutation({
+  const seed = useMutation({
     mutationFn: () => publishersApi.seedPakistani(),
-    onSuccess: (data) => { toast.success('Added ' + data.created + ' publishers'); queryClient.invalidateQueries({ queryKey: ['publishers'] }); },
+    onSuccess: (r) => { toast.success(r.created ? `${r.created} publisher jur gaye` : 'Sab pehle se maujood hain'); refresh(); },
+    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
   });
+  /** Opens (or finds) the publisher's supplier, then goes where the user asked. */
+  const supplier = useMutation({
+    mutationFn: ({ p }: { p: Publisher; to: 'buy' | 'khata' }) => publishersApi.openSupplier(p.id),
+    onSuccess: (s, { to }) => {
+      refresh();
+      navigate(to === 'buy' ? `/purchases/new?supplier=${s.id}` : `/suppliers/${s.id}`);
+    },
+    onError: (e) => toast.error(apiError(e, 'Supplier nahi khula')),
+  });
+
+  usePageKeys(searchRef, canEdit ? { n: () => setForm('new') } : {});
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 sm:p-8 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Publishing Houses
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🏢 Publishers</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">Oxford, Ferozsons, Sang-e-Meel, Dar-us-Salam</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <Zap className="h-4 w-4" />
-              Seed Pakistani Publishers
-            </button>
-            <button onClick={() => refetch()} disabled={isRefetching} className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold backdrop-blur border border-white/20">
-              <RefreshCw className={'h-4 w-4 ' + (isRefetching ? 'animate-spin' : '')} />
-              Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              New Publisher
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Publishers"
+        chip={<><Building2 /> Kitaben kahan se aati hain</>}
+        meta="Har publisher ka discount, udhaar ke din aur kitna dena hai"
+        loading={listQ.isLoading}
+        actions={<>
+          {canEdit && <button type="button" onClick={() => seed.mutate()} disabled={seed.isPending} className={heroButton} title="Pakistan ke mash-hoor publisher jorein"><Download className="h-4 w-4" /><span className="hidden sm:inline">Mash-hoor publisher</span></button>}
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya publisher (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Publisher</button>}
+        </>}
+        stats={[
+          { label: 'Publisher', value: totals.active },
+          { label: 'Kitaben', value: totals.books },
+          { label: 'Dena hai', value: cost(totals.owed) },
+        ]}
+      />
 
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search publishers..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
-        </div>
-      </section>
+      <KpiRow cols={4}>
+        <KpiCard icon={Building2} color="#2563eb" label="Chalu publisher" value={totals.active} hint={`${all.length - totals.active} band`} />
+        <KpiCard icon={BookOpen} color="#0891b2" label="Kitaben jori hui" value={totals.books} />
+        <KpiCard icon={ShoppingCart} color="#16a34a" label="Ab tak kharida" value={cost(totals.bought)} hint="Supplier bano to ginti hai" />
+        <KpiCard icon={Wallet} color="#d97706" label="Publishers ko dena" value={cost(totals.owed)} hint="Supplier khata se" />
+      </KpiRow>
 
-      {showForm && (
-        <PublisherForm editing={editing} onClose={() => { setShowForm(false); setEditing(null); }} onSaved={() => { setShowForm(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ['publishers'] }); }} />
-      )}
+      <ViewTabs<Tab> tabs={[{ id: 'active', label: 'Chalu', count: totals.active }, { id: 'off', label: 'Band', count: all.length - totals.active }]} value={tab} onChange={setTab} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, shehar, banda ya phone" label="Search" />} />
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-        </div>
-      ) : publishers.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
-          <Building2 className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-          <p className="font-extrabold text-slate-700">No publishers yet</p>
-          <div className="mt-4 flex gap-2 justify-center flex-wrap">
-            <Button className="bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => seedMutation.mutate()} loading={seedMutation.isPending}>
-              <Zap className="h-4 w-4" />
-              Auto-Add 24 Publishers
-            </Button>
-            <Button variant="secondary" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" />
-              Add Manually
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {publishers.map((p) => (
-            <div key={p.id} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow overflow-hidden shrink-0">
-                    {p.logoUrl ? <img src={p.logoUrl} alt="" className="w-full h-full object-cover" /> : <Building2 className="h-7 w-7" />}
-                  </div>
+      {listQ.isLoading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-44 rounded-3xl" />)}</div>
+        : rows.length === 0 ? (
+          <EmptyBox icon={Building2} title={search ? 'Koi publisher nahi mila' : tab === 'off' ? 'Koi band publisher nahi' : 'Abhi koi publisher nahi'}
+            text="Publisher banayein ya mash-hoor Pakistani publisher ek click me jorein. Kitab banate waqt publisher chuna jata hai."
+            action={canEdit && !search && tab === 'active' ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Publisher banayein</Button> : undefined} />
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {rows.map((p) => (
+              <li key={p.id} className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700"><Building2 className="h-5 w-5" /></span>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">{p.name}</h3>
-                    {p.code && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{p.code}</div>}
-                    {(p.country || p.city) && (
-                      <div className="flex items-center gap-1 text-xs text-slate-500 font-bold">
-                        <MapPin className="h-3 w-3" />
-                        {[p.city, p.country].filter(Boolean).join(', ')}
-                      </div>
-                    )}
+                    <p className="truncate font-semibold text-slate-900">{p.name}</p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[p.city, p.contactPerson, p.phone].filter(Boolean).join(' · ') || '—'}</p>
                   </div>
+                  {p.defaultDiscountPct > 0 && <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-emerald-700 ring-1 ring-emerald-200"><Percent className="h-3 w-3" />{p.defaultDiscountPct}</span>}
                 </div>
-                <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                  <button onClick={() => { setEditing(p); setShowForm(true); }} className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-                    <Edit3 className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => { if (confirm('Deactivate "' + p.name + '"?')) removeMutation.mutate(p.id); }} className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                <dl className="mt-3 grid grid-cols-3 gap-2 rounded-2xl bg-slate-50 p-2.5 text-center text-[0.75rem]">
+                  <div><dt className="text-slate-500">Kitaben</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{p._count?.books ?? 0}</dd></div>
+                  <div><dt className="text-slate-500">Udhaar</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{p.creditDays ? `${p.creditDays} din` : 'Naqd'}</dd></div>
+                  <div><dt className="text-slate-500">Dena hai</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{p.supplier ? cost(p.supplier.outstandingDue) : '—'}</dd></div>
+                </dl>
+                {p.defaultDiscountPct > 0 && <p className="mt-2 text-[0.75rem] text-slate-500">Purchase bill par {p.defaultDiscountPct}% discount lagayein{p.paymentTerms ? ` · ${p.paymentTerms}` : ''}</p>}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {canBuy && p.isActive && <button type="button" onClick={() => supplier.mutate({ p, to: 'buy' })} disabled={supplier.isPending} className={cardLink}><ShoppingCart className="h-3.5 w-3.5" />Purchase</button>}
+                  {canSuppliers && p.supplier && <button type="button" onClick={() => navigate(`/suppliers/${p.supplier!.id}`)} className={cardAction} title="Khata, purchase bill aur wapsi"><Wallet className="h-3.5 w-3.5" />Khata / wapsi</button>}
+                  {canEdit && <>
+                    <button type="button" onClick={() => setForm(p)} className={cardAction}><Pencil className="h-3.5 w-3.5" />Badlein</button>
+                    {p.isActive
+                      ? <button type="button" onClick={() => setOff(p)} className={`ml-auto ${cardDanger}`}><Power className="h-3.5 w-3.5" />Band</button>
+                      : <button type="button" onClick={() => toggle.mutate(p)} className={`ml-auto ${cardLink}`}><Power className="h-3.5 w-3.5" />Chalu</button>}
+                  </>}
                 </div>
-              </div>
+              </li>
+            ))}
+          </ul>
+        )}
 
-              <div className="space-y-1 text-xs">
-                {p.contactPerson && <div className="flex items-center gap-1 text-slate-600 font-bold"><User className="h-3 w-3" />{p.contactPerson}</div>}
-                {p.phone && <div className="flex items-center gap-1 text-slate-600 font-bold"><Phone className="h-3 w-3" />{p.phone}</div>}
-                {p.email && <div className="flex items-center gap-1 text-slate-600 font-bold truncate"><Mail className="h-3 w-3" />{p.email}</div>}
-                {p.website && <a href={p.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold hover:underline truncate"><Globe className="h-3 w-3" />{p.website}</a>}
-              </div>
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-1 text-slate-600 font-bold">
-                  <BookOpen className="h-3 w-3" />
-                  {p._count?.books || 0} books
-                </span>
-                {p.defaultDiscountPct > 0 && (
-                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">
-                    {p.defaultDiscountPct}% discount
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </section>
+      {form && <PublisherModal publisher={form === 'new' ? null : form} pending={save.isPending} onSave={(body) => save.mutate({ id: form === 'new' ? undefined : form.id, body })} onClose={() => setForm(null)} />}
+      {off && <ConfirmModal title={`${off.name} band karein?`} text="Kitab banate waqt ye publisher nahi dikhega. Is ki kitaben, purchase aur khata waise hi rahenge." confirm="Band karein" danger pending={toggle.isPending} onConfirm={() => toggle.mutate(off)} onClose={() => setOff(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Publishers — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Building2, color: '#2563eb', title: 'Publisher', text: 'Oxford, Paramount, Punjab Textbook Board — kitab banate waqt publisher chunein, products page aur POS par us ke naam se dhoondein.' },
+            { icon: ShoppingCart, color: '#16a34a', title: 'Purchase', text: '"Purchase" dabane se publisher supplier ban jata hai aur naya purchase bill khulta hai. Publisher ka discount % bill ke discount me likhein.' },
+            { icon: Undo2, color: '#ea580c', title: 'Kitaben wapas', text: 'Season ke baad bachi kitaben publisher ko wapas: "Khata / wapsi" → Purchase tab → bill kholein aur Return karein. Stock aur dena dono kam ho jate hain.' },
+            { icon: Wallet, color: '#d97706', title: 'Khata', text: 'Kitna dena hai aur kab diya — supplier khata me. Udhaar ke din yahan likhein taake yaad rahe.' },
+          ]}
+          shortcuts={[['N', 'naya'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
       )}
-    </div>
+    </PageShell>
   );
 }
 
-function PublisherForm({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    name: editing?.name ?? '',
-    code: editing?.code ?? '',
-    country: editing?.country ?? '',
-    city: editing?.city ?? '',
-    website: editing?.website ?? '',
-    phone: editing?.phone ?? '',
-    email: editing?.email ?? '',
-    contactPerson: editing?.contactPerson ?? '',
-    logoUrl: editing?.logoUrl ?? '',
-    description: editing?.description ?? '',
-    defaultDiscountPct: editing?.defaultDiscountPct ?? 0,
-    paymentTerms: editing?.paymentTerms ?? '',
-    creditDays: editing?.creditDays ?? 0,
+function PublisherModal({ publisher, pending, onSave, onClose }: {
+  publisher: Publisher | null; pending: boolean; onSave: (v: Partial<Publisher>) => void; onClose: () => void;
+}) {
+  const [v, setV] = useState({
+    name: publisher?.name ?? '', city: publisher?.city ?? '', contactPerson: publisher?.contactPerson ?? '', phone: publisher?.phone ?? '',
+    email: publisher?.email ?? '', discount: publisher?.defaultDiscountPct ? String(publisher.defaultDiscountPct) : '',
+    days: publisher?.creditDays ? String(publisher.creditDays) : '', terms: publisher?.paymentTerms ?? '',
   });
-
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const payload = { ...form, defaultDiscountPct: Number(form.defaultDiscountPct) || 0, creditDays: Number(form.creditDays) || 0 };
-      return editing ? publishersApi.update(editing.id, payload) : publishersApi.create(payload);
-    },
-    onSuccess: () => { toast.success(editing ? 'Updated' : 'Created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
+  const set = (patch: Partial<typeof v>) => setV((x) => ({ ...x, ...patch }));
+  const [tried, setTried] = useState(false);
+  const errors = {
+    name: !v.name.trim() ? 'Naam likhein' : undefined,
+    discount: Number(v.discount) > 100 ? '100% se zyada nahi' : undefined,
+  };
+  const bad = Object.values(errors).some(Boolean);
+  const submit = () => {
+    setTried(true);
+    if (bad || pending) return;
+    const t = (s: string) => s.trim() || undefined;
+    onSave({
+      name: v.name.trim(), city: t(v.city), contactPerson: t(v.contactPerson), phone: t(v.phone), email: t(v.email),
+      defaultDiscountPct: Number(v.discount) || 0, creditDays: Number(v.days) || 0, paymentTerms: t(v.terms),
+    });
+  };
+  useSaveKey(submit);
   return (
-    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold">{editing ? 'Edit Publisher' : 'New Publisher'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
-      </div>
-      <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Publisher name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="Country" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+    <Modal open onClose={onClose} size="lg" title={publisher ? `${publisher.name} — badlein` : 'Naya publisher'} description="Ctrl+S se save"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={pending}>Save</Button></>}>
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Input label="Naam" required autoFocus value={v.name} onChange={(e) => set({ name: e.target.value })} error={tried ? errors.name : undefined} placeholder="Jaise: Oxford University Press" hint="Purchase aur supplier khata isi naam se banta hai" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Shehar" value={v.city} onChange={(e) => set({ city: e.target.value })} placeholder="Lahore" />
+          <Input label="Banda (rabta)" value={v.contactPerson} onChange={(e) => set({ contactPerson: e.target.value })} placeholder="Sales officer ka naam" />
+          <Input label="Phone" inputMode="tel" value={v.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="03xx xxxxxxx" />
+          <Input label="Email" type="email" value={v.email} onChange={(e) => set({ email: e.target.value })} placeholder="Marzi hai" />
         </div>
-        <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} placeholder="Contact person" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Discount %" inputMode="decimal" value={v.discount} onChange={(e) => set({ discount: decimal(e.target.value) })} error={errors.discount} placeholder="25" hint="Publisher dukaan ko kitna kam deta hai" />
+          <Input label="Udhaar ke din" inputMode="numeric" value={v.days} onChange={(e) => set({ days: digits(e.target.value) })} placeholder="30" hint="0 = naqd" />
+          <Input label="Shart" value={v.terms} onChange={(e) => set({ terms: e.target.value })} placeholder="Season ke baad wapsi" />
         </div>
-        <input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="Website" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
-
-        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-amber-900">💼 Business Terms</div>
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Default Discount %</label>
-              <input type="number" value={form.defaultDiscountPct} onChange={(e) => setForm({ ...form, defaultDiscountPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
-              <input type="number" value={form.creditDays} onChange={(e) => setForm({ ...form, creditDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Payment Terms</label>
-              <input value={form.paymentTerms} onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })} placeholder="Net 30" className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
-          {form.logoUrl ? (
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
-              <img src={form.logoUrl} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setForm({ ...form, logoUrl: '' })} className="absolute top-1 right-1 h-6 w-6 rounded bg-rose-600 text-white flex items-center justify-center"><X className="h-3 w-3" /></button>
-            </div>
-          ) : (
-            <UploadDropzone onUploaded={(records) => {
-              const first = Array.isArray(records) ? records[0] : records;
-              const url = typeof first === 'string' ? first : (first as any)?.url;
-              if (url) setForm({ ...form, logoUrl: url });
-            }} />
-          )}
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim()}>
-            <Save className="h-4 w-4" />
-            {editing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </section>
+      </form>
+    </Modal>
   );
 }

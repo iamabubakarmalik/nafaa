@@ -20,9 +20,10 @@ import type { PrintDoc } from '@core/print/types';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
-import { farmersApi, type DairyFarmer } from '../api/farmers.api';
+import { farmersApi, type DairyFarmer, type FarmerPayInput } from '../api/farmers.api';
 import { FarmerFormModal } from '../components/FarmerFormModal';
-import { Empty, ListCard, ListLoading, MoneyModal, Pill } from '../components/ui';
+import { FarmerPayModal } from '../components/FarmerPayModal';
+import { Empty, ListCard, ListLoading, Pill } from '../components/ui';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { CYCLE, DAIRY_KEYS, MONEY_KEYS, errorText, liters, shortDate } from '../lib/meta';
 
@@ -57,8 +58,8 @@ export default function FarmersPage() {
   usePageKeys(searchRef, canEdit ? { n: () => setForm('new') } : {});
 
   const pay = useMutation({
-    mutationFn: ({ f, v }: { f: DairyFarmer; v: { amount: number; paymentMethod: string; reference?: string; notes?: string } }) => farmersApi.payment(f.id, v),
-    onSuccess: () => { MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); qc.invalidateQueries({ queryKey: ['cash-register'] }); setPaying(null); toast.success('Payment likh di — cash ho to drawer se nikla'); },
+    mutationFn: ({ f, v }: { f: DairyFarmer; v: FarmerPayInput }) => farmersApi.payment(f.id, v),
+    onSuccess: () => { MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); qc.invalidateQueries({ queryKey: ['cash-register'] }); setPaying(null); toast.success('Payment likh di'); },
     onError: (e) => toast.error(errorText(e, 'Payment save nahi hui')),
   });
 
@@ -86,7 +87,7 @@ export default function FarmersPage() {
           steps={[
             { icon: Plus, color: '#16a34a', title: 'Naya gawala', text: 'Naam, phone, gaon aur ek liter ka rate. Fat zyada ho to har point par bonus — collection me khud lagta hai.' },
             { icon: Warehouse, color: '#2563eb', title: 'Doodh aaya', text: '"Doodh ki entry" page par subah aur shaam ka doodh likhein — stock me jata hai aur gawale ka hisaab barhta hai.' },
-            { icon: Wallet, color: '#d97706', title: 'Payment', text: 'Hafte ya mahine baad "Payment" dabayein. Cash khule drawer se nikalta hai; purani parchiyan pehle ada hoti hain.' },
+            { icon: Wallet, color: '#d97706', title: 'Payment', text: 'Hafte ya mahine baad "Payment" dabayein — galle se cash ya bank / JazzCash account se. Purani parchiyan pehle ada hoti hain.' },
           ]}
           shortcuts={[['/', 'search'], ['N', 'naya gawala'], ['G', 'guide']]} />
       )}
@@ -149,8 +150,7 @@ export default function FarmersPage() {
       </ListCard>
 
       {form && <FarmerFormModal farmer={form === 'new' ? undefined : form} onClose={() => setForm(null)} />}
-      {paying && <MoneyModal title={`${paying.name} ko payment`} description={`Dena hai ${money(paying.currentBalance)}`} due={paying.currentBalance} withNote busy={pay.isPending} cta="Payment dein"
-        hint="Cash ho to khule drawer se nikalta hai" onSubmit={(v) => pay.mutate({ f: paying, v })} onClose={() => setPaying(null)} />}
+      {paying && <FarmerPayModal name={paying.name} due={Math.max(paying.currentBalance, 0)} busy={pay.isPending} onSubmit={(v) => pay.mutate({ f: paying, v })} onClose={() => setPaying(null)} />}
     </PageShell>
   );
 }

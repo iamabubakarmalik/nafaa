@@ -1,6 +1,6 @@
 import { apiClient } from '@core/api/client';
 
-export type ArtSupplyCategory = 'CANVAS_ROLL' | 'CANVAS_STRETCHED' | 'CANVAS_PANEL' | 'DRAWING_PAPER'
+type ArtSupplyCategory = 'CANVAS_ROLL' | 'CANVAS_STRETCHED' | 'CANVAS_PANEL' | 'DRAWING_PAPER'
   | 'WATERCOLOR_PAPER' | 'ACRYLIC_PAPER' | 'OIL_PAPER' | 'SKETCH_PAPER' | 'PASTEL_PAPER'
   | 'ACRYLIC_PAINT' | 'OIL_PAINT' | 'WATERCOLOR_PAINT' | 'POSTER_PAINT' | 'FABRIC_PAINT'
   | 'GLASS_PAINT' | 'GOUACHE' | 'TEMPERA' | 'SPRAY_PAINT' | 'ENAMEL_PAINT' | 'BRUSH_FLAT'
@@ -41,5 +41,4 @@ export const artSupplyProfilesApi = {
   upsert: (data: any) => apiClient.post('/bookstore/art-supply-profiles', data).then(unwrap<ArtSupplyProfile>),
   list: (params?: any) => apiClient.get('/bookstore/art-supply-profiles', { params }).then(unwrap<ArtSupplyProfile[]>),
   byProduct: (productId: string) => apiClient.get('/bookstore/art-supply-profiles/by-product/' + productId).then(unwrap<ArtSupplyProfile | null>),
-  remove: (id: string) => apiClient.delete('/bookstore/art-supply-profiles/' + id).then(unwrap),
 };

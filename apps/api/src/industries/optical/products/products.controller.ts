@@ -62,6 +62,7 @@ export class OpticalProductsController {
     });
   }
 
+  @Get('facts') facts(@GetUser() user: AuthenticatedUser) { return this.service.facts(user); }
   @Get('by-category-count') byCategory(@GetUser() user: AuthenticatedUser) { return this.service.byCategory(user); }
   @Get('brands') brands(@GetUser() user: AuthenticatedUser) { return this.service.brands(user); }
   @Get('by-product/:productId') byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) { return this.service.byProduct(user, productId); }

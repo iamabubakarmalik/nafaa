@@ -1,319 +1,388 @@
-import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Scissors, Plus, Search, X, RefreshCw, Clock, CheckCircle2, XCircle,
-  Play, Calendar, Phone, User, DollarSign, Camera, Star, AlertTriangle,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { groomingApi, type PetGroomingStatus } from '../api/grooming.api';
-import { PosQuickCash } from '@modules/pos/components';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Grooming appointments: booking, work, ready, pickup. The day runs from
+ * the "Aaj" tab: start the bath, mark it ready (with any extra charges),
+ * and when the owner comes the shared checkout takes the money (cash,
+ * card, split or udhaar) and makes the bill. Advances wait on the
+ * customer's khata until then. Appointments are cancelled, never deleted;
+ * a voided pickup bill makes the visit ready for pickup again.
+ */
 
-const STATUS_META: Record<PetGroomingStatus, { label: string; color: string; bg: string; icon: any }> = {
-  SCHEDULED: { label: 'Scheduled', color: 'text-blue-700', bg: 'bg-blue-100', icon: Calendar },
-  CONFIRMED: { label: 'Confirmed', color: 'text-violet-700', bg: 'bg-violet-100', icon: CheckCircle2 },
-  IN_PROGRESS: { label: 'In Progress', color: 'text-amber-700', bg: 'bg-amber-100', icon: Play },
-  READY_FOR_PICKUP: { label: 'Ready', color: 'text-emerald-700', bg: 'bg-emerald-100', icon: CheckCircle2 },
-  COMPLETED: { label: 'Completed', color: 'text-slate-700', bg: 'bg-slate-100', icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancelled', color: 'text-rose-700', bg: 'bg-rose-100', icon: XCircle },
-  NO_SHOW: { label: 'No Show', color: 'text-red-700', bg: 'bg-red-100', icon: XCircle },
-};
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  BarChart3, CalendarDays, CheckCircle2, Download, GraduationCap, ListChecks, PawPrint, Phone, Play, Plus, Receipt, Scissors, Star,
+  UserX, Wallet, XCircle,
+} from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
+  Textarea, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { PosCheckoutModal, type PosCheckoutResult } from '@modules/pos/components';
+import { settingsApi } from '@modules/organization/settings/api/settings.api';
+import { groomersApi } from '../api/groomers.api';
+import { groomingApi, type PetGroomingAppointment, type PetGroomingStatus } from '../api/grooming.api';
+import { BarList, ConfirmModal, Empty, Info, ListCard, ListLoading, MoneyModal, Pager, Pill, actionBtn, primaryBtn } from '../components/ui';
+import { useDebounced, usePageKeys, useSaveKey } from '../hooks/usePageKeys';
+import { GROOM_STATUS, MONEY_KEYS, PET_KEYS, SERVICE, SPECIES_OPTIONS, dayKey, errorText, longDate, numIn, shortDate, speciesLabel } from '../lib/meta';
+
+type Tab = 'today' | 'open' | 'all' | 'analytics';
+type Action = 'view' | 'complete' | 'pickup' | 'advance' | 'cancel' | 'noshow' | 'rate';
+const LIMIT = 25;
+const STATUS_OPTIONS = [{ value: '', label: 'Sab halat' }, ...Object.entries(GROOM_STATUS).map(([value, s]) => ({ value, label: s.label }))];
+const due = (a: PetGroomingAppointment) => Math.max(Math.round((a.totalFee - a.paidAmount) * 100) / 100, 0);
+const r2 = (n: number) => Math.round(n * 100) / 100;
 
 export default function GroomingPage() {
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const canWork = usePermission(PERMISSIONS.POS_USE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('today');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [todayOnly, setTodayOnly] = useState(false);
+  const q = useDebounced(search.trim());
+  const [status, setStatus] = useState('');
+  const [groomerId, setGroomerId] = useState('');
+  const [species, setSpecies] = useState('');
+  const [period, setPeriod] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const [page, setPage] = useState(1);
+  const [act, setAct] = useState<{ a: PetGroomingAppointment; kind: Action } | null>(null);
+  const range = resolveRange(period, startHour);
 
-  const { data: appointments = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['grooming-list', statusFilter, todayOnly],
-    queryFn: () => groomingApi.list({
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      today: todayOnly,
-    }),
-  });
-
-  const { data: summary } = useQuery({
-    queryKey: ['grooming-summary'],
-    queryFn: () => groomingApi.summary(),
-  });
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return appointments;
-    return appointments.filter((a) =>
-      a.appointmentNumber.toLowerCase().includes(q) ||
-      a.customerName.toLowerCase().includes(q) ||
-      a.petName.toLowerCase().includes(q) ||
-      a.customerPhone.includes(q)
-    );
-  }, [appointments, search]);
-
-  const start = useMutation({
-    mutationFn: (id: string) => groomingApi.start(id),
-    onSuccess: () => {
-      toast.success('Grooming started');
-      qc.invalidateQueries({ queryKey: ['grooming-list'] });
-      qc.invalidateQueries({ queryKey: ['grooming-summary'] });
-    },
-  });
-
-  const complete = useMutation({
-    mutationFn: (id: string) => groomingApi.complete(id, {}),
-    onSuccess: () => {
-      toast.success('Marked ready for pickup');
-      qc.invalidateQueries({ queryKey: ['grooming-list'] });
-      qc.invalidateQueries({ queryKey: ['grooming-summary'] });
-    },
-  });
-
-  // Pickup is the checkout: the rest of the fee is taken here and a bill is made.
-  const [pickupFor, setPickupFor] = useState<any>(null);
-  const pickup = useMutation({
-    mutationFn: (v: { id: string; paymentMethod: string; paidAmount: number }) =>
-      groomingApi.pickup(v.id, { paymentMethod: v.paymentMethod, paidAmount: v.paidAmount }),
-    onSuccess: (r) => {
-      toast.success(r.sale ? `Pet de diya — bill ${r.sale.saleNumber}` : 'Pet de diya');
-      setPickupFor(null);
-      qc.invalidateQueries({ queryKey: ['grooming-list'] });
-      qc.invalidateQueries({ queryKey: ['grooming-summary'] });
-      if (r.sale && localStorage.getItem('nafaa.pos.auto-open-receipt') !== 'false') {
-        window.open(`/sales/${r.sale.id}/receipt?auto=1`, '_blank');
-      }
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Pickup nahi hua'),
-  });
-
-  return (
-    <div className="space-y-5">
-      {pickupFor && (
-        <PosQuickCash
-          total={Math.max(pickupFor.totalFee - pickupFor.paidAmount, 0)}
-          itemCount={1}
-          loading={pickup.isPending}
-          customerName={pickupFor.customerName}
-          hasCustomer
-          onConfirm={({ paymentMethod, paidAmount }) => pickup.mutate({ id: pickupFor.id, paymentMethod, paidAmount })}
-          onClose={() => setPickupFor(null)}
-        />
-      )}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Scissors className="h-3.5 w-3.5 text-amber-300" /> Grooming Appointments
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">✂️ Grooming</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {summary?.todayCount ?? 0} today • {summary?.inProgress ?? 0} in progress • {summary?.readyForPickup ?? 0} ready
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Link to="/petshop/grooming/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" /> Book Appointment
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Today" value={summary.todayCount} icon={Calendar} tone="blue" onClick={() => setTodayOnly(true)} />
-          <StatCard label="In Progress" value={summary.inProgress} icon={Play} tone="amber" onClick={() => setStatusFilter('IN_PROGRESS')} />
-          <StatCard label="Ready for Pickup" value={summary.readyForPickup} icon={CheckCircle2} tone="emerald" onClick={() => setStatusFilter('READY_FOR_PICKUP')} />
-          <StatCard label="Month Revenue" value={formatPKR(summary.monthly?.collected || 0)} icon={DollarSign} tone="violet" />
-        </section>
-      )}
-
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Appointment #, customer, pet, phone..."
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          <button onClick={() => setTodayOnly(!todayOnly)}
-            className={`h-12 px-4 rounded-2xl border-2 text-sm font-extrabold inline-flex items-center gap-1.5 ${
-              todayOnly ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white text-slate-700'}`}>
-            <Calendar className="h-4 w-4" /> Today Only
-          </button>
-        </div>
-
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-          {['all', 'SCHEDULED', 'CONFIRMED', 'IN_PROGRESS', 'READY_FOR_PICKUP', 'COMPLETED', 'CANCELLED'].map((v) => (
-            <button key={v} onClick={() => setStatusFilter(v)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${
-                statusFilter === v ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600'}`}>
-              {v === 'all' ? 'All' : STATUS_META[v as PetGroomingStatus]?.label || v}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Scissors className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No appointments</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Book the first grooming appointment</p>
-          <Link to="/petshop/grooming/new">
-            <Button className="mt-4 bg-gradient-to-r from-violet-600 to-purple-700"><Plus className="h-4 w-4" /> Book Now</Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((a) => (
-            <AppointmentCard key={a.id} appointment={a}
-              onStart={() => start.mutate(a.id)}
-              onComplete={() => complete.mutate(a.id)}
-              onPickup={() => setPickupFor(a)}
-              onEdit={() => navigate(`/petshop/grooming/${a.id}/edit`)} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function AppointmentCard({ appointment: a, onStart, onComplete, onPickup, onEdit }: any) {
-  const meta = STATUS_META[a.status as PetGroomingStatus];
-  const StatusIcon = meta.icon;
-  const balance = a.totalFee - a.paidAmount;
-
-  return (
-    <div className={`rounded-2xl bg-white border-2 shadow-sm p-4 hover:shadow-md transition ${
-      a.status === 'READY_FOR_PICKUP' ? 'border-emerald-300' :
-      a.status === 'IN_PROGRESS' ? 'border-amber-300' : 'border-slate-200'}`}>
-      <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
-        <div className={`h-14 w-14 rounded-2xl ${meta.bg} flex items-center justify-center shrink-0`}>
-          <StatusIcon className={`h-6 w-6 ${meta.color}`} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono font-extrabold text-slate-900 text-sm">{a.appointmentNumber}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
-              <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
-            </span>
-            {balance > 0 && a.status === 'READY_FOR_PICKUP' && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold">
-                Balance {formatPKR(balance)}
-              </span>
-            )}
-          </div>
-
-          <div className="mt-1 font-extrabold text-slate-900 text-sm">
-            🐾 {a.petName} <span className="text-slate-500 font-bold">({a.petSpecies}{a.petBreed && ` — ${a.petBreed}`})</span>
-          </div>
-
-          <div className="flex items-center gap-3 mt-1 text-xs text-slate-600 font-bold flex-wrap">
-            <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {a.customerName}</span>
-            <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {a.customerPhone}</span>
-            {a.groomerName && (<span className="inline-flex items-center gap-1">✂️ {a.groomerName}</span>)}
-          </div>
-
-          <div className="flex items-center gap-2 mt-1.5 text-[0.6875rem] text-slate-500 font-bold flex-wrap">
-            <span className="inline-flex items-center gap-0.5">
-              <Calendar className="h-2.5 w-2.5" />
-              {new Date(a.scheduledDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
-              {a.scheduledSlot && ` @ ${a.scheduledSlot}`}
-            </span>
-            <span>•</span>
-            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-extrabold">{a.serviceType.replace(/_/g, ' ')}</span>
-            {a.photosBeforeUrls?.length > 0 && (
-              <span className="inline-flex items-center gap-0.5">
-                <Camera className="h-2.5 w-2.5" /> {a.photosBeforeUrls.length} before
-              </span>
-            )}
-            {a.photosAfterUrls?.length > 0 && (
-              <span className="inline-flex items-center gap-0.5">
-                <Camera className="h-2.5 w-2.5" /> {a.photosAfterUrls.length} after
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total</div>
-          <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(a.totalFee)}</div>
-          {a.customerRating && (
-            <div className="mt-1 inline-flex items-center gap-0.5 text-amber-500">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className={`h-3 w-3 ${i < a.customerRating ? 'fill-current' : ''}`} />
-              ))}
-            </div>
-          )}
-          <div className="mt-2 flex flex-col gap-1">
-            {['SCHEDULED', 'CONFIRMED'].includes(a.status) && (
-              <button onClick={onStart}
-                className="h-8 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1">
-                <Play className="h-3 w-3" /> Start
-              </button>
-            )}
-            {a.status === 'IN_PROGRESS' && (
-              <button onClick={onComplete}
-                className="h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold inline-flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" /> Ready
-              </button>
-            )}
-            {a.status === 'READY_FOR_PICKUP' && (
-              <button onClick={onPickup}
-                className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold inline-flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" /> Pickup
-              </button>
-            )}
-            {['SCHEDULED', 'CONFIRMED'].includes(a.status) && (
-              <button onClick={onEdit}
-                className="h-8 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold">
-                Edit
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-cyan-700',
-    amber: 'from-amber-500 to-orange-700',
-    emerald: 'from-emerald-500 to-teal-700',
-    violet: 'from-violet-500 to-purple-700',
+  const params = {
+    search: q || undefined, groomerId: groomerId || undefined, species: species || undefined, page, limit: LIMIT,
+    status: status || (tab === 'open' ? 'OPEN' : undefined), today: tab === 'today' ? true : undefined,
+    from: tab === 'today' ? undefined : range?.from, to: tab === 'today' ? undefined : range?.to,
   };
-  const C: any = onClick ? 'button' : 'div';
+  const listQ = useQuery({ queryKey: [PET_KEYS.grooming, 'paged', params], queryFn: () => groomingApi.paged(params), enabled: tab !== 'analytics', placeholderData: (p) => p });
+  const openQ = useQuery({ queryKey: [PET_KEYS.grooming, 'open'], queryFn: () => groomingApi.paged({ status: 'OPEN', limit: 1 }) });
+  const todayQ = useQuery({ queryKey: [PET_KEYS.grooming, 'today'], queryFn: () => groomingApi.paged({ today: true, limit: 1 }) });
+  const anaQ = useQuery({ queryKey: [PET_KEYS.grooming, 'analytics', range], queryFn: () => groomingApi.analytics({ from: range?.from, to: range?.to }), enabled: tab === 'analytics' });
+  const groomersQ = useQuery({ queryKey: [PET_KEYS.groomers, 'active'], queryFn: () => groomersApi.list({ active: true }), staleTime: 60_000 });
+  const rows = listQ.data?.items ?? [];
+  const counts = openQ.data?.counts ?? {};
+  usePageKeys(searchRef, { t: () => setTab('today'), a: () => setTab('analytics') });
+
+  const refresh = () => [PET_KEYS.grooming, 'petshop-dashboard-overview', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const done = (msg: string) => { refresh(); setAct(null); toast.success(msg); };
+  const start = useMutation({
+    mutationFn: (a: PetGroomingAppointment) => groomingApi.start(a.id),
+    onSuccess: (a) => done(`${a.petName}: kaam shuru`),
+    onError: (e) => toast.error(errorText(e, 'Shuru nahi hua')),
+  });
+  const setState = useMutation({
+    mutationFn: ({ a, to, reason }: { a: PetGroomingAppointment; to: PetGroomingStatus; reason?: string }) => groomingApi.updateStatus(a.id, { status: to, reason }),
+    onSuccess: (a) => done(`${a.petName}: ${GROOM_STATUS[a.status].label}`),
+    onError: (e) => toast.error(errorText(e, 'Halat nahi badli')),
+  });
+  const cancel = useMutation({
+    mutationFn: ({ a }: { a: PetGroomingAppointment }) => groomingApi.cancel(a.id),
+    onSuccess: (a) => done(a.paidAmount > 0 ? 'Cancel — advance customer ke khate me jama hai' : 'Appointment cancel'),
+    onError: (e) => toast.error(errorText(e, 'Cancel nahi hua')),
+  });
+
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is filter me kuch nahi'); return; }
+    downloadCsv('grooming.csv', [
+      ['Number', 'Date', 'Waqt', 'Pet', 'Janwar', 'Malik', 'Phone', 'Service', 'Groomer', 'Fee', 'Mila', 'Baqi', 'Halat'],
+      ...rows.map((a) => [a.appointmentNumber, a.scheduledDate.slice(0, 10), a.scheduledSlot ?? '', a.petName, speciesLabel(a.petSpecies), a.customerName, a.customerPhone,
+        SERVICE[a.serviceType], a.groomerName ?? '', a.totalFee, a.paidAmount, due(a), GROOM_STATUS[a.status]?.label]),
+    ]);
+  };
+  const printList = (): PrintDoc => ({
+    title: tab === 'today' ? 'Aaj ki grooming' : 'Grooming', subtitle: tab === 'today' ? longDate(dayKey()) : undefined,
+    meta: [['Kitne', String(rows.length)]],
+    sections: [{
+      kind: 'table', title: 'Appointments',
+      columns: [{ label: 'Waqt' }, { label: 'Pet' }, { label: 'Malik' }, { label: 'Service' }, { label: 'Groomer', wideOnly: true }, { label: 'Baqi', align: 'right' }],
+      rows: rows.map((a) => [a.scheduledSlot ?? shortDate(a.scheduledDate), `${a.petName} (${speciesLabel(a.petSpecies)})`, `${a.customerName} ${a.customerPhone}`, SERVICE[a.serviceType], a.groomerName ?? '', money(due(a))]),
+    }],
+  });
+  const clear = () => { setSearch(''); setStatus(''); setGroomerId(''); setSpecies(''); setPeriod({ preset: 'all', custom: { from: '', to: '' } }); setPage(1); };
+  const filtered = !!(search.trim() || status || groomerId || species || (tab !== 'today' && range));
+  const groomerOptions = [{ value: '', label: 'Sab groomers' }, ...(groomersQ.data ?? []).map((g) => ({ value: g.id, label: g.name }))];
+
   return (
-    <C onClick={onClick}
-      className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Grooming" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#0284c7', title: 'Booking', text: '"Nayi booking" me pet, malik ka phone, service, din aur groomer ka khali waqt chunein.' },
+            { icon: Play, color: '#d97706', title: 'Kaam', text: 'Pet aaye to "Shuru", kaam khatam ho to "Tayyar" — extra service ya discount yahin likhein.' },
+            { icon: Receipt, color: '#16a34a', title: 'Le jayein = bill', text: '"Le jayein" par counter wala checkout khulta hai — cash, card, split ya udhaar. Bill sales aur day book me jata hai.' },
+            { icon: Wallet, color: '#7c3aed', title: 'Advance', text: 'Pehle paisa liya to "Advance" — customer ke khate me jama; bill par khud kat jata hai.' },
+          ]}
+          shortcuts={[['/', 'search'], ['T', 'aaj'], ['A', 'analytics'], ['G', 'guide']]} />
+      )}
+
+      <PageHero title="Grooming" busy={listQ.isFetching && !listQ.isLoading} loading={openQ.isLoading} meta="Booking se bill tak"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/petshop/groomers" className={heroButton}><Scissors className="h-4 w-4" />Groomers</Link>
+          {canWork && <Link to="/petshop/grooming/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Nayi booking</Link>}
+        </>}
+        stats={[
+          { label: 'Aaj', value: String(todayQ.data?.total ?? 0) },
+          { label: 'Chalu', value: String(openQ.data?.total ?? 0) },
+          { label: 'Chalu ka baqi', value: money(Math.max((openQ.data?.totals.fee ?? 0) - (openQ.data?.totals.paid ?? 0), 0)) },
+        ]} />
+
+      <KpiRow cols={4}>
+        {openQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (<>
+          <KpiCard icon={CalendarDays} color="#0284c7" label="Booking / pakki" value={(counts.SCHEDULED ?? 0) + (counts.CONFIRMED ?? 0)} />
+          <KpiCard icon={Play} color="#d97706" label="Kaam jari" value={counts.IN_PROGRESS ?? 0} active={status === 'IN_PROGRESS'} onClick={() => { setStatus(status === 'IN_PROGRESS' ? '' : 'IN_PROGRESS'); setTab('all'); setPage(1); }} />
+          <KpiCard icon={PawPrint} color="#7c3aed" label="Tayyar — le jayein" value={counts.READY_FOR_PICKUP ?? 0} active={status === 'READY_FOR_PICKUP'} onClick={() => { setStatus(status === 'READY_FOR_PICKUP' ? '' : 'READY_FOR_PICKUP'); setTab('all'); setPage(1); }} />
+          <KpiCard icon={Wallet} color="#16a34a" label="Advance mila (chalu)" value={money(openQ.data?.totals.paid ?? 0)} hint="Customer ke khate me" />
+        </>)}
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Pet, malik, phone ya number…" />}
+        chips={filtered ? <>
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+          {status && <FilterChip onRemove={() => setStatus('')}>{GROOM_STATUS[status as PetGroomingStatus]?.label}</FilterChip>}
+          {groomerId && <FilterChip onRemove={() => setGroomerId('')}>{groomerOptions.find((g) => g.value === groomerId)?.label}</FilterChip>}
+          {species && <FilterChip onRemove={() => setSpecies('')}>{speciesLabel(species)}</FilterChip>}
+          {tab !== 'today' && range && <FilterChip onRemove={() => setPeriod({ preset: 'all', custom: { from: '', to: '' } })}>{range.from} → {range.to}</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <FilterMenu icon={ListChecks} label={status ? GROOM_STATUS[status as PetGroomingStatus]?.label : 'Halat'} value={status} active={!!status} options={STATUS_OPTIONS} onChange={(v) => { setStatus(v); setPage(1); }} />
+        <FilterMenu icon={Scissors} label={groomerId ? groomerOptions.find((g) => g.value === groomerId)?.label ?? 'Groomer' : 'Groomer'} value={groomerId} active={!!groomerId} options={groomerOptions} onChange={(v) => { setGroomerId(v); setPage(1); }} />
+        <FilterMenu icon={PawPrint} label={species ? speciesLabel(species) : 'Janwar'} value={species} active={!!species} options={[{ value: '', label: 'Sab janwar' }, ...SPECIES_OPTIONS]} onChange={(v) => { setSpecies(v); setPage(1); }} />
+        {tab !== 'today' && <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Din" />}
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={(t) => { setTab(t); setPage(1); }} hint="Appointment par click kar ke tafseel aur print"
+        tabs={[
+          { id: 'today', label: 'Aaj', icon: CalendarDays, count: todayQ.data?.total ?? null },
+          { id: 'open', label: 'Chalu', icon: Play, count: openQ.data?.total ?? null },
+          { id: 'all', label: 'Sab', icon: ListChecks },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
+
+      {tab === 'analytics' ? (
+        anaQ.isLoading || !anaQ.data ? <ListLoading /> : (
+          <div className="space-y-4">
+            <KpiRow cols={4}>
+              <KpiCard icon={CalendarDays} color="#0284c7" label="Bookings" value={anaQ.data.booked} />
+              <KpiCard icon={CheckCircle2} color="#16a34a" label="Mukammal" value={anaQ.data.done} hint={money(anaQ.data.value)} />
+              <KpiCard icon={UserX} color="#e11d48" label="Nahi aaye / cancel" value={anaQ.data.noShow + anaQ.data.cancelled} />
+              <KpiCard icon={Star} color="#d97706" label="Rating" value={anaQ.data.avgRating ?? '—'} />
+            </KpiRow>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <BarList title="Service" money={money} rows={anaQ.data.byService.map((r) => ({ ...r, label: SERVICE[r.key as keyof typeof SERVICE] ?? r.key }))} />
+              <BarList title="Groomer" money={money} rows={anaQ.data.byGroomer} />
+              <BarList title="Janwar" money={money} rows={anaQ.data.bySpecies.map((r) => ({ ...r, label: speciesLabel(r.key) }))} />
+              <BarList title="Din ba din" money={money} rows={anaQ.data.byDay.map((r) => ({ ...r, label: shortDate(r.key) }))} />
+            </div>
+          </div>
+        )
+      ) : (
+        <ListCard footer={listQ.data && <Pager page={page} total={listQ.data.total} limit={LIMIT} onPage={setPage} />}>
+          {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
+            <Empty icon={Scissors} title={tab === 'today' ? 'Aaj koi booking nahi' : 'Is filter me kuch nahi'} text="Nahlana, baal katna, nakhun — booking banayein, groomer ka waqt khud bachta hai."
+              action={canWork ? <Link to="/petshop/grooming/new" className={primaryBtn}><Plus className="h-4 w-4" />Nayi booking</Link> : undefined} />
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {rows.map((a) => {
+                const owed = due(a);
+                return (
+                  <li key={a.id} className="grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_9rem_9rem_auto] lg:items-center">
+                    <button type="button" onClick={() => setAct({ a, kind: 'view' })} className="min-w-0 text-left">
+                      <p className="truncate font-semibold text-slate-900 hover:underline">{a.petName} <span className="font-normal text-slate-500">· {speciesLabel(a.petSpecies)}{a.petBreed ? ` · ${a.petBreed}` : ''}</span></p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{[a.customerName, a.customerPhone, SERVICE[a.serviceType], a.groomerName].filter(Boolean).join(' · ')}</p>
+                    </button>
+                    <p className="text-[0.8125rem] text-slate-700">{shortDate(a.scheduledDate)}<span className="block text-[0.75rem] text-slate-500">{a.scheduledSlot ?? 'Waqt nahi'}</span></p>
+                    <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(a.totalFee)}
+                      <span className={cn('block text-[0.75rem] font-medium', owed > 0.009 ? 'text-rose-700' : 'text-emerald-700')}>{a.status === 'COMPLETED' ? 'Bill ban gaya' : owed > 0.009 ? `${money(owed)} baqi` : 'Poora mila'}</span></p>
+                    <div className="flex flex-wrap items-center justify-end gap-1.5">
+                      <Pill tone={GROOM_STATUS[a.status]?.tone ?? ''}>{GROOM_STATUS[a.status]?.label}</Pill>
+                      {canWork && (a.status === 'SCHEDULED' || a.status === 'CONFIRMED') && <button type="button" disabled={start.isPending} onClick={() => start.mutate(a)} className={actionBtn}><Play className="h-4 w-4" />Shuru</button>}
+                      {canWork && a.status === 'IN_PROGRESS' && <button type="button" onClick={() => setAct({ a, kind: 'complete' })} className={actionBtn}><CheckCircle2 className="h-4 w-4" />Tayyar</button>}
+                      {canWork && a.status === 'READY_FOR_PICKUP' && <button type="button" onClick={() => setAct({ a, kind: 'pickup' })} className={primaryBtn}><Receipt className="h-4 w-4" />Le jayein (bill)</button>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </ListCard>
+      )}
+
+      {act?.kind === 'view' && <AppointmentModal a={act.a} money={money} canWork={canWork} onAction={(kind) => setAct({ a: act.a, kind })} onClose={() => setAct(null)} />}
+      {act?.kind === 'complete' && <CompleteModal a={act.a} money={money} onClose={() => setAct(null)} onDone={() => done(`${act.a.petName} tayyar — malik ko bulayein`)} />}
+      {act?.kind === 'pickup' && <PickupCheckout a={act.a} onClose={() => setAct(null)} onDone={(msg) => done(msg)} />}
+      {act?.kind === 'advance' && <AdvanceModal a={act.a} money={money} onClose={() => setAct(null)} onDone={(amt) => done(`${money(amt)} advance khate me jama`)} />}
+      {act?.kind === 'rate' && <RateModal a={act.a} onClose={() => setAct(null)} onDone={() => done('Rating save')} />}
+      {act?.kind === 'cancel' && <ConfirmModal title="Appointment cancel?" cta="Haan, cancel" danger busy={cancel.isPending} onConfirm={() => cancel.mutate({ a: act.a })} onClose={() => setAct(null)}
+        text={act.a.paidAmount > 0 ? `${money(act.a.paidAmount)} advance customer ke khate me jama rahega — wapas dena ho to Khata se dein.` : 'Record rehta hai, sirf cancel hota hai.'} />}
+      {act?.kind === 'noshow' && <ConfirmModal title="Customer nahi aaye?" cta="Haan, nahi aaye" busy={setState.isPending} onConfirm={() => setState.mutate({ a: act.a, to: 'NO_SHOW' })} onClose={() => setAct(null)}
+        text="Groomer ka waqt khali ho jayega. Baad me aayein to dobara booking karein." />}
+    </PageShell>
+  );
+}
+
+function AppointmentModal({ a, money, canWork, onAction, onClose }: {
+  a: PetGroomingAppointment; money: (n: number) => string; canWork: boolean; onAction: (k: Action) => void; onClose: () => void;
+}) {
+  const detailQ = useQuery({ queryKey: [PET_KEYS.grooming, 'one', a.id], queryFn: () => groomingApi.getOne(a.id) });
+  const full = detailQ.data ?? a;
+  const owed = due(full);
+  const booking = full.status === 'SCHEDULED' || full.status === 'CONFIRMED';
+  const open = booking || full.status === 'IN_PROGRESS' || full.status === 'READY_FOR_PICKUP';
+  const slip = (): PrintDoc => ({
+    title: `Grooming ${full.appointmentNumber}`, subtitle: `${longDate(full.scheduledDate)} ${full.scheduledSlot ?? ''}`,
+    meta: [['Fee', money(full.totalFee)], ['Mila', money(full.paidAmount)], ['Baqi', money(owed)]],
+    sections: [{ kind: 'rows', title: 'Pet', rows: [
+      { label: 'Pet', value: `${full.petName} · ${speciesLabel(full.petSpecies)} ${full.petBreed ?? ''}` }, { label: 'Malik', value: `${full.customerName} ${full.customerPhone}` },
+      { label: 'Service', value: [SERVICE[full.serviceType], ...full.additionalServices.map((s) => SERVICE[s])].join(', ') }, { label: 'Groomer', value: full.groomerName ?? '—' },
+      { label: 'Khayal', value: [full.petTemperament, full.petAllergies, full.petSpecialInstructions].filter(Boolean).join(' · ') || '—' },
+    ] }],
+  });
+  return (
+    <Modal open onClose={onClose} size="lg" title={`${full.petName} · ${GROOM_STATUS[full.status].label}`} description={`${full.appointmentNumber} · ${longDate(full.scheduledDate)} ${full.scheduledSlot ?? ''}`}
+      footer={<div className="flex w-full flex-wrap items-center gap-2">
+        <PrintButton doc={slip} label="Slip" size="sm" />
+        {canWork && booking && <Link to={`/petshop/grooming/${full.id}/edit`} className={actionBtn}>Badlein</Link>}
+        {canWork && booking && <Button variant="secondary" size="sm" onClick={() => onAction('noshow')}><UserX className="h-4 w-4" />Nahi aaye</Button>}
+        {canWork && booking && <Button variant="secondary" size="sm" onClick={() => onAction('cancel')}><XCircle className="h-4 w-4" />Cancel</Button>}
+        {canWork && full.status === 'COMPLETED' && !full.customerRating && <Button variant="secondary" size="sm" onClick={() => onAction('rate')}><Star className="h-4 w-4" />Rating</Button>}
+        <span className="flex-1" />
+        {canWork && open && owed > 0.009 && full.status !== 'READY_FOR_PICKUP' && <Button variant="secondary" onClick={() => onAction('advance')}><Wallet className="h-4 w-4" />Advance</Button>}
+        {canWork && full.status === 'IN_PROGRESS' && <Button onClick={() => onAction('complete')}><CheckCircle2 className="h-4 w-4" />Tayyar</Button>}
+        {canWork && full.status === 'READY_FOR_PICKUP' && <Button onClick={() => onAction('pickup')}><Receipt className="h-4 w-4" />Le jayein (bill)</Button>}
+      </div>}>
+      <div className="space-y-4 text-[0.875rem]">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Info icon={PawPrint} title="Pet">
+            <p className="font-semibold text-slate-900">{full.petName} · {speciesLabel(full.petSpecies)}</p>
+            <p className="text-slate-600">{[full.petBreed, full.petWeightKg ? `${full.petWeightKg} kg` : null, full.petTemperament].filter(Boolean).join(' · ') || '—'}</p>
+            {full.petAllergies && <p className="text-rose-700">Allergy: {full.petAllergies}</p>}
+          </Info>
+          <Info icon={Phone} title="Malik">
+            <p className="font-semibold text-slate-900">{full.customerName}</p>
+            <a href={`tel:${full.customerPhone}`} className="text-brand-700 hover:underline">{full.customerPhone}</a>
+          </Info>
         </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>
-          <Icon className="h-4 w-4" />
+        <div className="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+          <ul className="divide-y divide-slate-100">
+            <li className="flex justify-between px-4 py-2"><span>{SERVICE[full.serviceType]}</span><span className="tabular-nums">{money(full.serviceFee)}</span></li>
+            {full.additionalCharges > 0 && <li className="flex justify-between px-4 py-2 text-slate-600"><span>Extra ({full.additionalServices.map((s) => SERVICE[s]).join(', ') || 'service'})</span><span className="tabular-nums">{money(full.additionalCharges)}</span></li>}
+            {full.discount > 0 && <li className="flex justify-between px-4 py-2 text-slate-600"><span>Discount</span><span className="tabular-nums">−{money(full.discount)}</span></li>}
+            <li className="flex justify-between bg-slate-50 px-4 py-2 font-semibold"><span>Total · mila {money(full.paidAmount)}</span><span className="tabular-nums">{money(full.totalFee)}</span></li>
+          </ul>
         </div>
+        {full.groomerNotes && <p className="whitespace-pre-line text-slate-600">{full.groomerNotes}</p>}
+        {full.customerRating && <p className="text-amber-700">{'★'.repeat(full.customerRating)}{full.customerFeedback ? ` — ${full.customerFeedback}` : ''}</p>}
+        {(full.previousVisits?.length ?? 0) > 0 && (
+          <div>
+            <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">Pichli visits</p>
+            <ul className="space-y-1 text-[0.8125rem] text-slate-600">{full.previousVisits!.slice(0, 5).map((v) => <li key={v.id}>{shortDate(v.scheduledDate)} · {v.petName} · {SERVICE[v.serviceType]} · {money(v.totalFee)}</li>)}</ul>
+          </div>
+        )}
       </div>
-    </C>
+    </Modal>
+  );
+}
+
+function CompleteModal({ a, money, onClose, onDone }: { a: PetGroomingAppointment; money: (n: number) => string; onClose: () => void; onDone: () => void }) {
+  const [extra, setExtra] = useState(a.additionalCharges ? String(a.additionalCharges) : '');
+  const [discount, setDiscount] = useState(a.discount ? String(a.discount) : '');
+  const [notes, setNotes] = useState('');
+  const ex = numIn(extra) ?? 0;
+  const dis = numIn(discount) ?? 0;
+  const total = Math.max(a.serviceFee + ex - dis, 0);
+  const error = ex < 0 || dis < 0 ? 'Amount sahi likhein' : total < a.paidAmount - 0.01 ? `${money(a.paidAmount)} pehle mil chuke — total us se kam nahi` : '';
+  const save = useMutation({
+    mutationFn: () => groomingApi.complete(a.id, { additionalCharges: ex, discount: dis, groomerNotes: notes.trim() || undefined }),
+    onSuccess: onDone,
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+  });
+  const submit = () => { if (error) { toast.error(error); return; } if (!save.isPending) save.mutate(); };
+  useSaveKey(submit);
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${a.petName} tayyar`} description="Extra service ya discount ho to likhein"
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={submit}>Tayyar hai</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Extra (Rs)" inputMode="decimal" value={extra} onChange={(e) => setExtra(e.target.value)} hint="Pissu, nakhun waghera" />
+          <Input label="Discount (Rs)" inputMode="decimal" value={discount} onChange={(e) => setDiscount(e.target.value)} error={error || undefined} />
+        </div>
+        <Textarea label="Groomer ka note (marzi)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Kaan me infection — doctor ko dikhayein" />
+        <p className="text-[0.875rem] font-semibold text-slate-900">Total {money(total)} · baqi {money(Math.max(total - a.paidAmount, 0))}</p>
+      </form>
+    </Modal>
+  );
+}
+
+/** Pickup with the counter's checkout: full, part (rest udhaar), udhaar or split. */
+function PickupCheckout({ a, onClose, onDone }: { a: PetGroomingAppointment; onClose: () => void; onDone: (msg: string) => void }) {
+  const owed = due(a);
+  const { data: counter } = useQuery({ queryKey: ['settings', 'counter'], queryFn: () => settingsApi.counter(), staleTime: 5 * 60_000 });
+  const pickup = useMutation({
+    mutationFn: (pay: PosCheckoutResult) => {
+      if (pay.payments && pay.payments.length > 1) return groomingApi.pickup(a.id, { payments: pay.payments.map((p) => ({ method: p.method, amount: p.amount })) });
+      const paid = pay.isCredit && pay.paidAmount <= 0 ? 0 : pay.depositExtra ? Math.min(pay.paidAmount, owed) : pay.paidAmount;
+      return groomingApi.pickup(a.id, { paymentMethod: pay.paymentMethod, paidAmount: r2(paid) });
+    },
+    onSuccess: (r) => {
+      const change = r.change ?? 0;
+      onDone(`Bill ${r.sale?.saleNumber ?? ''} ban gaya${change > 0.009 ? ` — Rs ${change} wapas dein` : ''}`);
+    },
+    onError: (e) => toast.error(errorText(e, 'Bill nahi bana')),
+  });
+  if (owed <= 0.009) {
+    return <ConfirmModal title={`${a.petName} le jayein?`} cta="Haan, bill banayein" busy={pickup.isPending} onClose={onClose}
+      onConfirm={() => pickup.mutate({ paymentMethod: 'CASH', paidAmount: 0, isCredit: false, depositExtra: false })}
+      text="Poora paisa pehle mil chuka hai (khate me). Bill banega aur advance us me se kat jayega." />;
+  }
+  return (
+    <PosCheckoutModal total={owed} itemCount={1} loading={pickup.isPending} initMode="full" customerName={a.customerName} hasCustomer
+      allowCredit={counter?.allowCredit ?? true} initMethod={(counter?.defaultPaymentMethod as PosCheckoutResult['paymentMethod']) || 'CASH'}
+      onConfirm={(d) => pickup.mutate(d)} onClose={() => { if (!pickup.isPending) onClose(); }} />
+  );
+}
+
+function AdvanceModal({ a, money, onClose, onDone }: { a: PetGroomingAppointment; money: (n: number) => string; onClose: () => void; onDone: (amount: number) => void }) {
+  const owed = due(a);
+  const pay = useMutation({
+    mutationFn: (v: { amount: number; paymentMethod: string }) => groomingApi.payment(a.id, { amount: v.amount, paymentMethod: v.paymentMethod }),
+    onSuccess: (_, v) => onDone(v.amount),
+    onError: (e) => toast.error(errorText(e, 'Advance save nahi hua')),
+  });
+  return <MoneyModal title="Advance lein" description={`${a.petName} — baqi ${money(owed)}`} due={owed} max={owed} busy={pay.isPending} cta="Advance lein"
+    hint="Customer ke khate me jama; pickup ke bill par kat jata hai" onSubmit={(v) => pay.mutate(v)} onClose={onClose} />;
+}
+
+function RateModal({ a, onClose, onDone }: { a: PetGroomingAppointment; onClose: () => void; onDone: () => void }) {
+  const [rating, setRating] = useState(5);
+  const [feedback, setFeedback] = useState('');
+  const save = useMutation({
+    mutationFn: () => groomingApi.rate(a.id, { rating, feedback: feedback.trim() || undefined }),
+    onSuccess: onDone,
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title="Customer ki rating" description={a.petName}
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={() => save.mutate()}>Save</Button></>}>
+      <div className="space-y-3">
+        <div className="flex gap-1">{[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" onClick={() => setRating(n)} aria-label={`${n} star`} className={cn('text-2xl', n <= rating ? 'text-amber-500' : 'text-slate-300')}>★</button>)}</div>
+        <Textarea label="Kya kaha (marzi)" rows={2} value={feedback} onChange={(e) => setFeedback(e.target.value)} />
+      </div>
+    </Modal>
   );
 }

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ShoeCategoryType, ShoeGender, ShoeSizeSystem, ShoeWidth } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 
 export class UpsertShoeProductDto {
   @ApiProperty() @IsString() productId!: string;
@@ -71,4 +72,18 @@ export class UpsertShoeProductDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isEidSpecial?: boolean;
 
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
+}
+
+class VariantSizeDto {
+  @ApiProperty() @IsString() variantId!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) size?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) color?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(9) colorHex?: string;
+}
+
+/** Size and colour of the variants made by the size grid. */
+export class VariantSizesDto {
+  @ApiProperty({ type: [VariantSizeDto] })
+  @IsArray() @ArrayMinSize(1) @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => VariantSizeDto)
+  items!: VariantSizeDto[];
 }

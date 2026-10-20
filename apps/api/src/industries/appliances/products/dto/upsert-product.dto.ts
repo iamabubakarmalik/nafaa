@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApplianceCategoryType, ApplianceEnergyRating } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpsertApplianceProductDto {
   @ApiProperty() @IsString() productId!: string;
@@ -46,10 +46,11 @@ export class UpsertApplianceProductDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() hdmiPorts?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() usbPorts?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() warrantyMonths?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() compressorWarrantyMonths?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() motorWarrantyMonths?: number;
-  @ApiPropertyOptional() @IsOptional() @IsString() warrantyType?: string;
+  @ApiPropertyOptional({ description: 'Company warranty, months' }) @IsOptional() @IsInt() @Min(0, { message: 'Warranty ke mahine ulte nahi ho sakte' }) @Max(240, { message: 'Warranty 240 mahine se zyada nahi' }) warrantyMonths?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0, { message: 'Warranty ke mahine ulte nahi ho sakte' }) @Max(240, { message: 'Warranty 240 mahine se zyada nahi' }) compressorWarrantyMonths?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0, { message: 'Warranty ke mahine ulte nahi ho sakte' }) @Max(240, { message: 'Warranty 240 mahine se zyada nahi' }) motorWarrantyMonths?: number;
+  @ApiPropertyOptional({ description: 'Whose warranty the unit carries: COMPANY, SHOP or BOTH' }) @IsOptional() @IsIn(['COMPANY', 'SHOP', 'BOTH']) warrantyType?: string;
+  @ApiPropertyOptional({ description: "Shop's own warranty, months, on top of the company's" }) @IsOptional() @IsInt() @Min(0, { message: 'Dukaan ki warranty ulti nahi ho sakti' }) @Max(120, { message: 'Dukaan ki warranty 120 mahine se zyada nahi' }) shopWarrantyMonths?: number;
 
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresInstallation?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsNumber() installationCharge?: number;

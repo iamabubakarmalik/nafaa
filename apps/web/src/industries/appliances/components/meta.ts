@@ -13,6 +13,7 @@ export const TECH_KEY = 'appliance-technicians';
 export const AMC_KEY = 'appliance-amc';
 export const DELIVERY_KEY = 'appliance-deliveries';
 export const SERIAL_KEY = 'appliance-serials';
+export const TRADE_IN_KEY = 'appliance-trade-ins';
 export const CLAIM_KEY = 'appliance-claims';
 export const PROFILE_KEY = 'appliance-profiles';
 
@@ -197,6 +198,19 @@ const SERIAL_STATUS: Record<string, Meta> = {
 export const serialStatusOf = (s?: string | null) => pick(SERIAL_STATUS, s);
 export const SERIAL_STATUSES = ['IN_STOCK', 'SOLD', 'RESERVED', 'IN_REPAIR', 'RETURNED', 'DEFECTIVE', 'LOST'];
 
+/* ── Old appliance taken in trade ── */
+const TRADE_IN_STATUS: Record<string, Meta> = {
+  HELD: { label: 'Dukaan me', tone: tone.amber, color: '#d97706' },
+  SOLD: { label: 'Bech diya', tone: tone.green, color: '#16a34a' },
+  SCRAPPED: { label: 'Kabar', tone: tone.slate, color: '#64748b' },
+  RETURNED: { label: 'Customer ko wapas', tone: tone.sky, color: '#0284c7' },
+};
+export const tradeInStatusOf = (s?: string | null) => pick(TRADE_IN_STATUS, s);
+export const TRADE_IN_CONDITIONS: Array<{ value: 'WORKING' | 'NEEDS_REPAIR' | 'SCRAP'; label: string }> = [
+  { value: 'WORKING', label: 'Chalta hai' }, { value: 'NEEDS_REPAIR', label: 'Repair chahiye' }, { value: 'SCRAP', label: 'Sirf kabar' },
+];
+export const conditionLabel = (c?: string | null) => TRADE_IN_CONDITIONS.find((x) => x.value === c)?.label ?? '';
+
 /* ── AMC ── */
 export const AMC_PLANS: Record<string, { label: string; hint: string; color: string }> = {
   BASIC: { label: 'Basic', hint: 'Sirf checking visits', color: '#64748b' },
@@ -225,7 +239,7 @@ const CLAIM_STATUS: Record<string, Meta> = {
   SETTLED: { label: 'Paisa mil gaya', tone: tone.violet, color: '#8b5cf6' },
 };
 export const claimStatusOf = (s?: string | null) => pick(CLAIM_STATUS, s);
-export const WARRANTY_KIND: Record<string, string> = { MAIN: 'Poori warranty', COMPRESSOR: 'Compressor', MOTOR: 'Motor' };
+export const WARRANTY_KIND: Record<string, string> = { MAIN: 'Company warranty', COMPRESSOR: 'Compressor', MOTOR: 'Motor', SHOP: 'Dukaan warranty' };
 
 /* ── Common faults by type, one tap on a new complaint ── */
 const ISSUES: Record<string, string[]> = {

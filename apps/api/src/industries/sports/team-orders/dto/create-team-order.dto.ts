@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { TeamOrderStatus } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsEmail, IsEnum, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEmail, IsEnum, IsIn, IsNumber, IsOptional, IsString, Matches, MaxLength, Min, MinLength } from 'class-validator';
 
 const PAYMENT_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'];
 
@@ -9,9 +9,9 @@ const PAYMENT_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA
 const blankToUndefined = ({ value }: { value: unknown }) => (value === '' ? undefined : value);
 
 export class CreateTeamOrderDto {
-  @ApiProperty() @IsString() teamName!: string;
-  @ApiProperty() @IsString() contactPerson!: string;
-  @ApiProperty() @IsString() contactPhone!: string;
+  @ApiProperty() @IsString() @MinLength(2, { message: 'Team ya school ka naam likhein' }) @MaxLength(80) teamName!: string;
+  @ApiProperty() @IsString() @MinLength(2, { message: 'Rabte wale ka naam likhein' }) @MaxLength(80) contactPerson!: string;
+  @ApiProperty() @IsString() @Matches(/^[0-9+\-\s]{7,16}$/, { message: 'Phone number sahi likhein' }) contactPhone!: string;
   @ApiPropertyOptional() @Transform(blankToUndefined) @IsOptional() @IsEmail() contactEmail?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() organization?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() city?: string;
@@ -25,20 +25,23 @@ export class CreateTeamOrderDto {
     productName: string;
     quantity: number;
     unitPrice: number;
-    total: number;
+    /** Name / number printing per piece, on top of the rate. */
+    printingPrice?: number;
+    total?: number;
     size?: string;
     color?: string;
     customizationNotes?: string;
   }>;
 
-  @ApiPropertyOptional() @IsOptional() @IsNumber() discountPct?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() taxAmount?: number;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() shippingCharge?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discountPct?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) taxAmount?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) shippingCharge?: number;
 
   @ApiPropertyOptional() @IsOptional() @IsBoolean() hasCustomJerseys?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() customizationDetails?: string;
-  @ApiPropertyOptional() @IsOptional() playerNames?: any;
-  @ApiPropertyOptional() @IsOptional() playerNumbers?: any;
+  /** Players for printing: [{ name, number, size }]. */
+  @ApiPropertyOptional() @IsOptional() @IsArray() @Type(() => Object) playerNames?: Array<{ name?: string; number?: string; size?: string }>;
+  @ApiPropertyOptional() @IsOptional() playerNumbers?: unknown;
   @ApiPropertyOptional() @IsOptional() @IsString() teamLogoUrl?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) advancePaid?: number;

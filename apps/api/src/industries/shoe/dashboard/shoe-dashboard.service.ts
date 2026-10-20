@@ -1,117 +1,107 @@
+/**
+ * Shoe dashboard numbers, read from the core stock (variants and branch
+ * rows) of the branch being viewed: pairs in stock, sizes out or low (the
+ * ones that sell first), size requests waiting, top brands and the
+ * best-selling sizes.
+ */
+
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { linkedVariants, refreshSizeStock } from '../common/size-stock.helper';
+import { DAY_MS, SOLD, r2, variantParts } from '../common/shoe-common';
 
 @Injectable()
 export class ShoeDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async overview(user: AuthenticatedUser) {
-    // Size counts on the shoe rows follow the stock engine (sales, returns, purchases).
-    await refreshSizeStock(this.prisma as any, user.tenantId);
-    const [
-      totalBrands,
-      totalProducts,
-      totalSizeVariants,
-      totalStockUnits,
-      pendingTryOns,
-      pendingExchanges,
-    ] = await Promise.all([
-      this.prisma.shoeBrand.count({ where: { tenantId: user.tenantId, isActive: true } }),
-      this.prisma.shoeProductProfile.count({ where: { tenantId: user.tenantId } }),
-      this.prisma.shoeSizeVariant.count({ where: { tenantId: user.tenantId, isActive: true } }),
-      this.prisma.shoeSizeVariant.aggregate({
-        where: { tenantId: user.tenantId, isActive: true },
-        _sum: { stock: true },
+  async overview(user: AuthenticatedUser, scope: ShopScope) {
+    const tenantId = user.tenantId;
+    const since = new Date(Date.now() - 30 * DAY_MS);
+    const [totalBrands, totalProducts, variants, stockSum, pendingTryOns, sold] = await Promise.all([
+      this.prisma.brand.count({ where: { tenantId, isActive: true } }),
+      this.prisma.product.count({ where: { tenantId, isActive: true } }),
+      this.prisma.productVariant.findMany({
+        where: { isActive: true, product: { tenantId, isActive: true } },
+        select: { id: true, name: true, size: true, color: true, lowStockAlert: true, productId: true, product: { select: { name: true } } },
+        take: 20000,
       }),
-      this.prisma.shoeTryOnRequest.count({
-        where: { tenantId: user.tenantId, status: { in: ['PENDING', 'SCHEDULED'] } },
-      }),
-      this.prisma.shoeExchange.count({
-        where: { tenantId: user.tenantId, status: { in: ['REQUESTED', 'APPROVED'] } },
+      this.prisma.shopStock.aggregate({ where: { tenantId, ...scope.where, product: { isActive: true } }, _sum: { stock: true } }),
+      this.prisma.shoeTryOnRequest.count({ where: { tenantId, status: { in: ['PENDING', 'SCHEDULED'] } } }),
+      this.prisma.saleItem.findMany({
+        where: { sale: { tenantId, status: { in: [...SOLD] }, createdAt: { gte: since }, ...scope.where } },
+        select: { quantity: true, returnedQty: true, total: true, product: { select: { brandId: true } }, variantLink: { select: { variantId: true } } },
       }),
     ]);
 
-    const lowStockVariants = await this.prisma.shoeSizeVariant.findMany({
-      where: { tenantId: user.tenantId, isActive: true },
-    });
-    const lowStock = lowStockVariants.filter((v) => v.stock <= v.lowStockAlert && v.stock > 0);
-    const outOfStock = lowStockVariants.filter((v) => v.stock <= 0);
+    const ids = variants.map((v) => v.id);
+    const stocks = ids.length
+      ? await this.prisma.shopStock.groupBy({ by: ['variantId'], where: { tenantId, variantId: { in: ids }, ...scope.where }, _sum: { stock: true } })
+      : [];
+    const stockOf = new Map(stocks.map((s) => [s.variantId, Number(s._sum.stock ?? 0)]));
+    const soldOf = new Map<string, number>();
+    const brandSales = new Map<string, number>();
+    for (const it of sold) {
+      const net = Number(it.quantity) - Number(it.returnedQty || 0);
+      if (it.variantLink?.variantId) soldOf.set(it.variantLink.variantId, (soldOf.get(it.variantLink.variantId) ?? 0) + net);
+      const b = it.product?.brandId;
+      const share = Number(it.quantity) > 0 ? net / Number(it.quantity) : 0;
+      if (b) brandSales.set(b, (brandSales.get(b) ?? 0) + Number(it.total) * share);
+    }
 
-    const topProducts = await this.prisma.shoeProductProfile.findMany({
-      where: { tenantId: user.tenantId },
-      orderBy: { totalSold: 'desc' },
-      take: 10,
+    const rows = variants.map((v) => {
+      const parts = variantParts(v);
+      return {
+        id: v.id, productId: v.productId, name: v.product.name, variant: v.name, size: parts.size, color: parts.color,
+        stock: r2(stockOf.get(v.id) ?? 0), lowStockAlert: Number(v.lowStockAlert ?? 0), sold30: r2(soldOf.get(v.id) ?? 0),
+      };
     });
+    // Sizes that sell come first; a size never stocked or sold is not a gap.
+    const bySelling = (a: typeof rows[number], b: typeof rows[number]) => b.sold30 - a.sold30;
+    const outOfStock = rows.filter((v) => v.stock <= 0 && (v.sold30 > 0 || v.lowStockAlert > 0)).sort(bySelling);
+    const lowStock = rows.filter((v) => v.stock > 0 && v.stock <= v.lowStockAlert).sort(bySelling);
 
-    const topBrands = await this.prisma.shoeBrand.findMany({
-      where: { tenantId: user.tenantId, isActive: true },
-      orderBy: { totalRevenue: 'desc' },
-      take: 5,
-    });
-
-    const byCategory = await this.prisma.shoeProductProfile.groupBy({
-      by: ['categoryType'],
-      where: { tenantId: user.tenantId },
-      _count: { _all: true },
-    });
-
-    const byGender = await this.prisma.shoeProductProfile.groupBy({
-      by: ['gender'],
-      where: { tenantId: user.tenantId },
-      _count: { _all: true },
-    });
+    const brandIds = [...brandSales.keys()];
+    const brands = brandIds.length
+      ? await this.prisma.brand.findMany({ where: { tenantId, id: { in: brandIds } }, select: { id: true, name: true, logoUrl: true } })
+      : [];
+    const topBrands = brands
+      .map((b) => ({ ...b, totalRevenue: r2(brandSales.get(b.id) ?? 0) }))
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .slice(0, 5);
 
     return {
       totals: {
         totalBrands,
         totalProducts,
-        totalSizeVariants,
-        totalStockUnits: totalStockUnits._sum.stock ?? 0,
+        totalSizeVariants: variants.length,
+        totalStockUnits: r2(Number(stockSum._sum.stock ?? 0)),
         pendingTryOns,
-        pendingExchanges,
         lowStockCount: lowStock.length,
         outOfStockCount: outOfStock.length,
       },
-      topProducts,
       topBrands,
-      byCategory,
-      byGender,
       lowStockVariants: lowStock.slice(0, 20),
       outOfStockVariants: outOfStock.slice(0, 20),
     };
   }
 
-  /** Pairs sold per size, from completed bills (returns taken off). */
-  async sizePopularity(user: AuthenticatedUser) {
-    const sizes = await this.prisma.shoeSizeVariant.findMany({
-      where: { tenantId: user.tenantId },
-      select: { id: true, productId: true, size: true, sizeSystem: true, width: true },
+  /** Pairs sold per size in the last 90 days (returns taken off), all articles together. */
+  async sizePopularity(user: AuthenticatedUser, scope: ShopScope) {
+    const since = new Date(Date.now() - 90 * DAY_MS);
+    const sold = await this.prisma.saleItemVariant.findMany({
+      where: { saleItem: { sale: { tenantId: user.tenantId, status: { in: [...SOLD] }, createdAt: { gte: since }, ...scope.where } } },
+      select: { variant: { select: { name: true, size: true, color: true } }, saleItem: { select: { quantity: true, returnedQty: true } } },
     });
-    const links = await linkedVariants(this.prisma as any, sizes);
-    const keyOfVariant = new Map<string, string>();
-    for (const sz of sizes) {
-      const link = links.get(sz.id);
-      if (link) keyOfVariant.set(link.id, `${sz.size} (${sz.sizeSystem})`);
+    const grouped = new Map<string, number>();
+    for (const s of sold) {
+      const size = variantParts(s.variant).size;
+      if (!size) continue;
+      grouped.set(size, (grouped.get(size) ?? 0) + Number(s.saleItem.quantity) - Number(s.saleItem.returnedQty || 0));
     }
-    const sold = keyOfVariant.size
-      ? await this.prisma.saleItem.findMany({
-        where: {
-          variantLink: { variantId: { in: [...keyOfVariant.keys()] } },
-          sale: { tenantId: user.tenantId, status: { notIn: ['VOIDED'] } },
-        },
-        select: { quantity: true, returnedQty: true, variantLink: { select: { variantId: true } } },
-      })
-      : [];
-    const grouped: Record<string, number> = {};
-    for (const it of sold) {
-      const key = keyOfVariant.get(it.variantLink!.variantId);
-      if (!key) continue;
-      grouped[key] = (grouped[key] || 0) + Number(it.quantity) - Number(it.returnedQty || 0);
-    }
-    return Object.entries(grouped)
-      .map(([size, sold]) => ({ size, sold }))
+    return [...grouped.entries()]
+      .map(([size, n]) => ({ size, sold: r2(n) }))
+      .filter((x) => x.sold > 0)
       .sort((a, b) => b.sold - a.sold);
   }
 }

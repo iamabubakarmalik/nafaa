@@ -45,7 +45,7 @@ export type TechnicianInput = Partial<Pick<Technician, 'employeeCode' | 'level' 
 
 export interface CommissionLine {
   jobId: string; jobNumber: string; saleNumber: string; billedAt: string; customerName?: string | null; serviceName: string;
-  technicianId: string; technicianName: string; bill: number; work: number; refunded: number; commission: number; paidRef: string | null;
+  technicianId: string; technicianName: string; bill: number; work: number; refunded: number; workReturned: number; commission: number; paidRef: string | null;
 }
 export interface CommissionStatement {
   from: string; to: string;

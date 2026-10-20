@@ -34,6 +34,7 @@ import { ServicesBizPack } from '@industries/services-biz';
 
 // ─── 10 NEW industries ─────────────────────────────────────
 import { AppliancesPack } from '@industries/appliances';
+import { CosmeticsPack } from '@industries/cosmetics';
 import { ElectronicsPack } from '@industries/electronics';
 import { FloristPack } from '@industries/florist';
 import { FurniturePack } from '@industries/furniture';
@@ -76,6 +77,7 @@ export function registerIndustries(): void {
     ShoePack,            // 49 — size matrix + brand
     HardwarePack,        // 48 — bulk + quotations
     FurniturePack,       // 47 — custom orders
+    CosmeticsPack,       // 46 — batch expiry + testers
     ToystorePack,        // 45 — age-appropriate
     DairyPack,           // 44 — routes + subscriptions
     PetshopPack,         // 43 — vaccinations

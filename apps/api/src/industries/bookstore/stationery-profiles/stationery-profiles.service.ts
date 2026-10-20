@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { cleanInput } from '../bookstore-common';
 
 @Injectable()
 export class StationeryProfilesService {
@@ -8,17 +9,17 @@ export class StationeryProfilesService {
 
   async upsert(user: AuthenticatedUser, dto: any) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Item nahi mila');
 
     const existing = await this.prisma.stationeryProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) {
       return this.prisma.stationeryProfile.update({
         where: { productId: dto.productId },
-        data: { ...dto, tenantId: user.tenantId },
+        data: { ...cleanInput(dto), tenantId: user.tenantId },
       });
     }
     return this.prisma.stationeryProfile.create({
-      data: { ...dto, tenantId: user.tenantId },
+      data: { ...cleanInput(dto), tenantId: user.tenantId },
     });
   }
 
@@ -40,7 +41,9 @@ export class StationeryProfilesService {
     const productIds = profiles.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
       where: {
+        tenantId: user.tenantId,
         id: { in: productIds },
+        isActive: true,
         ...(params.search && { name: { contains: params.search, mode: 'insensitive' } }),
       },
       include: { images: { where: { isPrimary: true }, take: 1 } },
@@ -55,7 +58,7 @@ export class StationeryProfilesService {
 
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.stationeryProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Stationery profile not found');
+    if (!p) throw new NotFoundException('Stationery ki tafseel nahi mili');
     return this.prisma.stationeryProfile.delete({ where: { id } });
   }
 }

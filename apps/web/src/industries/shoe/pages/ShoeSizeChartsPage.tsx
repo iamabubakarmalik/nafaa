@@ -1,212 +1,181 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Ruler, Plus, RefreshCw, Edit3, Trash2, X, Save } from 'lucide-react';
+/**
+ * Size charts: the standard PK/UK, EU, US and cm conversion for gents,
+ * ladies and kids, plus the shop's own charts (a brand that runs small,
+ * Peshawari chappal sizes). Charts are hidden, never deleted.
+ */
+
+import { useCallback, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { shoeSizeChartsApi, type ShoeSizeChart } from '../api/size-charts.api';
-import { Button } from '@/design-system/components';
+import { Copy, EyeOff, Footprints, GraduationCap, Pencil, Plus, Ruler, Trash2 } from 'lucide-react';
+import {
+  Button, Card, Input, Modal, PageHero, PageShell, Segmented, Select, Skeleton, Switch, Table, TBody, THead, Td, Textarea, Th, Tr,
+  heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { shoeSizeChartsApi, type ChartRow, type ShoeSizeChart } from '../api/size-charts.api';
+import { CHART_KEY, CONVERSION, GENDERS, apiError, genderLabel, opt } from '../components/meta';
+import { EmptyBlock, StatusPill, useListKeys } from '../components/ui';
+
+type Std = keyof typeof CONVERSION;
+const STD: Array<{ value: Std; label: string; gender: string }> = [
+  { value: 'men', label: 'Gents', gender: 'MEN' }, { value: 'women', label: 'Ladies', gender: 'WOMEN' }, { value: 'kids', label: 'Bachay', gender: 'BOYS' },
+];
+const COLS: Array<{ key: string; label: string }> = [{ key: 'pk', label: 'PK / UK' }, { key: 'eu', label: 'EU' }, { key: 'us', label: 'US' }, { key: 'cm', label: 'Pair (cm)' }];
+
+function chartDoc(title: string, rows: ChartRow[], note?: string | null): PrintDoc {
+  return {
+    title, subtitle: 'Size chart',
+    sections: [{ kind: 'table', columns: COLS.map((c) => ({ label: c.label })), rows: rows.map((r) => COLS.map((c) => r[c.key] ?? '')) }],
+    footer: note ?? 'Pair ki lambai: deewar se aedi laga kar angoothe tak, cm me.',
+  };
+}
+
+function ChartTable({ rows }: { rows: ChartRow[] }) {
+  return (
+    <Table minWidth="22rem">
+      <THead><Tr>{COLS.map((c) => <Th key={c.key}>{c.label}</Th>)}</Tr></THead>
+      <TBody>{rows.map((r, i) => <Tr key={i}>{COLS.map((c) => <Td key={c.key} className={c.key === 'pk' ? 'font-semibold text-slate-900' : undefined}>{r[c.key] || '—'}</Td>)}</Tr>)}</TBody>
+    </Table>
+  );
+}
+
+function ChartEditor({ chart, onClose }: { chart: ShoeSizeChart | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [name, setName] = useState(chart?.name ?? '');
+  const [gender, setGender] = useState(chart?.gender ?? 'MEN');
+  const [notes, setNotes] = useState(chart?.notes ?? '');
+  const [rows, setRows] = useState<ChartRow[]>(chart?.mappings?.length ? chart.mappings : [{ pk: '', eu: '', us: '', cm: '' }]);
+  const [tried, setTried] = useState(false);
+  const filled = rows.filter((r) => COLS.some((c) => (r[c.key] ?? '').trim()));
+  const errors = useMemo(() => {
+    const e: Record<string, string> = {};
+    if (name.trim().length < 2) e.name = 'Chart ka naam likhein';
+    if (!filled.length) e.rows = 'Kam az kam ek size likhein';
+    return e;
+  }, [name, filled.length]);
+  const save = useMutation({
+    mutationFn: () => {
+      const body = { name: name.trim(), gender, notes: opt(notes), mappings: filled };
+      return chart ? shoeSizeChartsApi.update(chart.id, body) : shoeSizeChartsApi.create(body);
+    },
+    onSuccess: () => { toast.success('Chart save ho gaya'); qc.invalidateQueries({ queryKey: [CHART_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const submit = () => {
+    setTried(true);
+    const first = Object.values(errors)[0];
+    if (first) { toast.error(first); return; }
+    save.mutate();
+  };
+  const fill = (k: Std) => setRows(CONVERSION[k].map((r) => ({ ...r })));
+
+  return (
+    <Modal open onClose={onClose} size="lg" title={chart ? `${chart.name} badlein` : 'Naya size chart'} description="Har line par ek hi pair ka size har system me"
+      footer={<div className="flex w-full gap-2"><Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button><Button className="flex-1" loading={save.isPending} onClick={submit}>Save</Button></div>}>
+      <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input label="Naam" required value={name} error={tried ? errors.name : undefined} maxLength={60} placeholder="Servis gents" onChange={(e) => setName(e.target.value)} hint="Brand ya joote ke type ke hisaab se" />
+          <Select label="Kis ke liye" value={gender} onChange={(e) => setGender(e.target.value)} options={GENDERS.map((g) => ({ value: g.value, label: g.label }))} />
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600">
+          <span>Standard se bharein:</span>
+          {STD.map((s) => <Button key={s.value} size="sm" variant="secondary" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => fill(s.value)}>{s.label}</Button>)}
+        </div>
+        <div className="space-y-2">
+          <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_2rem] gap-2 text-[0.75rem] font-semibold uppercase text-slate-500">{COLS.map((c) => <span key={c.key}>{c.label}</span>)}<span /></div>
+          {rows.map((r, i) => (
+            <div key={i} className="grid grid-cols-[repeat(4,minmax(0,1fr))_2rem] items-center gap-2">
+              {COLS.map((c) => <Input key={c.key} aria-label={c.label} value={r[c.key] ?? ''} maxLength={12} onChange={(e) => setRows((rs) => rs.map((x, n) => (n === i ? { ...x, [c.key]: e.target.value } : x)))} />)}
+              <button type="button" aria-label="Line hatayein" onClick={() => setRows((rs) => rs.filter((_, n) => n !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          ))}
+          {tried && errors.rows && <p className="text-[0.8125rem] font-medium text-rose-600">{errors.rows}</p>}
+          <Button size="sm" variant="ghost" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setRows((rs) => [...rs, { pk: '', eu: '', us: '', cm: '' }])}>Line</Button>
+        </div>
+        <Textarea label="Note" rows={2} value={notes} maxLength={500} placeholder="Ye brand aadha size chhota chalta hai" onChange={(e) => setNotes(e.target.value)} hint="Print par neeche chhapta hai" />
+      </div>
+    </Modal>
+  );
+}
 
 export default function ShoeSizeChartsPage() {
   const qc = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<ShoeSizeChart | null>(null);
-
-  const { data: charts = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['shoe-size-charts'],
-    queryFn: () => shoeSizeChartsApi.list({}),
+  const guide = usePageGuide();
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const [std, setStd] = useState<Std>('men');
+  const [editing, setEditing] = useState<ShoeSizeChart | 'new' | null>(null);
+  const [showHidden, setShowHidden] = useState(false);
+  const { data: charts = [], isLoading } = useQuery({ queryKey: [CHART_KEY], queryFn: shoeSizeChartsApi.list });
+  const hide = useMutation({
+    mutationFn: (c: ShoeSizeChart) => (c.isActive ? shoeSizeChartsApi.deactivate(c.id) : shoeSizeChartsApi.update(c.id, { isActive: true })),
+    onSuccess: (c) => { toast.success(c.isActive ? 'Chart wapas dikh raha' : 'Chart chhupa diya'); qc.invalidateQueries({ queryKey: [CHART_KEY] }); },
+    onError: (e) => toast.error(apiError(e)),
   });
+  const add = useCallback(() => { if (canEdit) setEditing('new'); }, [canEdit]);
+  useListKeys(null, add);
 
-  const remove = useMutation({
-    mutationFn: (id: string) => shoeSizeChartsApi.remove(id),
-    onSuccess: () => { toast.success('Chart deleted'); qc.invalidateQueries({ queryKey: ['shoe-size-charts'] }); },
-  });
+  const visible = charts.filter((c) => showHidden || c.isActive);
+  const stdLabel = STD.find((s) => s.value === std)!.label;
 
   return (
-    <div className="space-y-5">
-      {showForm && (
-        <ChartFormModal editing={editing} onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => { setShowForm(false); setEditing(null); qc.invalidateQueries({ queryKey: ['shoe-size-charts'] }); }} />
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Size chart — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Ruler, color: '#2563eb', title: 'Standard chart', text: 'Gents, ladies aur bachon ka PK/UK, EU, US aur cm. Customer ka EU size bataye to yahan se PK size dekhein.' },
+            { icon: Footprints, color: '#16a34a', title: 'Pair naapein', text: 'Deewar se aedi laga kar angoothe tak cm me naapein — cm wala column dekhein.' },
+            { icon: Pencil, color: '#7c3aed', title: 'Apna chart', text: 'Kisi brand ka size chhota / bara chalta ho to us ka chart banayein aur counter par print kar ke lagayein.' },
+          ]}
+          shortcuts={[['N', 'naya chart'], ['G', 'guide']]} />
       )}
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Ruler className="h-3.5 w-3.5 text-amber-300" /> Size Conversion Charts
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">📏 Size Charts</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {charts.length} charts • UK ↔ US ↔ EU ↔ CM mappings
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" /> New Chart
-            </Button>
-          </div>
-        </div>
-      </section>
+      <PageHero title="Size chart" chip={<><Ruler />{charts.filter((c) => c.isActive).length} apne chart</>} loading={isLoading}
+        meta="PK / UK, EU, US aur pair ki lambai — ek nazar me"
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => chartDoc(`${stdLabel} — standard`, [...CONVERSION[std]])} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={add} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya chart</button>}
+        </>} />
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : charts.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Ruler className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No size charts yet</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Create UK-to-EU or US-to-CM conversion charts</p>
-          <Button className="mt-4 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" /> Add First Chart
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {charts.map((c) => (
-            <div key={c.id} className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 hover:shadow-md transition">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="font-extrabold text-slate-900 truncate">{c.name}</h3>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {c.gender && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">{c.gender}</span>}
-                    {c.categoryType && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">{c.categoryType.replace(/_/g, ' ')}</span>}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+        <Card className="rounded-2xl" title="Standard chart" description="Pakistan me chalne wale sizes"
+          actions={<Segmented value={std} onChange={setStd} items={STD.map((s) => ({ value: s.value, label: s.label }))} label="Kis ka chart" />}>
+          <ChartTable rows={[...CONVERSION[std]]} />
+        </Card>
+
+        <Card className="rounded-2xl" title="Dukaan ke chart" description="Brand ya type ke apne sizes"
+          actions={<Switch checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} label="Chhupe bhi" />}>
+          {isLoading ? <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
+            : !visible.length ? (
+              <EmptyBlock icon={Ruler} title="Abhi koi apna chart nahi" text="Standard chart kaafi hai. Koi brand chhota / bara chalta ho to us ka chart banayein."
+                action={canEdit ? <Button leftIcon={<Plus className="h-4 w-4" />} onClick={add}>Naya chart</Button> : undefined} />
+            ) : (
+              <div className="space-y-4">
+                {visible.map((c) => (
+                  <div key={c.id} className="rounded-2xl ring-1 ring-slate-200">
+                    <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-2.5">
+                      <p className="min-w-0 flex-1 truncate font-semibold text-slate-900">{c.name}</p>
+                      <StatusPill tone="bg-slate-100 text-slate-700">{genderLabel(c.gender)}</StatusPill>
+                      {!c.isActive && <StatusPill tone="bg-amber-50 text-amber-800">Chhupa</StatusPill>}
+                      <PrintButton doc={() => chartDoc(c.name, c.mappings, c.notes)} label="Print" size="sm" />
+                      {canEdit && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditing(c)}>Badlein</Button>}
+                      {canEdit && <Button size="sm" variant="ghost" leftIcon={<EyeOff className="h-3.5 w-3.5" />} loading={hide.isPending && hide.variables?.id === c.id} onClick={() => hide.mutate(c)}>{c.isActive ? 'Chhupayein' : 'Dikhayein'}</Button>}
+                    </div>
+                    <div className="p-3"><ChartTable rows={c.mappings} /></div>
+                    {c.notes && <p className="px-4 pb-3 text-[0.8125rem] text-slate-500">{c.notes}</p>}
                   </div>
-                </div>
+                ))}
               </div>
-              {c.notes && <p className="mt-2 text-xs text-slate-600 font-semibold line-clamp-2">{c.notes}</p>}
-              <div className="mt-3 flex gap-1.5 pt-3 border-t border-slate-100">
-                <button onClick={() => { setEditing(c); setShowForm(true); }}
-                  className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-                  <Edit3 className="h-3.5 w-3.5" /> Edit
-                </button>
-                <button onClick={() => { if (confirm(`Delete "${c.name}"?`)) remove.mutate(c.id); }}
-                  className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function ChartFormModal({ editing, onClose, onSaved }: any) {
-  const [name, setName] = useState(editing?.name ?? '');
-  const [gender, setGender] = useState(editing?.gender ?? '');
-  const [notes, setNotes] = useState(editing?.notes ?? '');
-  const [mappings, setMappings] = useState<any[]>(editing?.mappings ?? [
-    { uk: '5', us: '6', eu: '38', cm: '24' },
-    { uk: '6', us: '7', eu: '39', cm: '25' },
-    { uk: '7', us: '8', eu: '40', cm: '26' },
-    { uk: '8', us: '9', eu: '41', cm: '27' },
-    { uk: '9', us: '10', eu: '42', cm: '28' },
-    { uk: '10', us: '11', eu: '43', cm: '29' },
-    { uk: '11', us: '12', eu: '44', cm: '30' },
-  ]);
-
-  const save = useMutation({
-    mutationFn: () => {
-      const data = { name, gender: gender || undefined, mappings, notes };
-      return editing ? shoeSizeChartsApi.update(editing.id, data) : shoeSizeChartsApi.create(data);
-    },
-    onSuccess: () => { toast.success(editing ? 'Chart updated' : 'Chart created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  const updateRow = (i: number, key: string, val: string) => {
-    setMappings((prev) => prev.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
-  };
-
-  const addRow = () => setMappings((prev) => [...prev, { uk: '', us: '', eu: '', cm: '' }]);
-  const removeRow = (i: number) => setMappings((prev) => prev.filter((_, idx) => idx !== i));
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">{editing ? '✏️ Edit Chart' : '📏 New Size Chart'}</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-extrabold uppercase mb-1.5">Chart Name *</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Men's UK-EU-US Chart"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-extrabold uppercase mb-1.5">Gender</label>
-              <select value={gender} onChange={(e) => setGender(e.target.value)}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-                <option value="">Not specific</option>
-                <option value="MEN">Men</option>
-                <option value="WOMEN">Women</option>
-                <option value="BOYS">Boys</option>
-                <option value="GIRLS">Girls</option>
-                <option value="INFANT">Infant</option>
-                <option value="UNISEX">Unisex</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-extrabold uppercase">Size Mappings</label>
-              <button type="button" onClick={addRow} className="text-xs font-extrabold text-blue-700 inline-flex items-center gap-1">
-                <Plus className="h-3 w-3" /> Add row
-              </button>
-            </div>
-            <div className="rounded-xl border-2 border-slate-200 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <Th>UK</Th><Th>US</Th><Th>EU</Th><Th>CM</Th><Th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {mappings.map((row, i) => (
-                    <tr key={i} className="border-t border-slate-100">
-                      <td className="p-1"><input value={row.uk || ''} onChange={(e) => updateRow(i, 'uk', e.target.value)} className="h-9 w-full text-center rounded border border-slate-200 px-1 text-xs font-mono" /></td>
-                      <td className="p-1"><input value={row.us || ''} onChange={(e) => updateRow(i, 'us', e.target.value)} className="h-9 w-full text-center rounded border border-slate-200 px-1 text-xs font-mono" /></td>
-                      <td className="p-1"><input value={row.eu || ''} onChange={(e) => updateRow(i, 'eu', e.target.value)} className="h-9 w-full text-center rounded border border-slate-200 px-1 text-xs font-mono" /></td>
-                      <td className="p-1"><input value={row.cm || ''} onChange={(e) => updateRow(i, 'cm', e.target.value)} className="h-9 w-full text-center rounded border border-slate-200 px-1 text-xs font-mono" /></td>
-                      <td className="p-1 text-center">
-                        <button type="button" onClick={() => removeRow(i)} className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 inline-flex items-center justify-center">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase mb-1.5">Notes</label>
-            <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Chart notes..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-          </div>
-        </div>
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => save.mutate()} loading={save.isPending} disabled={!name.trim()}>
-            <Save className="h-4 w-4" /> {editing ? 'Update' : 'Save'}
-          </Button>
-        </div>
+            )}
+        </Card>
       </div>
-    </div>
-  );
-}
 
-function Th({ children }: any) {
-  return <th className="px-2 py-2 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">{children}</th>;
+      {editing && <ChartEditor chart={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+    </PageShell>
+  );
 }

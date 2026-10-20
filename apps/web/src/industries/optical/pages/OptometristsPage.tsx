@@ -1,436 +1,215 @@
-import { useMemo, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  UserCog, Plus, Search, X, Edit3, Trash2, RefreshCw,
-  Phone, Mail, Calendar, Award, Save, Users, Clock,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { optometristsApi, type OpticalOptometrist } from '../api/optometrists.api';
-import { formatPKR } from '@core/lib/format';
-import { Button, Input } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Optometrists (eye test doctors): who tests, on which days and hours, and
+ * their fee — booking uses these to offer free slots and the default fee.
+ * Shows tests done and fees billed per doctor, with this month's workload.
+ * Doctors are switched off, never removed, so their history stays.
+ */
 
-const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+import { useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Ban, CalendarDays, Clock, Download, GraduationCap, Pencil, Plus, Stethoscope, UserCog, Users, Wallet } from 'lucide-react';
+import {
+  Button, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, FilterBar, Skeleton, Table, TBody, THead, Td, Th, Tr, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { downloadCsv } from '@core/lib/csv';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { optometristsApi, type OpticalOptometrist, type OptometristInput } from '../api/optometrists.api';
+import { ListCard, ListState } from '../components/ui';
+import { usePageKeys } from '../hooks/usePageKeys';
+import { OPTICAL_KEYS, apiError, moneyInput, phoneOk } from '../lib/meta';
+
+type Tab = 'active' | 'off' | 'all';
+const DAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumerat', 'Juma', 'Hafta'];
+const SPECIAL = ['Refraction', 'Contact lens', 'Bachon ki aankh', 'Low vision', 'Squint'];
 
 export default function OptometristsPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canManage = usePermission(PERMISSIONS.STAFF_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('active');
   const [search, setSearch] = useState('');
-  const [activeOnly, setActiveOnly] = useState(true);
-  const [availableToday, setAvailableToday] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<OpticalOptometrist | null>(null);
+  const [editing, setEditing] = useState<OpticalOptometrist | 'new' | null>(null);
+  const [off, setOff] = useState<OpticalOptometrist | null>(null);
+  usePageKeys(searchRef, { n: () => canManage && setEditing('new') });
 
-  const { data: list = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['optometrists-list', activeOnly, availableToday],
-    queryFn: () => optometristsApi.list({
-      active: activeOnly ? true : undefined,
-      availableToday: availableToday ? true : undefined,
-    }),
+  const list = useQuery({ queryKey: [OPTICAL_KEYS.doctors, 'all'], queryFn: () => optometristsApi.list() });
+  const all = useMemo(() => list.data ?? [], [list.data]);
+  const term = search.trim().toLowerCase();
+  const rows = all.filter((d) => (tab === 'all' || (tab === 'active' ? d.isActive : !d.isActive)) && (!term || [d.name, d.phone, d.employeeCode, d.qualification].some((v) => v?.toLowerCase().includes(term))));
+  const active = all.filter((d) => d.isActive);
+  const today = new Date().getDay();
+
+  const deactivate = useMutation({
+    mutationFn: (d: OpticalOptometrist) => optometristsApi.deactivate(d.id),
+    onSuccess: () => { toast.success('Band kar diya — purana record rehta hai'); setOff(null); qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.doctors] }); },
+    onError: (e) => toast.error(apiError(e, 'Band nahi hua')),
+  });
+  const reactivate = useMutation({
+    mutationFn: (d: OpticalOptometrist) => optometristsApi.update(d.id, { isActive: true }),
+    onSuccess: () => { toast.success('Dobara chalu'); qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.doctors] }); },
+    onError: (e) => toast.error(apiError(e, 'Chalu nahi hua')),
   });
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return list;
-    return list.filter((o) =>
-      o.name.toLowerCase().includes(q) ||
-      o.phone.includes(q) ||
-      o.employeeCode.toLowerCase().includes(q) ||
-      (o.registrationNumber || '').toLowerCase().includes(q)
-    );
-  }, [list, search]);
-
-  const remove = useMutation({
-    mutationFn: (id: string) => optometristsApi.remove(id),
-    onSuccess: () => {
-      toast.success('Optometrist deactivated');
-      qc.invalidateQueries({ queryKey: ['optometrists-list'] });
-    },
-  });
-
-  return (
-    <div className="space-y-5">
-      {showForm && (
-        <OptometristFormModal editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false); setEditing(null);
-            qc.invalidateQueries({ queryKey: ['optometrists-list'] });
-          }} />
-      )}
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <UserCog className="h-3.5 w-3.5 text-amber-300" /> Optometrists Team
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">👨‍⚕️ Optometrists</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {list.length} total • {list.filter((o) => o.isActive).length} active
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" /> New Optometrist
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Name, phone, employee code, registration..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => setActiveOnly(!activeOnly)}
-            className={`h-10 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 ${activeOnly ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200'}`}>
-            Active only
-          </button>
-          <button onClick={() => setAvailableToday(!availableToday)}
-            className={`h-10 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 ${availableToday ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200'}`}>
-            <Calendar className="h-3 w-3" /> Available today
-          </button>
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <UserCog className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No optometrists yet</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Add your first team member</p>
-          <Button className="mt-4 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" /> Add First Doctor
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((o) => <OptCard key={o.id} o={o}
-            onEdit={() => { setEditing(o); setShowForm(true); }}
-            onDelete={() => { if (confirm(`Deactivate "${o.name}"?`)) remove.mutate(o.id); }} />)}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function OptCard({ o, onEdit, onDelete }: any) {
-  return (
-    <div className={`rounded-2xl bg-white border-2 shadow-sm p-4 hover:shadow-lg transition ${o.isActive ? 'border-slate-200' : 'border-slate-200 opacity-60'}`}>
-      <div className="flex items-start gap-3">
-        {o.photoUrl ? (
-          <img src={o.photoUrl} alt="" className="h-16 w-16 rounded-2xl object-cover border-2 border-slate-200 shrink-0" />
-        ) : (
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-700 text-white flex items-center justify-center font-extrabold text-2xl shrink-0 shadow">
-            {o.name.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-extrabold text-slate-900 truncate">{o.name}</h3>
-          {o.qualification && <div className="text-xs font-bold text-pink-700 mt-0.5">{o.qualification}</div>}
-          <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">#{o.employeeCode}</div>
-          {o.registrationNumber && (
-            <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Reg: {o.registrationNumber}</div>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-3 space-y-1.5 text-xs">
-        <div className="flex items-center gap-1.5 text-slate-700 font-bold">
-          <Phone className="h-3 w-3 text-slate-400" /> {o.phone}
-        </div>
-        {o.email && (
-          <div className="flex items-center gap-1.5 text-slate-700 font-bold truncate">
-            <Mail className="h-3 w-3 text-slate-400" /> {o.email}
-          </div>
-        )}
-        {o.yearsExperience != null && (
-          <div className="flex items-center gap-1.5 text-slate-700 font-bold">
-            <Award className="h-3 w-3 text-slate-400" /> {o.yearsExperience} years experience
-          </div>
-        )}
-      </div>
-
-      {o.specializations?.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-slate-100">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Specializations</div>
-          <div className="flex flex-wrap gap-1">
-            {o.specializations.slice(0, 3).map((s: string) => (
-              <span key={s} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-800 text-[0.6875rem] font-extrabold">{s}</span>
-            ))}
-            {o.specializations.length > 3 && <span className="text-[0.6875rem] font-extrabold text-slate-500">+{o.specializations.length - 3}</span>}
-          </div>
-        </div>
-      )}
-
-      <div className="mt-3 pt-3 border-t border-slate-100">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1 inline-flex items-center gap-1">
-          <Clock className="h-3 w-3" /> Working Days ({o.workStartTime} - {o.workEndTime})
-        </div>
-        <div className="flex gap-1">
-          {WEEK_DAYS.map((d, i) => (
-            <div key={i} className={`h-6 w-6 rounded text-[0.625rem] font-extrabold flex items-center justify-center ${
-              o.workingDays?.includes(i) ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
-              {d[0]}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2">
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Fee</div>
-          <div className="text-sm font-extrabold text-slate-900 tabular-nums">{formatPKR(o.consultationFee)}</div>
-        </div>
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Tests</div>
-          <div className="text-sm font-extrabold text-slate-900 tabular-nums">{o.totalTests}</div>
-        </div>
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
-          <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(o.totalRevenue)}</div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex gap-1.5">
-        <button onClick={onEdit}
-          className="flex-1 h-9 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-          <Edit3 className="h-3.5 w-3.5" /> Edit
-        </button>
-        {o.isActive && (
-          <button onClick={onDelete}
-            className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function OptometristFormModal({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState<any>({
-    employeeCode: editing?.employeeCode ?? '',
-    name: editing?.name ?? '',
-    qualification: editing?.qualification ?? '',
-    registrationNumber: editing?.registrationNumber ?? '',
-    phone: editing?.phone ?? '',
-    email: editing?.email ?? '',
-    specializations: editing?.specializations ?? [],
-    yearsExperience: editing?.yearsExperience ?? '',
-    languages: editing?.languages ?? [],
-    workingDays: editing?.workingDays ?? [1, 2, 3, 4, 5, 6],
-    workStartTime: editing?.workStartTime ?? '10:00',
-    workEndTime: editing?.workEndTime ?? '18:00',
-    consultationFee: editing?.consultationFee ?? 500,
-    followUpFee: editing?.followUpFee ?? '',
-    photoUrl: editing?.photoUrl ?? '',
-    bio: editing?.bio ?? '',
-    isActive: editing?.isActive ?? true,
-  });
-  const [newSpec, setNewSpec] = useState('');
-  const [newLang, setNewLang] = useState('');
-
-  const save = useMutation({
-    mutationFn: () => {
-      const payload: any = { ...form };
-      if (payload.yearsExperience === '') payload.yearsExperience = undefined;
-      else payload.yearsExperience = Number(payload.yearsExperience);
-      if (payload.followUpFee === '') payload.followUpFee = undefined;
-      else payload.followUpFee = Number(payload.followUpFee);
-      payload.consultationFee = Number(payload.consultationFee);
-      return editing ? optometristsApi.update(editing.id, payload) : optometristsApi.create(payload);
-    },
-    onSuccess: () => {
-      toast.success(editing ? 'Updated' : 'Optometrist created');
-      onSaved();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  const toggleDay = (d: number) => {
-    const cur = form.workingDays ?? [];
-    setForm({ ...form, workingDays: cur.includes(d) ? cur.filter((x: number) => x !== d) : [...cur, d].sort() });
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Koi doctor nahi'); return; }
+    downloadCsv('optometrists.csv', [['Code', 'Naam', 'Phone', 'Qualification', 'Din', 'Waqt', 'Fees', 'Follow-up fees', 'Test', 'Fees mili', 'Chalu'],
+      ...rows.map((d) => [d.employeeCode, d.name, d.phone, d.qualification, d.workingDays.map((x) => DAYS[x]).join(' '), `${d.workStartTime}-${d.workEndTime}`, d.consultationFee, d.followUpFee, d.totalTests, d.totalRevenue, d.isActive ? 'Haan' : 'Nahi'])]);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-pink-600 to-rose-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">{editing ? '✏️ Edit Optometrist' : '👨‍⚕️ New Optometrist'}</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Optometrists" onClose={guide.close}
+          steps={[
+            { icon: CalendarDays, color: '#2563eb', title: 'Din aur waqt', text: 'Jin dinon aur ghanton me doctor baithta hai — test book karte waqt sirf yahi khali waqt dikhte hain.' },
+            { icon: Wallet, color: '#16a34a', title: 'Fees', text: 'Doctor ki fees test par khud lagti hai; booking par badal bhi sakte hain.' },
+            { icon: Ban, color: '#e11d48', title: 'Band karna', text: 'Doctor chhor jaye to band karein — us ke test aur fees ka record rehta hai.' },
+          ]}
+          shortcuts={[['/', 'search'], ['N', 'naya doctor'], ['G', 'guide']]} />
+      )}
+      {editing && <DoctorModal doctor={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+      {off && (
+        <Modal open onClose={() => setOff(null)} size="sm" title={`${off.name} ko band karein?`} description="Naye test me nahi aayenge. Purane test aur fees ka record rehta hai."
+          footer={<><Button variant="secondary" onClick={() => setOff(null)}>Rehne dein</Button><Button variant="danger" loading={deactivate.isPending} onClick={() => deactivate.mutate(off)}>Band karein</Button></>}>
+          <p className="text-[0.875rem] text-slate-600">{off.totalTests} test · {money(off.totalRevenue)} fees</p>
+        </Modal>
+      )}
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Input label="Employee Code *" value={form.employeeCode}
-              onChange={(e) => setForm({ ...form, employeeCode: e.target.value })} placeholder="OPT001" />
-            <Input label="Full Name *" value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Dr. Ahmed Khan" />
-            <Input label="Qualification" value={form.qualification}
-              onChange={(e) => setForm({ ...form, qualification: e.target.value })} placeholder="OD, MSc Optometry" />
-            <Input label="Registration Number" value={form.registrationNumber}
-              onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} placeholder="PMDC-12345" />
-            <Input label="Phone *" value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="03XX XXXXXXX" />
-            <Input label="Email" value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="doctor@example.com" />
-            <Input label="Years Experience" type="number" value={form.yearsExperience}
-              onChange={(e) => setForm({ ...form, yearsExperience: e.target.value })} placeholder="5" />
-          </div>
+      <PageHero title="Optometrists" chip={<><UserCog />{active.length}</>} loading={list.isLoading} meta="Eye test karne wale doctor"
+        actions={<>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya doctor</button>}
+        </>}
+        stats={[
+          { label: 'Kul fees (ab tak)', value: money(all.reduce((a, d) => a + d.totalRevenue, 0)) },
+          { label: 'Kul test', value: all.reduce((a, d) => a + d.totalTests, 0) },
+          { label: 'Aaj baithe', value: active.filter((d) => d.workingDays.includes(today)).length },
+        ]} />
 
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Consultation Fee *</label>
-              <input type="number" value={form.consultationFee}
-                onChange={(e) => setForm({ ...form, consultationFee: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-lg font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-500" />
-            </div>
-            <Input label="Follow-up Fee" type="number" value={form.followUpFee}
-              onChange={(e) => setForm({ ...form, followUpFee: e.target.value })} />
-            <Input label="Work Start" type="time" value={form.workStartTime}
-              onChange={(e) => setForm({ ...form, workStartTime: e.target.value })} />
-            <Input label="Work End" type="time" value={form.workEndTime}
-              onChange={(e) => setForm({ ...form, workEndTime: e.target.value })} />
-          </div>
+      <KpiRow cols={3}>
+        {list.isLoading ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Users} color="#2563eb" label="Chalu doctor" value={active.length} onClick={() => setTab('active')} active={tab === 'active'} />
+            <KpiCard icon={Clock} color="#16a34a" label="Aaj dukaan par" value={active.filter((d) => d.workingDays.includes(today)).length} hint={DAYS[today]} />
+            <KpiCard icon={Ban} color="#94a3b8" label="Band" value={all.length - active.length} onClick={() => setTab('off')} active={tab === 'off'} />
+          </>
+        )}
+      </KpiRow>
 
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Working Days</label>
-            <div className="flex gap-1.5">
-              {WEEK_DAYS.map((d, i) => (
-                <button key={i} type="button" onClick={() => toggleDay(i)}
-                  className={`h-11 w-11 rounded-xl border-2 text-xs font-extrabold ${
-                    form.workingDays?.includes(i) ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-200 bg-white text-slate-600'}`}>
-                  {d}
-                </button>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone ya code…" />} />
+      <ViewTabs<Tab> value={tab} onChange={setTab} tabs={[{ id: 'active', label: 'Chalu', icon: Stethoscope }, { id: 'off', label: 'Band' }, { id: 'all', label: 'Sab' }]} />
+
+      <ListCard>
+        <ListState loading={list.isLoading} error={list.isError} empty={!rows.length} onRetry={() => void list.refetch()} icon={UserCog}
+          title={term ? `"${search}" se koi nahi mila` : 'Abhi koi doctor nahi'} hint="Doctor jorein — eye test booking me unke din, waqt aur fees aate hain."
+          actions={canManage && <Button onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya doctor</Button>}>
+          <Table minWidth="56rem">
+            <THead><Tr><Th>Doctor</Th><Th>Din</Th><Th>Waqt</Th><Th align="right">Fees</Th><Th align="right">Test</Th><Th align="right">Fees mili</Th><Th align="right" /></Tr></THead>
+            <TBody>
+              {rows.map((d) => (
+                <Tr key={d.id} className={d.isActive ? '' : 'opacity-60'}>
+                  <Td><p className="font-semibold text-slate-900">{d.name}</p><p className="text-[0.75rem] text-slate-500">{[d.employeeCode, d.qualification, d.phone].filter(Boolean).join(' · ')}</p></Td>
+                  <Td><div className="flex flex-wrap gap-0.5">{DAYS.map((n, i) => <span key={n} className={`rounded px-1 text-[0.6875rem] ${d.workingDays.includes(i) ? 'bg-emerald-50 font-semibold text-emerald-700' : 'text-slate-300'}`}>{n.slice(0, 2)}</span>)}</div></Td>
+                  <Td className="whitespace-nowrap">{d.workStartTime}–{d.workEndTime}</Td>
+                  <Td align="right">{money(d.consultationFee)}{d.followUpFee > 0 && <p className="text-[0.75rem] text-slate-500">dobara {money(d.followUpFee)}</p>}</Td>
+                  <Td align="right">{d.totalTests}</Td>
+                  <Td align="right">{money(d.totalRevenue)}</Td>
+                  <Td align="right">
+                    {canManage && (
+                      <div className="flex justify-end gap-1">
+                        <Button size="xs" variant="ghost" aria-label="Badlein" onClick={() => setEditing(d)}><Pencil className="h-3.5 w-3.5" /></Button>
+                        {d.isActive ? <Button size="xs" variant="ghost" aria-label="Band karein" onClick={() => setOff(d)}><Ban className="h-3.5 w-3.5" /></Button>
+                          : <Button size="xs" variant="secondary" loading={reactivate.isPending} onClick={() => reactivate.mutate(d)}>Chalu</Button>}
+                      </div>
+                    )}
+                  </Td>
+                </Tr>
               ))}
-            </div>
-          </div>
+            </TBody>
+          </Table>
+        </ListState>
+      </ListCard>
+    </PageShell>
+  );
+}
 
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Specializations</label>
-            <div className="flex gap-2 mb-2">
-              <input value={newSpec} onChange={(e) => setNewSpec(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newSpec.trim()) {
-                    setForm({ ...form, specializations: [...form.specializations, newSpec.trim()] });
-                    setNewSpec('');
-                  }
-                }}
-                placeholder="Pediatric, Contact Lens Fitting, Low Vision..."
-                className="h-10 flex-1 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
-              <button type="button" onClick={() => {
-                if (newSpec.trim()) {
-                  setForm({ ...form, specializations: [...form.specializations, newSpec.trim()] });
-                  setNewSpec('');
-                }
-              }} className="h-10 px-4 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-sm">
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            {form.specializations.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {form.specializations.map((s: string, i: number) => (
-                  <div key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-100 text-pink-800 text-xs font-extrabold">
-                    {s}
-                    <button onClick={() => setForm({ ...form, specializations: form.specializations.filter((_: any, x: number) => x !== i) })}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+function DoctorModal({ doctor, onClose }: { doctor: OpticalOptometrist | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [f, setF] = useState({
+    employeeCode: doctor?.employeeCode ?? `OPT-${Date.now().toString().slice(-4)}`, name: doctor?.name ?? '', phone: doctor?.phone ?? '', qualification: doctor?.qualification ?? '',
+    registrationNumber: doctor?.registrationNumber ?? '', years: doctor?.yearsExperience != null ? String(doctor.yearsExperience) : '',
+    days: doctor?.workingDays ?? [1, 2, 3, 4, 5, 6], start: doctor?.workStartTime ?? '10:00', end: doctor?.workEndTime ?? '20:00',
+    fee: String(doctor?.consultationFee ?? 500), followFee: String(doctor?.followUpFee ?? 0), specializations: doctor?.specializations ?? [],
+  });
+  const [tried, setTried] = useState(false);
+  const set = (patch: Partial<typeof f>) => setF({ ...f, ...patch });
+  const e: Record<string, string> = {};
+  if (f.name.trim().length < 2) e.name = 'Naam likhein';
+  if (!phoneOk(f.phone)) e.phone = 'Sahi mobile number likhein (03xx-xxxxxxx)';
+  if (!f.employeeCode.trim()) e.code = 'Code likhein';
+  if (!f.days.length) e.days = 'Kam se kam ek din chunein';
+  if (f.end <= f.start) e.time = 'Chhutti ka waqt aane ke baad ho';
+  const save = useMutation({
+    mutationFn: () => {
+      const body: OptometristInput = {
+        employeeCode: f.employeeCode.trim(), name: f.name.trim(), phone: f.phone.trim(), qualification: f.qualification.trim() || undefined,
+        registrationNumber: f.registrationNumber.trim() || undefined, yearsExperience: f.years ? Number(f.years) : undefined,
+        workingDays: [...f.days].sort(), workStartTime: f.start, workEndTime: f.end, consultationFee: Number(f.fee) || 0, followUpFee: Number(f.followFee) || 0,
+        specializations: f.specializations,
+      };
+      return doctor ? optometristsApi.update(doctor.id, body) : optometristsApi.create(body);
+    },
+    onSuccess: () => { toast.success(doctor ? 'Save ho gaya' : 'Doctor jur gaya'); qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.doctors] }); onClose(); },
+    onError: (err) => toast.error(apiError(err, 'Save nahi hua')),
+  });
+  const submit = () => { setTried(true); if (!Object.keys(e).length && !save.isPending) save.mutate(); };
+  const show = (k: string) => (tried ? e[k] : undefined);
+  return (
+    <Modal open onClose={onClose} size="lg" title={doctor ? `${doctor.name} — badlein` : 'Naya optometrist'} description="Din, waqt aur fees — booking yahi istemal karti hai"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending}>Save</Button></>}>
+      <form className="space-y-4" onSubmit={(ev) => { ev.preventDefault(); submit(); }}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Naam" required autoFocus value={f.name} onChange={(ev) => set({ name: ev.target.value })} placeholder="Dr. Sana Ahmed" error={show('name')} maxLength={120} />
+          <Input label="Mobile" required inputMode="tel" value={f.phone} onChange={(ev) => set({ phone: ev.target.value })} placeholder="0300-1234567" error={show('phone')} maxLength={20} />
+          <Input label="Qualification" value={f.qualification} onChange={(ev) => set({ qualification: ev.target.value })} placeholder="B.Sc Optometry" hint="Marzi hai" />
+          <Input label="Registration number" value={f.registrationNumber} onChange={(ev) => set({ registrationNumber: ev.target.value })} hint="Marzi hai" />
+          <Input label="Code" value={f.employeeCode} onChange={(ev) => set({ employeeCode: ev.target.value })} error={show('code')} hint="Har doctor ka alag" maxLength={30} />
+          <Input label="Tajurba (saal)" inputMode="numeric" value={f.years} onChange={(ev) => set({ years: ev.target.value.replace(/\D/g, '').slice(0, 2) })} hint="Marzi hai" />
+        </div>
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kin dinon aate hain</span>
+          <div className="flex flex-wrap gap-1.5">
+            {DAYS.map((n, i) => (
+              <button key={n} type="button" aria-pressed={f.days.includes(i)} onClick={() => set({ days: f.days.includes(i) ? f.days.filter((x) => x !== i) : [...f.days, i] })}
+                className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-medium ring-1 ${f.days.includes(i) ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'}`}>{n}</button>
+            ))}
           </div>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Languages</label>
-            <div className="flex gap-2 mb-2">
-              <input value={newLang} onChange={(e) => setNewLang(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newLang.trim()) {
-                    setForm({ ...form, languages: [...form.languages, newLang.trim()] });
-                    setNewLang('');
-                  }
-                }}
-                placeholder="Urdu, English, Punjabi..."
-                className="h-10 flex-1 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <button type="button" onClick={() => {
-                if (newLang.trim()) {
-                  setForm({ ...form, languages: [...form.languages, newLang.trim()] });
-                  setNewLang('');
-                }
-              }} className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm">
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            {form.languages.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {form.languages.map((l: string, i: number) => (
-                  <div key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-extrabold">
-                    {l}
-                    <button onClick={() => setForm({ ...form, languages: form.languages.filter((_: any, x: number) => x !== i) })}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Photo</label>
-            {form.photoUrl ? (
-              <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
-                <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
-                <button onClick={() => setForm({ ...form, photoUrl: '' })}
-                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-rose-600 text-white flex items-center justify-center font-extrabold">×</button>
-              </div>
-            ) : (
-              <UploadDropzone purpose="optometrist-photo" maxFiles={1}
-                onUploaded={(recs: any[]) => {
-                  const first = Array.isArray(recs) ? recs[0] : recs;
-                  const url = typeof first === 'string' ? first : (first as any)?.url;
-                  if (url) setForm({ ...form, photoUrl: url });
-                }} />
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Bio</label>
-            <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              placeholder="Short professional bio..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-pink-500" />
+          {show('days') && <p className="mt-1 text-[0.8125rem] text-rose-600">{show('days')}</p>}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Input label="Aane ka waqt" type="time" value={f.start} onChange={(ev) => set({ start: ev.target.value })} />
+          <Input label="Jane ka waqt" type="time" value={f.end} onChange={(ev) => set({ end: ev.target.value })} error={show('time')} />
+          <Input label="Test fees" inputMode="decimal" value={f.fee} onChange={(ev) => set({ fee: moneyInput(ev.target.value) })} />
+          <Input label="Dobara aane ki fees" inputMode="decimal" value={f.followFee} onChange={(ev) => set({ followFee: moneyInput(ev.target.value) })} hint="Marzi hai" />
+        </div>
+        <div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Khaas kaam</span>
+          <div className="flex flex-wrap gap-1.5">
+            {SPECIAL.map((s) => (
+              <button key={s} type="button" aria-pressed={f.specializations.includes(s)} onClick={() => set({ specializations: f.specializations.includes(s) ? f.specializations.filter((x) => x !== s) : [...f.specializations, s] })}
+                className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-medium ring-1 ${f.specializations.includes(s) ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'}`}>{s}</button>
+            ))}
           </div>
         </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700"
-            onClick={() => save.mutate()} loading={save.isPending}
-            disabled={!form.name.trim() || !form.employeeCode.trim() || !form.phone.trim()}>
-            <Save className="h-4 w-4" /> {editing ? 'Update' : 'Save'}
-          </Button>
-        </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 }

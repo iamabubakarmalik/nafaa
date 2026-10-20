@@ -52,6 +52,8 @@ export interface HotelBooking {
   source: BookingSource;
   sourceRef?: string | null;
   bookedBy?: string | null;
+  /** Company / regular khata the stay is billed to at check-out. */
+  customerId?: string | null;
   agentName?: string | null;
   agentCommission: number;
   mealPlan: MealPlan;
@@ -89,6 +91,7 @@ export interface BookingDetail extends HotelBooking {
   guest: HotelGuest | null;
   sales: Array<{ id: string; saleNumber: string; total: number; paidAmount: number; creditAmount: number; status: string; createdAt: string }>;
   khata: { id: string; name: string; phone?: string | null; balance: number } | null;
+  billTo: { id: string; name: string; phone?: string | null; balance: number } | null;
   money: { khataPaid: number; legacyPaid: number; refunded: number; due: number; advanceLeft: number };
   bill: { lines: BillLine[]; discount: number; total: number };
   today: string;
@@ -178,7 +181,8 @@ export interface CreateBookingInput extends GuestIdInput {
 
 export type UpdateBookingInput = Partial<Pick<CreateBookingInput,
   'guestName' | 'guestPhone' | 'guestEmail' | 'totalAdults' | 'totalChildren' | 'checkInDate' | 'checkOutDate' | 'source' | 'sourceRef'
-  | 'bookedBy' | 'mealPlan' | 'status' | 'taxAmount' | 'serviceCharge' | 'discount' | 'specialRequests' | 'arrivalTime' | 'purposeOfVisit' | 'notes'>>;
+  | 'bookedBy' | 'mealPlan' | 'status' | 'taxAmount' | 'serviceCharge' | 'discount' | 'specialRequests' | 'arrivalTime' | 'purposeOfVisit' | 'notes'>>
+  & { customerId?: string | null };
 
 export interface TenderInput {
   payments?: Array<{ method: PayMethod; amount: number; reference?: string }>;
@@ -201,7 +205,7 @@ export const bookingsApi = {
   create: (data: CreateBookingInput) => apiClient.post('/hotel/bookings', data).then(unwrap<HotelBooking>),
   /** Latest 300 (receipt engine and pickers); `saleId` finds the booking of a bill. */
   list: (params?: { status?: string; search?: string; saleId?: string; guestId?: string }) => apiClient.get('/hotel/bookings', { params }).then(unwrap<HotelBooking[]>),
-  page: (params: { view?: BookingView; status?: string; source?: string; search?: string; from?: string; to?: string; guestId?: string; page?: number; limit?: number }) =>
+  page: (params: { view?: BookingView; status?: string; source?: string; search?: string; from?: string; to?: string; guestId?: string; customerId?: string; page?: number; limit?: number }) =>
     apiClient.get('/hotel/bookings/page', { params }).then(unwrap<BookingPage>),
   quote: (params: { checkInDate: string; checkOutDate: string; roomTypeId?: string; source?: string; exceptBookingId?: string }) =>
     apiClient.get('/hotel/bookings/quote', { params }).then(unwrap<Quote>),

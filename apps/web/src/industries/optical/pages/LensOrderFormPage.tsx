@@ -1,320 +1,288 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { ArrowLeft, Save, FileText, Glasses, DollarSign, User, FlaskConical } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button, Input } from '@/design-system/components';
-import { lensOrdersApi } from '../api/lens-orders.api';
-import { prescriptionsApi } from '../api/prescriptions.api';
-import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { formatPKR } from '@core/lib/format';
+/**
+ * New glasses or repair order. Glasses: customer, their nuskha (picked from
+ * saved prescriptions or typed in), frame from stock or the customer's own,
+ * lens type, index and coating, lab and pickup date, prices and the advance.
+ * Repair: the customer's frame, what is wrong, the charge and the date.
+ * The advance is taken here and lands in today's drawer; the bill is made
+ * when the glasses are handed over.
+ */
 
-const LENS_TYPES = ['Single Vision', 'Bifocal', 'Progressive', 'Reading', 'Computer', 'Driving'];
-const LENS_MATERIALS = ['CR-39', 'Polycarbonate', 'Trivex', 'High Index 1.60', 'High Index 1.67', 'High Index 1.74'];
-const LENS_COATINGS = ['Anti-Reflective', 'Blue Cut', 'UV Protection', 'Anti-Scratch', 'Water Repellent', 'Photochromic'];
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { CalendarClock, Eye, FlaskConical, Glasses, Package, Search, UserRound, Wallet, Wrench } from 'lucide-react';
+import { Button, Card, Input, PageShell, Select, Switch, Textarea } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { formatPKR } from '@core/lib/format';
+import { PaymentMethodPicker } from '@modules/pos/components';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { productsApi } from '@modules/inventory/products/api/products.api';
+import { lensOrdersApi, type LensOrderInput } from '../api/lens-orders.api';
+import { prescriptionsApi } from '../api/prescriptions.api';
+import { Chips, CustomerFields, FormHeader, PowerGrid, PowerTable, emptyParty, emptyPower, partyErrors, powerDraftOf, powerOf, type PartyDraft, type PowerDraft } from '../components/ui';
+import { factLine, useOpticalFacts } from '../hooks/useOpticalFacts';
+import { useDebounced, useFormKeys } from '../hooks/usePageKeys';
+import {
+  COATINGS, LENS_INDEX, LENS_MATERIAL, LENS_TYPES, MONEY_KEYS, OPTICAL_KEYS, REPAIR, REPAIR_KINDS, apiError, dayOnly, moneyInput, powerErrors, powerSummary, todayInput,
+} from '../lib/meta';
+
+const plusDays = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString('en-CA'); };
+const T = ({ icon: Icon, children }: { icon: typeof Eye; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
+
+interface Frame { productId?: string; name: string; price: string; stock?: number }
 
 export default function LensOrderFormPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const prefilledRxId = searchParams.get('prescriptionId') || '';
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const [params] = useSearchParams();
+  const repair = params.get('type') === 'repair';
+  const facts = useOpticalFacts();
 
-  const [form, setForm] = useState<any>({
-    customerId: '', customerName: '', customerPhone: '',
-    prescriptionId: prefilledRxId,
-    frameName: '', lensType: 'Single Vision', lensMaterial: 'CR-39', lensIndex: '1.50',
-    lensCoatings: [],
-    rightSph: '', rightCyl: '', rightAxis: '', rightAdd: '',
-    leftSph: '', leftCyl: '', leftAxis: '', leftAdd: '',
-    pupilDistance: '',
-    labName: '', labOrderRef: '', expectedDate: '',
-    framePrice: '', lensPrice: '', fittingCharge: 0, paidAmount: 0, paymentMethod: 'CASH',
-    notes: '',
-  });
+  const [party, setParty] = useState<PartyDraft>(emptyParty);
+  const [rxId, setRxId] = useState(params.get('rx') ?? '');
+  const [power, setPower] = useState<PowerDraft>(emptyPower);
+  const [frame, setFrame] = useState<Frame>({ name: '', price: '' });
+  const [frameQ, setFrameQ] = useState('');
+  const [ownFrame, setOwnFrame] = useState(repair);
+  const [lensType, setLensType] = useState(repair ? REPAIR : 'Single vision');
+  const [lensIndex, setLensIndex] = useState('1.56');
+  const [material, setMaterial] = useState('');
+  const [coatings, setCoatings] = useState<string[]>(['ARC (anti-glare)']);
+  const [repairKinds, setRepairKinds] = useState<string[]>([]);
+  const [lensPrice, setLensPrice] = useState('');
+  const [lensCost, setLensCost] = useState('');
+  const [fitting, setFitting] = useState('');
+  const [labName, setLabName] = useState('');
+  const [date, setDate] = useState(plusDays(repair ? 2 : 7));
+  const [advance, setAdvance] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const [notes, setNotes] = useState('');
+  const [tried, setTried] = useState(false);
 
-  const { data: customersData } = useQuery({ queryKey: ['customers-for-pos'], queryFn: () => customersApi.list({ page: 1, limit: 500 }) });
-  const customers = customersData?.items ?? [];
-
-  const { data: rx } = useQuery({
-    queryKey: ['prescription', form.prescriptionId],
-    queryFn: () => prescriptionsApi.getOne(form.prescriptionId),
-    enabled: !!form.prescriptionId,
-  });
-
-  const { data: customerRxs = [] } = useQuery({
-    queryKey: ['customer-prescriptions', form.customerId],
-    queryFn: () => prescriptionsApi.byCustomer(form.customerId),
-    enabled: !!form.customerId,
-  });
-
+  // A nuskha opened from its page brings its customer.
+  const fromRx = useQuery({ queryKey: [OPTICAL_KEYS.rx, rxId], queryFn: () => prescriptionsApi.getOne(rxId), enabled: !!rxId && !party.name });
   useEffect(() => {
-    if (rx) {
-      setForm((f: any) => ({
-        ...f,
-        customerName: f.customerName || rx.customerName,
-        customerPhone: f.customerPhone || rx.customerPhone,
-        rightSph: rx.rightSph ?? '', rightCyl: rx.rightCyl ?? '', rightAxis: rx.rightAxis ?? '', rightAdd: rx.rightAdd ?? '',
-        leftSph: rx.leftSph ?? '', leftCyl: rx.leftCyl ?? '', leftAxis: rx.leftAxis ?? '', leftAdd: rx.leftAdd ?? '',
-        pupilDistance: rx.pupilDistance ?? '',
-      }));
-    }
-  }, [rx]);
+    const rx = fromRx.data;
+    if (rx && !party.name) setParty({ customerId: rx.customerId ?? undefined, name: rx.customerName, phone: rx.customerPhone ?? '' });
+  }, [fromRx.data, party.name]);
 
-  const framePrice = Number(form.framePrice || 0);
-  const lensPrice = Number(form.lensPrice || 0);
-  const fittingCharge = Number(form.fittingCharge || 0);
-  const totalPrice = framePrice + lensPrice + fittingCharge;
-  const paidAmount = Number(form.paidAmount || 0);
-  const remaining = totalPrice - paidAmount;
+  const rxList = useQuery({ queryKey: [OPTICAL_KEYS.rx, 'customer', party.customerId], queryFn: () => prescriptionsApi.byCustomer(party.customerId!), enabled: !!party.customerId && !repair });
+  const usable = (rxList.data ?? []).filter((r) => r.isActive && !r.computed?.isExpired);
+  const rx = usable.find((r) => r.id === rxId) ?? (fromRx.data?.id === rxId ? fromRx.data : undefined);
+  useEffect(() => { if (!rxId && usable.length && !repair) setRxId(usable[0].id); }, [usable, rxId, repair]);
 
-  const create = useMutation({
+  const q = useDebounced(frameQ.trim());
+  const frames = useQuery({ queryKey: ['optical-frame-search', q], queryFn: () => productsApi.list({ search: q, limit: 8, isActive: true }), enabled: q.length >= 2 && !ownFrame });
+
+  const p = powerOf(power);
+  const pErr = rx ? {} : powerErrors(p);
+  const pe = partyErrors(party);
+  const lp = Number(lensPrice) || 0;
+  const fp = ownFrame ? 0 : Number(frame.price) || 0;
+  const fit = Number(fitting) || 0;
+  const total = Math.round((fp + lp + fit) * 100) / 100;
+  const adv = Number(advance) || 0;
+
+  const errors = useMemo(() => {
+    const e: Record<string, string> = { ...pe };
+    if (!ownFrame && !frame.name.trim()) e.frame = 'Frame chunein ya "Customer ka apna frame" lagayein';
+    if (repair && !frame.name.trim()) e.frame = 'Frame ka naam likhein (jaise: kala metal frame)';
+    if (!repair && !rx && !Object.keys(p).length) e.power = 'Nuskha chunein ya number likhein';
+    if (Object.keys(pErr).length) e.power = Object.values(pErr)[0];
+    if (!(total > 0)) e.total = repair ? 'Repair ka charge likhein' : 'Qeemat likhein';
+    if (adv > total + 0.01) e.advance = `Advance kul (${formatPKR(total)}) se zyada nahi`;
+    if (Number(lensCost) > 0 && Number(lensCost) > lp && lp > 0) e.lensCost = 'Lab ka kharcha lens ki qeemat se zyada hai — dobara dekhein';
+    return e;
+  }, [pe, ownFrame, frame.name, repair, rx, p, pErr, total, adv, lensCost, lp]);
+  const blocking = Object.keys(errors).filter((k) => k !== 'lensCost');
+
+  const save = useMutation({
     mutationFn: () => {
-      const payload: any = { ...form };
-      ['rightSph', 'rightCyl', 'rightAdd', 'leftSph', 'leftCyl', 'leftAdd', 'pupilDistance', 'framePrice', 'lensPrice', 'fittingCharge', 'paidAmount'].forEach((k) => {
-        if (payload[k] === '' || payload[k] == null) delete payload[k];
-        else payload[k] = Number(payload[k]);
-      });
-      ['rightAxis', 'leftAxis'].forEach((k) => {
-        if (payload[k] === '' || payload[k] == null) delete payload[k];
-        else payload[k] = parseInt(payload[k], 10);
-      });
-      Object.keys(payload).forEach((k) => { if (payload[k] === '') delete payload[k]; });
-      return lensOrdersApi.create(payload);
+      const body: LensOrderInput = {
+        customerId: party.customerId, customerName: party.name.trim(), customerPhone: party.phone.trim(),
+        prescriptionId: !repair && rx ? rx.id : undefined,
+        ...(!repair && !rx ? p : {}),
+        frameProductId: !ownFrame && frame.productId ? frame.productId : undefined,
+        frameName: ownFrame ? (frame.name.trim() || 'Customer ka apna frame') : frame.name.trim(),
+        lensType: repair ? REPAIR : lensType, lensIndex: repair ? undefined : lensIndex || undefined, lensMaterial: repair ? undefined : material || undefined,
+        lensCoatings: repair ? [] : coatings,
+        framePrice: fp || undefined, lensPrice: lp || undefined, lensCost: Number(lensCost) || undefined, fittingCharge: fit || undefined,
+        labName: labName.trim() || undefined, expectedDate: date ? new Date(`${date}T12:00:00`).toISOString() : undefined,
+        paidAmount: adv || undefined, paymentMethod: adv > 0 ? method : undefined,
+        notes: [repair && repairKinds.length ? `Repair: ${repairKinds.join(', ')}` : '', notes.trim()].filter(Boolean).join('\n') || undefined,
+      };
+      return lensOrdersApi.create(body);
     },
     onSuccess: (o) => {
-      toast.success('Lens order created');
-      navigate(`/optical/lens-orders/${o.id}`);
+      toast.success(`${o.orderNumber} ban gaya${adv > 0 ? ` — ${formatPKR(adv)} advance` : ''}`);
+      qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.orders] });
+      if (adv > 0) MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      navigate(`/optical/lens-orders/${o.id}`, { replace: true });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onError: (e) => toast.error(apiError(e, 'Order save nahi hua')),
   });
-
-  const canSave = form.customerName?.trim() && form.customerPhone?.trim() && form.frameName?.trim() && form.lensType && totalPrice > 0;
-
-  const togCoating = (c: string) => {
-    const cur = form.lensCoatings ?? [];
-    setForm({ ...form, lensCoatings: cur.includes(c) ? cur.filter((x: string) => x !== c) : [...cur, c] });
+  const submit = () => {
+    setTried(true);
+    if (blocking.length) { toast.error(errors[blocking[0]]); return; }
+    if (!save.isPending) save.mutate();
   };
+  useFormKeys(submit);
+  const show = (k: string) => (tried ? errors[k] : undefined);
 
   return (
-    <div className="space-y-5 pb-24">
-      <button onClick={() => navigate('/optical/lens-orders')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-violet-600 font-bold">
-        <ArrowLeft className="h-4 w-4" /> Back to Lens Orders
-      </button>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title={repair ? 'Repair order' : 'Chashma order'} onClose={guide.close}
+          steps={repair ? [
+            { icon: UserRound, color: '#2563eb', title: 'Customer', text: 'Naam aur mobile — tayyar hone par isi number par WhatsApp.' },
+            { icon: Wrench, color: '#a16207', title: 'Kya kharab hai', text: 'Pech, nose pad, dandi… chunein aur charge likhein.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance aaj ke cash me aata hai; baqi dete waqt.' },
+          ] : [
+            { icon: Eye, color: '#2563eb', title: 'Nuskha', text: 'Saved customer ka nuskha khud aa jata hai. Bahar ka nuskha ho to number yahan likhein.' },
+            { icon: Glasses, color: '#7c3aed', title: 'Frame', text: 'Stock se frame dhoondein — dete waqt stock se nikalta hai. Apna frame ho to switch lagayein.' },
+            { icon: FlaskConical, color: '#0891b2', title: 'Lens aur lab', text: 'Lens type, index, coating. Lab ka kharcha likhein to profit sahi aata hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance aaj ke cash me; baqi customer ko dete waqt ya khata me.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
+      )}
+      <FormHeader title={repair ? 'Naya repair' : 'Naya chashma order'} hint={repair ? 'Customer ka frame, kya theek karna hai, charge aur date' : 'Customer, nuskha, frame, lens, lab aur advance'} />
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <FlaskConical className="h-3.5 w-3.5 text-amber-300" /> New Lens Order
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔬 Create Lens Order</h1>
-        </div>
-      </section>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>}>
+            <CustomerFields value={party} onChange={(v) => { setParty(v); if (v.customerId !== party.customerId) setRxId(''); }} errors={tried ? pe : {}} />
+          </Card>
 
-      {/* Customer */}
-      <section className="rounded-2xl border-2 border-violet-300 bg-gradient-to-br from-violet-50 to-white p-5 space-y-4">
-        <SectionHead icon={User} title="Customer" tone="violet" />
-        <div>
-          <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Existing Customer</label>
-          <select value={form.customerId} onChange={(e) => {
-            const c = customers.find((x: any) => x.id === e.target.value);
-            setForm({ ...form, customerId: e.target.value, customerName: c?.name || form.customerName, customerPhone: c?.phone || form.customerPhone });
-          }}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-            <option value="">-- Or enter manually below --</option>
-            {customers.map((c: any) => (<option key={c.id} value={c.id}>{c.name} ({c.phone})</option>))}
-          </select>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input label="Customer Name *" value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} />
-          <Input label="Phone *" value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} />
-        </div>
-      </section>
-
-      {/* Prescription */}
-      <section className="rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-white p-5 space-y-4">
-        <SectionHead icon={FileText} title="Prescription" tone="blue" />
-        {form.customerId && customerRxs.length > 0 && (
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Link Prescription</label>
-            <select value={form.prescriptionId} onChange={(e) => setForm({ ...form, prescriptionId: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
-              <option value="">-- Enter Rx values manually --</option>
-              {customerRxs.map((r: any) => (
-                <option key={r.id} value={r.id}>
-                  {r.prescriptionNumber} — {new Date(r.prescriptionDate).toLocaleDateString('en-PK')}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div>
-          <label className="block text-xs font-extrabold uppercase text-blue-700 mb-1.5">OD (Right Eye)</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <Input label="SPH" type="number" step="0.25" value={form.rightSph} onChange={(e) => setForm({ ...form, rightSph: e.target.value })} />
-            <Input label="CYL" type="number" step="0.25" value={form.rightCyl} onChange={(e) => setForm({ ...form, rightCyl: e.target.value })} />
-            <Input label="AXIS" type="number" value={form.rightAxis} onChange={(e) => setForm({ ...form, rightAxis: e.target.value })} />
-            <Input label="ADD" type="number" step="0.25" value={form.rightAdd} onChange={(e) => setForm({ ...form, rightAdd: e.target.value })} />
-          </div>
-        </div>
-        <div>
-          <label className="block text-xs font-extrabold uppercase text-emerald-700 mb-1.5">OS (Left Eye)</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <Input label="SPH" type="number" step="0.25" value={form.leftSph} onChange={(e) => setForm({ ...form, leftSph: e.target.value })} />
-            <Input label="CYL" type="number" step="0.25" value={form.leftCyl} onChange={(e) => setForm({ ...form, leftCyl: e.target.value })} />
-            <Input label="AXIS" type="number" value={form.leftAxis} onChange={(e) => setForm({ ...form, leftAxis: e.target.value })} />
-            <Input label="ADD" type="number" step="0.25" value={form.leftAdd} onChange={(e) => setForm({ ...form, leftAdd: e.target.value })} />
-          </div>
-        </div>
-        <Input label="Pupil Distance" type="number" step="0.5" value={form.pupilDistance}
-          onChange={(e) => setForm({ ...form, pupilDistance: e.target.value })} placeholder="64" />
-      </section>
-
-      {/* Frame & Lens */}
-      <section className="rounded-2xl border-2 border-cyan-300 bg-gradient-to-br from-cyan-50 to-white p-5 space-y-4">
-        <SectionHead icon={Glasses} title="Frame & Lens Details" tone="cyan" />
-        <Input label="Frame Name / Model *" value={form.frameName}
-          onChange={(e) => setForm({ ...form, frameName: e.target.value })} placeholder="Ray-Ban RB3025 Aviator Gold" />
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Lens Type *</label>
-            <select value={form.lensType} onChange={(e) => setForm({ ...form, lensType: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
-              {LENS_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Material</label>
-            <select value={form.lensMaterial} onChange={(e) => setForm({ ...form, lensMaterial: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
-              {LENS_MATERIALS.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-          <Input label="Refractive Index" value={form.lensIndex}
-            onChange={(e) => setForm({ ...form, lensIndex: e.target.value })} placeholder="1.56" />
-        </div>
-        <div>
-          <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Coatings</label>
-          <div className="flex flex-wrap gap-1.5">
-            {LENS_COATINGS.map((c) => {
-              const a = form.lensCoatings?.includes(c);
-              return (
-                <button key={c} type="button" onClick={() => togCoating(c)}
-                  className={`px-3 py-1.5 rounded-full border-2 text-xs font-extrabold ${
-                    a ? 'border-cyan-500 bg-cyan-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-cyan-300'}`}>
-                  {a ? '✓ ' : '+ '}{c}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Lab */}
-      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-4">
-        <SectionHead icon={FlaskConical} title="Lab Info" tone="amber" />
-        <div className="grid sm:grid-cols-3 gap-3">
-          <Input label="Lab Name" value={form.labName}
-            onChange={(e) => setForm({ ...form, labName: e.target.value })} placeholder="Karachi Optical Lab" />
-          <Input label="Lab Order Ref" value={form.labOrderRef}
-            onChange={(e) => setForm({ ...form, labOrderRef: e.target.value })} placeholder="LAB-2026-001" />
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Expected Date</label>
-            <input type="date" value={form.expectedDate}
-              onChange={(e) => setForm({ ...form, expectedDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
-        <SectionHead icon={DollarSign} title="Pricing" tone="emerald" />
-        <div className="grid sm:grid-cols-3 gap-3">
-          <Input label="Frame Price *" type="number" step="0.01" value={form.framePrice}
-            onChange={(e) => setForm({ ...form, framePrice: e.target.value })} />
-          <Input label="Lens Price *" type="number" step="0.01" value={form.lensPrice}
-            onChange={(e) => setForm({ ...form, lensPrice: e.target.value })} />
-          <Input label="Fitting Charge" type="number" step="0.01" value={form.fittingCharge}
-            onChange={(e) => setForm({ ...form, fittingCharge: e.target.value })} />
-        </div>
-
-        <div className="rounded-2xl bg-white border-2 border-emerald-200 p-4 space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-600 font-bold">Frame</span>
-            <span className="font-extrabold tabular-nums">{formatPKR(framePrice)}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-600 font-bold">Lens</span>
-            <span className="font-extrabold tabular-nums">{formatPKR(lensPrice)}</span>
-          </div>
-          {fittingCharge > 0 && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600 font-bold">Fitting</span>
-              <span className="font-extrabold tabular-nums">{formatPKR(fittingCharge)}</span>
-            </div>
+          {!repair && (
+            <Card className="rounded-2xl" title={<T icon={Eye}>Nuskha (number)</T>} description="Saved nuskha chunein, ya number yahan likhein">
+              {usable.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {usable.map((r) => (
+                    <button key={r.id} type="button" onClick={() => setRxId(rxId === r.id ? '' : r.id)} aria-pressed={rxId === r.id}
+                      className={`rounded-xl px-3 py-2 text-left text-[0.8125rem] ring-1 ${rxId === r.id ? 'bg-brand-50 ring-brand-400' : 'bg-white ring-slate-200 hover:bg-slate-50'}`}>
+                      <span className="font-semibold">{r.prescriptionNumber}</span> <span className="text-slate-500">· {dayOnly(r.prescriptionDate)}</span>
+                      <span className="block font-mono text-[0.75rem] text-slate-600">{powerSummary(r) || '—'}</span>
+                    </button>
+                  ))}
+                  {rxId && <button type="button" onClick={() => setRxId('')} className="rounded-xl px-3 py-2 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">Naya number likhein</button>}
+                </div>
+              )}
+              {rx ? <PowerTable p={rx} /> : (
+                <>
+                  <PowerGrid value={power} onChange={setPower} errors={tried ? pErr : {}} />
+                  {show('power') && !Object.keys(pErr).length && <p className="mt-1.5 text-[0.8125rem] font-medium text-rose-600">{show('power')}</p>}
+                </>
+              )}
+            </Card>
           )}
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-            <span className="text-sm font-extrabold text-slate-900 uppercase">Total</span>
-            <span className="text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(totalPrice)}</span>
-          </div>
+
+          <Card className="rounded-2xl" title={<T icon={repair ? Wrench : Glasses}>{repair ? 'Frame aur kaam' : 'Frame'}</T>}>
+            {!repair && (
+              <label className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
+                <span className="text-[0.875rem] text-slate-800">Customer ka apna frame<span className="block text-[0.75rem] text-slate-500">Sirf lens lagane hain — frame ki qeemat nahi lagti</span></span>
+                <Switch checked={ownFrame} onChange={(e) => { setOwnFrame(e.target.checked); setFrame({ name: '', price: '' }); }} aria-label="Apna frame" />
+              </label>
+            )}
+            {!ownFrame ? (
+              <div className="space-y-2">
+                {frame.productId ? (
+                  <div className="flex items-center justify-between gap-3 rounded-xl bg-brand-50 px-3 py-2.5 ring-1 ring-brand-200">
+                    <div className="min-w-0"><p className="truncate font-semibold text-slate-900">{frame.name}</p><p className="text-[0.75rem] text-slate-600">{factLine(facts.get(frame.productId)) ?? 'Stock se'} · stock {frame.stock ?? 0}</p></div>
+                    <Button size="sm" variant="secondary" onClick={() => setFrame({ name: '', price: '' })}>Badlein</Button>
+                  </div>
+                ) : (
+                  <>
+                    <Input label="Frame dhoondein" value={frameQ} onChange={(e) => setFrameQ(e.target.value)} placeholder="Brand, model, rang ya barcode" leftIcon={<Search className="h-4 w-4" />} error={show('frame')} />
+                    {(frames.data?.items ?? []).length > 0 && (
+                      <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl ring-1 ring-slate-200">
+                        {frames.data!.items.map((pr) => (
+                          <li key={pr.id}>
+                            <button type="button" onClick={() => { setFrame({ productId: pr.id, name: pr.name, price: String(pr.price ?? ''), stock: pr.stock }); setFrameQ(''); }}
+                              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50">
+                              <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{pr.name}</span><span className="block truncate text-[0.75rem] text-slate-500">{factLine(facts.get(pr.id)) ?? pr.sku ?? ''}</span></span>
+                              <span className="shrink-0 text-right text-[0.8125rem]"><span className="block font-semibold tabular-nums">{formatPKR(pr.price)}</span><span className={pr.stock > 0 ? 'text-slate-500' : 'text-rose-600'}>stock {pr.stock}</span></span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {q.length >= 2 && frames.isSuccess && !frames.data.items.length && <p className="text-[0.8125rem] text-slate-500">Stock me nahi mila — <button type="button" className="font-semibold text-brand-700 underline" onClick={() => { setFrame({ name: frameQ.trim(), price: '' }); setFrameQ(''); }}>"{frameQ.trim()}" naam se likhein</button> (stock se nahi niklega)</p>}
+                    {!frame.productId && frame.name && <Input label="Frame (stock ke bagair)" value={frame.name} onChange={(e) => setFrame({ ...frame, name: e.target.value })} />}
+                  </>
+                )}
+                <Input label="Frame ki qeemat" inputMode="decimal" value={frame.price} onChange={(e) => setFrame({ ...frame, price: moneyInput(e.target.value) })} placeholder="0" hint="Customer ko jo batayi" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Input label="Frame" value={frame.name} onChange={(e) => setFrame({ ...frame, name: e.target.value })} placeholder={repair ? 'Jaise: kala metal frame, Ray-Ban' : 'Customer ka apna frame'} error={show('frame')} maxLength={160} />
+                {repair && (
+                  <div>
+                    <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kya theek karna hai</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {REPAIR_KINDS.map((k) => (
+                        <button key={k} type="button" aria-pressed={repairKinds.includes(k)} onClick={() => setRepairKinds((v) => (v.includes(k) ? v.filter((x) => x !== k) : [...v, k]))}
+                          className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-medium ring-1 ${repairKinds.includes(k) ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'}`}>{k}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
+          {!repair && (
+            <Card className="rounded-2xl" title={<T icon={FlaskConical}>Lens</T>}>
+              <div className="space-y-3">
+                <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Lens type</span><Chips options={LENS_TYPES} value={lensType} onChange={setLensType} /></div>
+                <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Index (patla-mota)</span><Chips options={LENS_INDEX} value={lensIndex} onChange={setLensIndex} clearable /></div>
+                <div>
+                  <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Coating</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {COATINGS.map((c) => (
+                      <button key={c} type="button" aria-pressed={coatings.includes(c)} onClick={() => setCoatings((v) => (v.includes(c) ? v.filter((x) => x !== c) : [...v, c]))}
+                        className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-medium ring-1 ${coatings.includes(c) ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'}`}>{c}</button>
+                    ))}
+                  </div>
+                </div>
+                <Select label="Material" value={material} onChange={(e) => setMaterial(e.target.value)} options={[{ value: '', label: '—' }, ...LENS_MATERIAL.map((m) => ({ value: m, label: m }))]} hint="Marzi hai" />
+              </div>
+            </Card>
+          )}
+
+          <Card className="rounded-2xl" title={<T icon={CalendarClock}>{repair ? 'Kab tayyar' : 'Lab aur date'}</T>}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {!repair && <Input label="Lab" value={labName} onChange={(e) => setLabName(e.target.value)} placeholder="Abhi na pata ho to baad me" hint="Lab bhejte waqt bhi likh sakte hain" maxLength={120} />}
+              <Input label="Customer ko kab dena hai" type="date" min={todayInput()} value={date} onChange={(e) => setDate(e.target.value)} hint="Is date ke baad order 'Late' dikhta hai" />
+            </div>
+          </Card>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Input label="Advance Payment" type="number" step="0.01" value={form.paidAmount}
-              onChange={(e) => setForm({ ...form, paidAmount: e.target.value })} />
-            <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
-              className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-3 text-sm font-bold">
-              <option value="CASH">Cash</option>
-              <option value="CARD">Card</option>
-              <option value="BANK_TRANSFER">Bank</option>
-              <option value="JAZZCASH">JazzCash</option>
-              <option value="EASYPAISA">Easypaisa</option>
-            </select>
-          </div>
-          <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Remaining Balance</div>
-            <div className="text-2xl font-extrabold text-amber-900 tabular-nums">{formatPKR(Math.max(remaining, 0))}</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border-2 border-slate-200 bg-white p-5">
-        <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Notes</label>
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          placeholder="Special instructions for the lab..."
-          className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-      </section>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <Button variant="secondary" onClick={() => navigate('/optical/lens-orders')}>Cancel</Button>
-          <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-700"
-            onClick={() => create.mutate()} loading={create.isPending} disabled={!canSave}>
-            <Save className="h-4 w-4" /> Create Lens Order
-          </Button>
+        <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>Hisaab</T>}>
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label={repair ? 'Repair charge' : 'Lens ki qeemat'} inputMode="decimal" value={lensPrice} onChange={(e) => setLensPrice(moneyInput(e.target.value))} placeholder="0" error={show('total')} />
+                <Input label="Lab / karigar ka kharcha" inputMode="decimal" value={lensCost} onChange={(e) => setLensCost(moneyInput(e.target.value))} placeholder="0" hint={errors.lensCost ?? 'Profit sahi aane ke liye'} />
+                {!repair && <Input label="Fitting charge" inputMode="decimal" value={fitting} onChange={(e) => setFitting(moneyInput(e.target.value))} placeholder="0" hint="Marzi hai" />}
+              </div>
+              <dl className="space-y-1 rounded-xl bg-slate-50 px-3 py-2.5 text-[0.875rem]">
+                {!repair && <div className="flex justify-between"><dt className="text-slate-600">Frame</dt><dd className="tabular-nums">{formatPKR(fp)}</dd></div>}
+                <div className="flex justify-between"><dt className="text-slate-600">{repair ? 'Repair' : 'Lens'}</dt><dd className="tabular-nums">{formatPKR(lp)}</dd></div>
+                {fit > 0 && <div className="flex justify-between"><dt className="text-slate-600">Fitting</dt><dd className="tabular-nums">{formatPKR(fit)}</dd></div>}
+                <div className="flex justify-between border-t border-slate-200 pt-1 font-bold"><dt>Kul</dt><dd className="tabular-nums">{formatPKR(total)}</dd></div>
+              </dl>
+              <Input label="Advance (abhi)" inputMode="decimal" value={advance} onChange={(e) => setAdvance(moneyInput(e.target.value))} placeholder="0" error={show('advance') ?? (adv > total + 0.01 ? errors.advance : undefined)}
+                hint={total > 0 ? `Baqi dete waqt: ${formatPKR(Math.max(total - adv, 0))}` : undefined} />
+              {total > 0 && <div className="flex flex-wrap gap-1.5">{[0.5, 1].map((f) => <button key={f} type="button" onClick={() => setAdvance(String(Math.round(total * f)))} className="h-8 rounded-lg bg-white px-2.5 text-[0.8125rem] font-medium ring-1 ring-slate-200 hover:bg-slate-50">{f === 1 ? 'Poora' : 'Aadha'} ({formatPKR(Math.round(total * f))})</button>)}</div>}
+              {adv > 0 && <PaymentMethodPicker value={method} onChange={setMethod} label="Advance kaise mila" />}
+              <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Jaise: customer Friday ko aayega" hint="Marzi hai" maxLength={1000} />
+              <Button fullWidth size="lg" onClick={submit} loading={save.isPending} leftIcon={<Package className="h-4 w-4" />}>{adv > 0 ? `Order + ${formatPKR(adv)} advance` : 'Order save karein'}</Button>
+            </div>
+          </Card>
         </div>
       </div>
-    </div>
-  );
-}
-
-function SectionHead({ icon: Icon, title, tone }: any) {
-  const tones: Record<string, string> = {
-    violet: 'from-violet-500 to-fuchsia-700',
-    blue: 'from-blue-500 to-cyan-700',
-    cyan: 'from-cyan-500 to-sky-700',
-    emerald: 'from-emerald-500 to-teal-700',
-    amber: 'from-amber-500 to-orange-700',
-  };
-  return (
-    <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <h3 className="font-extrabold text-slate-900">{title}</h3>
-    </div>
+    </PageShell>
   );
 }

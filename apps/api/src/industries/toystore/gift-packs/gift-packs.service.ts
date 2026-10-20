@@ -1,7 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { endOfDayTz, startOfDayTz, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { UpsertGiftPackDto } from './dto/upsert-gift-pack.dto';
+
+const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
+
+/** A `yyyy-mm-dd` key is a shop day (Pakistan time); `end` takes its last moment. */
+function shopDay(value: string | undefined | null, end: boolean): Date | null {
+  if (!value) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  const d = m ? zonedToUtc(Number(m[1]), Number(m[2]), Number(m[3])) : new Date(value);
+  if (Number.isNaN(d.getTime())) throw new BadRequestException('Tareekh sahi likhein');
+  return end ? endOfDayTz(d) : startOfDayTz(d);
+}
 
 /**
  * Lines of a pack. Packs saved while the request pipe emptied every line
@@ -26,27 +38,62 @@ export class GiftPacksService {
     return { originalPrice, savings, savingsPct: Number(savingsPct.toFixed(2)) };
   }
 
+  /**
+   * Checks a pack before it is saved: at least two lines of this shop's own
+   * toys, whole quantities, a price above zero and a sensible date window.
+   * Line prices are the toys' current prices when left out.
+   */
+  private async checked(user: AuthenticatedUser, dto: UpsertGiftPackDto, id?: string) {
+    const name = dto.name?.trim();
+    if (!name) throw new BadRequestException('Pack ka naam likhein');
+    const dup = await this.prisma.toyGiftPack.findFirst({
+      where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' }, ...(id && { NOT: { id } }) },
+      select: { id: true },
+    });
+    if (dup) throw new BadRequestException(`Gift pack "${name}" pehle se hai`);
+    const lines = packItems(dto.items);
+    if (lines.length < 2) throw new BadRequestException('Gift pack me kam se kam 2 khilone hon');
+    const ids = [...new Set(lines.map((l) => l.productId))];
+    const products = await this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: ids } }, select: { id: true, price: true } });
+    if (products.length !== ids.length) throw new BadRequestException('Pack me koi khilona is dukaan ka nahi');
+    const price = new Map(products.map((p) => [p.id, p.price]));
+    const variantIds = lines.map((l) => l.variantId).filter((v): v is string => !!v);
+    if (variantIds.length) {
+      const ok = await this.prisma.productVariant.count({ where: { id: { in: variantIds }, productId: { in: ids } } });
+      if (ok !== new Set(variantIds).size) throw new BadRequestException('Pack me koi variant sahi nahi');
+    }
+    const items = lines.map((l) => {
+      const quantity = Math.floor(Number(l.quantity));
+      if (!(quantity >= 1)) throw new BadRequestException('Har khilone ki quantity kam se kam 1');
+      const unitPrice = l.unitPrice === undefined || l.unitPrice === null ? (price.get(l.productId) ?? 0) : r2(Number(l.unitPrice));
+      if (!(unitPrice >= 0)) throw new BadRequestException('Khilone ki qeemat sahi likhein');
+      return { productId: l.productId, ...(l.variantId && { variantId: l.variantId }), quantity, unitPrice };
+    });
+    const giftPackPrice = r2(Number(dto.giftPackPrice));
+    if (!(giftPackPrice > 0)) throw new BadRequestException('Pack ki qeemat likhein');
+    const validFrom = shopDay(dto.validFrom, false);
+    const validUntil = shopDay(dto.validUntil, true);
+    if (validFrom && validUntil && validUntil < validFrom) throw new BadRequestException('Khatam hone ki tareekh shuru se pehle nahi ho sakti');
+    return { name, items, giftPackPrice, validFrom, validUntil };
+  }
+
   async create(user: AuthenticatedUser, dto: UpsertGiftPackDto) {
-    if (!dto.items || dto.items.length < 2) throw new BadRequestException('A gift pack needs at least 2 items');
-
-    const dup = await this.prisma.toyGiftPack.findFirst({ where: { tenantId: user.tenantId, name: dto.name } });
-    if (dup) throw new BadRequestException(`Gift pack "${dto.name}" already exists`);
-
-    const { originalPrice, savings, savingsPct } = this.computeTotals(dto.items, dto.giftPackPrice);
+    const c = await this.checked(user, dto);
+    const { originalPrice, savings, savingsPct } = this.computeTotals(c.items, c.giftPackPrice);
 
     return this.prisma.toyGiftPack.create({
       data: {
         tenantId: user.tenantId,
-        name: dto.name,
+        name: c.name,
         description: dto.description,
         imageUrl: dto.imageUrl,
         targetAgeGroup: dto.targetAgeGroup,
         targetGender: dto.targetGender,
         occasion: dto.occasion,
-        items: dto.items as any,
-        itemCount: dto.items.length,
+        items: c.items,
+        itemCount: c.items.length,
         originalPrice,
-        giftPackPrice: dto.giftPackPrice,
+        giftPackPrice: c.giftPackPrice,
         savings,
         savingsPct,
         isGiftWrapped: dto.isGiftWrapped ?? true,
@@ -55,8 +102,8 @@ export class GiftPacksService {
         isFeatured: dto.isFeatured ?? false,
         isSeasonal: dto.isSeasonal ?? false,
         seasonName: dto.seasonName,
-        validFrom: dto.validFrom ? new Date(dto.validFrom) : null,
-        validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
+        validFrom: c.validFrom,
+        validUntil: c.validUntil,
       },
     });
   }
@@ -98,7 +145,7 @@ export class GiftPacksService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.toyGiftPack.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Gift pack not found');
+    if (!p) throw new NotFoundException('Gift pack nahi mila');
 
     const ids = packItems(p.items).map((i) => i.productId);
     const products = await this.prisma.product.findMany({
@@ -127,24 +174,23 @@ export class GiftPacksService {
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertGiftPackDto) {
     const p = await this.prisma.toyGiftPack.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Gift pack not found');
-    if (!dto.items || dto.items.length < 2) throw new BadRequestException('A gift pack needs at least 2 items');
-
-    const { originalPrice, savings, savingsPct } = this.computeTotals(dto.items, dto.giftPackPrice);
+    if (!p) throw new NotFoundException('Gift pack nahi mila');
+    const c = await this.checked(user, dto, id);
+    const { originalPrice, savings, savingsPct } = this.computeTotals(c.items, c.giftPackPrice);
 
     return this.prisma.toyGiftPack.update({
       where: { id },
       data: {
-        name: dto.name,
+        name: c.name,
         description: dto.description,
         imageUrl: dto.imageUrl,
         targetAgeGroup: dto.targetAgeGroup,
         targetGender: dto.targetGender,
         occasion: dto.occasion,
-        items: dto.items as any,
-        itemCount: dto.items.length,
+        items: c.items,
+        itemCount: c.items.length,
         originalPrice,
-        giftPackPrice: dto.giftPackPrice,
+        giftPackPrice: c.giftPackPrice,
         savings,
         savingsPct,
         isGiftWrapped: dto.isGiftWrapped,
@@ -153,15 +199,16 @@ export class GiftPacksService {
         isFeatured: dto.isFeatured,
         isSeasonal: dto.isSeasonal,
         seasonName: dto.seasonName,
-        validFrom: dto.validFrom ? new Date(dto.validFrom) : undefined,
-        validUntil: dto.validUntil ? new Date(dto.validUntil) : undefined,
+        // The form always sends the window; empty means no limit.
+        validFrom: c.validFrom,
+        validUntil: c.validUntil,
       },
     });
   }
 
   async duplicate(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.toyGiftPack.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Gift pack not found');
+    if (!p) throw new NotFoundException('Gift pack nahi mila');
 
     let name = `${p.name} (Copy)`;
     let n = 2;
@@ -195,15 +242,19 @@ export class GiftPacksService {
   }
 
   async recordSale(user: AuthenticatedUser, id: string, quantity = 1) {
+    const qty = Math.floor(Number(quantity));
+    if (!(qty >= 1 && qty <= 1000)) throw new BadRequestException('Quantity sahi nahi');
+    quantity = qty;
     const p = await this.prisma.toyGiftPack.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Gift pack not found');
+    if (!p) throw new NotFoundException('Gift pack nahi mila');
     return this.prisma.toyGiftPack.update({ where: { id }, data: { totalSold: { increment: quantity } } });
   }
 
+  /** Takes the pack off the counter; its sales history stays. */
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.toyGiftPack.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Gift pack not found');
-    return this.prisma.toyGiftPack.delete({ where: { id } });
+    if (!p) throw new NotFoundException('Gift pack nahi mila');
+    return this.prisma.toyGiftPack.update({ where: { id }, data: { isActive: false, isFeatured: false } });
   }
 
   async summary(user: AuthenticatedUser) {

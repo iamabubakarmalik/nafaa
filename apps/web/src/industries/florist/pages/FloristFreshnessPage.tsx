@@ -1,215 +1,182 @@
-import { useMemo, useState } from 'react';
+/**
+ * Freshness: flowers past or near their fresh-until day. At day end the
+ * shop writes wilted stems off as wastage (the shared damage record, which
+ * a manager approves and which then reaches stock and the loss report),
+ * marks a new delivery of the same flower as arrived (fresh-until starts
+ * again from today), or sells them cheaper from the product page.
+ */
+
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AlertTriangle, Clock, Flower2, GraduationCap, Leaf, PackagePlus, RefreshCw, Tag, Trash2, TrendingDown } from 'lucide-react';
 import {
-  Leaf, RefreshCw, AlertTriangle, Clock, Flower2, Search, X,
-  TrendingDown, Package, Calendar, Sparkles,
-} from 'lucide-react';
-import { floristProductsApi } from '../api/products.api';
-import { formatPKR } from '@core/lib/format';
+  Button, FilterBar, FilterChip, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Textarea, ViewTabs,
+  heroButton, heroIconButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { damageApi } from '@modules/inventory/damage/api/damage.api';
+import { floristProductsApi, type FreshnessRow } from '../api/products.api';
+import { ConfirmModal, Empty, ListCard, ListLoading, Pill, actionBtn } from '../components/ui';
+import { usePageKeys, useSaveKey } from '../hooks/usePageKeys';
+import { FLORIST_KEYS, categoryLabel, dayKey, daysFromToday, errorText, longDate, numIn, shortDate } from '../lib/meta';
+
+type Tab = 'today' | 'soon' | 'later';
+const TABS: Record<Tab, { label: string; hint: string; tone: string }> = {
+  today: { label: 'Murjha gaye', hint: 'Fresh ki date guzar gayi', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  soon: { label: '1–2 din', hint: 'Jaldi bechein', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  later: { label: '3–5 din', hint: 'Nazar rakhein', tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
+};
 
 export default function FloristFreshnessPage() {
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { cost: money } = useMasked();
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('today');
   const [search, setSearch] = useState('');
+  const [waste, setWaste] = useState<FreshnessRow | null>(null);
+  const [arrived, setArrived] = useState<FreshnessRow | null>(null);
 
-  const { data: alerts, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['florist-freshness-alerts'],
-    queryFn: () => floristProductsApi.freshnessAlerts(),
-    refetchInterval: 5 * 60_000,
+  const q = useQuery({ queryKey: [FLORIST_KEYS.freshness], queryFn: () => floristProductsApi.freshnessAlerts(), refetchInterval: 5 * 60_000 });
+  const lists: Record<Tab, FreshnessRow[]> = { today: q.data?.witheringToday ?? [], soon: q.data?.witheringSoon ?? [], later: q.data?.witheringLater ?? [] };
+  const stockValue = (r: FreshnessRow) => Math.max(r.product?.stock ?? 0, 0) * (r.product?.costPrice ?? 0);
+  const rows = useMemo(() => {
+    const t = search.trim().toLowerCase();
+    const all = lists[tab];
+    return t ? all.filter((r) => [r.product?.name, r.flowerType, r.color, categoryLabel(r.categoryType)].filter(Boolean).join(' ').toLowerCase().includes(t)) : all;
+  }, [lists, tab, search]);
+  const wiltedValue = lists.today.reduce((t, r) => t + stockValue(r), 0);
+  usePageKeys(searchRef, { r: () => q.refetch() });
+
+  const refresh = () => [FLORIST_KEYS.freshness, FLORIST_KEYS.profiles, 'products', 'florist-dashboard-overview'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const markArrived = useMutation({
+    mutationFn: (r: FreshnessRow) => floristProductsApi.upsert({ productId: r.productId, arrivalDate: dayKey() }),
+    onSuccess: () => { refresh(); setArrived(null); toast.success('Naya maal likh diya — fresh ki date aaj se'); },
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
   });
 
-  const witheringToday = alerts?.witheringToday ?? [];
-  const witheringSoon = alerts?.witheringSoon ?? [];
-  const witheringLater = alerts?.witheringLater ?? [];
-
-  const filterList = (list: any[]) => {
-    const q = search.toLowerCase().trim();
-    if (!q) return list;
-    return list.filter((p) =>
-      (p.flowerType || '').toLowerCase().includes(q) ||
-      (p.color || '').toLowerCase().includes(q) ||
-      (p.categoryType || '').toLowerCase().includes(q)
-    );
-  };
-
-  const totalWithering = witheringToday.length + witheringSoon.length + witheringLater.length;
+  const printList = (): PrintDoc => ({
+    title: 'Freshness list', subtitle: longDate(dayKey()),
+    meta: [['Murjhaye', String(lists.today.length)], ['Stock ki cost', money(wiltedValue)]],
+    sections: (Object.keys(TABS) as Tab[]).filter((k) => lists[k].length).map((k) => ({
+      kind: 'table' as const, title: TABS[k].label,
+      columns: [{ label: 'Phool' }, { label: 'Stock', align: 'right' as const }, { label: 'Fresh tak' }],
+      rows: lists[k].map((r) => [r.product?.name ?? r.flowerType ?? '—', `${r.product?.stock ?? 0} ${r.product?.unit ?? ''}`, shortDate(r.freshUntil)]),
+    })),
+  });
 
   return (
-    <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Leaf className="h-3.5 w-3.5 text-emerald-300" /> Freshness Tracking
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🥀 Freshness</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {totalWithering} products need attention • {witheringToday.length} withered
-            </p>
-          </div>
-          <button onClick={() => refetch()} disabled={isRefetching}
-            className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-          </button>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-3 gap-3">
-        <FreshnessCard label="Withered" value={witheringToday.length} icon={AlertTriangle} tone="rose" desc="Remove now" />
-        <FreshnessCard label="Withering Soon" value={witheringSoon.length} icon={Clock} tone="amber" desc="1-2 days" />
-        <FreshnessCard label="Getting Old" value={witheringLater.length} icon={TrendingDown} tone="blue" desc="3-5 days" />
-      </section>
-
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by flower, color, category..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : (
-        <>
-          {witheringToday.length > 0 && (
-            <FreshnessSection
-              title="🥀 Withered — Remove From Display"
-              desc="These products have passed their freshness date"
-              tone="rose"
-              products={filterList(witheringToday)}
-              action="Discount 70% or dispose"
-            />
-          )}
-
-          {witheringSoon.length > 0 && (
-            <FreshnessSection
-              title="⚠️ Withering Soon (1-2 days)"
-              desc="Consider clearance pricing to move stock"
-              tone="amber"
-              products={filterList(witheringSoon)}
-              action="Apply 30-50% discount"
-            />
-          )}
-
-          {witheringLater.length > 0 && (
-            <FreshnessSection
-              title="⏰ Getting Old (3-5 days)"
-              desc="Feature these in POS to sell first"
-              tone="blue"
-              products={filterList(witheringLater)}
-              action="Promote / feature"
-            />
-          )}
-
-          {totalWithering === 0 && (
-            <div className="rounded-3xl bg-emerald-50 border-2 border-emerald-300 p-16 text-center">
-              <Sparkles className="h-16 w-16 text-emerald-500 mx-auto mb-3" />
-              <h3 className="text-xl font-extrabold text-emerald-900">All stock is fresh! ✨</h3>
-              <p className="text-sm text-emerald-700 font-semibold mt-1">No withering alerts right now</p>
-            </div>
-          )}
-        </>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Phoolon ki taazgi" onClose={guide.close}
+          steps={[
+            { icon: Leaf, color: '#16a34a', title: 'Kitne din', text: 'Har phool par "kitne din fresh" likhein. Maal aane ki date se fresh ki aakhri date khud banti hai.' },
+            { icon: PackagePlus, color: '#0284c7', title: 'Naya maal', text: 'Mandi se naya maal aaye to "Naya maal aaya" dabayein — date aaj se dobara ginti hai.' },
+            { icon: Trash2, color: '#e11d48', title: 'Wastage', text: 'Din ke aakhir me murjhaye phool "Wastage" se likhein. Manager Damage page par manzoor kare to stock kam hota hai aur loss report me aata hai.' },
+            { icon: Tag, color: '#d97706', title: 'Sasta', text: '1–2 din wale phool bouquet me lagayein ya rate kam kar ke bechein.' },
+          ]}
+          shortcuts={[['/', 'search'], ['R', 'refresh'], ['G', 'guide']]} />
       )}
-    </div>
+
+      <PageHero title="Freshness" busy={q.isFetching && !q.isLoading} loading={q.isLoading} meta="Murjhane wale phool — bechein, wastage likhein ya naya maal"
+        actions={<>
+          <button type="button" onClick={() => q.refetch()} className={heroButton}><RefreshCw className="h-4 w-4" />Refresh</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Murjha gaye', value: String(lists.today.length) },
+          { label: '1–2 din', value: String(lists.soon.length) },
+          { label: 'Murjhaye stock ki cost', value: money(wiltedValue) },
+        ]} />
+
+      <KpiRow cols={4}>
+        {q.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (<>
+          <KpiCard icon={AlertTriangle} color="#e11d48" label="Murjha gaye" value={lists.today.length} hint="Wastage likhein" active={tab === 'today'} onClick={() => setTab('today')} />
+          <KpiCard icon={Clock} color="#d97706" label="1–2 din" value={lists.soon.length} hint="Pehle bechein" active={tab === 'soon'} onClick={() => setTab('soon')} />
+          <KpiCard icon={TrendingDown} color="#0284c7" label="3–5 din" value={lists.later.length} active={tab === 'later'} onClick={() => setTab('later')} />
+          <KpiCard icon={Trash2} color="#64748b" label="Murjhaye stock ki cost" value={money(wiltedValue)} hint="Agar sab wastage ho" />
+        </>)}
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Phool, rang ya naam…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')} />
+
+      <ViewTabs value={tab} onChange={setTab} hint={TABS[tab].hint}
+        tabs={(Object.keys(TABS) as Tab[]).map((k) => ({ id: k, label: TABS[k].label, icon: k === 'today' ? AlertTriangle : k === 'soon' ? Clock : TrendingDown, count: lists[k].length }))} />
+
+      <ListCard>
+        {q.isLoading ? <ListLoading /> : rows.length === 0 ? (
+          <Empty icon={Flower2} title={tab === 'today' ? 'Koi murjhaya phool nahi' : 'Is list me kuch nahi'} text="Phool ki taazgi uske product me likhi hoti hai — maal aane ki date aur kitne din fresh rehta hai." />
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {rows.map((r) => {
+              const left = daysFromToday(r.freshUntil);
+              const stock = r.product?.stock ?? 0;
+              return (
+                <li key={r.id} className="grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.6fr)_8rem_9rem_auto] lg:items-center">
+                  <div className="min-w-0">
+                    <Link to={`/florist-products/${r.productId}`} className="truncate font-semibold text-slate-900 hover:underline">{r.product?.name ?? r.flowerType ?? 'Phool'}</Link>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[categoryLabel(r.categoryType), r.flowerType, r.color, r.daysToWither ? `${r.daysToWither} din fresh` : null].filter(Boolean).join(' · ')}</p>
+                  </div>
+                  <p className="text-[0.8125rem] text-slate-700">{shortDate(r.freshUntil)}
+                    <span className="block text-[0.75rem] text-slate-500">{left === null ? '' : left < 0 ? `${-left} din pehle` : left === 0 ? 'Aaj tak' : `${left} din`}</span></p>
+                  <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{stock} {r.product?.unit ?? ''}<span className="block text-[0.75rem] font-normal text-slate-500">{money(stockValue(r))} cost</span></p>
+                  <div className="flex flex-wrap items-center justify-end gap-1.5">
+                    <Pill tone={TABS[tab].tone}>{TABS[tab].label}</Pill>
+                    {canEdit && <button type="button" onClick={() => setArrived(r)} className={actionBtn}><PackagePlus className="h-4 w-4" />Naya maal aaya</button>}
+                    {stock > 0 && <button type="button" onClick={() => setWaste(r)} className={actionBtn}><Trash2 className="h-4 w-4" />Wastage</button>}
+                    {canEdit && <Link to={`/florist-products/${r.productId}/edit`} className={actionBtn}><Tag className="h-4 w-4" />Rate</Link>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </ListCard>
+
+      {arrived && <ConfirmModal title="Naya maal aaya?" cta="Haan, aaj aaya" busy={markArrived.isPending} onConfirm={() => markArrived.mutate(arrived)} onClose={() => setArrived(null)}
+        text={<>{arrived.product?.name ?? 'Is phool'} ki fresh ki date aaj se {arrived.daysToWither ? `${arrived.daysToWither} din` : ''} ginti hogi. Maal ki quantity Purchase se stock me dalein.</>} />}
+      {waste && <WastageModal row={waste} money={money} onClose={() => setWaste(null)} onDone={() => { refresh(); setWaste(null); }} />}
+    </PageShell>
   );
 }
 
-function FreshnessCard({ label, value, icon: Icon, tone, desc }: any) {
-  const tones: Record<string, string> = {
-    rose: 'from-rose-500 to-red-700 border-rose-300 bg-rose-50',
-    amber: 'from-amber-500 to-orange-600 border-amber-300 bg-amber-50',
-    blue: 'from-blue-500 to-cyan-700 border-blue-300 bg-blue-50',
+function WastageModal({ row, money, onClose, onDone }: { row: FreshnessRow; money: (n: number) => string; onClose: () => void; onDone: () => void }) {
+  const stock = Math.max(row.product?.stock ?? 0, 0);
+  const [qty, setQty] = useState(String(stock));
+  const [note, setNote] = useState('');
+  const [error, setError] = useState('');
+  const n = numIn(qty) ?? 0;
+  const save = useMutation({
+    mutationFn: () => damageApi.create({ productId: row.productId, quantity: n, reasonCode: 'SPOILAGE', reason: 'Phool murjha gaye', notes: note.trim() || undefined }),
+    onSuccess: (d) => { toast.success(`Wastage ${d.damageNumber} likh di — manager ki manzoori ke baad stock kam hoga`); onDone(); },
+    onError: (e) => toast.error(errorText(e, 'Wastage save nahi hui')),
+  });
+  const submit = () => {
+    if (!(n > 0)) { setError('Kitne phool — likhein'); return; }
+    if (n > stock) { setError(`Stock sirf ${stock} hai`); return; }
+    setError('');
+    if (!save.isPending) save.mutate();
   };
-  const parts = tones[tone].split(' ');
+  useSaveKey(submit);
   return (
-    <div className={`rounded-2xl border-2 ${parts[2]} ${parts[3]} p-4 shadow-sm`}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">{label}</div>
-          <div className="text-3xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{desc}</div>
-        </div>
-        <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${parts[0]} ${parts[1]} text-white flex items-center justify-center shadow-md`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FreshnessSection({ title, desc, tone, products, action }: any) {
-  const tones: Record<string, string> = {
-    rose: 'from-rose-500 to-red-700 border-rose-300',
-    amber: 'from-amber-500 to-orange-600 border-amber-300',
-    blue: 'from-blue-500 to-cyan-700 border-blue-300',
-  };
-  const parts = tones[tone].split(' ');
-
-  return (
-    <section className={`rounded-3xl bg-white border-2 ${parts[2]} shadow-sm overflow-hidden`}>
-      <div className={`px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r ${parts[0]} ${parts[1]} text-white`}>
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h3 className="font-extrabold text-lg">{title} ({products.length})</h3>
-            <p className="text-xs font-bold text-white/85 mt-0.5">{desc}</p>
-          </div>
-          <div className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur text-xs font-extrabold">
-            💡 {action}
-          </div>
-        </div>
-      </div>
-      {products.length === 0 ? (
-        <div className="p-8 text-center text-sm text-slate-500 font-semibold">No matching products</div>
-      ) : (
-        <div className="p-4 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {products.map((p: any) => {
-            const days = p.freshUntil ? Math.ceil((new Date(p.freshUntil).getTime() - Date.now()) / 86400000) : null;
-            return (
-              <Link key={p.id} to={`/florist-products/${p.productId}`}
-                className="rounded-2xl border-2 border-slate-200 hover:border-amber-400 hover:shadow-md p-3 transition group">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
-                    {p.product?.images?.[0]?.url ? (
-                      <img src={p.product.images[0].url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Flower2 className="h-5 w-5 text-slate-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm text-slate-900 truncate">
-                      {p.flowerType || p.categoryType?.replace(/_/g, ' ') || 'Product'}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      {p.color && (
-                        <span className="h-3 w-3 rounded-full border border-slate-300" style={{ backgroundColor: p.colorHex || '#ec4899' }} />
-                      )}
-                      <span className="text-[0.6875rem] font-bold text-slate-500">{p.color || ''}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <div className="text-xs font-bold text-slate-600 inline-flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {days === null ? '—' : days <= 0 ? `${Math.abs(days)}d ago` : `${days}d left`}
-                  </div>
-                  {p.retailPrice && (
-                    <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.retailPrice)}</div>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </section>
+    <Modal open onClose={onClose} size="sm" title="Wastage likhein" description={row.product?.name ?? undefined}
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button variant="danger" loading={save.isPending} onClick={submit}>Wastage likhein</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <Input label={`Kitne (${row.product?.unit ?? 'pcs'})`} inputMode="decimal" autoFocus value={qty} onChange={(e) => setQty(e.target.value)} error={error}
+          hint={`Stock ${stock} · loss ${money(n * (row.product?.costPrice ?? 0))} (cost par)`} />
+        <Textarea label="Note (marzi)" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Garmi se murjha gaye…" />
+        <p className="text-[0.75rem] text-slate-500">Damage page par manager manzoor kare to stock kam hota hai aur loss report me aata hai.</p>
+      </form>
+    </Modal>
   );
 }

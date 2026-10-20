@@ -23,6 +23,8 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
+import { useShopParam } from '@core/stores/auth.store';
+import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { roomsApi, type BoardRoom, type HotelRoom, type RoomStatus } from '../api/rooms.api';
 import { roomTypesApi } from '../api/room-types.api';
@@ -108,13 +110,22 @@ function RoomForm({ room, onClose, onDone }: { room: HotelRoom | null; onClose: 
     roomTypeId: room?.roomTypeId ?? '', roomNumber: room?.roomNumber ?? '', floor: room?.floor ?? '', building: room?.building ?? '',
     viewType: room?.viewType ?? '', customPrice: room?.customPrice ? String(room.customPrice) : '', customNotes: room?.customNotes ?? '',
   });
+  // Branch: a new room goes to the branch being viewed; "every branch" keeps it shared.
+  const viewing = useShopParam();
+  const shopsQ = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, staleTime: 5 * 60_000 });
+  const shops = (shopsQ.data ?? []).filter((x) => x.isActive);
+  const [shopId, setShopId] = useState<string>(room ? room.shopId ?? '' : viewing ?? '');
   const set = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
   useEffect(() => { if (!f.roomTypeId && types.data?.[0]) set('roomTypeId', types.data[0].id); }, [types.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const [tried, setTried] = useState(false);
   const bad = !f.roomNumber.trim() ? 'Room number likhein' : !f.roomTypeId ? 'Room type chunein' : null;
   const go = useMutation({
     mutationFn: () => {
-      const body = { roomTypeId: f.roomTypeId, roomNumber: f.roomNumber.trim(), floor: f.floor.trim() || undefined, building: f.building.trim() || undefined, viewType: f.viewType.trim() || undefined, customPrice: f.customPrice ? num(f.customPrice) : null, customNotes: f.customNotes.trim() || undefined };
+      const body = {
+        roomTypeId: f.roomTypeId, roomNumber: f.roomNumber.trim(), floor: f.floor.trim() || undefined, building: f.building.trim() || undefined, viewType: f.viewType.trim() || undefined,
+        customPrice: f.customPrice ? num(f.customPrice) : null, customNotes: f.customNotes.trim() || undefined,
+        ...(shops.length > 1 && { shopId: shopId || null }),
+      };
       return room ? roomsApi.update(room.id, body) : roomsApi.create(body);
     },
     onSuccess: () => { toast.success(room ? 'Room badal gaya' : `Room ${f.roomNumber} ban gaya`); onDone(); },
@@ -136,6 +147,11 @@ function RoomForm({ room, onClose, onDone }: { room: HotelRoom | null; onClose: 
         <Input label="Block / building" value={f.building} onChange={(e) => set('building', e.target.value)} />
         <Input label="Is room ka apna rate" inputMode="decimal" value={f.customPrice} onChange={(e) => set('customPrice', moneyInput(e.target.value))} hint="Khaali chhorein to room type ka rate" />
         <Input label="View" value={f.viewType} onChange={(e) => set('viewType', e.target.value)} placeholder="Pahar, sarak…" />
+        {shops.length > 1 && (
+          <Select wrapperClassName="sm:col-span-2" label="Branch" value={shopId} onChange={(e) => setShopId(e.target.value)}
+            options={[{ value: '', label: 'Har branch me dikhe' }, ...shops.map((x) => ({ value: x.id, label: x.name }))]}
+            hint="Room sirf isi branch ke board, booking aur night audit me aata hai" />
+        )}
         <Textarea wrapperClassName="sm:col-span-2" rows={2} label="Note" value={f.customNotes} onChange={(e) => set('customNotes', e.target.value)} />
       </div>
     </Modal>

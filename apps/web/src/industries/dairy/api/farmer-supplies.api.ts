@@ -39,7 +39,7 @@ export const farmerSuppliesApi = {
   summary: (date?: string) => apiClient.get('/dairy/farmer-supplies/daily-summary', { params: { date } }).then(unwrap<SupplySummary>),
   add: (data: { farmerId: string; supplyDate?: string; slot?: string; quantity: number; fatContent?: number; snfContent?: number; quality?: string; ratePerLiter?: number; otherAdjustment?: number; notes?: string }) =>
     apiClient.post('/dairy/farmer-supplies', data).then(unwrap<FarmerSupply & { stockProduct?: { id: string; name: string } | null }>),
-  pay: (id: string, paymentMethod?: string) => apiClient.post('/dairy/farmer-supplies/' + id + '/mark-paid', { paymentMethod }).then(unwrap<FarmerSupply>),
+  pay: (id: string, pay: { paymentMethod?: string; accountId?: string } = {}) => apiClient.post('/dairy/farmer-supplies/' + id + '/mark-paid', pay).then(unwrap<FarmerSupply>),
   cancel: (id: string, reason?: string) => apiClient.post('/dairy/farmer-supplies/' + id + '/cancel', { reason }).then(unwrap<FarmerSupply>),
   create: (data: any) => apiClient.post('/dairy/farmer-supplies', data).then(unwrap<FarmerSupply>),
   list: (params?: any) => apiClient.get('/dairy/farmer-supplies', { params }).then(unwrap<FarmerSupply[]>),

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { startOfDayTz, endOfDayTz, weekdayInTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { UpsertOptometristDto } from './dto/upsert-optometrist.dto';
+import { UpdateOptometristDto, UpsertOptometristDto } from './dto/upsert-optometrist.dto';
 
 @Injectable()
 export class OptometristsService {
@@ -12,8 +12,15 @@ export class OptometristsService {
     const dup = await this.prisma.opticalOptometrist.findFirst({
       where: { tenantId: user.tenantId, employeeCode: dto.employeeCode },
     });
-    if (dup) throw new BadRequestException(`Employee code "${dto.employeeCode}" already exists`);
-    return this.prisma.opticalOptometrist.create({ data: { tenantId: user.tenantId, ...dto } });
+    if (dup) throw new BadRequestException(`Code "${dto.employeeCode}" pehle se kisi aur ka hai`);
+    this.checkHours(dto);
+    return this.prisma.opticalOptometrist.create({ data: { tenantId: user.tenantId, ...dto, employeeCode: dto.employeeCode.trim(), name: dto.name.trim() } });
+  }
+
+  private checkHours(dto: { workStartTime?: string; workEndTime?: string }) {
+    if (dto.workStartTime && dto.workEndTime && dto.workEndTime <= dto.workStartTime) {
+      throw new BadRequestException('Chhutti ka waqt aane ke waqt ke baad hona chahiye');
+    }
   }
 
   async list(user: AuthenticatedUser, params: { active?: boolean; availableToday?: boolean; search?: string }) {
@@ -38,7 +45,7 @@ export class OptometristsService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const o = await this.prisma.opticalOptometrist.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Optometrist not found');
+    if (!o) throw new NotFoundException('Optometrist nahi mila');
 
     const todayStart = startOfDayTz();
     const todayEnd = endOfDayTz();
@@ -63,24 +70,29 @@ export class OptometristsService {
     return { ...o, todayAppointments, upcoming, recentCompleted };
   }
 
-  async update(user: AuthenticatedUser, id: string, dto: UpsertOptometristDto) {
+  async update(user: AuthenticatedUser, id: string, dto: UpdateOptometristDto) {
     const o = await this.prisma.opticalOptometrist.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Optometrist not found');
+    if (!o) throw new NotFoundException('Optometrist nahi mila');
+    if (dto.employeeCode && dto.employeeCode !== o.employeeCode) {
+      const dup = await this.prisma.opticalOptometrist.findFirst({ where: { tenantId: user.tenantId, employeeCode: dto.employeeCode, id: { not: id } }, select: { id: true } });
+      if (dup) throw new BadRequestException(`Code "${dto.employeeCode}" pehle se kisi aur ka hai`);
+    }
+    this.checkHours({ workStartTime: dto.workStartTime ?? o.workStartTime, workEndTime: dto.workEndTime ?? o.workEndTime });
     return this.prisma.opticalOptometrist.update({ where: { id }, data: dto });
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const o = await this.prisma.opticalOptometrist.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Optometrist not found');
+    if (!o) throw new NotFoundException('Optometrist nahi mila');
     return this.prisma.opticalOptometrist.update({ where: { id }, data: { isActive: false } });
   }
 
   async workload(user: AuthenticatedUser, id: string, from: string, to: string) {
     const o = await this.prisma.opticalOptometrist.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Optometrist not found');
+    if (!o) throw new NotFoundException('Optometrist nahi mila');
 
     const tests = await this.prisma.opticalEyeTest.findMany({
-      where: { optometristId: id, appointmentDate: { gte: new Date(from), lte: new Date(to) } },
+      where: { tenantId: user.tenantId, optometristId: id, appointmentDate: { gte: new Date(from), lte: new Date(to) } },
       orderBy: { appointmentDate: 'asc' },
     });
 

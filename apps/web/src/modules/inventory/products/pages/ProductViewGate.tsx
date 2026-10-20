@@ -56,6 +56,8 @@ export default function ProductViewGate() {
       return <Navigate to={`/appliances-products/${id}`} replace />;
     case 'electronics':
       return <Navigate to={`/electronics-products/${id}`} replace />;
+    case 'cosmetics':
+      return <Navigate to={`/cosmetics-products/${id}`} replace />;
     case 'florist':
       return <Navigate to={`/florist-products/${id}`} replace />;
     case 'furniture':

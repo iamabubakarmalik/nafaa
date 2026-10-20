@@ -6,12 +6,16 @@ import { ShopScope } from '../../../common/shop-scope';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
-import { assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
+import { TRAINER_PAYOUT, assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
 import { CreateTrainerDto, TrainerPayoutDto, UpdateTrainerDto } from './dto/trainer.dto';
 
 const P = PERMISSIONS;
 const CATEGORY = { name: 'Trainer commission', icon: '💪', color: '#dc2626' };
-/** Payout expenses carry the trainer number in the title: "Trainer commission · TR-0001 · Ali". */
+/**
+ * Payouts are expenses with sourceType TRAINER_PAYOUT and sourceId = trainer
+ * id. Older payouts have no source and are matched by the trainer number in
+ * the title ("Trainer commission · TR-0001 · Ali").
+ */
 const payoutTitle = (trainerNumber: string) => `${CATEGORY.name} · ${trainerNumber} · `;
 
 @Injectable()
@@ -106,9 +110,19 @@ export class TrainersService {
     return { ...t, name: staff?.fullName ?? 'Trainer', phone: staff?.phone ?? null, baseSalary: staff?.baseSalary ?? 0 };
   }
 
-  private async paidSoFar(tenantId: string, trainerNumber: string) {
+  private payoutWhere(tenantId: string, t: { id: string; trainerNumber: string }): Prisma.ExpenseWhereInput {
+    return {
+      tenantId,
+      OR: [
+        { sourceType: TRAINER_PAYOUT, sourceId: t.id },
+        { sourceType: null, title: { startsWith: payoutTitle(t.trainerNumber) } },
+      ],
+    };
+  }
+
+  private async paidSoFar(tenantId: string, t: { id: string; trainerNumber: string }) {
     const agg = await this.prisma.expense.aggregate({
-      where: { tenantId, status: { not: 'CANCELLED' }, title: { startsWith: payoutTitle(trainerNumber) } },
+      where: { ...this.payoutWhere(tenantId, t), status: { not: 'CANCELLED' } },
       _sum: { amount: true },
     });
     return r2(agg._sum.amount ?? 0);
@@ -135,7 +149,7 @@ export class TrainersService {
         take: 1000,
       }),
       this.prisma.gymPersonalTraining.aggregate({ where: done, _sum: { commissionAmount: true }, _count: { _all: true } }),
-      this.paidSoFar(tenantId, t.trainerNumber),
+      this.paidSoFar(tenantId, t),
     ]);
     const members = await this.prisma.gymMember.findMany({ where: { tenantId, id: { in: [...new Set(lines.map((l) => l.memberId))] } }, select: { id: true, memberNumber: true, customerId: true } });
     const people = await this.prisma.customer.findMany({ where: { tenantId, id: { in: members.map((m) => m.customerId) } }, select: { id: true, name: true } });
@@ -167,7 +181,7 @@ export class TrainersService {
     const t = await this.trainer(tenantId, id);
     const amount = r2(dto.amount);
     const owed = r2((await this.prisma.gymPersonalTraining.aggregate({ where: { tenantId, trainerId: id, status: 'COMPLETED' }, _sum: { commissionAmount: true } }))._sum.commissionAmount ?? 0)
-      - (await this.paidSoFar(tenantId, t.trainerNumber));
+      - (await this.paidSoFar(tenantId, t));
     if (amount > r2(owed) + 0.01) throw new BadRequestException(owed > 0 ? `Baqi commission sirf Rs ${r2(owed)} hai` : 'Is trainer ki koi baqi commission nahi');
     const expense = await this.expenses.create(user, scope, {
       title: `${payoutTitle(t.trainerNumber)}${t.name}`.slice(0, 120),
@@ -179,7 +193,9 @@ export class TrainersService {
       expenseDate: dto.expenseDate,
       ...(t.shopId && { shopId: t.shopId }),
     });
-    return expense;
+    // The shared expense form has no source fields; the link is set right after.
+    await this.prisma.expense.update({ where: { id: expense.id }, data: { sourceType: TRAINER_PAYOUT, sourceId: t.id } });
+    return { ...expense, sourceType: TRAINER_PAYOUT, sourceId: t.id };
   }
 
   /** Earlier payouts, newest first (cancelled ones stay listed with their status). */
@@ -187,7 +203,7 @@ export class TrainersService {
     assertCan(user, [P.COMMISSION_VIEW, P.COMMISSION_MANAGE], 'Commission dekhne');
     const t = await this.trainer(user.tenantId, id);
     return this.prisma.expense.findMany({
-      where: { tenantId: user.tenantId, title: { startsWith: payoutTitle(t.trainerNumber) } },
+      where: this.payoutWhere(user.tenantId, t),
       select: { id: true, expenseNumber: true, title: true, description: true, amount: true, paymentMethod: true, status: true, expenseDate: true, createdAt: true },
       orderBy: { expenseDate: 'desc' },
       take: 200,

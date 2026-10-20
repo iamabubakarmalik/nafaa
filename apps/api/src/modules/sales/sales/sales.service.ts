@@ -1110,7 +1110,8 @@ export class SalesService {
    * amount and not already used on another live bill. It is either a used phone
    * taken in as an exchange (Used phones → Trade-in, type Exchange) or old gold
    * a jewelry counter took for a bill (JEX-…, purpose SALE, not yet on a bill),
-   * or an old part an auto parts counter took back (CORE-…, held, no bill).
+   * or an old part an auto parts counter took back (CORE-…, held, no bill),
+ * or an old appliance an appliance counter took in trade (ATI-…, held, no bill).
    * Its code is kept as the reference.
    */
   private async checkTradeIns(tenantId: string, rows: PaymentPart[]) {
@@ -1118,9 +1119,10 @@ export class SalesService {
     for (const row of rows) {
       if (row.method !== 'TRADE_IN') continue;
       const code = row.reference?.trim();
-      if (!code) throw new BadRequestException('Trade-in ke liye used phone, purana zewar ya purana part chunein');
+      if (!code) throw new BadRequestException('Trade-in ke liye used phone, purana zewar, purana part ya purana saman chunein');
       const goods = /^JEX-/i.test(code) ? await this.oldGoldTradeIn(tenantId, code)
         : /^CORE-/i.test(code) ? await this.coreReturnTradeIn(tenantId, code)
+        : /^ATI-/i.test(code) ? await this.applianceTradeIn(tenantId, code)
         : await this.usedPhoneTradeIn(tenantId, code);
       if (seen.has(goods.code)) throw new BadRequestException(`${goods.code} bill me do dafa hai`);
       seen.add(goods.code);
@@ -1171,6 +1173,19 @@ export class SalesService {
       throw new BadRequestException(`Purana part ${code} nahi mila — counter par liya gaya part chunein jo abhi kisi bill par na laga ho`);
     }
     return { code: `CORE-${core.id}`, value: Number(core.value), label: `Purana part: ${core.description}` };
+  }
+
+  /** An old appliance an appliance counter took in trade: held and not on a live bill. */
+  private async applianceTradeIn(tenantId: string, code: string) {
+    const t = await this.prisma.applianceTradeIn.findFirst({
+      where: { tenantId, code: { equals: code, mode: 'insensitive' } },
+      select: { code: true, description: true, brand: true, value: true, status: true, saleId: true },
+    });
+    if (!t || t.status !== 'HELD' || t.saleId) {
+      throw new BadRequestException(`Purana saman ${code} nahi mila — counter par liya gaya saman chunein jo abhi kisi bill par na laga ho`);
+    }
+    const name = /^purana\b/i.test(t.description) ? t.description : `Purana ${t.description}`;
+    return { code: t.code, value: Number(t.value), label: `${name}${t.brand ? ` (${t.brand})` : ''} (${t.code})` };
   }
 
   /**

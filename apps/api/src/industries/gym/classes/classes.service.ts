@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { GymClassStatus, GymClassType, Prisma } from '@prisma/client';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
-import { DAY_MS, gymClock, nextNumber, opt } from '../common/gym-common';
-import { CreateClassDto, UpdateClassDto } from './dto/class.dto';
+import { postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+import { DAY_MS, GYM_SALE, assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
+import { BookClassDto, CreateClassDto, UpdateClassDto } from './dto/class.dto';
 
 /** At most this many classes are made by one repeat schedule. */
 const MAX_REPEATS = 120;
@@ -165,14 +166,23 @@ export class ClassesService {
     });
   }
 
-  async book(user: AuthenticatedUser, classId: string, memberId: string) {
+  /**
+   * Books a seat. A paid class is billed at once (GYM-<booking number>);
+   * money not taken goes on the member's khata. The bill's void or return
+   * cancels the booking.
+   */
+  async book(user: AuthenticatedUser, classId: string, dto: BookClassDto) {
     const tenantId = user.tenantId;
+    const memberId = dto.memberId;
     const cls = await this.prisma.gymClass.findFirst({ where: { id: classId, tenantId } });
     if (!cls) throw new NotFoundException('Class nahi mili');
     if (!['SCHEDULED', 'IN_PROGRESS'].includes(cls.status)) throw new BadRequestException('Is class ki booking band hai');
     if (cls.scheduledEnd < new Date()) throw new BadRequestException('Ye class guzar chuki');
-    const member = await this.prisma.gymMember.findFirst({ where: { id: memberId, tenantId, isActive: true }, select: { id: true } });
+    const member = await this.prisma.gymMember.findFirst({ where: { id: memberId, tenantId, isActive: true }, select: { id: true, customerId: true, shopId: true } });
     if (!member) throw new NotFoundException('Member nahi mila');
+    const charge = cls.isFree ? 0 : r2(cls.memberPrice);
+    const paid = r2(Math.min(Math.max(Number(dto.paidAmount) || 0, 0), charge));
+    if (charge > 0) assertCan(user, [PERMISSIONS.POS_USE], 'Class ka bill banane');
 
     return this.prisma.$transaction(async (tx) => {
       // The seat count is re-read under the row lock so two desks never overbook.
@@ -181,13 +191,13 @@ export class ClassesService {
       if (locked && locked.currentEnrolled >= locked.maxParticipants) throw new BadRequestException('Class full hai');
       const existing = await tx.gymClassBooking.findUnique({ where: { classId_memberId: { classId, memberId } } });
       if (existing && existing.status !== 'CANCELLED') throw new BadRequestException('Ye member pehle se booked hai');
-      const price = cls.isFree ? 0 : cls.memberPrice;
+      const price = charge;
       let booking;
       if (existing) {
         // The unique pair allows one row: a cancelled booking is opened again.
         booking = await tx.gymClassBooking.update({
           where: { id: existing.id },
-          data: { status: 'BOOKED', bookedAt: new Date(), cancelledAt: null, cancellationReason: null, price },
+          data: { status: 'BOOKED', bookedAt: new Date(), cancelledAt: null, cancellationReason: null, price, paidAmount: 0, saleId: null, attended: false, checkedInAt: null },
         });
       } else {
         const prefix = `CB-${(await gymClock(this.tz, tenantId)).year()}-`;
@@ -197,6 +207,22 @@ export class ClassesService {
         booking = await tx.gymClassBooking.create({ data: { tenantId, classId, memberId, bookingNumber, price } });
       }
       await tx.gymClass.update({ where: { id: classId }, data: { currentEnrolled: { increment: 1 } } });
+      if (price > 0) {
+        // A booking opened again after a cancel gets a fresh bill number.
+        const base = `${GYM_SALE}${booking.bookingNumber}`;
+        const earlier = await tx.sale.count({ where: { tenantId, saleNumber: { startsWith: base } } });
+        const sale = await postIndustrySale(tx, user, {
+          saleNumber: earlier ? `${base}-${earlier + 1}` : base,
+          sourceRef: booking.bookingNumber,
+          shopId: await resolveIndustryShopId(tx, user, cls.shopId ?? member.shopId),
+          customerId: member.customerId,
+          lines: [{ label: `Class: ${cls.name}`, amount: price }],
+          paidAmount: paid,
+          paymentMethod: dto.paymentMethod,
+        });
+        await tx.gymMember.update({ where: { id: member.id }, data: { totalSpent: { increment: price } } });
+        booking = await tx.gymClassBooking.update({ where: { id: booking.id }, data: { saleId: sale.id, paidAmount: paid } });
+      }
       return booking;
     });
   }

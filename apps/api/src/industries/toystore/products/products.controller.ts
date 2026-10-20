@@ -2,6 +2,8 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { OpeningStockDto } from '../common/opening-stock.helper';
@@ -28,6 +30,11 @@ export class ToyProductsController {
   splitVariantStock(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('productId') productId: string) {
     return this.service.splitVariantStock(user, productId, shop.shopId);
   }
+
+  /** Gift wrapping charge (a service line at the counter). */
+  @Get('gift-wrap') giftWrap(@GetUser() user: AuthenticatedUser) { return this.service.giftWrap(user); }
+  @Post('gift-wrap') @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
+  setGiftWrap(@GetUser() user: AuthenticatedUser, @Body() body: { price?: number; name?: string }) { return this.service.setGiftWrap(user, body); }
 
   @Post() upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertToyProductDto) { return this.service.upsert(user, dto); }
 
@@ -83,6 +90,7 @@ export class ToyProductsController {
     });
   }
 
+  @Get('facts') facts(@GetUser() user: AuthenticatedUser) { return this.service.facts(user); }
   @Get('safety-review') safety(@GetUser() user: AuthenticatedUser) { return this.service.safetyReview(user); }
   @Get('battery-upsell') battery(@GetUser() user: AuthenticatedUser) { return this.service.batteryUpsell(user); }
   @Get('counts') counts(@GetUser() user: AuthenticatedUser) { return this.service.counts(user); }

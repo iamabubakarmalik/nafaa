@@ -37,7 +37,7 @@ const numberWhere = (number: string): Prisma.SaleWhereInput => ({
 
 /** Job number behind a bill number (`INST-2026-0001-2` → `INST-2026-0001`), or null for other bills. */
 export function jobNumberOfBill(saleNumber: string) {
-  const m = /^((?:INST|SR|AMC|APDL|WC)-\d{4}-\d{4,})(?:-\d+)?$/.exec(saleNumber);
+  const m = /^((?:INST|SR|AMC|APDL|WC|ATI)-\d{4}-\d{4,})(?:-\d+)?$/.exec(saleNumber);
   return m ? m[1] : null;
 }
 

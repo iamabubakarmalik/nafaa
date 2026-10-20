@@ -216,9 +216,6 @@ import PackagesPage from '@industries/salon/pages/PackagesPage';
 import CalendarViewPage from '@industries/salon/pages/CalendarViewPage';
 import CustomersPage from '@industries/salon/pages/CustomersPage';
 
-
-
-
 // ─── Bakery Industry ───────────────────────────────────────────
 import BakeryDashboard from '@/industries/bakery/dashboard/BakeryDashboard';
 import DayBookPage from '@modules/reports/day-book/DayBookPage';
@@ -250,7 +247,6 @@ import AdvisoryPage from '@industries/agri/pages/AdvisoryPage';
 import SeasonalPlansPage from '@industries/agri/pages/SeasonalPlansPage';
 import SubsidyPage from '@industries/agri/pages/SubsidyPage';
 
-
 // ─── Jewelry Industry ──────────────────────────────────────────
 import JewelryDashboard from '@industries/jewelry/dashboard/JewelryDashboard';
 import MetalRatesPage from '@industries/jewelry/pages/MetalRatesPage';
@@ -260,17 +256,6 @@ import CustomOrdersPage from '@industries/jewelry/pages/CustomOrdersPage';
 import ExchangesPage from '@industries/jewelry/pages/ExchangesPage';
 import KarigarsPage from '@industries/jewelry/pages/KarigarsPage';
 import MetalStockPage from '@industries/jewelry/pages/MetalStockPage';
-
-// ─── Bookstore Industry ────────────────────────────────────────
-import BookstoreDashboard from '@industries/bookstore/dashboard/BookstoreDashboard';
-import PublishersPage from '@industries/bookstore/pages/PublishersPage';
-import AuthorsPage from '@industries/bookstore/pages/AuthorsPage';
-import BooksPage from '@industries/bookstore/pages/BooksPage';
-import StationeryPage from '@industries/bookstore/pages/StationeryPage';
-import ArtSuppliesPage from '@industries/bookstore/pages/ArtSuppliesPage';
-import SchoolsPage from '@industries/bookstore/pages/SchoolsPage';
-import SchoolListsPage from '@industries/bookstore/pages/SchoolListsPage';
-import RentalsPage from '@industries/bookstore/pages/RentalsPage';
 
 // ─── Industry Product/Item Wizards & Details ──────────────────
 import CarpetProductWizardPage from '@industries/carpet/pages/CarpetProductWizardPage';
@@ -287,8 +272,6 @@ import JewelryItemWizardPage from '@industries/jewelry/pages/JewelryItemWizardPa
 import JewelryItemDetailPage from '@industries/jewelry/pages/JewelryItemDetailPage';
 import AgriProductWizardPage from '@industries/agri/pages/AgriProductWizardPage';
 import AgriProductDetailPage from '@industries/agri/pages/AgriProductDetailPage';
-import BookstoreProductWizardPage from '@industries/bookstore/pages/BookstoreProductWizardPage';
-import BookstoreProductDetailPage from '@industries/bookstore/pages/BookstoreProductDetailPage';
 import SalonServiceWizardPage from '@industries/salon/pages/SalonServiceWizardPage';
 import SalonServiceDetailPage from '@industries/salon/pages/SalonServiceDetailPage';
 import HotelRoomTypeWizardPage from '@industries/hotel/pages/HotelRoomTypeWizardPage';
@@ -315,27 +298,6 @@ import ElectronicsBundlesPage from '@industries/electronics/pages/ElectronicsBun
 import ElectronicsBundleFormPage from '@industries/electronics/pages/BundleFormPage';
 import ElectronicsWarrantyClaimsPage from '@industries/electronics/pages/WarrantyClaimsPage';
 
-// ─── Cosmetics Industry ────────────────────────────────────────
-import CosmeticsDashboard from '@industries/cosmetics/dashboard/CosmeticsDashboard';
-import CosmeticsProductsPage from '@industries/cosmetics/pages/CosmeticsProductsPage';
-import CosmeticsProductWizardPage from '@industries/cosmetics/pages/CosmeticsProductWizardPage';
-import CosmeticsProductDetailPage from '@industries/cosmetics/pages/CosmeticsProductDetailPage';
-import CosmeticsBrandsPage from '@industries/cosmetics/pages/CosmeticsBrandsPage';
-import CosmeticsBatchesPage from '@industries/cosmetics/pages/CosmeticsBatchesPage';
-import CosmeticsGiftBundlesPage from '@industries/cosmetics/pages/CosmeticsGiftBundlesPage';
-import CosmeticsBundleFormPage from '@industries/cosmetics/pages/BundleFormPage';
-import CosmeticsLoyaltyPage from '@industries/cosmetics/pages/CosmeticsLoyaltyPage';
-
-// ─── Florist Industry ──────────────────────────────────────────
-import FloristDashboard from '@industries/florist/dashboard/FloristDashboard';
-import FloristProductsPage from '@industries/florist/pages/FloristProductsPage';
-import FloristProductWizardPage from '@industries/florist/pages/FloristProductWizardPage';
-import FloristProductDetailPage from '@industries/florist/pages/FloristProductDetailPage';
-import FloristOrdersPage from '@industries/florist/pages/FloristOrdersPage';
-import FloristWeddingsPage from '@industries/florist/pages/FloristWeddingsPage';
-import FloristSubscriptionsPage from '@industries/florist/pages/FloristSubscriptionsPage';
-import FloristFreshnessPage from '@industries/florist/pages/FloristFreshnessPage';
-
 // ─── Furniture Industry ────────────────────────────────────────
 import FurnitureDashboard from '@industries/furniture/dashboard/FurnitureDashboard';
 import FurnitureProductsPage from '@industries/furniture/pages/FurnitureProductsPage';
@@ -357,65 +319,6 @@ import GamingStationsPage from '@industries/gaming/pages/GamingStationsPage';
 import GamingRentalsPage from '@industries/gaming/pages/GamingRentalsPage';
 import GamingTopupsPage from '@industries/gaming/pages/GamingTopupsPage';
 import GamingTournamentsPage from '@industries/gaming/pages/GamingTournamentsPage';
-
-// ─── Optical Industry ──────────────────────────────────────────
-import OpticalDashboard from '@industries/optical/dashboard/OpticalDashboard';
-import OpticalProductsPage from '@industries/optical/pages/OpticalProductsPage';
-import OpticalProductWizardPage from '@industries/optical/pages/OpticalProductWizardPage';
-import OpticalProductDetailPage from '@industries/optical/pages/OpticalProductDetailPage';
-import OpticalPrescriptionsPage from '@industries/optical/pages/PrescriptionsPage';
-import OpticalPrescriptionFormPage from '@industries/optical/pages/PrescriptionFormPage';
-import OpticalPrescriptionDetailPage from '@industries/optical/pages/PrescriptionDetailPage';
-import OpticalEyeTestsPage from '@industries/optical/pages/EyeTestsPage';
-import OpticalEyeTestDetailPage from '@industries/optical/pages/EyeTestDetailPage';
-import OptometristsPage from '@industries/optical/pages/OptometristsPage';
-import LensOrdersPage from '@industries/optical/pages/LensOrdersPage';
-import LensOrderFormPage from '@industries/optical/pages/LensOrderFormPage';
-import LensOrderDetailPage from '@industries/optical/pages/LensOrderDetailPage';
-
-// ─── Petshop Industry ──────────────────────────────────────────
-import PetshopDashboard from '@industries/petshop/dashboard/PetshopDashboard';
-import PetshopProductsPage from '@industries/petshop/pages/PetshopProductsPage';
-import PetshopProductWizardPage from '@industries/petshop/pages/PetshopProductWizardPage';
-import PetshopProductDetailPage from '@industries/petshop/pages/PetshopProductDetailPage';
-import PetshopLiveAnimalsPage from '@industries/petshop/pages/LiveAnimalsPage';
-import PetshopLiveAnimalFormPage from '@industries/petshop/pages/LiveAnimalFormPage';
-import PetshopLiveAnimalDetailPage from '@industries/petshop/pages/LiveAnimalDetailPage';
-import PetshopGroomingPage from '@industries/petshop/pages/GroomingPage';
-import PetshopGroomingFormPage from '@industries/petshop/pages/GroomingFormPage';
-import PetshopGroomersPage from '@industries/petshop/pages/GroomersPage';
-
-// ─── Shoe Industry ─────────────────────────────────────────────
-import ShoeDashboard from '@industries/shoe/dashboard/ShoeDashboard';
-import ShoeProductsPage from '@industries/shoe/pages/ShoeProductsPage';
-import ShoeProductWizardPage from '@industries/shoe/pages/ShoeProductWizardPage';
-import ShoeProductDetailPage from '@industries/shoe/pages/ShoeProductDetailPage';
-import ShoeBrandsPage from '@industries/shoe/pages/ShoeBrandsPage';
-import ShoeSizeChartsPage from '@industries/shoe/pages/ShoeSizeChartsPage';
-import ShoeExchangesPage from '@industries/shoe/pages/ShoeExchangesPage';
-import ShoeTryOnPage from '@industries/shoe/pages/ShoeTryOnPage';
-
-// ─── Sports Industry ───────────────────────────────────────────
-import SportsDashboard from '@industries/sports/dashboard/SportsDashboard';
-import SportsProductsPage from '@industries/sports/pages/SportsProductsPage';
-import SportsProductWizardPage from '@industries/sports/pages/SportsProductWizardPage';
-import SportsProductDetailPage from '@industries/sports/pages/SportsProductDetailPage';
-import SportsBrandsPage from '@industries/sports/pages/SportsBrandsPage';
-import SportsTeamOrdersPage from '@industries/sports/pages/TeamOrdersPage';
-import SportsTeamOrderFormPage from '@industries/sports/pages/TeamOrderFormPage';
-import SportsRepairServicesPage from '@industries/sports/pages/RepairServicesPage';
-
-// ─── Toystore Industry ─────────────────────────────────────────
-import ToystoreDashboard from '@industries/toystore/dashboard/ToystoreDashboard';
-import ToystoreProductsPage from '@industries/toystore/pages/ToyProductsPage';
-import ToystoreProductWizardPage from '@industries/toystore/pages/ToyProductWizardPage';
-import ToystoreProductDetailPage from '@industries/toystore/pages/ToyProductDetailPage';
-import ToystoreGiftPacksPage from '@industries/toystore/pages/ToyGiftPacksPage';
-import ToystoreGiftPackFormPage from '@industries/toystore/pages/GiftPackFormPage';
-import ToystoreGiftFinderPage from '@industries/toystore/pages/GiftFinderPage';
-import ToystoreBirthdayRemindersPage from '@industries/toystore/pages/BirthdayRemindersPage';
-import ToystoreBirthdayDetailPage from '@industries/toystore/pages/BirthdayDetailPage';
-import ToystoreSafetyReviewPage from '@industries/toystore/pages/ToySafetyReviewPage';
 
 // ─── Route Guards & Layout ─────────────────────────────────────
 import { ProtectedRoute, PublicOnlyRoute } from '@app/router/ProtectedRoute';
@@ -808,18 +711,6 @@ export default function App() {
                   <Route path="/jewelry/karigars" element={<KarigarsPage />} />
                   <Route path="/jewelry/metal-stock" element={<MetalStockPage />} />
 
-                  {/* Bookstore */}
-                  <Route path="/bookstore" element={<BookstoreDashboard />} />
-                  <Route path="/bookstore/dashboard" element={<BookstoreDashboard />} />
-                  <Route path="/bookstore/publishers" element={<PublishersPage />} />
-                  <Route path="/bookstore/authors" element={<AuthorsPage />} />
-                  <Route path="/bookstore/books" element={<BooksPage />} />
-                  <Route path="/bookstore/stationery" element={<StationeryPage />} />
-                  <Route path="/bookstore/art-supplies" element={<ArtSuppliesPage />} />
-                  <Route path="/bookstore/schools" element={<SchoolsPage />} />
-                  <Route path="/bookstore/school-lists" element={<SchoolListsPage />} />
-                  <Route path="/bookstore/rentals" element={<RentalsPage />} />
-
                   {/* ═══════════════════════════════════════════════ */}
                   {/* 11 NEW INDUSTRIES                                */}
                   {/* ═══════════════════════════════════════════════ */}
@@ -841,24 +732,6 @@ export default function App() {
                   <Route path="/electronics/serial-tracking" element={<Navigate to="/electronics/serials" replace />} />
                   <Route path="/electronics/warranty-claims" element={secure(PERMISSIONS.ELECTRONICS_WARRANTY_VIEW, <ElectronicsWarrantyClaimsPage />)} />
 
-                  {/* Cosmetics */}
-                  <Route path="/cosmetics" element={<CosmeticsDashboard />} />
-                  <Route path="/cosmetics/dashboard" element={<CosmeticsDashboard />} />
-                  <Route path="/cosmetics/brands" element={<CosmeticsBrandsPage />} />
-                  <Route path="/cosmetics/batches" element={<CosmeticsBatchesPage />} />
-                  <Route path="/cosmetics/gift-bundles/new" element={<CosmeticsBundleFormPage />} />
-                  <Route path="/cosmetics/gift-bundles/:id/edit" element={<CosmeticsBundleFormPage />} />
-                  <Route path="/cosmetics/gift-bundles" element={<CosmeticsGiftBundlesPage />} />
-                  <Route path="/cosmetics/loyalty" element={<CosmeticsLoyaltyPage />} />
-
-                  {/* Florist */}
-                  <Route path="/florist" element={<FloristDashboard />} />
-                  <Route path="/florist/dashboard" element={<FloristDashboard />} />
-                  <Route path="/florist/orders" element={<FloristOrdersPage />} />
-                  <Route path="/florist/weddings" element={<FloristWeddingsPage />} />
-                  <Route path="/florist/subscriptions" element={<FloristSubscriptionsPage />} />
-                  <Route path="/florist/freshness" element={<FloristFreshnessPage />} />
-
                   {/* Furniture */}
                   <Route path="/furniture" element={<FurnitureDashboard />} />
                   <Route path="/furniture/dashboard" element={<FurnitureDashboard />} />
@@ -877,61 +750,6 @@ export default function App() {
                   <Route path="/gaming/rentals" element={<GamingRentalsPage />} />
                   <Route path="/gaming/topups" element={<GamingTopupsPage />} />
                   <Route path="/gaming/tournaments" element={<GamingTournamentsPage />} />
-
-                  {/* Optical */}
-                  <Route path="/optical" element={<OpticalDashboard />} />
-                  <Route path="/optical/dashboard" element={<OpticalDashboard />} />
-                  <Route path="/optical/prescriptions/new" element={<OpticalPrescriptionFormPage />} />
-                  <Route path="/optical/prescriptions/:id/edit" element={<OpticalPrescriptionFormPage />} />
-                  <Route path="/optical/prescriptions/:id" element={<OpticalPrescriptionDetailPage />} />
-                  <Route path="/optical/prescriptions" element={<OpticalPrescriptionsPage />} />
-                  <Route path="/optical/eye-tests/:id" element={<OpticalEyeTestDetailPage />} />
-                  <Route path="/optical/eye-tests" element={<OpticalEyeTestsPage />} />
-                  <Route path="/optical/optometrists" element={<OptometristsPage />} />
-                  <Route path="/optical/lens-orders/new" element={<LensOrderFormPage />} />
-                  <Route path="/optical/lens-orders/:id/edit" element={<LensOrderFormPage />} />
-                  <Route path="/optical/lens-orders/:id" element={<LensOrderDetailPage />} />
-                  <Route path="/optical/lens-orders" element={<LensOrdersPage />} />
-
-                  {/* Petshop */}
-                  <Route path="/petshop" element={<PetshopDashboard />} />
-                  <Route path="/petshop/dashboard" element={<PetshopDashboard />} />
-                  <Route path="/petshop/live-animals/new" element={<PetshopLiveAnimalFormPage />} />
-                  <Route path="/petshop/live-animals/:id/edit" element={<PetshopLiveAnimalFormPage />} />
-                  <Route path="/petshop/live-animals/:id" element={<PetshopLiveAnimalDetailPage />} />
-                  <Route path="/petshop/live-animals" element={<PetshopLiveAnimalsPage />} />
-                  <Route path="/petshop/grooming/new" element={<PetshopGroomingFormPage />} />
-                  <Route path="/petshop/grooming/:id/edit" element={<PetshopGroomingFormPage />} />
-                  <Route path="/petshop/grooming" element={<PetshopGroomingPage />} />
-                  <Route path="/petshop/groomers" element={<PetshopGroomersPage />} />
-
-                  {/* Shoe */}
-                  <Route path="/shoe" element={<ShoeDashboard />} />
-                  <Route path="/shoe/dashboard" element={<ShoeDashboard />} />
-                  <Route path="/shoe/brands" element={<ShoeBrandsPage />} />
-                  <Route path="/shoe/size-charts" element={<ShoeSizeChartsPage />} />
-                  <Route path="/shoe/exchanges" element={<ShoeExchangesPage />} />
-                  <Route path="/shoe/try-on" element={<ShoeTryOnPage />} />
-
-                  {/* Sports */}
-                  <Route path="/sports" element={<SportsDashboard />} />
-                  <Route path="/sports/dashboard" element={<SportsDashboard />} />
-                  <Route path="/sports/brands" element={<SportsBrandsPage />} />
-                  <Route path="/sports/team-orders/new" element={<SportsTeamOrderFormPage />} />
-                  <Route path="/sports/team-orders/:id/edit" element={<SportsTeamOrderFormPage />} />
-                  <Route path="/sports/team-orders" element={<SportsTeamOrdersPage />} />
-                  <Route path="/sports/repair-services" element={<SportsRepairServicesPage />} />
-
-                  {/* Toystore */}
-                  <Route path="/toystore" element={<ToystoreDashboard />} />
-                  <Route path="/toystore/dashboard" element={<ToystoreDashboard />} />
-                  <Route path="/toystore/gift-packs/new" element={<ToystoreGiftPackFormPage />} />
-                  <Route path="/toystore/gift-packs/:id/edit" element={<ToystoreGiftPackFormPage />} />
-                  <Route path="/toystore/gift-packs" element={<ToystoreGiftPacksPage />} />
-                  <Route path="/toystore/gift-finder" element={<ToystoreGiftFinderPage />} />
-                  <Route path="/toystore/birthday-reminders/:id" element={<ToystoreBirthdayDetailPage />} />
-                  <Route path="/toystore/birthday-reminders" element={<ToystoreBirthdayRemindersPage />} />
-                  <Route path="/toystore/safety-review" element={<ToystoreSafetyReviewPage />} />
 
                   {/* ═══════════════════════════════════════════════ */}
                   {/* INDUSTRY PRODUCT WIZARDS & DETAILS               */}
@@ -986,11 +804,6 @@ export default function App() {
                   <Route path="/agri-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <AgriProductWizardPage />)} />
                   <Route path="/agri-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AgriProductDetailPage />)} />
 
-                  {/* Bookstore */}
-                  <Route path="/bookstore-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <BookstoreProductWizardPage />)} />
-                  <Route path="/bookstore-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <BookstoreProductWizardPage />)} />
-                  <Route path="/bookstore-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BookstoreProductDetailPage />)} />
-
                   {/* Salon */}
                   <Route path="/salon-services/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <SalonServiceWizardPage />)} />
                   <Route path="/salon-services/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <SalonServiceWizardPage />)} />
@@ -1028,18 +841,6 @@ export default function App() {
                   <Route path="/electronics-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProductDetail />)} />
                   <Route path="/electronics-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProducts />)} />
 
-                  {/* Cosmetics */}
-                  <Route path="/cosmetics-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <CosmeticsProductWizardPage />)} />
-                  <Route path="/cosmetics-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <CosmeticsProductWizardPage />)} />
-                  <Route path="/cosmetics-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CosmeticsProductDetailPage />)} />
-                  <Route path="/cosmetics-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CosmeticsProductsPage />)} />
-
-                  {/* Florist */}
-                  <Route path="/florist-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <FloristProductWizardPage />)} />
-                  <Route path="/florist-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <FloristProductWizardPage />)} />
-                  <Route path="/florist-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <FloristProductDetailPage />)} />
-                  <Route path="/florist-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <FloristProductsPage />)} />
-
                   {/* Furniture */}
                   <Route path="/furniture-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <FurnitureProductWizardPage />)} />
                   <Route path="/furniture-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <FurnitureProductWizardPage />)} />
@@ -1051,36 +852,6 @@ export default function App() {
                   <Route path="/gaming-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <GamingProductWizardPage />)} />
                   <Route path="/gaming-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <GamingProductDetailPage />)} />
                   <Route path="/gaming-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <GamingProductsPage />)} />
-
-                  {/* Optical */}
-                  <Route path="/optical-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <OpticalProductWizardPage />)} />
-                  <Route path="/optical-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <OpticalProductWizardPage />)} />
-                  <Route path="/optical-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <OpticalProductDetailPage />)} />
-                  <Route path="/optical-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <OpticalProductsPage />)} />
-
-                  {/* Petshop */}
-                  <Route path="/petshop-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <PetshopProductWizardPage />)} />
-                  <Route path="/petshop-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <PetshopProductWizardPage />)} />
-                  <Route path="/petshop-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <PetshopProductDetailPage />)} />
-                  <Route path="/petshop-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <PetshopProductsPage />)} />
-
-                  {/* Shoe */}
-                  <Route path="/shoe-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ShoeProductWizardPage />)} />
-                  <Route path="/shoe-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ShoeProductWizardPage />)} />
-                  <Route path="/shoe-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ShoeProductDetailPage />)} />
-                  <Route path="/shoe-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ShoeProductsPage />)} />
-
-                  {/* Sports */}
-                  <Route path="/sports-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <SportsProductWizardPage />)} />
-                  <Route path="/sports-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <SportsProductWizardPage />)} />
-                  <Route path="/sports-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <SportsProductDetailPage />)} />
-                  <Route path="/sports-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <SportsProductsPage />)} />
-
-                  {/* Toystore */}
-                  <Route path="/toystore-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ToystoreProductWizardPage />)} />
-                  <Route path="/toystore-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ToystoreProductWizardPage />)} />
-                  <Route path="/toystore-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ToystoreProductDetailPage />)} />
-                  <Route path="/toystore-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ToystoreProductsPage />)} />
 
                   {/* ── Industry pack auto-registered routes ─── */}
                   {industryRoutes()}

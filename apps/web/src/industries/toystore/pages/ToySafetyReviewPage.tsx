@@ -1,257 +1,129 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import {
-  ShieldAlert, ShieldCheck, RefreshCw, Search, X, AlertTriangle,
-  Package, ArrowRight, Award, Edit3, Download, Baby,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { toyProductsApi } from '../api/products.api';
-import { formatPKR } from '@core/lib/format';
+/**
+ * Safety review: toys with small parts, no non-toxic mark or no safety
+ * certificate. A small-parts toy marked for children under three comes
+ * first — its age or its marking is wrong and should be fixed before it is
+ * sold. Rows open the toy; Edit fixes the marks.
+ *
+ * Keys: / search · G guide.
+ */
 
-const RISK_LABELS: Record<string, { label: string; color: string; bg: string; emoji: string }> = {
-  CHOKING_HAZARD: { label: 'Choking Hazard', color: 'text-rose-800', bg: 'bg-rose-100 border-rose-300', emoji: '⚠️' },
-  SMALL_PARTS: { label: 'Small Parts', color: 'text-amber-800', bg: 'bg-amber-100 border-amber-300', emoji: '🔍' },
-  NOT_CERTIFIED_NON_TOXIC: { label: 'Not Certified Non-Toxic', color: 'text-orange-800', bg: 'bg-orange-100 border-orange-300', emoji: '🧪' },
-  NO_SAFETY_CERTIFICATION: { label: 'No Safety Certification', color: 'text-red-800', bg: 'bg-red-100 border-red-300', emoji: '📄' },
+import { useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { AlertTriangle, Baby, FlaskConical, GraduationCap, Pencil, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import {
+  FilterBar, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, SkeletonTable, Table, TBody, THead, Td, Th, Tr, ViewTabs, heroIconButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { PrintButton } from '@core/print';
+import { toyProductsApi } from '../api/products.api';
+import { KEYS, ageText } from '../lib/meta';
+import { EmptyBox, usePageKeys } from '../components/ui';
+
+type Flag = 'UNDER_THREE' | 'CHOKING_HAZARD' | 'SMALL_PARTS' | 'NOT_CERTIFIED_NON_TOXIC' | 'NO_SAFETY_CERTIFICATION';
+type Tab = 'all' | Flag;
+interface Row {
+  id: string; productId: string; ageGroup?: string; ageMinYears?: number | null; ageMaxYears?: number | null; riskFlags: Flag[];
+  product: { id: string; name: string; sku?: string | null; price: number; stock: number };
+}
+
+const FLAG: Record<Flag, { label: string; tone: string }> = {
+  UNDER_THREE: { label: 'Chhote bachon par chhote purze', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  CHOKING_HAZARD: { label: 'Gale me phans sakta hai', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  SMALL_PARTS: { label: 'Chhote purze', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  NOT_CERTIFIED_NON_TOXIC: { label: 'Non-toxic nahi likha', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  NO_SAFETY_CERTIFICATION: { label: 'Certificate nahi', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
 };
 
 export default function ToySafetyReviewPage() {
+  const navigate = useNavigate();
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [riskFilter, setRiskFilter] = useState('all');
+  const [tab, setTab] = useState<Tab>('all');
 
-  const { data: risky = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['toy-safety-review'],
-    queryFn: () => toyProductsApi.safetyReview(),
+  const q = useQuery({ queryKey: [KEYS.safety], queryFn: () => toyProductsApi.safetyReview() as Promise<Row[]> });
+  const all = useMemo(() => [...(q.data ?? [])].sort((a, b) => Number(b.riskFlags.includes('UNDER_THREE')) - Number(a.riskFlags.includes('UNDER_THREE'))), [q.data]);
+  const count = (f: Flag) => all.filter((r) => r.riskFlags.includes(f)).length;
+  const rows = useMemo(() => {
+    const s = search.trim().toLowerCase();
+    return all.filter((r) => (tab === 'all' || r.riskFlags.includes(tab)) && (!s || [r.product.name, r.product.sku].some((v) => v?.toLowerCase().includes(s))));
+  }, [all, tab, search]);
+
+  usePageKeys(searchRef);
+
+  const doc = () => ({
+    title: 'Khilonon ki safety',
+    sections: [{
+      kind: 'table' as const,
+      columns: [{ label: 'Khilona' }, { label: 'Umar' }, { label: 'Masla' }, { label: 'Stock', align: 'right' as const }],
+      rows: rows.map((r) => [r.product.name, ageText(r), r.riskFlags.map((f) => FLAG[f]?.label ?? f).join(', '), String(r.product.stock)]),
+    }],
   });
 
-  const filtered = useMemo(() => {
-    let list = risky;
-    const q = search.toLowerCase().trim();
-    if (q) list = list.filter((r: any) =>
-      (r.product?.name || '').toLowerCase().includes(q) ||
-      (r.brand || '').toLowerCase().includes(q)
-    );
-    if (riskFilter !== 'all') list = list.filter((r: any) => r.riskFlags?.includes(riskFilter));
-    return list;
-  }, [risky, search, riskFilter]);
-
-  const stats = useMemo(() => {
-    const counts: Record<string, number> = {
-      CHOKING_HAZARD: 0, SMALL_PARTS: 0, NOT_CERTIFIED_NON_TOXIC: 0, NO_SAFETY_CERTIFICATION: 0,
-    };
-    risky.forEach((r: any) => {
-      (r.riskFlags || []).forEach((flag: string) => {
-        if (counts[flag] !== undefined) counts[flag]++;
-      });
-    });
-    return { total: risky.length, ...counts };
-  }, [risky]);
-
-  const exportCSV = () => {
-    if (!filtered.length) return toast.error('Nothing to export');
-    const head = ['Product', 'Brand', 'Age Group', 'Category', 'Risk Flags', 'Retail Price', 'Stock'];
-    const rows = filtered.map((r: any) => [
-      r.product?.name || '',
-      r.brand || '',
-      r.ageGroup || '',
-      r.categoryType || '',
-      (r.riskFlags || []).join('; '),
-      r.retailPrice || 0,
-      r.product?.stock || 0,
-    ]);
-    const csv = [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url; a.download = `safety-review-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    toast.success('Exported');
-  };
-
   return (
-    <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-rose-900 to-red-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-rose-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <ShieldAlert className="h-3.5 w-3.5 text-amber-300" /> Compliance Review
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🛡️ Safety Review</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {stats.total} toys need safety attention • Fix these to avoid liability
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <button onClick={exportCSV}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold border border-white/20">
-              <Download className="h-4 w-4" /> Export
-            </button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Safety review"
+        chip={<><ShieldAlert /> Bachon ki hifazat</>}
+        meta="Jin khilonon par chhote purze hain ya certificate nahi — bechne se pehle dekh lein"
+        loading={q.isLoading}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        stats={[{ label: 'Dekhne wale', value: all.length }, { label: 'Foran theek karein', value: count('UNDER_THREE') }]}
+      />
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <RiskStat label="Choking Hazard" value={(stats as any).CHOKING_HAZARD || 0} icon="⚠️" tone="rose" onClick={() => setRiskFilter('CHOKING_HAZARD')} />
-        <RiskStat label="Small Parts" value={(stats as any).SMALL_PARTS || 0} icon="🔍" tone="amber" onClick={() => setRiskFilter('SMALL_PARTS')} />
-        <RiskStat label="Not Non-Toxic" value={(stats as any).NOT_CERTIFIED_NON_TOXIC || 0} icon="🧪" tone="orange" onClick={() => setRiskFilter('NOT_CERTIFIED_NON_TOXIC')} />
-        <RiskStat label="No Certification" value={(stats as any).NO_SAFETY_CERTIFICATION || 0} icon="📄" tone="red" onClick={() => setRiskFilter('NO_SAFETY_CERTIFICATION')} />
-      </section>
+      <KpiRow cols={4}>
+        <KpiCard icon={Baby} color="#e11d48" label="3 saal se kam par purze" value={count('UNDER_THREE')} onClick={() => setTab('UNDER_THREE')} active={tab === 'UNDER_THREE'} hint="Umar ya nishan ghalat" />
+        <KpiCard icon={AlertTriangle} color="#d97706" label="Chhote purze" value={count('CHOKING_HAZARD')} onClick={() => setTab('CHOKING_HAZARD')} active={tab === 'CHOKING_HAZARD'} />
+        <KpiCard icon={FlaskConical} color="#7c3aed" label="Non-toxic nahi" value={count('NOT_CERTIFIED_NON_TOXIC')} onClick={() => setTab('NOT_CERTIFIED_NON_TOXIC')} active={tab === 'NOT_CERTIFIED_NON_TOXIC'} />
+        <KpiCard icon={ShieldCheck} color="#64748b" label="Certificate nahi" value={count('NO_SAFETY_CERTIFICATION')} onClick={() => setTab('NO_SAFETY_CERTIFICATION')} active={tab === 'NO_SAFETY_CERTIFICATION'} />
+      </KpiRow>
 
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search product or brand..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+      <ViewTabs<Tab> tabs={[{ id: 'all', label: 'Sab' }, { id: 'UNDER_THREE', label: 'Foran' }, { id: 'CHOKING_HAZARD', label: 'Purze' }, { id: 'NO_SAFETY_CERTIFICATION', label: 'Certificate' }]} value={tab} onChange={setTab}
+        right={<PrintButton doc={doc} disabled={!rows.length} size="sm" />} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Khilone ka naam ya SKU" label="Search" />} />
 
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-          <button onClick={() => setRiskFilter('all')}
-            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-              riskFilter === 'all' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600'}`}>
-            All Risks ({stats.total})
-          </button>
-          {Object.entries(RISK_LABELS).map(([key, meta]) => (
-            <button key={key} onClick={() => setRiskFilter(key)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1 ${
-                riskFilter === key ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600'}`}>
-              {meta.emoji} {meta.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 p-16 text-center">
-          <ShieldCheck className="h-16 w-16 text-emerald-600 mx-auto mb-3" />
-          <h3 className="text-xl font-extrabold text-emerald-900">All clear! ✨</h3>
-          <p className="text-sm text-emerald-800 font-semibold mt-1">
-            {stats.total === 0 ? 'No safety issues found — all your toys are compliant' : 'No matches for current filter'}
-          </p>
-        </div>
+      {q.isLoading ? <SkeletonTable /> : rows.length === 0 ? (
+        <EmptyBox icon={ShieldCheck} title={all.length ? 'Is tab me kuch nahi' : 'Sab khilone theek hain'} text="Khilone ki umar, chhote purze aur certificate uske Edit me likhe jate hain." />
       ) : (
-        <div className="space-y-3">
-          {filtered.map((item: any) => (
-            <RiskCard key={item.id} item={item} />
-          ))}
-        </div>
+        <Table minWidth="48rem">
+          <THead><Tr><Th>Khilona</Th><Th>Umar</Th><Th>Masla</Th><Th align="right">Stock</Th><Th align="right">{' '}</Th></Tr></THead>
+          <TBody>
+            {rows.map((r) => (
+              <Tr key={r.id} interactive onClick={() => navigate(`/toystore-products/${r.productId}`)}>
+                <Td><p className="font-medium text-slate-900">{r.product.name}</p>{r.product.sku && <p className="font-mono text-[0.75rem] text-slate-500">{r.product.sku}</p>}</Td>
+                <Td>{ageText(r) || <span className="text-slate-400">—</span>}</Td>
+                <Td>
+                  <div className="flex flex-wrap gap-1">
+                    {r.riskFlags.map((f) => <span key={f} className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', FLAG[f]?.tone)}>{FLAG[f]?.label ?? f}</span>)}
+                  </div>
+                </Td>
+                <Td align="right">{r.product.stock}</Td>
+                <Td align="right" onClick={(e) => e.stopPropagation()}>
+                  {canEdit && <Link to={`/toystore-products/${r.productId}/edit`} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Pencil className="h-3.5 w-3.5" />Theek karein</Link>}
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
       )}
 
-      {/* HELPFUL GUIDE */}
-      <section className="rounded-3xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 p-5">
-        <h3 className="font-extrabold text-blue-900 mb-3 flex items-center gap-2">
-          <Award className="h-5 w-5" /> Fixing Safety Issues
-        </h3>
-        <ul className="space-y-2 text-sm text-slate-700 font-semibold">
-          <li className="flex items-start gap-2">
-            <span className="text-rose-600 font-extrabold">⚠️</span>
-            <div>
-              <strong>Choking Hazard:</strong> Only sell to children 3+ years. Add warning labels and update age group in product wizard.
-            </div>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-amber-600 font-extrabold">🔍</span>
-            <div>
-              <strong>Small Parts:</strong> Add "Small Parts Warning" flag and require adult supervision note.
-            </div>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-orange-600 font-extrabold">🧪</span>
-            <div>
-              <strong>Not Certified Non-Toxic:</strong> Contact supplier for certification. Toggle "Non-toxic" flag when documentation received.
-            </div>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-red-600 font-extrabold">📄</span>
-            <div>
-              <strong>No Safety Certification:</strong> Get CE, EN71, ASTM or ISO 8124 certificates from supplier. Add them in product wizard Step 3.
-            </div>
-          </li>
-        </ul>
-      </section>
-    </div>
-  );
-}
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex"><Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
 
-function RiskCard({ item }: any) {
-  return (
-    <div className="rounded-2xl bg-white border-2 border-rose-200 shadow-sm p-4 hover:shadow-md transition">
-      <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
-        <div className="h-14 w-14 rounded-2xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
-          {item.product?.images?.[0]?.url ? (
-            <img src={item.product.images[0].url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <Baby className="h-6 w-6 text-slate-400" />
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <h3 className="font-extrabold text-slate-900 text-base truncate">{item.product?.name}</h3>
-          <div className="flex items-center gap-2 flex-wrap mt-1">
-            {item.brand && <span className="text-xs font-bold text-slate-600">{item.brand}</span>}
-            {item.ageGroup && <span className="text-[0.6875rem] font-extrabold uppercase text-pink-700 px-1.5 py-0.5 rounded bg-pink-50">{item.ageGroup.replace(/_/g, ' ')}</span>}
-            {item.genderTarget && <span className="text-[0.6875rem] font-extrabold uppercase text-violet-700 px-1.5 py-0.5 rounded bg-violet-50">{item.genderTarget}</span>}
-          </div>
-
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {(item.riskFlags || []).map((flag: string) => {
-              const meta = RISK_LABELS[flag];
-              if (!meta) return null;
-              return (
-                <span key={flag} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border-2 text-[0.6875rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
-                  {meta.emoji} {meta.label}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="text-right shrink-0 flex flex-col gap-2 items-end">
-          <div>
-            <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(item.product?.price || 0)}</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500">Stock: {item.product?.stock || 0}</div>
-          </div>
-          <Link to={`/toy-products/${item.productId}/edit`}
-            className="h-9 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1">
-            <Edit3 className="h-3.5 w-3.5" /> Fix
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RiskStat({ label, value, icon, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    rose: 'from-rose-500 to-red-700', amber: 'from-amber-500 to-orange-600',
-    orange: 'from-orange-500 to-red-600', red: 'from-red-500 to-red-800',
-  };
-  return (
-    <button onClick={onClick}
-      className={`rounded-2xl bg-white border-2 border-slate-200 hover:border-rose-300 hover:shadow-md p-4 shadow-sm text-left w-full transition`}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md text-lg`}>
-          {icon}
-        </div>
-      </div>
-    </button>
+      {guide.isOpen && (
+        <PageGuide title="Safety review — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Baby, color: '#e11d48', title: 'Foran', text: 'Chhote purze wala khilona 3 saal se kam umar par likha hai — ya umar ghalat hai ya nishan. Edit se theek karein.' },
+            { icon: AlertTriangle, color: '#d97706', title: 'Counter par', text: 'Chhote purze wale khilone POS par peeli nishani ke saath aate hain — chhote bachay ke walidain ko bata dein.' },
+            { icon: ShieldCheck, color: '#16a34a', title: 'Certificate', text: 'Dabbe par CE, EN71 ya ASTM likha ho to Edit me chun lein — list se hat jayega.' },
+          ]}
+          shortcuts={[['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

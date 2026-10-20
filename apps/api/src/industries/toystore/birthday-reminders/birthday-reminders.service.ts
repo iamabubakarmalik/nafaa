@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { tzParts } from '../../../common/helpers/business-time.helper';
+import { startOfDayTz, tzParts } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { RecordGiftPurchaseDto, UpsertBirthdayReminderDto } from './dto/upsert-birthday.dto';
 import { ageGroupsForYears } from '../products/products.service';
@@ -17,20 +17,50 @@ function daysUntilNextBirthday(birthDate: Date, from = new Date()): number {
 }
 
 function ageInYears(birthDate: Date, at = new Date()): number {
-  const ms = at.getTime() - new Date(birthDate).getTime();
+  const t = tzParts(at);
+  const ms = Date.UTC(t.year, t.month - 1, t.day) - new Date(birthDate).getTime();
   return Number((ms / (365.25 * 86400000)).toFixed(1));
+}
+
+/** Age the child turns on the next birthday (today counts when it is the day). */
+export function turningAgeOf(birthDate: Date, from = new Date()): number {
+  const t = tzParts(from);
+  const b = new Date(birthDate);
+  const passed = t.month - 1 > b.getUTCMonth() || (t.month - 1 === b.getUTCMonth() && t.day > b.getUTCDate());
+  return t.year - b.getUTCFullYear() + (passed ? 1 : 0);
+}
+
+/** A birth date is a calendar day, kept at UTC midnight; it may not be in the future. */
+function birthDate(value: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value ?? '');
+  if (!m) throw new BadRequestException('Bachay ki paidaish ki tareekh likhein');
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  const t = tzParts(new Date());
+  if (Number.isNaN(d.getTime()) || d.getTime() > Date.UTC(t.year, t.month - 1, t.day)) throw new BadRequestException('Paidaish ki tareekh aage ki nahi ho sakti');
+  if (t.year - d.getUTCFullYear() > 18) throw new BadRequestException('Bachay ki umar 18 saal se kam honi chahiye');
+  return d;
 }
 
 @Injectable()
 export class BirthdayRemindersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** A linked customer must be this shop's own. */
+  private async checkCustomer(user: AuthenticatedUser, customerId?: string) {
+    if (!customerId) return;
+    const c = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
+    if (!c) throw new NotFoundException('Customer nahi mila');
+  }
+
   async create(user: AuthenticatedUser, dto: UpsertBirthdayReminderDto) {
+    await this.checkCustomer(user, dto.customerId);
+    if (!dto.childName?.trim() || !dto.customerName?.trim()) throw new BadRequestException('Bachay aur walid ka naam likhein');
     return this.prisma.toyBirthdayReminder.create({
       data: {
         tenantId: user.tenantId,
         ...dto,
-        childBirthDate: new Date(dto.childBirthDate),
+        customerId: dto.customerId || null,
+        childBirthDate: birthDate(dto.childBirthDate),
         childInterests: dto.childInterests ?? [],
         favoriteCategories: dto.favoriteCategories ?? [],
       },
@@ -61,7 +91,7 @@ export class BirthdayRemindersService {
         computed: {
           currentAge: ageInYears(r.childBirthDate),
           daysUntilBirthday: daysUntilNextBirthday(r.childBirthDate),
-          turningAge: Math.floor(ageInYears(r.childBirthDate)) + 1,
+          turningAge: turningAgeOf(r.childBirthDate),
         },
       }))
       .sort((a, b) => a.computed.daysUntilBirthday - b.computed.daysUntilBirthday);
@@ -80,7 +110,7 @@ export class BirthdayRemindersService {
         computed: {
           currentAge: ageInYears(r.childBirthDate),
           daysUntilBirthday: daysUntilNextBirthday(r.childBirthDate),
-          turningAge: Math.floor(ageInYears(r.childBirthDate)) + 1,
+          turningAge: turningAgeOf(r.childBirthDate),
           shouldRemindNow: daysUntilNextBirthday(r.childBirthDate) <= r.reminderDaysBefore,
         },
       }))
@@ -90,14 +120,14 @@ export class BirthdayRemindersService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const r = await this.prisma.toyBirthdayReminder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!r) throw new NotFoundException('Birthday reminder not found');
+    if (!r) throw new NotFoundException('Bacha nahi mila');
 
     return {
       ...r,
       computed: {
         currentAge: ageInYears(r.childBirthDate),
         daysUntilBirthday: daysUntilNextBirthday(r.childBirthDate),
-        turningAge: Math.floor(ageInYears(r.childBirthDate)) + 1,
+        turningAge: turningAgeOf(r.childBirthDate),
         avgSpend: r.totalPurchases > 0 ? r.totalSpent / r.totalPurchases : 0,
       },
     };
@@ -106,9 +136,9 @@ export class BirthdayRemindersService {
   /** Auto gift suggestions: age-appropriate + gender + favourite categories + budget */
   async giftSuggestions(user: AuthenticatedUser, id: string, limit = 12) {
     const r = await this.prisma.toyBirthdayReminder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!r) throw new NotFoundException('Birthday reminder not found');
+    if (!r) throw new NotFoundException('Bacha nahi mila');
 
-    const turningAge = Math.floor(ageInYears(r.childBirthDate)) + 1;
+    const turningAge = turningAgeOf(r.childBirthDate);
     const groups = ageGroupsForYears(turningAge);
 
     // Parse budget "1000-3000" style
@@ -157,7 +187,12 @@ export class BirthdayRemindersService {
       where: {
         tenantId: user.tenantId,
         isActive: true,
-        ...(r.childGender ? { OR: [{ targetGender: r.childGender }, { targetGender: 'UNISEX' }] } : {}),
+        // Packs with no gender set suit everyone; packs outside their dates are not on the counter.
+        AND: [
+          ...(r.childGender ? [{ OR: [{ targetGender: r.childGender }, { targetGender: 'UNISEX' as const }, { targetGender: null }] }] : []),
+          { OR: [{ validFrom: null }, { validFrom: { lte: new Date() } }] },
+          { OR: [{ validUntil: null }, { validUntil: { gte: new Date() } }] },
+        ],
         ...(maxBudget ? { giftPackPrice: { lte: maxBudget } } : {}),
       },
       orderBy: { totalSold: 'desc' },
@@ -176,21 +211,23 @@ export class BirthdayRemindersService {
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertBirthdayReminderDto) {
     const r = await this.prisma.toyBirthdayReminder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!r) throw new NotFoundException('Birthday reminder not found');
+    if (!r) throw new NotFoundException('Bacha nahi mila');
+    await this.checkCustomer(user, dto.customerId);
     return this.prisma.toyBirthdayReminder.update({
       where: { id },
-      data: { ...dto, childBirthDate: dto.childBirthDate ? new Date(dto.childBirthDate) : undefined },
+      data: { ...dto, customerId: dto.customerId || null, childBirthDate: dto.childBirthDate ? birthDate(dto.childBirthDate) : undefined },
     });
   }
 
   async recordPurchase(user: AuthenticatedUser, id: string, dto: RecordGiftPurchaseDto) {
     const r = await this.prisma.toyBirthdayReminder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!r) throw new NotFoundException('Birthday reminder not found');
+    if (!r) throw new NotFoundException('Bacha nahi mila');
+    if (!(Number(dto.amount) >= 0)) throw new BadRequestException('Amount sahi likhein');
 
     return this.prisma.toyBirthdayReminder.update({
       where: { id },
       data: {
-        lastPurchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : new Date(),
+        lastPurchaseDate: dto.purchaseDate ? startOfDayTz(new Date(dto.purchaseDate)) : new Date(),
         lastGiftGiven: dto.giftDescription,
         totalPurchases: { increment: 1 },
         totalSpent: { increment: dto.amount },
@@ -200,14 +237,15 @@ export class BirthdayRemindersService {
 
   async markReminderSent(user: AuthenticatedUser, id: string) {
     const r = await this.prisma.toyBirthdayReminder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!r) throw new NotFoundException('Birthday reminder not found');
+    if (!r) throw new NotFoundException('Bacha nahi mila');
     return this.prisma.toyBirthdayReminder.update({ where: { id }, data: { lastReminderSent: new Date() } });
   }
 
+  /** Stops reminders for this child; the record and purchase history stay. */
   async remove(user: AuthenticatedUser, id: string) {
     const r = await this.prisma.toyBirthdayReminder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!r) throw new NotFoundException('Birthday reminder not found');
-    return this.prisma.toyBirthdayReminder.delete({ where: { id } });
+    if (!r) throw new NotFoundException('Bacha nahi mila');
+    return this.prisma.toyBirthdayReminder.update({ where: { id }, data: { isActive: false } });
   }
 
   async summary(user: AuthenticatedUser) {

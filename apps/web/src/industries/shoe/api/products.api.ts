@@ -1,122 +1,70 @@
 import { apiClient } from '@core/api/client';
+import type { ShoeMeta } from '../components/meta';
 
-export type ShoeCategoryType =
-  | 'MEN_FORMAL' | 'MEN_CASUAL' | 'MEN_SNEAKER' | 'MEN_LOAFER' | 'MEN_BOOT'
-  | 'MEN_SANDAL' | 'MEN_SLIPPER' | 'MEN_KHUSSA' | 'MEN_PESHAWARI'
-  | 'WOMEN_HEEL' | 'WOMEN_FLAT' | 'WOMEN_SNEAKER' | 'WOMEN_SANDAL'
-  | 'WOMEN_BOOT' | 'WOMEN_KHUSSA' | 'WOMEN_BRIDAL' | 'WOMEN_PUMP'
-  | 'KIDS_SCHOOL' | 'KIDS_SPORTS' | 'KIDS_CASUAL' | 'KIDS_SANDAL' | 'KIDS_INFANT'
-  | 'SPORTS_RUNNING' | 'SPORTS_TRAINING' | 'SPORTS_FOOTBALL' | 'SPORTS_CRICKET'
-  | 'SPORTS_BASKETBALL' | 'SPORTS_TENNIS' | 'SPORTS_HIKING' | 'SPORTS_GYM'
-  | 'SAFETY_SHOE' | 'MEDICAL_SHOE' | 'ORTHOPEDIC' | 'RAIN_BOOT'
-  | 'FLIP_FLOP' | 'CROCS' | 'ACCESSORIES' | 'INSOLES' | 'LACES' | 'POLISH' | 'OTHER';
+const unwrap = <T,>(res: { data: { data?: T } | T }): T => ((res.data as { data?: T })?.data ?? res.data) as T;
 
-export type ShoeGender = 'MEN' | 'WOMEN' | 'BOYS' | 'GIRLS' | 'INFANT' | 'UNISEX';
-export type ShoeSizeSystem = 'UK' | 'US' | 'EU' | 'CM' | 'KIDS';
-export type ShoeWidth = 'NARROW' | 'REGULAR' | 'WIDE' | 'EXTRA_WIDE';
-
+/** Shoe details kept next to a product. */
 export interface ShoeProductProfile {
   id: string;
   productId: string;
-  brandId?: string;
-  categoryType?: ShoeCategoryType;
-  gender?: ShoeGender;
-  ageGroup?: string;
-
-  modelName?: string;
-  modelCode?: string;
-  collection?: string;
-  season?: string;
-
-  upperMaterial?: string;
-  soleMaterial?: string;
-  innerMaterial?: string;
-  liningMaterial?: string;
-
-  colorName?: string;
-  colorHex?: string;
-  patternType?: string;
-  closureType?: string;
-  toeShape?: string;
-  heelHeight?: string;
-  heelType?: string;
-  soleType?: string;
-
-  sizeSystem?: ShoeSizeSystem;
-  availableSizes: string[];
-  width?: ShoeWidth;
+  brandId?: string | null;
+  categoryType?: string | null;
+  gender: string;
+  ageGroup?: string | null;
+  modelName?: string | null;
+  modelCode?: string | null;
+  collection?: string | null;
+  season?: string | null;
+  upperMaterial?: string | null;
+  soleMaterial?: string | null;
+  innerMaterial?: string | null;
+  colorName?: string | null;
+  closureType?: string | null;
+  heelHeight?: string | null;
+  sizeSystem: string;
+  width?: string;
   runsLarge: boolean;
   runsSmall: boolean;
-  sizingNotes?: string;
-
+  sizingNotes?: string | null;
   isWaterproof: boolean;
   isBreathable: boolean;
-  hasAirCushion: boolean;
   hasArchSupport: boolean;
   isOrthopedic: boolean;
-  isVegan: boolean;
   isHandmade: boolean;
-
-  sport?: string;
-  playingSurface: string[];
-
-  careInstructions?: string;
-  cleaningRecommendation?: string;
-
-  warrantyMonths?: number;
-  warrantyDetails?: string;
-
+  sport?: string | null;
+  careInstructions?: string | null;
+  warrantyMonths: number;
+  warrantyDetails?: string | null;
   includesBox: boolean;
-  includesDustBag: boolean;
-  includesExtraLaces: boolean;
-  boxColor?: string;
-
-  mrp?: number;
-  costPrice?: number;
-  wholesalePrice?: number;
-  retailPrice?: number;
-  memberPrice?: number;
-
+  mrp?: number | null;
   isFeatured: boolean;
   isBestSeller: boolean;
   isNewArrival: boolean;
-  isTrending: boolean;
   isBridal: boolean;
   isEidSpecial: boolean;
-
-  totalSold: number;
-  notes?: string;
-  product?: any;
-  brand?: any;
-  createdAt: string;
-  updatedAt: string;
+  notes?: string | null;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+interface SizeCell {
+  id: string; name: string; barcode: string | null; sku: string | null; price: number; isActive: boolean;
+  size: string | null; colorName: string | null; colorHex: string | null; lowStockAlert: number;
+  stock: number; allStock: number; byShop: Array<{ shopId: string; name: string; stock: number }>; sold30: number;
+}
+export interface SizeGrid { productId: string; name: string; sizes: string[]; colors: string[]; shops: Array<{ id: string; name: string }>; variants: SizeCell[] }
+
+export interface ReorderGroup {
+  productId: string; name: string; brand: string | null; sold30: number;
+  sizes: Array<{ variantId: string; name: string; size: string | null; colorName: string | null; stock: number; alert: number; sold30: number; suggest: number }>;
+}
 
 export const shoeProductsApi = {
-  upsert: (data: Partial<ShoeProductProfile>) =>
-    apiClient.post('/shoe/products', data).then(unwrap<ShoeProductProfile>),
-
-  list: (params?: {
-    brandId?: string; categoryType?: string; gender?: string; sizeSystem?: string;
-    color?: string; sport?: string; isWaterproof?: boolean; isOrthopedic?: boolean;
-    featured?: boolean; bestSeller?: boolean; newArrival?: boolean; trending?: boolean;
-    bridal?: boolean; eidSpecial?: boolean; search?: string;
-  }) => apiClient.get('/shoe/products', { params }).then(unwrap<ShoeProductProfile[]>),
-
-  byProduct: (productId: string) =>
-    apiClient.get('/shoe/products/by-product/' + productId).then(unwrap<ShoeProductProfile | null>),
-
-  byCategory: () =>
-    apiClient.get('/shoe/products/by-category-count').then(unwrap<Record<string, number>>),
-
-  byGender: () =>
-    apiClient.get('/shoe/products/by-gender-count').then(unwrap<any[]>),
-
-  getOne: (id: string) =>
-    apiClient.get('/shoe/products/' + id).then(unwrap<ShoeProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/shoe/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
+  upsert: (data: Partial<ShoeProductProfile> & { productId: string }) => apiClient.post('/shoe/products', data).then(unwrap<ShoeProductProfile>),
+  byProduct: (productId: string) => apiClient.get('/shoe/products/by-product/' + productId).then(unwrap<ShoeProductProfile | null>),
+  meta: () => apiClient.get('/shoe/products/meta').then(unwrap<{ items: ShoeMeta[] }>),
+  sizeGrid: (productId: string) => apiClient.get(`/shoe/products/${productId}/size-grid`).then(unwrap<SizeGrid>),
+  reorder: (limit = 100) => apiClient.get('/shoe/products/reorder', { params: { limit } }).then(unwrap<{ items: ReorderGroup[]; products: number; pairs: number }>),
+  saveVariantSizes: (productId: string, items: Array<{ variantId: string; size?: string; color?: string; colorHex?: string }>) =>
+    apiClient.post(`/shoe/products/${productId}/variant-sizes`, { items }).then(unwrap),
+  splitVariantStock: (productId: string) => apiClient.post(`/shoe/products/${productId}/variant-stock-split`).then(unwrap),
+  syncBrands: () => apiClient.post('/shoe/products/brands/sync').then(unwrap<{ brands: number; products: number }>),
 };

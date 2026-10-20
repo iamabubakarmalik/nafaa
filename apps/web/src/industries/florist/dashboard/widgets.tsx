@@ -9,11 +9,12 @@ import type { FloristDeliveryTimeSlot } from '../api/orders.api';
 import { flowerName, useFloristOps } from './useFloristOps';
 
 const SLOT: Record<FloristDeliveryTimeSlot, { label: string; variant: 'warning' | 'info' | 'brand' | 'danger' | 'default' }> = {
-  MORNING: { label: 'Subah', variant: 'warning' },
-  AFTERNOON: { label: 'Dopahar', variant: 'info' },
-  EVENING: { label: 'Shaam', variant: 'brand' },
-  EXPRESS: { label: 'Foran', variant: 'danger' },
-  SCHEDULED: { label: 'Waqt par', variant: 'default' },
+  MORNING_9_12: { label: 'Subah 9–12', variant: 'warning' },
+  AFTERNOON_12_3: { label: 'Dopahar 12–3', variant: 'info' },
+  EVENING_3_6: { label: 'Shaam 3–6', variant: 'brand' },
+  NIGHT_6_9: { label: 'Raat 6–9', variant: 'default' },
+  URGENT: { label: 'Foran', variant: 'danger' },
+  SCHEDULED: { label: 'Khaas waqt', variant: 'default' },
 };
 
 const STATUS_LABEL: Record<string, string> = {

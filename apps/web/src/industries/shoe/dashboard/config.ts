@@ -1,6 +1,6 @@
 /**
  * Shoe dashboard: the standard dashboard plus size gaps, best-selling
- * sizes, try-ons, exchanges and brands.
+ * sizes, size requests, exchanges and brands.
  */
 
 import {
@@ -24,7 +24,7 @@ function useShoeActions(): QuickAction[] {
     { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
     { to: '/shoe-products/new', icon: Plus, label: 'Naya joota', hint: 'Maal me daalein' },
     { to: '/shoe-products', icon: Footprints, label: 'Maal', hint: `${sh.totals.totalProducts} design` },
-    { to: '/shoe/try-on', icon: HandMetal, label: 'Try-on', hint: sh.tryOn.pending ? `${sh.tryOn.pending} baqi` : 'Size mangwayein' },
+    { to: '/shoe/try-on', icon: HandMetal, label: 'Size farmaish', hint: sh.tryOn.pending ? `${sh.tryOn.pending} baqi` : 'Size ka intezar' },
     { to: '/shoe/exchanges', icon: RefreshCw, label: 'Exchange', hint: sh.exchanges.requested ? `${sh.exchanges.requested} baqi` : 'Size badlein' },
     { to: '/shoe/brands', icon: Award, label: 'Brands', hint: `${sh.totals.totalBrands} brands` },
     { to: '/shoe/size-charts', icon: Ruler, label: 'Size charts', hint: 'UK / EU / US' },
@@ -45,7 +45,7 @@ export const shoeDashboard = createDashboard({
   widgets: [
     { id: 'shoe-size-gaps', title: 'Size khatam / kam', description: 'Jo size khatam ya kam reh gaye', size: 'third', sizes: ANY_SIZE, Component: ShoeSizeGaps },
     { id: 'shoe-top-sizes', title: 'Sab se zyada bikne wale size', description: 'Kaunsa size sab se zyada bikta hai', size: 'third', sizes: ['third', 'half', 'wide'], Component: ShoeTopSizes },
-    { id: 'shoe-desk', title: 'Try-on aur exchange', description: 'Try-on ki darkhwastein aur size exchange', size: 'third', sizes: ['third', 'half'], Component: ShoeDesk },
+    { id: 'shoe-desk', title: 'Size farmaish aur exchange', description: 'Size ka intezar aur size exchange', size: 'third', sizes: ['third', 'half'], Component: ShoeDesk },
   ],
   lateWidgets: [
     { id: 'shoe-brands', title: 'Top brands', description: 'Sab se zyada bikne wale brands', size: 'third', sizes: ANY_SIZE, Component: ShoeBrands },
@@ -54,6 +54,6 @@ export const shoeDashboard = createDashboard({
   moneyMap: { productsPath: '/shoe-products' },
   guide: [
     { icon: Ruler, title: 'Size ka stock', text: 'Joota size ke bagair nahi bikta. "Size khatam" wo sizes hain jo bilkul nahi bache — sab se zyada bikne wale size hamesha poore rakhein.' },
-    { icon: HandMetal, title: 'Try-on aur exchange', text: 'Jo customer kisi size ka intezar kar raha hai, aur jo size badalna chahta hai — dono yahan, taa ke koi wapas na jaye.' },
+    { icon: HandMetal, title: 'Size farmaish aur exchange', text: 'Jo customer kisi size ka intezar kar raha hai, aur jo size badalna chahta hai — dono yahan, taa ke koi wapas na jaye.' },
   ],
 });
