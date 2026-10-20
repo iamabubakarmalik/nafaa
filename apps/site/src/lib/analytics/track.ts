@@ -114,6 +114,14 @@ export function trackPageview(referrer?: string): void {
   });
 }
 
+type Forwarder = (eventName: TrackEvent, properties: Record<string, string | number | boolean | undefined>) => void;
+let forwarder: Forwarder | null = null;
+
+/** Set by the Analytics island once Google tags load: events also go to GA4 and Ads conversions. */
+export function setTrackForwarder(next: Forwarder | null): void {
+  forwarder = next;
+}
+
 /** One event (TrackEventDto). `label` fills eventLabel for the admin funnels. */
 export function track(eventName: TrackEvent, properties: Record<string, string | number | boolean | undefined> = {}): void {
   const { visitorId, sessionId } = visitorIds();
@@ -126,4 +134,5 @@ export function track(eventName: TrackEvent, properties: Record<string, string |
     eventLabel: label,
     properties,
   });
+  forwarder?.(eventName, properties);
 }

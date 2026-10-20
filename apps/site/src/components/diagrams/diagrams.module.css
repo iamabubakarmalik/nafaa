@@ -47,6 +47,11 @@
   --dg-edge-strong: rgb(148 163 184);
   --dg-dot: rgb(var(--c-fg, 15 23 42) / 0.09);
   --dg-shadow: rgb(15 23 42 / 0.05);
+  --dg-halo: rgb(15 23 42 / 0.16);
+  --dg-node-bottom: rgb(248 250 252);
+  --dg-shine: rgb(255 255 255 / 0.9);
+  --dg-panel-top: rgb(255 255 255);
+  --dg-panel-bottom: rgb(var(--c-surface-2, 248 250 252));
   --dg-ease: var(--ease-in-out, cubic-bezier(0.65, 0, 0.35, 1));
   --dg-ease-out: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 
@@ -66,6 +71,11 @@
   --dg-edge-strong: rgb(100 116 139);
   --dg-dot: rgb(255 255 255 / 0.07);
   --dg-shadow: rgb(0 0 0 / 0.25);
+  --dg-halo: rgb(0 0 0 / 0.5);
+  --dg-node-bottom: rgb(22 31 48);
+  --dg-shine: rgb(255 255 255 / 0.07);
+  --dg-panel-top: rgb(17 26 43);
+  --dg-panel-bottom: rgb(9 15 29);
   --dg-brand-soft: rgb(var(--brand-950, 2 44 34));
   --dg-brand-tint: rgb(var(--brand-800, 6 95 70));
   --dg-brand-fg: rgb(var(--brand-300, 110 231 183));
@@ -81,14 +91,26 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--dg-line);
-  border-radius: 20px;
-  background: var(--dg-canvas);
+  border-radius: 24px;
+  background: linear-gradient(180deg, var(--dg-panel-top), var(--dg-panel-bottom));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.7) inset,
+    0 30px 60px -40px rgb(15 23 42 / 0.28),
+    0 2px 6px -4px rgb(15 23 42 / 0.08);
+}
+
+:global(.theme-ink) .panel,
+.ink .panel {
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.05) inset,
+    0 30px 60px -36px rgb(0 0 0 / 0.7);
 }
 
 .bare .panel {
   border: 0;
   border-radius: 0;
   background: transparent;
+  box-shadow: none;
 }
 
 .svgH,
@@ -133,10 +155,14 @@
   fill: var(--dg-dot);
 }
 .fadeStop {
-  stop-color: var(--dg-canvas);
+  stop-color: var(--dg-panel-bottom);
+}
+.auraStop {
+  stop-color: var(--dg-brand);
 }
 .bare .gridBg,
-.bare .fadeBg {
+.bare .fadeBg,
+.bare .auraBg {
   display: none;
 }
 
@@ -145,13 +171,41 @@
 .nodeShadow {
   fill: var(--dg-shadow);
 }
+/* Soft, blurred shadow under each node (filter set per scene). */
+.nodeHalo {
+  fill: var(--dg-halo);
+  opacity: 0.55;
+}
 .nodeBox {
-  fill: var(--dg-surface);
   stroke: var(--dg-line);
   stroke-width: 1;
 }
+.nodeTop {
+  stop-color: var(--dg-surface);
+}
+.nodeBottom {
+  stop-color: var(--dg-node-bottom);
+}
+.nodeShine {
+  fill: none;
+  stroke: var(--dg-shine);
+  stroke-width: 1;
+}
+.brandTop {
+  stop-color: rgb(var(--brand-500, 16 185 129));
+}
+.brandBottom {
+  stop-color: rgb(var(--brand-800, 6 95 70));
+}
+.tileTop {
+  stop-color: var(--dg-brand-soft);
+}
+.tileBottom {
+  stop-color: var(--dg-brand-tint);
+}
 .tile {
-  fill: var(--dg-brand-soft);
+  stroke: rgb(var(--brand-600, 5 150 105) / 0.14);
+  stroke-width: 1;
 }
 .tileIcon {
   color: var(--dg-brand-fg);
@@ -173,8 +227,14 @@
 }
 
 .toneBrand .nodeBox {
-  fill: var(--dg-brand-strong);
   stroke: var(--dg-brand-deep);
+}
+.toneBrand .nodeHalo {
+  fill: rgb(var(--brand-600, 5 150 105));
+  opacity: 0.45;
+}
+.toneBrand .nodeShine {
+  stroke: rgb(255 255 255 / 0.35);
 }
 .toneBrand .label {
   fill: var(--dg-white);
@@ -183,19 +243,28 @@
   fill: rgb(255 255 255 / 0.82);
 }
 .toneBrand .tile {
-  fill: rgb(255 255 255 / 0.14);
+  fill: rgb(255 255 255 / 0.16);
+  stroke: rgb(255 255 255 / 0.22);
 }
 .toneBrand .tileIcon {
   color: var(--dg-white);
 }
 .toneInfo .tile {
   fill: var(--dg-info-soft);
+  stroke: var(--dg-info-tint);
 }
 .toneInfo .tileIcon {
   color: var(--dg-info-strong);
 }
 .toneWarn .tile {
   fill: var(--dg-warn-soft);
+  stroke: var(--dg-warn-tint);
+}
+.toneWarn .nodeBox {
+  stroke: var(--dg-warn-tint);
+}
+.toneInfo .nodeBox {
+  stroke: var(--dg-info-tint);
 }
 .toneWarn .tileIcon {
   color: var(--dg-warn-strong);
@@ -236,9 +305,47 @@
 .edge {
   fill: none;
   stroke: var(--dg-edge);
-  stroke-width: 1.5;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+/* Faint wide track under every edge; it takes the edge tone. */
+.edgeTrack {
+  fill: none;
+  stroke: var(--dg-edge);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.13;
+}
+.edgeBrand .edgeTrack {
+  stroke: var(--dg-brand);
+}
+.edgeInfo .edgeTrack {
+  stroke: var(--dg-info);
+}
+.edgeWarn .edgeTrack {
+  stroke: var(--dg-warn);
+}
+/* Light dashes that run along the edge while the diagram is in view. */
+.flow {
+  fill: none;
+  stroke: var(--dg-white);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-dasharray: 1.5 16;
+  stroke-opacity: 0.85;
+  animation: dgFlow 1.4s linear infinite;
+  animation-play-state: paused;
+}
+:global(.theme-ink) .flow,
+.ink .flow {
+  stroke: rgb(255 255 255 / 0.55);
+}
+@keyframes dgFlow {
+  to {
+    stroke-dashoffset: -17.5;
+  }
 }
 .edgeBrand {
   stroke: var(--dg-brand);
@@ -272,6 +379,10 @@
 .pillBox {
   fill: var(--dg-surface);
   stroke: var(--dg-line);
+}
+.pillHalo {
+  fill: var(--dg-halo);
+  opacity: 0.35;
 }
 .pillText {
   fill: var(--dg-muted);
@@ -311,17 +422,33 @@
   color: var(--dg-warn-strong);
 }
 
-/* A packet is a short round-capped dash that travels along a copy of the edge. */
+/*
+ * A packet travels along a copy of its edge: a round head (a near-zero dash
+ * with a round cap) leads a short fading trail. Both run the same keyframes;
+ * --p0 and --p1 shift the trail so it ends where the head is.
+ */
 .packet {
   fill: none;
   stroke: var(--dg-accent);
-  stroke-width: 3.5;
   stroke-linecap: round;
-  stroke-dasharray: 0.08 1.4;
-  stroke-dashoffset: 0.08;
   opacity: 0;
   animation: dgPacket 4.8s linear infinite both;
   animation-play-state: paused;
+}
+.head {
+  --p0: 0;
+  --p1: -1;
+  stroke-width: 7;
+  stroke-dasharray: 0.0001 2;
+  stroke-dashoffset: 0;
+}
+.trail {
+  --p0: 0.1;
+  --p1: -0.9;
+  stroke-width: 3.5;
+  stroke-dasharray: 0.1 2;
+  stroke-dashoffset: 0.1;
+  stroke-opacity: 0.45;
 }
 .packetInfo {
   stroke: var(--dg-info);
@@ -398,7 +525,7 @@
 
 @keyframes dgPacket {
   0% {
-    stroke-dashoffset: 0.08;
+    stroke-dashoffset: var(--p0);
     opacity: 0;
     animation-timing-function: var(--dg-ease);
   }
@@ -409,11 +536,11 @@
     opacity: 1;
   }
   25% {
-    stroke-dashoffset: -1;
+    stroke-dashoffset: var(--p1);
     opacity: 0;
   }
   100% {
-    stroke-dashoffset: -1;
+    stroke-dashoffset: var(--p1);
     opacity: 0;
   }
 }
@@ -443,7 +570,7 @@
 }
 @keyframes osTravel {
   0% {
-    stroke-dashoffset: 0.08;
+    stroke-dashoffset: var(--p0);
     opacity: 0;
     animation-timing-function: var(--dg-ease);
   }
@@ -454,11 +581,11 @@
     opacity: 1;
   }
   14% {
-    stroke-dashoffset: -1;
+    stroke-dashoffset: var(--p1);
     opacity: 0;
   }
   100% {
-    stroke-dashoffset: -1;
+    stroke-dashoffset: var(--p1);
     opacity: 0;
   }
 }
@@ -527,6 +654,7 @@
 
 /* Loops run only while MotionObserver marks the figure as visible. */
 .root[data-inview] .packet,
+.root[data-inview] .flow,
 .root[data-inview] .ping,
 .root[data-inview] .osOffline,
 .root[data-inview] .osOnline,
@@ -539,7 +667,7 @@
 }
 
 /* Tab hidden (MotionObserver sets data-motion-paused): every loop pauses. */
-:global(html[data-motion-paused]) .root :is(.packet, .ping, .osOffline, .osOnline, .osItem0, .osItem1, .osItem2, .khBar, .khCheck) {
+:global(html[data-motion-paused]) .root :is(.packet, .flow, .ping, .osOffline, .osOnline, .osItem0, .osItem1, .osItem2, .khBar, .khCheck) {
   animation-play-state: paused;
 }
 
@@ -637,7 +765,8 @@
     transition: none !important;
   }
   .packet,
-  .ping {
+  .ping,
+  .flow {
     display: none;
   }
 }
@@ -646,6 +775,7 @@
   animation: none !important;
 }
 .still .packet,
-.still .ping {
+.still .ping,
+.still .flow {
   display: none;
 }

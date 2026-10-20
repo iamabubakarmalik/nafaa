@@ -1,0 +1,170 @@
+/*
+ * Section backdrops for the home page (decor.tsx). Static: nothing here
+ * animates, so they cost nothing at runtime and need no reduced-motion rule.
+ * Light mode gets the tints; the dark theme keeps the page canvas and only
+ * keeps the faint patterns and glows.
+ */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tintBrand {
+  background:
+    linear-gradient(180deg, rgb(var(--brand-50) / 0) 0%, rgb(var(--brand-50) / 0.75) 18%, rgb(var(--brand-50) / 0.6) 82%, rgb(var(--brand-50) / 0) 100%);
+}
+
+.tintSlate {
+  background: linear-gradient(180deg, rgb(248 250 252 / 0) 0%, rgb(248 250 252) 14%, rgb(248 250 252) 86%, rgb(248 250 252 / 0) 100%);
+}
+
+:global(html.theme-ink) .tintBrand,
+:global(html.theme-ink) .tintSlate {
+  background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.018) 20%, rgb(255 255 255 / 0.018) 80%, transparent);
+}
+
+.dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(var(--c-fg) / 0.11) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  background-position: center;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, black 10%, transparent 72%);
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgb(var(--c-fg) / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--c-fg) / 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: center top;
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 50%, black 15%, transparent 75%);
+}
+
+:global(html.theme-ink) .dots {
+  background-image: radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1.4px);
+}
+
+:global(html.theme-ink) .grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+}
+
+.glow {
+  position: absolute;
+  width: 44rem;
+  height: 30rem;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.5;
+}
+
+.glow0 {
+  left: -10rem;
+  top: 8%;
+}
+
+.glow1 {
+  right: -12rem;
+  bottom: 4%;
+}
+
+.glow2 {
+  left: 35%;
+  top: 30%;
+  width: 30rem;
+  height: 20rem;
+}
+
+.brand {
+  background: rgb(var(--brand-300) / 0.45);
+}
+
+.teal {
+  background: rgb(94 234 212 / 0.32);
+}
+
+.amber {
+  background: rgb(253 230 138 / 0.4);
+}
+
+:global(html.theme-ink) .glow {
+  opacity: 0.16;
+}
+
+:global(html.theme-ink) .brand {
+  background: rgb(var(--brand-600) / 0.8);
+}
+
+/* Faint outline of the logo: a bowl and a diamond, never louder than 7%. */
+.noon {
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  stroke: rgb(var(--brand-700) / 0.075);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+:global(html.theme-ink) .noon {
+  stroke: rgb(var(--brand-300) / 0.07);
+}
+
+.noonLeft {
+  left: -11rem;
+  top: 38%;
+  transform: rotate(-12deg);
+}
+
+.noonRight {
+  right: -10rem;
+  bottom: 6%;
+  transform: rotate(10deg);
+}
+
+@media (max-width: 47.99rem) {
+  .noon {
+    width: 22rem;
+    height: 22rem;
+  }
+}
+
+/* Section divider: two fading hairlines and the diamond. */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  box-sizing: content-box;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--c-line-strong)) 40%, rgb(var(--c-line-strong)) 60%, transparent);
+}
+
+.dividerLine:first-child {
+  background: linear-gradient(90deg, transparent, rgb(var(--c-line-strong)));
+}
+
+.dividerLine:last-child {
+  background: linear-gradient(90deg, rgb(var(--c-line-strong)), transparent);
+}
+
+.dividerMark {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: rgb(var(--c-surface));
+  stroke: rgb(var(--brand-500));
+  stroke-width: 1.5;
+}

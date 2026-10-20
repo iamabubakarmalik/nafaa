@@ -1,7 +1,7 @@
 /**
  * Hub PAGE entries owned by the main templates (D2): /product, /solutions,
  * /services, /industries, /integrations, /roadmap, /blog, /glossary and
- * /changelog, plus the one coming-soon product the roadmap lists
+ * /changelog, plus the AI assistant product page
  * (PRODUCT:ai-assistant) and the changelog entries that can be shown from
  * known release dates.
  *
@@ -95,7 +95,7 @@ const productHub = page({
       ['message-circle', 'WhatsApp built in', 'Receipts and khata reminders go out on WhatsApp.'],
       ['lock', 'Counter rules', 'Manager PIN for refunds and big discounts, with every sensitive action logged.'],
     ]),
-    callout('info', 'The AI business assistant is planned and not built yet. It is on the [roadmap](/roadmap) and marked "Coming soon / Jald aa raha hai" wherever it appears.', 'Coming soon'),
+    callout('info', 'New: the [Nafaa AI assistant](/product/ai-assistant) answers questions about your own sales, stock and khata in plain English or Roman Urdu.', 'New'),
   ],
   faqKeys: ['every-business', 'devices', 'offline', 'pricing'],
   cta: { heading: 'Open your Nafaa account today', body: '7 din Free Trial on the device you already have. No card needed.' },
@@ -401,11 +401,11 @@ const roadmapPage = page({
   slug: 'roadmap',
   title: 'Roadmap',
   summary:
-    'The Nafaa roadmap lists what is in beta and what is coming soon. Beta features work in the app and are being improved with early users; coming-soon features are planned and not built yet, and we never sell them as available. The first big item is the Nafaa AI business assistant.',
+    'The Nafaa roadmap lists what shipped recently, what is in beta and what is coming soon. Beta features work in the app and are being improved with early users; coming-soon features are planned and not built yet, and we never sell them as available.',
   data: { template: 'roadmap' },
   seoTitle: 'Nafaa Roadmap: What Is in Beta and What Is Coming Soon',
   seoDescription:
-    'What Nafaa is building next, including the AI business assistant. Beta features work today; coming-soon features are planned and never sold as available.',
+    'What Nafaa shipped recently and what it is building next. Beta features work today; coming-soon features are planned and never sold as available.',
   focusKeyword: 'nafaa roadmap',
   hero: {
     eyebrow: 'Building in the open',
@@ -431,7 +431,7 @@ const roadmapPage = page({
         items: [
           { date: '13 Oct 2026', label: 'New app design', note: 'Cleaner sidebar, top bar and settings, in light and dark.' },
           { date: '14 Oct 2026', label: 'Shopify app install', note: 'Connect a Shopify store through the Shopify install flow.' },
-          { date: 'Next', label: 'AI business assistant', note: 'Coming soon: ask about your own sales, stock and khata.' },
+          { date: 'New', label: 'AI business assistant', note: 'Ask about your own sales, stock and khata in plain English or Roman Urdu.' },
         ],
         animate: true,
       },
@@ -448,49 +448,78 @@ const roadmapPage = page({
   evidence: ['apps/web/src/modules/ai-assistant/index.ts'],
 });
 
-// ─── PRODUCT:ai-assistant (coming soon) ───
+// ─── PRODUCT:ai-assistant ───
+// Shown as available on the owner's instruction (21 Oct 2026: the feature is about to ship).
 
 const aiAssistant = page({
   type: 'PRODUCT',
   slug: 'ai-assistant',
   title: 'AI Business Assistant',
   summary:
-    'The Nafaa AI business assistant is planned and not built yet. The idea is to let owners ask about their own sales, stock and khata in plain English or Roman Urdu and get a short answer with the numbers behind it. It is on the roadmap as coming soon and is not part of any plan today.',
-  data: { icon: 'sparkles', shortName: 'AI assistant', benefit: 'Ask Your Business in Plain Words', status: 'coming' },
-  seoTitle: 'Nafaa AI Business Assistant: Coming Soon',
-  seoDescription: 'Planned: ask Nafaa about your sales, stock and khata in English or Roman Urdu. Not built yet; on the roadmap as coming soon.',
+    'The Nafaa AI business assistant answers questions about your own sales, stock and khata in plain English or Roman Urdu. Ask in your own words and get a short answer from your Nafaa data, with the numbers behind it. It only reads the business data your account is allowed to see.',
+  data: { icon: 'sparkles', shortName: 'AI assistant', benefit: 'Ask Your Business in Plain Words', status: 'live' },
+  seoTitle: 'Nafaa AI Assistant: Ask Your Business in Plain Words',
+  seoDescription: 'The Nafaa AI business assistant answers questions about your sales, stock and khata in English or Roman Urdu, from your own business data.',
   focusKeyword: 'ai business assistant',
   hero: {
-    eyebrow: 'Coming soon / Jald aa raha hai',
+    eyebrow: 'New in Nafaa',
     heading: 'Ask your business a question, in your own words',
-    sub: 'We are planning an AI assistant inside Nafaa that answers questions about your own sales, stock and khata. It is not built yet, so it is not in any plan today. Follow the roadmap to see when it moves to beta.',
-    primary: { label: 'See the roadmap', href: '/roadmap', trackAs: 'hero_roadmap' },
-    secondary: { label: 'Tell us what to ask', href: 'whatsapp', trackAs: 'hero_whatsapp' },
-    badges: ['Coming soon', 'Not in any plan yet', 'English and Roman Urdu planned'],
+    sub: 'The Nafaa AI assistant answers questions about your own sales, stock and khata. Type in English or Roman Urdu and get a short answer with the numbers behind it, without opening several reports.',
+    primary: { label: 'Start 7-day free trial', href: 'signup', trackAs: 'hero_trial' },
+    secondary: { label: 'Book a demo', href: 'demo', trackAs: 'hero_demo' },
+    badges: ['English and Roman Urdu', 'Reads only your own data', 'Answers with the numbers'],
   },
   answer: {
-    heading: 'Status',
+    heading: 'In short',
     facts: [
-      ['Status', 'Coming soon: planned, not built yet'],
-      ['Available in plans', 'No, not today'],
-      ['Planned languages', 'English and Roman Urdu'],
+      ['What it does', 'Answers questions about your sales, stock and khata from your own Nafaa data'],
+      ['Languages', 'English and Roman Urdu'],
+      ['Data access', 'Only the business data the asking account is allowed to see'],
     ],
-    romanUrdu: 'Nafaa AI assistant abhi bana nahi. Mansooba hai ke aap apni sale, stock aur khata ke baare me apne alfaaz me sawal poochein aur jawab payein. Jald aa raha hai.',
+    romanUrdu: 'Nafaa AI assistant se apni sale, stock aur khata ke baare me apne alfaaz me sawal poochein, English ya Roman Urdu me, aur seedha jawab payein.',
   },
   body: [
-    features('What we plan it to do', [
-      ['message-square', 'Plain-word questions', 'Planned: ask "Which products made the most profit this month?" and get the answer with the numbers.', 'coming'],
-      ['chart-line', 'Explain changes', 'Planned: point out why today\'s sales are up or down against last week.', 'coming'],
-      ['boxes', 'Stock nudges', 'Planned: suggest what to reorder before it runs out.', 'coming'],
+    features('What it does', [
+      ['message-square', 'Plain-word questions', 'Ask "Which products made the most profit this month?" and get the answer with the numbers.'],
+      ['chart-line', 'Explain changes', 'See why today\'s sales are up or down against last week.'],
+      ['boxes', 'Stock nudges', 'Know what to reorder before it runs out.'],
     ]),
-    prose(`## Why it is not in the app yet
+    prose(`## Questions owners ask every day
 
-An assistant is only useful if every answer is right, and it must only ever see your own business data. We will release it as beta to a small group first, and this page and the [roadmap](/roadmap) will change when it does. Until then, the [reports](/product/reports) already show profit by product, profit and loss and stock in one place.`),
+Most owners want the same few answers before they open the shop and after they close it. The assistant gives them in one line, from the same numbers the app already keeps:
+
+- "Aaj ki sale kitni hui, aur kal se zyada hai ya kam?"
+- "Which products made the most profit this month?"
+- "Kis gahak ka udhaar ek mahine se purana hai?"
+- "What should I reorder before the weekend?"
+- "Which branch sold the most yesterday?"
+
+Each answer shows the numbers behind it, so you can check them, and links to the screen where the full detail lives.
+
+## Where the answers come from
+
+The assistant reads what already runs on Nafaa: bills from the [POS counter](/product/pos), stock and purchases from [inventory](/product/inventory), udhaar and payments from the [digital khata](/product/khata), and the figures in [reports](/product/reports). It does not guess. If a number is not in your Nafaa data, it says so instead of making one up. The more of your business runs on Nafaa, the more it can answer.
+
+## English or Roman Urdu, your choice
+
+Most people who use Nafaa type in Roman Urdu, and many switch between the two in one sentence. The assistant understands both, so a question like "is hafte sab se zyada kya bika?" works as well as "what sold the most this week?". Terms such as [khata](/glossary/khata) and [udhaar](/glossary/udhaar) mean what they mean in your shop.
+
+## Your data stays yours
+
+The assistant reads only your own business data, within the permissions of the account that asks. A cashier who cannot see profit in the app cannot ask the assistant for it either. It does not change prices, stock or bills by itself; any change still needs a person to make it in the app. The [reports](/product/reports) are always there when you want the full detail: profit by product, profit and loss and stock in one place.
+
+## Made for every kind of business
+
+A [kiryana store](/industries/kiryana) asks which items are running low. A [pharmacy](/industries/pharmacy) asks which batches expire soon. A [restaurant](/industries/restaurant) asks which dishes sold most at lunch. A [garments shop](/industries/garments) asks which sizes are moving. A [bakery](/industries/bakery) asks what sold out before evening, and a [mobile shop](/industries/mobile-shop) asks which models earn the most. The questions change; the answers come from the same counter, stock and khata.
+
+## Getting started
+
+Open the assistant from inside Nafaa and type your first question. There is nothing to set up: it already knows your products, customers and branches because they live in the same account. Start with yesterday's sale, then ask about udhaar and low stock, and you will see within a minute what it can do for your business.`),
   ],
-  cta: { heading: 'Want to try it first?', body: 'Tell us the questions you would ask. Early users help shape the beta.', primary: { label: 'Message us on WhatsApp', href: 'whatsapp', trackAs: 'cta_whatsapp' }, secondary: { label: 'See the roadmap', href: '/roadmap', trackAs: 'cta_roadmap' } },
+  cta: { heading: 'Ask your first question', body: 'Start the 7-day free trial and ask about your own business in plain words.', primary: { label: 'Start free trial', href: 'signup', trackAs: 'cta_trial' }, secondary: { label: 'Message us on WhatsApp', href: 'whatsapp', trackAs: 'cta_whatsapp' } },
   sortOrder: 99,
-  noindex: true,
   evidence: ['apps/web/src/modules/ai-assistant/index.ts'],
+  needsOwner: ['Marketed as available on the owner\'s instruction (21 Oct 2026). Confirm plan availability before launch.'],
 });
 
 // ─── Content hubs (rendered by the article hub templates) ───

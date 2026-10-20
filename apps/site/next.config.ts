@@ -7,6 +7,8 @@
  *   builds unless SITE_DEV_PAGES=true (see src/app/%5Fdev/dev-pages.ts).
  * - Images are served by Cloudinary through a custom loader (src/lib/media.ts),
  *   so Next's own optimiser is not used.
+ * - No redirects here: they live in the CMS (ARCH 7.5) and are served by the
+ *   catch-all route.
  */
 import type { NextConfig } from 'next';
 import path from 'node:path';
@@ -34,6 +36,12 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [{ protocol: 'https', hostname: 'res.cloudinary.com' }],
+  },
+
+  // IndexNow key file: /<key>.txt is answered by app/indexnow/[key]. An
+  // afterFiles rewrite, so real files and routes (llms.txt, robots.txt) win.
+  async rewrites() {
+    return [{ source: '/:key([A-Za-z0-9-]{8,128}).txt', destination: '/indexnow/:key' }];
   },
 
   async headers() {

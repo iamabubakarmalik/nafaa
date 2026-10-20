@@ -3,11 +3,16 @@
  * only through these endpoints, never to the database, so every write passes
  * the same validation, revisions and permissions as an edit in the admin.
  *
- * Authentication:
- * - `CMS_SEED_TOKEN`: an admin access token (required for any non-local API).
- * - Local API only: when no token is given, a 30-minute access token is signed
- *   with JWT_ACCESS_SECRET from apps/api/.env for the first active SUPER_ADMIN
- *   (or `CMS_SEED_ADMIN_EMAIL`). The user lookup is a read; nothing is written.
+ * Authentication, first match wins:
+ * - `CMS_SEED_TOKEN`: an admin access token, for example copied from a
+ *   logged-in admin tab (see docs/marketing-site/LAUNCH.md). Access tokens are
+ *   short-lived (JWT_ACCESS_EXPIRES_IN, 15 minutes by default).
+ * - `--email=<admin email>`: logs in through POST /admin/auth/login. The
+ *   password is read from the terminal (hidden) or from one line on stdin, is
+ *   kept in memory only, and is used again to log in when a token expires.
+ * - Local API only: a 30-minute access token is signed with JWT_ACCESS_SECRET
+ *   from apps/api/.env for the first active SUPER_ADMIN (or
+ *   `CMS_SEED_ADMIN_EMAIL`). The user lookup is a read; nothing is written.
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -47,9 +52,88 @@ function isLocal(apiUrl: string): boolean {
   return host === 'localhost' || host === '127.0.0.1' || host === '::1';
 }
 
+export interface ResolvedAuth {
+  token: string;
+  as: string;
+  /** Returns a fresh token after a 401 (only for --email logins). */
+  reauth?: () => Promise<string>;
+}
+
+/** Reads a password without echo on a terminal, or the first line of piped stdin. */
+export function readPassword(prompt: string): Promise<string> {
+  const stdin = process.stdin;
+  if (!stdin.isTTY) {
+    return new Promise((resolve, reject) => {
+      let buf = '';
+      stdin.setEncoding('utf8');
+      stdin.on('data', (chunk: string) => (buf += chunk));
+      stdin.on('end', () => resolve(buf.split(/\r?\n/)[0] ?? ''));
+      stdin.on('error', reject);
+    });
+  }
+  process.stderr.write(prompt);
+  return new Promise((resolve) => {
+    let buf = '';
+    stdin.setRawMode(true);
+    stdin.setEncoding('utf8');
+    stdin.resume();
+    const onData = (chunk: string) => {
+      for (const ch of chunk) {
+        if (ch === '\r' || ch === '\n' || ch === '\u0004') {
+          stdin.setRawMode(false);
+          stdin.pause();
+          stdin.off('data', onData);
+          process.stderr.write('\n');
+          resolve(buf);
+          return;
+        }
+        if (ch === '\u0003') {
+          stdin.setRawMode(false);
+          process.stderr.write('\n');
+          process.exit(130);
+        }
+        if (ch === '\u007f' || ch === '\b') buf = buf.slice(0, -1);
+        else buf += ch;
+      }
+    };
+    stdin.on('data', onData);
+  });
+}
+
+async function adminLogin(apiUrl: string, email: string, password: string): Promise<string> {
+  const res = await fetch(`${apiUrl}/admin/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const json = (await res.json().catch(() => null)) as { data?: { accessToken?: string }; accessToken?: string; message?: unknown } | null;
+  const token = json?.data?.accessToken ?? json?.accessToken;
+  if (!res.ok || !token) throw new Error(`Admin login failed (${res.status}): ${JSON.stringify(json?.message ?? json).slice(0, 200)}`);
+  return token;
+}
+
+/** Token for the admin API: CMS_SEED_TOKEN, then --email login, then (local only) a signed token. */
+export async function resolveAuth(apiUrl: string, opts: { email?: string | undefined } = {}): Promise<ResolvedAuth> {
+  if (process.env.CMS_SEED_TOKEN) return { token: process.env.CMS_SEED_TOKEN.trim(), as: 'CMS_SEED_TOKEN' };
+  if (opts.email) {
+    const email = opts.email;
+    const password = await readPassword(`Password for ${email} on ${new URL(apiUrl).host}: `);
+    if (!password) throw new Error('No password given.');
+    const token = await adminLogin(apiUrl, email, password);
+    return { token, as: email, reauth: () => adminLogin(apiUrl, email, password) };
+  }
+  return resolveToken(apiUrl);
+}
+
+/** Opens an authenticated client. */
+export async function connect(apiUrl: string, opts: { email?: string | undefined } = {}): Promise<{ api: CmsApi; as: string }> {
+  const auth = await resolveAuth(apiUrl, opts);
+  return { api: new CmsApi(apiUrl, auth.token, auth.reauth), as: auth.as };
+}
+
 export async function resolveToken(apiUrl: string): Promise<{ token: string; as: string }> {
   if (process.env.CMS_SEED_TOKEN) return { token: process.env.CMS_SEED_TOKEN, as: 'CMS_SEED_TOKEN' };
-  if (!isLocal(apiUrl)) throw new Error('Set CMS_SEED_TOKEN (an admin access token) to seed a non-local API.');
+  if (!isLocal(apiUrl)) throw new Error('Non-local API: set CMS_SEED_TOKEN (an admin access token) or pass --email=<admin email>.');
 
   const env = readEnvFile(API_ENV);
   const secret = process.env.JWT_ACCESS_SECRET ?? env.JWT_ACCESS_SECRET;
@@ -98,7 +182,8 @@ function retryDelayMs(retryAfter: string | null, attempt: number): number {
 export class CmsApi {
   constructor(
     private readonly baseUrl: string,
-    private readonly token: string,
+    private token: string,
+    private readonly reauth?: () => Promise<string>,
   ) {}
 
   /**
@@ -106,14 +191,23 @@ export class CmsApi {
    * exponential backoff, honouring Retry-After when the API sends it.
    */
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
     const route = `${method} /admin/marketing/cms${path}`;
     let res: Response;
+    let renewed = false;
     for (let attempt = 0; ; attempt++) {
       res = await fetch(`${this.baseUrl}/admin/marketing/cms${path}`, {
         method,
-        headers: { Authorization: `Bearer ${this.token}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
-        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+        headers: { Authorization: `Bearer ${this.token}`, ...(body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : {}) },
+        ...(body !== undefined ? { body: isForm ? (body as FormData) : JSON.stringify(body) } : {}),
       });
+      if (res.status === 401 && this.reauth && !renewed) {
+        // An expired access token: log in again once and repeat the request.
+        await res.text().catch(() => '');
+        this.token = await this.reauth();
+        renewed = true;
+        continue;
+      }
       if (res.status !== 429 || attempt >= MAX_RETRIES) break;
       await res.text().catch(() => '');
       await sleep(retryDelayMs(res.headers.get('retry-after'), attempt));
@@ -142,6 +236,10 @@ export class CmsApi {
   }
   put<T>(path: string, body: unknown): Promise<T> {
     return this.request<T>('PUT', path, body);
+  }
+  /** Multipart upload (FormData with a `file` part). */
+  upload<T>(path: string, form: FormData): Promise<T> {
+    return this.request<T>('POST', path, form);
   }
 
   /** Reads every page of a paginated admin list. */

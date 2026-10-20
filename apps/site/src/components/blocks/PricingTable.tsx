@@ -30,12 +30,12 @@ import styles from './blocks.module.css';
 const PERIODS: PricingPeriod[] = ['monthly', 'quarterly', 'yearly'];
 const MONTHS: Record<PricingPeriod, number> = { monthly: 1, quarterly: 3, yearly: 12 };
 
-function priceOf(plan: PublicPlan, period: PricingPeriod): number {
+export function priceOf(plan: PublicPlan, period: PricingPeriod): number {
   return period === 'monthly' ? plan.priceMonthly : period === 'quarterly' ? plan.priceQuarterly : plan.priceYearly;
 }
 
 /** Whole-percent saving of a longer period against paying monthly; null when there is none. */
-function savingPercent(plan: PublicPlan, period: PricingPeriod): number | null {
+export function savingPercent(plan: PublicPlan, period: PricingPeriod): number | null {
   if (period === 'monthly' || plan.priceMonthly <= 0) return null;
   const full = plan.priceMonthly * MONTHS[period];
   const price = priceOf(plan, period);
@@ -44,7 +44,7 @@ function savingPercent(plan: PublicPlan, period: PricingPeriod): number | null {
   return pct >= 1 ? pct : null;
 }
 
-function limitText(value: number, t: BlockStrings, kind: 'products' | 'users' | 'shops' | 'sales'): string {
+export function limitText(value: number, t: BlockStrings, kind: 'products' | 'users' | 'shops' | 'sales'): string {
   const unlimited = kind === 'users' || kind === 'shops' ? value >= 999 : value >= 99_999;
   if (unlimited) return t.unlimitedLimit[kind];
   if (kind === 'users' && value === 1) return t.limitUser;

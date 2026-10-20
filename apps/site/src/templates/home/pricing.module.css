@@ -1,0 +1,226 @@
+/*
+ * Home pricing and questions (pricingFaq.tsx). The recommended plan is
+ * raised with a brand ring; everything else stays white on light neutrals.
+ */
+
+.plans {
+  display: grid;
+  gap: 1rem;
+  margin: 3.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 48rem) {
+  .plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 80rem) {
+  .plans4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.plan {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem;
+  border-radius: 22px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.8) inset,
+    0 20px 40px -32px rgb(15 23 42 / 0.35);
+}
+
+:global(html.theme-ink) .plan {
+  box-shadow: none;
+}
+
+.planOn {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1.5px rgb(var(--brand-600)),
+    0 30px 60px -30px rgb(var(--brand-800) / 0.45),
+    0 8px 20px -12px rgb(15 23 42 / 0.2);
+}
+
+.planOn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(var(--brand-500) / 0.07), transparent 38%);
+}
+
+:global(html.theme-ink) .planOn {
+  box-shadow: 0 0 0 1.5px rgb(var(--brand-400)), 0 30px 60px -30px rgb(0 0 0 / 0.8);
+}
+
+@media (min-width: 80rem) {
+  .plans4 .planOn {
+    margin-top: -0.75rem;
+    padding-top: 2.5rem;
+  }
+}
+
+.badge {
+  position: absolute;
+  top: -0.8rem;
+  left: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, rgb(var(--brand-600)), rgb(var(--brand-700)));
+  box-shadow: 0 6px 16px -6px rgb(var(--brand-700) / 0.8);
+}
+
+.save {
+  padding: 0.05rem 0.45rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgb(var(--brand-700));
+  background: rgb(var(--brand-50));
+}
+
+:global(html.theme-ink) .save {
+  color: rgb(var(--brand-300));
+  background: rgb(var(--brand-400) / 0.12);
+}
+
+.tick {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.12rem;
+  border-radius: 9999px;
+  color: white;
+  background: rgb(var(--brand-600));
+}
+
+.tick svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.tickOff {
+  color: rgb(var(--c-fg-subtle));
+  background: rgb(var(--c-fg) / 0.07);
+}
+
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.75rem;
+  margin-top: 2.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface) / 0.8);
+}
+
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  color: rgb(var(--c-fg-muted));
+}
+
+.trustItem svg {
+  color: rgb(var(--brand-600));
+}
+
+/* ─── Questions ─── */
+
+.ask {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgb(var(--c-line));
+  background:
+    radial-gradient(80% 80% at 0% 0%, rgb(var(--brand-500) / 0.06), transparent 70%),
+    rgb(var(--c-surface));
+  box-shadow: 0 20px 40px -32px rgb(15 23 42 / 0.4);
+}
+
+.askMark {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 14px;
+  color: white;
+  background: linear-gradient(150deg, rgb(var(--brand-500)), rgb(var(--brand-700)));
+  box-shadow: 0 8px 18px -8px rgb(var(--brand-700) / 0.9);
+}
+
+.askBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: #1fa855;
+  box-shadow: 0 8px 18px -10px rgb(31 168 85 / 0.9);
+  transition: transform 150ms var(--ease-out), background-color 150ms;
+}
+
+.askBtn:hover {
+  background: #179247;
+  transform: translateY(-1px);
+}
+
+.faqs {
+  border-radius: 20px;
+}
+
+.faq > summary {
+  padding-block: 1.3rem;
+}
+
+.faqNo {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  font-family: var(--font-code);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgb(var(--brand-600));
+}
+
+:global(html.theme-ink) .faqNo {
+  color: rgb(var(--brand-300));
+}
+
+.faqAnswer {
+  padding-left: 2.6rem;
+}
+
+.faq[open] > summary {
+  color: rgb(var(--c-fg-strong));
+}

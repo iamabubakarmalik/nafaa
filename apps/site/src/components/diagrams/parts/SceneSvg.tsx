@@ -82,6 +82,34 @@ export function SceneSvg({ scene, uid, title, desc, interactive, animate, classN
           <stop offset="45%" className={styles.fadeStop} stopOpacity="0" />
           <stop offset="100%" className={styles.fadeStop} stopOpacity="1" />
         </radialGradient>
+        <radialGradient id={`${uid}-aura`} cx="50%" cy="45%" r="55%">
+          <stop offset="0%" className={styles.auraStop} stopOpacity="0.14" />
+          <stop offset="100%" className={styles.auraStop} stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`${uid}-node`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" className={styles.nodeTop} />
+          <stop offset="100%" className={styles.nodeBottom} />
+        </linearGradient>
+        <linearGradient id={`${uid}-brand`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" className={styles.brandTop} />
+          <stop offset="100%" className={styles.brandBottom} />
+        </linearGradient>
+        <linearGradient id={`${uid}-tile`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" className={styles.tileTop} />
+          <stop offset="100%" className={styles.tileBottom} />
+        </linearGradient>
+        {/* Soft shadow under nodes and pills. */}
+        <filter id={`${uid}-soft`} x="-30%" y="-40%" width="160%" height="200%">
+          <feGaussianBlur stdDeviation="9" />
+        </filter>
+        {/* Glow around moving packets. */}
+        <filter id={`${uid}-glow`} x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
         {arrowTones.map((tone) => (
           <marker
             key={tone}
@@ -99,6 +127,7 @@ export function SceneSvg({ scene, uid, title, desc, interactive, animate, classN
         ))}
       </defs>
 
+      <rect width={scene.w} height={scene.h} fill={`url(#${uid}-aura)`} className={styles.auraBg} />
       <rect width={scene.w} height={scene.h} fill={`url(#${uid}-grid)`} className={styles.gridBg} />
       <rect width={scene.w} height={scene.h} fill={`url(#${uid}-fade)`} className={styles.fadeBg} />
 
@@ -106,32 +135,33 @@ export function SceneSvg({ scene, uid, title, desc, interactive, animate, classN
 
       <g>
         {scene.edges.map((edge) => (
-          <EdgeView key={edge.id} edge={edge} uid={uid} />
+          <EdgeView key={edge.id} edge={edge} uid={uid} animate={animate} />
         ))}
       </g>
 
       {animate ? (
-        <g aria-hidden="true">
+        <g aria-hidden="true" filter={`url(#${uid}-glow)`}>
           {scene.edges.flatMap((edge) =>
-            (edge.packets ?? []).map((packet, i) => (
-              <path
-                key={`${edge.id}-p${i}`}
-                d={edge.d}
-                pathLength={1}
-                className={cx(styles.packet, PACKET_TONE[packet.tone ?? 'neutral'], delayClass(packet.delay), packet.className)}
-              />
-            )),
+            (edge.packets ?? []).flatMap((packet, i) => {
+              const tone = PACKET_TONE[packet.tone ?? 'neutral'];
+              const delay = delayClass(packet.delay);
+              // A short fading trail and a round head that leads it.
+              return [
+                <path key={`${edge.id}-t${i}`} d={edge.d} pathLength={1} className={cx(styles.packet, styles.trail, tone, delay, packet.className)} />,
+                <path key={`${edge.id}-p${i}`} d={edge.d} pathLength={1} className={cx(styles.packet, styles.head, tone, delay, packet.className)} />,
+              ];
+            }),
           )}
         </g>
       ) : null}
 
       <g>
         {scene.nodes.map((node) => (
-          <NodeView key={node.id} node={node} scene={scene} />
+          <NodeView key={node.id} node={node} scene={scene} uid={uid} />
         ))}
       </g>
 
-      {scene.pills?.map((pill) => <PillView key={pill.id} pill={pill} size={scene.font.pill} />)}
+      {scene.pills?.map((pill) => <PillView key={pill.id} pill={pill} size={scene.font.pill} uid={uid} />)}
 
       {animate && scene.pings?.length ? (
         <g aria-hidden="true">
@@ -158,34 +188,44 @@ export function SceneSvg({ scene, uid, title, desc, interactive, animate, classN
   );
 }
 
-function EdgeView({ edge, uid }: { edge: SceneEdge; uid: string }) {
+function EdgeView({ edge, uid, animate }: { edge: SceneEdge; uid: string; animate: boolean }) {
   const tone = edge.tone ?? 'neutral';
   const reveal = edge.reveal ?? 0;
   return (
-    <path
-      d={edge.d}
-      pathLength={edge.dashed ? undefined : 1}
-      markerEnd={edge.arrow === false ? undefined : `url(#${uid}-arrow-${tone})`}
-      className={cx(
-        styles.edge,
-        EDGE_TONE[tone],
-        edge.dashed ? styles.edgeDashed : undefined,
-        edge.dashed ? styles.fade : styles.draw,
-        revealClass(reveal),
-      )}
-    />
+    <g className={EDGE_TONE[tone]}>
+      {/* Wide, faint track under the line. */}
+      <path d={edge.d} className={cx(styles.edgeTrack, styles.fade, revealClass(reveal))} />
+      <path
+        d={edge.d}
+        pathLength={edge.dashed ? undefined : 1}
+        markerEnd={edge.arrow === false ? undefined : `url(#${uid}-arrow-${tone})`}
+        className={cx(
+          styles.edge,
+          EDGE_TONE[tone],
+          edge.dashed ? styles.edgeDashed : undefined,
+          edge.dashed ? styles.fade : styles.draw,
+          revealClass(reveal),
+        )}
+      />
+      {/* Dashes that flow along the line while the diagram is in view. */}
+      {animate && !edge.dashed ? (
+        <g aria-hidden="true" className={cx(styles.fade, revealClass(reveal))}>
+          <path d={edge.d} className={styles.flow} />
+        </g>
+      ) : null}
+    </g>
   );
 }
 
-const RADIUS = 14;
+const RADIUS = 16;
 
-function NodeView({ node, scene }: { node: SceneNode; scene: Scene }) {
+function NodeView({ node, scene, uid }: { node: SceneNode; scene: Scene; uid: string }) {
   const tone = node.tone ?? 'neutral';
   const { label: labelSize, note: noteSize } = scene.font;
   const stack = node.layout === 'stack';
-  const tile = node.icon ? (stack ? 40 : labelSize >= 16 ? 38 : 34) : 0;
+  const tile = node.icon ? (stack ? 44 : labelSize >= 16 ? 42 : 36) : 0;
   const iconSize = Math.round(tile * 0.53);
-  const pad = 14;
+  const pad = 15;
   const lineH = labelSize * 1.25;
   const noteH = noteSize * 1.4;
 
@@ -204,7 +244,7 @@ function NodeView({ node, scene }: { node: SceneNode; scene: Scene }) {
       <>
         {node.icon ? (
           <>
-            <rect x={cxPos - tile / 2} y={tileY} width={tile} height={tile} rx={11} className={styles.tile} />
+            <rect x={cxPos - tile / 2} y={tileY} width={tile} height={tile} rx={12} fill={`url(#${uid}-tile)`} className={styles.tile} />
             <SvgIcon name={node.icon} x={cxPos - iconSize / 2} y={tileY + (tile - iconSize) / 2} size={iconSize} className={styles.tileIcon} />
           </>
         ) : null}
@@ -238,7 +278,7 @@ function NodeView({ node, scene }: { node: SceneNode; scene: Scene }) {
       <>
         {node.icon ? (
           <>
-            <rect x={node.x + pad} y={cy - tile / 2} width={tile} height={tile} rx={10} className={styles.tile} />
+            <rect x={node.x + pad} y={cy - tile / 2} width={tile} height={tile} rx={11} fill={`url(#${uid}-tile)`} className={styles.tile} />
             {node.icon === 'nafaa' ? (
               <SvgIcon name="nafaa" x={node.x + pad + 3} y={cy - tile / 2 + 3} size={tile - 6} />
             ) : (
@@ -273,8 +313,10 @@ function NodeView({ node, scene }: { node: SceneNode; scene: Scene }) {
           {node.badge}
         </text>
       ) : null}
-      <rect x={node.x} y={node.y + 2} width={node.w} height={node.h} rx={RADIUS} className={styles.nodeShadow} />
-      <rect x={node.x} y={node.y} width={node.w} height={node.h} rx={RADIUS} className={styles.nodeBox} />
+      <rect x={node.x + 6} y={node.y + 10} width={node.w - 12} height={node.h - 4} rx={RADIUS} filter={`url(#${uid}-soft)`} className={styles.nodeHalo} />
+      <rect x={node.x} y={node.y + 1.5} width={node.w} height={node.h} rx={RADIUS} className={styles.nodeShadow} />
+      <rect x={node.x} y={node.y} width={node.w} height={node.h} rx={RADIUS} fill={tone === 'brand' ? `url(#${uid}-brand)` : `url(#${uid}-node)`} className={styles.nodeBox} />
+      <path d={`M${node.x + RADIUS} ${node.y + 1}H${node.x + node.w - RADIUS}`} className={styles.nodeShine} />
       {node.className ? <g className={node.className}>{body}</g> : body}
     </g>
   );
@@ -292,8 +334,8 @@ export function pillWidth(text: string, size: number, icon?: string): number {
   return Math.ceil(textWidth(text, size, 500) + 24 + (icon ? size + 6 : 0));
 }
 
-function PillView({ pill, size }: { pill: ScenePill; size: number }) {
-  const h = Math.round(size * 2.15);
+function PillView({ pill, size, uid }: { pill: ScenePill; size: number; uid: string }) {
+  const h = Math.round(size * 2.3);
   const w = pillWidth(pill.text, size, pill.icon);
   const x = pill.x - w / 2;
   const y = pill.y - h / 2;
@@ -303,6 +345,7 @@ function PillView({ pill, size }: { pill: ScenePill; size: number }) {
     // their `animation` declarations do not override each other.
     <g className={cx(styles.rise, revealClass(pill.reveal ?? 0))}>
       <g className={cx(PILL_TONE[pill.tone ?? 'neutral'], pill.className)}>
+        <rect x={x + 4} y={y + 6} width={w - 8} height={h - 2} rx={h / 2} filter={`url(#${uid}-soft)`} className={styles.pillHalo} />
         <rect x={x} y={y} width={w} height={h} rx={h / 2} className={styles.pillBox} />
         {pill.icon ? <SvgIcon name={pill.icon} x={x + 11} y={pill.y - size / 2} size={size} className={styles.pillIcon} strokeWidth={2} /> : null}
         <text x={textX} y={pill.y + size * 0.36} fontSize={size} className={styles.pillText}>

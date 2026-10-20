@@ -10,10 +10,11 @@
 
 /* ─── Hero ──────────────────────────────────────────────────────────── */
 
+/* Two quiet lights at the top: green as an accent, never a wash. */
 .aurora {
   position: absolute;
-  inset: -12rem -10% auto;
-  height: 64rem;
+  inset: -14rem 0 auto;
+  height: 52rem;
   z-index: -20;
   pointer-events: none;
   overflow: hidden;
@@ -22,49 +23,49 @@
 .aurora span {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(72px);
-  opacity: 0.55;
+  filter: blur(90px);
 }
 
 .aurora span:nth-child(1) {
-  width: 44rem;
-  height: 30rem;
-  left: 8%;
-  top: 6rem;
-  background: rgb(var(--brand-300) / 0.7);
+  width: 40rem;
+  height: 22rem;
+  left: 50%;
+  top: 8rem;
+  margin-left: -20rem;
+  background: rgb(var(--brand-300) / 0.2);
+}
+
+@media (max-width: 47.99rem) {
+  .aurora span:nth-child(1) {
+    width: 26rem;
+    margin-left: -13rem;
+    opacity: 0.6;
+  }
 }
 
 .aurora span:nth-child(2) {
-  width: 36rem;
-  height: 26rem;
-  right: 6%;
-  top: 10rem;
-  background: rgb(45 212 191 / 0.45);
-}
-
-.aurora span:nth-child(3) {
-  width: 30rem;
-  height: 20rem;
-  left: 40%;
-  top: 22rem;
-  background: rgb(251 191 36 / 0.32);
-}
-
-:global(html.theme-ink) .aurora span {
-  opacity: 0.3;
+  width: 28rem;
+  height: 18rem;
+  right: 8%;
+  top: 14rem;
+  background: rgb(148 163 184 / 0.18);
 }
 
 :global(html.theme-ink) .aurora span:nth-child(1) {
-  background: rgb(var(--brand-600) / 0.8);
+  background: rgb(var(--brand-600) / 0.3);
+}
+
+:global(html.theme-ink) .aurora span:nth-child(2) {
+  background: rgb(51 65 85 / 0.35);
 }
 
 .grid {
   mask-image: radial-gradient(ellipse 60% 55% at 50% 10%, black 25%, transparent 75%);
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 .display {
-  font-size: clamp(2.6rem, 1.15rem + 5.4vw, 5.4rem);
+  font-size: clamp(2.5rem, 1.1rem + 5.4vw, 5.4rem);
   line-height: 1.02;
   letter-spacing: -0.045em;
   font-weight: 650;
@@ -80,7 +81,7 @@
 }
 
 :global(html.theme-ink) .emphasis {
-  background-image: linear-gradient(100deg, rgb(var(--brand-300)) 10%, #5eead4 55%, #fde68a 100%);
+  background-image: linear-gradient(100deg, rgb(var(--brand-300)) 10%, #5eead4 55%, rgb(var(--brand-200)) 100%);
 }
 
 .liveDot {
@@ -115,39 +116,221 @@
   }
 }
 
-/* Product stage: the screenshot tilts back and settles as it scrolls in. */
+/* ─── Capability chips beside the lead pill ─── */
+
+.chipBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 64rem) {
+  .chipBar {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+}
+
+.chipTrackWrap {
+  max-width: 100%;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+
+.chipTrack {
+  display: flex;
+  width: max-content;
+}
+
+.chipRow {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+/* Wide screens: one static row; the copy is only for the phone marquee. */
+@media (min-width: 64rem) {
+  .chipTrackWrap {
+    mask-image: none;
+  }
+
+  .chipTrack > [aria-hidden] {
+    display: none;
+  }
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.3rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface) / 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: rgb(var(--c-fg-muted));
+}
+
+.chipIcon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  color: rgb(var(--brand-700));
+  background: rgb(var(--brand-50));
+}
+
+:global(html.theme-ink) .chipIcon {
+  color: rgb(var(--brand-300));
+  background: rgb(var(--brand-400) / 0.12);
+}
+
+/* A light passes from chip to chip: one chip at a time turns brand for a moment. */
+.chipIcon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(var(--brand-600));
+  opacity: 0;
+}
+
+.chipIcon > svg {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .chipIcon::after {
+    animation: chip-lit calc(var(--n, 6) * 1.2s) var(--ease-in-out) infinite paused;
+    animation-delay: calc(var(--i, 0) * 1.2s);
+  }
+
+  :global(html[data-motion]) .chipIcon > svg {
+    animation: chip-lit-icon calc(var(--n, 6) * 1.2s) var(--ease-in-out) infinite paused;
+    animation-delay: calc(var(--i, 0) * 1.2s);
+  }
+
+  :global(html[data-motion]) [data-inview] .chipIcon > svg {
+    animation-play-state: running;
+  }
+
+  :global(html[data-motion]) [data-inview] .chipIcon::after {
+    animation-play-state: running;
+  }
+
+  /* Phones: the chips drift sideways as a slow marquee. */
+  @media (max-width: 63.99rem) {
+    :global(html[data-motion]) .chipTrack {
+      animation: ticker 32s linear infinite paused;
+    }
+
+    :global(html[data-motion]) [data-inview] .chipTrack {
+      animation-play-state: running;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chipTrack > [aria-hidden] {
+    display: none;
+  }
+
+  .chipRow {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@keyframes chip-lit {
+  0%, 100% { opacity: 0; }
+  4%, 14% { opacity: 1; }
+  20% { opacity: 0; }
+}
+
+@keyframes chip-lit-icon {
+  0%, 100% { color: inherit; }
+  4%, 14% { color: white; }
+  20% { color: inherit; }
+}
+
+/* ─── Product stage: desktop and phone side by side ─── */
+
 .stage {
   position: relative;
   perspective: 2400px;
 }
 
+.stageDuo {
+  display: flex;
+  justify-content: center;
+}
+
+.desk {
+  position: relative;
+}
+
+@media (min-width: 48rem) {
+  .stageDuo {
+    align-items: flex-end;
+    gap: clamp(1.25rem, 2.6vw, 2.75rem);
+  }
+
+  .stageDuo .desk {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/* Phones show the phone capture alone, large and centred. */
+@media (max-width: 47.99rem) {
+  .stageDuo .desk {
+    display: none;
+  }
+}
+
 .stageGlow {
   position: absolute;
-  inset: 6% 4% -4%;
+  inset: 10% 6% -2%;
   z-index: -1;
   border-radius: 40px;
   background:
-    radial-gradient(60% 60% at 30% 40%, rgb(var(--brand-500) / 0.35), transparent 70%),
-    radial-gradient(50% 50% at 75% 60%, rgb(45 212 191 / 0.28), transparent 70%);
+    radial-gradient(55% 55% at 40% 45%, rgb(15 23 42 / 0.12), transparent 70%),
+    radial-gradient(40% 40% at 70% 60%, rgb(var(--brand-500) / 0.1), transparent 70%);
   filter: blur(40px);
+}
+
+:global(html.theme-ink) .stageGlow {
+  background: radial-gradient(55% 55% at 50% 50%, rgb(var(--brand-500) / 0.14), transparent 70%);
 }
 
 .tilt {
   transform-origin: 50% 0;
 }
 
+.mainFrame {
+  box-shadow:
+    0 0 0 1px rgb(15 23 42 / 0.06),
+    0 30px 80px -24px rgb(15 23 42 / 0.32),
+    0 12px 24px -12px rgb(15 23 42 / 0.16);
+  border-radius: 14px;
+}
+
 :global(html.theme-ink) .mainFrame {
   box-shadow:
     0 0 0 1px rgb(255 255 255 / 0.1),
     0 30px 80px -20px rgb(0 0 0 / 0.7);
-}
-
-.mainFrame {
-  box-shadow:
-    0 0 0 1px rgb(15 23 42 / 0.06),
-    0 30px 80px -20px rgb(15 23 42 / 0.35),
-    0 12px 24px -12px rgb(15 23 42 / 0.2);
-  border-radius: 14px;
 }
 
 @supports (animation-timeline: view()) {
@@ -162,54 +345,297 @@
 
 @keyframes stage-tilt {
   from {
-    transform: rotateX(16deg) scale(0.94) translateY(-12px);
+    transform: rotateX(14deg) scale(0.95) translateY(-12px);
   }
   to {
     transform: none;
   }
 }
 
-.phone {
-  position: absolute;
-  left: max(-1.5rem, -2%);
-  bottom: 2.5rem;
-  width: 17%;
-  min-width: 9.5rem;
-  filter: drop-shadow(0 30px 40px rgb(15 23 42 / 0.35));
-}
-
-.float {
-  position: absolute;
+.phoneCol {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem 0.75rem 0.75rem;
-  border-radius: 14px;
-  border: 1px solid rgb(var(--c-line));
-  background: rgb(var(--c-surface) / 0.92);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 20px 40px -18px rgb(15 23 42 / 0.4);
-  max-width: 17rem;
+  justify-content: center;
+  width: min(78vw, 19.5rem);
 }
 
-.floatA {
-  right: -1.5%;
-  top: 16%;
+@media (min-width: 48rem) {
+  .phoneCol {
+    flex: 0 0 auto;
+    width: clamp(10rem, 19%, 15.5rem);
+    margin-bottom: 1.5rem;
+  }
 }
 
-.floatB {
-  right: -3%;
-  top: 48%;
+.phone {
+  position: relative;
+  width: 100%;
+  filter: drop-shadow(0 30px 40px rgb(15 23 42 / 0.28));
 }
 
-.floatC {
-  left: -3%;
-  top: 9%;
+:global(html.theme-ink) .phone {
+  filter: drop-shadow(0 30px 40px rgb(0 0 0 / 0.6));
 }
 
-.floatD {
-  right: 14%;
-  bottom: 0.5rem;
+/* Orbit rings behind the phone. */
+.orbits {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.orbit {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  border: 1px dashed rgb(var(--brand-600) / 0.22);
+}
+
+.orbitA {
+  width: 150%;
+}
+
+.orbitB {
+  width: 118%;
+  border-style: solid;
+  border-color: rgb(var(--c-line-strong) / 0.7);
+}
+
+.orbitNode {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 9999px;
+  background: rgb(var(--brand-500));
+  box-shadow: 0 0 0 4px rgb(var(--brand-500) / 0.15), 0 0 14px rgb(var(--brand-400) / 0.8);
+}
+
+.orbitNodeAmber {
+  top: auto;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: #fbbf24;
+  box-shadow: 0 0 12px rgb(251 191 36 / 0.8);
+}
+
+@media (min-width: 48rem) {
+  .orbitA {
+    width: 175%;
+  }
+
+  .orbitB {
+    width: 135%;
+  }
+}
+
+/* Corner brackets just outside the stage. */
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: rgb(var(--brand-600) / 0.45);
+  border-style: solid;
+  border-width: 0;
+  pointer-events: none;
+}
+
+.cornerTL {
+  top: -14px;
+  left: -14px;
+  border-top-width: 1.5px;
+  border-left-width: 1.5px;
+  border-top-left-radius: 8px;
+}
+
+.cornerTR {
+  top: -14px;
+  right: -14px;
+  border-top-width: 1.5px;
+  border-right-width: 1.5px;
+  border-top-right-radius: 8px;
+}
+
+.cornerBL {
+  bottom: -14px;
+  left: -14px;
+  border-bottom-width: 1.5px;
+  border-left-width: 1.5px;
+  border-bottom-left-radius: 8px;
+}
+
+.cornerBR {
+  bottom: -14px;
+  right: -14px;
+  border-bottom-width: 1.5px;
+  border-right-width: 1.5px;
+  border-bottom-right-radius: 8px;
+}
+
+@media (max-width: 47.99rem) {
+  .corner {
+    display: none;
+  }
+}
+
+/* Wires from the stage into the page margins, each ending in a node. */
+.wire {
+  position: absolute;
+  display: none;
+  height: 1px;
+  width: clamp(0px, (100vw - 100%) / 2 - 2.5rem, 9rem);
+  pointer-events: none;
+}
+
+@media (min-width: 80rem) {
+  .wire {
+    display: block;
+  }
+}
+
+.wireL1,
+.wireL2 {
+  right: calc(100% + 18px);
+  background: linear-gradient(90deg, transparent, rgb(var(--brand-600) / 0.35));
+}
+
+.wireR1,
+.wireR2 {
+  left: calc(100% + 18px);
+  background: linear-gradient(90deg, rgb(var(--brand-600) / 0.35), transparent);
+}
+
+.wireL1 {
+  top: 22%;
+}
+
+.wireL2 {
+  top: 64%;
+}
+
+.wireR1 {
+  top: 34%;
+}
+
+.wireR2 {
+  top: 78%;
+}
+
+.wire::before {
+  content: '';
+  position: absolute;
+  top: -3.5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  border: 1.5px solid rgb(var(--brand-500) / 0.7);
+  background: rgb(var(--c-canvas));
+}
+
+.wireL1::before,
+.wireL2::before {
+  left: 0;
+}
+
+.wireR1::before,
+.wireR2::before {
+  right: 0;
+}
+
+.wireSpark {
+  position: absolute;
+  inset: -1px 0;
+  overflow: hidden;
+}
+
+/* A short bright segment rides the wire (only transform moves). */
+.wireSpark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent calc(100% - 40px), rgb(var(--brand-400)) calc(100% - 12px), transparent);
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .wireSpark::after {
+    animation: spark-run 3.6s var(--ease-in-out) infinite paused;
+  }
+
+  :global(html[data-motion]) .wireL2 .wireSpark::after { animation-delay: 1.8s; }
+  :global(html[data-motion]) .wireR1 .wireSpark::after { animation-delay: 0.9s; }
+  :global(html[data-motion]) .wireR2 .wireSpark::after { animation-delay: 2.7s; }
+
+  :global(html[data-motion]) [data-inview] .wireSpark::after {
+    animation-play-state: running;
+  }
+}
+
+/* Left wires run towards the stage, right wires away from it. */
+@keyframes spark-run {
+  0% { transform: translateX(-100%); opacity: 0; }
+  15% { opacity: 1; }
+  70% { transform: translateX(0); opacity: 1; }
+  80%, 100% { transform: translateX(0); opacity: 0; }
+}
+
+/* Light running round the desktop frame. */
+.beam {
+  position: absolute;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.beam rect {
+  x: 1px;
+  y: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  rx: 14px;
+  fill: none;
+}
+
+.beamTrack {
+  stroke: transparent;
+}
+
+.beamLight {
+  stroke: rgb(var(--brand-500));
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.08 0.92;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgb(var(--brand-400) / 0.9));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .beamLight {
+    opacity: 0.9;
+    animation: beam-run 9s linear infinite paused;
+  }
+
+  :global(html[data-motion]) [data-inview] .beamLight {
+    animation-play-state: running;
+  }
+}
+
+@keyframes beam-run {
+  to {
+    stroke-dashoffset: -1;
+  }
 }
 
 .ping {
@@ -217,48 +643,31 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  :global(html[data-motion]) .float {
-    animation: float-bob 7s var(--ease-in-out) var(--delay, 0s) infinite paused;
+  :global(html[data-motion]) .orbitA {
+    animation: orbit-spin 28s linear infinite paused;
   }
 
-  :global(html[data-motion]) .ping {
-    animation: ping 2s var(--ease-out) infinite paused;
+  :global(html[data-motion]) .orbitB {
+    animation: orbit-spin 40s linear infinite reverse paused;
   }
 
-  :global(html[data-motion]) [data-inview] :is(.float, .ping) {
+  :global(html[data-motion]) [data-inview] :is(.orbitA, .orbitB) {
     animation-play-state: running;
   }
 
   :global(html[data-motion]) .aurora span {
-    animation: aurora-drift 22s var(--ease-in-out) infinite alternate;
+    animation: aurora-drift 24s var(--ease-in-out) infinite alternate;
   }
 
   :global(html[data-motion]) .aurora span:nth-child(2) {
-    animation-duration: 26s;
+    animation-duration: 30s;
     animation-direction: alternate-reverse;
   }
-
-  :global(html[data-motion]) .aurora span:nth-child(3) {
-    animation-duration: 30s;
-  }
 }
 
-@keyframes float-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes ping {
-  70% {
-    box-shadow: 0 0 0 10px rgb(var(--brand-500) / 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgb(var(--brand-500) / 0);
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -267,38 +676,18 @@
     transform: translate3d(0, 0, 0) scale(1);
   }
   to {
-    transform: translate3d(6%, 8%, 0) scale(1.12);
+    transform: translate3d(4%, 6%, 0) scale(1.08);
   }
 }
 
 /* ─── Bands ─────────────────────────────────────────────────────────── */
-
-.inkGlow {
-  position: absolute;
-  inset: 0;
-  z-index: -10;
-  pointer-events: none;
-  background:
-    radial-gradient(50% 40% at 15% 0%, rgb(var(--brand-500) / 0.22), transparent 70%),
-    radial-gradient(40% 40% at 90% 100%, rgb(45 212 191 / 0.14), transparent 70%);
-}
 
 .softWash {
   position: absolute;
   inset: 0;
   z-index: -10;
   pointer-events: none;
-  background: radial-gradient(50% 30% at 50% 0%, rgb(var(--brand-400) / 0.1), transparent 70%);
-}
-
-.aiWash {
-  position: absolute;
-  inset: 0;
-  z-index: -10;
-  pointer-events: none;
-  background:
-    radial-gradient(40% 50% at 85% 50%, rgb(251 191 36 / 0.12), transparent 70%),
-    radial-gradient(40% 50% at 70% 30%, rgb(var(--brand-400) / 0.12), transparent 70%);
+  background: radial-gradient(50% 30% at 50% 0%, rgb(148 163 184 / 0.08), transparent 70%);
 }
 
 .closingAurora {
@@ -376,6 +765,25 @@
   :global(html[data-motion]) [data-inview].ticker:hover .tickerTrack,
   :global(html[data-motion]) [data-inview] .ticker:focus-within .tickerTrack {
     animation-play-state: paused;
+  }
+}
+
+/* Reduced motion on phones: the rows scroll sideways instead of stacking into a tower. */
+@media (prefers-reduced-motion: reduce) and (max-width: 47.99rem) {
+  .ticker {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ticker .tickerTrack,
+  .ticker .tickerRow {
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    justify-content: flex-start !important;
+  }
+
+  .ticker .tickerRow {
+    padding-inline: var(--gutter);
   }
 }
 
@@ -483,7 +891,7 @@
     animation-play-state: running;
   }
 
-  :global(html[data-motion][data-motion-paused]) :is(.laser, .lineIn, .blink, .bubble, .stamp, .toast, .shine, .queue, .packet, .cycle, .typing, .shimmer, .tap, .float, .tickerTrack) {
+  :global(html[data-motion][data-motion-paused]) :is(.laser, .lineIn, .blink, .bubble, .stamp, .toast, .shine, .queue, .packet, .cycle, .typing, .shimmer, .tap, .tickerTrack) {
     animation-play-state: paused !important;
   }
 }
@@ -579,76 +987,54 @@
   to { background-position: -100% 0; }
 }
 
-/* ─── Globe ─────────────────────────────────────────────────────────── */
+/* ─── Globe (Globe.tsx draws on a canvas) ───────────────────────────── */
 
 .globeWrap {
   position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  /* A soft disc before the canvas draws, so nothing jumps. */
+  background: radial-gradient(circle at 50% 50%, rgb(148 163 184 / 0.12) 0, rgb(148 163 184 / 0.05) 38%, transparent 52%);
+  border-radius: 9999px;
 }
 
-.globeHalo {
-  fill: none;
-  stroke: rgb(74 222 128 / 0.12);
-  stroke-width: 1;
-  stroke-dasharray: 2 6;
+.globeCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.meridian {
-  transform-box: fill-box;
-  transform-origin: center;
+.globeCanvas[data-dragging] {
+  cursor: grabbing;
 }
 
-.arc {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  :global(html[data-motion]) .meridian { animation: meridian 16s linear infinite var(--delay, 0s) paused; }
-  :global(html[data-motion]) .arc { animation: arc 4.9s var(--ease-in-out) infinite var(--delay, 0s) paused; }
-  :global(html[data-motion]) .blip { animation: blip 4.9s var(--ease-out) infinite var(--delay, 0s) paused; transform-box: fill-box; transform-origin: center; }
-  :global(html[data-motion]) .homePulse { animation: home-pulse 2.4s var(--ease-out) infinite var(--delay, 0s) paused; transform-box: fill-box; transform-origin: center; }
-
-  :global(html[data-motion]) [data-inview] :is(.meridian, .arc, .blip, .homePulse) {
-    animation-play-state: running;
-  }
-}
-
-@keyframes meridian {
-  from { transform: scaleX(1); }
-  50% { transform: scaleX(0); }
-  to { transform: scaleX(-1); }
-}
-
-@keyframes arc {
-  0% { stroke-dashoffset: 1; opacity: 1; }
-  45% { stroke-dashoffset: 0; opacity: 1; }
-  80% { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
-}
-
-@keyframes blip {
-  0%, 40% { opacity: 0; transform: scale(0.4); }
-  50% { opacity: 1; transform: scale(1.6); }
-  60%, 85% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; }
-}
-
-@keyframes home-pulse {
-  from { transform: scale(0.6); opacity: 1; }
-  to { transform: scale(2.2); opacity: 0; }
-}
-
-/* ─── AI chat ───────────────────────────────────────────────────────── */
-
-.chat {
-  background-image: radial-gradient(80% 60% at 100% 0%, rgb(var(--brand-400) / 0.08), transparent 70%);
+.globeHint {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface) / 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgb(var(--c-fg-muted));
+  transform: translateX(-50%);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 /* ─── Tour ──────────────────────────────────────────────────────────── */
 
-.tourFrame {
-  filter: drop-shadow(0 30px 50px rgb(15 23 42 / 0.18));
-}
 
 .tabProgress {
   position: absolute;
@@ -678,4 +1064,572 @@
     opacity: 0;
     transform: translateY(10px);
   }
+}
+
+/* ─── How it works ──────────────────────────────────────────────────── */
+
+.steps {
+  position: relative;
+  display: grid;
+  gap: 4rem;
+}
+
+@media (min-width: 64rem) {
+  .steps {
+    gap: 5rem;
+  }
+}
+
+.step {
+  position: relative;
+}
+
+.stepNo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-top: 0.15rem;
+  border-radius: 14px;
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(145deg, rgb(var(--brand-500)), rgb(var(--brand-700)));
+  box-shadow: 0 10px 20px -10px rgb(var(--brand-700) / 0.8), 0 0 0 1px rgb(255 255 255 / 0.2) inset;
+}
+
+/* The diagram sits on a soft glow so it reads as the centre of the band. */
+.stage2 {
+  position: relative;
+}
+
+.stage2::before {
+  content: '';
+  position: absolute;
+  inset: 8% 6% -6%;
+  z-index: -1;
+  border-radius: 40px;
+  background: radial-gradient(60% 70% at 50% 50%, rgb(15 23 42 / 0.08), transparent 70%);
+  filter: blur(30px);
+}
+
+
+/* ─── Solutions selector ────────────────────────────────────────────── */
+
+.solGrid {
+  margin-top: 2.75rem;
+}
+
+.solListWrap {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .solListWrap {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    padding: 0.25rem 0.25rem 0.75rem;
+    scrollbar-width: none;
+  }
+}
+
+.solList {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface) / 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px -24px rgb(15 23 42 / 0.5);
+}
+
+.solTab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  padding: 0.3rem 0.7rem 0.3rem 0.3rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: rgb(var(--c-fg-muted));
+  transition: color 150ms, background-color 150ms, box-shadow 150ms;
+}
+
+.solTab:hover {
+  color: rgb(var(--c-fg-strong));
+  background: rgb(var(--c-surface-2));
+}
+
+.solTabOn {
+  color: rgb(var(--c-fg-strong));
+  background: rgb(var(--c-surface));
+  box-shadow: 0 0 0 1px rgb(var(--accent) / 0.35), 0 6px 16px -10px rgb(var(--accent) / 0.8);
+}
+
+.solTabIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  color: rgb(var(--accent));
+  background: rgb(var(--accent) / 0.1);
+  transition: background-color 150ms, color 150ms;
+}
+
+.solTabOn .solTabIcon {
+  color: white;
+  background: rgb(var(--accent));
+}
+
+.solProgress {
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(var(--accent));
+  transform-origin: left;
+  animation: tab-progress var(--dur, 7s) linear both;
+}
+
+/* Phones and tablets: every panel is a card in a swipeable row. */
+.solPanels {
+  display: flex;
+  gap: 0.9rem;
+  margin-inline: calc(-1 * var(--gutter));
+  padding: 0.25rem var(--gutter) 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+}
+
+.solPanels::-webkit-scrollbar {
+  display: none;
+}
+
+.solPanelWrap,
+.solPanelWrap[hidden] {
+  display: block;
+  flex: 0 0 min(86%, 26rem);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 64rem) {
+  .solPanels {
+    display: block;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .solPanelWrap[hidden] {
+    display: none;
+  }
+}
+
+.solPanel {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.8) inset,
+    0 40px 80px -50px rgb(15 23 42 / 0.45);
+}
+
+@media (min-width: 64rem) {
+  .solPanel {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    min-height: 30rem;
+  }
+}
+
+:global(html.theme-ink) .solPanel {
+  box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.75);
+}
+
+.solText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 1.5rem;
+}
+
+@media (min-width: 64rem) {
+  .solText {
+    justify-content: center;
+    padding: 2.5rem 2.75rem;
+  }
+}
+
+.solPoint {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.925rem;
+  font-weight: 500;
+  color: rgb(var(--c-fg-strong));
+}
+
+.solTick {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 9999px;
+  color: rgb(var(--accent));
+  background: rgb(var(--accent) / 0.12);
+}
+
+.solCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  background: rgb(var(--accent));
+  box-shadow: 0 10px 24px -12px rgb(var(--accent) / 0.95);
+  transition: transform 150ms var(--ease-out), box-shadow 150ms;
+}
+
+.solCta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px -12px rgb(var(--accent) / 0.95);
+}
+
+.solScene {
+  position: relative;
+  order: -1;
+  min-width: 0;
+  min-height: 17rem;
+  overflow: hidden;
+  border-bottom: 1px solid rgb(var(--c-line));
+  background:
+    radial-gradient(70% 80% at 60% 10%, rgb(var(--accent) / 0.09), transparent 70%),
+    rgb(var(--c-surface-2));
+}
+
+@media (min-width: 64rem) {
+  .solScene {
+    order: 0;
+    display: flex;
+    align-items: center;
+    min-height: 0;
+    border-bottom: 0;
+    border-left: 1px solid rgb(var(--c-line));
+  }
+
+  .solScene > * {
+    width: 100%;
+  }
+}
+
+@media (min-width: 80rem) {
+  .solScene > * {
+    zoom: 1.12;
+  }
+}
+
+/* Phones: the scenes are drawn for a wide stage, so they shrink to fit the card. */
+@media (max-width: 63.99rem) {
+  .solScene > * {
+    zoom: 0.82;
+  }
+}
+
+.solScene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(var(--c-fg) / 0.07) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 20%, transparent 85%);
+}
+
+.solScene > * {
+  position: relative;
+}
+
+/* A new business type slides in: scene first, then the words. */
+@media (prefers-reduced-motion: no-preference) {
+  @media (min-width: 64rem) {
+    .solIn .solScene {
+      animation: sol-scene 600ms var(--ease-out) both;
+    }
+
+    .solIn .solText > * {
+      animation: sol-text 500ms var(--ease-out) both;
+    }
+
+    .solIn .solText > *:nth-child(2) { animation-delay: 60ms; }
+    .solIn .solText > *:nth-child(3) { animation-delay: 120ms; }
+    .solIn .solText > *:nth-child(4) { animation-delay: 180ms; }
+    .solIn .solText > *:nth-child(5) { animation-delay: 240ms; }
+  }
+}
+
+@keyframes sol-scene {
+  from {
+    opacity: 0;
+    transform: translateX(24px) scale(0.98);
+  }
+}
+
+@keyframes sol-text {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* ─── Tour panels ───────────────────────────────────────────────────── */
+
+.tourPanel {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  .tour_left {
+    grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
+    gap: 3rem;
+  }
+
+  .tour_right {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 19rem);
+    gap: 3rem;
+  }
+
+  .tour_stage {
+    gap: 2rem;
+  }
+}
+
+.tourText {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 64rem) {
+  .tourTextStage {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: end;
+    gap: 3rem;
+  }
+}
+
+.notes {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 40rem) {
+  .notesRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.note {
+  position: relative;
+  border-radius: 12px;
+}
+
+.noteBtn {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface));
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-align: left;
+  color: rgb(var(--c-fg));
+  cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms, background-color 150ms;
+}
+
+.noteBtn:hover,
+.noteBtn:focus-visible {
+  border-color: rgb(var(--brand-500) / 0.5);
+  box-shadow: 0 8px 18px -12px rgb(var(--brand-700) / 0.45);
+  outline: none;
+}
+
+.noteNo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgb(var(--brand-700));
+  background: rgb(var(--brand-600) / 0.1);
+  transition: background-color 150ms, color 150ms;
+}
+
+:global(html.theme-ink) .noteNo {
+  color: rgb(var(--brand-300));
+}
+
+.tourFrame {
+  filter: drop-shadow(0 30px 50px rgb(15 23 42 / 0.16));
+}
+
+.tourFrameStage {
+  max-width: 64rem;
+  margin-inline: auto;
+  width: 100%;
+}
+
+/* Phones: the capture comes first, the list under it, so a tap lights the area above. */
+@media (max-width: 63.99rem) {
+  .tourFrame {
+    order: -1;
+  }
+}
+
+/*
+ * Spotlight: a soft frame around one area of the capture; its huge spread
+ * shadow dims the rest (the capture wrapper clips it). Invisible at rest.
+ */
+.spot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px rgb(var(--brand-500)),
+    0 0 0 6px rgb(var(--brand-500) / 0.18),
+    0 0 0 200vmax rgb(15 23 42 / 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms var(--ease-out);
+}
+
+:global(html.theme-ink) .spot {
+  box-shadow:
+    0 0 0 2px rgb(var(--brand-400)),
+    0 0 0 6px rgb(var(--brand-400) / 0.2),
+    0 0 0 200vmax rgb(2 6 23 / 0.5);
+}
+
+/* Auto-cycle while the tour is in view: one area after another, with its list item lit. */
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .cycle3 .spot {
+    animation: spot3 9s var(--ease-in-out) infinite paused;
+  }
+
+  :global(html[data-motion]) .cycle4 .spot {
+    animation: spot4 12s var(--ease-in-out) infinite paused;
+  }
+
+  :global(html[data-motion]) .cycle3 .noteBtn {
+    animation: note3 9s var(--ease-in-out) infinite paused;
+  }
+
+  :global(html[data-motion]) .cycle4 .noteBtn {
+    animation: note4 12s var(--ease-in-out) infinite paused;
+  }
+
+  :global(html[data-motion]) :is(.cycle3, .cycle4) :is(.spot, .noteBtn) {
+    animation-delay: calc(1s + var(--i, 0) * 3s);
+  }
+
+  :global(html[data-motion]) [data-inview] :is(.spot, .noteBtn) {
+    animation-play-state: running;
+  }
+
+  :global(html[data-motion][data-motion-paused]) :is(.spot, .noteBtn) {
+    animation-play-state: paused !important;
+  }
+}
+
+@keyframes spot3 {
+  0% { opacity: 0; }
+  4%, 29% { opacity: 1; }
+  33.3%, 100% { opacity: 0; }
+}
+
+@keyframes spot4 {
+  0% { opacity: 0; }
+  3%, 22% { opacity: 1; }
+  25%, 100% { opacity: 0; }
+}
+
+@keyframes note3 {
+  0%, 33.3%, 100% { border-color: rgb(var(--c-line)); }
+  4%, 29% { border-color: rgb(var(--brand-500) / 0.55); }
+}
+
+@keyframes note4 {
+  0%, 25%, 100% { border-color: rgb(var(--c-line)); }
+  3%, 22% { border-color: rgb(var(--brand-500) / 0.55); }
+}
+
+/* A hovered, focused or tapped item takes over: only its area shows. */
+.tourPanel:has(.noteBtn:hover, .noteBtn:focus) .spot,
+.tourPanel:has(.noteBtn:hover, .noteBtn:focus) .noteBtn {
+  animation: none !important;
+  opacity: 0;
+}
+
+.tourPanel:has(.noteBtn:hover, .noteBtn:focus) .noteBtn {
+  opacity: 1;
+}
+
+.tourPanel:has(.note[data-k='1'] .noteBtn:is(:hover, :focus)) .spot[data-k='1'],
+.tourPanel:has(.note[data-k='2'] .noteBtn:is(:hover, :focus)) .spot[data-k='2'],
+.tourPanel:has(.note[data-k='3'] .noteBtn:is(:hover, :focus)) .spot[data-k='3'],
+.tourPanel:has(.note[data-k='4'] .noteBtn:is(:hover, :focus)) .spot[data-k='4'],
+.tourPanel:has(.note[data-k='5'] .noteBtn:is(:hover, :focus)) .spot[data-k='5'],
+.tourPanel:has(.note[data-k='6'] .noteBtn:is(:hover, :focus)) .spot[data-k='6'] {
+  opacity: 1;
+}
+
+.noteBtn:is(:hover, :focus) .noteNo {
+  color: white;
+  background: rgb(var(--brand-600));
 }

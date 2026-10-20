@@ -37,6 +37,9 @@ function setup() {
     ]) },
     electronicsSerialTracking: { groupBy: jest.fn().mockResolvedValue([{ productId: 'Atta', _count: { _all: 18 } }]) },
     bakeryProductProfile: { findMany: jest.fn().mockResolvedValue([]) },
+    autoPartProfile: { findMany: jest.fn().mockResolvedValue([]) },
+    productSalt: { findMany: jest.fn().mockResolvedValue([]) },
+    pharmacyMedicine: { findMany: jest.fn().mockResolvedValue([]) },
   };
   return new ProductCatalogService(prisma as never);
 }

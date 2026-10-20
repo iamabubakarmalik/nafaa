@@ -1,54 +1,74 @@
 /**
- * Marketing CMS seed (ARCH section 12).
+ * Marketing CMS seed (ARCH section 12). Order: media, settings, FAQs, entries,
+ * redirects, menus.
  *
  *   pnpm --filter @nafaa/api seed:cms                      dry run (default)
  *   pnpm --filter @nafaa/api seed:cms -- --apply           write drafts
  *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite=/industries/kiryana,/blog/x
+ *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite-settings          every seeded setting
+ *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite-settings=site,seo
+ *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite-menus             every seeded menu (was push-menus.ts)
+ *   pnpm --filter @nafaa/api seed:cms -- --apply --only=media                  media import only
  *   pnpm --filter @nafaa/api seed:cms -- --report          also print the drop and needs-owner report
  *
- * Options: --api=<base> (default CMS_API_URL or http://localhost:4000/api).
+ * Options:
+ *   --api=<base>     default CMS_API_URL or http://localhost:4000/api
+ *   --email=<admin>  log in as this admin; the password is prompted (see lib/api.ts)
+ *   --only=<steps>   comma list of media,settings,faqs,entries,redirects,menus
+ *
+ * Media: content refers to screenshots as `media_<key>` (lib/media.ts). The
+ * media step finds or uploads every asset of media/manifest.json on the
+ * target and the runner swaps the keys for the target's ids before writing.
  *
  * Rules:
  * - Writes go through the admin CMS API only, never to the database.
  * - Entries are created as DRAFT and never published; publishing goes through
  *   the admin so the quality gates and revalidation run.
- * - Idempotent: entries are matched by (locale, path), FAQs by question,
- *   settings and menus by key. Anything that already exists is left alone
- *   unless its path is passed to --overwrite (entries only).
+ * - Idempotent: media by `seed:<key>` tag or checksum, entries by
+ *   (locale, path), FAQs by question, settings and menus by key. Anything
+ *   that already exists is left alone unless an --overwrite flag names it.
  * - Prod needs the owner's go-ahead (deploy checklist).
  */
 
-import { ENTRY_TYPE_META } from '../../src/admin-marketing/cms/contract/cms-contract';
 import type { AdminEntry, AdminEntryListItem, AdminFaq, SettingKey } from '../../src/admin-marketing/cms/contract/cms-contract';
 import { droppedItems, entries, faqs, menus, redirects, redirectsNeedingOwner, settings } from './content';
-import { ApiError, CmsApi, resolveToken } from './lib/api';
+import { ApiError, type CmsApi, connect } from './lib/api';
+import { apiArg, argValue, listArg } from './lib/cli';
+import { collectMediaRefs, loadManifest, resolveMediaRefs, syncMedia } from './lib/media';
+import { seedPath } from './lib/paths';
 import type { SeedEntry } from './lib/types';
 import { entryKey, validateContent } from './lib/validate';
+
+const STEPS = ['media', 'settings', 'faqs', 'entries', 'redirects', 'menus'] as const;
+type Step = (typeof STEPS)[number];
 
 interface Args {
   apply: boolean;
   report: boolean;
   overwrite: Set<string>;
+  overwriteSettings: { all: boolean; values: Set<string> };
+  overwriteMenus: { all: boolean; values: Set<string> };
+  only: Set<Step>;
   api: string;
+  email: string | undefined;
 }
 
 function parseArgs(argv: string[]): Args {
-  const get = (name: string): string | undefined => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
+  const only = listArg(argv, 'only').values;
+  for (const s of only) if (!(STEPS as readonly string[]).includes(s)) throw new Error(`--only: unknown step "${s}" (use ${STEPS.join(', ')})`);
   return {
     apply: argv.includes('--apply'),
     report: argv.includes('--report'),
-    overwrite: new Set((get('overwrite') ?? '').split(',').map((s) => s.trim()).filter(Boolean)),
-    api: (get('api') ?? process.env.CMS_API_URL ?? 'http://localhost:4000/api').replace(/\/$/, ''),
+    overwrite: listArg(argv, 'overwrite').values,
+    overwriteSettings: listArg(argv, 'overwrite-settings'),
+    overwriteMenus: listArg(argv, 'overwrite-menus'),
+    only: only.size ? (only as Set<Step>) : new Set(STEPS),
+    api: apiArg(argv),
+    email: argValue(argv, 'email'),
   };
 }
 
-function pathOf(e: SeedEntry): string {
-  const prefix = ENTRY_TYPE_META[e.type].prefix;
-  // Top-level PAGE entries (no parent) live at /<slug>.
-  if (e.type === 'PAGE') return `/${e.slug}`;
-  if (!prefix) throw new Error(`${entryKey(e)}: the seed only handles types with a fixed prefix`);
-  return `/${prefix}/${e.slug}`;
-}
+const pathOf = (e: SeedEntry): string => seedPath(e, entries);
 
 const SETTING_BUNDLE_KEY: Record<SettingKey, string> = {
   site: 'site', entity: 'entity', pricing: 'pricing', seo: 'seo', analytics: 'analytics', 'industry-groups': 'industryGroups',
@@ -67,7 +87,13 @@ async function main(): Promise<void> {
 
   // 1. Offline validation.
   const v = validateContent(content);
-  console.log(`\nMarketing CMS seed: ${args.apply ? 'APPLY (drafts only)' : 'dry run'} → ${args.api}`);
+  const manifest = loadManifest();
+  const manifestKeys = new Set(manifest.assets.map((a) => a.key));
+  const refs = collectMediaRefs([entries, settings]);
+  for (const k of refs) if (!manifestKeys.has(k)) v.errors.push(`media_${k}: not in media/manifest.json (run media-export)`);
+  const runs = (step: Step): boolean => args.only.has(step);
+  console.log(`\nMarketing CMS seed: ${args.apply ? 'APPLY (drafts only)' : 'dry run'} → ${args.api}${args.only.size < STEPS.length ? ` (only ${[...args.only].join(', ')})` : ''}`);
+  console.log(`Media: ${manifest.assets.length} assets in the manifest, ${refs.size} referenced by content`);
   console.log(`Content: ${entries.length} entries, ${faqs.length} FAQs, ${settings.length} settings, ${menus.length} menus, ${redirects.length} redirects`);
   for (const w of v.warnings) console.log(`  warn  ${w}`);
   if (v.errors.length) {
@@ -81,10 +107,10 @@ async function main(): Promise<void> {
   // 2. Connect. A dry run without a reachable API still prints the plan.
   let api: CmsApi | null = null;
   try {
-    const auth = await resolveToken(args.api);
-    api = new CmsApi(args.api, auth.token);
+    const conn = await connect(args.api, { email: args.email });
+    api = conn.api;
     await api.get('/config');
-    console.log(`API: connected as ${auth.as}`);
+    console.log(`API: connected as ${conn.as}`);
   } catch (err) {
     const msg = err instanceof ApiError ? `${err.status} on ${err.route}` : (err as Error).message;
     if (args.apply) {
@@ -134,22 +160,52 @@ async function main(): Promise<void> {
     const found = existingFaqs.get(f.question.trim().toLowerCase());
     return { faq: f, action: (found ? 'skip' : 'create') as Action, id: found?.id };
   });
-  const settingPlan = settings.map((s) => ({ s, action: (bundle[SETTING_BUNDLE_KEY[s.key]] || v.blockedSettings.has(s.key) ? 'skip' : 'create') as Action }));
-  const menuPlan = menus.map((m) => ({ m, action: (existingMenus.has(`en:${m.key}`) ? 'skip' : 'create') as Action }));
+  const overwritesSetting = (key: string): boolean => args.overwriteSettings.all || args.overwriteSettings.values.has(key);
+  const overwritesMenu = (key: string): boolean => args.overwriteMenus.all || args.overwriteMenus.values.has(key);
+  const settingPlan = settings.map((s) => {
+    const exists = Boolean(bundle[SETTING_BUNDLE_KEY[s.key]]);
+    const action: Action = v.blockedSettings.has(s.key) ? 'skip' : !exists ? 'create' : overwritesSetting(s.key) ? 'update' : 'skip';
+    return { s, action };
+  });
+  const menuPlan = menus.map((m) => {
+    const exists = existingMenus.has(`en:${m.key}`);
+    const action: Action = !exists ? 'create' : overwritesMenu(m.key) ? 'update' : 'skip';
+    return { m, action };
+  });
+
+  // Media: find or (on --apply) upload every manifest asset on the target.
+  let mediaIds = new Map<string, string>();
+  if (api && runs('media')) {
+    const sync = await syncMedia(api, manifest, { apply: args.apply, log: (l) => console.log(l) });
+    mediaIds = sync.ids;
+    console.log(`\nMedia on target: ${sync.matched.length} found by key, ${sync.tagged.length} found by checksum${args.apply ? ' (tagged)' : ''}, ${sync.uploaded.length} uploaded, ${args.apply ? `${sync.failed.length} failed` : `${sync.pending.length} to upload`}`);
+    if (args.apply && sync.failed.length) {
+      console.log('Media import failed; nothing else was written.');
+      process.exitCode = 1;
+      return;
+    }
+  } else if (api && (runs('entries') || runs('settings'))) {
+    // Entries still need ids: read the mapping without uploading.
+    mediaIds = (await syncMedia(api, manifest, { apply: false })).ids;
+  }
 
   const count = (list: { action: Action }[], a: Action): number => list.filter((x) => x.action === a).length;
   console.log('\nPlan');
-  console.log(`  settings  create ${count(settingPlan, 'create')}, skip ${count(settingPlan, 'skip')}`);
-  console.log(`  faqs      create ${count(faqPlan, 'create')}, skip ${count(faqPlan, 'skip')}`);
-  console.log(`  entries   create ${count(plan, 'create')}, update ${count(plan, 'update')}, skip ${count(plan, 'skip')}`);
-  console.log(`  menus     create ${count(menuPlan, 'create')}, skip ${count(menuPlan, 'skip')}`);
-  console.log(`  redirects import ${redirects.length} (the API skips or updates existing rules)`);
-  for (const p of plan) console.log(`    ${pad(p.action, 6)} ${pad(p.entry.type, 14)} ${pad(p.path, 48)} ${p.reason}`);
+  const off = (step: Step): string => (runs(step) ? '' : ' (step not selected)');
+  console.log(`  settings  create ${count(settingPlan, 'create')}, update ${count(settingPlan, 'update')}, skip ${count(settingPlan, 'skip')}${off('settings')}`);
+  console.log(`  faqs      create ${count(faqPlan, 'create')}, skip ${count(faqPlan, 'skip')}${off('faqs')}`);
+  console.log(`  entries   create ${count(plan, 'create')}, update ${count(plan, 'update')}, skip ${count(plan, 'skip')}${off('entries')}`);
+  console.log(`  menus     create ${count(menuPlan, 'create')}, update ${count(menuPlan, 'update')}, skip ${count(menuPlan, 'skip')}${off('menus')}`);
+  console.log(`  redirects import ${redirects.length} (the API skips or updates existing rules)${off('redirects')}`);
+  if (runs('entries')) for (const p of plan) console.log(`    ${pad(p.action, 6)} ${pad(p.entry.type, 14)} ${pad(p.path, 48)} ${p.reason}`);
+  const unresolved = new Set<string>();
+  if (api) resolveMediaRefs(plan.filter((p) => p.action !== 'skip').map((p) => p.entry), mediaIds, unresolved);
+  if (unresolved.size) console.log(`  media refs not on the target yet: ${[...unresolved].join(', ')}${args.apply ? '' : ' (uploaded on --apply)'}`);
 
   if (args.report) printReport();
 
   if (!args.apply) {
-    if (api) {
+    if (api && runs('redirects')) {
       const res = await api.post<unknown>('/redirects/import', { rows: redirects.map(toImportRow), dryRun: true }).catch((e: Error) => e.message);
       console.log(`\nRedirect import (dry run): ${JSON.stringify(res)}`);
     }
@@ -157,13 +213,38 @@ async function main(): Promise<void> {
     return;
   }
   if (!api) return;
+  if (unresolved.size && (runs('entries') || runs('settings'))) {
+    console.log(`\nMedia missing on the target (${[...unresolved].join(', ')}). Run with the media step first. Nothing else was written.`);
+    process.exitCode = 1;
+    return;
+  }
+  const failed: string[] = [];
+  await applySteps(api, args, { settingPlan, faqPlan, plan, menuPlan, mediaIds, failed });
+  if (failed.length) process.exitCode = 1;
+  console.log('\nDone. Entries are DRAFT; publish with seed:cms:publish or in Admin → Marketing → Website.');
+}
+
+interface ApplyPlan {
+  settingPlan: { s: (typeof settings)[number]; action: Action }[];
+  faqPlan: { faq: (typeof faqs)[number]; action: Action; id: string | undefined }[];
+  plan: Planned[];
+  menuPlan: { m: (typeof menus)[number]; action: Action }[];
+  mediaIds: Map<string, string>;
+  failed: string[];
+}
+
+async function applySteps(api: CmsApi, args: Args, ctx: ApplyPlan): Promise<void> {
+  const { settingPlan, faqPlan, plan, menuPlan, mediaIds, failed } = ctx;
+  const runs = (step: Step): boolean => args.only.has(step);
+  const count = (list: { action: Action }[], a: Action): number => list.filter((x) => x.action === a).length;
 
   // 5. Apply. Settings first (entries need industry groups and entity facts).
-  for (const { s, action } of settingPlan) {
-    if (action !== 'create' || v.blockedSettings.has(s.key)) continue;
-    await api.put(`/settings/${s.key}`, { value: s.value });
-    console.log(`  setting ${s.key}: created`);
+  for (const { s, action } of runs('settings') ? settingPlan : []) {
+    if (action === 'skip') continue;
+    await api.put(`/settings/${s.key}`, { value: resolveMediaRefs(s.value, mediaIds) });
+    console.log(`  setting ${s.key}: ${action === 'create' ? 'created' : 'overwritten'}`);
   }
+  if (!runs('faqs') && !runs('entries') && !runs('redirects') && !runs('menus')) return;
 
   const faqIds = new Map<string, string>();
   for (const { faq, action, id } of faqPlan) {
@@ -171,6 +252,7 @@ async function main(): Promise<void> {
       faqIds.set(faq.key, id);
       continue;
     }
+    if (!runs('faqs')) continue;
     const created = await api.post<AdminFaq>('/faqs', { locale: faq.locale ?? 'en', topic: faq.topic, question: faq.question, answer: faq.answer, sourceNote: faq.sourceNote });
     faqIds.set(faq.key, created.id);
   }
@@ -179,17 +261,29 @@ async function main(): Promise<void> {
   // Entries in two passes: create every new row first so relations can point at ids.
   const ids = new Map<string, string>();
   for (const p of plan) if (p.id) ids.set(p.key, p.id);
-  for (const p of plan.filter((x) => x.action === 'create')) {
+  const toWrite = runs('entries') ? plan : [];
+  for (const p of toWrite.filter((x) => x.action === 'create')) {
     const e = p.entry;
-    const created = await api.post<AdminEntry>('/entries', { type: e.type, locale: e.locale ?? 'en', title: e.title, slug: e.slug, data: { type: e.type, ...e.data } });
+    const parentId = e.parent ? ids.get(e.parent) : undefined;
+    if (e.parent && !parentId) {
+      failed.push(`${p.key}: parent ${e.parent} has no id`);
+      continue;
+    }
+    const created = await api.post<AdminEntry>('/entries', {
+      type: e.type,
+      locale: e.locale ?? 'en',
+      title: e.title,
+      slug: e.slug,
+      ...(parentId ? { parentId } : {}),
+      data: resolveMediaRefs({ type: e.type, ...e.data }, mediaIds),
+    });
     p.id = created.id;
     ids.set(p.key, created.id);
     if (created.path !== p.path) console.log(`  warn  ${p.key}: API path ${created.path} differs from expected ${p.path}`);
   }
 
   let written = 0;
-  const failed: string[] = [];
-  for (const p of plan.filter((x) => x.action !== 'skip')) {
+  for (const p of toWrite.filter((x) => x.action !== 'skip' && x.id)) {
     const e = p.entry;
     try {
       const current = await api.get<AdminEntry>(`/entries/${p.id}`);
@@ -197,8 +291,10 @@ async function main(): Promise<void> {
         version: current.version,
         title: e.title,
         summary: e.summary ?? null,
-        ...(e.blocks ? { blocks: e.blocks } : {}),
-        data: { type: e.type, ...e.data },
+        ...(e.blocks ? { blocks: resolveMediaRefs(e.blocks, mediaIds) } : {}),
+        data: resolveMediaRefs({ type: e.type, ...e.data }, mediaIds),
+        ...(e.imageId ? { imageId: resolveMediaRefs(e.imageId, mediaIds) } : {}),
+        ...(e.ogImageId ? { ogImageId: resolveMediaRefs(e.ogImageId, mediaIds) } : {}),
         relations: (e.relations ?? []).map((r, i) => ({ entryId: ids.get(r.ref)!, kind: r.kind, sortOrder: i })).filter((r) => r.entryId),
         faqIds: (e.faqKeys ?? []).map((k) => faqIds.get(k)!).filter(Boolean),
         ...(e.seoTitle ? { seoTitle: e.seoTitle } : {}),
@@ -214,20 +310,19 @@ async function main(): Promise<void> {
       failed.push(`${p.key}: ${(err as Error).message}`);
     }
   }
-  console.log(`  entries: ${count(plan, 'create')} created, ${written} filled, ${failed.length} failed`);
+  if (runs('entries')) console.log(`  entries: ${count(plan, 'create')} created, ${written} filled, ${failed.length} failed`);
   for (const f of failed) console.log(`  ERROR ${f}`);
 
-  const imported = await api.post<unknown>('/redirects/import', { rows: redirects.map(toImportRow) });
-  console.log(`  redirects: ${JSON.stringify(imported)}`);
-
-  for (const { m, action } of menuPlan) {
-    if (action !== 'create') continue;
-    await api.put(`/menus/${m.key}`, { locale: 'en', title: m.title, items: m.items });
-    console.log(`  menu ${m.key}: created`);
+  if (runs('redirects')) {
+    const imported = await api.post<unknown>('/redirects/import', { rows: redirects.map(toImportRow) });
+    console.log(`  redirects: ${JSON.stringify(imported)}`);
   }
 
-  if (failed.length) process.exitCode = 1;
-  console.log('\nDone. Everything is DRAFT; review and publish in Admin → Marketing → Website.');
+  for (const { m, action } of runs('menus') ? menuPlan : []) {
+    if (action === 'skip') continue;
+    await api.put(`/menus/${m.key}`, { locale: 'en', title: m.title, items: m.items });
+    console.log(`  menu ${m.key}: ${action === 'create' ? 'created' : 'overwritten'}`);
+  }
 }
 
 function toImportRow(r: { from: string; to?: string | undefined; status: number; note: string }): Record<string, unknown> {

@@ -9,56 +9,32 @@
  *   Without data-track it still records WhatsApp links (whatsapp_click),
  *   sign-up links (signup_clicked, matched against `signupUrl`) and links to
  *   other sites (outbound_click, domain only).
- * - GTM (with GA4 inside) and Clarity load only after consent, and only when
- *   their ids are configured in settings `analytics`.
+ * - Google tags (GTM, GA4, Google Ads) load on idle or at consent, in Consent
+ *   Mode v2 (storage denied until the visitor accepts). Clarity and the ad
+ *   pixels load only after consent. Ids come from settings `analytics` or the
+ *   NEXT_PUBLIC_* variables (lib/analytics/env.ts); each loads only when set.
  */
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { CONSENT_EVENT, readConsent, type ConsentChoice } from '@/lib/analytics/consent';
-import { track, trackPageview, type TrackEvent } from '@/lib/analytics/track';
+import type { AdsConversions } from '@/lib/analytics/env';
+import { googleForwarder, loadClarity, loadGoogle, loadPixels, pixelPageview, updateGoogleConsent, type PixelIds } from '@/lib/analytics/loaders';
+import { setTrackForwarder, track, trackPageview, type TrackEvent } from '@/lib/analytics/track';
 
 export interface AnalyticsProps {
   signupUrl?: string;
   gtmId?: string;
+  gaId?: string;
+  adsId?: string;
+  adsConversions?: AdsConversions;
   clarityId?: string;
   /** Share of sessions recorded by Clarity, 0-1. */
   claritySample?: number;
+  pixels?: PixelIds;
 }
 
-function injectScript(id: string, src: string): void {
-  if (document.getElementById(id)) return;
-  const script = document.createElement('script');
-  script.id = id;
-  script.async = true;
-  script.src = src;
-  document.head.appendChild(script);
-}
-
-function loadGtm(gtmId: string): void {
-  const w = window as unknown as { dataLayer?: unknown[] };
-  w.dataLayer = w.dataLayer ?? [];
-  w.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
-  injectScript('nafaa-gtm', `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtmId)}`);
-}
-
-function loadClarity(clarityId: string, sample: number): void {
-  // Sampling is decided once per session.
-  let inSample = false;
-  try {
-    const stored = window.sessionStorage.getItem('nafaa_clarity');
-    inSample = stored ? stored === '1' : Math.random() < sample;
-    window.sessionStorage.setItem('nafaa_clarity', inSample ? '1' : '0');
-  } catch {
-    inSample = Math.random() < sample;
-  }
-  if (!inSample) return;
-  const w = window as unknown as { clarity?: ((...args: unknown[]) => void) & { q?: unknown[] } };
-  if (!w.clarity) {
-    const queue: unknown[] = [];
-    w.clarity = Object.assign((...args: unknown[]) => void queue.push(args), { q: queue });
-  }
-  injectScript('nafaa-clarity', `https://www.clarity.ms/tag/${encodeURIComponent(clarityId)}`);
-}
+/** Google tags wait for the browser to be idle (or this long) so they stay off the critical path. */
+const IDLE_TIMEOUT_MS = 4000;
 
 function isSignup(href: URL, signupUrl: string | undefined): boolean {
   if (!signupUrl) return false;
@@ -70,16 +46,19 @@ function isSignup(href: URL, signupUrl: string | undefined): boolean {
   }
 }
 
-export function Analytics({ signupUrl, gtmId, clarityId, claritySample = 0.1 }: AnalyticsProps) {
+export function Analytics({ signupUrl, gtmId, gaId, adsId, adsConversions, clarityId, claritySample = 0.1, pixels }: AnalyticsProps) {
   const pathname = usePathname();
   const lastPath = useRef<string | null>(null);
 
   // Pageviews: the first one uses document.referrer, later ones the previous URL.
   useEffect(() => {
     if (lastPath.current === pathname) return;
-    const referrer = lastPath.current === null ? document.referrer : `${window.location.origin}${lastPath.current}`;
+    const first = lastPath.current === null;
+    const referrer = first ? document.referrer : `${window.location.origin}${lastPath.current}`;
     lastPath.current = pathname;
     trackPageview(referrer);
+    // Pixels send their own first PageView on load; GA4 follows history changes itself.
+    if (!first) pixelPageview();
   }, [pathname]);
 
   // Click tracking.
@@ -112,19 +91,53 @@ export function Analytics({ signupUrl, gtmId, clarityId, claritySample = 0.1 }: 
     return () => document.removeEventListener('click', onClick, { capture: true });
   }, [signupUrl]);
 
-  // Third-party loaders after consent.
+  const metaPixelId = pixels?.metaPixelId;
+  const tiktokPixelId = pixels?.tiktokPixelId;
+  const linkedinPartnerId = pixels?.linkedinPartnerId;
+  const hotjarId = pixels?.hotjarId;
+  const adsSignup = adsConversions?.signup;
+  const adsLead = adsConversions?.lead;
+  const adsDemo = adsConversions?.demo;
+
+  // Google tags: on idle in consent mode, or at once when consent is already given.
   useEffect(() => {
-    if (!gtmId && !clarityId) return;
+    if (!gtmId && !gaId && !adsId) return;
+    const google = { gtmId, gaId, adsId };
+    const start = () => {
+      loadGoogle(google, readConsent() === 'granted');
+      setTrackForwarder(googleForwarder(adsId, { signup: adsSignup, lead: adsLead, demo: adsDemo }));
+    };
+    let idle: number | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (readConsent() === 'granted') start();
+    else if ('requestIdleCallback' in window) idle = window.requestIdleCallback(start, { timeout: IDLE_TIMEOUT_MS });
+    else timer = setTimeout(start, IDLE_TIMEOUT_MS / 2);
+    const onConsent = (event: Event) => {
+      const choice = (event as CustomEvent<ConsentChoice>).detail;
+      start();
+      updateGoogleConsent(choice === 'granted');
+    };
+    window.addEventListener(CONSENT_EVENT, onConsent);
+    return () => {
+      if (idle !== undefined) window.cancelIdleCallback(idle);
+      if (timer) clearTimeout(timer);
+      window.removeEventListener(CONSENT_EVENT, onConsent);
+    };
+  }, [gtmId, gaId, adsId, adsSignup, adsLead, adsDemo]);
+
+  // Clarity and pixels: only after consent.
+  useEffect(() => {
+    if (!clarityId && !metaPixelId && !tiktokPixelId && !linkedinPartnerId && !hotjarId) return;
     const apply = (choice: ConsentChoice | null) => {
       if (choice !== 'granted') return;
-      if (gtmId) loadGtm(gtmId);
       if (clarityId) loadClarity(clarityId, claritySample);
+      loadPixels({ metaPixelId, tiktokPixelId, linkedinPartnerId, hotjarId });
     };
     apply(readConsent());
     const onConsent = (event: Event) => apply((event as CustomEvent<ConsentChoice>).detail);
     window.addEventListener(CONSENT_EVENT, onConsent);
     return () => window.removeEventListener(CONSENT_EVENT, onConsent);
-  }, [gtmId, clarityId, claritySample]);
+  }, [clarityId, claritySample, metaPixelId, tiktokPixelId, linkedinPartnerId, hotjarId]);
 
   return null;
 }

@@ -40,6 +40,13 @@ export interface SeedEntry {
   /** Keys of seeded FAQs, in display order. */
   faqKeys?: string[];
   relations?: { ref: EntryRef; kind: 'TAG' | 'RELATED' }[];
+  /** Parent entry (DOC pages under /developers). */
+  parent?: EntryRef;
+  /** Card / OG image as `media_<key>` (see lib/media.ts). */
+  imageId?: string;
+  ogImageId?: string;
+  /** Outline or placeholder only: seeded as a draft, never published by publish-all. */
+  stub?: boolean;
   seoTitle?: string;
   seoDescription?: string;
   focusKeyword?: string;

@@ -78,6 +78,7 @@ export const settings: SeedSetting[] = [
     },
     needsOwner: ['What each plan includes is not final; feature labels are left empty so nothing is hard-coded.'],
   },
-  { key: 'seo', value: DEFAULT_SEO_SETTINGS, needsOwner: [] },
+  // The old site served this IndexNow key at /nafaa-2026-indexnow.txt; keeping it keeps the key verified.
+  { key: 'seo', value: { ...DEFAULT_SEO_SETTINGS, indexNowKey: 'nafaa-2026-indexnow' }, needsOwner: ['Set INDEXNOW_KEY=nafaa-2026-indexnow on the site (Vercel) until the public layout carries seo.indexNowKey.'] },
   { key: 'analytics', value: DEFAULT_ANALYTICS_SETTINGS, needsOwner: ['GTM and Clarity ids (copy from the live site env when cutting over).'] },
 ];

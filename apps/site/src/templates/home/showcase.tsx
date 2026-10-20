@@ -1,7 +1,7 @@
 /**
  * The middle of the home page: the "works with" ticker, the platform bento,
  * solutions by business type, the industry ticker, the worldwide services
- * band and the AI assistant (coming soon). Server components; every word
+ * band and the AI assistant. Server components; every word
  * comes from the blocks or entry cards (see HomeTemplate for the mapping).
  */
 import Link from 'next/link';
@@ -13,7 +13,11 @@ import { cx } from '@/components/ui/cx';
 import type { CtaBlock, EntryCard, FeaturesGridBlock, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { CmsIcon } from '@/lib/icons';
 import { Arrow } from '../core/ui';
-import { Globe } from './Globe';
+import { AiChat } from './AiChat';
+import { SolutionScene } from './solutionScenes';
+import { SolutionsTabs } from './SolutionsTabs';
+import { Backdrop } from './decor';
+import { GlobeLazy as Globe } from './GlobeLazy';
 import { PlatformVisual, hasPlatformVisual } from './visuals';
 import fx from './fx.module.css';
 
@@ -189,53 +193,83 @@ export function Platform({ block, hubLink }: { block: FeaturesGridBlock; entry: 
 
 const SOLUTION_TONES = ['#059669', '#2563eb', '#7c3aed', '#ea580c', '#0891b2', '#475569', '#db2777', '#0f766e'];
 
-export function Solutions({ block, hubLink }: { block: FeaturesGridBlock; hubLink?: string }) {
+/**
+ * Key points per solution, keyed by the item link. Each line restates what the
+ * item's own CMS text and the product pages already say (checked 21 Oct 2026);
+ * an item without an entry simply shows its body text.
+ */
+const SOLUTION_POINTS: Record<string, string[]> = {
+  '/solutions/single-shop': ['Barcode, quick keys and units', 'Stock in every unit, low-stock alerts', 'Digital khata with WhatsApp reminders', 'Keeps billing without internet'],
+  '/solutions/retail-chains': ['Branch-wise stock and sales', 'Stock transfers between branches', 'Staff roles and permissions', 'One view of every branch'],
+  '/solutions/ecommerce': ['Your own online store', 'Listing on Nafaa Bazaar', 'Shopify and WooCommerce orders', 'Courier and cash-on-delivery tracking'],
+  '/solutions/restaurants': ['Tables by section', 'Kitchen tickets per station', 'Dine-in, takeaway and delivery', 'Split bills'],
+  '/solutions/wholesale-distribution': ['Carton and piece prices', 'Supplier purchases', 'Customer credit limits', 'Khata and recovery'],
+  '/solutions/manufacturing': ['Raw and finished stock', 'Purchasing from suppliers', 'Stock and profit reports', 'Modules built around your process'],
+  '/industries/services-biz': ['Bookings', 'Memberships', 'Staff commission', 'Invoices and receipts'],
+  '/solutions/enterprise': ['Many branches in one account', 'Roles and permissions', 'Accounting export and API access', 'A team that sets it up with you'],
+};
+
+export function Solutions({ block, hubLink, signupUrl }: { block: FeaturesGridBlock; hubLink?: string; signupUrl?: string }) {
+  const tabs = block.items.map((item, i) => ({
+    id: `sol-${i}`,
+    label: item.title,
+    icon: <CmsIcon name={item.icon} size={16} />,
+    accent: hexToChannels(SOLUTION_TONES[i % SOLUTION_TONES.length]) ?? undefined,
+  }));
   return (
-    <section aria-labelledby="home-solutions" className="theme-muted relative isolate border-y border-line/70 bg-canvas py-section">
+    <section aria-labelledby="home-solutions" className="relative isolate overflow-hidden border-y border-line/70 py-section">
+      <Backdrop tint="slate" pattern="dots" />
       <div className="mx-auto box-content max-w-wide px-gutter">
-        <SectionHead id="home-solutions" eyebrow="Solutions" title={block.heading} intro={block.intro} link={hubLink} linkLabel="All solutions" />
-        <ul className={cx(RAIL_LIST, 'mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-4')}>
+        <SectionHead id="home-solutions" eyebrow="Solutions" title={block.heading} intro={block.intro} link={hubLink} linkLabel="All solutions" center />
+        <SolutionsTabs tabs={tabs} label="Business types">
           {block.items.map((item, i) => {
             const href = cardHref(item.href);
-            const accent = hexToChannels(SOLUTION_TONES[i % SOLUTION_TONES.length]);
-            const inner = (
-              <>
-                <span aria-hidden className={fx.solutionGlow} />
-                <span className="flex items-center justify-between">
-                  <span className="inline-flex size-11 items-center justify-center rounded-xl bg-accent text-white shadow-[0_8px_20px_-8px_rgb(var(--accent)/0.8)]">
-                    <CmsIcon name={item.icon} size={22} />
-                  </span>
-                  <FeatureBadge status={item.status} locale="en" />
-                </span>
-                <h3 className="mt-6 text-h4 text-fg-strong">{item.title}</h3>
-                <p className="mt-2 text-small leading-relaxed text-fg-muted">
-                  <InlineMarkdown text={item.body} />
-                </p>
-                {href ? (
-                  <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-small font-medium text-fg-strong">
-                    Explore
-                    <Arrow className="text-accent transition-transform duration-fast ease-out group-hover:translate-x-1" />
-                  </span>
-                ) : null}
-              </>
-            );
-            const cls = cx(
-              'group relative isolate flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface p-6 shadow-e1 ink:shadow-none',
-              href && 'transition-[transform,box-shadow,border-color] duration-base ease-out hover:-translate-y-1 hover:border-accent/40 hover:shadow-e3',
-            );
+            const points = (item.href && SOLUTION_POINTS[item.href]) || [];
             return (
-              <li key={`${item.title}-${i}`} className={RAIL_ITEM} style={{ '--accent': accent ?? undefined }} data-reveal>
-                {href ? (
-                  <Link href={href} prefetch={false} className={cls}>
-                    {inner}
-                  </Link>
-                ) : (
-                  <div className={cls}>{inner}</div>
-                )}
-              </li>
+              <article key={`${item.title}-${i}`} className={fx.solPanel} style={{ '--accent': tabs[i]?.accent }}>
+                <div className={fx.solText}>
+                  <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_10px_24px_-10px_rgb(var(--accent)/0.9)]">
+                    <CmsIcon name={item.icon} size={21} />
+                  </span>
+                  <h3 className="mt-5 text-h3 text-fg-strong">
+                    {item.title} <FeatureBadge status={item.status} locale="en" />
+                  </h3>
+                  <p className="mt-3 text-body text-fg-muted">
+                    <InlineMarkdown text={item.body} />
+                  </p>
+                  {points.length ? (
+                    <ul className="mt-5 grid gap-2.5">
+                      {points.map((pt, k) => (
+                        <li key={pt} className={fx.solPoint} style={{ '--i': k }}>
+                          <span aria-hidden className={fx.solTick}>
+                            <CmsIcon name="check" size={12} />
+                          </span>
+                          {pt}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <div className="mt-7 flex flex-wrap items-center gap-3">
+                    {href ? (
+                      <Link href={href} prefetch={false} className={fx.solCta}>
+                        Explore {item.title}
+                        <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
+                      </Link>
+                    ) : null}
+                    {signupUrl ? (
+                      <a href={signupUrl} data-track="cta_click" data-track-label={`Solutions: start trial (${item.title})`} className="text-small font-semibold text-fg-strong underline-offset-4 hover:underline">
+                        Start free trial
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+                <div aria-hidden className={fx.solScene} data-animate="">
+                  <SolutionScene icon={item.icon} />
+                </div>
+              </article>
             );
           })}
-        </ul>
+        </SolutionsTabs>
       </div>
     </section>
   );
@@ -299,9 +333,9 @@ export function Industries({ heading, intro, cards, hubLink }: { heading: string
 
 export function Services({ block, quote, hubLink }: { block: FeaturesGridBlock; quote?: CtaBlock; entry: PublicEntry; hubLink?: string }) {
   return (
-    <section aria-labelledby="home-services" className="theme-ink relative isolate overflow-hidden bg-canvas py-section text-fg">
-      <div aria-hidden className={fx.inkGlow} />
-      <div className="mx-auto box-content grid max-w-wide items-center gap-14 px-gutter lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+    <section aria-labelledby="home-services" className="relative isolate overflow-hidden py-section">
+      <Backdrop pattern="dots" />
+      <div className="mx-auto box-content grid max-w-wide items-center gap-12 px-gutter lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
         <div>
           <SectionHead id="home-services" eyebrow="Services · Worldwide" title={block.heading} intro={block.intro} link={hubLink} linkLabel="All services" />
           <ul className="mt-10 grid gap-3 sm:grid-cols-2" data-reveal="stagger">
@@ -309,7 +343,7 @@ export function Services({ block, quote, hubLink }: { block: FeaturesGridBlock; 
               const href = cardHref(item.href);
               const inner = (
                 <>
-                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-brand-300 ring-1 ring-inset ring-white/10 transition-colors group-hover:bg-brand-500 group-hover:text-white">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-600/15 transition-colors duration-base group-hover:bg-brand-600 group-hover:text-white ink:bg-brand-400/10 ink:text-brand-300 ink:ring-brand-400/20">
                     <CmsIcon name={item.icon} size={19} />
                   </span>
                   <span className="min-w-0">
@@ -320,7 +354,8 @@ export function Services({ block, quote, hubLink }: { block: FeaturesGridBlock; 
                   </span>
                 </>
               );
-              const cls = 'group flex h-full gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors duration-base hover:border-brand-400/40 hover:bg-white/[0.06]';
+              const cls =
+                'group flex h-full gap-4 rounded-2xl border border-line bg-surface/90 p-4 shadow-e1 backdrop-blur transition-[transform,box-shadow,border-color] duration-base ease-out hover:-translate-y-0.5 hover:border-brand-500/30 hover:shadow-e2 ink:shadow-none';
               return (
                 <li key={`${item.title}-${i}`}>
                   {href ? (
@@ -335,7 +370,7 @@ export function Services({ block, quote, hubLink }: { block: FeaturesGridBlock; 
             })}
           </ul>
           {quote ? (
-            <div className="mt-10 flex flex-col gap-5 rounded-2xl border border-brand-400/25 bg-brand-400/[0.07] p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative mt-10 flex flex-col gap-5 overflow-hidden rounded-2xl border border-brand-600/20 bg-gradient-to-br from-brand-50 to-surface p-6 shadow-e1 sm:flex-row sm:items-center sm:justify-between ink:border-brand-400/25 ink:from-brand-400/10 ink:to-transparent ink:shadow-none">
               <div>
                 <p className="text-h4 text-fg-strong">{quote.heading}</p>
                 {quote.body ? (
@@ -345,13 +380,13 @@ export function Services({ block, quote, hubLink }: { block: FeaturesGridBlock; 
                 ) : null}
               </div>
               <div className="flex shrink-0 flex-wrap gap-2.5">
-                <CtaButton cta={quote.primaryCta} fallbackVariant="primary" onInk area="services" />
+                <CtaButton cta={quote.primaryCta} fallbackVariant="primary" area="services" />
                 <CtaButton cta={quote.secondaryCta} fallbackVariant="secondary" area="services" />
               </div>
             </div>
           ) : null}
         </div>
-        <div className="relative mx-auto w-full max-w-[34rem]" aria-hidden>
+        <div className="relative mx-auto w-full max-w-[36rem]" aria-hidden>
           <Globe />
         </div>
       </div>
@@ -359,17 +394,28 @@ export function Services({ block, quote, hubLink }: { block: FeaturesGridBlock; 
   );
 }
 
-// ─── AI assistant (coming soon) ───
+// ─── AI assistant ───
 
-export function AiSoon({ block, roadmap }: { block: FeaturesGridBlock; roadmap?: string }) {
+/** Products in the decorative answer (the demo shop's catalogue); bars carry no numbers. */
+const AI_ANSWER = [
+  { name: 'Basmati Rice 5kg', w: 92 },
+  { name: 'Cooking Oil 5L', w: 74 },
+  { name: 'Black Tea 950g', w: 58 },
+];
+
+export function AiAssistant({ block, link }: { block: FeaturesGridBlock; link?: string }) {
+  const question = block.items.find((it) => /[“"]/.test(it.body))?.body.replace(/[“”"]/g, '');
   return (
     <section aria-labelledby="home-ai" className="relative isolate overflow-hidden py-section">
-      <div aria-hidden className={fx.aiWash} />
+      <Backdrop pattern="grid" noon="right" />
       <div className="mx-auto box-content grid max-w-wide items-center gap-12 px-gutter lg:grid-cols-2 lg:gap-20">
         <div data-reveal>
-          <p className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ink:bg-amber-400/10 ink:text-amber-300">
-            <CmsIcon name="sparkles" size={14} />
-            Coming soon · <span lang="ur-Latn">Jald aa raha hai</span>
+          <p className="inline-flex items-center gap-2 rounded-full border border-brand-600/20 bg-brand-50 py-1 pl-1 pr-3 text-xs font-semibold text-brand-800 ink:border-brand-400/25 ink:bg-brand-400/10 ink:text-brand-200">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+              <CmsIcon name="sparkles" size={12} />
+              New
+            </span>
+            Ask in English or Roman Urdu
           </p>
           <h2 id="home-ai" className="mt-5 text-h2 text-fg-strong">
             {block.heading}
@@ -382,7 +428,7 @@ export function AiSoon({ block, roadmap }: { block: FeaturesGridBlock; roadmap?:
           <ul className="mt-8 space-y-4">
             {block.items.map((item, i) => (
               <li key={`${item.title}-${i}`} className="flex gap-4">
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-fg-strong shadow-e1 ink:shadow-none">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-50 to-brand-100 text-brand-700 ring-1 ring-inset ring-brand-600/15 ink:from-brand-400/15 ink:to-brand-600/10 ink:text-brand-300 ink:ring-brand-400/20">
                   <CmsIcon name={item.icon} size={18} />
                 </span>
                 <span>
@@ -397,50 +443,26 @@ export function AiSoon({ block, roadmap }: { block: FeaturesGridBlock; roadmap?:
               </li>
             ))}
           </ul>
-          {roadmap ? (
-            <Link href={roadmap} prefetch={false} className="group mt-8 inline-flex items-center gap-1.5 text-small font-medium text-link">
-              Follow it on the roadmap
+          {link ? (
+            <Link href={link} prefetch={false} className="group mt-8 inline-flex items-center gap-1.5 text-small font-medium text-link">
+              See the AI assistant
               <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
             </Link>
           ) : null}
         </div>
-        <div aria-hidden className={cx(fx.chat, 'relative mx-auto w-full max-w-[30rem] rounded-2xl border border-line bg-surface p-5 shadow-e3 ink:shadow-none')} data-animate="once">
-          <div className="flex items-center gap-3 border-b border-line pb-4">
-            <span className="inline-flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-teal-600 text-white">
-              <CmsIcon name="sparkles" size={17} />
-            </span>
-            <span>
-              <span className="block text-small font-semibold text-fg-strong">Nafaa AI</span>
-              <span className="block text-xs text-fg-subtle">Preview · not live yet</span>
-            </span>
-          </div>
-          <div className="space-y-3 py-5">
-            {block.items
-              .filter((it) => /[“"]/.test(it.body))
-              .slice(0, 1)
-              .map((it) => (
-                <p key={it.title} lang="ur-Latn" className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-brand-700 px-4 py-2.5 text-small text-white">
-                  {it.body.replace(/[“”"]/g, '')}
-                </p>
-              ))}
-            <div className="w-[78%] rounded-2xl rounded-bl-md border border-line bg-surface-2 p-4">
-              <span className={cx(fx.shimmer, 'block h-2 w-11/12 rounded-full')} />
-              <span className={cx(fx.shimmer, 'mt-2.5 block h-2 w-3/4 rounded-full')} />
-              <span className={cx(fx.shimmer, 'mt-2.5 block h-2 w-5/6 rounded-full')} />
-              <div className="mt-4 flex h-14 items-end gap-1.5">
-                {[40, 65, 50, 85, 60].map((h, i) => (
-                  <span key={i} className={cx('block h-[var(--h)] flex-1 rounded-t', i === 3 ? 'bg-brand-500' : 'bg-brand-500/30')} style={{ '--h': `${h}%` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 rounded-xl border border-line bg-surface-2 px-3 py-2.5">
-            <span className="flex-1 text-small text-fg-subtle">Apne karobar ke baare me poochhein…</span>
-            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-fg/10 text-fg-subtle">
-              <CmsIcon name="send" size={15} />
-            </span>
-          </div>
-        </div>
+        <AiChat
+          question={question ?? 'Is hafte sab se zyada profit kis cheez par hua?'}
+          answerText="Is hafte sab se zyada profit in par hua:"
+          rows={AI_ANSWER}
+          icons={{
+            alert: <CmsIcon name="triangle-alert" size={11} />,
+            list: <CmsIcon name="list-checks" size={13} />,
+            sparkles: <CmsIcon name="sparkles" size={18} />,
+            sparklesSmall: <CmsIcon name="sparkles" size={14} />,
+            chart: <CmsIcon name="chart-column" size={12} />,
+            send: <CmsIcon name="send" size={15} />,
+          }}
+        />
       </div>
     </section>
   );

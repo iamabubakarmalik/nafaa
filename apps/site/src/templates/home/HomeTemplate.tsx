@@ -14,7 +14,9 @@
  *   entryGrid INDUSTRY         Industries ticker
  *   diagram run                HomeHowItWorks band
  *   featuresGrid #services     Services band; a following cta #quote joins it
- *   featuresGrid #ai           AiSoon (coming soon only)
+ *   featuresGrid #ai           AiAssistant
+ *   pricingTable               HomePricing (plans from the Plan table)
+ *   faq                        HomeFaq (the entry's FAQs) beside a WhatsApp card
  *   last cta                   Closing
  *
  * Any other block (pricingTable, faq, ...) renders through the block
@@ -28,18 +30,25 @@ import type { Block, DiagramBlock, EntryCard, FeaturesGridBlock, PublicEntry, Sc
 import { Segments, segment } from '../core/Blocks';
 import { livePaths, loadCards, loadPlans, loadSite } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { AiSoon, Industries, Platform, Services, Solutions, WorksWith } from './showcase';
-import { Closing, HomeAnswer, HomeHero, HomeHowItWorks } from './sections';
+import { AiAssistant, Industries, Platform, Services, Solutions, WorksWith } from './showcase';
+import { Closing, HomeAnswer, HomeHero, HomeHowItWorks, planNote } from './sections';
+import { HomeFaq, HomePricing } from './pricingFaq';
 import { Tour } from './Tour';
 
 type Features = FeaturesGridBlock;
 
-const DIAGRAM_LINKS = ['/product/offline-pos', '/product/pos', '/product/online-store', '/product/fbr', '/product/multi-shop', '/product/khata'];
+const DIAGRAM_LINKS = ['/product/ai-assistant', '/product/offline-pos', '/product/pos', '/product/online-store', '/product/fbr', '/product/multi-shop', '/product/khata'];
 
 export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
   const blocks = entry.blocks;
   const gridBlock = blocks.find((b): b is Extract<Block, { type: 'entryGrid' }> => b.type === 'entryGrid' && b.entryType === 'INDUSTRY');
   const solutionsBlock = blocks.find((b): b is Features => b.type === 'featuresGrid' && b.anchor === 'solutions');
+  const platformBlock = blocks.find((b): b is Features => b.type === 'featuresGrid' && b.anchor === 'platform');
+  // Capability chips beside the hero pill: the platform items, without the tax line (kept off the hero).
+  const chips = (platformBlock?.items ?? [])
+    .filter((i) => !/tax|fbr|pra/i.test(i.title) && i.status !== 'coming')
+    .slice(0, 6)
+    .map((i) => ({ title: i.title, icon: i.icon }));
 
   const [site, plans, industryCards, live] = await Promise.all([
     loadSite(entry.locale),
@@ -47,9 +56,10 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
     gridBlock
       ? loadCards({ type: 'INDUSTRY', featured: gridBlock.filter?.featured, group: gridBlock.filter?.group, tag: gridBlock.filter?.tagId, sort: gridBlock.sort, limit: gridBlock.limit ?? 40 })
       : Promise.resolve([] as EntryCard[]),
-    livePaths(['/industries', '/product', '/roadmap', '/services', '/solutions', '/integrations', ...DIAGRAM_LINKS]),
+    livePaths(['/industries', '/pricing', '/product', '/roadmap', '/services', '/solutions', '/integrations', ...DIAGRAM_LINKS]),
   ]);
 
+  const heroBlock = blocks.find((b): b is Extract<Block, { type: 'hero' }> => b.type === 'hero');
   const phone = blocks.find((b): b is ScreenshotBlock => b.type === 'screenshot' && b.anchor === 'hero-phone');
   const quote = blocks.find((b): b is Extract<Block, { type: 'cta' }> => b.type === 'cta' && b.anchor === 'quote');
   const lastCta = [...blocks].reverse().find((b) => b.type === 'cta' && b !== quote);
@@ -75,7 +85,7 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
   const segments = segment(blocks, (block) => {
     switch (block.type) {
       case 'hero':
-        return <HomeHero block={block} entry={entry} site={site} plans={plans} phone={phone} rotator={solutionsBlock?.items.map((i) => i.title)} />;
+        return <HomeHero block={block} entry={entry} site={site} plans={plans} phone={phone} rotator={solutionsBlock?.items.map((i) => i.title)} chips={chips} />;
       case 'answerBox':
         if (answerDone) return undefined;
         answerDone = true;
@@ -85,11 +95,11 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
           case 'works-with':
             return <WorksWith block={block} link={live.has('/integrations') ? '/integrations' : undefined} />;
           case 'solutions':
-            return <Solutions block={block} hubLink={live.has('/solutions') ? '/solutions' : undefined} />;
+            return <Solutions block={block} hubLink={live.has('/solutions') ? '/solutions' : undefined} signupUrl={site.signupUrl} />;
           case 'services':
             return <Services block={block} quote={quote} entry={entry} hubLink={live.has('/services') ? '/services' : undefined} />;
           case 'ai':
-            return <AiSoon block={block} roadmap={live.has('/roadmap') ? '/roadmap' : undefined} />;
+            return <AiAssistant block={block} link={live.has('/product/ai-assistant') ? '/product/ai-assistant' : undefined} />;
           default:
             if (platformDone) return undefined;
             platformDone = true;
@@ -108,6 +118,19 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
         const run = runs.get(block.id);
         return run ? <HomeHowItWorks blocks={run as DiagramBlock[]} live={live} /> : null;
       }
+      case 'pricingTable':
+        return (
+          <HomePricing
+            block={block}
+            plans={plans}
+            site={site}
+            note={planNote(plans)}
+            trust={(heroBlock?.badges ?? []).filter(Boolean)}
+            compareLink={live.has('/pricing') ? '/pricing' : undefined}
+          />
+        );
+      case 'faq':
+        return <HomeFaq block={block} entry={entry} site={site} />;
       case 'cta':
         if (block === quote) return null;
         if (block !== lastCta) return undefined;

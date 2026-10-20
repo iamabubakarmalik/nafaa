@@ -188,7 +188,7 @@ export function MegaMenu({ items }: { items: NavItem[] }) {
         {items.map((item) => {
           const kids = children(item);
           const trigger =
-            'mega-trigger inline-flex h-9 items-center gap-0.5 rounded-md px-2 text-small font-medium text-fg-muted transition-colors duration-fast hover:text-fg-strong xl:px-2.5';
+            'mega-trigger inline-flex h-9 items-center gap-0.5 rounded-md px-2 text-small font-medium text-fg-muted transition-colors duration-fast hover:text-fg-strong 2xl:px-2.5';
           if (kids.length === 0) {
             return (
               <li key={item.id}>

@@ -1,0 +1,324 @@
+[
+  {
+    "type": "DOC",
+    "slug": "",
+    "title": "Nafaa API",
+    "summary": "Read products, stock, customers, sales and online orders from your Nafaa business, create customers, and get signed webhooks when something happens. REST over HTTPS with JSON, authenticated with an API key you create in Settings, Developer.",
+    "data": {
+      "navTitle": "Overview"
+    },
+    "blocks": [
+      {
+        "id": "b4d57a13e77b",
+        "type": "richText",
+        "markdown": "The Nafaa API is a REST API at `https://api.nafaa.pk/api/v1`. Every request is authenticated with an API key from **Settings → Developer** in the Nafaa app, sent as a bearer token. Responses are JSON.\n\n## What you can do\n\n- Read **products** (by id, SKU or barcode), **stock** by branch, **customers**, **sales** and **online orders**.\n- Create a **customer** with a write key; the same phone number returns the existing customer.\n- Subscribe to **webhooks** such as `sale.created` or `stock.low`, which Zapier and Make can use as REST hooks.\n\n## Your first request\n\n`GET /v1/me` tells you which business a key belongs to, so it is the quickest way to test a key."
+      },
+      {
+        "id": "bae37483eacc",
+        "tabs": [
+          {
+            "code": "curl \"https://api.nafaa.pk/api/v1/me\" \\\n  -H \"Authorization: Bearer nfk_your_key\"",
+            "label": "curl",
+            "language": "bash"
+          },
+          {
+            "code": "const res = await fetch('https://api.nafaa.pk/api/v1/me', {\n  headers: { Authorization: `Bearer ${process.env.NAFAA_API_KEY}` },\n});\nconsole.log(await res.json());",
+            "label": "JavaScript",
+            "language": "js"
+          },
+          {
+            "code": "import os, requests\n\nres = requests.get(\n    'https://api.nafaa.pk/api/v1/me',\n    headers={'Authorization': f\"Bearer {os.environ['NAFAA_API_KEY']}\"},\n)\nprint(res.json())",
+            "label": "Python",
+            "language": "python"
+          }
+        ],
+        "type": "codeSample",
+        "heading": "Test your key"
+      },
+      {
+        "id": "b5b195063653",
+        "type": "richText",
+        "markdown": "## Pagination\n\nList endpoints take `limit` (1 to 100, default 50) and `page` (from 1), and return `{ data, page, limit, hasMore }`. Keep asking for the next page while `hasMore` is true. Use `updated_since` (an ISO date) to fetch only what changed since your last sync.\n\n## Limits\n\nEach key can make 120 requests a minute. A key can be limited to one branch; it then only sees that branch's data.\n\n## Endpoints\n\n| Method | Path | What it does |\n| --- | --- | --- |\n| GET | `/v1/me` | The business the key belongs to |\n| GET | `/v1/products`, `/v1/products/{id}` | Products; one by id, SKU or barcode |\n| GET | `/v1/stock` | Stock by product and branch |\n| GET | `/v1/customers`, `/v1/customers/{id}` | Customers |\n| POST | `/v1/customers` | Create a customer (write key) |\n| GET | `/v1/sales`, `/v1/sales/{id}` | Sales; one by id or sale number |\n| GET | `/v1/orders`, `/v1/orders/{id}` | Online orders |\n| GET, POST, DELETE | `/v1/webhooks…` | Webhook events and subscriptions |"
+      }
+    ],
+    "seoTitle": "Nafaa API: REST API and Webhooks for Your Business Data",
+    "seoDescription": "Read products, stock, customers, sales and online orders from Nafaa, create customers, and get signed webhooks. REST over HTTPS with JSON.",
+    "origin": "exported:admin",
+    "evidence": [],
+    "factCheck": {
+      "checkedOn": "2026-10-20",
+      "note": "Exported from http://localhost:4000/api (PUBLISHED); written and reviewed in the admin."
+    },
+    "dropped": [],
+    "needsOwner": []
+  },
+  {
+    "type": "DOC",
+    "slug": "authentication",
+    "title": "Authentication",
+    "summary": "Create an API key in Settings, Developer and send it as a bearer token on every request. Read keys can list data; write keys can also create customers. Keys can be limited to one branch and revoked at any time.",
+    "parent": "DOC:",
+    "data": {
+      "navTitle": "Authentication"
+    },
+    "blocks": [
+      {
+        "id": "b84e8dada19e",
+        "type": "richText",
+        "markdown": "Create a key in the Nafaa app under **Settings → Developer**. Keys start with `nfk_`. Store them in a secret manager or an environment variable, never in a browser app.\n\nSend the key in the `Authorization` header on every request:\n\n```http\nGET /api/v1/products HTTP/1.1\nHost: api.nafaa.pk\nAuthorization: Bearer nfk_your_key\n```\n\n## Scopes\n\n- **Read** keys can call every `GET` endpoint and manage webhooks.\n- **Write** keys can also create customers with `POST /v1/customers`.\n\nA missing or wrong key returns `401`. Revoke a key in Settings → Developer and it stops working at once."
+      }
+    ],
+    "seoTitle": "Nafaa API Authentication: API Keys and Bearer Tokens",
+    "seoDescription": "Create a Nafaa API key in Settings, Developer and send it as a bearer token. Read keys list data; write keys can also create customers.",
+    "sortOrder": 1,
+    "origin": "exported:admin",
+    "evidence": [],
+    "factCheck": {
+      "checkedOn": "2026-10-20",
+      "note": "Exported from http://localhost:4000/api (PUBLISHED); written and reviewed in the admin."
+    },
+    "dropped": [],
+    "needsOwner": []
+  },
+  {
+    "type": "DOC",
+    "slug": "products",
+    "title": "Products",
+    "summary": "GET /v1/products returns your products page by page, with search and updated_since filters. GET /v1/products/{id} finds a single product by its id, SKU or barcode, which is handy when a scanner or another system only knows the code.",
+    "parent": "DOC:",
+    "data": {
+      "apiRef": {
+        "path": "/v1/products",
+        "method": "GET"
+      },
+      "navTitle": "Products"
+    },
+    "blocks": [
+      {
+        "id": "b0be85e4ad1e",
+        "type": "richText",
+        "markdown": "Returns products in pages. Filter by name with `search`, or use `updated_since` to sync only products changed since your last run (results then come oldest change first)."
+      },
+      {
+        "id": "b0d92d4abc60",
+        "tabs": [
+          {
+            "code": "curl \"https://api.nafaa.pk/api/v1/products?limit=50&page=1\" \\\n  -H \"Authorization: Bearer nfk_your_key\"",
+            "label": "curl",
+            "language": "bash"
+          },
+          {
+            "code": "curl \"https://api.nafaa.pk/api/v1/products/8964000123456\" \\\n  -H \"Authorization: Bearer nfk_your_key\"",
+            "label": "By barcode",
+            "language": "bash"
+          },
+          {
+            "code": "{\n  \"data\": [ /* products */ ],\n  \"page\": 1,\n  \"limit\": 50,\n  \"hasMore\": true\n}",
+            "label": "Response",
+            "language": "json"
+          }
+        ],
+        "type": "codeSample"
+      }
+    ],
+    "seoTitle": "Nafaa API Products: List and Find Products by SKU",
+    "seoDescription": "GET /v1/products lists your products page by page with search and updated_since; GET /v1/products/{id} finds one by id, SKU or barcode.",
+    "sortOrder": 2,
+    "origin": "exported:admin",
+    "evidence": [],
+    "factCheck": {
+      "checkedOn": "2026-10-20",
+      "note": "Exported from http://localhost:4000/api (PUBLISHED); written and reviewed in the admin."
+    },
+    "dropped": [],
+    "needsOwner": []
+  },
+  {
+    "type": "DOC",
+    "slug": "stock",
+    "title": "Stock",
+    "summary": "GET /v1/stock returns the stock of every product in every branch, with its low-stock alert level and an isLow flag, so another system can mirror your stock or raise reorders. Filter by branch with shop_id and by change time with updated_since.",
+    "parent": "DOC:",
+    "data": {
+      "apiRef": {
+        "path": "/v1/stock",
+        "method": "GET"
+      },
+      "navTitle": "Stock"
+    },
+    "blocks": [
+      {
+        "id": "b86caa5df5db",
+        "type": "richText",
+        "markdown": "Each row is one product in one branch: `productId`, `variantId`, `shopId`, `name`, `sku`, `barcode`, `unit`, `stock`, `lowStockAlert`, `isLow` and `updatedAt`. Rows come oldest change first, so `updated_since` gives you a simple incremental sync."
+      },
+      {
+        "id": "ba8cf14fd82f",
+        "tabs": [
+          {
+            "code": "curl \"https://api.nafaa.pk/api/v1/stock?updated_since=2026-10-01T00:00:00Z\" \\\n  -H \"Authorization: Bearer nfk_your_key\"",
+            "label": "curl",
+            "language": "bash"
+          }
+        ],
+        "type": "codeSample"
+      }
+    ],
+    "seoTitle": "Nafaa API Stock: Stock Levels by Product and Branch",
+    "seoDescription": "GET /v1/stock returns stock per product and branch with the low-stock alert level and an isLow flag. Filter by branch and updated_since.",
+    "sortOrder": 3,
+    "origin": "exported:admin",
+    "evidence": [],
+    "factCheck": {
+      "checkedOn": "2026-10-20",
+      "note": "Exported from http://localhost:4000/api (PUBLISHED); written and reviewed in the admin."
+    },
+    "dropped": [],
+    "needsOwner": []
+  },
+  {
+    "type": "DOC",
+    "slug": "customers",
+    "title": "Customers",
+    "summary": "GET /v1/customers lists customers with search, phone and updated_since filters, and GET /v1/customers/{id} returns one. POST /v1/customers creates a customer with a write key; if the phone number already exists, the existing customer is returned instead of a duplicate.",
+    "parent": "DOC:",
+    "data": {
+      "apiRef": {
+        "path": "/v1/customers",
+        "method": "POST"
+      },
+      "navTitle": "Customers"
+    },
+    "blocks": [
+      {
+        "id": "badc595ebb9e",
+        "type": "richText",
+        "markdown": "Create a customer with `name` and `phone`, plus optional `email`, `city`, `address` and `notes`. Phone numbers are matched on their last ten digits, so `0300 1234567` and `+92 300 1234567` find the same customer."
+      },
+      {
+        "id": "b93aeb33d749",
+        "tabs": [
+          {
+            "code": "curl -X POST \"https://api.nafaa.pk/api/v1/customers\" \\\n  -H \"Authorization: Bearer nfk_your_key\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"name\":\"Ali Raza\",\"phone\":\"03001234567\",\"city\":\"Lahore\"}'",
+            "label": "curl",
+            "language": "bash"
+          },
+          {
+            "code": "curl \"https://api.nafaa.pk/api/v1/customers?phone=03001234567\" \\\n  -H \"Authorization: Bearer nfk_your_key\"",
+            "label": "Search",
+            "language": "bash"
+          }
+        ],
+        "type": "codeSample"
+      }
+    ],
+    "seoTitle": "Nafaa API Customers: List, Find and Create Customers",
+    "seoDescription": "List customers with search, phone and updated_since filters, fetch one by id, and create customers with a write key. Same phone returns existing.",
+    "sortOrder": 4,
+    "origin": "exported:admin",
+    "evidence": [],
+    "factCheck": {
+      "checkedOn": "2026-10-20",
+      "note": "Exported from http://localhost:4000/api (PUBLISHED); written and reviewed in the admin."
+    },
+    "dropped": [],
+    "needsOwner": []
+  },
+  {
+    "type": "DOC",
+    "slug": "sales-and-orders",
+    "title": "Sales and online orders",
+    "summary": "GET /v1/sales lists counter and online sales, and GET /v1/orders lists online orders from your website, Shopify, WooCommerce, Daraz and other channels. Both take from, to, status and updated_since filters, and each has an endpoint to fetch one record by id.",
+    "parent": "DOC:",
+    "data": {
+      "apiRef": {
+        "path": "/v1/sales",
+        "method": "GET"
+      },
+      "navTitle": "Sales & orders"
+    },
+    "blocks": [
+      {
+        "id": "b8c3cf30f93d",
+        "type": "richText",
+        "markdown": "Filter by date with `from` and `to`, by `status`, and by `shop_id` for one branch. `GET /v1/sales/{id}` also accepts the sale number printed on the receipt.\n\nFor live updates, subscribe to `sale.created` and the `online_order.*` [webhooks](/developers/webhooks) instead of polling."
+      },
+      {
+        "id": "b1a995651eee",
+        "tabs": [
+          {
+            "code": "curl \"https://api.nafaa.pk/api/v1/sales?from=2026-10-20&to=2026-10-20\" \\\n  -H \"Authorization: Bearer nfk_your_key\"",
+            "label": "Sales today",
+            "language": "bash"
+          },
+          {
+            "code": "curl \"https://api.nafaa.pk/api/v1/orders?status=accepted\" \\\n  -H \"Authorization: Bearer nfk_your_key\"",
+            "label": "Online orders",
+            "language": "bash"
+          }
+        ],
+        "type": "codeSample"
+      }
+    ],
+    "seoTitle": "Nafaa API Sales and Online Orders: Read Sales Data",
+    "seoDescription": "GET /v1/sales and /v1/orders list counter sales and online orders with from, to, status and updated_since filters; fetch one by id.",
+    "sortOrder": 5,
+    "origin": "exported:admin",
+    "evidence": [],
+    "factCheck": {
+      "checkedOn": "2026-10-20",
+      "note": "Exported from http://localhost:4000/api (PUBLISHED); written and reviewed in the admin."
+    },
+    "dropped": [],
+    "needsOwner": []
+  },
+  {
+    "type": "DOC",
+    "slug": "webhooks",
+    "title": "Webhooks",
+    "summary": "Subscribe a URL to events such as sale.created, customer.created, online order updates and stock.low. Every delivery is signed with HMAC-SHA256 so you can verify it came from Nafaa, and a sample endpoint returns real example payloads for tools like Zapier.",
+    "parent": "DOC:",
+    "data": {
+      "apiRef": {
+        "path": "/v1/webhooks",
+        "method": "POST"
+      },
+      "navTitle": "Webhooks"
+    },
+    "blocks": [
+      {
+        "id": "ba723b74547d",
+        "type": "richText",
+        "markdown": "Subscribe with `POST /v1/webhooks` and a body of `{ \"url\": \"https://example.com/hooks/nafaa\", \"events\": [\"sale.created\"] }`. `GET /v1/webhooks/events` lists every event, `GET /v1/webhooks/sample/{type}` returns an example payload, and `DELETE /v1/webhooks/{id}` unsubscribes.\n\n## Events\n\n`sale.created`, `customer.created`, `online_order.created`, `online_order.accepted`, `online_order.dispatched`, `online_order.delivered`, `online_order.cancelled`, `online_order.returned` and `stock.low`.\n\n## Verifying a delivery\n\nEach request carries `X-Nafaa-Event`, `X-Nafaa-Delivery` (the event id; ignore repeats), `X-Nafaa-Timestamp` and `X-Nafaa-Signature: t=<timestamp>,v1=<hex>`. The signature is an HMAC-SHA256 of `<timestamp>.<raw body>` with your webhook secret."
+      },
+      {
+        "id": "bd6b263de914",
+        "tabs": [
+          {
+            "code": "import crypto from 'node:crypto';\n\nexport function verify(rawBody, header, secret) {\n  const parts = Object.fromEntries(header.split(',').map((p) => p.split('=')));\n  const expected = crypto.createHmac('sha256', secret).update(`${parts.t}.${rawBody}`).digest('hex');\n  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1));\n}",
+            "label": "Node.js",
+            "language": "js"
+          },
+          {
+            "code": "import hmac, hashlib\n\ndef verify(raw_body: bytes, header: str, secret: str) -> bool:\n    parts = dict(p.split('=', 1) for p in header.split(','))\n    signed = parts['t'].encode() + b'.' + raw_body\n    expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()\n    return hmac.compare_digest(expected, parts['v1'])",
+            "label": "Python",
+            "language": "python"
+          }
+        ],
+        "type": "codeSample",
+        "heading": "Verify the signature"
+      }
+    ],
+    "seoTitle": "Nafaa API Webhooks: Signed Events for Sales and Orders",
+    "seoDescription": "Subscribe a URL to sale.created, customer.created, online order and stock.low events. Every delivery is signed with HMAC-SHA256 to verify it.",
+    "sortOrder": 6,
+    "origin": "exported:admin",
+    "evidence": [],
+    "factCheck": {
+      "checkedOn": "2026-10-20",
+      "note": "Exported from http://localhost:4000/api (PUBLISHED); written and reviewed in the admin."
+    },
+    "dropped": [],
+    "needsOwner": []
+  }
+]

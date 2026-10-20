@@ -21,9 +21,9 @@ export function cmsApiUrl(): string {
 /** Public API base used by islands in the browser (`NEXT_PUBLIC_API_URL`). */
 export const PUBLIC_API_URL = trimSlash(process.env.NEXT_PUBLIC_API_URL || LOCAL_API);
 
-/** Absolute site origin without a trailing slash (`SITE_URL`). */
+/** Absolute site origin without a trailing slash (`SITE_URL`, else the old site's `NEXT_PUBLIC_SITE_URL`). */
 export function siteUrl(): string {
-  return trimSlash(process.env.SITE_URL || LOCAL_SITE);
+  return trimSlash(process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || LOCAL_SITE);
 }
 
 /** False on staging: robots.txt disallows everything and pages are noindex. */

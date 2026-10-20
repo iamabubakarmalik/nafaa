@@ -1,0 +1,203 @@
+/*
+ * Floating WhatsApp button (WhatsAppFab.tsx). A round Noon mark that grows
+ * into a pill with its label on hover or keyboard focus. Only transform and
+ * opacity animate; nothing moves with reduced motion.
+ */
+
+.fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: 3.5rem;
+  padding: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface) / 0.92);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.7) inset,
+    0 18px 40px -16px rgb(15 23 42 / 0.45),
+    0 4px 12px -6px rgb(15 23 42 / 0.2);
+  color: rgb(var(--c-fg-strong));
+  text-decoration: none;
+  outline: none;
+  transition:
+    gap 250ms var(--ease-out),
+    padding 250ms var(--ease-out),
+    box-shadow 250ms var(--ease-out),
+    border-color 250ms var(--ease-out);
+}
+
+:global(html.theme-ink) .fab {
+  background: rgb(15 23 42 / 0.9);
+  border-color: rgb(255 255 255 / 0.1);
+  box-shadow: 0 18px 40px -14px rgb(0 0 0 / 0.75);
+}
+
+.fab:hover,
+.fab:focus-visible {
+  gap: 0.7rem;
+  padding-right: 1.1rem;
+  border-color: rgb(var(--brand-500) / 0.45);
+}
+
+.fab:focus-visible {
+  box-shadow: 0 0 0 3px rgb(var(--c-ring) / 0.45), 0 18px 40px -16px rgb(15 23 42 / 0.45);
+}
+
+.mark {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  color: white;
+  background: linear-gradient(150deg, rgb(var(--brand-500)), rgb(var(--brand-700)));
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.2) inset, 0 8px 18px -8px rgb(var(--brand-700) / 0.9);
+}
+
+.noon {
+  width: 62%;
+  height: 62%;
+  transform: translateY(1px);
+}
+
+/* WhatsApp badge on the mark. */
+.wa {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 9999px;
+  color: white;
+  background: #25d366;
+  box-shadow: 0 0 0 2px rgb(var(--c-surface));
+}
+
+.wa svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.online {
+  position: absolute;
+  top: 0;
+  right: 1px;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 9999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgb(var(--c-surface));
+}
+
+.online::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #22c55e;
+  opacity: 0;
+}
+
+/* The label is collapsed until hover or focus. */
+.label {
+  display: grid;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  white-space: nowrap;
+  transition:
+    max-width 300ms var(--ease-out),
+    opacity 200ms var(--ease-out);
+}
+
+.fab:hover .label,
+.fab:focus-visible .label {
+  max-width: 14rem;
+  opacity: 1;
+}
+
+.labelTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.labelNote {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: rgb(var(--c-fg-muted));
+}
+
+/* Room at the end of the page so the button never hides the last line on phones. */
+.spacer {
+  display: block;
+  height: 4.5rem;
+}
+
+@media (min-width: 48rem) {
+  .spacer {
+    display: none;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .fab {
+    height: 3.25rem;
+    padding: 0.3rem;
+  }
+
+  .mark {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fab {
+    animation: fab-in 600ms var(--ease-out) 1.2s both;
+  }
+
+  .online::after {
+    animation: online-ping 2.4s var(--ease-out) 2s infinite;
+  }
+
+  .fab:hover .mark {
+    transform: rotate(-6deg);
+  }
+
+  .mark {
+    transition: transform 250ms var(--ease-out);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab,
+  .label {
+    transition: none;
+  }
+}
+
+@keyframes fab-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+}
+
+@keyframes online-ping {
+  0% { opacity: 0.7; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(2.4); }
+}

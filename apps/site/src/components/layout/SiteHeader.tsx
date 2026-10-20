@@ -64,7 +64,7 @@ export function SiteHeader({ layout }: { layout: SiteLayout }) {
         Skip to content
       </a>
       <header className="site-header sticky top-0 z-40 border-b border-line/80" data-track-area="header">
-        <div className="relative mx-auto box-content flex h-[var(--header-h)] max-w-wide items-center gap-3 px-gutter xl:gap-5">
+        <div className="relative mx-auto box-content flex h-[var(--header-h)] max-w-wide items-center gap-3 px-gutter 2xl:gap-5">
           <Logo name={site.name} className="shrink-0" />
           <div className="flex min-w-0 flex-1 justify-center">
             <MegaMenu items={header} />

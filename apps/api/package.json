@@ -17,7 +17,11 @@
     "prisma:studio": "prisma studio",
     "create:super-admin": "ts-node src/scripts/create-super-admin.ts",
     "seed:emails": "ts-node --project prisma/tsconfig.seed.json prisma/seed-email-templates.ts",
-    "seed:cms": "ts-node --project prisma/tsconfig.seed.json prisma/seed-marketing-cms/index.ts"
+    "seed:cms": "ts-node --project prisma/tsconfig.seed.json prisma/seed-marketing-cms/index.ts",
+    "seed:cms:media-export": "ts-node --project prisma/tsconfig.seed.json prisma/seed-marketing-cms/media-export.ts",
+    "seed:cms:export-entries": "ts-node --project prisma/tsconfig.seed.json prisma/seed-marketing-cms/export-entries.ts",
+    "seed:cms:publish": "ts-node --project prisma/tsconfig.seed.json prisma/seed-marketing-cms/publish-all.ts",
+    "seed:cms:check-redirects": "ts-node --project prisma/tsconfig.seed.json prisma/seed-marketing-cms/check-redirects.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1091.0",

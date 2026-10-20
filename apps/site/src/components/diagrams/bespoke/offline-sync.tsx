@@ -17,10 +17,10 @@ const QUEUE_ITEMS = [styles.osItem0, styles.osItem1, styles.osItem2];
 
 function horizontal(l: Labels): Scene {
   const nodes = [
-    node('device', 40, 200, 184, 68, L(l, 'device'), { icon: 'monitor', reveal: 0 }),
-    node('queue', 300, 200, 184, 68, L(l, 'queue'), { icon: 'database', tone: 'warn', reveal: 1 }),
-    node('cloud', 556, 64, 200, 68, L(l, 'cloud'), { icon: 'nafaa', tone: 'brand', reveal: 2 }),
-    node('branch', 736, 200, 184, 68, L(l, 'branch'), { icon: 'store', reveal: 3 }),
+    node('device', 24, 196, 212, 76, L(l, 'device'), { icon: 'monitor', reveal: 0 }),
+    node('queue', 304, 196, 212, 76, L(l, 'queue'), { icon: 'database', tone: 'warn', reveal: 1 }),
+    node('cloud', 552, 52, 232, 76, L(l, 'cloud'), { icon: 'nafaa', tone: 'brand', reveal: 2 }),
+    node('branch', 724, 196, 212, 76, L(l, 'branch'), { icon: 'store', reveal: 3 }),
   ];
   const device = byId(nodes, 'device');
   const queue = byId(nodes, 'queue');
@@ -30,7 +30,7 @@ function horizontal(l: Labels): Scene {
   const share = elbow(anchor(cloud, 'r', 0.5), anchor(branch, 't', 0.5), 'h', 18);
   return {
     w: 960,
-    h: 340,
+    h: 336,
     font: FONT_H,
     nodes,
     edges: [
@@ -45,8 +45,8 @@ function horizontal(l: Labels): Scene {
       { id: 'share', d: share, tone: 'brand', reveal: 3, packets: [14, 16, 18].map((delay) => ({ delay, tone: 'brand' as const })) },
     ],
     pills: [
-      { id: 'offline', x: 262, y: 166, text: L(l, 'offline'), icon: 'wifi-off', tone: 'warn', reveal: 1, className: styles.osOffline },
-      { id: 'synced', x: 392, y: 132, text: L(l, 'synced'), icon: 'refresh-cw', tone: 'brand', reveal: 2, className: styles.osOnline },
+      { id: 'offline', x: 270, y: 160, text: L(l, 'offline'), icon: 'wifi-off', tone: 'warn', reveal: 1, className: styles.osOffline },
+      { id: 'synced', x: 410, y: 140, text: L(l, 'synced'), icon: 'refresh-cw', tone: 'brand', reveal: 2, className: styles.osOnline },
     ],
     under: (
       <g aria-hidden="true" className={cx(styles.rise, styles.r2)}>

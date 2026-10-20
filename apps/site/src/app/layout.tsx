@@ -14,7 +14,11 @@
  *   <MotionObserver /> once, and <main id="main"> around the page.
  * - Islands: MotionObserver, Analytics, ConsentBanner (renders nothing until
  *   third-party analytics is configured), MobileNav, MegaMenuController,
- *   ThemeToggle; PreviewBar only in draft mode.
+ *   ThemeToggle; PreviewBar only in draft mode. WhatsAppFab is plain HTML
+ *   and CSS on every page.
+ * - Analytics ids: settings `analytics` first, then the NEXT_PUBLIC_* names
+ *   the old site used on Vercel (lib/analytics/env.ts), so GA4, GTM, Clarity,
+ *   the pixels and the Search Console tag carry over unchanged.
  */
 import type { Metadata, Viewport } from 'next';
 import { draftMode } from 'next/headers';
@@ -22,10 +26,12 @@ import type { ReactNode } from 'react';
 import { PreviewBar } from '@/components/layout/PreviewBar';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
+import { WhatsAppFab } from '@/components/layout/WhatsAppFab';
 import { ThemeScript } from '@/components/layout/ThemeScript';
 import { Analytics } from '@/components/islands/Analytics';
 import { ConsentBanner } from '@/components/islands/ConsentBanner';
 import { MotionObserver } from '@/components/motion/MotionObserver';
+import { googleVerification, hasThirdParty, thirdPartyIdsFromEnv, whatsappFromEnv } from '@/lib/analytics/env';
 import { getEntity, getLayout, getPreviewToken, validatePreviewToken } from '@/lib/cms/client';
 import { siteIndexable, siteUrl } from '@/lib/cms/env';
 import { PREVIEW } from '@/lib/cms/preview';
@@ -36,6 +42,7 @@ import '@/components/layout/theme.css';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getLayout(DEFAULT_LOCALE);
+  const google = googleVerification();
   return {
     metadataBase: new URL(siteUrl()),
     title: { default: site.name, template: `%s | ${site.name}` },
@@ -52,6 +59,7 @@ export async function generateMetadata(): Promise<Metadata> {
     formatDetection: { telephone: false, email: false, address: false },
     openGraph: { siteName: site.name, type: 'website', locale: OG_LOCALE[DEFAULT_LOCALE] },
     twitter: { card: 'summary_large_image' },
+    ...(google ? { verification: { google } } : {}),
   };
 }
 
@@ -77,7 +85,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     previewState(),
   ]);
   const analytics = layout.analytics;
-  const consentEnabled = Boolean(analytics?.gtmId || analytics?.clarityId);
+  const env = thirdPartyIdsFromEnv();
+  const ids = { ...env, gtmId: analytics?.gtmId || env.gtmId, clarityId: analytics?.clarityId || env.clarityId };
+  const consentEnabled = hasThirdParty(ids);
   const privacyHref = layout.menus.legal.find((item) => /privacy/.test(item.href))?.href;
 
   return (
@@ -92,12 +102,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {children}
         </main>
         <SiteFooter layout={layout} entity={entity} consentEnabled={consentEnabled} />
+        <WhatsAppFab whatsapp={layout.site.whatsapp ?? whatsappFromEnv()} phone={entity?.contact?.phone} />
         <MotionObserver />
         <Analytics
           signupUrl={layout.site.signupUrl}
-          gtmId={analytics?.gtmId}
-          clarityId={analytics?.clarityId}
+          gtmId={ids.gtmId}
+          gaId={ids.gaId}
+          adsId={ids.adsId}
+          adsConversions={ids.adsConversions}
+          clarityId={ids.clarityId}
           claritySample={analytics?.claritySample}
+          pixels={{ metaPixelId: ids.metaPixelId, tiktokPixelId: ids.tiktokPixelId, linkedinPartnerId: ids.linkedinPartnerId, hotjarId: ids.hotjarId }}
         />
         <ConsentBanner enabled={consentEnabled} privacyHref={privacyHref} />
       </body>

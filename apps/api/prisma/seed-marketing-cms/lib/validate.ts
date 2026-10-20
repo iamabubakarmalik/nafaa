@@ -146,7 +146,10 @@ export function validateContent(content: SeedContent): ValidationResult {
     const key = entryKey(e);
     // The home page is the one PAGE with an empty slug (the API maps it to '/').
     const isHome = e.type === 'PAGE' && e.slug === '';
-    if (!isHome && !SLUG_PATTERN.test(e.slug)) errors.push(`${key}: bad slug`);
+    // The /developers root is the one DOC with an empty slug and no parent.
+    const isDocRoot = e.type === 'DOC' && e.slug === '' && !e.parent;
+    if (!isHome && !isDocRoot && !SLUG_PATTERN.test(e.slug)) errors.push(`${key}: bad slug`);
+    if (e.parent && !keys.has(e.parent)) errors.push(`${key}: parent ${e.parent} is not in the seed`);
 
     const titleKey = `${e.locale ?? 'en'}:${e.type}:${e.title.toLowerCase()}`;
     if (titles.has(titleKey)) warnings.push(`${key}: same title as ${titles.get(titleKey)}`);

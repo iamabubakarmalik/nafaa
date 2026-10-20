@@ -13,7 +13,7 @@
  *   entryGrid INDUSTRY         industry ticker
  *   diagram run                "How it works" band
  *   featuresGrid #services     worldwide services band (+ cta #quote)
- *   featuresGrid #ai           AI assistant, coming soon
+ *   featuresGrid #ai           AI assistant
  *   pricingTable, faq, cta     pricing, questions, closing call to action
  *
  * Claims were checked on 20 Oct 2026 against apps/web/src/modules,
@@ -24,21 +24,21 @@
 import type { SeedEntry } from '../../lib/types';
 
 const shot = {
-  posLight: 'cmvgy1q9y00hn0b7srn32zrv4',
-  posDark: 'cmvgy1s2l00ho0b7sio9gaxaq',
-  posPhone: 'cmvgy1tk800hp0b7sv80s7lk4',
-  dashboardLight: 'cmvgy1wnu00hr0b7srohkk7r8',
-  dashboardDark: 'cmvgy1y5l00hs0b7sqyzzv632',
-  inventoryLight: 'cmvgy21h200hu0b7sphtdv59r',
-  inventoryDark: 'cmvgy233600hv0b7s73shnyi3',
-  khata: 'cmvgy26g800hx0b7sq7nue60t',
-  onlineOrders: 'cmvgy2h4w00i30b7scefls7dn',
-  tablesLight: 'cmvgy2suw00ib0b7sklk7e7hf',
-  tablesDark: 'cmvgy2uap00ic0b7sxdj0n3k2',
-  branchesLight: 'cmvgy2mvv00i70b7shtpuw4om',
-  branchesDark: 'cmvgy2ogh00i80b7s7mtfiv5l',
-  profit: 'cmvgy29j700hz0b7s52bywf11',
-  taxSetup: 'cmvgy2fdo00i20b7s30hchlm5',
+  posLight: 'media_retail-pos',
+  posDark: 'media_retail-pos-dark',
+  posPhone: 'media_retail-pos-phone',
+  dashboardLight: 'media_retail-dashboard',
+  dashboardDark: 'media_retail-dashboard-dark',
+  inventoryLight: 'media_retail-products',
+  inventoryDark: 'media_retail-products-dark',
+  khata: 'media_retail-khata',
+  onlineOrders: 'media_retail-online-orders',
+  tablesLight: 'media_restaurant-tables',
+  tablesDark: 'media_restaurant-tables-dark',
+  branchesLight: 'media_retail-branches',
+  branchesDark: 'media_retail-branches-dark',
+  profit: 'media_retail-profit-report',
+  taxSetup: 'media_retail-tax-settings',
 } as const;
 
 export const home: SeedEntry = {
@@ -101,7 +101,7 @@ export const home: SeedEntry = {
         { label: 'Who it is for', value: 'Shops, restaurants, online sellers, wholesalers, service businesses and multi-branch companies' },
         { label: 'Runs on', value: 'A web browser on the phone, tablet or computer you already have' },
         { label: 'Without internet', value: 'Sales are saved on the device and synced when the connection returns' },
-        { label: 'Tax', value: 'Optional FBR/PRA integration, only if you need it' },
+        { label: 'Tax', value: 'Optional tax invoicing, only if your business needs it' },
         { label: 'Price', value: '7-day free trial, then paid plans from {{price:min.monthly}} a month' },
       ],
       romanUrdu:
@@ -126,7 +126,7 @@ export const home: SeedEntry = {
         { icon: 'wifi-off', title: 'Works offline', body: 'The counter keeps billing without internet and syncs when the connection returns.', href: '/product/offline-pos' },
         { icon: 'building-2', title: 'Multi-branch', body: 'Branch-wise stock, sales and staff, with transfers between branches.', href: '/product/multi-shop' },
         { icon: 'wallet', title: 'Payments', body: 'Cash, card, JazzCash, Easypaisa, payment QR and udhaar on the same bill.', href: '/product/payments' },
-        { icon: 'sparkles', title: 'AI assistant', body: 'Ask about your business in plain words.', href: '/roadmap', status: 'coming' },
+        { icon: 'sparkles', title: 'AI assistant', body: 'Ask about your sales, stock and khata in plain English or Roman Urdu.', href: '/product/ai-assistant' },
       ],
     },
     {
@@ -138,6 +138,7 @@ export const home: SeedEntry = {
       darkMediaId: shot.dashboardDark,
       frame: 'browser',
       url: 'app.nafaa.pk/dashboard',
+      callouts: [{ x: 46, y: 27, label: 'Today’s sale and how the day is going' }, { x: 28.7, y: 48, label: 'Profit after cost and expenses' }, { x: 96.4, y: 48, label: 'Udhaar still to collect' }, { x: 45.5, y: 73, label: 'The jobs that need you first' }],
       layout: 'full',
     },
     {
@@ -149,6 +150,7 @@ export const home: SeedEntry = {
       darkMediaId: shot.inventoryDark,
       frame: 'browser',
       url: 'app.nafaa.pk/products',
+      callouts: [{ x: 34.5, y: 19.5, label: 'Stock value and what it will sell for' }, { x: 50, y: 33, label: 'Low stock flagged before it runs out' }, { x: 22, y: 81, label: 'Cost, price and margin on every item' }],
       layout: 'full',
     },
     {
@@ -159,6 +161,7 @@ export const home: SeedEntry = {
       mediaId: shot.khata,
       frame: 'browser',
       url: 'app.nafaa.pk/khata',
+      callouts: [{ x: 33, y: 19.5, label: 'Total udhaar to collect' }, { x: 49, y: 31, label: 'How long each amount has been pending' }, { x: 90.5, y: 62, label: 'Record a payment or send a WhatsApp reminder' }],
       layout: 'full',
     },
     {
@@ -169,6 +172,7 @@ export const home: SeedEntry = {
       mediaId: shot.onlineOrders,
       frame: 'browser',
       url: 'app.nafaa.pk/online-orders',
+      callouts: [{ x: 31.6, y: 27.5, label: 'New orders waiting for you' }, { x: 64, y: 27.5, label: 'Cash on delivery still to collect' }, { x: 92, y: 58, label: 'Accept and the order reaches the counter' }],
       layout: 'full',
     },
     {
@@ -180,6 +184,7 @@ export const home: SeedEntry = {
       darkMediaId: shot.tablesDark,
       frame: 'browser',
       url: 'app.nafaa.pk/restaurant/tables',
+      callouts: [{ x: 33.5, y: 19.5, label: 'Running bill across every table' }, { x: 24, y: 50, label: 'Tables by section with live status' }, { x: 52, y: 73, label: 'Cleaning and reserved at a glance' }, { x: 84, y: 12.5, label: 'Kitchen screen and takeaway' }],
       layout: 'full',
     },
     {
@@ -191,6 +196,7 @@ export const home: SeedEntry = {
       darkMediaId: shot.branchesDark,
       frame: 'browser',
       url: 'app.nafaa.pk/branches',
+      callouts: [{ x: 34.5, y: 19.5, label: 'Sale, profit and average bill' }, { x: 57, y: 31, label: 'Expenses and returns per branch' }, { x: 35.6, y: 75, label: 'Branches compared side by side' }],
       layout: 'full',
     },
     {
@@ -201,16 +207,7 @@ export const home: SeedEntry = {
       mediaId: shot.profit,
       frame: 'browser',
       url: 'app.nafaa.pk/reports/profit',
-      layout: 'full',
-    },
-    {
-      id: 'home-tour-8',
-      type: 'screenshot',
-      heading: 'Tax invoices (optional)',
-      body: 'Turn on tax invoicing only if your business needs it; Nafaa works the same without it.',
-      mediaId: shot.taxSetup,
-      frame: 'browser',
-      url: 'app.nafaa.pk/settings/tax',
+      callouts: [{ x: 51.5, y: 20, label: 'Gross and net profit after expenses' }, { x: 35, y: 48.4, label: 'By product, category, brand, supplier or staff' }, { x: 85, y: 58.5, label: 'Profit and margin on every product' }],
       layout: 'full',
     },
     {
@@ -285,12 +282,12 @@ export const home: SeedEntry = {
       anchor: 'ai',
       type: 'featuresGrid',
       heading: 'Nafaa AI assistant',
-      intro: 'We are building an assistant that answers questions about your own business in plain English or Roman Urdu. It is not live yet; follow it on the roadmap.',
+      intro: 'Ask about your own business in plain English or Roman Urdu and get a short answer from your Nafaa data, with the numbers behind it.',
       columns: 3,
       items: [
-        { icon: 'message-square', title: 'Ask in plain words', body: '“Is hafte sab se zyada profit kis cheez par hua?”', status: 'coming' },
-        { icon: 'bell-ring', title: 'Morning summary', body: 'Yesterday’s sale, profit and udhaar in one message.', status: 'coming' },
-        { icon: 'package-search', title: 'Reorder suggestions', body: 'What to buy before it runs out, based on how fast it sells.', status: 'coming' },
+        { icon: 'message-square', title: 'Ask in plain words', body: '“Is hafte sab se zyada profit kis cheez par hua?”' },
+        { icon: 'bell-ring', title: 'Morning summary', body: 'Yesterday’s sale, profit and udhaar in one message.' },
+        { icon: 'package-search', title: 'Reorder suggestions', body: 'What to buy before it runs out, based on how fast it sells.' },
       ],
     },
     {
@@ -298,6 +295,7 @@ export const home: SeedEntry = {
       type: 'pricingTable',
       heading: 'Simple plans, straight from our price list',
       showToggle: true,
+      highlightPlan: 'pro',
     },
     {
       id: 'home-faq',
@@ -336,7 +334,7 @@ export const home: SeedEntry = {
   ],
   factCheck: {
     checkedOn: '2026-10-20',
-    note: 'Module list checked against apps/web and apps/api: tax adapters (FBR, PRA, SRB, KPRA), online orders (website, WooCommerce, Shopify), Nafaa Bazaar publishing, HR (attendance, commission, payroll), accounting journal export (QuickBooks, Xero, Zoho, Tally), public API keys and webhooks, restaurant tables and stations, customer credit limit. ai-assistant/index.ts is empty, so AI is shown as coming soon only. Manufacturing has no module, so it is offered as a build-to-order lead.',
+    note: 'Module list checked against apps/web and apps/api: tax adapters (FBR, PRA, SRB, KPRA), online orders (website, WooCommerce, Shopify), Nafaa Bazaar publishing, HR (attendance, commission, payroll), accounting journal export (QuickBooks, Xero, Zoho, Tally), public API keys and webhooks, restaurant tables and stations, customer credit limit. The AI assistant is shown as available on the owner’s instruction (21 Oct 2026: the feature is about to ship). Manufacturing has no module, so it is offered as a build-to-order lead.',
   },
   dropped: ['B2B ordering between shops (apps/api/src/modules/b2b-wholesale) has no screen in apps/web yet, so it is not claimed.', 'Foodpanda channel: only DTOs exist, not claimed.'],
   needsOwner: ['Service page slugs /services/websites and /services/mobile-apps are new; confirm they will be written (PLAN lists custom-software, online-store-setup, data-migration, fbr-integration-setup, hardware, training).'],

@@ -1,0 +1,332 @@
+/*
+ * AI chat (AiChat.tsx). Messages enter with a short rise; bars grow and the
+ * line draws when an answer appears. Everything here animates transform,
+ * opacity or stroke-dashoffset only, and nothing moves with reduced motion.
+ */
+
+.chat {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 31rem;
+  margin-inline: auto;
+  padding: 1.25rem;
+  border-radius: 22px;
+  border: 1px solid rgb(var(--c-line));
+  background:
+    radial-gradient(80% 50% at 100% 0%, rgb(var(--brand-500) / 0.06), transparent 70%),
+    rgb(var(--c-surface));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.8) inset,
+    0 40px 80px -40px rgb(15 23 42 / 0.35),
+    0 12px 28px -16px rgb(15 23 42 / 0.18);
+}
+
+:global(html.theme-ink) .chat {
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 40px 80px -36px rgb(0 0 0 / 0.75);
+}
+
+.glow {
+  position: absolute;
+  inset: 12% -10% -12%;
+  z-index: -1;
+  border-radius: 48px;
+  background:
+    radial-gradient(50% 50% at 25% 30%, rgb(15 23 42 / 0.1), transparent 70%),
+    radial-gradient(45% 45% at 80% 80%, rgb(var(--brand-500) / 0.12), transparent 70%);
+  filter: blur(44px);
+  pointer-events: none;
+}
+
+.avatar {
+  display: inline-flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: white;
+  background: linear-gradient(140deg, rgb(var(--brand-500)), #0d9488);
+  box-shadow: 0 8px 20px -8px rgb(var(--brand-600) / 0.8);
+}
+
+.online {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--brand-500));
+  box-shadow: 0 0 0 3px rgb(var(--brand-500) / 0.18);
+}
+
+.newTag {
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--brand-700));
+  background: rgb(var(--brand-50));
+}
+
+:global(html.theme-ink) .newTag {
+  color: rgb(var(--brand-300));
+  background: rgb(var(--brand-400) / 0.12);
+}
+
+/* The thread keeps one height, so the card never jumps while scenes change. */
+.thread {
+  display: flex;
+  min-height: 19.5rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.25rem 0;
+}
+
+.msg {
+  display: block;
+}
+
+.user {
+  margin-left: auto;
+  width: fit-content;
+  max-width: 85%;
+  padding: 0.6rem 1rem;
+  border-radius: 18px 18px 6px 18px;
+  font-size: 0.875rem;
+  color: white;
+  background: rgb(var(--brand-700));
+  box-shadow: 0 6px 16px -8px rgb(var(--brand-800) / 0.7);
+}
+
+.bot {
+  width: 92%;
+  padding: 1rem;
+  border-radius: 18px 18px 18px 6px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface-2));
+}
+
+.thinking {
+  display: inline-flex;
+  width: fit-content;
+  gap: 4px;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px 14px 14px 4px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface));
+}
+
+.thinking span {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--c-fg-subtle));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rank {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgb(var(--brand-700));
+  background: rgb(var(--brand-600) / 0.1);
+}
+
+.rankWarn {
+  color: rgb(180 83 9);
+  background: rgb(245 158 11 / 0.14);
+}
+
+:global(html.theme-ink) .rank {
+  color: rgb(var(--brand-300));
+}
+
+:global(html.theme-ink) .rankWarn {
+  color: rgb(252 211 77);
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  width: var(--w);
+  border-radius: 9999px;
+  transform-origin: left;
+}
+
+.barTop {
+  background: rgb(var(--brand-600));
+}
+
+.barRest {
+  background: rgb(var(--brand-500) / 0.45);
+}
+
+.barWarn {
+  background: rgb(245 158 11);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgb(var(--brand-800));
+  background: rgb(var(--brand-50));
+  box-shadow: 0 0 0 1px rgb(var(--brand-600) / 0.18) inset;
+}
+
+:global(html.theme-ink) .action {
+  color: rgb(var(--brand-200));
+  background: rgb(var(--brand-400) / 0.1);
+}
+
+.line {
+  fill: none;
+  stroke: rgb(var(--brand-600));
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.peak {
+  fill: rgb(var(--c-surface));
+  stroke: rgb(var(--brand-600));
+  stroke-width: 2.5;
+}
+
+.axis {
+  font-size: 10px;
+  font-weight: 600;
+  fill: rgb(var(--c-fg-subtle));
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.6rem 0.6rem 0.85rem;
+  border-radius: 14px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface-2));
+  transition: border-color 200ms, box-shadow 200ms;
+}
+
+.boxActive {
+  border-color: rgb(var(--brand-500) / 0.55);
+  box-shadow: 0 0 0 3px rgb(var(--brand-500) / 0.12);
+}
+
+.caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1em;
+  margin-left: 1px;
+  vertical-align: -0.15em;
+  background: rgb(var(--brand-600));
+}
+
+.send {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: white;
+  background: rgb(var(--brand-600));
+  box-shadow: 0 6px 14px -6px rgb(var(--brand-700) / 0.8);
+  transition: transform 150ms var(--ease-out);
+}
+
+.sendPressed {
+  transform: scale(0.88);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .msg {
+    animation: msg-rise 420ms var(--ease-out) both;
+  }
+
+  .thinking span {
+    animation: dot 1s var(--ease-in-out) infinite;
+  }
+
+  .thinking span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  .thinking span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .bot .bar {
+    animation: bar-grow 900ms var(--ease-out) both;
+    animation-delay: calc(250ms + var(--i, 0) * 120ms);
+  }
+
+  .bot .row {
+    animation: msg-rise 420ms var(--ease-out) both;
+    animation-delay: calc(150ms + var(--i, 0) * 100ms);
+  }
+
+  .bot .line {
+    stroke-dasharray: 1;
+    animation: line-draw 1100ms var(--ease-out) both 200ms;
+  }
+
+  .bot .areaIn,
+  .bot .peak {
+    animation: fade-in 600ms var(--ease-out) both 900ms;
+  }
+
+  .caret {
+    animation: blink-caret 1s steps(1) infinite;
+  }
+}
+
+@keyframes msg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes dot {
+  0%, 100% { opacity: 0.3; transform: none; }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+}
+
+@keyframes line-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes blink-caret {
+  50% { opacity: 0; }
+}
