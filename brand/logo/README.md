@@ -90,7 +90,7 @@ Below these sizes, use the app icon instead of the horizontal logo.
 - Don't put the full-colour logo on green, on busy photos or on low-contrast backgrounds.
 - Don't put the mark in a container other than the approved tile, such as a circle, a badge or a tile with a different corner radius.
 - Don't use the wordmark with a capital N in the logo. In running text, the name is written "Nafaa".
-- Don't use the old logo (the N with an up-right arrow). See "Legacy files" below.
+- Don't use the old logo (the N with an up-right arrow). Its files have been deleted; see "The rest of the brand folder" below.
 
 ## Source and rebuilding
 
@@ -102,14 +102,10 @@ Below these sizes, use the app icon instead of the horizontal logo.
 node brand/logo/source/build.cjs
 ```
 
-## Legacy files
+## The rest of the brand folder
 
-Everything else in `brand/` predates this logo and shows the **old** mark (the N with an up-right arrow on a gradient tile). These files are kept for reference only, so don't use them in new work:
+The old logo files (the N with an up-right arrow) were deleted from `brand/` on 20 Oct 2026; git history still has them. Everything else in `brand/` is now built from this kit by `brand/source/build-assets.cjs`:
 
-- `brand/svg/`, `brand/svg1/`, `brand/png/`, `brand/png1/`
-- `brand/favicon/`, `brand/app-icons/`, `brand/app-store/`
-- `brand/og/`, `brand/social/`, `brand/email/`, `brand/marketing/`, `brand/print/`, `brand/whatsapp/`
-- `brand/BRAND-GUIDELINES.md`, `brand/ASSET-INDEX.md`
-- `brand/generate-all-assets.js`, `brand/generate-all-pngs.sh`, `brand/generate-icons.js`, `brand/generate-marketing-pngs.sh`
-
-The brand colours in `BRAND-GUIDELINES.md` still apply. Its logo files and logo rules are replaced by this document.
+- `brand/BRAND-GUIDELINES.md`: logo, colour, type and voice rules, plus upload guides for WhatsApp, social profiles and the app stores.
+- `brand/ASSET-INDEX.md`: every generated file with its size and where it goes.
+- `brand/preview.html`: all assets shown in context, for review.

@@ -1,0 +1,662 @@
+[
+  {
+    "file": "whatsapp/profile-640.png",
+    "dims": "640 x 640",
+    "bytes": 4433,
+    "use": "WhatsApp Business profile photo. WhatsApp crops it to a circle; the mark sits well inside it."
+  },
+  {
+    "file": "whatsapp/cover-1600x900.png",
+    "dims": "1600 x 900",
+    "bytes": 182677,
+    "use": "WhatsApp Business cover photo (Edit profile > Cover photo). Content stays in the middle band, so any wide crop works."
+  },
+  {
+    "file": "whatsapp/catalog-1080.png",
+    "dims": "1080 x 1080",
+    "bytes": 147290,
+    "use": "WhatsApp Business catalog item image (Catalog > Add item), square."
+  },
+  {
+    "file": "whatsapp/status-welcome.png",
+    "dims": "1080 x 1920",
+    "bytes": 202874,
+    "use": "WhatsApp status: welcome / introduction."
+  },
+  {
+    "file": "whatsapp/status-new-feature.png",
+    "dims": "1080 x 1920",
+    "bytes": 148335,
+    "use": "WhatsApp status: new feature announcement (copy in COPY / whatsapp() of the build script)."
+  },
+  {
+    "file": "whatsapp/status-offer.png",
+    "dims": "1080 x 1920",
+    "bytes": 193841,
+    "use": "WhatsApp status: offer (7 din Free Trial)."
+  },
+  {
+    "file": "whatsapp/status-download-app.png",
+    "dims": "1080 x 1920",
+    "bytes": 238299,
+    "use": "WhatsApp status: download the app. Check that the listed platforms are live before posting."
+  },
+  {
+    "file": "whatsapp/status-blank.png",
+    "dims": "1080 x 1920",
+    "bytes": 179508,
+    "use": "WhatsApp status: blank branded template; add your own text between y 450 and y 1500."
+  },
+  {
+    "file": "whatsapp/greeting-1080.png",
+    "dims": "1080 x 1080",
+    "bytes": 116452,
+    "use": "Greeting card. The greeting message itself is text only, so save this as a Quick reply (Business tools > Quick replies, e.g. /salam) and send it after the greeting."
+  },
+  {
+    "file": "whatsapp/away-1080.png",
+    "dims": "1080 x 1080",
+    "bytes": 121824,
+    "use": "Away card. Away messages are text only; save this as a Quick reply (e.g. /baad) for after-hours replies, or attach it from the WhatsApp Business API."
+  },
+  {
+    "file": "whatsapp/sticker-512.webp",
+    "dims": "512 x 512",
+    "bytes": 18490,
+    "use": "WhatsApp sticker (512 x 512 transparent WebP, under 100 KB)."
+  },
+  {
+    "file": "whatsapp/sticker-tray-96.png",
+    "dims": "96 x 96",
+    "bytes": 3062,
+    "use": "Sticker pack tray icon (96 x 96 PNG), needed when the sticker is published as a pack."
+  },
+  {
+    "file": "social/facebook/profile-720.png",
+    "dims": "720 x 720",
+    "bytes": 4216,
+    "use": "Facebook page profile picture (shown as a circle)."
+  },
+  {
+    "file": "social/instagram/profile-1080.png",
+    "dims": "1080 x 1080",
+    "bytes": 6371,
+    "use": "Instagram profile picture (shown as a circle)."
+  },
+  {
+    "file": "social/linkedin/profile-400.png",
+    "dims": "400 x 400",
+    "bytes": 3291,
+    "use": "LinkedIn company logo."
+  },
+  {
+    "file": "social/x/profile-400.png",
+    "dims": "400 x 400",
+    "bytes": 3291,
+    "use": "X (Twitter) profile picture."
+  },
+  {
+    "file": "social/youtube/profile-800.png",
+    "dims": "800 x 800",
+    "bytes": 5409,
+    "use": "YouTube channel picture."
+  },
+  {
+    "file": "social/tiktok/profile-200.png",
+    "dims": "200 x 200",
+    "bytes": 1670,
+    "use": "TikTok profile picture."
+  },
+  {
+    "file": "social/facebook/cover-1640x624.png",
+    "dims": "1640 x 624",
+    "bytes": 131150,
+    "use": "Facebook page cover photo. Content sits inside the mobile safe zone (centre 1110 x 470)."
+  },
+  {
+    "file": "social/instagram/post-1080x1350.png",
+    "dims": "1080 x 1350",
+    "bytes": 198877,
+    "use": "Instagram feed post (4:5). Text stays inside the 3:4 profile-grid crop."
+  },
+  {
+    "file": "social/instagram/post-blank-1080x1350.png",
+    "dims": "1080 x 1350",
+    "bytes": 152088,
+    "use": "Instagram post template: headline area (y 220-600) and green panel left empty."
+  },
+  {
+    "file": "social/instagram/story-1080x1920.png",
+    "dims": "1080 x 1920",
+    "bytes": 171261,
+    "use": "Instagram / Facebook story. Top 250 px and bottom 280 px kept clear of text."
+  },
+  {
+    "file": "social/instagram/story-blank-1080x1920.png",
+    "dims": "1080 x 1920",
+    "bytes": 135662,
+    "use": "Story template: logo and link only."
+  },
+  {
+    "file": "social/linkedin/cover-1128x191.png",
+    "dims": "1128 x 191",
+    "bytes": 50878,
+    "use": "LinkedIn company page cover. Left 280 px kept clear for the logo."
+  },
+  {
+    "file": "social/x/header-1500x500.png",
+    "dims": "1500 x 500",
+    "bytes": 108500,
+    "use": "X (Twitter) header. Left 500 px of the lower half kept clear for the profile picture."
+  },
+  {
+    "file": "social/youtube/banner-2560x1440.png",
+    "dims": "2560 x 1440",
+    "bytes": 324154,
+    "use": "YouTube channel banner. Logo and text inside the 1546 x 423 safe area; cards outside it show on desktop and TV only."
+  },
+  {
+    "file": "social/youtube/thumbnail-1280x720.png",
+    "dims": "1280 x 720",
+    "bytes": 135691,
+    "use": "YouTube video thumbnail (example). Bottom-right corner kept clear for the duration badge."
+  },
+  {
+    "file": "social/youtube/thumbnail-blank-1280x720.png",
+    "dims": "1280 x 720",
+    "bytes": 132535,
+    "use": "YouTube thumbnail template: logo only."
+  },
+  {
+    "file": "app-store/play-feature-1024x500.png",
+    "dims": "1024 x 500",
+    "bytes": 92215,
+    "use": "Google Play feature graphic."
+  },
+  {
+    "file": "app-store/app-icon-1024.png",
+    "dims": "1024 x 1024",
+    "bytes": 13362,
+    "use": "App Store and Google Play icon (full bleed, no alpha; the stores round the corners)."
+  },
+  {
+    "file": "app-store/play-icon-512.png",
+    "dims": "512 x 512",
+    "bytes": 9743,
+    "use": "Google Play hi-res icon (512 x 512, full bleed; Play applies its own mask and shadow)."
+  },
+  {
+    "file": "app-store/notification/ic_stat_nafaa.svg",
+    "dims": "vector",
+    "bytes": 361,
+    "use": "Notification icon source (Android vector asset import)."
+  },
+  {
+    "file": "app-store/notification/ic_stat_nafaa-96.png",
+    "dims": "96 x 96",
+    "bytes": 2377,
+    "use": "Android notification icon, drawable-xxxhdpi (copy as res/drawable-xxxhdpi/ic_stat_nafaa.png)."
+  },
+  {
+    "file": "app-store/notification/ic_stat_nafaa-72.png",
+    "dims": "72 x 72",
+    "bytes": 1913,
+    "use": "Android notification icon, drawable-xxhdpi (copy as res/drawable-xxhdpi/ic_stat_nafaa.png)."
+  },
+  {
+    "file": "app-store/notification/ic_stat_nafaa-48.png",
+    "dims": "48 x 48",
+    "bytes": 1461,
+    "use": "Android notification icon, drawable-xhdpi (copy as res/drawable-xhdpi/ic_stat_nafaa.png)."
+  },
+  {
+    "file": "app-store/notification/ic_stat_nafaa-36.png",
+    "dims": "36 x 36",
+    "bytes": 1110,
+    "use": "Android notification icon, drawable-hdpi (copy as res/drawable-hdpi/ic_stat_nafaa.png)."
+  },
+  {
+    "file": "app-store/notification/ic_stat_nafaa-24.png",
+    "dims": "24 x 24",
+    "bytes": 805,
+    "use": "Android notification icon, drawable-mdpi (copy as res/drawable-mdpi/ic_stat_nafaa.png)."
+  },
+  {
+    "file": "app-store/splash-1242x2688.png",
+    "dims": "1242 x 2688",
+    "bytes": 10149,
+    "use": "iPhone splash / launch image (also fine for Android 12+ with the icon on green)."
+  },
+  {
+    "file": "app-store/splash-2048x2732.png",
+    "dims": "2048 x 2732",
+    "bytes": 16891,
+    "use": "iPad splash / launch image."
+  },
+  {
+    "file": "desktop/nafaa.ico",
+    "dims": "multi-size",
+    "bytes": 18697,
+    "use": "Windows app icon (16, 24, 32, 48, 64, 128, 256). Use for the Electron Windows build and installer."
+  },
+  {
+    "file": "desktop/macos-icon-1024.png",
+    "dims": "1024 x 1024",
+    "bytes": 30247,
+    "use": "macOS app icon master (Big Sur grid with shadow). Source for nafaa.icns."
+  },
+  {
+    "file": "desktop/nafaa.icns",
+    "dims": "16 to 1024",
+    "bytes": 234152,
+    "use": "macOS app icon (16 to 1024, built with iconutil)."
+  },
+  {
+    "file": "desktop/tray/trayTemplate.png",
+    "dims": "16 x 16",
+    "bytes": 646,
+    "use": "macOS menu bar icon, 16 pt @1x (template image: black + alpha, macOS tints it)."
+  },
+  {
+    "file": "desktop/tray/trayTemplate@2x.png",
+    "dims": "32 x 32",
+    "bytes": 1200,
+    "use": "macOS menu bar icon, 16 pt @2x."
+  },
+  {
+    "file": "desktop/tray/trayTemplate-32.png",
+    "dims": "32 x 32",
+    "bytes": 1200,
+    "use": "Larger template tray icon, 32 pt @1x."
+  },
+  {
+    "file": "desktop/tray/trayTemplate-32@2x.png",
+    "dims": "64 x 64",
+    "bytes": 1944,
+    "use": "Larger template tray icon, 32 pt @2x."
+  },
+  {
+    "file": "desktop/tray/tray-white-16.png",
+    "dims": "16 x 16",
+    "bytes": 649,
+    "use": "Windows/Linux tray icon, white, 16 px (dark taskbars)."
+  },
+  {
+    "file": "desktop/tray/tray-white-32.png",
+    "dims": "32 x 32",
+    "bytes": 1200,
+    "use": "Windows/Linux tray icon, white, 32 px."
+  },
+  {
+    "file": "desktop/tray/tray.ico",
+    "dims": "multi-size",
+    "bytes": 1688,
+    "use": "Windows tray icon in full colour (16 + 32), readable on light and dark taskbars."
+  },
+  {
+    "file": "og/og-default.png",
+    "dims": "1200 x 630",
+    "bytes": 112892,
+    "use": "Default social share image (home page and any page without its own card)."
+  },
+  {
+    "file": "og/og-pricing.png",
+    "dims": "1200 x 630",
+    "bytes": 98700,
+    "use": "Share image for /pricing and its child pages."
+  },
+  {
+    "file": "og/og-industries.png",
+    "dims": "1200 x 630",
+    "bytes": 117849,
+    "use": "Share image for /industries and its child pages."
+  },
+  {
+    "file": "og/og-features.png",
+    "dims": "1200 x 630",
+    "bytes": 102398,
+    "use": "Share image for /features and its child pages."
+  },
+  {
+    "file": "og/og-blog.png",
+    "dims": "1200 x 630",
+    "bytes": 107043,
+    "use": "Share image for /blog and its child pages."
+  },
+  {
+    "file": "og/og-developers.png",
+    "dims": "1200 x 630",
+    "bytes": 98859,
+    "use": "Share image for /developers and its child pages."
+  },
+  {
+    "file": "og/og-services.png",
+    "dims": "1200 x 630",
+    "bytes": 102732,
+    "use": "Share image for /services and its child pages."
+  },
+  {
+    "file": "og/industry/og-agri.png",
+    "dims": "1200 x 630",
+    "bytes": 94698,
+    "use": "Share image for /industries/agri (accent #4f7f0a, from #65a30d)."
+  },
+  {
+    "file": "og/industry/og-autoparts.png",
+    "dims": "1200 x 630",
+    "bytes": 100399,
+    "use": "Share image for /industries/autoparts (accent #475569, from #475569)."
+  },
+  {
+    "file": "og/industry/og-bakery.png",
+    "dims": "1200 x 630",
+    "bytes": 96601,
+    "use": "Share image for /industries/bakery (accent #b35486, from #f472b6)."
+  },
+  {
+    "file": "og/industry/og-bookstore.png",
+    "dims": "1200 x 630",
+    "bytes": 100452,
+    "use": "Share image for /industries/bookstore (accent #a95d05, from #d97706)."
+  },
+  {
+    "file": "og/industry/og-carpet.png",
+    "dims": "1200 x 630",
+    "bytes": 96493,
+    "use": "Share image for /industries/carpet (accent #04855d, from #059669)."
+  },
+  {
+    "file": "og/industry/og-clinic.png",
+    "dims": "1200 x 630",
+    "bytes": 94364,
+    "use": "Share image for /industries/clinic (accent #07809d, from #0891b2)."
+  },
+  {
+    "file": "og/industry/og-cosmetics.png",
+    "dims": "1200 x 630",
+    "bytes": 98914,
+    "use": "Share image for /industries/cosmetics (accent #c43c7f, from #ec4899)."
+  },
+  {
+    "file": "og/industry/og-dairy.png",
+    "dims": "1200 x 630",
+    "bytes": 94229,
+    "use": "Share image for /industries/dairy (accent #0a79ab, from #0ea5e9)."
+  },
+  {
+    "file": "og/industry/og-electronics.png",
+    "dims": "1200 x 630",
+    "bytes": 97389,
+    "use": "Share image for /industries/electronics (accent #3473d9, from #3b82f6)."
+  },
+  {
+    "file": "og/industry/og-florist.png",
+    "dims": "1200 x 630",
+    "bytes": 96524,
+    "use": "Share image for /industries/florist (accent #c43c7f, from #ec4899)."
+  },
+  {
+    "file": "og/industry/og-furniture.png",
+    "dims": "1200 x 630",
+    "bytes": 94149,
+    "use": "Share image for /industries/furniture (accent #a16207, from #a16207)."
+  },
+  {
+    "file": "og/industry/og-gaming.png",
+    "dims": "1200 x 630",
+    "bytes": 98419,
+    "use": "Share image for /industries/gaming (accent #7c3aed, from #7c3aed)."
+  },
+  {
+    "file": "og/industry/og-garments.png",
+    "dims": "1200 x 630",
+    "bytes": 97471,
+    "use": "Share image for /industries/garments (accent #c43c7f, from #ec4899)."
+  },
+  {
+    "file": "og/industry/og-gym.png",
+    "dims": "1200 x 630",
+    "bytes": 94970,
+    "use": "Share image for /industries/gym (accent #dc2626, from #dc2626)."
+  },
+  {
+    "file": "og/industry/og-hardware.png",
+    "dims": "1200 x 630",
+    "bytes": 95736,
+    "use": "Share image for /industries/hardware (accent #a16207, from #a16207)."
+  },
+  {
+    "file": "og/industry/og-appliances.png",
+    "dims": "1200 x 630",
+    "bytes": 92988,
+    "use": "Share image for /industries/appliances (accent #07809d, from #0891b2)."
+  },
+  {
+    "file": "og/industry/og-hotel.png",
+    "dims": "1200 x 630",
+    "bytes": 95182,
+    "use": "Share image for /industries/hotel (accent #4f46e5, from #4f46e5)."
+  },
+  {
+    "file": "og/industry/og-jewelry.png",
+    "dims": "1200 x 630",
+    "bytes": 95316,
+    "use": "Share image for /industries/jewelry (accent #a95d05, from #d97706)."
+  },
+  {
+    "file": "og/industry/og-meat.png",
+    "dims": "1200 x 630",
+    "bytes": 95707,
+    "use": "Share image for /industries/meat (accent #dc2626, from #dc2626)."
+  },
+  {
+    "file": "og/industry/og-mobile.png",
+    "dims": "1200 x 630",
+    "bytes": 94564,
+    "use": "Share image for /industries/mobile (accent #2563eb, from #2563eb)."
+  },
+  {
+    "file": "og/industry/og-optical.png",
+    "dims": "1200 x 630",
+    "bytes": 96650,
+    "use": "Share image for /industries/optical (accent #047e92, from #06b6d4)."
+  },
+  {
+    "file": "og/industry/og-petshop.png",
+    "dims": "1200 x 630",
+    "bytes": 97531,
+    "use": "Share image for /industries/petshop (accent #9f6607, from #f59e0b)."
+  },
+  {
+    "file": "og/industry/og-pharmacy.png",
+    "dims": "1200 x 630",
+    "bytes": 94139,
+    "use": "Share image for /industries/pharmacy (accent #07809d, from #0891b2)."
+  },
+  {
+    "file": "og/industry/og-restaurant.png",
+    "dims": "1200 x 630",
+    "bytes": 95582,
+    "use": "Share image for /industries/restaurant (accent #c2490a, from #ea580c)."
+  },
+  {
+    "file": "og/industry/og-retail.png",
+    "dims": "1200 x 630",
+    "bytes": 98193,
+    "use": "Share image for /industries/retail (accent #12873d, from #16a34a)."
+  },
+  {
+    "file": "og/industry/og-salon.png",
+    "dims": "1200 x 630",
+    "bytes": 95529,
+    "use": "Share image for /industries/salon (accent #db2777, from #db2777)."
+  },
+  {
+    "file": "og/industry/og-services-biz.png",
+    "dims": "1200 x 630",
+    "bytes": 96258,
+    "use": "Share image for /industries/services-biz (accent #0a79ab, from #0ea5e9)."
+  },
+  {
+    "file": "og/industry/og-shoe.png",
+    "dims": "1200 x 630",
+    "bytes": 97481,
+    "use": "Share image for /industries/shoe (accent #b75410, from #f97316)."
+  },
+  {
+    "file": "og/industry/og-sports.png",
+    "dims": "1200 x 630",
+    "bytes": 96574,
+    "use": "Share image for /industries/sports (accent #0b8059, from #10b981)."
+  },
+  {
+    "file": "og/industry/og-toystore.png",
+    "dims": "1200 x 630",
+    "bytes": 94082,
+    "use": "Share image for /industries/toystore (accent #c43c7f, from #ec4899)."
+  },
+  {
+    "file": "email/email-header-600x200.png",
+    "dims": "600 x 200",
+    "bytes": 42913,
+    "use": "Email header (display at 600 x 200)."
+  },
+  {
+    "file": "email/email-header-600x200@2x.png",
+    "dims": "1200 x 400",
+    "bytes": 95413,
+    "use": "Email header for retina screens: use this file with width=\"600\"."
+  },
+  {
+    "file": "email/email-signature-600x150.png",
+    "dims": "600 x 150",
+    "bytes": 6279,
+    "use": "Email signature as one image (team / generic). For a personal signature use the HTML snippet."
+  },
+  {
+    "file": "email/email-signature-600x150@2x.png",
+    "dims": "1200 x 300",
+    "bytes": 12797,
+    "use": "Email signature image for retina screens: use with width=\"600\"."
+  },
+  {
+    "file": "email/signature-logo@2x.png",
+    "dims": "480 x 128",
+    "bytes": 4084,
+    "use": "Logo for the HTML signature (shown at 120 x 32). Host it at a public URL."
+  },
+  {
+    "file": "email/email-signature.html",
+    "dims": "HTML",
+    "bytes": 1730,
+    "use": "HTML email signature (inline styles, table layout). Steps are in the comment at the top of the file."
+  },
+  {
+    "file": "print/business-card-front.png",
+    "dims": "1050 x 600",
+    "bytes": 99604,
+    "use": "Business card front, 3.5 x 2 in at 300 dpi (trim size)."
+  },
+  {
+    "file": "print/business-card-back.png",
+    "dims": "1050 x 600",
+    "bytes": 17901,
+    "use": "Business card back, 3.5 x 2 in at 300 dpi. Replace Full Name / Designation in print() before printing."
+  },
+  {
+    "file": "print/business-card.pdf",
+    "dims": "vector",
+    "bytes": 55682,
+    "use": "Business card, vector PDF, 2 pages, 3.75 x 2.25 in (1/8 in bleed on each side; trim to 3.5 x 2 in)."
+  },
+  {
+    "file": "print/letterhead-a4.png",
+    "dims": "2480 x 3508",
+    "bytes": 37921,
+    "use": "Letterhead, A4 at 300 dpi (2480 x 3508). Write between y 560 and y 3150."
+  },
+  {
+    "file": "print/letterhead-a4.pdf",
+    "dims": "vector",
+    "bytes": 30779,
+    "use": "Letterhead, vector A4 PDF (210 x 297 mm). Use as a page background in Word or Docs."
+  },
+  {
+    "file": "print/receipt-header-80mm.png",
+    "dims": "576 x 210",
+    "bytes": 1530,
+    "use": "Thermal receipt header, 80mm paper (576 px wide at 203 dpi), pure black and white."
+  },
+  {
+    "file": "print/receipt-footer-80mm.png",
+    "dims": "576 x 96",
+    "bytes": 837,
+    "use": "Thermal receipt footer line (the Nafaa line), 80mm paper."
+  },
+  {
+    "file": "print/receipt-header-58mm.png",
+    "dims": "384 x 140",
+    "bytes": 1009,
+    "use": "Thermal receipt header, 58mm paper (384 px wide at 203 dpi), pure black and white."
+  },
+  {
+    "file": "print/receipt-footer-58mm.png",
+    "dims": "384 x 64",
+    "bytes": 552,
+    "use": "Thermal receipt footer line (the Nafaa line), 58mm paper."
+  },
+  {
+    "file": "print/counter-sticker-100mm.png",
+    "dims": "1181 x 1181",
+    "bytes": 164342,
+    "use": "Shop window / counter sticker, 100 x 100 mm at 300 dpi."
+  },
+  {
+    "file": "print/counter-sticker-100mm.pdf",
+    "dims": "vector",
+    "bytes": 45024,
+    "use": "Counter sticker, vector PDF, 104 x 104 mm (2 mm bleed; trim to 100 x 100 mm, rounded corners optional)."
+  },
+  {
+    "file": "print/flyer-a5.png",
+    "dims": "1748 x 2480",
+    "bytes": 301194,
+    "use": "A5 flyer at 300 dpi (148 x 210 mm)."
+  },
+  {
+    "file": "print/flyer-a5.pdf",
+    "dims": "vector",
+    "bytes": 218994,
+    "use": "A5 flyer, vector PDF (148 x 210 mm). Ask the printer to scale to fit with 3 mm bleed if needed."
+  },
+  {
+    "file": "print/flyer-a5-blank.png",
+    "dims": "1748 x 2480",
+    "bytes": 203328,
+    "use": "A5 flyer template: header and footer only; fill the middle in Canva or Word."
+  },
+  {
+    "file": "guides/facebook-cover-guide.png",
+    "dims": "1640 x 624",
+    "bytes": 105746,
+    "use": "Check: Facebook cover with the mobile crop shaded and the desktop profile picture area in red."
+  },
+  {
+    "file": "guides/youtube-banner-guide.png",
+    "dims": "2560 x 1440",
+    "bytes": 327711,
+    "use": "Check: YouTube banner; red = safe area on all devices, amber = desktop band, shaded = TV only."
+  },
+  {
+    "file": "guides/whatsapp-profile-guide.png",
+    "dims": "640 x 640",
+    "bytes": 6193,
+    "use": "Check: WhatsApp profile photo with the circle crop applied."
+  },
+  {
+    "file": "guides/x-header-guide.png",
+    "dims": "1500 x 500",
+    "bytes": 79872,
+    "use": "Check: X header with the profile picture overlap and the top/bottom crop."
+  }
+]
