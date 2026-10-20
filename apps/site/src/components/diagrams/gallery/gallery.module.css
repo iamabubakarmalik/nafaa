@@ -1,0 +1,66 @@
+/* Layout for the _dev diagram and frame galleries only. */
+
+.lab {
+  padding-bottom: 4rem;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: rgb(var(--c-fg-muted, 71 85 105));
+  cursor: pointer;
+}
+
+.rmToggle {
+  width: 1rem;
+  height: 1rem;
+  accent-color: rgb(var(--brand-600, 5 150 105));
+}
+
+/* "Preview reduced motion": the same result as the OS setting, for review. */
+.lab:has(.rmToggle:checked) :global([data-diagram] *),
+.lab:has(.rmToggle:checked) :global([data-animate] *) {
+  animation: none !important;
+}
+
+.h2 {
+  margin: 4rem 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: rgb(var(--c-fg-strong, 2 6 23));
+}
+
+.item {
+  padding: 2rem 0;
+  border-top: 1px solid rgb(var(--c-line, 226 232 240));
+}
+
+.itemTitle {
+  margin: 0 0 1rem;
+  font-family: var(--font-code, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  color: rgb(var(--c-fg-muted, 71 85 105));
+}
+
+.inkBand {
+  margin-inline: calc(-1 * var(--gutter, 1.25rem));
+  padding: 2rem var(--gutter, 1.25rem);
+  border-radius: 20px;
+  background: rgb(var(--c-canvas, 2 6 23));
+}
+
+.grid {
+  display: grid;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (min-width: 48rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

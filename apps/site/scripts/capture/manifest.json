@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "defaults": {
+    "baseUrl": "http://localhost:5173",
+    "apiUrl": "http://localhost:4000/api",
+    "device": "desktop",
+    "locale": "en",
+    "waitMs": 800,
+    "hide": [
+      "[data-sonner-toaster]",
+      "[role='status'][aria-live]",
+      ".Toastify",
+      "#vite-error-overlay"
+    ]
+  },
+  "accounts": {
+    "grocery": { "industry": "kiryana", "emailEnv": "CAPTURE_GROCERY_EMAIL", "passwordEnv": "CAPTURE_GROCERY_PASSWORD" },
+    "bakery": { "industry": "bakery", "emailEnv": "CAPTURE_BAKERY_EMAIL", "passwordEnv": "CAPTURE_BAKERY_PASSWORD" },
+    "pharmacy": { "industry": "pharmacy", "emailEnv": "CAPTURE_PHARMACY_EMAIL", "passwordEnv": "CAPTURE_PHARMACY_PASSWORD" },
+    "restaurant": { "industry": "restaurant", "emailEnv": "CAPTURE_RESTAURANT_EMAIL", "passwordEnv": "CAPTURE_RESTAURANT_PASSWORD" },
+    "mobile": { "industry": "mobile-shop", "emailEnv": "CAPTURE_MOBILE_EMAIL", "passwordEnv": "CAPTURE_MOBILE_PASSWORD" },
+    "garments": { "industry": "garments", "emailEnv": "CAPTURE_GARMENTS_EMAIL", "passwordEnv": "CAPTURE_GARMENTS_PASSWORD" }
+  },
+  "shots": [
+    {
+      "id": "app-login",
+      "account": null,
+      "path": "/login",
+      "device": "desktop",
+      "frame": "browser",
+      "alt": "Nafaa web app sign-in screen",
+      "tags": ["feature:signup"],
+      "reviewed": false
+    },
+    {
+      "id": "app-signup",
+      "account": null,
+      "path": "/register",
+      "device": "desktop",
+      "frame": "browser",
+      "alt": "Nafaa web app sign-up screen for creating a new shop account",
+      "tags": ["feature:signup"],
+      "reviewed": false
+    },
+    {
+      "id": "app-signup-phone",
+      "account": null,
+      "path": "/register",
+      "device": "phone",
+      "frame": "phone",
+      "alt": "Nafaa sign-up screen on an Android phone",
+      "tags": ["feature:signup"],
+      "reviewed": false
+    },
+
+    { "id": "grocery-pos", "account": "grocery", "path": "/pos", "frame": "browser", "alt": "Nafaa POS checkout screen in a demo grocery shop", "tags": ["industry:kiryana", "feature:pos"], "reviewed": false },
+    { "id": "grocery-pos-phone", "account": "grocery", "path": "/pos", "device": "phone", "frame": "phone", "alt": "Nafaa POS checkout screen on an Android phone in a demo grocery shop", "tags": ["industry:kiryana", "feature:pos"], "reviewed": false },
+    { "id": "grocery-products", "account": "grocery", "path": "/products", "frame": "browser", "alt": "Product list in a demo grocery shop on Nafaa", "tags": ["industry:kiryana", "feature:inventory"], "reviewed": false },
+    { "id": "grocery-low-stock", "account": "grocery", "path": "/low-stock", "frame": "browser", "alt": "Low stock list in a demo grocery shop on Nafaa", "tags": ["industry:kiryana", "feature:inventory"], "reviewed": false },
+    { "id": "grocery-khata", "account": "grocery", "path": "/khata", "frame": "browser", "alt": "Customer khata (credit ledger) screen in a demo grocery shop on Nafaa", "tags": ["industry:kiryana", "feature:khata"], "reviewed": false },
+    { "id": "grocery-khata-phone", "account": "grocery", "path": "/khata", "device": "phone", "frame": "phone", "alt": "Customer khata (credit ledger) on an Android phone in a demo grocery shop", "tags": ["industry:kiryana", "feature:khata"], "reviewed": false },
+    { "id": "grocery-dashboard", "account": "grocery", "path": "/dashboard", "frame": "browser", "alt": "Nafaa dashboard for a demo grocery shop", "tags": ["industry:kiryana", "feature:reports"], "reviewed": false },
+    { "id": "grocery-reports", "account": "grocery", "path": "/reports", "frame": "browser", "alt": "Sales reports screen in a demo grocery shop on Nafaa", "tags": ["industry:kiryana", "feature:reports"], "reviewed": false },
+    { "id": "grocery-profit-report", "account": "grocery", "path": "/profit-report", "frame": "browser", "alt": "Profit report in a demo grocery shop on Nafaa", "tags": ["industry:kiryana", "feature:reports"], "reviewed": false },
+    { "id": "grocery-cash-register", "account": "grocery", "path": "/cash-register", "frame": "browser", "alt": "Cash register (counter cash) screen in a demo grocery shop on Nafaa", "tags": ["industry:kiryana", "feature:pos"], "reviewed": false },
+    {
+      "id": "grocery-receipt",
+      "account": "grocery",
+      "path": "/sales/{id}/receipt",
+      "resolve": { "api": "/sales", "param": "id" },
+      "device": "phone",
+      "frame": "receipt",
+      "clip": "[data-receipt], .receipt, main",
+      "alt": "Sale receipt from a demo grocery shop on Nafaa",
+      "tags": ["industry:kiryana", "feature:billing"],
+      "reviewed": false
+    },
+    { "id": "fbr-invoices", "account": "grocery", "path": "/fbr/invoices", "frame": "browser", "alt": "FBR invoices list in a demo shop on Nafaa", "tags": ["industry:kiryana", "feature:fbr"], "reviewed": false },
+
+    { "id": "bakery-dashboard", "account": "bakery", "path": "/bakery/dashboard", "frame": "browser", "alt": "Bakery dashboard in a demo bakery on Nafaa", "tags": ["industry:bakery", "feature:reports"], "reviewed": false },
+    { "id": "bakery-production", "account": "bakery", "path": "/bakery/production", "frame": "browser", "alt": "Bakery production screen in a demo bakery on Nafaa", "tags": ["industry:bakery", "feature:inventory"], "reviewed": false },
+    { "id": "bakery-cake-orders", "account": "bakery", "path": "/bakery/cake-orders", "frame": "browser", "alt": "Cake orders list in a demo bakery on Nafaa", "tags": ["industry:bakery", "feature:pos"], "reviewed": false },
+
+    { "id": "pharmacy-dashboard", "account": "pharmacy", "path": "/pharmacy/dashboard", "frame": "browser", "alt": "Pharmacy dashboard in a demo pharmacy on Nafaa", "tags": ["industry:pharmacy", "feature:reports"], "reviewed": false },
+    { "id": "pharmacy-medicines", "account": "pharmacy", "path": "/pharmacy/medicines", "frame": "browser", "alt": "Medicines list in a demo pharmacy on Nafaa", "tags": ["industry:pharmacy", "feature:inventory"], "reviewed": false },
+    { "id": "pharmacy-expiring", "account": "pharmacy", "path": "/pharmacy/expiring", "frame": "browser", "alt": "Expiring medicines list in a demo pharmacy on Nafaa", "tags": ["industry:pharmacy", "feature:inventory"], "reviewed": false },
+
+    { "id": "restaurant-tables", "account": "restaurant", "path": "/restaurant/tables", "frame": "browser", "alt": "Table view in a demo restaurant on Nafaa", "tags": ["industry:restaurant", "feature:pos"], "reviewed": false },
+    { "id": "restaurant-kot", "account": "restaurant", "path": "/restaurant/kot", "frame": "browser", "alt": "Kitchen order tickets (KOT) screen in a demo restaurant on Nafaa", "tags": ["industry:restaurant", "feature:pos"], "reviewed": false },
+    { "id": "restaurant-menu", "account": "restaurant", "path": "/restaurant/menu", "frame": "browser", "alt": "Menu items list in a demo restaurant on Nafaa", "tags": ["industry:restaurant", "feature:inventory"], "reviewed": false },
+
+    { "id": "mobile-pos", "account": "mobile", "path": "/pos", "frame": "browser", "alt": "Nafaa POS checkout screen in a demo mobile phone shop", "tags": ["industry:mobile-shop", "feature:pos"], "reviewed": false },
+    { "id": "mobile-imei", "account": "mobile", "path": "/imei-inventory", "frame": "browser", "alt": "IMEI stock list in a demo mobile phone shop on Nafaa", "tags": ["industry:mobile-shop", "feature:inventory"], "reviewed": false },
+    { "id": "mobile-reports", "account": "mobile", "path": "/mobile-reports", "frame": "browser", "alt": "Mobile shop reports in a demo mobile phone shop on Nafaa", "tags": ["industry:mobile-shop", "feature:reports"], "reviewed": false },
+
+    { "id": "garments-dashboard", "account": "garments", "path": "/garments/dashboard", "frame": "browser", "alt": "Garments dashboard in a demo clothing shop on Nafaa", "tags": ["industry:garments", "feature:reports"], "reviewed": false },
+    { "id": "garments-products", "account": "garments", "path": "/garments/products", "frame": "browser", "alt": "Garment products list in a demo clothing shop on Nafaa", "tags": ["industry:garments", "feature:inventory"], "reviewed": false },
+    { "id": "garments-tailoring", "account": "garments", "path": "/garments/tailoring", "frame": "browser", "alt": "Tailoring orders list in a demo clothing shop on Nafaa", "tags": ["industry:garments", "feature:pos"], "reviewed": false }
+  ]
+}

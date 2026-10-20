@@ -1,0 +1,8 @@
+# Standalone pnpm project (ARCH D2). This file makes apps/site its own pnpm
+# root, so installs here use apps/site/pnpm-lock.yaml and never pull in the
+# monorepo's expo/electron dependencies.
+packages: []
+
+allowBuilds:
+  sharp: true
+  unrs-resolver: true

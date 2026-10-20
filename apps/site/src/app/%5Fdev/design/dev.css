@@ -1,0 +1,14 @@
+/* Gallery-only styles. The "Preview reduced motion" switch shows what visitors
+   who ask for reduced motion get, without changing the OS setting. */
+.motion-lab:has(.rm-toggle:checked)
+  :is([data-reveal], [data-reveal] > *, [data-animate] *, .m-packet, .m-flow, .m-pulse, .m-blink) {
+  animation: none !important;
+}
+
+.motion-lab:has(.rm-toggle:checked) .m-draw {
+  stroke-dashoffset: 0 !important;
+}
+
+.motion-lab:has(.rm-toggle:checked) :is(.m-pop, .m-fade) {
+  opacity: 1 !important;
+}

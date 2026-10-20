@@ -1,0 +1,24 @@
+{
+  "name": "@nafaa/cms-contract",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Marketing CMS contract (zod 4). Source of truth; copied into apps/api, apps/admin and apps/site by scripts/sync-cms-contract.mjs.",
+  "main": "./src/cms-contract.ts",
+  "types": "./src/cms-contract.ts",
+  "exports": {
+    ".": {
+      "types": "./src/cms-contract.ts",
+      "default": "./src/cms-contract.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx test/contract.test.ts",
+    "sync": "node ../../scripts/sync-cms-contract.mjs",
+    "sync:check": "node ../../scripts/sync-cms-contract.mjs --check"
+  },
+  "devDependencies": {
+    "zod": "^4.4.3"
+  }
+}

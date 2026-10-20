@@ -1,0 +1,162 @@
+/*
+ * Long-form text (rendered Markdown from the CMS, ARCH D8). Used through the
+ * <Prose> primitive. Colours follow the section theme (--c-*), so prose reads
+ * correctly on white, muted and ink bands. Plain CSS, no typography plugin.
+ */
+
+.prose {
+  max-width: 68ch;
+  color: rgb(var(--c-fg));
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.prose > * + * {
+  margin-top: 1.25em;
+}
+
+.prose :is(h2, h3, h4) {
+  color: rgb(var(--c-fg-strong));
+  font-weight: 650;
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+
+.prose h2 {
+  margin-top: 2.25em;
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.prose h3 {
+  margin-top: 1.9em;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.prose h4 {
+  margin-top: 1.75em;
+  font-size: 1.0625rem;
+  line-height: 1.45;
+}
+
+.prose :is(h2, h3, h4) + * {
+  margin-top: 0.75em;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose a {
+  color: rgb(var(--c-link));
+  font-weight: 500;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgb(var(--c-link) / 0.35);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--d-fast) ease;
+}
+
+.prose a:hover {
+  text-decoration-color: currentColor;
+}
+
+.prose strong {
+  color: rgb(var(--c-fg-strong));
+  font-weight: 600;
+}
+
+.prose :is(ul, ol) {
+  padding-left: 1.4em;
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose li {
+  padding-left: 0.25em;
+}
+
+.prose li + li {
+  margin-top: 0.4em;
+}
+
+.prose li::marker {
+  color: rgb(var(--c-fg-subtle));
+}
+
+.prose ol > li::marker {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.prose blockquote {
+  border-left: 2px solid rgb(var(--brand-500));
+  padding-left: 1.1em;
+  color: rgb(var(--c-fg-muted));
+}
+
+.prose hr {
+  margin-block: 2.5em;
+  border: 0;
+  border-top: 1px solid rgb(var(--c-line));
+}
+
+.prose :not(pre) > code {
+  border-radius: 6px;
+  background: rgb(var(--c-surface-3));
+  padding: 0.15em 0.4em;
+  font-family: var(--font-code);
+  font-size: 0.875em;
+  color: rgb(var(--c-fg-strong));
+}
+
+.prose pre {
+  overflow-x: auto;
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 14px;
+  background: rgb(var(--c-surface-2));
+  padding: 1rem 1.25rem;
+  font-family: var(--font-code);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.prose :is(img, video, figure) {
+  margin-block: 2em;
+  border-radius: 14px;
+}
+
+.prose figcaption {
+  margin-top: 0.75em;
+  color: rgb(var(--c-fg-subtle));
+  font-size: 0.875rem;
+}
+
+.prose table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.prose :is(th, td) {
+  border-bottom: 1px solid rgb(var(--c-line));
+  padding: 0.65rem 1rem 0.65rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose th {
+  color: rgb(var(--c-fg-strong));
+  font-weight: 600;
+}

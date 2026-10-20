@@ -60,6 +60,16 @@ export const MARKETING_PERMISSIONS = {
 
   // Settings
   MARKETING_SETTINGS: 'marketing.settings.manage',
+
+  // Website CMS (apps/site content). Values match CMS_PERMISSIONS in the
+  // generated cms-contract. Each permission grants only what it names:
+  // publish does not imply edit, and edit does not imply publish.
+  CMS_VIEW: 'marketing.cms.view',
+  CMS_EDIT: 'marketing.cms.edit',
+  CMS_PUBLISH: 'marketing.cms.publish',
+  CMS_REDIRECTS: 'marketing.cms.redirects',
+  // Contains "settings", so the MARKETING_MANAGER filter below leaves it to SUPER.
+  CMS_SETTINGS: 'marketing.cms.settings',
 } as const;
 
 export type MarketingPermissionKey =
@@ -85,6 +95,8 @@ export const MARKETING_ROLE_PERMISSIONS: Record<string, MarketingPermissionKey[]
     MARKETING_PERMISSIONS.CAMPAIGNS_CREATE,
     MARKETING_PERMISSIONS.BLOG_ANALYTICS_VIEW,
     MARKETING_PERMISSIONS.SEO_VIEW,
+    MARKETING_PERMISSIONS.CMS_VIEW,
+    MARKETING_PERMISSIONS.CMS_EDIT,
   ],
 
   ANALYST: [
@@ -97,6 +109,7 @@ export const MARKETING_ROLE_PERMISSIONS: Record<string, MarketingPermissionKey[]
     MARKETING_PERMISSIONS.CONVERSIONS_VIEW,
     MARKETING_PERMISSIONS.BLOG_ANALYTICS_VIEW,
     MARKETING_PERMISSIONS.LEADS_VIEW,
+    MARKETING_PERMISSIONS.CMS_VIEW,
   ],
 
   AGENT: [

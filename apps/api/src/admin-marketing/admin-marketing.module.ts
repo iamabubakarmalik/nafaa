@@ -19,6 +19,9 @@ import { ExportsModule } from './exports/exports.module';
 import { MarketingDashboardModule } from './dashboard/dashboard.module';
 import { PublicTrackingModule } from './public-tracking/public-tracking.module';
 
+// Website CMS (apps/site)
+import { CmsModule } from './cms/cms.module';
+
 @Module({
   imports: [
     // Phase 1
@@ -39,6 +42,9 @@ import { PublicTrackingModule } from './public-tracking/public-tracking.module';
     ExportsModule,
     MarketingDashboardModule,
     PublicTrackingModule,
+
+    // Website CMS
+    CmsModule,
   ],
 })
 export class AdminMarketingModule {}

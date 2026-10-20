@@ -1,0 +1,149 @@
+/*
+ * Global styles for apps/site.
+ *
+ * Load order: shared tokens (generated), motion system, prose, then Tailwind.
+ * Imported files are plain CSS (no @layer), so Tailwind utilities still win.
+ *
+ * Semantic colours (--c-*) are RGB channels that change with the section
+ * theme (.theme-default, .theme-muted, .theme-ink). Components use them
+ * through Tailwind (`text-fg`, `bg-surface`, `border-line`, `text-link`), so
+ * one component reads correctly on white, muted and ink bands.
+ */
+@import './tokens.css';
+@import './motion.css';
+@import './prose.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Layout scale (ARCH 4.2) */
+  --section-y: clamp(4rem, 3rem + 4vw, 8rem);
+  --gutter: clamp(1.25rem, 0.75rem + 2vw, 2rem);
+  --header-h: 4rem;
+
+  /* Code uses the system monospace stack; no web font is loaded for it. */
+  --font-code: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  color-scheme: light;
+}
+
+/* Section themes. Contrast checked against WCAG AA for body text. */
+:root,
+.theme-default {
+  --c-canvas: 255 255 255;
+  --c-surface: 255 255 255;
+  --c-surface-2: 248 250 252; /* slate-50 */
+  --c-surface-3: 241 245 249; /* slate-100, never under fg-subtle text */
+  --c-fg-strong: 2 6 23; /* slate-950 */
+  --c-fg: 15 23 42; /* slate-900 */
+  --c-fg-muted: 71 85 105; /* slate-600, 7.6:1 on white */
+  --c-fg-subtle: 100 116 139; /* slate-500, 4.76:1 on white */
+  --c-line: 226 232 240; /* slate-200 */
+  --c-line-strong: 203 213 225; /* slate-300 */
+  --c-link: var(--brand-700); /* 5.5:1 on white */
+  --c-ring: var(--brand-600);
+}
+
+.theme-muted {
+  --c-canvas: 248 250 252; /* slate-50; fg-subtle is 4.55:1 here */
+  --c-surface: 255 255 255;
+  --c-surface-2: 255 255 255;
+}
+
+.theme-ink {
+  --c-canvas: 2 6 23; /* slate-950 */
+  --c-surface: 15 23 42; /* slate-900 */
+  --c-surface-2: 30 41 59; /* slate-800 */
+  --c-surface-3: 30 41 59;
+  --c-fg-strong: 255 255 255;
+  --c-fg: 226 232 240; /* slate-200 */
+  --c-fg-muted: 203 213 225; /* slate-300 */
+  --c-fg-subtle: 148 163 184; /* slate-400, 7.9:1 on slate-950 */
+  --c-line: 30 41 59; /* slate-800 */
+  --c-line-strong: 51 65 85; /* slate-700 */
+  --c-link: var(--brand-400); /* 10.5:1 on slate-950 */
+  --c-ring: var(--brand-400);
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    @apply bg-canvas font-sans text-body text-fg antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  figcaption {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: rgb(var(--brand-200));
+    color: rgb(2 6 23);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-ring));
+    outline-offset: 2px;
+  }
+
+  /* Urdu script keeps its own font and a taller line. Roman Urdu is ur-Latn
+     and keeps Inter, so the match is exact. */
+  [lang='ur'] {
+    font-family: var(--font-urdu);
+    line-height: 1.9;
+  }
+
+  @media (pointer: coarse) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']),
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
+  }
+}
+
+@layer components {
+  /* Decorative brand grid (ARCH 4.7). Fades out towards the edges. */
+  .bg-grid {
+    --grid-line: rgb(var(--c-fg) / 0.06);
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center top;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(rgb(var(--c-fg) / 0.12) 1px, transparent 1px);
+    background-size: 20px 20px;
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 40%, black 20%, transparent 70%);
+  }
+
+  /* A soft brand wash for the top of ink bands. Not a gradient on text. */
+  .bg-glow {
+    background-image: radial-gradient(
+      60% 50% at 50% 0%,
+      rgb(var(--brand-500) / 0.16),
+      transparent 70%
+    );
+  }
+}

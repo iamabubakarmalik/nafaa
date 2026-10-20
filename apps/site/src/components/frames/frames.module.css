@@ -1,0 +1,401 @@
+/*
+ * Screenshot frames: browser, phone, tablet, desktop (Windows app) and
+ * thermal receipt. Pure CSS (plus tiny inline SVG glyphs); no frame images.
+ * Colours read the site tokens with literal fallbacks; neutrals mirror
+ * Tailwind's slate scale.
+ *
+ * The frame never sets the screenshot's size: the image inside (next/image
+ * with width and height) reserves its own box, so there is no layout shift.
+ */
+
+.root {
+  --fr-brand: rgb(var(--brand-600, 5 150 105));
+  --fr-brand-strong: rgb(var(--brand-700, 4 120 87));
+  --fr-surface: rgb(255 255 255);
+  --fr-ink: rgb(var(--c-fg, 15 23 42));
+  --fr-muted: rgb(var(--c-fg-muted, 71 85 105));
+  --fr-line: rgb(var(--c-line, 226 232 240));
+  --fr-chrome: rgb(241 245 249);
+  --fr-chrome-line: rgb(226 232 240);
+  --fr-bezel: rgb(15 23 42);
+  --fr-bezel-edge: rgb(51 65 85);
+  --fr-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 12px 32px -8px rgb(15 23 42 / 0.16), 0 32px 64px -24px rgb(15 23 42 / 0.18);
+  --fr-ease-out: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+
+  margin: 0;
+  color: var(--fr-ink);
+}
+
+/* Dark band: darker chrome, lighter legend text (from --c-* theme variables). */
+:global(.theme-ink) .root {
+  --fr-chrome: rgb(30 41 59);
+  --fr-chrome-line: rgb(51 65 85);
+  --fr-bezel-edge: rgb(71 85 105);
+}
+
+.media {
+  margin-inline: auto;
+}
+
+/* The screen area: images fill the width and keep their own aspect ratio. */
+.screen {
+  position: relative;
+  overflow: hidden;
+  background: var(--fr-surface);
+}
+.screen img,
+.screen picture,
+.screen video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ─── Browser ─── */
+
+.browser {
+  overflow: hidden;
+  border: 1px solid var(--fr-chrome-line);
+  border-radius: 14px;
+  background: var(--fr-surface);
+  box-shadow: var(--fr-shadow);
+}
+.browserBar {
+  display: grid;
+  grid-template-columns: 4rem 1fr 4rem;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 0.875rem;
+  border-bottom: 1px solid var(--fr-chrome-line);
+  background: var(--fr-chrome);
+}
+.lights {
+  display: flex;
+  gap: 0.4375rem;
+}
+.lights span {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  border-radius: 9999px;
+  background: rgb(203 213 225);
+}
+.lights span:nth-child(1) {
+  background: rgb(248 113 113);
+}
+.lights span:nth-child(2) {
+  background: rgb(251 191 36);
+}
+.lights span:nth-child(3) {
+  background: rgb(52 211 153);
+}
+.address {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 0;
+  max-width: 26rem;
+  height: 1.625rem;
+  margin-inline: auto;
+  padding: 0 0.75rem;
+  border: 1px solid var(--fr-chrome-line);
+  border-radius: 0.5rem;
+  background: var(--fr-surface);
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--fr-muted);
+  width: 100%;
+}
+.address svg {
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--fr-brand-strong);
+}
+.address span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Phone (neutral Android) ─── */
+
+.phone {
+  position: relative;
+  max-width: 18.5rem;
+  padding: 0.625rem;
+  border-radius: 2.5rem;
+  background: var(--fr-bezel);
+  box-shadow: inset 0 0 0 1.5px var(--fr-bezel-edge), var(--fr-shadow);
+}
+.phone .screen {
+  border-radius: 1.9rem;
+}
+/* Punch-hole camera. */
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  z-index: 2;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-left: -0.3125rem;
+  border-radius: 9999px;
+  background: var(--fr-bezel);
+  box-shadow: 0 0 0 1.5px rgb(30 41 59);
+}
+/* Power and volume keys. */
+.phone::after {
+  content: '';
+  position: absolute;
+  top: 6.5rem;
+  right: -0.1875rem;
+  width: 0.1875rem;
+  height: 3.25rem;
+  border-radius: 0 3px 3px 0;
+  background: var(--fr-bezel-edge);
+  box-shadow: 0 4.5rem 0 var(--fr-bezel-edge);
+}
+
+/* ─── Tablet ─── */
+
+.tablet {
+  max-width: 44rem;
+  padding: 0.875rem;
+  border-radius: 1.75rem;
+  background: var(--fr-bezel);
+  box-shadow: inset 0 0 0 1.5px var(--fr-bezel-edge), var(--fr-shadow);
+}
+.tablet .screen {
+  border-radius: 0.875rem;
+}
+
+/* ─── Desktop (Windows app window) ─── */
+
+.desktop {
+  overflow: hidden;
+  border: 1px solid rgb(203 213 225);
+  border-radius: 8px;
+  background: var(--fr-surface);
+  box-shadow: var(--fr-shadow);
+}
+.titleBar {
+  display: flex;
+  align-items: center;
+  height: 2rem;
+  padding-left: 0.75rem;
+  background: var(--fr-chrome);
+  border-bottom: 1px solid var(--fr-chrome-line);
+  font-size: 0.75rem;
+  color: var(--fr-muted);
+}
+.titleBar svg.appMark {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.5rem;
+}
+.appMarkBox {
+  fill: var(--fr-brand);
+}
+.appMarkStroke {
+  fill: none;
+  stroke: rgb(255 255 255);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.titleText {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.winControls {
+  display: flex;
+  height: 100%;
+}
+.winControls span {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 100%;
+}
+.winControls svg {
+  width: 0.625rem;
+  height: 0.625rem;
+  color: var(--fr-muted);
+}
+
+/* ─── Receipt (80 mm thermal paper, torn bottom) ─── */
+
+.receipt {
+  max-width: 18rem;
+  filter: drop-shadow(0 1px 1px rgb(15 23 42 / 0.08)) drop-shadow(0 12px 18px rgb(15 23 42 / 0.12));
+}
+.paper {
+  padding: 0.75rem 0.75rem 1.25rem;
+  background: var(--fr-surface);
+  -webkit-mask: conic-gradient(from -45deg at bottom, transparent, black 1deg 89deg, transparent 90deg) 50% / 0.875rem 100%;
+  mask: conic-gradient(from -45deg at bottom, transparent, black 1deg 89deg, transparent 90deg) 50% / 0.875rem 100%;
+}
+.paper .screen {
+  background: transparent;
+}
+
+/* ─── No frame ─── */
+
+.plain {
+  overflow: hidden;
+  border: 1px solid var(--fr-line);
+  border-radius: 14px;
+  box-shadow: var(--fr-shadow);
+}
+
+/* ─── Callouts ─── */
+
+.calloutLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.marker {
+  fill: var(--fr-brand-strong);
+  stroke: var(--fr-surface);
+  stroke-width: 2.5;
+}
+.markerText {
+  fill: rgb(255 255 255);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pulse {
+  fill: none;
+  stroke: var(--fr-brand);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: frPulse 2.4s var(--fr-ease-out) infinite both;
+  animation-play-state: paused;
+}
+.root[data-inview] .pulse {
+  animation-play-state: running;
+}
+.p1 { animation-delay: 0.3s; }
+.p2 { animation-delay: 0.6s; }
+.p3 { animation-delay: 0.9s; }
+.p4 { animation-delay: 1.2s; }
+.p5 { animation-delay: 1.5s; }
+
+@keyframes frPulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    display: none;
+  }
+}
+
+.legend {
+  display: grid;
+  gap: 0.5rem 1.5rem;
+  margin: 1.25rem auto 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--fr-ink);
+}
+@media (min-width: 40rem) {
+  .legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.legend li {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+}
+.legendNum {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-top: 0.0625rem;
+  border-radius: 9999px;
+  background: var(--fr-brand-strong);
+  color: rgb(255 255 255);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  margin: 0.875rem auto 0;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--fr-muted);
+  text-align: center;
+}
+
+/* ─── Dev placeholder (gallery only) ─── */
+
+.placeholder {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(180deg, rgb(248 250 252), rgb(241 245 249));
+}
+.ratioDesktop {
+  aspect-ratio: 16 / 10;
+}
+.ratioPhone {
+  aspect-ratio: 9 / 19;
+}
+.ratioTablet {
+  aspect-ratio: 4 / 3;
+}
+.ratioReceipt {
+  aspect-ratio: 80 / 150;
+}
+.phTop {
+  height: 0.75rem;
+  width: 40%;
+  border-radius: 9999px;
+  background: rgb(203 213 225);
+}
+.phGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: 0.625rem;
+  align-content: start;
+}
+.phGrid span {
+  height: 3.5rem;
+  border: 1px solid var(--fr-line);
+  border-radius: 0.625rem;
+  background: var(--fr-surface);
+}
+.phLabel {
+  align-self: end;
+  justify-self: center;
+  font-size: 0.75rem;
+  color: var(--fr-muted);
+}

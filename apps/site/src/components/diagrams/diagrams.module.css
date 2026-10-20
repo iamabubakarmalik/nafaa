@@ -1,0 +1,654 @@
+/*
+ * Diagram styles.
+ *
+ * Colours read the site tokens (src/styles/tokens.css, synced from apps/web)
+ * with literal channel fallbacks, so a diagram also renders on its own (the
+ * _dev gallery, tests). Neutrals mirror Tailwind's slate scale.
+ *
+ * Motion (ARCH 4.4):
+ * - Draw-in: a named view timeline on the figure drives node and edge
+ *   reveals while the figure scrolls into view. Zero JS. Without
+ *   scroll-driven animation support the diagram is simply fully drawn.
+ * - Loops (packets, pings, phase changes) are paused until MotionObserver
+ *   sets data-inview on the [data-animate] figure.
+ * - prefers-reduced-motion: every animation is removed and the static
+ *   state is the complete diagram. `.still` (spec.animate === false) does
+ *   the same for one diagram.
+ * Only transform, opacity and stroke-dashoffset are animated.
+ */
+
+.root {
+  --dg-brand: rgb(var(--brand-600, 5 150 105));
+  --dg-brand-strong: rgb(var(--brand-700, 4 120 87));
+  --dg-brand-deep: rgb(var(--brand-800, 6 95 70));
+  --dg-brand-soft: rgb(var(--brand-50, 236 253 245));
+  --dg-brand-tint: rgb(var(--brand-200, 167 243 208));
+  /* Text and icons on soft brand fills. */
+  --dg-brand-fg: rgb(var(--brand-700, 4 120 87));
+  /* --accent is RGB channels (the block's industry colour); packets and pings only. */
+  --dg-accent: rgb(var(--accent, var(--brand-500, 16 185 129)));
+  --dg-info: rgb(2 132 199);
+  --dg-info-strong: rgb(3 105 161);
+  --dg-info-soft: rgb(240 249 255);
+  --dg-info-tint: rgb(186 230 253);
+  --dg-warn: rgb(217 119 6);
+  --dg-warn-strong: rgb(180 83 9);
+  --dg-warn-soft: rgb(255 251 235);
+  --dg-warn-tint: rgb(253 230 138);
+  --dg-mark-dot: rgb(251 191 36);
+  --dg-white: rgb(255 255 255);
+  /* Neutrals follow the section theme variables (globals.css, --c-*). */
+  --dg-surface: rgb(var(--c-surface, 255 255 255));
+  --dg-canvas: rgb(var(--c-surface-2, 248 250 252));
+  --dg-ink: rgb(var(--c-fg, 15 23 42));
+  --dg-muted: rgb(var(--c-fg-muted, 71 85 105));
+  --dg-line: rgb(var(--c-line, 226 232 240));
+  --dg-edge: rgb(var(--c-line-strong, 203 213 225));
+  --dg-edge-strong: rgb(148 163 184);
+  --dg-dot: rgb(var(--c-fg, 15 23 42) / 0.09);
+  --dg-shadow: rgb(15 23 42 / 0.05);
+  --dg-ease: var(--ease-in-out, cubic-bezier(0.65, 0, 0.35, 1));
+  --dg-ease-out: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+
+  margin: 0;
+  color: var(--dg-ink);
+}
+
+/* Dark band: Section theme "ink" (automatic) or tone="ink". */
+:global(.theme-ink) .root,
+.ink {
+  --dg-surface: rgb(30 41 59);
+  --dg-canvas: rgb(15 23 42);
+  --dg-ink: rgb(241 245 249);
+  --dg-muted: rgb(203 213 225);
+  --dg-line: rgb(51 65 85);
+  --dg-edge: rgb(71 85 105);
+  --dg-edge-strong: rgb(100 116 139);
+  --dg-dot: rgb(255 255 255 / 0.07);
+  --dg-shadow: rgb(0 0 0 / 0.25);
+  --dg-brand-soft: rgb(var(--brand-950, 2 44 34));
+  --dg-brand-tint: rgb(var(--brand-800, 6 95 70));
+  --dg-brand-fg: rgb(var(--brand-300, 110 231 183));
+  --dg-info-soft: rgb(8 47 73);
+  --dg-info-tint: rgb(7 89 133);
+  --dg-info-strong: rgb(125 211 252);
+  --dg-warn-soft: rgb(69 26 3);
+  --dg-warn-tint: rgb(146 64 14);
+  --dg-warn-strong: rgb(252 211 77);
+}
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--dg-line);
+  border-radius: 20px;
+  background: var(--dg-canvas);
+}
+
+.bare .panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.svgH,
+.svgV {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: inherit;
+  overflow: visible;
+}
+
+.svgH {
+  display: none;
+}
+
+.svgV {
+  max-width: 26rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 56rem) {
+  .svgH {
+    display: block;
+  }
+  .svgV {
+    display: none;
+  }
+}
+
+.caption {
+  margin: 0.75rem auto 0;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--dg-muted);
+  text-align: center;
+}
+
+/* ─── Canvas ─── */
+
+.gridDot {
+  fill: var(--dg-dot);
+}
+.fadeStop {
+  stop-color: var(--dg-canvas);
+}
+.bare .gridBg,
+.bare .fadeBg {
+  display: none;
+}
+
+/* ─── Nodes ─── */
+
+.nodeShadow {
+  fill: var(--dg-shadow);
+}
+.nodeBox {
+  fill: var(--dg-surface);
+  stroke: var(--dg-line);
+  stroke-width: 1;
+}
+.tile {
+  fill: var(--dg-brand-soft);
+}
+.tileIcon {
+  color: var(--dg-brand-fg);
+}
+.label {
+  fill: var(--dg-ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.note {
+  fill: var(--dg-muted);
+  font-weight: 400;
+}
+.badge {
+  fill: var(--dg-muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.toneBrand .nodeBox {
+  fill: var(--dg-brand-strong);
+  stroke: var(--dg-brand-deep);
+}
+.toneBrand .label {
+  fill: var(--dg-white);
+}
+.toneBrand .note {
+  fill: rgb(255 255 255 / 0.82);
+}
+.toneBrand .tile {
+  fill: rgb(255 255 255 / 0.14);
+}
+.toneBrand .tileIcon {
+  color: var(--dg-white);
+}
+.toneInfo .tile {
+  fill: var(--dg-info-soft);
+}
+.toneInfo .tileIcon {
+  color: var(--dg-info-strong);
+}
+.toneWarn .tile {
+  fill: var(--dg-warn-soft);
+}
+.toneWarn .tileIcon {
+  color: var(--dg-warn-strong);
+}
+
+/* Nafaa mark (code-drawn version of public/logo.svg). */
+.markBox {
+  fill: var(--dg-brand);
+}
+.toneBrand .markBox {
+  fill: var(--dg-white);
+}
+.markStroke {
+  fill: none;
+  stroke: var(--dg-white);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.toneBrand .markStroke {
+  stroke: var(--dg-brand-strong);
+}
+.markDot {
+  fill: var(--dg-mark-dot);
+}
+
+.link {
+  cursor: pointer;
+  outline: none;
+}
+.link:hover .nodeBox,
+.link:focus-visible .nodeBox {
+  stroke: var(--dg-brand);
+  stroke-width: 2;
+}
+.link:focus-visible .nodeShadow {
+  fill: rgb(var(--brand-500, 16 185 129) / 0.35);
+}
+
+/* ─── Edges, pills, packets ─── */
+
+.edge {
+  fill: none;
+  stroke: var(--dg-edge);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.edgeBrand {
+  stroke: var(--dg-brand);
+}
+.edgeInfo {
+  stroke: var(--dg-info);
+}
+.edgeWarn {
+  stroke: var(--dg-warn);
+}
+.edgeDashed {
+  stroke-dasharray: 4 5;
+}
+.arrow {
+  fill: none;
+  stroke: var(--dg-edge-strong);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.arrowBrand {
+  stroke: var(--dg-brand);
+}
+.arrowInfo {
+  stroke: var(--dg-info);
+}
+.arrowWarn {
+  stroke: var(--dg-warn);
+}
+
+.pillBox {
+  fill: var(--dg-surface);
+  stroke: var(--dg-line);
+}
+.pillText {
+  fill: var(--dg-muted);
+  font-weight: 500;
+}
+.pillIcon {
+  color: var(--dg-muted);
+}
+.pillBrand .pillBox {
+  fill: var(--dg-brand-soft);
+  stroke: var(--dg-brand-tint);
+}
+.pillBrand .pillText {
+  fill: var(--dg-brand-fg);
+}
+.pillBrand .pillIcon {
+  color: var(--dg-brand-fg);
+}
+.pillInfo .pillBox {
+  fill: var(--dg-info-soft);
+  stroke: var(--dg-info-tint);
+}
+.pillInfo .pillText {
+  fill: var(--dg-info-strong);
+}
+.pillInfo .pillIcon {
+  color: var(--dg-info-strong);
+}
+.pillWarn .pillBox {
+  fill: var(--dg-warn-soft);
+  stroke: var(--dg-warn-tint);
+}
+.pillWarn .pillText {
+  fill: var(--dg-warn-strong);
+}
+.pillWarn .pillIcon {
+  color: var(--dg-warn-strong);
+}
+
+/* A packet is a short round-capped dash that travels along a copy of the edge. */
+.packet {
+  fill: none;
+  stroke: var(--dg-accent);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.08 1.4;
+  stroke-dashoffset: 0.08;
+  opacity: 0;
+  animation: dgPacket 4.8s linear infinite both;
+  animation-play-state: paused;
+}
+.packetInfo {
+  stroke: var(--dg-info);
+}
+.packetWarn {
+  stroke: var(--dg-warn);
+}
+.packetBrand {
+  stroke: var(--dg-brand);
+}
+
+.ping {
+  fill: none;
+  stroke: var(--dg-accent);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dgPing 4.8s var(--dg-ease-out) infinite both;
+  animation-play-state: paused;
+}
+
+/* Shared illustration pieces (receipt, ledger, queue). */
+.paper {
+  fill: var(--dg-surface);
+  stroke: var(--dg-line);
+}
+.inkLine {
+  fill: var(--dg-edge);
+}
+.inkLineStrong {
+  fill: var(--dg-edge-strong);
+}
+.qr {
+  fill: var(--dg-ink);
+}
+.check {
+  fill: none;
+  stroke: var(--dg-brand);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.barTrack {
+  fill: var(--dg-line);
+}
+.barFill {
+  fill: var(--dg-warn);
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+.queueItem {
+  fill: var(--dg-warn-tint);
+  stroke: var(--dg-warn);
+  stroke-width: 1;
+}
+.railDot {
+  fill: var(--dg-surface);
+  stroke: var(--dg-line);
+  stroke-width: 1.5;
+}
+.railDotBrand {
+  fill: var(--dg-surface);
+  stroke: var(--dg-brand);
+  stroke-width: 2.5;
+}
+.date {
+  fill: var(--dg-brand-fg);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Loop keyframes ─── */
+
+@keyframes dgPacket {
+  0% {
+    stroke-dashoffset: 0.08;
+    opacity: 0;
+    animation-timing-function: var(--dg-ease);
+  }
+  2% {
+    opacity: 1;
+  }
+  23% {
+    opacity: 1;
+  }
+  25% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+
+@keyframes dgPing {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  3% {
+    opacity: 0.9;
+  }
+  16% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+/* offline-sync: 8 s story. 0-50% offline (sales queue up), 50-100% synced. */
+.os .packet {
+  animation-name: osTravel;
+  animation-duration: 8s;
+}
+@keyframes osTravel {
+  0% {
+    stroke-dashoffset: 0.08;
+    opacity: 0;
+    animation-timing-function: var(--dg-ease);
+  }
+  1% {
+    opacity: 1;
+  }
+  13% {
+    opacity: 1;
+  }
+  14% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+.osOffline {
+  animation: osOffline 8s var(--dg-ease) infinite both;
+  animation-play-state: paused;
+}
+.osOnline {
+  animation: osOnline 8s var(--dg-ease) infinite both;
+  animation-play-state: paused;
+}
+@keyframes osOffline {
+  0%, 47% { opacity: 1; }
+  52%, 96% { opacity: 0.35; }
+  100% { opacity: 1; }
+}
+@keyframes osOnline {
+  0%, 47% { opacity: 0.35; }
+  52%, 96% { opacity: 1; }
+  100% { opacity: 0.35; }
+}
+.osItem0,
+.osItem1,
+.osItem2 {
+  animation: 8s linear infinite both;
+  animation-play-state: paused;
+}
+.osItem0 { animation-name: osItem0; }
+.osItem1 { animation-name: osItem1; }
+.osItem2 { animation-name: osItem2; }
+@keyframes osItem0 {
+  0%, 18% { opacity: 0; }
+  20%, 54% { opacity: 1; }
+  57%, 100% { opacity: 0; }
+}
+@keyframes osItem1 {
+  0%, 28% { opacity: 0; }
+  30%, 64% { opacity: 1; }
+  67%, 100% { opacity: 0; }
+}
+@keyframes osItem2 {
+  0%, 38% { opacity: 0; }
+  40%, 74% { opacity: 1; }
+  77%, 100% { opacity: 0; }
+}
+
+/* khata-cycle: the balance bar drops when the payment lands, refills on the next sale. */
+.khBar {
+  animation: khBar 4.8s var(--dg-ease) infinite both;
+  animation-play-state: paused;
+}
+.khCheck {
+  animation: khCheck 4.8s var(--dg-ease) infinite both;
+  animation-play-state: paused;
+}
+@keyframes khBar {
+  0%, 74% { transform: scaleX(1); }
+  80%, 96% { transform: scaleX(0.3); }
+  100% { transform: scaleX(1); }
+}
+@keyframes khCheck {
+  0%, 76% { opacity: 0; }
+  80%, 95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Loops run only while MotionObserver marks the figure as visible. */
+.root[data-inview] .packet,
+.root[data-inview] .ping,
+.root[data-inview] .osOffline,
+.root[data-inview] .osOnline,
+.root[data-inview] .osItem0,
+.root[data-inview] .osItem1,
+.root[data-inview] .osItem2,
+.root[data-inview] .khBar,
+.root[data-inview] .khCheck {
+  animation-play-state: running;
+}
+
+/* Tab hidden (MotionObserver sets data-motion-paused): every loop pauses. */
+:global(html[data-motion-paused]) .root :is(.packet, .ping, .osOffline, .osOnline, .osItem0, .osItem1, .osItem2, .khBar, .khCheck) {
+  animation-play-state: paused;
+}
+
+/* Delay steps, 0.4 s each. Declared after the shorthands above. */
+.d0 { animation-delay: 0s; }
+.d1 { animation-delay: 0.4s; }
+.d2 { animation-delay: 0.8s; }
+.d3 { animation-delay: 1.2s; }
+.d4 { animation-delay: 1.6s; }
+.d5 { animation-delay: 2s; }
+.d6 { animation-delay: 2.4s; }
+.d7 { animation-delay: 2.8s; }
+.d8 { animation-delay: 3.2s; }
+.d9 { animation-delay: 3.6s; }
+.d10 { animation-delay: 4s; }
+.d11 { animation-delay: 4.4s; }
+.d12 { animation-delay: 4.8s; }
+.d13 { animation-delay: 5.2s; }
+.d14 { animation-delay: 5.6s; }
+.d15 { animation-delay: 6s; }
+.d16 { animation-delay: 6.4s; }
+.d17 { animation-delay: 6.8s; }
+.d18 { animation-delay: 7.2s; }
+.d19 { animation-delay: 7.6s; }
+
+/* ─── Draw-in on scroll (zero JS) ─── */
+
+@keyframes dgRise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dgFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dgDraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .root:not(.still) {
+      view-timeline: --dg block;
+    }
+    .root:not(.still) .rise {
+      animation: dgRise linear both;
+      animation-timeline: --dg;
+      animation-range: entry 0% entry 60%;
+    }
+    .root:not(.still) .fade {
+      animation: dgFade linear both;
+      animation-timeline: --dg;
+      animation-range: entry 10% entry 70%;
+    }
+    .root:not(.still) .draw {
+      stroke-dasharray: 1;
+      animation: dgDraw linear both;
+      animation-timeline: --dg;
+      animation-range: entry 15% entry 85%;
+    }
+    .root:not(.still) .r1 { animation-range: entry 6% entry 66%; }
+    .root:not(.still) .r2 { animation-range: entry 12% entry 72%; }
+    .root:not(.still) .r3 { animation-range: entry 18% entry 78%; }
+    .root:not(.still) .r4 { animation-range: entry 24% entry 84%; }
+    .root:not(.still) .r5 { animation-range: entry 30% entry 90%; }
+    .root:not(.still) .r6 { animation-range: entry 34% entry 94%; }
+    .root:not(.still) .r7 { animation-range: entry 38% entry 98%; }
+    .root:not(.still) .r8 { animation-range: entry 40% entry 100%; }
+    .root:not(.still) .r9 { animation-range: entry 40% cover 55%; }
+  }
+}
+
+/* ─── Reduced motion and static diagrams ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .packet,
+  .ping {
+    display: none;
+  }
+}
+
+.still * {
+  animation: none !important;
+}
+.still .packet,
+.still .ping {
+  display: none;
+}
