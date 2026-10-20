@@ -25,7 +25,7 @@ function useShoeActions(): QuickAction[] {
     { to: '/shoe-products/new', icon: Plus, label: 'Naya joota', hint: 'Maal me daalein' },
     { to: '/shoe-products', icon: Footprints, label: 'Maal', hint: `${sh.totals.totalProducts} design` },
     { to: '/shoe/try-on', icon: HandMetal, label: 'Size farmaish', hint: sh.tryOn.pending ? `${sh.tryOn.pending} baqi` : 'Size ka intezar' },
-    { to: '/shoe/exchanges', icon: RefreshCw, label: 'Exchange', hint: sh.exchanges.requested ? `${sh.exchanges.requested} baqi` : 'Size badlein' },
+    { to: '/shoe/exchanges', icon: RefreshCw, label: 'Exchange', hint: 'Size badlein' },
     { to: '/shoe/brands', icon: Award, label: 'Brands', hint: `${sh.totals.totalBrands} brands` },
     { to: '/shoe/size-charts', icon: Ruler, label: 'Size charts', hint: 'UK / EU / US' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },

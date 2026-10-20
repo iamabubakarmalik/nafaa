@@ -13,6 +13,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { paging, r2, variantParts } from '../common/shoe-common';
 import { CreateTryOnDto } from './dto/create-tryon.dto';
 
@@ -25,7 +26,7 @@ const norm = (s?: string | null) => String(s ?? '').trim().toLowerCase();
 export class ShoeTryOnService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateTryOnDto) {
+  async create(user: AuthenticatedUser, dto: CreateTryOnDto, scope?: ShopScope) {
     if (dto.productId && !(await this.prisma.product.count({ where: { id: dto.productId, tenantId: user.tenantId } }))) {
       throw new BadRequestException('Joota is dukaan ka nahi');
     }
@@ -42,12 +43,14 @@ export class ShoeTryOnService {
     });
     const n = last ? parseInt(last.requestNumber.slice(prefix.length), 10) || 0 : 0;
     const requestNumber = `${prefix}${String(n + 1).padStart(4, '0')}`;
+    const shopId = await resolveIndustryShopId(this.prisma, user, scope?.shopId);
 
     return this.prisma.shoeTryOnRequest.create({
       data: {
         tenantId: user.tenantId,
         requestNumber,
         ...dto,
+        shopId,
         requestedSizes: sizes,
         scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
         status: 'PENDING',
@@ -60,6 +63,7 @@ export class ShoeTryOnService {
     const rows = await this.prisma.shoeTryOnRequest.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(scope.shopId && { AND: [scope.whereLoose] }),
         ...(status && { status }),
         ...(params.search && {
           OR: [
@@ -86,6 +90,7 @@ export class ShoeTryOnService {
     const s = q.search?.trim();
     const base: Prisma.ShoeTryOnRequestWhereInput = {
       tenantId: user.tenantId,
+      ...(scope.shopId && { AND: [scope.whereLoose] }),
       ...(s && {
         OR: [
           { requestNumber: { contains: s, mode: 'insensitive' } }, { customerName: { contains: s, mode: 'insensitive' } },
@@ -169,10 +174,11 @@ export class ShoeTryOnService {
     return this.prisma.shoeTryOnRequest.update({ where: { id }, data: { status: 'CANCELLED' } });
   }
 
-  async summary(user: AuthenticatedUser) {
-    const groups = await this.prisma.shoeTryOnRequest.groupBy({ by: ['status'], where: { tenantId: user.tenantId }, _count: { _all: true } });
+  async summary(user: AuthenticatedUser, scope?: ShopScope) {
+    const inBranch = { tenantId: user.tenantId, ...(scope?.shopId && { AND: [scope.whereLoose] }) };
+    const groups = await this.prisma.shoeTryOnRequest.groupBy({ by: ['status'], where: inBranch, _count: { _all: true } });
     const count = (s: string) => groups.find((g) => g.status === s)?._count._all ?? 0;
-    const conversion = await this.prisma.shoeTryOnRequest.count({ where: { tenantId: user.tenantId, status: 'COMPLETED', purchased: true } });
+    const conversion = await this.prisma.shoeTryOnRequest.count({ where: { ...inBranch, status: 'COMPLETED', purchased: true } });
     return { pending: count('PENDING'), scheduled: count('SCHEDULED'), completed: count('COMPLETED'), cancelled: count('CANCELLED'), conversion };
   }
 }

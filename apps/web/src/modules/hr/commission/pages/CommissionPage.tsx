@@ -19,8 +19,7 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import {
   Avatar, Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
-  heroButton, heroIconButton, heroPrimaryButton,
-} from '@/design-system/components';
+  heroButton, heroIconButton, heroPrimaryButton, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -140,12 +139,12 @@ export default function CommissionPage() {
     ]);
   };
 
-  const togglePerson = (p: CommissionPerson, on: boolean) => {
-    if (!on && !window.confirm(`${p.name} par commission band karein?\n\nIs ki commission har us mahine me 0 dikhegi jo abhi ada nahi hua.`)) return;
+  const togglePerson = async (p: CommissionPerson, on: boolean) => {
+    if (!on && !(await confirmDialog({ title: `${p.name} par commission band karein?`, text: 'Is ki commission har us mahine me 0 dikhegi jo abhi ada nahi hua.', danger: true }))) return;
     c.enroll.mutate({ userId: p.userId!, on, staffId: p.staff?.id });
   };
-  const undo = (r: { userId: string; name: string; paidAmount?: number | null }) => {
-    if (window.confirm(`${r.name} ki ${periodLabel(period)} ki payment (${formatPKR(r.paidAmount ?? 0)}) wapas lein?\n\nYe sirf record hatata hai — paise khud wapas lene honge.`)) c.undoPay.mutate(r.userId);
+  const undo = async (r: { userId: string; name: string; paidAmount?: number | null }) => {
+    if ((await confirmDialog({ title: `${r.name} ki ${periodLabel(period)} ki payment (${formatPKR(r.paidAmount ?? 0)}) wapas lein?`, text: 'Ye sirf record hatata hai — paise khud wapas lene honge.', danger: true }))) c.undoPay.mutate(r.userId);
   };
 
   const tabs = own

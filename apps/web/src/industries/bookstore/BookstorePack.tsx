@@ -1,7 +1,7 @@
-import { BookOpen, LayoutDashboard, Sparkles, Users, Building2, School, ClipboardList, Palette, Pencil, Timer } from 'lucide-react';
+import { BookOpen, LayoutDashboard, Plus, Users, Building2, School, ClipboardList, Palette, Pencil, Timer } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
+import { PERMISSIONS } from '@core/lib/permissions';
 
-// Existing pages
 import BookstoreDashboard from './dashboard/BookstoreDashboard';
 import BooksPage from './pages/BooksPage';
 import AuthorsPage from './pages/AuthorsPage';
@@ -11,17 +11,14 @@ import SchoolListsPage from './pages/SchoolListsPage';
 import StationeryPage from './pages/StationeryPage';
 import ArtSuppliesPage from './pages/ArtSuppliesPage';
 import RentalsPage from './pages/RentalsPage';
-
-// Wizard pages
 import BookstoreProductWizardPage from './pages/BookstoreProductWizardPage';
 import BookstoreProductDetailPage from './pages/BookstoreProductDetailPage';
 
 /**
- * Bookstore / Stationery / Art Supply industry pack.
- * Books (ISBN, authors, publishers, textbooks with grade/board),
- * stationery (pens, notebooks, files),
- * art supplies (paints, brushes, canvas).
- * Plus: school integrations, book rentals.
+ * Bookstore, stationery and art supplies: books with ISBN, authors and
+ * publishers (each linked to its supplier, whose discount fills purchase
+ * costs), textbooks by board and grade, school book lists sold as a set
+ * at the counter, and book rentals with a deposit.
  */
 export const BookstorePack: IndustryPack = {
   id: 'bookstore',
@@ -48,43 +45,41 @@ export const BookstorePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Bookstore Industry',
+      label: 'Bookstore',
       icon: BookOpen,
       emoji: '📚',
       color: '#d97706',
       order: 20,
       items: [
-        { to: '/bookstore-products/new', label: '+ Add Product', icon: Sparkles, badge: 'FAST' },
-        { to: '/bookstore/dashboard', label: 'Bookstore Dashboard', icon: LayoutDashboard },
-        { to: '/bookstore/books', label: 'Books', icon: BookOpen },
-        { to: '/bookstore/stationery', label: 'Stationery', icon: Pencil },
-        { to: '/bookstore/art-supplies', label: 'Art Supplies', icon: Palette },
-        { to: '/bookstore/authors', label: 'Authors', icon: Users },
-        { to: '/bookstore/publishers', label: 'Publishers', icon: Building2 },
-        { to: '/bookstore/schools', label: 'Schools', icon: School },
-        { to: '/bookstore/school-lists', label: 'School Book Lists', icon: ClipboardList },
-        { to: '/bookstore/rentals', label: 'Book Rentals', icon: Timer },
+        { to: '/bookstore/dashboard', label: 'Bookstore dashboard', icon: LayoutDashboard },
+        { to: '/bookstore-products/new', label: 'Nayi kitab / item', icon: Plus, permission: PERMISSIONS.PRODUCTS_CREATE },
+        { to: '/bookstore/books', label: 'Books', icon: BookOpen, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/stationery', label: 'Stationery', icon: Pencil, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/art-supplies', label: 'Art supplies', icon: Palette, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/authors', label: 'Authors', icon: Users, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/publishers', label: 'Publishers', icon: Building2, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/schools', label: 'Schools', icon: School, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/bookstore/school-lists', label: 'School book lists', icon: ClipboardList, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/rentals', label: 'Book rentals', icon: Timer, permission: PERMISSIONS.POS_USE },
       ],
     },
   ],
 
   routes: [
-    // Wizard + Detail — highest priority
-    { path: '/bookstore-products/new', element: BookstoreProductWizardPage },
-    { path: '/bookstore-products/:id/edit', element: BookstoreProductWizardPage },
-    { path: '/bookstore-products/:id', element: BookstoreProductDetailPage },
+    { path: '/bookstore-products/new', element: BookstoreProductWizardPage, permission: PERMISSIONS.PRODUCTS_CREATE },
+    { path: '/bookstore-products/:id/edit', element: BookstoreProductWizardPage, permission: PERMISSIONS.PRODUCTS_EDIT },
+    { path: '/bookstore-products/:id', element: BookstoreProductDetailPage, permission: PERMISSIONS.PRODUCTS_VIEW },
 
-    // Existing pages
     { path: '/bookstore', element: BookstoreDashboard },
     { path: '/bookstore/dashboard', element: BookstoreDashboard },
-    { path: '/bookstore/books', element: BooksPage },
-    { path: '/bookstore/stationery', element: StationeryPage },
-    { path: '/bookstore/art-supplies', element: ArtSuppliesPage },
-    { path: '/bookstore/authors', element: AuthorsPage },
-    { path: '/bookstore/publishers', element: PublishersPage },
-    { path: '/bookstore/schools', element: SchoolsPage },
-    { path: '/bookstore/school-lists', element: SchoolListsPage },
-    { path: '/bookstore/rentals', element: RentalsPage },
+    { path: '/bookstore/books', element: BooksPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/bookstore/stationery', element: StationeryPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/bookstore/art-supplies', element: ArtSuppliesPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/bookstore/authors', element: AuthorsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/bookstore/publishers', element: PublishersPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/bookstore/schools', element: SchoolsPage, permission: PERMISSIONS.CUSTOMERS_VIEW },
+    { path: '/bookstore/school-lists', element: SchoolListsPage, permission: PERMISSIONS.PRODUCTS_VIEW },
+    { path: '/bookstore/rentals', element: RentalsPage, permission: PERMISSIONS.POS_USE },
   ],
 
   dashboardComponent: BookstoreDashboard,

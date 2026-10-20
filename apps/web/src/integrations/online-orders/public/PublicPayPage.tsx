@@ -116,7 +116,7 @@ export default function PublicPayPage() {
                 )}
                 {walletWait && (
                   <div className="mt-4 rounded-xl bg-sky-50 p-3 text-center text-sm font-semibold text-sky-800">
-                    📱 Apne phone par {info.provider} ka paigham dekhein aur MPIN / approve karein… (1 minute tak)
+                    📱 Apne phone par {info.provider} ka message dekhein aur MPIN / approve karein… (1 minute tak)
                   </div>
                 )}
                 {walletMsg && <div className="mt-4 rounded-xl bg-sky-50 p-3 text-center text-sm font-semibold text-sky-800">{walletMsg}</div>}

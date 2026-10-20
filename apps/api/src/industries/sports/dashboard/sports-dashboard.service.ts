@@ -3,12 +3,19 @@ import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { startOfDayTz, endOfDayTz, subDaysTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
+
+/** Orders and repairs of the selected branch; rows saved before branches were tagged show everywhere. */
+const branchOf = (user: AuthenticatedUser, scope?: ShopScope) => ({
+  tenantId: user.tenantId, ...(scope?.shopId && { AND: [scope.whereLoose] }),
+});
 
 @Injectable()
 export class SportsDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async overview(user: AuthenticatedUser) {
+  async overview(user: AuthenticatedUser, scope?: ShopScope) {
+    const loose = branchOf(user, scope);
     const monthAgo = subDays(new Date(), 30);
     const todayStart = startOfDayTz();
     const todayEnd = endOfDayTz();
@@ -24,15 +31,15 @@ export class SportsDashboardService {
       }),
       this.prisma.sportsTeamOrder.count({
         where: {
-          tenantId: user.tenantId,
+          ...loose,
           status: { in: ['DRAFT', 'QUOTED', 'CONFIRMED', 'IN_PRODUCTION', 'READY'] },
         },
       }),
       this.prisma.sportsRepairService.count({
-        where: { tenantId: user.tenantId, status: { in: ['RECEIVED', 'IN_PROGRESS'] } },
+        where: { ...loose, status: { in: ['RECEIVED', 'IN_PROGRESS'] } },
       }),
       this.prisma.sportsRepairService.count({
-        where: { tenantId: user.tenantId, status: 'DELIVERED' },
+        where: { ...loose, status: 'DELIVERED' },
       }),
     ]);
 
@@ -40,7 +47,7 @@ export class SportsDashboardService {
     const [todayTeamOrders, todayRepairs] = await Promise.all([
       this.prisma.sportsTeamOrder.aggregate({
         where: {
-          tenantId: user.tenantId,
+          ...loose,
           createdAt: { gte: todayStart, lte: todayEnd },
         },
         _sum: { totalAmount: true, advancePaid: true },
@@ -48,7 +55,7 @@ export class SportsDashboardService {
       }),
       this.prisma.sportsRepairService.aggregate({
         where: {
-          tenantId: user.tenantId,
+          ...loose,
           receivedAt: { gte: todayStart, lte: todayEnd },
         },
         _sum: { finalCost: true, advancePaid: true },
@@ -60,7 +67,7 @@ export class SportsDashboardService {
     const [monthlyTeamOrders, monthlyRepairs] = await Promise.all([
       this.prisma.sportsTeamOrder.aggregate({
         where: {
-          tenantId: user.tenantId,
+          ...loose,
           createdAt: { gte: monthAgo },
           status: { not: 'CANCELLED' },
         },
@@ -69,7 +76,7 @@ export class SportsDashboardService {
       }),
       this.prisma.sportsRepairService.aggregate({
         where: {
-          tenantId: user.tenantId,
+          ...loose,
           receivedAt: { gte: monthAgo },
         },
         _sum: { finalCost: true, advancePaid: true },
@@ -86,7 +93,7 @@ export class SportsDashboardService {
 
     // Top brands: the shop's product brands by net sale in the last 30 days.
     const soldLines = await this.prisma.saleItem.findMany({
-      where: { sale: { tenantId: user.tenantId, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, createdAt: { gte: monthAgo } }, product: { brandId: { not: null } } },
+      where: { sale: { tenantId: user.tenantId, ...scope?.where, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] }, createdAt: { gte: monthAgo } }, product: { brandId: { not: null } } },
       select: { quantity: true, returnedQty: true, total: true, product: { select: { brandId: true } } },
     });
     const brandSales = new Map<string, number>();
@@ -116,7 +123,7 @@ export class SportsDashboardService {
     // Upcoming deliveries
     const upcomingTeamDeliveries = await this.prisma.sportsTeamOrder.findMany({
       where: {
-        tenantId: user.tenantId,
+        ...loose,
         status: { in: ['CONFIRMED', 'IN_PRODUCTION', 'READY'] },
         expectedDeliveryDate: {
           gte: new Date(),
@@ -130,7 +137,7 @@ export class SportsDashboardService {
     // Active repairs
     const activeRepairs = await this.prisma.sportsRepairService.findMany({
       where: {
-        tenantId: user.tenantId,
+        ...loose,
         status: { in: ['RECEIVED', 'IN_PROGRESS'] },
       },
       orderBy: { receivedAt: 'desc' },
@@ -140,7 +147,7 @@ export class SportsDashboardService {
     // Overdue repairs
     const overdueRepairs = await this.prisma.sportsRepairService.count({
       where: {
-        tenantId: user.tenantId,
+        ...loose,
         status: { in: ['RECEIVED', 'IN_PROGRESS'] },
         estimatedReadyAt: { lt: new Date() },
       },
@@ -185,7 +192,8 @@ export class SportsDashboardService {
     };
   }
 
-  async salesReport(user: AuthenticatedUser, from: string, to: string) {
+  async salesReport(user: AuthenticatedUser, from: string, to: string, scope?: ShopScope) {
+    const loose = branchOf(user, scope);
     // Dates are shop days (Pakistan time); a missing range means the last 30 days.
     const start = from ? startOfDayTz(new Date(from)) : startOfDayTz(subDaysTz(new Date(), 30));
     const end = to ? endOfDayTz(new Date(to)) : endOfDayTz();
@@ -193,7 +201,7 @@ export class SportsDashboardService {
     const [teamOrders, repairs] = await Promise.all([
       this.prisma.sportsTeamOrder.findMany({
         where: {
-          tenantId: user.tenantId,
+          ...loose,
           createdAt: { gte: start, lte: end },
           status: { not: 'CANCELLED' },
         },
@@ -201,7 +209,7 @@ export class SportsDashboardService {
       }),
       this.prisma.sportsRepairService.findMany({
         where: {
-          tenantId: user.tenantId,
+          ...loose,
           receivedAt: { gte: start, lte: end },
         },
         orderBy: { receivedAt: 'desc' },

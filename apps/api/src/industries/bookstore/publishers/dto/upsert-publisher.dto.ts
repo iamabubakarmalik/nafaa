@@ -16,4 +16,6 @@ export class UpsertPublisherDto {
   @ApiPropertyOptional() @IsOptional() @IsString() paymentTerms?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) creditDays?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  /** Supplier used for purchases from this publisher; null unlinks it. */
+  @ApiPropertyOptional() @IsOptional() @IsString() supplierId?: string | null;
 }

@@ -3,6 +3,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { FurnitureProductsService } from './products.service';
 import { UpsertFurnitureProductDto } from './dto/upsert-furniture-product.dto';
 
@@ -13,7 +15,7 @@ import { UpsertFurnitureProductDto } from './dto/upsert-furniture-product.dto';
 export class FurnitureProductsController {
   constructor(private readonly service: FurnitureProductsService) {}
 
-  @Post() upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertFurnitureProductDto) { return this.service.upsert(user, dto); }
+  @Post() @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT) upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertFurnitureProductDto) { return this.service.upsert(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser,
     @Query('categoryType') categoryType?: string,
     @Query('conditionType') conditionType?: string,
@@ -42,5 +44,6 @@ export class FurnitureProductsController {
   @Get('showroom-layout') showroom(@GetUser() user: AuthenticatedUser) { return this.service.showroomLayout(user); }
   @Get('by-product/:productId') byProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) { return this.service.byProduct(user, productId); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
+  /** Removes only the furniture details of a product, never the product. */
+  @Delete(':id') @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT) remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

@@ -321,7 +321,7 @@ export default function AttendancePage() {
         <PageGuide title="Hazri — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: LogIn, color: '#16a34a', title: 'Check-in / check-out', text: 'Staff aaye to "Check-in", jaye to "Check-out" dabayein. Waqt dukaan ki ghari se lagta hai; do dafa dabane se waqt nahi badalta.' },
-            { icon: AlarmClock, color: '#d97706', title: 'Late khud ginta hai', text: 'Dukaan khulne ke waqt (Settings → Zubaan aur waqt) ke baad check-in late ginta hai. Thori der ki chhoot hai; us ke baad poore minute gine jate hain.' },
+            { icon: AlarmClock, color: '#d97706', title: 'Late khud ginta hai', text: 'Dukaan khulne ke waqt (Settings → Zubaan aur waqt) ke baad check-in late ginta hai. Thori der ki discount hai; us ke baad poore minute gine jate hain.' },
             { icon: PencilLine, color: '#2563eb', title: 'Hazri theek karein', text: 'Malik ya manager kisi bhi din ka haal aur waqt badal sakta hai. Wajah likhna zaroori hai aur badli hui cheez activity log me jati hai.' },
             { icon: CalendarDays, color: '#7c3aed', title: 'Mahina', text: 'Har banda ek line, har din ek khana. Daayein taraf kaam ke din, late, ghair hazir, chhutti aur overtime — tankhwah banane ke liye. Staff filter me ek banda chunein to us ka poora calendar dikhta hai.' },
             { icon: Palmtree, color: '#db2777', title: 'Chhutiyan', text: 'Chhutti likhein, phir manzoor ya na-manzoor karein. Manzoor chhutti ke din sheet par khud "C" dikhta hai; bina tankhwah wali alag gini jati hai.' },

@@ -195,7 +195,7 @@ export default function MembersPage() {
         <PageGuide title="Members — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: UserPlus, color: '#2563eb', title: 'Naya member', text: 'Naam, phone, CNIC, emergency contact aur photo. Sath hi plan chunein aur jo paisa mila likhein — baqi khate me udhaar.' },
-            { icon: AlarmClock, color: '#d97706', title: 'Jald khatam', text: '7 din me khatam hone wali memberships. WhatsApp ka button dabayein — yaad dihani ka paigham tayyar milta hai.' },
+            { icon: AlarmClock, color: '#d97706', title: 'Jald khatam', text: '7 din me khatam hone wali memberships. WhatsApp ka button dabayein — yaad dihani ka message tayyar milta hai.' },
             { icon: RefreshCw, color: '#16a34a', title: 'Renew', text: 'Renew pichli membership ke baad se shuru hota hai, is liye jaldi renew karne wale ka koi din zaya nahi hota. Admission dobara nahi lagti.' },
             { icon: HandCoins, color: '#ca8a04', title: 'Fee baqi', text: '"Fee lein" se baqi paisa lein. Cash drawer me, JazzCash ya bank apne account me ginta hai.' },
           ]}

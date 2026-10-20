@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -68,7 +69,7 @@ function GatewayCard({ g }: { g: PayGatewayAccount }) {
           <span className="flex-1" />
           <Btn size="sm" variant="plain" onClick={() => setOpen((v) => !v)}>{open ? 'Rehne dein' : 'Nayi key'}</Btn>
           <Btn size="sm" variant="plain" className="text-rose-600" loading={remove.isPending} icon={<Unplug className="h-3.5 w-3.5" />}
-            onClick={() => { if (confirm(`${g.name} hatayein? Purane links kaam karna band kar denge.`)) remove.mutate(); }}>Hatayein</Btn>
+            onClick={async () => { if ((await confirmDialog({ title: `${g.name} hatayein?`, text: 'Purane links kaam karna band kar denge.', danger: true }))) remove.mutate(); }}>Hatayein</Btn>
         </div>
       )}
       {g.connected && g.env === 'sandbox' && (

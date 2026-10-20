@@ -15,8 +15,7 @@ import {
 } from 'lucide-react';
 import {
   Alert, Badge, Button, Card, FilterBar, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Segmented, Skeleton, ViewTabs,
-  heroButton, heroIconButton, type BadgeVariant,
-} from '@/design-system/components';
+  heroButton, heroIconButton, type BadgeVariant, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { apiErrorMessage, couriersApi, type CourierAccount, type CourierShipment } from '../api/online-orders.api';
@@ -527,7 +526,7 @@ function ConnectionTab({ c, onConnected }: { c: CourierAccount; onConnected: () 
             <Button size="sm" variant="secondary" loading={test.isPending} leftIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Check karein</Button>
             <Button size="sm" variant="ghost" leftIcon={<KeyRound className="h-3.5 w-3.5" />} onClick={() => setReplace((v) => !v)}>{replace ? 'Rehne dein' : 'Nayi key'}</Button>
             <Button size="sm" variant="critical" loading={disconnect.isPending} leftIcon={<Unplug className="h-3.5 w-3.5" />}
-              onClick={() => { if (window.confirm(`${c.name} hatayein? Book parcels ki tracking ruk jayegi (orders waise hi rahenge).`)) disconnect.mutate(); }}>
+              onClick={async () => { if ((await confirmDialog({ title: `${c.name} hatayein?`, text: 'Book parcels ki tracking ruk jayegi (orders waise hi rahenge).', danger: true }))) disconnect.mutate(); }}>
               Hatayein
             </Button>
           </div>

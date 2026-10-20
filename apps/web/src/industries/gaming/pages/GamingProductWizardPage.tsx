@@ -1,320 +1,218 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Gamepad2,
-  Plus, AlertTriangle, Trash2, Eye, Edit3,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { useGamingWizard, type WizardStep } from '../hooks/useGamingWizard';
-import { GamingWizardStepper } from '../components/wizard/GamingWizardStepper';
-import { GamingWizardStep1Basic } from '../components/wizard/GamingWizardStep1Basic';
-import { GamingWizardStep2Details } from '../components/wizard/GamingWizardStep2Details';
-import { GamingWizardStep3Rental } from '../components/wizard/GamingWizardStep3Rental';
-import { GamingWizardStep4Stock } from '../components/wizard/GamingWizardStep4Stock';
-import { GamingWizardSummary } from '../components/wizard/GamingWizardSummary';
-import { saveGamingWizard, type GamingWizardSaveResult } from '../api/gaming-wizard.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { gamingProductsApi } from '../api/products.api';
+/**
+ * Gaming item editor on the shared product editor: what it is (console,
+ * game, accessory, PC part), platform and condition, game facts (publisher,
+ * genre, region, age rating), hardware facts (storage, controllers, what is
+ * in the box), rental rates and deposit, and pre-order / featured marks.
+ * Editions (PS4/PS5) and colours are variants.
+ */
 
-export default function GamingProductWizardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+import { CalendarClock, Disc3, Gamepad2, PackageOpen, Sparkles, Star } from 'lucide-react';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { Chip, NumberField, Section, TextField, Tiles, Toggle } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { Input } from '@/design-system/components';
+import { gamingProductsApi, type GamingConditionType, type GamingConsolePlatform, type GamingProductProfile } from '../api/products.api';
+import { CATEGORY_GROUPS, CONDITIONS, GAMING_KEYS, PLATFORMS, categoryGroup, categoryLabel } from '../lib/meta';
 
-  const {
-    draft, draftRestored, validation, stats,
-    goToStep, nextStep, prevStep,
-    updateBasic, updateDetails, updateRental,
-    setHasVariants, addVariant, updateVariant, removeVariant,
-    updateStock, reset,
-  } = useGamingWizard({ autoLoadDraft: !isEdit });
+interface GamingExtra {
+  categoryType: string;
+  platform: GamingConsolePlatform; conditionType: GamingConditionType;
+  publisher: string; genre: string[]; ageRating: string; region: string; playerCount: string; onlineMultiplayer: boolean;
+  storageCapacity: string; numberOfControllers: number | null; includedAccessories: string[]; gpuModel: string; cpuModel: string; ramSpec: string;
+  isRentable: boolean; rentalPricePerDay: number | null; rentalPricePerHour: number | null; rentalDeposit: number | null;
+  mrp: number | null; tradeInValue: number | null;
+  isFeatured: boolean; isNewRelease: boolean; isPreOrder: boolean; preOrderReleaseDate: string; notes: string;
+}
 
-  const [savedResult, setSavedResult] = useState<GamingWizardSaveResult | null>(null);
-  const [editLoaded, setEditLoaded] = useState(false);
+const initial: GamingExtra = {
+  categoryType: '', platform: 'MULTI', conditionType: 'NEW_SEALED',
+  publisher: '', genre: [], ageRating: '', region: '', playerCount: '', onlineMultiplayer: false,
+  storageCapacity: '', numberOfControllers: null, includedAccessories: [], gpuModel: '', cpuModel: '', ramSpec: '',
+  isRentable: false, rentalPricePerDay: null, rentalPricePerHour: null, rentalDeposit: null,
+  mrp: null, tradeInValue: null, isFeatured: false, isNewRelease: false, isPreOrder: false, preOrderReleaseDate: '', notes: '',
+};
 
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product-for-gaming-wizard', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
-  const { data: existingProfile } = useQuery({
-    queryKey: ['gaming-profile-for-wizard', id],
-    queryFn: () => gamingProductsApi.byProduct(id!),
-    enabled: isEdit,
-  });
+const GENRES = ['Action', 'Sports', 'Racing', 'Shooter', 'Adventure', 'RPG', 'Fighting', 'Kids', 'Horror', 'Open world'];
+const REGIONS = ['Asia', 'US', 'EU', 'UK', 'Japan', 'Region free'];
+const AGES = ['3+', '7+', '12+', '16+', '18+'];
+const IN_BOX = ['Controller', 'HDMI cable', 'Power cable', 'Charging cable', 'Headset', 'Game', 'Stand'];
+const PUBLISHERS = ['EA', 'Sony', 'Ubisoft', 'Rockstar', 'Activision', 'Konami', 'Capcom', 'Microsoft', 'Nintendo'];
+const opt = (v: string) => v.trim() || undefined;
+const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
+const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
-  useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
-
-    updateBasic({
-      name: existingProduct.name,
-      description: existingProduct.description ?? '',
-      categoryId: existingProduct.categoryId ?? '',
-      categoryType: existingProfile?.categoryType ?? 'GAME_DISC',
-      platform: existingProfile?.platform ?? 'PS5',
-      conditionType: existingProfile?.conditionType ?? 'NEW_SEALED',
-      sku: existingProduct.sku ?? '',
-      barcode: existingProduct.barcode ?? '',
-      costPrice: existingProduct.costPrice ?? 0,
-      retailPrice: existingProduct.price ?? 0,
-      discountedPrice: existingProfile?.discountedPrice ?? '',
-      usedPrice: existingProfile?.usedPrice ?? '',
-      tradeInValue: existingProfile?.tradeInValue ?? '',
-      mrp: existingProfile?.mrp ?? '',
-      taxRate: existingProduct.taxRate ?? 0,
-      isActive: existingProduct.isActive,
-      isFeatured: existingProduct.isFeatured,
-      isBestSeller: existingProfile?.isBestSeller ?? false,
-      isNewRelease: existingProfile?.isNewRelease ?? false,
-      imageUrls: (existingProduct.images ?? []).map((i: any) => i?.url).filter(Boolean),
-      tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
-      notes: existingProfile?.notes ?? '',
-    });
-
-    if (existingProfile) {
-      updateDetails({
-        publisher: existingProfile.publisher ?? '',
-        developer: existingProfile.developer ?? '',
-        genre: existingProfile.genre ?? [],
-        ageRating: existingProfile.ageRating ?? '',
-        playerCount: existingProfile.playerCount ?? '',
-        onlineMultiplayer: existingProfile.onlineMultiplayer ?? false,
-        requiresInternet: existingProfile.requiresInternet ?? false,
-        gameFileSize: existingProfile.gameFileSize ?? '',
-        releaseDate: existingProfile.releaseDate ? existingProfile.releaseDate.slice(0, 10) : '',
-        region: existingProfile.region ?? '',
-        language: existingProfile.language ?? [],
-        storageCapacity: existingProfile.storageCapacity ?? '',
-        memoryRam: existingProfile.memoryRam ?? '',
-        processor: existingProfile.processor ?? '',
-        graphicsCard: existingProfile.graphicsCard ?? '',
-        displaySpec: existingProfile.displaySpec ?? '',
-        includedAccessories: existingProfile.includedAccessories ?? [],
-        numberOfControllers: existingProfile.numberOfControllers ?? 1,
-        gpuModel: existingProfile.gpuModel ?? '',
-        cpuModel: existingProfile.cpuModel ?? '',
-        ramSpec: existingProfile.ramSpec ?? '',
-        formFactor: existingProfile.formFactor ?? '',
-        power: existingProfile.power ?? '',
-        socket: existingProfile.socket ?? '',
-        chipset: existingProfile.chipset ?? '',
-        trailerUrl: existingProfile.trailerUrl ?? '',
-        screenshots: existingProfile.screenshots ?? [],
-      });
-      updateRental({
-        isRentable: existingProfile.isRentable ?? false,
-        rentalPricePerHour: existingProfile.rentalPricePerHour ?? '',
-        rentalPricePerDay: existingProfile.rentalPricePerDay ?? '',
-        rentalDeposit: existingProfile.rentalDeposit ?? '',
-        isPreOrder: existingProfile.isPreOrder ?? false,
-        preOrderReleaseDate: existingProfile.preOrderReleaseDate ? existingProfile.preOrderReleaseDate.slice(0, 10) : '',
-      });
-    }
-
-    setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDetails, updateRental]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => saveGamingWizard(draft, isEdit ? id : undefined),
-    onSuccess: (result) => {
-      setSavedResult(result);
-      queryClient.invalidateQueries({ queryKey: ['gaming-products-list'] });
-      queryClient.invalidateQueries({ queryKey: ['gaming-profiles-all'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success(`${result.productName} ${isEdit ? 'updated' : 'created'}`);
-      if (!isEdit) reset();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to save'),
-  });
-
-  const currentValidation =
-    draft.step === 1 ? validation.step1 :
-    draft.step === 2 ? validation.step2 :
-    draft.step === 3 ? validation.step3 : validation.step4;
-
-  const canGoNext = currentValidation.valid && draft.step < 4;
-  const canSave = validation.allValid;
-
-  if (isEdit && !editLoaded && !existingProduct) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (savedResult) {
-    return (
-      <div className="max-w-2xl mx-auto py-12 space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-violet-50 to-fuchsia-50 border-2 border-violet-300 p-8 text-center shadow-xl">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-violet-600 to-fuchsia-700 text-white flex items-center justify-center shadow-xl mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-violet-900">
-            Product {isEdit ? 'Updated' : 'Created'}
-          </h1>
-          <p className="text-violet-800 font-semibold mt-1">
-            <strong>{savedResult.productName}</strong> is live in your catalogue
-          </p>
-          <div className="grid grid-cols-3 gap-3 mt-6">
-            <SuccessStat label="Profile" value={savedResult.profileCreated ? '✓' : '—'} />
-            <SuccessStat label="Editions" value={savedResult.variantCount} />
-            <SuccessStat label="Stock" value={savedResult.totalStock} />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <button onClick={() => { setSavedResult(null); reset(); window.scrollTo({ top: 0, behavior: 'smooth' }); if (isEdit) navigate('/gaming-products/new'); }}
-            className="rounded-2xl bg-violet-600 hover:bg-violet-700 text-white p-5 flex flex-col items-center gap-2 shadow-md transition">
-            <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another</div>
-          </button>
-          <button onClick={() => navigate(`/gaming-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-violet-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Eye className="h-6 w-6 text-violet-600" />
-            <div className="font-extrabold text-slate-900">View Product</div>
-          </button>
-          <button onClick={() => navigate('/gaming-products')}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-violet-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Gamepad2 className="h-6 w-6 text-violet-600" />
-            <div className="font-extrabold text-slate-900">All Products</div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+function Kind({ ctx }: { ctx: StepContext<GamingExtra> }) {
+  const x = ctx.draft.extra;
   return (
-    <div className="space-y-5 pb-24">
-      {draftRestored && !isEdit && (
-        <div className="rounded-2xl bg-violet-50 border-2 border-violet-200 p-3 flex items-center gap-3 flex-wrap">
-          <Sparkles className="h-4 w-4 text-violet-700" />
-          <div className="text-xs text-violet-900 flex-1 min-w-0">
-            <strong>Draft restored</strong> — your previous entries were loaded
+    <div className="space-y-2">
+      <span className="block text-[0.8125rem] font-medium text-slate-700">Ye kya hai</span>
+      {CATEGORY_GROUPS.map((g) => (
+        <div key={g.id}>
+          <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">{g.label}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {g.items.map(([v, l]) => <Chip key={v} on={x.categoryType === v} onClick={() => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })}>{l}</Chip>)}
           </div>
-          <button onClick={() => { if (confirm('Discard the draft and start fresh?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200">
-            <Trash2 className="h-3 w-3" /> Fresh Start
-          </button>
+        </div>
+      ))}
+      <p className="text-[0.75rem] text-slate-500">Isi se counter ke filter (Games, Consoles, Accessories) chalte hain. Top-up card yahan nahi — Top-ups page par daalein.</p>
+    </div>
+  );
+}
+
+function Details({ ctx }: { ctx: StepContext<GamingExtra> }) {
+  const x = ctx.draft.extra;
+  const set = ctx.setExtra;
+  const group = categoryGroup(x.categoryType || null);
+  return (
+    <div className="space-y-4">
+      <Section icon={Gamepad2} title="Platform aur halat" hint="Counter aur bill par naam ke neeche dikhta hai">
+        <Tiles value={x.platform} onChange={(platform) => set({ platform })} columns="grid-cols-3 sm:grid-cols-6"
+          options={(['PS5', 'PS4', 'XBOX_SERIES_X', 'XBOX_ONE', 'NINTENDO_SWITCH', 'PC', 'MOBILE', 'MULTI'] as GamingConsolePlatform[]).map((p) => ({ value: p, label: PLATFORMS[p] }))} />
+        <div className="mt-3">
+          <Tiles value={x.conditionType} onChange={(conditionType) => set({ conditionType })} columns="grid-cols-2 sm:grid-cols-5"
+            options={(Object.keys(CONDITIONS) as GamingConditionType[]).map((c) => ({ value: c, label: CONDITIONS[c].label }))} />
+        </div>
+      </Section>
+      {(group === 'game' || !group) && (
+        <Section icon={Disc3} title="Game ki details" hint="Marzi hai — search aur counter par kaam aati hain">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextField label="Company (publisher)" value={x.publisher} onChange={(publisher) => set({ publisher })} placeholder="EA, Sony, Rockstar" />
+            <TextField label="Kitne player" value={x.playerCount} onChange={(playerCount) => set({ playerCount })} placeholder="1-4" />
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">{PUBLISHERS.map((v) => <Chip key={v} on={x.publisher === v} onClick={() => set({ publisher: x.publisher === v ? '' : v })}>{v}</Chip>)}</div>
+          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">Genre</p>
+          <div className="flex flex-wrap gap-1.5">{GENRES.map((v) => <Chip key={v} on={x.genre.includes(v)} onClick={() => set({ genre: toggle(x.genre, v) })}>{v}</Chip>)}</div>
+          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">Region · umar</p>
+          <div className="flex flex-wrap gap-1.5">
+            {REGIONS.map((v) => <Chip key={v} on={x.region === v} onClick={() => set({ region: x.region === v ? '' : v })}>{v}</Chip>)}
+            {AGES.map((v) => <Chip key={v} on={x.ageRating === v} onClick={() => set({ ageRating: x.ageRating === v ? '' : v })}>{v}</Chip>)}
+          </div>
+          <div className="mt-3"><Toggle on={x.onlineMultiplayer} onChange={(onlineMultiplayer) => set({ onlineMultiplayer })} title="Online multiplayer" hint="Internet par doston ke saath" /></div>
+        </Section>
+      )}
+      {(group === 'console' || group === 'pc' || group === 'gear') && (
+        <Section icon={Sparkles} title="Hardware" hint="Storage, controller aur dabbe me kya hai">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <TextField label="Storage" value={x.storageCapacity} onChange={(storageCapacity) => set({ storageCapacity })} placeholder="825GB, 1TB" />
+            <NumberField label="Controller" allowEmpty value={x.numberOfControllers} onChange={(v) => set({ numberOfControllers: v == null ? null : Math.max(0, Math.round(v)) })} />
+            {group === 'pc' && <TextField label="GPU / CPU / RAM" value={x.gpuModel} onChange={(gpuModel) => set({ gpuModel })} placeholder="RTX 4060 · i5 · 16GB" />}
+          </div>
+          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">Dabbe me</p>
+          <div className="flex flex-wrap gap-1.5">{IN_BOX.map((v) => <Chip key={v} on={x.includedAccessories.includes(v)} onClick={() => set({ includedAccessories: toggle(x.includedAccessories, v) })}>{v}</Chip>)}</div>
+        </Section>
+      )}
+    </div>
+  );
+}
+
+function Rental({ ctx }: { ctx: StepContext<GamingExtra> }) {
+  const x = ctx.draft.extra;
+  const set = ctx.setExtra;
+  return (
+    <div className="space-y-4">
+      <Toggle on={x.isRentable} onChange={(isRentable) => set({ isRentable })} icon={PackageOpen} title="Kiraye par deta hun" hint="Rentals page par ye cheez aur is ka rate khud aata hai" />
+      {x.isRentable && (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <NumberField label="Rozana kiraya" prefix="Rs" allowEmpty value={x.rentalPricePerDay} onChange={(rentalPricePerDay) => set({ rentalPricePerDay })} error={ctx.errors.rent} />
+          <NumberField label="Ghante ka kiraya" prefix="Rs" allowEmpty value={x.rentalPricePerHour} onChange={(rentalPricePerHour) => set({ rentalPricePerHour })} hint="Marzi hai" />
+          <NumberField label="Security deposit" prefix="Rs" allowEmpty value={x.rentalDeposit} onChange={(rentalDeposit) => set({ rentalDeposit })} hint="Wapsi par lauta dete hain" />
         </div>
       )}
-
-      {isEdit && (
-        <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-3">
-          <Edit3 className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 flex-1">
-            <div className="font-extrabold mb-0.5">Edit mode</div>
-            <div className="font-semibold">Basic info, specs and rental settings can be edited. New editions will be added on save.</div>
+      <Section icon={Star} title="Nishan" hint="Counter aur list par">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Toggle on={x.isFeatured} onChange={(isFeatured) => set({ isFeatured })} title="Khaas" hint="Aage dikhayein" />
+          <Toggle on={x.isNewRelease} onChange={(isNewRelease) => set({ isNewRelease })} title="Naya aaya" />
+          <Toggle on={x.isPreOrder} onChange={(isPreOrder) => set({ isPreOrder })} icon={CalendarClock} title="Pre-order" hint="Abhi aaya nahi" />
+        </div>
+        {x.isPreOrder && (
+          <div className="mt-3 max-w-xs">
+            <Input label="Kab aayega" type="date" value={x.preOrderReleaseDate} onChange={(e) => set({ preOrderReleaseDate: e.target.value })} hint="Customer ko bata sakein" />
           </div>
-        </div>
-      )}
-
-      <button onClick={() => navigate(isEdit ? `/gaming-products/${id}` : '/gaming/dashboard')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-violet-600 font-bold transition">
-        <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Dashboard'}
-      </button>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-fuchsia-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <Gamepad2 className="h-3.5 w-3.5 text-amber-300" />
-            {isEdit ? 'Editing Gaming Product' : 'Gaming Product Wizard'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? draft.basic.name || 'Edit Product' : 'Add New Gaming Product'}
-          </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-xl">
-            Games, consoles, PC parts, rentals and pre-orders — all in one flow.
-          </p>
-        </div>
-      </section>
-
-      <GamingWizardStepper
-        currentStep={draft.step}
-        stepValidation={validation}
-        onStepClick={(s) => {
-          if (s === 1) goToStep(1);
-          else if (s === 2 && validation.step1.valid) goToStep(s as WizardStep);
-          else if (s === 3 && validation.step1.valid && validation.step2.valid) goToStep(s as WizardStep);
-          else if (s === 4 && validation.step1.valid && validation.step2.valid && validation.step3.valid) goToStep(s as WizardStep);
-        }}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-        <div className="min-w-0">
-          {draft.step === 1 && (
-            <GamingWizardStep1Basic basic={draft.basic} onChange={updateBasic} errors={validation.step1.errors} />
-          )}
-          {draft.step === 2 && (
-            <GamingWizardStep2Details details={draft.details} onChange={updateDetails}
-              categoryType={draft.basic.categoryType} errors={validation.step2.errors} />
-          )}
-          {draft.step === 3 && (
-            <GamingWizardStep3Rental rental={draft.rental} onChange={updateRental}
-              retailPrice={Number(draft.basic.retailPrice || 0)} errors={validation.step3.errors} />
-          )}
-          {draft.step === 4 && (
-            <GamingWizardStep4Stock
-              basic={draft.basic}
-              hasVariants={draft.hasVariants}
-              onToggleVariants={setHasVariants}
-              variants={draft.variants}
-              stock={draft.stock}
-              onAddVariant={addVariant}
-              onUpdateVariant={updateVariant}
-              onRemoveVariant={removeVariant}
-              onUpdateStock={updateStock}
-              errors={validation.step4.errors}
-            />
-          )}
-        </div>
-
-        <GamingWizardSummary draft={draft} stats={stats} allValid={canSave} />
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
-          <button onClick={prevStep} disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-extrabold transition disabled:opacity-40">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
-          <div className="text-xs font-extrabold text-slate-500 hidden sm:block">
-            Step {draft.step} of 4
-            {!currentValidation.valid && (
-              <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
-                <AlertTriangle className="h-3 w-3" /> {currentValidation.errors[0]}
-              </span>
-            )}
-          </div>
-
-          {draft.step < 4 ? (
-            <button onClick={nextStep} disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-700 hover:from-violet-700 hover:to-fuchsia-700 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}
-              disabled={!canSave} className="bg-gradient-to-r from-violet-600 to-fuchsia-700">
-              <Save className="h-4 w-4" />
-              {isEdit ? 'Save Changes' : `Save Product (${stats.totalStock} units)`}
-            </Button>
-          )}
-        </div>
+        )}
+      </Section>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <NumberField label="MRP (company rate)" prefix="Rs" allowEmpty value={x.mrp} onChange={(mrp) => set({ mrp })} hint="Marzi hai — counter par sale ka hisaab" />
+        <NumberField label="Wapas lene ka rate (trade-in)" prefix="Rs" allowEmpty value={x.tradeInValue} onChange={(tradeInValue) => set({ tradeInValue })} hint="Customer purana de to kitne me lenge" />
       </div>
     </div>
   );
 }
 
-function SuccessStat({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="rounded-xl bg-white border-2 border-violet-200 p-3">
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700">{label}</div>
-      <div className="text-2xl font-extrabold text-violet-900 tabular-nums mt-0.5">{value}</div>
-    </div>
-  );
+const core: CoreOptions = {
+  units: [{ value: 'pcs', label: 'Adad (pcs)' }, { value: 'set', label: 'Set' }, { value: 'box', label: 'Dabba' }],
+  skuPrefix: 'GM',
+  packs: false,
+  variants: { presets: [{ group: 'Edition', values: ['PS5', 'PS4', 'Standard', 'Deluxe'] }, { group: 'Rang', values: ['Black', 'White', 'Blue', 'Red'] }, { group: 'Storage', values: ['825GB', '1TB', '2TB'] }] },
+  batches: false,
+  markups: [5, 10, 15, 20],
+};
+
+const detailStep: StepDef<GamingExtra> = { id: 'gaming', title: 'Gaming', hint: 'Platform, halat, details', icon: Gamepad2, render: (ctx) => <Details ctx={ctx} /> };
+const rentalStep: StepDef<GamingExtra> = {
+  id: 'rental', title: 'Rental', hint: 'Kiraya, pre-order', icon: PackageOpen, render: (ctx) => <Rental ctx={ctx} />,
+  validate: (d): Errors => (d.extra.isRentable && !(Number(d.extra.rentalPricePerDay) > 0) && !(Number(d.extra.rentalPricePerHour) > 0) ? { rent: 'Kiraye ka rate likhein' } : {}),
+};
+
+const config: EditorConfig<GamingExtra> = {
+  label: 'Gaming',
+  draftKey: 'nafaa.product-editor.gaming',
+  paths: { list: '/products', detail: (id) => `/gaming-products/${id}`, create: '/gaming-products/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const p = await gamingProductsApi.byProduct(productId).catch(() => null);
+      if (!p) return {};
+      return {
+        categoryType: p.categoryType ?? '', platform: p.platform, conditionType: p.conditionType,
+        publisher: p.publisher ?? '', genre: p.genre ?? [], ageRating: p.ageRating ?? '', region: p.region ?? '', playerCount: p.playerCount ?? '', onlineMultiplayer: p.onlineMultiplayer,
+        storageCapacity: p.storageCapacity ?? '', numberOfControllers: p.numberOfControllers ?? null, includedAccessories: p.includedAccessories ?? [],
+        gpuModel: p.gpuModel ?? '', cpuModel: p.cpuModel ?? '', ramSpec: p.ramSpec ?? '',
+        isRentable: p.isRentable, rentalPricePerDay: p.rentalPricePerDay ?? null, rentalPricePerHour: p.rentalPricePerHour ?? null, rentalDeposit: p.rentalDeposit ?? null,
+        mrp: p.mrp ?? null, tradeInValue: p.tradeInValue ?? null,
+        isFeatured: p.isFeatured, isNewRelease: p.isNewRelease, isPreOrder: p.isPreOrder, preOrderReleaseDate: p.preOrderReleaseDate?.slice(0, 10) ?? '', notes: p.notes ?? '',
+      };
+    },
+    save: async (productId, d) => {
+      const x = d.extra;
+      await gamingProductsApi.upsert({
+        productId, categoryType: (x.categoryType || undefined) as GamingProductProfile['categoryType'], platform: x.platform, conditionType: x.conditionType,
+        publisher: opt(x.publisher), genre: x.genre, ageRating: opt(x.ageRating), region: opt(x.region), playerCount: opt(x.playerCount), onlineMultiplayer: x.onlineMultiplayer,
+        storageCapacity: opt(x.storageCapacity), numberOfControllers: num(x.numberOfControllers), includedAccessories: x.includedAccessories,
+        gpuModel: opt(x.gpuModel), isRentable: x.isRentable, rentalPricePerDay: num(x.rentalPricePerDay), rentalPricePerHour: num(x.rentalPricePerHour), rentalDeposit: num(x.rentalDeposit),
+        mrp: num(x.mrp), tradeInValue: num(x.tradeInValue), isFeatured: x.isFeatured, isNewRelease: x.isNewRelease, isPreOrder: x.isPreOrder,
+        preOrderReleaseDate: x.isPreOrder ? opt(x.preOrderReleaseDate) : undefined, notes: opt(x.notes),
+      });
+    },
+  },
+  steps: [
+    basicStep<GamingExtra>(core, {
+      extra: (ctx) => <Kind ctx={ctx} />, namePlaceholder: 'Jaise: FIFA 25 (PS5) ya DualSense controller',
+      categorySuggestions: ['Games', 'Consoles', 'Controllers', 'Headsets', 'PC parts', 'Snacks', 'Drinks'],
+    }),
+    priceStep<GamingExtra>(core),
+    detailStep,
+    rentalStep,
+    stockStep<GamingExtra>(core, { quick: [1, 2, 5, 10] }),
+  ],
+  summary: (d) => {
+    const x = d.extra;
+    return (
+      <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
+        <p className="text-slate-700">{[x.categoryType ? categoryLabel(x.categoryType) : null, PLATFORMS[x.platform], CONDITIONS[x.conditionType]?.label].filter(Boolean).join(' · ')}</p>
+        {x.genre.length > 0 && <p className="text-slate-600">{x.genre.join(', ')}</p>}
+        {x.isRentable && <p className="text-sky-700">Kiraye par{x.rentalPricePerDay ? ` · Rs ${x.rentalPricePerDay}/din` : ''}</p>}
+      </div>
+    );
+  },
+  refresh: [GAMING_KEYS.profiles, 'gaming-product-detail'],
+  guide: [
+    { icon: Gamepad2, color: '#7c3aed', title: 'Platform aur halat', text: 'PS5/PS4 aur naya/used zaroor chunein — counter par card par dikhta hai.' },
+    { icon: PackageOpen, color: '#0891b2', title: 'Kiraya', text: 'Console kiraye par dete hain to Rental step me rozana rate aur deposit likhein.' },
+  ],
+};
+
+export default function GamingProductWizardPage() {
+  return <ProductEditorPage config={config} />;
 }

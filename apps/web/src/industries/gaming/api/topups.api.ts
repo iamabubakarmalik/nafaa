@@ -32,6 +32,8 @@ export interface GamingTopup {
   regionRestriction?: string;
   notes?: string;
   supplierRef?: string;
+  /** The bill that sold it was cancelled (only on a single card). */
+  billVoided?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,42 +44,34 @@ export interface TopupInventoryRow {
   denomination: number;
   count: number;
   sellingPrice: number;
+  avgCost: number;
+  nearestExpiry?: string | null;
 }
+export interface CounterCardKind extends TopupInventoryRow { productId: string; name: string; sku: string }
+export interface GivenCard {
+  id: string; topupNumber: string; provider: string; topupType: string; denominationValue: number; denominationCurrency: string;
+  cardCode?: string | null; cardPin?: string | null; cardSerial?: string | null; expiryDate?: string | null;
+}
+export interface TopupSummary { totalCards: number; available: number; sold: number; redeemed: number; removed: number; totalRevenue: number; totalProfit: number; stockValue: number }
+export interface TopupPage { items: GamingTopup[]; total: number; page: number; limit: number }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: unknown } }): T => (res.data?.data ?? res.data) as T;
 
 export const gamingTopupsApi = {
-  create: (data: Partial<GamingTopup>) =>
-    apiClient.post('/gaming/digital-topups', data).then(unwrap<GamingTopup>),
-
   bulkCreate: (data: {
     provider: string; topupType: string; denominationValue: number;
     costPrice: number; sellingPrice: number;
     cards: Array<{ cardCode: string; cardPin?: string; cardSerial?: string }>;
     expiryDate?: string; supplierRef?: string;
-  }) => apiClient.post('/gaming/digital-topups/bulk', data).then(unwrap<{ created: number; items: GamingTopup[] }>),
-
-  list: (params?: { provider?: string; redeemed?: boolean; available?: boolean; search?: string }) =>
-    apiClient.get('/gaming/digital-topups', { params }).then(unwrap<GamingTopup[]>),
-
-  inventory: () =>
-    apiClient.get('/gaming/digital-topups/inventory').then(unwrap<TopupInventoryRow[]>),
-
-  summary: () => apiClient.get('/gaming/digital-topups/summary').then(unwrap<any>),
-
-  getOne: (id: string, reveal = false) =>
-    apiClient.get('/gaming/digital-topups/' + id, { params: { reveal: reveal ? 'true' : undefined } }).then(unwrap<GamingTopup>),
-
-  sell: (id: string, data: {
-    customerId?: string; customerName?: string; customerPhone?: string;
-    deliveredVia?: string; deliveryReference?: string; actualSellingPrice?: number;
-    paidAmount?: number; paymentMethod?: string; shopId?: string;
-  }) => apiClient.post('/gaming/digital-topups/' + id + '/sell', data)
-    .then(unwrap<GamingTopup & { sale?: { id: string; saleNumber: string } }>),
-
-  redeem: (id: string) =>
-    apiClient.post('/gaming/digital-topups/' + id + '/redeem').then(unwrap<GamingTopup>),
-
-  remove: (id: string) =>
-    apiClient.delete('/gaming/digital-topups/' + id).then(unwrap),
+  }) => apiClient.post('/gaming/digital-topups/bulk', data).then(unwrap<{ created: number; from: string; to: string }>),
+  page: (params: { provider?: string; status?: string; search?: string; page: number; limit: number }) =>
+    apiClient.get('/gaming/digital-topups', { params }).then(unwrap<TopupPage>),
+  inventory: () => apiClient.get('/gaming/digital-topups/inventory').then(unwrap<TopupInventoryRow[]>),
+  counter: () => apiClient.get('/gaming/digital-topups/counter').then(unwrap<CounterCardKind[]>),
+  assignSale: (saleId: string) => apiClient.post('/gaming/digital-topups/assign-sale', { saleId }).then(unwrap<{ saleNumber: string; missing: number; cards: GivenCard[] }>),
+  summary: () => apiClient.get('/gaming/digital-topups/summary').then(unwrap<TopupSummary>),
+  getOne: (id: string) => apiClient.get('/gaming/digital-topups/' + id).then(unwrap<GamingTopup>),
+  redeem: (id: string) => apiClient.post('/gaming/digital-topups/' + id + '/redeem').then(unwrap<GamingTopup>),
+  restore: (id: string) => apiClient.post('/gaming/digital-topups/' + id + '/restore').then(unwrap<GamingTopup>),
+  remove: (id: string, reason?: string) => apiClient.delete('/gaming/digital-topups/' + id, { data: { reason } }).then(unwrap<GamingTopup>),
 };

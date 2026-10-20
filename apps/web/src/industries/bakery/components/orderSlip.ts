@@ -94,7 +94,7 @@ export function printBulkSlip(o: BulkOrder, shopName: string, kitchen = false) {
     partyLabel: 'Order dene wala',
     infoRows: [
       { label: 'Event', value: `${dateTime(o.eventDate)}${o.eventTime ? ` (${o.eventTime})` : ''}`, bold: true },
-      ...row('Qisam', bulkTypeOf(o.orderType).label),
+      ...row('Type', bulkTypeOf(o.orderType).label),
       ...row('Rabta', o.contactPerson),
       ...row('Mehmaan', o.totalGuests),
       ...row('Jagah', o.venue),

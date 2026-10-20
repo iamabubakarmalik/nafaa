@@ -38,7 +38,7 @@ export const BASIS: Record<CommissionBasis, { label: string; hint: string }> = {
 export function rateText(r: { basis: CommissionBasis; valueType: CommissionValueType; value: number }) {
   if (r.basis === 'PER_BILL') return `${formatPKR(r.value)} har bill`;
   if (r.valueType === 'FIXED') return `${formatPKR(r.value)} har cheez`;
-  return `${r.value}% ${r.basis === 'PROFIT' ? 'munafa' : 'bikri'}`;
+  return `${r.value}% ${r.basis === 'PROFIT' ? 'profit' : 'sale'}`;
 }
 
 export function ruleName(r: Pick<CommissionRule, 'name' | 'basis' | 'valueType'>) {

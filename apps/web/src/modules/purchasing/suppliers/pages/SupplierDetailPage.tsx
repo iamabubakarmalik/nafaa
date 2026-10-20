@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Banknote, BookOpen, ClipboardList, GraduationCap, Landmark, MessageCircle, Pencil, Phone, ShoppingCart, Trash2, TrendingDown, TrendingUp,
 } from 'lucide-react';
-import { Avatar, Button, Card as DsCard, DateRangeMenu, Modal, PageShell, Tabs, resolveRange, type DateRangeValue } from '@/design-system/components';
+import { Avatar, Button, Card as DsCard, DateRangeMenu, Modal, PageShell, Tabs, resolveRange, type DateRangeValue, confirmDialog } from '@/design-system/components';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '@modules/dashboard/engine/useChartTheme';
@@ -193,7 +193,7 @@ function Khata({ supplierId, name, canEdit }: { supplierId: string; name: string
                     <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{dlt < 0 ? formatPKR(-dlt) : ''}</td>
                     <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatPKR(e.balanceAfter)}</td>
                     <td className="px-1">{canEdit && manual && (
-                      <button type="button" aria-label="Entry hatayein" onClick={() => { if (confirm('Yeh entry hata dein?')) remove.mutate(e.id); }} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                      <button type="button" aria-label="Entry hatayein" onClick={async () => { if ((await confirmDialog({ title: 'Yeh entry hata dein?', danger: true }))) remove.mutate(e.id); }} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
                     )}</td>
                   </tr>
                 );

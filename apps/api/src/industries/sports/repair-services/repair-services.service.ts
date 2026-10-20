@@ -36,12 +36,13 @@ export class RepairServicesService {
    * One page of repairs for a view, with every view's count and the money
    * of the matching jobs (estimate or final charge, advance, still due).
    */
-  async page(user: AuthenticatedUser, q: { view?: string; page?: string; limit?: string; search?: string; from?: string; to?: string }) {
+  async page(user: AuthenticatedUser, q: { view?: string; page?: string; limit?: string; search?: string; from?: string; to?: string }, scope?: ShopScope) {
     const view = (REPAIR_VIEWS as readonly string[]).includes(q.view ?? '') ? q.view as RepairView : 'active';
     const { page, limit, skip } = paging(q);
     const s = q.search?.trim();
     const base: Prisma.SportsRepairServiceWhereInput = {
       tenantId: user.tenantId,
+      ...(scope?.shopId && { AND: [scope.whereLoose] }),
       ...(q.from || q.to ? { receivedAt: { ...(q.from && { gte: startOfDayTz(new Date(q.from)) }), ...(q.to && { lte: endOfDayTz(new Date(q.to)) }) } } : {}),
       ...(s && {
         OR: [
@@ -133,10 +134,10 @@ export class RepairServicesService {
     const advance = r2(dto.advancePaid ?? 0);
     return this.prisma.$transaction(async (tx) => {
       let customerId = dto.customerId || null;
+      const shopId = await resolveIndustryShopId(tx, user, activeShopId);
       if (advance > 0) {
         // The advance is cash in hand today; it waits on the customer's khata
         // and is used up by the sale made on delivery.
-        const shopId = await resolveIndustryShopId(tx, user, activeShopId);
         customerId = await ensureCustomer(tx, user, {
           customerId, name: dto.customerName, phone: dto.customerPhone, shopId,
         });
@@ -147,6 +148,7 @@ export class RepairServicesService {
       return tx.sportsRepairService.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
           serviceNumber,
           customerId,
           customerName: dto.customerName,
@@ -175,10 +177,11 @@ export class RepairServicesService {
     from?: string;
     to?: string;
     search?: string;
-  }) {
+  }, scope?: ShopScope) {
     return this.prisma.sportsRepairService.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(scope?.shopId && { AND: [scope.whereLoose] }),
         ...(params.status && { status: params.status }),
         ...(params.itemType && { itemType: params.itemType }),
         ...(params.repairType && { repairType: params.repairType }),
@@ -341,15 +344,16 @@ export class RepairServicesService {
     return this.prisma.sportsRepairService.update({ where: { id }, data: { status: 'CANCELLED' } });
   }
 
-  async summary(user: AuthenticatedUser) {
+  async summary(user: AuthenticatedUser, scope?: ShopScope) {
+    const inBranch = { tenantId: user.tenantId, ...(scope?.shopId && { AND: [scope.whereLoose] }) };
     const [received, inProgress, completed, delivered] = await Promise.all([
-      this.prisma.sportsRepairService.count({ where: { tenantId: user.tenantId, status: 'RECEIVED' } }),
-      this.prisma.sportsRepairService.count({ where: { tenantId: user.tenantId, status: 'IN_PROGRESS' } }),
-      this.prisma.sportsRepairService.count({ where: { tenantId: user.tenantId, status: 'COMPLETED' } }),
-      this.prisma.sportsRepairService.count({ where: { tenantId: user.tenantId, status: 'DELIVERED' } }),
+      this.prisma.sportsRepairService.count({ where: { ...inBranch, status: 'RECEIVED' } }),
+      this.prisma.sportsRepairService.count({ where: { ...inBranch, status: 'IN_PROGRESS' } }),
+      this.prisma.sportsRepairService.count({ where: { ...inBranch, status: 'COMPLETED' } }),
+      this.prisma.sportsRepairService.count({ where: { ...inBranch, status: 'DELIVERED' } }),
     ]);
     const revenue = await this.prisma.sportsRepairService.aggregate({
-      where: { tenantId: user.tenantId, status: 'DELIVERED' },
+      where: { ...inBranch, status: 'DELIVERED' },
       _sum: { finalCost: true, advancePaid: true },
     });
     return {
@@ -359,11 +363,12 @@ export class RepairServicesService {
     };
   }
 
-  async overdueRepairs(user: AuthenticatedUser) {
+  async overdueRepairs(user: AuthenticatedUser, scope?: ShopScope) {
     const now = new Date();
     return this.prisma.sportsRepairService.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(scope?.shopId && { AND: [scope.whereLoose] }),
         status: { in: ['RECEIVED', 'IN_PROGRESS'] },
         estimatedReadyAt: { lt: now },
       },

@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Eye, GraduationCap, Layers, LayoutGrid, ListPlus, Printer, ScanLine, Settings2, TestTube2, Wand2 } from 'lucide-react';
-import { Button, PageHero, PageShell, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { Button, PageHero, PageShell, heroButton, heroIconButton, heroPrimaryButton, confirmDialog } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { printHtml } from '@core/receipt/print';
 import { getReceiptSetup, useReceiptSetup } from '@core/receipt/setup';
@@ -137,7 +137,7 @@ export default function BarcodeLabelsPage() {
   const addCategory = async (categoryId: string) => {
     const list = products.filter((p) => p.categoryId === categoryId && p.isActive !== false);
     if (!list.length) { toast.info('Is category me koi cheez nahi'); return; }
-    if (list.length > 150 && !window.confirm(`${list.length} cheezein list me dalni hain?`)) return;
+    if (list.length > 150 && !(await confirmDialog({ title: `${list.length} cheezein list me dalni hain?` }))) return;
     for (let i = 0; i < list.length; i += 6) await Promise.all(list.slice(i, i + 6).map((p) => addProduct(p, {}, true)));
     toast.success(`${list.length} cheezein list me aa gayin`);
   };
@@ -163,7 +163,7 @@ export default function BarcodeLabelsPage() {
   }));
   const setUnit = (id: string, unitId: string | undefined) => setLines((prev) => prev.map((l) => (l.id === id ? { ...l, unitId } : l)));
   const remove = (id: string) => setLines((prev) => prev.filter((l) => l.id !== id));
-  const clear = () => { if (window.confirm('Poori list saaf karni hai?')) setLines([]); };
+  const clear = async () => { if ((await confirmDialog({ title: 'Poori list saaf karni hai?', danger: true }))) setLines([]); };
 
   const refreshData = () => {
     qc.invalidateQueries({ queryKey: PRODUCTS_KEY });

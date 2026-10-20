@@ -160,7 +160,7 @@ export default function DocsPage() {
               ['Status', 'Active'],
               ['Send on Order Placement', 'ON'],
             ]} />
-            <Note>Ye settings aksar Indolj ki team lagati hai. Setup tab me <b>"Indolj ko bhejein"</b> dabayein — English me poora paigham (har branch ka URL + Token) copy ho jata hai, WhatsApp group me paste kar dein.</Note>
+            <Note>Ye settings aksar Indolj ki team lagati hai. Setup tab me <b>"Indolj ko bhejein"</b> dabayein — English me poora message (har branch ka URL + Token) copy ho jata hai, WhatsApp group me paste kar dein.</Note>
             <H3>Kai branches</H3>
             <p>Indolj order ke andar branch nahi bhejta — branch <b>URL se</b> pehchani jati hai. Is liye har branch ka Call Back URL alag ho. Ek hi URL sab branches me laga ho to sab orders ek branch me aayenge — order khol kar <b>Branch</b> se badal sakte hain.</p>
           </Section>

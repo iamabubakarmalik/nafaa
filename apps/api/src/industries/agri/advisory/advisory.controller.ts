@@ -12,14 +12,17 @@ import { AdvisoryService } from './advisory.service';
 export class AdvisoryController {
   constructor(private readonly service: AdvisoryService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: Record<string, unknown>) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: any) {
     return this.service.list(user, {
       farmerId: q.farmerId, cropName: q.cropName, season: q.season,
-      completed: q.completed === 'true' ? true : q.completed === 'false' ? false : undefined,
+      completed: q.completed === 'true' ? true : q.completed === 'false' ? false : undefined, search: q.search,
     });
   }
+  @Get('page') page(@GetUser() user: AuthenticatedUser, @Query() q: any) {
+    return this.service.page(user, { farmerId: q.farmerId, season: q.season, search: q.search, tab: q.tab, page: Number(q.page), limit: Number(q.limit) });
+  }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.update(user, id, dto); }
+  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: Record<string, unknown>) { return this.service.update(user, id, dto); }
   @Post(':id/complete') complete(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.markComplete(user, id); }
 }

@@ -20,7 +20,7 @@ export const SEGMENT_META: Record<SegmentKey, SegmentMeta> = {
     label: 'Behtareen', color: '#16a34a', icon: Crown,
     rule: 'Pichle 30 din me aaye, aur saal me 6 ya zyada din khareeda',
     action: 'Shukriya kahein, VIP banayein, naya maal sab se pehle inhein dikhayein',
-    message: 'Assalam-o-Alaikum {name}! {shop} ki taraf se dil se shukriya — aap hamare sab se ache customers me se hain. Agli dafa aayein to aap ke liye khaas chhoot hai. 🙏',
+    message: 'Assalam-o-Alaikum {name}! {shop} ki taraf se dil se shukriya — aap hamare sab se ache customers me se hain. Agli dafa aayein to aap ke liye khaas discount hai. 🙏',
   },
   loyal: {
     label: 'Wafadar', color: '#2563eb', icon: Heart,
@@ -32,7 +32,7 @@ export const SEGMENT_META: Record<SegmentKey, SegmentMeta> = {
     label: 'Naye / umeed wale', color: '#0891b2', icon: Sparkles,
     rule: 'Pichle 30 din me aaye, magar saal me sirf 1–2 din',
     action: 'Doosri dafa bulayein — pehli khareedari ke baad ka shukriya kaam karta hai',
-    message: 'Assalam-o-Alaikum {name}! {shop} se khareedari ka shukriya. Dobara aayein to aap ke liye chhoti si chhoot rakhi hai. 🙏',
+    message: 'Assalam-o-Alaikum {name}! {shop} se khareedari ka shukriya. Dobara aayein to aap ke liye chhota sa discount rakha hai. 🙏',
   },
   attention: {
     label: 'Dhyan chahiye', color: '#d97706', icon: Hourglass,
@@ -50,13 +50,13 @@ export const SEGMENT_META: Record<SegmentKey, SegmentMeta> = {
     label: 'Kho gaye', color: '#e11d48', icon: Moon,
     rule: '60 din se zyada se nahi aaye, aur saal me sirf 1–2 din',
     action: 'Ek dafa bara offer bhej kar dekhein; jawab na aaye to rehne dein',
-    message: 'Assalam-o-Alaikum {name}! Bohat din ho gaye. {shop} me ab bohat kuch naya hai — aap ke liye wapsi par khaas chhoot hai. 😊',
+    message: 'Assalam-o-Alaikum {name}! Bohat din ho gaye. {shop} me ab bohat kuch naya hai — aap ke liye wapsi par khaas discount hai. 😊',
   },
   never: {
     label: 'Kabhi nahi khareeda', color: '#64748b', icon: UserX,
     rule: 'Naam likha gaya magar koi bill nahi bana',
     action: 'Pehli khareedari par discount de kar bulayein',
-    message: 'Assalam-o-Alaikum {name}! {shop} me khush-aamdeed. Pehli khareedari par aap ke liye khaas chhoot hai — zaroor aayein. 🙏',
+    message: 'Assalam-o-Alaikum {name}! {shop} me khush-aamdeed. Pehli khareedari par aap ke liye khaas discount hai — zaroor aayein. 🙏',
   },
 };
 

@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -65,7 +66,7 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
     <Card title={<span className="flex items-center gap-2"><ShoppingBag className="h-4 w-4 text-blue-600" /> Google Shopping (Merchant Center)
       {data.enabled ? <Badge tone="success" dot>Feed chalu</Badge> : <Badge tone="neutral">Band</Badge>}</span>}
       description="Har product naam, tasveer, qeemat aur stock ke saath Google par. Stock / qeemat badle to Google khud roz update kar leta hai."
-      actions={data.enabled ? <Toggle checked onChange={() => { if (confirm('Feed band karein? Google par products hat jayenge.')) save.mutate({ enable: false }); }} /> : undefined}>
+      actions={data.enabled ? <Toggle checked onChange={async () => { if ((await confirmDialog({ title: 'Feed band karein?', text: 'Google par products hat jayenge.', danger: true }))) save.mutate({ enable: false }); }} /> : undefined}>
       {data.channels.length === 0 ? (
         <Banner tone="warning" title="Pehle product ka safha chahiye">
           Google har product ka link maangta hai. <Link to="/online-store/channels" className="font-semibold underline">Online store</Link> me apni website jorein ya <b>order form</b> chalu karein (muft, 1 minute).
@@ -107,7 +108,7 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
           <SettingRow title="Khatam stock wale bhi dikhayein" help="'Out of stock' likh kar — order form me stock na ho to ye kaam nahi karta"
             control={<Toggle checked={s.includeOutOfStock} onChange={(v) => save.mutate({ includeOutOfStock: v })} />} />
           <Btn size="sm" variant="plain" icon={<RefreshCw className="h-3.5 w-3.5" />}
-            onClick={() => { if (confirm('Naya link banayein? Purana link band ho jayega — Merchant Center me naya daalna hoga.')) save.mutate({ rotate: true }); }}>Naya link</Btn>
+            onClick={async () => { if ((await confirmDialog({ title: 'Naya link banayein?', text: 'Purana link band ho jayega — Merchant Center me naya daalna hoga.', danger: true }))) save.mutate({ rotate: true }); }}>Naya link</Btn>
         </div>
       )}
     </Card>

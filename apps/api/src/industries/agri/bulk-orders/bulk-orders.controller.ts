@@ -13,9 +13,12 @@ import { BulkOrdersService } from './bulk-orders.service';
 export class BulkOrdersController {
   constructor(private readonly service: BulkOrdersService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: any) {
-    return this.service.list(user, { status: q.status, farmerId: q.farmerId, season: q.season, from: q.from, to: q.to, search: q.search });
+  @Post() create(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() dto: any) { return this.service.create(user, scope, dto); }
+  @Get() list(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Query() q: any) {
+    return this.service.list(user, scope, { status: q.status, farmerId: q.farmerId, season: q.season, from: q.from, to: q.to, search: q.search });
+  }
+  @Get('page') page(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Query() q: any) {
+    return this.service.page(user, scope, { status: q.status, farmerId: q.farmerId, season: q.season, from: q.from, to: q.to, search: q.search, page: Number(q.page), limit: Number(q.limit) });
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
   @Patch(':id/status') updateStatus(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { status: string; cancellationReason?: string }) {

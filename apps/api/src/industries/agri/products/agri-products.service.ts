@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertAgriProductDto } from './dto/upsert-agri-product.dto';
+import { addDaysTz, parseDay } from '../agri-common';
 
 @Injectable()
 export class AgriProductsService {
@@ -11,9 +12,11 @@ export class AgriProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product not found');
 
+    if (dto.bulkDiscountPct != null && (dto.bulkDiscountPct < 0 || dto.bulkDiscountPct > 90)) throw new BadRequestException('Bulk discount 0 se 90% tak');
+    if (dto.bulkDiscountThreshold != null && dto.bulkDiscountThreshold < 0) throw new BadRequestException('Bulk quantity manfi nahi ho sakti');
     const payload: any = {
       ...dto,
-      govtRegExpiry: dto.govtRegExpiry ? new Date(dto.govtRegExpiry) : null,
+      govtRegExpiry: parseDay(dto.govtRegExpiry),
     };
 
     const existing = await this.prisma.agriProductProfile.findUnique({ where: { productId: dto.productId } });
@@ -39,9 +42,14 @@ export class AgriProductsService {
     seasonal?: boolean;
     search?: string;
   }) {
+    const q = params.search?.trim();
+    const matching = q
+      ? (await this.prisma.product.findMany({ where: { tenantId: user.tenantId, name: { contains: q, mode: 'insensitive' } }, select: { id: true }, take: 2000 })).map((p) => p.id)
+      : null;
     const profiles = await this.prisma.agriProductProfile.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(matching && { productId: { in: matching } }),
         ...(params.category && { category: params.category as any }),
         ...(params.seedType && { seedType: params.seedType as any }),
         ...(params.fertilizerType && { fertilizerType: params.fertilizerType as any }),
@@ -52,15 +60,11 @@ export class AgriProductsService {
         ...(params.seasonal !== undefined && { isSeasonal: params.seasonal }),
       },
       orderBy: [{ isFeatured: 'desc' }, { updatedAt: 'desc' }],
-      take: 200,
+      take: 2000,
     });
 
-    const productIds = profiles.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: {
-        id: { in: productIds },
-        ...(params.search && { name: { contains: params.search, mode: 'insensitive' } }),
-      },
+      where: { tenantId: user.tenantId, id: { in: profiles.map((p) => p.productId) } },
       include: { images: { where: { isPrimary: true }, take: 1 }, category: true },
     });
     const productsMap = new Map(products.map((p) => [p.id, p]));
@@ -70,6 +74,19 @@ export class AgriProductsService {
       .map((p) => ({ ...p, product: productsMap.get(p.productId) }));
   }
 
+  /** Light facts per product for the counter, the products page and sales history. */
+  async facts(user: AuthenticatedUser) {
+    return this.prisma.agriProductProfile.findMany({
+      where: { tenantId: user.tenantId },
+      select: {
+        productId: true, category: true, season: true, brand: true, manufacturer: true, npkRatio: true, activeIngredient: true,
+        packSize: true, packUnit: true, targetCrops: true, targetPests: true, applicationRate: true, toxicityLevel: true,
+        govtRegNumber: true, govtRegExpiry: true, isRestricted: true, requiresLicense: true, isOrganic: true,
+        bulkDiscountThreshold: true, bulkDiscountPct: true, reEntryPeriod: true, ppePeriod: true,
+      },
+    });
+  }
+
   async byProduct(user: AuthenticatedUser, productId: string) {
     return this.prisma.agriProductProfile.findFirst({ where: { productId, tenantId: user.tenantId } });
   }
@@ -77,8 +94,8 @@ export class AgriProductsService {
   async getOne(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.agriProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Profile not found');
-    const product = await this.prisma.product.findUnique({
-      where: { id: p.productId },
+    const product = await this.prisma.product.findFirst({
+      where: { id: p.productId, tenantId: user.tenantId },
       include: { images: true, category: true },
     });
     return { ...p, product };
@@ -87,7 +104,8 @@ export class AgriProductsService {
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.agriProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Profile not found');
-    return this.prisma.agriProductProfile.delete({ where: { id } });
+    // Registration and safety details stay on record; a product is switched off from the products page.
+    throw new BadRequestException('Agri details mitaye nahi jate — product band karna ho to Products page se band karein');
   }
 
   async byCategory(user: AuthenticatedUser) {
@@ -96,7 +114,7 @@ export class AgriProductsService {
     });
     const productIds = all.map((p) => p.productId);
     const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { tenantId: user.tenantId, id: { in: productIds } },
       include: { images: { where: { isPrimary: true }, take: 1 } },
     });
     const productsMap = new Map(products.map((p) => [p.id, p]));
@@ -111,8 +129,7 @@ export class AgriProductsService {
   }
 
   async expiringCerts(user: AuthenticatedUser, daysAhead = 30) {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() + daysAhead);
+    const cutoff = addDaysTz(new Date(), daysAhead);
     return this.prisma.agriProductProfile.findMany({
       where: {
         tenantId: user.tenantId,

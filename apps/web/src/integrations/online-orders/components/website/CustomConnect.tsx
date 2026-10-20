@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -128,7 +129,7 @@ function FormWay({ channelId }: { channelId: string }) {
         <div className="mt-3 flex flex-wrap gap-2">
           <a href={f.formUrl ?? '#'} target="_blank" rel="noreferrer"><Btn icon={<ExternalLink className="h-4 w-4" />}>Khol kar dekhein</Btn></a>
           <a href={wa} target="_blank" rel="noreferrer"><Btn icon={<MessageCircle className="h-4 w-4" />}>WhatsApp par share</Btn></a>
-          <Btn variant="plain" onClick={() => { if (confirm('Naya link banayein? Purana link foran band ho jayega.')) save.mutate({ regenerate: true }); }} icon={<Link2 className="h-4 w-4" />}>Naya link</Btn>
+          <Btn variant="plain" onClick={async () => { if ((await confirmDialog({ title: 'Naya link banayein?', text: 'Purana link foran band ho jayega.', danger: true }))) save.mutate({ regenerate: true }); }} icon={<Link2 className="h-4 w-4" />}>Naya link</Btn>
         </div>
       </Card>
 
@@ -161,7 +162,7 @@ function FormWay({ channelId }: { channelId: string }) {
             control={<input defaultValue={f.logoUrl ?? ''} onBlur={(e) => e.target.value !== (f.logoUrl ?? '') && save.mutate({ logoUrl: e.target.value.trim() || null })} placeholder="https://…/logo.png" className={cn(inputCls, 'w-64')} />} />
           <SettingRow title="Form par dukaan ka WhatsApp number" help="Customer sawal pooch sake (Settings me business phone)"
             control={<Toggle checked={f.showPhone} onChange={(v) => save.mutate({ showPhone: v })} />} />
-          <SettingRow title="Order ke baad paigham" help="Jaise: 24 ghante me call karke confirm karenge"
+          <SettingRow title="Order ke baad message" help="Jaise: 24 ghante me call karke confirm karenge"
             control={<input value={msg ?? f.message ?? ''} onChange={(e) => setMsg(e.target.value)} maxLength={300} placeholder="(default)"
               onBlur={() => msg !== null && msg !== (f.message ?? '') && save.mutate({ message: msg || null })} className={cn(inputCls, 'w-64')} />} />
         </div>
@@ -287,7 +288,7 @@ function DeveloperWay({ channelId, data }: { channelId: string; data: WebsiteOve
           <CopyField label="Developer ka link (7 din)" value={link.url} />
           <div className="flex flex-wrap gap-2">
             <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"><Btn variant="success" icon={<MessageCircle className="h-4 w-4" />}>WhatsApp par bhejein</Btn></a>
-            <Btn onClick={() => navigator.clipboard?.writeText(text).then(() => toast.success('Paigham copy ho gaya'))}>Paigham copy</Btn>
+            <Btn onClick={() => navigator.clipboard?.writeText(text).then(() => toast.success('Message copy ho gaya'))}>Message copy</Btn>
             <a href={link.url} target="_blank" rel="noreferrer"><Btn variant="plain" icon={<ExternalLink className="h-4 w-4" />}>Khud dekhein</Btn></a>
           </div>
           <p className="text-[0.75rem] text-slate-500">Link galat haath lage to "Setup & keys" me "Nayi key" dabayein — link foran band.</p>

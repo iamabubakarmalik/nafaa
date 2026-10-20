@@ -39,7 +39,7 @@ type StatusFilter = 'active' | 'off' | 'all';
 type Sort = 'main' | 'name' | 'sales' | 'stock';
 
 const TYPE_FILTERS: Array<FilterOption<TypeFilter>> = [
-  { value: 'all', label: 'Sab qisam' },
+  { value: 'all', label: 'Sab types' },
   ...(Object.entries(SHOP_TYPES) as Array<[ShopType, (typeof SHOP_TYPES)[ShopType]]>).map(([value, t]) => ({ value, label: t.label, hint: t.hint, icon: t.icon, color: t.color })),
 ];
 const STATUS_FILTERS: Array<FilterOption<StatusFilter>> = [
@@ -162,7 +162,7 @@ export default function ShopsPage() {
     sections: [{
       kind: 'table',
       columns: [
-        { label: 'Branch' }, { label: 'Qisam', wideOnly: true }, { label: 'Phone', wideOnly: true },
+        { label: 'Branch' }, { label: 'Type', wideOnly: true }, { label: 'Phone', wideOnly: true },
         ...(fig ? [{ label: 'Aaj sale', align: 'right' as const }, { label: 'Drawer', align: 'right' as const, wideOnly: true }, { label: 'Duty par', align: 'right' as const, wideOnly: true }] : []),
       ],
       rows: filtered.map((s) => {
@@ -223,7 +223,7 @@ export default function ShopsPage() {
           {needle && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
-        <FilterMenu icon={Building2} label="Qisam" value={type} active={type !== 'all'} options={TYPE_FILTERS} onChange={setType} />
+        <FilterMenu icon={Building2} label="Type" value={type} active={type !== 'all'} options={TYPE_FILTERS} onChange={setType} />
         <FilterMenu icon={ListFilter} label="Haal" value={status} active={status !== 'active'} options={STATUS_FILTERS} onChange={setStatus} />
         <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />
       </FilterBar>
@@ -301,7 +301,7 @@ function BranchTable({ shops, figOf, money, cost, showMoney }: {
   cost: (n: number | undefined) => string;
   showMoney: boolean;
 }) {
-  const head = ['Branch', ...(showMoney ? ['Aaj', 'Bill', 'Is mahine', 'Drawer', 'Stock (cost)', 'Kam stock', 'Udhaar', 'Duty par'] : ['Qisam', 'Login', 'Stock records'])];
+  const head = ['Branch', ...(showMoney ? ['Aaj', 'Bill', 'Is mahine', 'Drawer', 'Stock (cost)', 'Kam stock', 'Udhaar', 'Duty par'] : ['Type', 'Login', 'Stock records'])];
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="overflow-x-auto">

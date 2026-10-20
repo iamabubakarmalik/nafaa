@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class EnrollDto {
-  @ApiProperty({ description: 'Jis login ke naam bikri lagti hai' })
+  @ApiProperty({ description: 'Jis login ke naam sale lagti hai' })
   @IsString()
   userId!: string;
 

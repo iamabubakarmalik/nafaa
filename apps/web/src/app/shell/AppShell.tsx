@@ -10,6 +10,7 @@
  * Users can override the last two with Ctrl/⌘+B (see useSidebarState).
  */
 
+import { confirmDialog } from '@/design-system/components';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -64,7 +65,7 @@ export default function AppShell() {
   }, [location.pathname, navigate]);
 
   const handleLogout = async () => {
-    if (!confirm('Log out of Nafaa?')) return;
+    if (!(await confirmDialog({ title: 'Nafaa se logout karein?' }))) return;
     try {
       if (refreshToken) await authApi.logout(refreshToken);
     } catch {

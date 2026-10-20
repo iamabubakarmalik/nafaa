@@ -118,7 +118,7 @@ export const bakerySource: CatalogSource = {
           ...(b?.isCakeCustomizable ? [{ label: 'Order par banta hai', tone: 'violet' as const }] : []),
         ],
         specs: specs([
-          ['Qisam', meta ? `${meta.emoji} ${meta.label}` : null],
+          ['Type', meta ? `${meta.emoji} ${meta.label}` : null],
           ['Wazan', b?.weightGrams ? `${b.weightGrams} gram` : null],
           ['Taaza rehta hai', shelf],
           ['Fridge', b?.requiresRefrigeration ? 'Fridge me rakhein' : null],

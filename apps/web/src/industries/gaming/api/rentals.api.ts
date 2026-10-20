@@ -39,26 +39,25 @@ export interface GamingRental {
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: unknown } }): T => (res.data?.data ?? res.data) as T;
+
+export interface RentalInput {
+  customerId?: string; customerName: string; customerPhone?: string; customerCnic?: string;
+  productId?: string; productName: string; serialNumber?: string;
+  rentalStartDate: string; rentalEndDate: string; daysRented: number; pricePerDay: number;
+  depositAmount?: number; paidAmount?: number; paymentMethod?: string;
+  conditionAtCheckout?: string; guarantorName?: string; guarantorPhone?: string; securityDocument?: string; notes?: string;
+}
+export interface RentalSummary { active: number; overdue: number; returned: number; totalRevenue: number; collected: number; due: number; depositsHeld: number }
+export interface RentalPage { items: GamingRental[]; total: number; page: number; limit: number }
 
 export const gamingRentalsApi = {
-  create: (data: Partial<GamingRental>) =>
-    apiClient.post('/gaming/rentals', data).then(unwrap<GamingRental>),
-
-  list: (params?: { status?: string; customerId?: string; from?: string; to?: string; search?: string }) =>
-    apiClient.get('/gaming/rentals', { params }).then(unwrap<GamingRental[]>),
-
-  summary: () => apiClient.get('/gaming/rentals/summary').then(unwrap<any>),
-
-  markOverdue: () => apiClient.post('/gaming/rentals/mark-overdue').then(unwrap<any>),
-
-  getOne: (id: string) => apiClient.get('/gaming/rentals/' + id).then(unwrap<GamingRental>),
-
-  returnRental: (id: string, data: {
-    conditionAtReturn?: string; photosAtReturn?: string[];
-    damageFee?: number; lateFee?: number; depositRefunded?: number;
-  }) => apiClient.post('/gaming/rentals/' + id + '/return', data).then(unwrap<GamingRental>),
-
+  create: (data: RentalInput) => apiClient.post('/gaming/rentals', data).then(unwrap<GamingRental>),
+  page: (params: { status?: string; search?: string; from?: string; to?: string; page: number; limit: number }) =>
+    apiClient.get('/gaming/rentals', { params }).then(unwrap<RentalPage>),
+  summary: () => apiClient.get('/gaming/rentals/summary').then(unwrap<RentalSummary>),
+  returnRental: (id: string, data: { conditionAtReturn?: string; damageFee?: number; lateFee?: number; paidAmount?: number; paymentMethod?: string }) =>
+    apiClient.post('/gaming/rentals/' + id + '/return', data).then(unwrap<GamingRental>),
   updateStatus: (id: string, data: { status: GamingRentalStatus; notes?: string }) =>
     apiClient.patch('/gaming/rentals/' + id + '/status', data).then(unwrap<GamingRental>),
 };

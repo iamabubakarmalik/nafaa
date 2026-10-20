@@ -10,37 +10,31 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import {
   Alert, Badge as DsBadge, Button, Card as DsCard, controlClass, EmptyState as DsEmptyState,
-  Segmented as DsSegmented, Tabs as DsTabs, type BadgeVariant,
+  PageHero, PageShell, Segmented as DsSegmented, Tabs as DsTabs, type BadgeVariant,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
+/** Online-store page: the standard PageShell and PageHero, with an optional back link and tabs. */
 export function Page({ title, subtitle, back, badge, icon, actions, tabs, children, narrow }: {
   title: ReactNode; subtitle?: ReactNode; back?: { to: string; label: string }; badge?: ReactNode; icon?: ReactNode;
   actions?: ReactNode; tabs?: ReactNode; children: ReactNode; narrow?: boolean;
 }) {
   return (
-    <div className={cn('mx-auto w-full pb-12', narrow ? 'max-w-3xl' : 'max-w-6xl')}>
+    <PageShell className={cn(narrow && 'max-w-3xl')}>
       {back && (
-        <Link to={back.to} className="mb-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-500 hover:text-slate-900">
+        <Link to={back.to} className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-500 hover:text-slate-900">
           <ArrowLeft className="h-4 w-4" /> {back.label}
         </Link>
       )}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          {icon}
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-bold tracking-tight text-slate-900">{title}</h1>
-              {badge}
-            </div>
-            {subtitle && <div className="mt-0.5 text-[0.8125rem] text-slate-500">{subtitle}</div>}
-          </div>
-        </div>
-        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
-      </div>
-      {tabs && <div className="mt-4">{tabs}</div>}
-      <div className="mt-5 space-y-4">{children}</div>
-    </div>
+      <PageHero
+        title={<span className="inline-flex flex-wrap items-center gap-2">{icon}{title}{badge}</span>}
+        meta={subtitle}
+        actions={actions}
+      />
+      {subtitle && <p className="text-[0.8125rem] text-slate-500 md:hidden">{subtitle}</p>}
+      {tabs}
+      {children}
+    </PageShell>
   );
 }
 

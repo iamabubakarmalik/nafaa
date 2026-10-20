@@ -1,50 +1,39 @@
-import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Lock, Unlock, KeyRound, Shield, X, Trash2, Loader2, HelpCircle } from 'lucide-react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { Eye, EyeOff, Lock, Unlock, KeyRound, Shield, Trash2, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button, Input, Modal } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { usePrivacyStore } from '../stores/privacy.store';
 import { usePermission } from '../hooks/usePermission';
 import { PERMISSIONS } from '../lib/permissions';
 
-/* ═════════════════════════════════════════════════════════════
-   COST / PROFIT CHHUPANA
-   ─────────────────────────────────────────────────────────────
-   Dukaan par mulazim kharid ka bhao nahi dekh sakta — bas bikri
-   ka. Malik apna PIN daal kar thori der ke liye khol leta hai.
+/* Cost and profit hiding.
+   Staff should see sale prices but not purchase cost. The owner unlocks cost
+   for a short time with a PIN.
 
-   PIN SERVER par hai aur POORI DUKAAN ke liye ek hai. Malik
-   Karachi me lagaye to Gujranwala ki branch par bhi lag jata hai —
-   har device apne shuru hone par server se poochta hai ke PIN laga
-   hai ya nahi.
-
-   Sirf "abhi khula hua hai" wali haalat har device par apni hoti
-   hai: malik ke phone par 15 minute ke liye khulne se counter ki
-   screen par cost nahi khulti.
-   ═════════════════════════════════════════════════════════════ */
+   The PIN lives on the server and is shared by the whole shop, so every
+   branch and device uses the same one; each device asks the server on start
+   whether a PIN is set. Only the "currently unlocked" state is per device:
+   unlocking on the owner's phone does not unlock the counter screen. */
 
 /**
- * Cost abhi chhupi hui hai ya nahi.
+ * Whether cost is hidden right now.
  *
- * DO ALAG CHEEZEIN, AUR YEHI FARQ AHEM HAI:
+ * Two separate controls:
+ *   1. Permission (`cost.view`): users without it never see cost or profit,
+ *      regardless of the switch or the PIN.
+ *   2. PIN: the owner's own way to hide numbers at the counter and unlock
+ *      them briefly when needed.
  *
- *   1. IJAZAT (`cost.view`) — malik tay karta hai ke kaun lagat aur
- *      munafa dekh sakta hai. Jis ke paas nahi, us se hamesha chhupa
- *      rehta hai. Koi switch, koi PIN kaam nahi aata.
- *
- *   2. PIN — malik ka apna tareeqa. Jab counter par koi peechay khara
- *      ho to number chhupa dein, aur zaroorat par PIN se thori der ke
- *      liye khol lein.
- *
- * Pehle sirf doosri cheez thi, aur wo har browser me alag thi
- * (localStorage). Malik apne computer par chhupa deta, magar cashier
- * ke computer par default band hota — yani us ko poora munafa, margin
- * aur discount saaf nazar aata tha.
+ * The switch used to be stored per browser (localStorage) only, so a cashier
+ * on another machine saw cost, margin and discount by default.
  */
 export function useCostHidden() {
   const canSeeCost = usePermission(PERMISSIONS.COST_VIEW);
   const { hideCost, hasPin, unlockedUntil } = usePrivacyStore();
   const [, tick] = useState(0);
 
-  // Unlock ka waqt khatam hote hi safha khud dobara chhup jaye
+  // Re-render when the unlock window ends so values hide again.
   useEffect(() => {
     if (unlockedUntil > Date.now()) {
       const t = setTimeout(() => tick((n) => n + 1), unlockedUntil - Date.now() + 100);
@@ -52,8 +41,7 @@ export function useCostHidden() {
     }
   }, [unlockedUntil]);
 
-  /* Ijazat hi nahi — baat yahin khatam. Apne browser ka switch
-     band kar ke bhi kuch nazar nahi aayega. */
+  // No permission: always hidden, the local switch cannot override it.
   if (!canSeeCost) return true;
 
   if (!hideCost) return false;
@@ -62,12 +50,10 @@ export function useCostHidden() {
 }
 
 /**
- * Lagat/munafa dekhne ki ijazat hai ya nahi.
+ * Whether the user may ever see cost and profit.
  *
- * `useCostHidden()` se alag: wo batata hai ke ABHI chhupa hai,
- * ye batata hai ke kabhi dekh bhi sakte hain. PIN ka button aur
- * "PIN bhool gaye?" jaisi cheezein isi se chhupti hain — jis ke
- * paas ijazat nahi, us ko PIN maangna bemaani hai.
+ * Unlike `useCostHidden()`, which reports the current state, this reports
+ * the permission. PIN buttons and "forgot PIN" links are hidden without it.
  */
 export function useCanSeeCost() {
   return usePermission(PERMISSIONS.COST_VIEW);
@@ -96,10 +82,10 @@ export function HiddenValue({ value, type = 'cost', className = '', mask = '•�
 }
 
 /**
- * PrivacyToggle — har safhe ke upar wala button.
- *  • PIN nahi laga: seedha chhupao/dikhao
- *  • PIN laga + band: PIN maangta hai
- *  • PIN laga + khula: dobara band karne ka button
+ * Page-level privacy button.
+ *  - No PIN: toggles hide/show directly.
+ *  - PIN set and locked: asks for the PIN.
+ *  - PIN set and unlocked: locks again.
  */
 export function PrivacyToggle({ compact = false }: { compact?: boolean }) {
   const canSeeCost = useCanSeeCost();
@@ -110,9 +96,7 @@ export function PrivacyToggle({ compact = false }: { compact?: boolean }) {
   const hasPin = store.hasPin;
   const isUnlocked = store.isUnlocked();
 
-  /* Jis ke paas ijazat hi nahi, us ke liye ye button bemaani hai —
-     number waise bhi hamesha chhupe rahenge. PIN maangna sirf uljhan
-     paida karta: banda PIN daalta rahega aur kuch nahi khulega. */
+  // Without the permission values stay hidden anyway, so the button is pointless.
   if (!canSeeCost) return null;
 
   const onClick = () => {
@@ -168,7 +152,12 @@ export function PrivacyToggle({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/* ─────────────────── PIN maangne wala ─────────────────── */
+/* Shared PIN field styling: large centered digits. */
+const PIN_INPUT = 'h-14 text-center text-2xl font-bold tabular-nums tracking-[0.5em]';
+const PIN_INPUT_SMALL = 'h-12 text-center text-xl font-bold tabular-nums tracking-[0.3em]';
+const onlyDigits = (v: string) => v.replace(/\D/g, '').slice(0, 8);
+
+/* ─────────────────── PIN prompt ─────────────────── */
 
 export function PinPromptModal({
   onClose, onSuccess, title = 'Cost dekhne ke liye PIN', subtitle = 'Sirf malik ko dikhega',
@@ -208,68 +197,67 @@ export function PinPromptModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="w-full max-w-sm bg-[#ffffff] dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white flex items-start justify-between">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold">
-              <Shield className="h-3 w-3 text-emerald-300" /> Sirf Malik
-            </div>
-            <h3 className="font-extrabold text-lg mt-1.5">{title}</h3>
-            <p className="text-xs text-white/70 font-semibold">{subtitle}</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">PIN</label>
-            <input
-              autoFocus type="password" inputMode="numeric" maxLength={8} value={pin}
-              onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
-              onKeyDown={(e) => e.key === 'Enter' && submit()}
-              placeholder="••••"
-              className="h-14 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-center text-3xl font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/30"
-            />
-            {error && <p className="mt-2 text-xs font-extrabold text-rose-600 text-center">{error}</p>}
-          </div>
-
-          <div>
-            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1.5">
-              Kitni der ke liye khula rahe?
-            </label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[5, 15, 30, 60].map((m) => (
-                <button key={m} onClick={() => setDuration(m)}
-                  className={[
-                    'py-2 rounded-lg text-xs font-extrabold transition',
-                    duration === m ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200',
-                  ].join(' ')}>
-                  {m < 60 ? `${m}m` : '1h'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button onClick={submit} disabled={busy || pin.length < 4}
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50 transition">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Unlock className="h-4 w-4" />}
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={<span className="inline-flex items-center gap-2"><Shield className="h-4 w-4 text-emerald-600" />{title}</span>}
+      description={subtitle}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Wapas</Button>
+          <Button onClick={submit} loading={busy} disabled={pin.length < 4} leftIcon={<Unlock className="h-4 w-4" />}>
             {duration} minute ke liye kholein
-          </button>
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Input
+          label="PIN"
+          autoFocus
+          data-autofocus
+          type="password"
+          inputMode="numeric"
+          maxLength={8}
+          value={pin}
+          onChange={(e) => { setPin(onlyDigits(e.target.value)); setError(''); }}
+          onKeyDown={(e) => e.key === 'Enter' && submit()}
+          placeholder="••••"
+          error={error || undefined}
+          className={PIN_INPUT}
+        />
 
-          <button onClick={() => setForgot(true)}
-            className="w-full text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 hover:text-emerald-600 inline-flex items-center justify-center gap-1 transition">
-            <HelpCircle className="h-3.5 w-3.5" /> PIN bhool gaye?
-          </button>
+        <div>
+          <div className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kitni der ke liye khula rahe?</div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {[5, 15, 30, 60].map((m) => (
+              <Button
+                key={m}
+                size="sm"
+                variant={duration === m ? 'primary' : 'secondary'}
+                onClick={() => setDuration(m)}
+                aria-pressed={duration === m}
+              >
+                {m < 60 ? `${m}m` : '1h'}
+              </Button>
+            ))}
+          </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setForgot(true)}
+          className="inline-flex w-full items-center justify-center gap-1 text-xs font-medium text-slate-500 transition hover:text-brand-700"
+        >
+          <HelpCircle className="h-3.5 w-3.5" /> PIN bhool gaye?
+        </button>
       </div>
-    </div>
+    </Modal>
   );
 }
 
-/* ─────────────────── PIN bhool gaye ─────────────────── */
+/* ─────────────────── Forgot PIN ─────────────────── */
 
 export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const store = usePrivacyStore();
@@ -297,62 +285,70 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="w-full max-w-sm bg-[#ffffff] dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-start justify-between">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold">
-              <KeyRound className="h-3 w-3" /> PIN Bhool Gaye
-            </div>
-            <h3 className="font-extrabold text-lg mt-1.5">Password se naya PIN</h3>
-            <p className="text-xs text-white/85 font-semibold">Jis password se aap login karte hain</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-amber-600" />Password se naya PIN</span>}
+      description="Wohi password jis se aap login karte hain"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Wapas</Button>
+          <Button
+            onClick={submit}
+            loading={busy}
+            disabled={!password || newPin.length < 4 || newPin !== pin2}
+            leftIcon={<KeyRound className="h-4 w-4" />}
+          >
+            Naya PIN set karein
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        <Input
+          label="Account password"
+          autoFocus
+          data-autofocus
+          type="password"
+          value={password}
+          onChange={(e) => { setPassword(e.target.value); setError(''); }}
+          placeholder="••••••••"
+          size="lg"
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            label="Naya PIN"
+            type="password"
+            inputMode="numeric"
+            maxLength={8}
+            value={newPin}
+            onChange={(e) => { setNewPin(onlyDigits(e.target.value)); setError(''); }}
+            placeholder="••••"
+            className={PIN_INPUT_SMALL}
+          />
+          <Input
+            label="Dobara likhein"
+            type="password"
+            inputMode="numeric"
+            maxLength={8}
+            value={pin2}
+            onChange={(e) => { setPin2(onlyDigits(e.target.value)); setError(''); }}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            placeholder="••••"
+            className={PIN_INPUT_SMALL}
+          />
         </div>
-
-        <div className="p-5 space-y-3">
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1.5">Account password</label>
-            <input autoFocus type="password" value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(''); }}
-              placeholder="••••••••"
-              className="h-12 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 font-bold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-200 dark:focus:ring-amber-500/30" />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1.5">Naya PIN</label>
-              <input type="password" inputMode="numeric" maxLength={8} value={newPin}
-                onChange={(e) => { setNewPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
-                placeholder="••••"
-                className="h-12 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-center text-xl font-extrabold tabular-nums tracking-[0.3em] focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1.5">Dobara</label>
-              <input type="password" inputMode="numeric" maxLength={8} value={pin2}
-                onChange={(e) => { setPin2(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
-                onKeyDown={(e) => e.key === 'Enter' && submit()}
-                placeholder="••••"
-                className="h-12 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-center text-xl font-extrabold tabular-nums tracking-[0.3em] focus:outline-none focus:border-amber-500" />
-            </div>
-          </div>
-          {error && <p className="text-xs font-extrabold text-rose-600 text-center">{error}</p>}
-          <button onClick={submit} disabled={busy || !password || newPin.length < 4 || newPin !== pin2}
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-700 text-white font-extrabold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50 transition">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
-            Naya PIN Set Karein
-          </button>
-          <p className="text-[0.6875rem] font-bold text-slate-400 text-center leading-relaxed">
-            Password bhool gaye hain? Login safhe par "Password bhool gaye" se email par link aa jata hai.
-          </p>
-        </div>
+        {error && <p role="alert" className="text-center text-xs font-medium text-rose-600">{error}</p>}
+        <p className="text-center text-xs leading-relaxed text-slate-500">
+          Password bhool gaye hain? Login safhe par "Password bhool gaye" se email par link aa jata hai.
+        </p>
       </div>
-    </div>
+    </Modal>
   );
 }
 
-/* ─────────────────── PIN set / badlein / hatayein ─────────────────── */
+/* ─────────────────── Set / change / remove PIN ─────────────────── */
 
 export function PinSetupModal({ onClose }: { onClose: () => void }) {
   const store = usePrivacyStore();
@@ -395,130 +391,170 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
     return <ForgotPinModal onClose={onClose} onDone={onClose} />;
   }
 
+  const heading = step === 'set' ? (hasPin ? 'PIN badlein' : 'PIN set karein')
+    : step === 'remove' ? 'PIN hatayein'
+      : 'PIN Settings';
+
+  const footer = step === 'set' ? (
+    <>
+      <Button variant="secondary" onClick={onClose}>Wapas</Button>
+      <Button
+        onClick={savePin}
+        loading={busy}
+        disabled={pin.length < 4 || pin !== pin2 || (hasPin && currentPin.length < 4)}
+        leftIcon={<KeyRound className="h-4 w-4" />}
+      >
+        PIN save karein
+      </Button>
+    </>
+  ) : step === 'remove' ? (
+    <>
+      <Button variant="secondary" onClick={onClose}>Wapas</Button>
+      <Button variant="danger" onClick={removePin} loading={busy} disabled={currentPin.length < 4} leftIcon={<Trash2 className="h-4 w-4" />}>
+        PIN hatayein
+      </Button>
+    </>
+  ) : undefined;
+
   return (
-    <div className="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="w-full max-w-sm bg-[#ffffff] dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-start justify-between">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold">
-              <KeyRound className="h-3 w-3" /> Malik ka PIN
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-emerald-600" />{heading}</span>}
+      description="Har device par yehi PIN chalega"
+      footer={footer}
+    >
+      <div className="space-y-3">
+        {step === 'menu' && (
+          <>
+            <MenuOption
+              tone="emerald"
+              icon={<KeyRound className="h-5 w-5" />}
+              title="Naya PIN set karein"
+              hint="Purana PIN bhi likhna hoga"
+              onClick={() => setStep('set')}
+            />
+            <MenuOption
+              tone="amber"
+              icon={<HelpCircle className="h-5 w-5" />}
+              title="PIN bhool gaye?"
+              hint="Account password se naya PIN"
+              onClick={() => setStep('forgot')}
+            />
+            <MenuOption
+              tone="rose"
+              icon={<Trash2 className="h-5 w-5" />}
+              title="PIN hatayein"
+              hint="Cost sab ko dikhne lagegi, page lock bhi hat jayenge"
+              onClick={() => setStep('remove')}
+            />
+          </>
+        )}
+
+        {step === 'set' && (
+          <>
+            {hasPin && (
+              <Input
+                label="Purana PIN"
+                autoFocus
+                data-autofocus
+                type="password"
+                inputMode="numeric"
+                maxLength={8}
+                value={currentPin}
+                onChange={(e) => { setCurrentPin(onlyDigits(e.target.value)); setError(''); }}
+                placeholder="••••"
+                className={PIN_INPUT_SMALL}
+              />
+            )}
+            <Input
+              label="Naya PIN (4-8 hindsay)"
+              autoFocus={!hasPin}
+              data-autofocus={hasPin ? undefined : true}
+              type="password"
+              inputMode="numeric"
+              maxLength={8}
+              value={pin}
+              onChange={(e) => { setPin(onlyDigits(e.target.value)); setError(''); }}
+              placeholder="••••"
+              className={PIN_INPUT}
+            />
+            <Input
+              label="Dobara likhein"
+              type="password"
+              inputMode="numeric"
+              maxLength={8}
+              value={pin2}
+              onChange={(e) => { setPin2(onlyDigits(e.target.value)); setError(''); }}
+              onKeyDown={(e) => e.key === 'Enter' && savePin()}
+              placeholder="••••"
+              className={PIN_INPUT}
+            />
+            {error && <p role="alert" className="text-center text-xs font-medium text-rose-600">{error}</p>}
+            <div className="rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
+              🔐 Ye PIN server par mehfooz hai — aap jis bhi mobile ya computer se login karein, wohi PIN chalega.
+              Kisi ko bata dein to wo bhi apne phone se cost dekh sakega.
             </div>
-            <h3 className="font-extrabold text-lg mt-1.5">
-              {step === 'set' && (hasPin ? 'PIN Badlein' : 'PIN Set Karein')}
-              {step === 'menu' && 'PIN Settings'}
-              {step === 'remove' && 'PIN Hatayein'}
-            </h3>
-            <p className="text-xs text-white/85 font-semibold">Har device par yehi PIN chalega</p>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+            {hasPin && (
+              <button
+                type="button"
+                onClick={() => setStep('forgot')}
+                className="w-full text-xs font-medium text-slate-500 transition hover:text-brand-700"
+              >
+                Purana PIN yaad nahi? Password se badlein
+              </button>
+            )}
+          </>
+        )}
 
-        <div className="p-5 space-y-3">
-          {step === 'menu' && (
-            <>
-              <button onClick={() => setStep('set')}
-                className="w-full p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 hover:border-emerald-400 flex items-center gap-3 text-left transition">
-                <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                  <KeyRound className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-extrabold text-emerald-900 dark:text-emerald-200">Naya PIN set karein</div>
-                  <div className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold">Purana PIN bhi likhna hoga</div>
-                </div>
-              </button>
-              <button onClick={() => setStep('forgot')}
-                className="w-full p-4 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 hover:border-amber-400 flex items-center gap-3 text-left transition">
-                <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
-                  <HelpCircle className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-extrabold text-amber-900 dark:text-amber-200">PIN bhool gaye?</div>
-                  <div className="text-xs text-amber-700 dark:text-amber-300 font-semibold">Account password se naya PIN</div>
-                </div>
-              </button>
-              <button onClick={() => setStep('remove')}
-                className="w-full p-4 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 hover:border-rose-400 flex items-center gap-3 text-left transition">
-                <div className="h-10 w-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
-                  <Trash2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-extrabold text-rose-900 dark:text-rose-200">PIN hatayein</div>
-                  <div className="text-xs text-rose-700 dark:text-rose-300 font-semibold">Cost sab ko dikhne lagegi, page lock bhi hat jayenge</div>
-                </div>
-              </button>
-            </>
-          )}
-
-          {step === 'set' && (
-            <>
-              {hasPin && (
-                <div>
-                  <label className="block text-xs font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1.5">Purana PIN</label>
-                  <input autoFocus type="password" inputMode="numeric" maxLength={8} value={currentPin}
-                    onChange={(e) => { setCurrentPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
-                    placeholder="••••"
-                    className="h-12 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-center text-xl font-extrabold tabular-nums tracking-[0.4em] focus:outline-none focus:border-emerald-500" />
-                </div>
-              )}
-              <div>
-                <label className="block text-xs font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1.5">Naya PIN (4-8 hindsay)</label>
-                <input autoFocus={!hasPin} type="password" inputMode="numeric" maxLength={8} value={pin}
-                  onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
-                  placeholder="••••"
-                  className="h-14 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-center text-2xl font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/30" />
-              </div>
-              <div>
-                <label className="block text-xs font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1.5">Dobara likhein</label>
-                <input type="password" inputMode="numeric" maxLength={8} value={pin2}
-                  onChange={(e) => { setPin2(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
-                  onKeyDown={(e) => e.key === 'Enter' && savePin()}
-                  placeholder="••••"
-                  className="h-14 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-center text-2xl font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/30" />
-              </div>
-              {error && <p className="text-xs font-extrabold text-rose-600 text-center">{error}</p>}
-              <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 leading-relaxed">
-                🔐 Ye PIN server par mehfooz hai — aap jis bhi mobile ya computer se login karein, wohi PIN chalega.
-                Kisi ko bata dein to wo bhi apne phone se cost dekh sakega.
-              </div>
-              <button onClick={savePin} disabled={busy || pin.length < 4 || pin !== pin2 || (hasPin && currentPin.length < 4)}
-                className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-extrabold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50 transition">
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} PIN Save Karein
-              </button>
-              {hasPin && (
-                <button onClick={() => setStep('forgot')}
-                  className="w-full text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 hover:text-amber-600 transition">
-                  Purana PIN yaad nahi? Password se badlein
-                </button>
-              )}
-            </>
-          )}
-
-          {step === 'remove' && (
-            <>
-              <div>
-                <label className="block text-xs font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1.5">Mojooda PIN</label>
-                <input autoFocus type="password" inputMode="numeric" maxLength={8} value={currentPin}
-                  onChange={(e) => { setCurrentPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
-                  onKeyDown={(e) => e.key === 'Enter' && removePin()}
-                  placeholder="••••"
-                  className="h-14 w-full rounded-2xl border-2 border-slate-300 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-center text-2xl font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-200 dark:focus:ring-rose-500/30" />
-              </div>
-              {error && <p className="text-xs font-extrabold text-rose-600 text-center">{error}</p>}
-              <button onClick={removePin} disabled={busy || currentPin.length < 4}
-                className="w-full h-12 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50 transition">
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} PIN Hatayein
-              </button>
-            </>
-          )}
-        </div>
+        {step === 'remove' && (
+          <Input
+            label="Mojooda PIN"
+            autoFocus
+            data-autofocus
+            type="password"
+            inputMode="numeric"
+            maxLength={8}
+            value={currentPin}
+            onChange={(e) => { setCurrentPin(onlyDigits(e.target.value)); setError(''); }}
+            onKeyDown={(e) => e.key === 'Enter' && removePin()}
+            placeholder="••••"
+            error={error || undefined}
+            className={PIN_INPUT}
+          />
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }
 
-/** Settings me lagane wala button */
+const MENU_TONES = {
+  emerald: { box: 'border-emerald-200 bg-emerald-50 hover:border-emerald-400', icon: 'bg-emerald-600', title: 'text-emerald-900', hint: 'text-emerald-700' },
+  amber: { box: 'border-amber-200 bg-amber-50 hover:border-amber-400', icon: 'bg-amber-500', title: 'text-amber-900', hint: 'text-amber-700' },
+  rose: { box: 'border-rose-200 bg-rose-50 hover:border-rose-400', icon: 'bg-rose-600', title: 'text-rose-900', hint: 'text-rose-700' },
+} as const;
+
+function MenuOption({ tone, icon, title, hint, onClick }: {
+  tone: keyof typeof MENU_TONES;
+  icon: ReactNode;
+  title: string;
+  hint: string;
+  onClick: () => void;
+}) {
+  const t = MENU_TONES[tone];
+  return (
+    <button type="button" onClick={onClick} className={cn('flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition', t.box)}>
+      <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white', t.icon)}>{icon}</span>
+      <span>
+        <span className={cn('block text-sm font-semibold', t.title)}>{title}</span>
+        <span className={cn('block text-xs', t.hint)}>{hint}</span>
+      </span>
+    </button>
+  );
+}
+
+/** Button for the settings page. */
 export function PinSettingsButton() {
   const [open, setOpen] = useState(false);
   const hasPin = usePrivacyStore((s) => s.hasPin);

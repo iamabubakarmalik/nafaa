@@ -1,23 +1,8 @@
-/* ═════════════════════════════════════════════════════════════
-   CATEGORY — dukaan-daar ki apni, system ka apna
-   ─────────────────────────────────────────────────────────────
-   Pehle wizard me DO category poochi jati thin:
-
-     1. "Kis qism ka maal" — 19 emoji button, system ka apna enum.
-     2. Global category — jo dukaan-daar khud banata hai.
-
-   Dukaan-daar ke liye ye be-maani tha. Wo "Urea" naam ki category
-   banata hai, aur phir usi cheez ke liye system ki list me se bhi
-   "Khaad" chunna parta hai.
-
-   Ab sirf EK category poochi jati hai: wohi global wali jo wo khud
-   banata hai. Enum system khud samajh leta hai — us ki zaroorat
-   sirf andar ke kaam me hai (safety ke sawal dikhein ya nahi,
-   NPK ka khana khule ya nahi, registration maanga jaye ya nahi).
-
-   Bilkul wohi tareeqa jo bakery me chal raha hai — dekhein
-   `../../bakery/lib/bakeryCategory.ts`.
-   ═════════════════════════════════════════════════════════════ */
+/**
+ * Agri product kind. The shop picks only its own category; the internal
+ * kind is derived from it and drives safety fields, NPK and registration
+ * checks (same approach as bakery/lib/bakeryCategory.ts).
+ */
 
 export type AgriKind =
   | 'SEEDS' | 'FERTILIZER' | 'PESTICIDE' | 'HERBICIDE' | 'FUNGICIDE'
@@ -26,8 +11,7 @@ export type AgriKind =
   | 'MULCH_COVER' | 'GROWTH_HORMONE' | 'SOIL_CONDITIONER' | 'PLANT_NUTRIENT'
   | 'ORGANIC_INPUT' | 'OTHER';
 
-/* Har qism ke liye wo alfaz jin se wo pehchani jati hai — Urdu
-   aur English dono, kyunke dukaan-daar dono me likhta hai. */
+/* Words (Urdu and English) that identify each kind. */
 const RULES: Array<[AgriKind, string[]]> = [
   ['POULTRY_FEED',        ['poultry', 'murghi', 'murgi', 'chick', 'broiler', 'layer feed']],
   ['CATTLE_FEED',         ['cattle', 'mawayshi', 'wanda', 'vanda', 'bhains', 'gaye ka feed', 'dairy feed']],
@@ -47,17 +31,13 @@ const RULES: Array<[AgriKind, string[]]> = [
   ['MACHINERY_PART',      ['machine', 'purza', 'spare', 'bearing', 'belt', 'blade', 'tractor', 'thresher']],
   ['MULCH_COVER',         ['mulch', 'tarpal', 'tarpaulin', 'plastic sheet', 'cover', 'tunnel']],
   ['FARM_TOOLS',          ['tool', 'auzaar', 'belcha', 'kudal', 'darati', 'sprayer', 'drum', 'kassi', 'rassi']],
-  /* SEEDS sab se aakhir me: "wheat", "cotton" jaise lafz khaad aur
-     dawa ke naam me bhi aate hain, un ko pehla mauqa milna chahiye. */
+  /* SEEDS last: crop words also appear in fertilizer and spray names. */
   ['SEEDS',               ['seed', 'beej', 'bij', 'gandum', 'wheat', 'cotton', 'kapas', 'dhan', 'paddy', 'maize', 'makai', 'sabzi', 'nursery', 'pouda', 'plant']],
 ];
 
 /**
- * Dukaan-daar ki likhi hui category (aur product ke naam) se system
- * wali qism nikalna.
- *
- * Kuch na mile to `OTHER` — ye ghalat nahi, bas "koi khaas bartao
- * nahi chahiye" ka matlab rakhta hai.
+ * Internal kind from the shop's category name and the product name;
+ * `OTHER` when nothing matches (no special handling needed).
  */
 export function deriveAgriKind(
   categoryName?: string | null,
@@ -71,7 +51,7 @@ export function deriveAgriKind(
   return 'OTHER';
 }
 
-/** Ye cheez zehreeli hai — safety ke sawal zaroori hain */
+/** Toxic kinds that need the safety fields. */
 export function isSprayKind(k: AgriKind): boolean {
   return ([
     'PESTICIDE', 'HERBICIDE', 'FUNGICIDE', 'INSECTICIDE',
@@ -79,38 +59,35 @@ export function isSprayKind(k: AgriKind): boolean {
   ] as AgriKind[]).includes(k);
 }
 
-/** Beej hai — variety, ugne ki shrah wagaira poochni hai */
+/** Seed kinds (variety, germination). */
 export function isSeedKind(k: AgriKind): boolean {
   return k === 'SEEDS';
 }
 
-/** Khaad hai — NPK ka hisab poochna hai */
+/** Fertilizer kinds (NPK). */
 export function isFertKind(k: AgriKind): boolean {
   return ([ 'FERTILIZER', 'SOIL_CONDITIONER', 'PLANT_NUTRIENT', 'ORGANIC_INPUT' ] as AgriKind[]).includes(k);
 }
 
-/** Jaanwar ka feed hai — kis jaanwar ke liye, protein kitna */
+/** Feed kinds (animal, protein). */
 export function isFeedKind(k: AgriKind): boolean {
   return ([ 'ANIMAL_FEED', 'POULTRY_FEED', 'CATTLE_FEED', 'FISH_FEED' ] as AgriKind[]).includes(k);
 }
 
-/** Loha-lakkar hai — fasal, mausam, zehreelapan ka sawal be-maani hai */
+/** Hardware kinds where crop, season and toxicity do not apply. */
 export function isToolKind(k: AgriKind): boolean {
   return ([ 'FARM_TOOLS', 'IRRIGATION', 'MACHINERY_PART', 'MULCH_COVER' ] as AgriKind[]).includes(k);
 }
 
 /**
- * Sarkar ki registration zaroori hai ya nahi.
- *
- * Pakistan me beej (Seed Act) aur zehreeli dawa (Agricultural
- * Pesticides Ordinance) — dono registration ke baghair bechna
- * ghair-qanooni hai. Auzaar par aisi koi pabandi nahi.
+ * Whether government registration is required: seeds (Seed Act) and
+ * pesticides (Agricultural Pesticides Ordinance) cannot be sold without it.
  */
 export function needsGovtReg(k: AgriKind): boolean {
   return isSprayKind(k) || isSeedKind(k) || k === 'FERTILIZER';
 }
 
-/** Aasani ke liye parhne layak naam */
+/** Readable label per kind. */
 export function prettyAgriKind(k: AgriKind): string {
   return AGRI_KIND_LABEL[k] ?? k;
 }
@@ -138,7 +115,7 @@ const AGRI_KIND_LABEL: Record<AgriKind, string> = {
   OTHER: 'Aur koi',
 };
 
-/** Har qism ka emoji — summary card aur list par */
+/** Emoji per kind for cards and lists. */
 export const AGRI_KIND_EMOJI: Record<AgriKind, string> = {
   SEEDS: '🌱', FERTILIZER: '🧪', PESTICIDE: '🐛', HERBICIDE: '🌿',
   FUNGICIDE: '🍄', INSECTICIDE: '🦟', ANIMAL_FEED: '🐄', POULTRY_FEED: '🐔',
@@ -149,11 +126,8 @@ export const AGRI_KIND_EMOJI: Record<AgriKind, string> = {
 };
 
 /**
- * Nayi dukaan ke liye tayyar tajaweez.
- *
- * Ye SIRF tajaweez hain — click karo to isi naam ki global category
- * ban jati hai. Chaho to apna bilkul naya naam likh lo; system ka
- * koi zor nahi.
+ * Suggested categories for a new shop; picking one creates a global
+ * category with that name.
  */
 export const AGRI_CATEGORY_SUGGESTIONS: Array<{ name: string; emoji: string }> = [
   { name: 'Beej',            emoji: '🌱' },

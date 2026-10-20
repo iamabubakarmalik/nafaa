@@ -459,17 +459,17 @@ export class DailySummaryService {
     const where = s.shopName ? `${opts.shop} - ${s.shopName}` : opts.shop;
     lines.push(`${where} | ${date}`);
     lines.push('');
-    lines.push(`Bikri: ${money(s.sales.net)} | ${s.sales.bills} bill${change(s.sales.net, s.compare.previousDay)}`);
+    lines.push(`Sale: ${money(s.sales.net)} | ${s.sales.bills} bill${change(s.sales.net, s.compare.previousDay)}`);
     if (has('returns') && s.sales.returns) lines.push(`Wapsi: ${money(s.sales.returns)} (${s.sales.returnCount})`);
     if (has('voids') && s.sales.voidedCount) lines.push(`Cancel bill: ${s.sales.voidedCount} (${money(s.sales.voided)})`);
-    if (has('discount') && s.sales.discount) lines.push(`Chhoot di: ${money(s.sales.discount)}`);
+    if (has('discount') && s.sales.discount) lines.push(`Discount di: ${money(s.sales.discount)}`);
     if (has('payments') && s.money.methods.length) lines.push(`Paisa aaya: ${s.money.methods.map((x) => `${x.label} ${money(x.amount)}`).join(', ')}`);
     if (has('drawer') && opts.withDrawer) {
       if (s.money.drawerNow !== null) lines.push(`Galle me abhi: ${money(s.money.drawerNow)}`);
       if (s.money.shortExcess) lines.push(`Galla band karte waqt farq: ${money(s.money.shortExcess)}`);
     }
     if (has('profit') && opts.withProfit) {
-      lines.push(`Munafa: ${money(s.grossProfit)}${s.netProfit !== s.grossProfit && has('expenses') ? ` | kharchon ke baad ${money(s.netProfit)}` : ''}`);
+      lines.push(`Profit: ${money(s.grossProfit)}${s.netProfit !== s.grossProfit && has('expenses') ? ` | kharchon ke baad ${money(s.netProfit)}` : ''}`);
     }
     if (has('expenses') && s.expenses.total) lines.push(`Kharche: ${money(s.expenses.total)} (${s.expenses.count})`);
     if (has('khata') && (s.sales.credit || s.money.khataCollected)) {
@@ -477,7 +477,7 @@ export class DailySummaryService {
     }
     if (has('lowStock') && (s.lowStock.out || s.lowStock.low)) lines.push(`Stock: ${s.lowStock.out} khatam, ${s.lowStock.low} kam`);
     if (has('topItems') && s.topItems.length) lines.push(`Sab se zyada bika: ${s.topItems.slice(0, 3).map((x) => `${x.name} (${x.qty})`).join(', ')}`);
-    if (has('topStaff') && s.topStaff.length > 1) lines.push(`Sab se zyada bikri: ${s.topStaff[0].name} ${money(s.topStaff[0].total)}`);
+    if (has('topStaff') && s.topStaff.length > 1) lines.push(`Sab se zyada sale: ${s.topStaff[0].name} ${money(s.topStaff[0].total)}`);
     if (has('branches') && s.branches.length) lines.push(`Branches: ${s.branches.map((b) => `${b.name} ${money(b.sales)}`).join(', ')}`);
     if (has('trend')) lines.push(`Is hafte: ${money(s.compare.weekToDate)} | Is mahine: ${money(s.compare.monthToDate)}`);
 

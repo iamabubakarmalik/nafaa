@@ -80,29 +80,17 @@ export interface GamingProductProfile {
   screenshots: string[];
   notes?: string;
 
-  product?: any;
+  product?: { id: string; name: string; price: number } | null;
   createdAt: string;
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: unknown } }): T => (res.data?.data ?? res.data) as T;
 
 export const gamingProductsApi = {
-  upsert: (data: Partial<GamingProductProfile>) =>
+  upsert: (data: Partial<GamingProductProfile> & { productId: string }) =>
     apiClient.post('/gaming/products', data).then(unwrap<GamingProductProfile>),
-
-  list: (params?: {
-    categoryType?: string; platform?: string; conditionType?: string;
-    featured?: boolean; bestSeller?: boolean; newRelease?: boolean;
-    preOrder?: boolean; rentable?: boolean; search?: string;
-  }) => apiClient.get('/gaming/products', { params }).then(unwrap<GamingProductProfile[]>),
-
+  list: () => apiClient.get('/gaming/products').then(unwrap<GamingProductProfile[]>),
   byProduct: (productId: string) =>
     apiClient.get('/gaming/products/by-product/' + productId).then(unwrap<GamingProductProfile | null>),
-
-  getOne: (id: string) =>
-    apiClient.get('/gaming/products/' + id).then(unwrap<GamingProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/gaming/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

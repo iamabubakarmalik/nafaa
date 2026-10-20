@@ -192,9 +192,12 @@ export class BookProfilesService {
     return { ...b, product };
   }
 
+  /** Hides the product (nothing is erased; it can be switched back on). */
   async remove(user: AuthenticatedUser, id: string) {
     const b = await this.prisma.bookProfile.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!b) throw new NotFoundException('Kitab nahi mili');
-    return this.prisma.bookProfile.delete({ where: { id } });
+    // The profile is kept with its product; removing it hides the product instead.
+    await this.prisma.product.updateMany({ where: { id: b.productId, tenantId: user.tenantId }, data: { isActive: false } });
+    return b;
   }
 }

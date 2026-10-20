@@ -1,458 +1,311 @@
-import { useState, useEffect } from 'react';
+/**
+ * New or edit a custom order: customer, what to make (design, wood, polish,
+ * fabric, size, sketch), price with fitting, advance asked, days to make,
+ * karigar and delivery address. An advance taken while booking is recorded
+ * right after the order is saved (drawer + khata). The price changes only
+ * while the order is a quotation.
+ *
+ * Keys: Ctrl+S save · Esc back · G guide.
+ */
+
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, Save, X, User, Phone, MapPin, Sofa, Ruler,
-  Palette, DollarSign, Calendar, Hammer, Image as ImageIcon,
-  ClipboardList, Info,
-} from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { customOrdersApi } from '../api/custom-orders.api';
-import { carpentersApi } from '../api/carpenters.api';
-import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+import type { LucideIcon } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Hammer, Image as ImageIcon, Palette, Ruler, Truck, UserRound, Wallet, X } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { isDialogOpen } from '@core/lib/shortcuts';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { CustomerPicker } from '@modules/customers/directory/components/KhataTools';
+import { customOrdersApi, type OrderInput } from '../api/custom-orders.api';
+import { carpentersApi } from '../api/carpenters.api';
+import { useSaveKey } from '../hooks/usePageKeys';
+import {
+  CATEGORY_GROUPS, FABRICS, FURNITURE_KEYS, MATERIALS, MONEY_KEYS, PAY_METHODS, POLISHES, WOODS, addDays, dayKey, errorText, moneyText, numIn, phoneOk, shortDate,
+} from '../lib/meta';
+
+interface Draft {
+  customerId: string; customerName: string; customerPhone: string; customerCnic: string; customerAddress: string;
+  productType: string; categoryType: string; material: string; description: string; woodType: string; polishRequested: string; colorRequested: string; upholsteryFabric: string;
+  lengthCm: string; widthCm: string; heightCm: string; customDimensions: string; designNotes: string; sketchUrls: string[];
+  quotedPrice: string; depositAmount: string; estimatedDays: string; requiresInstallation: boolean; installationCharge: string; warrantyMonths: string;
+  carpenterId: string; workshopLocation: string; deliveryAddress: string; deliveryCity: string; deliveryArea: string; notes: string;
+  advanceNow: string; advanceMethod: string;
+}
+
+const EMPTY: Draft = {
+  customerId: '', customerName: '', customerPhone: '', customerCnic: '', customerAddress: '',
+  productType: '', categoryType: '', material: '', description: '', woodType: '', polishRequested: '', colorRequested: '', upholsteryFabric: '',
+  lengthCm: '', widthCm: '', heightCm: '', customDimensions: '', designNotes: '', sketchUrls: [],
+  quotedPrice: '', depositAmount: '', estimatedDays: '21', requiresInstallation: false, installationCharge: '', warrantyMonths: '12',
+  carpenterId: '', workshopLocation: '', deliveryAddress: '', deliveryCity: '', deliveryArea: '', notes: '',
+  advanceNow: '', advanceMethod: 'CASH',
+};
+const ITEMS = ['Double bed', 'Sofa set 7 seater', 'Almari 3 door', 'Dining table 6 kursi', 'Dressing table', 'Center table', 'TV console', 'Kitchen cabinet'];
+const DAYS = [7, 15, 21, 30, 45];
+const ADVANCE_PCT = [25, 40, 50];
+
+const opt = (v: string) => v.trim() || undefined;
+const num = (v: string) => { const n = numIn(v); return n === null ? undefined : n; };
+
+function Chips({ list, value, onPick }: { list: string[]; value: string; onPick: (v: string) => void }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {list.map((v) => (
+        <button key={v} type="button" onClick={() => onPick(value === v ? '' : v)}
+          className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ${value === v ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'ring-slate-200 hover:bg-slate-50'}`}>{v}</button>
+      ))}
+    </div>
+  );
+}
+
+const T = ({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) => <span className="flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
 
 export default function CustomOrderFormPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const editing = !!id;
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const isEdit = !!id;
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canTakeMoney = usePermission(PERMISSIONS.POS_USE);
+  const [d, setD] = useState<Draft>(EMPTY);
+  const [tried, setTried] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }));
 
-  const [form, setForm] = useState({
-    customerId: '', customerName: '', customerPhone: '', customerAddress: '', customerCnic: '',
-    productType: '', description: '', categoryType: '',
-    material: '', woodType: '', colorRequested: '', polishRequested: '', upholsteryFabric: '',
-    lengthCm: '', widthCm: '', heightCm: '', customDimensions: '',
-    sketchUrls: [] as string[], referenceImages: [] as string[], designNotes: '',
-    quotedPrice: 0, depositAmount: 0, estimatedDays: 30,
-    carpenterId: '', workshopLocation: '',
-    deliveryAddress: '', deliveryCity: '', deliveryArea: '',
-    requiresInstallation: true, installationCharge: 0, warrantyMonths: 6,
-    notes: '',
-  });
-
-  const { data: existing } = useQuery({
-    queryKey: ['custom-order', id], queryFn: () => customOrdersApi.getOne(id!), enabled: isEdit,
-  });
-
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-pos'], queryFn: () => customersApi.list({ page: 1, limit: 500 }),
-  });
-  const customers = customersData?.items ?? [];
-
-  const { data: carpenters = [] } = useQuery({
-    queryKey: ['carpenters-active'], queryFn: () => carpentersApi.list({ active: true }),
-  });
-
+  const orderQ = useQuery({ queryKey: [FURNITURE_KEYS.orders, 'one', id], queryFn: () => customOrdersApi.getOne(id!), enabled: editing });
+  const carpentersQ = useQuery({ queryKey: [FURNITURE_KEYS.carpenters, 'active'], queryFn: () => carpentersApi.list({ active: true }), staleTime: 60_000 });
+  const o = orderQ.data;
   useEffect(() => {
-    if (existing) {
-      setForm({
-        customerId: existing.customerId ?? '', customerName: existing.customerName,
-        customerPhone: existing.customerPhone, customerAddress: existing.customerAddress ?? '',
-        customerCnic: existing.customerCnic ?? '',
-        productType: existing.productType, description: existing.description,
-        categoryType: existing.categoryType ?? '',
-        material: existing.material ?? '', woodType: existing.woodType ?? '',
-        colorRequested: existing.colorRequested ?? '', polishRequested: existing.polishRequested ?? '',
-        upholsteryFabric: existing.upholsteryFabric ?? '',
-        lengthCm: existing.lengthCm as any ?? '', widthCm: existing.widthCm as any ?? '', heightCm: existing.heightCm as any ?? '',
-        customDimensions: existing.customDimensions ?? '',
-        sketchUrls: existing.sketchUrls ?? [], referenceImages: existing.referenceImages ?? [],
-        designNotes: existing.designNotes ?? '',
-        quotedPrice: existing.quotedPrice, depositAmount: existing.depositAmount, estimatedDays: existing.estimatedDays,
-        carpenterId: existing.carpenterId ?? '', workshopLocation: existing.workshopLocation ?? '',
-        deliveryAddress: existing.deliveryAddress ?? '', deliveryCity: existing.deliveryCity ?? '', deliveryArea: existing.deliveryArea ?? '',
-        requiresInstallation: existing.requiresInstallation, installationCharge: existing.installationCharge ?? 0,
-        warrantyMonths: existing.warrantyMonths, notes: existing.notes ?? '',
-      });
-    }
-  }, [existing]);
+    if (!o) return;
+    const s = (v?: string | number | null) => (v === null || v === undefined ? '' : String(v));
+    setD({
+      ...EMPTY,
+      customerId: s(o.customerId), customerName: o.customerName, customerPhone: o.customerPhone, customerCnic: s(o.customerCnic), customerAddress: s(o.customerAddress),
+      productType: o.productType, categoryType: s(o.categoryType), material: s(o.material), description: o.description, woodType: s(o.woodType),
+      polishRequested: s(o.polishRequested), colorRequested: s(o.colorRequested), upholsteryFabric: s(o.upholsteryFabric),
+      lengthCm: s(o.lengthCm), widthCm: s(o.widthCm), heightCm: s(o.heightCm), customDimensions: s(o.customDimensions), designNotes: s(o.designNotes), sketchUrls: o.sketchUrls ?? [],
+      quotedPrice: s(o.quotedPrice), depositAmount: s(o.depositAmount), estimatedDays: s(o.estimatedDays), requiresInstallation: o.requiresInstallation,
+      installationCharge: s(o.installationCharge), warrantyMonths: s(o.warrantyMonths), carpenterId: s(o.carpenterId), workshopLocation: s(o.workshopLocation),
+      deliveryAddress: s(o.deliveryAddress), deliveryCity: s(o.deliveryCity), deliveryArea: s(o.deliveryArea), notes: s(o.notes),
+    });
+  }, [o]);
 
-  // Empty pickers and blank numbers are left out: the API only takes real values.
-  const payload = () => {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(form)) {
-      if (v === '' || v === null || v === undefined) continue;
-      out[k] = ['lengthCm', 'widthCm', 'heightCm', 'quotedPrice', 'depositAmount', 'estimatedDays', 'installationCharge', 'warrantyMonths'].includes(k)
-        ? Number(v)
-        : v;
-    }
-    if (isEdit) delete out.carpenterId;
-    return out as any;
-  };
+  const priceOpen = !editing || o?.status === 'QUOTATION';
+  const price = numIn(d.quotedPrice) ?? 0;
+  const fitting = d.requiresInstallation ? numIn(d.installationCharge) ?? 0 : 0;
+  const total = price + fitting;
+  const advance = numIn(d.advanceNow) ?? 0;
+  const days = Math.round(Number(d.estimatedDays) || 0);
+  const errors = useMemo(() => ({
+    customerName: !d.customerName.trim() ? 'Customer ka naam likhein' : undefined,
+    customerPhone: !d.customerPhone.trim() ? 'Phone likhein — khata isi se banta hai' : !phoneOk(d.customerPhone) ? '10 se 15 hindse' : undefined,
+    productType: !d.productType.trim() ? 'Kya banana hai' : undefined,
+    description: !d.description.trim() ? 'Design ya tafseel likhein' : undefined,
+    quotedPrice: !(price > 0) ? 'Qeemat likhein' : undefined,
+    depositAmount: (numIn(d.depositAmount) ?? 0) > total ? 'Advance qeemat se zyada hai' : undefined,
+    estimatedDays: days < 1 || days > 365 ? '1 se 365 din' : undefined,
+    advanceNow: advance > total ? `Kul ${money(total)} hai` : undefined,
+  }), [d, price, total, advance, days, money]);
+  const bad = Object.values(errors).some(Boolean);
 
+  const refresh = () => [FURNITURE_KEYS.orders, FURNITURE_KEYS.carpenters, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const save = useMutation({
-    mutationFn: () => (isEdit ? customOrdersApi.update(id!, payload()) : customOrdersApi.create(payload())),
-    onSuccess: (result) => {
-      toast.success(isEdit ? 'Order update ho gaya' : 'Order ban gaya');
-      qc.invalidateQueries({ queryKey: ['custom-orders-list'] });
-      navigate(`/furniture/custom-orders/${result.id}`);
+    mutationFn: async () => {
+      const payload: OrderInput = {
+        customerId: opt(d.customerId), customerName: d.customerName.trim(), customerPhone: d.customerPhone.trim(), customerCnic: opt(d.customerCnic), customerAddress: opt(d.customerAddress),
+        productType: d.productType.trim(), description: d.description.trim(), categoryType: opt(d.categoryType), material: opt(d.material),
+        woodType: opt(d.woodType), polishRequested: opt(d.polishRequested), colorRequested: opt(d.colorRequested), upholsteryFabric: opt(d.upholsteryFabric),
+        lengthCm: num(d.lengthCm), widthCm: num(d.widthCm), heightCm: num(d.heightCm), customDimensions: opt(d.customDimensions), designNotes: opt(d.designNotes), sketchUrls: d.sketchUrls,
+        quotedPrice: price, depositAmount: numIn(d.depositAmount) ?? 0, estimatedDays: days, requiresInstallation: d.requiresInstallation,
+        installationCharge: d.requiresInstallation ? numIn(d.installationCharge) ?? 0 : undefined, warrantyMonths: num(d.warrantyMonths),
+        carpenterId: editing ? undefined : opt(d.carpenterId), workshopLocation: opt(d.workshopLocation),
+        deliveryAddress: opt(d.deliveryAddress), deliveryCity: opt(d.deliveryCity), deliveryArea: opt(d.deliveryArea), notes: opt(d.notes),
+      };
+      const saved = editing ? await customOrdersApi.update(id!, payload) : await customOrdersApi.create(payload);
+      if (!editing && advance > 0) {
+        try { await customOrdersApi.recordPayment(saved.id, { amount: advance, paymentMethod: d.advanceMethod, isDeposit: true }); }
+        catch (e) { toast.error(errorText(e, 'Order ban gaya, advance save nahi hua — order kholkar dobara lein')); }
+      }
+      return saved;
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
+    onSuccess: (r) => { toast.success(editing ? 'Order save' : `${r.orderNumber} ban gaya`); refresh(); navigate(`/furniture/custom-orders/${r.id}`, { replace: true }); },
+    onError: (e) => toast.error(errorText(e, 'Order save nahi hua')),
   });
-
-  const balance = form.quotedPrice - form.depositAmount;
-  const canSave = form.customerName.trim() && form.customerPhone.trim() && form.productType.trim() && form.description.trim() && form.quotedPrice > 0 && form.estimatedDays > 0;
-
-  return (
-    <div className="space-y-5 pb-24">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex items-start gap-4 flex-wrap">
-          <button onClick={() => navigate('/furniture/custom-orders')}
-            className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 backdrop-blur flex items-center justify-center border border-white/20">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <ClipboardList className="h-3.5 w-3.5 text-amber-300" /> {isEdit ? 'Edit Custom Order' : 'New Custom Order'}
-            </div>
-            <h1 className="mt-2 text-3xl sm:text-4xl font-extrabold leading-tight">📋 Custom Furniture Order</h1>
-            <p className="mt-1 text-sm text-white/80 font-semibold">Create quotation, take deposit, schedule production</p>
-          </div>
-        </div>
-      </section>
-
-      <div className="rounded-2xl bg-violet-50 border-2 border-violet-200 p-4 flex items-start gap-3">
-        <Info className="h-5 w-5 text-violet-700 shrink-0 mt-0.5" />
-        <div className="text-sm text-violet-900">
-          <div className="font-extrabold mb-1">Order flow</div>
-          <div className="font-semibold">Quotation → Deposit → Assign Carpenter → In Production → Ready → Delivery → Completed</div>
-        </div>
-      </div>
-
-      {/* Customer */}
-      <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead n="1" icon={User} title="Customer Details" tone="violet" />
-        <div>
-          <Lbl>Existing Customer <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-          <select value={form.customerId}
-            onChange={(e) => {
-              const c = customers.find((x: any) => x.id === e.target.value);
-              setForm({
-                ...form, customerId: e.target.value,
-                customerName: c?.name || form.customerName,
-                customerPhone: c?.phone || form.customerPhone,
-                customerAddress: (c as any)?.address || form.customerAddress,
-              });
-            }}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
-            <option value="">Walk-in / new customer</option>
-            {customers.map((c: any) => (<option key={c.id} value={c.id}>{c.name}{c.phone ? ` — ${c.phone}` : ''}</option>))}
-          </select>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl>Full Name *</Lbl>
-            <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-              placeholder="Customer name"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-          <div>
-            <Lbl>Phone *</Lbl>
-            <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-              placeholder="03XX XXXXXXX"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-          <div>
-            <Lbl>CNIC <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-            <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })}
-              placeholder="XXXXX-XXXXXXX-X"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-          <div>
-            <Lbl>Address</Lbl>
-            <input value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })}
-              placeholder="Full address"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          </div>
-        </div>
-      </section>
-
-      {/* Product */}
-      <section className="rounded-2xl bg-white border-2 border-amber-300 shadow-sm p-5 space-y-4">
-        <SectionHead n="2" icon={Sofa} title="Product Details" tone="amber" />
-        <div>
-          <Lbl>Product Type *</Lbl>
-          <input value={form.productType} onChange={(e) => setForm({ ...form, productType: e.target.value })}
-            placeholder="Custom 7-Seater L-Shape Sofa Set"
-            className="h-14 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-lg font-extrabold focus:outline-none focus:border-amber-600" />
-        </div>
-        <div>
-          <Lbl>Description *</Lbl>
-          <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Full description of what customer wants..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500" />
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl>Material</Lbl>
-            <select value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
-              <option value="">Not specified</option>
-              <option value="SOLID_WOOD_SHEESHAM">Sheesham</option>
-              <option value="SOLID_WOOD_TEAK">Teak</option>
-              <option value="SOLID_WOOD_ROSEWOOD">Rosewood</option>
-              <option value="MDF">MDF</option>
-              <option value="LEATHER_GENUINE">Real Leather</option>
-              <option value="FABRIC_VELVET">Velvet Fabric</option>
-              <option value="MIXED">Mixed</option>
-            </select>
-          </div>
-          <div>
-            <Lbl>Wood Type</Lbl>
-            <input value={form.woodType} onChange={(e) => setForm({ ...form, woodType: e.target.value })}
-              placeholder="Sheesham / Teak"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <Lbl>Color Requested</Lbl>
-            <input value={form.colorRequested} onChange={(e) => setForm({ ...form, colorRequested: e.target.value })}
-              placeholder="Walnut brown"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-          <div>
-            <Lbl>Polish Type</Lbl>
-            <input value={form.polishRequested} onChange={(e) => setForm({ ...form, polishRequested: e.target.value })}
-              placeholder="Semi-gloss / Matte"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-          <div className="sm:col-span-2">
-            <Lbl>Upholstery Fabric</Lbl>
-            <input value={form.upholsteryFabric} onChange={(e) => setForm({ ...form, upholsteryFabric: e.target.value })}
-              placeholder="Velvet, Linen, Leather..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          </div>
-        </div>
-      </section>
-
-      {/* Dimensions */}
-      <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead n="3" icon={Ruler} title="Dimensions" tone="blue" />
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <Lbl>Length (cm)</Lbl>
-            <input type="number" value={form.lengthCm}
-              onChange={(e) => setForm({ ...form, lengthCm: e.target.value === '' ? '' : Number(e.target.value) as any })}
-              placeholder="200"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <Lbl>Width (cm)</Lbl>
-            <input type="number" value={form.widthCm}
-              onChange={(e) => setForm({ ...form, widthCm: e.target.value === '' ? '' : Number(e.target.value) as any })}
-              placeholder="90"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <Lbl>Height (cm)</Lbl>
-            <input type="number" value={form.heightCm}
-              onChange={(e) => setForm({ ...form, heightCm: e.target.value === '' ? '' : Number(e.target.value) as any })}
-              placeholder="85"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-        </div>
-        <div>
-          <Lbl>Custom Dimensions Notes</Lbl>
-          <input value={form.customDimensions} onChange={(e) => setForm({ ...form, customDimensions: e.target.value })}
-            placeholder="Any special sizing requirements..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-        </div>
-      </section>
-
-      {/* Sketches & References */}
-      <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead n="4" icon={ImageIcon} title="Sketches & References" tone="rose" />
-        <div>
-          <Lbl>Customer Sketches</Lbl>
-          <UploadDropzone purpose="custom-order-sketch" maxFiles={6}
-            onUploaded={(recs: any[]) => setForm({ ...form, sketchUrls: [...form.sketchUrls, ...recs.map((r) => r.url)] })}
-            hint="Upload customer's hand-drawn sketches" />
-          {form.sketchUrls.length > 0 && (
-            <div className="mt-2 grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {form.sketchUrls.map((url, i) => (
-                <div key={url + i} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setForm({ ...form, sketchUrls: form.sketchUrls.filter((_, x) => x !== i) })}
-                    className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 text-white flex items-center justify-center">×</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div>
-          <Lbl>Reference Images (from magazines, catalogues, etc.)</Lbl>
-          <UploadDropzone purpose="custom-order-reference" maxFiles={6}
-            onUploaded={(recs: any[]) => setForm({ ...form, referenceImages: [...form.referenceImages, ...recs.map((r) => r.url)] })}
-            hint="Inspiration images" />
-          {form.referenceImages.length > 0 && (
-            <div className="mt-2 grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {form.referenceImages.map((url, i) => (
-                <div key={url + i} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setForm({ ...form, referenceImages: form.referenceImages.filter((_, x) => x !== i) })}
-                    className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 text-white flex items-center justify-center">×</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div>
-          <Lbl>Design Notes</Lbl>
-          <textarea rows={2} value={form.designNotes} onChange={(e) => setForm({ ...form, designNotes: e.target.value })}
-            placeholder="Any special design requirements, patterns, motifs..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500" />
-        </div>
-      </section>
-
-      {/* Pricing & Timeline */}
-      <section className="rounded-2xl bg-white border-2 border-emerald-300 shadow-sm p-5 space-y-4">
-        <SectionHead n="5" icon={DollarSign} title="Pricing & Timeline" tone="emerald" />
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <Lbl tone="emerald">Quoted Price *</Lbl>
-            <input type="number" value={form.quotedPrice}
-              onChange={(e) => setForm({ ...form, quotedPrice: Number(e.target.value) })}
-              className="h-14 w-full rounded-xl border-2 border-emerald-400 bg-emerald-50 px-3 text-2xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600" />
-          </div>
-          <div>
-            <Lbl>Advance kitna lena hai</Lbl>
-            <input type="number" value={form.depositAmount}
-              onChange={(e) => setForm({ ...form, depositAmount: Number(e.target.value) })}
-              className="h-14 w-full rounded-xl border-2 border-slate-200 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            <div className="mt-1 flex gap-1">
-              {[25, 50, 75, 100].map((pct) => (
-                <button key={pct} type="button" onClick={() => setForm({ ...form, depositAmount: Math.round(form.quotedPrice * pct / 100) })}
-                  className="flex-1 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.6875rem] font-extrabold">
-                  {pct}%
-                </button>
-              ))}
-            </div>
-            <p className="mt-1 text-[0.6875rem] font-semibold text-slate-500">Paisa milne par order kholein aur "Payment" se darj karein — wohi khate aur day book me jata hai.</p>
-          </div>
-          <div>
-            <Lbl>Estimated Days *</Lbl>
-            <input type="number" value={form.estimatedDays}
-              onChange={(e) => setForm({ ...form, estimatedDays: Number(e.target.value) })}
-              className="h-14 w-full rounded-xl border-2 border-slate-200 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        {form.quotedPrice > 0 && (
-          <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1">
-            <div className="flex justify-between text-xs font-bold"><span className="text-slate-600">Quoted</span><span className="tabular-nums">{formatPKR(form.quotedPrice)}</span></div>
-            <div className="flex justify-between text-xs font-bold"><span className="text-slate-600">Advance (lena hai)</span><span className="text-emerald-700 tabular-nums">-{formatPKR(form.depositAmount)}</span></div>
-            <div className="pt-1 border-t border-slate-200 flex justify-between text-sm font-extrabold">
-              <span>Delivery par baqi</span>
-              <span className="text-rose-700 tabular-nums">{formatPKR(balance)}</span>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Carpenter Assignment */}
-      <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead n="6" icon={Hammer} title="Assign Carpenter" tone="orange" />
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl>Carpenter <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-            <select value={form.carpenterId} onChange={(e) => setForm({ ...form, carpenterId: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
-              <option value="">Not assigned yet</option>
-              {(carpenters as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name} ({c.activeProjects} active)</option>))}
-            </select>
-          </div>
-          <div>
-            <Lbl>Workshop Location</Lbl>
-            <input value={form.workshopLocation} onChange={(e) => setForm({ ...form, workshopLocation: e.target.value })}
-              placeholder="Main workshop"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-          </div>
-        </div>
-      </section>
-
-      {/* Delivery & Installation */}
-      <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-        <SectionHead n="7" icon={MapPin} title="Delivery & Installation" tone="blue" />
-        <div>
-          <Lbl>Delivery Address</Lbl>
-          <textarea rows={2} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })}
-            placeholder="Full delivery address..."
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.deliveryCity} onChange={(e) => setForm({ ...form, deliveryCity: e.target.value })}
-            placeholder="City"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.deliveryArea} onChange={(e) => setForm({ ...form, deliveryArea: e.target.value })}
-            placeholder="Area / Sector"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-        </div>
-        <div className="grid sm:grid-cols-3 gap-3">
-          <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer">
-            <input type="checkbox" checked={form.requiresInstallation}
-              onChange={(e) => setForm({ ...form, requiresInstallation: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-xs font-extrabold text-slate-700">Requires Installation</span>
-          </label>
-          <div>
-            <Lbl>Installation Charge</Lbl>
-            <input type="number" value={form.installationCharge}
-              onChange={(e) => setForm({ ...form, installationCharge: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <Lbl>Warranty (months)</Lbl>
-            <input type="number" value={form.warrantyMonths}
-              onChange={(e) => setForm({ ...form, warrantyMonths: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-5">
-        <Lbl>Additional Notes</Lbl>
-        <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          placeholder="Any special instructions, terms, or notes..."
-          className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
-      </section>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <Button variant="secondary" onClick={() => navigate('/furniture/custom-orders')}>Cancel</Button>
-          <Button className="bg-gradient-to-r from-violet-600 to-purple-800"
-            onClick={() => save.mutate()} loading={save.isPending} disabled={!canSave}>
-            <Save className="h-4 w-4" /> Create Order
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SectionHead({ n, icon: Icon, title, tone }: any) {
-  const tones: Record<string, string> = {
-    violet: 'from-violet-500 to-purple-700',
-    amber: 'from-amber-600 to-orange-800',
-    blue: 'from-blue-500 to-cyan-700',
-    emerald: 'from-emerald-500 to-teal-700',
-    orange: 'from-orange-500 to-red-700',
-    rose: 'from-rose-500 to-red-700',
+  const submit = () => {
+    setTried(true);
+    if (bad) { toast.error(Object.values(errors).find(Boolean)!); return; }
+    if (!save.isPending) save.mutate();
   };
-  return (
-    <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <h3 className="font-extrabold text-slate-900 text-base leading-tight">
-        <span className="text-slate-400">{n}.</span> {title}
-      </h3>
-    </div>
-  );
-}
+  useSaveKey(submit);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !isDialogOpen()) navigate(-1); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+  const e = (k: keyof typeof errors) => (tried ? errors[k] : undefined);
 
-function Lbl({ children, tone }: any) {
-  return <label className={`block text-xs font-extrabold uppercase tracking-wider mb-1.5 ${tone === 'emerald' ? 'text-emerald-700' : 'text-slate-600'}`}>{children}</label>;
+  if (editing && orderQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
+  if (editing && !o) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Order nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/furniture/custom-orders')}>Orders par wapas</Button></div></PageShell>;
+
+  return (
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Order form — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: UserRound, color: '#0891b2', title: 'Customer', text: 'Purana customer chunein ya naam aur phone likhein — advance aur baqi paisa isi ke khate me jata hai.' },
+            { icon: Palette, color: '#a16207', title: 'Design', text: 'Lakri, polish, kapra aur size likhein. Sketch ya photo lagayein — karigar ko yahi dikhana hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Qeemat aur advance', text: 'Qeemat me fitting alag likh sakte hain. "Advance abhi mila" likhein to usi waqt drawer aur khate me jata hai.' },
+          ]}
+          shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
+      )}
+
+      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
+        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-xl font-bold">{editing ? `${o?.orderNumber} — badlein` : 'Naya custom order'}</h1>
+          <p className="text-[0.8125rem] text-white/75">{editing ? (priceOpen ? 'Quotation hai — sab badal sakta hai' : 'Advance mil chuka — qeemat ab nahi badalti, baqi details badal sakti hain') : 'Customer, design, qeemat aur advance'}</p>
+        </div>
+        <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
+        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>}>
+            <div className="space-y-3">
+              {d.customerId ? (
+                <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-[0.875rem] text-brand-900 ring-1 ring-brand-100">
+                  <UserRound className="h-4 w-4" /><span className="min-w-0 flex-1 truncate font-semibold">{d.customerName} · {d.customerPhone}</span>
+                  {!editing && <button type="button" onClick={() => set({ customerId: '' })} aria-label="Hatayein" className="rounded-lg p-1 hover:bg-brand-100"><X className="h-4 w-4" /></button>}
+                </div>
+              ) : !editing && <Button variant="secondary" size="sm" onClick={() => setPicking(true)}>Purana customer chunein</Button>}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Naam" required value={d.customerName} onChange={(x) => set({ customerName: x.target.value })} placeholder="Imran Sahib" error={e('customerName')} disabled={!!d.customerId} />
+                <Input label="Phone" required inputMode="tel" value={d.customerPhone} onChange={(x) => set({ customerPhone: x.target.value })} placeholder="03001234567" error={e('customerPhone')} disabled={!!d.customerId} hint="Advance aur baqi isi khate me" />
+                <Input label="CNIC" inputMode="numeric" value={d.customerCnic} onChange={(x) => set({ customerCnic: x.target.value })} placeholder="35202-1234567-1" hint="Bara order ho to likhein" />
+                <Input label="Ghar ka pata" value={d.customerAddress} onChange={(x) => set({ customerAddress: x.target.value })} hint="Marzi hai" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={Palette}>Kya banana hai</T>}>
+            <div className="space-y-3">
+              <Input label="Cheez" required value={d.productType} onChange={(x) => set({ productType: x.target.value })} placeholder="Double bed with side tables" error={e('productType')} />
+              <Chips list={ITEMS} value={d.productType} onPick={(v) => set({ productType: v })} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select label="Kis cheez ka order" value={d.categoryType} onChange={(x) => set({ categoryType: x.target.value })} placeholder="Chunein"
+                  options={CATEGORY_GROUPS.flatMap((g) => g.items.map(([v, l]) => ({ value: v, label: `${g.label} · ${l}` })))} hint="Reports me group isi se banta hai" />
+                <Select label="Main material" value={d.material} onChange={(x) => set({ material: x.target.value })} placeholder="Chunein" options={Object.entries(MATERIALS).map(([value, label]) => ({ value, label }))} />
+              </div>
+              <Textarea label="Design / tafseel" required rows={3} value={d.description} onChange={(x) => set({ description: x.target.value })} error={e('description')}
+                placeholder="Headboard par cushion, 2 side table, neeche storage box" />
+              <Input label="Lakri" value={d.woodType} onChange={(x) => set({ woodType: x.target.value })} placeholder="Sheesham" />
+              <Chips list={WOODS} value={d.woodType} onPick={(v) => set({ woodType: v })} />
+              <Input label="Polish" value={d.polishRequested} onChange={(x) => set({ polishRequested: x.target.value })} placeholder="Walnut matte" />
+              <Chips list={POLISHES} value={d.polishRequested} onPick={(v) => set({ polishRequested: v })} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Rang" value={d.colorRequested} onChange={(x) => set({ colorRequested: x.target.value })} placeholder="Dark brown" />
+                <Input label="Kapra (sofa / cushion)" value={d.upholsteryFabric} onChange={(x) => set({ upholsteryFabric: x.target.value })} placeholder="Velvet, grey" />
+              </div>
+              <Chips list={FABRICS} value={d.upholsteryFabric} onPick={(v) => set({ upholsteryFabric: v })} />
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={Ruler}>Size aur sketch</T>}>
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Input label="Lambai (cm)" inputMode="decimal" value={d.lengthCm} onChange={(x) => set({ lengthCm: moneyText(x.target.value) })} />
+                <Input label="Chaurai (cm)" inputMode="decimal" value={d.widthCm} onChange={(x) => set({ widthCm: moneyText(x.target.value) })} />
+                <Input label="Unchai (cm)" inputMode="decimal" value={d.heightCm} onChange={(x) => set({ heightCm: moneyText(x.target.value) })} />
+              </div>
+              <Input label="Ya size aise likhein" value={d.customDimensions} onChange={(x) => set({ customDimensions: x.target.value })} placeholder="6.5 × 7 feet (king)" />
+              <Textarea label="Karigar ke liye note" rows={2} value={d.designNotes} onChange={(x) => set({ designNotes: x.target.value })} placeholder="Drawer soft-close, handle golden" />
+              <div>
+                <p className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><ImageIcon className="h-4 w-4" />Sketch / photo</p>
+                {d.sketchUrls.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {d.sketchUrls.map((u) => (
+                      <span key={u} className="relative">
+                        <img src={u} alt="Sketch" className="h-20 w-20 rounded-xl object-cover ring-1 ring-slate-200" />
+                        <button type="button" onClick={() => set({ sketchUrls: d.sketchUrls.filter((x) => x !== u) })} aria-label="Hatayein" className="absolute -right-1.5 -top-1.5 rounded-full bg-white p-0.5 shadow ring-1 ring-slate-200"><X className="h-3.5 w-3.5" /></button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {d.sketchUrls.length < 20 && <UploadDropzone purpose="product-gallery" maxFiles={6} hint="Customer ki di hui photo ya hath ka sketch" onUploaded={(recs) => set({ sketchUrls: [...d.sketchUrls, ...recs.map((r) => r.url)].slice(0, 20) })} />}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>Qeemat aur advance</T>}>
+            <fieldset disabled={!priceOpen} className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Qeemat (Rs)" required inputMode="decimal" value={d.quotedPrice} onChange={(x) => set({ quotedPrice: moneyText(x.target.value) })} error={e('quotedPrice')} hint="Furniture ki tay shuda qeemat" />
+                <Input label="Advance kitna lena hai" inputMode="decimal" value={d.depositAmount} onChange={(x) => set({ depositAmount: moneyText(x.target.value) })} error={e('depositAmount')} hint="Itna milne par order 'Advance mila' ho jata hai" />
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {ADVANCE_PCT.map((p) => <button key={p} type="button" onClick={() => set({ depositAmount: String(Math.round((total * p) / 100)) })} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-50" disabled={!total}>{p}%</button>)}
+              </div>
+              <Switch checked={d.requiresInstallation} onChange={(x) => set({ requiresInstallation: x.target.checked })} label="Ghar par fitting" description="Fitting ka charge bill me alag line" />
+              {d.requiresInstallation && <Input label="Fitting charge (Rs)" inputMode="decimal" value={d.installationCharge} onChange={(x) => set({ installationCharge: moneyText(x.target.value) })} placeholder="0" hint="0 = free fitting" />}
+              <div className="rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem]">
+                <div className="flex justify-between"><span>Kul bill</span><span className="font-bold tabular-nums">{money(total)}</span></div>
+                {editing && o && <div className="flex justify-between text-slate-600"><span>Mil chuka</span><span className="tabular-nums">{money(o.totalPaid)}</span></div>}
+              </div>
+            </fieldset>
+            {!editing && canTakeMoney && (
+              <div className="mt-3 grid gap-3 border-t border-slate-100 pt-3 sm:grid-cols-2">
+                <Input label="Advance abhi mila (Rs)" inputMode="decimal" value={d.advanceNow} onChange={(x) => set({ advanceNow: moneyText(x.target.value) })} error={e('advanceNow')}
+                  hint={advance > 0 ? `Drawer aur ${d.customerName || 'customer'} ke khate me` : 'Nahi mila to khali chhorein'} />
+                <Select label="Kaise mila" value={d.advanceMethod} onChange={(x) => set({ advanceMethod: x.target.value })} options={PAY_METHODS} />
+              </div>
+            )}
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={Hammer}>Kab aur kaun banayega</T>}>
+            <div className="space-y-3">
+              <Input label="Kitne din lagenge" required inputMode="numeric" value={d.estimatedDays} onChange={(x) => set({ estimatedDays: x.target.value.replace(/\D/g, '') })} error={e('estimatedDays')}
+                hint={days > 0 ? `Dene ki date ${shortDate(addDays(editing && o ? dayKey(new Date(o.quotationDate)) : dayKey(), days))}` : undefined} />
+              <div className="flex flex-wrap gap-1.5">{DAYS.map((n) => <button key={n} type="button" onClick={() => set({ estimatedDays: String(n) })} className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ${days === n ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'ring-slate-200 hover:bg-slate-50'}`}>{n} din</button>)}</div>
+              {!editing && (
+                <Select label="Karigar" value={d.carpenterId} onChange={(x) => set({ carpenterId: x.target.value })} placeholder="Baad me dein"
+                  options={(carpentersQ.data ?? []).map((c) => ({ value: c.id, label: `${c.name}${c.activeProjects ? ` — ${c.activeProjects} kaam haath me` : ''}` }))}
+                  hint="Order page se bhi de sakte hain" />
+              )}
+              <Input label="Workshop" value={d.workshopLocation} onChange={(x) => set({ workshopLocation: x.target.value })} placeholder="Main workshop" hint="Marzi hai" />
+              <Input label="Warranty (mahine)" inputMode="numeric" value={d.warrantyMonths} onChange={(x) => set({ warrantyMonths: x.target.value.replace(/\D/g, '') })} />
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl" title={<T icon={Truck}>Delivery</T>}>
+            <div className="space-y-3">
+              <Input label="Delivery ka pata" value={d.deliveryAddress} onChange={(x) => set({ deliveryAddress: x.target.value })} placeholder="Ghar ka pata se alag ho to" hint="Khali ho to ghar ka pata" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input label="Shehar" value={d.deliveryCity} onChange={(x) => set({ deliveryCity: x.target.value })} placeholder="Lahore" />
+                <Input label="Ilaqa" value={d.deliveryArea} onChange={(x) => set({ deliveryArea: x.target.value })} placeholder="DHA Phase 5" />
+              </div>
+              <Textarea label="Note" rows={2} value={d.notes} onChange={(x) => set({ notes: x.target.value })} />
+            </div>
+          </Card>
+
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => navigate(-1)}>Wapas</Button>
+            <Button className="flex-1" loading={save.isPending} onClick={submit}>{editing ? 'Save karein' : advance > 0 ? `Order + ${money(advance)} advance` : 'Order banayein'}</Button>
+          </div>
+        </div>
+      </div>
+
+      {picking && <CustomerPicker title="Customer chunein" money={money} onClose={() => setPicking(false)}
+        onPick={(c) => { set({ customerId: c.id, customerName: c.name, customerPhone: c.phone ?? '', customerCnic: c.cnic ?? d.customerCnic }); setPicking(false); }} />}
+    </PageShell>
+  );
 }

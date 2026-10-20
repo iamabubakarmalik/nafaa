@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Package, Plus, Trash2, Link2, AlertCircle } from 'lucide-react';
 import { integrationsApi } from '../api/integrations.api';
 import { apiClient } from '@core/api/client';
-import { Button, Input, SkeletonCard } from '@/design-system/components';
+import { Button, Input, SkeletonCard, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
 export function ProductMappingsPanel({ integrationId }: { integrationId: string }) {
@@ -161,8 +161,8 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
                 </div>
               </div>
               <button
-                onClick={() => {
-                  if (window.confirm('Delete mapping?')) deleteMutation.mutate(m.id);
+                onClick={async () => {
+                  if (await confirmDialog({ title: 'Ye jor hatayein?', danger: true })) deleteMutation.mutate(m.id);
                 }}
                 className="h-8 w-8 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950 flex items-center justify-center shrink-0"
               >

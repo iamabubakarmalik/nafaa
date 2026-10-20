@@ -27,7 +27,7 @@ export class ShoeDashboardService {
         take: 20000,
       }),
       this.prisma.shopStock.aggregate({ where: { tenantId, ...scope.where, product: { isActive: true } }, _sum: { stock: true } }),
-      this.prisma.shoeTryOnRequest.count({ where: { tenantId, status: { in: ['PENDING', 'SCHEDULED'] } } }),
+      this.prisma.shoeTryOnRequest.count({ where: { tenantId, ...(scope.shopId && { AND: [scope.whereLoose] }), status: { in: ['PENDING', 'SCHEDULED'] } } }),
       this.prisma.saleItem.findMany({
         where: { sale: { tenantId, status: { in: [...SOLD] }, createdAt: { gte: since }, ...scope.where } },
         select: { quantity: true, returnedQty: true, total: true, product: { select: { brandId: true } }, variantLink: { select: { variantId: true } } },

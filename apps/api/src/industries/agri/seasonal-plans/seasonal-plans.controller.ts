@@ -12,7 +12,7 @@ import { SeasonalPlansService } from './seasonal-plans.service';
 export class SeasonalPlansController {
   constructor(private readonly service: SeasonalPlansService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: Record<string, unknown>) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query('season') season?: string, @Query('year') year?: string, @Query('active') active?: string) {
     return this.service.list(user, {
       season, year: year ? Number(year) : undefined,
@@ -20,6 +20,6 @@ export class SeasonalPlansController {
     });
   }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: any) { return this.service.update(user, id, dto); }
+  @Patch(':id') update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: Record<string, unknown>) { return this.service.update(user, id, dto); }
   @Delete(':id') remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.remove(user, id); }
 }

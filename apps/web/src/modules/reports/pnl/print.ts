@@ -72,7 +72,7 @@ export function statementDoc(r: PnlReport, lines: PnlLine[], o: { costHidden: bo
     subtitle: o.period,
     meta: [['Branch', o.branch], ['Muqabla', o.prevPeriod], ['Kaarobar', o.label], ['Tankhwah', r.staffIncluded ? 'Kharchay me shamil' : 'Shamil nahi']],
     sections,
-    footer: 'Bikri void bills ke baghair; wapsi us din gini gayi jis din hui. Lagat bikri par save hui cost se.',
+    footer: 'Sale void bills ke baghair; wapsi us din gini gayi jis din hui. Cost sale par save hui cost se.',
   };
 }
 

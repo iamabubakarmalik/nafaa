@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { CarpetCutPieceStatus } from '@prisma/client';
+import { CarpetCutPieceSource, CarpetCutPieceStatus } from '@prisma/client';
 
 export class QueryCutPiecesDto {
   @ApiPropertyOptional()
@@ -47,4 +47,8 @@ export class QueryCutPiecesDto {
   @IsInt()
   @Min(1)
   limit?: number = 20;
+
+  @IsOptional()
+  @IsEnum(CarpetCutPieceSource)
+  sourceType?: CarpetCutPieceSource;
 }

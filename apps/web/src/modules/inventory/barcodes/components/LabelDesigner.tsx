@@ -223,7 +223,7 @@ export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: 
         </Section>
 
         <Section title="Barcode">
-          <Segmented label="Barcode ki qisam" value={c.format} onChange={(v) => set({ format: v })}
+          <Segmented label="Barcode ki type" value={c.format} onChange={(v) => set({ format: v })}
             items={[{ value: 'CODE128', label: 'Code 128' }, { value: 'EAN13', label: 'EAN-13' }, { value: 'QR', label: 'QR' }]} />
           <Hint>
             {c.format === 'CODE128' ? 'Har scanner parhta hai, har code chalta hai — yehi rakhein.'

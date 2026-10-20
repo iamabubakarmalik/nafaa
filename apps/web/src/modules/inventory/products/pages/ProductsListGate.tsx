@@ -38,6 +38,7 @@ const PAGES: Record<string, LazyExoticComponent<ComponentType>> = {
   hardware: lazy(() => import('@industries/hardware/products/HardwareProducts')),
   jewelry: lazy(() => import('@industries/jewelry/pages/JewelryProductsPage')),
   autoparts: lazy(() => import('@industries/autoparts/pages/PartsPage')),
+  carpet: lazy(() => import('@industries/carpet/products/CarpetProducts')),
 };
 
 const GeneralProducts = lazy(() => import('../list/general/GeneralProducts'));

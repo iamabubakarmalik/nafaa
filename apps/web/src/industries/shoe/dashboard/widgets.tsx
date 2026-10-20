@@ -36,10 +36,11 @@ export const shoeKpis: KpiDef[] = [
     },
   },
   {
-    id: 'shoe-exchanges', label: 'Exchange baqi', icon: RefreshCw, tone: 'warning',
+    id: 'shoe-exchanges', label: 'Exchange (30 din)', icon: RefreshCw, tone: 'neutral',
     useValue: () => {
       const s = useShoeOps();
-      return { loading: s.loading, to: '/shoe/exchanges', value: s.exchanges.requested, alert: s.exchanges.requested > 0, hint: `${s.exchanges.approved} approve` };
+      const { sales: money } = useMasked();
+      return { loading: s.loading, to: '/shoe/exchanges', value: s.exchanges.count, hint: `${money(s.exchanges.value)} ka maal badla` };
     },
   },
 ];
@@ -48,7 +49,6 @@ export function useShoeAttention(): AttentionItem[] {
   const s = useShoeOps();
   const t = s.totals;
   const items: AttentionItem[] = [];
-  if (s.exchanges.requested) items.push({ icon: RefreshCw, level: 'warning', text: `${s.exchanges.requested} exchange ki darkhwast — haan ya na kar dein`, to: '/shoe/exchanges', cta: 'Exchanges' });
   if (t.outOfStockCount) items.push({ icon: PackageX, level: 'warning', text: `${t.outOfStockCount} size bilkul khatam — customer us size ke liye wapas chala jayega`, to: `${PRODUCTS}?stockFilter=out`, cta: 'Sizes dekhein' });
   if (s.tryOn.pending) items.push({ icon: HandMetal, level: 'info', text: `${s.tryOn.pending} customer size ke intezar me — maal mangwa kar batayein`, to: '/shoe/try-on', cta: 'Size farmaish' });
   if (t.lowStockCount) items.push({ icon: AlertTriangle, level: 'info', text: `${t.lowStockCount} size kam reh gaye — agle order me shamil karein`, to: `${PRODUCTS}?stockFilter=low`, cta: 'Kam sizes' });
@@ -108,16 +108,17 @@ export function ShoeTopSizes() {
   );
 }
 
-/** Size requests and exchanges waiting at the counter. */
+/** Size requests waiting at the counter and exchanges of the last 30 days. */
 export function ShoeDesk() {
   const s = useShoeOps();
+  const { sales: money } = useMasked();
   return (
     <WidgetCard title="Size farmaish aur exchange" icon={HandMetal} description="Counter par jo kaam baqi hai">
       <div className="grid grid-cols-2 gap-2">
         <MetricTile icon={HandMetal} tone="info" label="Farmaish baqi" value={s.tryOn.pending} hint={`${s.tryOn.scheduled} ko bata diya`} to="/shoe/try-on" />
         <MetricTile icon={CheckCircle2} tone="success" label="Farmaish se bika" value={s.tryOn.conversion} hint={`${s.tryOn.completed} mukammal`} to="/shoe/try-on" />
-        <MetricTile icon={RefreshCw} tone="warning" label="Exchange darkhwast" value={s.exchanges.requested} alert={s.exchanges.requested > 0} to="/shoe/exchanges" />
-        <MetricTile icon={RefreshCw} tone="neutral" label="Exchange mukammal" value={s.exchanges.completed} hint={`${s.exchanges.approved} approve`} to="/shoe/exchanges" />
+        <MetricTile icon={RefreshCw} tone="neutral" label="Exchange (30 din)" value={s.exchanges.count} hint="Size / rang badla" to="/shoe/exchanges" />
+        <MetricTile icon={RefreshCw} tone="neutral" label="Badla hua maal" value={money(s.exchanges.value)} hint="30 din me" to="/shoe/exchanges" />
       </div>
     </WidgetCard>
   );

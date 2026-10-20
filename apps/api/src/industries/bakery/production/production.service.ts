@@ -253,7 +253,7 @@ export class ProductionService {
     const recipe = recipeOf(profile?.ingredients);
     const warnings: string[] = [];
     if (dto.useIngredients && !recipe) warnings.push('Is cheez ki recipe nahi bani — saamaan stock se nahi ghataya');
-    if (dto.addToStock && product?.hasVariants) warnings.push('Is cheez ki qismein hain — stock khud nahi daala, Stock adjustment se daalein');
+    if (dto.addToStock && product?.hasVariants) warnings.push('Is cheez ke variants hain — stock khud nahi daala, Stock adjustment se daalein');
 
     const shopId = dto.addToStock && product && !product.hasVariants && produced > 0
       ? await resolveWriteShopId(this.prisma, user.tenantId, scope, plan.shopId)

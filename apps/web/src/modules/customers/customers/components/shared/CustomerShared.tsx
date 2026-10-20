@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { Link } from 'react-router-dom';
 import { Crown, Phone, MapPin, Mail, MessageCircle, Eye, Edit3, Trash2, Star } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
@@ -220,9 +221,9 @@ export function CustomerCard({ customer: c, themeColor, extraBadges, onDelete }:
           </Link>
           {onDelete && (
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                if (confirm(`Delete ${c.name}?`)) onDelete(c.id);
+                if (await confirmDialog({ title: `${c.name} ko hatayein?`, danger: true })) onDelete(c.id);
               }}
               className="h-7 w-7 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 flex items-center justify-center"
             >

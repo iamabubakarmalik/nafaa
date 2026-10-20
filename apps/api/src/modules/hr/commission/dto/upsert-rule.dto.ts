@@ -39,7 +39,7 @@ export class UpsertRuleDto {
   @IsOptional() @IsArray() @IsString({ each: true })
   categoryIds?: string[];
 
-  @ApiPropertyOptional({ description: 'Itni bikri ke baad commission shuru ho' })
+  @ApiPropertyOptional({ description: 'Itni sale ke baad commission shuru ho' })
   @IsOptional() @IsNumber() @Min(0)
   minMonthlySale?: number;
 

@@ -25,12 +25,12 @@ export interface GamingStation {
   totalRevenue: number;
   imageUrl?: string;
   notes?: string;
-  currentSession?: any;
+  currentSession?: { id: string; sessionNumber: string; status: string; startedAt: string; customerName?: string | null } | null;
   createdAt: string;
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: unknown } }): T => (res.data?.data ?? res.data) as T;
 
 export const gamingStationsApi = {
   create: (data: Partial<GamingStation>) =>
@@ -39,7 +39,6 @@ export const gamingStationsApi = {
   list: (params?: { type?: string; active?: boolean; available?: boolean }) =>
     apiClient.get('/gaming/stations', { params }).then(unwrap<GamingStation[]>),
 
-  getOne: (id: string) => apiClient.get('/gaming/stations/' + id).then(unwrap<GamingStation>),
 
   update: (id: string, data: Partial<GamingStation>) =>
     apiClient.patch('/gaming/stations/' + id, data).then(unwrap<GamingStation>),
@@ -47,5 +46,5 @@ export const gamingStationsApi = {
   toggleMaintenance: (id: string, notes?: string) =>
     apiClient.post('/gaming/stations/' + id + '/toggle-maintenance', { notes }).then(unwrap<GamingStation>),
 
-  remove: (id: string) => apiClient.delete('/gaming/stations/' + id).then(unwrap),
+  remove: (id: string) => apiClient.delete('/gaming/stations/' + id).then(unwrap<GamingStation>),
 };

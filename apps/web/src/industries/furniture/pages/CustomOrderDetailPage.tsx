@@ -1,534 +1,301 @@
-import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ClipboardList, User, Phone, MapPin, Calendar, DollarSign, Hammer, CheckCircle2, XCircle, Clock, Edit3, Trash2, Save, Image as ImageIcon, TrendingUp, Truck, Sparkles, Camera, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { customOrdersApi, type FurnitureOrderStatus } from '../api/custom-orders.api';
-import { carpentersApi } from '../api/carpenters.api';
-import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * One custom order: where it stands (quotation → advance → making → ready →
+ * delivery), the money (advances and later payments go to the drawer and
+ * the customer's khata; the bill is made when it leaves the shop), the
+ * karigar and his progress, and the design. Prints the quotation slip.
+ *
+ * Keys: E edit · P payment · G guide · Esc back.
+ */
 
-const STATUS_META: Record<FurnitureOrderStatus, { label: string; color: string; bg: string }> = {
-  QUOTATION: { label: 'Quotation', color: 'text-slate-700', bg: 'bg-slate-100' },
-  DEPOSIT_PAID: { label: 'Deposit Paid', color: 'text-blue-700', bg: 'bg-blue-100' },
-  IN_PRODUCTION: { label: 'In Production', color: 'text-amber-700', bg: 'bg-amber-100' },
-  READY_FOR_DELIVERY: { label: 'Ready', color: 'text-violet-700', bg: 'bg-violet-100' },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'text-cyan-700', bg: 'bg-cyan-100' },
-  DELIVERED: { label: 'Delivered', color: 'text-emerald-700', bg: 'bg-emerald-100' },
-  ASSEMBLED: { label: 'Assembled', color: 'text-teal-700', bg: 'bg-teal-100' },
-  COMPLETED: { label: 'Completed', color: 'text-green-700', bg: 'bg-green-100' },
-  CANCELLED: { label: 'Cancelled', color: 'text-slate-700', bg: 'bg-slate-100' },
-  REFUNDED: { label: 'Refunded', color: 'text-rose-700', bg: 'bg-rose-100' },
-};
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  ArrowLeft, CalendarClock, CheckCircle2, ClipboardList, GraduationCap, Hammer, Palette, Pencil, Phone, Receipt, Ruler, Truck, UserRound, Wallet, XCircle,
+} from 'lucide-react';
+import { Button, Card, Input, Modal, PageShell, Select, Skeleton, Textarea } from '@/design-system/components';
+import { UploadDropzone } from '@core/components/uploads';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { customOrdersApi, type FurnitureCustomOrder, type FurnitureOrderStatus } from '../api/custom-orders.api';
+import { carpentersApi } from '../api/carpenters.api';
+import { ConfirmModal, DueChip, Info, MoneyModal, Pill } from '../components/ui';
+import {
+  BILLED_ORDER, FURNITURE_KEYS, MONEY_KEYS, OPEN_ORDER, ORDER_STATUS, categoryLabel, errorText, longDate, materialOf, orderTotal, shortDate, sizeText,
+} from '../lib/meta';
+
+const STEPS = [
+  { step: 0, label: 'Quotation' }, { step: 1, label: 'Advance' }, { step: 2, label: 'Ban raha' },
+  { step: 3, label: 'Tayyar' }, { step: 4, label: 'Raste me' }, { step: 5, label: 'De diya' },
+];
+
+function quotationSlip(o: FurnitureCustomOrder, money: (n: number) => string): PrintDoc {
+  return {
+    title: `Order ${o.orderNumber}`, subtitle: `${longDate(o.quotationDate)} · ${ORDER_STATUS[o.status]?.label ?? o.status}`,
+    meta: [['Kul', money(orderTotal(o))], ['Mila', money(o.totalPaid)], ['Baqi', money(o.balanceAmount)]],
+    sections: [
+      { kind: 'rows', title: 'Customer', rows: [{ label: 'Naam', value: o.customerName }, { label: 'Phone', value: o.customerPhone }, ...(o.customerAddress ? [{ label: 'Pata', value: o.customerAddress }] : [])] },
+      { kind: 'rows', title: 'Order', rows: [
+        { label: 'Cheez', value: o.productType }, { label: 'Design', value: o.description },
+        ...(o.woodType ? [{ label: 'Lakri', value: o.woodType }] : []), ...(o.polishRequested ? [{ label: 'Polish', value: o.polishRequested }] : []),
+        ...(o.upholsteryFabric ? [{ label: 'Kapra', value: o.upholsteryFabric }] : []), ...(sizeText(o) ? [{ label: 'Size', value: sizeText(o) }] : []),
+        { label: 'Dene ki date', value: longDate(o.expectedDeliveryDate) }, { label: 'Warranty', value: `${o.warrantyMonths} mahine` },
+      ] },
+      { kind: 'rows', title: 'Hisaab', rows: [
+        { label: 'Qeemat', value: money(o.finalPrice ?? o.quotedPrice) },
+        ...(o.requiresInstallation ? [{ label: 'Fitting', value: money(o.installationCharge ?? 0) }] : []),
+        { label: 'Advance tay', value: money(o.depositAmount) }, { label: 'Mil chuka', value: money(o.totalPaid) }, { label: 'Baqi', value: money(o.balanceAmount) },
+      ] },
+      { kind: 'text', title: 'Shart', text: 'Advance wapas nahi hota agar kaam shuru ho chuka ho. Design me tabdeeli par qeemat aur date badal sakti hai. Delivery par baqi paisa dena hoga.' },
+    ],
+  };
+}
 
 export default function CustomOrderDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canManage = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const canTakeMoney = usePermission(PERMISSIONS.POS_USE);
+  const [panel, setPanel] = useState<'pay' | 'karigar' | 'progress' | 'cancel' | 'deliver' | 'approve' | null>(null);
 
-  const [showPayment, setShowPayment] = useState(false);
-  const [showProgress, setShowProgress] = useState(false);
-  const [showAssign, setShowAssign] = useState(false);
+  const q = useQuery({ queryKey: [FURNITURE_KEYS.orders, 'one', id], queryFn: () => customOrdersApi.getOne(id!), enabled: !!id });
+  const o = q.data;
+  const refresh = () => [FURNITURE_KEYS.orders, FURNITURE_KEYS.deliveries, FURNITURE_KEYS.carpenters, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const done = (msg: string) => { toast.success(msg); setPanel(null); refresh(); };
 
-  const { data: order, isLoading } = useQuery({
-    queryKey: ['custom-order', id], queryFn: () => customOrdersApi.getOne(id!), enabled: !!id,
+  const status = useMutation({
+    mutationFn: (v: { status: FurnitureOrderStatus; cancellationReason?: string; notes?: string }) => customOrdersApi.updateStatus(id!, v),
+    onSuccess: (r) => done(BILLED_ORDER.includes(r.status) && r.balanceAmount > 0 ? `Bill ban gaya — ${money(r.balanceAmount)} customer ke khate me` : `Order: ${ORDER_STATUS[r.status]?.label}`),
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+  });
+  const pay = useMutation({
+    mutationFn: (v: { amount: number; paymentMethod: string; notes?: string }) => customOrdersApi.recordPayment(id!, { amount: v.amount, paymentMethod: v.paymentMethod, reference: v.notes }),
+    onSuccess: (r) => done(`Payment save — ${r.balanceAmount > 0 ? `${money(r.balanceAmount)} baqi` : 'poora mil gaya'}`),
+    onError: (e) => toast.error(errorText(e, 'Payment save nahi hui')),
   });
 
-  const { data: carpenters = [] } = useQuery({
-    queryKey: ['carpenters-active'], queryFn: () => carpentersApi.list({ active: true }),
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen() || !o) return;
+      if (e.key === 'Escape') navigate('/furniture/custom-orders');
+      if (e.key.toLowerCase() === 'e' && canManage && !BILLED_ORDER.includes(o.status) && o.status !== 'CANCELLED') navigate(`/furniture/custom-orders/${o.id}/edit`);
+      if (e.key.toLowerCase() === 'p' && canTakeMoney && o.balanceAmount > 0 && o.status !== 'CANCELLED') setPanel('pay');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
-  const approve = useMutation({
-    mutationFn: (finalPrice?: number) => customOrdersApi.approve(id!, finalPrice),
-    onSuccess: () => { toast.success('Order approved'); qc.invalidateQueries({ queryKey: ['custom-order', id] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Approve nahi hua'),
-  });
+  if (q.isLoading) return <PageShell><Skeleton className="h-28 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-72 rounded-2xl" /><Skeleton className="h-72 rounded-2xl" /></div></PageShell>;
+  if (!o) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Order nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/furniture/custom-orders')}>Orders par wapas</Button></div></PageShell>;
 
-  const updateStatus = useMutation({
-    mutationFn: (data: any) => customOrdersApi.updateStatus(id!, data),
-    onSuccess: (_d, vars: any) => {
-      toast.success(vars?.status === 'DELIVERED' ? 'Furniture de diya — bill ban gaya' : 'Status badal gaya');
-      qc.invalidateQueries({ queryKey: ['custom-order', id] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Status nahi badla'),
-  });
-
-  const remove = useMutation({
-    mutationFn: () => customOrdersApi.remove(id!),
-    onSuccess: () => { toast.success('Order deleted'); navigate('/furniture/custom-orders'); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete failed'),
-  });
-
-  if (isLoading || !order) {
-    return <div className="flex items-center justify-center py-24"><div className="h-12 w-12 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" /></div>;
-  }
-
-  const meta = STATUS_META[order.status];
-  const isOverdue = order.expectedDeliveryDate && new Date(order.expectedDeliveryDate) < new Date() && !['DELIVERED', 'COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status);
+  const st = ORDER_STATUS[o.status];
+  const open = OPEN_ORDER.includes(o.status);
+  const closed = o.status === 'CANCELLED' || o.status === 'REFUNDED';
+  const total = orderTotal(o);
+  const paidPct = total ? Math.min(Math.round((o.totalPaid / total) * 100), 100) : 0;
+  const updates = Array.isArray(o.progressUpdates) ? [...o.progressUpdates].reverse() : [];
 
   return (
-    <div className="space-y-5">
-      {showPayment && <PaymentModal orderId={id!} order={order} onClose={() => setShowPayment(false)}
-        onSuccess={() => { setShowPayment(false); qc.invalidateQueries({ queryKey: ['custom-order', id] }); }} />}
-      {showProgress && <ProgressModal orderId={id!} order={order} onClose={() => setShowProgress(false)}
-        onSuccess={() => { setShowProgress(false); qc.invalidateQueries({ queryKey: ['custom-order', id] }); }} />}
-      {showAssign && <AssignCarpenterModal orderId={id!} carpenters={carpenters as any[]} onClose={() => setShowAssign(false)}
-        onSuccess={() => { setShowAssign(false); qc.invalidateQueries({ queryKey: ['custom-order', id] }); }} />}
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Order — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Wallet, color: '#16a34a', title: 'Payment', text: 'Advance aur har qist "Payment lein" se — usi din drawer me aur customer ke khate me jama hoti hai.' },
+            { icon: Hammer, color: '#a16207', title: 'Karigar aur kaam', text: 'Karigar dein, phir kaam % aur photo daalte rahein. 100% par order Tayyar.' },
+            { icon: Truck, color: '#7c3aed', title: 'Delivery', text: '"Delivery bhejein" se Deliveries page par slip banti hai. Customer khud le jaye to "Customer le gaya". Dono par bill banta hai.' },
+            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Advance customer ke khate me rehta hai. Wapas dena ho to Khata se payment wapas karein.' },
+          ]}
+          shortcuts={[['E', 'badlein'], ['P', 'payment'], ['Esc', 'wapas'], ['G', 'guide']]} />
+      )}
 
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <button onClick={() => navigate('/furniture/custom-orders')} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-violet-700 font-bold">
-          <ArrowLeft className="h-4 w-4" /> All Orders
-        </button>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => { if (confirm('Delete this order?')) remove.mutate(); }}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border-2 border-rose-200 hover:bg-rose-100 text-rose-700 text-sm font-extrabold">
-            <Trash2 className="h-4 w-4" />
-          </button>
+      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
+        <button type="button" onClick={() => navigate('/furniture/custom-orders')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[0.75rem] text-white/70">{o.orderNumber}</p>
+          <h1 className="truncate text-xl font-bold">{o.productType}</h1>
+          <p className="text-[0.8125rem] text-white/80">{o.customerName} · {o.customerPhone}</p>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-[0.8125rem] font-semibold ring-1 ${st?.tone ?? ''}`}>{st?.label ?? o.status}</span>
+        <div className="flex flex-wrap gap-2 [&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
+          <PrintButton doc={() => quotationSlip(o, money)} label="Slip" size="sm" />
+          {canManage && !BILLED_ORDER.includes(o.status) && !closed && <Button size="sm" variant="secondary" onClick={() => navigate(`/furniture/custom-orders/${o.id}/edit`)}><Pencil className="h-3.5 w-3.5" />Badlein</Button>}
+          <Button size="sm" variant="secondary" onClick={guide.open} aria-label="Guide (G)"><GraduationCap className="h-3.5 w-3.5" /></Button>
         </div>
       </div>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-800 text-white shadow-2xl p-6">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <ClipboardList className="h-3.5 w-3.5 text-amber-300" /> Custom Order
-            <span className="text-white/40">•</span>
-            <span className="font-mono">{order.orderNumber}</span>
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">{order.productType}</h1>
-          <p className="mt-2 text-sm text-white/85 line-clamp-2">{order.description}</p>
-
-          <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
-              {meta.label}
-            </span>
-            {isOverdue && (
-              <span className="px-3 py-1 rounded-full bg-rose-500 text-white text-xs font-extrabold">
-                OVERDUE
-              </span>
-            )}
-            {order.progressPct > 0 && order.progressPct < 100 && (
-              <span className="px-3 py-1 rounded-full bg-amber-500/30 backdrop-blur border border-amber-300/40 text-xs font-extrabold">
-                {order.progressPct}% complete
-              </span>
-            )}
-          </div>
-
-          <div className="mt-6 grid sm:grid-cols-3 gap-3">
-            <HeroStat icon={DollarSign} label="Total Price" value={formatPKR(order.finalPrice ?? order.quotedPrice)} sub="Quoted" tone="emerald" />
-            <HeroStat icon={TrendingUp} label="Balance Due" value={formatPKR(order.balanceAmount)} sub={`Paid ${formatPKR(order.totalPaid)}`} tone={order.balanceAmount > 0 ? 'amber' : 'emerald'} />
-            <HeroStat icon={Calendar} label="Est. Days" value={String(order.estimatedDays)} sub={order.expectedDeliveryDate ? `Due ${new Date(order.expectedDeliveryDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}` : 'Not set'} tone="blue" />
-          </div>
-        </div>
-      </section>
-
-      {/* Progress bar */}
-      {order.progressPct > 0 && (
-        <section className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-extrabold text-slate-900">Production Progress</div>
-            <div className="text-lg font-extrabold text-violet-700 tabular-nums">{order.progressPct}%</div>
-          </div>
-          <div className="h-3 rounded-full bg-slate-200 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-violet-500 via-purple-600 to-purple-700 transition-all"
-              style={{ width: `${order.progressPct}%` }} />
-          </div>
-        </section>
+      {!closed && (
+        <ol className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:grid-cols-6">
+          {STEPS.map((s) => {
+            const on = (st?.step ?? 0) >= s.step;
+            return <li key={s.step} className={`rounded-xl px-2 py-1.5 text-center text-[0.75rem] font-semibold ${on ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-500'}`}>{s.label}</li>;
+          })}
+        </ol>
       )}
+      {closed && <p className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] text-rose-800 ring-1 ring-rose-200">Cancel {o.cancelledAt ? shortDate(o.cancelledAt) : ''} — {o.cancellationReason ?? '—'}. {o.totalPaid > 0 ? `${money(o.totalPaid)} advance customer ke khate me hai.` : ''}</p>}
 
-      {/* Actions */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {order.status === 'QUOTATION' && (
-          <ActionCard onClick={() => approve.mutate(undefined)} icon={CheckCircle2} label="Approve" desc="Convert to order" tone="emerald" />
-        )}
-        {(order.balanceAmount > 0 || !order.depositPaid) && (
-          <ActionCard onClick={() => setShowPayment(true)} icon={DollarSign} label="Record Payment" desc={order.depositPaid ? 'Add payment' : 'Take deposit'} tone="amber" />
-        )}
-        {!order.carpenterId && ['DEPOSIT_PAID', 'IN_PRODUCTION'].includes(order.status) && (
-          <ActionCard onClick={() => setShowAssign(true)} icon={Hammer} label="Assign Carpenter" desc="Send to workshop" tone="violet" />
-        )}
-        {['IN_PRODUCTION', 'DEPOSIT_PAID'].includes(order.status) && (
-          <ActionCard onClick={() => setShowProgress(true)} icon={Camera} label="Update Progress" desc="Add photos & %" tone="blue" />
-        )}
-        {order.status === 'READY_FOR_DELIVERY' && (
-          <ActionCard onClick={() => updateStatus.mutate({ status: 'OUT_FOR_DELIVERY' })} icon={Truck} label="Dispatch" desc="Send for delivery" tone="cyan" />
-        )}
-        {['READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY'].includes(order.status) && (
-          <ActionCard onClick={() => {
-            if (confirm('Furniture customer ko mil gaya? Bill ban jayega aur baqi amount khate me udhaar hogi.')) updateStatus.mutate({ status: 'DELIVERED' });
-          }} icon={CheckCircle2} label="Delivered" desc="Bill banao" tone="emerald" />
-        )}
-        {order.status === 'DELIVERED' && (
-          <ActionCard onClick={() => updateStatus.mutate({ status: 'COMPLETED' })} icon={CheckCircle2} label="Mark Completed" desc="Close order" tone="emerald" />
-        )}
-        {order.sale && (
-          <ActionCard onClick={() => window.open(`/sales/${order.sale!.id}/receipt`, '_blank')} icon={DollarSign} label={`Bill ${order.sale.saleNumber}`} desc="Bill dekhein" tone="blue" />
-        )}
-        {!['CANCELLED', 'COMPLETED', 'REFUNDED', 'DELIVERED', 'ASSEMBLED'].includes(order.status) && (
-          <ActionCard onClick={() => {
-            const reason = prompt('Cancellation reason:');
-            if (reason) updateStatus.mutate({ status: 'CANCELLED', cancellationReason: reason });
-          }} icon={XCircle} label="Cancel" desc="Cancel order" tone="rose" />
-        )}
-      </section>
-
-      {/* Info Cards */}
-      <div className="grid lg:grid-cols-2 gap-5">
-        {/* Customer */}
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md">
-              <User className="h-5 w-5" />
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<span className="flex items-center gap-2"><ClipboardList className="h-4 w-4 text-brand-600" />Ab kya karna hai</span>}>
+            <div className="flex flex-wrap gap-2">
+              {o.status === 'QUOTATION' && canManage && <Button onClick={() => setPanel('approve')}><CheckCircle2 className="h-4 w-4" />Qeemat pakki karein</Button>}
+              {canTakeMoney && !closed && o.balanceAmount > 0 && <Button variant={o.status === 'QUOTATION' ? 'secondary' : 'primary'} onClick={() => setPanel('pay')}><Wallet className="h-4 w-4" />{BILLED_ORDER.includes(o.status) ? 'Baqi wusool karein' : 'Advance / qist lein'}</Button>}
+              {canManage && open && <Button variant="secondary" onClick={() => setPanel('karigar')}><Hammer className="h-4 w-4" />{o.carpenterName ? 'Karigar badlein' : 'Karigar dein'}</Button>}
+              {canManage && (o.status === 'DEPOSIT_PAID' || o.status === 'IN_PRODUCTION') && <Button variant="secondary" onClick={() => setPanel('progress')}><Ruler className="h-4 w-4" />Kaam kitna hua</Button>}
+              {canManage && o.status === 'READY_FOR_DELIVERY' && <Button loading={status.isPending} onClick={() => status.mutate({ status: 'OUT_FOR_DELIVERY' })}><Truck className="h-4 w-4" />Delivery bhejein</Button>}
+              {canManage && (o.status === 'READY_FOR_DELIVERY' || o.status === 'OUT_FOR_DELIVERY') && <Button variant={o.status === 'OUT_FOR_DELIVERY' ? 'primary' : 'secondary'} onClick={() => setPanel('deliver')}><CheckCircle2 className="h-4 w-4" />{o.status === 'OUT_FOR_DELIVERY' ? 'Pohanch gaya' : 'Customer le gaya'}</Button>}
+              {canManage && (o.status === 'DELIVERED' || o.status === 'ASSEMBLED') && <Button variant="secondary" loading={status.isPending} onClick={() => status.mutate({ status: 'COMPLETED' })}><CheckCircle2 className="h-4 w-4" />Mukammal</Button>}
+              {o.status === 'OUT_FOR_DELIVERY' && <Link to="/furniture/deliveries" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[0.875rem] font-semibold text-brand-700 hover:bg-brand-50"><Truck className="h-4 w-4" />Delivery slip</Link>}
+              {o.sale && <Link to={`/sales/${o.sale.id}/receipt`} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[0.875rem] font-semibold text-brand-700 hover:bg-brand-50"><Receipt className="h-4 w-4" />Bill {o.sale.saleNumber}</Link>}
+              {canManage && (open || o.status === 'OUT_FOR_DELIVERY') && <Button variant="ghost" onClick={() => setPanel('cancel')}><XCircle className="h-4 w-4" />Cancel</Button>}
             </div>
-            <h3 className="font-extrabold text-slate-900">Customer Details</h3>
-          </div>
-          <div className="p-5 space-y-3">
-            <Row icon={User} label="Name" value={order.customerName} />
-            <Row icon={Phone} label="Phone" value={order.customerPhone} />
-            {order.customerCnic && <Row icon={ClipboardList} label="CNIC" value={order.customerCnic} mono />}
-            {order.customerAddress && <Row icon={MapPin} label="Address" value={order.customerAddress} />}
-          </div>
-        </section>
+          </Card>
 
-        {/* Product Specs */}
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-amber-50 to-orange-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-600 to-orange-800 text-white flex items-center justify-center shadow-md">
-              <Sparkles className="h-5 w-5" />
+          <Card className="rounded-2xl" title={<span className="flex items-center gap-2"><Palette className="h-4 w-4 text-brand-600" />Design</span>}>
+            <div className="space-y-3 text-[0.875rem]">
+              <p className="whitespace-pre-line text-slate-800">{o.description}</p>
+              <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {[['Kya hai', o.categoryType ? categoryLabel(o.categoryType) : null], ['Material', o.material ? materialOf(o.material) : null], ['Lakri', o.woodType], ['Polish', o.polishRequested],
+                  ['Rang', o.colorRequested], ['Kapra', o.upholsteryFabric], ['Size', sizeText(o)], ['Warranty', `${o.warrantyMonths} mahine`]]
+                  .filter(([, v]) => v).map(([k, v]) => <div key={k as string}><dt className="text-[0.75rem] text-slate-500">{k}</dt><dd className="font-semibold text-slate-900">{v}</dd></div>)}
+              </dl>
+              {o.designNotes && <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-900 ring-1 ring-amber-200">Karigar: {o.designNotes}</p>}
+              {(o.sketchUrls.length > 0 || o.progressPhotos.length > 0) && (
+                <div className="flex flex-wrap gap-2">
+                  {[...o.sketchUrls, ...o.progressPhotos].map((u) => <a key={u} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" className="h-24 w-24 rounded-xl object-cover ring-1 ring-slate-200" /></a>)}
+                </div>
+              )}
             </div>
-            <h3 className="font-extrabold text-slate-900">Product Specifications</h3>
-          </div>
-          <div className="p-5 space-y-2">
-            {order.material && <Row label="Material" value={order.material.replace(/_/g, ' ')} />}
-            {order.woodType && <Row label="Wood Type" value={order.woodType} />}
-            {order.colorRequested && <Row label="Color" value={order.colorRequested} />}
-            {order.polishRequested && <Row label="Polish" value={order.polishRequested} />}
-            {order.upholsteryFabric && <Row label="Fabric" value={order.upholsteryFabric} />}
-            {(order.lengthCm || order.widthCm || order.heightCm) && (
-              <Row label="Dimensions" value={`${order.lengthCm || '—'} × ${order.widthCm || '—'} × ${order.heightCm || '—'} cm`} />
+          </Card>
+
+          {updates.length > 0 && (
+            <Card className="rounded-2xl" title={<span className="flex items-center gap-2"><Hammer className="h-4 w-4 text-brand-600" />Kaam ki report</span>}>
+              <ul className="space-y-2 text-[0.875rem]">
+                {updates.map((u, i) => <li key={i} className="flex gap-3"><span className="w-12 shrink-0 font-semibold tabular-nums text-brand-700">{u.pct}%</span><span className="min-w-0 flex-1 text-slate-700">{u.note ?? '—'}</span><span className="shrink-0 text-[0.75rem] text-slate-400">{shortDate(u.at)}</span></li>)}
+              </ul>
+            </Card>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <Card className="rounded-2xl" title={<span className="flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Hisaab</span>}>
+            <dl className="space-y-1.5 text-[0.875rem]">
+              <div className="flex justify-between"><dt>Qeemat</dt><dd className="tabular-nums">{money(o.finalPrice ?? o.quotedPrice)}</dd></div>
+              {o.requiresInstallation && <div className="flex justify-between"><dt>Fitting</dt><dd className="tabular-nums">{money(o.installationCharge ?? 0)}</dd></div>}
+              <div className="flex justify-between border-t border-slate-100 pt-1.5 font-bold"><dt>Kul</dt><dd className="tabular-nums">{money(total)}</dd></div>
+              <div className="flex justify-between text-emerald-700"><dt>Mil chuka</dt><dd className="tabular-nums">{money(o.totalPaid)}</dd></div>
+              <div className="flex justify-between font-semibold text-amber-700"><dt>Baqi</dt><dd className="tabular-nums">{money(o.balanceAmount)}</dd></div>
+            </dl>
+            <div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.max(paidPct, 2)}%` }} /></div>
+            <p className="mt-1.5 text-[0.75rem] text-slate-500">
+              {o.depositAmount > 0 && !o.depositPaid ? `Advance tay: ${money(o.depositAmount)} · ` : ''}
+              {BILLED_ORDER.includes(o.status) ? 'Bill ban chuka — baqi customer ke khate me hai' : 'Har payment usi din drawer aur khate me; bill delivery par'}
+            </p>
+          </Card>
+
+          <Info icon={UserRound} title="Customer">
+            <p className="font-semibold text-slate-900">{o.customerName}</p>
+            <a href={`tel:${o.customerPhone}`} className="inline-flex items-center gap-1 text-[0.875rem] text-brand-700 hover:underline"><Phone className="h-3.5 w-3.5" />{o.customerPhone}</a>
+            {(o.deliveryAddress || o.customerAddress) && <p className="text-[0.8125rem] text-slate-600">{[o.deliveryAddress || o.customerAddress, o.deliveryArea, o.deliveryCity].filter(Boolean).join(', ')}</p>}
+          </Info>
+          <Info icon={CalendarClock} title="Waqt">
+            <p className="text-[0.875rem] text-slate-700">Order {shortDate(o.quotationDate)} · dena {shortDate(o.expectedDeliveryDate)}</p>
+            <DueChip o={o} />
+            {o.actualDeliveryDate && <p className="text-[0.8125rem] text-emerald-700">Diya {shortDate(o.actualDeliveryDate)}</p>}
+          </Info>
+          <Info icon={Hammer} title="Karigar">
+            <p className="font-semibold text-slate-900">{o.carpenterName ?? 'Abhi nahi diya'}</p>
+            {o.workshopLocation && <p className="text-[0.8125rem] text-slate-600">{o.workshopLocation}</p>}
+            {(o.status === 'IN_PRODUCTION' || o.status === 'DEPOSIT_PAID' || o.progressPct > 0) && (
+              <div className="mt-1.5"><div className="h-2 rounded-full bg-slate-200"><div className="h-2 rounded-full bg-amber-500" style={{ width: `${Math.max(o.progressPct, 2)}%` }} /></div><p className="mt-0.5 text-[0.75rem] text-slate-500">{o.progressPct}% kaam</p></div>
             )}
-            {order.customDimensions && <Row label="Custom Dims" value={order.customDimensions} />}
-          </div>
-        </section>
+          </Info>
+          {o.notes && <p className="whitespace-pre-line rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200/70">{o.notes}</p>}
+        </div>
       </div>
 
-      {/* Payment Info */}
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-emerald-50 to-teal-50 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-md">
-            <DollarSign className="h-5 w-5" />
-          </div>
-          <h3 className="font-extrabold text-slate-900">Payment Details</h3>
-        </div>
-        <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <PayBox label="Quoted" value={formatPKR(order.quotedPrice)} tone="slate" />
-          <PayBox label="Final Price" value={order.finalPrice ? formatPKR(order.finalPrice) : '—'} tone="blue" />
-          <PayBox label="Total Paid" value={formatPKR(order.totalPaid)} tone="emerald" />
-          <PayBox label="Balance Due" value={formatPKR(order.balanceAmount)} tone={order.balanceAmount > 0 ? 'rose' : 'emerald'} />
-        </div>
-      </section>
-
-      {/* Sketches & Progress Photos */}
-      {(order.sketchUrls?.length > 0 || order.referenceImages?.length > 0 || order.progressPhotos?.length > 0) && (
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-rose-50 to-red-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-red-700 text-white flex items-center justify-center shadow-md">
-              <ImageIcon className="h-5 w-5" />
-            </div>
-            <h3 className="font-extrabold text-slate-900">Images</h3>
-          </div>
-          <div className="p-5 space-y-4">
-            {order.sketchUrls?.length > 0 && (
-              <div>
-                <div className="text-xs font-extrabold text-slate-600 mb-2">Sketches</div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {order.sketchUrls.map((url, i) => (
-                    <a key={url + i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border-2 border-slate-200 hover:border-rose-400">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-            {order.referenceImages?.length > 0 && (
-              <div>
-                <div className="text-xs font-extrabold text-slate-600 mb-2">Reference Images</div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {order.referenceImages.map((url, i) => (
-                    <a key={url + i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border-2 border-slate-200 hover:border-rose-400">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-            {order.progressPhotos?.length > 0 && (
-              <div>
-                <div className="text-xs font-extrabold text-slate-600 mb-2">Progress Photos ({order.progressPhotos.length})</div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {order.progressPhotos.map((url, i) => (
-                    <a key={url + i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border-2 border-emerald-200 hover:border-emerald-400">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
+      {panel === 'pay' && (
+        <MoneyModal title={BILLED_ORDER.includes(o.status) ? 'Baqi wusool karein' : 'Advance / qist lein'} description={`${o.orderNumber} · ${o.customerName}`} due={o.balanceAmount} max={o.balanceAmount} busy={pay.isPending}
+          hint={`Baqi ${money(o.balanceAmount)} — drawer aur khate me jata hai`} onSubmit={(v) => pay.mutate(v)} onClose={() => setPanel(null)} />
       )}
-
-      {/* Carpenter */}
-      {order.carpenterId && (
-        <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 bg-gradient-to-r from-orange-50 to-red-50 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-700 text-white flex items-center justify-center shadow-md">
-              <Hammer className="h-5 w-5" />
-            </div>
-            <h3 className="font-extrabold text-slate-900">Carpenter Assignment</h3>
-          </div>
-          <div className="p-5 space-y-2">
-            <Row icon={Hammer} label="Carpenter" value={order.carpenterName || '—'} />
-            {order.workshopLocation && <Row icon={MapPin} label="Workshop" value={order.workshopLocation} />}
-            {order.productionStartDate && <Row icon={Calendar} label="Started" value={new Date(order.productionStartDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })} />}
-          </div>
-        </section>
+      {panel === 'approve' && <ApproveModal o={o} money={money} onClose={() => setPanel(null)} onDone={() => done('Qeemat pakki — ab advance lein')} />}
+      {panel === 'karigar' && <KarigarModal o={o} onClose={() => setPanel(null)} onDone={() => done('Karigar de diya')} />}
+      {panel === 'progress' && <ProgressModal o={o} onClose={() => setPanel(null)} onDone={(pct) => done(pct >= 100 ? 'Order tayyar — delivery bhejein' : 'Kaam save')} />}
+      {panel === 'deliver' && (
+        <ConfirmModal title={o.status === 'OUT_FOR_DELIVERY' ? 'Furniture pohanch gaya?' : 'Customer khud le gaya?'} cta="Haan, bill banayein" busy={status.isPending} onClose={() => setPanel(null)}
+          onConfirm={() => status.mutate({ status: 'DELIVERED' })}
+          text={<p>Ab bill banega: {money(total)}. {o.totalPaid > 0 ? `${money(o.totalPaid)} advance katega, ` : ''}{o.balanceAmount > 0 ? `${money(o.balanceAmount)} ${o.customerName} ke khate me udhaar.` : 'poora paisa mil chuka.'}</p>} />
       )}
-    </div>
+      {panel === 'cancel' && <CancelModal o={o} busy={status.isPending} money={money} onClose={() => setPanel(null)} onConfirm={(reason) => status.mutate({ status: 'CANCELLED', cancellationReason: reason })} />}
+    </PageShell>
   );
 }
 
-function PaymentModal({ orderId, order, onClose, onSuccess }: any) {
-  const [amount, setAmount] = useState(order.balanceAmount || 0);
-  const [isDeposit, setIsDeposit] = useState(!order.depositPaid);
-  const [paymentMethod, setPaymentMethod] = useState('CASH');
-  const [reference, setReference] = useState('');
-
-  const record = useMutation({
-    mutationFn: () => customOrdersApi.recordPayment(orderId, { amount, paymentMethod, isDeposit, reference: reference || undefined }),
-    onSuccess: () => { toast.success('Payment darj ho gayi'); onSuccess(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Payment darj nahi hui'),
-  });
-
+function ApproveModal({ o, money, onClose, onDone }: { o: FurnitureCustomOrder; money: (n: number) => string; onClose: () => void; onDone: () => void }) {
+  const [price, setPrice] = useState(String(o.quotedPrice));
+  const n = Number(price) || 0;
+  const save = useMutation({ mutationFn: () => customOrdersApi.approve(o.id, n), onSuccess: onDone, onError: (e) => toast.error(errorText(e, 'Nahi hua')) });
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">💰 Record Payment</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center"><X className="h-5 w-5" /></button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 text-sm">
-            <div className="flex justify-between font-bold"><span>Total</span><span>{formatPKR(order.finalPrice ?? order.quotedPrice)}</span></div>
-            <div className="flex justify-between font-bold text-emerald-700"><span>Paid</span><span>{formatPKR(order.totalPaid)}</span></div>
-            <div className="pt-1 border-t border-slate-200 flex justify-between font-extrabold text-rose-700">
-              <span>Balance</span><span>{formatPKR(order.balanceAmount)}</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Amount</label>
-            <input type="number" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))}
-              className="h-16 w-full rounded-2xl border-4 border-emerald-400 bg-emerald-50 px-4 text-3xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600" />
-          </div>
-
-          <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer">
-            <input type="checkbox" checked={isDeposit} onChange={(e) => setIsDeposit(e.target.checked)} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold">This is the initial deposit</span>
-          </label>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Payment Method</label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {['CASH', 'CARD', 'BANK', 'MOBILE'].map((m) => (
-                <button key={m} onClick={() => setPaymentMethod(m)}
-                  className={`h-11 rounded-xl text-xs font-extrabold ${paymentMethod === m ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <input value={reference} onChange={(e) => setReference(e.target.value)}
-            placeholder="Reference / receipt # (optional)"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        </div>
-        <div className="px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700"
-            onClick={() => record.mutate()} loading={record.isPending} disabled={amount <= 0}>
-            <DollarSign className="h-4 w-4" /> Record
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal title="Qeemat pakki karein" cta="Pakki karein" busy={save.isPending} onClose={onClose} onConfirm={() => { if (!(n > 0)) { toast.error('Qeemat likhein'); return; } save.mutate(); }}
+      text={<div className="space-y-3"><p>Customer ne qeemat maan li. Is ke baad qeemat nahi badlegi.</p><Input label="Final qeemat (Rs)" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} hint={`Quotation ${money(o.quotedPrice)}`} /></div>} />
   );
 }
 
-function ProgressModal({ orderId, order, onClose, onSuccess }: any) {
-  const [progressPct, setProgressPct] = useState(order.progressPct || 0);
-  const [updateNote, setUpdateNote] = useState('');
+function KarigarModal({ o, onClose, onDone }: { o: FurnitureCustomOrder; onClose: () => void; onDone: () => void }) {
+  const listQ = useQuery({ queryKey: [FURNITURE_KEYS.carpenters, 'active'], queryFn: () => carpentersApi.list({ active: true }), staleTime: 60_000 });
+  const [cid, setCid] = useState(o.carpenterId ?? '');
+  const [shop, setShop] = useState(o.workshopLocation ?? '');
+  const save = useMutation({ mutationFn: () => customOrdersApi.assignCarpenter(o.id, cid, shop.trim() || undefined), onSuccess: onDone, onError: (e) => toast.error(errorText(e, 'Nahi hua')) });
+  return (
+    <Modal open onClose={onClose} size="sm" title="Karigar dein" description={o.productType}
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} disabled={!cid} onClick={() => save.mutate()}>Save</Button></>}>
+      <div className="space-y-3">
+        <Select label="Karigar" value={cid} onChange={(e) => setCid(e.target.value)} placeholder={listQ.isLoading ? 'Load ho raha…' : 'Chunein'}
+          options={(listQ.data ?? []).map((c) => ({ value: c.id, label: `${c.name}${c.activeProjects ? ` — ${c.activeProjects} kaam` : ''}` }))}
+          hint={!listQ.isLoading && !listQ.data?.length ? 'Pehle Karigar page par karigar daalein' : 'Kam kaam wala jaldi bana dega'} />
+        <Input label="Workshop" value={shop} onChange={(e) => setShop(e.target.value)} hint="Marzi hai" />
+      </div>
+    </Modal>
+  );
+}
+
+function ProgressModal({ o, onClose, onDone }: { o: FurnitureCustomOrder; onClose: () => void; onDone: (pct: number) => void }) {
+  const [pct, setPct] = useState(Math.min(o.progressPct + 25, 100));
+  const [note, setNote] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
-
-  const update = useMutation({
-    mutationFn: () => customOrdersApi.updateProgress(orderId, { progressPct, updateNote: updateNote || undefined, progressPhotos: photos.length > 0 ? photos : undefined }),
-    onSuccess: () => { toast.success('Progress updated'); onSuccess(); },
-  });
-
+  const save = useMutation({ mutationFn: () => customOrdersApi.updateProgress(o.id, { progressPct: pct, updateNote: note.trim() || undefined, progressPhotos: photos }), onSuccess: () => onDone(pct), onError: (e) => toast.error(errorText(e, 'Nahi hua')) });
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">📸 Update Progress</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center"><X className="h-5 w-5" /></button>
+    <Modal open onClose={onClose} size="md" title="Kaam kitna hua" description={`${o.productType} · abhi ${o.progressPct}%`}
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={() => save.mutate()}>{pct >= 100 ? 'Tayyar hai' : 'Save'}</Button></>}>
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-1.5">
+          {[25, 50, 75, 90, 100].map((n) => <button key={n} type="button" onClick={() => setPct(n)} className={`h-9 rounded-lg px-3 text-[0.875rem] font-semibold ring-1 ${pct === n ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'ring-slate-200 hover:bg-slate-50'}`}>{n}%</button>)}
         </div>
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-2">Completion Percentage</label>
-            <input type="range" min="0" max="100" value={progressPct} onChange={(e) => setProgressPct(Number(e.target.value))} className="w-full" />
-            <div className="mt-2 text-center text-4xl font-extrabold text-blue-700 tabular-nums">{progressPct}%</div>
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Update Note</label>
-            <textarea rows={2} value={updateNote} onChange={(e) => setUpdateNote(e.target.value)}
-              placeholder="What was done today..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Progress Photos</label>
-            <UploadDropzone purpose="progress-photo" maxFiles={5}
-              onUploaded={(recs: any[]) => setPhotos([...photos, ...recs.map((r) => r.url)])} />
-            {photos.length > 0 && (
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {photos.map((url, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200">
-                    <img src={url} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => setPhotos(photos.filter((_, x) => x !== i))}
-                      className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 text-white flex items-center justify-center">×</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700"
-            onClick={() => update.mutate()} loading={update.isPending}>
-            <Save className="h-4 w-4" /> Update
-          </Button>
-        </div>
+        <input type="range" min={0} max={100} step={5} value={pct} onChange={(e) => setPct(Number(e.target.value))} className="w-full accent-brand-600" aria-label="Kaam %" />
+        <Textarea label="Kya hua" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Dhancha tayyar, polish baqi" />
+        <UploadDropzone purpose="product-gallery" maxFiles={4} hint="Kaam ki photo — customer ko bhej sakte hain" onUploaded={(r) => setPhotos((p) => [...p, ...r.map((x) => x.url)].slice(0, 10))} />
+        {photos.length > 0 && <p className="text-[0.75rem] text-slate-500">{photos.length} photo lag gayi</p>}
       </div>
-    </div>
+    </Modal>
   );
 }
 
-function AssignCarpenterModal({ orderId, carpenters, onClose, onSuccess }: any) {
-  const [carpenterId, setCarpenterId] = useState('');
-  const [workshopLocation, setWorkshopLocation] = useState('');
-
-  const assign = useMutation({
-    mutationFn: () => customOrdersApi.assignCarpenter(orderId, carpenterId, workshopLocation || undefined),
-    onSuccess: () => { toast.success('Carpenter assigned'); onSuccess(); },
-  });
-
+function CancelModal({ o, busy, money, onClose, onConfirm }: { o: FurnitureCustomOrder; busy: boolean; money: (n: number) => string; onClose: () => void; onConfirm: (reason: string) => void }) {
+  const [reason, setReason] = useState('');
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-4 bg-gradient-to-br from-orange-600 to-red-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">🔨 Assign Carpenter</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center"><X className="h-5 w-5" /></button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Carpenter *</label>
-            <select value={carpenterId} onChange={(e) => setCarpenterId(e.target.value)}
-              className="h-12 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
-              <option value="">Select carpenter</option>
-              {carpenters.map((c: any) => (
-                <option key={c.id} value={c.id}>{c.name} — {c.activeProjects} active projects</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Workshop Location</label>
-            <input value={workshopLocation} onChange={(e) => setWorkshopLocation(e.target.value)}
-              placeholder="Main workshop"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-          </div>
-        </div>
-        <div className="px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-orange-600 to-red-700"
-            onClick={() => assign.mutate()} loading={assign.isPending} disabled={!carpenterId}>
-            <Hammer className="h-4 w-4" /> Assign
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
-  const tones: Record<string, string> = {
-    emerald: 'from-emerald-400/30 to-emerald-600/20 border-emerald-300/40',
-    amber: 'from-amber-400/30 to-amber-600/20 border-amber-300/40',
-    blue: 'from-blue-400/30 to-blue-600/20 border-blue-300/40',
-  };
-  return (
-    <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-4`}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
-      </div>
-      <div className="text-2xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-1">{sub}</div>}
-    </div>
-  );
-}
-
-function ActionCard({ onClick, icon: Icon, label, desc, tone }: any) {
-  const tones: Record<string, string> = {
-    emerald: 'from-emerald-500 to-teal-700', amber: 'from-amber-500 to-orange-700',
-    violet: 'from-violet-500 to-purple-700', blue: 'from-blue-500 to-cyan-700',
-    cyan: 'from-cyan-500 to-blue-700', rose: 'from-rose-500 to-red-700',
-  };
-  return (
-    <button onClick={onClick} className="rounded-2xl bg-white border-2 border-slate-200 hover:border-violet-400 hover:shadow-lg hover:-translate-y-0.5 transition-all p-4 text-left">
-      <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md mb-2`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <div className="font-extrabold text-slate-900 text-sm">{label}</div>
-      <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
-    </button>
-  );
-}
-
-function Row({ icon: Icon, label, value, mono }: any) {
-  return (
-    <div className="flex items-start gap-3 text-sm">
-      {Icon && <Icon className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />}
-      <div className="flex-1 min-w-0">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-        <div className={`font-extrabold text-slate-900 ${mono ? 'font-mono' : ''} break-words`}>{value}</div>
-      </div>
-    </div>
-  );
-}
-
-function PayBox({ label, value, tone }: any) {
-  const tones: Record<string, string> = {
-    slate: 'bg-slate-50 border-slate-200 text-slate-800',
-    blue: 'bg-blue-50 border-blue-200 text-blue-800',
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-    rose: 'bg-rose-50 border-rose-200 text-rose-800',
-  };
-  return (
-    <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">{label}</div>
-      <div className="text-lg font-extrabold tabular-nums mt-1">{value}</div>
-    </div>
+    <ConfirmModal title="Order cancel karein?" cta="Cancel karein" danger busy={busy} onClose={onClose}
+      onConfirm={() => { if (!reason.trim()) { toast.error('Wajah likhein'); return; } onConfirm(reason.trim()); }}
+      text={<div className="space-y-3">
+        <p>{o.totalPaid > 0 ? `${money(o.totalPaid)} advance customer ke khate me rahega — wapas dena ho to Khata se dein.` : 'Is order par koi advance nahi.'}</p>
+        <Input label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Customer ne mana kar diya" />
+      </div>} />
   );
 }

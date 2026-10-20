@@ -73,7 +73,7 @@ export class DamageService {
       cost = Number(v.costPrice) || cost;
     } else if (product.hasVariants) {
       const count = await this.prisma.productVariant.count({ where: { productId: product.id, isActive: true } });
-      if (count) throw new BadRequestException('Is product ki qismein hain — type (variant) chunein');
+      if (count) throw new BadRequestException('Is product ke variants hain — type (variant) chunein');
     }
 
     let rate = 1;

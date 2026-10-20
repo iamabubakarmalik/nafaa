@@ -15,7 +15,7 @@ import {
   ArrowLeft, Ban, CheckCircle2, ClipboardList, Hammer, History, KeyRound, MessageCircle, Package, Pencil, Play, Plus, Printer, Receipt,
   ShieldCheck, Smartphone, Trash2, UserRound, Wallet, Wrench, XCircle,
 } from 'lucide-react';
-import { Button, Card, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { Button, Card, Modal, PageShell, Skeleton, Textarea, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -204,7 +204,7 @@ export default function RepairTicketDetailPage() {
                     </span>
                     <span className="font-semibold tabular-nums">{formatPKR(p.totalPrice)}</span>
                     {canManage && open && (
-                      <button type="button" aria-label="Hatayein" onClick={() => { if (window.confirm(`${p.partName} hatayein?${p.source === 'OWN_STOCK' ? ' Stock me wapas jayega.' : ''}`)) dropPart.mutate(p.id); }}
+                      <button type="button" aria-label="Hatayein" onClick={async () => { if ((await confirmDialog({ title: `${p.partName} hatayein?${p.source === 'OWN_STOCK' ? ' Stock me wapas jayega.' : ''}`, danger: true }))) dropPart.mutate(p.id); }}
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                     )}
                   </li>

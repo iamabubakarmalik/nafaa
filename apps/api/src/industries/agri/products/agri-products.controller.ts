@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
@@ -13,7 +13,11 @@ import { UpsertAgriProductDto } from './dto/upsert-agri-product.dto';
 export class AgriProductsController {
   constructor(private readonly service: AgriProductsService) {}
 
+  /** New product's agri details (products.create by route rule). */
   @Post() upsert(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertAgriProductDto) { return this.service.upsert(user, dto); }
+  /** Editing an existing product's agri details (products.edit by route rule). */
+  @Put() update(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertAgriProductDto) { return this.service.upsert(user, dto); }
+  @Get('facts') facts(@GetUser() user: AuthenticatedUser) { return this.service.facts(user); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: any) {
     return this.service.list(user, {
       category: q.category, seedType: q.seedType, fertilizerType: q.fertilizerType,

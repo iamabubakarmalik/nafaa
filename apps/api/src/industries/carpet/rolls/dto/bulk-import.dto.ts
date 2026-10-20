@@ -1,8 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsArray, IsNumber, IsOptional, IsString, ValidateNested, Min,
+  ArrayMaxSize, IsArray, IsNumber, IsOptional, IsString, Max, ValidateNested, Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { CreateCarpetRollDto } from './create-carpet-roll.dto';
 
 export class BulkImportRollRow {
   @ApiProperty({ example: 'Sun Flower' })
@@ -82,6 +83,7 @@ export class BulkImportRollRow {
 export class BulkImportPreviewDto {
   @ApiProperty({ type: [BulkImportRollRow] })
   @IsArray()
+  @ArrayMaxSize(1000)
   @ValidateNested({ each: true })
   @Type(() => BulkImportRollRow)
   rows!: BulkImportRollRow[];
@@ -90,4 +92,68 @@ export class BulkImportPreviewDto {
   @IsOptional()
   @IsString()
   shopId?: string;
+}
+
+/** A checked preview row sent back to create the roll. */
+export class BulkImportApplyRow {
+  @IsString()
+  productId!: string;
+
+  @IsOptional() @IsString()
+  variantId?: string;
+
+  @IsOptional() @IsString()
+  rollNumber?: string;
+
+  @IsOptional() @IsString()
+  designCode?: string;
+
+  @IsNumber() @Min(0.1)
+  widthFt!: number;
+
+  @IsOptional() @IsNumber() @Min(0) @Max(11.99)
+  widthInch?: number;
+
+  @IsNumber() @Min(0)
+  lengthFt!: number;
+
+  @IsOptional() @IsNumber() @Min(0) @Max(11.99)
+  lengthInch?: number;
+
+  @IsOptional() @IsNumber() @Min(0)
+  costPerSqft?: number;
+
+  @IsOptional() @IsNumber() @Min(0)
+  salePricePerSqft?: number;
+
+  @IsOptional() @IsString()
+  rackNumber?: string;
+
+  @IsOptional() @IsString()
+  notes?: string;
+
+  @IsOptional() @IsString()
+  quality?: string;
+
+  @IsOptional() @IsString()
+  pile?: string;
+}
+
+export class BulkImportApplyDto {
+  @IsArray()
+  @ArrayMaxSize(1000)
+  @ValidateNested({ each: true })
+  @Type(() => BulkImportApplyRow)
+  rows!: BulkImportApplyRow[];
+
+  @IsOptional() @IsString()
+  shopId?: string;
+}
+
+export class BulkOpeningDto {
+  @IsArray()
+  @ArrayMaxSize(500)
+  @ValidateNested({ each: true })
+  @Type(() => CreateCarpetRollDto)
+  rolls!: CreateCarpetRollDto[];
 }

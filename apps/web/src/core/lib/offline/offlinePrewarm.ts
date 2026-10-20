@@ -130,8 +130,6 @@ async function prewarmCategories(): Promise<void> {
 // Industry-specific caches (best-effort)
 async function prewarmIndustryData(): Promise<void> {
   await Promise.allSettled([
-    safeCache('cached-carpet-rolls', '/carpet/rolls', { limit: 1000, inStockOnly: true }),
-    safeCache('cached-carpet-cut-pieces', '/carpet/cut-pieces', { limit: 500, status: 'AVAILABLE' }),
     safeCache('cached-restaurant-tables', '/restaurant/tables'),
     safeCache('cached-restaurant-modifiers', '/restaurant/modifiers'),
     safeCache('cached-mobile-imei', '/mobile/imei', { limit: 500 }),

@@ -140,8 +140,8 @@ export default function ShopFormPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Building2}>Branch ki qisam</T>} description="Qisam se tay hota hai ke is branch me kya chalega">
-            <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Branch ki qisam">
+          <Card className="rounded-2xl" title={<T icon={Building2}>Branch ki type</T>} description="Type se tay hota hai ke is branch me kya chalega">
+            <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Branch ki type">
               {(Object.entries(SHOP_TYPES) as Array<[ShopType, (typeof SHOP_TYPES)[ShopType]]>).map(([key, t]) => (
                 <button key={key} type="button" role="radio" aria-checked={f.type === key} onClick={() => set('type', key)}
                   className={cn('flex items-start gap-3 rounded-2xl p-3 text-left ring-1 transition', f.type === key ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
@@ -151,7 +151,7 @@ export default function ShopFormPage() {
               ))}
             </div>
             {editing && shop && shop.type !== f.type && (
-              <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Qisam badalne se purani sale aur stock nahi badlenge. Store me POS aur drawer nahi chalte.</p>
+              <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Type badalne se purani sale aur stock nahi badlenge. Store me POS aur drawer nahi chalte.</p>
             )}
           </Card>
 
@@ -175,7 +175,7 @@ export default function ShopFormPage() {
                 description={editing && shop?.isMain ? 'Yeh main branch hai. Main badalne ke liye doosri branch me yeh on karein.' : 'Naye staff aur "Sab branches" wale kaam pehle yahan jaate hain. Ek waqt me ek hi main hoti hai.'} />
               {editing && (
                 <Switch checked={f.isActive} disabled={shop?.isMain} onChange={(e) => set('isActive', e.target.checked)} label="Branch chalu hai"
-                  description={shop?.isMain ? 'Main branch band nahi hoti.' : 'Band branch me bikri nahi hoti; purana hisaab waise hi rehta hai.'} />
+                  description={shop?.isMain ? 'Main branch band nahi hoti.' : 'Band branch me sale nahi hoti; purana hisaab waise hi rehta hai.'} />
               )}
               {switchingOffMain && <p className="text-[0.75rem] text-rose-600">Main branch band nahi ho sakti.</p>}
             </div>

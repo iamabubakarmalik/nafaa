@@ -22,6 +22,7 @@ import { NotificationsService } from '../../notifications/notifications.service'
 import { ReturnsRecordsService } from './returns-records.service';
 import { PIN_APPROVAL_ACTION, r2, r3, tidyCustomerBalance } from './returns.helpers';
 import { hasCarpetNote, productsSoldWithoutStock, productsThatTookStock } from '../sales/carpet-line.helper';
+import { parseCarpetNote as readCarpetNote } from '../../../industries/carpet/common/carpet-stock';
 
 const EPS = 0.001;
 /** The same request again within this time returns the first return instead of a second one. */
@@ -87,37 +88,12 @@ export class ReturnsService {
     lengthFt?: number;
     lengthInch?: number;
   } {
-    if (!note) return { isRollCut: false, isCutPiece: false };
-
-    // "Cut from CR-2026-0001: 12ft x 10ft 6in = 120 sqft"
-    const rollMatch = note.match(
-      /Cut from ([\w-]+):\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft(?:\s+([\d.]+)\s*in)?/,
-    );
-    if (rollMatch) {
-      return {
-        isRollCut: true,
-        isCutPiece: false,
-        rollNumber: rollMatch[1],
-        widthFt: Number(rollMatch[2]),
-        lengthFt: Number(rollMatch[3]),
-        lengthInch: rollMatch[4] ? Number(rollMatch[4]) : 0,
-      };
+    // One reader for the POS note, shared with the carpet module (roll numbers with spaces, widths with inches).
+    const line = readCarpetNote(note);
+    if (line?.kind === 'roll') {
+      return { isRollCut: true, isCutPiece: false, rollNumber: line.rollNumber, widthFt: line.widthReal, lengthFt: line.lengthFt, lengthInch: line.lengthInch };
     }
-
-    // "Cut piece CP-2026-0001 • 4ft x 6ft"
-    const cutMatch = note.match(
-      /Cut piece ([\w-]+)(?:\s*[•·]\s*([\d.]+)\s*ft\s*[xX×]\s*([\d.]+)\s*ft)?/,
-    );
-    if (cutMatch) {
-      return {
-        isRollCut: false,
-        isCutPiece: true,
-        pieceCode: cutMatch[1],
-        widthFt: cutMatch[2] ? Number(cutMatch[2]) : undefined,
-        lengthFt: cutMatch[3] ? Number(cutMatch[3]) : undefined,
-      };
-    }
-
+    if (line?.kind === 'piece') return { isRollCut: false, isCutPiece: true, pieceCode: line.pieceCode };
     return { isRollCut: false, isCutPiece: false };
   }
 
@@ -521,7 +497,16 @@ export class ReturnsService {
         const owedOnBill = Math.max(0, sale.creditAmount + Number(cleared?._sum.amount ?? 0));
         const customer = await tx.customer.findUnique({ where: { id: sale.customerId }, select: { id: true, balance: true } });
         if (customer) {
-          khataAmount = r2(Math.min(refundAmount, owedOnBill, Math.max(0, customer.balance)));
+          // An advance the customer held before this bill stays theirs: the khata may go
+          // back down to that advance, not only to zero, before any cash is paid out.
+          const creditRow = await tx.customerLedger.findFirst({
+            where: { tenantId, customerId: customer.id, type: 'SALE_CREDIT', reference: sale.saleNumber },
+            orderBy: { createdAt: 'asc' },
+            select: { amount: true, balanceAfter: true },
+          });
+          const before = creditRow ? Number(creditRow.balanceAfter) - Number(creditRow.amount) : 0;
+          const floor = Math.min(0, before);
+          khataAmount = r2(Math.min(refundAmount, owedOnBill, Math.max(0, customer.balance - floor)));
           if (khataAmount > 0) {
             const { balance: raw } = await tx.customer.update({
               where: { id: customer.id },

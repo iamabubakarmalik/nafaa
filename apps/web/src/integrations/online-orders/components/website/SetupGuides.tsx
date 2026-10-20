@@ -80,10 +80,10 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
     'Once done, please place one test order per branch and let us know. Thanks!',
   ].filter((l, idx, arr) => !(l === '' && arr[idx - 1] === '')).join('\n');
 
-  const copy = () => navigator.clipboard?.writeText(message).then(() => toast.success('Paigham copy ho gaya — Indolj group me paste karein'));
+  const copy = () => navigator.clipboard?.writeText(message).then(() => toast.success('Message copy ho gaya — Indolj group me paste karein'));
 
   return (
-    <Card title="Indolj se jorna" description="Do hisse: menu (products) aur orders. Orders wali settings aksar Indolj ki team lagati hai — neeche wala paigham unhein bhej dein."
+    <Card title="Indolj se jorna" description="Do hisse: menu (products) aur orders. Orders wali settings aksar Indolj ki team lagati hai — neeche wala message unhein bhej dein."
       actions={<DocsLink anchor="indolj" />}>
       <ol className="space-y-5">
         <Step n={1} done={menuOk} title={<>Menu Nafaa me {menuOk && <span className="font-normal text-emerald-700">— jura hua ✓</span>}</>}>
@@ -108,8 +108,8 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2 rounded-xl bg-sky-50 p-3 dark:bg-sky-500/10">
-            <span className="flex-1 text-[0.8125rem] font-medium text-sky-900 dark:text-sky-200">Indolj ki team ko English me poora paigham — har branch ka URL aur Token ke saath.</span>
-            <Btn size="sm" variant="primary" onClick={copy} icon={<Copy className="h-3.5 w-3.5" />}>Paigham copy</Btn>
+            <span className="flex-1 text-[0.8125rem] font-medium text-sky-900 dark:text-sky-200">Indolj ki team ko English me poora message — har branch ka URL aur Token ke saath.</span>
+            <Btn size="sm" variant="primary" onClick={copy} icon={<Copy className="h-3.5 w-3.5" />}>Message copy</Btn>
             <a href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
               <Btn size="sm" icon={<MessageCircle className="h-3.5 w-3.5" />}>WhatsApp</Btn>
             </a>

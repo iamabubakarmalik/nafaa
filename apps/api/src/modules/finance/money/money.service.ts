@@ -502,7 +502,7 @@ export class MoneyService {
       expenseCategories: cats
         .map((x) => ({
           id: x.categoryId,
-          name: x.categoryId ? catMap.get(x.categoryId)?.name ?? 'Doosra' : 'Bina qism',
+          name: x.categoryId ? catMap.get(x.categoryId)?.name ?? 'Doosra' : 'Bina category',
           color: (x.categoryId && catMap.get(x.categoryId)?.color) || '#64748b',
           amount: r2(n(x._sum.amount)),
           count: x._count._all,

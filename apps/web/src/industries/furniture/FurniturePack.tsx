@@ -42,7 +42,7 @@ export const FurniturePack: IndustryPack = {
         { to: '/furniture/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/furniture/custom-orders', label: 'Custom Orders', icon: ClipboardList, badge: 'HOT' },
         { to: '/furniture/deliveries', label: 'Deliveries', icon: Truck },
-        { to: '/furniture/carpenters', label: 'Carpenters', icon: Hammer },
+        { to: '/furniture/carpenters', label: 'Karigar', icon: Hammer },
       ],
     },
   ],

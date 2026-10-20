@@ -104,7 +104,7 @@ export default function BakeryBulkOrdersPage() {
       meta: [['Orders', String(all.total)], ...(all.totals ? [['Kul', formatPKR(all.totals.value)] as [string, string], ['Baqi lena', formatPKR(all.totals.due)] as [string, string]] : [])],
       sections: [{
         kind: 'table',
-        columns: [{ label: 'Event' }, { label: 'Order', wideOnly: true }, { label: 'Kis ka' }, { label: 'Qisam', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Kul', align: 'right' }, { label: 'Baqi', align: 'right' }],
+        columns: [{ label: 'Event' }, { label: 'Order', wideOnly: true }, { label: 'Kis ka' }, { label: 'Type', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Kul', align: 'right' }, { label: 'Baqi', align: 'right' }],
         rows: all.items.map((o) => [dateTime(o.eventDate), o.orderNumber, `${o.organizationName} ${o.contactPhone}`, bulkTypeOf(o.orderType).label, statusOf(o.status).label, formatPKR(bulkPrice(o)), formatPKR(Math.max(bulkPrice(o) - o.paidAmount, 0))]),
       }],
     };
@@ -121,7 +121,7 @@ export default function BakeryBulkOrdersPage() {
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'orders' || !rows.length} /></span>
           <button type="button" title="CSV" className={heroIconButton} disabled={!rows.length}
-            onClick={() => downloadCsv('bare-orders', ['Order', 'Kis ka', 'Phone', 'Qisam', 'Event', 'Mehmaan', 'Halat', 'Kul', 'Mila'], rows.map((o) => [o.orderNumber, o.organizationName, o.contactPhone, bulkTypeOf(o.orderType).label, dateTime(o.eventDate), o.totalGuests, statusOf(o.status).label, bulkPrice(o), o.paidAmount]))}>
+            onClick={() => downloadCsv('bare-orders', ['Order', 'Kis ka', 'Phone', 'Type', 'Event', 'Mehmaan', 'Halat', 'Kul', 'Mila'], rows.map((o) => [o.orderNumber, o.organizationName, o.contactPhone, bulkTypeOf(o.orderType).label, dateTime(o.eventDate), o.totalGuests, statusOf(o.status).label, bulkPrice(o), o.paidAmount]))}>
             <FileSpreadsheet className="h-4 w-4" />
           </button>
           <Link to="/bakery/cake-orders" className={heroButton}><Cake className="h-4 w-4" /><span className="hidden sm:inline">Cake orders</span></Link>
@@ -165,7 +165,7 @@ export default function BakeryBulkOrdersPage() {
           <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView}
             options={VIEWS.map((v) => ({ value: v.id, label: v.label, hint: data?.counts ? `${data.counts[v.id]} orders` : undefined }))} />
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Event ki date" />
-          <FilterMenu icon={Building2} label="Qisam" value={type} active={!!type} onChange={setType} options={[{ value: '', label: 'Sab qismein' }, ...BULK_TYPES.map((t) => ({ value: t.value, label: `${t.emoji} ${t.label}` }))]} />
+          <FilterMenu icon={Building2} label="Type" value={type} active={!!type} onChange={setType} options={[{ value: '', label: 'Sab types' }, ...BULK_TYPES.map((t) => ({ value: t.value, label: `${t.emoji} ${t.label}` }))]} />
           <FilterMenu icon={ArrowDownWideNarrow} label={sort === 'amount' ? 'Bari rakam pehle' : sort === 'recent' ? 'Naye pehle' : 'Jo pehle dena'} value={sort} onChange={setSort} align="right"
             options={[{ value: 'due', label: 'Jis ka event pehle' }, { value: 'recent', label: 'Naye pehle' }, { value: 'amount', label: 'Bari rakam pehle' }]} />
         </FilterBar>

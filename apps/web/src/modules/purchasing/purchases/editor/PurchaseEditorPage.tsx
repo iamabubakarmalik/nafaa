@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { AlertTriangle, Boxes, CalendarClock, ChevronDown, ClipboardList, PackagePlus, Plus, Save, ScanLine, Search, Trash2, Truck, UserPlus, Wheat, X,
   GraduationCap, Wallet, Calculator, Ruler,
 } from 'lucide-react';
-import { Button, Modal, PageHero, PageShell, Segmented, heroButton, heroIconButton } from '@/design-system/components';
+import { Button, Modal, PageHero, PageShell, Segmented, heroButton, heroIconButton, confirmDialog } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -36,7 +36,16 @@ export interface PurchaseEditorConfig {
   /** Small badge next to a product line, e.g. electronics "Serial". */
   lineBadge?: (productId: string) => ReactNode;
   productWizardPath?: string;
+  /**
+   * Cost of products bought from this supplier (by product id, per base
+   * unit), e.g. a bookstore publisher's discount on its books' list price.
+   * Fills new lines and re-prices lines already on the bill when the
+   * supplier changes.
+   */
+  useSupplierCosts?: (supplierId: string) => { costs: ReadonlyMap<string, number>; note?: string } | undefined;
 }
+
+const noSupplierCosts = () => undefined;
 
 /** Lines handed over by another page (low stock "Order banayein") through navigation state. */
 export interface PurchasePrefill {
@@ -73,6 +82,25 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   const suppliersQ = useQuery({ queryKey: ['suppliers', 'picker'], queryFn: () => suppliersApi.list({ status: 'active', sort: 'recent', limit: 500 }), staleTime: 60_000 });
   const suppliers = suppliersQ.data?.items ?? [];
   const supplier = suppliers.find((s) => s.id === bill.supplierId);
+  const useSupplierCosts = config.useSupplierCosts ?? noSupplierCosts;
+  const supplierCosts = useSupplierCosts(bill.supplierId);
+  const withSupplierCost = (s: Source): Source => {
+    const c = s.kind === 'product' ? supplierCosts?.costs.get(s.id) : undefined;
+    return c != null ? { ...s, cost: c } : s;
+  };
+
+  // Supplier picked or changed: its rates replace the cost of matching lines.
+  useEffect(() => {
+    if (!supplierCosts?.costs.size) return;
+    let n = 0;
+    for (const l of lines) {
+      const c = l.source.kind === 'product' && !l.variant ? supplierCosts.costs.get(l.source.id) : undefined;
+      if (c == null) continue;
+      const cost = Number((c * l.unit.rate).toFixed(2));
+      if (cost !== l.cost) { d.patch(l.key, { cost }); n += 1; }
+    }
+    if (n) toast.info(`${n} line ki cost ${supplierCosts.note ?? 'supplier ke rate'} se bhari`);
+  }, [supplierCosts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Opened from a supplier's page: start with that supplier.
   const preset = params.get('supplier');
@@ -88,7 +116,8 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   useEffect(() => {
     if (!prefill || loading) return;
     navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
-    if (lines.length && !confirm('Pehle se adhoora bill hai. Usay hata kar naya order banayein?')) return;
+    void (async () => {
+    if (lines.length && !(await confirmDialog({ title: 'Pehle se adhoora bill hai. Usay hata kar naya order banayein?', danger: true }))) return;
     d.reset();
     setBill((b) => ({ ...b, mode: 'order', supplierId: prefill.supplierId ?? '', supplierName: prefill.supplierName ?? '' }));
     const skipped: string[] = [];
@@ -96,9 +125,10 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
       const s = sources.find((x) => x.key === (l.productId ? `p:${l.productId}` : `i:${l.ingredientId}`));
       if (!s) continue;
       if (s.hasVariants) { skipped.push(s.name); continue; }
-      d.add(s, s.units[0], undefined, l.qty > 0 ? l.qty : 1);
+      d.add(withSupplierCost(s), s.units[0], undefined, l.qty > 0 ? l.qty : 1);
     }
-    if (skipped.length) toast.info(`Qismon wali cheezein khud jorein: ${skipped.join(', ')}`);
+    if (skipped.length) toast.info(`Variant wali cheezein khud jorein: ${skipped.join(', ')}`);
+    })();
   }, [prefill, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const results = useMemo(() => searchSources(sources, query), [sources, query]);
@@ -106,7 +136,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 
   const addSource = (s: Source, unit: UnitChoice = s.units[0]) => {
     if (s.kind === 'product' && s.hasVariants) { setVariantFor({ source: s, unit }); return; }
-    d.add(s, unit);
+    d.add(withSupplierCost(s), unit);
     setQuery('');
     setOpen(false);
     searchRef.current?.focus();
@@ -163,7 +193,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
         actions={<>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {(lines.length > 0 || bill.supplierId) && (
-            <button type="button" className={heroButton} onClick={() => { if (confirm('Yeh bill saaf kar dein?')) d.reset(); }}>
+            <button type="button" className={heroButton} onClick={async () => { if ((await confirmDialog({ title: 'Yeh bill saaf kar dein?', danger: true }))) d.reset(); }}>
               <Trash2 className="h-4 w-4" /> Saaf
             </button>
           )}
@@ -520,7 +550,7 @@ function VariantModal({ target, onClose, onPick }: { target: { source: Source; u
   const q = useQuery({ queryKey: ['variants', target.source.id], queryFn: () => productVariantsApi.list(target.source.id) });
   const list = (Array.isArray(q.data) ? q.data : []).filter((v: any) => v.isActive !== false);
   return (
-    <Modal open onClose={onClose} size="sm" title={`${target.source.name} — kaunsa?`} description="Is product ki qismein hain; jo aaya woh chunein">
+    <Modal open onClose={onClose} size="sm" title={`${target.source.name} — kaunsa?`} description="Is product ke variants hain; jo aaya woh chunein">
       {q.isLoading ? <p className="py-6 text-center text-sm text-slate-500">Load ho raha hai…</p> : (
         <div className="space-y-1">
           {list.map((v: any) => (

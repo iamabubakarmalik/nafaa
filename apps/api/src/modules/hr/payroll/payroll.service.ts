@@ -444,7 +444,7 @@ export class PayrollService {
       const att = ctx.tally.get(s.id) ?? emptyTally();
       const warnings: string[] = [];
       if (!saved.length) {
-        if (n(s.baseSalary) <= 0 && s.salaryType !== 'COMMISSION') warnings.push('Tankhwah 0 likhi hai — Staff profile me raqam daalein');
+        if (n(s.baseSalary) <= 0 && s.salaryType !== 'COMMISSION') warnings.push('Tankhwah 0 likhi hai — Staff profile me amount daalein');
         if (!att.marked && (s.salaryType === 'DAILY' || s.salaryType === 'HOURLY')) warnings.push('Is mahine hazri nahi lagi — din / ghante khud likhein');
         if (s.salaryType === 'PER_TASK') warnings.push('Kitne kaam kiye — khud likhein');
         if (preview.advanceTooBig) warnings.push('Advance ki qist tankhwah se zyada hai');

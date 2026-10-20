@@ -108,10 +108,12 @@ export class RentalsService {
     });
   }
 
-  async list(user: AuthenticatedUser, params: any) {
+  /** Rentals of the selected branch; rows without a branch show everywhere. */
+  async list(user: AuthenticatedUser, params: any, scope?: ShopScope) {
     return this.prisma.bookRental.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(scope?.shopId && { AND: [scope.whereLoose] }),
         ...(params.status && { status: params.status }),
         ...(params.customerId && { customerId: params.customerId }),
         ...(params.overdue && { status: { in: ['ACTIVE', 'OVERDUE'] }, dueDate: { lt: dayStart() } }),

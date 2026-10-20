@@ -499,7 +499,7 @@ export default function OnboardingPage() {
         )}
       >
         <p className="text-sm text-slate-600">
-          Business ki qisam, bill ka size aur staff — sab Settings me mil jayega. Setup ka ye page dobara nahi aayega.
+          Business type, bill ka size aur staff — sab Settings me mil jayega. Setup ka ye page dobara nahi aayega.
         </p>
       </Modal>
     </div>

@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, Trash2 } from 'lucide-react';
-import { Button, Input, Modal, Select, Textarea } from '@/design-system/components';
+import { Button, Input, Modal, Select, Textarea, confirmDialog } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { imeiApi, type ImeiRow, type ImeiStatus, type PtaStatus } from '../../api/imei.api';
 import { IMEI_KEY, PTA_LIST, apiError, digits, imeiStatusOf, money, ptaOf } from '../meta';
@@ -50,7 +50,7 @@ export function EditImeiModal({ row, canManage, onClose }: { row: ImeiRow; canMa
       footer={canManage ? <>
         {!sold && !row.saleItemId && (
           <Button variant="ghost" className="mr-auto text-rose-700" leftIcon={<Trash2 className="h-4 w-4" />} loading={remove.isPending}
-            onClick={() => { if (window.confirm('Ye IMEI ghalti se dala tha? Hatane se stock bhi 1 kam hoga.')) remove.mutate(); }}>Ghalat entry</Button>
+            onClick={async () => { if ((await confirmDialog({ title: 'Ye IMEI ghalti se dala tha?', text: 'Hatane se stock bhi 1 kam hoga.', danger: true }))) remove.mutate(); }}>Ghalat entry</Button>
         )}
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
         <Button onClick={() => save.mutate()} disabled={!!bad} loading={save.isPending}>Save karein</Button>

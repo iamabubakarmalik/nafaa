@@ -84,6 +84,8 @@ export interface AddOptions {
   note?: string;
   /** Rate for this line instead of the product or variant price (a phone's own price). */
   price?: number;
+  /** Always a new line, never merged with an equal one (each carpet cut is its own line). */
+  separate?: boolean;
 }
 
 /** A line with no catalog product behind it: a used phone taken in earlier. */

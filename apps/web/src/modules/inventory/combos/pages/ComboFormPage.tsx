@@ -18,7 +18,7 @@ import {
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PrintButton } from '@core/print';
-import { Button, PAGE_WIDTH_CLASS, Switch } from '@/design-system/components';
+import { Button, PAGE_WIDTH_CLASS, PageHero, PageShell, Switch, heroButton, heroIconButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
@@ -266,18 +266,17 @@ export default function ComboFormPage() {
   const preview: ProductCombo | null = existing.data ?? null;
 
   return (
-    <form className={cn(PAGE_WIDTH_CLASS, 'space-y-4 pb-28')} onSubmit={(e) => { e.preventDefault(); submit(); }}>
+    <PageShell className="pb-28">
+    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
       {scanBarcode && <BarcodeScanner title="Combo ka barcode" hint="Combo par lagne wala barcode dabbe me rakhein" onDetected={(c) => { setScanBarcode(false); set('barcode', c.trim()); }} onClose={() => setScanBarcode(false)} />}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => navigate('/combos')} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="mr-auto min-w-0">
-          <h1 className="truncate text-lg font-semibold text-slate-900">{editing ? `${existing.data?.name ?? 'Combo'} — badlein` : 'Naya combo'}</h1>
-          <p className="text-[0.75rem] text-slate-500">Kai cheezein ek qeemat par — POS par ek line, stock har cheez ka apna ghatta hai</p>
-        </div>
-        {preview && <PrintButton doc={() => comboSheet(preview, !costHidden, branch)} size="sm" />}
-        <Button type="button" variant="ghost" onClick={guide.open} leftIcon={<GraduationCap className="h-4 w-4" />}>Guide</Button>
-      </div>
+      <PageHero title={editing ? `${existing.data?.name ?? 'Combo'} — badlein` : 'Naya combo'} chip={<><Gift />Combo</>}
+        meta="Kai cheezein ek qeemat par — POS par ek line, stock har cheez ka apna ghatta hai"
+        actions={<>
+          <button type="button" onClick={() => navigate('/combos')} className={heroButton}><ArrowLeft className="h-4 w-4" />Combos</button>
+          {preview && <PrintButton doc={() => comboSheet(preview, !costHidden, branch)} size="sm" />}
+          <button type="button" onClick={guide.open} title="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0 space-y-4">
@@ -484,7 +483,7 @@ export default function ComboFormPage() {
         <PageGuide title="Combo kaise banayein" onClose={guide.close}
           steps={[
             { icon: Tag, color: '#16a34a', title: 'Naam aur tag', text: 'Aisa naam likhein jo customer foran samjhe. Tag (Best deal, Family pack) POS card par chhota label banta hai.' },
-            { icon: ShoppingBag, color: '#2563eb', title: 'Cheezein daalein', text: 'Naam likh kar Enter, ya barcode scan karein. Miqdar + − se badlein. Pack wale product me dozen/carton chun sakte hain; qismon wale me qism.' },
+            { icon: ShoppingBag, color: '#2563eb', title: 'Cheezein daalein', text: 'Naam likh kar Enter, ya barcode scan karein. Miqdar + − se badlein. Pack wale product me dozen/carton chun sakte hain; variant wale me type.' },
             { icon: Percent, color: '#7c3aed', title: 'Qeemat', text: 'Upar "alag alag" ki amount dikhti hai. "10% kam" jaise button se jaldi qeemat lagayein. Daayein panel me bachat, profit aur margin live dikhte hain.' },
             { icon: Boxes, color: '#d97706', title: 'Stock se kitne', text: 'Har cheez ke saath likha hai us ke stock se kitne combo bante hain — sab se kam wali cheez hi had hai.' },
             { icon: CalendarClock, color: '#e11d48', title: 'Period', text: 'Offer ki tareekhen daalein — period ke bahar POS par nahi dikhta. "Zyada se zyada" se offer ko gine chune combo tak rakhein.' },
@@ -499,6 +498,7 @@ export default function ComboFormPage() {
         />
       )}
     </form>
+    </PageShell>
   );
 }
 

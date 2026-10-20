@@ -24,6 +24,10 @@ export class PublishersController {
     return this.service.list(user, { search, country, active: active === 'true' ? true : active === 'false' ? false : undefined });
   }
 
+  /** Book costs for a purchase from this supplier (publisher discount on list price). */
+  @Get('purchase-costs') @RequirePermissions(PERMISSIONS.PURCHASES_CREATE)
+  purchaseCosts(@GetUser() user: AuthenticatedUser, @Query('supplierId') supplierId?: string) { return this.service.purchaseCosts(user, supplierId); }
+
   @Post('seed-pakistani') @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   seed(@GetUser() user: AuthenticatedUser) { return this.service.seedPakistaniPublishers(user); }
 

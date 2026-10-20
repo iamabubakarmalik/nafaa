@@ -141,7 +141,7 @@ class ServiceChargeItemDto {
     description:
       'Is service par dukan ka apna kharcha (jaise rider ko diya gaya paisa). ' +
       'Ye costOfGoods me jurta hai taake profit har report me sahi aaye — ' +
-      'warna delivery charge poora munafa gina jata tha.',
+      'warna delivery charge poora profit gina jata tha.',
   })
   @IsOptional()
   @IsNumber()
@@ -149,7 +149,7 @@ class ServiceChargeItemDto {
   cost?: number;
 
   @ApiPropertyOptional({
-    description: 'Bahar ka rider ye charge khud customer se leta hai — bill par likha, lekin sale / drawer / munafe me shamil nahi',
+    description: 'Bahar ka rider ye charge khud customer se leta hai — bill par likha, lekin sale / drawer / profit me shamil nahi',
   })
   @IsOptional()
   @IsBoolean()

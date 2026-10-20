@@ -262,7 +262,7 @@ export default function CashRegisterPage() {
         <PageGuide title="Cash register — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: PlayCircle, color: '#16a34a', title: 'Shift kholein', text: 'Din ya shift ke shuru me galla ginein — kul amount likhein ya note gin kar. Ek branch me ek waqt me ek hi shift khulti hai.' },
-            { icon: Wallet, color: '#0d9488', title: 'Hisaab khud chalta hai', text: 'Cash bikri, booking ki cash raqam aur khata wusooli galle me judti hai; cash kharch, wapsi, cash kharidari aur supplier ko di gayi raqam ghat jati hai. "Hona chahiye" har waqt taaza rehta hai.' },
+            { icon: Wallet, color: '#0d9488', title: 'Hisaab khud chalta hai', text: 'Cash sale, booking ki cash amount aur khata wusooli galle me judti hai; cash kharch, wapsi, cash kharidari aur supplier ko di gayi amount ghat jati hai. "Hona chahiye" har waqt taaza rehta hai.' },
             { icon: ArrowDownToLine, color: '#2563eb', title: 'Cash in / out', text: 'Khula paisa daala, malik ne paise liye ya bank me jama karwaye? Wajah ke saath likhein taake shift ke aakhir me farak na aaye.' },
             { icon: StopCircle, color: '#e11d48', title: 'Band karein aur milayein', text: 'Shift ke aakhir me galla note gin kar likhein. Paise kam ya zyada hon to wajah likhna zaroori hai. Band hote hi Z-report print ho sakti hai.' },
             { icon: Printer, color: '#7c3aed', title: 'X / Z-report', text: 'Khuli shift ka X-report aur band shift ka Z-report — A4, PDF ya thermal par. Shifts record me kisi bhi shift par click karein.' },

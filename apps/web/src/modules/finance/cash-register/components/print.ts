@@ -65,7 +65,7 @@ export function zReportDoc(s: ShiftDetail): PrintDoc {
       ...(r.notes ? [{ kind: 'text' as const, title: 'Note', text: r.notes }] : []),
       { kind: 'text', text: 'Cashier ke dastkhat: ____________    Manager: ____________' },
     ],
-    footer: s.recounted ? 'Ye purani shift hai; bikri ka hisaab aaj dobara gina gaya. Hona chahiye aur farak wohi hain jo band karte waqt save hue.' : undefined,
+    footer: s.recounted ? 'Ye purani shift hai; sale ka hisaab aaj dobara gina gaya. Hona chahiye aur farak wohi hain jo band karte waqt save hue.' : undefined,
   };
 }
 

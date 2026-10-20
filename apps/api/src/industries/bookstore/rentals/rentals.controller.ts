@@ -17,8 +17,8 @@ export class RentalsController {
   constructor(private readonly service: RentalsService) {}
 
   @Post() @RequirePermissions(PERMISSIONS.POS_USE) create(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() dto: any) { return this.service.create(user, scope, dto); }
-  @Get() @RequirePermissions(PERMISSIONS.POS_USE) list(@GetUser() user: AuthenticatedUser, @Query() query: any) {
-    return this.service.list(user, { ...query, overdue: query.overdue === 'true' });
+  @Get() @RequirePermissions(PERMISSIONS.POS_USE) list(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Query() query: any) {
+    return this.service.list(user, { ...query, overdue: query.overdue === 'true' }, scope);
   }
   @Post(':id/return') @RequirePermissions(PERMISSIONS.POS_USE) return(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() dto: any) { return this.service.returnBook(user, scope, id, dto); }
   @Post(':id/lost') @RequirePermissions(PERMISSIONS.POS_USE) lost(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) { return this.service.markLost(user, scope, id); }

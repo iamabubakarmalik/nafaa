@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Skeleton } from '@/design-system/components';
+import { Skeleton, confirmDialog } from '@/design-system/components';
 import { productEmoji, productTint } from '@modules/inventory/products/lib/productEmoji';
 import { useOverview } from '@modules/dashboard/data/queries';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
@@ -412,7 +412,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
             customers={e.customers} customerId={e.customerId} setCustomerId={e.setCustomerId} selectedCustomer={e.selectedCustomer}
             onAddCustomer={() => setNewCustomer({ name: '', phone: '' })} receiver={e.receiver} onReceiverChange={e.setReceiver}
             customerExtra={<>{CartExtra && <CartExtra customerId={e.customerId} />}<PosSellerPicker value={e.soldById} onChange={e.setSoldById} compact /></>}
-            onHold={e.hold} onClear={() => { if (confirm('Bill khaali karein?')) e.clearCart(); }}
+            onHold={e.hold} onClear={async () => { if ((await confirmDialog({ title: 'Bill khaali karein?' }))) e.clearCart(); }}
             onChangeQty={e.changeQty} onSetQty={e.setQty} onRemove={e.removeLine}
             priceEditId={e.priceEditId} onStartPriceEdit={e.setPriceEditId} onSetPrice={e.setPrice}
             onCheckout={() => { setMobileCart(false); e.openCheckout('full'); }} onInstantCash={() => { setMobileCart(false); e.instantCash(); }}

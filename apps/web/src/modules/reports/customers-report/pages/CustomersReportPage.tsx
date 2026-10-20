@@ -229,7 +229,7 @@ function CustomersReport() {
             { icon: Repeat, color: '#0891b2', title: 'Return', text: 'Jo customer kisi mahine pehli dafa aaye, un me se kitne agle mahino me phir aaye. Gehra rang = zyada log wapas.' },
             { icon: BookOpen, color: '#d97706', title: 'Udhaar', text: 'Kitna udhaar kitna purana hai, is period me kitna diya aur kitna wapas aaya, aur kis se pehle wasooli karni hai. Ek click me yaad dihani.' },
             { icon: Coins, color: '#db2777', title: 'Points', text: 'Loyalty points kitne diye aur kitne istemal hue, aur baqi points ki qeemat — yeh dukaan par qarz hai.' },
-            { icon: MessageCircle, color: '#059669', title: 'WhatsApp list', text: 'Har list par WhatsApp button: paighaam pehle se likha hota hai, "Agla bhejein" se ek ek kar ke sab ko.' },
+            { icon: MessageCircle, color: '#059669', title: 'WhatsApp list', text: 'Har list par WhatsApp button: message pehle se likha hota hai, "Agla bhejein" se ek ek kar ke sab ko.' },
             { icon: FileDown, color: '#475569', title: 'Print aur CSV', text: 'Upar Print se A4, PDF ya thermal; CSV se Excel file. Jo tab khula hai wohi report banti hai. Group aur udhaar ki poori list bhi.' },
           ]}
           tips={[

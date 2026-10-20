@@ -13,8 +13,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Bike, Coffee, GraduationCap, HandCoins, Pencil, Phone, Plus, Power, Trash2, Users } from 'lucide-react';
 import {
-  Button, FilterBar, KpiCard, KpiRow, Kbd, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
-} from '@/design-system/components';
+  Button, FilterBar, KpiCard, KpiRow, Kbd, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, confirmDialog } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -135,7 +134,7 @@ export default function RidersPage() {
                     {r.status === 'ACTIVE' && <Button size="sm" variant="ghost" onClick={() => run(() => ridersApi.update(r.id, { status: 'ON_BREAK' }), `${r.name} break par`)}><Coffee className="h-4 w-4" /></Button>}
                     <Button size="sm" variant="ghost" onClick={() => setEdit(r)} aria-label="Badlein"><Pencil className="h-4 w-4" /></Button>
                     <Button size="sm" variant="ghost" className="text-rose-600" aria-label="Hatayein"
-                      onClick={() => { if (window.confirm(`${r.name} ko list se hata dein? Purani deliveries record me rahengi.`)) run(() => ridersApi.remove(r.id), 'Rider hata diya'); }}><Trash2 className="h-4 w-4" /></Button>
+                      onClick={async () => { if ((await confirmDialog({ title: `${r.name} ko list se hata dein?`, text: 'Purani deliveries record me rahengi.', danger: true }))) run(() => ridersApi.remove(r.id), 'Rider hata diya'); }}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 )}
               </li>

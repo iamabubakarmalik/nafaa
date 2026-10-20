@@ -364,7 +364,7 @@ export default function LowStockPage() {
             { icon: Clock, color: '#ea580c', title: 'Kitne din ka maal', text: `Har line par roz ki sale (pichhle ${settings.days} din ki ausat) aur bacha maal kitne din chalega. Khatam maal par andaza ke roz kitni sale ruk rahi hai.` },
             { icon: ShoppingCart, color: '#2563eb', title: 'Order banayein', text: '"Reorder list" me har supplier ka alag card hai — quantity badlein, phir "Order banayein". Purchase ka order khul jata hai, sab cheezein pehle se bhari hui.' },
             { icon: MousePointerClick, color: '#16a34a', title: 'Ek saath kaam', text: 'Lines chunein, phir neeche kaali patti: Purchase order (supplier war), WhatsApp list ya Chhupayein.' },
-            { icon: MessageCircle, color: '#059669', title: 'Supplier ko WhatsApp', text: 'Har line par hara button supplier ko tayyar paighaam bhejta hai. Supplier ka number na ho to WhatsApp khud chunne deta hai.' },
+            { icon: MessageCircle, color: '#059669', title: 'Supplier ko WhatsApp', text: 'Har line par hara button supplier ko tayyar message bhejta hai. Supplier ka number na ho to WhatsApp khud chunne deta hai.' },
             { icon: PackagePlus, color: '#7c3aed', title: 'Alert level aur stock', text: '"Alert" par click kar ke wahin had badlein (sirf is branch ki). "…" me stock daalein ya line chhupayein jab tak stock theek na ho.' },
             ...(config.guide ?? []),
           ]}

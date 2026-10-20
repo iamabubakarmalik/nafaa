@@ -48,7 +48,7 @@ export const TEMPLATE_META: TemplateMeta[] = [
   },
   {
     key: 'yaad_dihani',
-    label: 'Apna paighaam',
+    label: 'Apna message',
     hint: 'Jo bhi aap kehna chahein — naya maal, discount, chhutti',
     emoji: '📣',
     fields: ['customer', 'shop', 'phone'],

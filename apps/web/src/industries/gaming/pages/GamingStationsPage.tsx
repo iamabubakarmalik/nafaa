@@ -1,463 +1,232 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Monitor, Plus, Search, X, Edit3, Trash2, Wrench, RefreshCw,
-  DollarSign, TrendingUp, Save, MapPin, Clock, Zap,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { gamingStationsApi, type GamingStation, type GamingStationType } from '../api/stations.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+/**
+ * Stations: each PS5, PC, simulator or room with its hourly rates (normal,
+ * half hour, peak, off-peak), minimum billed minutes and installed games.
+ * Stations are switched off, never deleted, so their sessions stay. A
+ * station under repair is marked so it cannot be started.
+ *
+ * Keys: N new station · / search · G guide.
+ */
 
-const STATION_TYPES: Array<{ v: GamingStationType; l: string; e: string }> = [
-  { v: 'PC_STATION', l: 'PC Station', e: '🖥️' },
-  { v: 'PS5_STATION', l: 'PS5 Station', e: '🎮' },
-  { v: 'PS4_STATION', l: 'PS4 Station', e: '🎮' },
-  { v: 'XBOX_STATION', l: 'Xbox Station', e: '🟩' },
-  { v: 'SIMULATOR', l: 'Simulator', e: '🏎️' },
-  { v: 'VR_STATION', l: 'VR Station', e: '🥽' },
-  { v: 'MULTIPLAYER_BOOTH', l: 'Multiplayer Booth', e: '👥' },
-  { v: 'PRIVATE_ROOM', l: 'Private Room', e: '🚪' },
-  { v: 'OTHER', l: 'Other', e: '📦' },
-];
+import { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Clock, Gamepad2, GraduationCap, Monitor, Pencil, Plus, Power, Timer, Wallet, Wrench } from 'lucide-react';
+import {
+  Button, FilterBar, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { gamingStationsApi, type GamingStation, type GamingStationType } from '../api/stations.api';
+import { Empty, ListCard, Pill } from '../components/ui';
+import { usePageKeys, useSaveKey } from '../hooks/usePageKeys';
+import { GAMING_KEYS, PLATFORMS, STATION_TYPES, errorText, moneyText, numIn } from '../lib/meta';
+
+const SHOW = [{ value: 'on', label: 'Chalu' }, { value: 'off', label: 'Band' }, { value: 'all', label: 'Sab' }];
 
 export default function GamingStationsPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canEdit = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const canWork = usePermission(PERMISSIONS.POS_USE);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<GamingStation | null>(null);
+  const [show, setShow] = useState('on');
+  const [form, setForm] = useState<GamingStation | 'new' | null>(null);
+  const [repair, setRepair] = useState<GamingStation | null>(null);
 
-  const { data: stations = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['gaming-stations-all'],
-    queryFn: () => gamingStationsApi.list({}),
-  });
-
-  const filtered = useMemo(() => {
-    let list = [...stations];
-    if (typeFilter !== 'all') list = list.filter((s) => s.stationType === typeFilter);
-    const q = search.toLowerCase().trim();
-    if (q) {
-      list = list.filter((s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.stationNumber.toLowerCase().includes(q) ||
-        (s.location || '').toLowerCase().includes(q)
-      );
-    }
-    return list.sort((a, b) => a.stationNumber.localeCompare(b.stationNumber, undefined, { numeric: true }));
-  }, [stations, search, typeFilter]);
-
-  const stats = useMemo(() => ({
-    total: stations.length,
-    active: stations.filter((s) => s.isActive).length,
-    maintenance: stations.filter((s) => s.isUnderMaintenance).length,
-    totalRevenue: stations.reduce((sum, s) => sum + Number(s.totalRevenue || 0), 0),
-    totalHours: stations.reduce((sum, s) => sum + Number(s.totalHoursUsed || 0), 0),
-  }), [stations]);
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => gamingStationsApi.remove(id),
-    onSuccess: () => {
-      toast.success('Station deactivated');
-      qc.invalidateQueries({ queryKey: ['gaming-stations-all'] });
-    },
-  });
-
-  const toggleMaint = useMutation({
-    mutationFn: ({ id, notes }: any) => gamingStationsApi.toggleMaintenance(id, notes),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['gaming-stations-all'] });
-      qc.invalidateQueries({ queryKey: ['gaming-stations-live'] });
-    },
-  });
-
-  return (
-    <div className="space-y-5">
-      {showForm && (
-        <StationFormModal editing={editing}
-          onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={() => {
-            setShowForm(false);
-            setEditing(null);
-            qc.invalidateQueries({ queryKey: ['gaming-stations-all'] });
-            qc.invalidateQueries({ queryKey: ['gaming-stations-live'] });
-          }} />
-      )}
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Monitor className="h-3.5 w-3.5 text-amber-300" /> Gaming Stations
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🖥️ Stations</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {stats.total} stations • {stats.active} active • {formatPKR(stats.totalRevenue)} lifetime revenue
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" /> New Station
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi icon={Monitor} label="Total Stations" value={stats.total} sub={`${stats.active} active`} tone="blue" />
-        <Kpi icon={Wrench} label="Maintenance" value={stats.maintenance} sub="Under repair" tone="amber" />
-        <Kpi icon={Clock} label="Total Hours" value={`${stats.totalHours.toFixed(0)}h`} sub="Used lifetime" tone="violet" />
-        <Kpi icon={DollarSign} label="Total Revenue" value={formatPKR(stats.totalRevenue)} sub="Lifetime" tone="emerald" />
-      </section>
-
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Station name, number, location..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          <button onClick={() => setTypeFilter('all')}
-            className={`shrink-0 h-9 px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 border-2 transition ${
-              typeFilter === 'all' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}>
-            All
-          </button>
-          {STATION_TYPES.map((t) => (
-            <button key={t.v} onClick={() => setTypeFilter(typeFilter === t.v ? 'all' : t.v)}
-              className={`shrink-0 h-9 px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 border-2 transition ${
-                typeFilter === t.v ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}>
-              <span>{t.e}</span>{t.l}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-52 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Monitor className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No stations yet</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Add your first PC/PS5/Xbox station</p>
-          <Button className="mt-4 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" /> Add First Station
-          </Button>
-        </div>
-      ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {filtered.map((s) => (
-            <StationManageCard key={s.id} station={s}
-              onEdit={() => { setEditing(s); setShowForm(true); }}
-              onDelete={() => { if (confirm(`Deactivate "${s.name}"?`)) removeMutation.mutate(s.id); }}
-              onToggleMaintenance={() => {
-                const notes = s.isUnderMaintenance ? undefined : prompt('Maintenance notes:') || undefined;
-                toggleMaint.mutate({ id: s.id, notes });
-              }} />
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function StationManageCard({ station, onEdit, onDelete, onToggleMaintenance }: any) {
-  const type = STATION_TYPES.find((t) => t.v === station.stationType);
-  return (
-    <div className={`rounded-2xl bg-white border-2 shadow-sm p-4 hover:shadow-lg transition-all ${
-      station.isUnderMaintenance ? 'border-rose-300' : 'border-slate-200 hover:border-blue-300'}`}>
-      <div className="flex items-start gap-3">
-        {station.imageUrl ? (
-          <img src={station.imageUrl} alt="" className="h-16 w-16 rounded-2xl object-cover border-2 border-slate-200 shrink-0" />
-        ) : (
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center shrink-0 text-3xl">
-            {type?.e || '🎮'}
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 truncate">{station.name}</div>
-          <div className="text-[0.6875rem] font-mono text-slate-500">#{station.stationNumber}</div>
-          <div className="text-xs font-bold text-blue-700 mt-0.5">{type?.l}</div>
-          {station.location && (
-            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 font-bold mt-0.5">
-              <MapPin className="h-2.5 w-2.5" /> {station.location}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rate/hr</div>
-          <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKR(station.pricePerHour)}</div>
-        </div>
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
-          <div className="text-base font-extrabold text-slate-900 tabular-nums">{formatPKR(station.totalRevenue || 0)}</div>
-        </div>
-      </div>
-
-      {station.installedGames?.length > 0 && (
-        <div className="mt-2">
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Installed Games</div>
-          <div className="flex flex-wrap gap-1">
-            {station.installedGames.slice(0, 3).map((g: string, i: number) => (
-              <span key={i} className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[0.6875rem] font-extrabold">{g}</span>
-            ))}
-            {station.installedGames.length > 3 && (
-              <span className="text-[0.6875rem] font-extrabold text-slate-500">+{station.installedGames.length - 3}</span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {station.isUnderMaintenance && (
-        <div className="mt-3 rounded-xl bg-rose-50 border-2 border-rose-200 p-2 text-xs text-rose-800 font-bold">
-          🔧 Under maintenance
-          {station.maintenanceNotes && <div className="text-[0.6875rem] mt-0.5 opacity-80">{station.maintenanceNotes}</div>}
-        </div>
-      )}
-
-      <div className="mt-3 flex gap-1.5">
-        <button onClick={onEdit}
-          className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-          <Edit3 className="h-3.5 w-3.5" /> Edit
-        </button>
-        <button onClick={onToggleMaintenance}
-          className={`h-9 w-9 rounded-lg flex items-center justify-center ${
-            station.isUnderMaintenance ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-amber-50 hover:bg-amber-100 text-amber-700'}`}
-          title={station.isUnderMaintenance ? 'End maintenance' : 'Start maintenance'}>
-          <Wrench className="h-3.5 w-3.5" />
-        </button>
-        <button onClick={onDelete}
-          className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function StationFormModal({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState({
-    stationNumber: editing?.stationNumber ?? '',
-    name: editing?.name ?? '',
-    stationType: editing?.stationType ?? 'PC_STATION',
-    location: editing?.location ?? '',
-    platform: editing?.platform ?? 'PC',
-    specifications: editing?.specifications ?? '',
-    installedGames: editing?.installedGames ?? [],
-    pricePerHour: editing?.pricePerHour ?? 100,
-    pricePerHalfHour: editing?.pricePerHalfHour ?? '',
-    peakHourPrice: editing?.peakHourPrice ?? '',
-    minimumMinutes: editing?.minimumMinutes ?? 15,
-    imageUrl: editing?.imageUrl ?? '',
-    notes: editing?.notes ?? '',
-    isActive: editing?.isActive ?? true,
-  });
-  const [newGame, setNewGame] = useState('');
-
-  const save = useMutation({
-    mutationFn: () => editing
-      ? gamingStationsApi.update(editing.id, form as any)
-      : gamingStationsApi.create(form as any),
-    onSuccess: () => {
-      toast.success(editing ? 'Station updated' : 'Station created');
-      onSaved();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">{editing ? '✏️ Edit Station' : '➕ New Station'}</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Station Number *</Lbl>
-              <input value={form.stationNumber} onChange={(e) => setForm({ ...form, stationNumber: e.target.value })}
-                placeholder="PC-01, PS5-03"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-extrabold focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <Lbl>Display Name *</Lbl>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Gaming PC #1"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Station Type *</Lbl>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {STATION_TYPES.map((t) => (
-                <button key={t.v} type="button" onClick={() => setForm({ ...form, stationType: t.v })}
-                  className={`p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-1 ${
-                    form.stationType === t.v ? 'border-blue-600 bg-blue-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400'}`}>
-                  <span className="text-xl">{t.e}</span>
-                  <span className="text-[0.6875rem] font-extrabold text-center">{t.l}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Location <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-            <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-              placeholder="Zone A, Row 2"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          </div>
-
-          <div>
-            <Lbl>Specifications</Lbl>
-            <textarea rows={2} value={form.specifications}
-              onChange={(e) => setForm({ ...form, specifications: e.target.value })}
-              placeholder="RTX 4070, 32GB RAM, 27&quot; 165Hz monitor..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500" />
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div>
-              <Lbl>Rate/hr *</Lbl>
-              <input type="number" value={form.pricePerHour}
-                onChange={(e) => setForm({ ...form, pricePerHour: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <Lbl>Rate/half-hr</Lbl>
-              <input type="number" value={form.pricePerHalfHour}
-                onChange={(e) => setForm({ ...form, pricePerHalfHour: e.target.value === '' ? '' : Number(e.target.value) })}
-                placeholder="Optional"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <Lbl>Peak Hour</Lbl>
-              <input type="number" value={form.peakHourPrice}
-                onChange={(e) => setForm({ ...form, peakHourPrice: e.target.value === '' ? '' : Number(e.target.value) })}
-                placeholder="Optional"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Minimum Minutes</Lbl>
-            <input type="number" value={form.minimumMinutes}
-              onChange={(e) => setForm({ ...form, minimumMinutes: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          </div>
-
-          <div>
-            <Lbl>Installed Games</Lbl>
-            <div className="flex gap-2">
-              <input value={newGame} onChange={(e) => setNewGame(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newGame.trim()) {
-                    setForm({ ...form, installedGames: [...form.installedGames, newGame.trim()] });
-                    setNewGame('');
-                  }
-                }}
-                placeholder="FIFA 26, GTA V, Valorant..."
-                className="h-11 flex-1 rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <button type="button" onClick={() => {
-                if (newGame.trim()) {
-                  setForm({ ...form, installedGames: [...form.installedGames, newGame.trim()] });
-                  setNewGame('');
-                }
-              }} className="h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm">
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            {form.installedGames.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {form.installedGames.map((g: string, i: number) => (
-                  <div key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-extrabold">
-                    {g}
-                    <button onClick={() => setForm({ ...form, installedGames: form.installedGames.filter((_: any, x: number) => x !== i) })}
-                      className="hover:text-rose-700">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <Lbl>Image</Lbl>
-            {form.imageUrl ? (
-              <div className="relative w-40 h-32 rounded-xl overflow-hidden border-2 border-slate-200">
-                <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
-                <button onClick={() => setForm({ ...form, imageUrl: '' })}
-                  className="absolute top-1 right-1 h-7 w-7 rounded-lg bg-rose-600 text-white flex items-center justify-center">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <UploadDropzone purpose="station-image" maxFiles={1}
-                onUploaded={(recs: any[]) => {
-                  const first = Array.isArray(recs) ? recs[0] : recs;
-                  const url = typeof first === 'string' ? first : (first as any)?.url;
-                  if (url) setForm({ ...form, imageUrl: url });
-                }} />
-            )}
-          </div>
-        </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700"
-            onClick={() => save.mutate()} loading={save.isPending}
-            disabled={!form.name.trim() || !form.stationNumber.trim() || form.pricePerHour <= 0}>
-            <Save className="h-4 w-4" /> {editing ? 'Update' : 'Save'}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-cyan-700', emerald: 'from-emerald-500 to-emerald-700',
-    amber: 'from-amber-500 to-orange-600', violet: 'from-violet-500 to-fuchsia-700',
+  const listQ = useQuery({ queryKey: [GAMING_KEYS.stations, 'all'], queryFn: () => gamingStationsApi.list() });
+  const all = listQ.data ?? [];
+  const rows = useMemo(() => {
+    const t = search.trim().toLowerCase();
+    return all
+      .filter((s) => (show === 'all' ? true : show === 'on' ? s.isActive : !s.isActive))
+      .filter((s) => !t || [s.name, s.stationNumber, STATION_TYPES[s.stationType], s.location, ...s.installedGames].some((v) => v?.toLowerCase().includes(t)));
+  }, [all, search, show]);
+  const on = all.filter((s) => s.isActive);
+  const totals = {
+    busy: on.filter((s) => s.currentSession).length,
+    repair: on.filter((s) => s.isUnderMaintenance).length,
+    hours: on.reduce((a, s) => a + s.totalHoursUsed, 0),
+    money: on.reduce((a, s) => a + s.totalRevenue, 0),
   };
+  usePageKeys(searchRef, { n: () => { if (canEdit) setForm('new'); } });
+
+  const refresh = () => [GAMING_KEYS.stations, GAMING_KEYS.active, GAMING_KEYS.counter].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const save = useMutation({
+    mutationFn: ({ id, data }: { id?: string; data: Partial<GamingStation> }) => (id ? gamingStationsApi.update(id, data) : gamingStationsApi.create(data)),
+    onSuccess: (s) => { toast.success(`${s.name} save ho gaya`); setForm(null); refresh(); },
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+  });
+  const power = useMutation({
+    mutationFn: (s: GamingStation) => (s.isActive ? gamingStationsApi.remove(s.id) : gamingStationsApi.update(s.id, { ...editable(s), isActive: true })),
+    onSuccess: (s) => { toast.success(s.isActive ? `${s.name} chalu` : `${s.name} band — purane session waise hi`); refresh(); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+  });
+  const fix = useMutation({
+    mutationFn: ({ s, notes }: { s: GamingStation; notes?: string }) => gamingStationsApi.toggleMaintenance(s.id, notes),
+    onSuccess: (s) => { toast.success(s.isUnderMaintenance ? `${s.name} repair par` : `${s.name} phir chalu`); setRepair(null); refresh(); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+  });
+
   return (
-    <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-          <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>
-        </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Stations — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Monitor, color: '#2563eb', title: 'Station', text: 'Har PS5, PC, simulator ya room ek station hai — number (PS-1) aur naam likhein. Cafe Live par yahi dikhte hain.' },
+            { icon: Wallet, color: '#16a34a', title: 'Rate', text: 'Ghante ka rate zaroori hai. Aadhe ghante, rush (peak) aur khali waqt (off-peak) ke rate session shuru karte waqt chunne ko milte hain.' },
+            { icon: Clock, color: '#d97706', title: 'Kam se kam', text: '"Kam se kam minute" — is se kam khelne par bhi itne minute ka bill banta hai (aam tor par 15 ya 30).' },
+            { icon: Wrench, color: '#64748b', title: 'Repair', text: 'Kharab station "Repair" par lagayein — Cafe Live par shuru nahi hota. Band karne se history nahi mit-ti.' },
+          ]}
+          shortcuts={[['N', 'naya station'], ['/', 'search'], ['G', 'guide']]} />
+      )}
+
+      <PageHero title="Stations" chip={<><Monitor /> Gaming zone</>} loading={listQ.isLoading}
+        meta="PS5, PC aur simulator — rate, kam se kam minute aur games"
+        actions={<>
+          {canWork && <Link to="/gaming/cafe" className={heroButton}><Timer className="h-4 w-4" /><span className="hidden sm:inline">Cafe Live</span></Link>}
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya station (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" />Station</button>}
+        </>}
+        stats={[
+          { label: 'Chalu stations', value: String(on.length) },
+          { label: 'Abhi khel rahe', value: String(totals.busy) },
+          { label: 'Kul kamai', value: money(totals.money) },
+        ]} />
+
+      <KpiRow cols={4}>
+        <KpiCard icon={Monitor} color="#2563eb" label="Stations" value={on.length} hint={`${all.length - on.length} band`} />
+        <KpiCard icon={Timer} color="#16a34a" label="Khel rahe" value={totals.busy} />
+        <KpiCard icon={Wrench} color="#64748b" label="Repair par" value={totals.repair} onClick={() => setShow('on')} />
+        <KpiCard icon={Clock} color="#7c3aed" label="Kul ghante" value={Math.round(totals.hours)} hint={money(totals.money)} />
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Station, number, jagah ya game…" />}>
+        <FilterMenu icon={Power} label={SHOW.find((x) => x.value === show)?.label ?? 'Chalu'} value={show} active={show !== 'on'} options={SHOW} onChange={setShow} />
+      </FilterBar>
+
+      {listQ.isLoading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-48 rounded-3xl" />)}</div>
+        : rows.length === 0 ? (
+          <ListCard><Empty icon={Monitor} title={search ? 'Koi station nahi mila' : 'Abhi koi station nahi'} text="PS5, PC ya simulator jorein — har ek ka ghante ka rate likhein."
+            action={canEdit && !search ? <Button onClick={() => setForm('new')}><Plus className="h-4 w-4" />Station jorein</Button> : undefined} /></ListCard>
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {rows.map((s) => (
+              <li key={s.id} className={cn('rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80', !s.isActive && 'opacity-60')}>
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Gamepad2 className="h-5 w-5" /></span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-slate-900">{s.name} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{s.stationNumber}</span></p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[STATION_TYPES[s.stationType], s.platform ? PLATFORMS[s.platform] : null, s.location].filter(Boolean).join(' · ')}</p>
+                  </div>
+                  {!s.isActive ? <Pill tone="bg-slate-100 text-slate-600 ring-slate-200">Band</Pill>
+                    : s.isUnderMaintenance ? <Pill tone="bg-amber-50 text-amber-800 ring-amber-200">Repair</Pill>
+                      : s.currentSession ? <Pill tone="bg-emerald-50 text-emerald-700 ring-emerald-200">Khel rahe</Pill>
+                        : <Pill tone="bg-sky-50 text-sky-700 ring-sky-200">Khali</Pill>}
+                </div>
+                <dl className="mt-3 grid grid-cols-3 gap-2 rounded-2xl bg-slate-50 p-2.5 text-center text-[0.75rem]">
+                  <div><dt className="text-slate-500">Ghanta</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(s.pricePerHour)}</dd></div>
+                  <div><dt className="text-slate-500">Kam se kam</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{s.minimumMinutes} min</dd></div>
+                  <div><dt className="text-slate-500">Kamai</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(s.totalRevenue)}</dd></div>
+                </dl>
+                {(s.peakHourPrice || s.offPeakPrice || s.pricePerHalfHour) && (
+                  <p className="mt-2 text-[0.75rem] text-slate-500">{[s.pricePerHalfHour && `Aadha ghanta ${money(s.pricePerHalfHour)}`, s.peakHourPrice && `Rush ${money(s.peakHourPrice)}`, s.offPeakPrice && `Khali waqt ${money(s.offPeakPrice)}`].filter(Boolean).join(' · ')}</p>
+                )}
+                {s.isUnderMaintenance && s.maintenanceNotes && <p className="mt-2 text-[0.75rem] text-amber-800">{s.maintenanceNotes}</p>}
+                {s.installedGames.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{s.installedGames.slice(0, 6).map((g) => <span key={g} className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] text-slate-700">{g}</span>)}</div>}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {canEdit && <Button size="sm" variant="ghost" onClick={() => setForm(s)}><Pencil className="h-3.5 w-3.5" />Badlein</Button>}
+                  {canWork && s.isActive && <Button size="sm" variant="ghost" onClick={() => (s.isUnderMaintenance ? fix.mutate({ s }) : setRepair(s))}><Wrench className="h-3.5 w-3.5" />{s.isUnderMaintenance ? 'Theek ho gaya' : 'Repair'}</Button>}
+                  {canEdit && <Button size="sm" variant="ghost" className="ml-auto" loading={power.isPending && power.variables?.id === s.id} onClick={() => power.mutate(s)}><Power className="h-3.5 w-3.5" />{s.isActive ? 'Band' : 'Chalu'}</Button>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+      {form && <StationModal station={form === 'new' ? null : form} pending={save.isPending} onSave={(data) => save.mutate({ id: form === 'new' ? undefined : form.id, data })} onClose={() => setForm(null)} />}
+      {repair && <RepairModal station={repair} pending={fix.isPending} onSave={(notes) => fix.mutate({ s: repair, notes })} onClose={() => setRepair(null)} />}
+    </PageShell>
   );
 }
 
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
+/** Fields the API accepts back on update. */
+function editable(s: GamingStation): Partial<GamingStation> {
+  return {
+    stationNumber: s.stationNumber, name: s.name, stationType: s.stationType, location: s.location, platform: s.platform, installedGames: s.installedGames,
+    pricePerHour: s.pricePerHour, pricePerHalfHour: s.pricePerHalfHour ?? undefined, peakHourPrice: s.peakHourPrice ?? undefined,
+    offPeakPrice: s.offPeakPrice ?? undefined, minimumMinutes: s.minimumMinutes, notes: s.notes,
+  };
+}
+
+function StationModal({ station, pending, onSave, onClose }: { station: GamingStation | null; pending: boolean; onSave: (d: Partial<GamingStation>) => void; onClose: () => void }) {
+  const [v, setV] = useState({
+    stationNumber: station?.stationNumber ?? '', name: station?.name ?? '', stationType: (station?.stationType ?? 'PS5_STATION') as GamingStationType,
+    platform: station?.platform ?? '', location: station?.location ?? '', pricePerHour: station ? String(station.pricePerHour) : '',
+    pricePerHalfHour: station?.pricePerHalfHour ? String(station.pricePerHalfHour) : '', peakHourPrice: station?.peakHourPrice ? String(station.peakHourPrice) : '',
+    offPeakPrice: station?.offPeakPrice ? String(station.offPeakPrice) : '', minimumMinutes: String(station?.minimumMinutes ?? 15),
+    games: (station?.installedGames ?? []).join(', '), notes: station?.notes ?? '',
+  });
+  const set = (patch: Partial<typeof v>) => setV((x) => ({ ...x, ...patch }));
+  const rate = numIn(v.pricePerHour);
+  const mins = Number(v.minimumMinutes);
+  const errors = {
+    stationNumber: !v.stationNumber.trim() ? 'Number likhein (PS-1)' : undefined,
+    name: !v.name.trim() ? 'Naam likhein' : undefined,
+    pricePerHour: rate === null ? 'Ghante ka rate likhein' : undefined,
+    minimumMinutes: !Number.isFinite(mins) || mins < 0 || mins > 600 ? '0 se 600 tak' : undefined,
+  };
+  const bad = Object.values(errors).some(Boolean);
+  const [tried, setTried] = useState(false);
+  const submit = () => {
+    setTried(true);
+    if (bad || pending) return;
+    const opt = (s: string) => (numIn(s) ?? undefined);
+    onSave({
+      stationNumber: v.stationNumber.trim(), name: v.name.trim(), stationType: v.stationType, platform: v.platform || undefined, location: v.location.trim() || undefined,
+      pricePerHour: rate ?? 0, pricePerHalfHour: opt(v.pricePerHalfHour), peakHourPrice: opt(v.peakHourPrice), offPeakPrice: opt(v.offPeakPrice),
+      minimumMinutes: Math.round(mins), installedGames: v.games.split(',').map((g) => g.trim()).filter(Boolean), notes: v.notes.trim() || undefined,
+    });
+  };
+  useSaveKey(submit);
+  const e = (k: keyof typeof errors) => (tried ? errors[k] : undefined);
+  return (
+    <Modal open onClose={onClose} size="lg" title={station ? `${station.name} — badlein` : 'Naya station'}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={pending} onClick={submit}>Save (Ctrl+S)</Button></>}>
+      <form className="space-y-4" onSubmit={(ev) => { ev.preventDefault(); submit(); }}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Number" required autoFocus value={v.stationNumber} onChange={(x) => set({ stationNumber: x.target.value.toUpperCase() })} placeholder="PS-1" error={e('stationNumber')} hint="Har station ka alag" />
+          <Input label="Naam" required value={v.name} onChange={(x) => set({ name: x.target.value })} placeholder="PS5 — Screen 1" error={e('name')} />
+          <Select label="Kis tarah ka" value={v.stationType} onChange={(x) => set({ stationType: x.target.value as GamingStationType })} options={Object.entries(STATION_TYPES).map(([value, label]) => ({ value, label }))} />
+          <Select label="Platform" value={v.platform} onChange={(x) => set({ platform: x.target.value })} options={[{ value: '', label: '—' }, ...Object.entries(PLATFORMS).map(([value, label]) => ({ value, label }))]} hint="Marzi hai" />
+          <Input label="Jagah" value={v.location} onChange={(x) => set({ location: x.target.value })} placeholder="Upar wala hall" hint="Marzi hai" />
+          <Input label="Kam se kam minute" inputMode="numeric" value={v.minimumMinutes} onChange={(x) => set({ minimumMinutes: x.target.value.replace(/\D/g, '') })} error={e('minimumMinutes')} hint="Is se kam khelne par bhi itne ka bill" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Input label="Ghante ka rate (Rs)" required inputMode="decimal" value={v.pricePerHour} onChange={(x) => set({ pricePerHour: moneyText(x.target.value) })} error={e('pricePerHour')} />
+          <Input label="Aadha ghanta (Rs)" inputMode="decimal" value={v.pricePerHalfHour} onChange={(x) => set({ pricePerHalfHour: moneyText(x.target.value) })} hint="Marzi hai" />
+          <Input label="Rush ka rate" inputMode="decimal" value={v.peakHourPrice} onChange={(x) => set({ peakHourPrice: moneyText(x.target.value) })} hint="Shaam / weekend" />
+          <Input label="Khali waqt ka rate" inputMode="decimal" value={v.offPeakPrice} onChange={(x) => set({ offPeakPrice: moneyText(x.target.value) })} hint="Subah / raat" />
+        </div>
+        <Input label="Games (comma se alag)" value={v.games} onChange={(x) => set({ games: x.target.value })} placeholder="FIFA 25, Tekken 8, GTA V" hint="Session shuru karte waqt chunne ko milte hain" />
+        <Textarea label="Note" rows={2} value={v.notes} onChange={(x) => set({ notes: x.target.value })} hint="Sirf andar ke liye" />
+      </form>
+    </Modal>
+  );
+}
+
+function RepairModal({ station, pending, onSave, onClose }: { station: GamingStation; pending: boolean; onSave: (notes?: string) => void; onClose: () => void }) {
+  const [notes, setNotes] = useState('');
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${station.name} — repair par`} description="Cafe Live par ye station shuru nahi hoga jab tak 'Theek ho gaya' na dabayein"
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={pending} onClick={() => onSave(notes.trim() || undefined)}><Wrench className="h-4 w-4" />Repair par lagayein</Button></>}>
+      <Textarea label="Kya kharab hai" autoFocus rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Controller ka button, HDMI…" />
+    </Modal>
+  );
 }

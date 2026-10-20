@@ -12,7 +12,6 @@ import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.int
 import {
   addDaysTz, dateKeyTz, endOfDayTz, startOfDayTz, tzParts, weekdayInTz, zonedToUtc,
 } from '../../common/helpers/business-time.helper';
-import { toPaymentMethod } from '../_shared/industry-sale.helper';
 
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -90,11 +89,49 @@ export function cleanInput(dto: any): any {
   return out;
 }
 
+/* ───────────────────────── crop seasons ───────────────────────── */
+
+export type CropSeasonName = 'RABI' | 'KHARIF';
+
+/**
+ * A farmer's credit season. Inputs bought for Rabi (Oct–Mar: wheat,
+ * gram, mustard) are paid after the wheat harvest; Kharif (Apr–Sep:
+ * cotton, rice, maize, sugarcane) after the autumn harvest.
+ */
+export interface CropSeason {
+  key: string;
+  name: CropSeasonName;
+  label: string;
+  start: Date;
+  end: Date;
+  /** Last day the shop expects the udhaar back. */
+  recoveryBy: Date;
+}
+
+/** Crop season a moment falls in, on shop time. */
+export function cropSeasonOf(at: Date = new Date()): CropSeason {
+  const { year, month } = tzParts(at);
+  if (month >= 4 && month <= 9) {
+    return {
+      key: `KHARIF-${year}`, name: 'KHARIF', label: `Kharif ${year}`,
+      start: zonedToUtc(year, 4, 1), end: new Date(zonedToUtc(year, 10, 1).getTime() - 1),
+      recoveryBy: endOfDayTz(zonedToUtc(year, 12, 15)),
+    };
+  }
+  const startYear = month >= 10 ? year : year - 1;
+  return {
+    key: `RABI-${startYear}`, name: 'RABI', label: `Rabi ${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`,
+    start: zonedToUtc(startYear, 10, 1), end: new Date(zonedToUtc(startYear + 1, 4, 1).getTime() - 1),
+    recoveryBy: endOfDayTz(zonedToUtc(startYear + 1, 5, 31)),
+  };
+}
+
+/** Calendar year on shop time, for document numbers. */
+export const shopYear = (at: Date = new Date()) => tzParts(at).year;
+
 /* ───────────────────────── khata ───────────────────────── */
 
 type Db = Prisma.TransactionClient;
-
-const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
 /** Branch for a khata line: the one given, the user's own, else the main shop. */
 export async function resolveShopId(db: Db, user: AuthenticatedUser, shopId?: string | null): Promise<string> {
@@ -142,37 +179,4 @@ export async function ensureKhataCustomer(
     select: { id: true },
   });
   return created.id;
-}
-
-/**
- * Money received against an order, written on the customer's khata. The
- * day book and the drawer count read khata collections, so the cash is
- * seen the day it comes in; the bill made later uses it up.
- */
-export async function khataPayment(
-  db: Db,
-  user: AuthenticatedUser,
-  input: { customerId: string; shopId: string; amount: number; reference: string; note: string; method?: string | null },
-) {
-  const amount = r2(input.amount);
-  if (amount <= 0) throw new BadRequestException('Amount sahi likhein');
-  const { balance } = await db.customer.update({
-    where: { id: input.customerId },
-    data: { balance: { decrement: amount } },
-    select: { balance: true },
-  });
-  return db.customerLedger.create({
-    data: {
-      tenantId: user.tenantId,
-      shopId: input.shopId,
-      customerId: input.customerId,
-      createdById: user.id,
-      type: 'PAYMENT_RECEIVED',
-      amount: -amount,
-      balanceAfter: balance,
-      reference: input.reference,
-      note: input.note,
-      paymentMethod: toPaymentMethod(input.method),
-    },
-  });
 }

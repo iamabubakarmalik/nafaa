@@ -1,13 +1,15 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { startOfDayTz, endOfDayTz } from '../../../common/helpers/business-time.helper';
+import { startOfDayTz, endOfDayTz, addDaysTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { applyStockDelta } from '../../../common/shop-scope';
+import { ShopScope, applyStockDelta } from '../../../common/shop-scope';
 import { postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { ensureSizeVariant, sizeLabel } from '../common/size-stock.helper';
 import { CreateExchangeDto, UpdateExchangeStatusDto } from './dto/create-exchange.dto';
 
 const STATUSES = ['REQUESTED', 'APPROVED', 'COMPLETED', 'REJECTED'];
+/** Notes the garments exchange service (shared by shoe shops) puts on an exchange's return. */
+const COUNTER_EXCHANGE_NOTE = 'Exchange: naya maal isi waqt diya';
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
 @Injectable()
@@ -160,14 +162,27 @@ export class ShoeExchangesService {
     return this.prisma.shoeExchange.update({ where: { id }, data: { status: 'REJECTED' } });
   }
 
-  async summary(user: AuthenticatedUser) {
-    const [requested, approved, completed, rejected] = await Promise.all([
+  /**
+   * Old exchange requests by status, plus the counter exchanges of the last
+   * 30 days (the shared exchange screen saves them as returns with
+   * COUNTER_EXCHANGE_NOTE) in the selected branch.
+   */
+  async summary(user: AuthenticatedUser, scope?: ShopScope) {
+    const since = startOfDayTz(addDaysTz(startOfDayTz(), -29));
+    const [requested, approved, completed, rejected, recent] = await Promise.all([
       this.prisma.shoeExchange.count({ where: { tenantId: user.tenantId, status: 'REQUESTED' } }),
       this.prisma.shoeExchange.count({ where: { tenantId: user.tenantId, status: 'APPROVED' } }),
       this.prisma.shoeExchange.count({ where: { tenantId: user.tenantId, status: 'COMPLETED' } }),
       this.prisma.shoeExchange.count({ where: { tenantId: user.tenantId, status: 'REJECTED' } }),
+      this.prisma.saleReturn.aggregate({
+        where: { tenantId: user.tenantId, ...scope?.where, notes: COUNTER_EXCHANGE_NOTE, returnedAt: { gte: since } },
+        _count: { _all: true }, _sum: { refundAmount: true },
+      }),
     ]);
-    return { requested, approved, completed, rejected };
+    return {
+      requested, approved, completed, rejected,
+      last30Days: { count: recent._count._all, value: r2(recent._sum.refundAmount ?? 0) },
+    };
   }
 
   async byReasonCategory(user: AuthenticatedUser) {

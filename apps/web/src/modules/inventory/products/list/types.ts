@@ -53,6 +53,8 @@ export interface ProductsPageConfig {
   onScanMiss?: (code: string, navigate: (to: string) => void) => Promise<boolean>;
   /** Quick quantities in the stock dialog for this product. */
   stockChips?: (item: CatalogItem) => number[];
+  /** Reason the stock dialog is closed for this product (stock comes from elsewhere, e.g. carpet rolls); null when open. */
+  stockLocked?: (item: CatalogItem) => string | null;
   /** Steps added to the guide. */
   guide?: GuideStep[];
 }

@@ -22,7 +22,7 @@ export const EXPORT_KINDS = ['sales', 'products', 'customers', 'suppliers', 'exp
 export type ExportKind = (typeof EXPORT_KINDS)[number];
 
 const KIND_LABEL: Record<ExportKind, string> = {
-  sales: 'Bikri',
+  sales: 'Sale',
   products: 'Maal (products)',
   customers: 'Customers',
   suppliers: 'Suppliers',

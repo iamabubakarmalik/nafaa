@@ -132,7 +132,7 @@ export default function IngredientsPage() {
     meta: [['Cheezein', String(shown.length)], ...(costHidden ? [] : [['Qeemat', formatPKR(stats.value)] as [string, string]])],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Saamaan' }, { label: 'Qisam', wideOnly: true }, { label: 'Stock', align: 'right' }, { label: 'Had', align: 'right', wideOnly: true }, { label: 'Gin kar', align: 'right' }],
+      columns: [{ label: 'Saamaan' }, { label: 'Type', wideOnly: true }, { label: 'Stock', align: 'right' }, { label: 'Had', align: 'right', wideOnly: true }, { label: 'Gin kar', align: 'right' }],
       rows: shown.map((i) => [i.name, rawCategoryOf(i.category).label, `${fmtQty(i.currentStock)} ${i.unit}`, fmtQty(levelOf(i)), '______']),
     }],
   } : {
@@ -156,7 +156,7 @@ export default function IngredientsPage() {
         loading={listQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!live.length} /></span>
-          <button type="button" title="CSV" onClick={() => downloadCsv('saamaan', ['Naam', 'Qisam', 'Stock', 'Unit', 'Had', 'Rate', 'Supplier'], shown.map((i) => [i.name, rawCategoryOf(i.category).label, i.currentStock, i.unit, levelOf(i), costHidden ? '' : i.costPerUnit, i.supplierName]))} className={heroIconButton}><FileSpreadsheet className="h-4 w-4" /></button>
+          <button type="button" title="CSV" onClick={() => downloadCsv('saamaan', ['Naam', 'Type', 'Stock', 'Unit', 'Had', 'Rate', 'Supplier'], shown.map((i) => [i.name, rawCategoryOf(i.category).label, i.currentStock, i.unit, levelOf(i), costHidden ? '' : i.costPerUnit, i.supplierName]))} className={heroIconButton}><FileSpreadsheet className="h-4 w-4" /></button>
           <Link to="/purchases/new" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Supplier ka bill</span></Link>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canManage && <button type="button" onClick={() => setForm({ item: null })} title="Naya saamaan (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya saamaan</button>}
@@ -201,7 +201,7 @@ export default function IngredientsPage() {
           onClear={() => { setState('all'); setCategory(''); setSearch(''); }}>
           {tab === 'stock' && <>
             <FilterMenu icon={Filter} label={STATES.find((s) => s.id === state)?.label ?? 'Haal'} value={state} active={state !== 'all'} onChange={setState} options={STATES.map((s) => ({ value: s.id, label: s.label, icon: s.id === 'hidden' ? EyeOff : s.id === 'fridge' ? Snowflake : undefined }))} />
-            <FilterMenu icon={Tags} label="Qisam" value={category} active={!!category} onChange={setCategory} options={[{ value: '', label: 'Sab qismein' }, ...RAW_CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` }))]} />
+            <FilterMenu icon={Tags} label="Type" value={category} active={!!category} onChange={setCategory} options={[{ value: '', label: 'Sab types' }, ...RAW_CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` }))]} />
           </>}
           {tab === 'recipes' && (
             <FilterMenu icon={Filter} label={recipeFilter === 'low' ? 'Kam profit' : recipeFilter === 'off' ? 'Cost ka farq' : recipeFilter === 'missing' ? 'Saamaan gum' : 'Sab recipes'} value={recipeFilter} active={recipeFilter !== 'all'} onChange={setRecipeFilter}

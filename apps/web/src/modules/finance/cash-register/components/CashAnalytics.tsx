@@ -47,7 +47,7 @@ export function CashAnalytics({ filters, money }: { filters: Omit<ShiftQuery, 'p
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
                   <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Cash sale']} {...theme.tooltip} />
-                  <Bar dataKey="cashSales" name="Cash bikri" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="cashSales" name="Cash sale" fill="#16a34a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

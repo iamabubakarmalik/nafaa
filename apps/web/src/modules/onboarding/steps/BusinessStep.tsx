@@ -126,7 +126,7 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
       </div>
 
       <p className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-600">
-        Kaam badalna ho to baad me <strong className="font-semibold">Settings → Karobar ki qisam</strong> se badal sakte hain. Wahin features bhi on/off hote hain.
+        Kaam badalna ho to baad me <strong className="font-semibold">Settings → Business type</strong> se badal sakte hain. Wahin features bhi on/off hote hain.
       </p>
     </div>
   );

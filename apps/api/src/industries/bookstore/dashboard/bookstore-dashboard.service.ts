@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ShopScope } from '../../../common/shop-scope';
 import { dayStart } from '../bookstore-common';
 
 @Injectable()
 export class BookstoreDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async overview(user: AuthenticatedUser) {
+  async overview(user: AuthenticatedUser, scope?: ShopScope) {
     // A rental is overdue from the shop day after its due date (same rule as the rentals list).
     const today = dayStart();
     const late = { status: { in: ['ACTIVE', 'OVERDUE'] as Array<'ACTIVE' | 'OVERDUE'> }, dueDate: { lt: today } };
 
     const tenantFilter = { tenantId: user.tenantId };
+    // Rentals of the selected branch; rentals without a branch show everywhere.
+    const rentalFilter = { ...tenantFilter, ...(scope?.shopId && { AND: [scope.whereLoose] }) };
 
     // Parallel queries (fast)
     const [
@@ -36,8 +39,8 @@ export class BookstoreDashboardService {
       this.prisma.artSupplyProfile.count({ where: tenantFilter }),
       this.prisma.school.count({ where: { ...tenantFilter, isActive: true } }),
       this.prisma.schoolBookList.count({ where: { ...tenantFilter, status: 'ACTIVE' } }),
-      this.prisma.bookRental.count({ where: { ...tenantFilter, status: { in: ['ACTIVE', 'OVERDUE'] } } }),
-      this.prisma.bookRental.count({ where: { ...tenantFilter, ...late } }),
+      this.prisma.bookRental.count({ where: { ...rentalFilter, status: { in: ['ACTIVE', 'OVERDUE'] } } }),
+      this.prisma.bookRental.count({ where: { ...rentalFilter, ...late } }),
       this.prisma.bookProfile.count({ where: { ...tenantFilter, isBestSeller: true } }),
       this.prisma.bookProfile.count({ where: { ...tenantFilter, isNewArrival: true } }),
       this.prisma.bookProfile.count({ where: { ...tenantFilter, isFeatured: true } }),
@@ -45,7 +48,7 @@ export class BookstoreDashboardService {
 
     // Overdue rentals detail
     const overdueDetail = await this.prisma.bookRental.findMany({
-      where: { ...tenantFilter, ...late },
+      where: { ...rentalFilter, ...late },
       orderBy: { dueDate: 'asc' },
       take: 10,
     });

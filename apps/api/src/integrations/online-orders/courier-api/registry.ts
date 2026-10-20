@@ -132,10 +132,10 @@ export const COURIER_APIS: Record<string, CourierApiDef> = {
       { key: 'pickupAddressCode', label: 'Pickup address', help: 'Trax rider parcel yahan se uthayega', type: 'pickup', placeholder: 'Default wala' },
       { key: 'serviceType', label: 'Shipping mode', help: 'Rush = tez, Saver Plus = sasta', type: 'service', placeholder: 'Rush' },
       {
-        key: 'chargesMode', label: 'Account ki qisam', help: 'Trax ne aap ka account kis tarah banaya', type: 'select', placeholder: 'Reimbursement (COD se charges kat-te hain)',
+        key: 'chargesMode', label: 'Account ki type', help: 'Trax ne aap ka account kis tarah banaya', type: 'select', placeholder: 'Reimbursement (COD se charges kat-te hain)',
         options: [{ value: '4', label: 'Reimbursement (COD se charges kat-te hain)' }, { value: '3', label: 'Corporate invoicing (mahine ka bill)' }],
       },
-      { key: 'productTypeId', label: 'Maal ki qisam', help: 'Trax ko batana hota hai parcel me kya hai', type: 'select', placeholder: 'Other', options: TRAX_PRODUCT_TYPES },
+      { key: 'productTypeId', label: 'Maal ki type', help: 'Trax ko batana hota hai parcel me kya hai', type: 'select', placeholder: 'Other', options: TRAX_PRODUCT_TYPES },
       ...COMMON_SETTINGS,
     ],
     portalUrl: 'https://sonic.pk',

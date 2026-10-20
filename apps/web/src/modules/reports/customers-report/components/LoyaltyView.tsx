@@ -14,7 +14,7 @@ import type { Loyalty } from '../api';
 import { CustomerCell, DataTable, Delta, Panel, keyLabel, type Formatter } from './parts';
 import { WhatsAppList } from './WhatsAppList';
 
-const REMIND = 'Assalam-o-Alaikum {name}! {shop} me aap ke loyalty points jama hain — agli khareedari par in se chhoot le sakte hain. Zaroor tashreef layein. 🎁';
+const REMIND = 'Assalam-o-Alaikum {name}! {shop} me aap ke loyalty points jama hain — agli khareedari par in se discount le sakte hain. Zaroor tashreef layein. 🎁';
 
 export function LoyaltyView({ data: d, f, compare }: { data: Loyalty; f: Formatter; compare: boolean }) {
   const theme = useChartTheme();

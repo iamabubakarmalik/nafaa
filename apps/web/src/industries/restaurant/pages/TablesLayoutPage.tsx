@@ -17,8 +17,7 @@ import {
   Wallet, type LucideIcon,
 } from 'lucide-react';
 import {
-  Button, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
-} from '@/design-system/components';
+  Button, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, confirmDialog } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -117,7 +116,7 @@ export default function TablesLayoutPage() {
           onReserve={() => { setReserve(open); setOpen(null); }}
           onCancelReserve={() => run(() => tablesApi.cancelReservation(open.id), 'Reservation khatam')}
           onEdit={() => { setEdit(open); setOpen(null); }}
-          onRemove={() => { if (window.confirm(`Table ${open.tableNumber} hata dein? Purane orders record me rahenge.`)) run(() => tablesApi.remove(open.id), 'Table hata di'); }} />
+          onRemove={async () => { if ((await confirmDialog({ title: `Table ${open.tableNumber} hata dein?`, text: 'Purane orders record me rahenge.', danger: true }))) run(() => tablesApi.remove(open.id), 'Table hata di'); }} />
       )}
 
       <PageHero

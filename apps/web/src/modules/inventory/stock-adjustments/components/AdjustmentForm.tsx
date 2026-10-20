@@ -392,7 +392,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, t
           <p className="truncate text-sm font-semibold text-slate-900">{l.source.name}</p>
           <p className="text-[0.75rem] text-slate-500">
             {l.source.sku ? `${l.source.sku} · ` : ''}
-            {mode === 'loading' ? (failed ? 'Details load nahi hui' : 'Load ho raha hai…') : mode === 'roll' ? `${o!.carpetRolls.length} roll` : mode === 'imei' ? `${o!.imeis.length} device` : mode === 'variant' ? `${o!.variants.length} qismein` : `Branch stock ${qtyText(o!.product.branchStock ?? o!.product.stock)} ${l.source.baseUnit}`}
+            {mode === 'loading' ? (failed ? 'Details load nahi hui' : 'Load ho raha hai…') : mode === 'roll' ? `${o!.carpetRolls.length} roll` : mode === 'imei' ? `${o!.imeis.length} device` : mode === 'variant' ? `${o!.variants.length} variants` : `Branch stock ${qtyText(o!.product.branchStock ?? o!.product.stock)} ${l.source.baseUnit}`}
           </p>
         </div>
         <button type="button" onClick={onRemove} aria-label="Hatayein" className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
@@ -434,7 +434,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, t
               </button>
             ))}
           </div>
-          <p className="mt-1 text-[0.6875rem] text-slate-500">Is product ki qismein hain — jis ka stock badalna hai woh chunein.</p>
+          <p className="mt-1 text-[0.6875rem] text-slate-500">Is product ke variants hain — jis ka stock badalna hai woh chunein.</p>
         </div>
       )}
 

@@ -65,7 +65,7 @@ export function IngredientForm({ item, onClose }: { item: Ingredient | null; onC
       <div className="space-y-4">
         <Input label="Naam" required value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder="Maida, cheeni, makhan…" data-autofocus />
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Qisam</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Type</span>
           <div className="flex flex-wrap gap-1.5">
             {RAW_CATEGORIES.map((c) => (
               <button key={c.value} type="button" onClick={() => set({ category: c.value })}

@@ -46,7 +46,7 @@ export interface FurnitureCustomOrder {
   workshopLocation?: string;
   progressPct: number;
   progressPhotos: string[];
-  progressUpdates?: any;
+  progressUpdates?: Array<{ at: string; pct: number; note?: string }> | null;
   deliveryAddress?: string;
   deliveryCity?: string;
   deliveryArea?: string;
@@ -64,17 +64,27 @@ export interface FurnitureCustomOrder {
   sale?: { id: string; saleNumber: string; total: number; creditAmount: number } | null;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface OrderSummary {
+  quotation: number; deposit: number; production: number; ready: number; delivered: number; completed: number; cancelled: number; late: number;
+  totalReceivable: number; totalCollected: number;
+}
+export interface OrderPage { items: FurnitureCustomOrder[]; total: number; page: number; limit: number }
+export type OrderInput = Partial<Pick<FurnitureCustomOrder,
+  'customerId' | 'customerName' | 'customerPhone' | 'customerAddress' | 'customerCnic' | 'productType' | 'description' | 'categoryType' | 'material'
+  | 'woodType' | 'colorRequested' | 'polishRequested' | 'upholsteryFabric' | 'lengthCm' | 'widthCm' | 'heightCm' | 'customDimensions'
+  | 'sketchUrls' | 'referenceImages' | 'designNotes' | 'quotedPrice' | 'depositAmount' | 'estimatedDays' | 'carpenterId' | 'workshopLocation'
+  | 'deliveryAddress' | 'deliveryCity' | 'deliveryArea' | 'requiresInstallation' | 'installationCharge' | 'warrantyMonths' | 'notes'>>;
+
+const unwrap = <T,>(res: { data?: { data?: unknown } }): T => (res.data?.data ?? res.data) as T;
 
 export const customOrdersApi = {
-  create: (data: Partial<FurnitureCustomOrder>) =>
+  create: (data: OrderInput) =>
     apiClient.post('/furniture/custom-orders', data).then(unwrap<FurnitureCustomOrder>),
 
-  list: (params?: { status?: string; customerId?: string; carpenterId?: string; from?: string; to?: string; search?: string }) =>
-    apiClient.get('/furniture/custom-orders', { params }).then(unwrap<FurnitureCustomOrder[]>),
+  page: (params: { status?: string; carpenterId?: string; from?: string; to?: string; search?: string; page: number; limit: number }) =>
+    apiClient.get('/furniture/custom-orders', { params }).then(unwrap<OrderPage>),
 
-  summary: () => apiClient.get('/furniture/custom-orders/summary').then(unwrap<any>),
-  overdue: () => apiClient.get('/furniture/custom-orders/overdue').then(unwrap<FurnitureCustomOrder[]>),
+  summary: () => apiClient.get('/furniture/custom-orders/summary').then(unwrap<OrderSummary>),
 
   getOne: (id: string) => apiClient.get('/furniture/custom-orders/' + id).then(unwrap<FurnitureCustomOrder>),
 
@@ -87,13 +97,11 @@ export const customOrdersApi = {
   assignCarpenter: (id: string, carpenterId: string, workshopLocation?: string) =>
     apiClient.post('/furniture/custom-orders/' + id + '/assign-carpenter', { carpenterId, workshopLocation }).then(unwrap<FurnitureCustomOrder>),
 
-  update: (id: string, data: Partial<FurnitureCustomOrder>) =>
+  update: (id: string, data: OrderInput) =>
     apiClient.patch('/furniture/custom-orders/' + id, data).then(unwrap<FurnitureCustomOrder>),
   updateProgress: (id: string, data: { progressPct: number; progressPhotos?: string[]; updateNote?: string }) =>
     apiClient.post('/furniture/custom-orders/' + id + '/progress', data).then(unwrap<FurnitureCustomOrder>),
 
-  updateStatus: (id: string, data: { status: FurnitureOrderStatus; cancellationReason?: string; refundAmount?: number; notes?: string }) =>
+  updateStatus: (id: string, data: { status: FurnitureOrderStatus; cancellationReason?: string; notes?: string }) =>
     apiClient.patch('/furniture/custom-orders/' + id + '/status', data).then(unwrap<FurnitureCustomOrder>),
-
-  remove: (id: string) => apiClient.delete('/furniture/custom-orders/' + id).then(unwrap),
 };

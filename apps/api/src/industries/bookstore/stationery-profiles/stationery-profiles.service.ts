@@ -56,9 +56,12 @@ export class StationeryProfilesService {
     return this.prisma.stationeryProfile.findFirst({ where: { productId, tenantId: user.tenantId } });
   }
 
+  /** Hides the product (nothing is erased; it can be switched back on). */
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.stationeryProfile.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!p) throw new NotFoundException('Stationery ki tafseel nahi mili');
-    return this.prisma.stationeryProfile.delete({ where: { id } });
+    // The profile is kept with its product; removing it hides the product instead.
+    await this.prisma.product.updateMany({ where: { id: p.productId, tenantId: user.tenantId }, data: { isActive: false } });
+    return p;
   }
 }

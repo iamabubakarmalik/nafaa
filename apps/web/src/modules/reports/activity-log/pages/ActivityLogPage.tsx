@@ -194,7 +194,7 @@ export default function ActivityLogPage() {
             <KpiCard icon={Trash2} color="#e11d48" label="Mitaya gaya" value={String(stats.deletes)} hint="Mitaye, void aur radd" />
             <KpiCard icon={ShieldCheck} color="#7c3aed" label="PIN aur security" value={String(stats.security)} hint={stats.pinFailed ? `${stats.pinFailed} ghalat PIN · dabayein` : 'PIN, logout, download'}
               onClick={stats.pinFailed ? () => setAction(action === 'PIN_VERIFY_FAILED' ? '' : 'PIN_VERIFY_FAILED') : undefined} active={action === 'PIN_VERIFY_FAILED'} />
-            <KpiCard icon={FileText} color="#0891b2" label="Record ki qisam" value={String(facets?.entities.length ?? 0)} hint={facets?.entities[0] ? `zyada: ${entityLabel(facets.entities[0].key)}` : undefined} />
+            <KpiCard icon={FileText} color="#0891b2" label="Record ki type" value={String(facets?.entities.length ?? 0)} hint={facets?.entities[0] ? `zyada: ${entityLabel(facets.entities[0].key)}` : undefined} />
           </>
         )}
       </KpiRow>

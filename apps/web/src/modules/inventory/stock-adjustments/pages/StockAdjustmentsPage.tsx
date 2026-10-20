@@ -167,7 +167,7 @@ export default function StockAdjustmentsPage() {
             { icon: ShieldAlert, color: '#e11d48', title: 'Kharab aur gum', text: 'Toota, expiry ya kharab maal "Kharab" me, chori ya gum "Gum" me likhein. Dono stock kam karte hain aur nuqsan ki report me aate hain.' },
             { icon: ClipboardCheck, color: '#2563eb', title: 'Stock ginti', text: '"Stock ginti" me shelf ka maal gin kar likhein. System aur ginti ka farq khud barhaya ya kam kiya jata hai — save se pehle khulasa dikhta hai.' },
             { icon: MessageSquareText, color: '#7c3aed', title: 'Wajah zaroor likhein', text: 'Har adjustment ki wajah zaroori hai. Neeche wale chips se jaldi chunein — Analytics me dikhta hai kis wajah se kitna maal gaya.' },
-            { icon: Layers, color: '#d97706', title: 'Carton, qismein, roll, IMEI', text: 'Carton ya box chun kar likhein, stock khud pieces me badalta hai. Qismon wale product me type, carpet me roll, mobile me device (IMEI) chunna hota hai.' },
+            { icon: Layers, color: '#d97706', title: 'Carton, variants, roll, IMEI', text: 'Carton ya box chun kar likhein, stock khud pieces me badalta hai. Variant wale product me type, carpet me roll, mobile me device (IMEI) chunna hota hai.' },
             { icon: Store, color: '#0891b2', title: 'Branch ka usool', text: 'Adjustment hamesha khuli branch ka hota hai. "Sab branches" par pehle branch chunein. Staff sirf apni branch ka stock badal sakta hai.' },
           ]}
           tips={[

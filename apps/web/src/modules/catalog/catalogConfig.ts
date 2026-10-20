@@ -51,7 +51,7 @@ const CONFIGS: Record<string, CatalogConfig> = {
     label: 'Bakery', title: 'Bakery menu', noun: 'cheezein', listLabel: 'Order list', tagline: 'Roz taaza',
     sections: [{ id: 'all', label: 'Sab cheezein', icon: Croissant, source: bakerySource }],
     modes: ['menu', 'grid', 'list'], stock: true, priceBands: [[0, 200], [200, 1000], [1000, 3000], [3000, Infinity]],
-    facets: [{ key: 'bcat', label: 'Qisam', icon: Croissant, labels: labelsOf(BAKERY_CATEGORIES) }],
+    facets: [{ key: 'bcat', label: 'Type', icon: Croissant, labels: labelsOf(BAKERY_CATEGORIES) }],
     quick: [
       { id: 'fresh', label: 'Aaj bani', icon: Sun, test: (e) => has(e, 'fresh', 'today') },
       { id: 'eggless', label: 'Eggless', icon: Leaf, test: (e) => has(e, 'diet', 'eggless') },
@@ -65,7 +65,7 @@ const CONFIGS: Record<string, CatalogConfig> = {
     sections: [{ id: 'all', label: 'Sab', icon: Package, source: mobileSource }],
     modes: ['grid', 'list'], stock: true, priceBands: [[0, 20000], [20000, 50000], [50000, 100000], [100000, 200000], [200000, Infinity]],
     facets: [
-      { key: 'kind', label: 'Qisam', icon: Layers, labels: { phone: 'Mobile phone', accessory: 'Accessories' } },
+      { key: 'kind', label: 'Type', icon: Layers, labels: { phone: 'Mobile phone', accessory: 'Accessories' } },
       { key: 'pta', label: 'PTA', icon: ShieldCheck, labels: PTA_STATUS_LABELS },
     ],
     quick: [
@@ -81,7 +81,7 @@ const CONFIGS: Record<string, CatalogConfig> = {
     ],
     modes: ['grid', 'list'], stock: true, priceBands: [[0, 2000], [2000, 10000], [10000, 30000], [30000, 100000], [100000, Infinity]],
     facets: [
-      { key: 'group', label: 'Qisam', icon: Layers },
+      { key: 'group', label: 'Type', icon: Layers },
       { key: 'condition', label: 'Halat', icon: BadgeCheck, labels: Object.fromEntries(Object.entries(CONDITION_META).map(([k, v]) => [k, v.label])) },
     ],
     quick: [{ id: 'warranty', label: 'Warranty wali', icon: ShieldCheck, test: (e) => !!e.chips?.some((c) => c.label.endsWith('warranty')) }],
@@ -116,7 +116,7 @@ const CONFIGS: Record<string, CatalogConfig> = {
     sections: [{ id: 'all', label: 'Sab cheezein', icon: Wheat, source: agriSource }],
     modes: ['grid', 'list'], stock: true,
     facets: [
-      { key: 'kind', label: 'Qisam', icon: Layers, labels: { seed: 'Beej', fert: 'Khaad', spray: 'Dawa / spray', feed: 'Feed', tool: 'Auzaar', other: 'Baqi' } },
+      { key: 'kind', label: 'Type', icon: Layers, labels: { seed: 'Beej', fert: 'Khaad', spray: 'Dawa / spray', feed: 'Feed', tool: 'Auzaar', other: 'Baqi' } },
       { key: 'crop', label: 'Fasal', icon: Wheat },
       { key: 'season', label: 'Mausam', icon: Sun, labels: Object.fromEntries(SEASONS.map((s) => [s.v, `${s.e} ${s.l}`])) },
     ],

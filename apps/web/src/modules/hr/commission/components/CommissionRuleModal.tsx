@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { Info, Trash2 } from 'lucide-react';
-import { Button, Input, Modal, Segmented, Select, Switch, Textarea } from '@/design-system/components';
+import { Button, Input, Modal, Segmented, Select, Switch, Textarea, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import type { CommissionBasis, CommissionPerson, CommissionRule, CommissionValueType, RulePayload } from '../api/commission.api';
@@ -69,7 +69,7 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
     if (!(n > 0)) return null;
     if (perBill) return `Mahine me 300 bill = ${formatPKR(n * 300)}`;
     if (type === 'FIXED') return `Mahine me 200 cheezein bikin = ${formatPKR(n * 200)}`;
-    return `${formatPKR(200_000)} ki ${basis === 'PROFIT' ? 'munafa' : 'bikri'} par = ${formatPKR((200_000 * n) / 100)}`;
+    return `${formatPKR(200_000)} ki ${basis === 'PROFIT' ? 'profit' : 'sale'} par = ${formatPKR((200_000 * n) / 100)}`;
   })();
 
   const sellers = people.filter((p) => p.userId);
@@ -81,7 +81,7 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
       footer={<>
         {onDelete && (
           <Button variant="ghost" className="mr-auto text-rose-700" leftIcon={<Trash2 className="h-4 w-4" />} disabled={saving}
-            onClick={() => { if (window.confirm('Ye rule hamesha ke liye hatayein?\n\nJo mahine abhi ada nahi hue un ka hisab is ke baghair banega. Behtar hai rule band kar dein.')) onDelete(); }}>
+            onClick={async () => { if ((await confirmDialog({ title: 'Ye rule hamesha ke liye hatayein?', text: 'Jo mahine abhi ada nahi hue un ka hisab is ke baghair banega. Behtar hai rule band kar dein.', danger: true }))) onDelete(); }}>
             Hatayein
           </Button>
         )}
@@ -149,7 +149,7 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Input label="Kam se kam sale (mahina)" type="number" inputMode="decimal" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
-            hint="Is se kam bikri par ye rule nahi chalta; poori ho jaye to mahine ki poori bikri par lagta hai. Do rules = slab." />
+            hint="Is se kam sale par ye rule nahi chalta; poori ho jaye to mahine ki poori sale par lagta hai. Do rules = slab." />
           <Input label="Target (mahina)" type="number" inputMode="decimal" min={0} value={target} onChange={(e) => setTarget(e.target.value)}
             error={tried ? errors.target : undefined} hint="Mahine ki sale itni ho jaye to upar se bonus" />
           <Input label="Target bonus (Rs)" type="number" inputMode="decimal" min={0} value={bonus} onChange={(e) => setBonus(e.target.value)}

@@ -9,7 +9,7 @@ export class FurnitureProductsService {
 
   async upsert(user: AuthenticatedUser, dto: UpsertFurnitureProductDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Product nahi mila');
 
     const existing = await this.prisma.furnitureProductProfile.findUnique({ where: { productId: dto.productId } });
     const data: any = { ...dto, tenantId: user.tenantId };
@@ -69,13 +69,13 @@ export class FurnitureProductsService {
 
   async getOne(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.furnitureProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Product details nahi mili');
     return p;
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.furnitureProductProfile.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!p) throw new NotFoundException('Profile not found');
+    if (!p) throw new NotFoundException('Product details nahi mili');
     return this.prisma.furnitureProductProfile.delete({ where: { id } });
   }
 

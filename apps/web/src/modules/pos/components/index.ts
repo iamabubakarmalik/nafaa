@@ -1,7 +1,6 @@
 /** Shared POS building blocks, used by the POS engine and the industry POS pages. */
 export * from './PosShopGuard';
 export * from './RequireShop';
-export * from './PosQuickCash';
 export * from './PosDeliveryPanel';
 export * from './PosDiscountBar';
 export { ServiceChargesPanel } from './ServiceChargesPanel';

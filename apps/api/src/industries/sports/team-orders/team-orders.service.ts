@@ -68,10 +68,15 @@ export class TeamOrdersService {
 
   /**
    * Khata account for the team; advances and any unpaid balance are kept
-   * there. An order that already took an advance keeps that account even if
-   * the contact phone was edited later.
+   * there. The order's linked customer comes first; older orders without the
+   * link keep the account of their first advance, then fall back to the phone.
    */
-  private async teamCustomer(tx: any, user: AuthenticatedUser, o: { orderNumber?: string; contactPerson: string; teamName: string; contactPhone: string }, shopId: string) {
+  private async teamCustomer(
+    tx: any, user: AuthenticatedUser,
+    o: { orderNumber?: string; customerId?: string | null; contactPerson: string; teamName: string; contactPhone: string },
+    shopId: string,
+  ) {
+    if (o.customerId && await tx.customer.count({ where: { id: o.customerId, tenantId: user.tenantId } })) return o.customerId as string;
     const held = o.orderNumber ? await khataCustomerOf(tx, user.tenantId, o.orderNumber) : null;
     if (held) return held;
     return ensureCustomer(tx, user, {
@@ -101,11 +106,12 @@ export class TeamOrdersService {
     const balanceAmount = r2(totalAmount - advancePaid);
 
     return this.prisma.$transaction(async (tx) => {
+      const shopId = await resolveIndustryShopId(tx, user, scope?.shopId);
+      let customerId: string | null = null;
       if (advancePaid > 0) {
         // The advance is cash in hand today; it waits on the team's khata
         // and is used up by the sale made on delivery.
-        const shopId = await resolveIndustryShopId(tx, user, scope?.shopId);
-        const customerId = await this.teamCustomer(tx, user, dto, shopId);
+        customerId = await this.teamCustomer(tx, user, dto, shopId);
         await recordKhataPayment(tx, user, {
           customerId, shopId, amount: advancePaid, reference: orderNumber, note: `Team order advance ${orderNumber}`, method: dto.paymentMethod,
         });
@@ -113,6 +119,8 @@ export class TeamOrdersService {
       return tx.sportsTeamOrder.create({
         data: {
           tenantId: user.tenantId,
+          shopId,
+          customerId,
           orderNumber,
           teamName: dto.teamName,
           contactPerson: dto.contactPerson,
@@ -164,12 +172,13 @@ export class TeamOrdersService {
    * One page of orders for a view, with the count of every view and the
    * money of the matching orders (value, advance taken, still to collect).
    */
-  async page(user: AuthenticatedUser, q: { view?: string; page?: string; limit?: string; search?: string; from?: string; to?: string }) {
+  async page(user: AuthenticatedUser, q: { view?: string; page?: string; limit?: string; search?: string; from?: string; to?: string }, scope?: ShopScope) {
     const view = (TEAM_VIEWS as readonly string[]).includes(q.view ?? '') ? q.view as TeamView : 'active';
     const { page, limit, skip } = paging(q);
     const today = startOfDayTz();
     const base: Prisma.SportsTeamOrderWhereInput = {
       tenantId: user.tenantId,
+      ...(scope?.shopId && { AND: [scope.whereLoose] }),
       ...(q.from || q.to ? { createdAt: { ...(q.from && { gte: startOfDayTz(new Date(q.from)) }), ...(q.to && { lte: endOfDayTz(new Date(q.to)) }) } } : {}),
       ...(q.search?.trim() && {
         OR: ['orderNumber', 'teamName', 'contactPerson', 'organization', 'poNumber'].map((k) => ({ [k]: { contains: q.search!.trim(), mode: 'insensitive' } }))
@@ -221,6 +230,7 @@ export class TeamOrdersService {
       return tx.sportsTeamOrder.update({
         where: { id },
         data: {
+          customerId,
           advancePaid: r2(Math.max(Number(o.advancePaid) - amount, 0)),
           internalNotes: [o.internalNotes, `Advance wapas: Rs ${amount}`].filter(Boolean).join('\n'),
         },
@@ -234,10 +244,11 @@ export class TeamOrdersService {
     from?: string;
     to?: string;
     search?: string;
-  }) {
+  }, scope?: ShopScope) {
     return this.prisma.sportsTeamOrder.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(scope?.shopId && { AND: [scope.whereLoose] }),
         ...(params.status && (Object.values(TeamOrderStatus) as string[]).includes(params.status) && { status: params.status as TeamOrderStatus }),
         ...(params.hasCustomJerseys !== undefined && { hasCustomJerseys: params.hasCustomJerseys }),
         ...(params.from || params.to
@@ -329,6 +340,7 @@ export class TeamOrdersService {
       where: { id },
       data: {
         ...patch,
+        ...(customerId && { customerId }),
         advancePaid: paidTotal,
         balanceAmount: r2(Math.max(total - paidTotal, 0)),
         invoiceUrl: o.invoiceUrl ?? `/sales/${sale.id}`,
@@ -429,6 +441,7 @@ export class TeamOrdersService {
       return tx.sportsTeamOrder.update({
         where: { id },
         data: {
+          customerId,
           advancePaid: newAdvance,
           balanceAmount: r2(Math.max(Number(o.totalAmount || 0) - newAdvance, 0)),
           paymentMethod: dto.paymentMethod ?? o.paymentMethod,
@@ -446,18 +459,19 @@ export class TeamOrdersService {
     return this.prisma.sportsTeamOrder.update({ where: { id }, data: { status: 'CANCELLED' } });
   }
 
-  async summary(user: AuthenticatedUser) {
+  async summary(user: AuthenticatedUser, scope?: ShopScope) {
+    const inBranch = { tenantId: user.tenantId, ...(scope?.shopId && { AND: [scope.whereLoose] }) };
     const [draft, quoted, confirmed, inProduction, ready, delivered] = await Promise.all([
-      this.prisma.sportsTeamOrder.count({ where: { tenantId: user.tenantId, status: 'DRAFT' } }),
-      this.prisma.sportsTeamOrder.count({ where: { tenantId: user.tenantId, status: 'QUOTED' } }),
-      this.prisma.sportsTeamOrder.count({ where: { tenantId: user.tenantId, status: 'CONFIRMED' } }),
-      this.prisma.sportsTeamOrder.count({ where: { tenantId: user.tenantId, status: 'IN_PRODUCTION' } }),
-      this.prisma.sportsTeamOrder.count({ where: { tenantId: user.tenantId, status: 'READY' } }),
-      this.prisma.sportsTeamOrder.count({ where: { tenantId: user.tenantId, status: 'DELIVERED' } }),
+      this.prisma.sportsTeamOrder.count({ where: { ...inBranch, status: 'DRAFT' } }),
+      this.prisma.sportsTeamOrder.count({ where: { ...inBranch, status: 'QUOTED' } }),
+      this.prisma.sportsTeamOrder.count({ where: { ...inBranch, status: 'CONFIRMED' } }),
+      this.prisma.sportsTeamOrder.count({ where: { ...inBranch, status: 'IN_PRODUCTION' } }),
+      this.prisma.sportsTeamOrder.count({ where: { ...inBranch, status: 'READY' } }),
+      this.prisma.sportsTeamOrder.count({ where: { ...inBranch, status: 'DELIVERED' } }),
     ]);
 
     const totals = await this.prisma.sportsTeamOrder.aggregate({
-      where: { tenantId: user.tenantId, status: { not: 'CANCELLED' } },
+      where: { ...inBranch, status: { not: 'CANCELLED' } },
       _sum: { totalAmount: true, advancePaid: true, balanceAmount: true },
       _count: { _all: true },
     });
@@ -471,13 +485,14 @@ export class TeamOrdersService {
     };
   }
 
-  async upcomingDeliveries(user: AuthenticatedUser, days = 14) {
+  async upcomingDeliveries(user: AuthenticatedUser, days = 14, scope?: ShopScope) {
     const now = startOfDayTz();
     const future = endOfDayTz(addDaysTz(now, Math.min(Math.max(days, 1), 90)));
 
     return this.prisma.sportsTeamOrder.findMany({
       where: {
         tenantId: user.tenantId,
+        ...(scope?.shopId && { AND: [scope.whereLoose] }),
         status: { in: ['CONFIRMED', 'IN_PRODUCTION', 'READY'] },
         expectedDeliveryDate: { gte: now, lte: future },
       },

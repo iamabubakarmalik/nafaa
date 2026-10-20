@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, ExternalLink, Loader2, Printer, RefreshCw, Truck, X, Zap } from 'lucide-react';
-import { Button, Modal } from '@/design-system/components';
+import { Button, Modal, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage, couriersApi, type CourierState, type OnlineOrderDetail } from '../api/online-orders.api';
 import { rs, whenText } from '../lib/labels';
@@ -112,7 +112,7 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
           {o.courierStatus === 'BOOKED' && canCancel && (
             <Button
               size="xs" variant="ghost" className="text-rose-600" loading={cancel.isPending}
-              onClick={() => { if (window.confirm('Courier booking cancel karein? CN khatam ho jayega.')) cancel.mutate(); }}
+              onClick={async () => { if ((await confirmDialog({ title: 'Courier booking cancel karein?', text: 'CN khatam ho jayega.', danger: true }))) cancel.mutate(); }}
               leftIcon={<X className="h-3.5 w-3.5" />}
             >
               Booking cancel

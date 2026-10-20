@@ -109,6 +109,6 @@ export function statementDoc(d: CommissionDetail, showCost: boolean): PrintDoc {
         rows: d.history.map((h) => [periodLabel(h.period, true), formatPKR(h.sale), signed(h.earned), h.paid != null ? formatPKR(h.paid) : '—']),
       },
     ],
-    footer: 'Bikri = maal ki qeemat chhoot ke baad; service charge shamil nahi. Wapsi us mahine me katti hai jis me maal wapas aaya.',
+    footer: 'Sale = maal ki qeemat discount ke baad; service charge shamil nahi. Wapsi us mahine me katti hai jis me maal wapas aaya.',
   };
 }

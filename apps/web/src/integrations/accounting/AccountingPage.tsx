@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -111,7 +112,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
       <Card title={<span className="flex items-center gap-2">{c.name} <Badge tone="success" dot>Jura hua</Badge></span>}
         description={`${c.companyName ?? ''}${c.currency ? ` · ${c.currency}` : ''}`}
         actions={<Btn size="sm" variant="plain" className="text-rose-600" loading={disconnect.isPending} icon={<Unplug className="h-3.5 w-3.5" />}
-          onClick={() => { if (confirm(`${c.name} hatayein? Bheje hue journals wahin rahenge.`)) disconnect.mutate(); }}>Hatayein</Btn>}>
+          onClick={async () => { if ((await confirmDialog({ title: `${c.name} hatayein?`, text: 'Bheje hue journals wahin rahenge.', danger: true }))) disconnect.mutate(); }}>Hatayein</Btn>}>
         {c.lastError && <Banner tone="critical" title="Aakhri sync me masla">{c.lastError}</Banner>}
         <div className="divide-y divide-slate-100 dark:divide-ink-800">
           <SettingRow title="Har raat khud bhejo" help="Raat ~12:40 baje kal ka journal; fail hue din 7 din tak dobara"

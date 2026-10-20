@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min,
+  IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min,
 } from 'class-validator';
 import { CarpetCutPieceSource, CarpetCutPieceStatus } from '@prisma/client';
 
@@ -47,6 +47,7 @@ export class CreateCutPieceDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(11.99)
   widthInch?: number;
 
   @ApiProperty({ example: 6 })
@@ -58,6 +59,7 @@ export class CreateCutPieceDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(11.99)
   lengthInch?: number;
 
   @ApiPropertyOptional({ example: 0 })

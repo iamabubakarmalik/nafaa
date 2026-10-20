@@ -52,14 +52,14 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
   }, [items.data, profiles.data]);
 
   const chart = useMemo(() => {
-    const m = new Map<string, { name: string; bikri: number; munafa: number }>();
+    const m = new Map<string, { name: string; sale: number; profit: number }>();
     for (const r of rows) {
       const name = by === 'kind' ? GROUP_LABEL[r.group] : (() => { const s = SEASONS.find((x) => x.v === r.season); return s ? `${s.e} ${s.l}` : 'Likha nahi'; })();
-      const e = m.get(name) ?? { name, bikri: 0, munafa: 0 };
-      e.bikri += r.revenue; e.munafa += r.profit ?? 0;
+      const e = m.get(name) ?? { name, sale: 0, profit: 0 };
+      e.sale += r.revenue; e.profit += r.profit ?? 0;
       m.set(name, e);
     }
-    return [...m.values()].sort((a, b) => b.bikri - a.bikri);
+    return [...m.values()].sort((a, b) => b.sale - a.sale);
   }, [rows, by]);
 
   const bulkGap = rows.reduce((s, r) => s + (r.bulkPrice ? (r.avgPrice - r.bulkPrice) * r.qty : 0), 0);
@@ -78,9 +78,9 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'munafa' ? 'Profit' : 'Sale']} {...theme.tooltip} />
-                <Bar dataKey="bikri" fill={theme.primarySoft} radius={[6, 6, 0, 0]} barSize={22} />
-                {!fmt.costHidden && <Bar dataKey="munafa" fill={theme.profit} radius={[6, 6, 0, 0]} barSize={22} />}
+                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'profit' ? 'Profit' : 'Sale']} {...theme.tooltip} />
+                <Bar dataKey="sale" fill={theme.primarySoft} radius={[6, 6, 0, 0]} barSize={22} />
+                {!fmt.costHidden && <Bar dataKey="profit" fill={theme.profit} radius={[6, 6, 0, 0]} barSize={22} />}
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -38,7 +38,7 @@ export class PaymentLinksController {
   }
 
   @Post('online-orders/:id/payment-link')
-  @ApiOperation({ summary: 'Order ka payment link (poori raqam ya advance)' })
+  @ApiOperation({ summary: 'Order ka payment link (poori amount ya advance)' })
   link(
     @GetUser() user: AuthenticatedUser,
     @CurrentShop() scope: ShopScope,

@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { GraduationCap, LayoutGrid, RefreshCw } from 'lucide-react';
-import { Button, IconButton } from '@/design-system/components';
+import { Button, IconButton, PageShell } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@core/security/HiddenValue';
 import { useAuthStore, useIsAllShops } from '@core/stores/auth.store';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
@@ -80,7 +80,7 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
 
   return (
     <DashboardLayoutContext.Provider value={ctx}>
-    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-10">
+    <PageShell className="pb-10">
       <EmailVerifyBanner />
       <SubscriptionBanner />
 
@@ -140,7 +140,7 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
         costHidden={costHidden}
       />
       {config.guide && <GuideDialog open={guide} onClose={() => setGuide(false)} items={config.guide} />}
-    </div>
+    </PageShell>
     </DashboardLayoutContext.Provider>
   );
 }

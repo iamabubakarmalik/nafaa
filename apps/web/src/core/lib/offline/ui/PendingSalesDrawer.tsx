@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useEffect, useState } from 'react';
 import { X, RefreshCw, Trash2, AlertTriangle, Clock, CheckCircle2, Package } from 'lucide-react';
 import { db, type PendingSale, type SyncQueueItem } from '@core/lib/offline/db';
@@ -76,13 +77,13 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
   };
 
   const handleDeleteSale = async (id: string) => {
-    if (!confirm('Yeh pending sale delete kar dein?')) return;
+    if (!(await confirmDialog({ title: 'Yeh pending sale delete kar dein?', danger: true }))) return;
     await db.pendingSales.delete(id);
     toast.success('Sale hataa di gayi');
   };
 
   const handleDeleteQueueItem = async (id: string) => {
-    if (!confirm('Yeh pending change delete kar dein?')) return;
+    if (!(await confirmDialog({ title: 'Yeh pending change delete kar dein?', danger: true }))) return;
     await db.syncQueue.delete(id);
     toast.success('Change hata diya gaya');
   };

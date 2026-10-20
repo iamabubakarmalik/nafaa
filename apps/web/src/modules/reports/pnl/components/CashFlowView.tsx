@@ -31,9 +31,9 @@ export function CashFlowView({ cash, report, fmt }: { cash: MoneyAnalytics; repo
   const steps = s.netProfit == null || fmt.costHidden ? [] : [
     { label: 'Udhaar par biki', hint: 'Sale me gini, paisa abhi aana hai', value: -s.revenue.credit },
     { label: 'Khata wasooli', hint: 'Purana udhaar is period me aaya', value: src('KHATA') },
-    { label: 'Maal ki cost', hint: 'Munafe se kati, magar paisa purchase par pehle gaya', value: s.cogs?.total ?? 0 },
+    { label: 'Maal ki cost', hint: 'Profit se kati, magar paisa purchase par pehle gaya', value: s.cogs?.total ?? 0 },
     { label: 'Purchase aur supplier ko diya', hint: 'Naya maal liya ya purana dena chukaya', value: -(src('PURCHASE') + src('SUPPLIER')) },
-    { label: 'Stock nuqsan', hint: 'Munafe se kata, cash nahi gaya', value: s.writeOffs?.net ?? 0 },
+    { label: 'Stock nuqsan', hint: 'Profit se kata, cash nahi gaya', value: s.writeOffs?.net ?? 0 },
     { label: 'Cash daala / nikala', hint: 'Malik ne golak me daala ya nikala', value: src('CASH_IN') - src('CASH_OUT') },
   ];
   const explained = (s.netProfit ?? 0) + steps.reduce((a, x) => a + x.value, 0);

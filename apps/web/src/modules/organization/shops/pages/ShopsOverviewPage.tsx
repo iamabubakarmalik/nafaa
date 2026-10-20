@@ -236,7 +236,7 @@ export default function ShopsOverviewPage() {
             { icon: Building2, color: '#db2777', title: 'Ek branch', text: '"Branch" filter se sirf ek branch dekhein. Branch ke card par "Analytics" dabane se bhi yahi hota hai.' },
           ]}
           tips={[
-            'Bikri me se wapsi ghatai jati hai; net munafa me kharche aur kharab/gum maal bhi ghatte hain — wohi hisaab jo Reports me hai.',
+            'Sale me se wapsi ghatai jati hai; net profit me kharche aur kharab/gum maal bhi ghatte hain — wohi hisaab jo Reports me hai.',
             'Din dukaan ke apne waqt par badalta hai (Settings → "Din kab shuru hota hai").',
           ]}
           shortcuts={[['1', 'muqabla'], ['2', 'trend'], ['3', 'rush time'], ['4', 'table'], ['G', 'guide']]}

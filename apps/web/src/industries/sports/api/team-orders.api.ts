@@ -23,6 +23,8 @@ export interface RosterRow { name: string; number: string; size: string }
 export interface SportsTeamOrder {
   id: string;
   orderNumber: string;
+  /** The team's khata, once an advance or bill put money there. */
+  customerId?: string | null;
   teamName: string;
   contactPerson: string;
   contactPhone: string;

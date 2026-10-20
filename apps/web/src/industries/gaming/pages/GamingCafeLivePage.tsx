@@ -1,567 +1,375 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Timer, Play, Pause, Square, RefreshCw, Monitor, Users,
-  Clock, DollarSign, Zap, X, Plus, Search, User, UserPlus,
-  Sparkles, Gamepad2, CheckCircle2, AlertTriangle, Coffee,
-  Percent, CreditCard, Receipt, ArrowRight, Trophy, Wrench,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { gamingStationsApi } from '../api/stations.api';
-import { gamingSessionsApi } from '../api/sessions.api';
-import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
+/**
+ * Cafe Live: every station with its clock. A free station starts a session
+ * (player, game, rate); a running one pauses, resumes, is billed here
+ * ("Bill banayein": time, extra charges, discount, paid now or on the
+ * player's khata) or at the counter together with snacks and cards. A
+ * session started by mistake is cancelled with a reason. History lists
+ * every session with paging, export and print; Analytics shows each
+ * station's hours and money.
+ *
+ * Keys: / search · N start on the first free station · L live · H history · A analytics · G guide.
+ */
 
-const STATION_ICONS: Record<string, string> = {
-  PC_STATION: '🖥️', PS5_STATION: '🎮', PS4_STATION: '🎮',
-  XBOX_STATION: '🟩', SIMULATOR: '🏎️', VR_STATION: '🥽',
-  MULTIPLAYER_BOOTH: '👥', PRIVATE_ROOM: '🚪', OTHER: '📦',
-};
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  BarChart3, Clock, Download, GraduationCap, History, Monitor, Pause, Play, Plus, Receipt, ShoppingCart, Timer, Users, Wallet, Wrench, XCircle,
+} from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { downloadCsv } from '@core/lib/csv';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { gamingSessionsApi, type GamingCafeSession } from '../api/sessions.api';
+import { gamingStationsApi, type GamingStation } from '../api/stations.api';
+import { BarList, Empty, ListCard, ListLoading, Pager, Pill } from '../components/ui';
+import { useDebounced, usePageKeys, useSaveKey } from '../hooks/usePageKeys';
+import {
+  GAMING_KEYS, MONEY_KEYS, PAY_METHODS, SESSION_STATUS, STATION_TYPES, errorText, liveOf, minutesText, moneyText, numIn, phoneOk, shortDate, timeOf,
+} from '../lib/meta';
+
+type Tab = 'live' | 'history' | 'analytics';
+const LIMIT = 25;
+const STATUS_OPTIONS = [{ value: '', label: 'Sab' }, ...Object.entries(SESSION_STATUS).map(([value, s]) => ({ value, label: s.label }))];
+
+/** Re-renders every 30 seconds so running clocks move. */
+function useNow(ms = 30_000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), ms); return () => clearInterval(t); }, [ms]);
+  return now;
+}
 
 export default function GamingCafeLivePage() {
   const qc = useQueryClient();
-  const [now, setNow] = useState(Date.now());
-  const [showStartModal, setShowStartModal] = useState<string | null>(null);
-  const [showEndModal, setShowEndModal] = useState<any>(null);
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const canWork = usePermission(PERMISSIONS.POS_USE);
+  const canStations = usePermission(PERMISSIONS.PRODUCTS_EDIT);
+  const now = useNow();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('live');
+  const [search, setSearch] = useState('');
+  const q = useDebounced(search.trim());
+  const [status, setStatus] = useState('');
+  const [period, setPeriod] = useState<DateRangeValue>({ preset: 'today', custom: { from: '', to: '' } });
+  const [page, setPage] = useState(1);
+  const [starting, setStarting] = useState<GamingStation | null>(null);
+  const [billing, setBilling] = useState<GamingCafeSession | null>(null);
+  const [cancelling, setCancelling] = useState<GamingCafeSession | null>(null);
+  const range = resolveRange(period, startHour);
 
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  const stationsQ = useQuery({ queryKey: [GAMING_KEYS.stations, 'active'], queryFn: () => gamingStationsApi.list({ active: true }) });
+  const activeQ = useQuery({ queryKey: [GAMING_KEYS.active], queryFn: () => gamingSessionsApi.active(), refetchInterval: 30_000 });
+  const params = { search: q || undefined, status: status || undefined, from: range?.from, to: range?.to, page, limit: LIMIT };
+  const historyQ = useQuery({ queryKey: [GAMING_KEYS.sessions, 'page', params], queryFn: () => gamingSessionsApi.page(params), enabled: tab !== 'live', placeholderData: (p) => p });
+  const todayRange = resolveRange({ preset: 'today', custom: { from: '', to: '' } }, startHour);
+  const todayQ = useQuery({ queryKey: [GAMING_KEYS.sessions, 'today'], queryFn: () => gamingSessionsApi.page({ from: todayRange?.from, to: todayRange?.to, status: 'ENDED', page: 1, limit: 1 }) });
 
-  const { data: stations = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['gaming-stations-live'],
-    queryFn: () => gamingStationsApi.list({ active: true }),
-    refetchInterval: 30_000,
+  const stations = stationsQ.data ?? [];
+  const bySession = useMemo(() => new Map((activeQ.data ?? []).map((s) => [s.stationId, s])), [activeQ.data]);
+  const live = activeQ.data ?? [];
+  const running = live.filter((s) => s.status === 'ACTIVE').length;
+  const paused = live.length - running;
+  const free = stations.filter((s) => !bySession.has(s.id) && !s.isUnderMaintenance);
+  const runningBill = live.reduce((a, s) => a + liveOf(s, now).amount, 0);
+  const shown = useMemo(() => {
+    const t = search.trim().toLowerCase();
+    if (!t || tab !== 'live') return stations;
+    return stations.filter((st) => [st.name, st.stationNumber, STATION_TYPES[st.stationType], bySession.get(st.id)?.customerName].some((v) => v?.toLowerCase().includes(t)));
+  }, [stations, search, tab, bySession]);
+
+  usePageKeys(searchRef, {
+    n: () => { if (canWork && free[0]) setStarting(free[0]); },
+    l: () => setTab('live'), h: () => setTab('history'), a: () => setTab('analytics'),
   });
 
-  const { data: sessions = [] } = useQuery({
-    queryKey: ['gaming-active-sessions-live'],
-    queryFn: () => gamingSessionsApi.active(),
-    refetchInterval: 15_000,
+  const refresh = () => [GAMING_KEYS.active, GAMING_KEYS.sessions, GAMING_KEYS.stations, GAMING_KEYS.counter, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const pause = useMutation({
+    mutationFn: (s: GamingCafeSession) => (s.status === 'PAUSED' ? gamingSessionsApi.resume(s.id) : gamingSessionsApi.pause(s.id)),
+    onSuccess: (s) => { refresh(); toast.success(s.status === 'PAUSED' ? 'Waqt ruk gaya' : 'Waqt phir chalu'); },
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
   });
 
-  const sessionByStation = useMemo(() => {
-    const m = new Map<string, any>();
-    (sessions as any[]).forEach((s) => m.set(s.stationId, s));
-    return m;
-  }, [sessions]);
+  const rows = historyQ.data?.items ?? [];
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is filter me koi session nahi'); return; }
+    downloadCsv('gaming-sessions.csv', [
+      ['Session', 'Station', 'Player', 'Phone', 'Shuru', 'Khatam', 'Minute', 'Rate', 'Bill', 'Mila', 'Halat'],
+      ...rows.map((s) => [s.sessionNumber, s.station?.name, s.customerName, s.customerPhone, s.startedAt, s.endedAt, s.billableMinutes, s.ratePerHour, s.totalAmount, s.paidAmount, SESSION_STATUS[s.status]?.label]),
+    ]);
+  };
+  const printList = (): PrintDoc => ({
+    title: 'Station sessions', subtitle: range ? `${range.from.slice(0, 10)} → ${range.to.slice(0, 10)}` : undefined,
+    meta: [['Bill hue', String(historyQ.data?.totals.ended ?? 0)], ['Kamai', money(historyQ.data?.totals.amount ?? 0)], ['Waqt', minutesText(historyQ.data?.totals.minutes ?? 0)]],
+    sections: [{
+      kind: 'table', title: 'Sessions',
+      columns: [{ label: 'Session' }, { label: 'Station' }, { label: 'Player', wideOnly: true }, { label: 'Waqt' }, { label: 'Bill', align: 'right' }],
+      rows: rows.map((s) => [s.sessionNumber, s.station?.name ?? '—', s.customerName ?? '—', minutesText(s.billableMinutes ?? 0), money(s.totalAmount)]),
+    }],
+  });
+  const filtered = !!(search.trim() || status || period.preset !== 'today');
+  const clear = () => { setSearch(''); setStatus(''); setPeriod({ preset: 'today', custom: { from: '', to: '' } }); setPage(1); };
 
-  const stats = useMemo(() => {
-    const total = stations.length;
-    const running = (sessions as any[]).filter((s) => s.status === 'ACTIVE').length;
-    const paused = (sessions as any[]).filter((s) => s.status === 'PAUSED').length;
-    const maintenance = stations.filter((s) => s.isUnderMaintenance).length;
-    const available = total - running - paused - maintenance;
-
-    let liveRevenue = 0;
-    (sessions as any[]).forEach((s) => {
-      const started = new Date(s.startedAt).getTime();
-      const mins = Math.max(0, Math.floor((now - started) / 60000) - (s.totalPauseMinutes || 0));
-      liveRevenue += (mins / 60) * Number(s.ratePerHour || 0);
-    });
-
-    return { total, running, paused, maintenance, available, liveRevenue };
-  }, [stations, sessions, now]);
-
-  return (
-    <div className="space-y-5">
-      {showStartModal && (
-        <StartSessionModal stationId={showStartModal}
-          station={stations.find((s) => s.id === showStartModal)}
-          onClose={() => setShowStartModal(null)}
-          onStarted={() => {
-            setShowStartModal(null);
-            qc.invalidateQueries({ queryKey: ['gaming-active-sessions-live'] });
-            qc.invalidateQueries({ queryKey: ['gaming-active-sessions'] });
-          }} />
-      )}
-
-      {showEndModal && (
-        <EndSessionModal session={showEndModal} now={now}
-          onClose={() => setShowEndModal(null)}
-          onEnded={() => {
-            setShowEndModal(null);
-            qc.invalidateQueries({ queryKey: ['gaming-active-sessions-live'] });
-            qc.invalidateQueries({ queryKey: ['gaming-active-sessions'] });
-            qc.invalidateQueries({ queryKey: ['gaming-dashboard-overview'] });
-          }} />
-      )}
-
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Timer className="h-3.5 w-3.5 text-amber-300" />
-              LAN Cafe Live Billing
-              <span className="inline-flex items-center gap-1 ml-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" /> LIVE
-              </span>
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">⏱️ Cafe Live</h1>
-            <p className="mt-2 text-sm text-white/80 font-semibold">
-              {stats.running + stats.paused}/{stats.total} stations busy • Live revenue{' '}
-              <strong className="text-amber-300">{formatPKR(stats.liveRevenue)}</strong>
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold border border-white/20">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-          </div>
-        </div>
-
-        <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
-          <HeroStat icon={Monitor} label="Total" value={stats.total} tone="blue" />
-          <HeroStat icon={Play} label="Running" value={stats.running} tone="emerald" />
-          <HeroStat icon={Pause} label="Paused" value={stats.paused} tone="amber" />
-          <HeroStat icon={CheckCircle2} label="Available" value={stats.available} tone="violet" />
-          <HeroStat icon={Wrench} label="Maintenance" value={stats.maintenance} tone="rose" />
-        </div>
-      </section>
-
-      {/* STATIONS GRID */}
-      {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {Array.from({ length: 12 }).map((_, i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : stations.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Monitor className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No stations yet</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Add stations from Stations page</p>
-        </div>
-      ) : (
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {stations.map((station) => (
-            <StationCard key={station.id} station={station}
-              session={sessionByStation.get(station.id)} now={now}
-              onStart={() => setShowStartModal(station.id)}
-              onEnd={(s: any) => setShowEndModal(s)}
-              onPauseResume={(s: any) => {
-                const action = s.status === 'ACTIVE' ? gamingSessionsApi.pause : gamingSessionsApi.resume;
-                action(s.id).then(() => {
-                  toast.success(s.status === 'ACTIVE' ? 'Session paused' : 'Session resumed');
-                  qc.invalidateQueries({ queryKey: ['gaming-active-sessions-live'] });
-                });
-              }}
-            />
-          ))}
-        </section>
-      )}
-    </div>
-  );
-}
-
-function StationCard({ station, session, now, onStart, onEnd, onPauseResume }: any) {
-  const isMaint = station.isUnderMaintenance;
-  const hasSession = !!session;
-  const isPaused = session?.status === 'PAUSED';
-
-  const startTime = session ? new Date(session.startedAt).getTime() : 0;
-  const elapsedMins = session ? Math.max(0, Math.floor((now - startTime) / 60000) - (session.totalPauseMinutes || 0)) : 0;
-  const hours = Math.floor(elapsedMins / 60);
-  const mins = elapsedMins % 60;
-  const currentBill = session ? (elapsedMins / 60) * Number(session.ratePerHour || 0) : 0;
-
-  const bgClass = isMaint ? 'from-rose-50 to-red-50 border-rose-300' :
-    hasSession ? (isPaused ? 'from-amber-50 to-orange-50 border-amber-400' : 'from-emerald-50 to-teal-50 border-emerald-400 ring-2 ring-emerald-200')
-      : 'from-white to-slate-50 border-slate-200 hover:border-violet-300';
+  const byStation = useMemo(() => stations
+    .map((s) => ({ key: s.id, label: `${s.name} · ${Math.round(s.totalHoursUsed)} ghante`, count: Math.round(s.totalHoursUsed), value: s.totalRevenue }))
+    .sort((a, b) => b.value - a.value), [stations]);
 
   return (
-    <div className={`rounded-2xl border-2 bg-gradient-to-br ${bgClass} shadow-sm hover:shadow-lg transition-all overflow-hidden`}>
-      <div className="p-3">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{STATION_ICONS[station.stationType] || '🎮'}</span>
-              <div className="min-w-0">
-                <div className="font-extrabold text-slate-900 text-sm truncate">{station.name}</div>
-                <div className="text-[0.6875rem] font-mono text-slate-500">#{station.stationNumber}</div>
-              </div>
-            </div>
-          </div>
-          {isMaint ? (
-            <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
-              <Wrench className="h-2.5 w-2.5" /> Maint
-            </span>
-          ) : hasSession ? (
-            <span className={`px-2 py-0.5 rounded-full text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 ${
-              isPaused ? 'bg-amber-500' : 'bg-emerald-500'}`}>
-              {isPaused ? <Pause className="h-2.5 w-2.5" /> : <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
-              {isPaused ? 'Paused' : 'Live'}
-            </span>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Cafe Live — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Play, color: '#16a34a', title: 'Shuru', text: 'Khali station par "Shuru" dabayein — player ka naam (udhaar ke liye zaroori), game aur rate. Package ya do player ka rate ho to rate badal dein.' },
+            { icon: Pause, color: '#d97706', title: 'Rokna', text: 'Player break par jaye to "Rokein" — ruka hua waqt bill me nahi lagta.' },
+            { icon: Receipt, color: '#7c3aed', title: 'Bill', text: '"Bill" se yahin paise lein, ya "Counter" par station ki tile dabayein — wahan snacks aur card bhi usi bill me aate hain aur paise hisson me (cash + JazzCash) le sakte hain.' },
+            { icon: Wallet, color: '#0891b2', title: 'Udhaar / wallet', text: 'Baqi paisa player ke khate me jata hai. Pehle se jama paise (advance) khud bill me lag jate hain.' },
+          ]}
+          shortcuts={[['N', 'pehla khali station shuru'], ['L', 'live'], ['H', 'history'], ['A', 'analytics'], ['/', 'search'], ['G', 'guide']]} />
+      )}
+
+      <PageHero title="Cafe Live" chip={<><Timer /> Stations</>} loading={stationsQ.isLoading} busy={activeQ.isFetching && !activeQ.isLoading}
+        meta="Kaun sa station chal raha hai, kitni der se, aur kitna bill bana"
+        actions={<>
+          {tab !== 'live' && <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>}
+          {tab !== 'live' && <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>}
+          {canStations && <Link to="/gaming/stations" className={heroButton}><Monitor className="h-4 w-4" /><span className="hidden sm:inline">Stations</span></Link>}
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canWork && <Link to="/pos" className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />Counter</Link>}
+        </>}
+        stats={[
+          { label: 'Chal rahe', value: String(live.length), hint: `${free.length} khali` },
+          { label: 'Chalta bill', value: money(runningBill) },
+          { label: 'Aaj ki kamai', value: money(todayQ.data?.totals.amount ?? 0), hint: `${todayQ.data?.totals.ended ?? 0} bill` },
+        ]} />
+
+      <KpiRow cols={4}>
+        <KpiCard icon={Play} color="#16a34a" label="Chal rahe" value={running} />
+        <KpiCard icon={Pause} color="#d97706" label="Ruke hue" value={paused} hint={paused ? 'Bhool na jayein' : undefined} />
+        <KpiCard icon={Monitor} color="#2563eb" label="Khali" value={free.length} hint={`${stations.length} me se`} />
+        <KpiCard icon={Clock} color="#7c3aed" label="Aaj khela" value={minutesText(todayQ.data?.totals.minutes ?? 0)} />
+      </KpiRow>
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tab === 'live' ? 'Station ya player…' : 'Session, player, phone ya game…'} />}
+        chips={tab !== 'live' && filtered ? <>
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+          {status && <FilterChip onRemove={() => setStatus('')}>{SESSION_STATUS[status]?.label}</FilterChip>}
+          {range && period.preset !== 'today' && <FilterChip onRemove={() => setPeriod({ preset: 'today', custom: { from: '', to: '' } })}>{range.from.slice(0, 10)} → {range.to.slice(0, 10)}</FilterChip>}
+        </> : undefined}
+        onClear={tab !== 'live' ? clear : undefined}>
+        {tab !== 'live' && <>
+          <FilterMenu icon={History} label={status ? SESSION_STATUS[status]?.label : 'Halat'} value={status} active={!!status} options={STATUS_OPTIONS} onChange={(v) => { setStatus(v); setPage(1); }} />
+          <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Kab" defaultPreset="today" />
+        </>}
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={(t) => { setTab(t); setPage(1); }} hint={tab === 'live' ? 'Station par click kar ke shuru ya bill karein' : undefined}
+        tabs={[
+          { id: 'live', label: 'Live', icon: Timer, count: live.length },
+          { id: 'history', label: 'History', icon: History, count: historyQ.data?.total ?? null },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
+
+      {tab === 'live' && (
+        stationsQ.isLoading ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-44 rounded-3xl" />)}</div>
+          : stations.length === 0 ? (
+            <ListCard><Empty icon={Monitor} title="Abhi koi station nahi" text="Pehle Stations page par PS5, PC ya simulator jorein — rate wahan likhte hain."
+              action={canStations ? <Link to="/gaming/stations" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Station jorein</Link> : undefined} /></ListCard>
           ) : (
-            <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[0.625rem] font-extrabold uppercase">
-              Free
-            </span>
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {shown.map((st) => {
+                const s = bySession.get(st.id);
+                const l = s ? liveOf(s, now) : null;
+                return (
+                  <li key={st.id} className={cn('flex flex-col rounded-3xl bg-white p-4 shadow-sm ring-1', s ? (s.status === 'PAUSED' ? 'ring-amber-300' : 'ring-emerald-300') : 'ring-slate-200/80')}>
+                    <div className="flex items-start gap-2">
+                      <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl', s ? 'bg-emerald-50 text-emerald-700' : st.isUnderMaintenance ? 'bg-slate-100 text-slate-400' : 'bg-brand-50 text-brand-700')}><Monitor className="h-5 w-5" /></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-slate-900">{st.name}</p>
+                        <p className="truncate text-[0.75rem] text-slate-500">{st.stationNumber} · {STATION_TYPES[st.stationType]} · {money(st.pricePerHour)}/ghanta</p>
+                      </div>
+                      {s ? <Pill tone={SESSION_STATUS[s.status].tone}>{SESSION_STATUS[s.status].label}</Pill>
+                        : st.isUnderMaintenance ? <Pill tone="bg-slate-100 text-slate-600 ring-slate-200"><Wrench className="h-3 w-3" />Theek ho raha</Pill>
+                          : <Pill tone="bg-sky-50 text-sky-700 ring-sky-200">Khali</Pill>}
+                    </div>
+                    {s && l ? (
+                      <>
+                        <div className="mt-3 rounded-2xl bg-slate-50 p-3">
+                          <p className="text-[1.5rem] font-bold tabular-nums text-slate-900">{money(l.amount)}</p>
+                          <p className="text-[0.75rem] text-slate-600">{minutesText(l.minutes)} · {timeOf(s.startedAt)} se{s.status === 'PAUSED' ? ' · ruka hua' : ''}</p>
+                          <p className="mt-1 truncate text-[0.75rem] text-slate-500">{[s.customerName, s.gameSelected, s.playerCount > 1 ? `${s.playerCount} player` : null].filter(Boolean).join(' · ') || 'Naam nahi likha'}</p>
+                        </div>
+                        {canWork && (
+                          <div className="mt-3 grid grid-cols-3 gap-1.5">
+                            <Button size="sm" variant="secondary" loading={pause.isPending && pause.variables?.id === s.id} onClick={() => pause.mutate(s)}>
+                              {s.status === 'PAUSED' ? <><Play className="h-3.5 w-3.5" />Chalayein</> : <><Pause className="h-3.5 w-3.5" />Rokein</>}
+                            </Button>
+                            <Button size="sm" onClick={() => setBilling(s)}><Receipt className="h-3.5 w-3.5" />Bill</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setCancelling(s)}><XCircle className="h-3.5 w-3.5" />Cancel</Button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="mt-auto pt-3">
+                        {st.isUnderMaintenance ? <p className="text-[0.75rem] text-slate-500">{st.maintenanceNotes || 'Station theek ho raha hai'}</p>
+                          : canWork && <Button className="w-full" onClick={() => setStarting(st)}><Play className="h-4 w-4" />Shuru karein</Button>}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )
+      )}
+
+      {tab === 'history' && (
+        <ListCard footer={historyQ.data && <Pager page={page} total={historyQ.data.total} limit={LIMIT} onPage={setPage} />}>
+          {historyQ.isLoading ? <ListLoading /> : rows.length === 0 ? <Empty icon={History} title="Is filter me koi session nahi" text="Date badal kar dekhein — aaj ke session pehle se chune hain." /> : (
+            <ul className="divide-y divide-slate-100">
+              {rows.map((s) => (
+                <li key={s.id} className="grid gap-1 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_10rem_9rem_8rem] lg:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">{s.station?.name ?? 'Station'} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{s.sessionNumber}</span></p>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[s.customerName, s.customerPhone, s.gameSelected].filter(Boolean).join(' · ') || '—'}</p>
+                    {s.notes && <p className="truncate text-[0.75rem] text-slate-500">{s.notes.split('\n').slice(-1)[0]}</p>}
+                  </div>
+                  <p className="text-[0.8125rem] text-slate-700">{shortDate(s.startedAt)} · {timeOf(s.startedAt)}<span className="block text-[0.75rem] text-slate-500">{minutesText(s.billableMinutes ?? 0)}</span></p>
+                  <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(s.totalAmount)}{s.totalAmount - s.paidAmount > 0.009 && <span className="block text-[0.75rem] font-medium text-rose-700">{money(s.totalAmount - s.paidAmount)} khate me</span>}</p>
+                  <div className="flex justify-end"><Pill tone={SESSION_STATUS[s.status].tone}>{SESSION_STATUS[s.status].label}</Pill></div>
+                </li>
+              ))}
+            </ul>
           )}
+        </ListCard>
+      )}
+
+      {tab === 'analytics' && (
+        <div className="space-y-4">
+          <KpiRow cols={3}>
+            <KpiCard icon={Receipt} color="#7c3aed" label="Bill hue (period)" value={historyQ.data?.totals.ended ?? 0} />
+            <KpiCard icon={Wallet} color="#16a34a" label="Kamai (period)" value={money(historyQ.data?.totals.amount ?? 0)} />
+            <KpiCard icon={Clock} color="#0891b2" label="Waqt (period)" value={minutesText(historyQ.data?.totals.minutes ?? 0)} />
+          </KpiRow>
+          <BarList title="Har station — kul kamai aur ghante" money={money} rows={byStation} empty="Abhi koi station nahi" />
         </div>
+      )}
 
-        <div className="text-[0.6875rem] font-bold text-slate-600 mb-2">
-          {formatPKR(station.pricePerHour)}/hr
-          {station.peakHourPrice && ` • peak ${formatPKR(station.peakHourPrice)}`}
-        </div>
-
-        {hasSession && (
-          <div className="space-y-2">
-            <div className="rounded-xl bg-white/70 border-2 border-slate-200 p-2">
-              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Customer</div>
-              <div className="font-extrabold text-sm text-slate-900 truncate">
-                {session.customerName || 'Walk-in'}
-              </div>
-              <div className="text-[0.6875rem] font-bold text-slate-500">
-                {session.playerCount || 1} player(s){session.gameSelected ? ` • ${session.gameSelected}` : ''}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="rounded-lg bg-white/70 border-2 border-slate-200 p-2 text-center">
-                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Elapsed</div>
-                <div className="text-lg font-extrabold text-slate-900 tabular-nums leading-none mt-0.5">
-                  {hours}<span className="text-xs">h</span> {mins}<span className="text-xs">m</span>
-                </div>
-              </div>
-              <div className="rounded-lg bg-emerald-100 border-2 border-emerald-300 p-2 text-center">
-                <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Running bill</div>
-                <div className="text-lg font-extrabold text-emerald-800 tabular-nums leading-none mt-0.5">
-                  {formatPKR(currentBill)}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5">
-              <button onClick={() => onPauseResume(session)}
-                className={`h-10 rounded-xl text-white text-xs font-extrabold inline-flex items-center justify-center gap-1 transition ${
-                  isPaused ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-500 hover:bg-amber-600'}`}>
-                {isPaused ? <><Play className="h-3.5 w-3.5" /> Resume</> : <><Pause className="h-3.5 w-3.5" /> Pause</>}
-              </button>
-              <button onClick={() => onEnd({ ...session, elapsedMins, currentBill })}
-                className="h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1 transition">
-                <Square className="h-3.5 w-3.5" /> End & Bill
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!hasSession && !isMaint && (
-          <button onClick={onStart}
-            className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm shadow-md inline-flex items-center justify-center gap-2 transition">
-            <Play className="h-4 w-4" /> Start Session
-          </button>
-        )}
-
-        {isMaint && (
-          <div className="rounded-xl bg-rose-100 border-2 border-rose-300 p-2 text-xs text-rose-800 font-bold text-center">
-            🔧 Under maintenance
-          </div>
-        )}
-      </div>
-    </div>
+      {starting && <StartModal station={starting} onClose={() => setStarting(null)} onDone={() => { setStarting(null); refresh(); }} />}
+      {billing && <BillModal session={billing} money={money} onClose={() => setBilling(null)} onDone={() => { setBilling(null); refresh(); }} />}
+      {cancelling && <CancelModal session={cancelling} onClose={() => setCancelling(null)} onDone={() => { setCancelling(null); refresh(); }} />}
+    </PageShell>
   );
 }
 
-function StartSessionModal({ stationId, station, onClose, onStarted }: any) {
-  const qc = useQueryClient();
-  const [form, setForm] = useState({
-    customerId: '',
-    customerName: '',
-    customerPhone: '',
-    playerCount: 1,
-    gameSelected: '',
-    ratePerHour: station?.pricePerHour || 0,
-  });
-
-  const { data: customersData } = useQuery({
-    queryKey: ['customers-for-pos'],
-    queryFn: () => customersApi.list({ page: 1, limit: 500 }),
-  });
-  const customers = customersData?.items ?? [];
-
+function StartModal({ station, onClose, onDone }: { station: GamingStation; onClose: () => void; onDone: () => void }) {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [players, setPlayers] = useState('1');
+  const [game, setGame] = useState('');
+  const [rate, setRate] = useState(String(station.pricePerHour));
+  const rateN = numIn(rate);
+  const problem = !phoneOk(phone) ? 'Phone 10 se 15 hindse' : rateN === null ? 'Ghante ka rate likhein' : null;
   const start = useMutation({
     mutationFn: () => gamingSessionsApi.start({
-      stationId,
-      customerId: form.customerId || undefined,
-      customerName: form.customerName || undefined,
-      customerPhone: form.customerPhone || undefined,
-      playerCount: form.playerCount,
-      gameSelected: form.gameSelected || undefined,
-      ratePerHour: form.ratePerHour,
+      stationId: station.id, customerName: name.trim() || undefined, customerPhone: phone.trim() || undefined,
+      playerCount: Math.max(Number(players) || 1, 1), gameSelected: game.trim() || undefined, ratePerHour: rateN ?? undefined,
     }),
-    onSuccess: () => {
-      toast.success('Session started');
-      onStarted();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to start'),
+    onSuccess: (s) => { toast.success(`${station.name} shuru — ${s.sessionNumber}`); onDone(); },
+    onError: (e) => toast.error(errorText(e, 'Shuru nahi hua')),
   });
-
+  const submit = () => { if (!problem && !start.isPending) start.mutate(); };
+  useSaveKey(submit);
+  const rates = [station.pricePerHour, station.pricePerHalfHour ? station.pricePerHalfHour * 2 : null, station.peakHourPrice, station.offPeakPrice].filter((v, i, a): v is number => !!v && a.indexOf(v) === i);
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-emerald-600 to-teal-700 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs uppercase font-extrabold text-white/70 tracking-wider">Start Session</div>
-            <button onClick={onClose} className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <h3 className="text-2xl font-extrabold flex items-center gap-2">
-            <span className="text-3xl">{STATION_ICONS[station?.stationType] || '🎮'}</span>
-            {station?.name}
-          </h3>
-          <p className="text-sm font-bold text-white/85 mt-0.5">{formatPKR(station?.pricePerHour)}/hr • {station?.stationType?.replace(/_/g, ' ')}</p>
+    <Modal open onClose={onClose} size="md" title={`${station.name} shuru karein`} description={`${station.stationNumber} · ${STATION_TYPES[station.stationType]}${station.minimumMinutes ? ` · kam se kam ${station.minimumMinutes} min ka bill` : ''}`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={start.isPending} disabled={!!problem} onClick={submit}><Play className="h-4 w-4" />Shuru (Ctrl+S)</Button></>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Player ka naam" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Ali" hint="Udhaar ke liye zaroori" />
+          <Input label="Phone" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03001234567" error={!phoneOk(phone) ? '10 se 15 hindse' : undefined} hint="Isi se khata milta hai" />
+          <Input label="Kitne player" inputMode="numeric" value={players} onChange={(e) => setPlayers(e.target.value.replace(/\D/g, ''))} leftIcon={<Users className="h-4 w-4" />} />
+          <Input label="Game" value={game} onChange={(e) => setGame(e.target.value)} placeholder="FIFA, Tekken, GTA" list="gm-games" />
         </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div>
-            <Lbl>Customer <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-            <select value={form.customerId}
-              onChange={(e) => {
-                const c = customers.find((x: any) => x.id === e.target.value);
-                setForm({ ...form, customerId: e.target.value, customerName: c?.name || '', customerPhone: c?.phone || '' });
-              }}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
-              <option value="">Walk-in customer</option>
-              {customers.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-            </select>
-          </div>
-
-          {!form.customerId && (
-            <div className="grid sm:grid-cols-2 gap-2">
-              <div>
-                <Lbl>Name</Lbl>
-                <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                  placeholder="Walk-in customer"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-              </div>
-              <div>
-                <Lbl>Phone</Lbl>
-                <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-                  placeholder="03XX XXXXXXX"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-              </div>
-            </div>
-          )}
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Player Count</Lbl>
-              <input type="number" min="1" value={form.playerCount}
-                onChange={(e) => setForm({ ...form, playerCount: Math.max(1, Number(e.target.value)) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-            <div>
-              <Lbl>Rate/hr</Lbl>
-              <input type="number" value={form.ratePerHour}
-                onChange={(e) => setForm({ ...form, ratePerHour: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Game Selected <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-            <input value={form.gameSelected} onChange={(e) => setForm({ ...form, gameSelected: e.target.value })}
-              placeholder="FIFA 26, PUBG, Fortnite..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-
-          <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3 text-xs font-extrabold text-emerald-800">
-            💡 Timer will start counting the moment you click Start.
-          </div>
-        </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700"
-            onClick={() => start.mutate()} loading={start.isPending}>
-            <Play className="h-4 w-4" /> Start Session
-          </Button>
-        </div>
-      </div>
-    </div>
+        <datalist id="gm-games">{station.installedGames.map((g) => <option key={g} value={g} />)}</datalist>
+        <Input label="Ghante ka rate (Rs)" inputMode="decimal" value={rate} onChange={(e) => setRate(moneyText(e.target.value))} error={rateN === null ? 'Rate likhein' : undefined}
+          hint="Package, do player ya raat ka rate ho to yahan badlein — sirf is session par lagega" />
+        {rates.length > 1 && <div className="flex flex-wrap gap-1.5">{rates.map((r) => <button key={r} type="button" onClick={() => setRate(String(r))} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ring-slate-200 hover:bg-slate-50">Rs {r}/ghanta</button>)}</div>}
+      </form>
+    </Modal>
   );
 }
 
-function EndSessionModal({ session, now, onClose, onEnded }: any) {
-  const [foodCharges, setFoodCharges] = useState(0);
-  const [additionalCharges, setAdditionalCharges] = useState(0);
-  const [discountPct, setDiscountPct] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('CASH');
+function BillModal({ session: s, money, onClose, onDone }: { session: GamingCafeSession; money: (n: number) => string; onClose: () => void; onDone: () => void }) {
+  const l = liveOf(s);
+  const [extra, setExtra] = useState('');
+  const [discount, setDiscount] = useState('');
+  const extraN = numIn(extra) ?? 0;
+  const discN = numIn(discount) ?? 0;
+  const total = Math.max(Math.round((l.amount + extraN - discN) * 100) / 100, 0);
+  const [paid, setPaid] = useState<string | null>(null);
+  const paidN = paid === null ? total : numIn(paid) ?? 0;
+  const [method, setMethod] = useState('CASH');
   const [notes, setNotes] = useState('');
-
-  const startTime = new Date(session.startedAt).getTime();
-  // Same rule as the server bill: running pause is not billed, minimum minutes are.
-  const openPause = session.status === 'PAUSED' && session.pausedAt ? Math.floor((now - new Date(session.pausedAt).getTime()) / 60000) : 0;
-  const elapsedMins = Math.max(
-    Math.floor((now - startTime) / 60000) - (session.totalPauseMinutes || 0) - openPause,
-    Number((session as any).station?.minimumMinutes ?? 0),
-    0,
-  );
-  const hours = Math.floor(elapsedMins / 60);
-  const mins = elapsedMins % 60;
-  const baseAmount = (elapsedMins / 60) * Number(session.ratePerHour || 0);
-  const subtotal = baseAmount + foodCharges + additionalCharges;
-  const discount = (subtotal * discountPct) / 100;
-  const total = Math.max(0, subtotal - discount);
-
+  const due = Math.max(total - paidN, 0);
+  const problem = discN > l.amount + extraN ? 'Discount bill se zyada hai' : due > 0.009 && !s.customerName?.trim() ? 'Udhaar ke liye player ka naam chahiye (session shuru karte waqt)' : null;
   const end = useMutation({
-    mutationFn: () => gamingSessionsApi.end(session.id, {
-      foodCharges, additionalCharges, discount,
-      paidAmount: total, paymentMethod,
-      notes: notes || undefined,
-    }),
-    onSuccess: (res: any) => {
-      toast.success(`Session ended • ${formatPKR(res?.totalAmount ?? total)} billed`);
-      if (res?.saleId) window.open(`/sales/${res.saleId}/receipt?auto=1`, '_blank');
-      onEnded();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to end'),
+    mutationFn: () => gamingSessionsApi.end(s.id, { additionalCharges: extraN || undefined, discount: discN || undefined, paidAmount: paidN, paymentMethod: method, notes: notes.trim() || undefined }),
+    onSuccess: (r) => { toast.success(`Bill ban gaya — ${money(r.totalAmount)}${r.change ? ` · wapas ${money(r.change)}` : ''}`); onDone(); },
+    onError: (e) => toast.error(errorText(e, 'Bill nahi bana')),
   });
-
+  const submit = () => { if (!problem && !end.isPending) end.mutate(); };
+  useSaveKey(submit);
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs uppercase font-extrabold text-white/70 tracking-wider">End & Bill</div>
-            <button onClick={onClose} className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <h3 className="text-xl font-extrabold">{session.station?.name || session.customerName || 'Session'}</h3>
-          <p className="text-xs font-bold text-white/70 mt-0.5 font-mono">{session.sessionNumber}</p>
+    <Modal open onClose={onClose} size="md" title={`${s.station?.name ?? 'Station'} — bill`} description={`${s.sessionNumber} · ${minutesText(l.minutes)} @ ${money(s.ratePerHour)}/ghanta`}
+      footer={<div className="flex w-full flex-wrap items-center gap-2">
+        <Link to="/pos" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Snacks bhi hain? Counter par bill karein →</Link>
+        <span className="flex-1" />
+        <Button variant="secondary" onClick={onClose}>Wapas</Button>
+        <Button loading={end.isPending} disabled={!!problem} onClick={submit}><Receipt className="h-4 w-4" />Bill banayein</Button>
+      </div>}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="flex justify-between text-[0.875rem]"><span>Waqt ({minutesText(l.minutes)})</span><span className="tabular-nums">{money(l.amount)}</span></div>
+          {extraN > 0 && <div className="flex justify-between text-[0.875rem]"><span>Aur charges</span><span className="tabular-nums">{money(extraN)}</span></div>}
+          {discN > 0 && <div className="flex justify-between text-[0.875rem] text-emerald-700"><span>Discount</span><span className="tabular-nums">−{money(discN)}</span></div>}
+          <div className="mt-1 flex justify-between border-t border-slate-200 pt-1 text-[1rem] font-bold"><span>Total</span><span className="tabular-nums">{money(total)}</span></div>
         </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Duration
-              </div>
-              <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">
-                {hours}<span className="text-sm">h</span> {mins}<span className="text-sm">m</span>
-              </div>
-              {session.totalPauseMinutes > 0 && (
-                <div className="text-[0.6875rem] text-amber-700 font-bold mt-0.5">
-                  {session.totalPauseMinutes}m paused (excluded)
-                </div>
-              )}
-            </div>
-            <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-3">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 flex items-center gap-1">
-                <DollarSign className="h-3 w-3" /> Base charge
-              </div>
-              <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-1">{formatPKR(baseAmount)}</div>
-              <div className="text-[0.6875rem] text-emerald-700 font-bold mt-0.5">
-                @ {formatPKR(session.ratePerHour)}/hr
-              </div>
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl><Coffee className="h-3 w-3 inline mr-1" /> Food / Drinks</Lbl>
-              <input type="number" value={foodCharges}
-                onChange={(e) => setFoodCharges(Math.max(0, Number(e.target.value)))}
-                className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <Lbl><Plus className="h-3 w-3 inline mr-1" /> Additional</Lbl>
-              <input type="number" value={additionalCharges}
-                onChange={(e) => setAdditionalCharges(Math.max(0, Number(e.target.value)))}
-                className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl><Percent className="h-3 w-3 inline mr-1" /> Discount %</Lbl>
-            <div className="flex gap-1">
-              {[0, 5, 10, 15, 20].map((d) => (
-                <button key={d} onClick={() => setDiscountPct(d)}
-                  className={`flex-1 h-10 rounded-xl text-xs font-extrabold transition ${
-                    discountPct === d ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
-                  {d === 0 ? 'None' : `${d}%`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Lbl><CreditCard className="h-3 w-3 inline mr-1" /> Payment Method</Lbl>
-            <div className="grid grid-cols-4 gap-1.5">
-              {['CASH', 'CARD', 'MOBILE', 'CREDIT'].map((m) => (
-                <button key={m} onClick={() => setPaymentMethod(m)}
-                  className={`h-11 rounded-xl text-xs font-extrabold transition ${
-                    paymentMethod === m ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Notes <span className="text-slate-400 normal-case font-bold">(optional)</span></Lbl>
-            <input value={notes} onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any remarks..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          </div>
-
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-4 space-y-1.5">
-            <BillRow label="Session" value={formatPKR(baseAmount)} />
-            {foodCharges > 0 && <BillRow label="Food/Drinks" value={formatPKR(foodCharges)} />}
-            {additionalCharges > 0 && <BillRow label="Additional" value={formatPKR(additionalCharges)} />}
-            {discount > 0 && <BillRow label={`Discount (${discountPct}%)`} value={`-${formatPKR(discount)}`} tone="amber" />}
-            <div className="pt-2 border-t border-white/25 flex items-center justify-between">
-              <div className="text-sm font-extrabold uppercase tracking-wider">Total</div>
-              <div className="text-3xl font-extrabold tabular-nums">{formatPKR(total)}</div>
-            </div>
-          </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Aur charges (Rs)" inputMode="decimal" value={extra} onChange={(e) => setExtra(moneyText(e.target.value))} placeholder="0" hint="Controller ka nuqsan waghera. Snacks counter se bechein taake stock kam ho." />
+          <Input label="Discount (Rs)" inputMode="decimal" value={discount} onChange={(e) => setDiscount(moneyText(e.target.value))} placeholder="0" error={discN > l.amount + extraN ? 'Bill se zyada' : undefined} />
+          <Input label="Abhi mila (Rs)" inputMode="decimal" value={paid ?? String(total)} onChange={(e) => setPaid(moneyText(e.target.value))}
+            hint={due > 0.009 ? `${money(due)} ${s.customerName ? `${s.customerName} ke khate me` : 'baqi'}` : paidN > total ? `Wapas dein ${money(paidN - total)}` : 'Poora bill'} />
+          <Select label="Kaise mila" value={method} onChange={(e) => setMethod(e.target.value)} options={PAY_METHODS} />
         </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700"
-            onClick={() => end.mutate()} loading={end.isPending}>
-            <Receipt className="h-4 w-4" /> End & Collect {formatPKR(total)}
-          </Button>
-        </div>
-      </div>
-    </div>
+        <Textarea label="Note (marzi)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        {problem && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">{problem}</p>}
+      </form>
+    </Modal>
   );
 }
 
-function HeroStat({ icon: Icon, label, value, tone }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-400/30 to-blue-600/20 border-blue-300/40',
-    emerald: 'from-emerald-400/30 to-emerald-600/20 border-emerald-300/40',
-    amber: 'from-amber-400/30 to-amber-600/20 border-amber-300/40',
-    violet: 'from-violet-400/30 to-violet-600/20 border-violet-300/40',
-    rose: 'from-rose-400/40 to-rose-600/25 border-rose-300/50',
-  };
+function CancelModal({ session: s, onClose, onDone }: { session: GamingCafeSession; onClose: () => void; onDone: () => void }) {
+  const [reason, setReason] = useState('');
+  const cancel = useMutation({
+    mutationFn: () => gamingSessionsApi.cancel(s.id, reason.trim()),
+    onSuccess: () => { toast.success(`${s.sessionNumber} cancel — koi bill nahi bana`); onDone(); },
+    onError: (e) => toast.error(errorText(e, 'Cancel nahi hua')),
+  });
   return (
-    <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
-      </div>
-      <div className="text-2xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-    </div>
-  );
-}
-
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
-}
-
-function BillRow({ label, value, tone }: any) {
-  return (
-    <div className="flex items-center justify-between text-sm font-bold">
-      <span className="text-white/85">{label}</span>
-      <span className={`tabular-nums font-extrabold ${tone === 'amber' ? 'text-amber-300' : ''}`}>{value}</span>
-    </div>
+    <Modal open onClose={onClose} size="sm" title={`${s.station?.name ?? 'Station'} — cancel`} description="Sirf ghalti se shuru hua session. Khela hai to Bill banayein."
+      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button variant="danger" loading={cancel.isPending} disabled={!reason.trim()} onClick={() => cancel.mutate()}>Cancel karein</Button></>}>
+      <Textarea label="Wajah" required autoFocus rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ghalat station chun liya" hint="History me likhi rehti hai" />
+    </Modal>
   );
 }

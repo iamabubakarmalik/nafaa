@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
@@ -12,7 +12,7 @@ import { LedgerService } from './ledger.service';
 export class LedgerController {
   constructor(private readonly service: LedgerService) {}
 
-  @Post() addEntry(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.addEntry(user, dto); }
+  @Post() addEntry() { return this.service.addEntry(); }
   @Get('by-farmer/:farmerId') byFarmer(@GetUser() user: AuthenticatedUser, @Param('farmerId') farmerId: string, @Query('from') from?: string, @Query('to') to?: string) {
     return this.service.byFarmer(user, farmerId, { from, to });
   }

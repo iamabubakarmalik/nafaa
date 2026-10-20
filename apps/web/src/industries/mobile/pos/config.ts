@@ -12,6 +12,7 @@
  * checked on the server at that moment.
  */
 
+import { confirmDialog } from '@/design-system/components';
 import { createElement, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -167,9 +168,9 @@ function needsInternet(what: string) {
 }
 
 /** Puts one exact phone on the bill, after a check when it is not PTA approved. */
-function addPhone(item: PosItem, p: PosPhone, api: PosEngineApi, opts: AddOptions = {}) {
+async function addPhone(item: PosItem, p: PosPhone, api: PosEngineApi, opts: AddOptions = {}) {
   if ((p.ptaStatus === 'NON_PTA' || p.ptaStatus === 'PENDING')
-    && !window.confirm(`${item.name} (${p.imei1}) ${PTA_STATUS_LABELS[p.ptaStatus]} hai. Customer ko bata diya? Bill me daalein?`)) return;
+    && !(await confirmDialog({ title: `${item.name} (${p.imei1}) ${PTA_STATUS_LABELS[p.ptaStatus]} hai. Customer ko bata diya?`, text: 'Bill me daalein?' }))) return;
   api.addItem(item, {
     ...opts,
     imei: { id: p.id, imei1: p.imei1, imei2: p.imei2 ?? null },

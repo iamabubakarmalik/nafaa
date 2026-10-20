@@ -17,7 +17,7 @@ import { CompleteTryOnDto, CreateTryOnDto } from './dto/create-tryon.dto';
 @Controller('shoe/try-on')
 export class ShoeTryOnController {
   constructor(private readonly service: ShoeTryOnService) {}
-  @Post() create(@GetUser() u: AuthenticatedUser, @Body() dto: CreateTryOnDto) { return this.service.create(u, dto); }
+  @Post() create(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: CreateTryOnDto) { return this.service.create(u, dto, shop); }
   @Get() list(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('status') status?: string, @Query('search') search?: string) {
     return this.service.list(u, shop, { status, search });
   }
@@ -27,7 +27,7 @@ export class ShoeTryOnController {
   ) {
     return this.service.page(u, shop, { view, search, page, limit });
   }
-  @Get('summary') summary(@GetUser() u: AuthenticatedUser) { return this.service.summary(u); }
+  @Get('summary') summary(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope) { return this.service.summary(u, shop); }
   @Get(':id') getOne(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(u, id); }
   /** The customer was told the size has come. */
   @Post(':id/notified') notified(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.service.notified(u, id); }

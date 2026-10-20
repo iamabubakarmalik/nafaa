@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min,
+  IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min,
 } from 'class-validator';
 import { CarpetRollSource, CarpetRollStatus } from '@prisma/client';
 
@@ -44,6 +44,7 @@ export class CreateCarpetRollDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(11.99)
   widthInch?: number;
 
   @ApiProperty({ example: 100, description: 'Original length — whole feet portion' })
@@ -58,6 +59,7 @@ export class CreateCarpetRollDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(11.99)
   originalLengthInch?: number;
 
   @ApiPropertyOptional({
@@ -76,6 +78,7 @@ export class CreateCarpetRollDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(11.99)
   remainingLengthInch?: number;
 
   @ApiPropertyOptional({ example: 72 })

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Check, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
-import { Button, Modal } from '@/design-system/components';
+import { Button, Modal, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { expenseCategoriesApi, type ExpenseCategory, type ExpenseCategoryPayload } from '../api/expenses.api';
 import { CATEGORIES_KEY, COLORS, EXPENSES_KEY, ICONS, STARTER_CATEGORIES, apiError } from './meta';
@@ -53,9 +53,9 @@ export function CategoryManager({ categories, onClose }: { categories: ExpenseCa
     setDraft(c ? { name: c.name, color: c.color, icon: c.icon ?? '' } : { name: '', color: COLORS[categories.length % COLORS.length], icon: '' });
   };
 
-  const askRemove = (c: ExpenseCategory) => {
+  const askRemove = async (c: ExpenseCategory) => {
     const n = c._count?.expenses ?? 0;
-    if (window.confirm(`"${c.name}" hatayein?${n ? `\n\nIs ke ${n} expenses mitenge nahi — "Bina category" me chale jayenge.` : ''}`)) remove.mutate(c);
+    if ((await confirmDialog({ title: `"${c.name}" hatayein?${n ? `\n\nIs ke ${n} expenses mitenge nahi — "Bina category" me chale jayenge.` : ''}`, danger: true }))) remove.mutate(c);
   };
 
   const editor = (

@@ -17,7 +17,7 @@ import {
   type UpsertVariantPayload,
   type ProductVariant,
 } from '@modules/inventory/products/api/product-variants.api';
-import { Button, Input } from '@/design-system/components';
+import { Button, Input, confirmDialog } from '@/design-system/components';
 import { UploadDropzone, ImageGallery } from '@core/components/uploads';
 import { VariantBuilder } from '../components/VariantBuilder';
 import { VariantCard } from '../components/VariantCard';
@@ -427,7 +427,7 @@ export default function ProductFormPage() {
 
             <div className="flex gap-2 flex-wrap shrink-0">
               {isEdit && (
-                <Button variant="secondary" onClick={() => { if (confirm(`Delete "${form.name}"?`)) removeMutation.mutate(); }} className="bg-rose-500/20 backdrop-blur text-white hover:bg-rose-500/30 border-rose-300/40">
+                <Button variant="secondary" onClick={async () => { if ((await confirmDialog({ title: `"${form.name}" hatayein?`, danger: true }))) removeMutation.mutate(); }} className="bg-rose-500/20 backdrop-blur text-white hover:bg-rose-500/30 border-rose-300/40">
                   <Trash2 className="h-4 w-4" /> Delete
                 </Button>
               )}
@@ -735,8 +735,8 @@ export default function ProductFormPage() {
                               onUpdate={(patch) => updateVariantDraft(variant.id, patch)}
                               onImageChange={(url) => handleVariantImageChange(variant.id, url)}
                               onSave={() => handleVariantSave(variant.id)}
-                              onDelete={() => {
-                                if (confirm('Delete variant ' + variant.name + '?')) {
+                              onDelete={async () => {
+                                if (await confirmDialog({ title: `Variant ${variant.name} hatayein?`, danger: true })) {
                                   removeVariantMutation.mutate(variant.id);
                                 }
                               }}

@@ -230,7 +230,7 @@ export function BulkAnalytics({ range, onType }: { range: { from: string; to: st
         )}
       </Card>
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<CardTitle icon={Building2}>Qisam</CardTitle>} description="Shadi, daftar, school — click karein to sirf woh">
+        <Card className="rounded-2xl" title={<CardTitle icon={Building2}>Type</CardTitle>} description="Shadi, daftar, school — click karein to sirf woh">
           <RankedBars onPick={onType} rows={d.byType.map((b) => ({ key: b.key, label: `${bulkTypeOf(b.key).emoji} ${bulkTypeOf(b.key).label}`, value: b.value, display: `${b.count} · ${sales(b.value)}` }))} />
         </Card>
         <Card className="rounded-2xl" title={<CardTitle icon={Package}>Sab se zyada kya mangwaya</CardTitle>} description="Cheezon ki ginti">

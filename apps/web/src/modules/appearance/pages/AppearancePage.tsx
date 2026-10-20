@@ -17,7 +17,7 @@ import {
   Accessibility, Building2, GraduationCap, LayoutGrid, Monitor, Moon, MoveHorizontal, Palette, PanelLeft, PanelLeftClose,
   PanelLeftOpen, RotateCcw, Rows3, SquareRoundCorner, Sun, Type, User,
 } from 'lucide-react';
-import { Button, IconButton } from '@/design-system/components';
+import { Button, IconButton, confirmDialog } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
@@ -118,8 +118,8 @@ export default function AppearancePage() {
   const resetFor = (key: Parameters<typeof ed.reset>[0]) => (ed.isSet(key) ? () => ed.reset(key) : undefined);
 
   const guide = usePageGuide();
-  const resetAll = () => {
-    if (confirm(scope === 'personal' ? 'Apni saari pasand hata kar business default par wapas jayein?' : 'Business ka look Nafaa default par wapas karein?')) ed.resetAll();
+  const resetAll = async () => {
+    if ((await confirmDialog({ title: scope === 'personal' ? 'Apni saari pasand hata kar business default par wapas jayein?' : 'Business ka look Nafaa default par wapas karein?', danger: true }))) ed.resetAll();
   };
 
   useEffect(() => {

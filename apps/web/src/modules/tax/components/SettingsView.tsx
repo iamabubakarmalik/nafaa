@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CheckCircle2, ExternalLink, KeyRound, Plus, Power, Save, Send, Store, Trash2 } from 'lucide-react';
-import { Badge, Button, Input, Segmented, Select, Skeleton, Switch } from '@/design-system/components';
+import { Badge, Button, Input, Segmented, Select, Skeleton, Switch, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
@@ -146,11 +146,11 @@ function Editor({ authority, data }: { authority: Authority; data: TaxSettings }
   const setT = (i: number, patch: Partial<TermDraft>) => setTerms((v) => v.map((t, j) => (j === i ? { ...t, ...patch } : t)));
   const secretFields = info.fields.filter((f) => f.key !== 'posId' && f.key !== 'ntn');
   const busy = save.isPending;
-  const enable = () => {
-    if (env === 'live' && !window.confirm(`${authority} LIVE chalu karein?\n\nAb se har naya bill asli tax invoice banega.`)) return;
+  const enable = async () => {
+    if (env === 'live' && !(await confirmDialog({ title: `${authority} LIVE chalu karein?`, text: 'Ab se har naya bill asli tax invoice banega.' }))) return;
     save.mutate(true);
   };
-  const disable = () => { if (window.confirm(`${authority} band karein?\n\nNaye bill authority ko nahi jayenge. Purana record rehta hai.`)) save.mutate(false); };
+  const disable = async () => { if ((await confirmDialog({ title: `${authority} band karein?`, text: 'Naye bill authority ko nahi jayenge. Purana record rehta hai.', danger: true }))) save.mutate(false); };
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">

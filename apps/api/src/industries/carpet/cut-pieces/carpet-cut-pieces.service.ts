@@ -1,160 +1,65 @@
-import {
-  BadRequestException, ConflictException, Injectable, NotFoundException,
-} from '@nestjs/common';
-import { Prisma, CarpetCutPieceStatus } from '@prisma/client';
+/**
+ * Cut pieces: remnants left beside a roll cut, customer returns, pieces
+ * from a damaged roll and pieces entered by hand. Sold pieces stay on
+ * record; a piece taken out of stock becomes DAMAGED (written off), never
+ * deleted. Every stock change rewrites the product's shelf stock.
+ */
+
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { CarpetCutPieceStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { CreateCutPieceDto } from './dto/create-cut-piece.dto';
 import { UpdateCutPieceDto } from './dto/update-cut-piece.dto';
 import { QueryCutPiecesDto } from './dto/query-cut-pieces.dto';
-import { nextCode } from '../common/next-code';
+import { ROLL_UNITS, calcSqft, r2, syncCarpetStock } from '../common/carpet-stock';
+import { nextPieceCode } from '../common/roll-cut';
+
+const IN_STOCK = new Set<CarpetCutPieceStatus>([CarpetCutPieceStatus.AVAILABLE, CarpetCutPieceStatus.RESERVED]);
 
 @Injectable()
 export class CarpetCutPiecesService {
   constructor(private readonly prisma: PrismaService) {}
-  // ════════════════════════════════════════════════════════
-  // SHOP STOCK SYNC
-  // ════════════════════════════════════════════════════════
 
-  private async syncShopStockForCarpet(
-    tx: any,
-    tenantId: string,
-    shopId: string | null,
-    productId: string,
-    variantId: string | null,
-  ): Promise<void> {
-    if (!shopId) return;
-
-    const rolls = await tx.carpetRoll.findMany({
-      where: {
-        tenantId,
-        shopId,
-        productId,
-        variantId,
-        status: 'ACTIVE',
-        remainingLengthFt: { gt: 0 },
-      },
-      select: { remainingSqft: true },
-    });
-    const totalRollSqft = rolls.reduce(
-      (sum: number, r: any) => sum + Number(r.remainingSqft),
-      0,
-    );
-
-    const pieces = await tx.carpetCutPiece.findMany({
-      where: {
-        tenantId,
-        shopId,
-        productId,
-        variantId,
-        status: 'AVAILABLE',
-      },
-      select: { totalSqft: true },
-    });
-    const totalCutSqft = pieces.reduce(
-      (sum: number, p: any) => sum + Number(p.totalSqft),
-      0,
-    );
-
-    const grandTotal = Number((totalRollSqft + totalCutSqft).toFixed(2));
-
-    const existing = await tx.shopStock.findFirst({
-      where: { shopId, productId, variantId: variantId ?? null },
-    });
-
-    if (existing) {
-      await tx.shopStock.update({
-        where: { id: existing.id },
-        data: { stock: grandTotal },
-      });
-    } else if (grandTotal > 0) {
-      await tx.shopStock.create({
-        data: {
-          tenantId,
-          shopId,
-          productId,
-          variantId,
-          stock: grandTotal,
-          isActive: true,
-        },
-      });
-    }
-
-    const allShopStocks = await tx.shopStock.findMany({
-      where: { tenantId, productId, variantId: variantId ?? null },
-      select: { stock: true },
-    });
-    const globalTotal = allShopStocks.reduce(
-      (sum: number, s: any) => sum + Number(s.stock),
-      0,
-    );
-
-    if (variantId) {
-      await tx.productVariant.update({
-        where: { id: variantId },
-        data: { stock: globalTotal },
-      });
-    }
-    await tx.product.update({
-      where: { id: productId },
-      data: { stock: globalTotal },
-    });
+  private get db() {
+    return this.prisma as unknown as Prisma.TransactionClient;
   }
 
-
-  private calcSqft(widthFt: number, widthInch: number, lengthFt: number, lengthInch: number): number {
-    const w = Number(widthFt) + Number(widthInch || 0) / 12;
-    const l = Number(lengthFt) + Number(lengthInch || 0) / 12;
-    return Number((w * l).toFixed(2));
-  }
-
-  private async generateCode(tenantId: string): Promise<string> {
-    return nextCode(async (prefix) => (await this.prisma.carpetCutPiece.findMany({
-      where: { tenantId, pieceCode: { startsWith: prefix } },
-      select: { pieceCode: true }, orderBy: { createdAt: 'desc' }, take: 500,
-    })).map((p) => p.pieceCode), `CP-${new Date().getFullYear()}-`);
+  private sync(tx: Prisma.TransactionClient, p: { tenantId: string; shopId: string | null; productId: string; variantId: string | null }) {
+    return syncCarpetStock(tx, p.tenantId, p.shopId, p.productId, p.variantId ?? null);
   }
 
   async create(user: AuthenticatedUser, dto: CreateCutPieceDto) {
-    const product = await this.prisma.product.findFirst({
-      where: { id: dto.productId, tenantId: user.tenantId },
-    });
-    if (!product) throw new NotFoundException('Product not found');
-
+    const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
+    if (!product) throw new NotFoundException('Product nahi mila');
+    if (!ROLL_UNITS.includes(product.unit.toLowerCase())) {
+      throw new BadRequestException(`${product.name} ${product.unit} me bikta hai — tukra sirf sqft, sq meter, sq gaz ya running ft / meter wale product ka banta hai`);
+    }
     if (dto.variantId) {
-      const variant = await this.prisma.productVariant.findFirst({
-        where: { id: dto.variantId, productId: dto.productId },
-      });
-      if (!variant) throw new NotFoundException('Variant not found');
+      const variant = await this.prisma.productVariant.findFirst({ where: { id: dto.variantId, productId: dto.productId } });
+      if (!variant) throw new NotFoundException('Rang / design nahi mila');
     }
-
     if (dto.sourceRollId) {
-      const roll = await this.prisma.carpetRoll.findFirst({
-        where: { id: dto.sourceRollId, tenantId: user.tenantId },
-      });
-      if (!roll) throw new NotFoundException('Source roll not found');
+      const roll = await this.prisma.carpetRoll.findFirst({ where: { id: dto.sourceRollId, tenantId: user.tenantId } });
+      if (!roll) throw new NotFoundException('Roll nahi mila');
+      if (roll.productId !== dto.productId) throw new BadRequestException(`Roll ${roll.rollNumber} is product ka nahi`);
     }
+    if (dto.status === CarpetCutPieceStatus.SOLD) throw new BadRequestException('Naya piece Sold nahi ho sakta');
+
+    const totalSqft = calcSqft(dto.widthFt, dto.widthInch ?? 0, dto.lengthFt, dto.lengthInch ?? 0);
+    if (totalSqft <= 0) throw new BadRequestException('Piece ki lambai aur chaurai likhein');
 
     let pieceCode = dto.pieceCode?.trim();
     if (pieceCode) {
-      const exists = await this.prisma.carpetCutPiece.findFirst({
-        where: { tenantId: user.tenantId, pieceCode },
-      });
-      if (exists) throw new ConflictException(`Piece code "${pieceCode}" already exists`);
+      const exists = await this.prisma.carpetCutPiece.findFirst({ where: { tenantId: user.tenantId, pieceCode } });
+      if (exists) throw new ConflictException(`Piece code "${pieceCode}" pehle se hai`);
     } else {
-      pieceCode = await this.generateCode(user.tenantId);
+      pieceCode = await nextPieceCode(this.db, user.tenantId);
     }
+    const shopId = await resolveIndustryShopId(this.db, user, dto.shopId);
 
-    const totalSqft = this.calcSqft(
-      dto.widthFt,
-      dto.widthInch ?? 0,
-      dto.lengthFt,
-      dto.lengthInch ?? 0,
-    );
-
-    const shopId = dto.shopId ?? user.shopId ?? null;
-
-    const piece = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       const created = await tx.carpetCutPiece.create({
         data: {
           tenantId: user.tenantId,
@@ -163,14 +68,14 @@ export class CarpetCutPiecesService {
           variantId: dto.variantId,
           sourceRollId: dto.sourceRollId,
           sourceType: dto.sourceType ?? 'MANUAL',
-          pieceCode,
+          pieceCode: pieceCode!,
           widthFt: dto.widthFt,
           widthInch: dto.widthInch ?? 0,
           lengthFt: dto.lengthFt,
           lengthInch: dto.lengthInch ?? 0,
           totalSqft,
           costAmount: dto.costAmount ?? 0,
-          salePrice: dto.salePrice ?? 0,
+          salePrice: dto.salePrice ?? (dto.pricePerSqft ? r2(dto.pricePerSqft * totalSqft) : 0),
           pricePerSqft: dto.pricePerSqft,
           status: dto.status ?? CarpetCutPieceStatus.AVAILABLE,
           condition: dto.condition ?? 'Good',
@@ -185,32 +90,22 @@ export class CarpetCutPiecesService {
           shop: { select: { id: true, name: true } },
         },
       });
-
-      await this.syncShopStockForCarpet(
-        tx,
-        user.tenantId,
-        shopId,
-        dto.productId,
-        dto.variantId ?? null,
-      );
-
+      await this.sync(tx, created);
       return created;
     });
-
-    return piece;
   }
 
   async findAll(user: AuthenticatedUser, query: QueryCutPiecesDto) {
     const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const skip = (page - 1) * limit;
-
+    const limit = Math.min(query.limit ?? 20, 200);
     const where: Prisma.CarpetCutPieceWhereInput = { tenantId: user.tenantId };
-
     if (query.search) {
       where.OR = [
         { pieceCode: { contains: query.search, mode: 'insensitive' } },
         { product: { name: { contains: query.search, mode: 'insensitive' } } },
+        { variant: { name: { contains: query.search, mode: 'insensitive' } } },
+        { sourceRoll: { rollNumber: { contains: query.search, mode: 'insensitive' } } },
+        { rackNumber: { contains: query.search, mode: 'insensitive' } },
         { notes: { contains: query.search, mode: 'insensitive' } },
       ];
     }
@@ -219,12 +114,13 @@ export class CarpetCutPiecesService {
     if (query.shopId) where.shopId = query.shopId;
     if (query.sourceRollId) where.sourceRollId = query.sourceRollId;
     if (query.status) where.status = query.status;
+    if (query.sourceType) where.sourceType = query.sourceType;
 
     const [items, total] = await Promise.all([
       this.prisma.carpetCutPiece.findMany({
         where,
         orderBy: [{ createdAt: 'desc' }],
-        skip,
+        skip: (page - 1) * limit,
         take: limit,
         include: {
           product: { select: { id: true, name: true } },
@@ -235,22 +131,36 @@ export class CarpetCutPiecesService {
       }),
       this.prisma.carpetCutPiece.count({ where }),
     ]);
+    return { items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  }
 
+  /** Counts and value per status for the cut pieces page header. */
+  async stats(user: AuthenticatedUser, shopId?: string) {
+    const rows = await this.prisma.carpetCutPiece.groupBy({
+      by: ['status'],
+      where: { tenantId: user.tenantId, ...(shopId && { shopId }) },
+      _count: true,
+      _sum: { totalSqft: true, costAmount: true, salePrice: true },
+    });
+    const of = (s: CarpetCutPieceStatus) => rows.find((r) => r.status === s);
+    const pack = (s: CarpetCutPieceStatus) => ({
+      count: of(s)?._count ?? 0,
+      sqft: r2(Number(of(s)?._sum.totalSqft ?? 0)),
+      cost: r2(Number(of(s)?._sum.costAmount ?? 0)),
+      value: r2(Number(of(s)?._sum.salePrice ?? 0)),
+    });
     return {
-      items,
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      all: rows.reduce((s, r) => s + r._count, 0),
+      available: pack('AVAILABLE'),
+      reserved: pack('RESERVED'),
+      sold: pack('SOLD'),
+      damaged: pack('DAMAGED'),
     };
   }
 
   async available(user: AuthenticatedUser, shopId?: string) {
-    const where: Prisma.CarpetCutPieceWhereInput = {
-      tenantId: user.tenantId,
-      status: CarpetCutPieceStatus.AVAILABLE,
-    };
-    if (shopId) where.shopId = shopId;
-
     return this.prisma.carpetCutPiece.findMany({
-      where,
+      where: { tenantId: user.tenantId, status: CarpetCutPieceStatus.AVAILABLE, ...(shopId && { shopId }) },
       orderBy: [{ totalSqft: 'desc' }],
       include: {
         product: { select: { id: true, name: true } },
@@ -269,81 +179,89 @@ export class CarpetCutPiecesService {
         shop: { select: { id: true, name: true } },
       },
     });
-    if (!piece) throw new NotFoundException('Cut piece not found');
+    if (!piece) throw new NotFoundException('Cut piece nahi mila');
     return piece;
   }
 
+  /**
+   * Size, price, place and notes. A sold piece stays as sold; status here
+   * moves only between Available, Reserved and Damaged.
+   */
   async update(user: AuthenticatedUser, id: string, dto: UpdateCutPieceDto) {
     const existing = await this.findOne(user, id);
+    if (existing.status === CarpetCutPieceStatus.SOLD) throw new BadRequestException('Bika hua piece badla nahi ja sakta');
+    if (dto.productId && dto.productId !== existing.productId) throw new BadRequestException('Piece ka product badla nahi ja sakta');
+    if (dto.shopId && dto.shopId !== existing.shopId) throw new BadRequestException('Doosri branch me bhejne ke liye Transfer karein');
+    if (dto.status === CarpetCutPieceStatus.SOLD) throw new BadRequestException('Piece bill se bikta hai, yahan se nahi');
 
     if (dto.pieceCode && dto.pieceCode !== existing.pieceCode) {
-      const exists = await this.prisma.carpetCutPiece.findFirst({
-        where: { tenantId: user.tenantId, pieceCode: dto.pieceCode, NOT: { id } },
-      });
-      if (exists) throw new ConflictException('Piece code already exists');
+      const exists = await this.prisma.carpetCutPiece.findFirst({ where: { tenantId: user.tenantId, pieceCode: dto.pieceCode, NOT: { id } } });
+      if (exists) throw new ConflictException('Ye piece code pehle se hai');
+    }
+    if (dto.variantId && dto.variantId !== existing.variantId) {
+      const v = await this.prisma.productVariant.findFirst({ where: { id: dto.variantId, productId: existing.productId } });
+      if (!v) throw new NotFoundException('Rang / design nahi mila');
     }
 
     const widthFt = dto.widthFt ?? existing.widthFt;
     const widthInch = dto.widthInch ?? existing.widthInch;
     const lengthFt = dto.lengthFt ?? existing.lengthFt;
     const lengthInch = dto.lengthInch ?? existing.lengthInch;
-    const totalSqft = this.calcSqft(widthFt, widthInch, lengthFt, lengthInch);
+    const totalSqft = calcSqft(widthFt, widthInch, lengthFt, lengthInch);
+    if (totalSqft <= 0) throw new BadRequestException('Piece ki lambai aur chaurai likhein');
 
-    await this.prisma.carpetCutPiece.update({
-      where: { id },
-      data: { ...dto, totalSqft },
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.carpetCutPiece.update({
+        where: { id },
+        data: {
+          pieceCode: dto.pieceCode,
+          variantId: dto.variantId,
+          widthFt, widthInch, lengthFt, lengthInch, totalSqft,
+          costAmount: dto.costAmount,
+          salePrice: dto.salePrice,
+          pricePerSqft: dto.pricePerSqft,
+          status: dto.status,
+          condition: dto.condition,
+          rackNumber: dto.rackNumber,
+          notes: dto.notes,
+        },
+      });
+      await this.sync(tx, updated);
+      if (existing.variantId !== updated.variantId) await this.sync(tx, existing);
     });
-
     return this.findOne(user, id);
   }
 
+  /** Marks a piece sold outside the counter flow (bills settle pieces themselves). */
   async markSold(user: AuthenticatedUser, id: string, saleItemId?: string) {
     const piece = await this.findOne(user, id);
-    if (piece.status === CarpetCutPieceStatus.SOLD) {
-      throw new BadRequestException('Already sold');
+    if (!IN_STOCK.has(piece.status)) throw new BadRequestException(piece.status === 'SOLD' ? 'Ye piece pehle hi bik chuka hai' : 'Damage piece becha nahi ja sakta');
+    if (saleItemId) {
+      const item = await this.prisma.saleItem.findFirst({ where: { id: saleItemId, sale: { tenantId: user.tenantId } }, select: { id: true } });
+      if (!item) throw new NotFoundException('Bill ki line nahi mili');
     }
-
-    const updated = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       const result = await tx.carpetCutPiece.update({
         where: { id },
-        data: {
-          status: CarpetCutPieceStatus.SOLD,
-          saleItemId,
-          soldAt: new Date(),
-        },
+        data: { status: CarpetCutPieceStatus.SOLD, saleItemId, soldAt: new Date() },
       });
-
-      await this.syncShopStockForCarpet(
-        tx,
-        user.tenantId,
-        piece.shopId,
-        piece.productId,
-        piece.variantId ?? null,
-      );
-
+      await this.sync(tx, piece);
       return result;
     });
-
-    return updated;
   }
 
+  /** Takes a piece out of stock as written off (damaged). Sold pieces stay as they are. */
   async remove(user: AuthenticatedUser, id: string) {
     const piece = await this.findOne(user, id);
-    if (piece.status === CarpetCutPieceStatus.SOLD) {
-      throw new BadRequestException('Cannot delete sold cut piece');
-    }
-
+    if (piece.status === CarpetCutPieceStatus.SOLD) throw new BadRequestException('Bika hua piece hataya nahi ja sakta');
+    if (piece.status === CarpetCutPieceStatus.DAMAGED) return { message: 'Piece pehle se stock se bahar hai' };
     await this.prisma.$transaction(async (tx) => {
-      await tx.carpetCutPiece.delete({ where: { id } });
-      await this.syncShopStockForCarpet(
-        tx,
-        user.tenantId,
-        piece.shopId,
-        piece.productId,
-        piece.variantId ?? null,
-      );
+      await tx.carpetCutPiece.update({
+        where: { id },
+        data: { status: CarpetCutPieceStatus.DAMAGED, notes: [piece.notes, 'Stock se hataya'].filter(Boolean).join(' — ') },
+      });
+      await this.sync(tx, piece);
     });
-
-    return { message: 'Cut piece deleted' };
+    return { message: 'Piece stock se hata diya (record baqi hai)' };
   }
 }

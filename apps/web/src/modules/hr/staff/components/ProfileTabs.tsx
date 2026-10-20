@@ -11,7 +11,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import {
   Activity, CalendarCheck, CheckCircle2, FileText, KeyRound, Laptop, Lock, LogOut, MonitorSmartphone, ShieldCheck, ShoppingBag, Store, Wallet, XCircle,
 } from 'lucide-react';
-import { Button, Card, Select } from '@/design-system/components';
+import { Button, Card, Select, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -324,7 +324,7 @@ export function PayTab({ p }: { p: Profile }) {
       {!s ? <Note text="Tankhwah HR record par hoti hai. Is login ka HR record nahi — 'Badlein' se bana dein." /> : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Tile label="Qisam" value={salaryTypeOf(s.salaryType).label} />
+            <Tile label="Type" value={salaryTypeOf(s.salaryType).label} />
             <Tile label="Tankhwah" value={s.salaryType === 'COMMISSION' ? '—' : formatPKR(s.baseSalary)} hint={salaryTypeOf(s.salaryType).unit} />
             <Tile label="Baqi dena hai" value={formatPKR(s.unpaid)} tone={s.unpaid > 0 ? 'text-rose-700' : undefined} />
             <Tile label="Aakhri payment" value={s.lastPaidAt ? day(s.lastPaidAt) : '—'} />
@@ -399,7 +399,7 @@ export function LoginsTab({ p, onResetPassword }: { p: Profile; onResetPassword:
         description="Jin phone/computer par abhi login hai"
         actions={owner ? <>
           <Button size="sm" variant="secondary" onClick={onResetPassword}>Naya password</Button>
-          {p.sessions.length > 0 && <Button size="sm" variant="danger" onClick={() => { if (window.confirm(`${p.person.fullName} ko sab devices se logout karein?`)) out.mutate(undefined); }} loading={out.isPending} leftIcon={<LogOut className="h-4 w-4" />}>Sab se logout</Button>}
+          {p.sessions.length > 0 && <Button size="sm" variant="danger" onClick={async () => { if ((await confirmDialog({ title: `${p.person.fullName} ko sab devices se logout karein?`, danger: true }))) out.mutate(undefined); }} loading={out.isPending} leftIcon={<LogOut className="h-4 w-4" />}>Sab se logout</Button>}
         </> : undefined}>
         {!p.sessions.length ? <p className="text-sm text-slate-500">Abhi kisi device par login nahi.</p> : (
           <ul className="divide-y divide-slate-100">

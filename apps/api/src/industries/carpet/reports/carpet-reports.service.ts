@@ -136,8 +136,10 @@ export class CarpetReportsService {
           price: true,
           total: true,
           quantity: true,
+          returnedQty: true,
           costPrice: true,
           note: true,
+          sale: { select: { status: true } },
         },
       });
       for (const si of saleItems) {
@@ -148,7 +150,11 @@ export class CarpetReportsService {
     const computeRealFt = (ft: any, inch: any) =>
       Number(ft) + Number(inch || 0) / 12;
 
+    // Voided bills (their cut went back) are left out; returned sqft comes off the line.
+    const voided = (m: { saleItemId: string | null }) => saleItemsMap.get(m.saleItemId ?? '')?.sale?.status === 'VOIDED';
+
     return rolls.map((roll) => {
+      roll.movements = roll.movements.filter((m) => !voided(m));
       const soldLengthFt = roll.movements.reduce(
         (s, m) => s + Math.abs(Number(m.lengthFt)),
         0,
@@ -166,11 +172,11 @@ export class CarpetReportsService {
         const si = m.saleItemId ? saleItemsMap.get(m.saleItemId) : null;
 
         if (si) {
-          // ✅ Use ACTUAL sale item total (respects custom price from POS)
-          // saleItem.total = saleItem.quantity (sqft) × saleItem.price (custom rate/sqft)
-          revenue += Number(si.total);
-          // Use ACTUAL cost price recorded at sale time
-          cost += sqftAbs * Number(si.costPrice ?? roll.costPerSqft);
+          // The bill line: what the customer paid and its recorded cost, less returns.
+          const kept = Math.max(Number(si.quantity) - Number(si.returnedQty ?? 0), 0);
+          const share = Number(si.quantity) > 0 ? kept / Number(si.quantity) : 0;
+          revenue += Number(si.total) * share;
+          cost += kept * Number(si.costPrice || roll.costPerSqft);
         } else {
           // Fallback: pre-saleItem-link movements (legacy)
           revenue += sqftAbs * Number(roll.salePricePerSqft);

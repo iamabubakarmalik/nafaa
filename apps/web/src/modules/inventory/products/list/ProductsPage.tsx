@@ -87,7 +87,13 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   };
   const searchRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<string>('products');
-  const [stockItem, setStockItem] = useState<CatalogItem | null>(null);
+  const [stockItem, setStockItemRaw] = useState<CatalogItem | null>(null);
+  // Products whose stock comes from elsewhere (carpet rolls) never open the stock dialog.
+  const setStockItem = (i: CatalogItem | null) => {
+    const locked = i ? config.stockLocked?.(i) : null;
+    if (locked) { toast.info(locked); return; }
+    setStockItemRaw(i);
+  };
   const [scanner, setScanner] = useState(false);
   const [guide, setGuide] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -172,7 +178,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   const cardProps = (i: CatalogItem) => ({
     item: i, config, extras: extrasFor(i), tagNames: d?.tagNames ?? {}, money, cost, costHidden, days: st?.windowDays ?? 30,
     selected: c.selected.has(i.id), selecting: c.selected.size > 0, onToggle: () => c.toggle(i.id),
-    onStock: () => setStockItem(i), onDeleted: () => void c.refresh(), can,
+    onStock: () => setStockItem(i), onDeleted: () => void c.refresh(), can: config.stockLocked?.(i) ? { ...can, stock: false } : can,
   });
 
   const filterChips: Array<[string, () => void]> = [];
@@ -195,7 +201,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   return (
     <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {scanner && <BarcodeScanner onDetected={(code: string) => void onScan(code)} onClose={() => setScanner(false)} />}
-      {stockItem && <StockModal item={stockItem} chips={config.stockChips?.(stockItem)} money={money} onClose={() => setStockItem(null)} onSaved={() => void c.refresh()} />}
+      {stockItem && <StockModal item={stockItem} chips={config.stockChips?.(stockItem)} money={money} onClose={() => setStockItemRaw(null)} onSaved={() => void c.refresh()} />}
       {guide && <ProductsGuide extra={config.guide} onClose={() => setGuide(false)} />}
 
       <PageHero

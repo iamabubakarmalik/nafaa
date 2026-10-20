@@ -127,12 +127,15 @@ export class SportsProductsService {
     return this.byProduct(user, p.productId);
   }
 
+  /** Hides the product (nothing is erased; it can be switched back on). */
   async remove(user: AuthenticatedUser, id: string) {
     const p = await this.prisma.sportsProductProfile.findFirst({
       where: { id, tenantId: user.tenantId },
     });
     if (!p) throw new NotFoundException('Profile not found');
-    return this.prisma.sportsProductProfile.delete({ where: { id } });
+    // The profile is kept with its product; removing it hides the product instead.
+    await this.prisma.product.updateMany({ where: { id: p.productId, tenantId: user.tenantId }, data: { isActive: false } });
+    return p;
   }
 
   /** Sports facts of every product in one small answer, for the POS and the products page. */

@@ -76,7 +76,7 @@ export function SalesTrend() {
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'bills' ? undefined : axisMoney} width={44} />
                   <Tooltip formatter={(v, n) => [metric === 'bills' ? v : formatPKR(Number(v)), n]} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} />
                   <Bar dataKey={metric} name={METRIC_LABEL[metric]} fill={color} radius={[4, 4, 0, 0]} maxBarSize={28} />
-                  {showProfitLine && <Bar dataKey="profit" name="Munafa" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={28} />}
+                  {showProfitLine && <Bar dataKey="profit" name="Profit" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={28} />}
                 </BarChart>
               ) : (
                 <AreaChart data={points} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -91,7 +91,7 @@ export function SalesTrend() {
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'bills' ? undefined : axisMoney} width={44} />
                   <Tooltip formatter={(v, n) => [metric === 'bills' ? v : formatPKR(Number(v)), n]} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} />
                   <Area type="monotone" dataKey={metric} name={METRIC_LABEL[metric]} stroke={color} strokeWidth={2.25} fill="url(#dash-trend)" />
-                  {showProfitLine && <Area type="monotone" dataKey="profit" name="Munafa" stroke={theme.profit} strokeWidth={1.75} fill="transparent" />}
+                  {showProfitLine && <Area type="monotone" dataKey="profit" name="Profit" stroke={theme.profit} strokeWidth={1.75} fill="transparent" />}
                 </AreaChart>
               )}
             </ResponsiveContainer>

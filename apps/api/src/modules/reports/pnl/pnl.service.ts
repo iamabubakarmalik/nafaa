@@ -335,7 +335,7 @@ export class PnlService {
       ? await this.prisma.expenseCategory.findMany({ where: { tenantId, id: { in: [...ids] } }, select: { id: true, name: true, color: true } })
       : [];
     const map = new Map<string, ExpenseCategoryRef>(rows.map((x) => [x.id, x]));
-    map.set(NONE, { id: NONE, name: 'Bina qism', color: '#64748b' });
+    map.set(NONE, { id: NONE, name: 'Bina category', color: '#64748b' });
     return map;
   }
 
@@ -542,7 +542,7 @@ export class PnlService {
           orderBy: { expenseDate: 'desc' }, take: DETAIL_LIMIT + 1,
         });
         rows = list.map((e) => ({
-          id: e.id, at: e.expenseDate, title: e.title, ref: e.expenseNumber, note: e.description, kind: e.category?.name ?? 'Bina qism',
+          id: e.id, at: e.expenseDate, title: e.title, ref: e.expenseNumber, note: e.description, kind: e.category?.name ?? 'Bina category',
           branch: e.shop?.name ?? null, by: e.createdBy?.fullName ?? null, amount: r2(e.amount),
         }));
         break;

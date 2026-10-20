@@ -57,7 +57,7 @@ export function CategoryMix() {
         })}>
         <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
         <MiniSelect label="Sort" value={sort} onChange={(v) => set({ sort: v })}
-          options={[{ value: 'revenue', label: 'Sale se' }, { value: 'qty', label: 'Ginti se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Munafe se' }])]} />
+          options={[{ value: 'revenue', label: 'Sale se' }, { value: 'qty', label: 'Ginti se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Profit se' }])]} />
         <MiniSelect label="Kitni" value={s.show} onChange={(v) => set({ show: v })} options={SHOW_OPTIONS} />
         <MiniSelect label="Dikhawa" value={s.view} onChange={(v) => set({ view: v })} options={[{ value: 'donut', label: 'Gol chart' }, { value: 'bars', label: 'Sirf patiyan' }]} />
       </WidgetToolbar>
@@ -125,7 +125,7 @@ export function StaffBoard() {
         })}>
         <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
         <MiniSelect label="Ranking" value={sort} onChange={(v) => set({ sort: v })}
-          options={[{ value: 'total', label: 'Sale se' }, { value: 'bills', label: 'Bill se' }, { value: 'average', label: 'Ausat bill se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Munafe se' }])]} />
+          options={[{ value: 'total', label: 'Sale se' }, { value: 'bills', label: 'Bill se' }, { value: 'average', label: 'Ausat bill se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Profit se' }])]} />
       </WidgetToolbar>
       {isLoading ? <Loading /> : rows.length === 0 ? <EmptyHint icon={Users} text="Is period me koi sale nahi" /> : (
         <ul className="space-y-3">
@@ -291,9 +291,9 @@ export function MonthlyTrend() {
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
                 <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n]} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} />
-                <Bar dataKey="sales" name="Bikri" fill={theme.primary} radius={[6, 6, 0, 0]} maxBarSize={32} />
+                <Bar dataKey="sales" name="Sale" fill={theme.primary} radius={[6, 6, 0, 0]} maxBarSize={32} />
                 {showExpenses && <Bar dataKey="expenses" name="Kharcha" fill="#f59e0b" radius={[6, 6, 0, 0]} maxBarSize={32} />}
-                {showProfit && <Line type="monotone" dataKey="profit" name="Munafa" stroke={theme.profit} strokeWidth={2.25} dot={{ r: 3 }} />}
+                {showProfit && <Line type="monotone" dataKey="profit" name="Profit" stroke={theme.profit} strokeWidth={2.25} dot={{ r: 3 }} />}
               </ComposedChart>
             </ResponsiveContainer>
           </div>

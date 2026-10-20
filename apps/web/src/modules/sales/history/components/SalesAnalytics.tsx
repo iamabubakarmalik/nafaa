@@ -177,7 +177,7 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'bills' ? undefined : axisMoney} width={44} allowDecimals={false} />
                   <Tooltip formatter={(v, n) => [n === 'Bill' ? String(v) : formatPKR(Number(v)), n]} {...tip} />
                   <Area type="monotone" dataKey={metric} name={metricName} stroke={theme.primary} strokeWidth={2.25} fill="url(#hist-sales)" />
-                  {metric === 'sales' && !costHidden && <Area type="monotone" dataKey="profit" name="Munafa" stroke={theme.profit} strokeWidth={1.75} fill="transparent" />}
+                  {metric === 'sales' && !costHidden && <Area type="monotone" dataKey="profit" name="Profit" stroke={theme.profit} strokeWidth={1.75} fill="transparent" />}
                 </AreaChart>
               </ResponsiveContainer>
             </div>

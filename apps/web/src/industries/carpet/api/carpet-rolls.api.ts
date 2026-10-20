@@ -60,7 +60,7 @@ export interface CarpetRoll {
 export interface CarpetRollMovement {
   id: string;
   rollId: string;
-  type: 'OPENING' | 'CUT_FOR_SALE' | 'ADJUSTMENT' | 'TRANSFER' | 'RETURN' | 'DAMAGE';
+  type: 'OPENING' | 'CUT_FOR_SALE' | 'ADJUSTMENT' | 'TRANSFER' | 'RETURN' | 'DAMAGE' | 'WASTE' | 'REMOVED' | 'VOID_RETURN';
   lengthFt: number;
   sqft: number;
   balanceLengthAfter: number;
@@ -74,17 +74,6 @@ export interface CarpetRollMovement {
 export interface CarpetRollsResponse {
   items: CarpetRoll[];
   meta: { page: number; limit: number; total: number; totalPages: number };
-}
-
-export interface CarpetRollSummary {
-  productId: string;
-  variantId: string | null;
-  productName: string;
-  variantName: string | null;
-  variantColor: string | null;
-  totalSqft: number;
-  totalLengthFt: number;
-  rollCount: number;
 }
 
 export interface CreateCarpetRollPayload {
@@ -121,31 +110,36 @@ export interface CarpetRollsListParams {
   shopId?: string;
   status?: CarpetRollStatus;
   inStockOnly?: boolean;
+  /** Active rolls with this many feet or less left. */
+  lowFt?: number;
   page?: number;
   limit?: number;
 }
 
-export interface CutRollPayload {
+export interface CarpetRollStats {
+  counts: { all: number; active: number; reserved: number; finished: number; damaged: number; transferred: number; low: number };
+  inStockRolls: number;
+  sqft: number;
   lengthFt: number;
-  lengthInch?: number;
-  customerWidthFt?: number;
-  createLeftoverPiece?: boolean;
-  saleId?: string;
-  saleItemId?: string;
-  note?: string;
+  costValue: number;
+  saleValue: number;
+  pieces: { count: number; sqft: number; cost: number };
 }
 
-export interface CutRollResponse {
-  success: boolean;
-  cutLengthFt: number;
-  cutLengthInch?: number;
-  cutLengthReal?: number;
-  cutSqft: number;
-  remainingLengthFt: number;
-  remainingLengthInch?: number;
-  remainingSqft: number;
-  rollStatus: CarpetRollStatus;
-  leftoverPiece: any | null;
+export interface UnsettledBill {
+  saleId: string;
+  saleNumber: string;
+  createdAt: string;
+  customerName: string | null;
+  lines: Array<{ saleItemId: string; note: string; quantity: number; total: number }>;
+}
+
+export interface SettleResult {
+  saleId: string;
+  saleNumber: string;
+  settled: number;
+  skipped: number;
+  lines: Array<{ saleItemId: string; note: string; ok: boolean; message: string }>;
 }
 
 export interface AdjustRollPayload {
@@ -243,19 +237,21 @@ export const carpetRollsApi = {
       })
       .then(unwrap),
 
-  summary: (shopId?: string) =>
+  stats: (shopId?: string, lowFt = 10) =>
+    apiClient.get<{ data: CarpetRollStats }>('/carpet-rolls/stats', { params: { shopId, lowFt } }).then(unwrap),
+
+  /** Cuts rolls and sells pieces named on a bill's carpet lines; safe to repeat. */
+  settleBill: (saleId: string) =>
+    apiClient.post<{ data: SettleResult }>(`/carpet-bills/${saleId}/settle`).then(unwrap),
+
+  /** Carpet lines of these bills and whether each is cut / sold from stock yet. */
+  billLines: (saleIds: string[]) =>
     apiClient
-      .get<{ data: CarpetRollSummary[] }>('/carpet-rolls/summary', {
-        params: { shopId },
-      })
+      .get<{ data: Record<string, Array<{ saleItemId: string; note: string; quantity: number; settled: boolean }>> }>('/carpet-bills/lines', { params: { saleIds: saleIds.join(',') } })
       .then(unwrap),
 
-  lowRemaining: (threshold = 10) =>
-    apiClient
-      .get<{ data: CarpetRoll[] }>('/carpet-rolls/low-remaining', {
-        params: { threshold },
-      })
-      .then(unwrap),
+  unsettledBills: (shopId?: string) =>
+    apiClient.get<{ data: UnsettledBill[] }>('/carpet-bills/unsettled', { params: { shopId } }).then(unwrap),
 
   getOne: (id: string) =>
     apiClient.get<{ data: CarpetRoll }>(`/carpet-rolls/${id}`).then(unwrap),
@@ -288,11 +284,6 @@ export const carpetRollsApi = {
   update: (id: string, payload: UpdateCarpetRollPayload) =>
     apiClient.patch<{ data: CarpetRoll }>(`/carpet-rolls/${id}`, payload).then(unwrap),
 
-  cut: (id: string, payload: CutRollPayload) =>
-    apiClient
-      .post<{ data: CutRollResponse }>(`/carpet-rolls/${id}/cut`, payload)
-      .then(unwrap),
-
   adjust: (id: string, payload: AdjustRollPayload) =>
     apiClient
       .post<{ data: CarpetRoll }>(`/carpet-rolls/${id}/adjust`, payload)
@@ -303,9 +294,9 @@ export const carpetRollsApi = {
       .patch<{ data: CarpetRoll }>(`/carpet-rolls/${id}/mark-damaged`, { reason })
       .then(unwrap),
 
-  markFinished: (id: string) =>
+  markFinished: (id: string, reason?: string) =>
     apiClient
-      .patch<{ data: CarpetRoll }>(`/carpet-rolls/${id}/mark-finished`)
+      .patch<{ data: CarpetRoll }>(`/carpet-rolls/${id}/mark-finished`, { reason })
       .then(unwrap),
 
   remove: (id: string) =>

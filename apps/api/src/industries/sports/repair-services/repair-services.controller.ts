@@ -26,6 +26,7 @@ export class RepairServicesController {
   @Get()
   list(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('status') status?: string,
     @Query('itemType') itemType?: string,
     @Query('repairType') repairType?: string,
@@ -34,26 +35,27 @@ export class RepairServicesController {
     @Query('to') to?: string,
     @Query('search') search?: string,
   ) {
-    return this.service.list(user, { status, itemType, repairType, customerId, from, to, search });
+    return this.service.list(user, { status, itemType, repairType, customerId, from, to, search }, shop);
   }
 
   @Get('page')
   page(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('view') view?: string, @Query('page') page?: string, @Query('limit') limit?: string,
     @Query('search') search?: string, @Query('from') from?: string, @Query('to') to?: string,
   ) {
-    return this.service.page(user, { view, page, limit, search, from, to });
+    return this.service.page(user, { view, page, limit, search, from, to }, shop);
   }
 
   @Get('summary')
-  summary(@GetUser() user: AuthenticatedUser) {
-    return this.service.summary(user);
+  summary(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
+    return this.service.summary(user, shop);
   }
 
   @Get('overdue')
-  overdue(@GetUser() user: AuthenticatedUser) {
-    return this.service.overdueRepairs(user);
+  overdue(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
+    return this.service.overdueRepairs(user, shop);
   }
 
   @Get(':id')

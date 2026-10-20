@@ -241,7 +241,7 @@ export default function BookingsListPage() {
             'Upcoming tab me late bookings sab se upar hoti hain — roz subah ek nazar dalein.',
             'Calendar me har din ke pickup aur baqi amount dikhti hai.',
             'Booking slip 80mm ya A4 par print hoti hai; do copies: ek customer ki, ek dukaan ki.',
-            'Booking ke waqt stock nahi ghatta; bikri par ghatta hai.',
+            'Booking ke waqt stock nahi ghatta; sale par ghatta hai.',
           ]}
           shortcuts={[['N', 'nayi booking'], ['U', 'upcoming'], ['C', 'calendar'], ['A', 'analytics'], ['/', 'dhoondein'], ['G', 'guide']]}
         />

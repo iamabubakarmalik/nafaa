@@ -26,6 +26,7 @@ export class TeamOrdersController {
   @Get()
   list(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('status') status?: string,
     @Query('hasCustomJerseys') hasCustom?: string,
     @Query('from') from?: string,
@@ -35,26 +36,27 @@ export class TeamOrdersController {
     return this.service.list(user, {
       status, from, to, search,
       hasCustomJerseys: hasCustom === 'true' ? true : hasCustom === 'false' ? false : undefined,
-    });
+    }, shop);
   }
 
   @Get('page')
   page(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('view') view?: string, @Query('page') page?: string, @Query('limit') limit?: string,
     @Query('search') search?: string, @Query('from') from?: string, @Query('to') to?: string,
   ) {
-    return this.service.page(user, { view, page, limit, search, from, to });
+    return this.service.page(user, { view, page, limit, search, from, to }, shop);
   }
 
   @Get('summary')
-  summary(@GetUser() user: AuthenticatedUser) {
-    return this.service.summary(user);
+  summary(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
+    return this.service.summary(user, shop);
   }
 
   @Get('upcoming-deliveries')
-  upcoming(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
-    return this.service.upcomingDeliveries(user, days ? Number(days) : 14);
+  upcoming(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('days') days?: string) {
+    return this.service.upcomingDeliveries(user, days ? Number(days) : 14, shop);
   }
 
   @Get(':id')

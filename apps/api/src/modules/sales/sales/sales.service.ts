@@ -1414,7 +1414,7 @@ export class SalesService {
               quantity: item.quantity,
               balanceAfter: 0,
               reference: sale.saleNumber,
-              note: `Voided carpet sale — manual roll adjustment needed: ${reason || 'No reason'}`,
+              note: `Voided carpet sale — cut length goes back to its roll or piece: ${reason || 'No reason'}`,
             },
           });
           continue;

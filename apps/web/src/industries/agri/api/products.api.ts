@@ -82,15 +82,21 @@ export interface AgriProductProfile {
   updatedAt: string;
 }
 
+/** Light per-product facts (GET /agri/products/facts). */
+export type AgriFacts = Pick<AgriProductProfile,
+  'productId' | 'category' | 'season' | 'brand' | 'manufacturer' | 'npkRatio' | 'activeIngredient' | 'packSize' | 'packUnit' | 'targetCrops' | 'targetPests'
+  | 'applicationRate' | 'toxicityLevel' | 'govtRegNumber' | 'govtRegExpiry' | 'isRestricted' | 'requiresLicense' | 'isOrganic'
+  | 'bulkDiscountThreshold' | 'bulkDiscountPct' | 'reEntryPeriod' | 'ppePeriod'>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- axios envelope
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
 export const agriProductsApi = {
+  /** Agri details of a new product (needs products.create). */
   upsert: (data: Partial<AgriProductProfile>) => apiClient.post('/agri/products', data).then(unwrap<AgriProductProfile>),
+  /** Agri details of an existing product (needs products.edit). */
+  update: (data: Partial<AgriProductProfile>) => apiClient.put('/agri/products', data).then(unwrap<AgriProductProfile>),
+  facts: () => apiClient.get('/agri/products/facts').then(unwrap<AgriFacts[]>),
   list: (params?: any) => apiClient.get('/agri/products', { params }).then(unwrap<AgriProductProfile[]>),
-  byCategory: () => apiClient.get('/agri/products/by-category').then(unwrap<Record<string, AgriProductProfile[]>>),
-  expiringCerts: (days?: number) => apiClient.get('/agri/products/expiring-certs', { params: { days } }).then(unwrap<AgriProductProfile[]>),
   byProduct: (productId: string) => apiClient.get('/agri/products/by-product/' + productId).then(unwrap<AgriProductProfile | null>),
-  getOne: (id: string) => apiClient.get('/agri/products/' + id).then(unwrap<AgriProductProfile>),
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/agri/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

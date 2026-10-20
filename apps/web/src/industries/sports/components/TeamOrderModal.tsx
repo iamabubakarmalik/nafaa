@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowRight, Ban, MessageCircle, PackageCheck, Pencil, Receipt, RotateCcw, Wallet } from 'lucide-react';
+import { ArrowRight, Ban, BookUser, MessageCircle, PackageCheck, Pencil, Receipt, RotateCcw, Wallet } from 'lucide-react';
 import { Alert, Button, Modal, Skeleton, Table, TBody, THead, Td, Th, Tr } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { PrintButton } from '@core/print/PrintButton';
@@ -72,6 +72,7 @@ export function orderSlip(o: TeamOrderDetail): PrintDoc {
 export function TeamOrderModal({ id, onClose }: { id: string; onClose: () => void }) {
   const qc = useQueryClient();
   const canRefund = usePermission(PERMISSIONS.RETURNS_CREATE);
+  const canKhata = usePermission(PERMISSIONS.CUSTOMERS_VIEW);
   const [taking, setTaking] = useState<'pay' | 'deliver' | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const q = useQuery({ queryKey: [TEAM_KEY, 'one', id], queryFn: () => teamOrdersApi.getOne(id) });
@@ -108,6 +109,7 @@ export function TeamOrderModal({ id, onClose }: { id: string; onClose: () => voi
           <div className="flex w-full flex-wrap items-center gap-2">
             <PrintButton doc={() => orderSlip(o)} label="Slip print" size="sm" />
             {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+            {o.customerId && canKhata && <Link to={`/customers/${o.customerId}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><BookUser className="h-4 w-4" />Team ka khata</Link>}
             {o.sale && <Link to={receiptLink(o.sale.id)} className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Receipt className="h-4 w-4" />Bill {o.sale.saleNumber}</Link>}
             <span className="flex-1" />
             {open && <Button variant="ghost" size="sm" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setCancelling(true)}>Cancel</Button>}

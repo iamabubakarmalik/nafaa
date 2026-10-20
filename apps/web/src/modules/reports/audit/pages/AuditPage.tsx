@@ -55,7 +55,7 @@ const SORTS: Array<{ value: EventSort; label: string }> = [
   { value: 'new', label: 'Naye pehle' }, { value: 'severity', label: 'Zaroori pehle' }, { value: 'amount', label: 'Bari amount pehle' }, { value: 'old', label: 'Purane pehle' },
 ];
 const READER_LABEL: Record<string, string> = {
-  void: 'void bill', refund: 'wapsi', discount: 'chhoot', below_cost: 'cost se kam', drawer: 'drawer', cash_out: 'galle se nikale',
+  void: 'void bill', refund: 'wapsi', discount: 'discount', below_cost: 'cost se kam', drawer: 'drawer', cash_out: 'galle se nikale',
   stock_loss: 'stock', damage: 'damage', transfer_short: 'transfer', activity: 'PIN / settings', login: 'login',
 };
 

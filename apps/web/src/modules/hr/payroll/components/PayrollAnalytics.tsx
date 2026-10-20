@@ -47,11 +47,11 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
               <XAxis dataKey="short" tick={theme.axis} axisLine={false} tickLine={false} />
               <YAxis yAxisId="money" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
               <YAxis yAxisId="pct" orientation="right" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} width={36} />
-              <Tooltip {...theme.tooltip} formatter={(v, name) => (name === 'Bikri ka %' ? [`${v}%`, name] : [formatPKR(Number(v)), name])} />
+              <Tooltip {...theme.tooltip} formatter={(v, name) => (name === 'Sale ka %' ? [`${v}%`, name] : [formatPKR(Number(v)), name])} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar yAxisId="money" dataKey="gross" name="Tankhwah" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={36} />
               <Bar yAxisId="money" dataKey="advanceGiven" name="Advance ki qist" fill={theme.primarySoft} radius={[4, 4, 0, 0]} maxBarSize={36} />
-              <Line yAxisId="pct" dataKey="pct" name="Bikri ka %" stroke={theme.highlight} strokeWidth={2} dot={{ r: 2 }} connectNulls />
+              <Line yAxisId="pct" dataKey="pct" name="Sale ka %" stroke={theme.highlight} strokeWidth={2} dot={{ r: 2 }} connectNulls />
             </ComposedChart>
           </ResponsiveContainer>
         </div>

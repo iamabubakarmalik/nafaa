@@ -61,7 +61,7 @@ export function WhatsAppList({ title, people, kind, message, onClose }: {
       </>}>
       {kind === 'segment' ? (
         <label className="block">
-          <span className="text-[0.75rem] font-semibold text-slate-600">Paighaam — {'{name}'} ki jagah naam aur {'{shop}'} ki jagah dukaan ka naam aayega</span>
+          <span className="text-[0.75rem] font-semibold text-slate-600">Message — {'{name}'} ki jagah naam aur {'{shop}'} ki jagah dukaan ka naam aayega</span>
           <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} className="mt-1" />
         </label>
       ) : (

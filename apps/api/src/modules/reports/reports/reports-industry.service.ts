@@ -145,7 +145,7 @@ export class ReportsIndustryService {
       { label: 'Tip', value: r2(num(all._sum.tip)), fmt: 'money' },
     ];
     b.charts = [
-      chart('Order ki qism (raqam)', 'pie', 'money', byMode.map((m) => ({ name: pretty(m.mode), value: r2(num(m._sum.total)) }))),
+      chart('Order ki type (amount)', 'pie', 'money', byMode.map((m) => ({ name: pretty(m.mode), value: r2(num(m._sum.total)) }))),
       chart('KOT ki halat', 'bar', 'count', kots.map((k) => ({ name: pretty(k.status), value: k._count._all }))),
     ];
     b.tables = [
@@ -156,7 +156,7 @@ export class ReportsIndustryService {
       { title: 'Waiter', columns: [{ label: 'Naam', fmt: 'text' }, { label: 'Orders', fmt: 'count' }, { label: 'Amount', fmt: 'money' }, { label: 'Tip', fmt: 'money' }],
         rows: byWaiter.map((w) => [waiters.get(w.waiterId!) ?? 'Waiter', w._count._all, r2(num(w._sum.total)), r2(num(w._sum.tip))]) },
     ];
-    if (!orders) b.notes.push('Is muddat me restaurant orders nahi bane. POS ki seedhi bikri Bikri aur Maal tabs me hai.');
+    if (!orders) b.notes.push('Is muddat me restaurant orders nahi bane. POS ki seedhi sale Sale aur Maal tabs me hai.');
     return b;
   }
 
@@ -195,7 +195,7 @@ export class ReportsIndustryService {
       { label: 'Ausat fee', value: r2(num(money._avg.consultationFee)), fmt: 'money' },
     ];
     b.charts = [
-      chart('Visit ki qism', 'pie', 'count', byType.map((t) => ({ name: pretty(t.visitType), value: t._count._all }))),
+      chart('Visit ki type', 'pie', 'count', byType.map((t) => ({ name: pretty(t.visitType), value: t._count._all }))),
       chart('Appointment ki halat', 'bar', 'count', byStatus.map((s) => ({ name: pretty(s.status), value: s._count._all }))),
     ];
     b.tables = [{
@@ -277,7 +277,7 @@ export class ReportsIndustryService {
       { label: 'Purana sona liya', value: r2(num(exchanges._sum.netWeight ?? exchanges._sum.grossWeight)), fmt: 'grams', hint: `${exchanges._count._all} exchange · ${rs(num(exchanges._sum.netValue))}` },
     ];
     b.charts = [
-      chart('Dhaat war bikri', 'pie', 'money', byMetal.map((m) => ({ name: pretty(m.metalType), value: r2(num(m._sum.itemTotal)) }))),
+      chart('Dhaat war sale', 'pie', 'money', byMetal.map((m) => ({ name: pretty(m.metalType), value: r2(num(m._sum.itemTotal)) }))),
       chart('Purity war wazan (gram)', 'bar', 'grams', byPurity.map((p) => ({ name: pretty(p.purity).replace('Karat ', '') + (p.purity.startsWith('KARAT') ? 'K' : ''), value: r2(num(p._sum.netWeight)) }))),
     ];
     const weightRow = (name: string, s: { netWeight: number | null; itemTotal: number | null; quantity: number | null }) => [name, num(s.quantity), r2(num(s.netWeight)), r2(num(s.itemTotal))];
@@ -285,7 +285,7 @@ export class ReportsIndustryService {
     b.tables = [
       { title: 'Dhaat war', columns: [...cols('Dhaat'), { label: 'Banwai', fmt: 'money' }], rows: byMetal.map((m) => [...weightRow(pretty(m.metalType), m._sum), r2(num(m._sum.makingTotal))]) },
       { title: 'Purity war', columns: cols('Purity'), rows: byPurity.map((p) => weightRow(pretty(p.purity), p._sum)) },
-      { title: 'Zevar ki type', columns: cols('Qism'), rows: byCategory.sort((a, z) => num(z._sum.itemTotal) - num(a._sum.itemTotal)).map((x) => weightRow(pretty(x.category), x._sum)) },
+      { title: 'Zevar ki type', columns: cols('Type'), rows: byCategory.sort((a, z) => num(z._sum.itemTotal) - num(a._sum.itemTotal)).map((x) => weightRow(pretty(x.category), x._sum)) },
       { title: 'Sab se zyada bikne wale design', columns: cols('Design'), rows: designs.map((d) => weightRow(d.productName, d._sum)) },
     ];
     b.notes.push('Exchange (purana sona) har branch ka mila kar hai.');
@@ -421,9 +421,9 @@ export class ReportsIndustryService {
       { label: 'Nuskhe (prescriptions)', value: rxCount.reduce((s, x) => s + x._count._all, 0), fmt: 'count' },
       { label: 'Controlled register', value: controlled, fmt: 'count', hint: 'entries' },
     ];
-    b.charts = [chart('Schedule war bikri', 'pie', 'money', schedule.map((x) => ({ name: pretty(x.key, 'OTC'), value: r2(x.revenue) })))];
+    b.charts = [chart('Schedule war sale', 'pie', 'money', schedule.map((x) => ({ name: pretty(x.key, 'OTC'), value: r2(x.revenue) })))];
     b.tables = [
-      this.soldTable('Schedule war bikri', 'Schedule', schedule, (k) => pretty(k, 'OTC')),
+      this.soldTable('Schedule war sale', 'Schedule', schedule, (k) => pretty(k, 'OTC')),
       {
         title: 'Jaldi expire hone wali batches', hint: 'Agle 90 din, sab branches',
         columns: [{ label: 'Dawai', fmt: 'text' }, { label: 'Batch', fmt: 'text' }, { label: 'Expiry', fmt: 'date' }, { label: 'Quantity', fmt: 'qty' }, { label: 'Cost', fmt: 'cost' }],
@@ -490,12 +490,12 @@ export class ReportsIndustryService {
       { label: 'Registration khatam / qareeb', value: regSoon, fmt: 'count', hint: '30 din me' },
     ];
     b.charts = [
-      chart('Qism war bikri', 'bar', 'money', byKind.map((x) => ({ name: pretty(x.key), value: r2(x.revenue) }))),
-      chart('Mausam war bikri', 'pie', 'money', bySeason.map((x) => ({ name: pretty(x.key, 'Har mausam'), value: r2(x.revenue) }))),
+      chart('Type war sale', 'bar', 'money', byKind.map((x) => ({ name: pretty(x.key), value: r2(x.revenue) }))),
+      chart('Mausam war sale', 'pie', 'money', bySeason.map((x) => ({ name: pretty(x.key, 'Har mausam'), value: r2(x.revenue) }))),
     ];
     b.tables = [
-      this.soldTable('Qism war bikri', 'Qism', byKind, (k) => pretty(k)),
-      this.soldTable('Mausam war bikri', 'Mausam', bySeason, (k) => pretty(k, 'Har mausam')),
+      this.soldTable('Type war sale', 'Type', byKind, (k) => pretty(k)),
+      this.soldTable('Mausam war sale', 'Mausam', bySeason, (k) => pretty(k, 'Har mausam')),
       { title: 'Sab se zyada udhaar', columns: [{ label: 'Farmer', fmt: 'text' }, { label: 'Phone', fmt: 'text' }, { label: 'Gaon', fmt: 'text' }, { label: 'Aakhri purchase', fmt: 'date' }, { label: 'Baqi', fmt: 'money' }],
         rows: farmers.map((f) => [f.fullName, f.phone, f.village, f.lastPurchaseAt?.toISOString() ?? null, r2(f.currentBalance)]) },
       { title: 'Zila war farmer', columns: [{ label: 'Zila', fmt: 'text' }, { label: 'Farmer', fmt: 'count' }, { label: 'Udhaar', fmt: 'money' }],
@@ -535,9 +535,9 @@ export class ReportsIndustryService {
       chart('Rang war (nag)', 'pie', 'qty', byColor.slice(0, 10).map((x) => ({ name: x.key ?? '—', value: r2(x.qty) }))),
     ];
     b.tables = [
-      this.soldTable('Size war bikri', 'Size', bySize, (k) => k ?? 'Baghair size'),
-      this.soldTable('Rang war bikri', 'Rang', byColor, (k) => k ?? 'Baghair rang'),
-      this.soldTable('Season war bikri', 'Season', bySeason, (k) => pretty(k)),
+      this.soldTable('Size war sale', 'Size', bySize, (k) => k ?? 'Baghair size'),
+      this.soldTable('Rang war sale', 'Rang', byColor, (k) => k ?? 'Baghair rang'),
+      this.soldTable('Season war sale', 'Season', bySeason, (k) => pretty(k)),
       this.soldTable('Kis ke liye (gender)', 'Kis ke liye', byGender, (k) => pretty(k)),
       { title: 'Silai ki halat', columns: [{ label: 'Halat', fmt: 'text' }, { label: 'Order', fmt: 'count' }], rows: tStatus.map((x) => [pretty(x.orderStatus), x._count._all]) },
     ];
@@ -555,7 +555,7 @@ export class ReportsIndustryService {
       this.prisma.electronicsWarrantyClaim.aggregate({ where: { tenantId: c.tenantId, claimDate: within(c.r) }, _sum: { repairCost: true, paidByBrand: true, paidByCustomer: true } }),
     ]);
     const block = this.deviceBlock({
-      byType, typeTitle: 'Qism war bikri',
+      byType, typeTitle: 'Type war sale',
       serial: { sold: serialSold._count._all, revenue: num(serialSold._sum.soldPrice), cost: num(serialSold._sum.purchasePrice), stock: stockSerials.map((s) => ({ at: s.purchaseDate ?? s.createdAt, cost: num(s.purchasePrice) })) },
       claims: claims.map((x) => ({ name: pretty(x.status), value: x._count._all })),
       claimKpis: [
@@ -581,7 +581,7 @@ export class ReportsIndustryService {
       this.prisma.applianceInstallation.groupBy({ by: ['status'], where: { tenantId: c.tenantId, createdAt: within(c.r) }, _count: { _all: true } }),
     ]);
     const block = this.deviceBlock({
-      byType, typeTitle: 'Qism war bikri',
+      byType, typeTitle: 'Type war sale',
       serial: { sold: serialSold._count._all, revenue: num(serialSold._sum.soldPrice), cost: num(serialSold._sum.purchasePrice), stock: stockSerials.map((s) => ({ at: s.purchaseDate ?? s.createdAt, cost: num(s.purchasePrice) })) },
       claims: claims.map((x) => ({ name: pretty(x.status), value: x._count._all })),
       claimKpis: [
@@ -625,7 +625,7 @@ export class ReportsIndustryService {
       chart('Warranty claims ki halat', 'pie', 'count', d.claims),
     ];
     b.tables = [
-      this.soldTable(d.typeTitle, 'Qism', d.byType, (k) => pretty(k)),
+      this.soldTable(d.typeTitle, 'Type', d.byType, (k) => pretty(k)),
       { title: 'Maal ki umar (serial wale)', columns: [{ label: 'Kitna purana', fmt: 'text' }, { label: 'Units', fmt: 'count' }, { label: 'Cost', fmt: 'cost' }], rows: ages.map((a) => [a.name, a.count, r2(a.cost)]) },
     ];
     return b;
@@ -695,7 +695,7 @@ export class ReportsIndustryService {
       { label: 'Khaton me baqi', value: r2(num(owed._sum.currentBalance)), fmt: 'money', hint: `${owed._count._all} gahak` },
     ];
     b.charts = [
-      chart('Counter bikri — subah vs shaam', 'pie', 'money', saleSlots.map((x) => ({ name: x.slot, value: r2(x.net) }))),
+      chart('Counter sale — subah vs shaam', 'pie', 'money', saleSlots.map((x) => ({ name: x.slot, value: r2(x.net) }))),
       chart('Delivery — waqt war (litre)', 'bar', 'litre', bySlot.map((x) => ({ name: pretty(x.slot), value: r2(num(x._sum.deliveredQty)) }))),
     ];
     b.tables = [
@@ -729,10 +729,10 @@ export class ReportsIndustryService {
       { label: 'Zibah', value: slaughter.length, fmt: 'count', hint: live_ ? `gosht ${Math.round((dressed / live_) * 100)}% nikla` : undefined },
       { label: 'Halal record', value: slaughter.length ? r2((slaughter.filter((x) => x.isHalal).length / slaughter.length) * 100) : 0, fmt: 'pct', hint: `${slaughter.filter((x) => x.vetInspection).length} vet check` },
     ];
-    b.charts = [chart('Janwar war bikri (kg)', 'pie', 'kg', byAnimal.map((x) => ({ name: pretty(x.key), value: r2(x.qty) })))];
+    b.charts = [chart('Janwar war sale (kg)', 'pie', 'kg', byAnimal.map((x) => ({ name: pretty(x.key), value: r2(x.qty) })))];
     b.tables = [
-      this.soldTable('Janwar war bikri', 'Janwar', byAnimal, (k) => pretty(k), 'kg'),
-      this.soldTable('Cut war bikri', 'Cut', byCut, (k) => pretty(k), 'kg'),
+      this.soldTable('Janwar war sale', 'Janwar', byAnimal, (k) => pretty(k), 'kg'),
+      this.soldTable('Cut war sale', 'Cut', byCut, (k) => pretty(k), 'kg'),
     ];
     return b;
   }
@@ -765,7 +765,7 @@ export class ReportsIndustryService {
     ];
     b.charts = [
       chart('Job ki halat', 'bar', 'count', byStatus.map((x) => ({ name: pretty(x.status), value: x._count._all }))),
-      chart('Kaam ki qism', 'pie', 'count', byType.map((x) => ({ name: pretty(x.jobType), value: x._count._all }))),
+      chart('Kaam ki type', 'pie', 'count', byType.map((x) => ({ name: pretty(x.jobType), value: x._count._all }))),
     ];
     b.tables = [
       { title: 'Mistri war', columns: [{ label: 'Mistri', fmt: 'text' }, { label: 'Jobs', fmt: 'count' }, { label: 'Mazdoori', fmt: 'money' }, { label: 'Kul', fmt: 'money' }],
@@ -796,9 +796,9 @@ export class ReportsIndustryService {
     ];
     b.charts = [chart('Kya zyada bika', 'pie', 'money', byType.map((x) => ({ name: x.key ?? 'Baqi', value: r2(x.revenue) })))];
     b.tables = [
-      this.soldTable('Qism war', 'Qism', byType, (k) => k ?? 'Baqi'),
-      this.soldTable('Kitabon ki qism', 'Qism', byBookCat, (k) => pretty(k)),
-      this.soldTable('Stationery ki qism', 'Qism', byStationery, (k) => pretty(k)),
+      this.soldTable('Type war', 'Type', byType, (k) => k ?? 'Baqi'),
+      this.soldTable('Kitabon ki type', 'Type', byBookCat, (k) => pretty(k)),
+      this.soldTable('Stationery ki type', 'Type', byStationery, (k) => pretty(k)),
     ];
     return b;
   }

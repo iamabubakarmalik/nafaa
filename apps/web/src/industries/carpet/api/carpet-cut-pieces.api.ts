@@ -78,9 +78,13 @@ export interface CutPiecesListParams {
   shopId?: string;
   sourceRollId?: string;
   status?: CarpetCutPieceStatus;
+  sourceType?: CarpetCutPieceSource;
   page?: number;
   limit?: number;
 }
+
+interface PieceBucket { count: number; sqft: number; cost: number; value: number }
+export interface CutPieceStats { all: number; available: PieceBucket; reserved: PieceBucket; sold: PieceBucket; damaged: PieceBucket }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
@@ -90,17 +94,8 @@ export const carpetCutPiecesApi = {
       .get<{ data: CarpetCutPiecesResponse }>('/carpet-cut-pieces', { params })
       .then(unwrap),
 
-  available: (shopId?: string) =>
-    apiClient
-      .get<{ data: CarpetCutPiece[] }>('/carpet-cut-pieces/available', {
-        params: { shopId },
-      })
-      .then(unwrap),
-
-  getOne: (id: string) =>
-    apiClient
-      .get<{ data: CarpetCutPiece }>(`/carpet-cut-pieces/${id}`)
-      .then(unwrap),
+  stats: (shopId?: string) =>
+    apiClient.get<{ data: CutPieceStats }>('/carpet-cut-pieces/stats', { params: { shopId } }).then(unwrap),
 
   create: (payload: CreateCutPiecePayload) =>
     apiClient
@@ -110,13 +105,6 @@ export const carpetCutPiecesApi = {
   update: (id: string, payload: UpdateCutPiecePayload) =>
     apiClient
       .patch<{ data: CarpetCutPiece }>(`/carpet-cut-pieces/${id}`, payload)
-      .then(unwrap),
-
-  markSold: (id: string, saleItemId?: string) =>
-    apiClient
-      .patch<{ data: CarpetCutPiece }>(`/carpet-cut-pieces/${id}/mark-sold`, {
-        saleItemId,
-      })
       .then(unwrap),
 
   remove: (id: string) =>

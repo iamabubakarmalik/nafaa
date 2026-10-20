@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  X, Loader2, CheckCircle2, Truck, Package, Phone, MapPin,
-  User, AlertTriangle, ScanLine, Sparkles,
+  CheckCircle2, AlertTriangle, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+import { Button, Modal } from '@/design-system/components';
 import { suppliersApi } from '../../suppliers/api/suppliers.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
@@ -43,36 +42,18 @@ function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string
   );
 }
 
-function Shell({ title, subtitle, badge, icon, tone, onClose, children, footer }: any) {
-  const tones: Record<string, string> = {
-    teal: 'from-slate-950 via-teal-900 to-emerald-700',
-    blue: 'from-slate-950 via-blue-900 to-indigo-700',
-  };
+/** Shared frame for the quick-add dialogs. */
+function Shell({ title, subtitle, onClose, children, footer }: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}) {
   return (
-    <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}>
-        <div className={`shrink-0 relative bg-gradient-to-br ${tones[tone] ?? tones.teal} text-white px-5 py-4 overflow-hidden`}>
-          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
-          <div className="relative flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
-                {icon} {badge}
-              </div>
-              <h3 className="text-lg sm:text-xl font-black mt-2 truncate">{title}</h3>
-              {subtitle && <div className="text-xs text-white/85 font-bold mt-0.5">{subtitle}</div>}
-            </div>
-            <button onClick={onClose} className="h-10 w-10 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition shrink-0">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
-        {footer && (
-          <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4">{footer}</div>
-        )}
-      </div>
-    </div>
+    <Modal open onClose={onClose} size="md" title={title} description={subtitle} footer={footer}>
+      {children}
+    </Modal>
   );
 }
 
@@ -129,26 +110,22 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
 
   return (
     <Shell
-      badge="Naya Supplier" icon={<Truck className="h-3 w-3" />} tone="teal"
-      title="🚚 Supplier Yahin Bana Lein"
-      subtitle="Sirf naam zaroori — baqi details baad me"
+      title="Naya Supplier"
+      subtitle="Sirf naam zaroori hai — baqi details baad me"
       onClose={onClose}
       footer={
-        <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1 h-12" onClick={onClose}><X className="h-4 w-4" /> Cancel</Button>
-          <button onClick={() => mut.mutate()} disabled={!ok || mut.isPending}
-            onKeyDown={(e) => { if (e.key === 'Enter' && ok) mut.mutate(); }}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-500 hover:to-emerald-600 disabled:opacity-50 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg shadow-teal-500/40 transition active:scale-[0.98]">
-            {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            Banao aur Chunein
-          </button>
-        </div>
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => mut.mutate()} disabled={!ok} loading={mut.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+            Banao aur chunein
+          </Button>
+        </>
       }
     >
       <div className="space-y-3" onKeyDown={(e) => { if (e.key === 'Enter' && ok && !mut.isPending) { e.preventDefault(); mut.mutate(); } }}>
         <div>
           <Lbl req>Supplier ka naam</Lbl>
-          <input ref={nameRef} className={inp('h-12 text-base font-extrabold')} maxLength={120}
+          <input ref={nameRef} data-autofocus className={inp('h-12 text-base font-extrabold')} maxLength={120}
             placeholder="Akbari Mandi Wholesale" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -260,25 +237,22 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
 
   return (
     <Shell
-      badge="Naya Product" icon={<Package className="h-3 w-3" />} tone="blue"
-      title="📦 Cheez Yahin Bana Lein"
+      title="Naya Product"
       subtitle="Bunyadi details — baqi baad me poori wizard se"
       onClose={onClose}
       footer={
-        <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1 h-12" onClick={onClose}><X className="h-4 w-4" /> Cancel</Button>
-          <button onClick={() => mut.mutate()} disabled={!ok || mut.isPending}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 disabled:opacity-50 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-500/40 transition active:scale-[0.98]">
-            {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            Banao aur Bill Me Daalo
-          </button>
-        </div>
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => mut.mutate()} disabled={!ok} loading={mut.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+            Banao aur bill me daalo
+          </Button>
+        </>
       }
     >
       <div className="space-y-3">
         <div>
-          <Lbl req>Cheez ka naam</Lbl>
-          <input ref={nameRef} className={inp('h-12 text-base font-extrabold')} maxLength={160}
+          <Lbl req>Product ka naam</Lbl>
+          <input ref={nameRef} data-autofocus className={inp('h-12 text-base font-extrabold')} maxLength={160}
             placeholder="Dalda Cooking Oil 5L" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
 

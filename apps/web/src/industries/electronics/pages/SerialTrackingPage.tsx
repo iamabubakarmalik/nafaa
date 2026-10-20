@@ -21,8 +21,7 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton, type PrintDoc } from '@core/print';
 import {
   Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select,
-  Skeleton, Textarea, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
-} from '@/design-system/components';
+  Skeleton, Textarea, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { downloadCsv } from '@core/lib/csv';
 import { formatPKR } from '@core/lib/format';
@@ -317,7 +316,7 @@ function UnitRow({ s, money, canManage }: { s: Row; money: (n: number) => string
             {canManage && <Button size="sm" variant="secondary" onClick={() => setEdit(true)} leftIcon={<Pencil className="h-3.5 w-3.5" />}>Badlein</Button>}
             {removable && (
               <Button size="sm" variant="ghost" loading={remove.isPending} leftIcon={<Trash2 className="h-3.5 w-3.5" />}
-                onClick={() => { if (window.confirm(`${s.serialNumber} hata dein? Sirf ghalti se darj unit hatayein.`)) remove.mutate(); }}>Hatayein</Button>
+                onClick={async () => { if ((await confirmDialog({ title: `${s.serialNumber} hata dein?`, text: 'Sirf ghalti se darj unit hatayein.', danger: true }))) remove.mutate(); }}>Hatayein</Button>
             )}
           </div>
         </div>

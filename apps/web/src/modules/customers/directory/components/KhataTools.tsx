@@ -118,7 +118,7 @@ export function TemplatesModal({ onClose }: { onClose: () => void }) {
   const [t, setT] = useState(loadTemplates);
   const [tone, setTone] = useState<Tone>('polite');
   return (
-    <Modal open onClose={onClose} size="lg" title="Yaad-dihani ke paigham" description="{name} {sal} {amount} {days} {shop} khud bhar jate hain"
+    <Modal open onClose={onClose} size="lg" title="Yaad-dihani ke messages" description="{name} {sal} {amount} {days} {shop} khud bhar jate hain"
       footer={<>
         <Button variant="ghost" onClick={() => setT({ ...DEFAULT_TEMPLATES })}>Pehle jaisa</Button>
         <Button onClick={() => { saveTemplates(t); onClose(); }}>Save karein</Button>

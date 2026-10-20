@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { HandCoins, Info } from 'lucide-react';
-import { Button, Input, Modal } from '@/design-system/components';
+import { Button, Input, Modal, confirmDialog } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { CommissionRow } from '../api/commission.api';
 import { periodLabel, signed } from './meta';
@@ -26,10 +26,10 @@ export function PayModal({ row, period, saving, onClose, onPay }: {
   const error = !(amount > 0) ? 'Kitne diye, likhein' : '';
   const [tried, setTried] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     setTried(true);
     if (error) return;
-    if (after > row.earned + 0.5 && !window.confirm(`Banti ${formatPKR(row.earned)} hai, aap kul ${formatPKR(after)} likh rahe hain.\n\nZyada amount advance ki tarah likhi jayegi. Theek hai?`)) return;
+    if (after > row.earned + 0.5 && !(await confirmDialog({ title: 'Banti se zyada amount?', text: `Banti ${formatPKR(row.earned)} hai, aap kul ${formatPKR(after)} likh rahe hain. Zyada amount advance ki tarah likhi jayegi.` }))) return;
     onPay({ amount: Math.round(after * 100) / 100, expectedPaid: paid, note: note.trim() || undefined });
   };
 

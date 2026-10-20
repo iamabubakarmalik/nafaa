@@ -160,7 +160,7 @@ export default function BookingFormPage() {
         const variants = (await productVariantsApi.list(p.id)).filter((v) => v.isActive);
         if (!variants.length) { toast.error('Is product ki koi chalu type nahi'); return; }
         setVariantPicker({ product: p, variants });
-      } catch { toast.error('Qismein load nahi hui'); }
+      } catch { toast.error('Variants load nahi hue'); }
       return;
     }
     if (isCarpetProduct(p)) { setRollPicker({ product: p }); return; }
@@ -186,12 +186,13 @@ export default function BookingFormPage() {
   const onRoll = (d: RollData) => {
     if (!rollPicker) return;
     const { product, variant } = rollPicker;
-    const inch = d.lengthInch > 0 ? ` ${d.lengthInch}in` : '';
+    // Quantity, rate and note come from the cut window in the product's own unit; the note is what the server reads to cut the roll.
+    const costPerUnit = d.qty > 0 ? ((d.roll.costPerSqft ?? 0) * d.cutSqft) / d.qty : 0;
     addLine({
       productId: product.id, variantId: variant?.id, rollId: d.roll.id, name: variant ? `${product.name} (${variant.name})` : product.name, unit: product.unit,
-      quantity: d.cutSqft, price: d.pricePerSqft, costPrice: d.roll.costPerSqft ?? 0, lineDiscount: 0, locked: true,
+      quantity: d.qty, price: d.rate, costPrice: costPerUnit, lineDiscount: 0, locked: true,
       cutWidthFt: d.customerWidthFt, cutLengthFt: d.lengthFt, cutLengthInch: d.lengthInch, cutSqft: d.cutSqft,
-      note: `Cut from ${d.roll.rollNumber}: ${d.customerWidthFt}ft × ${d.lengthFt}ft${inch} = ${d.cutSqft.toFixed(2)} sqft`,
+      note: d.note,
       tag: `Roll ${d.roll.rollNumber}`,
     });
     setRollPicker(null);

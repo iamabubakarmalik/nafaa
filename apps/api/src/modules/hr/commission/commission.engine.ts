@@ -88,7 +88,7 @@ export function ruleLabel(rule: Pick<CommissionRule, 'name' | 'basis' | 'valueTy
   if (rule.name) return rule.name;
   if (rule.basis === 'PER_BILL') return 'Har bill par';
   if (rule.valueType === 'FIXED') return 'Har cheez par';
-  return rule.basis === 'PROFIT' ? 'Munafa par' : 'Bikri par';
+  return rule.basis === 'PROFIT' ? 'Profit par' : 'Sale par';
 }
 
 export function apply(pm: PersonMonth, rules: CommissionRule[], enrolled: boolean): Result {

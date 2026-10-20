@@ -1,23 +1,14 @@
-/* ═════════════════════════════════════════════════════════════
-   AGRI KA NAAP — BORI, KILO, TON
-   ─────────────────────────────────────────────────────────────
-   Agri ka saara karobar bori (bag) par chalta hai, magar stock
-   aksar kilo me ginte hain: ek bori urea = 50 kg.
-
-   POS me ye hisab tha hi nahi. Ek bori bechne par stock se sirf
-   1 ghatta tha — 50 nahi. Stock, munafa aur "kya mangwana hai"
-   sab isi se ghalat hote thay.
-
-   Achhi baat ye hai ke agri profile me `packSize` aur `packUnit`
-   pehle se maujood hain (50 + kg). Yani conversion andaze se
-   nahi, dukaan-daar ke apne bhare hue number se nikalta hai.
-   ═════════════════════════════════════════════════════════════ */
+/**
+ * Agri units: bag, kg, ton, litre. Stock is often counted in kg while
+ * the trade runs in bags (one bag of urea = 50 kg); conversions use the
+ * pack size the shop entered on the product.
+ */
 
 export interface AgriUnitDef {
   key: string;
   label: string;
   emoji: string;
-  /** Wazan/hajm wala naap */
+  /** Weight or volume unit. */
   measured?: boolean;
   hint: string;
 }
@@ -46,21 +37,18 @@ export function agriUnitLabel(key: string, customName?: string): string {
 
 export const isMeasured = (key: string) => !!agriUnitDef(key).measured;
 
-/** Wazan wale naapon ka aapas me hisab — gram ke hisaab se */
+/** Weight units in grams. */
 const WEIGHT_IN_GRAM: Record<string, number> = {
   gram: 1, kg: 1000, ton: 1_000_000,
 };
-/** Hajm wale naapon ka aapas me hisab — ml ke hisaab se */
+/** Volume units in millilitres. */
 const VOLUME_IN_ML: Record<string, number> = {
   ml: 1, litre: 1000,
 };
 
 /**
- * "1 [doosra naap] = kitne [base naap]"
- *
- * Bori ka wazan `packSize` + `packUnit` se aata hai — jaise 50 kg.
- * Ye dukaan-daar ka apna bhara hua number hai, is liye andaza nahi
- * lagana parta.
+ * How many base units one `fromKey` unit holds. A bag's weight comes
+ * from the shop's own `packSize` + `packUnit` (for example 50 kg).
  */
 export function agriRate(
   fromKey: string,
@@ -72,7 +60,7 @@ export function agriRate(
   const packQty = Number(opts.packSize) || 0;
   const packUnit = (opts.packUnit || 'kg').toLowerCase();
 
-  /** Ek bori/packet/bottle me kitne gram ya ml */
+  /** Grams or millilitres in one bag, packet or bottle. */
   const packInGram = packQty > 0 && WEIGHT_IN_GRAM[packUnit]
     ? packQty * WEIGHT_IN_GRAM[packUnit] : 0;
   const packInMl = packQty > 0 && VOLUME_IN_ML[packUnit]
@@ -80,17 +68,16 @@ export function agriRate(
 
   const PACKED = ['bag', 'packet', 'bottle', 'bundle', 'pcs', 'custom'];
 
-  /* ── Dono wazan wale ── */
+  /* Both weight units. */
   if (WEIGHT_IN_GRAM[fromKey] && WEIGHT_IN_GRAM[baseKey]) {
     return WEIGHT_IN_GRAM[fromKey] / WEIGHT_IN_GRAM[baseKey];
   }
-  /* ── Dono hajm wale ── */
+  /* Both volume units. */
   if (VOLUME_IN_ML[fromKey] && VOLUME_IN_ML[baseKey]) {
     return VOLUME_IN_ML[fromKey] / VOLUME_IN_ML[baseKey];
   }
 
-  /* ── Bandh package se khula naap ──
-     1 bori = 50 kg. Yahi wo hisab hai jo POS me tha hi nahi. */
+  /* Pack to loose unit: 1 bag = 50 kg. */
   if (PACKED.includes(fromKey) && WEIGHT_IN_GRAM[baseKey]) {
     return packInGram > 0 ? packInGram / WEIGHT_IN_GRAM[baseKey] : 1;
   }
@@ -98,8 +85,7 @@ export function agriRate(
     return packInMl > 0 ? packInMl / VOLUME_IN_ML[baseKey] : 1;
   }
 
-  /* ── Khula naap se bandh package ──
-     50 kg becha, matlab 1 bori stock se gayi. */
+  /* Loose unit to pack: 50 kg sold takes 1 bag from stock. */
   if (WEIGHT_IN_GRAM[fromKey] && PACKED.includes(baseKey)) {
     return packInGram > 0 ? WEIGHT_IN_GRAM[fromKey] / packInGram : 1;
   }
@@ -107,12 +93,11 @@ export function agriRate(
     return packInMl > 0 ? VOLUME_IN_ML[fromKey] / packInMl : 1;
   }
 
-  /* Dono bandh package (bori ↔ packet) — kitne aate hain ye sirf
-     dukaan-daar jaanta hai, Multi-Unit safhe se set hota hai. */
+  /* Pack to pack (bag to packet) is set by the shop on the multi-unit page. */
   return 1;
 }
 
-/** Is base naap ke sath jo doosre naap maani rakhte hain */
+/** Units that make sense next to this base unit. */
 export function agriExtraUnits(baseKey: string): string[] {
   const weight = ['bag', 'kg', 'gram', 'ton'];
   const volume = ['bottle', 'litre', 'ml'];
@@ -123,7 +108,7 @@ export function agriExtraUnits(baseKey: string): string[] {
   return all.filter((k) => k !== baseKey);
 }
 
-/** Govt registration ki meyaad — bechne se pehle dekhna zaroori */
+/** Government registration validity; checked before sale. */
 export function certStatus(expiry?: string | null): {
   state: 'none' | 'ok' | 'soon' | 'expired';
   days: number | null;
@@ -138,7 +123,7 @@ export function certStatus(expiry?: string | null): {
   return { state: 'ok', days, text: `Registration ${days} din aur chalegi` };
 }
 
-/** Kaunsa mausam — Pakistan ki fasal ke hisaab se */
+/** Crop season on the Pakistani calendar. */
 export const SEASONS: Array<{ v: string; l: string; e: string; hint: string }> = [
   { v: 'KHARIF', l: 'Kharif', e: '🌧️', hint: 'Mai–Oct: chawal, kapas, makai' },
   { v: 'RABI', l: 'Rabi', e: '❄️', hint: 'Nov–Apr: gandum, chana, sarson' },

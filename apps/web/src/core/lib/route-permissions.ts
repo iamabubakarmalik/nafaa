@@ -24,9 +24,22 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/bakery\/ingredients/, P.BAKERY_INGREDIENTS_VIEW],
 
   // Agri
+  [/^\/agri\/farmers\/(new|[^/]+\/edit)$/, P.AGRI_FARMERS_MANAGE],
   [/^\/agri\/(farmers|ledger)/, P.AGRI_FARMERS_VIEW],
   [/^\/agri\/(bulk-orders|subsidy|seasonal-plans)/, P.AGRI_ORDERS_VIEW],
   [/^\/agri\/advisory/, P.AGRI_ADVISORY_VIEW],
+
+  // Carpet: rolls and pieces are stock; the roll import adds stock.
+  [/^\/carpet-bulk-import/, P.PRODUCTS_CREATE],
+  [/^\/carpet-(rolls|cut-pieces)/, P.PRODUCTS_VIEW],
+
+  // Furniture: orders, deliveries and karigar are service jobs.
+  [/^\/furniture\/custom-orders\/(new|[^/]+\/edit)$/, P.SERVICE_JOBS_MANAGE],
+  [/^\/furniture\/(custom-orders|deliveries|carpenters)/, P.SERVICE_JOBS_VIEW],
+
+  // Gaming: cafe, stations, rentals and tournaments run at the counter; cards are stock.
+  [/^\/gaming\/(cafe|stations|rentals|tournaments)/, P.POS_USE],
+  [/^\/gaming\/topups/, P.PRODUCTS_VIEW],
 
   // Electronics
   [/^\/electronics\/serials/, P.ELECTRONICS_SERIALS_VIEW],

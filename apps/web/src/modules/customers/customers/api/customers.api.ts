@@ -83,24 +83,6 @@ export interface CustomersResponse {
   meta: { page: number; limit: number; total: number; totalPages: number };
 }
 
-export interface CustomerStats {
-  total: number;
-  vip: number;
-  withCredit: number;
-  newThisMonth: number;
-  newLastMonth: number;
-  growthPct: number;
-  totalDebt: number;
-  topSpenders: Array<{
-    id: string;
-    name: string;
-    phone?: string | null;
-    avatarUrl?: string | null;
-    totalSpent: number;
-    isVip: boolean;
-  }>;
-}
-
 export interface UpsertCustomerPayload {
   name: string;
   phone?: string;
@@ -281,30 +263,6 @@ export const customersApi = {
     } catch (e) {
       if (!isNetFail(e)) throw e;
       return localList(params);
-    }
-  },
-
-  stats: async (): Promise<CustomerStats> => {
-    try {
-      return await apiClient.get<{ data: CustomerStats }>('/customers/stats').then(unwrap);
-    } catch (e) {
-      if (!isNetFail(e)) throw e;
-      const { db } = await import('@core/lib/offline/db');
-      const rows = (await db.customers.toArray()).filter((c: any) => !c._localDeleted);
-      const top = [...rows].sort((a: any, b: any) => (b.totalSpent || 0) - (a.totalSpent || 0)).slice(0, 5);
-      return {
-        total: rows.length,
-        vip: rows.filter((c: any) => c.isVip).length,
-        withCredit: rows.filter((c: any) => c.balance > 0).length,
-        newThisMonth: 0,
-        newLastMonth: 0,
-        growthPct: 0,
-        totalDebt: rows.reduce((s: number, c: any) => s + (c.balance || 0), 0),
-        topSpenders: top.map((c: any) => ({
-          id: c.id, name: c.name, phone: c.phone, avatarUrl: c.avatarUrl,
-          totalSpent: c.totalSpent || 0, isVip: !!c.isVip,
-        })),
-      };
     }
   },
 

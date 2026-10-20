@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -188,7 +189,7 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
         </div>
         {unlinkedIds.length > 0 && (
           <Btn size="sm" variant="success" loading={importMut.isPending} icon={<CloudDownload className="h-3.5 w-3.5" />}
-            onClick={() => { if (confirm(`${unlinkedIds.length} products Nafaa me banayein? Naam, qeemat, tasveer aur variants sab aa jayenge. Jo naam Nafaa me pehle se hai wo nahi banega — usi se jur jayega.`)) importMut.mutate(unlinkedIds); }}>
+            onClick={async () => { if ((await confirmDialog({ title: `${unlinkedIds.length} products Nafaa me banayein?`, text: 'Naam, qeemat, tasveer aur variants sab aa jayenge. Jo naam Nafaa me pehle se hai wo nahi banega — usi se jur jayega.', danger: true }))) importMut.mutate(unlinkedIds); }}>
             Baqi {unlinkedIds.length} Nafaa me banao
           </Btn>
         )}
@@ -544,7 +545,7 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
   if (connected) {
     return (
       <p className="text-[0.78125rem] text-slate-500">
-        Indolj menu jura hai. <button type="button" className="font-semibold text-rose-600 hover:underline" onClick={() => { if (confirm('Indolj ka menu link hatayein? Jore hue products waise hi rahenge.')) off.mutate(); }}>Hatayein</button>
+        Indolj menu jura hai. <button type="button" className="font-semibold text-rose-600 hover:underline" onClick={async () => { if ((await confirmDialog({ title: 'Indolj ka menu link hatayein?', text: 'Jore hue products waise hi rahenge.', danger: true }))) off.mutate(); }}>Hatayein</button>
       </p>
     );
   }

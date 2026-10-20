@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { GamingBillingModule } from './billing/gaming-billing.module';
 import { CafeSessionsModule } from './cafe-sessions/cafe-sessions.module';
 import { DigitalTopupsModule } from './digital-topups/digital-topups.module';
 import { GamingDashboardModule } from './dashboard/gaming-dashboard.module';
@@ -16,6 +17,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     CafeSessionsModule,
     TournamentsModule,
     GamingDashboardModule,
+    GamingBillingModule,
   ],
   exports: [
     GamingProductsModule,

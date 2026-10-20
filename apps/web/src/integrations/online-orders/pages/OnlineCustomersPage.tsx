@@ -17,8 +17,7 @@ import {
 } from 'lucide-react';
 import {
   Badge, Button, Card, FilterBar, FilterChip, FilterMenu, IconButton, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton,
-  ViewTabs, heroButton, heroIconButton,
-} from '@/design-system/components';
+  ViewTabs, heroButton, heroIconButton, confirmDialog } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -120,7 +119,7 @@ export default function OnlineCustomersPage() {
     onSuccess: (_r, c) => { toast.success(c.blocked ? 'Unblock ho gaya' : 'Block ho gaya'); qc.invalidateQueries({ queryKey: ['online-customers'] }); qc.invalidateQueries({ queryKey: ['blocklist'] }); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
-  const askBlock = (c: OnlineCustomer) => { if (c.blocked || window.confirm(`${c.name} (${c.phone}) block karein?\n\nIs number ka naya order khud accept nahi hoga.`)) block.mutate(c); };
+  const askBlock = async (c: OnlineCustomer) => { if (c.blocked || (await confirmDialog({ title: `${c.name} (${c.phone}) block karein?`, text: 'Is number ka naya order khud accept nahi hoga.', danger: true }))) block.mutate(c); };
 
   /** Every customer in the segment (up to 500) for copy, CSV and print. */
   const fetchAll = () => onlineOrdersApi.customers({ segment, search: query || undefined, limit: 500, offset: 0 });
@@ -144,7 +143,7 @@ export default function OnlineCustomersPage() {
       <PageHero
         title="Online customers"
         chip={<><Users />{seg.label}</>}
-        meta="Kaun baar baar leta hai, kaun gayab ho gaya — aur har ek ko WhatsApp par tayyar paigham"
+        meta="Kaun baar baar leta hai, kaun gayab ho gaya — aur har ek ko WhatsApp par tayyar message"
         busy={isFetching && !isLoading}
         loading={isLoading}
         actions={<>
@@ -195,12 +194,12 @@ export default function OnlineCustomersPage() {
       ) : tab === 'broadcast' ? (
         segment === 'blocked' ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Blocked customers ko paigham nahi bhejte</p>
+            <p className="font-semibold text-slate-900">Blocked customers ko message nahi bhejte</p>
             <Button className="mt-3" variant="secondary" onClick={() => pickSegment('all')}>Sab customers</Button>
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-5">
-            <Card className="rounded-2xl lg:col-span-2" title="Paigham" description={`${seg.hint}. {naam}, {dukaan} aur {link} khud badal jate hain.`}>
+            <Card className="rounded-2xl lg:col-span-2" title="Message" description={`${seg.hint}. {naam}, {dukaan} aur {link} khud badal jate hain.`}>
               <textarea value={tpl} onChange={(e) => setTemplates({ ...templates, [segment]: e.target.value })} rows={5} maxLength={600}
                 className="w-full rounded-xl border border-slate-200 bg-white p-3 text-[0.875rem] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100" />
               <label className="mt-3 block text-[0.75rem] font-semibold text-slate-600">
@@ -208,7 +207,7 @@ export default function OnlineCustomersPage() {
                 <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://…" className="mt-1 block h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-[0.875rem] font-normal outline-none focus:border-brand-400" />
               </label>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setTemplates({ ...templates, [segment]: TEMPLATES[segment] })}>Pehla wala paigham</Button>
+                <Button size="sm" variant="ghost" onClick={() => setTemplates({ ...templates, [segment]: TEMPLATES[segment] })}>Pehla wala message</Button>
                 <Button size="sm" variant="secondary" leftIcon={<Copy className="h-4 w-4" />} onClick={() => void copyNumbers()} disabled={!rows.length}>Sab numbers copy</Button>
               </div>
               {rows[0] && (
@@ -316,13 +315,13 @@ export default function OnlineCustomersPage() {
         <PageGuide title="Online customers — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Crown, color: '#d97706', title: 'VIP', text: 'Sab se zyada kharchne wale 10% (kam az kam 2 order deliver). Inhein khaas discount dein.' },
-            { icon: UserMinus, color: '#7c3aed', title: 'Gayab customers', text: '30, 60 ya 90 din se order nahi kiya. Ek WhatsApp paigham aksar wapas le aata hai.' },
-            { icon: Send, color: '#16a34a', title: 'Broadcast', text: 'Paigham likhein, phir ek ek customer ko "Bhejein" — WhatsApp khulta hai, Send dabayein. Ya sab numbers copy karke WhatsApp broadcast list banayein.' },
+            { icon: UserMinus, color: '#7c3aed', title: 'Gayab customers', text: '30, 60 ya 90 din se order nahi kiya. Ek WhatsApp message aksar wapas le aata hai.' },
+            { icon: Send, color: '#16a34a', title: 'Broadcast', text: 'Message likhein, phir ek ek customer ko "Bhejein" — WhatsApp khulta hai, Send dabayein. Ya sab numbers copy karke WhatsApp broadcast list banayein.' },
             { icon: Users, color: '#2563eb', title: 'Customer kholein', text: 'Naam par click karein — us ke saare orders, kharch aur RTO ek jagah. Order par click se poori details.' },
             { icon: ShieldBan, color: '#e11d48', title: 'Block', text: 'Fake ya baar baar RTO wale number block karein — un ka naya order khud accept nahi hota.' },
             { icon: Download, color: '#0891b2', title: 'CSV / print', text: 'Is list ke customers Excel ya PDF me — marketing ya record ke liye.' },
           ]}
-          tips={['Customer phone number se pehchana jata hai — alag channels ke orders ek hi customer me jurte hain.', 'Test order kisi ginti me nahi aata.', 'Paigham is browser me yaad rehta hai.']}
+          tips={['Customer phone number se pehchana jata hai — alag channels ke orders ek hi customer me jurte hain.', 'Test order kisi ginti me nahi aata.', 'Message is browser me yaad rehta hai.']}
           shortcuts={[['/', 'dhoondein'], ['1', 'customers'], ['2', 'broadcast'], ['G', 'guide']]}
         />
       )}

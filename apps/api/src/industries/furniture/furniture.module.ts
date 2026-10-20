@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { FurnitureBillingModule } from './billing/furniture-billing.module';
 import { CarpentersModule } from './carpenters/carpenters.module';
 import { CustomOrdersModule } from './custom-orders/custom-orders.module';
 import { FurnitureDashboardModule } from './dashboard/furniture-dashboard.module';
@@ -12,6 +13,7 @@ import { FurnitureProductsModule } from './products/products.module';
     CarpentersModule,
     FurnitureDeliveriesModule,
     FurnitureDashboardModule,
+    FurnitureBillingModule,
   ],
   exports: [
     FurnitureProductsModule,

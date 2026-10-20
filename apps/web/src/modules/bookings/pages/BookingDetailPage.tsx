@@ -128,7 +128,7 @@ export default function BookingDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <Card className="rounded-3xl" title="Cheezen" description={active ? 'Booking ke waqt stock nahi ghatta; bikri par is branch se nikalta hai' : undefined}>
+          <Card className="rounded-3xl" title="Cheezen" description={active ? 'Booking ke waqt stock nahi ghatta; sale par is branch se nikalta hai' : undefined}>
             <ul className="divide-y divide-slate-100">
               {(b.items ?? []).map((i) => (
                 <li key={i.id} className="flex items-start gap-3 py-2.5">
@@ -259,7 +259,7 @@ export default function BookingDetailPage() {
             { icon: CalendarClock, color: '#d97706', title: 'Date', text: 'Pickup aage peeche ho to "Badlein" se nayi date rakhein.' },
             { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Advance wapas dein ya khate me rehne dein. Reserve IMEI aur piece wapas stock me.' },
           ]}
-          shortcuts={[['P', 'payment'], ['C', 'bikri'], ['R', 'tayyar'], ['D', 'tareekh'], ['S', 'slip'], ['W', 'WhatsApp'], ['X', 'cancel'], ['G', 'guide']]}
+          shortcuts={[['P', 'payment'], ['C', 'sale'], ['R', 'tayyar'], ['D', 'tareekh'], ['S', 'slip'], ['W', 'WhatsApp'], ['X', 'cancel'], ['G', 'guide']]}
         />
       )}
     </PageShell>

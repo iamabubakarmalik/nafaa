@@ -18,8 +18,7 @@ import {
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import {
   Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton,
-  heroIconButton, heroPrimaryButton,
-} from '@/design-system/components';
+  heroIconButton, heroPrimaryButton, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -204,7 +203,7 @@ function BundleCard({ b, money, canEdit, canDelete }: { b: ElectronicsBundle; mo
           <button type="button" onClick={() => navigate(`/electronics/bundles/${b.id}/edit`)} title="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
         </>}
         {canDelete && (
-          <button type="button" onClick={() => { if (window.confirm(`"${b.name}" hata dein? Bika hua ho to sirf band hoga.`)) remove.mutate(); }} title="Hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+          <button type="button" onClick={async () => { if ((await confirmDialog({ title: `"${b.name}" hata dein?`, text: 'Bika hua ho to sirf band hoga.', danger: true }))) remove.mutate(); }} title="Hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
         )}
       </div>
     </div>

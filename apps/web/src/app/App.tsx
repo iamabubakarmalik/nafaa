@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes, useParams, type Params } from '
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryCachePersister } from '@core/lib/offline/queryPersister';
 import { Toaster } from 'sonner';
+import { ConfirmHost } from '@/design-system/components';
 import { useEffect, type ReactElement } from 'react';
 import { AppearanceBridge, AppearanceProvider } from '@/design-system';
 import { useLocaleStore } from '@core/stores/locale.store';
@@ -163,11 +164,6 @@ import LegalPage from '@modules/legal/pages/LegalPage';
 // ─── ORIGINAL 19 INDUSTRIES ────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
 
-// ─── Carpet Industry ───────────────────────────────────────────
-import CarpetRollsPage from '@industries/carpet/pages/CarpetRollsPage';
-import CarpetCutPiecesPage from '@industries/carpet/pages/CarpetCutPiecesPage';
-import CarpetRollDetailPage from '@industries/carpet/pages/CarpetRollDetailPage';
-import CarpetBulkImportPage from '@industries/carpet/pages/CarpetBulkImportPage';
 
 // ─── Retail Industry ───────────────────────────────────────────
 import CombosPage from '@modules/inventory/combos/pages/CombosPage';
@@ -241,6 +237,8 @@ import ClinicServiceDetailPage from '@industries/clinic/pages/ClinicServiceDetai
 import AgriDashboard from '@industries/agri/dashboard/AgriDashboard';
 import AgriProductsListPage from '@industries/agri/pages/AgriProductsListPage';
 import FarmersPage from '@industries/agri/pages/FarmersPage';
+import FarmerFormPage from '@industries/agri/pages/FarmerFormPage';
+import FarmerDetailPage from '@industries/agri/pages/FarmerDetailPage';
 import BulkOrdersPage from '@industries/agri/pages/BulkOrdersPage';
 import NewBulkOrderPage from '@industries/agri/pages/NewBulkOrderPage';
 import AdvisoryPage from '@industries/agri/pages/AdvisoryPage';
@@ -258,8 +256,8 @@ import KarigarsPage from '@industries/jewelry/pages/KarigarsPage';
 import MetalStockPage from '@industries/jewelry/pages/MetalStockPage';
 
 // ─── Industry Product/Item Wizards & Details ──────────────────
-import CarpetProductWizardPage from '@industries/carpet/pages/CarpetProductWizardPage';
-import CarpetProductDetailPage from '@industries/carpet/pages/CarpetProductDetailPage';
+import CarpetProductEditor from '@industries/carpet/products/CarpetProductEditor';
+import CarpetProductDetail from '@industries/carpet/products/CarpetProductDetail';
 import MobileProductWizardPage from '@/industries/mobile/pages/MobileProductWizardPage';
 import MobileProductDetailPage from '@industries/mobile/pages/MobileProductDetailPage';
 import RetailProductEditor from '@industries/retail/products/RetailProductEditor';
@@ -299,26 +297,14 @@ import ElectronicsBundleFormPage from '@industries/electronics/pages/BundleFormP
 import ElectronicsWarrantyClaimsPage from '@industries/electronics/pages/WarrantyClaimsPage';
 
 // ─── Furniture Industry ────────────────────────────────────────
-import FurnitureDashboard from '@industries/furniture/dashboard/FurnitureDashboard';
 import FurnitureProductsPage from '@industries/furniture/pages/FurnitureProductsPage';
 import FurnitureProductWizardPage from '@industries/furniture/pages/FurnitureProductWizardPage';
 import FurnitureProductDetailPage from '@industries/furniture/pages/FurnitureProductDetailPage';
-import FurnitureCustomOrdersPage from '@industries/furniture/pages/CustomOrdersPage';
-import FurnitureCustomOrderFormPage from '@industries/furniture/pages/CustomOrderFormPage';
-import FurnitureCustomOrderDetailPage from '@industries/furniture/pages/CustomOrderDetailPage';
-import FurnitureDeliveriesPage from '@industries/furniture/pages/DeliveriesPage';
-import CarpentersPage from '@industries/furniture/pages/CarpentersPage';
 
 // ─── Gaming Industry ───────────────────────────────────────────
-import GamingDashboard from '@industries/gaming/dashboard/GamingDashboard';
 import GamingProductsPage from '@industries/gaming/pages/GamingProductsPage';
 import GamingProductWizardPage from '@industries/gaming/pages/GamingProductWizardPage';
 import GamingProductDetailPage from '@industries/gaming/pages/GamingProductDetailPage';
-import GamingCafeLivePage from '@industries/gaming/pages/GamingCafeLivePage';
-import GamingStationsPage from '@industries/gaming/pages/GamingStationsPage';
-import GamingRentalsPage from '@industries/gaming/pages/GamingRentalsPage';
-import GamingTopupsPage from '@industries/gaming/pages/GamingTopupsPage';
-import GamingTournamentsPage from '@industries/gaming/pages/GamingTournamentsPage';
 
 // ─── Route Guards & Layout ─────────────────────────────────────
 import { ProtectedRoute, PublicOnlyRoute } from '@app/router/ProtectedRoute';
@@ -602,12 +588,8 @@ export default function App() {
                   {/* ORIGINAL 19 INDUSTRIES                          */}
                   {/* ═══════════════════════════════════════════════ */}
 
-                  {/* Carpet */}
-                  <Route path="/carpet-rolls/:id" element={<CarpetRollDetailPage />} />
-                  <Route path="/carpet-rolls" element={<CarpetRollsPage />} />
-                  <Route path="/carpet-cut-pieces" element={<CarpetCutPiecesPage />} />
+                  {/* Carpet pages are routed by CarpetPack with permissions. */}
                   <Route path="/carpet-reports" element={<Navigate to="/reports" replace />} />
-                  <Route path="/carpet-bulk-import" element={<CarpetBulkImportPage />} />
 
                   {/* Retail */}
                   <Route path="/combos/new" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ComboFormPage />)} />
@@ -694,6 +676,9 @@ export default function App() {
                   <Route path="/agri/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <AgriDashboard />)} />
                   <Route path="/agri/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AgriProductsListPage />)} />
                   <Route path="/agri/farmers" element={secure(PERMISSIONS.AGRI_FARMERS_VIEW, <FarmersPage />)} />
+                  <Route path="/agri/farmers/new" element={secure(PERMISSIONS.AGRI_FARMERS_MANAGE, <FarmerFormPage />)} />
+                  <Route path="/agri/farmers/:id/edit" element={secure(PERMISSIONS.AGRI_FARMERS_MANAGE, <FarmerFormPage />)} />
+                  <Route path="/agri/farmers/:id" element={secure(PERMISSIONS.AGRI_FARMERS_VIEW, <FarmerDetailPage />)} />
                   <Route path="/agri/bulk-orders/new" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <NewBulkOrderPage />)} />
                   <Route path="/agri/bulk-orders" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <BulkOrdersPage />)} />
                   <Route path="/agri/advisory" element={secure(PERMISSIONS.AGRI_ADVISORY_VIEW, <AdvisoryPage />)} />
@@ -732,33 +717,16 @@ export default function App() {
                   <Route path="/electronics/serial-tracking" element={<Navigate to="/electronics/serials" replace />} />
                   <Route path="/electronics/warranty-claims" element={secure(PERMISSIONS.ELECTRONICS_WARRANTY_VIEW, <ElectronicsWarrantyClaimsPage />)} />
 
-                  {/* Furniture */}
-                  <Route path="/furniture" element={<FurnitureDashboard />} />
-                  <Route path="/furniture/dashboard" element={<FurnitureDashboard />} />
-                  <Route path="/furniture/custom-orders/new" element={<FurnitureCustomOrderFormPage />} />
-                  <Route path="/furniture/custom-orders/:id/edit" element={<FurnitureCustomOrderFormPage />} />
-                  <Route path="/furniture/custom-orders/:id" element={<FurnitureCustomOrderDetailPage />} />
-                  <Route path="/furniture/custom-orders" element={<FurnitureCustomOrdersPage />} />
-                  <Route path="/furniture/deliveries" element={<FurnitureDeliveriesPage />} />
-                  <Route path="/furniture/carpenters" element={<CarpentersPage />} />
-
-                  {/* Gaming */}
-                  <Route path="/gaming" element={<GamingDashboard />} />
-                  <Route path="/gaming/dashboard" element={<GamingDashboard />} />
-                  <Route path="/gaming/cafe" element={<GamingCafeLivePage />} />
-                  <Route path="/gaming/stations" element={<GamingStationsPage />} />
-                  <Route path="/gaming/rentals" element={<GamingRentalsPage />} />
-                  <Route path="/gaming/topups" element={<GamingTopupsPage />} />
-                  <Route path="/gaming/tournaments" element={<GamingTournamentsPage />} />
+                  {/* Furniture and Gaming pages are routed by their packs with permissions. */}
 
                   {/* ═══════════════════════════════════════════════ */}
                   {/* INDUSTRY PRODUCT WIZARDS & DETAILS               */}
                   {/* ═══════════════════════════════════════════════ */}
 
                   {/* Carpet */}
-                  <Route path="/carpet-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <CarpetProductWizardPage />)} />
-                  <Route path="/carpet-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <CarpetProductWizardPage />)} />
-                  <Route path="/carpet-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CarpetProductDetailPage />)} />
+                  <Route path="/carpet-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <CarpetProductEditor />)} />
+                  <Route path="/carpet-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <CarpetProductEditor />)} />
+                  <Route path="/carpet-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CarpetProductDetail />)} />
 
                   {/* Mobile */}
                   <Route path="/mobile-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <MobileProductWizardPage />)} />
@@ -868,6 +836,7 @@ export default function App() {
       </AppearanceProvider>
 
       <ManagerPinHost />
+      <ConfirmHost />
       <Toaster
         position="top-right"
         richColors

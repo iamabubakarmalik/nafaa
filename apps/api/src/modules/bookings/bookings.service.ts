@@ -860,7 +860,7 @@ export class BookingsService {
         } else {
           const moved = await applyStockDelta({
             tx, tenantId: user.tenantId, shopId, productId: it.productId, variantId: it.variantId, delta: -it.quantity,
-            movementType: 'SALE_OUT', reference: saleNumber, note: `Booking ${booking.bookingNumber} ki bikri`,
+            movementType: 'SALE_OUT', reference: saleNumber, note: `Booking ${booking.bookingNumber} ki sale`,
             preventNegative: !settings?.allowNegativeStock, label, userId: user.id, unitCost: it.costPrice || null,
           });
           await recordSaleBatches(tx, saleItem.id, moved.batches);
@@ -869,7 +869,7 @@ export class BookingsService {
 
       if (additionalPayment > 0) {
         await tx.bookingPayment.create({
-          data: { bookingId: id, type: 'ADDITIONAL', amount: additionalPayment, paymentMethod, notes: dto.notes?.trim() || 'Bikri ke waqt payment', createdById: user.id },
+          data: { bookingId: id, type: 'ADDITIONAL', amount: additionalPayment, paymentMethod, notes: dto.notes?.trim() || 'Sale ke waqt payment', createdById: user.id },
         });
       }
 
@@ -879,7 +879,7 @@ export class BookingsService {
         await this.ledger(tx, user, booking, 'ADJUSTMENT', booking.totalPaid, saleNumber, `Booking advance bill me laga: ${booking.bookingNumber} → ${saleNumber}`);
       }
       if (creditAmount > 0) {
-        await this.ledger(tx, user, booking, 'SALE_CREDIT', creditAmount, saleNumber, `Booking ki bikri ka udhaar: ${saleNumber}`);
+        await this.ledger(tx, user, booking, 'SALE_CREDIT', creditAmount, saleNumber, `Booking ki sale ka udhaar: ${saleNumber}`);
       }
       await tx.customer.update({ where: { id: booking.customerId }, data: { totalSpent: { increment: booking.total } } });
 
@@ -909,7 +909,7 @@ export class BookingsService {
     await tx.stockMovement.create({
       data: {
         tenantId, shopId, productId, variantId, type: 'SALE_OUT', quantity: -1, balanceAfter: after,
-        reference: saleNumber, note: `Booking ${bookingNumber} ki bikri (IMEI)`, createdById: userId,
+        reference: saleNumber, note: `Booking ${bookingNumber} ki sale (IMEI)`, createdById: userId,
       },
     });
   }

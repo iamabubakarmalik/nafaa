@@ -10,7 +10,7 @@ import {
   Link2, ChevronRight, Wifi, WifiOff, LayoutGrid, List, Star, Store, Loader2,
 } from 'lucide-react';
 import { integrationsApi } from '../_core/api/integrations.api';
-import { Button, SkeletonCard } from '@/design-system/components';
+import { Button, Modal, PageHero, PageShell, SkeletonCard, heroIconButton, heroPrimaryButton, confirmDialog } from '@/design-system/components';
 import { ConnectIntegrationModal } from '../_core/components/ConnectIntegrationModal';
 import { IntegrationDetailModal } from '../_core/components/IntegrationDetailModal';
 import { ChannelOrdersPanel } from '../_core/components/ChannelOrdersPanel';
@@ -242,11 +242,10 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
     );
   }
 
-  const heroBtn = 'h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-black inline-flex items-center gap-1.5 backdrop-blur disabled:opacity-50 transition';
   const healthColor = stats.health >= 90 ? '#34d399' : stats.health >= 60 ? '#fbbf24' : '#fb7185';
 
   return (
-    <div className="w-full space-y-4 sm:space-y-5 pb-10">
+    <PageShell className="pb-10">
       {showTeacher && <IntegrationsTeacher onClose={() => setShowTeacher(false)} />}
 
       {/* PRINT HEADER */}
@@ -257,69 +256,19 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
         </p>
       </div>
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-800 text-white p-5 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-violet-400/25 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
-        <div className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
-
-        <div className="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-          <div className="flex items-start gap-5 min-w-0">
-            {/* Health ring */}
-            {integrations.length > 0 && (
-              <div className="relative h-24 w-24 shrink-0 hidden sm:block" title="Kitni integrations chal rahi hain">
-                <svg viewBox="0 0 36 36" className="h-24 w-24 -rotate-90">
-                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="3" />
-                  <circle cx="18" cy="18" r="15.5" fill="none" stroke={healthColor} strokeWidth="3" strokeLinecap="round"
-                    strokeDasharray={`${(stats.health / 100) * 97.4} 97.4`} className="transition-all duration-1000" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-xl font-black tabular-nums">{stats.health.toFixed(0)}%</span>
-                  <span className="text-[0.625rem] font-black text-white/70">sehat</span>
-                </div>
-              </div>
-            )}
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
-                <Link2 className="h-3.5 w-3.5 text-amber-300" /> Integration hub
-                {shopName && <span className="normal-case tracking-normal text-emerald-200">· 🏪 {shopName}</span>}
-                {stats.errored.length > 0 && (
-                  <span className="normal-case tracking-normal inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 text-white">
-                    <AlertCircle className="h-3 w-3" /> {stats.errored.length} masla
-                  </span>
-                )}
-              </div>
-              <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🔌 Integrations</h1>
-              <p className="mt-1.5 text-xs sm:text-sm font-bold text-white/85 max-w-2xl">
-                Foodpanda, Daraz, apni website, TCS aur JazzCash — sab ek jagah se jorein. Orders seedhe Nafaa POS me,
-                har 30 second me khud taaza.
-              </p>
-              {stats.lastSync && (
-                <p className="mt-1 text-[0.6875rem] font-bold text-white/60 inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Aakhri sync {timeAgo(stats.lastSync)} pehle
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <button onClick={() => setShowTeacher(true)} title="Guide (G)"
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-black inline-flex items-center gap-1.5 shadow-lg transition">
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Sikhein</span>
-            </button>
-            <button onClick={() => refetch()} disabled={isFetching} title="Taaza (R)" className={heroBtn}>
-              <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
-            </button>
-            <button onClick={exportCSV} title="CSV" className={heroBtn}><Download className="h-4 w-4" /></button>
-            <button onClick={() => window.print()} title="Print (P)" className={heroBtn}><Printer className="h-4 w-4" /></button>
-            <button onClick={() => setConnectModal(true)} title="Nayi integration (N)"
-              className="h-11 px-4 rounded-xl bg-white text-violet-800 hover:bg-violet-50 text-xs font-black inline-flex items-center gap-1.5 shadow-2xl transition">
-              <Plus className="h-4 w-4" /> Integration jorein
-            </button>
-          </div>
-        </div>
-      </section>
+      <div className="print:hidden">
+        <PageHero title="Integrations"
+          chip={<><Link2 />Integration hub{shopName ? ` · ${shopName}` : ''}{stats.errored.length > 0 ? ` · ${stats.errored.length} masla` : ''}</>}
+          meta={`Foodpanda, Daraz, website, TCS aur JazzCash ek jagah — orders seedhe POS me${stats.lastSync ? ` · aakhri sync ${timeAgo(stats.lastSync)} pehle` : ''}`}
+          actions={<>
+            <button type="button" onClick={() => setShowTeacher(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+            <button type="button" onClick={() => refetch()} disabled={isFetching} title="Taaza (R)" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} /></button>
+            <button type="button" onClick={exportCSV} title="CSV" className={heroIconButton}><Download className="h-4 w-4" /></button>
+            <button type="button" onClick={() => window.print()} title="Print (P)" className={heroIconButton}><Printer className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setConnectModal(true)} title="Nayi integration (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" />Integration jorein</button>
+          </>}
+          stats={integrations.length > 0 ? [{ label: 'Sehat', value: <span style={{ color: healthColor }}>{stats.health.toFixed(0)}%</span> }, { label: 'Chal rahi', value: `${stats.connectedCount}/${integrations.length}` }] : undefined} />
+      </div>
 
       {/* ═══ KPI — do qatar ═══ */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 print:hidden">
@@ -530,7 +479,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                   {filteredIntegrations.map((it) => (
                     <IntegrationCard key={it.id} integration={it}
                       onOpen={() => openIntegration(it)}
-                      onDisconnect={() => { if (confirm(`${it.displayName} band karein? Naye orders aana ruk jayenge.`)) disconnectMutation.mutate(it.id); }}
+                      onDisconnect={async () => { if ((await confirmDialog({ title: `${it.displayName} band karein?`, text: 'Naye orders aana ruk jayenge.', danger: true }))) disconnectMutation.mutate(it.id); }}
                       onReconnect={() => reconnectMutation.mutate(it.id)} />
                   ))}
                 </div>
@@ -539,7 +488,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                   {filteredIntegrations.map((it) => (
                     <IntegrationRow key={it.id} integration={it}
                       onOpen={() => openIntegration(it)}
-                      onDisconnect={() => { if (confirm(`${it.displayName} band karein?`)) disconnectMutation.mutate(it.id); }}
+                      onDisconnect={async () => { if ((await confirmDialog({ title: `${it.displayName} band karein?`, danger: true }))) disconnectMutation.mutate(it.id); }}
                       onReconnect={() => reconnectMutation.mutate(it.id)} />
                   ))}
                 </div>
@@ -659,7 +608,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
           a { color: inherit !important; text-decoration: none !important; }
         }
       `}</style>
-    </div>
+    </PageShell>
   );
 }
 
@@ -897,57 +846,55 @@ function SyncLogRow({ log }: { log: any }) {
 
 function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Integrations ka safha</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
+    <Modal
+      open
+      onClose={onClose}
+      size="md"
+      title="Integrations kaise kaam karti hain"
+      description="Doosre platforms ko apne POS se jorne ki guide"
+      footer={<Button onClick={onClose}>Samajh gaya</Button>}
+    >
+      <div className="space-y-3 text-sm">
+        <p className="text-[0.8125rem] font-semibold text-slate-700 dark:text-ink-200">
+          Integration matlab doosre platform ko apne POS se jorna. Foodpanda par order aaya — seedha Nafaa me.
+          Parcel TCS se gaya — tracking khud.
+        </p>
+        <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200">
+          🍔 Misal: restaurant + Foodpanda — portal se keys lein → Nafaa me daalein → Jorein. Customer order kare to 30 second me POS me,
+          accept karein, kitchen ticket, stock aur sale khud.
         </div>
-        <div className="p-5 space-y-3 text-sm">
-          <p className="text-[0.8125rem] font-semibold text-slate-700 dark:text-ink-200">
-            Integration matlab doosre platform ko apne POS se jorna. Foodpanda par order aaya — seedha Nafaa me.
-            Parcel TCS se gaya — tracking khud.
-          </p>
-          <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200">
-            🍔 Misal: restaurant + Foodpanda — portal se keys lein → Nafaa me daalein → Jorein. Customer order kare to 30 second me POS me,
-            accept karein, kitchen ticket, stock aur sale khud.
+        <Tip icon={ShoppingCart} title="🛒 Bechne ki jagah">Foodpanda, Daraz, Shopify, apni website — yahan se orders aate hain.</Tip>
+        <Tip icon={Truck} title="📦 Courier">TCS, Leopards, CallCourier — parcel book aur tracking.</Tip>
+        <Tip icon={CreditCard} title="💳 Payment">JazzCash, EasyPaisa, NayaPay, Raast — online paisa lena.</Tip>
+        <Tip icon={Calculator} title="📊 Hisaab kitaab">QuickBooks, Xero — sale khud books me.</Tip>
+        <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Halat ka matlab</div>
+          <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-200">
+            <div>🟢 <strong>Chal raha</strong> — sab theek</div>
+            <div>🔴 <strong>Ghalti</strong> — dobara jorein</div>
+            <div>⚪ <strong>Band</strong> — aap ne band ki</div>
+            <div>🟡 <strong>Intezar</strong> — tasdeeq baqi</div>
+            <div>⛔ <strong>Rok diya</strong> — platform ne roka</div>
           </div>
-          <Tip icon={ShoppingCart} title="🛒 Bechne ki jagah">Foodpanda, Daraz, Shopify, apni website — yahan se orders aate hain.</Tip>
-          <Tip icon={Truck} title="📦 Courier">TCS, Leopards, CallCourier — parcel book aur tracking.</Tip>
-          <Tip icon={CreditCard} title="💳 Payment">JazzCash, EasyPaisa, NayaPay, Raast — online paisa lena.</Tip>
-          <Tip icon={Calculator} title="📊 Hisaab kitaab">QuickBooks, Xero — sale khud books me.</Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
-            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Halat ka matlab</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-200">
-              <div>🟢 <strong>Chal raha</strong> — sab theek</div>
-              <div>🔴 <strong>Ghalti</strong> — dobara jorein</div>
-              <div>⚪ <strong>Band</strong> — aap ne band ki</div>
-              <div>🟡 <strong>Intezar</strong> — tasdeeq baqi</div>
-              <div>⛔ <strong>Rok diya</strong> — platform ne roka</div>
-            </div>
+        </div>
+        <Tip icon={Activity} title="Sehat aur kamyabi">
+          <strong>Sehat</strong> = kitni integrations chal rahi hain. <strong>Kamyabi</strong> = sync me kitne record theek guzre — 95% se upar achha.
+          Masle wali integration hamesha upar laal patti me dikhti hai.
+        </Tip>
+        <Tip icon={Globe} title="Apni website">WooCommerce, Shopify ya custom website ke liye alag safha hai — checklist, test order aur keys ke saath.</Tip>
+        <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+          <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+            <div><Kbd>/</Kbd> dhoondo</div>
+            <div><Kbd>N</Kbd> nayi integration</div>
+            <div><Kbd>1</Kbd>–<Kbd>3</Kbd> tabs</div>
+            <div><Kbd>R</Kbd> taaza</div>
+            <div><Kbd>P</Kbd> print</div>
+            <div><Kbd>G</Kbd> ye guide</div>
           </div>
-          <Tip icon={Activity} title="Sehat aur kamyabi">
-            <strong>Sehat</strong> = kitni integrations chal rahi hain. <strong>Kamyabi</strong> = sync me kitne record theek guzre — 95% se upar achha.
-            Masle wali integration hamesha upar laal patti me dikhti hai.
-          </Tip>
-          <Tip icon={Globe} title="Apni website">WooCommerce, Shopify ya custom website ke liye alag safha hai — checklist, test order aur keys ke saath.</Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
-            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-              <div><Kbd>/</Kbd> dhoondo</div>
-              <div><Kbd>N</Kbd> nayi integration</div>
-              <div><Kbd>1</Kbd>–<Kbd>3</Kbd> tabs</div>
-              <div><Kbd>R</Kbd> taaza</div>
-              <div><Kbd>P</Kbd> print</div>
-              <div><Kbd>G</Kbd> ye guide</div>
-            </div>
-          </div>
-          <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 

@@ -17,6 +17,7 @@ import { withManagerPin } from '@core/security/ManagerPin';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import { STOCK_KEYS } from '@modules/inventory/stock-adjustments/components/meta';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { carpetRollsApi } from '@industries/carpet/api/carpet-rolls.api';
 import { bookingsApi, type Booking } from '../api/bookings.api';
 import { BOOKINGS_KEY, apiError } from './meta';
 
@@ -108,7 +109,7 @@ export function PaymentModal({ booking, onClose }: { booking: Booking; onClose: 
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (!bad && !run.isPending) run.mutate(); }}>
         <Money b={booking} />
         <AmountField id="pay-amount" value={amount} onChange={setAmount} max={booking.balanceDue} label="Kitne mile"
-          hint={bad || 'Customer ke khate me jama hota hai; bikri par bill me lag jata hai'} />
+          hint={bad || 'Customer ke khate me jama hota hai; sale par bill me lag jata hai'} />
         <div><p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kaise diya</p><MethodPicker value={method} onChange={setMethod} /></div>
         <div>
           <Label htmlFor="pay-note">Note</Label>
@@ -134,6 +135,10 @@ export function ConvertModal({ booking, onClose }: { booking: Booking; onClose: 
     mutationFn: () => bookingsApi.convert(booking.id, { additionalPayment: n, paymentMethod: method }),
     onSuccess: ({ sale }) => {
       toast.success(`Bill ${sale.saleNumber} ban gaya`);
+      // Carpet lines: cut the roll or sell the piece now. Safe to repeat; a failure stays under "Kaatna baqi".
+      if (booking.items?.some((i) => i.rollId || i.cutPieceId)) {
+        carpetRollsApi.settleBill(sale.id).catch(() => toast.info('Carpet ka kaatna baqi hai — Rolls page se kaat lein'));
+      }
       refresh(true);
       onClose();
       navigate(`/sales/${sale.id}/receipt`);

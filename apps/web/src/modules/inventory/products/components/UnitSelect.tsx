@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
 import { Check, ChevronDown, Plus, Search, X, Star, Trash2, Edit2, Sparkles, Clock } from 'lucide-react';
 
@@ -337,8 +338,8 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
     setShowCustomInput(true);
   };
 
-  const handleCustomDelete = (unitValue: string) => {
-    if (!confirm(`Delete custom unit "${unitValue}"?`)) return;
+  const handleCustomDelete = async (unitValue: string) => {
+    if (!(await confirmDialog({ title: `Apna unit "${unitValue}" hatayein?`, danger: true }))) return;
     const next = customUnits.filter((u) => u.value !== unitValue);
     saveCustom(next);
     setCustomUnits(next);

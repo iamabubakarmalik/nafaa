@@ -194,6 +194,11 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /^agri\/(farmers|ledger)(\/|$)/, GET: P.AGRI_FARMERS_VIEW, write: P.AGRI_FARMERS_MANAGE },
   { match: /^agri\/(bulk-orders|subsidy|seasonal-plans)(\/|$)/, GET: P.AGRI_ORDERS_VIEW, write: P.AGRI_ORDERS_MANAGE },
   { match: /^agri\/advisory(\/|$)/, GET: P.AGRI_ADVISORY_VIEW, write: P.AGRI_ADVISORY_MANAGE },
+  // Furniture karigar reads: the order desk and the staff section both list them. Writes are decorated.
+  { match: /^furniture\/carpenters(\/|$)/, GET: [P.SERVICE_JOBS_VIEW, P.STAFF_VIEW] },
+  /* Carpet roll and piece reads: products, counter, transfers, adjustments, purchases, bookings and the online catalog all read rolls.
+     Writes carry their own decorators. Reports and bills are decorated too. */
+  { match: /^carpet-(rolls|cut-pieces)(\/|$)/, GET: [P.PRODUCTS_VIEW, P.POS_USE, P.STOCK_TRANSFERS_MANAGE, P.STOCK_ADJUSTMENTS_MANAGE, P.PURCHASES_CREATE, P.SERVICE_BOOKINGS_MANAGE, P.CATALOG_VIEW] },
 
   { match: /^(electronics|appliances)\/serial-tracking(\/|$)/, GET: P.ELECTRONICS_SERIALS_VIEW, write: P.ELECTRONICS_SERIALS_MANAGE },
   { match: /^(electronics|appliances|services-biz)\/warranty/, GET: P.ELECTRONICS_WARRANTY_VIEW, write: P.ELECTRONICS_WARRANTY_MANAGE },

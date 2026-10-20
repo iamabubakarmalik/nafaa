@@ -73,7 +73,7 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
         )}
         <Card className={cn('rounded-2xl', fmt.costHidden && 'lg:col-span-2')} title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-brand-600" />Sab se zyada biki</span>} description="Sale ke hisaab se · saath me profit ka number">
           <BriefList rows={data.topSellers} empty="Koi sale nahi" value={(r) => fmt.money(r.revenue)}
-            sub={(r) => fmt.costHidden ? `${qty(r.qty)} ${r.unit}` : `${fmt.cost(r.profit ?? 0)} profit · ${pct(r.margin)} · munafe me #${r.profitRank}`} />
+            sub={(r) => fmt.costHidden ? `${qty(r.qty)} ${r.unit}` : `${fmt.cost(r.profit ?? 0)} profit · ${pct(r.margin)} · profit me #${r.profitRank}`} />
         </Card>
       </div>
 
@@ -99,7 +99,7 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
         {!fmt.costHidden ? (
           <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Flame className="h-4 w-4 text-rose-600" />Nuqsan wali cheezein</span>}
             description={data.losses.count ? `${data.losses.count} cheezein cost se sasti biki · kul ${fmt.cost(data.losses.amount)}` : 'Koi cheez cost se sasti nahi biki'}>
-            <BriefList rows={data.losses.items} empty="Shabash — sab munafe me" tone="rose" value={(r) => fmt.cost(r.profit ?? 0)}
+            <BriefList rows={data.losses.items} empty="Shabash — sab profit me" tone="rose" value={(r) => fmt.cost(r.profit ?? 0)}
               sub={(r) => `${qty(r.qty)} ${r.unit} · ${fmt.money(r.revenue)} sale${r.discount ? ` · discount ${fmt.money(r.discount)}` : ''}`} />
           </Card>
         ) : (
@@ -112,7 +112,7 @@ export function ProfitAnalytics({ data, loading, fmt }: { data?: ProfitOverview;
           description={t.gross > 0 ? `${fmt.money(t.discount)} discount — list rate ka ${((t.discount / t.gross) * 100).toFixed(1)}%` : 'Koi discount nahi'}>
           {!fmt.costHidden && t.discount > 0 && (
             <p className="mb-3 rounded-xl bg-pink-50 px-3 py-2 text-[0.8125rem] text-pink-900">
-              Bina discount profit {fmt.cost((t.profit ?? 0) + t.discount)} hota — discount ne munafe ka {(t.profit ?? 0) + t.discount > 0 ? ((t.discount / ((t.profit ?? 0) + t.discount)) * 100).toFixed(0) : 0}% le liya.
+              Bina discount profit {fmt.cost((t.profit ?? 0) + t.discount)} hota — discount ne profit ka {(t.profit ?? 0) + t.discount > 0 ? ((t.discount / ((t.profit ?? 0) + t.discount)) * 100).toFixed(0) : 0}% le liya.
             </p>
           )}
           <BriefList rows={data.discountTop} empty="Kisi cheez par discount nahi di" value={(r) => fmt.money(r.discount)}

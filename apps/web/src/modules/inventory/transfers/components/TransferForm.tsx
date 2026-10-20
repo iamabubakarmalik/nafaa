@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, ArrowRight, Boxes, Cpu, Hash, Layers, Minus, Plus, ScanLine, Search, Send, Smartphone, X } from 'lucide-react';
-import { Button, Modal } from '@/design-system/components';
+import { Button, Modal, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
@@ -100,9 +100,9 @@ export function TransferForm({ defaultFrom, locked, industryId, money, onClose, 
   const base = (l: Line) => l.qty * l.unit.rate;
   const value = lines.reduce((s, l) => s + base(l) * l.cost, 0);
 
-  const changeFrom = (id: string) => {
+  const changeFrom = async (id: string) => {
     if (id === fromId) return;
-    if (lines.length && !confirm('Branch badalne se list saaf ho jayegi. Theek hai?')) return;
+    if (lines.length && !(await confirmDialog({ title: 'Branch badalne se list saaf ho jayegi. Theek hai?', danger: true }))) return;
     setLines([]);
     setFromId(id);
   };

@@ -18,11 +18,15 @@ export class SchoolListsController {
   @Post() @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   create(@GetUser() user: AuthenticatedUser, @Body() dto: unknown) { return this.service.create(user, dto); }
 
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query() query: Record<string, string | undefined>) { return this.service.list(user, query); }
+  @Get() @RequirePermissions(PERMISSIONS.PRODUCTS_VIEW)
+  list(@GetUser() user: AuthenticatedUser, @Query() query: Record<string, string | undefined>) { return this.service.list(user, query); }
 
-  @Get('for-pos') forPos(@GetUser() user: AuthenticatedUser) { return this.service.forPos(user); }
+  /** Sets offered at the counter. */
+  @Get('for-pos') @RequirePermissions(PERMISSIONS.POS_USE)
+  forPos(@GetUser() user: AuthenticatedUser) { return this.service.forPos(user); }
 
-  @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
+  @Get(':id') @RequirePermissions(PERMISSIONS.PRODUCTS_VIEW)
+  getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
 
   @Patch(':id') @RequirePermissions(PERMISSIONS.PRODUCTS_EDIT)
   update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: unknown) { return this.service.update(user, id, dto); }

@@ -47,7 +47,7 @@ const CONFIGS: Record<string, ReportsConfig> = {
     label: 'Jewelry',
     industry: { kind: 'jewelry', label: 'Sona chandi', icon: Gem, title: 'Gram, purity, banwai aur exchange',
       guide: step(Gem, '#ca8a04', 'Sona chandi tab', 'Kitne gram sona bika, kaunsi purity, banwai kitni kamayi aur purana sona kitna liya.') },
-    tips: ['Jewelry bills ka wazan aur purity "Sona chandi" tab me hai; Bikri tab POS ke bills dikhata hai.'],
+    tips: ['Jewelry bills ka wazan aur purity "Sona chandi" tab me hai; Sale tab POS ke bills dikhata hai.'],
   },
   mobile: {
     label: 'Mobile',

@@ -1,23 +1,20 @@
-import { Layers, Scissors, BarChart3, Download, Sparkles, RefreshCw } from 'lucide-react';
+import { Layers, Scissors, Download, Sparkles } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import CarpetRollsPage from './pages/CarpetRollsPage';
 import CarpetCutPiecesPage from './pages/CarpetCutPiecesPage';
 import CarpetRollDetailPage from './pages/CarpetRollDetailPage';
 import CarpetBulkImportPage from './pages/CarpetBulkImportPage';
-import CarpetProductWizardPage from './pages/CarpetProductWizardPage';
-import CarpetProductDetailPage from './pages/CarpetProductDetailPage';
+import CarpetProductEditor from './products/CarpetProductEditor';
+import CarpetProductDetail from './products/CarpetProductDetail';
 import CarpetDashboard from './dashboard/CarpetDashboard';
 
 /**
- * Carpet / Flooring industry pack.
+ * Carpet / flooring industry pack: rolls, cut pieces and roll import in the
+ * sidebar; products, POS and sales run on the shared pages through the
+ * carpet configs (products/, pos/, sales/).
  *
- * Sidebar mein SIRF carpet-specific features dikhate hain.
- * "+ Add Carpet Product" duplicate ho raha tha — hata diya.
- * Products page ka "+ Add" button industry-aware hook se
- * automatically /carpet-products/new pe redirect karega.
- *
- * Priority 90 — beats Mobile / Restaurant / Retail if tenant matches multiple.
+ * Priority 90 — wins when a tenant matches several packs.
  */
 export const CarpetPack: IndustryPack = {
   id: 'carpet',
@@ -50,19 +47,18 @@ export const CarpetPack: IndustryPack = {
       color: '#059669',
       order: 20,
       items: [
-        { to: '/carpet-rolls',       label: 'Carpet Rolls',    icon: Layers, badge: 'NEW' },
-        { to: '/carpet-cut-pieces',  label: 'Cut Pieces',      icon: Scissors },
-        { to: '/reports',            label: 'Carpet Reports',  icon: BarChart3 },
-        { to: '/carpet-bulk-import', label: 'Bulk Import',     icon: Download },
+        { to: '/carpet-rolls',       label: 'Carpet rolls',  icon: Layers },
+        { to: '/carpet-cut-pieces',  label: 'Tukre',         icon: Scissors },
+        { to: '/carpet-bulk-import', label: 'Rolls import',  icon: Download },
       ],
     },
   ],
 
   routes: [
-    // Wizard routes FIRST (very important - so /:id/edit isn't swallowed)
-    { path: '/carpet-products/new',      element: CarpetProductWizardPage },
-    { path: '/carpet-products/:id/edit', element: CarpetProductWizardPage },
-    { path: '/carpet-products/:id',      element: CarpetProductDetailPage },
+    // Editor routes first so /:id/edit is not taken by /:id.
+    { path: '/carpet-products/new',      element: CarpetProductEditor },
+    { path: '/carpet-products/:id/edit', element: CarpetProductEditor },
+    { path: '/carpet-products/:id',      element: CarpetProductDetail },
 
     // Carpet feature pages
     { path: '/carpet-rolls',        element: CarpetRollsPage },
@@ -73,17 +69,16 @@ export const CarpetPack: IndustryPack = {
 
   dashboardComponent: CarpetDashboard,
 
-
   productForm: {
     defaultUnit: 'sqft',
     unitOptions: [
-      { value: 'sqft', label: 'Square Feet (sqft)', hint: '📐', group: 'Area' },
-      { value: 'sqm',  label: 'Square Meter (sqm)', hint: '📐', group: 'Area' },
-      { value: 'sqyd', label: 'Square Yard (sqyd)', hint: '📐', group: 'Area' },
-      { value: 'ft',   label: 'Running Feet',       hint: '📏', group: 'Length' },
-      { value: 'm',    label: 'Running Meter',      hint: '📏', group: 'Length' },
-      { value: 'pcs',  label: 'Pieces',             hint: '🔢', group: 'Count' },
-      { value: 'roll', label: 'Full Roll',          hint: '🧻', group: 'Count' },
+      { value: 'sqft', label: 'Sq ft', hint: '📐', group: 'Area' },
+      { value: 'sqm',  label: 'Sq meter', hint: '📐', group: 'Area' },
+      { value: 'sqyd', label: 'Sq gaz', hint: '📐', group: 'Area' },
+      { value: 'ft',   label: 'Running ft', hint: '📏', group: 'Length' },
+      { value: 'm',    label: 'Running meter', hint: '📏', group: 'Length' },
+      { value: 'pcs',  label: 'Piece (rug)', hint: '🔢', group: 'Count' },
+      { value: 'roll', label: 'Poora roll', hint: '🧻', group: 'Count' },
     ],
   },
 

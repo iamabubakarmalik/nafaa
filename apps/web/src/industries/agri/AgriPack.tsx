@@ -11,6 +11,8 @@ import SeasonalPlansPage from './pages/SeasonalPlansPage';
 import SubsidyPage from './pages/SubsidyPage';
 import AgriProductWizardPage from './pages/AgriProductWizardPage';
 import AgriProductDetailPage from './pages/AgriProductDetailPage';
+import FarmerDetailPage from './pages/FarmerDetailPage';
+import FarmerFormPage from './pages/FarmerFormPage';
 
 /**
  * Agri / Feed / Seeds / Fertilizer industry pack.
@@ -58,7 +60,7 @@ export const AgriPack: IndustryPack = {
   ],
 
   routes: [
-    // ✅ VERY IMPORTANT — wizard FIRST
+    // Wizard paths come before the detail path.
     { path: '/agri-products/new', element: AgriProductWizardPage },
     { path: '/agri-products/:id/edit', element: AgriProductWizardPage },
 
@@ -66,10 +68,12 @@ export const AgriPack: IndustryPack = {
     { path: '/agri/dashboard', element: AgriDashboard },
     { path: '/agri/products', element: AgriProductsListPage },
 
-    // optional detail page
     { path: '/agri-products/:id', element: AgriProductDetailPage },
 
     { path: '/agri/farmers', element: FarmersPage },
+    { path: '/agri/farmers/new', element: FarmerFormPage },
+    { path: '/agri/farmers/:id/edit', element: FarmerFormPage },
+    { path: '/agri/farmers/:id', element: FarmerDetailPage },
     { path: '/agri/bulk-orders/new', element: NewBulkOrderPage },
     { path: '/agri/bulk-orders', element: BulkOrdersPage },
     { path: '/agri/advisory', element: AdvisoryPage },

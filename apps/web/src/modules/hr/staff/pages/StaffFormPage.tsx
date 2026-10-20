@@ -248,7 +248,7 @@ export default function StaffFormPage() {
 
           <Card className="rounded-2xl" title={<T icon={Wallet}>Tankhwah</T>} description="Tankhwah ka hisaab aur payment Tankhwah wale safhe par hoti hai">
             <fieldset disabled={hrLocked} className="grid gap-3 sm:grid-cols-2">
-              <Select label="Tankhwah ki qisam" value={hr.salaryType} onChange={(e) => set('salaryType', e.target.value as SalaryType)} options={SALARY_TYPES.map((s) => ({ value: s.id, label: s.label }))}
+              <Select label="Tankhwah ki type" value={hr.salaryType} onChange={(e) => set('salaryType', e.target.value as SalaryType)} options={SALARY_TYPES.map((s) => ({ value: s.id, label: s.label }))}
                 hint={hr.salaryType === 'COMMISSION' ? 'Sirf commission — rules Commission ke safhe par' : hr.salaryType === 'HYBRID' ? 'Pakki tankhwah ke upar commission' : 'Haazri ke hisaab se banti hai'} />
               {hr.salaryType !== 'COMMISSION' && (
                 <Input label={`Amount (Rs)${st.unit ? ` — ${st.unit}` : ''}`} inputMode="decimal" value={hr.baseSalary} onChange={(e) => set('baseSalary', e.target.value.replace(/[^\d.]/g, ''))} placeholder="0"

@@ -77,10 +77,10 @@ export function BookingsAnalytics({ filters, money }: { filters: Omit<BookingQue
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={8} />
                   <YAxis yAxisId="n" tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
                   <YAxis yAxisId="m" orientation="right" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v, n) => [n === 'Baqi raqam' ? money(Number(v)) : v, n]} {...theme.tooltip} />
+                  <Tooltip formatter={(v, n) => [n === 'Baqi amount' ? money(Number(v)) : v, n]} {...theme.tooltip} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar yAxisId="n" dataKey="count" name="Pickup" fill="#d97706" radius={[4, 4, 0, 0]} />
-                  <Bar yAxisId="m" dataKey="balance" name="Baqi raqam" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="m" dataKey="balance" name="Baqi amount" fill="#94a3b8" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

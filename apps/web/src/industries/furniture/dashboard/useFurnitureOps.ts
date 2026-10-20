@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { furnitureDashboardApi } from '../api/dashboard.api';
 import { customOrdersApi } from '../api/custom-orders.api';
+import { FURNITURE_KEYS } from '../lib/meta';
 
 const MINUTE = 60_000;
 const DAY = 86_400_000;
@@ -40,12 +41,12 @@ interface OrderSummary {
 
 export function useFurnitureOps() {
   const overview = useQuery<FurnitureOverview | null>({
-    queryKey: ['furniture-dashboard-overview'],
-    queryFn: () => furnitureDashboardApi.overview().catch(() => null),
+    queryKey: [FURNITURE_KEYS.dashboard],
+    queryFn: () => furnitureDashboardApi.overview().then((r) => r as FurnitureOverview).catch(() => null),
     refetchInterval: MINUTE,
   });
   const summary = useQuery<OrderSummary | null>({
-    queryKey: ['custom-orders-summary'],
+    queryKey: [FURNITURE_KEYS.orders, 'summary'],
     queryFn: () => customOrdersApi.summary().catch(() => null),
     refetchInterval: 5 * MINUTE,
   });

@@ -19,8 +19,7 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import {
   Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
-  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
-} from '@/design-system/components';
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { useBusinessDayStart } from '@core/lib/business-day';
@@ -143,10 +142,10 @@ export default function ExpensesPage() {
     edit: (e) => setForm({ mode: 'edit', expense: e }),
     again: (e) => setForm({ mode: 'new', title: e.title, amount: e.amount, categoryId: e.category?.id, paymentMethod: e.paymentMethod, description: e.description ?? undefined }),
     print: setVoucher,
-    pay: (e) => { if (window.confirm(`"${e.title}" ${formatPKR(e.amount)} abhi ada karein (${methodOf(e.paymentMethod).label})?\n\nTareekh aaj ki ho jayegi.${e.paymentMethod === 'CASH' ? ' Cash khuli shift ke galle se ghatega.' : ''}`)) pay.mutate(e); },
-    cancel: (e) => { if (window.confirm(`"${e.title}" cancel karein?\n\nRecord rahega magar hisaab me nahi ginega.`)) setState.mutate({ e, to: 'CANCELLED' }); },
+    pay: async (e) => { if ((await confirmDialog({ title: `"${e.title}" ${formatPKR(e.amount)} abhi ada karein (${methodOf(e.paymentMethod).label})?`, text: `Tareekh aaj ki ho jayegi.${e.paymentMethod === 'CASH' ? ' Cash khuli shift ke galle se ghatega.' : ''}` }))) pay.mutate(e); },
+    cancel: async (e) => { if ((await confirmDialog({ title: `"${e.title}" cancel karein?`, text: 'Record rahega magar hisaab me nahi ginega.', danger: true }))) setState.mutate({ e, to: 'CANCELLED' }); },
     restore: (e) => setState.mutate({ e, to: 'PAID' }),
-    remove: (e) => { if (window.confirm(`"${e.title}" (${formatPKR(e.amount)}) hamesha ke liye mitayein?\n\nBehtar hai "Cancel" karein — record bhi rehta hai.`)) remove.mutate(e); },
+    remove: async (e) => { if ((await confirmDialog({ title: `"${e.title}" (${formatPKR(e.amount)}) hamesha ke liye mitayein?`, text: 'Behtar hai "Cancel" karein — record bhi rehta hai.', danger: true }))) remove.mutate(e); },
     busy: pay.isPending || setState.isPending || remove.isPending,
   };
 

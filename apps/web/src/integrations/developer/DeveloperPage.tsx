@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -105,7 +106,7 @@ function KeysCard({ data, onSecret }: { data: DeveloperOverview; onSecret: (s: {
                 <span className="flex-1" />
                 <span className="text-[0.75rem] text-slate-500">{k.lastUsedAt ? `istemal ${whenText(k.lastUsedAt)}` : 'abhi istemal nahi hui'}</span>
                 <Btn size="sm" variant="plain" className="text-rose-600" loading={revoke.isPending && revoke.variables === k.id}
-                  onClick={() => { if (confirm(`"${k.name}" key band karein? Jo software is se jura hai wo ruk jayega.`)) revoke.mutate(k.id); }}>Band karein</Btn>
+                  onClick={async () => { if ((await confirmDialog({ title: `"${k.name}" key band karein?`, text: 'Jo software is se jura hai wo ruk jayega.', danger: true }))) revoke.mutate(k.id); }}>Band karein</Btn>
               </li>
             ))}
           </ul>
@@ -212,9 +213,9 @@ function HookRow({ h, labels, onSecret }: { h: WebhookRow; labels: { type: strin
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Btn size="sm" loading={test.isPending} icon={<Send className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Test bhejein</Btn>
         <Btn size="sm" variant="plain" loading={rotate.isPending} icon={<RefreshCw className="h-3.5 w-3.5" />}
-          onClick={() => { if (confirm('Naya secret banayein? Purane se signature check karne wala server fail hoga.')) rotate.mutate(); }}>Naya secret</Btn>
+          onClick={async () => { if ((await confirmDialog({ title: 'Naya secret banayein?', text: 'Purane se signature check karne wala server fail hoga.', danger: true }))) rotate.mutate(); }}>Naya secret</Btn>
         <Btn size="sm" variant="plain" className="text-rose-600" loading={del.isPending} icon={<Trash2 className="h-3.5 w-3.5" />}
-          onClick={() => { if (confirm('Ye webhook hatayein?')) del.mutate(); }}>Hatayein</Btn>
+          onClick={async () => { if ((await confirmDialog({ title: 'Ye webhook hatayein?', danger: true }))) del.mutate(); }}>Hatayein</Btn>
       </div>
     </div>
   );

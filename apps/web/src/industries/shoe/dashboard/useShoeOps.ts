@@ -1,6 +1,6 @@
 /**
  * Shoe numbers for the dashboard: pairs and sizes in stock, missing sizes,
- * best-selling sizes, try-ons, exchanges and brands. Every shoe widget calls
+ * best-selling sizes, try-ons, exchanges of the last 30 days and brands. Every shoe widget calls
  * this; React Query shares the requests between them.
  */
 
@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { shoeDashboardApi } from '../api/dashboard.api';
 import { shoeTryOnApi } from '../api/try-on.api';
-import { shoeExchangesApi } from '../api/exchanges.api';
+import { shoeExchangesApi, type ShoeExchangeSummary } from '../api/exchanges.api';
 
 const MINUTE = 60_000;
 
@@ -31,7 +31,6 @@ interface ShoeOverview {
   outOfStockVariants?: VariantRow[];
 }
 interface TryOnSummary { pending: number; scheduled: number; completed: number; cancelled: number; conversion: number }
-interface ExchangeSummary { requested: number; approved: number; completed: number; rejected: number }
 
 export function useShoeOps() {
   const overview = useQuery<ShoeOverview | null>({
@@ -50,7 +49,7 @@ export function useShoeOps() {
     queryFn: () => shoeTryOnApi.summary().catch(() => null),
     refetchInterval: 5 * MINUTE,
   });
-  const exchanges = useQuery<ExchangeSummary | null>({
+  const exchanges = useQuery<ShoeExchangeSummary | null>({
     queryKey: ['shoe-exchanges-summary'],
     queryFn: () => shoeExchangesApi.summary().catch(() => null),
     refetchInterval: 5 * MINUTE,
@@ -93,7 +92,7 @@ export function useShoeOps() {
       gaps,
       topSizes,
       tryOn: { pending: t?.pending ?? totals.pendingTryOns, scheduled: t?.scheduled ?? 0, completed: t?.completed ?? 0, conversion: t?.conversion ?? 0 },
-      exchanges: { requested: x?.requested ?? totals.pendingExchanges, approved: x?.approved ?? 0, completed: x?.completed ?? 0 },
+      exchanges: { count: x?.last30Days?.count ?? 0, value: x?.last30Days?.value ?? 0 },
       brands: o?.topBrands ?? [],
     };
   }, [o, overview.isLoading, sizes.data, tryOn.data, exchanges.data, nameById]);

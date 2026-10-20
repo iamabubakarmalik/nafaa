@@ -78,7 +78,7 @@ export function ProductSearch({ sources, byCode, loading, onPick, onMiss, placeh
                   <ProductThumb name={s.name} category={s.category} url={s.image} size="sm" />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium text-slate-900">{s.name}</span>
-                    <span className="block text-[0.75rem] text-slate-500">{s.sku ? `${s.sku} · ` : ''}Stock {qtyText(s.stock)} {s.baseUnit}{s.hasVariants ? ' · qismein hain' : ''}</span>
+                    <span className="block text-[0.75rem] text-slate-500">{s.sku ? `${s.sku} · ` : ''}Stock {qtyText(s.stock)} {s.baseUnit}{s.hasVariants ? ' · variants hain' : ''}</span>
                   </span>
                 </button>
                 {showUnits && s.units.length > 1 && (

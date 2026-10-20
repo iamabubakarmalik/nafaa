@@ -31,7 +31,7 @@ export class ShoeExchangesController {
     @Query('search') search?: string,
   ) { return this.service.list(u, { status, reasonCategory, from, to, search }); }
   @RequirePermissions(PERMISSIONS.RETURNS_VIEW)
-  @Get('summary') summary(@GetUser() u: AuthenticatedUser) { return this.service.summary(u); }
+  @Get('summary') summary(@GetUser() u: AuthenticatedUser, @CurrentShop() shop: ShopScope) { return this.service.summary(u, shop); }
   @RequirePermissions(PERMISSIONS.RETURNS_VIEW)
   @Get('by-reason-category') byReason(@GetUser() u: AuthenticatedUser) { return this.service.byReasonCategory(u); }
   @RequirePermissions(PERMISSIONS.RETURNS_VIEW)

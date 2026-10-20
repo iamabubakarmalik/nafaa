@@ -1,9 +1,10 @@
 /**
  * Publishers: who the shop's books come from, their usual discount and
- * credit days, and what the shop owes them. A publisher becomes a supplier
- * of the same name on first purchase, so buying, returning books to the
- * publisher and paying them run through the shared purchases and supplier
- * khata.
+ * credit days, and what the shop owes them. Each publisher is linked to a
+ * supplier (picked here, or one of the same name made on first purchase),
+ * so buying, returning books to the publisher and paying them run through
+ * the shared purchases and supplier khata, and a purchase from that
+ * supplier fills its books at list price less the publisher's discount.
  *
  * Keys: N new · / search · G guide.
  */
@@ -15,11 +16,12 @@ import { toast } from 'sonner';
 import { BookOpen, Building2, Download, GraduationCap, Pencil, Percent, Plus, Power, ShoppingCart, Undo2, Wallet } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import {
-  Button, FilterBar, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+  Button, FilterBar, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { publishersApi, type Publisher } from '../api/publishers.api';
 import { KEYS, apiError, decimal, digits } from '../lib/meta';
 import { ConfirmModal, EmptyBox, cardAction, cardDanger, cardLink, usePageKeys, useSaveKey } from '../components/ui';
@@ -137,7 +139,10 @@ export default function PublishersPage() {
                   <div><dt className="text-slate-500">Udhaar</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{p.creditDays ? `${p.creditDays} din` : 'Naqd'}</dd></div>
                   <div><dt className="text-slate-500">Dena hai</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{p.supplier ? cost(p.supplier.outstandingDue) : '—'}</dd></div>
                 </dl>
-                {p.defaultDiscountPct > 0 && <p className="mt-2 text-[0.75rem] text-slate-500">Purchase bill par {p.defaultDiscountPct}% discount lagayein{p.paymentTerms ? ` · ${p.paymentTerms}` : ''}</p>}
+                <p className="mt-2 truncate text-[0.75rem] text-slate-500">
+                  {p.supplier ? <>Supplier: <span className="font-medium text-slate-700">{p.supplier.name}</span></> : 'Supplier pehli purchase par banega'}
+                  {p.defaultDiscountPct > 0 && ` · purchase par MRP se ${p.defaultDiscountPct}% kam`}{p.paymentTerms ? ` · ${p.paymentTerms}` : ''}
+                </p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {canBuy && p.isActive && <button type="button" onClick={() => supplier.mutate({ p, to: 'buy' })} disabled={supplier.isPending} className={cardLink}><ShoppingCart className="h-3.5 w-3.5" />Purchase</button>}
                   {canSuppliers && p.supplier && <button type="button" onClick={() => navigate(`/suppliers/${p.supplier!.id}`)} className={cardAction} title="Khata, purchase bill aur wapsi"><Wallet className="h-3.5 w-3.5" />Khata / wapsi</button>}
@@ -155,14 +160,14 @@ export default function PublishersPage() {
 
       <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
 
-      {form && <PublisherModal publisher={form === 'new' ? null : form} pending={save.isPending} onSave={(body) => save.mutate({ id: form === 'new' ? undefined : form.id, body })} onClose={() => setForm(null)} />}
+      {form && <PublisherModal publisher={form === 'new' ? null : form} pending={save.isPending} canPickSupplier={canEditSuppliers} onSave={(body) => save.mutate({ id: form === 'new' ? undefined : form.id, body })} onClose={() => setForm(null)} />}
       {off && <ConfirmModal title={`${off.name} band karein?`} text="Kitab banate waqt ye publisher nahi dikhega. Is ki kitaben, purchase aur khata waise hi rahenge." confirm="Band karein" danger pending={toggle.isPending} onConfirm={() => toggle.mutate(off)} onClose={() => setOff(null)} />}
 
       {guide.isOpen && (
         <PageGuide title="Publishers — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Building2, color: '#2563eb', title: 'Publisher', text: 'Oxford, Paramount, Punjab Textbook Board — kitab banate waqt publisher chunein, products page aur POS par us ke naam se dhoondein.' },
-            { icon: ShoppingCart, color: '#16a34a', title: 'Purchase', text: '"Purchase" dabane se publisher supplier ban jata hai aur naya purchase bill khulta hai. Publisher ka discount % bill ke discount me likhein.' },
+            { icon: ShoppingCart, color: '#16a34a', title: 'Purchase', text: '"Purchase" dabane se publisher ka supplier jur jata hai aur naya purchase bill khulta hai. Is publisher ki kitabon ki cost MRP se discount % kam khud bharti hai.' },
             { icon: Undo2, color: '#ea580c', title: 'Kitaben wapas', text: 'Season ke baad bachi kitaben publisher ko wapas: "Khata / wapsi" → Purchase tab → bill kholein aur Return karein. Stock aur dena dono kam ho jate hain.' },
             { icon: Wallet, color: '#d97706', title: 'Khata', text: 'Kitna dena hai aur kab diya — supplier khata me. Udhaar ke din yahan likhein taake yaad rahe.' },
           ]}
@@ -173,13 +178,18 @@ export default function PublishersPage() {
   );
 }
 
-function PublisherModal({ publisher, pending, onSave, onClose }: {
-  publisher: Publisher | null; pending: boolean; onSave: (v: Partial<Publisher>) => void; onClose: () => void;
+function PublisherModal({ publisher, pending, canPickSupplier, onSave, onClose }: {
+  publisher: Publisher | null; pending: boolean; canPickSupplier: boolean; onSave: (v: Partial<Publisher>) => void; onClose: () => void;
 }) {
+  const suppliersQ = useQuery({
+    queryKey: ['suppliers', 'picker'], enabled: canPickSupplier, staleTime: 60_000,
+    queryFn: () => suppliersApi.list({ status: 'active', sort: 'recent', limit: 500 }),
+  });
   const [v, setV] = useState({
     name: publisher?.name ?? '', city: publisher?.city ?? '', contactPerson: publisher?.contactPerson ?? '', phone: publisher?.phone ?? '',
     email: publisher?.email ?? '', discount: publisher?.defaultDiscountPct ? String(publisher.defaultDiscountPct) : '',
     days: publisher?.creditDays ? String(publisher.creditDays) : '', terms: publisher?.paymentTerms ?? '',
+    supplierId: publisher?.supplierId ?? '',
   });
   const set = (patch: Partial<typeof v>) => setV((x) => ({ ...x, ...patch }));
   const [tried, setTried] = useState(false);
@@ -195,6 +205,7 @@ function PublisherModal({ publisher, pending, onSave, onClose }: {
     onSave({
       name: v.name.trim(), city: t(v.city), contactPerson: t(v.contactPerson), phone: t(v.phone), email: t(v.email),
       defaultDiscountPct: Number(v.discount) || 0, creditDays: Number(v.days) || 0, paymentTerms: t(v.terms),
+      ...(canPickSupplier && { supplierId: v.supplierId || null }),
     });
   };
   useSaveKey(submit);
@@ -214,6 +225,15 @@ function PublisherModal({ publisher, pending, onSave, onClose }: {
           <Input label="Udhaar ke din" inputMode="numeric" value={v.days} onChange={(e) => set({ days: digits(e.target.value) })} placeholder="30" hint="0 = naqd" />
           <Input label="Shart" value={v.terms} onChange={(e) => set({ terms: e.target.value })} placeholder="Season ke baad wapsi" />
         </div>
+        {canPickSupplier && (
+          <Select label="Supplier" value={v.supplierId} onChange={(e) => set({ supplierId: e.target.value })}
+            hint="Is supplier se purchase par is publisher ki kitabon ki cost MRP se discount % kam khud bharti hai. Khali chhorein to pehli purchase par isi naam ka supplier banega."
+            options={[
+              { value: '', label: 'Khud banayein (publisher ke naam se)' },
+              ...(suppliersQ.data?.items ?? []).map((s) => ({ value: s.id, label: s.name })),
+              ...(v.supplierId && !suppliersQ.data?.items.some((s) => s.id === v.supplierId) ? [{ value: v.supplierId, label: publisher?.supplier?.name ?? 'Jura hua supplier' }] : []),
+            ]} />
+        )}
       </form>
     </Modal>
   );

@@ -20,7 +20,7 @@ export function TopProducts({ productPath, hint }: { productPath: (id: string) =
   const sort = costHidden && s.sort === 'profit' ? 'revenue' : s.sort;
   const { data, isLoading } = useDashboardList<TopList>({ kind: 'top', days: s.days, sort, limit: s.limit, categoryId: s.categoryId || undefined });
   const rows = data?.items ?? [];
-  const sortOptions = [{ value: 'revenue', label: 'Amount se' }, { value: 'qty', label: 'Ginti se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Munafe se' }])];
+  const sortOptions = [{ value: 'revenue', label: 'Amount se' }, { value: 'qty', label: 'Ginti se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Profit se' }])];
 
   return (
     <WidgetCard title="Sab se zyada bika" icon={Crown} description={hint ?? `${PERIOD_LABEL[s.days]} · ${data?.total ?? 0} cheezein biki`} flush>

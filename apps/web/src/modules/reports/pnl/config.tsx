@@ -38,7 +38,7 @@ const CONFIGS: Record<string, Partial<PnlConfig>> = {
   shoe: { label: 'Shoes', cogs: 'Jooton ki cost' },
   carpet: { label: 'Carpet', cogs: 'Carpet ki cost (sq ft)' },
   agri: { label: 'Beej / khaad', cogs: 'Beej aur khaad ki cost' },
-  salon: { label: 'Salon', cogs: 'Products ki cost', tips: ['Service ki bikri ki lagat nahi hoti; staff ki tankhwah aur commission yahan kharch me aati hai.'] },
+  salon: { label: 'Salon', cogs: 'Products ki cost', tips: ['Service ki sale ki cost nahi hoti; staff ki tankhwah aur commission yahan kharch me aati hai.'] },
   'services-biz': { label: 'Services', cogs: 'Parts ki cost', tips: ['Mehnat (labour) ki sale ki cost nahi hoti, is liye margin zyada dikhta hai.'] },
   clinic: { label: 'Clinic', cogs: 'Dawai / saaman ki cost' },
   hardware: { label: 'Hardware', cogs: 'Maal ki cost' },

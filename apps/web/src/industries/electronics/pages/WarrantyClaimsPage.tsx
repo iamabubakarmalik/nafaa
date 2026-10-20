@@ -20,8 +20,7 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton, type PrintDoc } from '@core/print';
 import {
   Button, DateRangeMenu, FilterBar, FilterChip, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
-  Textarea, ViewTabs, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
-} from '@/design-system/components';
+  Textarea, ViewTabs, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { downloadCsv } from '@core/lib/csv';
 import { formatPKR } from '@core/lib/format';
@@ -324,7 +323,7 @@ function ClaimItem({ c, money, canManage, onSlip }: { c: ClaimRow; money: (n: nu
             {isOpen && canManage && c.status !== 'IN_REPAIR' && <Button size="sm" variant="secondary" loading={toRepair.isPending} onClick={() => toRepair.mutate()} leftIcon={<Wrench className="h-3.5 w-3.5" />}>Repair mein</Button>}
             {isOpen && canManage && <Button size="sm" variant="secondary" onClick={() => setBrand(true)} leftIcon={<Building2 className="h-3.5 w-3.5" />}>{c.sentToBrand ? 'Company ka jawab' : 'Company ko bheja'}</Button>}
             {isOpen && canManage && !c.bill && (
-              <Button size="sm" variant="ghost" loading={cancel.isPending} onClick={() => { if (window.confirm(`${c.claimNumber} cancel karein? Claim list mein rahega.`)) cancel.mutate(); }} leftIcon={<CircleSlash className="h-3.5 w-3.5" />}>Cancel</Button>
+              <Button size="sm" variant="ghost" loading={cancel.isPending} onClick={async () => { if ((await confirmDialog({ title: `${c.claimNumber} cancel karein?`, text: 'Claim list mein rahega.', danger: true }))) cancel.mutate(); }} leftIcon={<CircleSlash className="h-3.5 w-3.5" />}>Cancel</Button>
             )}
           </div>
         </div>

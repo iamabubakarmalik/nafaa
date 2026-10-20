@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Activity, AlertTriangle, Award, CheckCircle2, Lock, LogOut, RefreshCw, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@core/lib/cn';
-import { IconButton } from '@/design-system/components';
+import { IconButton, confirmDialog } from '@/design-system/components';
 import { settingsApi } from '../api/settings.api';
 import { useSecurityScore } from '../hooks/useSettings';
 import { SectionCard, StatPill } from '../components/UI';
@@ -96,7 +96,7 @@ export function SecuritySection() {
                 </div>
                 <IconButton label="Is device se logout" variant="secondary" disabled={revoke.isPending}
                   className="text-rose-600 hover:bg-rose-50"
-                  onClick={() => confirm('Is device se logout karein? Wahan dobara login karna hoga.') && revoke.mutate(s.id)}>
+                  onClick={async () => (await confirmDialog({ title: 'Is device se logout karein?', text: 'Wahan dobara login karna hoga.', danger: true })) && revoke.mutate(s.id)}>
                   <LogOut className="h-4 w-4" />
                 </IconButton>
               </li>

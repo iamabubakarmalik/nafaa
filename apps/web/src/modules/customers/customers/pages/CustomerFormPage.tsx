@@ -17,7 +17,7 @@ import {
   AlertTriangle, ArrowLeft, BookOpen, Building2, Cake, CalendarDays, CopyX, Crown, Eye, GraduationCap, IdCard, Info,
   Mail, MapPin, Phone, Plus, Save, Sparkles, UserRound, Wallet,
 } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea, confirmDialog } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
@@ -255,8 +255,8 @@ export default function CustomerFormPage() {
     save.mutate(andNew);
   }, [problems, save]);
 
-  const goBack = useCallback(() => {
-    if (dirty && !window.confirm('Tabdeeli save nahi hui — phir bhi wapas jayein?')) return;
+  const goBack = useCallback(async () => {
+    if (dirty && !(await confirmDialog({ title: 'Tabdeeli save nahi hui — phir bhi wapas jayein?' }))) return;
     navigate(editing ? `/customers/${id}` : '/customers');
   }, [dirty, navigate, editing, id]);
 

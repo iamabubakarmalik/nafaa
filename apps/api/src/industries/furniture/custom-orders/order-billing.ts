@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { FurnitureCustomOrder } from '@prisma/client';
+import { FurnitureCustomOrder, Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ensureCustomer, paidOnKhata, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
@@ -21,8 +21,9 @@ export const BILLED = ['DELIVERED', 'ASSEMBLED', 'COMPLETED'];
  * sales report). Advances already on the customer's khata pay it first; the
  * rest stays on the khata as udhaar. Returns the order fields to save.
  */
-export async function billCustomOrder(tx: any, user: AuthenticatedUser, o: FurnitureCustomOrder) {
+export async function billCustomOrder(tx: Prisma.TransactionClient, user: AuthenticatedUser, o: FurnitureCustomOrder) {
   const total = billTotal(o);
+  const price = r2(o.finalPrice ?? o.quotedPrice);
   if (!(total > 0)) throw new BadRequestException('Bill se pehle order ki qeemat likhein');
   const shopId = await resolveIndustryShopId(tx, user, null);
   // Payments recorded before khata posting existed count as paid with this bill.
@@ -31,8 +32,7 @@ export async function billCustomOrder(tx: any, user: AuthenticatedUser, o: Furni
   if (!customerId && total > legacyPaid + 0.009) {
     customerId = await ensureCustomer(tx, user, { name: o.customerName, phone: o.customerPhone, shopId });
   }
-  const price = r2(o.finalPrice ?? o.quotedPrice);
-  await postIndustrySale(tx, user, {
+    await postIndustrySale(tx, user, {
     saleNumber: orderSaleNumber(o.orderNumber),
     sourceRef: o.orderNumber,
     shopId,
@@ -44,6 +44,14 @@ export async function billCustomOrder(tx: any, user: AuthenticatedUser, o: Furni
     paidAmount: Math.min(legacyPaid, total),
     paymentMethod: 'CASH',
   });
+  // The karigar's job is done once the furniture has left the shop.
+  if (o.carpenterId) {
+    await tx.furnitureCarpenter.updateMany({ where: { id: o.carpenterId, tenantId: user.tenantId, activeProjects: { gt: 0 } }, data: { activeProjects: { decrement: 1 } } });
+    await tx.furnitureCarpenter.updateMany({
+      where: { id: o.carpenterId, tenantId: user.tenantId },
+      data: { completedProjects: { increment: 1 }, totalRevenue: { increment: price } },
+    });
+  }
   return {
     customerId,
     finalPrice: price,
@@ -52,7 +60,7 @@ export async function billCustomOrder(tx: any, user: AuthenticatedUser, o: Furni
 }
 
 /** The delivery slip for an order sent out; made once. */
-export async function ensureOrderDelivery(tx: any, user: AuthenticatedUser, o: FurnitureCustomOrder) {
+export async function ensureOrderDelivery(tx: Prisma.TransactionClient, user: AuthenticatedUser, o: FurnitureCustomOrder) {
   const existing = await tx.furnitureDelivery.findFirst({ where: { tenantId: user.tenantId, customOrderId: o.id }, select: { id: true } });
   if (existing) return existing;
   const prefix = `FDL-${new Date().getFullYear()}-`;

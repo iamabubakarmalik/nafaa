@@ -1,462 +1,293 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Hammer, Plus, Search, X, Edit3, Trash2, RefreshCw, Phone,
-  DollarSign, TrendingUp, Save, MapPin, Clock, Award, User,
-} from 'lucide-react';
+/**
+ * Karigars (carpenters) of the workshop: who is making what, how much is on
+ * each bench, and their pay. Pay handed over from the drawer (daily wage,
+ * per-job rate or advance) is saved as an expense, so the day book, cash
+ * register and profit see it. A karigar is switched off, never deleted.
+ *
+ * Keys: N new karigar · / search · A analytics · G guide.
+ */
+
+import { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { carpentersApi, type FurnitureCarpenter } from '../api/carpenters.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { UploadDropzone } from '@core/components/uploads';
+import { BarChart3, CheckCircle2, Download, GraduationCap, Hammer, ListChecks, Pencil, Phone, Plus, Power, UserRound, Users, Wallet } from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Textarea, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { carpentersApi, type CarpenterInput, type FurnitureCarpenter } from '../api/carpenters.api';
+import { BarList, ConfirmModal, DueChip, Empty, Info, ListCard, ListLoading, MoneyModal, Pill } from '../components/ui';
+import { useDebounced, usePageKeys, useSaveKey } from '../hooks/usePageKeys';
+import { FURNITURE_KEYS, MONEY_KEYS, ORDER_STATUS, errorText, moneyText, numIn, phoneOk, shortDate } from '../lib/meta';
 
-const SPECIALIZATIONS = [
-  'Sofa Making', 'Bed Making', 'Wardrobe Making', 'Dining Furniture',
-  'Office Furniture', 'Kitchen Cabinets', 'Custom Design',
-  'Polishing', 'Upholstery', 'Carving', 'CNC Work', 'Restoration',
-];
-
-const MATERIALS = [
-  'SOLID_WOOD_SHEESHAM', 'SOLID_WOOD_TEAK', 'SOLID_WOOD_ROSEWOOD',
-  'MDF', 'PLYWOOD', 'ENGINEERED_WOOD', 'METAL_IRON',
-];
-
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+type Tab = 'active' | 'off' | 'analytics';
+const SKILLS = ['Bed', 'Sofa', 'Almari', 'Dining', 'Kitchen', 'Polish', 'Gaddi / poshish', 'Carving', 'Fitting'];
 
 export default function CarpentersPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const { sales: money, cost } = useMasked();
+  const canManage = usePermission(PERMISSIONS.STAFF_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('active');
   const [search, setSearch] = useState('');
-  const [activeOnly, setActiveOnly] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<FurnitureCarpenter | null>(null);
+  const q = useDebounced(search.trim());
+  const [editing, setEditing] = useState<FurnitureCarpenter | 'new' | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
-  const { data: carpenters = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['carpenters-all', activeOnly],
-    queryFn: () => carpentersApi.list({ active: activeOnly ? true : undefined }),
+  const listQ = useQuery({ queryKey: [FURNITURE_KEYS.carpenters, 'list', q], queryFn: () => carpentersApi.list({ search: q || undefined }), placeholderData: (p) => p });
+  usePageKeys(searchRef, { n: () => { if (canManage) setEditing('new'); }, a: () => setTab('analytics') });
+  const refresh = () => [FURNITURE_KEYS.carpenters, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+
+  const all = listQ.data ?? [];
+  const active = all.filter((c) => c.isActive);
+  const rows = tab === 'off' ? all.filter((c) => !c.isActive) : active;
+  const busy = active.reduce((s, c) => s + c.activeProjects, 0);
+  const free = active.filter((c) => !c.activeProjects).length;
+
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Koi karigar nahi'); return; }
+    downloadCsv('karigar.csv', [['Code', 'Naam', 'Phone', 'Kaam', 'Haath me', 'Mukammal', 'Dihari', 'Fi kaam', 'Workshop', 'Halat'],
+      ...rows.map((c) => [c.employeeCode, c.name, c.phone, c.specializations.join(', '), c.activeProjects, c.completedProjects, c.dailyWage ?? '', c.perProjectRate ?? '', c.workshopLocation ?? '', c.isActive ? 'Kaam par' : 'Band'])]);
+  };
+  const printList = (): PrintDoc => ({
+    title: 'Karigar',
+    meta: [['Kaam par', String(active.length)], ['Haath me kaam', String(busy)]],
+    sections: [{ kind: 'table', title: 'Karigar', columns: [{ label: 'Naam' }, { label: 'Phone' }, { label: 'Haath me', align: 'right' }, { label: 'Mukammal', align: 'right' }],
+      rows: rows.map((c) => [`${c.name} (${c.employeeCode})`, c.phone, String(c.activeProjects), String(c.completedProjects)]) }],
   });
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return carpenters;
-    return carpenters.filter((c) =>
-      c.name.toLowerCase().includes(q) ||
-      c.phone.includes(q) ||
-      c.employeeCode.toLowerCase().includes(q) ||
-      (c.workshopLocation || '').toLowerCase().includes(q)
-    );
-  }, [carpenters, search]);
-
-  const stats = useMemo(() => ({
-    total: carpenters.length,
-    active: carpenters.filter((c) => c.isActive).length,
-    activeProjects: carpenters.reduce((s, c) => s + Number(c.activeProjects || 0), 0),
-    totalRevenue: carpenters.reduce((s, c) => s + Number(c.totalRevenue || 0), 0),
-  }), [carpenters]);
-
-  const remove = useMutation({
-    mutationFn: (id: string) => carpentersApi.remove(id),
-    onSuccess: () => { toast.success('Carpenter deactivated'); qc.invalidateQueries({ queryKey: ['carpenters-all'] }); },
-  });
+  const byRevenue = useMemo(() => active.map((c) => ({ key: c.id, label: c.name, count: c.completedProjects, value: Number(c.totalRevenue) || 0 })).sort((a, b) => b.value - a.value).slice(0, 12), [active]);
+  const byLoad = useMemo(() => active.map((c) => ({ key: c.id, label: c.name, count: c.activeProjects, value: c.activeProjects })).sort((a, b) => b.value - a.value).slice(0, 12), [active]);
 
   return (
-    <div className="space-y-5">
-      {showForm && <CarpenterFormModal editing={editing}
-        onClose={() => { setShowForm(false); setEditing(null); }}
-        onSaved={() => { setShowForm(false); setEditing(null); qc.invalidateQueries({ queryKey: ['carpenters-all'] }); }} />}
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Karigar — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#16a34a', title: 'Karigar daalein', text: 'Naam, phone, kya banata hai, aur pay — dihari ya fi kaam. Code ek dafa lagta hai, us se payments jurti hain.' },
+            { icon: Hammer, color: '#a16207', title: 'Kaam dein', text: 'Custom order par karigar dein. Yahan dikhta hai kis ke haath me kitna kaam hai — khali karigar ko naya kaam dein.' },
+            { icon: Wallet, color: '#7c3aed', title: 'Pay', text: '"Pay dein" se drawer se diya paisa expense banta hai — din ka hisaab aur profit report me aata hai.' },
+            { icon: Power, color: '#e11d48', title: 'Band karein', text: 'Karigar chhor jaye to band karein — us ka purana kaam aur pay ka record rehta hai.' },
+          ]}
+          shortcuts={[['N', 'naya karigar'], ['A', 'analytics'], ['/', 'search'], ['G', 'guide']]} />
+      )}
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-red-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-orange-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <Hammer className="h-3.5 w-3.5 text-amber-300" /> Workshop Team
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🔨 Carpenters</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {stats.active} active • {stats.activeProjects} active projects • Revenue{' '}
-              <strong className="text-emerald-300">{formatPKR(stats.totalRevenue)}</strong>
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Button className="bg-white text-slate-900 hover:bg-slate-100" onClick={() => { setEditing(null); setShowForm(true); }}>
-              <Plus className="h-4 w-4" /> New Carpenter
-            </Button>
-          </div>
-        </div>
-      </section>
+      <PageHero title="Karigar" chip={<><Hammer /> Workshop</>} loading={listQ.isLoading} busy={listQ.isFetching && !listQ.isLoading}
+        meta="Kaun kya bana raha hai, kitna kaam haath me, aur pay"
+        actions={<>
+          <Link to="/furniture/custom-orders" className={heroButton}><ListChecks className="h-4 w-4" /><span className="hidden sm:inline">Orders</span></Link>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setEditing('new')} title="Naya karigar (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" />Karigar</button>}
+        </>}
+        stats={[
+          { label: 'Kaam par', value: String(active.length) },
+          { label: 'Haath me kaam', value: String(busy) },
+          { label: 'Khali', value: String(free) },
+        ]} />
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi icon={User} label="Total" value={stats.total} sub={`${stats.active} active`} tone="orange" />
-        <Kpi icon={Hammer} label="Active Projects" value={stats.activeProjects} sub="In workshop" tone="amber" />
-        <Kpi icon={DollarSign} label="Total Revenue" value={formatPKR(stats.totalRevenue)} sub="Lifetime" tone="emerald" />
-        <Kpi icon={Award} label="Avg per Carpenter" value={stats.active > 0 ? formatPKR(stats.totalRevenue / stats.active) : '—'} sub="Per carpenter" tone="violet" />
-      </section>
+      <KpiRow cols={4}>
+        <KpiCard icon={Users} color="#a16207" label="Kaam par" value={active.length} active={tab === 'active'} onClick={() => setTab('active')} />
+        <KpiCard icon={Hammer} color="#7c3aed" label="Haath me kaam" value={busy} hint={free ? `${free} khali` : 'Sab masroof'} />
+        <KpiCard icon={CheckCircle2} color="#16a34a" label="Mukammal kaam" value={active.reduce((s, c) => s + c.completedProjects, 0)} />
+        <KpiCard icon={Power} color="#64748b" label="Band" value={all.length - active.length} active={tab === 'off'} onClick={() => setTab('off')} />
+      </KpiRow>
 
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Name, phone, code, workshop..."
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200" />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          <button onClick={() => setActiveOnly(!activeOnly)}
-            className={`h-12 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 ${activeOnly ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-700'}`}>
-            Active Only
-          </button>
-        </div>
-      </section>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, code ya CNIC…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
+        onClear={() => setSearch('')} />
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 animate-pulse" />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <Hammer className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">No carpenters yet</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Add your workshop team members</p>
-          <Button className="mt-4 bg-gradient-to-r from-orange-600 to-red-700" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="h-4 w-4" /> Add First Carpenter
-          </Button>
+      <ViewTabs value={tab} onChange={setTab} hint="Karigar kholein — kaam, pay aur hisaab"
+        tabs={[
+          { id: 'active', label: 'Kaam par', icon: Users, count: active.length },
+          { id: 'off', label: 'Band', icon: Power },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
+
+      {tab === 'analytics' ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <BarList title="Kis ne kitna kaam diya (bill qeemat)" money={money} rows={byRevenue} />
+          <BarList title="Haath me kaam (orders)" money={(n) => `${n} order`} rows={byLoad} />
         </div>
       ) : (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {filtered.map((c) => (
-            <CarpenterCard key={c.id} carpenter={c}
-              onEdit={() => { setEditing(c); setShowForm(true); }}
-              onDelete={() => { if (confirm(`Deactivate "${c.name}"?`)) remove.mutate(c.id); }} />
-          ))}
-        </section>
+        <ListCard>
+          {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
+            <Empty icon={Hammer} title={tab === 'off' ? 'Koi band karigar nahi' : 'Koi karigar nahi'} text="Workshop ke karigar daalein — order inhi ko diye jate hain."
+              action={canManage && tab === 'active' ? <Button onClick={() => setEditing('new')}><Plus className="h-4 w-4" />Karigar daalein</Button> : undefined} />
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {rows.map((c) => (
+                <li key={c.id}>
+                  <button type="button" onClick={() => setOpenId(c.id)} className="grid w-full gap-2 px-4 py-3 text-left hover:bg-slate-50 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_9rem_9rem_auto] lg:items-center">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-900">{c.name} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{c.employeeCode}</span></p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{[c.phone, c.specializations.join(', '), c.workshopLocation].filter(Boolean).join(' · ')}</p>
+                    </div>
+                    <p className="text-[0.8125rem] text-slate-700">{c.dailyWage ? `${cost(c.dailyWage)}/din` : c.perProjectRate ? `${cost(c.perProjectRate)}/kaam` : 'Pay likha nahi'}</p>
+                    <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{c.activeProjects} haath me<span className="block text-[0.75rem] font-medium text-slate-500">{c.completedProjects} mukammal</span></p>
+                    <div className="flex justify-end">{c.isActive ? <Pill tone={c.activeProjects ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200'}>{c.activeProjects ? 'Masroof' : 'Khali'}</Pill> : <Pill tone="bg-slate-100 text-slate-500 ring-slate-200">Band</Pill>}</div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </ListCard>
       )}
-    </div>
+
+      {editing && <FormModal carpenter={editing === 'new' ? null : editing} nextCode={`K-${String(all.length + 1).padStart(3, '0')}`} onClose={() => setEditing(null)} onDone={() => { setEditing(null); refresh(); }} />}
+      {openId && <DetailModal id={openId} money={money} canManage={canManage} onEdit={(c) => { setOpenId(null); setEditing(c); }} onClose={() => setOpenId(null)} onChanged={refresh} />}
+    </PageShell>
   );
 }
 
-function CarpenterCard({ carpenter, onEdit, onDelete }: any) {
-  return (
-    <div className={`rounded-2xl bg-white border-2 shadow-sm p-4 hover:shadow-lg transition ${carpenter.isActive ? 'border-slate-200 hover:border-orange-300' : 'border-slate-100 opacity-70'}`}>
-      <div className="flex items-start gap-3">
-        {carpenter.photoUrl ? (
-          <img src={carpenter.photoUrl} alt="" className="h-16 w-16 rounded-2xl object-cover border-2 border-slate-200 shrink-0" />
-        ) : (
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-700 text-white flex items-center justify-center font-extrabold text-2xl shrink-0 shadow">
-            {carpenter.name.charAt(0)}
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 truncate">{carpenter.name}</div>
-          <div className="text-[0.6875rem] font-mono text-slate-500">{carpenter.employeeCode}</div>
-          <div className="text-xs font-bold text-slate-600 mt-0.5 inline-flex items-center gap-1">
-            <Phone className="h-3 w-3" /> {carpenter.phone}
-          </div>
-          {carpenter.workshopLocation && (
-            <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5 inline-flex items-center gap-1">
-              <MapPin className="h-2.5 w-2.5" /> {carpenter.workshopLocation}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {carpenter.specializations?.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1">
-          {carpenter.specializations.slice(0, 3).map((s: string) => (
-            <span key={s} className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.6875rem] font-extrabold">{s}</span>
-          ))}
-          {carpenter.specializations.length > 3 && (
-            <span className="text-[0.6875rem] font-extrabold text-slate-500">+{carpenter.specializations.length - 3}</span>
-          )}
-        </div>
-      )}
-
-      <div className="mt-3 grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total</div>
-          <div className="text-lg font-extrabold text-slate-900 tabular-nums">{carpenter.totalProjects || 0}</div>
-        </div>
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Active</div>
-          <div className="text-lg font-extrabold text-amber-700 tabular-nums">{carpenter.activeProjects || 0}</div>
-        </div>
-        <div>
-          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Done</div>
-          <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{carpenter.completedProjects || 0}</div>
-        </div>
-      </div>
-
-      <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
-        <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(carpenter.totalRevenue || 0)}</div>
-      </div>
-
-      {carpenter.experienceYears && (
-        <div className="mt-2 text-[0.6875rem] font-bold text-slate-500 inline-flex items-center gap-1">
-          <Award className="h-2.5 w-2.5" /> {carpenter.experienceYears} years experience
-        </div>
-      )}
-
-      <div className="mt-3 flex gap-1.5 pt-3 border-t border-slate-100">
-        <button onClick={onEdit}
-          className="flex-1 h-9 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
-          <Edit3 className="h-3.5 w-3.5" /> Edit
-        </button>
-        <button onClick={onDelete}
-          className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function CarpenterFormModal({ editing, onClose, onSaved }: any) {
-  const [form, setForm] = useState({
-    employeeCode: editing?.employeeCode ?? '', name: editing?.name ?? '', phone: editing?.phone ?? '',
-    cnic: editing?.cnic ?? '', address: editing?.address ?? '',
-    specializations: editing?.specializations ?? [],
-    materialsExpertise: editing?.materialsExpertise ?? [],
-    experienceYears: editing?.experienceYears ?? '',
-    workshopLocation: editing?.workshopLocation ?? '',
-    workingDays: editing?.workingDays ?? [1, 2, 3, 4, 5, 6],
-    workStartTime: editing?.workStartTime ?? '09:00',
-    workEndTime: editing?.workEndTime ?? '18:00',
-    dailyWage: editing?.dailyWage ?? '',
-    perProjectRate: editing?.perProjectRate ?? '',
-    commissionPct: editing?.commissionPct ?? 0,
-    isActive: editing?.isActive ?? true,
-    photoUrl: editing?.photoUrl ?? '',
-    notes: editing?.notes ?? '',
+function FormModal({ carpenter: c, nextCode, onClose, onDone }: { carpenter: FurnitureCarpenter | null; nextCode: string; onClose: () => void; onDone: () => void }) {
+  const [v, setV] = useState({
+    employeeCode: c?.employeeCode ?? nextCode, name: c?.name ?? '', phone: c?.phone ?? '', cnic: c?.cnic ?? '', address: c?.address ?? '',
+    specializations: c?.specializations ?? [], experienceYears: c?.experienceYears ? String(c.experienceYears) : '', workshopLocation: c?.workshopLocation ?? '',
+    dailyWage: c?.dailyWage ? String(c.dailyWage) : '', perProjectRate: c?.perProjectRate ? String(c.perProjectRate) : '', notes: c?.notes ?? '',
   });
-
+  const set = (patch: Partial<typeof v>) => setV((x) => ({ ...x, ...patch }));
+  const errors = {
+    employeeCode: !v.employeeCode.trim() ? 'Code likhein' : undefined,
+    name: !v.name.trim() ? 'Naam likhein' : undefined,
+    phone: !v.phone.trim() ? 'Phone likhein' : !phoneOk(v.phone) ? '10 se 15 hindse' : undefined,
+  };
+  const [tried, setTried] = useState(false);
   const save = useMutation({
-    mutationFn: () => editing ? carpentersApi.update(editing.id, form as any) : carpentersApi.create(form as any),
-    onSuccess: () => { toast.success(editing ? 'Carpenter updated' : 'Carpenter created'); onSaved(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
+    mutationFn: () => {
+      const payload: CarpenterInput = {
+        employeeCode: v.employeeCode.trim(), name: v.name.trim(), phone: v.phone.trim(), cnic: v.cnic.trim() || undefined, address: v.address.trim() || undefined,
+        specializations: v.specializations, experienceYears: v.experienceYears ? Math.round(Number(v.experienceYears)) : undefined, workshopLocation: v.workshopLocation.trim() || undefined,
+        dailyWage: numIn(v.dailyWage) ?? undefined, perProjectRate: numIn(v.perProjectRate) ?? undefined, notes: v.notes.trim() || undefined,
+      };
+      return c ? carpentersApi.update(c.id, payload) : carpentersApi.create(payload);
+    },
+    onSuccess: () => { toast.success(c ? 'Karigar save' : 'Karigar add ho gaya'); onDone(); },
+    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
   });
-
-  const togSpec = (v: string) => {
-    setForm({ ...form, specializations: form.specializations.includes(v) ? form.specializations.filter((x: string) => x !== v) : [...form.specializations, v] });
-  };
-  const togMaterial = (v: string) => {
-    setForm({ ...form, materialsExpertise: form.materialsExpertise.includes(v) ? form.materialsExpertise.filter((x: string) => x !== v) : [...form.materialsExpertise, v] });
-  };
-  const togDay = (i: number) => {
-    setForm({ ...form, workingDays: form.workingDays.includes(i) ? form.workingDays.filter((x: number) => x !== i) : [...form.workingDays, i].sort() });
-  };
-
+  const submit = () => { setTried(true); if (!Object.values(errors).some(Boolean) && !save.isPending) save.mutate(); };
+  useSaveKey(submit);
+  const e = (k: keyof typeof errors) => (tried ? errors[k] : undefined);
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-orange-600 to-red-700 text-white flex items-center justify-between">
-          <h3 className="font-extrabold text-xl">{editing ? '✏️ Edit Carpenter' : '➕ New Carpenter'}</h3>
-          <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center"><X className="h-5 w-5" /></button>
+    <Modal open onClose={onClose} size="lg" title={c ? `${c.name} — badlein` : 'Naya karigar'}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit}><CheckCircle2 className="h-4 w-4" />Save (Ctrl+S)</Button></>}>
+      <form className="space-y-4" onSubmit={(ev) => { ev.preventDefault(); submit(); }}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input label="Code" required value={v.employeeCode} onChange={(x) => set({ employeeCode: x.target.value })} error={e('employeeCode')} disabled={!!c} hint={c ? 'Code nahi badalta' : 'Pay isi code se jurti hai'} />
+          <Input label="Naam" required value={v.name} onChange={(x) => set({ name: x.target.value })} placeholder="Ustad Rafiq" error={e('name')} />
+          <Input label="Phone" required inputMode="tel" value={v.phone} onChange={(x) => set({ phone: x.target.value })} placeholder="03001234567" error={e('phone')} />
+          <Input label="CNIC" inputMode="numeric" value={v.cnic} onChange={(x) => set({ cnic: x.target.value })} hint="Marzi hai" />
+          <Input label="Tajurba (saal)" inputMode="numeric" value={v.experienceYears} onChange={(x) => set({ experienceYears: x.target.value.replace(/\D/g, '') })} />
+          <Input label="Workshop" value={v.workshopLocation} onChange={(x) => set({ workshopLocation: x.target.value })} placeholder="Main workshop" />
         </div>
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Employee Code *</Lbl>
-              <input value={form.employeeCode} onChange={(e) => setForm({ ...form, employeeCode: e.target.value.toUpperCase() })}
-                placeholder="CARP-001"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-extrabold focus:outline-none focus:border-orange-500" />
-            </div>
-            <div>
-              <Lbl>Full Name *</Lbl>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Carpenter name"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-            <div>
-              <Lbl>Phone *</Lbl>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="03XX XXXXXXX"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-            <div>
-              <Lbl>CNIC</Lbl>
-              <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })}
-                placeholder="XXXXX-XXXXXXX-X"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Photo</Lbl>
-            {form.photoUrl ? (
-              <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-slate-200">
-                <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
-                <button onClick={() => setForm({ ...form, photoUrl: '' })}
-                  className="absolute top-1 right-1 h-7 w-7 rounded-lg bg-rose-600 text-white flex items-center justify-center">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <UploadDropzone purpose="carpenter-photo" maxFiles={1}
-                onUploaded={(recs: any[]) => {
-                  const first = Array.isArray(recs) ? recs[0] : recs;
-                  const url = typeof first === 'string' ? first : (first as any)?.url;
-                  if (url) setForm({ ...form, photoUrl: url });
-                }} />
-            )}
-          </div>
-
-          <div>
-            <Lbl>Specializations</Lbl>
-            <div className="flex flex-wrap gap-1.5">
-              {SPECIALIZATIONS.map((s) => {
-                const a = form.specializations.includes(s);
-                return (
-                  <button key={s} type="button" onClick={() => togSpec(s)}
-                    className={`px-3 py-1.5 rounded-full border-2 text-xs font-extrabold transition ${a ? 'border-orange-500 bg-orange-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'}`}>
-                    {s}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Materials Expertise</Lbl>
-            <div className="flex flex-wrap gap-1.5">
-              {MATERIALS.map((m) => {
-                const a = form.materialsExpertise.includes(m);
-                return (
-                  <button key={m} type="button" onClick={() => togMaterial(m)}
-                    className={`px-3 py-1.5 rounded-full border-2 text-xs font-extrabold transition ${a ? 'border-amber-500 bg-amber-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-300'}`}>
-                    {m.replace(/_/g, ' ')}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Experience (years)</Lbl>
-              <input type="number" value={form.experienceYears}
-                onChange={(e) => setForm({ ...form, experienceYears: e.target.value === '' ? '' : Number(e.target.value) as any })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
-            </div>
-            <div>
-              <Lbl>Workshop Location</Lbl>
-              <input value={form.workshopLocation} onChange={(e) => setForm({ ...form, workshopLocation: e.target.value })}
-                placeholder="Main workshop"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Working Days</Lbl>
-            <div className="grid grid-cols-7 gap-1.5">
-              {DAYS.map((d, i) => {
-                const a = form.workingDays.includes(i);
-                return (
-                  <button key={d} type="button" onClick={() => togDay(i)}
-                    className={`h-10 rounded-lg border-2 text-xs font-extrabold transition ${a ? 'border-orange-500 bg-orange-500 text-white' : 'border-slate-200 bg-white text-slate-700'}`}>
-                    {d}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <Lbl>Start Time</Lbl>
-              <input type="time" value={form.workStartTime} onChange={(e) => setForm({ ...form, workStartTime: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-            <div>
-              <Lbl>End Time</Lbl>
-              <input type="time" value={form.workEndTime} onChange={(e) => setForm({ ...form, workEndTime: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div>
-              <Lbl>Daily Wage</Lbl>
-              <input type="number" value={form.dailyWage}
-                onChange={(e) => setForm({ ...form, dailyWage: e.target.value === '' ? '' : Number(e.target.value) as any })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
-            </div>
-            <div>
-              <Lbl>Per Project Rate</Lbl>
-              <input type="number" value={form.perProjectRate}
-                onChange={(e) => setForm({ ...form, perProjectRate: e.target.value === '' ? '' : Number(e.target.value) as any })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
-            </div>
-            <div>
-              <Lbl>Commission %</Lbl>
-              <input type="number" step="0.1" value={form.commissionPct}
-                onChange={(e) => setForm({ ...form, commissionPct: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
-            </div>
-          </div>
-
-          <div>
-            <Lbl>Address</Lbl>
-            <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
-              placeholder="Home address"
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500" />
-          </div>
-
-          <div>
-            <Lbl>Notes</Lbl>
-            <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Additional notes..."
-              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500" />
-          </div>
-
-          <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer">
-            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="h-4 w-4 rounded" />
-            <span className="text-sm font-extrabold text-slate-700">Active</span>
-          </label>
-        </div>
-
-        <div className="shrink-0 px-5 py-3 border-t-2 border-slate-100 bg-slate-50 flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button className="flex-1 bg-gradient-to-r from-orange-600 to-red-700"
-            onClick={() => save.mutate()} loading={save.isPending}
-            disabled={!form.name.trim() || !form.phone.trim() || !form.employeeCode.trim()}>
-            <Save className="h-4 w-4" /> {editing ? 'Update' : 'Save'}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone }: any) {
-  const tones: Record<string, string> = {
-    orange: 'from-orange-500 to-red-700', amber: 'from-amber-500 to-orange-700',
-    emerald: 'from-emerald-500 to-teal-700', violet: 'from-violet-500 to-purple-700',
-  };
-  return (
-    <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
-          <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{sub}</div>
+          <p className="mb-1 text-[0.8125rem] font-medium text-slate-700">Kya banata hai</p>
+          <div className="flex flex-wrap gap-1.5">
+            {SKILLS.map((k) => {
+              const on = v.specializations.includes(k);
+              return <button key={k} type="button" onClick={() => set({ specializations: on ? v.specializations.filter((x) => x !== k) : [...v.specializations, k] })} className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ${on ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'ring-slate-200 hover:bg-slate-50'}`}>{k}</button>;
+            })}
+          </div>
         </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Dihari (Rs / din)" inputMode="decimal" value={v.dailyWage} onChange={(x) => set({ dailyWage: moneyText(x.target.value) })} hint="Rozana pay leta hai to" />
+          <Input label="Fi kaam (Rs)" inputMode="decimal" value={v.perProjectRate} onChange={(x) => set({ perProjectRate: moneyText(x.target.value) })} hint="Har order ka thekay ka rate" />
         </div>
-      </div>
-    </div>
+        <Input label="Pata" value={v.address} onChange={(x) => set({ address: x.target.value })} hint="Marzi hai" />
+        <Textarea label="Note" rows={2} value={v.notes} onChange={(x) => set({ notes: x.target.value })} />
+      </form>
+    </Modal>
   );
 }
 
-function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">{children}</label>;
+function DetailModal({ id, money, canManage, onEdit, onClose, onChanged }: {
+  id: string; money: (n: number) => string; canManage: boolean; onEdit: (c: FurnitureCarpenter) => void; onClose: () => void; onChanged: () => void;
+}) {
+  const qc = useQueryClient();
+  const canPay = usePermission(PERMISSIONS.EXPENSES_CREATE);
+  const q = useQuery({ queryKey: [FURNITURE_KEYS.carpenters, 'one', id], queryFn: () => carpentersApi.getOne(id) });
+  const [panel, setPanel] = useState<'pay' | 'off' | null>(null);
+  const [orderId, setOrderId] = useState('');
+  const changed = (msg: string) => { toast.success(msg); setPanel(null); onChanged(); qc.invalidateQueries({ queryKey: [FURNITURE_KEYS.carpenters, 'one', id] }); };
+  const pay = useMutation({
+    mutationFn: (v: { amount: number; paymentMethod: string; notes?: string }) => carpentersApi.pay(id, { amount: v.amount, paymentMethod: v.paymentMethod, note: v.notes, orderId: orderId || undefined }),
+    onSuccess: (r) => changed(`Pay save — expense ${r.expenseNumber}`),
+    onError: (e) => toast.error(errorText(e, 'Pay save nahi hui')),
+  });
+  const toggle = useMutation({
+    mutationFn: (c: FurnitureCarpenter) => (c.isActive ? carpentersApi.deactivate(c.id) : carpentersApi.update(c.id, { employeeCode: c.employeeCode, name: c.name, phone: c.phone, isActive: true })),
+    onSuccess: (r) => changed(r.isActive ? 'Karigar phir kaam par' : 'Karigar band'),
+    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+  });
+  const c = q.data;
+  if (!c) return <Modal open onClose={onClose} size="lg" title="Karigar"><ListLoading rows={4} /></Modal>;
+  const jobs = [...(c.activeOrders ?? []), ...(c.recentCompleted ?? [])];
+  return (
+    <Modal open onClose={onClose} size="lg" title={`${c.name} · ${c.employeeCode}`} description={c.isActive ? `${c.activeProjects} kaam haath me` : 'Band'}
+      footer={<div className="flex w-full flex-wrap items-center gap-2">
+        {canManage && <Button size="sm" variant="ghost" onClick={() => (c.isActive ? setPanel('off') : toggle.mutate(c))}><Power className="h-3.5 w-3.5" />{c.isActive ? 'Band karein' : 'Phir kaam par'}</Button>}
+        <span className="flex-1" />
+        {canManage && <Button size="sm" variant="secondary" onClick={() => onEdit(c)}><Pencil className="h-3.5 w-3.5" />Badlein</Button>}
+        {canPay && <Button size="sm" onClick={() => setPanel('pay')}><Wallet className="h-3.5 w-3.5" />Pay dein</Button>}
+      </div>}>
+      <div className="space-y-3 text-[0.875rem]">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Info icon={UserRound} title="Karigar">
+            <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline"><Phone className="h-3.5 w-3.5" />{c.phone}</a>
+            <p className="text-slate-600">{[c.specializations.join(', '), c.experienceYears ? `${c.experienceYears} saal` : null, c.workshopLocation].filter(Boolean).join(' · ') || '—'}</p>
+          </Info>
+          <Info icon={Wallet} title="Pay">
+            <p className="font-semibold text-slate-900">{c.dailyWage ? `${money(c.dailyWage)}/din` : c.perProjectRate ? `${money(c.perProjectRate)}/kaam` : 'Rate likha nahi'}</p>
+            <p className="text-slate-600">Is mahine diya: {money(c.paidThisMonth ?? 0)}</p>
+          </Info>
+        </div>
+        <section>
+          <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">Kaam</h4>
+          {jobs.length === 0 ? <p className="rounded-xl bg-slate-50 px-3 py-2 text-slate-500">Koi kaam nahi</p> : (
+            <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+              {jobs.map((o) => (
+                <li key={o.id}>
+                  <Link to={`/furniture/custom-orders/${o.id}`} className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50">
+                    <span className="min-w-0 flex-1 truncate"><span className="font-semibold text-slate-900">{o.productType}</span><span className="text-slate-500"> · {o.customerName}</span></span>
+                    <span className="shrink-0 text-right text-[0.75rem] text-slate-500">{shortDate(o.expectedDeliveryDate)}<DueChip o={o} /></span>
+                    <Pill tone={ORDER_STATUS[o.status]?.tone ?? ''}>{ORDER_STATUS[o.status]?.label ?? o.status}</Pill>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+        {(c.payments?.length ?? 0) > 0 && (
+          <section>
+            <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">Pay di gayi</h4>
+            <ul className="space-y-1">
+              {c.payments!.map((p) => <li key={p.id} className="flex justify-between gap-2 text-slate-700"><span className="truncate">{shortDate(p.createdAt)} · {p.title.replace(/^Karigar \[[^\]]+\]: /, '')}{p.description ? ` — ${p.description}` : ''}</span><span className="shrink-0 font-semibold tabular-nums">{money(p.amount)}</span></li>)}
+            </ul>
+          </section>
+        )}
+        {c.notes && <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2 text-slate-600">{c.notes}</p>}
+      </div>
+      {panel === 'pay' && (
+        <MoneyModal title={`${c.name} ko pay`} description="Drawer se — expense me jata hai" due={c.dailyWage ?? c.perProjectRate ?? undefined} busy={pay.isPending} cta="Pay save" outgoing
+          hint="Dihari, thekay ya advance"
+          extra={(c.activeOrders?.length ?? 0) > 0 ? (
+            <Select label="Kis order ka" value={orderId} onChange={(e) => setOrderId(e.target.value)} placeholder="Kisi order ka nahi" options={(c.activeOrders ?? []).map((o) => ({ value: o.id, label: `${o.orderNumber} · ${o.productType}` }))} />
+          ) : undefined}
+          onSubmit={(v) => pay.mutate(v)} onClose={() => setPanel(null)} />
+      )}
+      {panel === 'off' && (
+        <ConfirmModal title={`${c.name} ko band karein?`} cta="Band karein" danger busy={toggle.isPending} onClose={() => setPanel(null)} onConfirm={() => toggle.mutate(c)}
+          text={c.activeProjects ? `${c.activeProjects} order abhi is ke paas hain — pehle doosre karigar ko dein.` : 'Purana kaam aur pay ka record rehta hai.'} />
+      )}
+    </Modal>
+  );
 }

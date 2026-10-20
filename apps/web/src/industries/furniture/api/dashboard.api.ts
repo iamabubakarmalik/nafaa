@@ -1,11 +1,7 @@
 import { apiClient } from '@core/api/client';
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: unknown } }): T => (res.data?.data ?? res.data) as T;
 
 export const furnitureDashboardApi = {
-  overview: () => apiClient.get('/furniture/dashboard/overview').then(unwrap<any>),
-  salesReport: (from: string, to: string) =>
-    apiClient.get('/furniture/dashboard/sales-report', { params: { from, to } }).then(unwrap<any>),
-  carpenterPerformance: (from: string, to: string) =>
-    apiClient.get('/furniture/dashboard/carpenter-performance', { params: { from, to } }).then(unwrap<any>),
+  overview: () => apiClient.get('/furniture/dashboard/overview').then(unwrap<unknown>),
 };

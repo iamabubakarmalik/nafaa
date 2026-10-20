@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
+import { endOfDayTz, startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
+import { BILLED } from '../custom-orders/order-billing';
 
 @Injectable()
 export class FurnitureDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(user: AuthenticatedUser) {
-    const monthAgo = subDays(new Date(), 30);
     // Business day (Pakistan time), not the server's UTC day.
     const todayStart = startOfDayTz();
     const todayEnd = endOfDayTz();
@@ -38,9 +37,10 @@ export class FurnitureDashboardService {
 
     // Financial totals
     const [customOrderRevenue, receivables] = await Promise.all([
-      this.prisma.furnitureCustomOrder.aggregate({
-        where: { tenantId: user.tenantId, status: 'COMPLETED', updatedAt: { gte: monthAgo } },
-        _sum: { finalPrice: true },
+      // Order bills of this business month, as the sales reports count them.
+      this.prisma.sale.aggregate({
+        where: { tenantId: user.tenantId, saleNumber: { startsWith: 'FUR-' }, status: { not: 'VOIDED' }, createdAt: { gte: startOfMonthTz() } },
+        _sum: { total: true },
       }),
       this.prisma.furnitureCustomOrder.aggregate({
         where: { tenantId: user.tenantId, status: { notIn: ['CANCELLED', 'REFUNDED'] } },
@@ -52,8 +52,8 @@ export class FurnitureDashboardService {
     const overdueOrders = await this.prisma.furnitureCustomOrder.findMany({
       where: {
         tenantId: user.tenantId,
-        status: { in: ['IN_PRODUCTION', 'DEPOSIT_PAID'] },
-        expectedDeliveryDate: { lt: new Date() },
+        status: { in: ['QUOTATION', 'DEPOSIT_PAID', 'IN_PRODUCTION', 'READY_FOR_DELIVERY'] },
+        expectedDeliveryDate: { lt: todayStart },
       },
       orderBy: { expectedDeliveryDate: 'asc' },
       take: 10,
@@ -108,7 +108,7 @@ export class FurnitureDashboardService {
         quotationsToApprove: quotationOrders,
       },
       financial: {
-        monthlyCustomRevenue: customOrderRevenue._sum.finalPrice ?? 0,
+        monthlyCustomRevenue: Number(customOrderRevenue._sum.total ?? 0),
         totalReceivable: receivables._sum.balanceAmount ?? 0,
         totalCollected: receivables._sum.totalPaid ?? 0,
       },
@@ -122,13 +122,13 @@ export class FurnitureDashboardService {
   }
 
   async salesReport(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    const start = startOfDayTz(new Date(from));
+    const end = endOfDayTz(new Date(to));
 
     const orders = await this.prisma.furnitureCustomOrder.findMany({
       where: {
         tenantId: user.tenantId,
-        status: 'COMPLETED',
+        status: { in: BILLED as any },
         actualDeliveryDate: { gte: start, lte: end },
       },
       orderBy: { actualDeliveryDate: 'desc' },
@@ -149,8 +149,8 @@ export class FurnitureDashboardService {
   }
 
   async carpenterPerformance(user: AuthenticatedUser, from: string, to: string) {
-    const start = new Date(from);
-    const end = new Date(to);
+    const start = startOfDayTz(new Date(from));
+    const end = endOfDayTz(new Date(to));
     const carpenters = await this.prisma.furnitureCarpenter.findMany({
       where: { tenantId: user.tenantId, isActive: true },
     });
@@ -159,9 +159,10 @@ export class FurnitureDashboardService {
       carpenters.map(async (c) => {
         const orders = await this.prisma.furnitureCustomOrder.findMany({
           where: {
+            tenantId: user.tenantId,
             carpenterId: c.id,
             actualDeliveryDate: { gte: start, lte: end },
-            status: 'COMPLETED',
+            status: { in: BILLED as any },
           },
         });
 

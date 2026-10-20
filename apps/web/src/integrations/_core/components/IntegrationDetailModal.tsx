@@ -9,7 +9,7 @@ import { getIntegrationMeta } from '../registry/catalog';
 import { CodeBlock, CopyField } from './CodeBlock';
 import { ProductMappingsPanel } from './ProductMappingsPanel';
 import { ProductSyncPanel } from './ProductSyncPanel';
-import { Button, Input, Modal, Badge, SkeletonCard } from '@/design-system/components';
+import { Button, Input, Modal, Badge, SkeletonCard, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:4000/api';
@@ -201,10 +201,8 @@ export function IntegrationDetailModal({
           <Button
             variant="danger"
             loading={removeMutation.isPending}
-            onClick={() => {
-              const ok = window.confirm(
-                integration.displayName + ' delete karna hai? Ye wapas nahi hoga.',
-              );
+            onClick={async () => {
+              const ok = await confirmDialog({ title: `${integration.displayName} hatana hai?`, text: 'Ye wapas nahi hoga.', danger: true });
               if (ok) removeMutation.mutate();
             }}
             leftIcon={<Trash2 className="h-4 w-4" />}

@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -160,8 +161,8 @@ export function OrderStatusTimeline({
             </button>
           )}
           <button
-            onClick={() => {
-              if (window.confirm('Cancel this order?')) cancelMutation.mutate();
+            onClick={async () => {
+              if (await confirmDialog({ title: 'Ye order cancel karein?', danger: true })) cancelMutation.mutate();
             }}
             className="h-10 px-4 rounded-xl bg-rose-100 dark:bg-rose-950/30 text-rose-600 hover:bg-rose-200 text-xs font-black"
           >

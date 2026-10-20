@@ -151,7 +151,7 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
         {!unit && product.variants.length > 0 && (
           <L label="Type" hint="Sirf ek type ka pack ho to chunein">
             <select value={variantId} onChange={(e) => setVariantId(e.target.value)} className={input}>
-              <option value="">Sab qismein</option>
+              <option value="">Sab types</option>
               {product.variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
           </L>

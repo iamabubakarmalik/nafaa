@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Gift, Package, Search, Trash2, X } from 'lucide-react';
-import { Button, Modal, Switch } from '@/design-system/components';
+import { Button, Modal, Switch, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { ProductSearch } from '@modules/inventory/stock-adjustments/components/ProductSearch';
@@ -134,7 +134,7 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
       footer={<>
         {editing && (
           <Button variant="ghost" className="mr-auto text-rose-600" loading={remove.isPending}
-            onClick={() => { if (window.confirm(`"${editing.label}" hata dein?`)) remove.mutate(); }} leftIcon={<Trash2 className="h-4 w-4" />}>
+            onClick={async () => { if ((await confirmDialog({ title: `"${editing.label}" hata dein?`, danger: true }))) remove.mutate(); }} leftIcon={<Trash2 className="h-4 w-4" />}>
             Hatayein
           </Button>
         )}

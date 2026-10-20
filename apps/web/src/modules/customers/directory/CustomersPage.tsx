@@ -13,7 +13,7 @@ import {
   Activity, AlertTriangle, CalendarCheck, CloudOff, ArrowDownWideNarrow, BarChart3, BookOpen, Cake, Check, Crown, Download, GraduationCap, LayoutGrid,
   MapPin, MessageCircle, Plus, Search, Snowflake, Table2, ToggleRight, Trophy, UserPlus, Users, Wallet, X, type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Button, Card, DateRangeMenu, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
+import { Avatar, Button, Card, DateRangeMenu, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption, PageShell } from '@/design-system/components';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
 import { usePermission } from '@core/hooks/usePermission';
@@ -131,7 +131,7 @@ export function CustomersPage() {
   if (d.period) chips.push([rangeLabel(d.period.from, d.period.to), () => d.setRange({ preset: 'all', custom: { from: '', to: '' } })]);
 
   return (
-    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
+    <PageShell>
       {adding && <QuickAddModal onClose={() => setAdding(false)} onCreated={(id) => { setAdding(false); d.refresh(); navigate(`/customers/${id}`); }} />}
       {guide && <CustomersGuide onClose={() => setGuide(false)} />}
 
@@ -315,7 +315,7 @@ export function CustomersPage() {
           </button>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }
 

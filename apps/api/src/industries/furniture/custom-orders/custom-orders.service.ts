@@ -1,11 +1,23 @@
+/**
+ * Made-to-order furniture: quotation → advance → karigar → ready → delivery.
+ * Advances go on the customer's khata the day they come in; the order's bill
+ * (FUR-<order>) is written when the furniture leaves the shop and uses those
+ * advances first. Orders are cancelled, never deleted.
+ */
+
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { addDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateCustomOrderDto, RecordPaymentDto, UpdateOrderStatusDto, UpdateProgressDto } from './dto/create-custom-order.dto';
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
 import { ensureCustomer, recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { BILLED, billCustomOrder, billTotal, ensureOrderDelivery, orderSaleNumber, r2 } from './order-billing';
+
+/** Still in the shop: the price is agreed or being made. */
+const OPEN = ['QUOTATION', 'DEPOSIT_PAID', 'IN_PRODUCTION', 'READY_FOR_DELIVERY'];
 
 @Injectable()
 export class CustomOrdersService {
@@ -23,7 +35,7 @@ export class CustomOrdersService {
     let carpenterName: string | undefined;
     if (dto.carpenterId) {
       const c = await this.prisma.furnitureCarpenter.findFirst({ where: { id: dto.carpenterId, tenantId: user.tenantId } });
-      if (!c) throw new NotFoundException('Carpenter nahi mila');
+      if (!c) throw new NotFoundException('Karigar nahi mila');
       carpenterName = c.name;
     }
 
@@ -62,7 +74,7 @@ export class CustomOrdersService {
   /** Details can change until the furniture leaves; the price only while it is a quotation. */
   async update(user: AuthenticatedUser, id: string, input: CreateCustomOrderDto) {
     const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Order not found');
+    if (!o) throw new NotFoundException('Order nahi mila');
     if (BILLED.includes(o.status) || ['CANCELLED', 'REFUNDED'].includes(o.status)) {
       throw new BadRequestException('Ye order band ho chuka — ab badla nahi ja sakta');
     }
@@ -89,37 +101,47 @@ export class CustomOrdersService {
 
   async list(user: AuthenticatedUser, params: {
     status?: string; customerId?: string; carpenterId?: string;
-    from?: string; to?: string; search?: string;
+    from?: string; to?: string; search?: string; page?: number; limit?: number;
   }) {
-    return this.prisma.furnitureCustomOrder.findMany({
-      where: {
-        tenantId: user.tenantId,
-        ...(params.status && { status: params.status as any }),
-        ...(params.customerId && { customerId: params.customerId }),
-        ...(params.carpenterId && { carpenterId: params.carpenterId }),
-        ...(params.from || params.to ? {
-          quotationDate: {
-            ...(params.from && { gte: new Date(params.from) }),
-            ...(params.to && { lte: new Date(params.to) }),
-          },
-        } : {}),
-        ...(params.search && {
-          OR: [
-            { orderNumber: { contains: params.search, mode: 'insensitive' } },
-            { customerName: { contains: params.search, mode: 'insensitive' } },
-            { customerPhone: { contains: params.search } },
-            { productType: { contains: params.search, mode: 'insensitive' } },
-          ],
-        }),
-      },
-      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
-      take: 200,
-    });
+    const search = params.search?.trim();
+    const statuses = (params.status ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+    const where: Prisma.FurnitureCustomOrderWhereInput = {
+      tenantId: user.tenantId,
+      ...(statuses.length === 1 && { status: statuses[0] as any }),
+      ...(statuses.length > 1 && { status: { in: statuses as any } }),
+      ...(params.customerId && { customerId: params.customerId }),
+      ...(params.carpenterId && { carpenterId: params.carpenterId }),
+      ...(params.from || params.to ? {
+        quotationDate: {
+          ...(params.from && { gte: startOfDayTz(new Date(params.from)) }),
+          ...(params.to && { lte: endOfDayTz(new Date(params.to)) }),
+        },
+      } : {}),
+      ...(search && {
+        OR: [
+          { orderNumber: { contains: search, mode: 'insensitive' } },
+          { customerName: { contains: search, mode: 'insensitive' } },
+          { customerPhone: { contains: search } },
+          { productType: { contains: search, mode: 'insensitive' } },
+          { carpenterName: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+    if (!params.page) {
+      return this.prisma.furnitureCustomOrder.findMany({ where, orderBy: [{ status: 'asc' }, { createdAt: 'desc' }], take: 200 });
+    }
+    const limit = Math.min(Math.max(Number(params.limit) || 25, 1), 200);
+    const page = Math.max(Number(params.page) || 1, 1);
+    const [items, total] = await Promise.all([
+      this.prisma.furnitureCustomOrder.findMany({ where, orderBy: [{ expectedDeliveryDate: 'asc' }, { createdAt: 'desc' }], skip: (page - 1) * limit, take: limit }),
+      this.prisma.furnitureCustomOrder.count({ where }),
+    ]);
+    return { items, total, page, limit };
   }
 
   async getOne(user: AuthenticatedUser, id: string) {
     const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Custom order not found');
+    if (!o) throw new NotFoundException('Order nahi mila');
     const sale = await this.prisma.sale.findFirst({
       where: { tenantId: user.tenantId, saleNumber: orderSaleNumber(o.orderNumber) },
       select: { id: true, saleNumber: true, total: true, creditAmount: true },
@@ -129,8 +151,8 @@ export class CustomOrdersService {
 
   async approve(user: AuthenticatedUser, id: string, finalPrice?: number) {
     const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Order not found');
-    if (o.status !== 'QUOTATION') throw new BadRequestException('Only quotations can be approved');
+    if (!o) throw new NotFoundException('Order nahi mila');
+    if (o.status !== 'QUOTATION') throw new BadRequestException('Sirf quotation approve hoti hai');
 
     const price = finalPrice ?? o.quotedPrice;
     if (!(price > 0)) throw new BadRequestException('Qeemat 0 se zyada honi chahiye');
@@ -152,7 +174,7 @@ export class CustomOrdersService {
    */
   async recordPayment(user: AuthenticatedUser, id: string, dto: RecordPaymentDto) {
     const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Order not found');
+    if (!o) throw new NotFoundException('Order nahi mila');
     if (['CANCELLED', 'REFUNDED'].includes(o.status)) throw new BadRequestException('Cancel order par payment nahi li ja sakti');
     const amount = r2(dto.amount);
     if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
@@ -191,13 +213,16 @@ export class CustomOrdersService {
     });
   }
 
+  /** Gives the job to a karigar; moving it to another karigar frees the first one. */
   async assignCarpenter(user: AuthenticatedUser, id: string, carpenterId: string, workshopLocation?: string) {
     const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Order not found');
+    if (!o) throw new NotFoundException('Order nahi mila');
+    if (!OPEN.includes(o.status)) throw new BadRequestException('Ye order workshop se nikal chuka — karigar ab nahi badalta');
+    if (!carpenterId) throw new BadRequestException('Karigar chunein');
 
     const c = await this.prisma.furnitureCarpenter.findFirst({ where: { id: carpenterId, tenantId: user.tenantId } });
-    if (!c) throw new NotFoundException('Carpenter not found');
-    if (!c.isActive) throw new BadRequestException('Carpenter not active');
+    if (!c) throw new NotFoundException('Karigar nahi mila');
+    if (!c.isActive) throw new BadRequestException('Ye karigar band hai');
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.furnitureCustomOrder.update({
@@ -205,104 +230,101 @@ export class CustomOrdersService {
         data: {
           carpenterId,
           carpenterName: c.name,
-          workshopLocation: workshopLocation ?? o.workshopLocation,
+          workshopLocation: workshopLocation?.trim() || o.workshopLocation,
           productionStartDate: o.productionStartDate ?? new Date(),
-          status: o.status === 'DEPOSIT_PAID' ? 'IN_PRODUCTION' : o.status,
+          status: o.status === 'DEPOSIT_PAID' || o.status === 'QUOTATION' ? 'IN_PRODUCTION' : o.status,
         },
       });
-      await tx.furnitureCarpenter.update({
-        where: { id: carpenterId },
-        data: {
-          totalProjects: { increment: 1 },
-          activeProjects: { increment: 1 },
-        },
-      });
+      if (o.carpenterId !== carpenterId) {
+        await tx.furnitureCarpenter.update({ where: { id: carpenterId }, data: { totalProjects: { increment: 1 }, activeProjects: { increment: 1 } } });
+        if (o.carpenterId) await this.freeCarpenter(tx, user.tenantId, o.carpenterId, true);
+      }
       return updated;
+    });
+  }
+
+  /** One job fewer on a karigar's bench (never below zero); `moved` also takes it off his total. */
+  private async freeCarpenter(tx: Prisma.TransactionClient, tenantId: string, carpenterId: string, moved = false) {
+    await tx.furnitureCarpenter.updateMany({
+      where: { id: carpenterId, tenantId, activeProjects: { gt: 0 } },
+      data: { activeProjects: { decrement: 1 }, ...(moved && { totalProjects: { decrement: 1 } }) },
     });
   }
 
   async updateProgress(user: AuthenticatedUser, id: string, dto: UpdateProgressDto) {
     const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Order not found');
+    if (!o) throw new NotFoundException('Order nahi mila');
+    if (!OPEN.includes(o.status)) throw new BadRequestException('Ye order workshop se nikal chuka');
+    const pct = Math.round(Number(dto.progressPct));
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) throw new BadRequestException('Kaam 0 se 100% ke beech likhein');
 
-    const photos = [...(o.progressPhotos ?? []), ...(dto.progressPhotos ?? [])];
-    const updates = (o.progressUpdates as any[]) ?? [];
-    if (dto.updateNote) {
-      updates.push({ at: new Date().toISOString(), pct: dto.progressPct, note: dto.updateNote });
-    }
+    const photos = [...(o.progressPhotos ?? []), ...(dto.progressPhotos ?? [])].slice(-30);
+    const updates = Array.isArray(o.progressUpdates) ? [...(o.progressUpdates as Prisma.JsonArray)] : [];
+    const note = dto.updateNote?.trim();
+    updates.push({ at: new Date().toISOString(), pct, ...(note && { note: note.slice(0, 300) }) });
 
-    const patch: any = {
-      progressPct: Math.max(0, Math.min(100, dto.progressPct)),
+    const patch: Prisma.FurnitureCustomOrderUpdateInput = {
+      progressPct: pct,
       progressPhotos: photos,
-      progressUpdates: updates,
+      progressUpdates: updates.slice(-50),
+      ...(o.status === 'DEPOSIT_PAID' || o.status === 'QUOTATION' ? { status: 'IN_PRODUCTION', productionStartDate: o.productionStartDate ?? new Date() } : {}),
     };
-
-    if (dto.progressPct >= 100 && !o.productionEndDate) {
-      patch.productionEndDate = new Date();
+    if (pct >= 100) {
+      patch.productionEndDate = o.productionEndDate ?? new Date();
       patch.status = 'READY_FOR_DELIVERY';
     }
-
     return this.prisma.furnitureCustomOrder.update({ where: { id }, data: patch });
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, dto: UpdateOrderStatusDto) {
     const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Order not found');
+    if (!o) throw new NotFoundException('Order nahi mila');
     if (['CANCELLED', 'REFUNDED'].includes(o.status)) throw new BadRequestException('Ye order cancel ho chuka hai');
+    if (o.status === dto.status) return o;
     if (BILLED.includes(o.status) && !BILLED.includes(dto.status)) {
-      throw new BadRequestException('Furniture de diya gaya aur bill ban chuka — ab ye status nahi lag sakta');
+      throw new BadRequestException('Furniture de diya gaya aur bill ban chuka — ab ye status nahi lag sakta. Wapsi ho to Sales me bill cancel karein');
     }
     if (dto.status === 'REFUNDED') {
       throw new BadRequestException('Return ki amount customer ke khate se dein — order ko Cancel karein');
     }
+    if (dto.status === 'CANCELLED' && !dto.cancellationReason?.trim()) throw new BadRequestException('Cancel ki wajah likhein');
 
-    const patch: any = { status: dto.status };
+    const patch: Prisma.FurnitureCustomOrderUpdateInput = { status: dto.status };
     const now = new Date();
 
-    if (dto.status === 'DELIVERED' && !o.actualDeliveryDate) patch.actualDeliveryDate = now;
+    if (dto.status === 'IN_PRODUCTION' && !o.productionStartDate) patch.productionStartDate = now;
+    if (dto.status === 'READY_FOR_DELIVERY') { patch.productionEndDate = o.productionEndDate ?? now; patch.progressPct = 100; }
     if (dto.status === 'CANCELLED') {
       // Any advance stays on the customer's khata as their money; it is returned from there.
       patch.cancelledAt = now;
-      patch.cancellationReason = dto.cancellationReason;
+      patch.cancellationReason = dto.cancellationReason!.trim().slice(0, 300);
       patch.refundAmount = 0;
     }
-    if (dto.notes) patch.internalNotes = ((o.internalNotes || '') + '\n' + dto.notes).trim();
+    const notes = [o.internalNotes, dto.notes?.trim()].filter(Boolean);
 
     return this.prisma.$transaction(async (tx) => {
+      const billing = BILLED.includes(dto.status) && !BILLED.includes(o.status);
       // Leaving the shop is the sale: the bill uses the advance on khata, the rest becomes udhaar.
-      if (BILLED.includes(dto.status) && !BILLED.includes(o.status)) {
+      if (billing) {
         Object.assign(patch, await billCustomOrder(tx, user, o));
-        patch.internalNotes = [patch.internalNotes ?? o.internalNotes, `Bill ${orderSaleNumber(o.orderNumber)}`].filter(Boolean).join('\n');
+        notes.push(`Bill ${orderSaleNumber(o.orderNumber)}`);
         if (!o.actualDeliveryDate) patch.actualDeliveryDate = now;
       }
+      if (notes.length) patch.internalNotes = notes.join('\n').slice(-2000);
 
       // Sending it out makes the delivery slip, so it shows on the Deliveries page.
       if (dto.status === 'OUT_FOR_DELIVERY') await ensureOrderDelivery(tx, user, o);
 
       const updated = await tx.furnitureCustomOrder.update({ where: { id }, data: patch });
 
-      if (dto.status === 'COMPLETED' && o.status !== 'COMPLETED' && o.carpenterId) {
-        await tx.furnitureCarpenter.update({
-          where: { id: o.carpenterId },
-          data: {
-            completedProjects: { increment: 1 },
-            activeProjects: { decrement: 1 },
-            totalRevenue: { increment: o.finalPrice ?? o.quotedPrice },
-          },
-        });
-      }
+      if (o.carpenterId && dto.status === 'CANCELLED') await this.freeCarpenter(tx, user.tenantId, o.carpenterId);
       return updated;
     });
   }
 
+  /** Older screens call delete: an order is cancelled instead, so its advance and history stay. */
   async remove(user: AuthenticatedUser, id: string) {
-    const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id, tenantId: user.tenantId } });
-    if (!o) throw new NotFoundException('Order not found');
-    if (['IN_PRODUCTION', 'READY_FOR_DELIVERY', 'DELIVERED', 'COMPLETED'].includes(o.status)) {
-      throw new BadRequestException(`Cannot delete order in status ${o.status}`);
-    }
-    if (o.totalPaid > 0) throw new BadRequestException('Is order par advance liya gaya hai — delete ke bajaye Cancel karein');
-    return this.prisma.furnitureCustomOrder.delete({ where: { id } });
+    return this.updateStatus(user, id, { status: 'CANCELLED', cancellationReason: 'Order hata diya' } as UpdateOrderStatusDto);
   }
 
   async summary(user: AuthenticatedUser) {
@@ -321,8 +343,11 @@ export class CustomOrdersService {
       _sum: { balanceAmount: true, totalPaid: true },
     });
 
+    const late = await this.prisma.furnitureCustomOrder.count({
+      where: { tenantId: user.tenantId, status: { in: OPEN as any }, expectedDeliveryDate: { lt: startOfDayTz() } },
+    });
     return {
-      quotation, deposit, production, ready, delivered, completed, cancelled,
+      quotation, deposit, production, ready, delivered, completed, cancelled, late,
       totalReceivable: receivables._sum.balanceAmount ?? 0,
       totalCollected: receivables._sum.totalPaid ?? 0,
     };
@@ -332,8 +357,8 @@ export class CustomOrdersService {
     return this.prisma.furnitureCustomOrder.findMany({
       where: {
         tenantId: user.tenantId,
-        status: { in: ['IN_PRODUCTION', 'DEPOSIT_PAID'] },
-        expectedDeliveryDate: { lt: new Date() },
+        status: { in: OPEN as any },
+        expectedDeliveryDate: { lt: startOfDayTz() },
       },
       orderBy: { expectedDeliveryDate: 'asc' },
     });

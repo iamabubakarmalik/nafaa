@@ -1,230 +1,191 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ClipboardList, Plus, Search, X, RefreshCw, Clock, CheckCircle2,
-  XCircle, AlertTriangle, User, Phone, Calendar, DollarSign,
-  ArrowRight, Hammer, Truck, Percent,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { customOrdersApi, type FurnitureOrderStatus } from '../api/custom-orders.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+/**
+ * Custom orders: furniture made to order. Quotation → advance → karigar →
+ * ready → delivery. Advances go on the customer's khata the day they come
+ * in; the order's bill is made when the furniture leaves the shop. Orders
+ * are cancelled, never deleted.
+ *
+ * Keys: N new order · / search · A analytics · G guide.
+ */
 
-const STATUS_META: Record<FurnitureOrderStatus, { label: string; color: string; bg: string; icon: any }> = {
-  QUOTATION: { label: 'Quotation', color: 'text-slate-700', bg: 'bg-slate-100', icon: ClipboardList },
-  DEPOSIT_PAID: { label: 'Deposit Paid', color: 'text-blue-700', bg: 'bg-blue-100', icon: DollarSign },
-  IN_PRODUCTION: { label: 'In Production', color: 'text-amber-700', bg: 'bg-amber-100', icon: Hammer },
-  READY_FOR_DELIVERY: { label: 'Ready', color: 'text-violet-700', bg: 'bg-violet-100', icon: CheckCircle2 },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'text-cyan-700', bg: 'bg-cyan-100', icon: Truck },
-  DELIVERED: { label: 'Delivered', color: 'text-emerald-700', bg: 'bg-emerald-100', icon: CheckCircle2 },
-  ASSEMBLED: { label: 'Assembled', color: 'text-teal-700', bg: 'bg-teal-100', icon: Hammer },
-  COMPLETED: { label: 'Completed', color: 'text-green-700', bg: 'bg-green-100', icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancelled', color: 'text-slate-700', bg: 'bg-slate-100', icon: XCircle },
-  REFUNDED: { label: 'Refunded', color: 'text-rose-700', bg: 'bg-rose-100', icon: XCircle },
+import { useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  AlertTriangle, BarChart3, CheckCircle2, ClipboardList, Download, FileText, GraduationCap, Hammer, ListChecks, PackageCheck, Plus, Truck, Wallet, XCircle,
+} from 'lucide-react';
+import {
+  Button, FilterBar, FilterChip, KpiCard, KpiRow, PageHero, PageShell, SearchField, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { downloadCsv } from '@core/lib/csv';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print/PrintButton';
+import type { PrintDoc } from '@core/print/types';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { customOrdersApi, type FurnitureCustomOrder } from '../api/custom-orders.api';
+import { BarList, DueChip, Empty, ListCard, ListLoading, Pager, Pill } from '../components/ui';
+import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
+import { BILLED_ORDER, FURNITURE_KEYS, OPEN_ORDER, ORDER_STATUS, daysTo, orderTotal, shortDate } from '../lib/meta';
+
+type Tab = 'open' | 'quotes' | 'making' | 'ready' | 'done' | 'cancelled' | 'all' | 'analytics';
+const LIMIT = 25;
+const TAB_STATUS: Record<Tab, string | undefined> = {
+  open: OPEN_ORDER.join(','), quotes: 'QUOTATION', making: 'DEPOSIT_PAID,IN_PRODUCTION', ready: 'READY_FOR_DELIVERY',
+  done: ['OUT_FOR_DELIVERY', ...BILLED_ORDER].join(','), cancelled: 'CANCELLED,REFUNDED', all: undefined, analytics: undefined,
 };
 
 export default function CustomOrdersPage() {
-  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const { sales: money } = useMasked();
+  const canCreate = usePermission(PERMISSIONS.SERVICE_JOBS_MANAGE);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('open');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const q = useDebounced(search.trim());
+  const [page, setPage] = useState(1);
 
-  const { data: orders = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['custom-orders-list', statusFilter],
-    queryFn: () => customOrdersApi.list({ status: statusFilter === 'all' ? undefined : statusFilter }),
-  });
+  const params = { status: TAB_STATUS[tab], search: q || undefined, page, limit: LIMIT };
+  const listQ = useQuery({ queryKey: [FURNITURE_KEYS.orders, 'page', params], queryFn: () => customOrdersApi.page(params), enabled: tab !== 'analytics', placeholderData: (p) => p });
+  const sumQ = useQuery({ queryKey: [FURNITURE_KEYS.orders, 'summary'], queryFn: () => customOrdersApi.summary() });
+  const allQ = useQuery({ queryKey: [FURNITURE_KEYS.orders, 'analytics'], queryFn: () => customOrdersApi.page({ page: 1, limit: 200 }), enabled: tab === 'analytics' });
+  const s = sumQ.data;
+  const goNew = () => { if (canCreate) navigate('/furniture/custom-orders/new'); };
+  usePageKeys(searchRef, { n: goNew, a: () => setTab('analytics') });
+  const changeTab = (t: Tab) => { setTab(t); setPage(1); };
 
-  const { data: summary } = useQuery({
-    queryKey: ['custom-orders-summary'],
-    queryFn: () => customOrdersApi.summary(),
-    refetchInterval: 60_000,
-  });
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return orders;
-    return orders.filter((o) =>
-      o.orderNumber.toLowerCase().includes(q) ||
-      o.customerName.toLowerCase().includes(q) ||
-      o.productType.toLowerCase().includes(q) ||
-      (o.customerPhone || '').includes(q)
-    );
-  }, [orders, search]);
-
-  return (
-    <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-              <ClipboardList className="h-3.5 w-3.5 text-amber-300" /> Custom Furniture Orders
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">📋 Custom Orders</h1>
-            <p className="mt-2 text-sm text-white/80">
-              {summary?.quotation ?? 0} quotations • {summary?.production ?? 0} in production • Receivable{' '}
-              <strong className="text-emerald-300">{formatPKR(summary?.totalReceivable || 0)}</strong>
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-            <Link to="/furniture/custom-orders/new">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <Plus className="h-4 w-4" /> New Order
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {summary && (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Quotation" value={summary.quotation} icon={ClipboardList} tone="slate" onClick={() => setStatusFilter('QUOTATION')} />
-          <StatCard label="In Production" value={summary.production} icon={Hammer} tone="amber" onClick={() => setStatusFilter('IN_PRODUCTION')} />
-          <StatCard label="Ready" value={summary.ready} icon={CheckCircle2} tone="violet" onClick={() => setStatusFilter('READY_FOR_DELIVERY')} />
-          <StatCard label="Collected" value={formatPKR(summary.totalCollected)} icon={DollarSign} tone="emerald" />
-        </section>
-      )}
-
-      <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Order #, customer, product, phone..."
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 bg-white pl-11 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-          {['all', 'QUOTATION', 'DEPOSIT_PAID', 'IN_PRODUCTION', 'READY_FOR_DELIVERY', 'DELIVERED', 'COMPLETED', 'CANCELLED'].map((v) => (
-            <button key={v} onClick={() => setStatusFilter(v)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                statusFilter === v ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600'}`}>
-              {v === 'all' ? 'All' : v.replace(/_/g, ' ')}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 animate-pulse" />)}</div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white border-2 border-dashed border-slate-300 p-16 text-center">
-          <ClipboardList className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">{statusFilter === 'all' ? 'No custom orders yet' : 'No orders match filter'}</h3>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Create your first custom furniture order</p>
-          <Link to="/furniture/custom-orders/new">
-            <Button className="mt-4 bg-gradient-to-r from-violet-600 to-purple-800"><Plus className="h-4 w-4" /> Create First Order</Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((o) => <OrderCard key={o.id} order={o} />)}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function OrderCard({ order: o }: any) {
-  const meta = STATUS_META[o.status as FurnitureOrderStatus];
-  const StatusIcon = meta.icon;
-  const isOverdue = o.expectedDeliveryDate && new Date(o.expectedDeliveryDate) < new Date() && !['DELIVERED', 'COMPLETED', 'CANCELLED', 'REFUNDED'].includes(o.status);
-  const daysLeft = o.expectedDeliveryDate ? Math.ceil((new Date(o.expectedDeliveryDate).getTime() - Date.now()) / 86400000) : null;
-
-  return (
-    <Link to={`/furniture/custom-orders/${o.id}`}
-      className={`block rounded-2xl bg-white border-2 shadow-sm hover:shadow-md transition ${isOverdue ? 'border-rose-300' : 'border-slate-200'}`}>
-      <div className="p-4">
-        <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
-          <div className={`h-14 w-14 rounded-2xl ${meta.bg} flex items-center justify-center shrink-0`}>
-            <StatusIcon className={`h-6 w-6 ${meta.color}`} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono font-extrabold text-slate-900 text-sm">{o.orderNumber}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
-                <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
-              </span>
-              {isOverdue && (
-                <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold">OVERDUE</span>
-              )}
-              {o.progressPct > 0 && o.progressPct < 100 && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
-                  {o.progressPct}% complete
-                </span>
-              )}
-            </div>
-            <div className="mt-1 font-extrabold text-slate-900 text-base truncate">{o.productType}</div>
-            <div className="flex items-center gap-3 mt-2 text-xs text-slate-600 font-bold flex-wrap">
-              <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {o.customerName}</span>
-              {o.customerPhone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {o.customerPhone}</span>}
-              {o.carpenterName && <span className="inline-flex items-center gap-1"><Hammer className="h-3 w-3" /> {o.carpenterName}</span>}
-            </div>
-            <div className="flex items-center gap-3 mt-1 text-[0.6875rem] text-slate-500 font-bold">
-              {o.expectedDeliveryDate && (
-                <span className="inline-flex items-center gap-0.5">
-                  <Calendar className="h-2.5 w-2.5" />
-                  Due {new Date(o.expectedDeliveryDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  {daysLeft !== null && daysLeft > 0 && ` (${daysLeft}d)`}
-                </span>
-              )}
-              <span>{o.estimatedDays} days est.</span>
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total</div>
-            <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(o.finalPrice ?? o.quotedPrice)}</div>
-            {o.balanceAmount > 0 && (
-              <div className="text-[0.6875rem] font-bold text-rose-700 mt-0.5">
-                Balance {formatPKR(o.balanceAmount)}
-              </div>
-            )}
-            {o.depositPaid && o.balanceAmount > 0 && (
-              <div className="text-[0.6875rem] font-bold text-emerald-700 mt-0.5">
-                Deposit ✓
-              </div>
-            )}
-          </div>
-          <ArrowRight className="h-4 w-4 text-slate-400 self-center shrink-0" />
-        </div>
-
-        {o.progressPct > 0 && (
-          <div className="mt-3 pt-3 border-t border-slate-100">
-            <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-violet-500 to-purple-700 transition-all"
-                style={{ width: `${o.progressPct}%` }} />
-            </div>
-          </div>
-        )}
-      </div>
-    </Link>
-  );
-}
-
-function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
-  const tones: Record<string, string> = {
-    slate: 'from-slate-500 to-slate-700', amber: 'from-amber-500 to-orange-700',
-    violet: 'from-violet-500 to-purple-700', emerald: 'from-emerald-500 to-emerald-700',
+  const rows = listQ.data?.items ?? [];
+  const exportCsv = () => {
+    if (!rows.length) { toast.error('Is filter me koi order nahi'); return; }
+    downloadCsv('furniture-orders.csv', [
+      ['Order', 'Customer', 'Phone', 'Cheez', 'Lakri', 'Polish', 'Karigar', 'Order date', 'Dena hai', 'Qeemat', 'Mila', 'Baqi', 'Halat'],
+      ...rows.map((o) => [o.orderNumber, o.customerName, o.customerPhone, o.productType, o.woodType ?? '', o.polishRequested ?? '', o.carpenterName ?? '',
+        o.quotationDate.slice(0, 10), o.expectedDeliveryDate?.slice(0, 10) ?? '', orderTotal(o), o.totalPaid, o.balanceAmount, ORDER_STATUS[o.status]?.label ?? o.status]),
+    ]);
   };
-  const C: any = onClick ? 'button' : 'div';
+  const printList = (): PrintDoc => ({
+    title: 'Custom orders',
+    meta: [['Chal rahe', String((s?.quotation ?? 0) + (s?.deposit ?? 0) + (s?.production ?? 0) + (s?.ready ?? 0))], ['Late', String(s?.late ?? 0)], ['Baqi', money(s?.totalReceivable ?? 0)]],
+    sections: [{
+      kind: 'table', title: 'Orders',
+      columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Cheez', wideOnly: true }, { label: 'Dena hai' }, { label: 'Baqi', align: 'right' }],
+      rows: rows.map((o) => [o.orderNumber, `${o.customerName} ${o.customerPhone}`, o.productType, shortDate(o.expectedDeliveryDate), money(o.balanceAmount)]),
+    }],
+  });
+
+  const analytics = useMemo(() => {
+    const items = (allQ.data?.items ?? []).filter((o) => o.status !== 'CANCELLED' && o.status !== 'REFUNDED');
+    const group = (key: (o: FurnitureCustomOrder) => string) => {
+      const m = new Map<string, { count: number; value: number }>();
+      for (const o of items) {
+        const k = key(o);
+        const x = m.get(k) ?? { count: 0, value: 0 };
+        x.count += 1; x.value += orderTotal(o);
+        m.set(k, x);
+      }
+      return [...m.entries()].map(([k, v]) => ({ key: k, ...v })).sort((a, b) => b.value - a.value).slice(0, 10);
+    };
+    return { byItem: group((o) => o.productType), byCarpenter: group((o) => o.carpenterName || 'Karigar nahi'), byWood: group((o) => o.woodType || 'Likha nahi') };
+  }, [allQ.data]);
+
   return (
-    <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </C>
+    <PageShell>
+      {guide.isOpen && (
+        <PageGuide title="Custom orders — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: FileText, color: '#0891b2', title: 'Quotation', text: 'Customer kya banwana chahta hai — design, lakri, polish, size, qeemat aur kitne din. Sketch ya photo bhi lagayein.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance usi din drawer me aata hai aur customer ke khate me jama hota hai. Baad ki qist bhi isi tarah — jitni baar chahein.' },
+            { icon: Hammer, color: '#a16207', title: 'Karigar', text: 'Order karigar ko dein, kaam kitna hua (%) likhte rahein. 100% par order "Tayyar" ho jata hai.' },
+            { icon: Truck, color: '#7c3aed', title: 'Delivery = bill', text: 'Furniture dukaan se nikle to bill banta hai: advance pehle katta hai, baqi udhaar khate me. Delivery page par gaari aur fitting.' },
+            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Order mitta nahi, cancel hota hai. Advance customer ke khate me rehta hai — wapas dena ho to khate se dein.' },
+          ]}
+          shortcuts={[['N', 'naya order'], ['A', 'analytics'], ['/', 'search'], ['G', 'guide']]} />
+      )}
+
+      <PageHero title="Custom orders" chip={<><ClipboardList /> Order par</>} loading={sumQ.isLoading} busy={listQ.isFetching && !listQ.isLoading}
+        meta="Quotation se delivery tak — advance, karigar aur baqi paisa"
+        actions={<>
+          <Link to="/furniture/deliveries" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Deliveries</span></Link>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <button type="button" onClick={goNew} title="Naya order (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" />Order</button>}
+        </>}
+        stats={[
+          { label: 'Ban rahe', value: String((s?.deposit ?? 0) + (s?.production ?? 0)) },
+          { label: 'Late', value: String(s?.late ?? 0) },
+          { label: 'Customers se baqi', value: money(s?.totalReceivable ?? 0) },
+        ]} />
+
+      <KpiRow cols={4}>
+        <KpiCard icon={FileText} color="#0891b2" label="Quotation" value={s?.quotation ?? 0} hint="Advance ka intezar" active={tab === 'quotes'} onClick={() => changeTab('quotes')} />
+        <KpiCard icon={Hammer} color="#a16207" label="Ban rahe" value={(s?.deposit ?? 0) + (s?.production ?? 0)} hint={s?.late ? `${s.late} late` : 'Sab waqt par'} active={tab === 'making'} onClick={() => changeTab('making')} />
+        <KpiCard icon={PackageCheck} color="#16a34a" label="Tayyar" value={s?.ready ?? 0} hint="Delivery bhejein" active={tab === 'ready'} onClick={() => changeTab('ready')} />
+        <KpiCard icon={Wallet} color="#7c3aed" label="Advance / wusooli" value={money(s?.totalCollected ?? 0)} hint={`${money(s?.totalReceivable ?? 0)} baqi`} />
+      </KpiRow>
+
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Order, customer, phone, cheez ya karigar…" />}
+        chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
+        onClear={() => { setSearch(''); setPage(1); }} />
+
+      <ViewTabs value={tab} onChange={changeTab} hint="Order kholein — advance, karigar, kaam aur delivery"
+        tabs={[
+          { id: 'open', label: 'Chal rahe', icon: ClipboardList },
+          { id: 'quotes', label: 'Quotation', icon: FileText, count: s?.quotation ?? null },
+          { id: 'making', label: 'Ban rahe', icon: Hammer },
+          { id: 'ready', label: 'Tayyar', icon: PackageCheck, count: s?.ready ?? null },
+          { id: 'done', label: 'De diye', icon: CheckCircle2 },
+          { id: 'cancelled', label: 'Cancel', icon: XCircle },
+          { id: 'all', label: 'Sab', icon: ListChecks },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
+
+      {tab === 'analytics' ? (
+        allQ.isLoading ? <ListLoading /> : (
+          <div className="grid gap-4 lg:grid-cols-3">
+            <BarList title="Kya zyada banwaya" money={money} rows={analytics.byItem} />
+            <BarList title="Karigar (kaam ki qeemat)" money={money} rows={analytics.byCarpenter} />
+            <BarList title="Lakri" money={money} rows={analytics.byWood} />
+          </div>
+        )
+      ) : (
+        <ListCard footer={listQ.data && <Pager page={page} total={listQ.data.total} limit={LIMIT} onPage={setPage} />}>
+          {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
+            <Empty icon={ClipboardList} title="Is filter me koi order nahi" text="Bed, sofa ya almari order par banani ho to naya order banayein."
+              action={canCreate ? <Button onClick={goNew}><Plus className="h-4 w-4" />Naya order</Button> : undefined} />
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {rows.map((o) => {
+                const st = ORDER_STATUS[o.status];
+                return (
+                  <li key={o.id}>
+                    <Link to={`/furniture/custom-orders/${o.id}`} className="grid gap-2 px-4 py-3 hover:bg-slate-50 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_9rem_10rem_auto] lg:items-center">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-slate-900">{o.productType} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{o.orderNumber}</span></p>
+                        <p className="truncate text-[0.75rem] text-slate-500">{[o.customerName, o.customerPhone, o.woodType, o.carpenterName ? `Karigar ${o.carpenterName}` : null].filter(Boolean).join(' · ')}</p>
+                        {(o.status === 'IN_PRODUCTION' || o.status === 'DEPOSIT_PAID') && (
+                          <div className="mt-1.5 h-1.5 max-w-xs rounded-full bg-slate-100"><div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${Math.max(o.progressPct, 3)}%` }} /></div>
+                        )}
+                      </div>
+                      <p className="text-[0.8125rem] text-slate-700">{shortDate(o.expectedDeliveryDate)}<DueChip o={o} /></p>
+                      <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(orderTotal(o))}
+                        <span className={`block text-[0.75rem] font-medium ${o.balanceAmount > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>{o.balanceAmount > 0 ? `${money(o.balanceAmount)} baqi` : 'Poora mila'}</span>
+                      </p>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {OPEN_ORDER.includes(o.status) && (daysTo(o.expectedDeliveryDate) ?? 0) < 0 && <AlertTriangle className="h-4 w-4 text-rose-600" />}
+                        <Pill tone={st?.tone ?? ''}>{st?.label ?? o.status}</Pill>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </ListCard>
+      )}
+    </PageShell>
   );
 }

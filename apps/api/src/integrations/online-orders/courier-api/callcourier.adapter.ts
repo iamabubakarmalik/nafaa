@@ -63,7 +63,7 @@ export const callCourierAdapter: CourierAdapter = {
       throw new CourierApiError('Call Courier ki Settings poori karein: apna shehar, area, naam, phone aur address');
     }
     const cod = Math.max(0, Math.round(i.codAmount));
-    if (cod <= 0) throw new CourierApiError('Call Courier COD service par 0 raqam nahi leta — paid order kisi aur courier se bhejein');
+    if (cod <= 0) throw new CourierApiError('Call Courier COD service par 0 amount nahi leta — paid order kisi aur courier se bhejein');
     const origin = (await cityList()).find((c) => c.id === String(settings.originCityId));
     const params = new URLSearchParams({
       loginId: creds.apiKey,

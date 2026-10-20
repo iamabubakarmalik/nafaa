@@ -114,7 +114,7 @@ export interface FurnitureProductProfile {
   updatedAt: string;
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+const unwrap = <T,>(res: { data?: { data?: unknown } }): T => (res.data?.data ?? res.data) as T;
 
 export const furnitureProductsApi = {
   upsert: (data: Partial<FurnitureProductProfile>) =>
@@ -129,16 +129,4 @@ export const furnitureProductsApi = {
 
   byProduct: (productId: string) =>
     apiClient.get('/furniture/products/by-product/' + productId).then(unwrap<FurnitureProductProfile | null>),
-
-  byCategory: () =>
-    apiClient.get('/furniture/products/by-category-count').then(unwrap<Record<string, number>>),
-
-  showroomLayout: () =>
-    apiClient.get('/furniture/products/showroom-layout').then(unwrap<Record<string, FurnitureProductProfile[]>>),
-
-  getOne: (id: string) =>
-    apiClient.get('/furniture/products/' + id).then(unwrap<FurnitureProductProfile>),
-
-  remove: (id: string, force = false) =>
-    apiClient.delete(`/furniture/products/${id}${force ? '?force=true' : ''}`).then(unwrap),
 };

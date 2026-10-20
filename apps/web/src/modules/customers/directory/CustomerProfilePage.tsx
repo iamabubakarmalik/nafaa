@@ -16,7 +16,7 @@ import {
   ArrowLeft, BookOpen, Cake, Copy, Crown, Download, Gift, LineChart, Mail, MapPin, MessageCircle, Pencil, Phone, Plus, Receipt,
   StickyNote, Trash2, User, Wallet,
 } from 'lucide-react';
-import { Avatar, Button, Card, Modal, Skeleton } from '@/design-system/components';
+import { Avatar, Button, Card, Modal, Skeleton, PageShell } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PrintButton, type PrintDoc } from '@core/print';
@@ -186,7 +186,7 @@ export function CustomerProfilePage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
+    <PageShell>
       {action && <KhataActionModal action={action} customer={{ id, name: c.name, balance }} money={money} onClose={() => setAction(null)} onDone={reload} />}
       {confirmDelete && (
         <Modal open onClose={() => setConfirmDelete(false)} size="sm" title={`${c.name} ko mitayein?`}
@@ -408,6 +408,6 @@ export function CustomerProfilePage() {
           </dl>
         </Card>
       )}
-    </div>
+    </PageShell>
   );
 }

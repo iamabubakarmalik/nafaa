@@ -73,7 +73,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
           </p>
         )}
 
-        <Segmented label="Discount ki qisam" value={mode} onChange={setMode} className="w-full [&>button]:flex-1"
+        <Segmented label="Discount ki type" value={mode} onChange={setMode} className="w-full [&>button]:flex-1"
           items={[{ value: 'pct', label: 'Percent %' }, { value: 'rs', label: 'Rupay' }]} />
         <div className="relative">
           <span className="pointer-events-none absolute left-4 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg bg-brand-50 text-brand-700">

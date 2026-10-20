@@ -34,6 +34,21 @@ interface CachedCutPiece {
   _cachedAt: number;
 }
 
+const PAGE_SIZE = 200;
+/** Upper bound on pages read per sync, so a broken total cannot loop forever. */
+const MAX_PAGES = 50;
+
+/** Reads every page of a paged carpet list. */
+async function allPages(fetchPage: (page: number) => Promise<{ items: any[]; meta?: { totalPages?: number } }>): Promise<any[]> {
+  const out: any[] = [];
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const res = await fetchPage(page);
+    out.push(...(res?.items ?? []));
+    if (!res?.items?.length || page >= (res.meta?.totalPages ?? 1)) break;
+  }
+  return out;
+}
+
 const ROLLS_CACHE_KEY = 'carpet-rolls-cache';
 const CUT_PIECES_CACHE_KEY = 'carpet-cut-pieces-cache';
 
@@ -46,10 +61,8 @@ export async function downloadCarpetData(): Promise<void> {
   lastCarpetSync = Date.now();
 
   try {
-    // Fetch all active rolls
-    const rolls = await carpetRollsApi.list({ status: 'ACTIVE' as any });
-    const rollList = Array.isArray(rolls) ? rolls : (rolls as any)?.items || [];
-    
+    const rollList = await allPages((page) => carpetRollsApi.list({ inStockOnly: true, page, limit: PAGE_SIZE }));
+
     const cachedRolls: CachedRoll[] = rollList.map((r: any) => ({
       id: r.id,
       productId: r.productId,
@@ -76,8 +89,7 @@ export async function downloadCarpetData(): Promise<void> {
 
     // Fetch cut pieces
     try {
-      const cutPieces = await carpetCutPiecesApi.list({ status: 'AVAILABLE' } as any);
-      const pieceList = Array.isArray(cutPieces) ? cutPieces : (cutPieces as any)?.items || [];
+      const pieceList = await allPages((page) => carpetCutPiecesApi.list({ status: 'AVAILABLE', page, limit: PAGE_SIZE } as any));
 
       const cachedPieces: CachedCutPiece[] = pieceList.map((p: any) => ({
         id: p.id,
@@ -138,52 +150,4 @@ export async function getCachedCutPieces(productId: string): Promise<CachedCutPi
   return all.filter((p) => p.productId === productId && p.status === 'AVAILABLE');
 }
 
-/**
- * Locally decrement roll stock after offline sale.
- * This keeps UI consistent until real sync happens.
- */
-export async function decrementCachedRoll(rollId: string, lengthFtUsed: number): Promise<void> {
-  const entry = await db.meta.get(ROLLS_CACHE_KEY);
-  if (!entry?.value) return;
 
-  const all = entry.value as CachedRoll[];
-  const updated = all.map((r) => {
-    if (r.id !== rollId) return r;
-    const currentReal = r.lengthFt + (r.lengthInch || 0) / 12;
-    const newReal = Math.max(0, currentReal - lengthFtUsed);
-    const newLengthFt = Math.floor(newReal);
-    const newLengthInch = Math.round((newReal - newLengthFt) * 12 * 100) / 100;
-    const fullWidth = r.widthFt + r.widthInch / 12;
-    return {
-      ...r,
-      lengthFt: newLengthFt,
-      lengthInch: newLengthInch,
-      totalSqft: Math.max(0, newReal * fullWidth),
-    };
-  });
-
-  await db.meta.put({
-    key: ROLLS_CACHE_KEY,
-    value: updated,
-    updatedAt: Date.now(),
-  });
-}
-
-/**
- * Mark cached cut piece as sold (UI consistency)
- */
-export async function markCachedCutPieceSold(pieceId: string): Promise<void> {
-  const entry = await db.meta.get(CUT_PIECES_CACHE_KEY);
-  if (!entry?.value) return;
-
-  const all = entry.value as CachedCutPiece[];
-  const updated = all.map((p) =>
-    p.id === pieceId ? { ...p, status: 'SOLD' } : p,
-  );
-
-  await db.meta.put({
-    key: CUT_PIECES_CACHE_KEY,
-    value: updated,
-    updatedAt: Date.now(),
-  });
-}

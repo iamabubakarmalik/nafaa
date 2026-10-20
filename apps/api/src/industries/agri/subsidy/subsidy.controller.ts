@@ -12,13 +12,16 @@ import { SubsidyService } from './subsidy.service';
 export class SubsidyController {
   constructor(private readonly service: SubsidyService) {}
 
-  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: any) { return this.service.create(user, dto); }
+  @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: Record<string, unknown>) { return this.service.create(user, dto); }
   @Get() list(@GetUser() user: AuthenticatedUser, @Query() q: any) {
     return this.service.list(user, { status: q.status, farmerId: q.farmerId, schemeName: q.schemeName, search: q.search });
   }
+  @Get('page') page(@GetUser() user: AuthenticatedUser, @Query() q: any) {
+    return this.service.page(user, { status: q.status, farmerId: q.farmerId, search: q.search, page: Number(q.page), limit: Number(q.limit) });
+  }
   @Get('summary') summary(@GetUser() user: AuthenticatedUser) { return this.service.summary(user); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }
-  @Post(':id/approve') approve(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { approvedBy?: string }) { return this.service.approve(user, id, body.approvedBy); }
-  @Post(':id/reject') reject(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { reason: string }) { return this.service.reject(user, id, body.reason); }
+  @Post(':id/approve') approve(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { approvedBy?: string }) { return this.service.approve(user, id, body?.approvedBy); }
+  @Post(':id/reject') reject(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { reason: string }) { return this.service.reject(user, id, body?.reason); }
   @Post(':id/disburse') disburse(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.markDisbursed(user, id); }
 }

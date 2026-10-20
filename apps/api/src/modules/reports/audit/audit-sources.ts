@@ -99,8 +99,8 @@ async function voids(prisma: PrismaService, c: AuditContext): Promise<AuditEvent
     const why = ((log?.metadata as { reason?: string | null } | null)?.reason ?? undefined) || reason.get(s.saleNumber);
     const flags: string[] = [];
     let pts = 1;
-    if (total >= c.big) { flags.push(`Bari raqam (${money(total)})`); pts += 3; } else if (total >= c.big / 5) pts += 1;
-    if (late > 3_600_000) { flags.push(`Bikri ke ${ago(late)} baad cancel`); pts += 1; }
+    if (total >= c.big) { flags.push(`Bara amount (${money(total)})`); pts += 3; } else if (total >= c.big / 5) pts += 1;
+    if (late > 3_600_000) { flags.push(`Sale ke ${ago(late)} baad cancel`); pts += 1; }
     if (s.paymentMethod === 'CASH' && num(s.paidAmount) > 0) { flags.push('Cash bill tha'); pts += 1; }
     if (after) { flags.push('Dukaan ke waqt ke baad'); pts += 1; }
     if (!why || why === 'No reason') { flags.push('Wajah nahi likhi'); pts += 1; }
@@ -137,7 +137,7 @@ async function refunds(prisma: PrismaService, c: AuditContext): Promise<AuditEve
     const after = isAfterHours(c, r.returnedAt);
     const flags: string[] = [];
     let pts = 0;
-    if (amount >= c.big) { flags.push(`Bari raqam (${money(amount)})`); pts += 3; } else if (amount >= c.big / 5) pts += 1;
+    if (amount >= c.big) { flags.push(`Bara amount (${money(amount)})`); pts += 3; } else if (amount >= c.big / 5) pts += 1;
     if (cash) flags.push('Cash wapas diya');
     if (cash && walkIn) { flags.push('Bina customer ka bill'); pts += 2; }
     if (age > 30 * 86_400_000) { flags.push(`${ago(age)} purana bill`); pts += 1; }
@@ -168,9 +168,9 @@ async function discounts(prisma: PrismaService, c: AuditContext): Promise<AuditE
     const off = num(s.manual);
     const pct = (off / num(s.subtotal)) * 100;
     const after = isAfterHours(c, s.soldAt);
-    const flags = [`${pct.toFixed(0)}% chhoot`];
+    const flags = [`${pct.toFixed(0)}% discount`];
     let pts = pct >= Math.max(c.discountPct * 2, 40) ? 4 : pct >= c.discountPct * 1.5 ? 2 : 0;
-    if (off >= c.big / 2) { flags.push(`Bari chhoot (${money(off)})`); pts += 3; } else if (off >= c.big / 5) pts += 1;
+    if (off >= c.big / 2) { flags.push(`Bara discount (${money(off)})`); pts += 3; } else if (off >= c.big / 5) pts += 1;
     if (pct > c.maxDiscountPct) { flags.push(`Had (${c.maxDiscountPct}%) se zyada — PIN se`); pts += 1; }
     if (!s.customerId) { flags.push('Bina customer ka bill'); pts += 1; }
     if (after) { flags.push('Dukaan ke waqt ke baad'); pts += 1; }
@@ -202,7 +202,7 @@ async function belowCost(prisma: PrismaService, c: AuditContext): Promise<AuditE
     const loss = num(s.loss);
     const after = isAfterHours(c, s.soldAt);
     const pts = loss >= c.big / 2 ? 4 : loss >= c.big / 20 ? 2 : 0;
-    const flags = [`${s.lines} cheez lagat se kam`];
+    const flags = [`${s.lines} cheez cost se kam`];
     if (after) flags.push('Dukaan ke waqt ke baad');
     return {
       id: `below:${s.id}`, type: 'below_cost', at: s.soldAt, userId: s.uid, shopId: s.shopId,
@@ -275,7 +275,7 @@ async function cashOuts(prisma: PrismaService, c: AuditContext): Promise<AuditEv
     const why = [t.reason, t.note].filter((x) => x?.trim()).join(' · ');
     const flags: string[] = [];
     let pts = 0;
-    if (amount >= c.big) { flags.push(`Bari raqam (${money(amount)})`); pts += 4; } else if (amount >= c.big / 5) pts += 2;
+    if (amount >= c.big) { flags.push(`Bara amount (${money(amount)})`); pts += 4; } else if (amount >= c.big / 5) pts += 2;
     if (!why) { flags.push('Wajah nahi likhi'); pts += 2; }
     if (after) { flags.push('Dukaan ke waqt ke baad'); pts += 1; }
     return {

@@ -291,8 +291,8 @@ export function usePosEngine(config: PosIndustryConfig) {
       : opts.variant?.stock != null ? Number(opts.variant.stock) : item.stock;
 
   const pushLine = useCallback((item: PosItem, unit: PosUnitOption, qty: number, opts: AddOptions) => {
-    // One tracked unit (serial or IMEI) is one line of exactly 1.
-    const single = !!(opts.serial || opts.imei);
+    // One tracked unit (serial or IMEI) is one line of exactly 1; a `separate` line is never merged.
+    const single = !!(opts.serial || opts.imei || opts.separate);
     if (opts.imei) qty = 1;
     const limit = opts.imei ? 1 : limitFor(item, opts);
     const baseQty = qty * unit.conversionRate;

@@ -5,6 +5,8 @@ import { JwtAuthGuard } from '../../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CarpetReportsService } from './carpet-reports.service';
 import { ShopIdParam } from '../../../common/shop-scope';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('Carpet Reports')
 @ApiBearerAuth()
@@ -13,6 +15,7 @@ import { ShopIdParam } from '../../../common/shop-scope';
 export class CarpetReportsController {
   constructor(private readonly service: CarpetReportsService) {}
 
+  @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
   @Get('overview')
   overview(
     @GetUser() user: AuthenticatedUser,
@@ -21,6 +24,7 @@ export class CarpetReportsController {
     return this.service.overview(user, shopId);
   }
 
+  @RequirePermissions(PERMISSIONS.PROFIT_REPORT_VIEW)
   @Get('roll-profit')
   rollProfit(
     @GetUser() user: AuthenticatedUser,
@@ -29,6 +33,7 @@ export class CarpetReportsController {
     return this.service.rollProfitReport(user, shopId);
   }
 
+  @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
   @Get('slow-moving')
   slowMoving(
     @GetUser() user: AuthenticatedUser,
@@ -38,6 +43,7 @@ export class CarpetReportsController {
     return this.service.slowMovingRolls(user, days ? Number(days) : 30, shopId);
   }
 
+  @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
   @Get('todays-cuts')
   todaysCuts(
     @GetUser() user: AuthenticatedUser,
@@ -46,6 +52,7 @@ export class CarpetReportsController {
     return this.service.todaysCuts(user, shopId);
   }
 
+  @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
   @Get('top-designs')
   topDesigns(
     @GetUser() user: AuthenticatedUser,
@@ -59,6 +66,7 @@ export class CarpetReportsController {
     );
   }
 
+  @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
   @Get('cut-pieces')
   cutPiecesReport(
     @GetUser() user: AuthenticatedUser,

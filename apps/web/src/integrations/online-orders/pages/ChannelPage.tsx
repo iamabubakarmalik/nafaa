@@ -1,3 +1,4 @@
+import { confirmDialog } from '@/design-system/components';
 import { CustomConnect } from '../components/website/CustomConnect';
 import { DarazChannelCard } from '../components/daraz/Daraz';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -534,7 +535,7 @@ function DeveloperTab({ id, data, platform, automatic, onChange, setTab }: {
 
       <Card title="Keys" description="Sirf apni website, plugin, Indolj ya developer ko dein. Key galat haath lage to foran nayi banayein."
         actions={<Btn size="sm" variant="critical" loading={rotate.isPending} icon={<RefreshCw className="h-3.5 w-3.5" />}
-          onClick={() => { if (confirm('Nayi key banayein? Purani foran band ho jayegi.')) rotate.mutate(); }}>Nayi key</Btn>}>
+          onClick={async () => { if ((await confirmDialog({ title: 'Nayi key banayein?', text: 'Purani foran band ho jayegi.', danger: true }))) rotate.mutate(); }}>Nayi key</Btn>}>
         <div className="grid gap-3 md:grid-cols-2">
           <CopyField label="Nafaa key (Token)" value={i.apiKey} secret />
           <CopyField label="Secret (signature)" value={i.webhookSecret} secret />
@@ -639,7 +640,7 @@ function MoreMenu({ id, data, onChange }: { id: string; data: WebsiteOverview; o
           <button onClick={() => pause.mutate()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50 dark:hover:bg-ink-800">
             {i.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />} {i.isActive ? 'Channel band karo' : 'Channel chalu karo'}
           </button>
-          <button onClick={() => { if (confirm(`"${i.displayName}" hata dein? Naye orders aana band ho jayenge. Purane orders aur bills mehfooz rahenge.`)) remove.mutate(); }}
+          <button onClick={async () => { if ((await confirmDialog({ title: `"${i.displayName}" hata dein?`, text: 'Naye orders aana band ho jayenge. Purane orders aur bills mehfooz rahenge.', danger: true }))) remove.mutate(); }}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[0.8125rem] text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10">
             <Trash2 className="h-4 w-4" /> Channel hatao
           </button>

@@ -207,7 +207,7 @@ export default function MembershipsPage() {
         <PageGuide title="Memberships — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Plus, color: '#16a34a', title: 'Bechna', text: 'Member aur plan chunein, jo paisa mila likhein. Pehli dafa admission lagti hai. Bill Sales me, baqi paisa khate me udhaar.' },
-            { icon: AlarmClock, color: '#d97706', title: 'Jald khatam', text: 'In ko WhatsApp se yaad dilayein. Jis ko paigham gaya us par "yaad dilaya" ka nishan lag jata hai.' },
+            { icon: AlarmClock, color: '#d97706', title: 'Jald khatam', text: 'In ko WhatsApp se yaad dilayein. Jis ko message gaya us par "yaad dilaya" ka nishan lag jata hai.' },
             { icon: PauseCircle, color: '#2563eb', title: 'Freeze', text: 'Plan me freeze ki ijazat ho to din rok sakte hain. Khatam ki date utne din aage chali jati hai. Jaldi wapas aaye to Unfreeze — bache din wapas mil jate hain.' },
             { icon: Ban, color: '#e11d48', title: 'Cancel aur wapas paisa', text: 'Cancel sirf membership band karta hai. Paisa wapas karne ke liye Sales me us ka bill Return ya Void karein — membership khud cancel ho jati hai.' },
           ]}

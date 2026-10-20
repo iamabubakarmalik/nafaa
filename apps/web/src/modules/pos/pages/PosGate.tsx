@@ -13,7 +13,7 @@ import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndus
 const RetailPos = lazy(() => import('@industries/retail/pos/RetailPos'));
 const RestaurantPosPage = lazy(() => import('@industries/restaurant/pages/RestaurantPosPage'));
 const MobilePos = lazy(() => import('@industries/mobile/pos/MobilePos'));
-const CarpetPosPage = lazy(() => import('@industries/carpet/pages/CarpetPosPage'));
+const CarpetPos = lazy(() => import('@industries/carpet/pos/CarpetPos'));
 const GarmentPosPage = lazy(() => import('@industries/garments/pages/GarmentPosPage'));
 const BakeryPos = lazy(() => import('@industries/bakery/pos/BakeryPos'));
 const GymPosPage = lazy(() => import('@industries/gym/pages/GymPosPage'));
@@ -58,7 +58,7 @@ export default function PosGate() {
   // ─── Original 19 ───
   if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantPosPage /></Suspense>;
   if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobilePos /></Suspense>;
-  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetPosPage /></Suspense>;
+  if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetPos /></Suspense>;
   if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentPosPage /></Suspense>;
   if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryPos /></Suspense>;
   if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymPosPage /></Suspense>;

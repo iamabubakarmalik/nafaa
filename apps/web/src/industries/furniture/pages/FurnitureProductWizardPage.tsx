@@ -1,338 +1,215 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, ArrowRight, Save, CheckCircle2, Sparkles, Sofa,
-  Plus, AlertTriangle, Trash2, Eye, Edit3,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { useFurnitureWizard, type WizardStep } from '../hooks/useFurnitureWizard';
-import { FurnitureWizardStepper } from '../components/wizard/FurnitureWizardStepper';
-import { FurnitureWizardStep1Basic } from '../components/wizard/FurnitureWizardStep1Basic';
-import { FurnitureWizardStep2Dimensions } from '../components/wizard/FurnitureWizardStep2Dimensions';
-import { FurnitureWizardStep3Materials } from '../components/wizard/FurnitureWizardStep3Materials';
-import { FurnitureWizardStep4Stock } from '../components/wizard/FurnitureWizardStep4Stock';
-import { FurnitureWizardSummary } from '../components/wizard/FurnitureWizardSummary';
-import { saveFurnitureWizard, type FurnitureWizardSaveResult } from '../api/furniture-wizard.api';
-import { productsApi } from '@modules/inventory/products/api/products.api';
-import { furnitureProductsApi } from '../api/products.api';
+/**
+ * Furniture item editor on the shared product editor: what it is (sofa, bed,
+ * almari…), condition (new, showroom piece), wood, polish, fabric and size,
+ * fitting and delivery needs, warranty, and where it stands in the showroom.
+ * Colours and fabrics are variants, each with its own stock.
+ */
 
-export default function FurnitureProductWizardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+import { Hammer, Palette, Ruler, Sofa, Star, Truck } from 'lucide-react';
+import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
+import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
+import { Chip, NumberField, Section, TextField, Tiles, Toggle } from '@modules/inventory/products/editor/fields';
+import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { furnitureProductsApi, type FurnitureConditionType, type FurnitureProductProfile } from '../api/products.api';
+import { CATEGORY_GROUPS, CONDITIONS, FABRICS, FURNITURE_KEYS, MATERIALS, POLISHES, WOODS, categoryLabel, materialOf } from '../lib/meta';
 
-  const {
-    draft, draftRestored, validation, stats,
-    goToStep, nextStep, prevStep,
-    updateBasic, updateDimensions, updateMaterials, updateDelivery,
-    setHasVariants, addVariant, updateVariant, removeVariant,
-    updateStock, reset,
-  } = useFurnitureWizard({ autoLoadDraft: !isEdit });
+interface FurnitureExtra {
+  categoryType: string; conditionType: FurnitureConditionType; primaryMaterial: string;
+  woodType: string; polishType: string; colorName: string; upholsteryFabric: string; cushionFilling: string;
+  lengthCm: number | null; widthCm: number | null; heightCm: number | null; seatingCapacity: number | null; drawersCount: number | null; weightKg: number | null;
+  requiresAssembly: boolean; assemblyChargeExtra: number | null; requiresLargeVehicle: boolean; helpersNeeded: number | null; deliveryChargeBase: number | null;
+  isCustomizable: boolean; customLeadTimeDays: number | null; warrantyMonths: number | null; isTermiteProof: boolean; isWaterResistant: boolean;
+  showroomLocation: string; displayZone: string; collectionName: string; modelNumber: string;
+  isFeatured: boolean; isNewArrival: boolean; isBestSeller: boolean; notes: string;
+}
 
-  const [savedResult, setSavedResult] = useState<FurnitureWizardSaveResult | null>(null);
-  const [editLoaded, setEditLoaded] = useState(false);
+const initial: FurnitureExtra = {
+  categoryType: '', conditionType: 'BRAND_NEW', primaryMaterial: '', woodType: '', polishType: '', colorName: '', upholsteryFabric: '', cushionFilling: '',
+  lengthCm: null, widthCm: null, heightCm: null, seatingCapacity: null, drawersCount: null, weightKg: null,
+  requiresAssembly: false, assemblyChargeExtra: null, requiresLargeVehicle: true, helpersNeeded: 2, deliveryChargeBase: null,
+  isCustomizable: false, customLeadTimeDays: null, warrantyMonths: 12, isTermiteProof: false, isWaterResistant: false,
+  showroomLocation: '', displayZone: '', collectionName: '', modelNumber: '', isFeatured: false, isNewArrival: false, isBestSeller: false, notes: '',
+};
 
-  const { data: existingProduct } = useQuery({
-    queryKey: ['product-for-furniture-wizard', id],
-    queryFn: () => productsApi.getOne(id!),
-    enabled: isEdit,
-  });
-  const { data: existingProfile } = useQuery({
-    queryKey: ['furniture-profile-for-wizard', id],
-    queryFn: () => furnitureProductsApi.byProduct(id!),
-    enabled: isEdit,
-  });
+const FILLINGS = ['Foam', 'Spring', 'Fiber', 'Foam + spring'];
+const MATERIAL_TILES = ['SOLID_WOOD_SHEESHAM', 'SOLID_WOOD_TEAK', 'ENGINEERED_WOOD', 'MDF', 'PLYWOOD', 'METAL_IRON', 'FABRIC_VELVET', 'LEATHER_FAUX'];
+const opt = (v: string) => v.trim() || undefined;
+const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 
-  useEffect(() => {
-    if (!isEdit || !existingProduct || editLoaded) return;
-
-    updateBasic({
-      name: existingProduct.name,
-      description: existingProduct.description ?? '',
-      categoryId: existingProduct.categoryId ?? '',
-      categoryType: existingProfile?.categoryType ?? 'SOFA_SET',
-      conditionType: existingProfile?.conditionType ?? 'BRAND_NEW',
-      sku: existingProduct.sku ?? '',
-      barcode: existingProduct.barcode ?? '',
-      modelNumber: existingProfile?.modelNumber ?? '',
-      collectionName: existingProfile?.collectionName ?? '',
-      designerName: existingProfile?.designerName ?? '',
-      countryOfOrigin: existingProfile?.countryOfOrigin ?? '',
-      brand: existingProfile?.brand ?? '',
-      costPrice: existingProduct.costPrice ?? 0,
-      retailPrice: existingProduct.price ?? 0,
-      wholesalePrice: existingProduct.wholesalePrice ?? '',
-      discountedPrice: existingProfile?.discountedPrice ?? '',
-      emiStartingFrom: existingProfile?.emiStartingFrom ?? '',
-      mrp: existingProfile?.mrp ?? '',
-      taxRate: existingProduct.taxRate ?? 0,
-      isActive: existingProduct.isActive,
-      isFeatured: existingProduct.isFeatured,
-      isBestSeller: existingProfile?.isBestSeller ?? false,
-      isNewArrival: existingProfile?.isNewArrival ?? false,
-      isCustomMade: existingProfile?.isCustomMade ?? false,
-      isEcoFriendly: existingProfile?.isEcoFriendly ?? false,
-      imageUrls: (existingProduct.images ?? []).map((i: any) => i?.url).filter(Boolean),
-      images3d: existingProfile?.images3d ?? [],
-      ar_model_url: existingProfile?.ar_model_url ?? '',
-      tagIds: (existingProduct.tags ?? []).map((t: any) => t?.tag?.id).filter(Boolean),
-      notes: existingProfile?.notes ?? '',
-      showroomLocation: existingProfile?.showroomLocation ?? '',
-      showroomFloor: existingProfile?.showroomFloor ?? '',
-      displayZone: existingProfile?.displayZone ?? '',
-    });
-
-    if (existingProfile) {
-      updateDimensions({
-        lengthCm: existingProfile.lengthCm ?? '',
-        widthCm: existingProfile.widthCm ?? '',
-        heightCm: existingProfile.heightCm ?? '',
-        depthCm: existingProfile.depthCm ?? '',
-        seatHeightCm: existingProfile.seatHeightCm ?? '',
-        weightKg: existingProfile.weightKg ?? '',
-        seatingCapacity: existingProfile.seatingCapacity ?? '',
-        storageCompartments: existingProfile.storageCompartments ?? '',
-        drawersCount: existingProfile.drawersCount ?? '',
-        shelvesCount: existingProfile.shelvesCount ?? '',
-      });
-      updateMaterials({
-        primaryMaterial: existingProfile.primaryMaterial ?? 'SOLID_WOOD_SHEESHAM',
-        secondaryMaterials: existingProfile.secondaryMaterials ?? [],
-        woodType: existingProfile.woodType ?? '',
-        woodFinish: existingProfile.woodFinish ?? '',
-        polishType: existingProfile.polishType ?? '',
-        colorName: existingProfile.colorName ?? '',
-        colorHex: existingProfile.colorHex ?? '',
-        upholsteryFabric: existingProfile.upholsteryFabric ?? '',
-        cushionFilling: existingProfile.cushionFilling ?? '',
-        cushionDensity: existingProfile.cushionDensity ?? '',
-      });
-      updateDelivery({
-        requiresAssembly: existingProfile.requiresAssembly ?? true,
-        assemblyTimeMinutes: existingProfile.assemblyTimeMinutes ?? '',
-        assemblyPartsCount: existingProfile.assemblyPartsCount ?? '',
-        assemblyToolsIncluded: existingProfile.assemblyToolsIncluded ?? false,
-        assemblyChargeExtra: existingProfile.assemblyChargeExtra ?? '',
-        isCustomizable: existingProfile.isCustomizable ?? false,
-        customLeadTimeDays: existingProfile.customLeadTimeDays ?? '',
-        warrantyMonths: existingProfile.warrantyMonths ?? 12,
-        warrantyType: existingProfile.warrantyType ?? 'Manufacturer',
-        careInstructions: existingProfile.careInstructions ?? '',
-        isWaterResistant: existingProfile.isWaterResistant ?? false,
-        isTermiteProof: existingProfile.isTermiteProof ?? false,
-        requiresLargeVehicle: existingProfile.requiresLargeVehicle ?? true,
-        requiresMultipleHelpers: existingProfile.requiresMultipleHelpers ?? true,
-        helpersNeeded: existingProfile.helpersNeeded ?? 2,
-        deliveryChargeBase: existingProfile.deliveryChargeBase ?? '',
-        freeDeliveryRadius: existingProfile.freeDeliveryRadius ?? '',
-      });
-    }
-
-    setEditLoaded(true);
-  }, [isEdit, existingProduct, existingProfile, editLoaded, updateBasic, updateDimensions, updateMaterials, updateDelivery]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => saveFurnitureWizard(draft, isEdit ? id : undefined),
-    onSuccess: (result) => {
-      setSavedResult(result);
-      queryClient.invalidateQueries({ queryKey: ['furniture-products-list'] });
-      queryClient.invalidateQueries({ queryKey: ['furniture-profiles-all'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success(`${result.productName} ${isEdit ? 'updated' : 'created'}`);
-      if (!isEdit) reset();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to save'),
-  });
-
-  const currentValidation =
-    draft.step === 1 ? validation.step1 :
-    draft.step === 2 ? validation.step2 :
-    draft.step === 3 ? validation.step3 : validation.step4;
-
-  const canGoNext = currentValidation.valid && draft.step < 4;
-  const canSave = validation.allValid;
-
-  if (isEdit && !editLoaded && !existingProduct) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (savedResult) {
-    return (
-      <div className="max-w-2xl mx-auto py-12 space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 p-8 text-center shadow-xl">
-          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-600 to-orange-800 text-white flex items-center justify-center shadow-xl mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-amber-900">
-            Product {isEdit ? 'Updated' : 'Created'}
-          </h1>
-          <p className="text-amber-800 font-semibold mt-1">
-            <strong>{savedResult.productName}</strong> is live in your catalogue
-          </p>
-          <div className="grid grid-cols-3 gap-3 mt-6">
-            <SuccessStat label="Profile" value={savedResult.profileCreated ? '✓' : '—'} />
-            <SuccessStat label="Variants" value={savedResult.variantCount} />
-            <SuccessStat label="Stock" value={savedResult.totalStock} />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-3">
-          <button onClick={() => { setSavedResult(null); reset(); window.scrollTo({ top: 0, behavior: 'smooth' }); if (isEdit) navigate('/furniture-products/new'); }}
-            className="rounded-2xl bg-amber-700 hover:bg-amber-800 text-white p-5 flex flex-col items-center gap-2 shadow-md transition">
-            <Plus className="h-6 w-6" />
-            <div className="font-extrabold">Add Another</div>
-          </button>
-          <button onClick={() => navigate(`/furniture-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-amber-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Eye className="h-6 w-6 text-amber-700" />
-            <div className="font-extrabold text-slate-900">View Product</div>
-          </button>
-          <button onClick={() => navigate('/furniture-products')}
-            className="rounded-2xl bg-white border-2 border-slate-200 hover:border-amber-400 hover:shadow-md p-5 flex flex-col items-center gap-2 transition">
-            <Sofa className="h-6 w-6 text-amber-700" />
-            <div className="font-extrabold text-slate-900">All Products</div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+function Kind({ ctx }: { ctx: StepContext<FurnitureExtra> }) {
+  const x = ctx.draft.extra;
   return (
-    <div className="space-y-5 pb-24">
-      {draftRestored && !isEdit && (
-        <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-3 flex items-center gap-3 flex-wrap">
-          <Sparkles className="h-4 w-4 text-amber-700" />
-          <div className="text-xs text-amber-900 flex-1 min-w-0">
-            <strong>Draft restored</strong> — your previous entries were loaded
-          </div>
-          <button onClick={() => { if (confirm('Discard the draft and start fresh?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200">
-            <Trash2 className="h-3 w-3" /> Fresh Start
-          </button>
-        </div>
-      )}
-
-      {isEdit && (
-        <div className="rounded-2xl bg-blue-50 border-2 border-blue-200 p-3 flex items-start gap-3">
-          <Edit3 className="h-4 w-4 text-blue-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-blue-900 flex-1">
-            <div className="font-extrabold mb-0.5">Edit mode</div>
-            <div className="font-semibold">All fields can be edited. New variants will be added on save.</div>
+    <div className="space-y-2">
+      <span className="block text-[0.8125rem] font-medium text-slate-700">Ye kya hai</span>
+      {CATEGORY_GROUPS.map((g) => (
+        <div key={g.id}>
+          <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">{g.label}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {g.items.map(([v, l]) => <Chip key={v} on={x.categoryType === v} onClick={() => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })}>{l}</Chip>)}
           </div>
         </div>
-      )}
-
-      <button onClick={() => navigate(isEdit ? `/furniture-products/${id}` : '/furniture/dashboard')}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-amber-700 font-bold transition">
-        <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Dashboard'}
-      </button>
-
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-800 text-white p-6 shadow-2xl">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
-            <Sofa className="h-3.5 w-3.5 text-amber-300" />
-            {isEdit ? 'Editing Furniture Product' : 'Furniture Product Wizard'}
-          </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">
-            {isEdit ? draft.basic.name || 'Edit Product' : 'Add New Furniture Product'}
-          </h1>
-          <p className="mt-2 text-sm text-white/80 max-w-xl">
-            Sofas, beds, wardrobes, dining, office & more — all with dimensions, materials and delivery details.
-          </p>
-        </div>
-      </section>
-
-      <FurnitureWizardStepper
-        currentStep={draft.step}
-        stepValidation={validation}
-        onStepClick={(s) => {
-          if (s === 1) goToStep(1);
-          else if (s === 2 && validation.step1.valid) goToStep(s as WizardStep);
-          else if (s === 3 && validation.step1.valid && validation.step2.valid) goToStep(s as WizardStep);
-          else if (s === 4 && validation.step1.valid && validation.step2.valid && validation.step3.valid) goToStep(s as WizardStep);
-        }}
-      />
-
-      <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-        <div className="min-w-0">
-          {draft.step === 1 && (
-            <FurnitureWizardStep1Basic basic={draft.basic} onChange={updateBasic} errors={validation.step1.errors} />
-          )}
-          {draft.step === 2 && (
-            <FurnitureWizardStep2Dimensions dimensions={draft.dimensions} onChange={updateDimensions}
-              categoryType={draft.basic.categoryType} errors={validation.step2.errors} />
-          )}
-          {draft.step === 3 && (
-            <FurnitureWizardStep3Materials materials={draft.materials} delivery={draft.delivery}
-              onChangeMaterials={updateMaterials} onChangeDelivery={updateDelivery} errors={validation.step3.errors} />
-          )}
-          {draft.step === 4 && (
-            <FurnitureWizardStep4Stock
-              isEdit={isEdit}
-              basic={draft.basic}
-              hasVariants={draft.hasVariants}
-              onToggleVariants={setHasVariants}
-              variants={draft.variants}
-              stock={draft.stock}
-              onAddVariant={addVariant}
-              onUpdateVariant={updateVariant}
-              onRemoveVariant={removeVariant}
-              onUpdateStock={updateStock}
-              errors={validation.step4.errors}
-            />
-          )}
-        </div>
-
-        <FurnitureWizardSummary draft={draft} stats={stats} allValid={canSave} />
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 bg-white/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
-          <button onClick={prevStep} disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-extrabold transition disabled:opacity-40">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
-          <div className="text-xs font-extrabold text-slate-500 hidden sm:block">
-            Step {draft.step} of 4
-            {!currentValidation.valid && (
-              <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
-                <AlertTriangle className="h-3 w-3" /> {currentValidation.errors[0]}
-              </span>
-            )}
-          </div>
-
-          {draft.step < 4 ? (
-            <button onClick={nextStep} disabled={!canGoNext}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-800 hover:to-orange-800 text-white text-sm font-extrabold shadow-md disabled:opacity-50 transition">
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}
-              disabled={!canSave} className="bg-gradient-to-r from-amber-700 to-orange-800">
-              <Save className="h-4 w-4" />
-              {isEdit ? 'Save Changes' : `Save Product (${stats.totalStock} pcs)`}
-            </Button>
-          )}
-        </div>
-      </div>
+      ))}
+      <p className="text-[0.75rem] text-slate-500">Isi se counter ke filter (Sofa, Bed room, Dining) chalte hain. Order par banne wali cheez Custom orders me daalein.</p>
     </div>
   );
 }
 
-function SuccessStat({ label, value }: { label: string; value: number | string }) {
+function Build({ ctx }: { ctx: StepContext<FurnitureExtra> }) {
+  const x = ctx.draft.extra;
+  const set = ctx.setExtra;
   return (
-    <div className="rounded-xl bg-white border-2 border-amber-200 p-3">
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700">{label}</div>
-      <div className="text-2xl font-extrabold text-amber-900 tabular-nums mt-0.5">{value}</div>
+    <div className="space-y-4">
+      <Section icon={Sofa} title="Halat" hint="Display piece aksar kam qeemat par bikta hai">
+        <Tiles value={x.conditionType} onChange={(conditionType) => set({ conditionType })} columns="grid-cols-2 sm:grid-cols-5"
+          options={(['BRAND_NEW', 'DISPLAY_MODEL', 'FLOOR_MODEL', 'REFURBISHED', 'PRE_OWNED'] as FurnitureConditionType[]).map((c) => ({ value: c, label: CONDITIONS[c].label }))} />
+      </Section>
+      <Section icon={Palette} title="Lakri, polish aur kapra" hint="Customer sab se pehle yahi poochta hai">
+        <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">Main material</p>
+        <div className="flex flex-wrap gap-1.5">{MATERIAL_TILES.map((m) => <Chip key={m} on={x.primaryMaterial === m} onClick={() => set({ primaryMaterial: x.primaryMaterial === m ? '' : m })}>{MATERIALS[m]}</Chip>)}</div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <TextField label="Lakri" value={x.woodType} onChange={(woodType) => set({ woodType })} placeholder="Sheesham" />
+          <TextField label="Polish" value={x.polishType} onChange={(polishType) => set({ polishType })} placeholder="Walnut matte" />
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">{WOODS.map((v) => <Chip key={v} on={x.woodType === v} onClick={() => set({ woodType: x.woodType === v ? '' : v })}>{v}</Chip>)}</div>
+        <div className="mt-2 flex flex-wrap gap-1.5">{POLISHES.map((v) => <Chip key={v} on={x.polishType === v} onClick={() => set({ polishType: x.polishType === v ? '' : v })}>{v}</Chip>)}</div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <TextField label="Rang" value={x.colorName} onChange={(colorName) => set({ colorName })} placeholder="Dark brown" />
+          <TextField label="Kapra" value={x.upholsteryFabric} onChange={(upholsteryFabric) => set({ upholsteryFabric })} placeholder="Velvet" />
+          <TextField label="Gaddi ke andar" value={x.cushionFilling} onChange={(cushionFilling) => set({ cushionFilling })} placeholder="Foam" />
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {FABRICS.map((v) => <Chip key={v} on={x.upholsteryFabric === v} onClick={() => set({ upholsteryFabric: x.upholsteryFabric === v ? '' : v })}>{v}</Chip>)}
+          {FILLINGS.map((v) => <Chip key={v} on={x.cushionFilling === v} onClick={() => set({ cushionFilling: x.cushionFilling === v ? '' : v })}>{v}</Chip>)}
+        </div>
+        <p className="mt-2 text-[0.75rem] text-slate-500">Ek hi design kai rang ya kapre me ho to Price step me variants banayein — har rang ka apna stock.</p>
+      </Section>
+      <Section icon={Ruler} title="Size" hint="cm me — customer kamre ka size milata hai">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <NumberField label="Lambai (cm)" allowEmpty value={x.lengthCm} onChange={(lengthCm) => set({ lengthCm })} />
+          <NumberField label="Chaurai (cm)" allowEmpty value={x.widthCm} onChange={(widthCm) => set({ widthCm })} />
+          <NumberField label="Unchai (cm)" allowEmpty value={x.heightCm} onChange={(heightCm) => set({ heightCm })} />
+          <NumberField label="Kitne log baithte" allowEmpty value={x.seatingCapacity} onChange={(v) => set({ seatingCapacity: v == null ? null : Math.max(0, Math.round(v)) })} hint="Sofa / dining" />
+          <NumberField label="Daraz" allowEmpty value={x.drawersCount} onChange={(v) => set({ drawersCount: v == null ? null : Math.max(0, Math.round(v)) })} />
+          <NumberField label="Wazan (kg)" allowEmpty value={x.weightKg} onChange={(weightKg) => set({ weightKg })} />
+        </div>
+      </Section>
     </div>
   );
+}
+
+function Delivery({ ctx }: { ctx: StepContext<FurnitureExtra> }) {
+  const x = ctx.draft.extra;
+  const set = ctx.setExtra;
+  return (
+    <div className="space-y-4">
+      <Section icon={Truck} title="Delivery aur fitting" hint="Delivery banate waqt yahi charges khud aate hain">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Toggle on={x.requiresAssembly} onChange={(requiresAssembly) => set({ requiresAssembly })} icon={Hammer} title="Ghar par fitting chahiye" hint="Bed, almari, dining" />
+          <Toggle on={x.requiresLargeVehicle} onChange={(requiresLargeVehicle) => set({ requiresLargeVehicle })} icon={Truck} title="Bari gaari chahiye" hint="Shehzore / Mazda" />
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {x.requiresAssembly && <NumberField label="Fitting charge" prefix="Rs" allowEmpty value={x.assemblyChargeExtra} onChange={(assemblyChargeExtra) => set({ assemblyChargeExtra })} hint="0 = free" />}
+          <NumberField label="Delivery charge" prefix="Rs" allowEmpty value={x.deliveryChargeBase} onChange={(deliveryChargeBase) => set({ deliveryChargeBase })} hint="Shehar ke andar" />
+          <NumberField label="Helper" allowEmpty value={x.helpersNeeded} onChange={(v) => set({ helpersNeeded: v == null ? null : Math.max(0, Math.round(v)) })} />
+        </div>
+      </Section>
+      <Section icon={Star} title="Warranty aur order par" hint="Bill aur product page par">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <NumberField label="Warranty (mahine)" allowEmpty value={x.warrantyMonths} onChange={(v) => set({ warrantyMonths: v == null ? null : Math.max(0, Math.round(v)) })} />
+          <TextField label="Showroom me kahan" value={x.showroomLocation} onChange={(showroomLocation) => set({ showroomLocation })} placeholder="Ground floor" />
+          <TextField label="Section" value={x.displayZone} onChange={(displayZone) => set({ displayZone })} placeholder="Bed room corner" />
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Toggle on={x.isTermiteProof} onChange={(isTermiteProof) => set({ isTermiteProof })} title="Deemak se mehfooz" />
+          <Toggle on={x.isWaterResistant} onChange={(isWaterResistant) => set({ isWaterResistant })} title="Paani se kharab nahi" />
+          <Toggle on={x.isCustomizable} onChange={(isCustomizable) => set({ isCustomizable })} title="Size / rang badal kar bana dete hain" hint="Custom order par" />
+          {x.isCustomizable && <NumberField label="Order par kitne din" allowEmpty value={x.customLeadTimeDays} onChange={(v) => set({ customLeadTimeDays: v == null ? null : Math.max(1, Math.round(v)) })} />}
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <Toggle on={x.isFeatured} onChange={(isFeatured) => set({ isFeatured })} title="Khaas" hint="Aage dikhayein" />
+          <Toggle on={x.isNewArrival} onChange={(isNewArrival) => set({ isNewArrival })} title="Naya design" />
+          <Toggle on={x.isBestSeller} onChange={(isBestSeller) => set({ isBestSeller })} title="Zyada bikne wala" />
+        </div>
+      </Section>
+    </div>
+  );
+}
+
+const core: CoreOptions = {
+  units: [{ value: 'pcs', label: 'Adad (pcs)' }, { value: 'set', label: 'Set' }, { value: 'sqft', label: 'Sq. ft' }],
+  skuPrefix: 'FR',
+  packs: false,
+  variants: { presets: [{ group: 'Rang', values: ['Walnut', 'Dark brown', 'White', 'Black', 'Natural'] }, { group: 'Kapra', values: ['Velvet', 'Jute', 'Leather', 'Rexine'] }, { group: 'Size', values: ['Single', 'Double', 'King', 'Queen'] }] },
+  batches: false,
+  markups: [15, 20, 30, 40],
+};
+
+const buildStep: StepDef<FurnitureExtra> = { id: 'furniture', title: 'Banawat', hint: 'Lakri, polish, kapra, size', icon: Palette, render: (ctx) => <Build ctx={ctx} /> };
+const deliveryStep: StepDef<FurnitureExtra> = { id: 'delivery', title: 'Delivery', hint: 'Fitting, gaari, warranty', icon: Truck, render: (ctx) => <Delivery ctx={ctx} /> };
+
+const config: EditorConfig<FurnitureExtra> = {
+  label: 'Furniture',
+  draftKey: 'nafaa.product-editor.furniture',
+  paths: { list: '/products', detail: (id) => `/furniture-products/${id}`, create: '/furniture-products/new' },
+  core,
+  extra: {
+    initial,
+    load: async (productId) => {
+      const p = await furnitureProductsApi.byProduct(productId).catch(() => null);
+      if (!p) return {};
+      return {
+        categoryType: p.categoryType ?? '', conditionType: p.conditionType, primaryMaterial: p.primaryMaterial ?? '',
+        woodType: p.woodType ?? '', polishType: p.polishType ?? '', colorName: p.colorName ?? '', upholsteryFabric: p.upholsteryFabric ?? '', cushionFilling: p.cushionFilling ?? '',
+        lengthCm: p.lengthCm ?? null, widthCm: p.widthCm ?? null, heightCm: p.heightCm ?? null, seatingCapacity: p.seatingCapacity ?? null, drawersCount: p.drawersCount ?? null, weightKg: p.weightKg ?? null,
+        requiresAssembly: p.requiresAssembly, assemblyChargeExtra: p.assemblyChargeExtra ?? null, requiresLargeVehicle: p.requiresLargeVehicle, helpersNeeded: p.helpersNeeded ?? null,
+        deliveryChargeBase: p.deliveryChargeBase ?? null, isCustomizable: p.isCustomizable, customLeadTimeDays: p.customLeadTimeDays ?? null, warrantyMonths: p.warrantyMonths ?? null,
+        isTermiteProof: p.isTermiteProof, isWaterResistant: p.isWaterResistant, showroomLocation: p.showroomLocation ?? '', displayZone: p.displayZone ?? '',
+        collectionName: p.collectionName ?? '', modelNumber: p.modelNumber ?? '', isFeatured: p.isFeatured, isNewArrival: p.isNewArrival, isBestSeller: p.isBestSeller, notes: p.notes ?? '',
+      };
+    },
+    save: async (productId, d) => {
+      const x = d.extra;
+      await furnitureProductsApi.upsert({
+        productId, categoryType: (x.categoryType || undefined) as FurnitureProductProfile['categoryType'], conditionType: x.conditionType,
+        primaryMaterial: (x.primaryMaterial || undefined) as FurnitureProductProfile['primaryMaterial'],
+        woodType: opt(x.woodType), polishType: opt(x.polishType), colorName: opt(x.colorName), upholsteryFabric: opt(x.upholsteryFabric), cushionFilling: opt(x.cushionFilling),
+        lengthCm: num(x.lengthCm), widthCm: num(x.widthCm), heightCm: num(x.heightCm), seatingCapacity: num(x.seatingCapacity), drawersCount: num(x.drawersCount), weightKg: num(x.weightKg),
+        requiresAssembly: x.requiresAssembly, assemblyChargeExtra: x.requiresAssembly ? num(x.assemblyChargeExtra) : undefined, requiresLargeVehicle: x.requiresLargeVehicle,
+        helpersNeeded: num(x.helpersNeeded), deliveryChargeBase: num(x.deliveryChargeBase), isCustomizable: x.isCustomizable,
+        customLeadTimeDays: x.isCustomizable ? num(x.customLeadTimeDays) : undefined, warrantyMonths: num(x.warrantyMonths),
+        isTermiteProof: x.isTermiteProof, isWaterResistant: x.isWaterResistant, showroomLocation: opt(x.showroomLocation), displayZone: opt(x.displayZone),
+        collectionName: opt(x.collectionName), modelNumber: opt(x.modelNumber), isFeatured: x.isFeatured, isNewArrival: x.isNewArrival, isBestSeller: x.isBestSeller, notes: opt(x.notes),
+      });
+    },
+  },
+  steps: [
+    basicStep<FurnitureExtra>(core, {
+      extra: (ctx) => <Kind ctx={ctx} />, namePlaceholder: 'Jaise: Sheesham double bed (Royal)',
+      categorySuggestions: ['Bed room', 'Sofa', 'Dining', 'Office', 'Almari', 'Decor'],
+    }),
+    priceStep<FurnitureExtra>(core),
+    buildStep,
+    deliveryStep,
+    stockStep<FurnitureExtra>(core, { quick: [1, 2, 4, 6] }),
+  ],
+  summary: (d) => {
+    const x = d.extra;
+    return (
+      <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
+        <p className="text-slate-700">{[x.categoryType ? categoryLabel(x.categoryType) : null, CONDITIONS[x.conditionType]?.label, x.primaryMaterial ? materialOf(x.primaryMaterial) : null].filter(Boolean).join(' · ')}</p>
+        {(x.woodType || x.polishType) && <p className="text-slate-600">{[x.woodType, x.polishType, x.upholsteryFabric].filter(Boolean).join(' · ')}</p>}
+        {x.requiresAssembly && <p className="text-sky-700">Fitting chahiye{x.assemblyChargeExtra ? ` · Rs ${x.assemblyChargeExtra}` : ''}</p>}
+      </div>
+    );
+  },
+  refresh: [FURNITURE_KEYS.profiles, 'furniture-product-detail'],
+  guide: [
+    { icon: Palette, color: '#a16207', title: 'Lakri aur polish', text: 'Lakri, polish aur kapra likhein — counter par naam ke neeche dikhta hai aur customer ka pehla sawal yahi hota hai.' },
+    { icon: Sofa, color: '#7c3aed', title: 'Rang / kapra variants', text: 'Ek design kai rang me ho to variants banayein — har rang ka apna stock aur barcode.' },
+    { icon: Truck, color: '#0891b2', title: 'Delivery', text: 'Fitting aur delivery charge yahan likhein — delivery banate waqt yaad dilata hai.' },
+  ],
+};
+
+export default function FurnitureProductWizardPage() {
+  return <ProductEditorPage config={config} />;
 }

@@ -51,4 +51,10 @@ export class QueryRollsDto {
   @IsInt()
   @Min(1)
   limit?: number = 20;
+
+  /** Active rolls with this many feet or less left. */
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @Min(0)
+  lowFt?: number;
 }

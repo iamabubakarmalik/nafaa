@@ -134,7 +134,7 @@ export const electronicsSource: CatalogSource = {
           { label: p.warrantyMonths > 0 ? `${p.warrantyMonths} mahine warranty` : 'Warranty nahi', tone: p.warrantyMonths > 0 ? 'blue' : 'slate' },
         ],
         specs: specs([
-          ['Qisam', meta ? `${meta.emoji} ${meta.label}` : null],
+          ['Type', meta ? `${meta.emoji} ${meta.label}` : null],
           ['Model', p.modelNumber],
           ['Halat', cond ? `${cond.label} — ${cond.hint}` : null],
           ['Warranty', p.warrantyMonths > 0 ? `${p.warrantyMonths} mahine${p.warrantyType ? ` (${pretty(p.warrantyType)})` : ''}` : null],
@@ -327,7 +327,7 @@ export const agriSource: CatalogSource = {
           ...(a?.bulkDiscountPct && a.bulkDiscountThreshold ? [{ label: `${a.bulkDiscountThreshold}+ par ${a.bulkDiscountPct}% discount`, tone: 'green' as const }] : []),
         ],
         specs: specs([
-          ['Qisam', prettyAgriKind(kind)],
+          ['Type', prettyAgriKind(kind)],
           ['Fasal', a?.targetCrops?.join(', ')],
           ['Keeray / bimari', a?.targetPests?.join(', ')],
           ['Janwar', a?.targetAnimals?.join(', ')],

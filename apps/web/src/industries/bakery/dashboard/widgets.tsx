@@ -168,7 +168,7 @@ export function BakeryOrders() {
         })}>
         <MiniSelect label="Kab" value={st.when} onChange={(v) => set({ when: v })}
           options={[{ value: 'all', label: 'Sab chaalu' }, { value: 'late', label: 'Late' }, { value: 'today', label: '24 ghante me' }, { value: 'week', label: 'Is hafte' }, { value: 'due', label: 'Jin ka paisa baqi' }]} />
-        <MiniSelect label="Qisam" value={st.kind} onChange={(v) => set({ kind: v })} options={[{ value: 'all', label: 'Cake + bare' }, { value: 'cake', label: 'Cake order' }, { value: 'bulk', label: 'Bare order' }]} />
+        <MiniSelect label="Type" value={st.kind} onChange={(v) => set({ kind: v })} options={[{ value: 'all', label: 'Cake + bare' }, { value: 'cake', label: 'Cake order' }, { value: 'bulk', label: 'Bare order' }]} />
         <MiniSelect label="Kitne" value={st.limit} onChange={(v) => set({ limit: v })} options={[{ value: '6', label: '6' }, { value: '12', label: '12' }, { value: '50', label: 'Sab' }]} />
       </WidgetToolbar>
       <RowList empty="Koi order nahi" emptyIcon={Cake}>
