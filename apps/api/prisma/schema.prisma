@@ -7554,6 +7554,8 @@ model Publisher {
   defaultDiscountPct Float   @default(0)
   paymentTerms       String?
   creditDays         Int     @default(0)
+  /// Supplier record used for purchases from this publisher.
+  supplierId         String?
 
   // Stats
   totalBooks   Int   @default(0)
@@ -7569,6 +7571,7 @@ model Publisher {
   @@unique([tenantId, name])
   @@index([tenantId])
   @@index([tenantId, isActive])
+  @@index([supplierId])
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -20493,8 +20496,11 @@ model SportsProductProfile {
 }
 
 model SportsTeamOrder {
-  id       String @id @default(uuid())
-  tenantId String
+  id         String  @id @default(uuid())
+  tenantId   String
+  shopId     String?
+  /// Khata the order is billed to.
+  customerId String?
 
   orderNumber   String
   teamName      String
@@ -20550,11 +20556,14 @@ model SportsTeamOrder {
   @@unique([tenantId, orderNumber])
   @@index([tenantId])
   @@index([tenantId, status])
+  @@index([shopId])
+  @@index([customerId])
 }
 
 model SportsRepairService {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   tenantId String
+  shopId   String?
 
   serviceNumber String
   customerId    String?
@@ -20593,6 +20602,7 @@ model SportsRepairService {
   @@unique([tenantId, serviceNumber])
   @@index([tenantId])
   @@index([tenantId, status])
+  @@index([shopId])
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -21553,8 +21563,9 @@ model ShoeSizeChart {
 }
 
 model ShoeTryOnRequest {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   tenantId String
+  shopId   String?
 
   requestNumber String
   customerId    String?
@@ -21581,6 +21592,7 @@ model ShoeTryOnRequest {
   @@unique([tenantId, requestNumber])
   @@index([tenantId])
   @@index([tenantId, status])
+  @@index([shopId])
 }
 
 model ShoeExchange {
