@@ -161,7 +161,7 @@ export function createSplash(): BrowserWindow | null {
 <body>
   <div class="card">
     <div class="logo">
-      ${iconPath ? `<img src="${iconPath}" alt="Nafaa">` : '<div style="font-size:48px;font-weight:900;color:#059669">N</div>'}
+      ${iconPath ? `<img src="${iconPath}" alt="Nafaa">` : '<svg width="72" height="72" role="img" aria-label="Nafaa" xmlns="http://www.w3.org/2000/svg" viewBox="112 119 288 288" width="288" height="288"><path d="M128 214L170.3 190V256A88 88 0 0 0 341.7 256H384A128 128 0 0 1 128 256Z" fill="#16a34a"/><path d="M260 142L300 182L260 222L220 182Z" fill="#f59e0b"/></svg>'}
     </div>
     <div class="brand">Nafaa</div>
     <div class="tagline">Pakistan's Retail OS</div>
