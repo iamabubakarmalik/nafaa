@@ -98,6 +98,7 @@ async function bootstrap() {
   const developmentOrigins = [
     ...productionOrigins,
     'http://localhost:3000',
+    'http://localhost:3200',
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
