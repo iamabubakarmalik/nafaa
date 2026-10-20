@@ -6,6 +6,7 @@
  */
 import Link from 'next/link';
 import type { SiteLayout } from '@/lib/cms/client';
+import { LOGO_BOWL, LOGO_DOT, LOGO_LOCKUP, LOGO_WORDMARK } from '@/lib/brand/logo';
 import { buttonClasses } from '@/components/ui/Button';
 import { cx } from '@/components/ui/cx';
 import { MegaMenu } from './MegaMenu';
@@ -14,12 +15,27 @@ import { MobileNav, type HeaderCta } from './MobileNav';
 import { ThemeToggle } from './ThemeToggle';
 import type { NavItem } from './nav';
 
+/**
+ * The horizontal Nafaa logo (brand/logo/svg/nafaa-logo.svg), inline so it
+ * switches to the dark-background colours with the theme (theme.css).
+ */
 export function Logo({ name, className }: { name: string; className?: string }) {
   return (
-    <Link href="/" className={cx('inline-flex items-center gap-2 rounded-md', className)} aria-label={`${name} home`}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- a 1 KB SVG mark; next/image adds nothing here. */}
-      <img src="/logo.svg" alt="" width={32} height={32} className="size-8" />
-      <span className="text-[1.1875rem] font-650 tracking-tight text-fg-strong">{name}</span>
+    <Link href="/" className={cx('inline-flex items-center rounded-md', className)} aria-label={`${name} home`}>
+      <svg
+        viewBox={`0 0 ${LOGO_LOCKUP.width} ${LOGO_LOCKUP.height}`}
+        width={113}
+        height={36}
+        className="h-9 w-auto"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <g transform={LOGO_LOCKUP.markTransform}>
+          <path d={LOGO_BOWL} className="nafaa-logo-bowl" />
+          <path d={LOGO_DOT} className="nafaa-logo-dot" />
+        </g>
+        <path transform={LOGO_LOCKUP.wordTransform} d={LOGO_WORDMARK} className="nafaa-logo-word" />
+      </svg>
     </Link>
   );
 }

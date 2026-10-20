@@ -137,3 +137,42 @@
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+/*
+ * Nafaa logo colours (brand/logo/README.md). Light-background colours by
+ * default; the dark-background set follows the resolved theme and dark bands.
+ */
+.nafaa-logo-bowl {
+  fill: #16a34a;
+}
+.nafaa-logo-dot {
+  fill: #f59e0b;
+}
+.nafaa-logo-word {
+  fill: #052e16;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .nafaa-logo-bowl {
+    fill: #22c55e;
+  }
+  :root:not([data-theme='light']) .nafaa-logo-dot {
+    fill: #fbbf24;
+  }
+  :root:not([data-theme='light']) .nafaa-logo-word {
+    fill: #f8fafc;
+  }
+}
+
+:root[data-theme='dark'] .nafaa-logo-bowl,
+.theme-ink .nafaa-logo-bowl {
+  fill: #22c55e;
+}
+:root[data-theme='dark'] .nafaa-logo-dot,
+.theme-ink .nafaa-logo-dot {
+  fill: #fbbf24;
+}
+:root[data-theme='dark'] .nafaa-logo-word,
+.theme-ink .nafaa-logo-word {
+  fill: #f8fafc;
+}

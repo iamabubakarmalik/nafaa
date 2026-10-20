@@ -208,14 +208,11 @@
 .toneBrand .markBox {
   fill: var(--dg-white);
 }
-.markStroke {
-  fill: none;
-  stroke: var(--dg-white);
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.markGlyph {
+  fill: var(--dg-white);
 }
-.toneBrand .markStroke {
-  stroke: var(--dg-brand-strong);
+.toneBrand .markGlyph {
+  fill: var(--dg-brand-strong);
 }
 .markDot {
   fill: var(--dg-mark-dot);

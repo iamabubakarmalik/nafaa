@@ -17,7 +17,7 @@ import type { ReactElement } from 'react';
 import type { IconName } from '@/lib/cms/contract/cms-contract';
 import { ICON_NODES } from './icon-nodes';
 import { OG_FONT_FAMILY } from './fonts';
-import { LOGO_MARK_DATA_URI, OG_COLORS, safeAccent, withAlpha } from './theme';
+import { LOGO_LOCKUP_DATA_URI, LOGO_LOCKUP_RATIO, LOGO_MARK_DATA_URI, OG_COLORS, safeAccent, withAlpha } from './theme';
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
@@ -276,10 +276,7 @@ export function OgCard({ model }: { model: OgCardModel }): ReactElement {
       >
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders plain img only */}
-          <img src={LOGO_MARK_DATA_URI} width={48} height={48} alt="" />
-          <div style={{ display: 'flex', marginLeft: 14, fontSize: 32, fontWeight: 600, letterSpacing: -0.8, color: OG_COLORS.slate900 }}>
-            Nafaa
-          </div>
+          <img src={LOGO_LOCKUP_DATA_URI} width={Math.round(52 * LOGO_LOCKUP_RATIO)} height={52} alt="Nafaa" />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>

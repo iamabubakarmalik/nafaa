@@ -9,6 +9,7 @@
  * TODO(S1): switch to `@/lib/icons` once it lands, so the site has one map.
  */
 import { icons, type LucideIcon } from 'lucide-react';
+import { LOGO_BOWL, LOGO_DOT } from '@/lib/brand/logo';
 import styles from '../diagrams.module.css';
 
 const toPascal = (name: string): string =>
@@ -48,15 +49,16 @@ export function SvgIcon({ name, x, y, size, className, strokeWidth = 1.75 }: Svg
 }
 
 /**
- * Code-drawn Nafaa mark, the same geometry as public/logo.svg (rounded
- * square, the N with an up-right arrow, the amber dot), coloured from tokens.
+ * Code-drawn Nafaa app icon (brand/logo/svg/nafaa-icon.svg: the noon bowl and
+ * the amber diamond on a rounded tile), coloured from tokens. The viewBox
+ * keeps the tile at 90% of `size`, as before.
  */
 export function NafaaMark({ x, y, size }: { x: number; y: number; size: number }) {
   return (
-    <svg x={x} y={y} width={size} height={size} viewBox="0 0 80 80" aria-hidden="true" focusable="false">
-      <rect x="4" y="4" width="72" height="72" rx="18" className={styles.markBox} />
-      <path d="M24 26V58L56 26M47 26H56V35M56 26V58" className={styles.markStroke} strokeWidth="6.5" />
-      <circle cx="62" cy="18" r="6" className={styles.markDot} />
+    <svg x={x} y={y} width={size} height={size} viewBox="-28.4 -28.4 568.8 568.8" aria-hidden="true" focusable="false">
+      <rect width="512" height="512" rx="114" className={styles.markBox} />
+      <path d={LOGO_BOWL} className={styles.markGlyph} />
+      <path d={LOGO_DOT} className={styles.markDot} />
     </svg>
   );
 }
